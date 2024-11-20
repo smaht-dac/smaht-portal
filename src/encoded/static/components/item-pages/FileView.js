@@ -1,6 +1,6 @@
 'use strict';
 
-import React from 'react';
+import React, { useState } from 'react';
 import url from 'url';
 import _ from 'underscore';
 import queryString from 'query-string';
@@ -9,6 +9,7 @@ import { FileViewTabs } from './components/file-overview/FileViewTabs';
 import DefaultItemView from './DefaultItemView';
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SelectedItemsDownloadButton } from '../static-pages/components/SelectAllAboveTableComponent';
+import { ShowHideInformationToggle } from './components/file-overview/ShowHideInformationToggle';
 
 // Page containing the details of Items of type File
 export default class FileOverview extends DefaultItemView {
@@ -64,7 +65,7 @@ const FileViewTitle = (props) => {
                             <li className="breadcrumb-list-item" key={i}>
                                 <a
                                     className={
-                                        'breadcrumb-list-item-link' +
+                                        'breadcrumb-list-item-link link-underline-hover' +
                                         (href ? '' : ' no-link')
                                     }
                                     href={href}>
@@ -86,8 +87,10 @@ const FileViewTitle = (props) => {
 // Header component containing high-level information for the file item
 const FileViewHeader = (props) => {
     const { context = {}, session } = props;
-    const { accession, status, description } = context;
+    const { accession, status, description, notes_to_tsv } = context;
     const selectedFile = new Map([[context['@id'], context]]);
+
+    const accessionsOfInterest = ['SMAFI557D2E7', 'SMAFIB6EQLZM'];
 
     return (
         <div className="file-view-header">
@@ -95,15 +98,41 @@ const FileViewHeader = (props) => {
                 <h1 className="header-text">File Overview</h1>
                 <SelectedItemsDownloadButton
                     id="download_tsv_multiselect"
-                    className="btn btn-primary btn-sm mr-05 align-items-center download-file-button"
+                    className="btn btn-primary btn-sm me-05 align-items-center download-file-button"
                     session={session}
                     selectedItems={selectedFile}
                     disabled={false}
                     analyticsAddItemsToCart>
-                    <i className="icon icon-download fas mr-07" />
+                    <i className="icon icon-download fas me-07" />
                     Download File
                 </SelectedItemsDownloadButton>
             </div>
+            {accessionsOfInterest.includes(accession) ? (
+                <div className="callout warning mt-2 mb-1">
+                    <p className="callout-text">
+                        <span className="flag">Attention: </span> The{' '}
+                        <a
+                            href="/SMAFI557D2E7"
+                            target="_blank"
+                            rel="noreferrer noopener"
+                            className="link-underline-hover">
+                            original BAM file
+                        </a>{' '}
+                        of COLO829-T standard ONT WGS data{' '}
+                        <strong>
+                            was retracted due to missing methylation tags
+                        </strong>
+                        . The replacement BAM with proper tags is made{' '}
+                        <a
+                            href="/SMAFIB6EQLZM"
+                            target="_blank"
+                            rel="noreferrer noopener"
+                            className="link-underline-hover">
+                            available here.
+                        </a>
+                    </p>
+                </div>
+            ) : null}
             <div className="data-group data-row">
                 <div className="datum">
                     <span className="datum-title">File Accession </span>
@@ -123,7 +152,7 @@ const FileViewHeader = (props) => {
                     <span className="vertical-divider">|</span>
                     <ViewJSONAction href={context['@id']}>
                         <a
-                            className="view-json"
+                            className="view-json link-underline-hover"
                             aria-label="Open JSON code in new tab"
                             tabIndex="0">
                             <i className="icon icon-file-code far"></i>
@@ -144,6 +173,30 @@ const FileViewHeader = (props) => {
                     </span>
                 </div>
             </div>
+            {notes_to_tsv && notes_to_tsv.length > 0 ? (
+                <div className="data-group data-row">
+                    <div className="datum description">
+                        <span className="datum-title">Notes </span>
+                        <span className="vertical-divider">|</span>
+                        <ShowHideInformationToggle
+                            id="show-hide-tsv-notes"
+                            useToggle={notes_to_tsv.length > 1}>
+                            <ul className="list-unstyled">
+                                {notes_to_tsv.map((note, i) => (
+                                    <li
+                                        key={note}
+                                        className={
+                                            'datum-value-notes-to-tsv text-gray ' +
+                                            (i > 0 ? 'mt-1' : '')
+                                        }>
+                                        {note}
+                                    </li>
+                                ))}
+                            </ul>
+                        </ShowHideInformationToggle>
+                    </div>
+                </div>
+            ) : null}
         </div>
     );
 };

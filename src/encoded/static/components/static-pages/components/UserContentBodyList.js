@@ -9,16 +9,18 @@ import {
     ExpandableStaticHeader,
 } from './BasicUserContentBody';
 
-export const UserContentBodyList = React.memo(function UserContentBodyList(
-    props
-) {
+export const UserContentBodyList = React.memo(function UserContentBodyList({
+    hideTitles = false,
+    headerElement = 'h4',
+    headerProps = {
+        className: 'text-500 mt-2',
+    },
+    allCollapsible = null,
+    ...props
+}) {
     const {
         contents,
-        headerElement,
-        headerProps,
-        allCollapsible,
         href,
-        hideTitles,
     } = props;
     if (!contents || !Array.isArray(contents) || contents.length === 0)
         return null;
@@ -65,11 +67,3 @@ export const UserContentBodyList = React.memo(function UserContentBodyList(
 
     return <div className="static-content-list">{renderedContent}</div>;
 });
-UserContentBodyList.defaultProps = {
-    hideTitles: false,
-    headerElement: 'h4',
-    headerProps: {
-        className: 'text-500 mt-2',
-    },
-    allCollapsible: null,
-};

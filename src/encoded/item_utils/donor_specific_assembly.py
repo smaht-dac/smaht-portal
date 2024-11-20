@@ -43,21 +43,21 @@ def get_donors(
 
 
 
-def get_chain_files(request_handler: RequestHandler, files: List[str] = None):
-    """Return files with chain.gz file extension."""
-    chains=[]
+def get_supplementary_files(request_handler: RequestHandler, files: List[str] = None):
+    """Return rev-linked non-fasta files."""
+    supp_files=[]
     for file in files:
-        if get_property_value_from_identifier(
+        if not get_property_value_from_identifier(
             request_handler,
             file,
-            partial(file_utils.is_chain_file,request_handler=request_handler)
+            partial(file_utils.is_fasta_file,request_handler=request_handler)
         ):
-            chains+=[file]
-    return chains
+            supp_files+=[file]
+    return supp_files
 
 
 def get_sequence_files(request_handler: RequestHandler, files: List[str] = None):
-    """Return files with fa file extension."""
+    """Return rev-linked files with fa file extension."""
     seq_files=[]
     for file in files:
         if get_property_value_from_identifier(

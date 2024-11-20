@@ -35,5 +35,19 @@
         "external_id": "ST001-1D-020X",
         "category": "Homogenate",
         "preservation_type": "Snap Frozen"
+    },
+    {
+        "uuid": "3b22bab3-ebd8-438b-9631-5c90f51bb3b6",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE-SAMPLE_LIVER_2",
+        "sample_sources": [
+            "TEST_TISSUE_LIVER"
+        ],
+        "external_id": "SMHT001-1A-101A1",
+        "category": "Core",
+        "core_size": "1.5",
+        "weight": 800
     }
 ]

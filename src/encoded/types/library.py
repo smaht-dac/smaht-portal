@@ -61,6 +61,7 @@ def validate_molecule_specific_assay_on_add(context, request):
     return check_molecule_specific_assay(request, data['analytes'], data['assay'])
     
 
+@link_related_validator
 def validate_molecule_specific_assay_on_edit(context, request):
     """Check that analyte.molecule includes the correct molecule for molecule-specific assays."""
     existing_properties = get_properties(context)

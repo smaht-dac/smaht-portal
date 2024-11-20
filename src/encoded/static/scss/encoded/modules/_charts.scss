@@ -34,7 +34,7 @@
 
 }
 
-@include media-breakpoint-down(sm){
+@include media-breakpoint-down(md){
     .facet-charts {
         height : auto !important;
         margin-top: 20px;
@@ -419,7 +419,7 @@
 
 }
 
-@include media-breakpoint-down(sm){
+@include media-breakpoint-down(md){
     .bar-plot-chart {
         position: relative;
     }
@@ -631,7 +631,7 @@
     }
 }
 
-@include media-breakpoint-down(sm){
+@include media-breakpoint-down(md){
     .bar-plot-chart-controls-wrapper {
         position: relative;
 
@@ -1156,13 +1156,15 @@ $workflow-node-color-type-global-context: #ffb3b3;
         }
 
         .dropdown-container-col {
-            @include media-breakpoint-down(lg) {
+            padding-left: 10px;
+            padding-right: 10px;
+            @include media-breakpoint-down(xl) {
                 margin-bottom: 20px;
 
                 button.btn {
                     width: 100%;
                 }
-                &.pl-2 { 
+                &.ps-2 { 
                     padding-left: 1rem !important;
                 }
             }
@@ -1188,7 +1190,7 @@ $workflow-node-color-type-global-context: #ffb3b3;
                 }
             }
 
-            @include media-breakpoint-down(lg) {
+            @include media-breakpoint-down(xl) {
                 display: block !important;
 
                 .custom-date-range {
@@ -1362,7 +1364,15 @@ $workflow-node-color-type-global-context: #ffb3b3;
         border-bottom: 2px solid #f4f4f4;
         background-color: #F1F9FF;
     }
+
     &#usage {
+        @include media-breakpoint-down(lg) {
+            .chart-group .dropdown .btn {
+                max-width: 200px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
         @include media-breakpoint-down(md) {
             h3 {
                 font-size: 1rem;
@@ -1373,13 +1383,60 @@ $workflow-node-color-type-global-context: #ffb3b3;
                 text-overflow: ellipsis;
             }
         }
-        @include media-breakpoint-down(xs) {
-            .dropdown .btn {
+        @include media-breakpoint-down(sm) {
+            .chart-group .dropdown .btn {
                 margin-top: 10px;
             }
-        }       
+        }
+
+        .chart-group h5 {
+            font-weight: 600 !important;
+        }
+
+        .search-view-controls-and-results {
+            .above-results-table-row {
+                .right-buttons button[data-tip="Sort multiple columns"],
+                .right-buttons button[data-tip="Configure visible columns"] {
+                    display: none;
+                }
+            }
+            .search-headers-column-block {
+                &[data-first-visible-column=true] {
+                    .column-title {
+                        color: #ffffff !important;
+                    }
+                }
+            }
+            .search-result-column-block[data-field="display_title"] {
+                padding-left: 0px !important;
+            }
+        }
+
+        #content_top_file_set_downloads, #content_top_file_set_downloads_volume {
+            .search-result-row .search-result-column-block[data-field="display_title"] {
+                font-size: 90% !important;
+            }
+        }
+
     }
 
+}
+
+body[data-path="/statistics"] {
+    .tracking-item-viewer {
+        div[data-for-field="reports"] + div.data-display {
+            .list-item {
+                .item-label, .item-value {
+                    max-width: 100% !important;
+                    flex: 0 0 100% !important;
+                }
+                .item-label {
+                    margin-top: 20px;
+                    font-size: 110%;
+                }
+            }
+        } 
+    }
 }
 
 

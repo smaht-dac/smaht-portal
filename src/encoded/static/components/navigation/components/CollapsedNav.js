@@ -134,6 +134,26 @@ function DataNavItem(props) {
     );
 }
 
+function ResourcesNavItem(props) {
+    const { session, ...navItemProps } = props;
+    // `navItemProps` contains: href, windowHeight, windowWidth, isFullscreen, testWarning, mounted, overlaysContainer
+    return (
+        <BigDropdownPageLoader treeURL="/resources" session={session}>
+            <BigDropdownNavItem
+                {...navItemProps}
+                id="resources-menu-item"
+                navItemHref="/resources"
+                navItemContent="Resources">
+                <BigDropdownPageTreeMenuIntroduction
+                    titleIcon="info-circle fas"
+                    linkToTopLevelDirPage={false}
+                />
+                <BigDropdownPageTreeMenu disableLinksOnLevel1Titles />
+            </BigDropdownNavItem>
+        </BigDropdownPageLoader>
+    );
+}
+
 /**
  * @todo Test user actions or role for things to have here?
  */
@@ -156,10 +176,11 @@ function LeftNavAuthenticated(props) {
         [context]
     );
     return (
-        <div className="navbar-nav mr-auto">
+        <div className="navbar-nav me-auto">
             <DataNavItem {...props} />
             <DocsNavItem {...props} />
             <AboutNavItem {...props} />
+            <ResourcesNavItem {...props} />
         </div>
     );
 }
@@ -169,7 +190,7 @@ const LeftNavGuest = React.memo(function LeftNavGuest(props) {
     const { pathname = '/' } = url.parse(href, false);
 
     return (
-        <div className="navbar-nav mr-auto">
+        <div className="navbar-nav me-auto">
             <AboutNavItem {...props} />
             <DocsNavItem {...props} />
         </div>

@@ -77,6 +77,7 @@
         },
         "extraction_method": {
             "title": "Extraction Method",
+            "description": "Method of analyte extraction",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
@@ -86,13 +87,14 @@
                     "Magnetic Beads",
                     "Not Applicable",
                     "Organic Chemicals",
-                    "Silica Column"
+                    "Silica Column",
+                    "Density Gradient Centrifugation"
                 ]
             }
         },
         "homogenization_method": {
             "title": "Homogenization method",
-            "description": "Method of sample homogenization, if applicable. Relevant for non-single-cell extraction",
+            "description": "Method of sample homogenization, if applicable",
             "type": "string"
         },
         "suspension_type": {

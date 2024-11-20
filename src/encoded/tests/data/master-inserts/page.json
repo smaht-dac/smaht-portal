@@ -903,6 +903,55 @@
         ]
     },
     {
+        "identifier": "resources",
+        "title": "Resources",
+        "status": "public",
+        "children": [
+            "5e7962d0-a218-45ba-8a76-729ef683695b"
+        ],
+        "uuid": "c546dd8b-cc0d-4a56-abac-d7fd999a81f5",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "resources/genome-related",
+        "title": "Genome Related",
+        "status": "public",
+        "children": [
+            "192a220e-64c8-4ec3-93d9-4e4218f0a7fe"
+        ],
+        "uuid": "5e7962d0-a218-45ba-8a76-729ef683695b",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "resources/genome-related/genome-reference-and-related-data",
+        "title": "Genome Reference and Related Data",
+        "status": "public",
+        "content": [
+            "edf6c0f5-e051-4c4e-8e22-99dfde0b8501"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "header-depth": 4
+        },
+        "uuid": "192a220e-64c8-4ec3-93d9-4e4218f0a7fe",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "privacy-policy",
         "title": "Privacy Policy",
         "status": "deleted",

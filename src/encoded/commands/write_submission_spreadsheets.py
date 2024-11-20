@@ -9,6 +9,7 @@ import googleapiclient
 import googleapiclient.discovery
 import openpyxl
 import structlog
+from dcicutils import ff_utils
 from dcicutils.creds_utils import SMaHTKeyManager
 from dcicutils.misc_utils import to_camel_case, to_snake_case
 from dcicutils import schema_utils
@@ -58,6 +59,35 @@ a new token.
 ITEM_SPREADSHEET_SUFFIX = "_submission.xlsx"
 WORKBOOK_FILENAME = "submission_workbook.xlsx"
 
+EXAMPLE_FILE_UUIDS=["4e142999-5d48-4dcd-b7d6-558e5960e69b",
+                    "d4020a63-338c-4103-8461-417d09df5cbd",
+                    "f382f84c-f590-49f2-9f62-e852e2c30647"
+                    ]
+
+POPULATE_ORDER = [
+    "VariantCalls",
+    "AlignedReads",
+    "UnalignedReads",
+    "FileSet",
+    "Software",
+    "Library",
+    "Sequencing",
+    "Basecalling",
+    "LibraryPreparation",
+    "Analyte",
+    "AnalytePreparation",
+    "PreparationKit",
+    "Treatment",
+    "CellSample",
+    "CellCultureSample",
+    "CellCultureMixture",
+    "CellCulture",
+    "CellLine",
+    "TissueSample",
+    "Tissue",
+    "Donor"
+]
+
 FONT = "Arial"
 FONT_SIZE = 10
 
@@ -79,11 +109,11 @@ GCC_SUBMISSION_ITEMS = [
     "Donor",
     "Tissue",
     "TissueSample",
-    "CellSample",
     "CellLine",
     "CellCulture",
     "CellCultureMixture",
     "CellCultureSample",
+    "CellSample",
     "Analyte",
     "AnalytePreparation",
     "PreparationKit",
@@ -96,7 +126,7 @@ GCC_SUBMISSION_ITEMS = [
     "UnalignedReads",
     "AlignedReads",
     "VariantCalls",
-    "Software" 
+    "Software"
 ]
 
 DSA_SUBMISSION_ITEMS = [
@@ -104,6 +134,15 @@ DSA_SUBMISSION_ITEMS = [
     "SupplementaryFile",
     "Software"
 ]
+
+EQM_TAB_NAMES = {
+    "dsa": "DSA_ExternalQualityMetric",
+    "duplexseq": "DuplexSeq_ExternalQualityMetric"
+}
+MULTI_TYPE_ITEMS = [
+    'CellCultureMixture'
+]
+
 
 @dataclass(frozen=True)
 class SheetsClient:
@@ -128,10 +167,12 @@ def update_google_sheets(
     request_handler: RequestHandler,
     gcc: bool = False,
     tpc: bool = False,
-    items: List[str] = None
+    items: List[str] = None,
+    eqm: Union[Dict[str, Any], None] = None,
+    example: bool = False,
 ) -> None:
     """Update Google Sheets with the latest submission schemas."""
-    spreadsheets = get_spreadsheets(request_handler,gcc=gcc,tpc=tpc,items=items)
+    spreadsheets = get_spreadsheets(request_handler, gcc=gcc, tpc=tpc, items=items, eqm=eqm, example=example)
     log.info("Clearing existing Google sheets.")
     delete_existing_sheets(sheets_client)
     log.info("Updating Google sheets with tabs.")
@@ -147,21 +188,54 @@ def get_spreadsheets(
         request_handler: RequestHandler,
         gcc: bool = False,
         tpc: bool = False,
-        items: List[str] = None
+        items: List[str] = None,
+        eqm: Union[Dict[str, Any], None] = None,
+        example: bool = False,
     ) -> List[Spreadsheet]:
     submission_schemas = get_all_submission_schemas(request_handler)
-    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,gcc=gcc,tpc=tpc)
+    ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas, gcc=gcc, tpc=tpc)
+    if example:
+        example_fields = get_example_fields(EXAMPLE_FILE_UUIDS,GCC_SUBMISSION_ITEMS)
+        submission_schemas = get_ordered_submission_schemas(submission_schemas,order=POPULATE_ORDER)
+        spreadsheets = []
+        for item, submission_schema in submission_schemas.items():
+            unlinked_spreadsheet = get_example_spreadsheet(
+                item,request_handler,example_fields,submission_schema
+            )
+            spreadsheet,example_fields = get_linked_spreadsheet(
+                request_handler,unlinked_spreadsheet,example_fields
+            )
+            spreadsheets.append(spreadsheet)
+        if gcc:
+            order = GCC_SUBMISSION_ITEMS
+        elif items:
+            order = items
+        return reorder_spreadsheets(spreadsheets,order)
     if items:
-        return [
+        spreadsheets = [
             get_spreadsheet(item, submission_schema)
             for item, submission_schema in ordered_submission_schemas.items()
             if item in items
         ]
-    return [
-        get_spreadsheet(item, submission_schema)
-        for item, submission_schema in ordered_submission_schemas.items()
-    ]
+    else:
+        spreadsheets = [
+            get_spreadsheet(item, submission_schema)
+            for item, submission_schema in ordered_submission_schemas.items()
+        ]
+    if eqm:
+        eqm['schema'] = get_submission_schema('ExternalQualityMetric', request_handler)
+        spreadsheets.append(get_eqm_spreadsheet(eqm))
+    return spreadsheets
 
+
+def reorder_spreadsheets(spreadsheets: List[Spreadsheet], order: List[str]):
+    """Reorder spreadsheets in a specific order."""
+    new_spreadsheets = []
+    for item in order:
+        for spreadsheet in spreadsheets:
+            if spreadsheet.item == item:
+                new_spreadsheets.append(spreadsheet)
+    return new_spreadsheets
 
 def delete_existing_sheets(sheets_client: SheetsClient) -> None:
     """Delete existing sheets from Google Sheets."""
@@ -244,7 +318,8 @@ def get_add_sheet_request(spreadsheet: Spreadsheet, sheet_id: int) -> Dict[str, 
 
 
 def write_values_to_sheets(
-    sheets_client: SheetsClient, spreadsheets: List[Spreadsheet]
+    sheets_client: SheetsClient,
+    spreadsheets: List[Spreadsheet]
 ) -> None:
     """Write values to the Google Sheets."""
     requests = []
@@ -256,7 +331,11 @@ def write_values_to_sheets(
 
 def get_update_cells_request(spreadsheet: Spreadsheet, sheet_id: int) -> Dict[str, Any]:
     """Get request to update cells with properties."""
-    values = get_values(spreadsheet)
+    if spreadsheet.examples:
+        values = get_example_values(spreadsheet)
+    else: 
+        values = get_values(spreadsheet)
+    
     return {
         "updateCells": {
             "rows": values,
@@ -281,6 +360,46 @@ def get_cell_value(property_: Property) -> Dict[str, Any]:
         },
         "note": get_comment_text(property_),
     }
+
+
+def get_example_cell_value(value: Union[str, List]) -> Dict[str, Any]:
+    """Get the example cell value."""
+    if is_list(value):
+        value=get_example_list(value)
+    return {
+        "userEnteredValue": {"stringValue": str(value)},
+        "userEnteredFormat": {
+            "textFormat": {"fontFamily": FONT, "fontSize": FONT_SIZE}
+        }
+    }
+
+
+def get_empty_cell():
+    """Get empty cell"""
+    return {
+        "userEnteredValue": {},
+        "userEnteredFormat": {}
+    }
+
+
+def get_example_values(spreadsheet: Spreadsheet) -> List[Dict[str, Any]]:
+    """Get example values for the Google spreadsheet."""
+    ordered_properties = get_ordered_properties(spreadsheet.properties)
+    values = [{"values": [get_cell_value(property_) for property_ in ordered_properties]}]
+    for idx, example in enumerate(spreadsheet.examples):
+        row_values = {"values":[]}
+        for property_ in ordered_properties:
+            if property_.nested:
+                parent_property, nested_property, n_index = extract_nested_property_names(property_.name)
+                value = example[parent_property][n_index][nested_property]
+                row_values["values"].append(get_example_cell_value(value))
+            elif property_.name in example:
+                value = example[property_.name]
+                row_values["values"].append(get_example_cell_value(value))
+            else:
+                row_values["values"].append(get_empty_cell())
+        values.append(row_values)
+    return values
 
 
 def get_text_format(property_: Property) -> Dict[str, Any]:
@@ -333,16 +452,16 @@ def write_all_spreadsheets(
     output: Path,
     request_handler: RequestHandler,
     workbook: bool = False,
-    separate_comments: bool = False,
+    separate_comments: bool = False
 ) -> None:
     """Write all submission spreadsheets"""
     submission_schemas = get_all_submission_schemas(request_handler)
     log.info(f"Writing submission spreadsheets to: {output}")
     if workbook:
-        write_workbook(output, submission_schemas, separate_comments=separate_comments)
+        write_workbook(output, submission_schemas, request_handler, separate_comments=separate_comments)
     else:
         write_spreadsheets(
-            output, submission_schemas, separate_comments=separate_comments
+            output, submission_schemas, request_handler, separate_comments=separate_comments
         )
 
 
@@ -361,21 +480,31 @@ def write_item_spreadsheets(
     tpc: bool = False,
     gcc: bool = False,
     separate_comments: bool = False,
+    eqm: Union[Dict[str, Any], None] = None,
+    example: bool = False
 ) -> None:
     """Write submission spreadsheets for specified items"""
     submission_schemas = get_submission_schemas(items, request_handler)
+    if eqm:
+        eqm['schema'] = get_submission_schema('ExternalQualityMetric', request_handler)
     if not submission_schemas:
         log.error("No submission schemas found for given items. Exiting...")
         return
-    log.info(
-        f"Writing submission spreadsheets to {output} for items:"
-        f" {submission_schemas.keys()}"
-    )
+    if example:
+        log.info(
+            f"Writing example submission spreadsheets to {output} for items:"
+            f" {submission_schemas.keys()}"
+        )
+    else:
+        log.info(
+            f"Writing submission spreadsheets to {output} for items:"
+            f" {submission_schemas.keys()}"
+        )
     if workbook:
-        write_workbook(output, submission_schemas, separate_comments=separate_comments,tpc=tpc,gcc=gcc)
+        write_workbook(output, submission_schemas, request_handler, separate_comments=separate_comments, tpc=tpc, gcc=gcc, eqm=eqm, example=example)
     else:
         write_spreadsheets(
-            output, submission_schemas, separate_comments=separate_comments
+            output, submission_schemas, request_handler, separate_comments=separate_comments, eqm=eqm, example=example
         )
 
 
@@ -404,32 +533,56 @@ def get_submission_schema_endpoint(item: str) -> Dict[str, Any]:
     return f"{SubmissionSchemaConstants.ENDPOINT}{to_snake_case(item)}.json"
 
 
+def get_eqm_template(
+    eqm: str,
+    keys: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Get the ExternalQualityMetric with tags `eqm` from search."""
+    search = f"search/?type=ExternalQualityMetric&status=restricted&tags={eqm}&frame=raw"
+    result = ff_utils.search_metadata(search,key=keys)
+    if result:
+        value = EQM_TAB_NAMES[eqm]
+        return {'template': {value: result[0]}}
+    else:
+        log.error("No ExternalQualityMetric found for given `eqm` value. Exiting...")
+        return
+
+
 def write_workbook(
     output: Path,
     submission_schemas: Dict[str, Any],
+    request_handler: RequestHandler,
     tpc: bool = False,
     gcc: bool = False,
-    separate_comments: bool = False
+    separate_comments: bool = False,
+    eqm: Union[str, None] = None,
+    example: bool = False
 ) -> None:
     """Write a single workbook containing all submission spreadsheets."""
     workbook = openpyxl.Workbook()
     ordered_submission_schemas = get_ordered_submission_schemas(submission_schemas,tpc=tpc,gcc=gcc)
     write_workbook_sheets(
-        workbook, ordered_submission_schemas, separate_comments=separate_comments
+        workbook, ordered_submission_schemas, request_handler, separate_comments=separate_comments, eqm=eqm, example=example
     )
     file_path = Path(output, WORKBOOK_FILENAME)
     save_workbook(workbook, file_path)
-    log.info(f"Workbook written to: {file_path}")
+    if example:
+        log.info(f"Example workbook written to: {file_path}")
+    else:
+        log.info(f"Workbook written to: {file_path}")
 
 
 def get_ordered_submission_schemas(
     submission_schemas: Dict[str, Any],
     tpc: bool = False,
-    gcc: bool = False
+    gcc: bool = False,
+    order: List[str] = None
 ) -> Dict[str, Dict[str, Any]]:
     """Order submission schemas."""
     result = {}
-    if tpc:
+    if order:
+        item_order = order
+    elif tpc:
         item_order = TPC_SUBMISSION_ITEMS
     elif gcc:
         item_order = GCC_SUBMISSION_ITEMS
@@ -441,32 +594,98 @@ def get_ordered_submission_schemas(
     return result
 
 
+@dataclass
+class ExampleFields:
+    """Data struct for keeping track of linked items in example spreadsheets.
+    
+    Seed File is currently set with EXAMPLE_FILE_UUIDs."""
+    seed_files: List[str]
+    fields: Dict[str,List[Union[str,None]]]
+
+
+def get_example_fields(seed_files: List[str],items = List[str]) -> ExampleFields:
+    """Get linked id information for item."""
+    fields = {}
+    for item in items:
+        fields[item] = []
+    return ExampleFields(
+        seed_files=seed_files,
+        fields=fields,
+    )
+
+
 def write_workbook_sheets(
     workbook: openpyxl.Workbook,
     submission_schemas: Dict[str, Dict[str, Any]],
+    request_handler: RequestHandler,
     separate_comments: bool = False,
+    eqm: Union[Dict[str, Any], None] = None,
+    example: bool = False
 ) -> None:
     """Write workbook sheets for given schemas."""
-    for index, (item, submission_schema) in enumerate(submission_schemas.items()):
-        spreadsheet = get_spreadsheet(item, submission_schema)
+    if example:
+        spreadsheets = []
+        example_fields = get_example_fields(EXAMPLE_FILE_UUIDS,GCC_SUBMISSION_ITEMS)
+        submission_schemas = get_ordered_submission_schemas(submission_schemas,order=POPULATE_ORDER)
+        for index, (item, submission_schema) in enumerate(submission_schemas.items()):
+            unlinked_spreadsheet = get_example_spreadsheet(
+                item, request_handler, example_fields, submission_schema
+            )
+            spreadsheet, example_fields = get_linked_spreadsheet(
+                request_handler, unlinked_spreadsheet, example_fields
+            )
+            spreadsheets.append(spreadsheet)
+        ordered_spreadsheets = reorder_spreadsheets(spreadsheets, GCC_SUBMISSION_ITEMS)
+    else:
+        ordered_spreadsheets = []
+        for index, (item, submission_schema) in enumerate(submission_schemas.items()):
+            spreadsheet = get_spreadsheet(item, submission_schema)
+            ordered_spreadsheets.append(spreadsheet)
+    for index, spreadsheet in enumerate(ordered_spreadsheets):
         if index == 0:
             worksheet = workbook.active
             set_sheet_name(worksheet, spreadsheet)
-            write_properties(worksheet, spreadsheet.properties, separate_comments)
+            write_properties(worksheet, spreadsheet.properties, separate_comments, examples=spreadsheet.examples)
         else:
             worksheet = workbook.create_sheet(title=spreadsheet.item)
             write_properties(worksheet, spreadsheet.properties, separate_comments)
+    if eqm:
+        spreadsheet = get_eqm_spreadsheet(eqm)
+        worksheet = workbook.create_sheet(title=spreadsheet.item)
+        write_properties(worksheet, spreadsheet.properties, separate_comments)
+
+
+
+
 
 
 def write_spreadsheets(
     output: Path,
     submission_schemas: Dict[str, Any],
-    separate_comments: bool = False
+    request_handler: RequestHandler,
+    separate_comments: bool = False,
+    eqm: Union[Dict[str, Any], None] = None,
+    example: bool = False
 ) -> None:
     """Write submission spreadsheets."""
-    for item, submission_schema in submission_schemas.items():
-        spreadsheet = get_spreadsheet(item, submission_schema)
-        write_spreadsheet(output, spreadsheet, separate_comments)
+    if example:
+        example_fields = get_example_fields(EXAMPLE_FILE_UUIDS,GCC_SUBMISSION_ITEMS)
+        submission_schemas = get_ordered_submission_schemas(submission_schemas,order=POPULATE_ORDER)
+        for item, submission_schema in submission_schemas.items():
+            unlinked_spreadsheet = get_example_spreadsheet(
+                item,request_handler,example_fields,submission_schema
+            )
+            spreadsheet,example_fields = get_linked_spreadsheet(
+                request_handler,unlinked_spreadsheet,example_fields
+            )
+            write_spreadsheet(output, spreadsheet, separate_comments, example=example)
+    else:
+        for item, submission_schema in submission_schemas.items():
+            spreadsheet = get_spreadsheet(item, submission_schema)
+            write_spreadsheet(output, spreadsheet, separate_comments)
+        if eqm:
+            spreadsheet = get_eqm_spreadsheet(eqm)
+            write_spreadsheet(output, spreadsheet, separate_comments)
 
 
 @dataclass(frozen=True)
@@ -494,6 +713,8 @@ class Property:
     format_: str = ""
     requires: Optional[List[str]] = None
     exclusive_requirements: Optional[List[str]] = None
+    nested: bool = False
+    search: str = ""
     allow_commas: Optional[bool] = False
     allow_multiplier_suffix: Optional[bool] = False
     search: Optional[str] = ""
@@ -503,6 +724,7 @@ class Property:
 class Spreadsheet:
     item: str
     properties: List[Property]
+    examples: Optional[List[Dict[str,Any]]] = None
 
 
 def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet:
@@ -514,6 +736,129 @@ def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet
     )
 
 
+def get_eqm_spreadsheet(eqm: Dict[str, Any]):
+    """Get spreadsheet information for ExternalQualityMetric item."""
+    item = list(eqm['template'].keys())[0]
+    properties = get_eqm_properties(item, eqm)
+    return Spreadsheet(
+        item=item,
+        properties=properties,
+    )
+
+
+def get_example_spreadsheet(
+        item: str,
+        request_handler: RequestHandler,
+        example_fields: ExampleFields,
+        submission_schema: Dict[str,Any]
+    ) -> Spreadsheet:
+    """Get example property values of spreadsheet information for item."""
+    starting = ['AlignedReads'] # Currently just aligned reads
+    #starting = ['AlignedReads','VariantCalls']
+    if item in starting:
+        example = get_submission_examples(request_handler,example_fields,seed=True)
+    else:
+        example = get_submission_examples(request_handler,example_fields,item_type=item)
+    properties = get_properties(item, submission_schema)
+    return Spreadsheet(
+        item=item,
+        properties=properties,
+        examples=example
+    )
+
+
+def get_submission_examples(
+    request_handler: RequestHandler,
+    example_fields: ExampleFields,
+    item_type: str = None,
+    seed: bool = False
+    ):
+    """Get examples of property values for items."""
+    items = example_fields.seed_files if seed else example_fields.fields[item_type]
+    return [request_handler.get_item(obj_id) for obj_id in items]
+
+
+def get_linked_spreadsheet(
+    request_handler: RequestHandler,
+    spreadsheet: Spreadsheet,
+    example_fields: ExampleFields
+):
+    """Get spreadsheet with links filled out with submitted_id or identifier."""
+    links = get_all_links(spreadsheet)
+    nested_links = get_nested_links(spreadsheet)
+    for link in links:
+        for idx, example in enumerate(spreadsheet.examples):
+            if link in nested_links:   
+                values = get_nested_example(example,link)
+                parent_property, nested_property, n_index = extract_nested_property_names(link)
+                id_values, example_fields = get_id_list(request_handler,values,example_fields)
+                spreadsheet.examples[idx][parent_property][n_index][nested_property] = " | ".join(id_values)
+            elif link in example:
+                values = example[link]
+                id_values, example_fields = get_id_list(request_handler,values,example_fields)
+                spreadsheet.examples[idx][link] = " | ".join(id_values)
+    return spreadsheet, example_fields
+
+
+def get_id_list(
+    request_handler: RequestHandler,
+    values: Union[str,List[str]],
+    example_fields: ExampleFields
+    ):
+    """Return list of submitted_id or identifier values from @ids."""
+    id_values = []
+    if type(values) is list:
+        for value in values:
+            item = request_handler.get_item(value)
+            example_fields = update_example_fields(item,example_fields)
+            id_values.append(get_linked_item_id(item))
+    else:
+        item = request_handler.get_item(values)
+        example_fields = update_example_fields(item,example_fields)
+        id_values.append(get_linked_item_id(item))
+    return id_values, example_fields
+
+
+def update_example_fields(item: Dict[str,Any],example_fields: ExampleFields):
+    """Update value of example field for linked submitted item.
+    
+    For item types with multiple submitted items in the type list, get the type to use from MULTI_TYPE_ITEMS. Currently, the only item that matches multiple keys is CellCultureMixture but may need to update later.
+    """
+    key = [value for value in item['@type'] if value in example_fields.fields.keys()]
+    if len(key)>1:
+        overlap = [match for match in set(MULTI_TYPE_ITEMS) & set(key)]
+        key = overlap
+    if key:
+        atid = item.get("@id","")
+        if atid not in example_fields.fields[key[0]]:
+            example_fields.fields[key[0]].append(atid) 
+    return example_fields
+
+
+def get_linked_item_id(response: Dict[str,Any]):
+    """Get either submitted_id or identifier for item."""
+    submitted_id = response.get("submitted_id","")
+    if submitted_id:
+        return submitted_id
+    else:
+        return response.get("identifier","")
+        
+
+def get_all_links(spreadsheet: Spreadsheet):
+    """Get all links from properties."""
+    links = get_required_links(spreadsheet.properties) + get_non_required_links(spreadsheet.properties)
+    return [link.name for link in links]
+
+
+def get_nested_links(spreadsheet: Spreadsheet) -> List[Property]:
+    """Get links that are nested within properties."""
+    return [
+            property_.name
+            for property_ in spreadsheet.properties
+            if property_.nested and property_.link
+        ]
+
+
 def get_properties(item: str, submission_schema: Dict[str, Any]) -> List[Property]:
     """Get property information from the submission schema"""
     properties = schema_utils.get_properties(submission_schema)
@@ -523,7 +868,38 @@ def get_properties(item: str, submission_schema: Dict[str, Any]) -> List[Propert
     return property_list
 
 
-def get_property(item: str, property_name: str, property_schema: Dict[str, Any]) -> Property:
+def get_eqm_properties(item: str, eqm: Dict[str, Any]):
+    """Format property information from ExternalQualityMetric template.
+    
+    Grabs normal properties from schema and then formats qc_values.key and qc_values.tooltip to be description and submissionComment.
+    """
+    properties = schema_utils.get_properties(eqm['schema'])
+    primary_properties = {key: value for key, value in properties.items() if key in eqm['template'][item].keys() and key != "qc_values"}
+    secondary_properties = get_eqm_qc_values(item, eqm)
+    all_properties = {**primary_properties, **secondary_properties}
+    property_list = []
+    for key, value in all_properties.items():
+        property_list.append(get_property(item, key, value))
+    return property_list
+    
+
+def get_eqm_qc_values(item: str, eqm: Dict[str, Any]):
+    """Get qc_values format to match schema properties.
+    
+    If `tooltip` is present, add as a `submissionComment.
+    """
+    qc_values = eqm['template'][item]['qc_values']
+    qc_values_properties = {}
+    for metric in qc_values:
+        qc_values_properties[metric['derived_from']] = {
+            "description": metric['key'],
+        }
+        if "tooltip" in metric:
+            qc_values_properties[metric['derived_from']]["submissionComment"] = metric['tooltip']
+    return qc_values_properties
+
+
+def get_property(item: str, property_name: str, property_schema: Dict[str, Any],is_nested: bool = False) -> Property:
     """Get property information"""
     return Property(
         name=property_name,
@@ -540,6 +916,7 @@ def get_property(item: str, property_name: str, property_schema: Dict[str, Any])
         format_=schema_utils.get_format(property_schema),
         requires=get_corequirements(property_schema),
         exclusive_requirements=get_exclusive_requirements(property_schema),
+        nested=is_nested,
         allow_commas=is_allow_commas(property_schema),
         allow_multiplier_suffix=is_allow_multiplier_suffix(property_schema),
         search=get_search_url(property_schema)
@@ -564,7 +941,7 @@ def get_nested_property(item: str, property_name:str, property_schema: Dict[str,
         for key, value in property_schema.items():
             combined_property_name=f"{property_name}#{index}.{key}"
             object_properties.append(
-                get_property(item, combined_property_name,value)
+                get_property(item, combined_property_name, value, is_nested=True)
             )
     return object_properties
 
@@ -581,14 +958,23 @@ def is_required(property_schema: Dict[str, Any]) -> bool:
     return property_schema.get(SubmissionSchemaConstants.IS_REQUIRED, False)
 
 
+def get_search_url(property_schema: Dict[str, Any]) -> str:
+    """Get portal search url for linked item names."""
+    if is_link(property_schema):
+        linked_item = get_linkto(property_schema) or get_linkto(schema_utils.get_items(property_schema))
+        return f"https://data.smaht.org/search/?type={linked_item}"
+    else:
+        return ""
+
+
+def get_linkto(property_schema: Dict[str, Any]) -> str:
+    """Get item type a property links to."""
+    return property_schema.get("linkTo","")
+
+
 def is_link(property_schema: Dict[str, Any]) -> bool:
     """Check if property is a link to another item"""
     return schema_utils.is_link(property_schema) or is_array_of_links(property_schema)
-
-
-def get_linkto(property_schema: Dict[str, Any]) -> bool:
-    """Get property linkTo item"""
-    return property_schema.get("linkTo","")
 
 
 def is_array_of_links(property_schema: Dict[str, Any]) -> bool:
@@ -647,14 +1033,17 @@ def is_allow_multiplier_suffix(property_schema: Dict[str, Any]) -> bool:
 
 
 def write_spreadsheet(
-    output: Path, spreadsheet: Spreadsheet, separate_comments: bool = False
+    output: Path, spreadsheet: Spreadsheet, separate_comments: bool = False, example: bool = False
 ) -> None:
     """Write spreadsheet to file"""
     file_path = get_output_file_path(output, spreadsheet)
     workbook = generate_workbook(spreadsheet, separate_comments=separate_comments)
     save_workbook(workbook, file_path)
-    log.info(f"Spreadsheet written to: {file_path}")
-
+    if example:
+        log.info(f"Example spreadsheet written to: {file_path}")
+    else:
+        log.info(f"Spreadsheet written to: {file_path}")
+    
 
 def get_output_file_path(output: Path, spreadsheet: Spreadsheet) -> Path:
     """Get the output file path"""
@@ -669,7 +1058,7 @@ def generate_workbook(
     worksheet = workbook.active
     set_sheet_name(worksheet, spreadsheet)
     write_properties(
-        worksheet, spreadsheet.properties, separate_comments=separate_comments
+        worksheet, spreadsheet.properties, separate_comments=separate_comments,examples=spreadsheet.examples
     )
     return workbook
 
@@ -685,6 +1074,7 @@ def write_properties(
     worksheet: openpyxl.worksheet.worksheet.Worksheet,
     properties: List[Property],
     separate_comments: bool = False,
+    examples: Optional[List[Dict[str,Any]]] = None
 ) -> None:
     """Write properties to the worksheet"""
     ordered_properties = get_ordered_properties(properties)
@@ -694,6 +1084,32 @@ def write_properties(
             write_comment_cells(worksheet, index, property_)
         else:
             write_property(worksheet, index, property_)
+        if examples:
+            for row, item in enumerate(examples, start=2):
+                if property_.nested:
+                    value = get_nested_example(item,property_.name,)
+                    write_example(worksheet,index,row,property_,value)
+                elif property_.name in item:
+                    value = item[property_.name]
+                    write_example(worksheet,index,row,property_,value)
+                else:
+                    write_empty(worksheet,index,row,property_)
+
+
+def extract_nested_property_names(property_name: str):
+    """Extract the parent and nested property names from a nested property column name.
+    
+    Expects the format parent_property#n_index.nested_property """
+    parent_property = property_name.split("#")[0]
+    nested_property = property_name.split(".")[1]
+    n_index= int(property_name.split("#")[1].split(".")[0])
+    return parent_property, nested_property, n_index
+
+
+def get_nested_example(item: Dict[str, Any],property_name: str):
+    """Get example values from properties nested within an array of objects."""
+    parent_property, nested_property, n_index = extract_nested_property_names(property_name)
+    return item[parent_property][n_index][nested_property]
 
 
 def get_ordered_properties(properties: List[Property]) -> List[Property]:
@@ -701,7 +1117,7 @@ def get_ordered_properties(properties: List[Property]) -> List[Property]:
 
     Rank via:
        - Required non-links (~alphabetically)
-       - Non-required non-links (alphabetically)
+       - Non-required non-links (not alphabetically)
        - Required links (alphabetically)
        - Non-required links (alphabetically)
 
@@ -745,14 +1161,15 @@ def get_required_non_links(properties: List[Property]) -> List[Property]:
 
 
 def get_non_required_non_links(properties: List[Property]) -> List[Property]:
-    """Get non-required non-link properties."""
-    return sort_properties_alphabetically(
-        [
-            property_
-            for property_ in properties
-            if not property_.required and not property_.link
-        ]
-    )
+    """Get non-required non-link properties.
+    
+    No longer sort alphabetically.
+    """
+    return [
+        property_
+        for property_ in properties
+        if not property_.required and not property_.link
+    ]
 
 
 def get_required_links(properties: List[Property]) -> List[Property]:
@@ -777,6 +1194,41 @@ def is_submitted_id(property_: Property) -> bool:
     """Check if property is `submitted_id`."""
     return property_.name == item_constants.SUBMITTED_ID
 
+
+def write_example(
+    worksheet: openpyxl.worksheet.worksheet.Worksheet,
+    index: int,
+    row: int,
+    property_: Property,
+    value: Any,
+) -> None:
+    """Write example of property value to the worksheet"""
+    if is_list(value):
+        value=get_example_list(value)
+    row =  row  # cells 1-indexed, start with 2
+    cell = worksheet.cell(row=row, column=index, value=value)
+    cell.font = openpyxl.styles.Font(name=FONT, size=FONT_SIZE)
+
+
+def write_empty(
+    worksheet: openpyxl.worksheet.worksheet.Worksheet,
+    index: int,
+    row: int,
+    property_: Property
+):
+    """Write empty cell to the worksheet."""
+    cell = worksheet.cell(row=row, column=index, value=None)
+    cell.font = openpyxl.styles.Font(name=FONT, size=FONT_SIZE)
+
+
+def is_list(value):
+    """Returns True if value is a list."""
+    return type(value) is list
+
+
+def get_example_list(value: List[Any]) -> List[str]:
+    """"Convert list of values into | separate string."""
+    return ' | '.join(value)
 
 def write_property(
     worksheet: openpyxl.worksheet.worksheet.Worksheet,
@@ -867,6 +1319,7 @@ def get_comment_text(property_: Property) -> str:
     comment_lines += get_comment_pattern(property_, indent)
     comment_lines += get_comment_note(property_, indent)
     comment_lines += get_comment_search(property_, indent)
+    comment_lines += get_comment_nested(property_, indent)
 
     return "\n".join(comment_lines)
 
@@ -906,6 +1359,24 @@ def get_comment_examples(property_: Property, indent: str) -> List[str]:
 def get_comment_link(property_: Property, indent: str) -> List[str]:
     if property_.link:
         return [f"Link:{indent}Yes"]
+    return []
+
+
+def get_comment_nested(property_: Property, indent: str) -> List[str]:
+    if property_.nested:
+        return [f"Nested:{indent}Yes"]
+    return []
+
+
+def get_comment_search(property_: Property, indent: str) -> List[str]:
+    """Get text for search url.
+    
+    If property is file_format, include query for specific File type
+    """
+    if property_.search:
+        if property_.name == "file_format":
+            return [f"Search:{indent}{property_.search}&valid_item_types={property_.item}"]
+        return [f"Search:{indent}{property_.search}"]
     return []
 
 
@@ -953,27 +1424,6 @@ def get_comment_numbers(property_: Property, indent: str) -> List[str]:
     return comment
 
 
-def get_comment_search(property_: Property, indent: str) -> List[str]:
-    """Get text for search url.
-    
-    If property is file_format, include query for specific File type
-    """
-    if property_.search:
-        if property_.name == "file_format":
-            return [f"Search:{indent}{property_.search}&valid_item_types={property_.item}"]
-        return [f"Search:{indent}{property_.search}"]
-    return []
-
-
-def get_search_url(property_schema: Dict[str, Any]) -> str:
-    """Get portal search url for linked item names."""
-    if is_link(property_schema):
-        linked_item = get_linkto(property_schema) or get_linkto(schema_utils.get_items(property_schema))
-        return f"https://data.smaht.org/search/?type={linked_item}"
-    else:
-        return ""
-
-
 def is_date_format(format_: str) -> bool:
     """Check if the format is a date format."""
     return format_ == "date"
@@ -981,7 +1431,7 @@ def is_date_format(format_: str) -> bool:
 
 def get_comment_height(comment_text: str) -> int:
     """Get comment height based on number of lines."""
-    pixels_per_line = 20  # Looks reasonable for the font size
+    pixels_per_line = 25  # Looks reasonable for the font size
     lines = [line for line in comment_text.split("\n")]
     return len(lines) * pixels_per_line
 
@@ -1038,6 +1488,19 @@ def main():
             f" Token will be saved to {GOOGLE_TOKEN_PATH}."
             f" For more information, see docstring within the script."
         ),
+    ),
+    parser.add_argument(
+        "--eqm",
+        choices=["dsa","duplexseq"],
+        help="External Quality Metric for specific submissions"
+    )
+    parser.add_argument(
+        "--example",
+        help=(f" Write out populated example submission template."
+        f"Currently works with --gcc and --item."
+        f"Starts of with {EXAMPLE_FILE_UUIDS} as AlignedReads."
+        ),
+        action="store_true"
     )
     args = parser.parse_args()
 
@@ -1054,74 +1517,113 @@ def main():
         parser.error("Cannot specify both all and gcc")
     if args.all and args.item:
         parser.error("Cannot specify both all and item")
-    # Google spreadsheets
-    if args.google:
-        if args.all:
+    if args.eqm and args.example:
+         parser.error("Currently cannot specify both eqm and example")
+    if args.eqm and args.tpc:
+        parser.error("Cannot specify both eqm and tpc")
+    eqm = None
+    if args.eqm:
+        log.info(f"Grabbing ExternalQualityMetric template for {args.eqm}")
+        eqm = get_eqm_template(
+            eqm=args.eqm,
+            keys=keys
+        )
+    if args.example:
+        if args.google:
             log.info(f"Google Sheet ID: {args.google}")
             log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
             spreadsheet_client = get_google_sheet_client(args.google)
-            update_google_sheets(spreadsheet_client, request_handler)
-        elif args.gcc:
-            log.info(f"Google Sheet ID: {args.google}")
-            log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-            log.info("Writing GCC submission Google sheet")
-            spreadsheet_client = get_google_sheet_client(args.google)
-            update_google_sheets(spreadsheet_client, request_handler,gcc=True)
-        elif args.tpc:
-            log.info(f"Google Sheet ID: {args.google}")
-            log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-            log.info("Writing TPC submission Google sheet")
-            spreadsheet_client = get_google_sheet_client(args.google)
-            update_google_sheets(spreadsheet_client, request_handler,tpc=True)
+            if args.gcc:
+                log.info("Writing GCC submission example to Google sheet")
+                update_google_sheets(spreadsheet_client, request_handler,gcc=True,example=True)
+            elif args.item:
+                log.info(f"Writing submission example to Google sheet for item(s): {args.item}")
+                update_google_sheets(spreadsheet_client, request_handler,items=args.item,example=True)
         elif args.item:
+            log.info(f"Writing example submission spreadsheets for item(s): {args.item}")
+            write_item_spreadsheets(
+                args.output,
+                args.item,
+                request_handler,
+                workbook=args.workbook,
+                separate_comments=args.separate,
+                example=True
+            )
+        elif args.gcc:
+            log.info("Writing example submission spreadsheet for GCC submission")
+            write_item_spreadsheets(
+                args.output,
+                GCC_SUBMISSION_ITEMS,
+                request_handler,
+                workbook=args.workbook,
+                separate_comments=args.separate,
+                example=True,
+                gcc=True
+            )
+        else: 
+            parser.error("--example argument currently only works for individual item lists or --gcc")
+    else:
+        if args.google:
+            # Google spreadsheets
             log.info(f"Google Sheet ID: {args.google}")
             log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
-            log.info(f"Writing submission Google sheet for item(s): {args.item}")
             spreadsheet_client = get_google_sheet_client(args.google)
-            update_google_sheets(spreadsheet_client, request_handler,items=args.item)
+            if args.all:
+                update_google_sheets(spreadsheet_client, request_handler)
+            elif args.gcc:
+                log.info("Writing GCC submission Google sheet")
+                update_google_sheets(spreadsheet_client, request_handler,gcc=True, eqm=eqm)
+            elif args.tpc:
+                log.info("Writing TPC submission Google sheet")
+                update_google_sheets(spreadsheet_client, request_handler,tpc=True)
+            elif args.item:
+                log.info(f"Writing submission Google sheet for item(s): {args.item}")
+                update_google_sheets(spreadsheet_client, request_handler,items=args.item, eqm=eqm)
+            else:
+                parser.error("No items specified to write or update Google spreadsheets for")
+        elif args.all:
+            log.info("Writing all submission spreadsheets")
+            write_all_spreadsheets(
+                args.output,
+                request_handler,
+                workbook=args.workbook,
+                separate_comments=args.separate,
+            )
+        elif args.tpc:
+            log.info("Writing TPC submission spreadsheet")
+            write_item_spreadsheets(
+                args.output,
+                TPC_SUBMISSION_ITEMS,
+                request_handler,
+                workbook=args.workbook,
+                tpc = True,
+                gcc = False,
+                separate_comments=args.separate,
+            )
+        elif args.gcc:
+            log.info("Writing GCC/TTD submission spreadsheet")
+            write_item_spreadsheets(
+                args.output,
+                GCC_SUBMISSION_ITEMS,
+                request_handler,
+                workbook=args.workbook,
+                tpc = False,
+                gcc = True,
+                separate_comments=args.separate,
+                eqm=eqm
+            )
+        elif args.item:
+            log.info(f"Writing submission spreadsheets for item(s): {args.item}")
+            write_item_spreadsheets(
+                args.output,
+                args.item,
+                request_handler,
+                workbook=args.workbook,
+                separate_comments=args.separate,
+                eqm=eqm
+            )
         else:
-            parser.error("No items specified to write or update Google spreadsheets for")
-    elif args.workbook and args.all:
-        log.info("Writing all submission spreadsheets")
-        write_all_spreadsheets(
-            args.output,
-            request_handler,
-            workbook=args.workbook,
-            separate_comments=args.separate,
-        )
-    elif args.workbook and args.tpc:
-        log.info("Writing TPC submission spreadsheet")
-        write_item_spreadsheets(
-            args.output,
-            TPC_SUBMISSION_ITEMS,
-            request_handler,
-            workbook=args.workbook,
-            tpc = True,
-            gcc = False,
-            separate_comments=args.separate,
-        )
-    elif args.workbook and args.gcc:
-        log.info("Writing GCC/TTD submission spreadsheet")
-        write_item_spreadsheets(
-            args.output,
-            GCC_SUBMISSION_ITEMS,
-            request_handler,
-            workbook=args.workbook,
-            tpc = False,
-            gcc = True,
-            separate_comments=args.separate,
-        )
-    elif args.item:
-        log.info(f"Writing submission spreadsheets for item(s): {args.item}")
-        write_item_spreadsheets(
-            args.output,
-            args.item,
-            request_handler,
-            workbook=args.workbook,
-            separate_comments=args.separate,
-        )
-    else:
-        parser.error("No items specified to write or update spreadsheets for")
+            parser.error("No items specified to write or update spreadsheets for")
 
 
 def dir_path(path: str) -> Path:

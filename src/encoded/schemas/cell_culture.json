@@ -23,11 +23,6 @@
             "required": [
                 "tissue_samples"
             ]
-        },
-        {
-            "required": [
-                "tissue"
-            ]
         }
     ],
     "additionalProperties": false,
@@ -120,17 +115,6 @@
             "description": "Number of times the cell line has been passaged since the culture start date until harvest",
             "type": "integer",
             "minimum": 0
-        },
-        "tissue": {
-            "title": "Tissue",
-            "description": "Tissue the cell culture was derived from",
-            "type": "array",
-            "minItem": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "Tissue"
-            }
         },
         "cell_line": {
             "title": "Cell Line",

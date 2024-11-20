@@ -48,6 +48,7 @@ def validate_read_pairs_on_add(context,request):
     return check_read_pairs_paired_with(request, data['submitted_id'], paired_with, read_pair_number)
 
 
+@link_related_validator
 def validate_read_pairs_on_edit(context,request):
     """Check that file is R2 if it has `paired_with` and link of R2 files corresponds to an R1 file on edit."""
     existing_properties = get_properties(context)

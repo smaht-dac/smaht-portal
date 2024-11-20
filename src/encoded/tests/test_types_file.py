@@ -998,12 +998,23 @@ def assert_data_generation_summary_matches_expected(
         )
         for sequencing in sequencings
     ] if sequencings else []
-    expected_target_coverage = []
-    for sequencing in sequencings:
-        target_coverage = sequencing_utils.get_target_coverage(
-            get_item(es_testapp, item_utils.get_uuid(sequencing))
-        )
-        expected_target_coverage.append(target_coverage) if target_coverage else expected_target_coverage
+    if (override_coverage := file_utils.get_override_group_coverage(file)):
+        expected_target_coverage = [override_coverage]
+    else:
+        expected_target_coverage = [ target_coverage 
+            for sequencing in sequencings
+                
+            if (target_coverage := sequencing_utils.get_target_coverage(
+                    get_item(es_testapp, item_utils.get_uuid(sequencing))
+                ))
+
+            ] if sequencings else []
+    expected_target_read_count = [ target_coverage 
+        for sequencing in sequencings                     
+        if (target_coverage := sequencing_utils.get_target_read_count(
+                get_item(es_testapp, item_utils.get_uuid(sequencing))
+            ))
+    ] if sequencings else []
     assert_values_match_if_present(
         data_generation_summary, "data_category", expected_data_category
     )
@@ -1022,6 +1033,9 @@ def assert_data_generation_summary_matches_expected(
     )
     assert_values_match_if_present(
         data_generation_summary,"target_group_coverage",expected_target_coverage
+    )
+    assert_values_match_if_present(
+        data_generation_summary,"target_read_count",expected_target_read_count
     )
 
 
@@ -1198,3 +1212,14 @@ def test_unique_key(es_testapp: TestApp, workbook: None) -> None:
     get_item(
         es_testapp, f"/files/{item_utils.get_submitted_id(file_with_submitted_id)}"
     )
+
+
+# Fix for "sid" in properties.
+# https://hms-dbmi.atlassian.net/browse/C4-1189
+@pytest.mark.workbook
+def test_new_20241104( es_testapp: TestApp, workbook: None) -> None:
+    from dcicutils.portal_utils import Portal
+    portal = Portal(es_testapp)
+    unaligned_reads = portal.get_metadata("92e8371b-bcdf-44de-ad49-3a5f108e91eb", raw=True)
+    unaligned_reads_sid = unaligned_reads.get("sid")
+    assert unaligned_reads_sid is None

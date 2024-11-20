@@ -10,10 +10,10 @@ const argv = process.argv.slice(2);
 const debug = argv[0] === '--debug';
 
 const http_stream = new HTTPStream({
-    app: transformResponse(appRenderFxn),
+    "app": transformResponse(appRenderFxn),
     // Doesn't work if false currently -- console contents/msgs would get emitted into http_stream and then into process.stdout (atop html response body)
     // todo: explore more along w. or after Node14 upgrade path and potential replacement of subprocess_middleware with python-react (in pypi) or similar.
-    captureConsole: true,
+    "captureConsole": true,
 });
 
 http_stream.pipe(process.stdout);

@@ -10,11 +10,13 @@
                 "sessions_by_country": [],
                 "top_files_downloaded": [],
                 "metadata_tsv_by_country": [],
-                "views_by_experiment_set": [],
-                "file_downloads_by_country": [],
-                "file_downloads_by_filetype": [],
                 "sessions_by_device_category": [],
-                "file_downloads_by_experiment_type": []
+                "file_downloads_by_experiment_type": [],
+                "file_downloads_by_assay_type": [],
+                "file_downloads_by_dataset": [],
+                "file_downloads_by_sequencer": [],
+                "file_downloads_by_filetype": [],
+                "file_downloads_by_country": []
             },
             "for_date": "2023-12-29",
             "date_increment": "daily"

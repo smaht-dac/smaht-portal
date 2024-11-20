@@ -50,7 +50,7 @@ class DonorSpecificAssembly(SubmittedItem, ReferenceGenome):
 
     @calculated_property(
         schema={
-            "title": "Chain Files",
+            "title": "Supplementary Files",
             "type": "array",
             "items": {
                 "type": "string",
@@ -58,13 +58,13 @@ class DonorSpecificAssembly(SubmittedItem, ReferenceGenome):
             },
         },
     )
-    def chain_files(self,request:Request) -> Union[List[str], None]:
-        """Get chain files from files."""
+    def supplementary_files(self,request:Request) -> Union[List[str], None]:
+        """Get supplementary files from files."""
         results = self.rev_link_atids(request, "files")
         request_handler = RequestHandler(request = request)
-        chain_files = dsa_utils.get_chain_files(request_handler,results)
-        if chain_files:
-            return chain_files
+        supp_files = dsa_utils.get_supplementary_files(request_handler,results)
+        if supp_files:
+            return supp_files
         return
 
     @calculated_property(

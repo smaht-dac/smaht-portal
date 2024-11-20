@@ -121,7 +121,7 @@ function DirectoryBodyGridItem(props) {
                     </div>
                 ) : null}
                 {childrenHaveChildren && childPageCount ? (
-                    <h6 className="section-page-count mt-07 mb-05 text-400 text-right">
+                    <h6 className="section-page-count mt-07 mb-05 text-400 text-end">
                         {childPageCount}&nbsp;{' '}
                         <i
                             className={

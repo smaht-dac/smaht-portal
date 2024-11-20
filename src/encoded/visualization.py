@@ -26,19 +26,20 @@ from urllib.parse import urlencode
 # from snovault.util import make_s3_client
 #
 #
-TERM_NAME_FOR_NO_VALUE  = "No value"
+TERM_NAME_FOR_NO_VALUE = "No value"
 
 # Common definition for aggregating all files **counts**.
 # This works four our ElasticSearch mapping though has some non-ideal-ities.
 # For example, we use "cardinality" instead of "value_count" agg (which would (more correctly) count duplicate files, etc.)
 SUM_FILES_AGGREGATION_DEFINITION = {
-    "total_files" : {
-        "cardinality" : {
-            "field" : "embedded.accession.raw",
-            "precision_threshold" : 10000
+    "total_files": {
+        "cardinality": {
+            "field": "embedded.accession.raw",
+            "precision_threshold": 10000
         }
     }
 }
+
 
 def includeme(config):
     # config.add_route(
@@ -58,8 +59,8 @@ def date_histogram_aggregations(context, request):
     '''PREDEFINED aggregations which run against type=File'''
 
     # Defaults - may be overriden in URI params
-    date_histogram_fields    = ['file_status_tracking.uploading', 'file_status_tracking.uploaded', 'file_status_tracking.released']
-    group_by_fields          = [
+    date_histogram_fields = ['file_status_tracking.uploading', 'file_status_tracking.uploaded', 'file_status_tracking.released']
+    group_by_fields = [
         'data_generation_summary.submission_centers', 'data_generation_summary.sequencing_center', 
         'data_generation_summary.data_type', 'data_generation_summary.data_category', 'file_format.display_title',
         'data_generation_summary.assays', 
@@ -69,11 +70,11 @@ def date_histogram_aggregations(context, request):
 
     # Mapping of 'date_histogram_interval' options we accept to ElasticSearch interval vocab term.
     interval_to_es_interval = {
-        'hourly'    : 'hour',
-        'daily'     : 'day',
-        'weekly'    : 'week',
-        'monthly'   : 'month',
-        'yearly'    : 'year'
+        'hourly': 'hour',
+        'daily': 'day',
+        'weekly': 'week',
+        'monthly': 'month',
+        'yearly': 'year'
     }
 
     try:
@@ -83,18 +84,18 @@ def date_histogram_aggregations(context, request):
         search_param_lists = request.GET.dict_of_lists()
         if 'group_by' in search_param_lists:
             group_by_fields = search_param_lists['group_by']
-            del search_param_lists['group_by'] # We don't wanna use it as search filter.
+            del search_param_lists['group_by']  # We don't wanna use it as search filter.
             if len(group_by_fields) == 1 and group_by_fields[0] in ['None', 'null']:
                 group_by_fields = None
         if 'date_histogram' in search_param_lists:
             date_histogram_fields = search_param_lists['date_histogram']
-            del search_param_lists['date_histogram'] # We don't wanna use it as search filter.
+            del search_param_lists['date_histogram']  # We don't wanna use it as search filter.
         if 'date_histogram_interval' in search_param_lists:
             date_histogram_intervals = search_param_lists['date_histogram_interval']
             for interval in date_histogram_intervals:
                 if interval not in interval_to_es_interval.keys():
                     raise IndexError('"{}" is not one of daily, weekly, monthly, or yearly.'.format(interval))
-            del search_param_lists['date_histogram_interval'] # We don't wanna use it as search filter.
+            del search_param_lists['date_histogram_interval']  # We don't wanna use it as search filter.
         if 'date_range' in search_param_lists and len(search_param_lists['date_range']) > 0:
             date_range = search_param_lists['date_range'][0]
             date_from, date_to = convert_date_range(date_range)
@@ -115,20 +116,20 @@ def date_histogram_aggregations(context, request):
         # Add on file_size_volume
         for key_name in ['total_files']:
             common_sub_agg[key_name + "_volume"] = {
-                "sum" : {
-                    "field" : common_sub_agg[key_name]["cardinality"]["field"].replace('.accession.raw', '.file_size')
+                "sum": {
+                    "field": common_sub_agg[key_name]["cardinality"]["field"].replace('.accession.raw', '.file_size')
                 }
             }
 
         if group_by_fields is not None:
             group_by_agg_dict = {
-                group_by_field : {
-                    "terms" : {
-                        "field"     : "embedded." + group_by_field + ".raw",
-                        "missing"   : TERM_NAME_FOR_NO_VALUE,
-                        "size"      : 30
+                group_by_field: {
+                    "terms": {
+                        "field": "embedded." + group_by_field + ".raw",
+                        "missing": TERM_NAME_FOR_NO_VALUE,
+                        "size": 30
                     },
-                    "aggs" : common_sub_agg
+                    "aggs": common_sub_agg
                 }
                 for group_by_field in group_by_fields if group_by_field is not None
             }
@@ -140,11 +141,11 @@ def date_histogram_aggregations(context, request):
         if group_by_fields is not None:
             # Do simple date_histogram group_by sub agg, unless is set to 'None'
             histogram_sub_aggs = {
-                group_by_field : {
-                    "terms" : {
-                        "field"     : "embedded." + group_by_field + ".raw",
-                        "missing"   : TERM_NAME_FOR_NO_VALUE,
-                        "size"      : 30
+                group_by_field: {
+                    "terms": {
+                        "field": "embedded." + group_by_field + ".raw",
+                        "missing": TERM_NAME_FOR_NO_VALUE,
+                        "size": 30
                     }
                 }
                 for group_by_field in group_by_fields if group_by_field is not None
@@ -158,7 +159,7 @@ def date_histogram_aggregations(context, request):
     for interval in date_histogram_intervals:
         for dh_field in date_histogram_fields:
             outer_date_histogram_agg[interval + '_interval_' + dh_field] = {
-                "date_histogram" : {
+                "date_histogram": {
                     "field": "embedded." + dh_field,
                     "interval": interval_to_es_interval[interval],
                     "format": "yyyy-MM-dd"
@@ -168,8 +169,8 @@ def date_histogram_aggregations(context, request):
                 outer_date_histogram_agg[interval + '_interval_' + dh_field]['aggs'] = histogram_sub_aggs
 
     search_param_lists['limit'] = search_param_lists['from'] = [0]
-    subreq          = make_search_subreq(request, '{}?{}'.format('/search/', urlencode(search_param_lists, True)) )
-    search_result   = perform_search_request(None, subreq, custom_aggregations=outer_date_histogram_agg)
+    subreq = make_search_subreq(request, '{}?{}'.format('/search/', urlencode(search_param_lists, True)))
+    search_result = perform_search_request(None, subreq, custom_aggregations=outer_date_histogram_agg)
 
     # remove unnecessary fields from result
     for field_to_delete in ['@context', '@id', '@type', '@graph', 'title', 'filters', 'facets', 'sort', 'clear_filters', 'actions', 'columns']:
@@ -190,6 +191,7 @@ DATE_RANGE_PRESETS = {
     'thisyear': lambda today: (datetime(today.year, 1, 1), None),
     'previousyear': lambda today: (datetime(today.year - 1, 1, 1), datetime(today.year - 1, 12, 31)),
 }
+
 
 def convert_date_range(date_range_str):
     data_range_split = date_range_str.split('|')

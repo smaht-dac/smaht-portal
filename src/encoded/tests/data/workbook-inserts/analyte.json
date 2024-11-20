@@ -104,5 +104,22 @@
         "samples": [
             "TEST_CELL-CULTURE-SAMPLE_IPSC_FIBROBLAST"
         ]
+    },
+    {
+        "uuid": "ddd4e858-d259-42eb-a648-826567aebff6",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_ANALYTE_LIVER_MERGED",
+        "molecule_detail": [
+            "Total DNA"
+        ],
+        "molecule": [
+            "DNA"
+        ],
+        "samples": [
+            "TEST_TISSUE-SAMPLE_LIVER",
+            "TEST_TISSUE-SAMPLE_LIVER_2"
+        ]
     }
 ]

@@ -100,6 +100,7 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "Mechanical",
                     "Sonication",
                     "Restriction Enzyme",
                     "Transposase",
@@ -119,8 +120,9 @@
                     "Affinity Enrichment",
                     "Hybrid Selection",
                     "PCR",
+                    "PolyA Enrichment",
                     "PolyT Enrichment",
-                    "RRNA Depletion",
+                    "rRNA Depletion",
                     "Not applicable"
                 ]
             }
@@ -140,6 +142,15 @@
                     "Tn5"
                 ]
             }
+        },
+        "rna_seq_protocol": {
+            "title": "RNA-seq Protocol",
+            "description": "Protocol used for RNA-seq assays",
+            "type": "string",
+            "enum": [
+                "Watchmaker",
+                "TruSeq"
+            ]
         },
         "size_selection_method": {
             "title": "Size Selection Method",
@@ -190,13 +201,6 @@
             },
             "then": {
                 "required": ["enzymes"]
-            },
-            "else": {
-                "not": {
-                        "required": [
-                            "enzymes"
-                        ]
-                    }
             }
         }
     ]
