@@ -193,6 +193,8 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#hapmap-truthset',
                 title: 'Truth Set',
+                // searchHref:
+                //     '/search/?type=File&status=released&status=restricted&status=public&dataset=hapmap_snv_indel_challenge_data',
             },
         ],
     },
@@ -257,6 +259,8 @@ export const BenchmarkingDataMap = {
             {
                 eventKey: '#lb_ipsc_truthset',
                 title: 'Truth Set',
+                // searchHref:
+                //     '/search/?type=File&status=released&status=restricted&status=public&dataset=ipsc_snv_indel_challenge_data',
             },
         ],
     },
