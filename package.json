@@ -104,6 +104,6 @@
     "url": "^0.11.0"
   },
   "optionalDependencies": {
-    "cypress": "^10.3.0"
+    "cypress": "^13.7.0"
   }
 }
