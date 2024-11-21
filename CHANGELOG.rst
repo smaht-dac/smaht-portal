@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.114.0
+=======
+`PR 288 SN comparators description <https://github.com/smaht-dac/smaht-portal/pull/288>`_
+
+* Add property `comparator_description` to Variant Calls that is required if `mode` is "Paired"
+
+
 0.113.1
 =======
 `PR 294 BM Truth Set <https://github.com/smaht-dac/smaht-portal/pull/294>`_
