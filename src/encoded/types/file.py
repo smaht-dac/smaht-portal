@@ -712,7 +712,7 @@ class File(Item, CoreFile):
             request_handler = RequestHandler(request=request)
             result = self._get_release_tracker_description(
                 request_handler,
-                file_properties=self.propertes
+                file_properties=self.properties
             )
         return result     
 
@@ -1008,11 +1008,12 @@ class File(Item, CoreFile):
         ) -> Union[str, None]:
         """Get release tracker description for display on the home page."""
         assay_title= get_unique_values(
-            file_utils.get_assays(file_properties),
+            request_handler.get_items(file_utils.get_assays(file_properties, request_handler)),
             item_utils.get_display_title,
             )
         sequencer_title = get_unique_values(
-            file_utils.get_sequencers(file_properties),
+            request_handler.get_items(
+            file_utils.get_sequencers(file_properties, request_handler)),
             item_utils.get_display_title,
             )
         file_format_title = get_property_value_from_identifier(
