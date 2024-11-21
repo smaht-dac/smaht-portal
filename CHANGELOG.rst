@@ -7,6 +7,35 @@ smaht-portal
 Change Log
 ----------
 
+0.113.0
+=======
+`PR 282 New Cypress Tests <https://github.com/smaht-dac/smaht-portal/pull/282>`_
+
+* Upgrade: Cypress v10 to v13
+* Add new cypress tests
+  - Authentication & Basic Functionality
+  - Home Page Tests
+  - User Impersonation
+  - Documentation Page
+  - Search View Tests
+  - Post-Deployment Validation
+  - Statistics Page
+  - Benchmarking Page
+  - About Page
+* Cypress Commands: Introduced commands for testing across environments (data, local, staging, etc.).
+
+
+0.112.3
+=======
+* 2024-11-08/dmichaels
+* Updated some demo_inserts data files to make them more consistent with what is in production;
+  i.e. e.g. some of the submission-center uuids here were in conflict with production which
+  impedes local development when exporting from production and importing locally.
+* Added /debug_user_principals endpoint for debugging/troubleshooting/undestanding only;
+  this will simply return the list of principals for the calling user.
+* Updated dcicutils to latest version (8.16.4).
+
+
 0.112.2
 =======
 `PR 293 SN extraction enum <https://github.com/smaht-dac/smaht-portal/pull/293>`_
@@ -27,6 +56,7 @@ Change Log
 `PR 287 SN Override Coverage <https://github.com/smaht-dac/smaht-portal/pull/287>`_
 
 * Add property to file, `override_group_coverage` that displays in `data_generation_summary` calculated property for the File Overview page, which takes precedence  over `file_set.sequencing.target_coverage` if set
+
 
 0.111.0
 =======
