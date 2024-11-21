@@ -7,12 +7,19 @@ smaht-portal
 Change Log
 ----------
 
-0.114.0
+0.115.0
 =======
 `PR 298 SN File release tracker <https://github.com/smaht-dac/smaht-portal/pull/298>`_
 
 * Add calcprop to file returning concatenated string of `file_sets.libraries.assays.display_title`, `file_sets.sequencing.sequencer.display_title`, and `file_format.display_title`
 * If there are multiple values for assay or sequencer, return an empty string
+
+
+0.114.0
+=======
+`PR 288 SN comparators description <https://github.com/smaht-dac/smaht-portal/pull/288>`_
+
+* Add property `comparator_description` to Variant Calls that is required if `mode` is "Paired"
 
 
 0.113.1
