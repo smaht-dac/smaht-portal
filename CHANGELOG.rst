@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.113.1
+=======
+`PR 294 BM Truth Set <https://github.com/smaht-dac/smaht-portal/pull/294>`_
+
+* Add "coming soon" tabs for HapMap and iPSC truth sets
+* Comment out URLs for real search tables for future use, once data is ready
+
+
 0.113.0
 =======
 `PR 282 New Cypress Tests <https://github.com/smaht-dac/smaht-portal/pull/282>`_
