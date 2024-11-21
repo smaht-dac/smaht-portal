@@ -914,6 +914,11 @@ def get_chain_file_value(file: Dict[str, Any]) -> str:
     return CHAIN_FILE_INFO_SEPARATOR.join([source_assembly,target_assembly])
 
 
+def get_rna_seq_tsv_value(file: Dict[str, Any]) -> str:
+    """Get isoform or gene from description and gencode version for RNA-seq tsv and bam files."""
+    # Use description and file format to determine with value
+    
+
 def get_file_extension(
     file: Dict[str, Any], file_format: Dict[str, Any]
 ) -> FilenamePart:
