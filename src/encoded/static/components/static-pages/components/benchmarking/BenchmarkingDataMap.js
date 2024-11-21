@@ -190,6 +190,12 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=mei_detection_challenge_data',
             },
+            {
+                eventKey: '#hapmap-truthset',
+                title: 'Truth Set',
+                // searchHref:
+                //     '/search/?type=File&status=released&status=restricted&status=public&dataset=hapmap_snv_indel_challenge_data',
+            },
         ],
     },
     iPScFibroblasts: {
@@ -249,6 +255,12 @@ export const BenchmarkingDataMap = {
                 title: 'LB-LA2 iPSC-60',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_60',
+            },
+            {
+                eventKey: '#lb_ipsc_truthset',
+                title: 'Truth Set',
+                // searchHref:
+                //     '/search/?type=File&status=released&status=restricted&status=public&dataset=ipsc_snv_indel_challenge_data',
             },
         ],
     },
