@@ -7,11 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.114.0
+0.115.0
 =======
 * 2024-11-20/dmichaels
 * Added module browse.py for /browse; adapted from fourfront/.../search.py/browse.
   This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1184
+
+
+0.114.0
+=======
+`PR 288 SN comparators description <https://github.com/smaht-dac/smaht-portal/pull/288>`_
+
+* Add property `comparator_description` to Variant Calls that is required if `mode` is "Paired"
 
 
 0.113.1
