@@ -504,7 +504,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 max-height: none;
                 background-color: #FFFFFF;
                 @include prefix(border-radius, 10px);
-                @include prefix(box-shadow, 0px 0px 12px hsla(209, 72, 78, .50));
+                @include prefix(box-shadow, 0px 0px 12px hsla(209, 72%, 78%, .50));
 
                 .card-list {
                     margin-bottom: 10px;
@@ -626,7 +626,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             position: relative;
             display: flex;
             justify-content: space-evenly;
-            background-color: hsla(0,0,100,.5);
+            background-color: hsla(0,0%,100%,.5);
             height: 40px;
             margin: auto;
             border-radius: 20px;

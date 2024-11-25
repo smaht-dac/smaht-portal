@@ -63,7 +63,7 @@
         "BCM-TTD":{
             "WGS CompDuplex-Seq":["Illumina NovaSeq"],"WGS scCompDuplex-Seq":["Illumina NovaSeq"]},
         "UMich":{
-            "WGS MALBAC-amplifed":["Illumina NovaSeq","ONT"]}
+            "WGS MALBAC-amplifed":["Illumina NovaSeq","ONT"], "TEnCATS":["ONT"]}
 
     },
     "links":[

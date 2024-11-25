@@ -111,7 +111,7 @@ export class NavigationBar extends React.PureComponent {
                             onToggle={this.onToggleNavBar}
                             expanded={mobileDropdownOpen}>
                             <a className="navbar-brand" href="/">
-                                <div className="smaht-logo-wrapper img-container mr-05">
+                                <div className="smaht-logo-wrapper img-container me-05">
                                     <img
                                         className="smaht-logo"
                                         src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"

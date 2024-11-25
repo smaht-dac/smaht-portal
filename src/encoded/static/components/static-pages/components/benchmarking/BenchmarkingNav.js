@@ -4,7 +4,7 @@ import _ from 'underscore';
 import {
     Accordion,
     AccordionContext,
-    useAccordionToggle,
+    useAccordionButton,
 } from 'react-bootstrap';
 
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
@@ -110,14 +110,14 @@ export const BenchmarkingUINav = (props) => {
 
 // TODO: See if this can be consolidated with the one on the homepage
 function ContextAwareToggle({ children, eventKey, callback }) {
-    const currentEventKey = useContext(AccordionContext);
+    const { activeEventKey } = useContext(AccordionContext);
 
-    const decoratedOnClick = useAccordionToggle(eventKey, (e) => {
+    const decoratedOnClick = useAccordionButton(eventKey, (e) => {
         e.preventDefault();
         return callback && callback(eventKey);
     });
 
-    const isCurrentEventKey = currentEventKey === eventKey;
+    const isCurrentEventKey = activeEventKey === eventKey;
 
     const openStatusIconCls = isCurrentEventKey
         ? 'icon icon-angle-up fas text-secondary'
@@ -131,7 +131,7 @@ function ContextAwareToggle({ children, eventKey, callback }) {
                 onClick={decoratedOnClick}>
                 <div className="d-flex justify-content-between align-items-center w-100">
                     {children}
-                    <i className={openStatusIconCls + ' mr-1'} />
+                    <i className={openStatusIconCls + ' me-1'} />
                 </div>
             </button>
         </div>
@@ -167,7 +167,7 @@ const BenchmarkingUINavLinkGenerator = ({
                                     <BenchmarkingUINavLink
                                         key={obj.eventKey}
                                         title={obj.title}
-                                        cls="pl-2"
+                                        cls="ps-2"
                                         {...{ currPath }}
                                         href={path + obj.eventKey}
                                     />
@@ -231,7 +231,7 @@ const BenchmarkingUINavLink = (props) => {
             className={`sidenav-link ${isActive ? 'active' : ''} ${
                 isTop ? 'top' : ''
             } ${cls}`}>
-            <a {...{ href }}>{title}</a>
+            <a className="link-underline-hover" {...{ href }}>{title}</a>
         </li>
     );
 };

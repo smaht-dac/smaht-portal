@@ -796,7 +796,7 @@ i.status-indicator-dot {
 
 	}
 
-	@include media-breakpoint-down(sm){
+	@include media-breakpoint-down(md){
 		/* Deprecated ? */
 		.array-group .array-group-row.list-item:not(.first-item) {
 			.item-label {
@@ -945,7 +945,7 @@ body[data-pathname^="/users/"] {
 		
 				// Override of prev CSS
 				.col-md-3.text-right.text-left-xs {
-					@include media-breakpoint-down(sm){
+					@include media-breakpoint-down(md){
 						text-align: left !important;
 					}
 				}
@@ -1001,7 +1001,7 @@ body[data-pathname^="/users/"] {
 			
 					// Override of prev CSS
 					.col-md-3.text-right.text-left-xs {
-						@include media-breakpoint-down(sm){
+						@include media-breakpoint-down(md){
 							text-align: left !important;
 						}
 					}
@@ -1076,7 +1076,7 @@ body[data-pathname^="/users/"] {
 						}
 					}
 		
-					@include media-breakpoint-down(sm){
+					@include media-breakpoint-down(md){
 		
 						.user-title-col {
 							padding-top: 2px;
@@ -1125,7 +1125,7 @@ body[data-pathname^="/users/"] {
 							}
 						}
 		
-						@include media-breakpoint-down(sm){
+						@include media-breakpoint-down(md){
 							img.gravatar {
 								width: 94px; /* Account for border */
 								height: 70px;
@@ -1691,6 +1691,15 @@ File Overview Styles
 										.value {
 											text-align: left;
 										}
+
+										a {
+											text-decoration: none;
+											text-underline-offset: 0.125em;
+
+											&:not(.btn):hover {
+												text-decoration: underline !important;
+											}
+										}
 									}
 			
 									&[data-first-visible-column]{
@@ -1834,7 +1843,7 @@ File Overview Styles
 		}
 	}
 
-	@include media-breakpoint-down(lg){
+	@include media-breakpoint-down(xl){
 		.file-view {
 			&-content {
 				.data-cards-container {
@@ -1847,7 +1856,7 @@ File Overview Styles
 		}
 	}
 
-	@include media-breakpoint-down(sm){
+	@include media-breakpoint-down(md){
 		.file-view {
 			&-title {
 				word-break: break-all;
@@ -1921,7 +1930,7 @@ File Overview Styles
 							div.d-flex:first-of-type {
 								flex-wrap: wrap;
 				
-								& > div.ml-auto:last-of-type {
+								& > div.ms-auto:last-of-type {
 									margin-top: 10px;
 									padding-left: 0px;
 								}

@@ -725,23 +725,13 @@ def donor_specific_assembly(
     testapp,
     test_submission_center,
     test_derived_from_file,
-    test_software
 ):
     item = {
         "submission_centers": [test_submission_center["uuid"]],
         "derived_from": [test_derived_from_file["uuid"]],
         "submitted_id": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
         "title": "Hela_DSA",
-        "software": [
-           test_software["uuid"]
-        ],
-        "genome_size": 3100000000,
-        "total_ungapped_length": 2900000000,
-        "number_of_chromosomes": 23,
-        "number_of_scaffolds": 470,
-        "number_of_contigs": 1000,
-        "contig_n50": 50000000,
-        "scaffold_n50": 67000000
+        "genome_size": 3100000000
     }
     return post_item_and_return_location(testapp, item, 'donor_specific_assembly')
 

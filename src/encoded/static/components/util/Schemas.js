@@ -164,7 +164,7 @@ const fieldToTransformationDict = memoize(function () {
                 return (
                     <React.Fragment>
                         <i
-                            className="status-indicator-dot mr-07"
+                            className="status-indicator-dot me-07"
                             data-status={term}
                         />
                         {capitalizeSentence(term)}
@@ -206,7 +206,7 @@ const fieldToTransformationDict = memoize(function () {
                 return (
                     <React.Fragment>
                         <i
-                            className={`mr-03 icon icon-fw icon-${Term.genderToIcon(
+                            className={`me-03 icon icon-fw icon-${Term.genderToIcon(
                                 term
                             )}`}
                         />

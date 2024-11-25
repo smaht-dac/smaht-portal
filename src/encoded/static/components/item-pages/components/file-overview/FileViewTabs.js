@@ -128,7 +128,7 @@ export const FileViewTabs = (props) => {
             (resp) => {
                 setAssociatedFilesTitle(
                     <div data-tip="Some associated files may have status 'redacted' or 'obsolete'. Please check for notes before downloading.">
-                        <i className="icon fas icon-exclamation-triangle text-warning mr-05"></i>
+                        <i className="icon fas icon-exclamation-triangle text-warning me-05"></i>
                         Associated Files
                     </div>
                 );

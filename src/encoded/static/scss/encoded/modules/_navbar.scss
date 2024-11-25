@@ -640,6 +640,7 @@ div.navbar-fixed-top {
 
             &:hover, &:active, &:focus {
                 background-color: rgba(91, 117, 149, 0.2784313725);
+                box-shadow: none;
             }
 
             > i.icon {
@@ -838,7 +839,7 @@ body[data-current-action="multiselect"] {
             background-color: rgba(28,28,30,.7);
         }
 
-        @include media-breakpoint-between(sm, md) {
+        @include media-breakpoint-between(sm, lg) {
             top: 0px;
         }
 
@@ -849,7 +850,7 @@ body[data-current-action="multiselect"] {
         body.is-full-screen {
             top: $navbar-small-height;
 
-            @include media-breakpoint-down(md) {
+            @include media-breakpoint-down(lg) {
                 top: 0px;
             }
         }
@@ -1042,6 +1043,7 @@ body[data-current-action="multiselect"] {
                                 position: relative;
                                 > .level-1-title {
                                     text-shadow: 0 0 0;
+                                    text-decoration: none;
                                     &:before {
                                         font-family: $fa-font-family;
                                         font-weight: 900;
@@ -1141,7 +1143,7 @@ body[data-current-action="multiselect"] {
             }
         }
 
-        @include media-breakpoint-down(md) {
+        @include media-breakpoint-down(lg) {
             .big-dropdown-menu {
                 max-height: 100vh;
                 height: 100vh;

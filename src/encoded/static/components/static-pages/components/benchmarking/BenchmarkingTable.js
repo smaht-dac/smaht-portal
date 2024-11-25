@@ -90,7 +90,7 @@ export const BenchmarkingTable = (props) => {
                         </span>
                     );
                 }
-                return <span className="value text-left">{access_status}</span>;
+                return <span className="value text-start">{access_status}</span>;
             },
         },
         // File
@@ -105,7 +105,7 @@ export const BenchmarkingTable = (props) => {
                 } = result || {};
 
                 return (
-                    <span className="value text-left">
+                    <span className="value text-start">
                         <a
                             href={atId}
                             target="_blank"
@@ -132,7 +132,7 @@ export const BenchmarkingTable = (props) => {
         },
         // Data Type
         data_type: {
-            colTitle: 'Variant Type',
+            colTitle: 'Data Type',
             widthMap: { lg: 155, md: 155, sm: 150 },
             render: function (result, parentProps) {
                 const { data_type = [] } = result || {};
@@ -168,7 +168,7 @@ export const BenchmarkingTable = (props) => {
                 const { submission_centers: gccs = [] } = result || {};
                 if (gccs.length === 0) return null;
                 return (
-                    <span className="value text-left">
+                    <span className="value text-start">
                         {gccs.map((gcc) => gcc.display_title).join(', ')}
                     </span>
                 );
@@ -192,7 +192,7 @@ export const BenchmarkingTable = (props) => {
                 const value = result?.file_size;
                 if (!value) return null;
                 return (
-                    <span className="value text-right">
+                    <span className="value text-end">
                         {valueTransforms.bytesToLargerUnit(value)}
                     </span>
                 );
@@ -206,7 +206,7 @@ export const BenchmarkingTable = (props) => {
                 const value = result?.date_created;
                 if (!value) return null;
                 return (
-                    <span className="value text-right">
+                    <span className="value text-end">
                         <LocalizedTime
                             timestamp={value}
                             formatType="date-file"

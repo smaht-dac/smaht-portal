@@ -168,7 +168,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
             const badgeType =
                 fileSetTags && fileSetTags.includes(tag) ? 'info' : 'lighter';
 
-            const cn = 'badge clickable mx-1 badge-' + badgeType;
+            const cn = 'badge clickable mx-1 bg-' + badgeType;
             return (
                 <span
                     className={cn}
@@ -205,7 +205,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
         ];
 
         const loadingSymbol = this.state.loading ? (
-            <i className="icon icon-fw fas icon-spinner icon-spin mr-1"></i>
+            <i className="icon icon-fw fas icon-spinner icon-spin me-1"></i>
         ) : (
             ''
         );
@@ -252,7 +252,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
         const body = [];
         qc_value_derived_from_list_unique.forEach((qc_derived_from) => {
             const qc_key = qc_value_derived_from_to_key[qc_derived_from];
-            const row = [<td className="text-left">{qc_key}</td>];
+            const row = [<td className="text-start">{qc_key}</td>];
             files.forEach((file) => {
                 if (!this.state.visibleFileSets.includes(file.fileset_uuid)) {
                     return;
@@ -403,7 +403,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
         if (this.state.initialLoading) {
             const modalBody = (
                 <div className="p-5 text-center">
-                    <i className="icon icon-fw fas icon-spinner icon-spin mr-1"></i>
+                    <i className="icon icon-fw fas icon-spinner icon-spin me-1"></i>
                     Loading
                 </div>
             );
@@ -453,7 +453,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
         });
 
         const addCommentSection = (
-            <span className={this.state.isUserAdmin ? 'ml-1' : 'collapse'}>
+            <span className={this.state.isUserAdmin ? 'ms-1' : 'collapse'}>
                 <a
                     href="#"
                     onClick={(e) => this.handleToggleCommentInputField(e)}>
@@ -475,7 +475,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
                             this.handleCommentInput(e.target.value)
                         }
                     />
-                    <div className="input-group-append">
+                    <div className="input-group">
                         <div className="input-group-text">
                             <i
                                 className="fas icon icon-save clickable"
@@ -489,7 +489,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
         const warnings = this.state.warnings.map((warning) => {
             return (
                 <div className="alert alert-warning">
-                    <i className="icon icon-exclamation-circle fas mr-1" />
+                    <i className="icon icon-exclamation-circle fas me-1" />
                     {warning}
                 </div>
             );
@@ -515,7 +515,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
                     <li key="ssfgm-filesets">
                         <strong>Filesets:</strong>
                         {addCommentSection}
-                        <ul className="ss-fileset-list list-unstyled font-weight-normal">
+                        <ul className="ss-fileset-list list-unstyled fw-normal">
                             {filesetList}
                         </ul>
                     </li>

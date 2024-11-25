@@ -155,13 +155,13 @@ function UserActionsMenu(props) {
         const isActive = isActionActive(action, href);
         let prepend = null;
         if (actionID === 'impersonate') {
-            prepend = <i className="icon icon-fw icon-user-secret fas mr-07" />;
+            prepend = <i className="icon icon-fw icon-user-secret fas me-07" />;
         }
         if (actionID === 'profile') {
-            prepend = <i className="icon icon-fw icon-user fas mr-07" />;
+            prepend = <i className="icon icon-fw icon-user fas me-07" />;
         }
         if (actionID === 'submissions') {
-            prepend = <i className="icon icon-fw icon-file-import fas mr-07" />;
+            prepend = <i className="icon icon-fw icon-file-import fas me-07" />;
         }
         return (
             <div
@@ -219,7 +219,7 @@ function LogoutLink({ performLogout, isLoading = false }) {
                 href="#">
                 <i
                     className={
-                        'icon icon-fw fas mr-07 icon-' +
+                        'icon icon-fw fas me-07 icon-' +
                         (isLoading ? 'spin icon-circle-notch' : 'sign-out-alt')
                     }
                 />
