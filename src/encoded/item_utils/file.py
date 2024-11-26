@@ -76,6 +76,11 @@ def get_reference_genome(properties: Dict[str, Any]) -> Union[str, Dict[str, Any
     return properties.get("reference_genome", "")
 
 
+def get_gene_annotation(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
+    """Get gene annotation from properties."""
+    return properties.get("gene_annotation", "")
+
+
 def get_file_sets(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
     """Get file sets from properties."""
     return properties.get("file_sets", [])
@@ -426,3 +431,8 @@ def get_associated_files_status(
 def get_override_group_coverage(file: Dict[str, Any]) -> str:
     """Get override group coverage from properties."""
     return file.get("override_group_coverage","")
+
+
+def is_rsem_tsv(properties: Dict[str, Any], request_handler: RequestHandler) -> bool:
+    """Check if file is an RSEM tsv output file."""
+    return get_file_extension(request_handler,properties) == "tsv" and "RNA Quantification" in get_data_category(properties)
