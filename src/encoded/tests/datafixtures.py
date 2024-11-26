@@ -566,30 +566,11 @@ def test_sequencer(
 
 
 @pytest.fixture
-def test_basecalling(
-    testapp,
-    test_submission_center
-):
-    item = {
-        "submission_centers": [test_submission_center["uuid"]],
-        "submitted_id": "TEST_BASECALLING_DORADO",
-        "title": "Dorado",
-        "model": "dna_r10.4.1_e8.2_400bps_fast@v4.3.0",
-        "version": "0.1.0",
-        "gpu": "NVIDIA A100",
-        "modification_tags": [
-            "5mCG_5hmCG"
-        ]
-    }
-    return post_item_and_return_location(testapp, item, 'basecalling')
-
-
-@pytest.fixture
 def test_sequencing(
     testapp,
     test_submission_center,
     test_sequencer,
-    test_basecalling
+    test_software
 ):
     item = {
         "read_type": "Paired-end",
@@ -599,7 +580,7 @@ def test_sequencing(
         "flow_cell": "R9",
         "target_coverage": 500,
         "target_read_length": 150,
-        "basecalling": test_basecalling["uuid"]
+        "software": [test_software]
     }
     return post_item_and_return_location(testapp, item, 'sequencing')
 

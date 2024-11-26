@@ -45,9 +45,9 @@
     {
         "uuid": "57d0e975-2f7c-4b72-b9b1-e8ecca3824c4",
         "submission_centers": [
-            "f5446853-630e-474c-ba51-35b7e992269b"
+            "smaht"
         ],
-        "submitted_id": "BCM_SOFTWARE_DORADO",
+        "submitted_id": "TEST_SOFTWARE_DORADO",
         "title": "Dorado",
         "code": "dorado",
         "category": ["Basecaller"],
