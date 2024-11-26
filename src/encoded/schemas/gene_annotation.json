@@ -9,9 +9,8 @@
     ],
     "anyOf": [
         {
-            "allOf": [
-                {"required": ["submission_centers"]},
-                {"required": ["consortia"]}
+            "required": [
+                "submission_centers"
             ]
         },
         {

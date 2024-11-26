@@ -2,7 +2,7 @@
     {
         "identifier": "gencode45",
         "title": "GENCODE v45",
-	"code": "gencode45",
+        "code": "gencode45",
         "consortia": [
             "smaht"
         ]
