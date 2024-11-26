@@ -73,6 +73,6 @@
         "gene_annotation": "gencode45",
         "status": "released",
         "dataset": "colo829t",
-        "annotated_filename": "ST001-1D-XX-M45-B004-test-SMAFI8LOZ6MU-bwamem_1.2.3_GRCh38.aligned.sorted.phased.bam"
+        "annotated_filename": "ST001-1D-XX-M45-B004-test-SMAFI8LOZ6MU-bwamem_1.2.3_GRCh38_gencode45.aligned.sorted.phased.bam"
     }
 ]
