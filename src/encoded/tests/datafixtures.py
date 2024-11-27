@@ -569,8 +569,7 @@ def test_sequencer(
 def test_sequencing(
     testapp,
     test_submission_center,
-    test_sequencer,
-    test_software
+    test_sequencer
 ):
     item = {
         "read_type": "Paired-end",
@@ -579,8 +578,7 @@ def test_sequencing(
         "submitted_id": "TEST_SEQUENCING_NOVASEQ-500X",
         "flow_cell": "R9",
         "target_coverage": 500,
-        "target_read_length": 150,
-        "software": [test_software]
+        "target_read_length": 150
     }
     return post_item_and_return_location(testapp, item, 'sequencing')
 
@@ -625,7 +623,8 @@ def test_derived_paired_with(
     testapp,
     file_formats,
     test_fileset,
-    test_submission_center
+    test_submission_center,
+    test_software
 ):
     item = {
         "file_format": file_formats.get("FASTQ", {}).get("uuid", ""),
@@ -644,7 +643,8 @@ def test_derived_paired_with(
         "status": "released",
         "dataset": "colo829t",
         "flow_cell_barcode": "HAWT3ADXX",
-        "flow_cell_lane": 1
+        "flow_cell_lane": 1,
+        "software": [test_software["uuid"]]
     }
     return post_item_and_return_location(testapp, item, 'unaligned_reads')
 
