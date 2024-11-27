@@ -11,8 +11,13 @@
     "dev-analyzed": "gulp dev-analyzed --preserve-symlinks",
     "cypress:open": "node_modules/.bin/cypress open --project './deploy/post_deploy_testing' --env Auth0Client=$Auth0Client,Auth0Secret=$Auth0Secret",
     "cypress:open-local": "node_modules/.bin/cypress open --project './deploy/post_deploy_testing' --env Auth0Client=$Auth0Client,Auth0Secret=$Auth0Secret --config baseUrl=http://localhost:8000",
+    "cypress:open-devtest": "node_modules/.bin/cypress open --project './deploy/post_deploy_testing' --env Auth0Client=$Auth0Client,Auth0Secret=$Auth0Secret --config baseUrl=https://devtest.smaht.org",
+    "cypress:open-staging": "node_modules/.bin/cypress open --project './deploy/post_deploy_testing' --env Auth0Client=$Auth0Client,Auth0Secret=$Auth0Secret --config baseUrl=https://staging.smaht.org",
     "cypress:test": "node_modules/.bin/cypress run --project './deploy/post_deploy_testing' --env Auth0Client=$Auth0Client,Auth0Secret=$Auth0Secret --config videoRecording=false",
     "cypress:test-recorded": "node_modules/.bin/cypress run --project './deploy/post_deploy_testing' --record --key $CYPRESS_KEY --env Auth0Client=$Auth0Client,Auth0Secret=$Auth0Secret",
+    "cypress:test-recorded-staging": "node_modules/.bin/cypress run --project './deploy/post_deploy_testing' --env Auth0Client=$Auth0Client,Auth0Secret=$Auth0Secret --config baseUrl=https://staging.smaht.org",
+    "cypress:test-recorded-devtest": "node_modules/.bin/cypress run --project './deploy/post_deploy_testing' --env Auth0Client=$Auth0Client,Auth0Secret=$Auth0Secret --config baseUrl=https://devtest.smaht.org",
+    "cypress:test-recorded-local": "node_modules/.bin/cypress run --project './deploy/post_deploy_testing' --env Auth0Client=$Auth0Client,Auth0Secret=$Auth0Secret --config baseUrl=http://localhost:8000",
     "format": "prettier-eslint --write \"{,!(node_modules)/**/}*.{js,jsx}\"",
     "lint": "eslint src --ext '.js,.jsx'",
     "lint:fix": "npm run lint -- --fix"
@@ -99,6 +104,6 @@
     "url": "^0.11.0"
   },
   "optionalDependencies": {
-    "cypress": "^10.3.0"
+    "cypress": "^13.7.0"
   }
 }

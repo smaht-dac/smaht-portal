@@ -279,25 +279,25 @@ function CustomStaticLinks({ pathName, href }) {
                                     <a
                                         className="level-3-title text-small d-block"
                                         href="/data/benchmarking/donor-st001"
-                                        id="menutree-linkto-lung_page">
+                                        id="menutree-linkto-st001_page">
                                         <span>Donor ST001</span>
                                     </a>
                                     <a
                                         className="level-3-title text-small d-block"
                                         href="/data/benchmarking/donor-st002"
-                                        id="menutree-linkto-liver_page">
+                                        id="menutree-linkto-st002_page">
                                         <span>Donor ST002</span>
                                     </a>
                                     <a
                                         className="level-3-title text-small d-block"
                                         href="/data/benchmarking/donor-st003"
-                                        id="menutree-linkto-liver_page">
+                                        id="menutree-linkto-st003_page">
                                         <span>Donor ST003</span>
                                     </a>
                                     <a
                                         className="level-3-title text-small d-block"
                                         href="/data/benchmarking/donor-st004"
-                                        id="menutree-linkto-liver_page">
+                                        id="menutree-linkto-st004_page">
                                         <span>Donor ST004</span>
                                     </a>
                                 </div>
@@ -327,7 +327,7 @@ function CustomStaticLinks({ pathName, href }) {
                                     <a
                                         className="level-3-title text-small d-block"
                                         href="/data/analysis/colo829-snv-indel-detection"
-                                        id="menutree-linkto-lung_page">
+                                        id="menutree-linkto-colo829_snv_indel_detection_page">
                                         <span>
                                             COLO829 SNV/Indel Detection
                                             Challenge
