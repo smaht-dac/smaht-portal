@@ -92,6 +92,9 @@
                 ]
             }
         },
+        "app_name": {
+            "$merge": "encoded_core:schemas/workflow.json#/properties/app_name"
+        },
         "schema_version": {
             "default": "1"
         },
@@ -155,6 +158,9 @@
                     }
                 }
             }
+        },
+        "steps": {
+            "$merge": "encoded_core:schemas/workflow.json#/properties/steps"
         },
         "child_file_names": {
             "title": "Child File Names",
