@@ -1787,19 +1787,6 @@ div#popover-consortium-data-alluvial-table {
 	}
 }
 
-/***
-Unique styling of page title container for static pages
-(also used for user profiles)
-**/
-body.is-item-view[data-pathname^="/users/"] #page-title-container,
-#page-title-container.static-page-title {
-	background: $ss-title-background;
-	background-size: cover;
-	border: 1px solid #E7F0F3;
-	border-left: none;
-	border-right: none;
-}
-
 body[data-pathname^="/data"] {
 	.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
 		&[data-first-visible-column=true] {

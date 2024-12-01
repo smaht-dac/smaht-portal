@@ -20,6 +20,7 @@ import {
     TitleAndSubtitleUnder,
     pageTitleViews,
     EditingItemPageTitle,
+    OnlyTitle,
 } from './../PageTitleSection';
 
 export default function BrowseView(props) {
@@ -218,21 +219,25 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
         );
     }
 
-    const thisTypeTitle = schemaTransforms.getSchemaTypeFromSearchContext(
-        context,
-        schemas
-    );
-    const subtitle = thisTypeTitle ? (
-        <span>
-            <small className="text-300">for</small> {thisTypeTitle}
-        </span>
-    ) : null;
+    const commonCls = 'col-12';
 
     return (
-        <PageTitleContainer alerts={alerts} className="container-wide">
-            <TitleAndSubtitleBeside subtitle={subtitle}>
-                Search
-            </TitleAndSubtitleBeside>
+        <PageTitleContainer
+            alerts={alerts}
+            className="container-wide pb-2"
+            alertsBelowTitleContainer>
+            <div className="container-wide m-auto p-xl-0">
+                {/* {!breadCrumbsVisible ? (
+                    <StaticPageBreadcrumbs
+                        {...{ context, session, href }}
+                        key="breadcrumbs"
+                        className={commonCls + ' mx-0 px-0'}
+                    />
+                ) : null} */}
+                <OnlyTitle className={commonCls + ' mx-0 px-0'}>
+                    SMaHT Production Data
+                </OnlyTitle>
+            </div>
         </PageTitleContainer>
     );
 });

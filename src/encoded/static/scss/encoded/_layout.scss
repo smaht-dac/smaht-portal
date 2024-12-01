@@ -207,6 +207,19 @@ body.is-full-screen {
 		HEADER & TOP AREAS (Navbar, Page Titles, etc.)
 ************************************************************/
 
+/***
+Styling of page title container for static pages, user profiles, 
+**/
+body[data-pathname^="/browse/"]:not([data-current-action="add"]):not([data-current-action="edit"]) #page-title-container,
+body.is-item-view[data-pathname^="/users/"] #page-title-container,
+#page-title-container.static-page-title {
+	background: $ss-title-background;
+	background-size: cover;
+	border: 1px solid #E7F0F3;
+	border-left: none;
+	border-right: none;
+}
+
 #page-title-container {
 
 	h1.page-title {
