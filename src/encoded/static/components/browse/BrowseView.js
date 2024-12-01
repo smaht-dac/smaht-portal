@@ -15,13 +15,13 @@ import { DetailPaneStateCache } from '@hms-dbmi-bgm/shared-portal-components/es/
 import { columnExtensionMap } from './columnExtensionMap';
 import { Schemas } from './../util';
 import {
-    TitleAndSubtitleBeside,
     PageTitleContainer,
     TitleAndSubtitleUnder,
     pageTitleViews,
     EditingItemPageTitle,
     OnlyTitle,
 } from './../PageTitleSection';
+import SlidingSidebarLayout from './../shared/SlidingSidebarLayout';
 
 export default function BrowseView(props) {
     const {
@@ -174,24 +174,24 @@ export class BrowseViewBody extends React.PureComponent {
         const facetColumnClassName = 'facets-column col-auto';
 
         return (
-            <div
-                className="container-wide search-page-outer-container"
-                id="content">
-                <CommonSearchView
-                    {...passProps}
-                    {...{
-                        columnExtensionMap,
-                        tableColumnClassName,
-                        facetColumnClassName,
-                        facets,
-                    }}
-                    renderDetailPane={null}
-                    termTransformFxn={Schemas.Term.toName}
-                    separateSingleTermFacets={false}
-                    rowHeight={31}
-                    openRowHeight={40}
-                />
-                HELLO: THIS IS BROWSE-VIEW!
+            <div className="search-page-outer-container" id="content">
+                <SlidingSidebarLayout>
+                    <div>NAV</div>
+                    <CommonSearchView
+                        {...passProps}
+                        {...{
+                            columnExtensionMap,
+                            tableColumnClassName,
+                            facetColumnClassName,
+                            facets,
+                        }}
+                        renderDetailPane={null}
+                        termTransformFxn={Schemas.Term.toName}
+                        separateSingleTermFacets={false}
+                        rowHeight={31}
+                        openRowHeight={40}
+                    />
+                </SlidingSidebarLayout>
             </div>
         );
     }
