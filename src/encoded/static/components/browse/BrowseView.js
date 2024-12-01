@@ -176,26 +176,147 @@ export class BrowseViewBody extends React.PureComponent {
         return (
             <div className="search-page-outer-container" id="content">
                 <SlidingSidebarLayout>
-                    <div>NAV</div>
-                    <CommonSearchView
-                        {...passProps}
-                        {...{
-                            columnExtensionMap,
-                            tableColumnClassName,
-                            facetColumnClassName,
-                            facets,
-                        }}
-                        renderDetailPane={null}
-                        termTransformFxn={Schemas.Term.toName}
-                        separateSingleTermFacets={false}
-                        rowHeight={31}
-                        openRowHeight={40}
-                    />
+                    <div>
+                        <h3 className="browse-links-header">
+                            Browse Production Data By
+                        </h3>
+                        <div className="browse-links">
+                            <BrowseLink type="File" />
+                            <BrowseLink type="Donor" />
+                            <BrowseLink type="Tissue" />
+                            <BrowseLink type="Assay" />
+                        </div>
+                    </div>
+                    <div>
+                        <div>
+                            <h2 className="browse-summary-header">
+                                SMaHT Data Summary
+                            </h2>
+                            <div className="browse-summary d-flex flex-row p-4 mt-2 mb-3 flex-wrap">
+                                <BrowseSummaryStat type="File" value="151" />
+                                <BrowseSummaryStat type="Donor" value="3" />
+                                <BrowseSummaryStat type="Tissue" value="5" />
+                                <BrowseSummaryStat type="Assay" value="10" />
+                                <BrowseSummaryStat
+                                    type="File Size"
+                                    value="2.5"
+                                />
+                            </div>
+                        </div>
+                        <hr />
+                        <CommonSearchView
+                            {...passProps}
+                            {...{
+                                columnExtensionMap,
+                                tableColumnClassName,
+                                facetColumnClassName,
+                                facets,
+                            }}
+                            renderDetailPane={null}
+                            termTransformFxn={Schemas.Term.toName}
+                            separateSingleTermFacets={false}
+                            rowHeight={31}
+                            openRowHeight={40}
+                        />
+                    </div>
                 </SlidingSidebarLayout>
             </div>
         );
     }
 }
+
+const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
+    const { type, value } = props;
+
+    let subtitle;
+    let units = null;
+    switch (type) {
+        case 'File':
+            subtitle = 'Files Generated';
+            break;
+        case 'Donor':
+            subtitle = 'Donors';
+            break;
+        case 'Tissue':
+            subtitle = 'Tissues';
+            break;
+        case 'Assay':
+            subtitle = 'Assays';
+            break;
+        case 'File Size':
+            units = 'TB';
+            subtitle = 'Total File Size';
+            break;
+        default:
+            throw new Error(
+                'Error in BrowseSummaryStat - Must provide a valid type.'
+            );
+    }
+
+    return (
+        <div className="browse-summary-stat d-flex flex-row align-items-center">
+            <BrowseLinkIcon {...{ type }} />
+            <div className="ms-2">
+                <div className="browse-summary-stat-value">
+                    {value}
+                    {units && <span>{units}</span>}
+                </div>
+                <div className="browse-summary-stat-subtitle">{subtitle}</div>
+            </div>
+        </div>
+    );
+});
+
+const BrowseLink = React.memo(function BrowseLink(props) {
+    const { type } = props;
+
+    return (
+        <a href={`/browse/?type=${type}`} className="browse-link">
+            <BrowseLinkIcon {...{ type }} />
+            {type}
+        </a>
+    );
+});
+
+const BrowseLinkIcon = React.memo(function BrowseLinkIcon(props) {
+    const { type } = props;
+
+    let iconCls;
+    let dataAttribute;
+
+    switch (type) {
+        case 'File':
+            iconCls = 'file';
+            dataAttribute = 'file';
+            break;
+        case 'Donor':
+            iconCls = 'users';
+            dataAttribute = 'donor';
+            break;
+        case 'Tissue':
+            iconCls = 'lungs';
+            dataAttribute = 'tissue';
+            break;
+        case 'Assay':
+            iconCls = 'dna';
+            dataAttribute = 'assay';
+            break;
+        case 'File Size':
+            iconCls = 'download';
+            dataAttribute = 'file-size';
+            break;
+        default:
+            throw new Error(
+                'Error in BrowseLinkIcon - Must provide a valid type.'
+            );
+    }
+
+    return (
+        <div className="browse-link-icon" data-icon-type={dataAttribute}>
+            <i className={`icon fas icon-xl icon-${iconCls}`} />
+        </div>
+    );
+});
 
 const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
     const { context, schemas, currentAction, alerts } = props;
@@ -223,7 +344,7 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
 
     return (
         <PageTitleContainer
-            alerts={alerts}
+            alerts={[]}
             className="container-wide pb-2"
             alertsBelowTitleContainer>
             <div className="container-wide m-auto p-xl-0">

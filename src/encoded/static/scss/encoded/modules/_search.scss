@@ -717,3 +717,106 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 		}
 	}
 }
+
+/**
+* Browse View
+**/
+
+h2.browse-summary-header {
+	font-size: 1.5rem;
+	color: #343741;
+	font-weight: 600;
+}
+
+div.browse-summary {
+	background-color: #F9FCFF;
+	border: 1px solid #70A3E2;
+	border-radius: 15px;
+	gap: 40px;
+
+	div.browse-summary-stat > div {
+		div.browse-summary-stat-value {
+			line-height: 1;
+			font-size: 3rem;
+			font-weight: 700;
+			> span {
+				font-size: 2.5rem;
+			}
+		}
+
+		div.browse-summary-stat-subtitle {
+			color: #657B95;
+			font-weight: 600;
+		}
+	}
+}
+
+h3.browse-links-header,
+div.browse-links {
+	margin-left: 10px;
+}
+
+h3.browse-links-header {
+	font-size: 0.9rem;
+	font-weight: 600;
+	margin-bottom: 20px;
+}
+
+div.browse-links {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	a.browse-link {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		font-size: 1.125rem;
+		color: #343741;
+		font-weight: 600;
+	}
+}
+
+div.browse-link-icon {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 45px;
+	height: 45px;
+	border-radius: 22.5px;
+
+	&[data-icon-type='file'] {
+		background-color: #DDF1FF;
+		border: 1px solid #6DAAD5;
+		> i {
+			color: #0D74BD;
+		}
+	}
+	&[data-icon-type='donor'] {
+		background-color: #FBE8E8;
+		border: 1px solid #CC8B8B;
+		> i {
+			color: #B10808;
+		}
+	}
+	&[data-icon-type='tissue'] {
+		background-color: #D6F7EB;
+		border: 1px solid #5FBD8D;
+		> i {
+			color: #09AE5E;
+		}
+	}
+	&[data-icon-type='assay'] {
+		background-color: #E7E6FF;
+		border: 1px solid #775FBD;
+		> i {
+			color: #6A28AF;
+		}
+	}
+	&[data-icon-type='file-size'] {
+		background-color: #FFEFDB;
+		border: 1px solid #F47F6B;
+		> i {
+			color: #CC5D4A;
+		}
+	}
+}
