@@ -85,17 +85,6 @@
         },
         "version": {
             "pattern": "^[A-Za-z0-9_-.]{3,}$"
-        },
-        "files": {
-            "title": "Files",
-            "description": "Files associated with the gene annotation",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "linkTo": "File"
-            }
         }
     },
     "columns": {
