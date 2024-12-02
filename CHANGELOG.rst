@@ -7,11 +7,45 @@ smaht-portal
 Change Log
 ----------
 
-0.113.0
+=======
+0.114.1
 =======
 * 2024-11-20/dmichaels
 * Added module browse.py for /browse; adapted from fourfront/.../search.py/browse.
   This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1184
+
+=======
+0.114.0
+=======
+`PR 288 SN comparators description <https://github.com/smaht-dac/smaht-portal/pull/288>`_
+
+* Add property `comparator_description` to Variant Calls that is required if `mode` is "Paired"
+
+
+0.113.1
+=======
+`PR 294 BM Truth Set <https://github.com/smaht-dac/smaht-portal/pull/294>`_
+
+* Add "coming soon" tabs for HapMap and iPSC truth sets
+* Comment out URLs for real search tables for future use, once data is ready
+
+
+0.113.0
+=======
+`PR 282 New Cypress Tests <https://github.com/smaht-dac/smaht-portal/pull/282>`_
+
+* Upgrade: Cypress v10 to v13
+* Add new cypress tests
+  - Authentication & Basic Functionality
+  - Home Page Tests
+  - User Impersonation
+  - Documentation Page
+  - Search View Tests
+  - Post-Deployment Validation
+  - Statistics Page
+  - Benchmarking Page
+  - About Page
+* Cypress Commands: Introduced commands for testing across environments (data, local, staging, etc.).
 
 
 0.112.3
