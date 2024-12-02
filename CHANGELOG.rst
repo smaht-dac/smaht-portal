@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.114.1
+=======
+`PR 301 SN Add enum to extraction method <https://github.com/smaht-dac/smaht-portal/pull/301>`_
+
+* Add "Mechanical Dissociation" as an enum for `extraction_method` in AnalytePreparation
+
+
 0.114.0
 =======
 `PR 288 SN comparators description <https://github.com/smaht-dac/smaht-portal/pull/288>`_

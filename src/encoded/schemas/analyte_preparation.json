@@ -84,11 +84,12 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "Density Gradient Centrifugation",
                     "Magnetic Beads",
+                    "Mechanical Dissociation",
                     "Not Applicable",
                     "Organic Chemicals",
-                    "Silica Column",
-                    "Density Gradient Centrifugation"
+                    "Silica Column"
                 ]
             }
         },
