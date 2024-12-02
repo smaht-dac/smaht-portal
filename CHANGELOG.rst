@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.113.0
+0.115.0
 =======
 `PR 277 DSA Release <https://github.com/smaht-dac/smaht-portal/pull/277>`_
 * In `commands/release-file.py` and `commands/create-annotated-filenames.py`:
@@ -15,11 +15,71 @@ Change Log
   * For Supplementary Files, use `title` instead of `code` for software part of annotated filename
 
 
+0.114.0
+=======
+`PR 288 SN comparators description <https://github.com/smaht-dac/smaht-portal/pull/288>`_
+
+* Add property `comparator_description` to Variant Calls that is required if `mode` is "Paired"
+
+
+0.113.1
+=======
+`PR 294 BM Truth Set <https://github.com/smaht-dac/smaht-portal/pull/294>`_
+
+* Add "coming soon" tabs for HapMap and iPSC truth sets
+* Comment out URLs for real search tables for future use, once data is ready
+
+
+0.113.0
+=======
+`PR 282 New Cypress Tests <https://github.com/smaht-dac/smaht-portal/pull/282>`_
+
+* Upgrade: Cypress v10 to v13
+* Add new cypress tests
+  - Authentication & Basic Functionality
+  - Home Page Tests
+  - User Impersonation
+  - Documentation Page
+  - Search View Tests
+  - Post-Deployment Validation
+  - Statistics Page
+  - Benchmarking Page
+  - About Page
+* Cypress Commands: Introduced commands for testing across environments (data, local, staging, etc.).
+
+
+0.112.3
+=======
+* 2024-11-08/dmichaels
+* Updated some demo_inserts data files to make them more consistent with what is in production;
+  i.e. e.g. some of the submission-center uuids here were in conflict with production which
+  impedes local development when exporting from production and importing locally.
+* Added /debug_user_principals endpoint for debugging/troubleshooting/undestanding only;
+  this will simply return the list of principals for the calling user.
+* Updated dcicutils to latest version (8.16.4).
+
+
+0.112.2
+=======
+`PR 293 SN extraction enum <https://github.com/smaht-dac/smaht-portal/pull/293>`_
+
+* Add enum "Density Gradient Centrifugation" to `extraction_method` in AnalytePreparation
+* Update description for `homogenization_method`
+
+
+0.112.1
+=======
+`PR 292 SN dataset enums<https://github.com/smaht-dac/smaht-portal/pull/292>`_
+
+* Add `hapmap_snv_indel_challenge_data` and `ipsc_snv_indel_challenge_data` to dataset enums list
+
+
 0.112.0
 =======
-`PR 287 SN Override Coverage <https://github.com/smaht-dac/smaht-portal/pull/287`_
+`PR 287 SN Override Coverage <https://github.com/smaht-dac/smaht-portal/pull/287>`_
 
 * Add property to file, `override_group_coverage` that displays in `data_generation_summary` calculated property for the File Overview page, which takes precedence  over `file_set.sequencing.target_coverage` if set
+
 
 0.111.0
 =======

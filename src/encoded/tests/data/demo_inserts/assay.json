@@ -11,7 +11,8 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ],
-        "uuid": "beb12f96-624b-4fb8-afd5-8c637f5c0b97"
+        "uuid": "beb12f96-624b-4fb8-afd5-8c637f5c0b97",
+        "valid_molecules": ["RNA"]
     },
     {
         "code": "001",
@@ -25,6 +26,7 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ],
-        "uuid": "87fbe483-31c6-4ff7-8abd-043d185150af"
+        "uuid": "87fbe483-31c6-4ff7-8abd-043d185150af",
+        "valid_molecules": ["DNA"]
     }
 ]
