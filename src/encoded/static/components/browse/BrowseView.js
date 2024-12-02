@@ -149,12 +149,7 @@ export class BrowseViewBody extends React.PureComponent {
     }
 
     render() {
-        const {
-            isCaseSearch = false,
-            context,
-            currentAction,
-            schemas,
-        } = this.props;
+        const { session, href, context, currentAction, schemas } = this.props;
 
         // We don't need full screen btn on CGAP as already full width.
         const passProps = _.omit(
@@ -172,6 +167,8 @@ export class BrowseViewBody extends React.PureComponent {
         );
         const tableColumnClassName = 'results-column col';
         const facetColumnClassName = 'facets-column col-auto';
+
+        const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
 
         return (
             <div className="search-page-outer-container" id="content">
@@ -211,6 +208,7 @@ export class BrowseViewBody extends React.PureComponent {
                                 tableColumnClassName,
                                 facetColumnClassName,
                                 facets,
+                                aboveFacetListComponent,
                             }}
                             renderDetailPane={null}
                             termTransformFxn={Schemas.Term.toName}
@@ -254,8 +252,8 @@ const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
     }
 
     return (
-        <div className="browse-summary-stat d-flex flex-row align-items-center">
-            <BrowseLinkIcon {...{ type }} />
+        <div className="browse-summary-stat d-flex flex-row">
+            <BrowseLinkIcon {...{ type }} cls="mt-04" />
             <div className="ms-2">
                 <div className="browse-summary-stat-value">
                     {value}
@@ -279,7 +277,7 @@ const BrowseLink = React.memo(function BrowseLink(props) {
 });
 
 const BrowseLinkIcon = React.memo(function BrowseLinkIcon(props) {
-    const { type } = props;
+    const { type, cls } = props;
 
     let iconCls;
     let dataAttribute;
@@ -312,7 +310,9 @@ const BrowseLinkIcon = React.memo(function BrowseLinkIcon(props) {
     }
 
     return (
-        <div className="browse-link-icon" data-icon-type={dataAttribute}>
+        <div
+            className={'browse-link-icon ' + cls}
+            data-icon-type={dataAttribute}>
             <i className={`icon fas icon-xl icon-${iconCls}`} />
         </div>
     );
@@ -362,6 +362,46 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
         </PageTitleContainer>
     );
 });
+
+/**
+ * Header section of the File Overview Table. Passed as a child to
+ * EmbeddedSearchView (SPC), and recieves props from SelectedItemsController
+ */
+const BrowseViewAboveFacetListComponent = (props) => {
+    const {
+        href,
+        searchHref,
+        context,
+        onFilter,
+        schemas,
+        isContextLoading = false, // Present only on embedded search views,
+        navigate,
+        sortBy,
+        sortColumns,
+        hiddenColumns,
+        addHiddenColumn,
+        removeHiddenColumn,
+        columnDefinitions,
+        session,
+        selectedItems, // From SelectedItemsController
+        onSelectItem, // From SelectedItemsController
+        onResetSelectedItems, // From SelectedItemsController
+    } = props;
+
+    console.log('context ???', context);
+    const totalResultCount = context?.total ?? 0;
+
+    return (
+        <div className="d-flex w-100 mb-05">
+            <div className="col-auto ms-0 ps-0">
+                <span className="text-400" id="results-count">
+                    {totalResultCount}
+                </span>{' '}
+                Results
+            </div>
+        </div>
+    );
+};
 
 pageTitleViews.register(BrowseViewPageTitle, 'Browse');
 pageTitleViews.register(BrowseViewPageTitle, 'Browse', 'selection');
