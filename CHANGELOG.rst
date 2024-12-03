@@ -7,12 +7,27 @@ smaht-portal
 Change Log
 ----------
 
-0.115.0
+0.116.0
 =======
 `PR 298 SN File release tracker <https://github.com/smaht-dac/smaht-portal/pull/298>`_
 
 * Add calcprop to file returning concatenated string of `file_sets.libraries.assays.display_title`, `file_sets.sequencing.sequencer.display_title`, and `file_format.display_title`
 * If there are multiple values for assay or sequencer, return an empty string
+
+0.115.0
+=======
+`PR 296 SN Sequencing validation <https://github.com/smaht-dac/smaht-portal/pull/296>`
+
+* Add custom validator to FileSet to ensure that `sequencing.target_coverage` is present if `libraries.analytes.molecule` contains "DNA" and `sequencing.target_read_count` is present if `libraries.analytes.molecule` contains "RNA"
+* Refactor custom validators
+* Specify molecule type in `submitted_ids` for workbook-inserts to keep track across tests
+
+
+0.114.1
+=======
+`PR 301 SN Add enum to extraction method <https://github.com/smaht-dac/smaht-portal/pull/301>`_
+
+* Add "Mechanical Dissociation" as an enum for `extraction_method` in AnalytePreparation
 
 
 0.114.0
