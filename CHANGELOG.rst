@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.116.0
+=======
+`PR 300 SN Sequencing validation <https://github.com/smaht-dac/smaht-portal/pull/300>`
+
+* Remove Basecalling item and transfer properties to Software item
+
+
 0.115.0
 =======
 `PR 296 SN Sequencing validation <https://github.com/smaht-dac/smaht-portal/pull/296>`
