@@ -7,13 +7,46 @@ smaht-portal
 Change Log
 ----------
 
-0.113.0
+0.115.0
 =======
 `PR 296 SN Sequencing validation <https://github.com/smaht-dac/smaht-portal/pull/296>`
 
 * Add custom validator to FileSet to ensure that `sequencing.target_coverage` is present if `libraries.analytes.molecule` contains "DNA" and `sequencing.target_read_count` is present if `libraries.analytes.molecule` contains "RNA"
 * Refactor custom validators
 * Specify molecule type in `submitted_ids` for workbook-inserts to keep track across tests
+
+
+0.114.0
+=======
+`PR 288 SN comparators description <https://github.com/smaht-dac/smaht-portal/pull/288>`_
+
+* Add property `comparator_description` to Variant Calls that is required if `mode` is "Paired"
+
+
+0.113.1
+=======
+`PR 294 BM Truth Set <https://github.com/smaht-dac/smaht-portal/pull/294>`_
+
+* Add "coming soon" tabs for HapMap and iPSC truth sets
+* Comment out URLs for real search tables for future use, once data is ready
+
+
+0.113.0
+=======
+`PR 282 New Cypress Tests <https://github.com/smaht-dac/smaht-portal/pull/282>`_
+
+* Upgrade: Cypress v10 to v13
+* Add new cypress tests
+  - Authentication & Basic Functionality
+  - Home Page Tests
+  - User Impersonation
+  - Documentation Page
+  - Search View Tests
+  - Post-Deployment Validation
+  - Statistics Page
+  - Benchmarking Page
+  - About Page
+* Cypress Commands: Introduced commands for testing across environments (data, local, staging, etc.).
 
 
 0.112.3
