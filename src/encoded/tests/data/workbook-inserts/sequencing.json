@@ -4,7 +4,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_SEQUENCING_NOVASEQ-500X",
+        "submitted_id": "TEST_SEQUENCING_NOVASEQ-500X-DNA",
         "read_type": "Paired-end",
         "flow_cell": "R9",
         "target_coverage": 500,
@@ -16,7 +16,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_SEQUENCING_ONT-90X",
+        "submitted_id": "TEST_SEQUENCING_ONT-90X-DNA",
         "read_type": "Single-end",
         "flow_cell": "R10.4.1",
         "target_coverage": 90,
@@ -28,7 +28,19 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_SEQUENCING_PACBIO_30X-30H",
+        "submitted_id": "TEST_SEQUENCING_PACBIO_30X-30H-RNA",
+        "read_type": "Single-end",
+        "target_read_length": 20000,
+        "target_read_count": 50000000,
+        "movie_length": 30,
+        "sequencer": "pacbio_revio_hifi"
+    },
+    {
+        "uuid": "2e2c6b4b-c77a-45cb-8a1e-ce64de9238a7",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_SEQUENCING_PACBIO_30X-30H-DNA",
         "read_type": "Single-end",
         "target_coverage": 30,
         "target_read_length": 20000,
@@ -40,7 +52,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_SEQUENCING_RNA-NOVASEQ-500X",
+        "submitted_id": "TEST_SEQUENCING_NOVASEQ-500X-RNA",
         "read_type": "Paired-end",
         "target_read_count": 50000000,
         "target_read_length": 150,

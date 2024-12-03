@@ -13,17 +13,17 @@ def get_read_type(properties: Dict[str, Any]) -> str:
 
 def get_target_read_length(properties: Dict[str, Any]) -> Union[int, None]:
     """Get target read length from properties."""
-    return properties.get("target_read_length")
-
-
-def get_target_coverage(properties: Dict[str, Any]) -> Union[int, None]:
-    """Get target coverage from properties."""
-    return properties.get("target_coverage","")
+    return properties.get("target_read_length","")
 
 
 def get_target_read_count(properties: Dict[str, Any]) -> Union[int, None]:
     """Get target read count from properties."""
     return properties.get("target_read_count","")
+
+
+def get_target_coverage(properties: Dict[str, Any]) -> Union[int, None]:
+    """Get target coverage from properties."""
+    return properties.get("target_coverage","")
 
 
 def get_flow_cell(properties: Dict[str, Any]) -> str:
