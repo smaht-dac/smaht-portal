@@ -894,3 +894,77 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         }
     }
 }
+
+
+
+/** QC Visualization styles */
+
+.plot-group {
+    display: flex;
+    .boxplot-canvas,
+    .scatterplot-canvas {
+        
+        display: flex;
+        flex: 1;
+        .boxplot-svg,
+        .scatterplot-svg {
+
+            .legend {
+                .legend-item {
+                    font-size: 0.75rem;
+                }
+            }
+
+            .data-point:hover {
+                cursor: pointer;
+                fill: black;
+            }
+        }
+    }
+
+    @include media-breakpoint-down(lg) {
+        display: flex;
+        flex-direction: column;
+    }
+}
+.popover-boxplot {
+    min-width: 340px;
+    .boxplot-popover-content {
+        .data-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 5px;
+            .label {
+                display: flex;
+                flex: 1;
+                font-weight: 600;
+            }
+            .value {
+                display: flex;
+                flex: 1;
+                font-weight: 400;
+            }
+        }
+    }
+}
+
+.popover-scatterplot {
+    min-width: 340px;
+    .scatterplot-popover-content {
+        .data-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 5px;
+            .label {
+                display: flex;
+                flex: 1;
+                font-weight: 600;
+            }
+            .value {
+                display: flex;
+                flex: 1;
+                font-weight: 400;
+            }
+        }
+    }
+}

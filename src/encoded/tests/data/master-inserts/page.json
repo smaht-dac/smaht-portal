@@ -1003,5 +1003,23 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "identifier": "qc-metrics",
+        "uuid": "51794ad7-3b6a-4be8-b030-d74591b9cd42",
+        "status": "public",
+        "content": [
+            "68271697-2726-4bbf-9243-1c2ae9553c80"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "QC Metrics",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]
