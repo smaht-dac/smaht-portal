@@ -14,7 +14,7 @@
         "file_format": "FASTQ",
         "filename": "some_fastq.fastq.gz",
         "file_sets": [
-            "TEST_FILE-SET_LIVER"
+            "TEST_FILE-SET_LIVER-DNA"
         ],
         "read_pair_number": "R1",
         "file_size": 10000,
@@ -38,7 +38,7 @@
         "file_format": "FASTQ",
         "filename": "some_fastq_R2.fastq.gz",
         "file_sets": [
-            "TEST_FILE-SET_LIVER"
+            "TEST_FILE-SET_LIVER-DNA"
         ],
         "read_pair_number": "R2",
         "paired_with": "TEST_UNALIGNED-READS_LIVER-FASTQ-R1"
@@ -60,7 +60,7 @@
         "file_format": "FASTQ",
         "filename": "some_fastq_R2.fastq.gz",
         "file_sets": [
-            "TEST_FILE-SET_HELA_ONLY"
+            "TEST_FILE-SET_HELA_ONLY-RNA"
         ],
         "read_pair_number": "R1",
         "file_size": 20000,
@@ -84,7 +84,7 @@
         "file_format": "FASTQ",
         "filename": "some_fastq_R2.fastq.gz",
         "file_sets": [
-            "TEST_FILE-SET_HELA_ONLY"
+            "TEST_FILE-SET_HELA_ONLY-RNA"
         ],
         "read_pair_number": "R2",
         "paired_with": "TEST_UNALIGNED-READS_HELA-FASTQ-R1"
@@ -104,7 +104,7 @@
         "file_format": "FASTQ",
         "filename": "some_fastq_unpaired.fastq.gz",
         "file_sets": [
-            "TEST_FILE-SET_HELA"
+            "TEST_FILE-SET_HELA-RNA"
         ],
         "file_size": 30000,
         "status": "released",
