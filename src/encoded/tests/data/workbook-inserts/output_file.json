@@ -30,7 +30,7 @@
             "smaht"
         ],
         "file_sets": [
-            "TEST_FILE-SET_LIVER"
+            "TEST_FILE-SET_LIVER-DNA"
         ],
         "file_size": 5000,
         "md5sum": "211e09ebf240c7256747d10e24cb99fd"
@@ -63,7 +63,7 @@
         "sequencing_center": "smaht",
         "file_size": 10000,
         "file_sets": [
-            "TEST_FILE-SET_LUNG-HOMOGENATE"
+            "TEST_FILE-SET_LUNG-HOMOGENATE-DNA"
         ],
         "software": [
             "TEST_SOFTWARE_BWA-MEM",

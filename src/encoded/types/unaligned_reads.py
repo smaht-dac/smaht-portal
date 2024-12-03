@@ -1,3 +1,4 @@
+from typing import Union, List
 from snovault import collection, load_schema
 from snovault.util import debug_log, get_item_or_none
 from encoded.validator_decorators import link_related_validator
@@ -42,28 +43,9 @@ class UnalignedReads(SubmittedFile):
 def validate_read_pairs_on_add(context,request):
     """Check that file is R2 if it has `paired_with` and link of R2 files corresponds to an R1 file on add."""
     data = request.json
-    if 'read_pair_number' in data and 'paired_with' in data:
-        read = get_item_or_none(request, data['paired_with'], 'unaligned-reads')
-        paired_reads = ur_utils.get_read_pair_number(read)
-        if data['read_pair_number'] != 'R2': # paired_with is exclusive to R2
-            msg = f"paired_with property is specific to R2 files, read_pair_number is {data['read_pair_number']}."
-            return request.errors.add('body', 'UnalignedReads: invalid property', msg)
-        elif paired_reads != "R1":
-            msg = f"paired_with file must have read_pair_number of R1, Linked file read_pair_number is {paired_reads}."
-            return request.errors.add('body', 'UnalignedReads: invalid links', msg)
-        else:
-            return request.validated.update({})
-    elif 'paired_with' in data:
-            msg = "paired_with property is specific to R2 files, No read_pair_number is provided."
-            return request.errors.add('body', 'UnalignedReads: invalid property', msg)
-    elif 'read_pair_number' in data:
-            if data['read_pair_number'] == "R2":
-                msg = "paired_with property is required for R2 files, No value provided"
-                return request.errors.add('body', 'UnalignedReads: invalid property', msg)
-            else:
-                return request.validated.update({})
-    else:
-        return request.validated.update({})
+    read_pair_number = data['read_pair_number'] if 'read_pair_number' in data else None
+    paired_with = data['paired_with'] if 'paired_with' in data else None
+    return check_read_pairs_paired_with(request, data['submitted_id'], paired_with, read_pair_number)
 
 
 @link_related_validator
@@ -73,60 +55,70 @@ def validate_read_pairs_on_edit(context,request):
     properties_to_update = get_properties(request)
     paired_with = get_property_for_validation('paired_with', existing_properties, properties_to_update)
     read_pair_number = get_property_for_validation('read_pair_number', existing_properties, properties_to_update)
+    return check_read_pairs_paired_with(request, existing_properties['submitted_id'], paired_with, read_pair_number)
+
+
+def check_read_pairs_paired_with(request, submitted_id: str, paired_with: Union[str,None], read_pair_number: Union[str,None]):
+    """Check that file is R2 if it has `paired_with` and link of R2 files corresponds to an R1 file"""
     if read_pair_number and paired_with:
-        read = get_item_or_none(request, paired_with, 'unaligned-reads')
-        paired_reads = ur_utils.get_read_pair_number(read)
-        if read_pair_number != 'R2': # paired_with is exclusive to R2
-            msg = f"paired_with property is specific to R2 files, read_pair_number is {read_pair_number}."
-            return request.errors.add('body', 'UnalignedReads: invalid property', msg)
-        elif paired_reads != "R1":
-            msg = f"paired_with file must have read_pair_number of R1, Linked file read_pair_number is {paired_reads}."
-            return request.errors.add('body', 'UnalignedReads: invalid links', msg)
-        else:
-            return request.validated.update({})
-    elif paired_with:
-            msg = "paired_with property is specific to R2 files, No read_pair_number is provided."
-            return request.errors.add('body', 'UnalignedReads: invalid property', msg)
-    elif read_pair_number:
-            if read_pair_number == "R2":
-                msg = "paired_with property is required for R2 files, No value provided"
+        if (read := get_item_or_none(request, paired_with, 'unaligned-reads')):
+            paired_reads = ur_utils.get_read_pair_number(read)
+            if read_pair_number != 'R2': # paired_with is exclusive to R2
+                msg = f"paired_with property is specific to R2 files, read_pair_number is {read_pair_number}."
                 return request.errors.add('body', 'UnalignedReads: invalid property', msg)
+            elif paired_reads != "R1":
+                msg = f"paired_with file must have read_pair_number of R1, Linked file read_pair_number is {paired_reads}."
+                return request.errors.add('body', 'UnalignedReads: invalid links', msg)
             else:
                 return request.validated.update({})
+        else:
+            msg = f"No file found for `paired_with` file {paired_with} for file {submitted_id}. Make sure R1 files are before paired R2 files in submission spreadsheet."
+            return request.errors.add('body', 'UnalignedReads: invalid submission order', msg)
+    elif paired_with:
+        msg = "paired_with property is specific to R2 files, No read_pair_number is provided."
+        return request.errors.add('body', 'UnalignedReads: invalid property', msg)
+    elif read_pair_number:
+        if read_pair_number == "R2":
+            msg = "paired_with property is required for R2 files, No value provided"
+            return request.errors.add('body', 'UnalignedReads: invalid property', msg)
+        else:
+            return request.validated.update({})
     else:
         return request.validated.update({})
 
 
-def validate_read_pairs_in_file_sets_on_add(context,request):
+def validate_read_pairs_in_file_sets_on_add(context, request):
     """Check that the R1 and R2 files are linked to the same FileSet on add."""
     data = request.json
-    if 'paired_with' in data:
-        read = get_item_or_none(request, data['paired_with'], 'unaligned-reads')
-        r1_file_sets = ur_utils.get_file_sets_display_titles(request, file_utils.get_file_sets(read))
-        r2_file_sets = ur_utils.get_file_sets_display_titles(request, data['file_sets'])
-        if not list(set(r1_file_sets) & set(r2_file_sets)):
-            msg = f"{data['submitted_id']} paired_with file must be linked to the same FileSet. R2 file linked to file set {r2_file_sets} and R1 file linked to file set {r1_file_sets}."
-            return request.errors.add('body', 'UnalignedReads: invalid links', msg)
-        else:
-            return request.validated.update({})
+    paired_with = data['paired_with'] if 'paired_with' in data else None
+    file_sets = data['file_sets']
+    return check_read_pairs_in_file_sets(request, data['submitted_id'], paired_with, file_sets)
 
 
-def validate_read_pairs_in_file_sets_on_edit(context,request):
+def validate_read_pairs_in_file_sets_on_edit(context, request):
     """Check that the R1 and R2 files are linked to the same FileSet on edit."""
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
     paired_with = get_property_for_validation('paired_with', existing_properties, properties_to_update)
     file_sets = get_property_for_validation('file_sets', existing_properties, properties_to_update)
-    if paired_with:
-        read = get_item_or_none(request, paired_with, 'unaligned-reads')
-        r1_file_sets = ur_utils.get_file_sets_display_titles(request, file_utils.get_file_sets(read))
-        r2_file_sets = ur_utils.get_file_sets_display_titles(request, file_sets)
-        if not list(set(r1_file_sets) & set(r2_file_sets)):
-            msg = f"{existing_properties['submitted_id']} paired_with file must be linked to the same FileSet. R2 file linked to file set {r2_file_sets} and R1 file linked to file set {r1_file_sets}."
-            return request.errors.add('body', 'UnalignedReads: invalid links', msg)
-        else:
-            return request.validated.update({})
+    return check_read_pairs_in_file_sets(request, existing_properties['submitted_id'], paired_with, file_sets)
 
+
+def check_read_pairs_in_file_sets(request, submitted_id: str, paired_with: Union[str, None], file_sets: List[str]):
+    """Check that the R1 and R2 files are linked to the same FileSet"""
+    if paired_with:
+        if (read := get_item_or_none(request, paired_with, 'unaligned-reads')):
+            r1_file_sets = ur_utils.get_file_sets_display_titles(request, file_utils.get_file_sets(read))
+            r2_file_sets = ur_utils.get_file_sets_display_titles(request, file_sets)
+            if not list(set(r1_file_sets) & set(r2_file_sets)):
+                msg = f"{submitted_id} paired_with file must be linked to the same FileSet. R2 file linked to file set {r2_file_sets} and R1 file linked to file set {r1_file_sets}."
+                return request.errors.add('body', 'UnalignedReads: invalid links', msg)
+            else:
+                return request.validated.update({})
+        else:
+            msg = f"No file found for `paired_with` file {paired_with} for file {submitted_id}. Make sure R1 files are before paired R2 files in submission spreadsheet."
+            return request.errors.add('body', 'UnalignedReads: invalid submission order', msg)
+    return request.validated.update({})
 
 
 UNALIGNED_READS_ADD_VALIDATORS = SUBMITTED_FILE_ADD_VALIDATORS + [
