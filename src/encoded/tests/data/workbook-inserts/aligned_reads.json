@@ -18,7 +18,7 @@
         "file_format": "BAM",
         "filename": "some_bam.bam",
         "file_sets": [
-            "TEST_FILE-SET_LIVER"
+            "TEST_FILE-SET_LIVER-DNA"
         ],
         "software": [
             "foo:software_vep",
@@ -51,7 +51,7 @@
         "file_format": "BAM",
         "filename": "some_bam.bam",
         "file_sets": [
-            "TEST_FILE-SET_IPSC_FIBROBLAST"
+            "TEST_FILE-SET_IPSC_FIBROBLAST-DNA"
         ],
         "software": [
             "TEST_SOFTWARE_BWA-MEM"
@@ -78,7 +78,7 @@
         "file_format": "BAM",
         "filename": "some_downsampled_bam.bam",
         "file_sets": [
-            "TEST_FILE-SET_LIVER"
+            "TEST_FILE-SET_LIVER-DNA"
         ],
         "software": [
             "TEST_SOFTWARE_BWA-MEM"
