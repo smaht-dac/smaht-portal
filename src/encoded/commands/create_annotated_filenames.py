@@ -22,6 +22,7 @@ from encoded.item_utils import (
     supplementary_file as supp_file_utils,
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
+    donor_specific_assembly as dsa_utils
 )
 from encoded.item_utils.constants import file as file_constants
 from encoded.item_utils.utils import RequestHandler
@@ -32,7 +33,7 @@ logger = logging.getLogger(__name__)
 FILENAME_SEPARATOR = "-"
 ANALYSIS_INFO_SEPARATOR = "_"
 CHAIN_FILE_INFO_SEPARATOR = "To"
-
+DSA_INFO_VALUE = "dsa"
 
 DEFAULT_PROJECT_ID = constants.PRODUCTION_PREFIX
 DEFAULT_ABSENT_FIELD = "X"
@@ -419,7 +420,9 @@ def get_annotated_filename(
         associated_items.donors, associated_items.sample_sources
     )
     sequencing_and_assay_codes = get_sequencing_and_assay_codes(
-        associated_items.sequencers, associated_items.assays
+        associated_items.file, 
+        associated_items.sequencers, 
+        associated_items.assays
     )
     sequencing_center_code = get_sequencing_center_code(
         associated_items.sequencing_center
@@ -427,7 +430,10 @@ def get_annotated_filename(
     accession = get_accession(file)
     file_extension = get_file_extension(file, associated_items.file_format)
     analysis_info = get_analysis(
-        file, associated_items.software, associated_items.reference_genome,associated_items.file_format
+        file,
+        associated_items.software,
+        associated_items.reference_genome,
+        associated_items.file_format
     )
     errors = collect_errors(
         project_id,
@@ -750,14 +756,20 @@ def get_sex_abbreviation(sex: str) -> str:
 
 
 def get_sequencing_and_assay_codes(
+    file: Dict[str, Any],
     sequencers: List[Dict[str], Any],
     assays: List[Dict[str], Any],
 ) -> FilenamePart:
-    """Get sequencing and assay codes for file."""
+    """Get sequencing and assay codes for file.
+    
+    Returns XX for Reference Genome and Reference Conversion files.
+    """
     sequencing_codes = get_sequencing_codes(sequencers)
     assay_codes = get_assay_codes(assays)
     if len(sequencing_codes) == 1 and len(assay_codes) == 1:
         return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
+    elif supp_file_utils.is_reference_conversion(file) or supp_file_utils.is_reference_genome(file):
+        return get_filename_part(value="XX")
     errors = []
     if not sequencing_codes:
         errors.append("No sequencing code found")
@@ -800,14 +812,14 @@ def get_analysis(
     file: Dict[str, Any],
     software: List[Dict[str, Any]],
     reference_genome: Dict[str, Any],
-    file_extension: Dict[str, Any],
+    file_extension: Dict[str, Any]
 ) -> FilenamePart:
     """Get analysis info for file.
 
     Some error handling here for missing data by file type, but not
     exhaustive and allowing for some flexibility in what is expected.
     """
-    software_and_versions = get_software_and_versions(software)
+    software_and_versions = get_software_and_versions(file, software)
     reference_genome_code = item_utils.get_code(reference_genome)
     errors = get_analysis_errors(file, reference_genome_code)
     if errors:
@@ -816,7 +828,10 @@ def get_analysis(
         software_and_versions, reference_genome_code
     )
     if file_format_utils.is_chain_file(file_extension):
-        value = f"{value}{ANALYSIS_INFO_SEPARATOR}{get_chain_file_value(file)}"
+        value = ANALYSIS_INFO_SEPARATOR.join([value,get_chain_file_value(file)]) if value else get_chain_file_value(file)
+    elif file_format_utils.is_fasta_file(file_extension) and supp_file_utils.get_donor_specific_assembly(file):
+        if (haplotype := supp_file_utils.get_haplotype(file)):
+            value = f"{value}{ANALYSIS_INFO_SEPARATOR}{haplotype}"
     if not value:
         if file_utils.is_unaligned_reads(file):  # Think this is the only case (?)
             return get_filename_part(value=DEFAULT_ABSENT_FIELD)
@@ -853,18 +868,17 @@ def get_analysis_value(
     return ANALYSIS_INFO_SEPARATOR.join(to_write)
 
 
-def get_software_and_versions(software: List[Dict[str, Any]]) -> str:
+def get_software_and_versions(file: Dict[str, Any], software: List[Dict[str, Any]]) -> str:
     """Get software and accompanying versions for file.
 
-    Currently only looking for software items with codes, as these are
-    expected to be the software used for naming.
+    Currently looking for software items with codes, as these are expected to be the software used for naming.
     """
     software_with_codes = get_software_with_codes(software)
     if not software_with_codes:
         return ""
     software_with_codes_and_versions = get_software_with_versions(software_with_codes)
     if len(software_with_codes) == len(software_with_codes_and_versions):
-        return get_software_and_versions_string(software_with_codes_and_versions)
+        return get_software_and_versions_string(file, software_with_codes_and_versions)
     missing_versions = get_software_codes_missing_versions(software_with_codes)
     logger.warning(f"Missing versions for software items: {missing_versions}.")
     return ""
@@ -877,6 +891,13 @@ def get_software_with_codes(
     return [item for item in software_items if item_utils.get_code(item)]
 
 
+def get_software_with_title(
+    software_items: List[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
+    """Get software items with title."""
+    return [item for item in software_items if item_utils.get_title(item)]
+
+
 def get_software_with_versions(
     software_items: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
@@ -884,16 +905,29 @@ def get_software_with_versions(
     return [item for item in software_items if item_utils.get_version(item)]
 
 
-def get_software_and_versions_string(software_items: List[Dict[str, Any]]) -> str:
+def get_software_and_versions_string(
+        file: Dict[str, Any],
+        software_items: List[Dict[str, Any]]
+    ) -> str:
     """Get string representation of software and versions."""
-    sorted_software_items = sorted(software_items, key=item_utils.get_code)
-    return ANALYSIS_INFO_SEPARATOR.join(
-        [
-            f"{item_utils.get_code(item)}{ANALYSIS_INFO_SEPARATOR}"
-            f"{item_utils.get_version(item)}"
-            for item in sorted_software_items
-        ]
-    )
+    if supp_file_utils.is_supplementary_file(file):
+        sorted_software_items = sorted(software_items, key=item_utils.get_title)
+        return ANALYSIS_INFO_SEPARATOR.join(
+            [
+                f"{item_utils.get_title(item).lower()}{ANALYSIS_INFO_SEPARATOR}"
+                f"{item_utils.get_version(item)}"
+                for item in sorted_software_items
+            ]
+        )
+    else:
+        sorted_software_items = sorted(software_items, key=item_utils.get_code)
+        return ANALYSIS_INFO_SEPARATOR.join(
+            [
+                f"{item_utils.get_code(item)}{ANALYSIS_INFO_SEPARATOR}"
+                f"{item_utils.get_version(item)}"
+                for item in sorted_software_items
+            ]
+        )
 
 
 def get_software_codes_missing_versions(

@@ -24,6 +24,9 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/code"
+        },
+        {
             "$ref": "mixins.json#/description"
         },
         {

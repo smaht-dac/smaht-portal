@@ -468,6 +468,8 @@ def test_get_donor_sex_and_age_parts(
         assert_filename_part_matches(result, expected, errors)
 
 
+SOME_FILE = {"data_category": ["Aligned Reads"]}
+REFERENCE_FILE = {"data_category": ["Reference Genome"]}
 SEQUENCER_CODE = "A"
 SOME_SEQUENCER = {"code": SEQUENCER_CODE}
 ANOTHER_SEQUENCER = {"code": "B"}
@@ -477,25 +479,27 @@ ANOTHER_ASSAY = {"code": "002"}
 
 
 @pytest.mark.parametrize(
-    "sequencers,assays,expected,errors",
+    "file,sequencers,assays,expected,errors",
     [
-        ([], [], "", True),
-        ([SOME_SEQUENCER], [], "", True),
-        ([], [SOME_ASSAY], "", True),
-        ([SOME_SEQUENCER], [SOME_ASSAY], f"{SEQUENCER_CODE}{ASSAY_CODE}", False),
-        ([SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY], "", True),
-        ([SOME_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "", True),
-        ([SOME_SEQUENCER, SOME_ITEM], [SOME_ASSAY], "", True),
+        (SOME_FILE,[], [], "", True),
+        (SOME_FILE,[SOME_SEQUENCER], [], "", True),
+        (SOME_FILE,[], [SOME_ASSAY], "", True),
+        (SOME_FILE,[SOME_SEQUENCER], [SOME_ASSAY], f"{SEQUENCER_CODE}{ASSAY_CODE}", False),
+        (SOME_FILE,[SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY], "", True),
+        (REFERENCE_FILE,[SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "XX", False),
+        (SOME_FILE,[SOME_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "", True),
+        (SOME_FILE,[SOME_SEQUENCER, SOME_ITEM], [SOME_ASSAY], "", True),
     ],
 )
 def test_get_sequencing_and_assay_codes(
+    file: Dict[str, Any],
     sequencers: List[Dict[str, Any]],
     assays: List[Dict[str, Any]],
     expected: str,
     errors: bool,
 ) -> None:
     """Test sequencing and assay codes retrieval for annotated filenames."""
-    result = get_sequencing_and_assay_codes(sequencers, assays)
+    result = get_sequencing_and_assay_codes(file, sequencers, assays)
     assert_filename_part_matches(result, expected, errors)
 
 
@@ -526,7 +530,7 @@ ANOTHER_SOFTWARE_CODE = "bar"
 ANOTHER_SOFTWARE_VERSION = "2.3.4"
 ANOTHER_SOFTWARE = {"code": ANOTHER_SOFTWARE_CODE, "version": ANOTHER_SOFTWARE_VERSION}
 REFERENCE_GENOME_CODE = "GRCh38"
-TARGET_GENOME_CODE = "HELA_DSA"
+TARGET_GENOME_CODE = "Hela_DSA"
 
 SOME_REFERENCE_GENOME = {"code": REFERENCE_GENOME_CODE}
 SOME_UNALIGNED_READS = {"data_type": ["Unaligned Reads"]}
@@ -535,6 +539,14 @@ SOME_CHAIN_FILE = {
     "data_type": ["SupplementaryFile"],
     "source_assembly": REFERENCE_GENOME_CODE,
     "target_assembly": TARGET_GENOME_CODE
+}
+SOME_FASTA_FILE = {
+    "data_type": ["SupplementaryFile"],
+    "donor_specific_assembly": "Some_DSA",
+    "haplotype": "hapX"
+}
+ANOTHER_FASTA_FILE = {
+    "data_type": ["SupplementaryFile"],
 }
 SOME_SOMATIC_VARIANT_CALLS = {"data_category": ["Somatic Variant Calls"]}
 SOME_VARIANT_CALLS = {
@@ -554,6 +566,11 @@ VCF_FILE_EXTENSION = {
 CHAIN_FILE_EXTENSION = {
     "identifier": "CHAIN",
     "standard_file_extension": "chain.gz",
+    "valid_item_types": ["SupplementaryFile"]
+}
+FASTA_FILE_EXTENSION = {
+    "identifier": "FASTA",
+    "standard_file_extension": "fa",
     "valid_item_types": ["SupplementaryFile"]
 }
 
@@ -615,6 +632,22 @@ CHAIN_FILE_EXTENSION = {
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}To{TARGET_GENOME_CODE}",
             False,
         ),
+        (
+            SOME_FASTA_FILE,
+            [SOME_SOFTWARE, SOME_ITEM],
+            {},
+            FASTA_FILE_EXTENSION,
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_hapX",
+            False,
+        ),
+        (
+            ANOTHER_FASTA_FILE,
+            [SOME_SOFTWARE, SOME_ITEM],
+            {},
+            FASTA_FILE_EXTENSION,
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}",
+            False,
+        ),
     ],
 )
 def test_get_analysis(
@@ -630,14 +663,17 @@ def test_get_analysis(
     assert_filename_part_matches(result, expected, errors)
 
 
+SUPPLEMENTARY_FILE = {'@type': ["SupplementaryFile"]}
+OTHER_FILE = {'@type': ["VariantCals"]}
 @pytest.mark.parametrize(
-    "software,expected",
+    "file,software,expected",
     [
-        ([], ""),
-        ([{"version": "2.3.4"}], ""),
-        ([{"code": "foo", "version": "1.2.3"}], "foo_1.2.3"),
-        ([{"code": "foo", "version": "1.2.3"}, {"version": "2.3.4"}], "foo_1.2.3"),
+        (OTHER_FILE,[], ""),
+        (OTHER_FILE,[{"version": "2.3.4"}], ""),
+        (OTHER_FILE,[{"code": "foo", "version": "1.2.3"}], "foo_1.2.3"),
+        (OTHER_FILE,[{"code": "foo", "version": "1.2.3"}, {"version": "2.3.4"}], "foo_1.2.3"),
         (
+            OTHER_FILE,
             [
                 {"code": "foo", "version": "1.2.3"},
                 {"version": "2.3.4"},
@@ -645,13 +681,16 @@ def test_get_analysis(
             ],
             "bar_3.4.5_foo_1.2.3",
         ),
+        (SUPPLEMENTARY_FILE,[{"title": "Foo", "version": "1.2.3"}], ""),
     ],
 )
 def test_get_software_and_versions(
-    software: List[Dict[str, Any]], expected: str
+    file: Dict[str, Any],
+    software: List[Dict[str, Any]],
+    expected: str
 ) -> None:
     """Test software names and versions retrieval."""
-    result = get_software_and_versions(software)
+    result = get_software_and_versions(file ,software)
     assert result == expected
 
 
