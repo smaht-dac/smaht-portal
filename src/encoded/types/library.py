@@ -1,3 +1,4 @@
+from typing import List, Dict, Any
 from snovault import collection, load_schema
 from snovault.util import debug_log, get_item_or_none
 from encoded.validator_decorators import link_related_validator
@@ -31,7 +32,10 @@ ASSAY_DEPENDENT = {
 
 def _build_library_embedded_list():
     """Embeds for search on libraries."""
-    return []
+    return [
+        "analytes.molecule",
+        "library_preparation.strand",
+    ]
 
 
 @collection(
@@ -52,45 +56,34 @@ class Library(SubmittedItem):
 
 @link_related_validator
 def validate_molecule_specific_assay_on_add(context, request):
-    """Check that analyte.molecule includes the correct molecule for molecule-specific assays.
-    
-    The assays with `valid_molecules` property may need to be updated as new techologies come out 
-    or are added to the portal.
-    """
+    """Check that analyte.molecule includes the correct molecule for molecule-specific assays."""
     data = request.json
-    molecules = []
-    for analyte in data['analytes']:
-        molecules += analyte_utils.get_molecule(
-            get_item_or_none(request, analyte, 'analytes')
-        )
-    assay = get_item_or_none(request, data['assay'], 'assays')
-    valid_molecules = assay_utils.get_valid_molecules(assay)
-    if valid_molecules:
-        overlap = list(set(molecules) & set(valid_molecules))
-        if not overlap:
-            msg = f"Assay {assay} is specific to molecules: {valid_molecules}."
-            return request.errors.add('body', 'Library: invalid links', msg)
-    return request.validated.update({})
+    return check_molecule_specific_assay(request, data['analytes'], data['assay'])
     
 
 @link_related_validator
 def validate_molecule_specific_assay_on_edit(context, request):
+    """Check that analyte.molecule includes the correct molecule for molecule-specific assays."""
+    existing_properties = get_properties(context)
+    properties_to_update = get_properties(request)
+    analytes = get_property_for_validation('analytes', existing_properties, properties_to_update)
+    assay = get_property_for_validation('assay', existing_properties, properties_to_update)
+    return check_molecule_specific_assay(request, analytes, assay)
+
+
+def check_molecule_specific_assay(request, analytes: List[str], assay: str):
     """Check that analyte.molecule includes the correct molecule for molecule-specific assays.
     
     The assays with `valid_molecules` property may need to be updated as new techologies come out 
     or are added to the portal.
     """
-    existing_properties = get_properties(context)
-    properties_to_update = get_properties(request)
     molecules = []
-    analytes = get_property_for_validation('analytes', existing_properties, properties_to_update)
     for analyte in analytes:
         molecules += analyte_utils.get_molecule(
             get_item_or_none(request, analyte, 'analytes')
         )
-    assay_link = get_property_for_validation('assay', existing_properties, properties_to_update)
-    assay = get_item_or_none(request, assay_link, 'assays')
-    valid_molecules = assay_utils.get_valid_molecules(assay)
+    assay_item = get_item_or_none(request, assay, 'assays')
+    valid_molecules = assay_utils.get_valid_molecules(assay_item)
     if valid_molecules:
         overlap = list(set(molecules) & set(valid_molecules))
         if not overlap:
@@ -100,40 +93,34 @@ def validate_molecule_specific_assay_on_edit(context, request):
 
 
 def validate_assay_specific_properties_on_add(context, request):
-    """Check that assay is appropriate for assay-specific properties on add.
-    
-    Assay-specific properties are in `ASSAY_DEPENDENT`
-    """
+    """Check that assay is appropriate for assay-specific properties on add."""
     data = request.json
-    if 'assay' in data:
-        for key in ASSAY_DEPENDENT.keys():
-            if key in data:
-                assay = item_utils.get_identifier(
-                    get_item_or_none(request, data['assay'], 'assays')
-                )
-                if assay not in ASSAY_DEPENDENT[key]:
-                    msg = f"Property {key} not compatible with assay {assay}. Valid for assays {', '.join(ASSAY_DEPENDENT[key])}"
-                    return request.errors.add('body', 'Library: invalid property value', msg)
-        return request.validated.update({})
-    
+    all_property_keys = [key for key in data.keys()]
+    assay = data["assay"]
+    return check_assay_specific_properties(request, assay, all_property_keys)
 
-def validate_assay_specific_properties_on_edit(context, request):
-    """Check that assay is appropriate for assay-specific properties on edit.
     
-    Assay-specific properties are in `ASSAY_DEPENDENT`
-    """
+def validate_assay_specific_properties_on_edit(context, request):
+    """Check that assay is appropriate for assay-specific properties on edit."""
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
     all_property_keys = list(set().union(existing_properties.keys(), properties_to_update.keys()))
+    assay = get_property_for_validation('assay', existing_properties, properties_to_update)
+    return check_assay_specific_properties(request, assay, all_property_keys)
 
-    assay_link = get_property_for_validation('assay', existing_properties, properties_to_update)
+
+def check_assay_specific_properties(request, assay: str, properties: List[str]):
+    """Check that assay is appropriate for assay-specific properties.
+    
+    Assay-specific properties are in `ASSAY_DEPENDENT`
+    """
     for key in ASSAY_DEPENDENT.keys():
-        if key in all_property_keys:
-            assay = item_utils.get_identifier(
-                get_item_or_none(request, assay_link, 'assays')
+        if key in properties:
+            assay_id = item_utils.get_identifier(
+                get_item_or_none(request, assay, 'assays')
             )
-            if assay not in ASSAY_DEPENDENT[key]:
-                msg = f"Property {key} not compatible with assay {assay}. Valid for assays {', '.join(ASSAY_DEPENDENT[key])}"
+            if assay_id not in ASSAY_DEPENDENT[key]:
+                msg = f"Property {key} not compatible with assay {assay_id}. Valid for assays {', '.join(ASSAY_DEPENDENT[key])}"
                 return request.errors.add('body', 'Library: invalid property value', msg)
     return request.validated.update({})
 
