@@ -33,6 +33,9 @@ FILENAME_SEPARATOR = "-"
 ANALYSIS_INFO_SEPARATOR = "_"
 CHAIN_FILE_INFO_SEPARATOR = "To"
 
+RNA_DATA_CATEGORY = "RNA Quantification"
+GENE_DATA_TYPE = "Gene Expression"
+ISOFORM_DATA_TYPE = "Transcript Expression"
 
 DEFAULT_PROJECT_ID = constants.PRODUCTION_PREFIX
 DEFAULT_ABSENT_FIELD = "X"
@@ -825,18 +828,24 @@ def get_analysis(
     software_and_versions = get_software_and_versions(software)
     reference_genome_code = item_utils.get_code(reference_genome)
     gene_annotation_code = item_utils.get_code(gene_annotation)
-    errors = get_analysis_errors(file, reference_genome_code)
-    if errors:
-        return get_filename_part(errors=errors)
+    transcript_info_code = get_rna_seq_tsv_value(file, file_extension)
     value = get_analysis_value(
         software_and_versions,
         reference_genome_code,
-        gene_annotation_code
+        gene_annotation_code,
+        transcript_info_code
     )
     if file_format_utils.is_chain_file(file_extension):
         value = f"{value}{ANALYSIS_INFO_SEPARATOR}{get_chain_file_value(file)}"
-    elif file_format_utils.is_tsv_file(file_extension) and "RNA Quantification" in file_utils.get_data_category(file):
-        value = f"{value}{ANALYSIS_INFO_SEPARATOR}{get_rna_seq_tsv_value(file)}"
+    errors = get_analysis_errors(
+        file,
+        reference_genome_code,
+        gene_annotation_code,
+        transcript_info_code,
+        file_extension,
+    )
+    if errors:
+        return get_filename_part(errors=errors)
     if not value:
         if file_utils.is_unaligned_reads(file):  # Think this is the only case (?)
             return get_filename_part(value=DEFAULT_ABSENT_FIELD)
@@ -845,7 +854,11 @@ def get_analysis(
 
 
 def get_analysis_errors(
-    file: Dict[str, Any], reference_genome_code: str
+    file: Dict[str, Any], 
+    reference_genome_code: str,
+    gene_annotation_code: str,
+    transcript_info_code:  str,
+    file_extension: Dict[str, Any]
 ) -> List[str]:
     """Get analysis errors for file by file type."""
     errors = []
@@ -858,18 +871,24 @@ def get_analysis_errors(
     if file_utils.is_variant_calls(file):
         if not reference_genome_code:
             errors.append("No reference genome code found")
+    if RNA_DATA_CATEGORY in file_utils.get_data_category(file):
+        if not gene_annotation_code:
+            errors.append("No gene annotation code found")
+        elif file_format_utils.is_tsv_file(file_extension) and not transcript_info_code:
+            errors.append("No gene or isoform code found")
     return errors
 
 
 def get_analysis_value(
     software_and_versions: str,
     reference_genome_code: str,
-    gene_annotation_code: str
+    gene_annotation_code: str,
+    transcript_info_code: str
 ) -> str:
     """Get analysis value for filename."""
     to_write = [
         string
-        for string in [software_and_versions, reference_genome_code, gene_annotation_code]
+        for string in [software_and_versions, reference_genome_code, gene_annotation_code, transcript_info_code]
         if string
     ]
     return ANALYSIS_INFO_SEPARATOR.join(to_write)
@@ -936,12 +955,13 @@ def get_chain_file_value(file: Dict[str, Any]) -> str:
     return CHAIN_FILE_INFO_SEPARATOR.join([source_assembly,target_assembly])
 
 
-def get_rna_seq_tsv_value(file: Dict[str, Any]) -> str:
-    """Get isoform or gene from data type RNA-seq tsv files."""
-    if "Gene Expression" in file_utils.get_data_type(file):
-        return "gene"
-    elif "Transcript Expression" in file_utils.get_data_type(file):
-        return "isoform"
+def get_rna_seq_tsv_value(file: Dict[str, Any], file_extension: Dict[str, Any]) -> str:
+    """Get isoform or gene from data type for RNA-seq tsv files."""
+    if file_format_utils.is_tsv_file(file_extension) and RNA_DATA_CATEGORY in file_utils.get_data_category(file):
+        if GENE_DATA_TYPE in file_utils.get_data_type(file):
+            return "gene"
+        elif ISOFORM_DATA_TYPE in file_utils.get_data_type(file):
+            return "isoform"
     else:
         return ""
 

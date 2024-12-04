@@ -533,6 +533,7 @@ SOME_REFERENCE_GENOME = {"code": REFERENCE_GENOME_CODE}
 SOME_GENE_ANNOTATION = {"code": GENE_ANNOTATION_CODE}
 SOME_UNALIGNED_READS = {"data_type": ["Unaligned Reads"]}
 SOME_ALIGNED_READS = {"data_type": ["Aligned Reads"]}
+RNA_ALIGNED_READS = {"data_type": ["Aligned Reads"], "data_category": ["RNA Quantification"]}
 SOME_CHAIN_FILE = {
     "data_type": ["SupplementaryFile"],
     "source_assembly": REFERENCE_GENOME_CODE,
@@ -540,6 +541,9 @@ SOME_CHAIN_FILE = {
 }
 SOME_TSV_FILE = {
     "data_type": ["Gene Expression"],
+    "data_category": ["RNA Quantification"]
+}
+SOME_OTHER_FILE = {
     "data_category": ["RNA Quantification"]
 }
 SOME_ISOFORM_TSV_FILE = {
@@ -645,7 +649,7 @@ TSV_FILE_EXTENSION = {
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_gene",
             False
         ),
-                (
+        (
             SOME_ISOFORM_TSV_FILE,
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
@@ -655,6 +659,15 @@ TSV_FILE_EXTENSION = {
             False
         ),
         (
+            SOME_OTHER_FILE,
+            [SOME_SOFTWARE],
+            SOME_REFERENCE_GENOME,
+            SOME_GENE_ANNOTATION,
+            TSV_FILE_EXTENSION,
+            "",
+            True
+        ),
+        (
             SOME_ALIGNED_READS,
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
@@ -662,6 +675,15 @@ TSV_FILE_EXTENSION = {
             SOME_FILE_EXTENSION,
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}",
             False
+        ),
+        (
+            RNA_ALIGNED_READS,
+            [SOME_SOFTWARE],
+            SOME_REFERENCE_GENOME,
+            {},
+            SOME_FILE_EXTENSION,
+            "",
+            True
         )
     ],
 )
