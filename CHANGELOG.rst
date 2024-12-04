@@ -9,7 +9,7 @@ Change Log
 
 0.115.1
 =======
-`PR 301 SN fix sequencing validator <https://github.com/smaht-dac/smaht-portal/pull/301>`
+`PR 302 SN fix sequencing validator <https://github.com/smaht-dac/smaht-portal/pull/302>`
 
 * Adds `on_target_rate` to sequencing validator in FileSet for DNA libraries
 
