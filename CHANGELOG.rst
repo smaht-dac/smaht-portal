@@ -15,6 +15,13 @@ Change Log
 * Update `commands/create_annotated_filenames.py` to include gencode version and gene/isoform information for RSEM tsv output files and RNA-seq aligned bams
 
 
+0.115.1
+=======
+`PR 302 SN fix sequencing validator <https://github.com/smaht-dac/smaht-portal/pull/302>`
+
+* Adds `on_target_rate` to sequencing validator in FileSet for DNA libraries
+
+
 0.115.0
 =======
 `PR 296 SN Sequencing validation <https://github.com/smaht-dac/smaht-portal/pull/296>`
