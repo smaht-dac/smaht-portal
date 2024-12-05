@@ -11,7 +11,6 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
         "file_format",
         "quality_metric",
         "reference_genome",
-        "gene_annotation",
         "software",
         "tracking_item",
         "image",

@@ -76,9 +76,9 @@ def get_reference_genome(properties: Dict[str, Any]) -> Union[str, Dict[str, Any
     return properties.get("reference_genome", "")
 
 
-def get_gene_annotation(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-    """Get gene annotation from properties."""
-    return properties.get("gene_annotation", "")
+def get_annotation(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
+    """Get annotation from properties."""
+    return properties.get("annotation", [])
 
 
 def get_file_sets(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:

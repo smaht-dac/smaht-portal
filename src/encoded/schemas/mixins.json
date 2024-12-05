@@ -74,6 +74,17 @@
             }
         }
     },
+    "annotation": {
+        "annotation": {
+            "title": "Gene Annotation",
+            "description": "Gene annotation used for gene or transcript quantification",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "ReferenceFile"
+            }
+        }
+    },
     "attachment": {
         "attachment": {
             "title": "Attached File",
@@ -362,14 +373,6 @@
             "description": "Flow cell lane for sequencing that generated this file",
             "type": "integer",
             "minimum": 1
-        }
-    },
-    "gene_annotation": {
-        "gene_annotation": {
-            "title": "Gene Annotation",
-            "description": "Gene annotation used for gene or transcript quantification",
-            "type": "string",
-            "linkTo": "GeneAnnotation"
         }
     },
     "identifier": {

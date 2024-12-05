@@ -70,7 +70,9 @@
             "foo:software_vep"
         ],
         "reference_genome": "GRCh38",
-        "gene_annotation": "gencode45",
+        "annotation": [
+            "smaht:ReferenceFile-collapsed-genes-gencode_v45"
+        ],
         "status": "released",
         "dataset": "colo829t",
         "annotated_filename": "ST001-1D-XX-M45-B004-test-SMAFI8LOZ6MU-bwamem_1.2.3_GRCh38_gencode45.aligned.sorted.phased.bam"
