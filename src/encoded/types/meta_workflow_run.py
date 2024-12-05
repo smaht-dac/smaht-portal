@@ -21,7 +21,7 @@ def _build_meta_workflow_run_embedded_list():
         "meta_workflow.workflows.input.argument_name",
         "meta_workflow.workflows.input.source_argument_name",
         "meta_workflow.workflows.input.argument_type",
-        "meta_workflow.workflows.input.value",
+        # "meta_workflow.workflows.input.value",
         "meta_workflow.workflows.input.value_type",
         "meta_workflow.workflows.name",
         "meta_workflow.workflows.workflow.display_title",
