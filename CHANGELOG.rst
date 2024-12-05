@@ -7,6 +7,37 @@ smaht-portal
 Change Log
 ----------
 
+0.116.0
+=======
+`PR 299 SN RNA-seq filenames <https://github.com/smaht-dac/smaht-portal/pull/299>`
+
+* Create new item GeneAnnotation that OutputFile and SupplementaryFile link to with property `gene_annotation`
+* Update `commands/create_annotated_filenames.py` to include gencode version and gene/isoform information for RSEM tsv output files and RNA-seq aligned bams
+
+
+0.115.1
+=======
+`PR 302 SN fix sequencing validator <https://github.com/smaht-dac/smaht-portal/pull/302>`
+
+* Adds `on_target_rate` to sequencing validator in FileSet for DNA libraries
+
+
+0.115.0
+=======
+`PR 296 SN Sequencing validation <https://github.com/smaht-dac/smaht-portal/pull/296>`
+
+* Add custom validator to FileSet to ensure that `sequencing.target_coverage` is present if `libraries.analytes.molecule` contains "DNA" and `sequencing.target_read_count` is present if `libraries.analytes.molecule` contains "RNA"
+* Refactor custom validators
+* Specify molecule type in `submitted_ids` for workbook-inserts to keep track across tests
+
+
+0.114.1
+=======
+`PR 301 SN Add enum to extraction method <https://github.com/smaht-dac/smaht-portal/pull/301>`_
+
+* Add "Mechanical Dissociation" as an enum for `extraction_method` in AnalytePreparation
+
+
 0.114.0
 =======
 `PR 288 SN comparators description <https://github.com/smaht-dac/smaht-portal/pull/288>`_

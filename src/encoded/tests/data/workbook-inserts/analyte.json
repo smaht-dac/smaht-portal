@@ -4,7 +4,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_ANALYTE_LIVER",
+        "submitted_id": "TEST_ANALYTE_LIVER-DNA",
         "molecule_detail": [
             "Total DNA"
         ],
@@ -23,7 +23,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_ANALYTE_HELA",
+        "submitted_id": "TEST_ANALYTE_HELA-RNA",
         "molecule_detail": [
             "mRNA"
         ],
@@ -43,7 +43,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_ANALYTE_HELA_ONLY",
+        "submitted_id": "TEST_ANALYTE_HELA_ONLY-RNA",
         "molecule_detail": [
             "mRNA"
         ],
@@ -62,7 +62,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_ANALYTE_HELA-HEK293",
+        "submitted_id": "TEST_ANALYTE_HELA-HEK293-DNA",
         "molecule_detail": [
             "Total DNA"
         ],
@@ -78,7 +78,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_ANALYTE_LUNG-HOMOGENATE",
+        "submitted_id": "TEST_ANALYTE_LUNG-HOMOGENATE-DNA",
         "molecule_detail": [
             "Total DNA"
         ],
@@ -94,7 +94,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_ANALYTE_IPSC_FIBROBLAST",
+        "submitted_id": "TEST_ANALYTE_IPSC_FIBROBLAST-DNA",
         "molecule_detail": [
             "Total DNA"
         ],
