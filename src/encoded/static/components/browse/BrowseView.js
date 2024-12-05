@@ -23,7 +23,10 @@ import {
     OnlyTitle,
 } from './../PageTitleSection';
 import SlidingSidebarLayout from './../shared/SlidingSidebarLayout';
-import { SelectAllFilesButton } from '../static-pages/components/SelectAllAboveTableComponent';
+import {
+    SelectAllFilesButton,
+    SelectedItemsDownloadButton,
+} from '../static-pages/components/SelectAllAboveTableComponent';
 import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { BrowseViewControllerWithSelections } from '../static-pages/components/TableControllerWithSelections';
@@ -224,8 +227,6 @@ const BrowseViewSearchTable = (props) => {
     const tableColumnClassName = 'results-column col';
     const facetColumnClassName = 'facets-column col-auto';
 
-    const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
-
     console.log('BROWSEVIEWSEARCHTABLE PROPS', props);
     const selectedFileProps = {
         selectedItems, // From SelectedItemsController
@@ -238,6 +239,11 @@ const BrowseViewSearchTable = (props) => {
         'isFullscreen',
         'toggleFullScreen',
         'isCaseSearch'
+    );
+
+    const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
+    const aboveTableComponent = (
+        <BrowseViewAboveTableComponent {...passProps} />
     );
 
     /**
@@ -420,6 +426,7 @@ const BrowseViewSearchTable = (props) => {
                 facetColumnClassName,
                 facets,
                 aboveFacetListComponent,
+                aboveTableComponent,
             }}
             hideFacets={[
                 'dataset',
@@ -440,7 +447,6 @@ const BrowseViewSearchTable = (props) => {
                 file_size: {},
             }}
             useCustomSelectionController
-            aboveTableComponent={null}
             hideStickyFooter
             currentAction={'multiselect'}
             renderDetailPane={null}
@@ -602,7 +608,7 @@ const BrowseViewAboveFacetListComponent = (props) => {
     const totalResultCount = context?.total ?? 0;
 
     return (
-        <div className="d-flex w-100 mb-05">
+        <div className="d-flex w-100 mb-05 mt-1">
             <div className="col-auto ms-0 ps-0">
                 <span className="text-400" id="results-count">
                     {totalResultCount}
@@ -612,6 +618,62 @@ const BrowseViewAboveFacetListComponent = (props) => {
         </div>
     );
 };
+
+export const BrowseViewAboveTableComponent = React.memo(
+    function BrowseViewAboveTableComponent(props) {
+        const {
+            href,
+            searchHref,
+            context,
+            onFilter,
+            schemas,
+            isContextLoading = false, // Present only on embedded search views,
+            navigate,
+            sortBy,
+            sortColumns,
+            hiddenColumns,
+            addHiddenColumn,
+            removeHiddenColumn,
+            columnDefinitions,
+            session,
+            selectedItems, // From SelectedItemsController
+            onSelectItem, // From SelectedItemsController
+            onResetSelectedItems, // From SelectedItemsController
+        } = props;
+        const { filters: ctxFilters = null, total: totalResultCount = 0 } =
+            context || {};
+
+        const selectedFileProps = {
+            selectedItems, // From SelectedItemsController
+            onSelectItem, // From SelectedItemsController
+            onResetSelectedItems, // From SelectedItemsController
+        };
+
+        console.log('props HELLO', props);
+
+        return (
+            <div className="d-flex w-100 mb-05">
+                <div className="ms-auto col-auto">
+                    <SelectAllFilesButton
+                        {...selectedFileProps}
+                        {...{ context }}
+                    />
+                </div>
+                <div className="ms-auto col-auto me-0 pe-0">
+                    <SelectedItemsDownloadButton
+                        id="download_tsv_multiselect"
+                        disabled={selectedItems.size === 0}
+                        className="btn btn-primary btn-sm me-05 align-items-center"
+                        {...{ selectedItems, session }}
+                        analyticsAddItemsToCart>
+                        <i className="icon icon-download fas me-03" />
+                        Download {selectedItems.size} Selected Files
+                    </SelectedItemsDownloadButton>
+                </div>
+            </div>
+        );
+    }
+);
 
 pageTitleViews.register(BrowseViewPageTitle, 'Browse');
 pageTitleViews.register(BrowseViewPageTitle, 'Browse', 'selection');
