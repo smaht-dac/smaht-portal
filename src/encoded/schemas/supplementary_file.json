@@ -36,7 +36,11 @@
             "$ref": "mixins.json#/file_release"
         },
         {
+<<<<<<< HEAD
             "$ref": "mixins.json#/annotation"
+=======
+            "$ref": "mixins.json#/gene_annotation"
+>>>>>>> main
         },
         {
             "$ref": "mixins.json#/modified"

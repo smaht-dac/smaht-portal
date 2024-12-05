@@ -375,6 +375,14 @@
             "minimum": 1
         }
     },
+    "gene_annotation": {
+        "gene_annotation": {
+            "title": "Gene Annotation",
+            "description": "Gene annotation used for gene or transcript quantification",
+            "type": "string",
+            "linkTo": "GeneAnnotation"
+        }
+    },
     "identifier": {
         "identifier": {
             "title": "Identifier",
