@@ -36,9 +36,6 @@
             "$ref": "mixins.json#/file_release"
         },
         {
-            "$ref": "mixins.json#/annotation"
-        },
-        {
             "$ref": "mixins.json#/modified"
         },
         {
