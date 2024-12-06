@@ -67,25 +67,24 @@
             "description": "Additional notes or other findings related to the sample",
             "type": "string"
         },
-        "adrenal_sample_location": {
-            "title": "Adrenal Sample Location",
-            "description": "Location from which adrenal sample was taken",
-            "type": "string",
-            "enum": [
-                "Left Adrenal",
-                "Right Adrenal"
-            ]
-        },
-        "brain_sample_location": {
+        "anatomical_sample_location": {
             "title": "Brain Sample Location",
-            "description": "Location from which brain sample was taken",
+            "description": "Anatomical location from which the sample was taken",
             "type": "string",
             "enum": [
                 "Cerebellum Left Hemisphere",
                 "Frontal Lobe Left Hemisphere",
                 "Hippocampus Left Hemisphere",
                 "Hippocampus Right Hemisphere",
-                "Temporal Lobe Left Hemisphere"
+                "Temporal Lobe Left Hemisphere",
+                "Left Adrenal",
+                "Right Adrenal",
+                "Skin Calf",
+                "Skin Abdomen",
+                "Left Ovary",
+                "Right Ovary",
+                "Left Testis",
+                "Right Testis"
             ]
         },
         "final_review_determination": {
@@ -274,15 +273,6 @@
                 "Unacceptable"
             ]
         },
-        "ovary_sample_location": {
-            "title": "Ovary Sample Location",
-            "description": "Location from which ovary sample was taken",
-            "type": "string",
-            "enum": [
-                "Left Ovary",
-                "Right Ovary"
-            ]
-        },
         "pathologic_findings": {
             "title": "Pathologic Findings",
             "type": "array",
@@ -332,24 +322,6 @@
                     }
                 }
             }
-        },
-        "skin_sample_location": {
-            "title": "Skin Sample Location",
-            "description": "Location from which skin sample was taken",
-            "type": "string",
-            "enum": [
-                "Skin Calf",
-                "Skin Abdomen"
-            ]
-        },
-        "testis_sample_location": {
-            "title": "Testis Sample Location",
-            "description": "Location from which testis sample was taken",
-            "type": "string",
-            "enum": [
-                "Left Testis",
-                "Right Testis"
-            ]
         },
         "tissue_autolysis_score": {
             "title": "Overall Tissue Autolysis Score",
@@ -563,7 +535,6 @@
             },
             "then": {
                 "allOf": [
-                    {"not": {"required": ["brain_sample_location"]}},
                     {"not": {"required": ["neuropathology_onset"]}},
                     {"not": {"required": ["infectious_neuropathology_pattern_type"]}},
                     {"not": {"required": ["infectious_neuropathology_infection_type"]}},
@@ -584,44 +555,6 @@
                     {"not": {"required": ["metabolic_neuropathology_type"]}},
                     {"not": {"required": ["neuropathology_artifact_type"]}}
                 ]
-            }
-        },
-        {
-            "if": {
-                "not": {
-                    "properties": {
-                        "tissue_name": {
-                            "const": "Adrenal"
-                        }
-                    }
-                }
-                
-            },
-            "then": {
-                "not": {
-                    "required": [
-                        "adrenal_sample_location"
-                    ]
-                }
-            }
-        },
-        {
-            "if": {
-                "not": {
-                    "properties": {
-                        "tissue_name": {
-                            "const": "Skin"
-                        }
-                    }
-                }
-                
-            },
-            "then": {    
-                "not": {
-                    "required": [
-                        "skin_sample_location"
-                    ]
-               }
             }
         }
     ]
