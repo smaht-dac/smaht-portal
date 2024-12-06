@@ -21,6 +21,11 @@ def get_target_read_count(properties: Dict[str, Any]) -> Union[int, None]:
     return properties.get("target_read_count","")
 
 
+def get_on_target_rate(properties: Dict[str, Any]) -> Union[int, None]:
+    """Get on-target rate from properties."""
+    return properties.get("on_target_rate","")
+
+
 def get_target_coverage(properties: Dict[str, Any]) -> Union[int, None]:
     """Get target coverage from properties."""
     return properties.get("target_coverage","")
