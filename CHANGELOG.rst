@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.117.0
+=======
+`PR 298 SN File release tracker <https://github.com/smaht-dac/smaht-portal/pull/298>`_
+
+* Add calcprop to file returning concatenated string of `file_sets.libraries.assays.display_title`, `file_sets.sequencing.sequencer.display_title`, and `file_format.display_title`
+* If there are multiple values for assay or sequencer, return an empty string
+
 0.116.0
 =======
 `PR 299 SN RNA-seq filenames <https://github.com/smaht-dac/smaht-portal/pull/299>`

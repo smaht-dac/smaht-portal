@@ -1201,6 +1201,52 @@ def assert_analysis_software_matches_expected(
         analysis_summary, "software", expected_software
     )
 
+
+@pytest.mark.workbook
+def test_release_tracker_description(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'release_tracker_description' calcprop fields correct for inserts.
+
+    Checks fields present on inserts and as expected by parsing
+    properties/embeds."""
+    
+    search_key = "release_tracker_description"
+    file_without_release_tracker_description = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
+    )
+    assert file_without_release_tracker_description  # Not expected for Reference Files
+
+    files_with_release_tracker_description = search_type_for_key(
+        es_testapp, "File", search_key
+    )
+    for file in files_with_release_tracker_description:
+        assert_release_tracker_description_matches_expected(file, es_testapp)
+
+
+def assert_release_tracker_description_matches_expected(file: Dict[str, Any], es_testapp: TestApp):
+    """Assert release_tracker_description calcprop matches expected."""
+
+    release_tracker_description = file_utils. get_release_tracker_description(file)
+
+    assay_from_calcprop = item_utils.get_display_title(
+        file_utils.get_assays(file)[0]
+    )
+    sequencer_from_calcprop = item_utils.get_display_title(
+        sequencing_utils.get_sequencer(
+            file_utils.get_sequencings(file)[0]
+        )
+    )
+    file_format = item_utils.get_display_title(
+        file_utils.get_file_format(file)
+    )                          
+    description_from_calcprops=f"{assay_from_calcprop} {sequencer_from_calcprop} {file_format}"
+    assert release_tracker_description == description_from_calcprops
+   
+    
+
+    
+
+
+
 @pytest.mark.workbook
 def test_unique_key(es_testapp: TestApp, workbook: None) -> None:
     """Ensure `submitted_id` is valid unique key for File."""
