@@ -80,7 +80,7 @@
             ]
         },
         "schema_version": {
-            "default": "3"
+            "default": "4"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_TISSUE_[A-Z0-9-_.]{4,}$"
@@ -112,19 +112,6 @@
             "title": "Prosector Notes",
             "description": "Notes from prosector report on the tissue recovery",
             "type": "string"
-        },
-        "recovery_datetime": {
-            "title": "Recovery Datetime",
-            "description": "Date and time of tissue recovery",
-            "type": "string",
-            "anyOf": [
-                {
-                    "format": "date-time"
-                },
-                {
-                    "format": "date"
-                }
-            ]
         },
         "sample_count": {
             "title": "Sample Count",

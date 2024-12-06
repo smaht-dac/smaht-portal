@@ -23,3 +23,23 @@ def test_upgrade_tissue_2_3(
         )
         == expected
     )
+
+
+@pytest.mark.parametrize(
+    "tissue,expected",
+    [
+        ({}, {"schema_version": "4"}),
+        ({"recovery_datetime": "2024-12-01"}, {"schema_version": "4"}),
+    ],
+)
+def test_upgrade_tissue_3_4(
+    app: Router, tissue: Dict[str, Any], expected: Dict[str, Any]
+) -> None:
+    """Test tissue upgrader from version 3 to 4."""
+    upgrader = get_upgrader(app)
+    assert (
+        upgrader.upgrade(
+            "tissue", tissue, current_version="3", target_version="4"
+        )
+        == expected
+    )

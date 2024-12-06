@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.118.0
+=======
+`PR 304 SN File release tracker <https://github.com/smaht-dac/smaht-portal/pull/304>`_
+
+* Remove `recovery_datetime` from Tissue after having moved the property to TissueCollection, as it is protected information
+
+
 0.117.0
 =======
 `PR 298 SN File release tracker <https://github.com/smaht-dac/smaht-portal/pull/298>`_
