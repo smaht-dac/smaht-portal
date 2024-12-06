@@ -75,6 +75,16 @@
             "allow_commas": true,
             "allow_multiplier_suffix": true
         },
+        "ploidy": {
+            "title": "Ploidy",
+            "description": "Ploidy of the assembly",
+            "type": "string",
+            "suggested_enum": [
+                "Diploid",
+                "Haploid",
+                "Aneuploid"
+            ]
+        },
         "title": {
             "description": "Title of the assembly (e.g. ST001_DSA)"
         },

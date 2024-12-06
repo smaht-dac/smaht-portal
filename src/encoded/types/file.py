@@ -62,6 +62,7 @@ from ..item_utils import (
 from ..item_utils.utils import (
     get_property_value_from_identifier,
     get_property_values_from_identifiers,
+    get_unique_values,
     RequestHandler,
 )
 
@@ -251,6 +252,10 @@ class CalcPropConstants:
                 }
             }
         },
+    }
+    RELEASE_TRACKER_DESCRIPTION = {
+        "title": "Release Tracker Description",
+        "type": "string",
     }
     SAMPLE_SUMMARY_DONOR_IDS = "donor_ids"
     SAMPLE_SUMMARY_TISSUES = "tissues"
@@ -695,6 +700,22 @@ class File(Item, CoreFile):
             reference_genome=reference_genome,
         )
 
+    @calculated_property(schema=CalcPropConstants.RELEASE_TRACKER_DESCRIPTION)
+    def release_tracker_description(
+        self,
+        request: Request,
+        file_sets: Optional[List[str]] = None
+    ) -> Union[str, None]:
+        """Get file release tracker description for display on home page."""
+        result = None
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            result = self._get_release_tracker_description(
+                request_handler,
+                file_properties=self.properties
+            )
+        return result     
+
     def _get_libraries(
         self, request: Request, file_sets: Optional[List[str]] = None
     ) -> List[str]:
@@ -857,11 +878,7 @@ class File(Item, CoreFile):
                 )
             ),
             constants.DATA_GENERATION_TARGET_COVERAGE: (
-                get_property_values_from_identifiers(
-                    request_handler,
-                    file_utils.get_sequencings(file_properties, request_handler),
-                    sequencing_utils.get_target_coverage
-                )
+                self._get_group_coverage(request_handler, file_properties)
             ),
             constants.DATA_GENERATION_TARGET_READ_COUNT: (
                 get_property_values_from_identifiers(
@@ -874,6 +891,20 @@ class File(Item, CoreFile):
         return {
             key: value for key, value in to_include.items() if value
         }
+    
+    def _get_group_coverage(
+        self, request_handler: Request, file_properties: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """"Get group coverage for display on file overview page.
+        
+        Use override_group_coverage if present, otherwise grab target_coverage from sequencing."""
+        if (override_group_coverage := file_utils.get_override_group_coverage(file_properties)):
+            return [override_group_coverage]
+        return get_property_values_from_identifiers(
+            request_handler,
+            file_utils.get_sequencings(file_properties, request_handler),
+            sequencing_utils.get_target_coverage
+        )
 
     def _get_sample_summary(
         self, request: Request, file_sets: Optional[List[str]] = None
@@ -969,6 +1000,39 @@ class File(Item, CoreFile):
             ),
         }
         return {key: value for key, value in to_include.items() if value}
+    
+    def _get_release_tracker_description(
+            self,
+            request_handler: RequestHandler,
+            file_properties: Dict[str, Any],
+        ) -> Union[str, None]:
+        """Get release tracker description for display on the home page."""
+        assay_title= get_unique_values(
+            request_handler.get_items(file_utils.get_assays(file_properties, request_handler)),
+            item_utils.get_display_title,
+            )
+        sequencer_title = get_unique_values(
+            request_handler.get_items(
+            file_utils.get_sequencers(file_properties, request_handler)),
+            item_utils.get_display_title,
+            )
+        file_format_title = get_property_value_from_identifier(
+                request_handler,
+                file_utils.get_file_format(file_properties),
+                item_utils.get_display_title,
+            )
+        if len(assay_title) > 1 or len(sequencer_title) > 1:
+            # More than one unique assay or sequencer
+            return ""
+        elif len(assay_title) == 0 or len(sequencer_title) == 0:
+            # No assay or sequencer
+            return ""
+        to_include = [
+            assay_title[0],
+            sequencer_title[0],
+            file_format_title
+        ]
+        return " ".join(to_include)
 
 
 @view_config(name='drs', context=File, request_method='GET',
@@ -995,6 +1059,12 @@ def post_upload(context, request):
 @debug_log
 def download_cli(context, request):
     """ Creates download credentials for files intended for use with awscli/rclone """
+    # 2024-11-05/dmichaels - limit to dbgap users like download
+    # Noticeed this endpoint lacked appropriate checking for dbgap
+    # group users which should be exactly like the download endpoint.
+    if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
+        raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
+                            'Please check with DAC/your PI about your status.')
     return CoreDownloadCli(context, request)
 
 

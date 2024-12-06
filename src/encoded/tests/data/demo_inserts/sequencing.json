@@ -1,44 +1,71 @@
 [
     {
-        "status": "in review",
-        "accession": "SMASQKSI47Q1",
+        "status": "released",
+        "accession": "SMASQ1Z33A99",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
         "flow_cell": "25B",
         "read_type": "Paired-end",
         "sequencer": "adf1e7bd-f89e-4d3d-af41-1712fce9e720",
+        "date_created": "2024-03-22T14:07:53.551789+00:00",
+        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
         "submitted_id": "BCM_SEQUENCING_NOVASEQX-400X",
+        "last_modified": {
+            "modified_by": "0d565156-00db-4948-82fe-021d151a5daf",
+            "date_modified": "2024-11-04T15:22:47.220599+00:00"
+        },
         "target_coverage": 400.0,
         "submission_centers": [
-            "f5446853-630e-474c-ba51-35b7e992269b"
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
         ],
         "target_read_length": 150,
-        "uuid": "9030feb4-2192-4d36-9797-81fd9ef9d058"
+        "uuid": "d08e0496-92f7-430b-b0ba-d31be279605c"
     },
     {
-        "status": "in review",
-        "accession": "SMASQUFJVZS1",
+        "status": "released",
+        "accession": "SMASQ1YUMDIM",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
         "flow_cell": "R10.4.1",
         "read_type": "Single-end",
         "sequencer": "36ed5823-9207-4514-8cc6-e9712deafb0a",
+        "date_created": "2024-03-27T21:38:53.969337+00:00",
+        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
         "submitted_id": "BCM_SEQUENCING_ONT-100X",
+        "last_modified": {
+            "modified_by": "74fef71a-dfc1-4aa4-acc0-cedcb7ac1d68",
+            "date_modified": "2024-11-01T14:00:04.322763+00:00"
+        },
         "target_coverage": 100.0,
         "submission_centers": [
-            "f5446853-630e-474c-ba51-35b7e992269b"
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
         ],
         "target_read_length": 27500,
-        "uuid": "234bd8a4-b3dc-4c9d-a81a-600237a1d0e3"
+        "uuid": "8676b52f-2136-43fc-b078-fa0ab7abaeb3"
     },
     {
-        "status": "in review",
-        "accession": "SMASQVQ3CK7N",
+        "status": "released",
+        "accession": "SMASQNXKCJI4",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
         "read_type": "Single-end",
         "sequencer": "b88debe3-b07a-46c7-a1a1-78d2b0a0396b",
+        "date_created": "2024-03-27T21:38:54.044705+00:00",
         "movie_length": 30,
+        "submitted_by": "0d565156-00db-4948-82fe-021d151a5daf",
         "submitted_id": "BCM_SEQUENCING_PACBIO-100X",
+        "last_modified": {
+            "modified_by": "74fef71a-dfc1-4aa4-acc0-cedcb7ac1d68",
+            "date_modified": "2024-11-01T15:20:01.260893+00:00"
+        },
         "target_coverage": 100.0,
         "submission_centers": [
-            "f5446853-630e-474c-ba51-35b7e992269b"
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
         ],
         "target_read_length": 17500,
-        "uuid": "17385694-04d2-4aac-ae7c-e570f56ea3fb"
+        "uuid": "06b26214-27f1-43e1-bc38-8d2bb2f49da4"
     }
 ]

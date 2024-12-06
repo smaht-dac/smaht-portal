@@ -84,7 +84,9 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "Density Gradient Centrifugation",
                     "Magnetic Beads",
+                    "Mechanical Dissociation",
                     "Not Applicable",
                     "Organic Chemicals",
                     "Silica Column"
@@ -93,7 +95,7 @@
         },
         "homogenization_method": {
             "title": "Homogenization method",
-            "description": "Method of sample homogenization, if applicable. Relevant for non-single-cell extraction",
+            "description": "Method of sample homogenization, if applicable",
             "type": "string"
         },
         "suspension_type": {

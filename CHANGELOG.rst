@@ -7,11 +7,197 @@ smaht-portal
 Change Log
 ----------
 
+0.117.0
+=======
+`PR 298 SN File release tracker <https://github.com/smaht-dac/smaht-portal/pull/298>`_
+
+* Add calcprop to file returning concatenated string of `file_sets.libraries.assays.display_title`, `file_sets.sequencing.sequencer.display_title`, and `file_format.display_title`
+* If there are multiple values for assay or sequencer, return an empty string
+
+0.116.0
+=======
+`PR 299 SN RNA-seq filenames <https://github.com/smaht-dac/smaht-portal/pull/299>`
+
+* Create new item GeneAnnotation that OutputFile and SupplementaryFile link to with property `gene_annotation`
+* Update `commands/create_annotated_filenames.py` to include gencode version and gene/isoform information for RSEM tsv output files and RNA-seq aligned bams
+
+
+0.115.1
+=======
+`PR 302 SN fix sequencing validator <https://github.com/smaht-dac/smaht-portal/pull/302>`
+
+* Adds `on_target_rate` to sequencing validator in FileSet for DNA libraries
+
+
+0.115.0
+=======
+`PR 296 SN Sequencing validation <https://github.com/smaht-dac/smaht-portal/pull/296>`
+
+* Add custom validator to FileSet to ensure that `sequencing.target_coverage` is present if `libraries.analytes.molecule` contains "DNA" and `sequencing.target_read_count` is present if `libraries.analytes.molecule` contains "RNA"
+* Refactor custom validators
+* Specify molecule type in `submitted_ids` for workbook-inserts to keep track across tests
+
+
+0.114.1
+=======
+`PR 301 SN Add enum to extraction method <https://github.com/smaht-dac/smaht-portal/pull/301>`_
+
+* Add "Mechanical Dissociation" as an enum for `extraction_method` in AnalytePreparation
+
+
+0.114.0
+=======
+`PR 288 SN comparators description <https://github.com/smaht-dac/smaht-portal/pull/288>`_
+
+* Add property `comparator_description` to Variant Calls that is required if `mode` is "Paired"
+
+
+0.113.1
+=======
+`PR 294 BM Truth Set <https://github.com/smaht-dac/smaht-portal/pull/294>`_
+
+* Add "coming soon" tabs for HapMap and iPSC truth sets
+* Comment out URLs for real search tables for future use, once data is ready
+
+
+0.113.0
+=======
+`PR 282 New Cypress Tests <https://github.com/smaht-dac/smaht-portal/pull/282>`_
+
+* Upgrade: Cypress v10 to v13
+* Add new cypress tests
+  - Authentication & Basic Functionality
+  - Home Page Tests
+  - User Impersonation
+  - Documentation Page
+  - Search View Tests
+  - Post-Deployment Validation
+  - Statistics Page
+  - Benchmarking Page
+  - About Page
+* Cypress Commands: Introduced commands for testing across environments (data, local, staging, etc.).
+
+
+0.112.3
+=======
+* 2024-11-08/dmichaels
+* Updated some demo_inserts data files to make them more consistent with what is in production;
+  i.e. e.g. some of the submission-center uuids here were in conflict with production which
+  impedes local development when exporting from production and importing locally.
+* Added /debug_user_principals endpoint for debugging/troubleshooting/undestanding only;
+  this will simply return the list of principals for the calling user.
+* Updated dcicutils to latest version (8.16.4).
+
+
+0.112.2
+=======
+`PR 293 SN extraction enum <https://github.com/smaht-dac/smaht-portal/pull/293>`_
+
+* Add enum "Density Gradient Centrifugation" to `extraction_method` in AnalytePreparation
+* Update description for `homogenization_method`
+
+
+0.112.1
+=======
+`PR 292 SN dataset enums<https://github.com/smaht-dac/smaht-portal/pull/292>`_
+
+* Add `hapmap_snv_indel_challenge_data` and `ipsc_snv_indel_challenge_data` to dataset enums list
+
+
+0.112.0
+=======
+`PR 287 SN Override Coverage <https://github.com/smaht-dac/smaht-portal/pull/287>`_
+
+* Add property to file, `override_group_coverage` that displays in `data_generation_summary` calculated property for the File Overview page, which takes precedence  over `file_set.sequencing.target_coverage` if set
+
+
+0.111.0
+=======
+`PR 291 SN recovery_datetime <https://github.com/smaht-dac/smaht-portal/pull/291>`_
+
+* Add `recovery_datetime` to Tissue Collection, to then remove this property from Tissue, as this can be considered identifying information
+
+
+0.110.1
+======
+`PR259: fix: target coverage and read count <https://github.com/smaht-dac/smaht-portal/pull/259>`_
+
+* Show total target coverage for aligned wgs, fiber-seq, or hi-c bam
+* Show target read count for rna-seq and mas-iso-seq
+* Show N/A where unavailable
+
+
+0.110.0
+=======
+
+* 2024-11-04/dmichaels
+* Fix for unexpected-sid validation-error (snovault 11.23.0).
+* Updated rsa library version (4.9) from vulnerability scan alerts for CVE-2020-13757).
+* Updated idna library version (3.10) (from vulnerability scan alerts for CVE-2024-3651).
+* Fix in download_cli to check for dbgap group user exactly like the download endpoint.
+
+
+0.109.0
+=======
+
+`PR 280 SN Assay info <https://github.com/smaht-dac/smaht-portal/pull/280>`_
+* Add `amplification_method`, `cell_isolation_method`, and `molecule_specificity` properties to Assay
+
+0.108.0
+=======
+`PR 279: BM Create Account Doc <https://github.com/smaht-dac/smaht-portal/pull/279>`_
+
+* Rework create account documentation to be clearer.
+* Add some new styling to support various versions of RST admonitions
+* Remove variant_type column and facet.
+* Rename data_type column.
+
+
+0.107.5
+=======
+`PR 283: SN Ploidy fix <https://github.com/smaht-dac/smaht-portal/pull/283>`_
+
+* Re-add `ploidy` property to DonorSpecificAssembly
+
+0.107.4
+=======
+`PR 271: SN Links to Existing Data <https://github.com/smaht-dac/smaht-portal/pull/271>`_
+
+* Update text descriptions and add images for Links to Existing Data page
+
+
+0.107.3
+=======
+`PR 274: chore: add new TEnCATS assay to table <https://github.com/smaht-dac/smaht-portal/pull/274>`_
+
+* Update assay table with new TEnCATS assay
+
+
+0.107.2
+=======
+
+`PR 265: Bm links to existing data <https://github.com/smaht-dac/smaht-portal/pull/265>`_
+
+* Add two new links for SupplementaryFile and DonorSpecificAssembly items
+
+
+0.107.1
+=======
+
+`PR 281: Access table button and table styles <https://github.com/smaht-dac/smaht-portal/pull/281>`_
+
+* Bug fix: Make link buttons not underlined and access keys table reponsive for small and mid-size screens
+
+
 0.107.0
 =======
+
 `PR 235: Sn ExternalQualityMetric submission template <https://github.com/smaht-dac/smaht-portal/pull/235>`_
+
 * In `commands/write_submission_spreadsheets.py`:
+  
   * Add `--eqm [dsa duplexseq]` argument that grabs `tooltip`, `key`, and `derived_from` from the appropriate `ExternalQualityMetric` template and writes out to a new tab in the spreadsheet
+
 * Remove properties from DonorSpecificAssembly that are now on ExternalQualityMetric
 
 
