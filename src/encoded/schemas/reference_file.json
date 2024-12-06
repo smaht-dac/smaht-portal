@@ -38,9 +38,6 @@
             "$ref": "mixins.json#/attribution"
         },
         {
-            "$ref": "mixins.json#/code"
-        },
-        {
             "$ref": "mixins.json#/description"
         },
         {
@@ -80,8 +77,11 @@
             "default": "2"
         },
         "code": {
-            "pattern": "^[A-Za-z0-9_]{2,}$",
-            "uniqueKey": false
+            "title": "Code",
+            "description": "Code used in file naming scheme",
+            "type": "string",
+            "permission": "restricted_fields",
+            "pattern": "^[A-Za-z0-9_]{2,}$"
         },
         "version": {
             "description": "The version of the reference file",

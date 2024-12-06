@@ -827,7 +827,7 @@ def get_analysis(
     """
     software_and_versions = get_software_and_versions(software)
     reference_genome_code = item_utils.get_code(reference_genome)
-    gene_annotation_code = get_gene_annotation_codes(gene_annotations)
+    gene_annotation_code = get_annotations_and_versions(gene_annotations)
     transcript_info_code = get_rna_seq_tsv_value(file, file_extension)
     value = get_analysis_value(
         software_and_versions,
@@ -894,24 +894,58 @@ def get_analysis_value(
     return ANALYSIS_INFO_SEPARATOR.join(to_write)
 
 
-def get_gene_annotation_codes(gene_annotations: List[Dict[str, Any]]) -> str:
-    """Get gene annotation codes for file.
+def get_annotations_and_versions(gene_annotations: List[Dict[str, Any]]) -> str:
+    """Get gene annotation codes and accompanying versions for file.
+
+    Currently only looking for items with codes, as these are
+    expected to be the annotations used for naming.
     """
-    codes = [item for item in gene_annotations if item_utils.get_code(item)]
-    if not codes:
+    annotations_with_codes = get_annotations_with_codes(gene_annotations)
+    if not annotations_with_codes:
         return ""
-    return get_gene_annotation_codes_string(codes)
+    annotations_with_codes_and_versions = get_annotations_with_versions(annotations_with_codes)
+    if len(annotations_with_codes) == len(annotations_with_codes_and_versions):
+        return get_annotations_and_versions_string(annotations_with_codes_and_versions)
+    missing_versions = get_annotation_codes_missing_versions(annotations_with_codes)
+    logger.warning(f"Missing versions for annotation items: {missing_versions}.")
+    return ""
 
 
-def get_gene_annotation_codes_string(annotation_items: List[Dict[str, Any]]) -> str:
-    """Get string representation of gene annotation codes."""
+def get_annotations_with_codes(
+    annotation_items: List[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
+    """Get annotation reference file items with codes."""
+    return [item for item in annotation_items if item_utils.get_code(item)]
+
+
+def get_annotations_with_versions(
+    annotation_items: List[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
+    """Get annotation reference file items with versions."""
+    return [item for item in annotation_items if item_utils.get_version(item)]
+
+
+def get_annotations_and_versions_string(annotation_items: List[Dict[str, Any]]) -> str:
+    """Get string representation of annotation code and versions."""
     sorted_annotation_items = sorted(annotation_items, key=item_utils.get_code)
     return ANALYSIS_INFO_SEPARATOR.join(
         [
-            item_utils.get_code(item)
+            f"{item_utils.get_code(item)}{ANALYSIS_INFO_SEPARATOR}"
+            f"{item_utils.get_version(item)}"
             for item in sorted_annotation_items
         ]
     )
+
+
+def get_annotation_codes_missing_versions(
+    annotation_items: List[Dict[str, Any]]
+) -> List[str]:
+    """Get annotation reference file items missing versions."""
+    return [
+        item_utils.get_code(item)
+        for item in annotation_items
+        if not item_utils.get_version(item)
+    ]
 
 
 def get_software_and_versions(software: List[Dict[str, Any]]) -> str:

@@ -27,7 +27,8 @@
         "aliases": [
             "smaht:ReferenceFile-collapsed-genes-gencode_v45"
         ],
-        "code": "gencode45",
+        "code": "gencode",
+        "version": "v45",
         "data_type": [
             "Gene Model"
         ],
