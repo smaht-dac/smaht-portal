@@ -78,6 +78,14 @@
     "properties": {
         "schema_version": {
             "default": "2"
+        },
+        "code": {
+            "pattern": "^[A-Za-z0-9_]{2,}$",
+            "uniqueKey": false
+        },
+        "version": {
+            "description": "The version of the reference file",
+            "pattern": "[A-Za-z0-9._-]+"
         }
     }
 }

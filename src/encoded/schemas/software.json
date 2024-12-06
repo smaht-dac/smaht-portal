@@ -125,7 +125,8 @@
             }
         },
         "code": {
-            "pattern": "^[A-Za-z0-9_]{2,}$"
+            "pattern": "^[A-Za-z0-9_]{2,}$",
+            "uniqueKey": false
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_SOFTWARE_[A-Z0-9-_.]{4,}$",
