@@ -28,6 +28,20 @@
         "version": "3.1.1"
     },
     {
+        "uuid": "0e6ee3a4-2831-4ee4-b648-f53808282f38",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_SOFTWARE_BWA-MEM_2.0.0",
+        "category": [
+            "Alignment"
+        ],
+        "name": "bwa_mem_v2",
+        "title": "BWA-MEM",
+        "code": "bwamem",
+        "version": "2.0.0"
+    },
+    {
         "uuid": "be085e03-0989-4b44-81af-37efef5aa086",
         "submission_centers": [
             "smaht"

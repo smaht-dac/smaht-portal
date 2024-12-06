@@ -60,9 +60,6 @@
             "$ref": "mixins.json#/category"
         },
         {
-            "$ref": "mixins.json#/code"
-        },
-        {
             "$ref": "mixins.json#/description"
         },
         {
@@ -125,6 +122,10 @@
             }
         },
         "code": {
+            "title": "Code",
+            "description": "Code used in file naming scheme",
+            "type": "string",
+            "permission": "restricted_fields",
             "pattern": "^[A-Za-z0-9_]{2,}$"
         },
         "submitted_id": {

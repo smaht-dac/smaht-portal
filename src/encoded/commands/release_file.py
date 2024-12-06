@@ -454,6 +454,9 @@ class FileRelease:
                 file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
                     file_constants.ACCESS_STATUS_OPEN
                 ),
+                file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
+                    file_constants.ACCESS_STATUS_OPEN
+                )
             },
             IPSC: {
                 file_constants.DATA_CATEGORY_SEQUENCING_READS: (
@@ -465,6 +468,9 @@ class FileRelease:
                 file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
+                file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
+                    file_constants.ACCESS_STATUS_OPEN
+                )
             },
             self.TISSUE: {
                 file_constants.DATA_CATEGORY_SEQUENCING_READS: (
@@ -476,12 +482,19 @@ class FileRelease:
                 file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
                     file_constants.ACCESS_STATUS_OPEN
                 ),
+                file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
+                    file_constants.ACCESS_STATUS_OPEN
+                )
             },
         }
         if dataset in [
             "colo829bl",
             "colo829t",
             "colo829blt_50to1",
+            "colo829blt_in_silico",
+            "colo829_snv_indel_challenge_data",
+            "hapmap_snv_indel_challenge_data",
+            "mei_detection_challenge_data",
             "hapmap",
             "hg002",
             "hg00438",
@@ -498,6 +511,7 @@ class FileRelease:
             "lb_ipsc_4",
             "lb_ipsc_52",
             "lb_ipsc_60",
+            "ipsc_snv_indel_challenge_data",
         ]:
             dataset_category = IPSC
         elif dataset == self.TISSUE:
