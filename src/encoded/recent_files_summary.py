@@ -55,7 +55,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
     date_property_name = request_arg(request, "date_property_name", AGGREGATION_FIELD_RELEASE_DATE)
     max_buckets = request_arg_bool(request, "max_buckets", AGGREGATION_MAX_BUCKETS)
-    include_missing = request_arg_bool(request, "novalues", request_arg_bool(request, "include_missing"))
+    include_missing = request_arg_bool(request, "include_missing", request_arg_bool(request, "inovalues"))
     nosort = request_arg_bool(request, "nosort")
     debug = request_arg_bool(request, "debug")
     debug_query = request_arg_bool(request, "debug_query")
@@ -63,7 +63,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
     def create_query(request: pyramid.request.Request) -> str:
 
-        global QUERY_FILE_CATEGORIES, QUERY_FILE_STATUSES, QUERY_FILE_TYPES
+        global QUERY_FILE_CATEGORIES, QUERY_FILE_STATUSES, QUERY_FILE_TYPES, QUERY_RECENT_MONTHS
         nonlocal date_property_name
 
         types = request_args(request, "type", QUERY_FILE_TYPES)
@@ -93,7 +93,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         query_string = query_string.replace("=%21", "%21=")
         return f"/search/?{query_string}"
 
-    def create_aggregations_query(aggregation_fields: List[str]) -> dict:
+    def create_aggregation_query(aggregation_fields: List[str]) -> dict:
         global AGGREGATION_NO_VALUE
         nonlocal date_property_name, max_buckets, include_missing
         aggregations = []
@@ -147,8 +147,8 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     aggregate_by_donor_property_name = "aggregate_by_donor"
 
     aggregations_query = {
-        aggregate_by_cell_line_property_name: create_aggregations_query(aggregations_by_cell_line),
-        aggregate_by_donor_property_name: create_aggregations_query(aggregations_by_donor)
+        aggregate_by_cell_line_property_name: create_aggregation_query(aggregations_by_cell_line),
+        aggregate_by_donor_property_name: create_aggregation_query(aggregations_by_donor)
     }
 
     if debug_query:

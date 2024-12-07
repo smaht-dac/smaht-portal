@@ -167,11 +167,8 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
     return merge_results(target, source)[1]
 
 
-def normalize_elasticsearch_aggregation_results(
-        aggregation: dict,
-        sort: Union[bool, str, Callable, List[Union[bool, str, Callable]]] = False,
-        additional_properties: Optional[dict] = None,
-        remove_empty_items: bool = True) -> dict:
+def normalize_elasticsearch_aggregation_results(aggregation: dict, additional_properties: Optional[dict] = None,
+                                                remove_empty_items: bool = True) -> dict:
 
     def get_aggregation_key(aggregation: dict, aggregation_key: Optional[str] = None) -> Optional[str]:
         # TODO: same as in merge_elasticsearch_aggregation_results function
@@ -260,8 +257,6 @@ def normalize_elasticsearch_aggregation_results(
         return results
 
     results = normalize_results(aggregation, additional_properties=additional_properties)
-    if sort:
-        sort_elasticsearch_aggregation_results(results)
     return results
 
 
