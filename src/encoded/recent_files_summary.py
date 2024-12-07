@@ -6,7 +6,7 @@ from encoded.elasticsearch_utils import create_elasticsearch_aggregation_query
 from encoded.elasticsearch_utils import merge_elasticsearch_aggregation_results
 from encoded.elasticsearch_utils import normalize_elasticsearch_aggregation_results
 from encoded.elasticsearch_utils import prune_elasticsearch_aggregation_results
-from encoded.elasticsearch_utils import sort_elasticsearch_aggregation_results
+from encoded.elasticsearch_utils import sort_normalized_aggregation_results
 from encoded.endpoint_utils import parse_date_range_related_arguments
 from encoded.endpoint_utils import request_arg, request_args, request_arg_bool, request_arg_int
 from snovault.search.search import search as snovault_search
@@ -124,9 +124,9 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
             create_field_aggregation=create_field_aggregation)
         return aggregation_query[date_property_name]
 
-    def execute_query(request: pyramid.request.Request, query: str, aggregations_query: dict) -> str:
+    def execute_query(request: pyramid.request.Request, query: str, aggregation_query: dict) -> str:
         request = snovault_make_search_subreq(request, path=query, method="GET")
-        results = snovault_search(None, request, custom_aggregations=aggregations_query)
+        results = snovault_search(None, request, custom_aggregations=aggregation_query)
         return results
 
     query = create_query(request)
@@ -146,15 +146,15 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     aggregate_by_cell_line_property_name = "aggregate_by_cell_line"
     aggregate_by_donor_property_name = "aggregate_by_donor"
 
-    aggregations_query = {
+    aggregation_query = {
         aggregate_by_cell_line_property_name: create_aggregation_query(aggregations_by_cell_line),
         aggregate_by_donor_property_name: create_aggregation_query(aggregations_by_donor)
     }
 
     if debug_query:
-        return {"query": query, "aggregations_query": aggregations_query}
+        return {"query": query, "aggregation_query": aggregation_query}
 
-    raw_results = execute_query(request, query, aggregations_query)
+    raw_results = execute_query(request, query, aggregation_query)
 
     # Note that the doc_count values returned by ElasticSearch do actually seem to be for unique items,
     # i.e. if an item appears in two different groups (e.g. if, say, f2584000-f810-44b6-8eb7-855298c58eb3
@@ -219,7 +219,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         additional_properties = {
             "debug": {
                 "query": query,
-                "aggregations_query": aggregations_query,
+                "aggregation_query": aggregation_query,
                 "raw_results": raw_results,
                 "merged_results": deepcopy(merged_results)
             }
@@ -235,6 +235,6 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         # In our case the outermost is the date aggregation so sort taht by the key value,
         # e.g. 2014-12, descending; and the rest of the inner levels by the default
         # sorting which is by aggregation count descending and secondarily by the key value.
-        sort_elasticsearch_aggregation_results(normalized_results, ["-key", "default"])
+        sort_normalized_aggregation_results(normalized_results, ["-key", "default"])
 
     return normalized_results

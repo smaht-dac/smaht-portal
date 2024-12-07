@@ -260,8 +260,13 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict, additional_pr
     return results
 
 
-def sort_elasticsearch_aggregation_results(data: dict, sort: Union[bool, str, Callable,
+def sort_normalized_aggregation_results(data: dict, sort: Union[bool, str, Callable,
                                                                    List[Union[bool, str, Callable]]] = False) -> None:
+
+    """
+    Sorts the given *normalized* (see above) ElasticSearch aggregation results.
+    By default, this is by item (doc) count descending and secondarily by key value.
+    """
 
     def sort_items(items: List[dict], sort: Union[bool, str, Callable]) -> None:
         sort_function_default = lambda item: (-item.get("count", 0), item.get("value", ""))  # noqa
@@ -273,7 +278,7 @@ def sort_elasticsearch_aggregation_results(data: dict, sort: Union[bool, str, Ca
                 sort = sort[1:]
             else:
                 sort_reverse = False
-            if (sort in ["default"]):
+            if sort == "default":
                 items.sort(key=sort_function_default, reverse=sort_reverse)
             elif (sort in ["key", "value"]):
                 items.sort(key=lambda item: item.get("value", ""), reverse=sort_reverse)
