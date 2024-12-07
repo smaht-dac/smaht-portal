@@ -109,7 +109,12 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
                     if get_aggregation_bucket_doc_count(target_bucket) is not None:
                         target_bucket["doc_count"] += source_bucket_item_count
                         merged_item_count += source_bucket_item_count
-                continue
+            else:
+                target["buckets"].append(source_bucket)
+                if isinstance(target.get("doc_count"), int):
+                    target["doc_count"] += source_bucket_item_count
+                else:
+                    target["doc_count"] = source_bucket_item_count
         return merged_item_count, target
 
     if copy is True:
@@ -149,10 +154,12 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict,
         results = []
         if isinstance(data, dict):
             for key in data:
-                if get_aggregation_key(data[key]):
+                if get_aggregation_key(data[key]) and data[key]["buckets"]:
                     results.append(data[key])
-            if (not results) and data.get("buckets", list):
-                results.append(data)
+            if not results:
+                if ((isinstance(data.get("buckets"), list) and data["buckets"]) or
+                    (isinstance(data.get("key"), str) and isinstance(data.get("doc_count"), int))):
+                    results.append(data)
         return results
 
     def find_group_item(group_items: List[dict], value: Any) -> Optional[dict]:
@@ -178,7 +185,6 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict,
                 for nested_aggregation in nested_aggregations:
                     if normalized_aggregation := normalize_results(nested_aggregation, aggregation_key, bucket_value):
                         if group_item := find_group_item(group_items, bucket_value):
-                            # group_item["items"].extend(normalized_aggregation["items"])
                             for normalized_aggregation_item in normalized_aggregation["items"]:
                                 group_item["items"].append(normalized_aggregation_item)
                                 group_item["count"] += normalized_aggregation_item["count"]
@@ -200,11 +206,14 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict,
                 del results["value"]
         return results
 
-    def sort_results(data: dict) -> None:
+    def sort_results(data: dict, _level: int = 0) -> None:
         if isinstance(data, dict) and isinstance(items := data.get("items"), list):
-            items.sort(key=lambda item: (-item.get("count", 0), item.get("value", "")))
+            if _level == 0:  # TODO: hack/parameterize
+                items.sort(key=lambda item: item.get("value", ""), reverse=True)
+            else:
+                items.sort(key=lambda item: (-item.get("count", 0), item.get("value", "")))
             for item in items:
-                sort_results(item)
+                sort_results(item, _level=_level + 1)
 
     results = normalize_results(aggregation, additional_properties=additional_properties)
     if sort is True:

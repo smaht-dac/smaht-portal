@@ -1,4 +1,5 @@
 import pyramid
+from copy import deepcopy
 from typing import List, Optional
 from urllib.parse import urlencode
 from encoded.elasticsearch_utils import create_elasticsearch_aggregation_query
@@ -144,6 +145,42 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         "group_by_donor": create_aggregations_query(aggregations_by_donor)
     }
 
+    if False:
+        aggregations_query["group_by_cell_line"]["filter"] = {
+            "bool": {
+                "must": [{
+                    "exists": {
+                        "field": f"embedded.{AGGREGATION_FIELD_CELL_LINE}.raw"
+                    }
+                }]
+            }
+        }
+        aggregations_query["group_by_donor"]["filter"] = {
+            "bool": {
+                "must": [{
+                    "exists": {
+                        "field": f"embedded.{AGGREGATION_FIELD_DONOR}.raw"
+                    }
+                }]
+            }
+        }
+        # aggregations_query["group_by_cell_line"]["aggs"] = {"date_histogram": aggregations_query["group_by_cell_line"]["aggs"]}
+        # aggregations_query["group_by_donor"]["aggs"] = {"date_histogram": aggregations_query["group_by_donor"]["aggs"]}
+        aggregations_query["group_by_cell_line"]["aggs"] = {
+            "date_histogram": {
+                "date_histogram": aggregations_query["group_by_cell_line"]["date_histogram"],
+                "aggs": aggregations_query["group_by_cell_line"]["aggs"]
+            }
+        }
+        del aggregations_query["group_by_cell_line"]["date_histogram"]
+        aggregations_query["group_by_donor"]["aggs"] = {
+            "date_histogram": {
+                "date_histogram": aggregations_query["group_by_donor"]["date_histogram"],
+                "aggs": aggregations_query["group_by_donor"]["aggs"]
+            }
+        }
+        del aggregations_query["group_by_donor"]["date_histogram"]
+
     if debug_query:
         return {"query": query, "aggregations_query": aggregations_query}
 
@@ -202,9 +239,31 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     if not (raw_results := raw_results.get("aggregations")):
         return {}
 
+    if debug:
+        raw_results_original = deepcopy(raw_results)
+
     raw_results_by_cell_line = raw_results.get("group_by_cell_line")
     raw_results_by_donor = raw_results.get("group_by_donor")
+
+    if False:
+        raw_results_by_cell_line["buckets"] = raw_results_by_cell_line["date_histogram"]["buckets"]
+        del raw_results_by_cell_line["date_histogram"]
+        raw_results_by_donor["buckets"] = raw_results_by_donor["date_histogram"]["buckets"]
+        del raw_results_by_donor["date_histogram"]
+        pass
+
     merged_results = merge_elasticsearch_aggregation_results(raw_results_by_cell_line, raw_results_by_donor)
-    additional_properties = {"query": query, "aggregations_query": aggregations_query} if debug else None
+    additional_properties = None
+    if debug:
+        additional_properties = {
+            "debug": {
+                "query": query,
+                "aggregations_query": aggregations_query,
+                "raw_results": raw_results_original,
+                "raw_results_by_cell_line": deepcopy(raw_results_by_cell_line),
+                "raw_results_by_donor": deepcopy(raw_results_by_donor),
+                "merged_results": deepcopy(merged_results)
+            }
+        }
     return normalize_elasticsearch_aggregation_results(merged_results, sort=not nosort,
                                                        additional_properties=additional_properties)
