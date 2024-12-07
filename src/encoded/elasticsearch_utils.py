@@ -1,12 +1,15 @@
 from copy import deepcopy
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Callable, List, Optional, Tuple, Union
+
+AGGREGATION_MAX_BUCKETS = 100
+AGGREGATION_NO_VALUE = "No value"
 
 
 def create_elasticsearch_aggregation_query(fields: List[str],
-                                            aggregation_property_name: Optional[str] = None,
-                                            max_buckets: Optional[int] = None,
-                                            missing_value: Optional[str] = None,
-                                            create_field_aggregation: Optional[Callable] = None) -> dict:
+                                           aggregation_property_name: Optional[str] = None,
+                                           max_buckets: Optional[int] = None,
+                                           missing_value: Optional[str] = None,
+                                           create_field_aggregation: Optional[Callable] = None) -> dict:
 
     global AGGREGATION_MAX_BUCKETS, AGGREGATION_NO_VALUE
 
@@ -122,10 +125,11 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
     return merge_results(target, source)[1]
 
 
-def normalize_elasticsearch_aggregation_results(aggregation: dict,
-                                                sort: bool = False,
-                                                additional_properties: Optional[dict] = None,
-                                                remove_empty_items: bool = True) -> dict:
+def normalize_elasticsearch_aggregation_results(
+        aggregation: dict,
+        sort: Union[bool, str, Callable, List[Union[bool, str, Callable]]] = False,
+        additional_properties: Optional[dict] = None,
+        remove_empty_items: bool = True) -> dict:
 
     def get_aggregation_key(aggregation: dict, aggregation_key: Optional[str] = None) -> Optional[str]:
         # TODO: same as in merge_elasticsearch_aggregation_results function
@@ -158,7 +162,7 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict,
                     results.append(data[key])
             if not results:
                 if ((isinstance(data.get("buckets"), list) and data["buckets"]) or
-                    (isinstance(data.get("key"), str) and isinstance(data.get("doc_count"), int))):
+                    (isinstance(data.get("key"), str) and isinstance(data.get("doc_count"), int))):  # noqa
                     results.append(data)
         return results
 
@@ -172,9 +176,12 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict,
     def normalize_results(aggregation: dict,
                           key: Optional[str] = None, value: Optional[str] = None,
                           additional_properties: Optional[dict] = None) -> dict:
+
         nonlocal remove_empty_items
+
         if not (aggregation_key := get_aggregation_key(aggregation)):
             return {}
+
         group_items = [] ; item_count = 0  # noqa
         for bucket in aggregation["buckets"]:
             if (((bucket_value := get_aggregation_bucket_value(bucket)) is None) or
@@ -195,27 +202,59 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict,
                         if (remove_empty_items is False) or (bucket_item_count > 0):
                             group_item = {"name": aggregation_key, "value": bucket_value, "count": bucket_item_count}
                             group_items.append(group_item)
+
         if (remove_empty_items is not False) and (not group_items):
             return {}
         results = {"name": key, "value": value, "count": item_count, "items": group_items}
+
         if isinstance(additional_properties, dict) and additional_properties:
             results = {**additional_properties, **results}
+
         if key is None:
             del results["name"]
             if value is None:
                 del results["value"]
+
         return results
 
-    def sort_results(data: dict, _level: int = 0) -> None:
-        if isinstance(data, dict) and isinstance(items := data.get("items"), list):
-            if _level == 0:  # TODO: hack/parameterize
-                items.sort(key=lambda item: item.get("value", ""), reverse=True)
+    def sort_results(data: dict) -> None:
+
+        nonlocal sort
+
+        def sort_items(items: List[dict], sort: Union[bool, str, Callable]) -> None:
+            sort_function_default = lambda item: (-item.get("count", 0), item.get("value", ""))  # noqa
+            if (sort is True) or (isinstance(sort, str) and (sort.strip().lower() == "default")):
+                items.sort(key=sort_function_default)
+            elif isinstance(sort, str) and (sort := sort.strip().lower()):
+                if sort.startswith("-"):
+                    sort_reverse = True
+                    sort = sort[1:]
+                else:
+                    sort_reverse = False
+                if (sort in ["default"]):
+                    items.sort(key=sort_function_default, reverse=sort_reverse)
+                elif (sort in ["key", "value"]):
+                    items.sort(key=lambda item: item.get("value", ""), reverse=sort_reverse)
+            elif callable(sort):
+                items.sort(key=lambda item: sort(item))
+
+        def sort_results_nested(data: dict, level: int = 0) -> None:
+            nonlocal sort
+            if isinstance(sort, list) and sort:
+                if level < len(sort):
+                    sort_level = sort[level]
+                else:
+                    sort_level = sort[len(sort) - 1]
             else:
-                items.sort(key=lambda item: (-item.get("count", 0), item.get("value", "")))
-            for item in items:
-                sort_results(item, _level=_level + 1)
+                sort_level = sort
+            if isinstance(data, dict) and isinstance(items := data.get("items"), list):
+                sort_items(items, sort=sort_level)
+                for item in items:
+                    sort_results_nested(item, level=level + 1)
+
+        sort_results_nested(data)
 
     results = normalize_results(aggregation, additional_properties=additional_properties)
-    if sort is True:
+    if sort:
         sort_results(results)
     return results

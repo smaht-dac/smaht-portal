@@ -52,6 +52,8 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     released can be queried for using one or more status query arguments, e.g. status=uploaded. 
     """
 
+    hack_filter_date_histogram = True
+
     date_property_name = request_arg(request, "date_property_name", AGGREGATION_FIELD_RELEASE_DATE)
     max_buckets = request_arg_bool(request, "max_buckets", AGGREGATION_MAX_BUCKETS)
     nosort = request_arg_bool(request, "nosort")
@@ -145,7 +147,11 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         "group_by_donor": create_aggregations_query(aggregations_by_donor)
     }
 
-    if False:
+    if hack_filter_date_histogram:
+        # TODO
+        # Late-breaking hack with addition of per-aggregation filter to disregard items not part
+        # of a group; when using the date_histogram # grouping specifier must be elevated to an
+        # actual additional aggregation grouping. Also see below (hack_filter_date_histrgram).
         aggregations_query["group_by_cell_line"]["filter"] = {
             "bool": {
                 "must": [{
@@ -164,8 +170,6 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                 }]
             }
         }
-        # aggregations_query["group_by_cell_line"]["aggs"] = {"date_histogram": aggregations_query["group_by_cell_line"]["aggs"]}
-        # aggregations_query["group_by_donor"]["aggs"] = {"date_histogram": aggregations_query["group_by_donor"]["aggs"]}
         aggregations_query["group_by_cell_line"]["aggs"] = {
             "date_histogram": {
                 "date_histogram": aggregations_query["group_by_cell_line"]["date_histogram"],
@@ -226,9 +230,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
     if raw:
         # For debugging/troubleshooting only if raw=true then return raw ElasticSearch results.
-        if debug:
-            raw_results = {"query": query, "aggregations_query": aggregations_query, "raw_results": raw_results}
-        elif "@id" in raw_results:
+        if "@id" in raw_results:
             # Unless we do this we get redirect to the URL in this field, for example
             # to: /search/?type=OutputFile&status=released&data_category%21=Quality+Control
             #         &file_status_tracking.released.from=2024-09-30
@@ -239,31 +241,41 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     if not (raw_results := raw_results.get("aggregations")):
         return {}
 
-    if debug:
-        raw_results_original = deepcopy(raw_results)
-
     raw_results_by_cell_line = raw_results.get("group_by_cell_line")
     raw_results_by_donor = raw_results.get("group_by_donor")
 
-    if False:
+    if hack_filter_date_histogram:
+        if debug:
+            raw_results = deepcopy(raw_results)  # otherwise overwritten by below
         raw_results_by_cell_line["buckets"] = raw_results_by_cell_line["date_histogram"]["buckets"]
         del raw_results_by_cell_line["date_histogram"]
         raw_results_by_donor["buckets"] = raw_results_by_donor["date_histogram"]["buckets"]
         del raw_results_by_donor["date_histogram"]
-        pass
 
     merged_results = merge_elasticsearch_aggregation_results(raw_results_by_cell_line, raw_results_by_donor)
-    additional_properties = None
+
     if debug:
         additional_properties = {
             "debug": {
                 "query": query,
                 "aggregations_query": aggregations_query,
-                "raw_results": raw_results_original,
-                "raw_results_by_cell_line": deepcopy(raw_results_by_cell_line),
-                "raw_results_by_donor": deepcopy(raw_results_by_donor),
+                "raw_results": raw_results,
                 "merged_results": deepcopy(merged_results)
             }
         }
-    return normalize_elasticsearch_aggregation_results(merged_results, sort=not nosort,
-                                                       additional_properties=additional_properties)
+    else:
+        additional_properties = None
+
+    if nosort is not True:
+        # We can sort on the aggregations by level; outermost/left to innermost/right.
+        # In our case the outermost is the date aggregation so sort taht by the key value,
+        # e.g. 2014-12, descending; and the rest of the inner levels by the default
+        # sorting which is by aggregation count descending and secondarily by the key value.
+        sort = ["-key", "default"]
+    else:
+        sort = False
+
+    normalized_results = normalize_elasticsearch_aggregation_results(merged_results,
+                                                                     sort=sort,
+                                                                     additional_properties=additional_properties)
+    return normalized_results
