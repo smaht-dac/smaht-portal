@@ -6,14 +6,16 @@ AGGREGATION_NO_VALUE = "No value"
 
 
 def create_elasticsearch_aggregation_query(fields: List[str],
-                                           aggregation_property_name: Optional[str] = None,
+                                           property_name: Optional[str] = None,
                                            max_buckets: Optional[int] = None,
                                            missing_value: Optional[str] = None,
-                                           create_field_aggregation: Optional[Callable] = None) -> dict:
+                                           include_missing: bool = False,
+                                           create_field_aggregation: Optional[Callable] = None,
+                                           _toplevel: bool = True) -> dict:
 
     global AGGREGATION_MAX_BUCKETS, AGGREGATION_NO_VALUE
 
-    if not (isinstance(fields, list) and fields and isinstance(field := fields[0], str) and field):
+    if not (isinstance(fields, list) and fields and isinstance(field := fields[0], str) and (field := field.strip())):
         return {}
     if not isinstance(missing_value, str):
         missing_value = AGGREGATION_NO_VALUE
@@ -30,18 +32,58 @@ def create_elasticsearch_aggregation_query(fields: List[str],
             }
         }
 
-    if not (isinstance(aggregation_property_name, str) and aggregation_property_name):
-        aggregation_property_name = field
-    aggregation = {aggregation_property_name: field_aggregation}
-    aggregation[aggregation_property_name]["meta"] = {"field_name": field}
+    if not (isinstance(property_name, str) and (property_name := property_name.strip())):
+        property_name = field
+
+    aggregation = {property_name: {"meta": {"field_name": field}}}
+
+    if (include_missing is not True) and (_toplevel is True):
+        # Filtering out items which are not in any of the aggregations; this introduces complication if
+        # using date_histogram rather than simple terms, which we need add another level of aggregation
+        # just for the date_histogram; then the caller will need deal with (remove) it later.
+        extra_nesting_for_date_histogram_and_filter = "date_histogram" in field_aggregation
+        for field in fields:
+            if isinstance(field, str) and (field := field.strip()):
+                if not aggregation[property_name].get("filter"):
+                    aggregation[property_name]["filter"] = {"bool": {"must": []}}
+                aggregation[property_name]["filter"]["bool"]["must"].append({
+                    "exists": {
+                        "field": f"embedded.{field}.raw"
+                    }
+                })
+    else:
+        extra_nesting_for_date_histogram_and_filter = False
+
+    if not extra_nesting_for_date_histogram_and_filter:
+        aggregation[property_name].update(field_aggregation)
 
     if nested_aggregation := create_elasticsearch_aggregation_query(
             fields[1:], max_buckets=max_buckets,
             missing_value=missing_value,
-            create_field_aggregation=create_field_aggregation):
-        aggregation[aggregation_property_name]["aggs"] = nested_aggregation
-
+            create_field_aggregation=create_field_aggregation, _toplevel=False):
+        if extra_nesting_for_date_histogram_and_filter:
+            aggregation[property_name]["aggs"] = {"dummy_date_histogram": {**field_aggregation, "aggs": nested_aggregation}}
+        else:
+            aggregation[property_name]["aggs"] = nested_aggregation
     return aggregation
+
+
+def prune_elasticsearch_aggregation_results(results: dict) -> None:
+    """
+    This removes any extra level(s) of aggregation that may have been introduces in
+    the create_elasticsearch_aggregation_query function (above), for when/if both
+    a filter and a date_histogram are used together.
+    """
+    if isinstance(results, dict):
+        for key in list(results.keys()):
+            if (key == "dummy_date_histogram") and isinstance(buckets := results[key].get("buckets"), list):
+                results["buckets"] = buckets
+                del results[key]
+            else:
+                prune_elasticsearch_aggregation_results(results[key])
+    elif isinstance(results, list):
+        for element in results:
+            prune_elasticsearch_aggregation_results(element)
 
 
 def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bool = False) -> Optional[dict]:
@@ -217,44 +259,44 @@ def normalize_elasticsearch_aggregation_results(
 
         return results
 
-    def sort_results(data: dict) -> None:
-
-        nonlocal sort
-
-        def sort_items(items: List[dict], sort: Union[bool, str, Callable]) -> None:
-            sort_function_default = lambda item: (-item.get("count", 0), item.get("value", ""))  # noqa
-            if (sort is True) or (isinstance(sort, str) and (sort.strip().lower() == "default")):
-                items.sort(key=sort_function_default)
-            elif isinstance(sort, str) and (sort := sort.strip().lower()):
-                if sort.startswith("-"):
-                    sort_reverse = True
-                    sort = sort[1:]
-                else:
-                    sort_reverse = False
-                if (sort in ["default"]):
-                    items.sort(key=sort_function_default, reverse=sort_reverse)
-                elif (sort in ["key", "value"]):
-                    items.sort(key=lambda item: item.get("value", ""), reverse=sort_reverse)
-            elif callable(sort):
-                items.sort(key=lambda item: sort(item))
-
-        def sort_results_nested(data: dict, level: int = 0) -> None:
-            nonlocal sort
-            if isinstance(sort, list) and sort:
-                if level < len(sort):
-                    sort_level = sort[level]
-                else:
-                    sort_level = sort[len(sort) - 1]
-            else:
-                sort_level = sort
-            if isinstance(data, dict) and isinstance(items := data.get("items"), list):
-                sort_items(items, sort=sort_level)
-                for item in items:
-                    sort_results_nested(item, level=level + 1)
-
-        sort_results_nested(data)
-
     results = normalize_results(aggregation, additional_properties=additional_properties)
     if sort:
-        sort_results(results)
+        sort_elasticsearch_aggregation_results(results)
     return results
+
+
+def sort_elasticsearch_aggregation_results(data: dict, sort: Union[bool, str, Callable,
+                                                                   List[Union[bool, str, Callable]]] = False) -> None:
+
+    def sort_items(items: List[dict], sort: Union[bool, str, Callable]) -> None:
+        sort_function_default = lambda item: (-item.get("count", 0), item.get("value", ""))  # noqa
+        if (sort is True) or (isinstance(sort, str) and (sort.strip().lower() == "default")):
+            items.sort(key=sort_function_default)
+        elif isinstance(sort, str) and (sort := sort.strip().lower()):
+            if sort.startswith("-"):
+                sort_reverse = True
+                sort = sort[1:]
+            else:
+                sort_reverse = False
+            if (sort in ["default"]):
+                items.sort(key=sort_function_default, reverse=sort_reverse)
+            elif (sort in ["key", "value"]):
+                items.sort(key=lambda item: item.get("value", ""), reverse=sort_reverse)
+        elif callable(sort):
+            items.sort(key=lambda item: sort(item))
+
+    def sort_results(data: dict, level: int = 0) -> None:
+        nonlocal sort
+        if isinstance(sort, list) and sort:
+            if level < len(sort):
+                sort_level = sort[level]
+            else:
+                sort_level = sort[len(sort) - 1]
+        else:
+            sort_level = sort
+        if isinstance(data, dict) and isinstance(items := data.get("items"), list):
+            sort_items(items, sort=sort_level)
+            for item in items:
+                sort_results(item, level=level + 1)
+
+    sort_results(data)

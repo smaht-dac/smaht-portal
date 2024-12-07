@@ -5,6 +5,8 @@ from urllib.parse import urlencode
 from encoded.elasticsearch_utils import create_elasticsearch_aggregation_query
 from encoded.elasticsearch_utils import merge_elasticsearch_aggregation_results
 from encoded.elasticsearch_utils import normalize_elasticsearch_aggregation_results
+from encoded.elasticsearch_utils import prune_elasticsearch_aggregation_results
+from encoded.elasticsearch_utils import sort_elasticsearch_aggregation_results
 from encoded.endpoint_utils import parse_date_range_related_arguments
 from encoded.endpoint_utils import request_arg, request_args, request_arg_bool, request_arg_int
 from snovault.search.search import search as snovault_search
@@ -23,7 +25,6 @@ AGGREGATION_FIELD_FILE_DESCRIPTOR = "release_tracker_description"
 
 AGGREGATION_MAX_BUCKETS = 100
 AGGREGATION_NO_VALUE = "No value"
-
 
 def recent_files_summary(request: pyramid.request.Request) -> dict:
     """
@@ -52,10 +53,9 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     released can be queried for using one or more status query arguments, e.g. status=uploaded. 
     """
 
-    hack_filter_date_histogram = True
-
     date_property_name = request_arg(request, "date_property_name", AGGREGATION_FIELD_RELEASE_DATE)
     max_buckets = request_arg_bool(request, "max_buckets", AGGREGATION_MAX_BUCKETS)
+    include_missing = request_arg_bool(request, "novalues", request_arg_bool(request, "include_missing"))
     nosort = request_arg_bool(request, "nosort")
     debug = request_arg_bool(request, "debug")
     debug_query = request_arg_bool(request, "debug_query")
@@ -95,7 +95,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
     def create_aggregations_query(aggregation_fields: List[str]) -> dict:
         global AGGREGATION_NO_VALUE
-        nonlocal date_property_name, max_buckets
+        nonlocal date_property_name, max_buckets, include_missing
         aggregations = []
         if not isinstance(aggregation_fields, list):
             aggregation_fields = [aggregation_fields]
@@ -120,6 +120,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
             aggregations,
             max_buckets=max_buckets,
             missing_value=AGGREGATION_NO_VALUE,
+            include_missing=include_missing,
             create_field_aggregation=create_field_aggregation)
         return aggregation_query[date_property_name]
 
@@ -142,48 +143,13 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         AGGREGATION_FIELD_FILE_DESCRIPTOR
     ]
 
-    aggregations_query = {
-        "group_by_cell_line": create_aggregations_query(aggregations_by_cell_line),
-        "group_by_donor": create_aggregations_query(aggregations_by_donor)
-    }
+    aggregate_by_cell_line_property_name = "aggregate_by_cell_line"
+    aggregate_by_donor_property_name = "aggregate_by_donor"
 
-    if hack_filter_date_histogram:
-        # TODO
-        # Late-breaking hack with addition of per-aggregation filter to disregard items not part
-        # of a group; when using the date_histogram # grouping specifier must be elevated to an
-        # actual additional aggregation grouping. Also see below (hack_filter_date_histrgram).
-        aggregations_query["group_by_cell_line"]["filter"] = {
-            "bool": {
-                "must": [{
-                    "exists": {
-                        "field": f"embedded.{AGGREGATION_FIELD_CELL_LINE}.raw"
-                    }
-                }]
-            }
-        }
-        aggregations_query["group_by_donor"]["filter"] = {
-            "bool": {
-                "must": [{
-                    "exists": {
-                        "field": f"embedded.{AGGREGATION_FIELD_DONOR}.raw"
-                    }
-                }]
-            }
-        }
-        aggregations_query["group_by_cell_line"]["aggs"] = {
-            "date_histogram": {
-                "date_histogram": aggregations_query["group_by_cell_line"]["date_histogram"],
-                "aggs": aggregations_query["group_by_cell_line"]["aggs"]
-            }
-        }
-        del aggregations_query["group_by_cell_line"]["date_histogram"]
-        aggregations_query["group_by_donor"]["aggs"] = {
-            "date_histogram": {
-                "date_histogram": aggregations_query["group_by_donor"]["date_histogram"],
-                "aggs": aggregations_query["group_by_donor"]["aggs"]
-            }
-        }
-        del aggregations_query["group_by_donor"]["date_histogram"]
+    aggregations_query = {
+        aggregate_by_cell_line_property_name: create_aggregations_query(aggregations_by_cell_line),
+        aggregate_by_donor_property_name: create_aggregations_query(aggregations_by_donor)
+    }
 
     if debug_query:
         return {"query": query, "aggregations_query": aggregations_query}
@@ -230,29 +196,24 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
     if raw:
         # For debugging/troubleshooting only if raw=true then return raw ElasticSearch results.
+        # And note that unless we remove teh @id property we get redirected to the URL in this field,
+        # for example to: /search/?type=OutputFile&status=released&data_category%21=Quality+Control
+        #                         &file_status_tracking.released.from=2024-09-30
+        #                         &file_status_tracking.released.to=2024-12-31&from=0&limit=0'
         if "@id" in raw_results:
-            # Unless we do this we get redirect to the URL in this field, for example
-            # to: /search/?type=OutputFile&status=released&data_category%21=Quality+Control
-            #         &file_status_tracking.released.from=2024-09-30
-            #         &file_status_tracking.released.to=2024-12-31&from=0&limit=0'
             del raw_results["@id"]
         return raw_results
 
     if not (raw_results := raw_results.get("aggregations")):
         return {}
 
-    raw_results_by_cell_line = raw_results.get("group_by_cell_line")
-    raw_results_by_donor = raw_results.get("group_by_donor")
+    if debug:
+        raw_results = deepcopy(raw_results)  # otherwise may be overwritten by below
 
-    if hack_filter_date_histogram:
-        if debug:
-            raw_results = deepcopy(raw_results)  # otherwise overwritten by below
-        raw_results_by_cell_line["buckets"] = raw_results_by_cell_line["date_histogram"]["buckets"]
-        del raw_results_by_cell_line["date_histogram"]
-        raw_results_by_donor["buckets"] = raw_results_by_donor["date_histogram"]["buckets"]
-        del raw_results_by_donor["date_histogram"]
-
-    merged_results = merge_elasticsearch_aggregation_results(raw_results_by_cell_line, raw_results_by_donor)
+    prune_elasticsearch_aggregation_results(raw_results)
+    merged_results = merge_elasticsearch_aggregation_results(
+            raw_results.get(aggregate_by_cell_line_property_name),
+            raw_results.get(aggregate_by_donor_property_name))
 
     if debug:
         additional_properties = {
@@ -266,16 +227,14 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     else:
         additional_properties = None
 
+    normalized_results = normalize_elasticsearch_aggregation_results(
+            merged_results, additional_properties=additional_properties)
+
     if nosort is not True:
         # We can sort on the aggregations by level; outermost/left to innermost/right.
         # In our case the outermost is the date aggregation so sort taht by the key value,
         # e.g. 2014-12, descending; and the rest of the inner levels by the default
         # sorting which is by aggregation count descending and secondarily by the key value.
-        sort = ["-key", "default"]
-    else:
-        sort = False
+        sort_elasticsearch_aggregation_results(normalized_results, ["-key", "default"])
 
-    normalized_results = normalize_elasticsearch_aggregation_results(merged_results,
-                                                                     sort=sort,
-                                                                     additional_properties=additional_properties)
     return normalized_results
