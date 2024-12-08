@@ -1,4 +1,3 @@
-from hms_utils.misc_utils import dj
 from copy import deepcopy
 from typing import Any, Callable, List, Optional, Tuple, Union
 
@@ -276,7 +275,7 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
                 return doc_count
         return None
 
-    def get_aggregation_buckets_doc_count(aggregation: dict) -> int:
+    def get_aggregation_total_buckets_doc_count(aggregation: dict) -> int:
         buckets_doc_count = 0
         if get_aggregation_key(aggregation):
             for aggregation_bucket in aggregation["buckets"]:
@@ -308,15 +307,14 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
                                 target_bucket[source_nested_aggregation_key] = (
                                     source_nested_bucket := source_bucket[source_nested_aggregation_key])
                                 if (source_nested_bucket_item_count :=
-                                    get_aggregation_buckets_doc_count(source_nested_bucket)) > 0:
+                                    get_aggregation_total_buckets_doc_count(source_nested_bucket)) > 0:
                                     target_bucket["doc_count"] += source_nested_bucket_item_count
                                     merged_item_count += source_nested_bucket_item_count
                         elif merged_item_count > 0:
                             target_bucket["doc_count"] += merged_item_count
-                elif get_aggregation_bucket_value(target_bucket) is not None:
-                    if get_aggregation_bucket_doc_count(target_bucket) is not None:
-                        target_bucket["doc_count"] += source_bucket_item_count
-                        merged_item_count += source_bucket_item_count
+                elif get_aggregation_bucket_doc_count(target_bucket) is not None:
+                    target_bucket["doc_count"] += source_bucket_item_count
+                    merged_item_count += source_bucket_item_count
             else:
                 target["buckets"].append(source_bucket)
                 if isinstance(target.get("doc_count"), int):
