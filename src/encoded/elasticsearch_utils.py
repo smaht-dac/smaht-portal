@@ -13,8 +13,59 @@ def create_elasticsearch_aggregation_query(fields: List[str],
                                            create_field_aggregation: Optional[Callable] = None,
                                            _toplevel: bool = True) -> dict:
 
+    """
+    Returns a dictionary representing an ElasticSearch aggregation query for the field names.
+    If more than one is given the the aggregation will be nested, one within another, for example,
+    given ["date_created", "donors.display_title", "release_tracker_description"] we my return
+    something like this:
+
+      {
+        "aggregate_by_donor": {
+          "meta": { "field_name": "date_created" },
+          "filter": {
+            "bool": {
+              "must": [
+                {"exists": {"field": "embedded.date_created.raw"}},
+                {"exists": {"field": "embedded.donors.display_title.raw"}},
+                {"exists": {"field": "embedded.release_tracker_description.raw"}}
+              ]
+            }
+          },
+          "aggs": {
+            "dummy_date_histogram": {
+              "date_histogram": {
+                "field": "embedded.date_created",
+                "calendar_interval": "month",
+                "format": "yyyy-MM", "missing": "1970-01",
+                "order": { "_key": "desc"}
+              },
+              "aggs": {
+                "donors.display_title": {
+                  "meta": {"field_name": "donors.display_title"},
+                  "terms": {
+                    "field": "embedded.donors.display_title.raw",
+                    "missing": "No value", "size": 100
+                  },
+                  "aggs": {
+                    "release_tracker_description": {
+                      "meta": {"field_name": "release_tracker_description"},
+                      "terms": {
+                        "field": "embedded.release_tracker_description.raw",
+                        "missing": "No value", "size": 100
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    """
     global AGGREGATION_MAX_BUCKETS, AGGREGATION_NO_VALUE
 
+    if isinstance(fields, str):
+        fields = [fields]
     if not (isinstance(fields, list) and fields and isinstance(field := fields[0], str) and (field := field.strip())):
         return {}
     if not isinstance(missing_value, str):
@@ -87,6 +138,95 @@ def prune_elasticsearch_aggregation_results(results: dict) -> None:
 
 
 def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bool = False) -> Optional[dict]:
+    """
+    Merges the given second (source) argument into the given first (target) argument (in palce), recursively, both
+    of which are assumed to be ElasticSearch aggregation query results; doc_coiunt values are updated as expected.
+    If the given copy argument is True then then the merge is not done to the given target in-place, rather a copy
+    of it is made and the merge done to it. In eiter case the resultant merged target is returned. For example:
+
+      target = {
+        "meta": { "field_name": "date_created" }, "doc_count": 15,
+        "buckets": [
+          {
+            "key_as_string": "2024-12", "key": 1733011200000, "doc_count": 13,
+            "file_sets.libraries.analytes.samples.sample_sources.cell_line.code": {
+                "meta": { "field_name": "file_sets.libraries.analytes.samples.sample_sources.cell_line.code" },
+                "buckets": [
+                    {
+                        "key": "COLO829T", "doc_count": 7,
+                        "release_tracker_description": {
+                            "meta": { "field_name": "release_tracker_description" },
+                            "buckets": [
+                                { "key": "WGS ONT PromethION 24 bam", "doc_count": 1 }
+                            ]
+                        }
+                    }
+                ]
+            }
+          }
+        ]
+      }
+
+      source = {
+        "meta": { "field_name": "date_created" }, "doc_count": 16,
+        "buckets": [
+          {
+            "key_as_string": "2024-12", "key": 1733011200000, "doc_count": 14,
+            "donors.display_title": {
+              "meta": { "field_name": "donors.display_title" },
+              "buckets": [
+                {
+                  "key": "DAC_DONOR_COLO829", "doc_count": 12,
+                  "release_tracker_description": {
+                    "meta": { "field_name": "release_tracker_description" },
+                    "buckets": [
+                      { "key": "Fiber-seq PacBio Revio bam", "doc_count": 4 }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+
+      merge_elasticsearch_aggregation_results(target, source) == {
+        "meta": { "field_name": "date_created" }, "doc_count": 15,
+        "buckets": [
+          {
+            "key_as_string": "2024-12", "key": 1733011200000, "doc_count": 25,
+            "file_sets.libraries.analytes.samples.sample_sources.cell_line.code": {
+              "meta": { "field_name": "file_sets.libraries.analytes.samples.sample_sources.cell_line.code" },
+              "buckets": [
+                {
+                  "key": "COLO829T", "doc_count": 7,
+                  "release_tracker_description": {
+                    "meta": { "field_name": "release_tracker_description" },
+                    "buckets": [
+                      { "key": "WGS ONT PromethION 24 bam", "doc_count": 1 }
+                    ]
+                  }
+                }
+              ]
+            },
+            "donors.display_title": {
+              "meta": { "field_name": "donors.display_title" },
+              "buckets": [
+                {
+                  "key": "DAC_DONOR_COLO829", "doc_count": 12,
+                  "release_tracker_description": {
+                    "meta": { "field_name": "release_tracker_description" },
+                    "buckets": [
+                      { "key": "Fiber-seq PacBio Revio bam", "doc_count": 4 }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    """
 
     def get_aggregation_key(aggregation: dict, aggregation_key: Optional[str] = None) -> Optional[str]:
         if isinstance(aggregation, dict) and isinstance(aggregation.get("buckets"), list):
@@ -169,6 +309,44 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
 
 def normalize_elasticsearch_aggregation_results(aggregation: dict, additional_properties: Optional[dict] = None,
                                                 remove_empty_items: bool = True) -> dict:
+
+    """
+    Normalizes the given result of an ElasticSearch aggregation query into a more readable/consumable format.
+    For example, given the result of the the example for merge_elasticsearch_aggregation_results above as input,
+    this function would return something like this:
+
+      normalize_elasticsearch_aggregation_results(aggregation_results) == {
+        "count": 25,
+        "items": [
+          {
+            "name": "date_created",
+            "value": "2024-12", "count": 11,
+            "items": [
+              {
+                "name": "file_sets.libraries.analytes.samples.sample_sources.cell_line.code",
+                "value": "COLO829T", "count": 1,
+                "items": [
+                  {
+                    "name": "release_tracker_description",
+                    "value": "WGS ONT PromethION 24 bam", "count": 1
+                  }
+                ]
+              },
+              {
+                "name": "donors.display_title",
+                "value": "DAC_DONOR_COLO829", "count": 4,
+                "items": [
+                  {
+                    "name": "release_tracker_description",
+                    "value": "Fiber-seq PacBio Revio bam", "count": 4
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    """
 
     def get_aggregation_key(aggregation: dict, aggregation_key: Optional[str] = None) -> Optional[str]:
         # TODO: same as in merge_elasticsearch_aggregation_results function
