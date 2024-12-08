@@ -75,11 +75,11 @@ def create_elasticsearch_aggregation_query(fields: List[str],
         }
       }
 
-    And further, that the include_missing was the (default) of False, in whice case items which were not part of any
-    of the aggregation fields specified, would be filtered out. This demonstrates a slight complication dealt with
-    in this particular case where an extra level of aggregation needs to be introducts (dummy_date_histogram).
-    This extra bit of cruft necessary to get the ElasticSearch query to work as expected, manifests itself in the
-    query result as well and is dispensed with using the prune_elasticsearch_aggregation_results function below.
+    It further assumes, that the include_missing argument is False (default), in which case items not part of
+    any of the specified aggregation fields would be filtered out. This demonstrates a slight complication with
+    this particular case where an extra level of aggregation needs to be introducts (dummy_date_histogram).
+    This extra bit of cruft, necessary to get the ElasticSearch query to work as expected, manifests itself in
+    the query result as well and is dispensed with using the prune_elasticsearch_aggregation_results function below.
     """
     global AGGREGATION_MAX_BUCKETS, AGGREGATION_NO_VALUE
 
@@ -132,7 +132,8 @@ def create_elasticsearch_aggregation_query(fields: List[str],
             missing_value=missing_value,
             create_field_aggregation=create_field_aggregation, _toplevel=False):
         if extra_nesting_for_date_histogram_and_filter:
-            aggregation[property_name]["aggs"] = {"dummy_date_histogram": {**field_aggregation, "aggs": nested_aggregation}}
+            aggregation[property_name]["aggs"] = \
+                {"dummy_date_histogram": {**field_aggregation, "aggs": nested_aggregation}}
         else:
             aggregation[property_name]["aggs"] = nested_aggregation
     return aggregation
