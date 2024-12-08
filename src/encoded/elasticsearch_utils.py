@@ -16,7 +16,7 @@ def create_elasticsearch_aggregation_query(fields: List[str],
     """
     Returns a dictionary representing an ElasticSearch aggregation query for the field names.
     If more than one is given the the aggregation will be nested, one within another, for example,
-    given ["date_created", "donors.display_title", "release_tracker_description"] we my return
+    given ["date_created", "donors.display_title", "release_tracker_description"] we would return
     something like this:
 
       {
@@ -61,6 +61,25 @@ def create_elasticsearch_aggregation_query(fields: List[str],
           }
         }
       }
+
+    The above example assumes that a create_field_aggregation function callable was passed as an argument
+    and that if/when its argument is date_created then it would have returned something like this 
+
+      {
+        "date_histogram": {
+          "field": f"embedded.date_created",
+          "calendar_interval": "month",
+          "format": "yyyy-MM",
+          "missing": "1970-01",
+          "order": {"_key": "desc"}
+        }
+      }
+
+    And further, that the include_missing was the (default) of False, in whice case items which were not part of any
+    of the aggregation fields specified, would be filtered out. This demonstrates a slight complication dealt with
+    in this particular case where an extra level of aggregation needs to be introducts (dummy_date_histogram).
+    This extra bit of cruft necessary to get the ElasticSearch query to work as expected, manifests itself in the
+    query result as well and is dispensed with using the prune_elasticsearch_aggregation_results function below.
     """
     global AGGREGATION_MAX_BUCKETS, AGGREGATION_NO_VALUE
 
@@ -121,8 +140,8 @@ def create_elasticsearch_aggregation_query(fields: List[str],
 
 def prune_elasticsearch_aggregation_results(results: dict) -> None:
     """
-    This removes any extra level(s) of aggregation that may have been introduces in
-    the create_elasticsearch_aggregation_query function (above), for when/if both
+    This removes any extra level(s) of aggregation (i.e. dummy_date_histogram) that may have been
+    introduced in the create_elasticsearch_aggregation_query function (above), for when/if both
     a filter and a date_histogram are used together.
     """
     if isinstance(results, dict):
