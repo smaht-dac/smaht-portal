@@ -1,3 +1,4 @@
+from hms_utils.misc_utils import dj
 from copy import deepcopy
 from typing import Any, Callable, List, Optional, Tuple, Union
 
@@ -275,7 +276,7 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
                 return doc_count
         return None
 
-    def get_aggregation_buckets_doc_count(aggregation: dict):
+    def get_aggregation_buckets_doc_count(aggregation: dict) -> int:
         buckets_doc_count = 0
         if get_aggregation_key(aggregation):
             for aggregation_bucket in aggregation["buckets"]:
@@ -293,7 +294,7 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
     def merge_results(target: dict, source: dict) -> Tuple[Optional[dict], Optional[int]]:
         merged_item_count = 0
         if not ((aggregation_key := get_aggregation_key(source)) and (get_aggregation_key(target) == aggregation_key)):
-            return None, None
+            return 0, None
         for source_bucket in source["buckets"]:
             if (((source_bucket_value := get_aggregation_bucket_value(source_bucket)) is None) or
                 ((source_bucket_item_count := get_aggregation_bucket_doc_count(source_bucket)) is None)):  # noqa
@@ -301,13 +302,15 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
             if (target_bucket := find_aggregation_bucket(target, source_bucket_value)):
                 if source_nested_aggregation := get_nested_aggregation(source_bucket):
                     if target_nested_aggregation := get_nested_aggregation(target_bucket):
-                        merged_item_count, _ = merge_results(target_nested_aggregation, source_nested_aggregation)
-                        if merged_item_count is None:
+                        merged_item_count, merged_results = merge_results(target_nested_aggregation, source_nested_aggregation)
+                        if merged_results is None:
                             if source_nested_aggregation_key := get_aggregation_key(source_nested_aggregation):
-                                target_bucket[source_nested_aggregation_key] = \
-                                    source_bucket[source_nested_aggregation_key]
-                                target_bucket["doc_count"] += \
-                                    get_aggregation_buckets_doc_count(source_bucket[source_nested_aggregation_key])
+                                target_bucket[source_nested_aggregation_key] = (
+                                    source_nested_bucket := source_bucket[source_nested_aggregation_key])
+                                if (source_nested_bucket_item_count :=
+                                    get_aggregation_buckets_doc_count(source_nested_bucket)) > 0:
+                                    target_bucket["doc_count"] += source_nested_bucket_item_count
+                                    merged_item_count += source_nested_bucket_item_count
                         elif merged_item_count > 0:
                             target_bucket["doc_count"] += merged_item_count
                 elif get_aggregation_bucket_value(target_bucket) is not None:
@@ -320,16 +323,15 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
                     target["doc_count"] += source_bucket_item_count
                 else:
                     target["doc_count"] = source_bucket_item_count
+                merged_item_count += source_bucket_item_count
         return merged_item_count, target
 
     if copy is True:
         target = deepcopy(target)
 
-    _, target = merge_results(target, source)
-
-    if (((source_item_count := get_aggregation_bucket_doc_count(source)) is not None) and
-        (get_aggregation_bucket_doc_count(target) is not None)):  # noqa
-        target["doc_count"] += source_item_count
+    merged_item_count, target = merge_results(target, source)
+    if (merged_item_count > 0) and (get_aggregation_bucket_doc_count(target) is not None):
+        target["doc_count"] += merged_item_count
 
     return target
 
