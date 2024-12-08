@@ -324,7 +324,14 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
 
     if copy is True:
         target = deepcopy(target)
-    return merge_results(target, source)[1]
+
+    _, target = merge_results(target, source)
+
+    if (((source_item_count := get_aggregation_bucket_doc_count(source)) is not None) and
+        (get_aggregation_bucket_doc_count(target) is not None)):  # noqa
+        target["doc_count"] += source_item_count
+
+    return target
 
 
 def normalize_elasticsearch_aggregation_results(aggregation: dict, additional_properties: Optional[dict] = None,

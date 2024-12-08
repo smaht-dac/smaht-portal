@@ -126,10 +126,10 @@ def test_create_elasticsearch_aggregation_query_b():
 def test_merge_elasticsearch_aggregation_results_a():
 
     target = {
-      "meta": {"field_name": "date_created"}, "doc_count": 15,
+      "meta": {"field_name": "date_created"}, "doc_count": 7,
       "buckets": [
         {
-          "key_as_string": "2024-12", "key": 1733011200000, "doc_count": 13,
+          "key_as_string": "2024-12", "key": 1733011200000, "doc_count": 7,
           "file_sets.libraries.analytes.samples.sample_sources.cell_line.code": {
               "meta": {"field_name": "file_sets.libraries.analytes.samples.sample_sources.cell_line.code"},
               "buckets": [
@@ -138,7 +138,7 @@ def test_merge_elasticsearch_aggregation_results_a():
                       "release_tracker_description": {
                           "meta": {"field_name": "release_tracker_description"},
                           "buckets": [
-                              {"key": "WGS ONT PromethION 24 bam", "doc_count": 1}
+                              {"key": "WGS ONT PromethION 24 bam", "doc_count": 7}
                           ]
                       }
                   }
@@ -149,10 +149,10 @@ def test_merge_elasticsearch_aggregation_results_a():
     }
 
     source = {
-      "meta": {"field_name": "date_created"}, "doc_count": 16,
+      "meta": {"field_name": "date_created"}, "doc_count": 12,
       "buckets": [
         {
-          "key_as_string": "2024-12", "key": 1733011200000, "doc_count": 14,
+          "key_as_string": "2024-12", "key": 1733011200000, "doc_count": 12,
           "donors.display_title": {
             "meta": {"field_name": "donors.display_title"},
             "buckets": [
@@ -161,7 +161,7 @@ def test_merge_elasticsearch_aggregation_results_a():
                 "release_tracker_description": {
                   "meta": {"field_name": "release_tracker_description"},
                   "buckets": [
-                    {"key": "Fiber-seq PacBio Revio bam", "doc_count": 4}
+                    {"key": "Fiber-seq PacBio Revio bam", "doc_count": 12}
                   ]
                 }
               }
@@ -172,10 +172,10 @@ def test_merge_elasticsearch_aggregation_results_a():
     }
 
     assert merge_elasticsearch_aggregation_results(target, source) == {
-      "meta": {"field_name": "date_created"}, "doc_count": 15,
+      "meta": {"field_name": "date_created"}, "doc_count": 19,
       "buckets": [
         {
-          "key_as_string": "2024-12", "key": 1733011200000, "doc_count": 25,
+          "key_as_string": "2024-12", "key": 1733011200000, "doc_count": 19,
           "file_sets.libraries.analytes.samples.sample_sources.cell_line.code": {
             "meta": {"field_name": "file_sets.libraries.analytes.samples.sample_sources.cell_line.code"},
             "buckets": [
@@ -184,7 +184,7 @@ def test_merge_elasticsearch_aggregation_results_a():
                 "release_tracker_description": {
                   "meta": {"field_name": "release_tracker_description"},
                   "buckets": [
-                    {"key": "WGS ONT PromethION 24 bam", "doc_count": 1}
+                    {"key": "WGS ONT PromethION 24 bam", "doc_count": 7}
                   ]
                 }
               }
@@ -198,7 +198,7 @@ def test_merge_elasticsearch_aggregation_results_a():
                 "release_tracker_description": {
                   "meta": {"field_name": "release_tracker_description"},
                   "buckets": [
-                    {"key": "Fiber-seq PacBio Revio bam", "doc_count": 4}
+                    {"key": "Fiber-seq PacBio Revio bam", "doc_count": 12}
                   ]
                 }
               }
