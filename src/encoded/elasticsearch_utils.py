@@ -165,19 +165,19 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
     of it is made and the merge done to it. In eiter case the resultant merged target is returned. For example:
 
       target = {
-        "meta": { "field_name": "date_created" }, "doc_count": 15,
+        "meta": {"field_name": "date_created"}, "doc_count": 15,
         "buckets": [
           {
             "key_as_string": "2024-12", "key": 1733011200000, "doc_count": 13,
             "file_sets.libraries.analytes.samples.sample_sources.cell_line.code": {
-                "meta": { "field_name": "file_sets.libraries.analytes.samples.sample_sources.cell_line.code" },
+                "meta": {"field_name": "file_sets.libraries.analytes.samples.sample_sources.cell_line.code"},
                 "buckets": [
                     {
                         "key": "COLO829T", "doc_count": 7,
                         "release_tracker_description": {
-                            "meta": { "field_name": "release_tracker_description" },
+                            "meta": {"field_name": "release_tracker_description"},
                             "buckets": [
-                                { "key": "WGS ONT PromethION 24 bam", "doc_count": 1 }
+                                {"key": "WGS ONT PromethION 24 bam", "doc_count": 1}
                             ]
                         }
                     }
@@ -188,19 +188,19 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
       }
 
       source = {
-        "meta": { "field_name": "date_created" }, "doc_count": 16,
+        "meta": {"field_name": "date_created"}, "doc_count": 16,
         "buckets": [
           {
             "key_as_string": "2024-12", "key": 1733011200000, "doc_count": 14,
             "donors.display_title": {
-              "meta": { "field_name": "donors.display_title" },
+              "meta": {"field_name": "donors.display_title"},
               "buckets": [
                 {
                   "key": "DAC_DONOR_COLO829", "doc_count": 12,
                   "release_tracker_description": {
-                    "meta": { "field_name": "release_tracker_description" },
+                    "meta": {"field_name": "release_tracker_description"},
                     "buckets": [
-                      { "key": "Fiber-seq PacBio Revio bam", "doc_count": 4 }
+                      {"key": "Fiber-seq PacBio Revio bam", "doc_count": 4}
                     ]
                   }
                 }
@@ -211,33 +211,33 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
       }
 
       merge_elasticsearch_aggregation_results(target, source) == {
-        "meta": { "field_name": "date_created" }, "doc_count": 15,
+        "meta": {"field_name": "date_created"}, "doc_count": 15,
         "buckets": [
           {
             "key_as_string": "2024-12", "key": 1733011200000, "doc_count": 25,
             "file_sets.libraries.analytes.samples.sample_sources.cell_line.code": {
-              "meta": { "field_name": "file_sets.libraries.analytes.samples.sample_sources.cell_line.code" },
+              "meta": {"field_name": "file_sets.libraries.analytes.samples.sample_sources.cell_line.code"},
               "buckets": [
                 {
                   "key": "COLO829T", "doc_count": 7,
                   "release_tracker_description": {
-                    "meta": { "field_name": "release_tracker_description" },
+                    "meta": {"field_name": "release_tracker_description"},
                     "buckets": [
-                      { "key": "WGS ONT PromethION 24 bam", "doc_count": 1 }
+                      {"key": "WGS ONT PromethION 24 bam", "doc_count": 1}
                     ]
                   }
                 }
               ]
             },
             "donors.display_title": {
-              "meta": { "field_name": "donors.display_title" },
+              "meta": {"field_name": "donors.display_title"},
               "buckets": [
                 {
                   "key": "DAC_DONOR_COLO829", "doc_count": 12,
                   "release_tracker_description": {
-                    "meta": { "field_name": "release_tracker_description" },
+                    "meta": {"field_name": "release_tracker_description"},
                     "buckets": [
-                      { "key": "Fiber-seq PacBio Revio bam", "doc_count": 4 }
+                      {"key": "Fiber-seq PacBio Revio bam", "doc_count": 4}
                     ]
                   }
                 }
