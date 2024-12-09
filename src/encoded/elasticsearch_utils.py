@@ -12,6 +12,7 @@ def create_elasticsearch_aggregation_query(fields: List[str],
                                            missing_value: Optional[str] = None,
                                            include_missing: bool = False,
                                            create_field_aggregation: Optional[Callable] = None,
+                                           create_field_filter: Optional[Callable] = None,
                                            _toplevel: bool = True) -> dict:
 
     """
@@ -115,13 +116,15 @@ def create_elasticsearch_aggregation_query(fields: List[str],
         extra_nesting_for_date_histogram_and_filter = "date_histogram" in field_aggregation
         for field in fields:
             if isinstance(field, str) and (field := field.strip()):
+                if not (callable(create_field_filter) and isinstance(filter := create_field_filter(field), dict)):
+                    filter =  {
+                        "exists": {
+                            "field": f"embedded.{field}.raw"
+                        }
+                    }
                 if not aggregation[property_name].get("filter"):
                     aggregation[property_name]["filter"] = {"bool": {"must": []}}
-                aggregation[property_name]["filter"]["bool"]["must"].append({
-                    "exists": {
-                        "field": f"embedded.{field}.raw"
-                    }
-                })
+                aggregation[property_name]["filter"]["bool"]["must"].append(filter)
     else:
         extra_nesting_for_date_histogram_and_filter = False
 
@@ -308,7 +311,7 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
                                 target_bucket[source_nested_aggregation_key] = (
                                     source_nested_bucket := source_bucket[source_nested_aggregation_key])
                                 if (source_nested_bucket_item_count :=
-                                    get_aggregation_total_buckets_doc_count(source_nested_bucket)) > 0:
+                                    get_aggregation_total_buckets_doc_count(source_nested_bucket)) > 0:  # noqa
                                     target_bucket["doc_count"] += source_nested_bucket_item_count
                                     merged_item_count += source_nested_bucket_item_count
                         elif merged_item_count > 0:
@@ -336,7 +339,8 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
 
 
 def normalize_elasticsearch_aggregation_results(aggregation: dict, additional_properties: Optional[dict] = None,
-                                                remove_empty_items: bool = True) -> dict:
+                                                remove_empty_items: bool = True,
+                                                retain_original_item_count: bool = False) -> dict:
 
     """
     Normalizes the given result of an ElasticSearch aggregation query into a more readable/consumable format.
@@ -422,7 +426,7 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict, additional_pr
                           key: Optional[str] = None, value: Optional[str] = None,
                           additional_properties: Optional[dict] = None) -> dict:
 
-        nonlocal remove_empty_items
+        nonlocal remove_empty_items, retain_original_item_count
 
         if not (aggregation_key := get_aggregation_key(aggregation)):
             return {}
@@ -437,12 +441,11 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict, additional_pr
                 for nested_aggregation in nested_aggregations:
                     if normalized_aggregation := normalize_results(nested_aggregation, aggregation_key, bucket_value):
                         if normalized_aggregation["count"] != bucket_item_count:
-                            # Record the original doc_count value from the raw result;
-                            # this may be different (lesser) than the result we aggregate here
-                            # because ElasticSearch aggregations actually are based on unique values.
-                            # TODO: Whould we use this as the real count value though it may look wrong.
-                            normalized_aggregation["count_original"] = bucket_item_count
-                            # normalized_aggregation["count"] = bucket_item_count
+                            if retain_original_item_count is True:
+                                # The original doc_count value from the raw result may be different/lesser than/from
+                                # the result we aggregate here because ElasticSearch aggregations actually are based
+                                # on unique values. Should we use this as the real count value though it may look wrong.
+                                normalized_aggregation["count"] = bucket_item_count
                         if group_item := find_group_item(group_items, bucket_value):
                             for normalized_aggregation_item in normalized_aggregation["items"]:
                                 group_item["items"].append(normalized_aggregation_item)

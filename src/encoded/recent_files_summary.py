@@ -1,7 +1,9 @@
+from hms_utils.misc_utils import dj
 import pyramid
 from copy import deepcopy
 from typing import List, Optional
 from urllib.parse import urlencode
+from dcicutils.misc_utils import normalize_spaces
 from encoded.elasticsearch_utils import create_elasticsearch_aggregation_query
 from encoded.elasticsearch_utils import merge_elasticsearch_aggregation_results
 from encoded.elasticsearch_utils import normalize_elasticsearch_aggregation_results
@@ -55,8 +57,9 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
     date_property_name = request_arg(request, "date_property_name", AGGREGATION_FIELD_RELEASE_DATE)
     max_buckets = request_arg_bool(request, "max_buckets", AGGREGATION_MAX_BUCKETS)
-    include_missing = request_arg_bool(request, "include_missing", request_arg_bool(request, "inovalues"))
+    include_missing = request_arg_bool(request, "include_missing", request_arg_bool(request, "novalues"))
     nosort = request_arg_bool(request, "nosort")
+    simplified = request_arg_bool(request, "simplified")
     debug = request_arg_bool(request, "debug")
     debug_query = request_arg_bool(request, "debug_query")
     raw = request_arg_bool(request, "raw")
@@ -124,6 +127,68 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
             create_field_aggregation=create_field_aggregation)
         return aggregation_query[date_property_name]
 
+    def create_aggregation_query_simplified(aggregation_fields: List[str]) -> dict:
+        global AGGREGATION_NO_VALUE
+        nonlocal date_property_name, max_buckets, include_missing
+        aggregations = []
+        if not isinstance(aggregation_fields, list):
+            aggregation_fields = [aggregation_fields]
+        for item in aggregation_fields:
+            if isinstance(item, str) and (item := item.strip()) and (item not in aggregations):
+                aggregations.append(item)
+        if not aggregations:
+            return {}
+        def create_field_aggregation(field: str) -> Optional[dict]:  # noqa
+            nonlocal date_property_name
+            if field == date_property_name:
+                return {
+                    "date_histogram": {
+                        "field": f"embedded.{field}",
+                        "calendar_interval": "month",
+                        "format": "yyyy-MM",
+                        "missing": "1970-01",
+                        "order": {"_key": "desc"}
+                    }
+                }
+            elif field == AGGREGATION_FIELD_CELL_LINE:
+                script = normalize_spaces(f"""
+                    if (doc['embedded.{AGGREGATION_FIELD_CELL_LINE}.raw'].size() > 0) {{
+                        return doc['embedded.{AGGREGATION_FIELD_CELL_LINE}.raw'].value;
+                    }} else if (doc['embedded.{AGGREGATION_FIELD_DONOR}.raw'].size() > 0) {{
+                        return doc['embedded.{AGGREGATION_FIELD_DONOR}.raw'].value;
+                    }} else {{
+                        return 'unknown';
+                    }}
+                """)
+                return {
+                    "terms": {
+                        "script": {
+                            "source": script,
+                            "lang": "painless"
+                        },
+                        "size": max_buckets
+                    }
+                }
+        def create_field_filter(field: str) -> Optional[dict]:  # noqa
+            if field == AGGREGATION_FIELD_CELL_LINE:
+                return {
+                    "bool": {
+                        "should": [
+                            {"exists": { "field": f"embedded.{AGGREGATION_FIELD_CELL_LINE}.raw"}},
+                            {"exists": { "field": f"embedded.{AGGREGATION_FIELD_DONOR}.raw"}}
+                        ],
+                        "minimum_should_match": 1
+                    }
+                }
+        aggregation_query = create_elasticsearch_aggregation_query(
+            aggregations,
+            max_buckets=max_buckets,
+            missing_value=AGGREGATION_NO_VALUE,
+            include_missing=include_missing,
+            create_field_aggregation=create_field_aggregation,
+            create_field_filter=create_field_filter)
+        return aggregation_query[date_property_name]
+
     def execute_query(request: pyramid.request.Request, query: str, aggregation_query: dict) -> str:
         request = snovault_make_search_subreq(request, path=query, method="GET")
         results = snovault_search(None, request, custom_aggregations=aggregation_query)
@@ -131,30 +196,44 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
     query = create_query(request)
 
-    aggregations_by_cell_line = [
-        date_property_name,
-        AGGREGATION_FIELD_CELL_LINE,
-        AGGREGATION_FIELD_FILE_DESCRIPTOR
-    ]
-
-    aggregations_by_donor = [
-        date_property_name,
-        AGGREGATION_FIELD_DONOR,
-        AGGREGATION_FIELD_FILE_DESCRIPTOR
-    ]
-
-    aggregate_by_cell_line_property_name = "aggregate_by_cell_line"
-    aggregate_by_donor_property_name = "aggregate_by_donor"
-
-    aggregation_query = {
-        aggregate_by_cell_line_property_name: create_aggregation_query(aggregations_by_cell_line),
-        aggregate_by_donor_property_name: create_aggregation_query(aggregations_by_donor)
-    }
+    if simplified:
+        aggregate_by_cell_line_property_name = "aggregate_by_cell_line"
+        aggregate_by_cell_line = [
+            date_property_name,
+            AGGREGATION_FIELD_CELL_LINE,
+            AGGREGATION_FIELD_FILE_DESCRIPTOR
+        ]
+        aggregation_query = {
+            aggregate_by_cell_line_property_name: create_aggregation_query_simplified(aggregate_by_cell_line)
+        }
+    else:
+        aggregate_by_cell_line_property_name = "aggregate_by_cell_line"
+        aggregate_by_cell_line = [
+            date_property_name,
+            AGGREGATION_FIELD_CELL_LINE,
+            AGGREGATION_FIELD_FILE_DESCRIPTOR
+        ]
+        aggregate_by_donor_property_name = "aggregate_by_donor"
+        aggregate_by_donor = [
+            date_property_name,
+            AGGREGATION_FIELD_DONOR,
+            AGGREGATION_FIELD_FILE_DESCRIPTOR
+        ]
+        aggregation_query = {
+            aggregate_by_cell_line_property_name: create_aggregation_query(aggregate_by_cell_line),
+            aggregate_by_donor_property_name: create_aggregation_query(aggregate_by_donor)
+        }
 
     if debug_query:
         return {"query": query, "aggregation_query": aggregation_query}
 
+    dj(aggregation_query)
+    import pdb ; pdb.set_trace()  # noqa
+    pass
     raw_results = execute_query(request, query, aggregation_query)
+    dj(raw_results)
+    import pdb ; pdb.set_trace()  # noqa
+    pass
 
     if raw:
         # For debugging/troubleshooting only if raw=true then return raw ElasticSearch results.
@@ -173,9 +252,12 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         raw_results = deepcopy(raw_results)  # otherwise may be overwritten by below
 
     prune_elasticsearch_aggregation_results(raw_results)
-    merged_results = merge_elasticsearch_aggregation_results(
-            raw_results.get(aggregate_by_cell_line_property_name),
-            raw_results.get(aggregate_by_donor_property_name))
+
+    if simplified:
+        merged_results = raw_results.get(aggregate_by_cell_line_property_name)
+    else:
+        merged_results = merge_elasticsearch_aggregation_results(raw_results.get(aggregate_by_cell_line_property_name),
+                                                                 raw_results.get(aggregate_by_donor_property_name))
 
     # Note that the doc_count values returned by ElasticSearch DO actually seem to be for UNIQUE items,
     # i.e. if an item appears in two different groups (e.g. if, say, f2584000-f810-44b6-8eb7-855298c58eb3
@@ -227,8 +309,8 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     else:
         additional_properties = None
 
-    normalized_results = normalize_elasticsearch_aggregation_results(
-            merged_results, additional_properties=additional_properties)
+    normalized_results = normalize_elasticsearch_aggregation_results(merged_results,
+                                                                     additional_properties=additional_properties)
 
     if nosort is not True:
         # We can sort on the aggregations by level; outermost/left to innermost/right.
