@@ -1,3 +1,4 @@
+from hms_utils.misc_utils import dj
 from copy import deepcopy
 from typing import Any, Callable, List, Optional, Tuple, Union
 
@@ -435,6 +436,13 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict, additional_pr
             if nested_aggregations := get_nested_aggregations(bucket):
                 for nested_aggregation in nested_aggregations:
                     if normalized_aggregation := normalize_results(nested_aggregation, aggregation_key, bucket_value):
+                        if normalized_aggregation["count"] != bucket_item_count:
+                            # Record the original doc_count value from the raw result;
+                            # this may be different (lesser) than the result we aggregate here
+                            # because ElasticSearch aggregations actually are based on unique values.
+                            # TODO: Whould we use this as the real count value though it may look wrong.
+                            normalized_aggregation["count_original"] = bucket_item_count
+                            # normalized_aggregation["count"] = bucket_item_count
                         if group_item := find_group_item(group_items, bucket_value):
                             for normalized_aggregation_item in normalized_aggregation["items"]:
                                 group_item["items"].append(normalized_aggregation_item)

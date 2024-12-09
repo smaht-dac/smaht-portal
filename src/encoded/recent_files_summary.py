@@ -156,13 +156,34 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
     raw_results = execute_query(request, query, aggregation_query)
 
-    # Note that the doc_count values returned by ElasticSearch do actually seem to be for unique items,
+    if raw:
+        # For debugging/troubleshooting only if raw=true then return raw ElasticSearch results.
+        # And note that unless we remove teh @id property we get redirected to the URL in this field,
+        # for example to: /search/?type=OutputFile&status=released&data_category%21=Quality+Control
+        #                         &file_status_tracking.released.from=2024-09-30
+        #                         &file_status_tracking.released.to=2024-12-31&from=0&limit=0'
+        if "@id" in raw_results:
+            del raw_results["@id"]
+        return raw_results
+
+    if not (raw_results := raw_results.get("aggregations")):
+        return {}
+
+    if debug:
+        raw_results = deepcopy(raw_results)  # otherwise may be overwritten by below
+
+    prune_elasticsearch_aggregation_results(raw_results)
+    merged_results = merge_elasticsearch_aggregation_results(
+            raw_results.get(aggregate_by_cell_line_property_name),
+            raw_results.get(aggregate_by_donor_property_name))
+
+    # Note that the doc_count values returned by ElasticSearch DO actually seem to be for UNIQUE items,
     # i.e. if an item appears in two different groups (e.g. if, say, f2584000-f810-44b6-8eb7-855298c58eb3
     # has file_sets.libraries.analytes.samples.sample_sources.cell_line.code values for both HG00438 and HG005),
-    # then it its doc_count will not count it twice. This creates a situation where it might look like the counts
-    # are wrong in this returned merged/normalized result set where the outer item count is less than the sum of
-    # the individual counts withni each sub-group. For example, the below result shows a top-level doc_count of 1
-    # even though there are 2 documents, 1 in the HG00438 group and the other in the HG005 it would be because
+    # then its doc_count will NOT be counted TWICE. This creates a situation where it might LOOK like the counts
+    # are WRONG in the MERGED (via returned merge_elasticsearch_aggregation_results) result set, where the outer
+    # item count may be than the sum of the individual counts within each sub-group. For example, the below result shows
+    # a top-level doc_count of 1, even though there are 2 documents, 1 in the HG00438 group and the other in the HG005 it would be because
     # the same unique file has a cell_line.code of both HG00438 and HG005.
     # {
     #     "meta": { "field_name": "file_status_tracking.released" },
@@ -193,27 +214,6 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     #         }
     #     ]
     # }
-
-    if raw:
-        # For debugging/troubleshooting only if raw=true then return raw ElasticSearch results.
-        # And note that unless we remove teh @id property we get redirected to the URL in this field,
-        # for example to: /search/?type=OutputFile&status=released&data_category%21=Quality+Control
-        #                         &file_status_tracking.released.from=2024-09-30
-        #                         &file_status_tracking.released.to=2024-12-31&from=0&limit=0'
-        if "@id" in raw_results:
-            del raw_results["@id"]
-        return raw_results
-
-    if not (raw_results := raw_results.get("aggregations")):
-        return {}
-
-    if debug:
-        raw_results = deepcopy(raw_results)  # otherwise may be overwritten by below
-
-    prune_elasticsearch_aggregation_results(raw_results)
-    merged_results = merge_elasticsearch_aggregation_results(
-            raw_results.get(aggregate_by_cell_line_property_name),
-            raw_results.get(aggregate_by_donor_property_name))
 
     if debug:
         additional_properties = {
