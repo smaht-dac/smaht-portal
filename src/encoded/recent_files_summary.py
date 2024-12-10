@@ -488,6 +488,8 @@ def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.requ
             AGGREGATION_FIELD_RELEASE_DATE,
             AGGREGATION_FIELD_CELL_MIXTURE,
             AGGREGATION_FIELD_CELL_LINE,
+            "file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.display_title",
+            "file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.cell_line.code",
             AGGREGATION_FIELD_DONOR,
             AGGREGATION_FIELD_FILE_DESCRIPTOR
         ]
