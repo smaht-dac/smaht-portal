@@ -44,11 +44,13 @@ def _build_meta_workflow_run_embedded_list():
         "workflow_runs.workflow_run.parameters.workflow_argument_name",
         "workflow_runs.workflow_run.parameters.*",
 
+        "workflow_runs.workflow_run.output_files.value.accession",
         "workflow_runs.workflow_run.output_files.value.workflow_run_inputs.@id",
         "workflow_runs.workflow_run.output_files.value.quality_metrics.overall_quality_status",
         "workflow_runs.workflow_run.output_files.value.quality_metrics.url",
         "workflow_runs.workflow_run.output_files.value.file_size",
         "workflow_runs.workflow_run.output_files.value.file_format",
+        "workflow_runs.workflow_run.output_files.value.data_generation_summary.*",
         "workflow_runs.workflow_run.output_files.workflow_argument_name",
         "workflow_runs.workflow_run.output_files.*",
         "workflow_runs.workflow_run.output_files.value.workflow_run_outputs.@id"
