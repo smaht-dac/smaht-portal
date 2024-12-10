@@ -4,6 +4,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { format as dateFormat } from "date-fns";
 import _ from 'underscore';
+import ReactTooltip from 'react-tooltip';
 import { console, object, ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 /**
@@ -116,6 +117,9 @@ export class ProvenanceGraphStepsFetchingController extends React.PureComponent 
                     'graphSteps' : this.identifiersToIntegers(res),
                     'isLoadingGraphSteps' : false
                 });
+                setTimeout(function () {
+                    ReactTooltip.rebuild();
+                }, 1000);
             } else {
                 this.setState({
                     'graphSteps' : null,
