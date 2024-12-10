@@ -33,6 +33,9 @@ FILENAME_SEPARATOR = "-"
 ANALYSIS_INFO_SEPARATOR = "_"
 CHAIN_FILE_INFO_SEPARATOR = "To"
 
+RNA_DATA_CATEGORY = "RNA Quantification"
+GENE_DATA_TYPE = "Gene Expression"
+ISOFORM_DATA_TYPE = "Transcript Expression"
 
 DEFAULT_PROJECT_ID = constants.PRODUCTION_PREFIX
 DEFAULT_ABSENT_FIELD = "X"
@@ -84,6 +87,7 @@ class AssociatedItems:
     sequencing_center: Dict[str, Any]
     software: List[Dict[str, Any]]
     reference_genome: Dict[str, Any]
+    gene_annotation: Dict[str, Any]
     file_sets: List[Dict[str, Any]]
     donor_specific_assembly: Dict[str, Any]
     assays: List[Dict[str, Any]]
@@ -110,6 +114,7 @@ def get_associated_items(
     file_format = get_file_format(file, request_handler)
     software = get_software(file, request_handler)
     reference_genome = get_reference_genome(file, request_handler)
+    gene_annotation = get_gene_annotation(file, request_handler)
     donor_specific_assembly = get_donor_specific_assembly(file, request_handler)
     if donor_specific_assembly:
         file_sets=get_derived_from_file_sets(file, request_handler)
@@ -130,6 +135,7 @@ def get_associated_items(
         file_format=file_format,
         software=software,
         reference_genome=reference_genome,
+        gene_annotation=gene_annotation,
         file_sets=file_sets,
         donor_specific_assembly=donor_specific_assembly,
         assays=assays,
@@ -207,6 +213,13 @@ def get_reference_genome(
 ) -> Dict[str, Any]:
     """Get reference genome for file."""
     return get_item(file_utils.get_reference_genome(file), request_handler)
+
+
+def get_gene_annotation(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> Dict[str, Any]:
+    """Get gene annotation for file."""
+    return get_item(file_utils.get_gene_annotation(file), request_handler)
 
 
 def get_software(
@@ -427,7 +440,11 @@ def get_annotated_filename(
     accession = get_accession(file)
     file_extension = get_file_extension(file, associated_items.file_format)
     analysis_info = get_analysis(
-        file, associated_items.software, associated_items.reference_genome,associated_items.file_format
+        file,
+        associated_items.software,
+        associated_items.reference_genome,
+        associated_items.gene_annotation,
+        associated_items.file_format
     )
     errors = collect_errors(
         project_id,
@@ -800,6 +817,7 @@ def get_analysis(
     file: Dict[str, Any],
     software: List[Dict[str, Any]],
     reference_genome: Dict[str, Any],
+    gene_annotation: Dict[str, Any],
     file_extension: Dict[str, Any],
 ) -> FilenamePart:
     """Get analysis info for file.
@@ -809,14 +827,25 @@ def get_analysis(
     """
     software_and_versions = get_software_and_versions(software)
     reference_genome_code = item_utils.get_code(reference_genome)
-    errors = get_analysis_errors(file, reference_genome_code)
-    if errors:
-        return get_filename_part(errors=errors)
+    gene_annotation_code = item_utils.get_code(gene_annotation)
+    transcript_info_code = get_rna_seq_tsv_value(file, file_extension)
     value = get_analysis_value(
-        software_and_versions, reference_genome_code
+        software_and_versions,
+        reference_genome_code,
+        gene_annotation_code,
+        transcript_info_code
     )
     if file_format_utils.is_chain_file(file_extension):
         value = f"{value}{ANALYSIS_INFO_SEPARATOR}{get_chain_file_value(file)}"
+    errors = get_analysis_errors(
+        file,
+        reference_genome_code,
+        gene_annotation_code,
+        transcript_info_code,
+        file_extension,
+    )
+    if errors:
+        return get_filename_part(errors=errors)
     if not value:
         if file_utils.is_unaligned_reads(file):  # Think this is the only case (?)
             return get_filename_part(value=DEFAULT_ABSENT_FIELD)
@@ -825,7 +854,11 @@ def get_analysis(
 
 
 def get_analysis_errors(
-    file: Dict[str, Any], reference_genome_code: str
+    file: Dict[str, Any], 
+    reference_genome_code: str,
+    gene_annotation_code: str,
+    transcript_info_code:  str,
+    file_extension: Dict[str, Any]
 ) -> List[str]:
     """Get analysis errors for file by file type."""
     errors = []
@@ -838,16 +871,24 @@ def get_analysis_errors(
     if file_utils.is_variant_calls(file):
         if not reference_genome_code:
             errors.append("No reference genome code found")
+    if RNA_DATA_CATEGORY in file_utils.get_data_category(file):
+        if not gene_annotation_code:
+            errors.append("No gene annotation code found")
+        elif file_format_utils.is_tsv_file(file_extension) and not transcript_info_code:
+            errors.append("No gene or isoform code found")
     return errors
 
 
 def get_analysis_value(
-    software_and_versions: str, reference_genome_code: str
+    software_and_versions: str,
+    reference_genome_code: str,
+    gene_annotation_code: str,
+    transcript_info_code: str
 ) -> str:
     """Get analysis value for filename."""
     to_write = [
         string
-        for string in [software_and_versions, reference_genome_code]
+        for string in [software_and_versions, reference_genome_code, gene_annotation_code, transcript_info_code]
         if string
     ]
     return ANALYSIS_INFO_SEPARATOR.join(to_write)
@@ -912,6 +953,17 @@ def get_chain_file_value(file: Dict[str, Any]) -> str:
     target_assembly=supp_file_utils.get_target_assembly(file)
     source_assembly=supp_file_utils.get_source_assembly(file)
     return CHAIN_FILE_INFO_SEPARATOR.join([source_assembly,target_assembly])
+
+
+def get_rna_seq_tsv_value(file: Dict[str, Any], file_extension: Dict[str, Any]) -> str:
+    """Get isoform or gene from data type for RNA-seq tsv files."""
+    if file_format_utils.is_tsv_file(file_extension) and RNA_DATA_CATEGORY in file_utils.get_data_category(file):
+        if GENE_DATA_TYPE in file_utils.get_data_type(file):
+            return "gene"
+        elif ISOFORM_DATA_TYPE in file_utils.get_data_type(file):
+            return "isoform"
+    else:
+        return ""
 
 
 def get_file_extension(

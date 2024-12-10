@@ -16,7 +16,7 @@ describe('Basic functionality: page loads and can authenticate.', function () {
             useEnvToken: false,
         })
             .get('.user-first-name')
-            .contains('Scientist')
+            .contains('SCM')
             .end();
 
         // Log out
