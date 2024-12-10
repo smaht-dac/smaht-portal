@@ -34,11 +34,19 @@
     }
 }
 
-.meta-workflow-view-container .workflow-chart-outer-container .workflow-chart-inner-container .scroll-container {
-    height: calc(100vh - 214px) !important; // Need to override styles from react-workflow-viz graph
+.meta-workflow-view-container .workflow-chart-outer-container .workflow-chart-inner-container {
+    .zoom-controls-container {
+        z-index:unset;
+    }
+    .scroll-container {
+        height: calc(100vh - 214px) !important; // Need to override styles from react-workflow-viz graph
+    }
 }
 
 .workflow-chart-detail-pane-modal-header {
+    .modal-title {
+        overflow: hidden;
+    }
     .title-box {
         display: flex;
         align-items: center;
@@ -48,6 +56,7 @@
             font-weight: 400;
             margin-bottom: 1px;
             color: #777;
+            white-space: nowrap;
         }
 
         h3 {
