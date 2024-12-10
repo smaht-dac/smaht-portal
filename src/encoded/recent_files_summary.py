@@ -1,14 +1,13 @@
 import pyramid
 from copy import deepcopy
 from typing import List, Optional
-from urllib.parse import urlencode
 from dcicutils.misc_utils import normalize_spaces
 from encoded.elasticsearch_utils import create_elasticsearch_aggregation_query
 from encoded.elasticsearch_utils import merge_elasticsearch_aggregation_results
 from encoded.elasticsearch_utils import normalize_elasticsearch_aggregation_results
 from encoded.elasticsearch_utils import prune_elasticsearch_aggregation_results
 from encoded.elasticsearch_utils import sort_normalized_aggregation_results
-from encoded.endpoint_utils import parse_date_range_related_arguments
+from encoded.endpoint_utils import create_query_string, parse_date_range_related_arguments
 from encoded.endpoint_utils import request_arg, request_args, request_arg_bool, request_arg_int
 from snovault.search.search import search as snovault_search
 from snovault.search.search_utils import make_search_subreq as snovault_make_search_subreq
@@ -26,6 +25,8 @@ AGGREGATION_FIELD_FILE_DESCRIPTOR = "release_tracker_description"
 
 AGGREGATION_MAX_BUCKETS = 100
 AGGREGATION_NO_VALUE = "No value"
+
+BASE_SEARCH_QUERY = "/search/"
 
 def recent_files_summary(request: pyramid.request.Request) -> dict:
     """
@@ -56,6 +57,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
     date_property_name = request_arg(request, "date_property_name", AGGREGATION_FIELD_RELEASE_DATE)
     max_buckets = request_arg_bool(request, "max_buckets", AGGREGATION_MAX_BUCKETS)
+    include_queries = request_arg_bool(request, "include_queries", request_arg_bool(request, "include_query", True))
     include_missing = request_arg_bool(request, "include_missing", request_arg_bool(request, "novalues"))
     favor_donor = request_arg_bool(request, "favor_donor")
     nosort = request_arg_bool(request, "nosort")
@@ -64,14 +66,27 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     debug_query = request_arg_bool(request, "debug_query")
     raw = request_arg_bool(request, "raw")
 
-    def create_query(request: pyramid.request.Request) -> str:
+    def create_base_query_arguments(request: pyramid.request.Request) -> dict:
 
-        global QUERY_FILE_CATEGORIES, QUERY_FILE_STATUSES, QUERY_FILE_TYPES, QUERY_RECENT_MONTHS
-        nonlocal date_property_name
+        global QUERY_FILE_CATEGORIES, QUERY_FILE_STATUSES, QUERY_FILE_TYPES
 
         types = request_args(request, "type", QUERY_FILE_TYPES)
         statuses = request_args(request, "status", QUERY_FILE_STATUSES)
         categories = request_args(request, "category", QUERY_FILE_CATEGORIES)
+
+        base_query_arguments = {
+            "type": types if types else None,
+            "status": statuses if statuses else None,
+            "data_category": categories if categories else None
+        }
+
+        return {key: value for key, value in base_query_arguments.items() if value is not None}
+
+    def create_query(request: pyramid.request.Request, base_query_arguments: Optional[dict] = None) -> str:
+
+        global BASE_SEARCH_QUERY, QUERY_RECENT_MONTHS, QUERY_INCLUDE_CURRENT_MONTH
+        nonlocal date_property_name
+
         recent_months = request_arg_int(request, "nmonths", request_arg_int(request, "months", QUERY_RECENT_MONTHS))
         from_date = request_arg(request, "from_date")
         thru_date = request_arg(request, "thru_date")
@@ -80,56 +95,23 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         from_date, thru_date = parse_date_range_related_arguments(from_date, thru_date, nmonths=recent_months,
                                                                   include_current_month=include_current_month,
                                                                   strings=True)
-        query_parameters = {
-            "type": types if types else None,
-            "status": statuses if statuses else None,
-            "data_category": categories if categories else None,
+        query_arguments = {
             f"{date_property_name}.from": from_date if from_date else None,
             f"{date_property_name}.to": thru_date if from_date else None,
             "from": 0,
             "limit": 0
         }
-        query_parameters = {key: value for key, value in query_parameters.items() if value is not None}
-        query_string = urlencode(query_parameters, True)
-        # Hackishness to change "=!" to "!=" in search_param_lists value for e.g. to turn this in the
-        # query_parameters above "data_category": ["!Quality Control"] into: data_category&21=Quality+Control
-        query_string = query_string.replace("=%21", "%21=")
-        return f"/search/?{query_string}"
 
-    def create_aggregation_query_legacy(aggregation_fields: List[str]) -> dict:
-        global AGGREGATION_NO_VALUE
-        nonlocal date_property_name, max_buckets, include_missing
-        aggregations = []
-        if not isinstance(aggregation_fields, list):
-            aggregation_fields = [aggregation_fields]
-        for item in aggregation_fields:
-            if isinstance(item, str) and (item := item.strip()) and (item not in aggregations):
-                aggregations.append(item)
-        if not aggregations:
-            return {}
-        def create_field_aggregation(field: str) -> Optional[dict]:  # noqa
-            nonlocal date_property_name
-            if field == date_property_name:
-                return {
-                    "date_histogram": {
-                        "field": f"embedded.{field}",
-                        "calendar_interval": "month",
-                        "format": "yyyy-MM",
-                        "missing": "1970-01",
-                        "order": {"_key": "desc"}
-                    }
-                }
-        aggregation_query = create_elasticsearch_aggregation_query(
-            aggregations,
-            max_buckets=max_buckets,
-            missing_value=AGGREGATION_NO_VALUE,
-            include_missing=include_missing,
-            create_field_aggregation=create_field_aggregation)
-        return aggregation_query[date_property_name]
+        if isinstance(base_query_arguments, dict):
+            query_arguments = {**base_query_arguments, **query_arguments}
+
+        return f"{BASE_SEARCH_QUERY}?{create_query_string(query_arguments)}"
 
     def create_aggregation_query(aggregation_fields: List[str]) -> dict:
+
         global AGGREGATION_NO_VALUE
         nonlocal date_property_name, max_buckets, include_missing, favor_donor
+
         aggregations = []
         if not isinstance(aggregation_fields, list):
             aggregation_fields = [aggregation_fields]
@@ -138,6 +120,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                 aggregations.append(item)
         if not aggregations:
             return {}
+
         def create_field_aggregation(field: str) -> Optional[dict]:  # noqa
             nonlocal date_property_name
             if field == date_property_name:
@@ -162,7 +145,8 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                     field_one = AGGREGATION_FIELD_CELL_LINE
                     field_two = AGGREGATION_FIELD_DONOR
                 # Note how we prefix the result with the aggregation field name;
-                # this is so later we can tell which grouping/field was matched.
+                # this is so later we can tell which grouping/field was matched;
+                # see fixup_names_values_for_normalized_results for this fixup.
                 script = normalize_spaces(f"""
                     if (doc['embedded.{field_one}.raw'].size() > 0) {{
                         return '{field_one}:' + doc['embedded.{field_one}.raw'].value;
@@ -181,6 +165,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                         "size": max_buckets
                     }
                 }
+
         def create_field_filter(field: str) -> Optional[dict]:  # noqa
             if field == AGGREGATION_FIELD_CELL_LINE:
                 return {
@@ -192,6 +177,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                         "minimum_should_match": 1
                     }
                 }
+
         aggregation_query = create_elasticsearch_aggregation_query(
             aggregations,
             max_buckets=max_buckets,
@@ -199,6 +185,43 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
             include_missing=include_missing,
             create_field_aggregation=create_field_aggregation,
             create_field_filter=create_field_filter)
+
+        return aggregation_query[date_property_name]
+
+    def create_aggregation_query_legacy(aggregation_fields: List[str]) -> dict:
+
+        global AGGREGATION_NO_VALUE
+        nonlocal date_property_name, max_buckets, include_missing
+
+        aggregations = []
+        if not isinstance(aggregation_fields, list):
+            aggregation_fields = [aggregation_fields]
+        for item in aggregation_fields:
+            if isinstance(item, str) and (item := item.strip()) and (item not in aggregations):
+                aggregations.append(item)
+        if not aggregations:
+            return {}
+
+        def create_field_aggregation(field: str) -> Optional[dict]:  # noqa
+            nonlocal date_property_name
+            if field == date_property_name:
+                return {
+                    "date_histogram": {
+                        "field": f"embedded.{field}",
+                        "calendar_interval": "month",
+                        "format": "yyyy-MM",
+                        "missing": "1970-01",
+                        "order": {"_key": "desc"}
+                    }
+                }
+
+        aggregation_query = create_elasticsearch_aggregation_query(
+            aggregations,
+            max_buckets=max_buckets,
+            missing_value=AGGREGATION_NO_VALUE,
+            include_missing=include_missing,
+            create_field_aggregation=create_field_aggregation)
+
         return aggregation_query[date_property_name]
 
     def execute_query(request: pyramid.request.Request, query: str, aggregation_query: dict) -> str:
@@ -206,10 +229,10 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         results = snovault_search(None, request, custom_aggregations=aggregation_query)
         return results
 
-    def fixup_names_values(normalized_results: dict) -> None:
+    def fixup_names_values_for_normalized_results(normalized_results: dict) -> None:
+        nonlocal include_queries
         if isinstance(normalized_results, dict):
-            if (isinstance(name := normalized_results.get("name"), str) and
-                isinstance(value := normalized_results.get("value"), str)):
+            if isinstance(value := normalized_results.get("value"), str):
                 if (colon := value.find(":")) > 0:
                     if (prefix := value[0:colon]) == AGGREGATION_FIELD_CELL_LINE:
                         normalized_results["name"] = AGGREGATION_FIELD_CELL_LINE
@@ -219,9 +242,31 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                         normalized_results["value"] = value[colon + 1:]
             if isinstance(items := normalized_results.get("items"), list):
                 for element in items:
-                    fixup_names_values(element)
+                    fixup_names_values_for_normalized_results(element)
 
-    query = create_query(request)
+    def add_queries_to_normalized_results(normalized_results: dict, base_query_arguments: dict) -> None:
+        global BASE_SEARCH_QUERY
+        nonlocal date_property_name
+        if isinstance(normalized_results, dict):
+            if not (name := normalized_results.get("name")):
+                normalized_results["query"] = create_query_string(base_query_arguments, BASE_SEARCH_QUERY)
+            elif value := normalized_results.get("value"):
+                if name == date_property_name:
+                    # Special case for date value which is just year/month (e.g. 2024-12);
+                    # we want to turn this into a date range query for the month.
+                    from_date, thru_date = parse_date_range_related_arguments(value, None, strings=True)
+                    if from_date and thru_date:
+                        base_query_arguments = {**base_query_arguments,
+                                                f"{name}.from": from_date, f"{name}.to": thru_date}
+                else:
+                    base_query_arguments = {**base_query_arguments, name: value}
+                normalized_results["query"] = create_query_string(base_query_arguments, BASE_SEARCH_QUERY)
+            if isinstance(items := normalized_results.get("items"), list):
+                for element in items:
+                    add_queries_to_normalized_results(element, base_query_arguments)
+
+    base_query_arguments = create_base_query_arguments(request)
+    query = create_query(request, base_query_arguments)
 
     if not legacy:
         aggregate_by_cell_line_property_name = "aggregate_by_cell_line"
@@ -285,9 +330,9 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     # has file_sets.libraries.analytes.samples.sample_sources.cell_line.code values for both HG00438 and HG005),
     # then its doc_count will NOT be counted TWICE. This creates a situation where it might LOOK like the counts
     # are WRONG in the MERGED (via returned merge_elasticsearch_aggregation_results) result set, where the outer
-    # item count may be than the sum of the individual counts within each sub-group. For example, the below result shows
-    # a top-level doc_count of 1, even though there are 2 documents, 1 in the HG00438 group and the other in the HG005 it would be because
-    # the same unique file has a cell_line.code of both HG00438 and HG005.
+    # item count may be than the sum of the individual counts within each sub-group. For example, the below result
+    # shows a top-level doc_count of 1, even though there are 2 documents, 1 in the HG00438 group and the other
+    # in the HG005 it would be because the same unique file has a cell_line.code of both HG00438 and HG005.
     # {
     #     "meta": { "field_name": "file_status_tracking.released" },
     #     "buckets": [
@@ -333,7 +378,9 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     normalized_results = normalize_elasticsearch_aggregation_results(merged_results,
                                                                      additional_properties=additional_properties)
     if not legacy:
-        fixup_names_values(normalized_results)
+        fixup_names_values_for_normalized_results(normalized_results)
+    if include_queries:
+        add_queries_to_normalized_results(normalized_results, base_query_arguments)
 
     if nosort is not True:
         # We can sort on the aggregations by level; outermost/left to innermost/right.

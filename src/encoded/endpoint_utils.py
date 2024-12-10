@@ -3,6 +3,7 @@ from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 import pyramid
 from typing import Any, List, Optional, Tuple, Union
+from urllib.parse import urlencode
 from dcicutils.datetime_utils import parse_datetime_string as dcicutils_parse_datetime_string
 
 
@@ -176,3 +177,16 @@ def _add_months(day: Optional[Union[datetime, date, str]] = None, nmonths: int =
     if isinstance(nmonths, int) and (nmonths != 0):
         return day + relativedelta(months=nmonths)
     return day
+
+
+def create_query_string(query_arguments: dict, base: Optional[str] = None) -> str:
+    query_string = ""
+    if isinstance(query_arguments, dict):
+        if query_arguments := {key: value for key, value in query_arguments.items() if value is not None}:
+            query_string = urlencode(query_arguments, True)
+            # Hackishness to change "=!" to "!=" in query_string value for e.g. to turn this
+            # {"data_category": ["!Quality Control"]} into this: data_category&21=Quality+Control
+            query_string = query_string.replace("=%21", "%21=")
+    if isinstance(base, str) and base:
+        query_string = f"{base}?{query_string}" if query_string else base
+    return query_string
