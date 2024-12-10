@@ -72,7 +72,7 @@ export const WorkflowDetailPane = React.memo(function WorkflowDetailPane(props){
                         </div>
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
+                <Modal.Body className="workflow-chart-detail-pane-modal-body">
                     <div className="workflow-chart-outer-container">
                         <div className="workflow-chart-inner-container">
                             <div className="state-container" style={{ minWidth: '730px' }}>
