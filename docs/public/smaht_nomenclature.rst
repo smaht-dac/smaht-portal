@@ -29,6 +29,16 @@ Schema Documentation
             <tbody class="table-border-inner">
                 <tr>
                     <td>
+                        <a href="/static/files/SMaHT Sample and File Nomenclature v1.2.pdf" download>
+                            <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
+                        </a>
+                    </td>
+                    <td>1.2</td>
+                    <td>11/01/2024</td>
+                    <td><a href="/static/files/SMaHT Sample and File Nomenclature v1.2.pdf" download>SMaHT Sample and File Nomenclature v1.2.pdf</a></td>
+                </tr>
+                <tr>
+                    <td>
                         <a href="/static/files/SMaHT Sample and File Nomenclature v1.1.pdf" download>
                             <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
                         </a>
@@ -86,6 +96,11 @@ Table 1A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>Liver</td>
                     <td>Frozen; homogenized</td>
                 </tr>
+                <tr class="text-muted fst-italic">
+                    <td>1B</td>
+                    <td>unassigned</td>
+                    <td>N/A</td>
+                </tr>
                 <tr>
                     <td>1C</td>
                     <td>Liver</td>
@@ -96,6 +111,11 @@ Table 1A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>Lung</td>
                     <td>Frozen; homogenized</td>
                 </tr>
+                <tr class="text-muted fst-italic">
+                    <td>1E</td>
+                    <td>unassigned</td>
+                    <td>N/A</td>
+                </tr>
                 <tr>
                     <td>1F</td>
                     <td>Lung</td>
@@ -105,6 +125,11 @@ Table 1A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>1G</td>
                     <td>Colon</td>
                     <td>Frozen; homogenized</td>
+                </tr>
+                <tr class="text-muted fst-italic">
+                    <td>1H</td>
+                    <td>unassigned</td>
+                    <td>N/A</td>
                 </tr>
                 <tr>
                     <td>1I</td>
@@ -126,10 +151,16 @@ Table 1A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>Skin</td>
                     <td>Fixed</td>
                 </tr>
+                <tr class="text-muted fst-italic">
+                    <td>1M/N/O/P</td>
+                    <td>unassigned</td>
+                    <td>N/A</td>
+                </tr>
                 <tr>
                     <td>1Q</td>
                     <td>Brain, Frontal Lobe</td>
                     <td>Frozen; homogenate and non-homogenate samples</td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -151,7 +182,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 </tr>
             </thead>
             <tbody class="table-border-inner">
-            <tr>
+                <tr>
                     <td>3A</td>
                     <td>Blood, Whole</td>
                     <td>Frozen</td>
@@ -293,8 +324,8 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 </tr>
                 <tr>
                     <td>3AC*</td>
-                    <td>Skin, Calf</td>
-                    <td>Fresh</td>
+                    <td>Dermal Fibroblast</td>
+                    <td>Cultured Cells</td>
                 </tr>
                 <tr>
                     <td>3AD</td>
@@ -327,16 +358,98 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                     <td>Fixed</td>
                 </tr>
                 <tr>
-                    <td>3AJ**</td>
+                    <td>3AJ</td>
                     <td>Brain</td>
                     <td>Fresh</td>
+                </tr>
+                <tr>
+                    <td>3AK</td>
+                    <td>Frontal Lobe, Brain, Left hemisphere</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3AL</td>
+                    <td>Temporal Lobe, Brain, Left hemisphere</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3AM</td>
+                    <td>Cerebellum, Brain, Left hemisphere</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3AN</td>
+                    <td>Hippocampus, Brain, Left hemisphere</td>
+                    <td>Frozen</td>
+                </tr>
+                <tr>
+                    <td>3AO</td>
+                    <td>Hippocampus, Brain, Left hemisphere</td>
+                    <td>Frozen</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
-| \* 3AC will be used to isolate fibroblasts. Could potentially still use "3AC" protocol for fibroblasts, but will need discussion.
-| \*\* 3AJ Will be frozen and subsectioned by NBB-Maryland. Will need subsection IDs from NBB-Maryland.
+| \* Fibroblasts isolated from fresh calf skin.
+
+
+Table 2: Benchmarking cell line codes.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. raw:: html
+
+    <div class="table-responsive">
+        <table class="table table-sm text-start">
+            <thead class="thead-smaht table-borderless">
+                <tr>
+                    <th>Kit/Sample ID</th>
+                    <th>Cell line description</th>
+                </tr>
+            </thead>
+            <tbody class="table-border-inner">
+                <tr>
+                    <td>COLO829T</td>
+                    <td>COLO829 tumor cell line</td>
+                </tr>
+                <tr>
+                    <td>COLO829BL</td>
+                    <td>COLO829BL normal lymphoblast cell line</td>
+                </tr>
+                <tr>
+                    <td>COLO829BLT50</td>
+                    <td>COLO829 1:50 admixture</td>
+                </tr>
+                <tr>
+                    <td>HAPMAP6</td>
+                    <td>Cell admixture of six HapMap cell lines</td>
+                </tr>
+                <tr>
+                    <td>LBLA2</td>
+                    <td>LB-LA2 fibroblast cell line</td>
+                </tr>
+                <tr>
+                    <td>LBIPSC1</td>
+                    <td>iPSC line from clone #1 derived from the LB-LA2 fibroblast cell line</td>
+                </tr>
+                <tr>
+                    <td>LBIPSC2</td>
+                    <td>iPSC line from clone #2 derived from the LB-LA2 fibroblast cell line</td>
+                </tr>
+                <tr>
+                    <td>LBIPSC4</td>
+                    <td>iPSC line from clone #4 derived from the LB-LA2 fibroblast cell line</td>
+                </tr>
+                <tr>
+                    <td>LBIPSC52</td>
+                    <td>iPSC line from clone #52 derived from the LB-LA2 fibroblast cell line</td>
+                </tr>
+                <tr>
+                    <td>LBIPSC60</td>
+                    <td>iPSC line from clone #60 derived from the LB-LA2 fibroblast cell line</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
 
 Part 2: Base Schema, Platform, and Assay Codes
@@ -404,8 +517,8 @@ Table 3A. Sequencing platform codes.
 
 
 
-Table 3B. Experimental Assay Codes.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Table 3B. Experimental Assay Codes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. raw:: html
 
@@ -414,196 +527,297 @@ Table 3B. Experimental Assay Codes.
             <thead class="thead-smaht table-borderless">
                 <tr>
                     <th>Code</th>
-                    <th>DNA/RNA/Others</th>
-                    <th>Assay Level</th>
-                    <th>Assay Type</th>
+                    <th>Assay Name</th>
+                    <th>Description</th>
                 </tr>
             </thead>
             <tbody class="table-border-inner">
                 <tr>
                     <td>000</td>
-                    <td>Null or N/A</td>
                     <td></td>
-                    <td></td>
+                    <td>(Null or not-applicable)</td>
                 </tr>
-                <tr class="table-stripe-secondary text-600">
-                    <td></td>
-                    <td>DNA below</td>
-                    <td></td>
-                    <td></td>
+                <tr class="table-stripe-secondary text-600 fst-italic">
+                    <td colspan="3">[001-100: DNA-based assays]</td>
                 </tr>
                 <tr>
                     <td>001</td>
-                    <td>DNA, PCR-free</td>
-                    <td>Bulk</td>
-                    <td>Whole genome sequencing (WGS)</td>
+                    <td>WGS</td>
+                    <td>DNA, PCR-free, Bulk, Whole genome sequencing (WGS)</td>
                 </tr>
                 <tr>
                     <td>002</td>
-                    <td>DNA</td>
-                    <td>Bulk</td>
-                    <td>WGS</td>
+                    <td>PCR WGS</td>
+                    <td>DNA PCR, Bulk, WGS</td>
                 </tr>
                 <tr>
                     <td>003</td>
-                    <td>DNA</td>
-                    <td>Bulk</td>
-                    <td>Ultra-Long HMW WGS</td>
+                    <td>Ultra-Long WGS</td>
+                    <td>DNA, PCR-free, Bulk, Ultra-Long WGS</td>
                 </tr>
                 <tr>
                     <td>004</td>
-                    <td>DNA</td>
-                    <td>Bulk</td>
                     <td>Fiber-seq</td>
+                    <td>DNA, PCR-free, Bulk, Fiber-seq</td>
                 </tr>
                 <tr>
                     <td>005</td>
-                    <td>DNA</td>
-                    <td>Bulk</td>
                     <td>Hi-C</td>
+                    <td>DNA, Bulk, Hi-C</td>
                 </tr>
                 <tr>
                     <td>006</td>
-                    <td>DNA</td>
-                    <td>Bulk</td>
-                    <td>NTSeq</td>
+                    <td>Bulk NTSeq</td>
+                    <td>DNA, Bulk, NTSeq</td>
                 </tr>
                 <tr>
                     <td>007</td>
-                    <td>DNA</td>
-                    <td>Single-molecule</td>
                     <td>CODEC</td>
+                    <td>DNA, Bulk, Duplex-seq, CODEC</td>
                 </tr>
                 <tr>
                     <td>008</td>
-                    <td>DNA</td>
-                    <td>Single-molecule</td>
-                    <td>Duplex sequencing</td>
+                    <td>Bot-seq</td>
+                    <td>DNA, Bulk, Duplex-seq, Bot-seq</td>
                 </tr>
                 <tr>
                     <td>009</td>
-                    <td>DNA</td>
-                    <td>Single-molecule</td>
                     <td>NanoSeq</td>
+                    <td>DNA, Bulk, Duplex-seq, NanoSeq</td>
                 </tr>
                 <tr>
                     <td>010</td>
-                    <td>DNA</td>
-                    <td>Single-molecule, single-cell</td>
                     <td>scNanoSeq</td>
+                    <td>DNA, Single-cell, Duplex-seq, scNanoSeq</td>
                 </tr>
                 <tr>
                     <td>011</td>
-                    <td>DNA</td>
-                    <td>Single-cell</td>
                     <td>DLP+</td>
+                    <td>DNA, Single-cell, DLP+</td>
                 </tr>
                 <tr>
                     <td>012</td>
-                    <td>DNA</td>
-                    <td>Single-cell</td>
-                    <td>MALBAC-amplified WGS</td>
+                    <td>Microbulk MALBAC WGS</td>
+                    <td>DNA, Microbulk, MALBAC-amplified WGS</td>
                 </tr>
                 <tr>
                     <td>013</td>
-                    <td>DNA</td>
-                    <td>Single-cell</td>
-                    <td>PTA-amplified WGS</td>
+                    <td>Single-cell MALBAC WGS</td>
+                    <td>DNA, Single-cell, MALBAC-amplified WGS</td>
                 </tr>
                 <tr>
                     <td>014</td>
-                    <td>DNA</td>
-                    <td>Single-cell</td>
-                    <td>scDip-C</td>
+                    <td>Microbulk PTA WGS</td>
+                    <td>DNA, Microbulk, PTA-amplified WGS</td>
                 </tr>
                 <tr>
                     <td>015</td>
-                    <td>DNA</td>
-                    <td>Single-molecule</td>
-                    <td>CompDuplex-seq</td>
+                    <td>Single-cell PTA WGS</td>
+                    <td>DNA, Single-cell, PTA-amplified WGS</td>
                 </tr>
                 <tr>
                     <td>016</td>
-                    <td>DNA</td>
-                    <td>Single-molecule, single-cell</td>
-                    <td>scCompDuplex-seq</td>
+                    <td>scDip-C</td>
+                    <td>DNA, Single-cell, scDip-C</td>
                 </tr>
                 <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td class="cell-small-text pt-1 pb-1">(include additional DNA assays)</td>
+                    <td>017</td>
+                    <td>CompDuplex-seq</td>
+                    <td>DNA, Bulk, Duplex-seq, CompDuplex-seq</td>
                 </tr>
-                <tr class="table-stripe-secondary text-600">
-                    <td></td>
-                    <td>RNA below</td>
-                    <td></td>
-                    <td></td>
+                <tr>
+                    <td>018</td>
+                    <td>scCompDuplex-seq</td>
+                    <td>DNA, Single-cell, Duplex-seq, scCompDuplex-seq</td>
+                </tr>
+                <tr>
+                    <td>019</td>
+                    <td>Strand-seq</td>
+                    <td>DNA, Bulk, Strand-seq</td>
+                </tr>
+                <tr>
+                    <td>020</td>
+                    <td>scStrand-seq</td>
+                    <td>DNA, Single-cell, scStrand-seq</td>
+                </tr>
+                <tr>
+                    <td>021</td>
+                    <td>HiDEF-seq</td>
+                    <td>DNA, Bulk, Duplex-seq, HiDEF-seq</td>
+                </tr>
+                <tr>
+                    <td>022</td>
+                    <td>HAT-seq</td>
+                    <td>DNA, Bulk, HAT-seq</td>
+                </tr>
+                <tr>
+                    <td>023</td>
+                    <td>Microbulk HAT-seq</td>
+                    <td>DNA, Microbulk, PTA-amplified HAT-seq</td>
+                </tr>
+                <tr>
+                    <td>024</td>
+                    <td>scHAT-seq</td>
+                    <td>DNA, Single-cell, PTA-amplified, HAT-seq</td>
+                </tr>
+                <tr>
+                    <td>025</td>
+                    <td>VISTA-seq</td>
+                    <td>DNA, Bulk, Duplex-seq, VISTA-seq</td>
+                </tr>
+                <tr>
+                    <td>026</td>
+                    <td>Microbulk VISTA-seq</td>
+                    <td>DNA, Microbulk, Duplex-seq, VISTA-seq</td>
+                </tr>
+                <tr>
+                    <td>027</td>
+                    <td>scVISTA-seq</td>
+                    <td>DNA, Single-cell, Duplex-seq, VISTA-seq</td>
+                </tr>
+                <tr>
+                    <td>028</td>
+                    <td>TEnCATS</td>
+                    <td>DNA, Bulk, TEnCATS</td>
+                </tr>
+                <tr>
+                    <td>029</td>
+                    <td>L1-ONT</td>
+                    <td>DNA, Bulk, L1-ONT</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="pb-3 pt-07"></td>
+                </tr>
+                <tr class="table-stripe-secondary fst-italic text-600">
+                    <td colspan="3">[101-200: RNA-based assays]</td>
                 </tr>
                 <tr>
                     <td>101</td>
-                    <td>RNA</td>
-                    <td>Bulk</td>
                     <td>RNA-seq</td>
+                    <td>RNA, Bulk, RNA-seq</td>
                 </tr>
                 <tr>
                     <td>102</td>
-                    <td>RNA</td>
-                    <td>Bulk</td>
-                    <td>MAS-ISO-Seq</td>
+                    <td>Kinnex</td>
+                    <td>RNA, Bulk, Kinnex</td>
                 </tr>
                 <tr>
                     <td>103</td>
-                    <td>RNA</td>
-                    <td>Single-cell/nucleus</td>
-                    <td>snRNA-Seq</td>
+                    <td>snRNA-seq</td>
+                    <td>RNA, Single-cell, snRNA-seq</td>
                 </tr>
                 <tr>
                     <td>104</td>
-                    <td>RNA</td>
-                    <td>Single-cell/nucleus</td>
                     <td>STORM-Seq</td>
+                    <td>RNA, Single-cell, STORM-seq</td>
                 </tr>
                 <tr>
                     <td>105</td>
-                    <td>RNA</td>
-                    <td>Single-cell/nucleus</td>
                     <td>Tranquil-Seq</td>
+                    <td>RNA, Single-cell, Tranquil-seq</td>
                 </tr>
                 <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td class="cell-small-text pt-1 pb-1">(include additional RNA assays)</td>
+                    <td colspan="3" class="pb-3 pt-07"></td>
                 </tr>
-                <tr class="table-stripe-secondary text-600">
-                    <td></td>
-                    <td>Epigenetics below</td>
-                    <td></td>
-                    <td></td>
+                <tr class="table-stripe-secondary fst-italic text-600">
+                    <td colspan="3">[201-300: Chromatin-based assays]</td>
                 </tr>
                 <tr>
                     <td>201</td>
-                    <td></td>
-                    <td></td>
-                    <td class="cell-small-text pt-1 pb-1">(include additional epigenetic assays)</td>
-                </tr>
-                <tr class="table-stripe-secondary text-600">
-                    <td></td>
-                    <td>Others below</td>
-                    <td></td>
-                    <td></td>
+                    <td>ATAC-seq</td>
+                    <td>Chromatin, Bulk, ATAC-seq</td>
                 </tr>
                 <tr>
-                    <td>301</td>
-                    <td></td>
-                    <td></td>
-                    <td class="cell-small-text ">(include additional assays)</td>
+                    <td>202</td>
+                    <td>CUT&Tag</td>
+                    <td>Chromatin, Bulk, CUT&Tag</td>
+                </tr>
+                <tr>
+                    <td>203</td>
+                    <td>varCUT&Tag</td>
+                    <td>Chromatin, Bulk, varCUT&Tag</td>
+                </tr>
+                <tr>
+                    <td>204</td>
+                    <td>sc-varCUT&Tag</td>
+                    <td>Chromatin, Single-cell, sc-varCUT&Tag</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="pb-3 pt-07"></td>
                 </tr>
             </tbody>
         </table>
     </div>
 
+Table 5. Genome version (A) and variant type (B) tables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+    <div class="table-responsive">
+        <table class="table table-sm text-start">
+            <caption style="caption-side:top;">(A)</caption>
+            <thead>
+                <tr>
+                    <th>Reference Genome</th>
+                    <th>Code</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>GRCh38 without ALT contigs</td>
+                    <td>GRCh38</td>
+                </tr>
+                <tr>
+                    <td>T2T CHM13</td>
+                    <td>CHM13</td>
+                </tr>
+                <tr>
+                    <td>Donor-specific genome assembly</td>
+                    <td>DSA</td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm text-start">
+            <caption style="caption-side:top;">(B)</caption>
+            <thead>
+                <tr>
+                    <th>Variant Type or other Data Type</th>
+                    <th>Code</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Substitutions, short insertions and deletions</td>
+                    <td>snv</td>
+                </tr>
+                <tr>
+                    <td>Copy number variants</td>
+                    <td>cnv</td>
+                </tr>
+                <tr>
+                    <td>Structural variants including large insertions and deletions, duplications, inversions, translocations</td>
+                    <td>sv</td>
+                </tr>
+                <tr>
+                    <td>Mobile element insertions</td>
+                    <td>mei</td>
+                </tr>
+                <tr>
+                    <td>Donor-specific genome assembly</td>
+                    <td>dsa</td>
+                </tr>
+                <tr>
+                    <td>Gene expression level</td>
+                    <td>gene</td>
+                </tr>
+                <tr>
+                    <td>Transcript isoform expression level</td>
+                    <td>isoform</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
 
 Part 3: File Name breakdown
