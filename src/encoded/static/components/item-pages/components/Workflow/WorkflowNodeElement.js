@@ -406,10 +406,11 @@ export class WorkflowNodeElement extends React.PureComponent {
         }
 
         const {
-            meta : { run_data : { file } }
+            meta : { run_data : { file : { quality_metric, quality_metrics } = {} } }
         } = node;
 
-        const qc = file && file.quality_metric;
+        const qc = quality_metric || (Array.isArray(quality_metrics) && quality_metrics.length > 0 ? quality_metrics[0] : null);
+
         if (!qc) return null;
 
         const qcStatus = qc.overall_quality_status && qc.overall_quality_status.toLowerCase();

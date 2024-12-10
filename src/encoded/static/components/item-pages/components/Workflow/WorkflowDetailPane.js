@@ -94,7 +94,8 @@ function FileDetailBody(props){
     const { node, file, deselectNode, title, typeName, showDetailsInPopup, session } = props;
     const {
         "@Id": atId,
-        quality_metric = {},
+        quality_metric: propQC,
+        quality_metrics: propQCs = [],
         file_format: { display_title: dataFormat } = {},
         file_size = 0,
         status,
@@ -109,6 +110,8 @@ function FileDetailBody(props){
         } = {},
         file_status_tracking: { released } = {}
     } = file;
+
+    const qualityMetric = propQC || (Array.isArray(propQCs) && propQCs.length > 0 ? propQCs[0] : {});
 
     const statusWithIcon = (
         <React.Fragment>
@@ -148,7 +151,7 @@ function FileDetailBody(props){
                 </div>
             }
             <div className="details">
-                <QualityMetricBtn {...quality_metric} />
+                <QualityMetricBtn {...qualityMetric} />
                 <ValueRow label="Status" value={statusWithIcon} />
                 <ValueRow label="Data Format" value={dataFormat} />
                 <ValueRow label="Size" value={valueTransforms.bytesToLargerUnit(file_size)} />
