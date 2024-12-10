@@ -97,9 +97,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                                                                   strings=True)
         query_arguments = {
             f"{date_property_name}.from": from_date if from_date else None,
-            f"{date_property_name}.to": thru_date if from_date else None,
-            "from": 0,
-            "limit": 0
+            f"{date_property_name}.to": thru_date if from_date else None
         }
 
         if isinstance(base_query_arguments, dict):
@@ -224,7 +222,8 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
         return aggregation_query[date_property_name]
 
-    def execute_query(request: pyramid.request.Request, query: str, aggregation_query: dict) -> str:
+    def execute_aggregation_query(request: pyramid.request.Request, query: str, aggregation_query: dict) -> str:
+        query += "&limit=0"  # needed for aggregation query to not return the actual/individual item results.
         request = snovault_make_search_subreq(request, path=query, method="GET")
         results = snovault_search(None, request, custom_aggregations=aggregation_query)
         return results
@@ -248,18 +247,17 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         global BASE_SEARCH_QUERY
         nonlocal date_property_name
         if isinstance(normalized_results, dict):
-            if not (name := normalized_results.get("name")):
-                normalized_results["query"] = create_query_string(base_query_arguments, BASE_SEARCH_QUERY)
-            elif value := normalized_results.get("value"):
-                if name == date_property_name:
-                    # Special case for date value which is just year/month (e.g. 2024-12);
-                    # we want to turn this into a date range query for the month.
-                    from_date, thru_date = parse_date_range_related_arguments(value, None, strings=True)
-                    if from_date and thru_date:
-                        base_query_arguments = {**base_query_arguments,
-                                                f"{name}.from": from_date, f"{name}.to": thru_date}
-                else:
-                    base_query_arguments = {**base_query_arguments, name: value}
+            if name := normalized_results.get("name"):
+                if value := normalized_results.get("value"):
+                    if name == date_property_name:
+                        # Special case for date value which is just year/month (e.g. 2024-12);
+                        # we want to turn this into a date range query for the month.
+                        from_date, thru_date = parse_date_range_related_arguments(value, None, strings=True)
+                        if from_date and thru_date:
+                            base_query_arguments = {**base_query_arguments,
+                                                    f"{name}.from": from_date, f"{name}.to": thru_date}
+                    else:
+                        base_query_arguments = {**base_query_arguments, name: value}
                 normalized_results["query"] = create_query_string(base_query_arguments, BASE_SEARCH_QUERY)
             if isinstance(items := normalized_results.get("items"), list):
                 for element in items:
@@ -299,7 +297,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     if debug_query:
         return {"query": query, "aggregation_query": aggregation_query}
 
-    raw_results = execute_query(request, query, aggregation_query)
+    raw_results = execute_aggregation_query(request, query, aggregation_query)
 
     if raw:
         # For debugging/troubleshooting only if raw=true then return raw ElasticSearch results.
@@ -381,6 +379,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         fixup_names_values_for_normalized_results(normalized_results)
     if include_queries:
         add_queries_to_normalized_results(normalized_results, base_query_arguments)
+        normalized_results["query"] = query
 
     if nosort is not True:
         # We can sort on the aggregations by level; outermost/left to innermost/right.
