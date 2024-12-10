@@ -190,3 +190,37 @@ def create_query_string(query_arguments: dict, base: Optional[str] = None) -> st
     if isinstance(base, str) and base:
         query_string = f"{base}?{query_string}" if query_string else base
     return query_string
+
+
+def get_properties(data: dict, name: str, fallback: Optional[Any] = None, sort: bool = False) -> List[Any]:
+    """
+    TODO: Move this to dcicutils. Maybe much of the above too.
+    Returns the values of the given property name within the given dictionary as a list, where the
+    given property name can be a dot-separated list of property names, which indicate a path into
+    nested dictionaries within the given dictionary; and - where if any of the elements within
+    the path are lists then we iterate through each, collecting the values for each and including
+    each within the list of returned values.
+    """
+    if isinstance(data, dict) and isinstance(name, str) and name:
+        if keys := name.split("."):
+            nkeys = len(keys) ; key_index_max = nkeys - 1  # noqa
+            for key_index in range(nkeys):
+                if (value := data.get(keys[key_index], None)) is not None:
+                    if key_index == key_index_max:
+                        return [value]
+                    elif isinstance(value, dict):
+                        data = value
+                        continue
+                    elif isinstance(value, list) and value and ((sub_key_index := key_index + 1) < nkeys):
+                        sub_key = ".".join(keys[sub_key_index:])
+                        values = []
+                        for element in value:
+                            if isinstance(element_value := get_properties(element, sub_key), list):
+                                for element_value_item in element_value:
+                                    if (element_value_item is not None) and (element_value_item not in values):
+                                        values.append(element_value_item)
+                            elif (element_value is not None) and (element_value not in values):
+                                values.append(element_value)
+                        return sorted(values) if (sort is True) else values
+                break
+    return fallback if isinstance(fallback, list) else ([] if fallback is None else [fallback])

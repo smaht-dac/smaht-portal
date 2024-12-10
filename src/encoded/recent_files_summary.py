@@ -19,9 +19,16 @@ QUERY_RECENT_MONTHS = 3
 QUERY_INCLUDE_CURRENT_MONTH = True
 
 AGGREGATION_FIELD_RELEASE_DATE = "file_status_tracking.released"
+AGGREGATION_FIELD_CELL_MIXTURE = "file_sets.libraries.analytes.samples.sample_sources.code"
 AGGREGATION_FIELD_CELL_LINE = "file_sets.libraries.analytes.samples.sample_sources.cell_line.code"
 AGGREGATION_FIELD_DONOR = "donors.display_title"
 AGGREGATION_FIELD_FILE_DESCRIPTOR = "release_tracker_description"
+
+AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR = [
+    AGGREGATION_FIELD_CELL_MIXTURE,
+    AGGREGATION_FIELD_CELL_LINE,
+    AGGREGATION_FIELD_DONOR
+]
 
 AGGREGATION_MAX_BUCKETS = 100
 AGGREGATION_NO_VALUE = "No value"
@@ -59,11 +66,13 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     max_buckets = request_arg_bool(request, "max_buckets", AGGREGATION_MAX_BUCKETS)
     include_queries = request_arg_bool(request, "include_queries", request_arg_bool(request, "include_query", True))
     include_missing = request_arg_bool(request, "include_missing", request_arg_bool(request, "novalues"))
+    nomixtures = request_arg_bool(request, "nomixtures", request_arg_bool(request, "nomixture"))
     favor_donor = request_arg_bool(request, "favor_donor")
     nosort = request_arg_bool(request, "nosort")
     legacy = request_arg_bool(request, "legacy")
     debug = request_arg_bool(request, "debug")
     debug_query = request_arg_bool(request, "debug_query")
+    troubleshoot = request_arg_bool(request, "troubleshoot")
     raw = request_arg_bool(request, "raw")
 
     def create_base_query_arguments(request: pyramid.request.Request) -> dict:
@@ -120,7 +129,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
             return {}
 
         def create_field_aggregation(field: str) -> Optional[dict]:  # noqa
-            nonlocal date_property_name
+            nonlocal date_property_name, nomixtures
             if field == date_property_name:
                 return {
                     "date_histogram": {
@@ -132,6 +141,44 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                     }
                 }
             elif field == AGGREGATION_FIELD_CELL_LINE:
+                # This specializes the aggregation query to group first by the cell-line field,
+                # and then alternatively (if a cell-line field does not exist) by the donor field.
+                # For troubleshooting/testing/or-maybe-if-we-change-our-minds we can alternatively
+                # look first for the donor field and then secondarily for the cell-line field. 
+                aggregation_field_grouping = deepcopy(AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR)
+                if nomixtures:
+                    aggregation_field_grouping.remove(AGGREGATION_FIELD_CELL_MIXTURE)
+                if favor_donor:
+                    aggregation_field_grouping.remove(AGGREGATION_FIELD_DONOR)
+                    aggregation_field_grouping.insert(0, AGGREGATION_FIELD_DONOR)
+                # Note how we prefix the result with the aggregation field name;
+                # this is so later we can tell which grouping/field was matched;
+                # see fixup_names_values_for_normalized_results for this fixup.
+                script = ""
+                for aggregation_field_grouping_index in range(len(aggregation_field_grouping)):
+                    aggregation_field = aggregation_field_grouping[aggregation_field_grouping_index]
+                    if_or_else_if = "if" if aggregation_field_grouping_index == 0 else "else if"
+                    script += f"""
+                        {if_or_else_if} (doc['embedded.{aggregation_field}.raw'].size() > 0) {{
+                            return '{aggregation_field}:' + doc['embedded.{aggregation_field}.raw'].value;
+                        }}
+                    """
+                script += f"""
+                    else {{
+                        return 'unknown';
+                    }}
+                """
+                return {
+                    "terms": {
+                        "script": {
+                            "source": script,
+                            "lang": "painless"
+                        },
+                        "size": max_buckets
+                    }
+                }
+            elif False and (field == AGGREGATION_FIELD_CELL_LINE):
+                # OBSOLETE: See above.
                 # This specializes the aggregation query to group first by the cell-line field,
                 # and then alternatively (if a cell-line field does not exist) by the donor field.
                 # For troubleshooting/testing/or-maybe-if-we-change-our-minds we can alternatively
@@ -165,6 +212,13 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                 }
 
         def create_field_filter(field: str) -> Optional[dict]:  # noqa
+            if field == AGGREGATION_FIELD_CELL_LINE:
+                filter = {"bool": {"should": [], "minimum_should_match": 1}}
+                for aggregation_field in AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR:
+                    filter["bool"]["should"].append({"exists": { "field": f"embedded.{aggregation_field}.raw"}})
+                return filter
+
+        def obsolete_create_field_filter(field: str) -> Optional[dict]:  # noqa
             if field == AGGREGATION_FIELD_CELL_LINE:
                 return {
                     "bool": {
@@ -229,7 +283,19 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         return results
 
     def fixup_names_values_for_normalized_results(normalized_results: dict) -> None:
-        nonlocal include_queries
+        global AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR
+        if isinstance(normalized_results, dict):
+            if isinstance(value := normalized_results.get("value"), str):
+                if ((separator_index := value.find(":")) > 0) and (value_prefix := value[0:separator_index]):
+                    if value_prefix in AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR:
+                        if value := value[separator_index + 1:]:
+                            normalized_results["name"] = value_prefix
+                            normalized_results["value"] = value
+            if isinstance(items := normalized_results.get("items"), list):
+                for element in items:
+                    fixup_names_values_for_normalized_results(element)
+
+    def obsolete_fixup_names_values_for_normalized_results(normalized_results: dict) -> None:
         if isinstance(normalized_results, dict):
             if isinstance(value := normalized_results.get("value"), str):
                 if (colon := value.find(":")) > 0:
@@ -381,11 +447,76 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         add_queries_to_normalized_results(normalized_results, base_query_arguments)
         normalized_results["query"] = query
 
-    if nosort is not True:
+    if not nosort:
         # We can sort on the aggregations by level; outermost/left to innermost/right.
         # In our case the outermost is the date aggregation so sort taht by the key value,
         # e.g. 2014-12, descending; and the rest of the inner levels by the default
         # sorting which is by aggregation count descending and secondarily by the key value.
         sort_normalized_aggregation_results(normalized_results, ["-key", "default"])
 
+    if troubleshoot:
+        add_info_for_troubleshooting(normalized_results, request)
+        
+
     return normalized_results
+
+
+def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.request.Request) -> None:
+
+    from encoded.endpoint_utils import get_properties, parse_datetime_string
+
+    def get_files(files, property_name, property_value, map_property_value = None):
+        found = []
+        for file in files:
+            if properties := get_properties(file, property_name):
+                if callable(map_property_value):
+                    mapped_properties = [] 
+                    for value in properties:
+                        mapped_properties.append(map_property_value(value))
+                    properties = mapped_properties
+                if property_value in properties:
+                    found.append(file)
+        return found
+
+    def map_date_property_value(value):
+        if date_value := parse_datetime_string(value):
+            return f"{date_value.year}-{date_value.month:02}"
+        return value
+
+    def annotate_with_uuids(normalized_results: dict):
+        aggregation_fields = [
+            AGGREGATION_FIELD_RELEASE_DATE,
+            AGGREGATION_FIELD_CELL_MIXTURE,
+            AGGREGATION_FIELD_CELL_LINE,
+            AGGREGATION_FIELD_DONOR,
+            AGGREGATION_FIELD_FILE_DESCRIPTOR
+        ]
+        query = normalized_results.get("query")
+        files = request.embed(f"{query}&limit=1000", as_user="IMPORT")["@graph"]
+        for first_item in normalized_results["items"]:
+            first_property_name = first_item["name"]
+            first_property_value = first_item["value"]
+            for second_item in first_item["items"]:
+                second_property_name = second_item["name"]
+                second_property_value = second_item["value"]
+                for third_item in second_item["items"]:
+                    third_property_name = third_item["name"]
+                    third_property_value = third_item["value"]
+                    if first_files := get_files(files, first_property_name, first_property_value,
+                                                map_property_value=map_date_property_value):
+                        if second_files := get_files(first_files, second_property_name, second_property_value):
+                            if third_files := get_files(second_files, third_property_name, third_property_value):
+                                for file in third_files:
+                                    if isinstance(uuid := file.get("uuid"), str):
+                                        if not third_item.get("uuids"):
+                                            third_item["uuids"] = []
+                                        uuid_record = {"uuid": uuid}
+                                        for aggregation_field in aggregation_fields:
+                                            uuid_record[aggregation_field] = \
+                                                ", ".join(get_properties(file, aggregation_field))
+                                        third_item["uuids"].append(uuid_record)
+
+    try:
+        annotate_with_uuids(normalized_results)
+    except Exception:
+        pass
