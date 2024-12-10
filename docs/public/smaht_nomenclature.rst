@@ -749,7 +749,7 @@ Table 3B. Experimental Assay Codes
         </table>
     </div>
 
-Table 4. Genome version (A) and variant type (B) tables
+Table 5. Genome version (A) and variant type (B) tables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. raw:: html
@@ -782,8 +782,8 @@ Table 4. Genome version (A) and variant type (B) tables
             <caption style="caption-side:top;">(B)</caption>
             <thead>
                 <tr>
+                    <th>Variant Type or other Data Type</th>
                     <th>Code</th>
-                    <th>Category</th>
                 </tr>
             </thead>
             <tbody>
