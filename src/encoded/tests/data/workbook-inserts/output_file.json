@@ -30,7 +30,7 @@
             "smaht"
         ],
         "file_sets": [
-            "TEST_FILE-SET_LIVER"
+            "TEST_FILE-SET_LIVER-DNA"
         ],
         "file_size": 5000,
         "md5sum": "211e09ebf240c7256747d10e24cb99fd"
@@ -63,15 +63,16 @@
         "sequencing_center": "smaht",
         "file_size": 10000,
         "file_sets": [
-            "TEST_FILE-SET_LUNG-HOMOGENATE"
+            "TEST_FILE-SET_LUNG-HOMOGENATE-DNA"
         ],
         "software": [
             "TEST_SOFTWARE_BWA-MEM",
             "foo:software_vep"
         ],
         "reference_genome": "GRCh38",
+        "gene_annotation": "gencode45",
         "status": "released",
         "dataset": "colo829t",
-        "annotated_filename": "ST001-1D-XX-M45-B004-test-SMAFI8LOZ6MU-bwamem_1.2.3_GRCh38.aligned.sorted.phased.bam"
+        "annotated_filename": "ST001-1D-XX-M45-B004-test-SMAFI8LOZ6MU-bwamem_1.2.3_GRCh38_gencode45.aligned.sorted.phased.bam"
     }
 ]
