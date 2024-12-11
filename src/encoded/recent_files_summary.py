@@ -171,7 +171,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                 return {
                     "terms": {
                         "script": {
-                            "source": script,
+                            "source": normalize_spaces(script),
                             "lang": "painless"
                         },
                         "size": max_buckets
@@ -277,7 +277,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         return aggregation_query[date_property_name]
 
     def execute_aggregation_query(request: pyramid.request.Request, query: str, aggregation_query: dict) -> str:
-        query += "&limit=0"  # needed for aggregation query to not return the actual/individual item results.
+        query += "&from=0&limit=0"  # needed for aggregation query to not return the actual/individual item results.
         request = snovault_make_search_subreq(request, path=query, method="GET")
         results = snovault_search(None, request, custom_aggregations=aggregation_query)
         return results
