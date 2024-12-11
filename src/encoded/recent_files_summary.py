@@ -483,6 +483,13 @@ def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.requ
             return f"{date_value.year}-{date_value.month:02}"
         return value
 
+    def contains_uuid(uuid_records: List[dict], uuid: str, ignore_uuid_record_id: int) -> bool:
+        for uuid_record in uuid_records:
+            if id(uuid_record) != ignore_uuid_record_id:
+                if uuid_record.get("uuid") == uuid:
+                    return True
+        return False
+
     def annotate_with_uuids(normalized_results: dict):
         aggregation_fields = [
             AGGREGATION_FIELD_RELEASE_DATE,
@@ -493,6 +500,7 @@ def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.requ
             AGGREGATION_FIELD_DONOR,
             AGGREGATION_FIELD_FILE_DESCRIPTOR
         ]
+        uuid_records = []
         query = normalized_results.get("query")
         files = request.embed(f"{query}&limit=1000", as_user="IMPORT")["@graph"]
         for first_item in normalized_results["items"]:
@@ -517,6 +525,11 @@ def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.requ
                                             uuid_record[aggregation_field] = \
                                                 ", ".join(get_properties(file, aggregation_field))
                                         third_item["uuids"].append(uuid_record)
+                                        uuid_records.append(uuid_record)
+
+        for uuid_record in uuid_records:
+            if contains_uuid(uuid_records, uuid_record["uuid"], id(uuid_record)):
+                uuid_record["duplicative"] = True
 
     try:
         annotate_with_uuids(normalized_results)
