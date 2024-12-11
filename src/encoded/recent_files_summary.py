@@ -73,6 +73,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     debug = request_arg_bool(request, "debug")
     debug_query = request_arg_bool(request, "debug_query")
     troubleshoot = request_arg_bool(request, "troubleshoot")
+    troubleshoot_elasticsearch = request_arg_bool(request, "troubleshoot_elasticsearch")
     raw = request_arg_bool(request, "raw")
 
     def create_base_query_arguments(request: pyramid.request.Request) -> dict:
@@ -117,7 +118,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     def create_aggregation_query(aggregation_fields: List[str]) -> dict:
 
         global AGGREGATION_NO_VALUE
-        nonlocal date_property_name, max_buckets, include_missing, favor_donor
+        nonlocal date_property_name, max_buckets, include_missing, favor_donor, troubleshoot_elasticsearch
 
         aggregations = []
         if not isinstance(aggregation_fields, list):
@@ -238,6 +239,23 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
             create_field_aggregation=create_field_aggregation,
             create_field_filter=create_field_filter)
 
+        if troubleshoot_elasticsearch:
+            def add_debug_query_to_elasticsearch_aggregation_query(aggregation: dict) -> None:  # noqa
+                top_hits_debug = {"aggs": {"top_hits_debug": {"top_hits": {"_source": False,
+                                                                           "docvalue_fields": ["_id"], "size": 100 }}}}
+                def add_debug_query(aggs: dict) -> None:  # noqa
+                    if "aggs" in aggs:
+                        for key, sub_agg in aggs["aggs"].items():
+                            add_debug_query(sub_agg)
+                    else:
+                        aggs.update(top_hits_debug)
+                for agg in aggregation["aggs"].values():
+                    add_debug_query(agg)
+            try:
+                add_debug_query_to_elasticsearch_aggregation_query(aggregation_query[date_property_name])
+            except Exception:
+                pass
+
         return aggregation_query[date_property_name]
 
     def create_aggregation_query_legacy(aggregation_fields: List[str]) -> dict:
@@ -342,6 +360,21 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         aggregation_query = {
             aggregate_by_cell_line_property_name: create_aggregation_query(aggregate_by_cell_line)
         }
+        # print(aggregation_query)
+        # import json
+        # print(json.dumps(aggregation_query, indent=4))
+        # import pdb ; pdb.set_trace()  # noqa
+        # xxx = { "top_hits_debug": { "top_hits": { "_source": False, "docvalue_fields": ["_id"], "size": 10 } } }
+        # aggregation_query["aggregate_by_cell_line"]["aggs"]["file_sets.libraries.analytes.samples.sample_sources.cell_line.code"]["aggs"]["release_tracker_description"]["aggs"] = xxx
+#                               "aggs": {
+#                                   "top_hits_debug": {
+#                                       "top_hits": {
+#                                           "_source": false,
+#                                           "docvalue_fields": ["_id"],
+#                                           "size": 10
+#                                       }
+#                                   }
+#                               }
     else:
         aggregate_by_cell_line_property_name = "aggregate_by_cell_line"
         aggregate_by_cell_line = [
@@ -512,20 +545,33 @@ def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.requ
                 for third_item in second_item["items"]:
                     third_property_name = third_item["name"]
                     third_property_value = third_item["value"]
+                    if debug_elasticsearch_hits := third_item.get("debug_elasticsearch_hits"):
+                        if not third_item.get("debug"):
+                            third_item["debug"] = {}
+                        third_item["debug"]["elasticsearch_hits"] = debug_elasticsearch_hits
+                        third_item["debug"]["elasticsearch_hits"].sort()
+                        del third_item["debug_elasticsearch_hits"]
                     if first_files := get_files(files, first_property_name, first_property_value,
                                                 map_property_value=map_date_property_value):
                         if second_files := get_files(first_files, second_property_name, second_property_value):
                             if third_files := get_files(second_files, third_property_name, third_property_value):
                                 for file in third_files:
                                     if isinstance(uuid := file.get("uuid"), str):
-                                        if not third_item.get("uuids"):
-                                            third_item["uuids"] = []
+                                        if not third_item.get("debug"):
+                                            third_item["debug"] = {}
+                                        if not third_item["debug"].get("uuids"):
+                                            third_item["debug"]["uuids"] = []
                                         uuid_record = {"uuid": uuid}
                                         for aggregation_field in aggregation_fields:
                                             aggregation_values = ", ".join(get_properties(file, aggregation_field))
                                             uuid_record[aggregation_field] = aggregation_values or None
-                                        third_item["uuids"].append(uuid_record)
+                                        if third_item["debug"].get("elasticsearch_hits"):
+                                            uuid_record["elasticsearch_counted"] = \
+                                                uuid in third_item["debug"]["elasticsearch_hits"]
+                                        third_item["debug"]["uuids"].append(uuid_record)
                                         uuid_records.append(uuid_record)
+                                if third_item.get("debug", {}).get("uuids"):
+                                    third_item["debug"]["uuids"].sort(key=lambda item: item.get("uuid"))
 
         for uuid_record in uuid_records:
             if (count := count_uuid(uuid_records, uuid_record["uuid"])) > 1:

@@ -402,6 +402,18 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict, additional_pr
                 return doc_count
         return None
 
+    def get_aggregation_bucket_debug_hits(aggregation_bucket: dict) -> List[str]:
+        debug_hits = []
+        if isinstance(aggregation_bucket, dict):
+            if isinstance(doc_count := aggregation_bucket.get("doc_count"), int):
+                if (isinstance(top_hits_debug := aggregation_bucket.get("top_hits_debug"), dict) and
+                    isinstance(hits := top_hits_debug.get("hits"), dict) and
+                    isinstance(hits := hits.get("hits"), list)):  # noqa
+                    for hit in hits:
+                        if isinstance(hit, dict) and isinstance(hit := hit.get("_id"), str):
+                            debug_hits.append(hit)
+        return debug_hits
+
     def get_nested_aggregations(data: dict) -> List[dict]:
         results = []
         if isinstance(data, dict):
@@ -436,6 +448,7 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict, additional_pr
                 ((bucket_item_count := get_aggregation_bucket_doc_count(bucket)) is None)):  # noqa
                 continue
             item_count += bucket_item_count
+            debug_hits = get_aggregation_bucket_debug_hits(bucket)
             if nested_aggregations := get_nested_aggregations(bucket):
                 for nested_aggregation in nested_aggregations:
                     if normalized_aggregation := normalize_results(nested_aggregation, aggregation_key, bucket_value):
@@ -455,6 +468,8 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict, additional_pr
                     else:
                         if (remove_empty_items is False) or (bucket_item_count > 0):
                             group_item = {"name": aggregation_key, "value": bucket_value, "count": bucket_item_count}
+                            if debug_hits:
+                                group_item["debug_elasticsearch_hits"] = debug_hits
                             group_items.append(group_item)
 
         if (remove_empty_items is not False) and (not group_items):
