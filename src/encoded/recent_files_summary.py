@@ -483,19 +483,11 @@ def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.requ
             return f"{date_value.year}-{date_value.month:02}"
         return value
 
-    def obsolete_contains_uuid(uuid_records: List[dict], uuid: str, ignore_uuid_record_id: int) -> bool:
-        for uuid_record in uuid_records:
-            if id(uuid_record) != ignore_uuid_record_id:
-                if uuid_record.get("uuid") == uuid:
-                    return True
-        return False
-
-    def contains_uuid(uuid_records: List[dict], uuid: str, ignore_uuid_record_id: int) -> int:
+    def count_uuid(uuid_records: List[dict], uuid: str) -> int:
         count = 0
         for uuid_record in uuid_records:
-            if id(uuid_record) != ignore_uuid_record_id:
-                if uuid_record.get("uuid") == uuid:
-                    count += 1
+            if uuid_record.get("uuid") == uuid:
+                count += 1
         return count
 
     def annotate_with_uuids(normalized_results: dict):
@@ -530,13 +522,13 @@ def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.requ
                                             third_item["uuids"] = []
                                         uuid_record = {"uuid": uuid}
                                         for aggregation_field in aggregation_fields:
-                                            uuid_record[aggregation_field] = \
-                                                ", ".join(get_properties(file, aggregation_field))
+                                            aggregation_values = ", ".join(get_properties(file, aggregation_field))
+                                            uuid_record[aggregation_field] = aggregation_values or None
                                         third_item["uuids"].append(uuid_record)
                                         uuid_records.append(uuid_record)
 
         for uuid_record in uuid_records:
-            if (count := contains_uuid(uuid_records, uuid_record["uuid"], id(uuid_record))) > 0:
+            if (count := count_uuid(uuid_records, uuid_record["uuid"])) > 1:
                 uuid_record["duplicative"] = count
 
     try:
