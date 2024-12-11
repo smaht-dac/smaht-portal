@@ -62,7 +62,7 @@ export class Legend extends React.PureComponent {
     render(){
         const { title, items } = this.props;
         return (
-            <div className="workflow-legend-container overflow-hidden mt-1">
+            <div className="workflow-legend-container overflow-hidden mt-1 ps-1">
                 <div className="inner">
                     { title?
                         <div>

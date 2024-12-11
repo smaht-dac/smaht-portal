@@ -12,6 +12,7 @@ import { CollapsibleItemViewButtonToolbar } from './../CollapsibleItemViewButton
 import { checkIfIndirectOrReferenceNodesExist, commonGraphPropsFromProps } from '../../MetaWorkflowRunView';
 import { WorkflowDetailPane } from './WorkflowDetailPane';
 import { WorkflowNodeElement } from './WorkflowNodeElement';
+import { Legend } from './Legend';
 
 export class WorkflowGraphSection extends React.PureComponent {
 
@@ -20,6 +21,7 @@ export class WorkflowGraphSection extends React.PureComponent {
         this.commonGraphProps = this.commonGraphProps.bind(this);
         this.parseAnalysisSteps = this.parseAnalysisSteps.bind(this);
         this.onToggleShowDetailsInPopup = _.throttle(this.onToggleShowDetailsInPopup.bind(this), 1000);
+        this.onChangeShowChartType      = _.throttle(this.onChangeShowChartType.bind(this), 1000, { trailing : false });
         this.onToggleShowParameters     = _.throttle(this.onToggleShowParameters.bind(this), 1000);
         this.onToggleReferenceFiles     = _.throttle(this.onToggleReferenceFiles.bind(this), 1000);
         this.onToggleIndirectFiles      = _.throttle(this.onToggleIndirectFiles.bind(this), 1000);
@@ -29,10 +31,12 @@ export class WorkflowGraphSection extends React.PureComponent {
 
         this.memoized = {
             parseAnalysisSteps : memoize(parseAnalysisSteps),
+            parseBasicIOAnalysisSteps: memoize(parseBasicIOAnalysisSteps),
             checkIfIndirectOrReferenceNodesExist : memoize(checkIfIndirectOrReferenceNodesExist)
         };
 
         this.state = {
+            'showChart': analysisStepsSet(props.context) ? 'detail' : 'basic',
             'showDetailsInPopup': true,
             'showParameters' : false,
             'showReferenceFiles' : false,
@@ -43,9 +47,13 @@ export class WorkflowGraphSection extends React.PureComponent {
 
 
     parseAnalysisSteps(steps){
-        const { showReferenceFiles, showParameters, showIndirectFiles } = this.state;
+        const { showReferenceFiles, showParameters, showIndirectFiles, showChart } = this.state;
         const parsingOptions = { showReferenceFiles, showParameters, "showIndirectFiles": true };
-        return this.memoized.parseAnalysisSteps(steps, parsingOptions);
+        return (showChart === 'basic' ?
+            this.memoized.parseBasicIOAnalysisSteps(steps, {}, parsingOptions)
+            :
+            this.memoized.parseAnalysisSteps(steps, parsingOptions)
+        );
     }
 
     commonGraphProps(){
@@ -69,9 +77,17 @@ export class WorkflowGraphSection extends React.PureComponent {
             ...commonGraphProps,
             ...graphData,
             rowSpacingType,
+            legendItems,
             renderDetailPane: this.renderDetailPane,
             renderNodeElement: this.renderNodeElement
         };
+    }
+
+    onChangeShowChartType(eventKey, evt){
+        this.setState(function ({ showChart }) {
+            if (eventKey === showChart) return null;
+            return { 'showChart': eventKey };
+        });
     }
 
     onToggleShowDetailsInPopup(){
@@ -117,16 +133,20 @@ export class WorkflowGraphSection extends React.PureComponent {
     }
 
     render(){
-        const { rowSpacingType, showParameters, showReferenceFiles, showIndirectFiles, showDetailsInPopup } = this.state;
+        const { rowSpacingType, showParameters, showReferenceFiles, showIndirectFiles, showDetailsInPopup, showChart } = this.state;
         const { context, mounted, width, steps = [] } = this.props;
         const { anyIndirectPathIONodes, anyReferenceFileNodes } = this.memoized.checkIfIndirectOrReferenceNodesExist(context.steps || steps);
+        const commonGraphProps = this.commonGraphProps();
 
         let body = null;
         if (!Array.isArray(steps) || !mounted) {
             body = null;
         } else {
             body = (
-                <Graph { ...this.commonGraphProps() } />
+                <React.Fragment>
+                    <Graph {...commonGraphProps} />
+                    <Legend items={commonGraphProps.legendItems} />
+                </React.Fragment>
             );
         }
 
@@ -136,7 +156,7 @@ export class WorkflowGraphSection extends React.PureComponent {
                     <span>Graph</span>
                     <WorkflowGraphSectionControls
                         {..._.pick(this.props, 'context', 'href', 'windowWidth')}
-                        showChartType="detail"
+                        showChartType={showChart}
                         rowSpacingType={rowSpacingType}
                         // Parameters are available but not visualized because of high number of them
                         // In future, need to adjust ReactWorkflowViz parsing code to re-use paramater nodes
@@ -146,6 +166,7 @@ export class WorkflowGraphSection extends React.PureComponent {
                         showReferenceFiles={showReferenceFiles}
                         // `showIndirectFiles=false` doesn't currently work in parsing for MWFRs, needs research.
                         // showIndirectFiles={showIndirectFiles}
+                        onChangeShowChartType={this.onChangeShowChartType}
                         onRowSpacingTypeSelect={this.onChangeRowSpacingType}
                         onToggleShowParameters={this.onToggleShowParameters}
                         onToggleReferenceFiles={this.onToggleReferenceFiles}
@@ -165,9 +186,9 @@ export class WorkflowGraphSection extends React.PureComponent {
 
 export const WorkflowGraphSectionControls = React.memo(function WorkflowGraphSectionControls(props){
     const {
-        showReferenceFiles, showParameters, showIndirectFiles,
-        onToggleReferenceFiles, onToggleShowParameters, onToggleIndirectFiles,
-        windowWidth,
+        showChartType, showReferenceFiles, showParameters, showIndirectFiles,
+        onChangeShowChartType, onToggleReferenceFiles, onToggleShowParameters, onToggleIndirectFiles,
+        windowWidth, context,
         rowSpacingType, onRowSpacingTypeSelect,
         includeAllRunsInSteps, toggleAllRuns, isLoadingGraphSteps,
         showDetailsInPopup, onToggleShowDetailsInPopup
@@ -188,10 +209,18 @@ export const WorkflowGraphSectionControls = React.memo(function WorkflowGraphSec
                 <IndirectFilesCheckbox checked={showIndirectFiles} onChange={onToggleIndirectFiles} />
                 : null }
             {/* <IndirectFilesCheckbox checked={showIndirectFiles} onChange={onParsingOptChange} /> */}
+            <ChartTypeDropdown context={context} showChartType={showChartType} onSelect={onChangeShowChartType} />
             <RowSpacingTypeSelect rowSpacingType={rowSpacingType} onSelect={onRowSpacingTypeSelect} />
         </CollapsibleItemViewButtonToolbar>
     );
 });
+
+function analysisStepsSet(context){
+    // if (!context) return false;
+    // if (!Array.isArray(context.steps)) return false;
+    // if (context.steps.length === 0) return false;
+    return true;
+}
 
 function RowSpacingTypeSelect(props){
     const { rowSpacingType, onSelect } = props;
@@ -220,6 +249,42 @@ function ReferenceFilesCheckbox({ checked, onChange, disabled }){
     );
 }
 
+/**
+ * Meant for Workflow and WorkflowRunView only, not Provenance Graphs.
+ * Required props below --
+ *
+ * @prop {Object} context - JSON of Item containing workflow steps.
+ * @prop {string} showChartType - Type of chart shown. 'Detail' and 'basic' supported.
+ * @prop {function} onChangeShowChartType - Callback accepting key of new chart type.
+ */
+function ChartTypeDropdown({ context, showChartType, onSelect }){
+    const titleMap = {
+        'detail': 'Analysis Steps',
+        'basic': 'Basic Inputs & Outputs',
+        'cwl': 'CWL Graph'
+    };
+
+    const detail = analysisStepsSet(context) ? (
+        <DropdownItem eventKey="detail" active={showChartType === 'detail'}>
+            Analysis Steps
+        </DropdownItem>
+    ) : null;
+
+    const basic = (
+        <DropdownItem eventKey="basic" active={showChartType === 'basic'}>
+            Basic Inputs & Outputs
+        </DropdownItem>
+    );
+
+    return (
+        <DropdownButton id="detail-granularity-selector" key="chart-type"
+            className="for-state-showChart" variant="outline-dark"
+            onSelect={onSelect}
+            title={titleMap[showChartType]}>
+            { basic }{ detail }
+        </DropdownButton>
+    );
+}
 
 function IndirectFilesCheckbox({ checked, onChange, disabled }){
     if (typeof onChange !== 'function') return null;
@@ -231,7 +296,6 @@ function IndirectFilesCheckbox({ checked, onChange, disabled }){
         </Checkbox>
     );
 }
-
 
 function ShowAllRunsCheckbox({ checked, onChange, disabled }){
     if (typeof onChange !== 'function') return null;
