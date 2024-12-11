@@ -483,12 +483,20 @@ def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.requ
             return f"{date_value.year}-{date_value.month:02}"
         return value
 
-    def contains_uuid(uuid_records: List[dict], uuid: str, ignore_uuid_record_id: int) -> bool:
+    def obsolete_contains_uuid(uuid_records: List[dict], uuid: str, ignore_uuid_record_id: int) -> bool:
         for uuid_record in uuid_records:
             if id(uuid_record) != ignore_uuid_record_id:
                 if uuid_record.get("uuid") == uuid:
                     return True
         return False
+
+    def contains_uuid(uuid_records: List[dict], uuid: str, ignore_uuid_record_id: int) -> int:
+        count = 0
+        for uuid_record in uuid_records:
+            if id(uuid_record) != ignore_uuid_record_id:
+                if uuid_record.get("uuid") == uuid:
+                    count += 1
+        return count
 
     def annotate_with_uuids(normalized_results: dict):
         aggregation_fields = [
@@ -528,8 +536,8 @@ def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.requ
                                         uuid_records.append(uuid_record)
 
         for uuid_record in uuid_records:
-            if contains_uuid(uuid_records, uuid_record["uuid"], id(uuid_record)):
-                uuid_record["duplicative"] = True
+            if (count := contains_uuid(uuid_records, uuid_record["uuid"], id(uuid_record))) > 0:
+                uuid_record["duplicative"] = count
 
     try:
         annotate_with_uuids(normalized_results)
