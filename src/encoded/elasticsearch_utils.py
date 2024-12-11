@@ -142,6 +142,20 @@ def create_elasticsearch_aggregation_query(fields: List[str],
     return aggregation
 
 
+def add_debugging_to_elasticsearch_aggregation_query(aggregation_query: dict) -> None:  # noqa
+    top_hits_debug = {"aggs": {"top_hits_debug": {"top_hits": {"_source": False,
+                                                               "docvalue_fields": ["_id"], "size": 100 }}}}
+    def add_debug_query(aggs: dict) -> None:  # noqa
+        if "aggs" in aggs:
+            for _, agg in aggs["aggs"].items():
+                add_debug_query(agg)
+        else:
+            aggs.update(top_hits_debug)
+    if isinstance(aggregation_query, dict) and isinstance(aggs := aggregation_query.get("aggs"), dict):
+        for agg in aggs.values():
+            add_debug_query(agg)
+
+
 def prune_elasticsearch_aggregation_results(results: dict) -> None:
     """
     This removes any extra level(s) of aggregation (i.e. dummy_date_histogram) that may have been
@@ -405,7 +419,7 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict, additional_pr
     def get_aggregation_bucket_debug_hits(aggregation_bucket: dict) -> List[str]:
         debug_hits = []
         if isinstance(aggregation_bucket, dict):
-            if isinstance(doc_count := aggregation_bucket.get("doc_count"), int):
+            if isinstance(aggregation_bucket.get("doc_count"), int):
                 if (isinstance(top_hits_debug := aggregation_bucket.get("top_hits_debug"), dict) and
                     isinstance(hits := top_hits_debug.get("hits"), dict) and
                     isinstance(hits := hits.get("hits"), list)):  # noqa

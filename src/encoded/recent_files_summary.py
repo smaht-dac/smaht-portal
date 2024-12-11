@@ -2,11 +2,13 @@ import pyramid
 from copy import deepcopy
 from typing import List, Optional
 from dcicutils.misc_utils import normalize_spaces
+from encoded.elasticsearch_utils import add_debugging_to_elasticsearch_aggregation_query
 from encoded.elasticsearch_utils import create_elasticsearch_aggregation_query
 from encoded.elasticsearch_utils import merge_elasticsearch_aggregation_results
 from encoded.elasticsearch_utils import normalize_elasticsearch_aggregation_results
 from encoded.elasticsearch_utils import prune_elasticsearch_aggregation_results
 from encoded.elasticsearch_utils import sort_normalized_aggregation_results
+from encoded.elasticsearch_utils import AGGREGATION_MAX_BUCKETS, AGGREGATION_NO_VALUE
 from encoded.endpoint_utils import create_query_string, parse_date_range_related_arguments
 from encoded.endpoint_utils import request_arg, request_args, request_arg_bool, request_arg_int
 from snovault.search.search import search as snovault_search
@@ -29,9 +31,6 @@ AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR = [
     AGGREGATION_FIELD_CELL_LINE,
     AGGREGATION_FIELD_DONOR
 ]
-
-AGGREGATION_MAX_BUCKETS = 100
-AGGREGATION_NO_VALUE = "No value"
 
 BASE_SEARCH_QUERY = "/search/"
 
@@ -62,10 +61,13 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     released can be queried for using one or more status query arguments, e.g. status=uploaded. 
     """
 
+    global AGGREGATION_FIELD_RELEASE_DATE
+
     date_property_name = request_arg(request, "date_property_name", AGGREGATION_FIELD_RELEASE_DATE)
     max_buckets = request_arg_bool(request, "max_buckets", AGGREGATION_MAX_BUCKETS)
     include_queries = request_arg_bool(request, "include_queries", request_arg_bool(request, "include_query", True))
     include_missing = request_arg_bool(request, "include_missing", request_arg_bool(request, "novalues"))
+    nocells = request_arg_bool(request, "nocells", request_arg_bool(request, "nocell"))
     nomixtures = request_arg_bool(request, "nomixtures", request_arg_bool(request, "nomixture"))
     favor_donor = request_arg_bool(request, "favor_donor")
     nosort = request_arg_bool(request, "nosort")
@@ -75,6 +77,24 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     troubleshoot = request_arg_bool(request, "troubleshoot")
     troubleshoot_elasticsearch = request_arg_bool(request, "troubleshoot_elasticsearch")
     raw = request_arg_bool(request, "raw")
+    willrfix = request_arg_bool(request, "willrfix")
+
+    def get_aggregation_field_grouping_cell_or_donor():
+        # This specializes the aggregation query to group first by the cell-line field,
+        # and then alternatively (if a cell-line field does not exist) by the donor field.
+        # For troubleshooting/testing/or-maybe-if-we-change-our-minds we can alternatively
+        # look first for the donor field and then secondarily for the cell-line field. 
+        global AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR
+        nonlocal nocells, nomixtures, favor_donor
+        aggregation_field_grouping_cell_or_donor = deepcopy(AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR)
+        if nocells:
+            aggregation_field_grouping_cell_or_donor.remove(AGGREGATION_FIELD_CELL_LINE)
+        if nomixtures:
+            aggregation_field_grouping_cell_or_donor.remove(AGGREGATION_FIELD_CELL_MIXTURE)
+        if favor_donor:
+            aggregation_field_grouping_cell_or_donor.remove(AGGREGATION_FIELD_DONOR)
+            aggregation_field_grouping_cell_or_donor.insert(0, AGGREGATION_FIELD_DONOR)
+        return aggregation_field_grouping_cell_or_donor
 
     def create_base_query_arguments(request: pyramid.request.Request) -> dict:
 
@@ -117,7 +137,6 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
     def create_aggregation_query(aggregation_fields: List[str]) -> dict:
 
-        global AGGREGATION_NO_VALUE
         nonlocal date_property_name, max_buckets, include_missing, favor_donor, troubleshoot_elasticsearch
 
         aggregations = []
@@ -130,7 +149,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
             return {}
 
         def create_field_aggregation(field: str) -> Optional[dict]:  # noqa
-            nonlocal date_property_name, nomixtures
+            nonlocal aggregation_field_grouping_cell_or_donor, date_property_name, nocells, nomixtures
             if field == date_property_name:
                 return {
                     "date_histogram": {
@@ -142,22 +161,12 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                     }
                 }
             elif field == AGGREGATION_FIELD_CELL_LINE:
-                # This specializes the aggregation query to group first by the cell-line field,
-                # and then alternatively (if a cell-line field does not exist) by the donor field.
-                # For troubleshooting/testing/or-maybe-if-we-change-our-minds we can alternatively
-                # look first for the donor field and then secondarily for the cell-line field. 
-                aggregation_field_grouping = deepcopy(AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR)
-                if nomixtures:
-                    aggregation_field_grouping.remove(AGGREGATION_FIELD_CELL_MIXTURE)
-                if favor_donor:
-                    aggregation_field_grouping.remove(AGGREGATION_FIELD_DONOR)
-                    aggregation_field_grouping.insert(0, AGGREGATION_FIELD_DONOR)
                 # Note how we prefix the result with the aggregation field name;
                 # this is so later we can tell which grouping/field was matched;
                 # see fixup_names_values_for_normalized_results for this fixup.
                 script = ""
-                for aggregation_field_grouping_index in range(len(aggregation_field_grouping)):
-                    aggregation_field = aggregation_field_grouping[aggregation_field_grouping_index]
+                for aggregation_field_grouping_index in range(len(aggregation_field_grouping_cell_or_donor)):
+                    aggregation_field = aggregation_field_grouping_cell_or_donor[aggregation_field_grouping_index]
                     if_or_else_if = "if" if aggregation_field_grouping_index == 0 else "else if"
                     script += f"""
                         {if_or_else_if} (doc['embedded.{aggregation_field}.raw'].size() > 0) {{
@@ -178,58 +187,14 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                         "size": max_buckets
                     }
                 }
-            elif False and (field == AGGREGATION_FIELD_CELL_LINE):
-                # OBSOLETE: See above.
-                # This specializes the aggregation query to group first by the cell-line field,
-                # and then alternatively (if a cell-line field does not exist) by the donor field.
-                # For troubleshooting/testing/or-maybe-if-we-change-our-minds we can alternatively
-                # look first for the donor field and then secondarily for the cell-line field. 
-                if favor_donor:
-                    field_one = AGGREGATION_FIELD_DONOR
-                    field_two = AGGREGATION_FIELD_CELL_LINE
-                else:
-                    field_one = AGGREGATION_FIELD_CELL_LINE
-                    field_two = AGGREGATION_FIELD_DONOR
-                # Note how we prefix the result with the aggregation field name;
-                # this is so later we can tell which grouping/field was matched;
-                # see fixup_names_values_for_normalized_results for this fixup.
-                script = normalize_spaces(f"""
-                    if (doc['embedded.{field_one}.raw'].size() > 0) {{
-                        return '{field_one}:' + doc['embedded.{field_one}.raw'].value;
-                    }} else if (doc['embedded.{field_two}.raw'].size() > 0) {{
-                        return '{field_two}:' + doc['embedded.{field_two}.raw'].value;
-                    }} else {{
-                        return 'unknown';
-                    }}
-                """)
-                return {
-                    "terms": {
-                        "script": {
-                            "source": script,
-                            "lang": "painless"
-                        },
-                        "size": max_buckets
-                    }
-                }
 
         def create_field_filter(field: str) -> Optional[dict]:  # noqa
+            nonlocal aggregation_field_grouping_cell_or_donor
             if field == AGGREGATION_FIELD_CELL_LINE:
                 filter = {"bool": {"should": [], "minimum_should_match": 1}}
-                for aggregation_field in AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR:
+                for aggregation_field in aggregation_field_grouping_cell_or_donor:
                     filter["bool"]["should"].append({"exists": { "field": f"embedded.{aggregation_field}.raw"}})
                 return filter
-
-        def obsolete_create_field_filter(field: str) -> Optional[dict]:  # noqa
-            if field == AGGREGATION_FIELD_CELL_LINE:
-                return {
-                    "bool": {
-                        "should": [
-                            {"exists": { "field": f"embedded.{AGGREGATION_FIELD_CELL_LINE}.raw"}},
-                            {"exists": { "field": f"embedded.{AGGREGATION_FIELD_DONOR}.raw"}}
-                        ],
-                        "minimum_should_match": 1
-                    }
-                }
 
         aggregation_query = create_elasticsearch_aggregation_query(
             aggregations,
@@ -240,27 +205,12 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
             create_field_filter=create_field_filter)
 
         if troubleshoot_elasticsearch:
-            def add_debug_query_to_elasticsearch_aggregation_query(aggregation: dict) -> None:  # noqa
-                top_hits_debug = {"aggs": {"top_hits_debug": {"top_hits": {"_source": False,
-                                                                           "docvalue_fields": ["_id"], "size": 100 }}}}
-                def add_debug_query(aggs: dict) -> None:  # noqa
-                    if "aggs" in aggs:
-                        for key, sub_agg in aggs["aggs"].items():
-                            add_debug_query(sub_agg)
-                    else:
-                        aggs.update(top_hits_debug)
-                for agg in aggregation["aggs"].values():
-                    add_debug_query(agg)
-            try:
-                add_debug_query_to_elasticsearch_aggregation_query(aggregation_query[date_property_name])
-            except Exception:
-                pass
+            add_debugging_to_elasticsearch_aggregation_query(aggregation_query[date_property_name])
 
         return aggregation_query[date_property_name]
 
     def create_aggregation_query_legacy(aggregation_fields: List[str]) -> dict:
 
-        global AGGREGATION_NO_VALUE
         nonlocal date_property_name, max_buckets, include_missing
 
         aggregations = []
@@ -301,11 +251,11 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         return results
 
     def fixup_names_values_for_normalized_results(normalized_results: dict) -> None:
-        global AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR
+        nonlocal aggregation_field_grouping_cell_or_donor
         if isinstance(normalized_results, dict):
             if isinstance(value := normalized_results.get("value"), str):
                 if ((separator_index := value.find(":")) > 0) and (value_prefix := value[0:separator_index]):
-                    if value_prefix in AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR:
+                    if value_prefix in aggregation_field_grouping_cell_or_donor:
                         if value := value[separator_index + 1:]:
                             normalized_results["name"] = value_prefix
                             normalized_results["value"] = value
@@ -313,23 +263,9 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                 for element in items:
                     fixup_names_values_for_normalized_results(element)
 
-    def obsolete_fixup_names_values_for_normalized_results(normalized_results: dict) -> None:
-        if isinstance(normalized_results, dict):
-            if isinstance(value := normalized_results.get("value"), str):
-                if (colon := value.find(":")) > 0:
-                    if (prefix := value[0:colon]) == AGGREGATION_FIELD_CELL_LINE:
-                        normalized_results["name"] = AGGREGATION_FIELD_CELL_LINE
-                        normalized_results["value"] = value[colon + 1:]
-                    elif prefix == AGGREGATION_FIELD_DONOR:
-                        normalized_results["name"] = AGGREGATION_FIELD_DONOR
-                        normalized_results["value"] = value[colon + 1:]
-            if isinstance(items := normalized_results.get("items"), list):
-                for element in items:
-                    fixup_names_values_for_normalized_results(element)
-
     def add_queries_to_normalized_results(normalized_results: dict, base_query_arguments: dict) -> None:
         global BASE_SEARCH_QUERY
-        nonlocal date_property_name
+        nonlocal date_property_name, willrfix
         if isinstance(normalized_results, dict):
             if name := normalized_results.get("name"):
                 if value := normalized_results.get("value"):
@@ -342,11 +278,18 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                                                     f"{name}.from": from_date, f"{name}.to": thru_date}
                     else:
                         base_query_arguments = {**base_query_arguments, name: value}
+                if willrfix:
+                    if name == AGGREGATION_FIELD_CELL_LINE:
+                        base_query_arguments[AGGREGATION_FIELD_CELL_MIXTURE] = AGGREGATION_NO_VALUE
+                    elif name == AGGREGATION_FIELD_DONOR:
+                        base_query_arguments[AGGREGATION_FIELD_CELL_MIXTURE] = AGGREGATION_NO_VALUE
+                        base_query_arguments[AGGREGATION_FIELD_CELL_LINE] = AGGREGATION_NO_VALUE
                 normalized_results["query"] = create_query_string(base_query_arguments, BASE_SEARCH_QUERY)
             if isinstance(items := normalized_results.get("items"), list):
                 for element in items:
                     add_queries_to_normalized_results(element, base_query_arguments)
 
+    aggregation_field_grouping_cell_or_donor = get_aggregation_field_grouping_cell_or_donor()
     base_query_arguments = create_base_query_arguments(request)
     query = create_query(request, base_query_arguments)
 
@@ -360,21 +303,6 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         aggregation_query = {
             aggregate_by_cell_line_property_name: create_aggregation_query(aggregate_by_cell_line)
         }
-        # print(aggregation_query)
-        # import json
-        # print(json.dumps(aggregation_query, indent=4))
-        # import pdb ; pdb.set_trace()  # noqa
-        # xxx = { "top_hits_debug": { "top_hits": { "_source": False, "docvalue_fields": ["_id"], "size": 10 } } }
-        # aggregation_query["aggregate_by_cell_line"]["aggs"]["file_sets.libraries.analytes.samples.sample_sources.cell_line.code"]["aggs"]["release_tracker_description"]["aggs"] = xxx
-#                               "aggs": {
-#                                   "top_hits_debug": {
-#                                       "top_hits": {
-#                                           "_source": false,
-#                                           "docvalue_fields": ["_id"],
-#                                           "size": 10
-#                                       }
-#                                   }
-#                               }
     else:
         aggregate_by_cell_line_property_name = "aggregate_by_cell_line"
         aggregate_by_cell_line = [
@@ -417,9 +345,9 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     prune_elasticsearch_aggregation_results(raw_results)
 
     if not legacy:
-        merged_results = raw_results.get(aggregate_by_cell_line_property_name)
+        aggregation_results = raw_results.get(aggregate_by_cell_line_property_name)
     else:
-        merged_results = merge_elasticsearch_aggregation_results(raw_results.get(aggregate_by_cell_line_property_name),
+        aggregation_results = merge_elasticsearch_aggregation_results(raw_results.get(aggregate_by_cell_line_property_name),
                                                                  raw_results.get(aggregate_by_donor_property_name))
 
     # Note that the doc_count values returned by ElasticSearch DO actually seem to be for UNIQUE items,
@@ -466,13 +394,13 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                 "query": query,
                 "aggregation_query": aggregation_query,
                 "raw_results": raw_results,
-                "merged_results": deepcopy(merged_results)
+                "aggregation_results": deepcopy(aggregation_results)
             }
         }
     else:
         additional_properties = None
 
-    normalized_results = normalize_elasticsearch_aggregation_results(merged_results,
+    normalized_results = normalize_elasticsearch_aggregation_results(aggregation_results,
                                                                      additional_properties=additional_properties)
     if not legacy:
         fixup_names_values_for_normalized_results(normalized_results)
