@@ -69,6 +69,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     include_missing = request_arg_bool(request, "include_missing", request_arg_bool(request, "novalues"))
     nocells = request_arg_bool(request, "nocells", request_arg_bool(request, "nocell"))
     nomixtures = request_arg_bool(request, "nomixtures", request_arg_bool(request, "nomixture"))
+    nodonors = request_arg_bool(request, "nodonors", request_arg_bool(request, "nodonor"))
     favor_donor = request_arg_bool(request, "favor_donor")
     nosort = request_arg_bool(request, "nosort")
     legacy = request_arg_bool(request, "legacy")
@@ -85,12 +86,14 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         # For troubleshooting/testing/or-maybe-if-we-change-our-minds we can alternatively
         # look first for the donor field and then secondarily for the cell-line field. 
         global AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR
-        nonlocal nocells, nomixtures, favor_donor
+        nonlocal nocells, nomixtures, nodonors, favor_donor
         aggregation_field_grouping_cell_or_donor = deepcopy(AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR)
         if nocells:
             aggregation_field_grouping_cell_or_donor.remove(AGGREGATION_FIELD_CELL_LINE)
         if nomixtures:
             aggregation_field_grouping_cell_or_donor.remove(AGGREGATION_FIELD_CELL_MIXTURE)
+        if nodonors:
+            aggregation_field_grouping_cell_or_donor.remove(AGGREGATION_FIELD_DONOR)
         if favor_donor:
             aggregation_field_grouping_cell_or_donor.remove(AGGREGATION_FIELD_DONOR)
             aggregation_field_grouping_cell_or_donor.insert(0, AGGREGATION_FIELD_DONOR)
@@ -149,7 +152,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
             return {}
 
         def create_field_aggregation(field: str) -> Optional[dict]:  # noqa
-            nonlocal aggregation_field_grouping_cell_or_donor, date_property_name, nocells, nomixtures
+            nonlocal aggregation_field_grouping_cell_or_donor, date_property_name
             if field == date_property_name:
                 return {
                     "date_histogram": {
@@ -401,7 +404,8 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         additional_properties = None
 
     normalized_results = normalize_elasticsearch_aggregation_results(aggregation_results,
-                                                                     additional_properties=additional_properties)
+                                                                     additional_properties=additional_properties,
+                                                                     remove_empty_items=not include_missing)
     if not legacy:
         fixup_names_values_for_normalized_results(normalized_results)
     if include_queries:
