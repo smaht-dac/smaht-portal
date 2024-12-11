@@ -487,8 +487,8 @@ def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.requ
                                     if isinstance(uuid := file.get("uuid"), str):
                                         if not third_item.get("debug"):
                                             third_item["debug"] = {}
-                                        if not third_item["debug"].get("uuids"):
-                                            third_item["debug"]["uuids"] = []
+                                        if not third_item["debug"].get("portal_hits"):
+                                            third_item["debug"]["portal_hits"] = []
                                         uuid_record = {"uuid": uuid}
                                         for aggregation_field in aggregation_fields:
                                             aggregation_values = ", ".join(get_properties(file, aggregation_field))
@@ -496,10 +496,10 @@ def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.requ
                                         if third_item["debug"].get("elasticsearch_hits"):
                                             uuid_record["elasticsearch_counted"] = \
                                                 uuid in third_item["debug"]["elasticsearch_hits"]
-                                        third_item["debug"]["uuids"].append(uuid_record)
+                                        third_item["debug"]["portal_hits"].append(uuid_record)
                                         uuid_records.append(uuid_record)
-                                if third_item.get("debug", {}).get("uuids"):
-                                    third_item["debug"]["uuids"].sort(key=lambda item: item.get("uuid"))
+                                if third_item.get("debug", {}).get("portal_hits"):
+                                    third_item["debug"]["portal_hits"].sort(key=lambda item: item.get("uuid"))
 
         for uuid_record in uuid_records:
             if (count := count_uuid(uuid_records, uuid_record["uuid"])) > 1:
