@@ -7,13 +7,13 @@ smaht-portal
 Change Log
 ----------
 
-<<<<<<< HEAD
-0.116.0
+0.118.0
 =======
 `PR 300 SN Sequencing validation <https://github.com/smaht-dac/smaht-portal/pull/300>`
 
 * Remove Basecalling item and transfer properties to Software item
-=======
+
+
 0.118.0
 =======
 `PR 303 SN Rnaseq filenames <https://github.com/smaht-dac/smaht-portal/pull/303>`
@@ -50,7 +50,6 @@ Change Log
 `PR 302 SN fix sequencing validator <https://github.com/smaht-dac/smaht-portal/pull/302>`
 
 * Adds `on_target_rate` to sequencing validator in FileSet for DNA libraries
->>>>>>> main
 
 
 0.115.0
