@@ -62,19 +62,7 @@ export const BenchmarkingUINav = (props) => {
     });
 
     return (
-        <div className="benchmarking-nav">
-            <button
-                type="button"
-                className="toggle-button"
-                aria-label="Toggle Side Navigation"
-                aria-expanded={props.showNav}
-                onClick={() => props.setShowNav(!props.showNav)}>
-                {props.showNav ? (
-                    <i className="icon icon-arrow-left fas"></i>
-                ) : (
-                    <i className="icon icon-arrow-right fas"></i>
-                )}
-            </button>
+        <>
             <div className="benchmarking-nav-section">
                 <div className="benchmarking-nav-section-title text-small text-600">
                     Cell Line Data
@@ -104,7 +92,7 @@ export const BenchmarkingUINav = (props) => {
                     />
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
@@ -231,7 +219,9 @@ const BenchmarkingUINavLink = (props) => {
             className={`sidenav-link ${isActive ? 'active' : ''} ${
                 isTop ? 'top' : ''
             } ${cls}`}>
-            <a className="link-underline-hover" {...{ href }}>{title}</a>
+            <a className="link-underline-hover" {...{ href }}>
+                {title}
+            </a>
         </li>
     );
 };

@@ -39,6 +39,7 @@ class MetadataArgs(NamedTuple):
     accessions: List[str]
     sort_param: str
     type_param: str
+    status: str
     include_extra_files: bool
     download_file_name: str
     header: Tuple[List[str], List[str], List[str]]
@@ -250,6 +251,7 @@ def handle_metadata_arguments(context, request):
             accessions = post_params.get('accessions', [])
             type_param = post_params.get('type')
             sort_param = post_params.get('sort')
+            status = post_params.get('status')
             cli = post_params.get('cli', False)
             download_file_name = post_params.get('download_file_name')
             include_extra_files = post_params.get('include_extra_files', False)
@@ -260,6 +262,7 @@ def handle_metadata_arguments(context, request):
         accessions = json.loads(post_params.get('accessions', ''))
         type_param = post_params.get('type')
         sort_param = post_params.get('sort')
+        status = post_params.get('status')
         cli = post_params.get('cli', False)
         download_file_name = post_params.get('download_file_name')
         include_extra_files = post_params.get('include_extra_files', False)
@@ -277,7 +280,7 @@ def handle_metadata_arguments(context, request):
     # Note that this will become more complex as we add additional header types
     header = generate_file_download_header(download_file_name, cli=cli)
     tsv_mapping = TSV_MAPPING[FILE]
-    return MetadataArgs(accessions, sort_param, type_param, include_extra_files, download_file_name, header,
+    return MetadataArgs(accessions, sort_param, type_param, status, include_extra_files, download_file_name, header,
                         tsv_mapping, cli)
 
 
@@ -298,6 +301,8 @@ def peek_metadata(context, request):
         search_param['accession'] = args.accessions
     if args.sort_param:
         search_param['sort'] = args.sort_param
+    if args.status:
+        search_param['status'] = args.status
     search_param['limit'] = [1]  # we don't care about results, just the facets
     search_param['additional_facet'] = ['file_size']
     if args.include_extra_files:
@@ -332,6 +337,8 @@ def metadata_tsv(context, request):
         search_param['accession'] = args.accessions
     if args.sort_param:
         search_param['sort'] = args.sort_param
+    if args.status:
+        search_param['status'] = args.status
     cli = args.cli
     search_iter = get_iterable_search_results(request, param_lists=search_param)
 
