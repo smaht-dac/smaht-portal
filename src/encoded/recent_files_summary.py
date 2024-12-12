@@ -529,12 +529,15 @@ def print_normalized_aggregation_results(normalized_results: dict,
                                          uuids: bool = False,
                                          uuid_details: bool = False,
                                          nobold: bool = False,
+                                         checks: bool = True,
                                          verbose: bool = False) -> None:
 
     """
     For deveopment/troubleshooting only ...
     """
     from hms_utils.terminal_utils import terminal_color
+
+    global AGGREGATION_FIELD_CELL_MIXTURE, AGGREGATION_FIELD_CELL_LINE, AGGREGATION_FIELD_DONOR
 
     def get_aggregation_fields(data: dict) -> List[str]:
         if not isinstance(aggregation_fields := data.get("debug", {}).get("aggregation_query_fields"), list):
@@ -550,7 +553,7 @@ def print_normalized_aggregation_results(normalized_results: dict,
         nonlocal aggregation_fields, red, green_bold, gray, bold
         nonlocal chars_check, chars_dot, chars_rarrow_hollow, chars_xmark
 
-        def get_hits(data: dict) -> List[str]:
+        def get_portal_hits(data: dict) -> List[dict]:
             hits = []
             if isinstance(portal_hits := data.get("debug", {}).get("portal_hits"), list):
                 for portal_hit in portal_hits:
@@ -635,11 +638,20 @@ def print_normalized_aggregation_results(normalized_results: dict,
         elif not (isinstance(grouping := title, str) and grouping):
             grouping = "RESULTS"
         grouping = f"{chars_diamond} {grouping}"
-        hits = get_hits(data) if (uuids is True) else []
+        hits = get_portal_hits(data) if (uuids is True) else []
         if isinstance(count := data.get("count"), int):
             note = ""
             if len(hits) > count:
                 note = red(f" {chars_rarrow_hollow} MORE ACTUAL RESULTS: {len(hits) - count}")
+            elif checks is True:
+                if isinstance(items := data.get("items"), list):
+                    subcount = 0
+                    for item in items:
+                        if isinstance(subcount_item := item.get("count"), int):
+                            subcount += subcount_item
+                    note = f" {chars_check}" if subcount == count else f" {chars_xmark}"
+                else:
+                    note = f" {chars_check}"
             print(f"{spaces}{grouping}: {count}{note}")
         for hit in hits:
             if isinstance(hit, dict) and isinstance(uuid := hit.get("uuid"), str) and uuid:
@@ -652,9 +664,10 @@ def print_normalized_aggregation_results(normalized_results: dict,
                     color = green_bold
                 if uuid_details is True:
                     prefix =  f"{spaces}    "
+                    # Show property values for troubleshooting (as this whole thing is);
+                    # see add_info_for_troubleshooting.annotate_with_uuids.
                     print_hit_property_values(hit, AGGREGATION_FIELD_CELL_MIXTURE, "sample-sources", prefix=prefix, color=color)
                     print_hit_property_values(hit, AGGREGATION_FIELD_CELL_LINE, "cell-lines", prefix=prefix, color=color)
-                    # Some extra for troubleshooting (as this whole thing is).
                     print_hit_property_values(hit, "file_sets.libraries.analytes.samples.sample_sources.display_title",
                                               "sample-sources-title", prefix=prefix, color=color)
                     print_hit_property_values(hit, AGGREGATION_FIELD_DONOR, "donors", prefix=prefix, color=color)
