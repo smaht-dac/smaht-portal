@@ -28,6 +28,7 @@
             "smaht:ReferenceFile-collapsed-genes-gencode_v45"
         ],
         "code": "gencode",
+        "title": "GENCODEv45",
         "version": "v45",
         "data_type": [
             "Gene Model"
