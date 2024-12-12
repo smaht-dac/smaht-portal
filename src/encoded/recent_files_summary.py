@@ -531,7 +531,6 @@ def print_normalized_aggregation_results(data: dict,
     """
     For deveopment/troubleshooting only ...
     """
-    from hms_utils.chars import chars
     from hms_utils.terminal_utils import terminal_color
 
     def get_aggregation_fields(data: dict) -> List[str]:
@@ -546,6 +545,7 @@ def print_normalized_aggregation_results(data: dict,
 
         nonlocal title, uuids, uuid_details, nobold, verbose
         nonlocal aggregation_fields, red, green, gray, bold
+        nonlocal chars_check, chars_dot, chars_rarrow_hollow, chars_xmark
 
         def get_hits(data: dict) -> List[str]:
             hits = []
@@ -570,11 +570,11 @@ def print_normalized_aggregation_results(data: dict,
     
         def print_hit_property_values(hit: dict, property_name: str,
                                       label: Optional[str] = None, prefix: Optional[str] = None) -> None:
-            nonlocal aggregation_fields
+            nonlocal aggregation_fields, chars_dot_hollow
             if property_values := format_hit_property_values(hit, property_name):
                 if not label:
                     label = property_name
-                property_description = f"{prefix or ""}{chars.dot_hollow} {label}: {property_values}"
+                property_description = f"{prefix or ""}{chars_dot_hollow} {label}: {property_values}"
                 if property_name not in aggregation_fields:
                     property_description = gray(property_description)
                 print(property_description)
@@ -588,23 +588,23 @@ def print_normalized_aggregation_results(data: dict,
         if isinstance(grouping_value := data.get("value"), str) and grouping_value:
             grouping = bold(grouping_value)
             if (verbose is True) and isinstance(grouping_name, str) and grouping_name:
-                grouping = f"{grouping_name} {chars.dot} {grouping}"
+                grouping = f"{grouping_name} {chars_dot} {grouping}"
         elif not (isinstance(grouping := title, str) and grouping):
             grouping = "RESULTS"
-        grouping = f"{chars.diamond} {grouping}"
+        grouping = f"{chars_diamond} {grouping}"
         hits = get_hits(data) if (uuids is True) else []
         if isinstance(count := data.get("count"), int):
             note = ""
             if len(hits) > count:
-                note = red(f" {chars.rarrow_hollow} MORE ACTUAL RESULTS: {len(hits) - count}")
+                note = red(f" {chars_rarrow_hollow} MORE ACTUAL RESULTS: {len(hits) - count}")
             print(f"{spaces}{grouping}: {count}{note}")
         for hit in hits:
             if isinstance(hit, dict) and isinstance(uuid := hit.get("uuid"), str) and uuid:
                 note = ""
                 if hit.get("elasticsearch_counted") is False:
-                    print(red(f"{spaces}  {chars.dot} {uuid} {chars.xmark} UNCOUNTED"))
+                    print(red(f"{spaces}  {chars_dot} {uuid} {chars_xmark} UNCOUNTED"))
                 else:
-                    print(f"{spaces}  {chars.dot} {uuid} {chars.check}")
+                    print(f"{spaces}  {chars_dot} {uuid} {chars_check}")
                 if uuid_details is True:
                     print_hit_property_values(hit, AGGREGATION_FIELD_CELL_MIXTURE, "sample-sources", f"{spaces}    ")
                     print_hit_property_values(hit, AGGREGATION_FIELD_CELL_LINE, "cell-lines", f"{spaces}    ")
@@ -621,5 +621,11 @@ def print_normalized_aggregation_results(data: dict,
     green = lambda text: terminal_color(text, "green")  # noqa
     gray = lambda text: terminal_color(text, "grey")  # noqa
     bold = (lambda text: terminal_color(text, bold=True)) if (nobold is not True) else (lambda text: text)
+    chars_check = "✓"
+    chars_xmark = "✗"
+    chars_dot = "•"
+    chars_dot_hollow = "◦"
+    chars_diamond = "❖"
+    chars_rarrow_hollow = "▷"
 
     print_results(data)
