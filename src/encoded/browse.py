@@ -24,7 +24,9 @@ DEFAULT_BROWSE_FACETS = ["file_size"]
 
 DEFAULT_BROWSE_PARAM_LISTS = {
     "type": [DEFAULT_BROWSE_TYPE],
-    "additional_facet": DEFAULT_BROWSE_FACETS
+    "sample_summary.studies": ["Production", "Benchmarking"], # TODO: remove benchmarking when done with local testing
+    "status": ["released"],
+    # "additional_facet": DEFAULT_BROWSE_FACETS
 }
 
 @view_config(route_name='browse', request_method='GET', permission='search')
