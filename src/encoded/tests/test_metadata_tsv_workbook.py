@@ -118,12 +118,12 @@ class TestMetadataTSVWorkbook:
         TestMetadataTSVHelper.check_key_and_length(header1, 'Metadata TSV Download')
         TestMetadataTSVHelper.check_key_and_length(header2, 'Suggested command to download: ')
         TestMetadataTSVHelper.check_key_and_length(header3, 'FileDownloadURL')
-        assert len(parsed[3:]) == 19  # there are 19 entries in the workbook right now, including extra files
+        assert len(parsed[3:]) == 20  # there are 20 entries in the workbook right now, including extra files
         # test for various types
         TestMetadataTSVHelper.check_type_length(es_testapp, 'AlignedReads', 3)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'UnalignedReads', 5)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'VariantCalls', 2)
-        TestMetadataTSVHelper.check_type_length(es_testapp, 'ReferenceFile', 1)
+        TestMetadataTSVHelper.check_type_length(es_testapp, 'ReferenceFile', 2)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'OutputFile', 2)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'SupplementaryFile', 2)
 
