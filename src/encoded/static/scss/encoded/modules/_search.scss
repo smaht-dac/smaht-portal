@@ -789,6 +789,7 @@ div.browse-links {
 	display: flex;
 	flex-direction: column;
 	gap: 20px;
+	div.browse-link,
 	a.browse-link {
 		display: flex;
 		align-items: center;
@@ -796,6 +797,10 @@ div.browse-links {
 		font-size: 1.125rem;
 		color: #343741;
 		font-weight: 600;
+		>div>span {
+			font-size: 0.7rem;
+			font-weight: 400;
+		}
 	}
 }
 

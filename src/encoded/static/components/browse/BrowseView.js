@@ -166,9 +166,9 @@ export class BrowseViewBody extends React.PureComponent {
                         </h3>
                         <div className="browse-links">
                             <BrowseLink type="File" />
-                            <BrowseLink type="Donor" />
-                            <BrowseLink type="Tissue" />
-                            <BrowseLink type="Assay" />
+                            <BrowseLink type="Donor" disabled />
+                            <BrowseLink type="Tissue" disabled />
+                            <BrowseLink type="Assay" disabled />
                         </div>
                     </div>
                     <div>
@@ -568,7 +568,21 @@ const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
 });
 
 const BrowseLink = React.memo(function BrowseLink(props) {
-    const { type } = props;
+    const { type, disabled } = props;
+
+    if (disabled) {
+        return (
+            <div className="browse-link">
+                <BrowseLinkIcon {...{ type }} />
+                <div className="d-flex flex-column">
+                    {type}
+                    <span className="text-muted fst-italic text-xs">
+                        Coming Soon
+                    </span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <a href={`/browse/?type=${type}`} className="browse-link">
@@ -579,7 +593,7 @@ const BrowseLink = React.memo(function BrowseLink(props) {
 });
 
 const BrowseLinkIcon = React.memo(function BrowseLinkIcon(props) {
-    const { type, cls } = props;
+    const { type, cls = '' } = props;
 
     let iconCls;
     let dataAttribute;
