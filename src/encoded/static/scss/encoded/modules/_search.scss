@@ -251,6 +251,12 @@ $facetlist-excluding: #450000;
 
 
 /** Btn vertical alignment (probably temporary) **/
+.above-facets-table-row {
+	min-height: 41px; // needs to match $search-results-result-row-height in search-view-table.scss in SPC
+	padding-bottom: 5px; // needs to match $search-results-above-results-row-bottom-padding in search-view-table.scss in SPC
+    margin-top: 7px;
+}
+
 .above-results-table-row {
 	margin-top: 5px;
 
