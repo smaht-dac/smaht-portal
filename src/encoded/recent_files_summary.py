@@ -22,7 +22,7 @@ QUERY_RECENT_MONTHS = 3
 QUERY_INCLUDE_CURRENT_MONTH = True
 
 AGGREGATION_FIELD_RELEASE_DATE = "file_status_tracking.released"
-# FYI: Note there there is also file_sets.libraries.analytes.samples.sample_sources.display_title
+# FYI FWIW: There is also file_sets.libraries.analytes.samples.sample_sources.display_title;
 # and that sometimes file_sets.libraries.analytes.samples.sample_sources.code does not exist.
 AGGREGATION_FIELD_CELL_MIXTURE = "file_sets.libraries.analytes.samples.sample_sources.code"
 AGGREGATION_FIELD_CELL_LINE = "file_sets.libraries.analytes.samples.sample_sources.cell_line.code"
@@ -465,8 +465,10 @@ def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.requ
             AGGREGATION_FIELD_RELEASE_DATE,
             AGGREGATION_FIELD_CELL_MIXTURE,
             AGGREGATION_FIELD_CELL_LINE,
+            # Some extra properties for troublehooting (as this whole thing is).
             "file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.display_title",
             "file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.cell_line.code",
+            "file_sets.libraries.analytes.samples.sample_sources.display_title",
             AGGREGATION_FIELD_DONOR,
             AGGREGATION_FIELD_FILE_DESCRIPTOR
         ]
@@ -545,7 +547,7 @@ def print_normalized_aggregation_results(data: dict,
                       indent: int = 0) -> None:
 
         nonlocal title, uuids, uuid_details, nobold, verbose
-        nonlocal aggregation_fields, red, green, gray, bold
+        nonlocal aggregation_fields, red, green_bold, gray, bold
         nonlocal chars_check, chars_dot, chars_rarrow_hollow, chars_xmark
 
         def get_hits(data: dict) -> List[str]:
@@ -563,7 +565,7 @@ def print_normalized_aggregation_results(data: dict,
                     property_values = []
                     for property_value in property_value.split(","):
                         if (property_value := property_value.strip()) == parent_grouping_value:
-                            property_values.append(green(property_value))
+                            property_values.append(green_bold(property_value))
                         else:
                             property_values.append(property_value)
                     property_value = ", ".join(property_values)
@@ -607,9 +609,13 @@ def print_normalized_aggregation_results(data: dict,
                 else:
                     print(f"{spaces}  {chars_dot} {uuid} {chars_check}")
                 if uuid_details is True:
-                    print_hit_property_values(hit, AGGREGATION_FIELD_CELL_MIXTURE, "sample-sources", f"{spaces}    ")
-                    print_hit_property_values(hit, AGGREGATION_FIELD_CELL_LINE, "cell-lines", f"{spaces}    ")
-                    print_hit_property_values(hit, AGGREGATION_FIELD_DONOR, "donors", f"{spaces}    ")
+                    prefix =  f"{spaces}    "
+                    print_hit_property_values(hit, AGGREGATION_FIELD_CELL_MIXTURE, "sample-sources", prefix)
+                    print_hit_property_values(hit, AGGREGATION_FIELD_CELL_LINE, "cell-lines", prefix)
+                    # Some extra for troubleshooting (as this whole thing is).
+                    print_hit_property_values(hit, "file_sets.libraries.analytes.samples.sample_sources.display_title",
+                                              "sample-sources-title", prefix)
+                    print_hit_property_values(hit, AGGREGATION_FIELD_DONOR, "donors", prefix)
         if isinstance(items := data.get("items"), list):
             for element in items:
                 print_results(element,
@@ -620,6 +626,7 @@ def print_normalized_aggregation_results(data: dict,
     aggregation_fields = get_aggregation_fields(data)
     red = lambda text: terminal_color(text, "red")  # noqa
     green = lambda text: terminal_color(text, "green")  # noqa
+    green_bold = lambda text: terminal_color(text, "green", bold=True)  # noqa
     gray = lambda text: terminal_color(text, "grey")  # noqa
     bold = (lambda text: terminal_color(text, bold=True)) if (nobold is not True) else (lambda text: text)
     chars_check = "✓"
