@@ -10,6 +10,7 @@ from encoded.elasticsearch_utils import prune_elasticsearch_aggregation_results
 from encoded.elasticsearch_utils import sort_normalized_aggregation_results
 from encoded.elasticsearch_utils import AGGREGATION_MAX_BUCKETS, AGGREGATION_NO_VALUE
 from encoded.endpoint_utils import create_query_string, parse_date_range_related_arguments
+from encoded.endpoint_utils import get_properties, parse_datetime_string
 from encoded.endpoint_utils import request_arg, request_args, request_arg_bool, request_arg_int
 from snovault.search.search import search as snovault_search
 from snovault.search.search_utils import make_search_subreq as snovault_make_search_subreq
@@ -67,7 +68,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     max_buckets = request_arg_bool(request, "max_buckets", AGGREGATION_MAX_BUCKETS)
     include_queries = request_arg_bool(request, "include_queries", request_arg_bool(request, "include_query", True))
     include_missing = request_arg_bool(request, "include_missing", request_arg_bool(request, "novalues"))
-    nocells = request_arg_bool(request, "nocells", request_arg_bool(request, "nocell"))
+    nocells = request_arg_bool(request, "nocells", request_arg_bool(request, "nocell", True)) # N.B. default True
     nomixtures = request_arg_bool(request, "nomixtures", request_arg_bool(request, "nomixture"))
     nodonors = request_arg_bool(request, "nodonors", request_arg_bool(request, "nodonor"))
     favor_donor = request_arg_bool(request, "favor_donor")
@@ -433,8 +434,6 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
 def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.request.Request) -> None:
 
-    from encoded.endpoint_utils import get_properties, parse_datetime_string
-
     def get_files(files, property_name, property_value, map_property_value = None):
         found = []
         for file in files:
@@ -532,7 +531,6 @@ def print_normalized_aggregation_results(data: dict,
     """
     For deveopment/troubleshooting only ...
     """
-
     from hms_utils.chars import chars
     from hms_utils.terminal_utils import terminal_color
 
