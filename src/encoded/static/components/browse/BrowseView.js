@@ -30,6 +30,7 @@ import {
 import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { BrowseViewControllerWithSelections } from '../static-pages/components/TableControllerWithSelections';
+import { AboveTableControlsBase } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/above-table-controls/AboveTableControlsBase';
 
 export default function BrowseView(props) {
     const {
@@ -243,7 +244,20 @@ const BrowseViewSearchTable = (props) => {
 
     const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
     const aboveTableComponent = (
-        <BrowseViewAboveTableComponent {...passProps} />
+        <AboveSmahtSearchViewTableControls
+            topLeftChildren={
+                <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
+            }>
+            <SelectedItemsDownloadButton
+                id="download_tsv_multiselect"
+                disabled={selectedItems.size === 0}
+                className="btn btn-primary btn-sm me-05 align-items-center"
+                {...{ selectedItems, session }}
+                analyticsAddItemsToCart>
+                <i className="icon icon-download fas me-03" />
+                Download {selectedItems.size} Selected Files
+            </SelectedItemsDownloadButton>
+        </AboveSmahtSearchViewTableControls>
     );
 
     /**
@@ -608,7 +622,7 @@ const BrowseViewAboveFacetListComponent = (props) => {
     const totalResultCount = context?.total ?? 0;
 
     return (
-        <div className="d-flex w-100 mb-05 mt-1">
+        <div className="above-facets-table-row d-flex w-100">
             <div className="col-auto ms-0 ps-0">
                 <span className="text-400" id="results-count">
                     {totalResultCount}
@@ -619,58 +633,31 @@ const BrowseViewAboveFacetListComponent = (props) => {
     );
 };
 
-export const BrowseViewAboveTableComponent = React.memo(
-    function BrowseViewAboveTableComponent(props) {
+const AboveSmahtSearchViewTableControls = React.memo(
+    function AboveSmahtSearchViewTableControls(props) {
         const {
-            href,
-            searchHref,
-            context,
-            onFilter,
-            schemas,
-            isContextLoading = false, // Present only on embedded search views,
-            navigate,
+            topLeftChildren,
+            children,
+            isFullscreen,
+            windowWidth,
+            toggleFullScreen,
             sortBy,
-            sortColumns,
-            hiddenColumns,
-            addHiddenColumn,
-            removeHiddenColumn,
-            columnDefinitions,
-            session,
-            selectedItems, // From SelectedItemsController
-            onSelectItem, // From SelectedItemsController
-            onResetSelectedItems, // From SelectedItemsController
         } = props;
-        const { filters: ctxFilters = null, total: totalResultCount = 0 } =
-            context || {};
-
-        const selectedFileProps = {
-            selectedItems, // From SelectedItemsController
-            onSelectItem, // From SelectedItemsController
-            onResetSelectedItems, // From SelectedItemsController
-        };
-
-        console.log('props HELLO', props);
 
         return (
-            <div className="d-flex w-100 mb-05">
-                <div className="ms-auto col-auto">
-                    <SelectAllFilesButton
-                        {...selectedFileProps}
-                        {...{ context }}
-                    />
-                </div>
-                <div className="ms-auto col-auto me-0 pe-0">
-                    <SelectedItemsDownloadButton
-                        id="download_tsv_multiselect"
-                        disabled={selectedItems.size === 0}
-                        className="btn btn-primary btn-sm me-05 align-items-center"
-                        {...{ selectedItems, session }}
-                        analyticsAddItemsToCart>
-                        <i className="icon icon-download fas me-03" />
-                        Download {selectedItems.size} Selected Files
-                    </SelectedItemsDownloadButton>
-                </div>
-            </div>
+            <AboveTableControlsBase
+                useSmahtLayout
+                {...{
+                    children,
+                    topLeftChildren,
+                    isFullscreen,
+                    windowWidth,
+                    toggleFullScreen,
+                    sortBy,
+                }}
+                panelMap={AboveTableControlsBase.getCustomColumnSelectorPanelMapDefinition(
+                    props
+                )}></AboveTableControlsBase>
         );
     }
 );
