@@ -42,7 +42,7 @@
         ],
         "submitted_id": "TEST_SEQUENCING_PACBIO_30X-30H-DNA",
         "read_type": "Single-end",
-        "target_coverage": 30,
+        "on_target_rate": 0.8,
         "target_read_length": 20000,
         "movie_length": 30,
         "sequencer": "pacbio_revio_hifi"
