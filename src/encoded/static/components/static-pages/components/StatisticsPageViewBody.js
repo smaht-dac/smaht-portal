@@ -1223,7 +1223,7 @@ export function UsageStatsView(props){
     const { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep } = UsageStatsView.getYScaleDefaults(scale['yAxisScale']);
 
     const isSticky = true; //!_.any(_.values(tableToggle), (v)=> v === true);
-    const commonTableProps = { windowWidth, href, session, schemas, transposed, dateRoundInterval, cumulativeSum, chartToggles, hideEmptyColumns };
+    const commonTableProps = { windowWidth, href, session, schemas, transposed, dateRoundInterval, cumulativeSum, hideEmptyColumns, chartToggles };
     
     let topFileSetLimit = 0;
     if (countBy.top_file_set_downloads && countBy.top_file_set_downloads.indexOf('top_files_') === 0) {
@@ -1258,7 +1258,7 @@ export function UsageStatsView(props){
                     <div className="d-md-flex">
                         <span className="text-500 me-1">Y-Axis scale:</span>
                         <div className='mb-15'>
-                            <DropdownButton
+                            <DropdownButton size="sm"
                                 title={(scale && scale['yAxisScale'] && UsageStatsView.yScaleLabels[scale['yAxisScale']]) || '-'}
                                 onSelect={(e) => setScale({ yAxisScale: e, yAxisPower: e === 'Pow' ? 0.5 : 50 })}>
                                 <DropdownItem eventKey={'Linear'} key={'scale-linear'} >{UsageStatsView.yScaleLabels['Linear']}</DropdownItem>
@@ -1797,7 +1797,7 @@ const ChartContainerTitle = function ({ titleMap, countBy, chartKey }) {
 const StatisticsDataTable = React.memo((props) => {
     const {
         data, valueLabel = null, session, schemas, containerId = '', 
-        href, dateRoundInterval, transposed = false, windowWidth, cumulativeSum,
+        href, dateRoundInterval, transposed = false, windowWidth, cumulativeSum, hideEmptyColumns,
         limit = 0, excludeNones = false // limit and excludeNones are evaluated for only transposed data
      } = props;
     const [columns, setColumns] = useState({});
@@ -1875,11 +1875,17 @@ const StatisticsDataTable = React.memo((props) => {
             }
         };
 
+        // Function to check a vertical slice (column)
+        const hasNonZeroInColumn = (arrays, columnIndex) => _.any(arrays, (row) => row.children[columnIndex].count !== 0);
+
         // create columns and columnExtensionMap
         const [item] = processData;
         if (item && Array.isArray(item.children) && item.children.length > 0) {
             const keys = transposed ? _.pluck(item.children, 'date') : _.pluck(item.children, 'term');
-            cols = _.reduce(keys, (memo, dataKey) => {
+            cols = _.reduce(keys, (memo, dataKey, index) => {
+                if (hideEmptyColumns && !hasNonZeroInColumn(processData, index)) {
+                    return memo;
+                }
                 memo[dataKey] = {
                     title: dataKey,
                     type: 'integer',
@@ -1918,8 +1924,7 @@ const StatisticsDataTable = React.memo((props) => {
                 display_title: transposed ? (d.termDisplayAs || d.term) : d.date,
                 '@id': transposed ? d.term : d.date,
                 ..._.reduce(d.children, (memo2, c) => {
-                    const colKey = transposed ? c.date : c.term;
-                    memo2[colKey] = c.count;
+                    memo2[transposed ? c.date : c.term] = c.count;
                     return memo2;
                 }, {}),
                 '@type': ['Item'],
@@ -1928,7 +1933,7 @@ const StatisticsDataTable = React.memo((props) => {
             };
         });
         setGraph(result);
-    }, [data, transposed]);
+    }, [data, transposed, hideEmptyColumns]);
 
     const passProps = {
         isFullscreen: false,
