@@ -664,6 +664,23 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 	}
 
 	.search-results-outer-container {
+		.search-results-container .search-result-row
+		{
+			&.is-draggable > .columns.result-table-row[draggable="true"]:hover {
+				box-shadow: none;
+			}
+
+			&.detail-closed >.columns.result-table-row>.search-result-column-block {
+				
+				&[data-first-visible-column=true][data-field="@type"] {
+					padding-left: 16px !important;
+				}
+
+				>.inner>.toggle-detail-button-container {
+					display: none;
+				}
+			}
+		}
 
 		.search-headers-row {
 			position: sticky;
