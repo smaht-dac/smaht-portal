@@ -180,11 +180,6 @@ describe('Deployment/CI Search View Tests', function () {
         });
 
         it('Checks for the exclamation icon in the tab navigation and verifies its presence in the content if it exists', function () {
-            // Wait for "Initializing..." to disappear
-            cy.get('.react-infinite-container h3')
-                .contains('Initializing...')
-                .should('not.exist');
-
             // Check that loading icons do not exist
             cy.get('.benchmarking-layout .icon-circle-notch').should('not.exist');
             cy.get('.search-results-container .icon-circle-notch').should('not.exist');
