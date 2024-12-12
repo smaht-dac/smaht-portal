@@ -1726,55 +1726,95 @@ File Overview Styles
 						}
 					}
 
-					.vcf-comparator-table-container {
-						table {
-							width: 100%;
+					.vcf-analysis-overview {
+						padding: 15px 10px 20px 10px;
+						.data-group {
+							display: flex;
+							flex-wrap: wrap;
+    						gap: 30px;
 
-							thead {
-								border-bottom: 1px solid #9BA5B7;
-								background-color: #F1F9FF;
-								height: 45px;
-							}
-							
-							th {
-								background-color: transparent;
-								border-right: 1px solid #BACAD7;
-								text-align: left;
-								padding-left: 16px;
+							.datum {
+								display: flex;
+								flex-direction: column;
+								gap: 10px;
 
-								span {
+								&-title {
+									color: $carbon-gray;
 									font-size: 0.875rem;
-									color: #343741;
-									font-weight: 600;
+									font-weight: 500;
+
+									span {
+										font-weight: 400;
+									}
+								}
+								&-value {
+									color: $body-color;
+									font-weight: 400;
+
+									&.text-gray {
+										color: #D8D8D8;
+									}
 								}
 
-								&:last-of-type {
-									border-right: none;
+								&.comparator {
+									width: 400px;
+									.datum-value {
+										margin-top: 6px;
+									}
 								}
 
-								&.name {
-									min-width: 300px;
-								}
-								&.version {
-									min-width: 150px;
-								}
-								&.notes {
-									width: 100%;
-									min-width: 300px;
-								}
-							}
-
-							tbody {
-								tr {
-									border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-									td {
-										padding-left: 16px;
-										text-align: left;
-										border-right: 1px solid rgba(0, 0, 0, 0.05);
-										height: 30px;
+								&.software {
+									.datum-value {
+										display: flex;
+										flex-wrap: wrap;
+										gap: 10px;
+										
+										.software-group {
+											display: flex;
+											align-items: center;
+											border: 1px solid $mercury;
+											border-radius: 12px;
+											background-color: $gray-10;
+											color: $body-color;
+											width: min-content;
+											
+											.title {
+												padding: 4px 12px;
+												font-weight: 400;
+											}
+											.version {
+												height: 100%;
+												background-color: $mercury;
+												font-weight: 500;
+												padding: 4px 12px;
+												border-radius: 0px 11px 11px 0px;
+											}
+										}
 									}
 								}
 							}
+							
+
+							&.notes {
+								flex-direction: column;
+								margin-top: 25px;
+								padding-top: 25px;
+								border-top: 1px solid $mercury;
+								
+								.datum {
+									width: 90%;
+									&-value {
+										p {
+											margin: 0px 0px 5px 0px;
+											
+											b {
+												font-weight: 500;
+											}
+										}
+									}
+								}
+							}
+
 						}
 					}
 				}

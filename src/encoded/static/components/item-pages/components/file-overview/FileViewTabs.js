@@ -8,7 +8,7 @@ import {
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import { FileOverviewTableController } from './FileOverviewTable';
-import { VcfComparatorTable } from './VcfComparatorTable';
+import { VcfAnalysisOverview } from './VcfAnalysisOverview';
 import ReactTooltip from 'react-tooltip';
 
 /**
@@ -71,8 +71,12 @@ const AssociatedFilesTab = (props) => {
 
 // DotRouterTab content for displaying Analysis information for the current file.
 const AnalysisInformationTab = (props) => {
-    if (props?.context?.file_summary?.file_format === 'vcf') {
-        return <VcfComparatorTable {...props} />;
+    console.log('AnalysisInformationTab props', props);
+    if (
+        props?.context?.file_summary?.file_format === 'vcf' ||
+        props?.context?.file_summary?.file_format === 'vcf_gz'
+    ) {
+        return <VcfAnalysisOverview {...props} />;
     } else {
         // no results
         return (
