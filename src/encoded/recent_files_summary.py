@@ -1,6 +1,6 @@
 import pyramid
 from copy import deepcopy
-from typing import List, Optional
+from typing import Callable, List, Optional, Tuple
 from dcicutils.misc_utils import normalize_spaces
 from encoded.elasticsearch_utils import add_debugging_to_elasticsearch_aggregation_query
 from encoded.elasticsearch_utils import create_elasticsearch_aggregation_query
@@ -522,7 +522,7 @@ def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.requ
         pass
 
 
-def print_normalized_aggregation_results(data: dict,
+def print_normalized_aggregation_results(normalized_results: dict,
                                          title: Optional[str] = None,
                                          parent_grouping_name: Optional[str] = None,
                                          parent_grouping_value: Optional[str] = None,
@@ -558,23 +558,63 @@ def print_normalized_aggregation_results(data: dict,
                         hits.append(portal_hit)
             return hits
 
-        def format_hit_property_values(hit: dict, property_name: str) -> Optional[str]:
-            nonlocal parent_grouping_name, parent_grouping_value
+        def format_hit_property_values(hit: dict, property_name: str,
+                                       color: Optional[Callable] = None) -> Optional[str]:
+            nonlocal parent_grouping_name, parent_grouping_value, green, green_bold
             if property_value := hit.get(property_name):
                 if property_name == parent_grouping_name:
                     property_values = []
                     for property_value in property_value.split(","):
                         if (property_value := property_value.strip()) == parent_grouping_value:
-                            property_values.append(green_bold(property_value))
+                            property_value = color(property_value) if callable(color) else green_bold(property_value)
+                            property_values.append(property_value)
                         else:
                             property_values.append(property_value)
                     property_value = ", ".join(property_values)
+                elif hit.get("elasticsearch_counted") is False:
+                    counted_grouping_name, counted_grouping_value = find_where_aggregated_and_counted(hit.get("uuid"))
+                    if (counted_grouping_name == property_name) and (counted_grouping_value == property_value):
+                        property_value = green(property_value)
             return property_value
 
+        def find_where_aggregated_and_counted(uuid: str) -> Tuple[str, str]:
+
+            nonlocal normalized_results
+
+            def find_where(data: dict, uuid: str,
+                           parent_grouping_name: Optional[str] = None,
+                           parent_grouping_value: Optional[str] = None) -> List[Tuple[str, str]]:
+                found_uuid_grouping_names_and_values = set()
+                if isinstance(data, dict):
+                    grouping_name = data.get("name")
+                    grouping_value = data.get("value")
+                    if isinstance(items := data.get("items"), list):
+                        for item in items:
+                            if found := find_where(item, uuid,
+                                                   parent_grouping_name=grouping_name,
+                                                   parent_grouping_value=grouping_value):
+                                found_uuid_grouping_names_and_values.update(found)
+                    elif isinstance(hits := data.get("debug", {}).get("portal_hits"), list):
+                        for hit in hits:
+                            if hit.get("uuid") == uuid:
+                                if hit.get("elasticsearch_counted") is True:
+                                    found_uuid_grouping_names_and_values.add((parent_grouping_name, parent_grouping_value))
+                return found_uuid_grouping_names_and_values
+
+            if found_uuid_grouping_names_and_values := list(find_where(normalized_results, uuid)):
+                if len(found_uuid_grouping_names_and_values) > 0:
+                    if len(found_uuid_grouping_names_and_values) > 1:
+                        # Something is wrong; should only be at most one iterm with elasticsearch_counted set to True.
+                        pass
+                    return found_uuid_grouping_names_and_values[0]
+            return None, None
+
         def print_hit_property_values(hit: dict, property_name: str,
-                                      label: Optional[str] = None, prefix: Optional[str] = None) -> None:
+                                      label: Optional[str] = None,
+                                      prefix: Optional[str] = None,
+                                      color: Optional[Callable] = None) -> None:
             nonlocal verbose, aggregation_fields, chars_dot_hollow, verbose
-            if property_values := format_hit_property_values(hit, property_name):
+            if property_values := format_hit_property_values(hit, property_name, color=color):
                 if (verbose is True) or (not label):
                     label = property_name
                 property_description = f"{prefix or ''}{chars_dot_hollow} {label}: {property_values}"
@@ -606,16 +646,18 @@ def print_normalized_aggregation_results(data: dict,
                 note = ""
                 if hit.get("elasticsearch_counted") is False:
                     print(red(f"{spaces}  {chars_dot} {uuid} {chars_xmark} UNCOUNTED"))
+                    color = red_bold
                 else:
                     print(f"{spaces}  {chars_dot} {uuid} {chars_check}")
+                    color = green_bold
                 if uuid_details is True:
                     prefix =  f"{spaces}    "
-                    print_hit_property_values(hit, AGGREGATION_FIELD_CELL_MIXTURE, "sample-sources", prefix)
-                    print_hit_property_values(hit, AGGREGATION_FIELD_CELL_LINE, "cell-lines", prefix)
+                    print_hit_property_values(hit, AGGREGATION_FIELD_CELL_MIXTURE, "sample-sources", prefix=prefix, color=color)
+                    print_hit_property_values(hit, AGGREGATION_FIELD_CELL_LINE, "cell-lines", prefix=prefix, color=color)
                     # Some extra for troubleshooting (as this whole thing is).
                     print_hit_property_values(hit, "file_sets.libraries.analytes.samples.sample_sources.display_title",
-                                              "sample-sources-title", prefix)
-                    print_hit_property_values(hit, AGGREGATION_FIELD_DONOR, "donors", prefix)
+                                              "sample-sources-title", prefix=prefix, color=color)
+                    print_hit_property_values(hit, AGGREGATION_FIELD_DONOR, "donors", prefix=prefix, color=color)
         if isinstance(items := data.get("items"), list):
             for element in items:
                 print_results(element,
@@ -623,8 +665,9 @@ def print_normalized_aggregation_results(data: dict,
                               parent_grouping_value=grouping_value,
                               indent=indent + 2)
 
-    aggregation_fields = get_aggregation_fields(data)
+    aggregation_fields = get_aggregation_fields(normalized_results)
     red = lambda text: terminal_color(text, "red")  # noqa
+    red_bold = lambda text: terminal_color(text, "red", bold=True)  # noqa
     green = lambda text: terminal_color(text, "green")  # noqa
     green_bold = lambda text: terminal_color(text, "green", bold=True)  # noqa
     gray = lambda text: terminal_color(text, "grey")  # noqa
@@ -636,4 +679,4 @@ def print_normalized_aggregation_results(data: dict,
     chars_diamond = "❖"
     chars_rarrow_hollow = "▷"
 
-    print_results(data)
+    print_results(normalized_results)
