@@ -506,26 +506,44 @@ export class ColorScaleProvider extends React.PureComponent {
         // Only relevant if --not-- providing own colorScale and letting this component create/re-create one.
         'resetScalesWhenChange' : null,
         'resetScaleLegendWhenChange' : null,
-        'colorScale'            : null
+        'colorScale'            : null,
+        'highContrast'          : false
     };
+
+    static HighContrastColorScheme = [
+        '#E69F00', // Orange
+        '#56B4E9', // Light Blue
+        '#009E73', // Green
+        '#F0E442', // Yellow
+        '#0072B2', // Blue
+        '#D55E00', // Vermillion
+        '#CC79A7', // Reddish Purple
+        '#999999'  // Gray
+    ];
 
     constructor(props){
         super(props);
         this.resetColorScale = this.resetColorScale.bind(this);
         this.updateColorStore = this.updateColorStore.bind(this);
 
-        var colorScale = props.colorScale || d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemePastel1));
+        var colorScale = props.colorScale ||
+            (props.highContrast
+                ? d3.scaleOrdinal(ColorScaleProvider.HighContrastColorScheme)
+                : d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemePastel1)));
         this.state = { colorScale, 'colorScaleStore' : {} };
     }
 
     componentDidUpdate(pastProps){
-        const { resetScalesWhenChange, resetScaleLegendWhenChange } = this.props;
+        const { resetScalesWhenChange, resetScaleLegendWhenChange, highContrast } = this.props;
         if (resetScalesWhenChange !== pastProps.resetScalesWhenChange){
             console.warn("Color scale reset");
             this.resetColorScale();
         } else if (resetScaleLegendWhenChange !== pastProps.resetScaleLegendWhenChange){
             console.warn("Color scale reset (LEGEND ONLY)");
             this.resetColorScale(true);
+        } else if (highContrast !== pastProps.highContrast){
+            console.warn("Color scale reset (HIGH CONTRAST)");
+            this.resetColorScale();
         }
     }
 
@@ -535,14 +553,16 @@ export class ColorScaleProvider extends React.PureComponent {
             return;
         }
 
-        const { colorScale : propColorScale } = this.props;
+        const { colorScale : propColorScale, highContrast } = this.props;
         let colorScale;
         const colorScaleStore = {};
 
         if (typeof propColorScale === 'function'){
             colorScale = propColorScale; // Does nothing.
         } else {
-            colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemePastel1));
+            colorScale = highContrast
+                ? d3.scaleOrdinal(ColorScaleProvider.HighContrastColorScheme)
+                : d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemePastel1));
         }
 
         this.setState({ colorScale, colorScaleStore });

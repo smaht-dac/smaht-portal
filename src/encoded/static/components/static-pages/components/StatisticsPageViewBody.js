@@ -1174,8 +1174,10 @@ export function UsageStatsView(props){
         return <div className="stats-charts-container" key="charts" id="usage"><LoadingIcon/></div>;
     }
 
-    const [isTransposed, setIsTransposed] = useState(true);
-    const [ scale, setScale ] = useState({ yAxisScale: 'Pow', yAxisPower: 0.5 });
+    const [transposed, setTransposed] = useState(true);
+    const [hideEmptyColumns, setHideEmptyColumns] = useState(true);
+    const [highContrast, setHighContrast] = useState(false);
+    const [ scale, setScale ] = useState({ yAxisScale: 'Pow', yAxisPower: 0.7 });
     const { anyExpandedCharts, commonXDomain, dateRoundInterval } = useMemo(function(){
         const { fromDate: propFromDate, untilDate: propUntilDate } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
         let fromDate, untilDate, dateRoundInterval;
@@ -1200,7 +1202,13 @@ export function UsageStatsView(props){
         };
     }, [ currentGroupBy, anyExpandedCharts ]);
 
-    const commonContainerProps = { 'onToggle' : onChartToggle, chartToggles, windowWidth, 'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250 };
+    const commonContainerProps = {
+        'onToggle': onChartToggle,
+        chartToggles,
+        windowWidth,
+        'defaultColSize': '12',
+        'defaultHeight': anyExpandedCharts ? 200 : 250
+    };
     const commonChartProps = {
         dateRoundInterval,
         'xDomain': commonXDomain,
@@ -1215,7 +1223,7 @@ export function UsageStatsView(props){
     const { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep } = UsageStatsView.getYScaleDefaults(scale['yAxisScale']);
 
     const isSticky = true; //!_.any(_.values(tableToggle), (v)=> v === true);
-    const commonTableProps = { windowWidth, href, session, schemas, isTransposed, dateRoundInterval, cumulativeSum, chartToggles };
+    const commonTableProps = { windowWidth, href, session, schemas, transposed, dateRoundInterval, cumulativeSum, chartToggles, hideEmptyColumns };
     
     let topFileSetLimit = 0;
     if (countBy.top_file_set_downloads && countBy.top_file_set_downloads.indexOf('top_files_') === 0) {
@@ -1231,16 +1239,22 @@ export function UsageStatsView(props){
 
             <GroupByDropdown {...{ groupByOptions, loadingStatus, handleGroupByChange, currentGroupBy }}
                 groupByTitle="Show" outerClassName={"dropdown-container mb-0" + (isSticky ? " sticky-top" : "")}>
-                <div className="d-inline-block me-15 pt-08">
+                <div className="settings-label d-inline-block me-15 pt-08">
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle} data-tip="Toggle between smooth/sharp edges">Smooth Edges</Checkbox>
                 </div>
-                <div className="d-inline-block me-3 mb-2 pt-08">
+                <div className="settings-label d-inline-block me-3 mb-2 pt-08">
                     <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle} data-tip="Show as cumulative sum">Cumulative Sum</Checkbox>
                 </div>
-                <div className="d-inline-block me-3 mb-2 pt-08">
-                    <Checkbox checked={isTransposed} onChange={() => setIsTransposed(!isTransposed)} data-tip="Transpose data table">Transpose Data</Checkbox>
+                <div className="settings-label d-inline-block me-3 mb-2 pt-08">
+                    <Checkbox checked={transposed} onChange={() => setTransposed(!transposed)} data-tip="Transpose data table">Transpose Data</Checkbox>
                 </div>
-                <div className="d-block d-md-inline-block pt-08">
+                <div className="settings-label d-inline-block me-3 mb-2 pt-08">
+                    <Checkbox checked={hideEmptyColumns} onChange={() => setHideEmptyColumns(!hideEmptyColumns)} data-tip="Hide empty data table columns">Hide Empty Columns</Checkbox>
+                </div>
+                <div className="settings-label d-inline-block me-3 mb-2 pt-08">
+                    <Checkbox checked={highContrast} onChange={() => setHighContrast(!highContrast)} data-tip="Toggle high contrast color scheme">High Contrast</Checkbox>
+                </div>
+                <div className="settings-label d-block d-md-inline-block pt-08">
                     <div className="d-md-flex">
                         <span className="text-500 me-1">Y-Axis scale:</span>
                         <div className='mb-15'>
@@ -1264,7 +1278,7 @@ export function UsageStatsView(props){
 
             { file_downloads ?
 
-                <ColorScaleProvider resetScalesWhenChange={file_downloads}>
+                <ColorScaleProvider resetScalesWhenChange={file_downloads} highContrast={highContrast}>
                 
                     <div className="clearfix">
                         <div className="pull-right mt-05">
@@ -1312,7 +1326,7 @@ export function UsageStatsView(props){
 
             {top_file_set_downloads ?
 
-                <ColorScaleProvider resetScalesWhenChange={top_file_set_downloads}>
+                <ColorScaleProvider resetScalesWhenChange={top_file_set_downloads} highContrast={highContrast}>
 
                     <div className="clearfix">
                         <div className="pull-right mt-05">
@@ -1362,7 +1376,7 @@ export function UsageStatsView(props){
 
             { top_file_downloads && false ?
 
-                <ColorScaleProvider resetScalesWhenChange={top_file_downloads}>
+                <ColorScaleProvider resetScalesWhenChange={top_file_downloads} highContrast={highContrast}>
                 
                     <div className="clearfix">
                         <div className="pull-right mt-05">
@@ -1415,7 +1429,7 @@ export function UsageStatsView(props){
 
             { file_views ?
 
-                <ColorScaleProvider resetScalesWhenChange={file_views}>
+                <ColorScaleProvider resetScalesWhenChange={file_views} highContrast={highContrast}>
 
                     <AreaChartContainer {...commonContainerProps} id="file_views" key="file_views"
                         title={<ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'file_views' }} />}
@@ -1442,7 +1456,7 @@ export function UsageStatsView(props){
 
             { sessions_by_country ?
 
-                <ColorScaleProvider resetScaleLegendWhenChange={sessions_by_country}>
+                <ColorScaleProvider resetScaleLegendWhenChange={sessions_by_country} highContrast={highContrast}>
 
                     <AreaChartContainer {...commonContainerProps} id="sessions_by_country" key="sessions_by_country"
                         title={<ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'sessions_by_country' }} />}
@@ -1473,7 +1487,7 @@ export function UsageStatsView(props){
 
             {/* { fields_faceted ?
 
-                <ColorScaleProvider resetScaleLegendWhenChange={fields_faceted}>
+                <ColorScaleProvider resetScaleLegendWhenChange={fields_faceted} highContrast={highContrast}>
 
                     <AreaChartContainer {...commonContainerProps} id="fields_faceted" key="fields_faceted"
                         title={<ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'fields_faceted' }} />}
@@ -1783,7 +1797,7 @@ const ChartContainerTitle = function ({ titleMap, countBy, chartKey }) {
 const StatisticsDataTable = React.memo((props) => {
     const {
         data, valueLabel = null, session, schemas, containerId = '', 
-        href, dateRoundInterval, isTransposed = false, windowWidth, cumulativeSum,
+        href, dateRoundInterval, transposed = false, windowWidth, cumulativeSum,
         limit = 0, excludeNones = false // limit and excludeNones are evaluated for only transposed data
      } = props;
     const [columns, setColumns] = useState({});
@@ -1828,21 +1842,21 @@ const StatisticsDataTable = React.memo((props) => {
             return;
         }
 
-        const processData = isTransposed ? transposeData(data).slice(0, limit > 0 ? limit : undefined) : data;
+        const processData = transposed ? transposeData(data).slice(0, limit > 0 ? limit : undefined) : data;
 
         // date or term column based on transposed or not
         let cols = {
             'display_title': {
-                title: isTransposed ? 'Term' : 'Date',
+                title: transposed ? 'Term' : 'Date',
                 type: 'string',
                 noSort: true,
-                widthMap: isTransposed ? { 'lg': 400, 'md': 200, 'sm': 200 } : { 'lg': 200, 'md': 200, 'sm': 200 },
+                widthMap: transposed ? { 'lg': 400, 'md': 200, 'sm': 200 } : { 'lg': 200, 'md': 200, 'sm': 200 },
                 render: function (result) {
                     // overall sum
                     const overallSum = roundValue(result.overall_sum || 0, valueLabel);
                     const tooltip = `${result.display_title} (${overallSum})`;
 
-                    return isTransposed ? (
+                    return transposed ? (
                         <span className="value text-truncate text-start" data-tip={tooltip.length > 40 ? tooltip : null}>
                             {result.display_title} <strong>({overallSum})</strong>
                         </span>
@@ -1864,7 +1878,7 @@ const StatisticsDataTable = React.memo((props) => {
         // create columns and columnExtensionMap
         const [item] = processData;
         if (item && Array.isArray(item.children) && item.children.length > 0) {
-            const keys = isTransposed ? _.pluck(item.children, 'date') : _.pluck(item.children, 'term');
+            const keys = transposed ? _.pluck(item.children, 'date') : _.pluck(item.children, 'term');
             cols = _.reduce(keys, (memo, dataKey) => {
                 memo[dataKey] = {
                     title: dataKey,
@@ -1876,7 +1890,7 @@ const StatisticsDataTable = React.memo((props) => {
                             return (
                                 <a href='#'
                                     onClick={(e) => {
-                                        setModalForDate(isTransposed ? dataKey : result.display_title);
+                                        setModalForDate(transposed ? dataKey : result.display_title);
                                         setShowModal(true);
                                         e.preventDefault();
                                     }}
@@ -1901,19 +1915,20 @@ const StatisticsDataTable = React.memo((props) => {
         // create @graph
         const result = _.map(processData, function (d) {
             return {
-                display_title: isTransposed ? (d.termDisplayAs || d.term) : d.date,
-                '@id': isTransposed ? d.term : d.date,
+                display_title: transposed ? (d.termDisplayAs || d.term) : d.date,
+                '@id': transposed ? d.term : d.date,
                 ..._.reduce(d.children, (memo2, c) => {
-                    memo2[isTransposed ? c.date : c.term] = c.count;
+                    const colKey = transposed ? c.date : c.term;
+                    memo2[colKey] = c.count;
                     return memo2;
                 }, {}),
                 '@type': ['Item'],
                 'overall_sum': !cumulativeSum ? (d.total || 0) : _.reduce(d.children, (memo, c) => memo + c.count, 0),
-                'date_created': isTransposed ? d.term : d.date
+                'date_created': transposed ? d.term : d.date
             };
         });
         setGraph(result);
-    }, [data, isTransposed]);
+    }, [data, transposed]);
 
     const passProps = {
         isFullscreen: false,
