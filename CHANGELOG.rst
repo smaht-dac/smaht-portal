@@ -32,6 +32,14 @@ Change Log
   This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1192
 
 
+0.117.1
+=======
+`PR 284: Bm nomenclature page3 <https://github.com/smaht-dac/smaht-portal/pull/284>`_
+
+* Rework various tables to match the new version of the documentation
+* Add newest version of the pdf document to the page
+
+
 0.117.0
 =======
 `PR 298 SN File release tracker <https://github.com/smaht-dac/smaht-portal/pull/298>`_
