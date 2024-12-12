@@ -41,21 +41,32 @@ $facetlist-excluding: #450000;
 	&[data-field="access_status"],
 	&[data-field="annotation_filename"],
 	&[data-field="data_type"],
+	&[data-field="data_category"],
 	&[data-field="file_sets.assay.display_title"],
 	&[data-field="file_sets.sequencing.sequencer.display_title"],
 	&[data-field="file_format.display_title"],
 	&[data-field="software.name"],
 	&[data-field="submission_centers.display_title"] {
+		// embedded search tables
 		> .inner,
 		> span.value {
+			text-align: left !important;
+		}
+		// browse view
+		>.inner>span.value {
 			text-align: left !important;
 		}
 	}
 
 	&[data-field="file_size"],
 	&[data-field="date_created"] {
+		// embedded search tables
 		> .inner,
 		> span.value {
+			text-align: right !important;
+		}
+		// browse view
+		>.inner>span.value {
 			text-align: right !important;
 		}
 	}
