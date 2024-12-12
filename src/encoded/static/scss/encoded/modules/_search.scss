@@ -332,8 +332,11 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 				border-color: $search-header-icon-color;
 			}
 	
-			&[data-first-visible-column] {
-				padding-left: 16px;
+			&[data-first-visible-column]{
+				padding-left: 0px; 
+				&[data-field="@type"] {
+					padding-left: 16px;
+				}
 			}
 	
 			.inner > .column-title {
@@ -672,8 +675,11 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 
 			&.detail-closed >.columns.result-table-row>.search-result-column-block {
 				
-				&[data-first-visible-column=true][data-field="@type"] {
-					padding-left: 16px !important;
+				&[data-first-visible-column=true]{
+					padding-left: 0px;
+					&[data-field="@type"] {
+						padding-left: 16px !important;
+					}
 				}
 
 				>.inner>.toggle-detail-button-container {
