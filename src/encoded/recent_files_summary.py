@@ -22,6 +22,8 @@ QUERY_RECENT_MONTHS = 3
 QUERY_INCLUDE_CURRENT_MONTH = True
 
 AGGREGATION_FIELD_RELEASE_DATE = "file_status_tracking.released"
+# FYI: Note there there is also file_sets.libraries.analytes.samples.sample_sources.display_title
+# and that sometimes file_sets.libraries.analytes.samples.sample_sources.code does not exist.
 AGGREGATION_FIELD_CELL_MIXTURE = "file_sets.libraries.analytes.samples.sample_sources.code"
 AGGREGATION_FIELD_CELL_LINE = "file_sets.libraries.analytes.samples.sample_sources.cell_line.code"
 AGGREGATION_FIELD_DONOR = "donors.display_title"
