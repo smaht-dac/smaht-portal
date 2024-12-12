@@ -29,6 +29,7 @@ import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { BrowseViewControllerWithSelections } from '../static-pages/components/TableControllerWithSelections';
 import { AboveTableControlsBase } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/above-table-controls/AboveTableControlsBase';
+import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
 
 export default function BrowseView(props) {
     console.log('BrowseView context', props.context);
@@ -144,7 +145,9 @@ export class BrowseViewBody extends React.PureComponent {
     }
 
     render() {
-        // We don't need full screen btn on CGAP as already full width.
+        const { alerts } = this.props;
+
+        // We don't need full screen btn on SMaHT
         const passProps = _.omit(
             this.props,
             'isFullscreen',
@@ -169,10 +172,11 @@ export class BrowseViewBody extends React.PureComponent {
                         </div>
                     </div>
                     <div>
+                        <h2 className="browse-summary-header">
+                            SMaHT Data Summary
+                        </h2>
+                        <Alerts alerts={alerts} className="mt-2" />
                         <div>
-                            <h2 className="browse-summary-header">
-                                SMaHT Data Summary
-                            </h2>
                             <div className="browse-summary d-flex flex-row p-4 mt-2 mb-3 flex-wrap">
                                 <BrowseSummaryStatController type="File" />
                                 <BrowseSummaryStatController type="Donor" />
