@@ -657,6 +657,27 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
                         className={commonCls + ' mx-0 px-0'}
                     />
                 ) : null} */}
+                <div className="static-page-breadcrumbs clearfix mx-0 px-0">
+                    <div className="static-breadcrumb" data-name="Home" key="/">
+                        <a href="/" className="link-underline-hover">
+                            Home
+                        </a>
+                        <i className="icon icon-fw icon-angle-right fas" />
+                    </div>
+                    <div
+                        className="static-breadcrumb nonclickable"
+                        data-name="Data"
+                        key="/data">
+                        <span>Data</span>
+                        <i className="icon icon-fw icon-angle-right fas" />
+                    </div>
+                    <div
+                        className="static-breadcrumb nonclickable"
+                        data-name="Production"
+                        key="/browse">
+                        <span>Production Data</span>
+                    </div>
+                </div>
                 <OnlyTitle className={commonCls + ' mx-0 px-0'}>
                     SMaHT Production Data
                 </OnlyTitle>
