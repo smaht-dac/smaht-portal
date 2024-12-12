@@ -64,7 +64,7 @@ def create_elasticsearch_aggregation_query(fields: List[str],
       }
 
     The above example assumes that a create_field_aggregation function callable was passed as an argument
-    and that if/when its argument is date_created then it would have returned something like this 
+    and that if/when its argument is date_created then it would have returned something like this:
 
       {
         "date_histogram": {

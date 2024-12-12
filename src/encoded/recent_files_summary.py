@@ -50,7 +50,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     calculated property - see PR-298 (branch: sn_file_release_tracker).
 
     By default the current (assuminging partial) month IS included, so we really return info for
-    the past FULL three months plus for whatever time has currently elapsed for the current month. 
+    the past FULL three months plus for whatever time has currently elapsed for the current month.
     Use pass the include_current_month=false query argument to NOT include the current month.
 
     The number of months of data can be controlled using the nmonths query argument, e.g. nmonths=6.
@@ -59,7 +59,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
     For testing purposes, a date field other than the default file_status_tracking.released can
     also be specified using the date_property_name query argument. And file statuses other than
-    released can be queried for using one or more status query arguments, e.g. status=uploaded. 
+    released can be queried for using one or more status query arguments, e.g. status=uploaded.
     """
 
     global AGGREGATION_FIELD_RELEASE_DATE
@@ -85,7 +85,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         # This specializes the aggregation query to group first by the cell-line field,
         # and then alternatively (if a cell-line field does not exist) by the donor field.
         # For troubleshooting/testing/or-maybe-if-we-change-our-minds we can alternatively
-        # look first for the donor field and then secondarily for the cell-line field. 
+        # look first for the donor field and then secondarily for the cell-line field.
         global AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR
         nonlocal nocells, nomixtures, nodonors, favor_donor
         aggregation_field_grouping_cell_or_donor = deepcopy(AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR)
@@ -427,7 +427,6 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
     if troubleshoot:
         add_info_for_troubleshooting(normalized_results, request)
-        
 
     return normalized_results
 
@@ -439,7 +438,7 @@ def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.requ
         for file in files:
             if properties := get_properties(file, property_name):
                 if callable(map_property_value):
-                    mapped_properties = [] 
+                    mapped_properties = []
                     for value in properties:
                         mapped_properties.append(map_property_value(value))
                     properties = mapped_properties
@@ -527,7 +526,7 @@ def print_normalized_aggregation_results(data: dict,
                                          uuid_details: bool = False,
                                          nobold: bool = False,
                                          verbose: bool = False) -> None:
-    
+
     """
     For deveopment/troubleshooting only ...
     """
@@ -554,7 +553,7 @@ def print_normalized_aggregation_results(data: dict,
                     if isinstance(portal_hit, dict) and isinstance(uuid := portal_hit.get("uuid"), str) and uuid:
                         hits.append(portal_hit)
             return hits
-    
+
         def format_hit_property_values(hit: dict, property_name: str) -> Optional[str]:
             nonlocal parent_grouping_name, parent_grouping_value
             if property_value := hit.get(property_name):
@@ -567,7 +566,7 @@ def print_normalized_aggregation_results(data: dict,
                             property_values.append(property_value)
                     property_value = ", ".join(property_values)
             return property_value
-    
+
         def print_hit_property_values(hit: dict, property_name: str,
                                       label: Optional[str] = None, prefix: Optional[str] = None) -> None:
             nonlocal aggregation_fields, chars_dot_hollow
