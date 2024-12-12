@@ -449,6 +449,7 @@ const BrowseViewSearchTable = (props) => {
                 'status',
                 'validation_errors.name',
                 'version',
+                'sample_summary.studies',
             ]}
             columns={{
                 '@type': {
