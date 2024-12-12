@@ -125,6 +125,10 @@ def parse_datetime_string(value: Union[str, datetime, date],
                 # Special case to accept for example "2024-10" to mean "2024-10-01".
                 value = f"{value}-01"
                 last_day_of_month = last_day_of_month_if_no_day
+            elif (len(value) == 6) and value[0:4].isdigit() and value[4:].isdigit():
+                # Special case to accept for example "202410" to mean "2024-10-01".
+                value = f"{value[0:4]}-{value[4:]}-01"
+                last_day_of_month = last_day_of_month_if_no_day
             elif (len(value) == 7) and (value[2] == "/") and value[0:2].isdigit() and value[3:].isdigit():
                 # Special case to accept for example "11/2024" to mean "2024-11-01".
                 value = f"{value[3:]}-{value[0:2]}-01"
