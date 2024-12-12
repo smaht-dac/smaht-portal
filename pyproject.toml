@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "0.114.1"
+version = "0.118.1"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"

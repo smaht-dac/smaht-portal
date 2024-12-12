@@ -50,6 +50,9 @@
             "$ref": "mixins.json#/file_release"
         },
         {
+            "$ref": "mixins.json#/gene_annotation"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {

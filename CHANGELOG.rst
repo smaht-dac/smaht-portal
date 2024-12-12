@@ -7,14 +7,79 @@ smaht-portal
 Change Log
 ----------
 
+0.118.1
 =======
-0.114.1
-=======
-* 2024-11-20/dmichaels
+* 2024-11-20/dmichaels - branch: dmichaels-20241119-browse-view (PR-295)
+
 * Added module browse.py for /browse; adapted from fourfront/.../search.py/browse.
   This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1184
 
+0.118.0
 =======
+* New endpoint /recent_files_summary which, by default, returns info for files released
+  within the past three months grouped by release-date, cell-line or donor, and 
+  ile-description. The specific fields used for these groupings are:
+  - release-date: file_status_tracking.released
+  - cell-line: file_sets.libraries.analytes.samples.sample_sources.cell_line.code
+  - donor: donors.display_title
+  - file-dsecription: release_tracker_description
+  Note that release_tracker_description is a newer (2024-12) calcprop (PR-298/sn_file_release_tracker);
+  and included in this branch are these files from the branch sn_file_release_tracker:
+  - src/encoded/item_utils/file.py
+  - src/encoded/types/file.py
+  Added these new modules to support this new endpoint:
+  - src/encoded/recent_files_summary.py
+  - src/encoded/elasticsearch_utils.py (maybe move to dcicutils eventually)
+  - src/encoded/endpoint_utils.py (maybe move to dcicutils eventually)
+  This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1192
+
+
+0.117.1
+=======
+`PR 284: Bm nomenclature page3 <https://github.com/smaht-dac/smaht-portal/pull/284>`_
+
+* Rework various tables to match the new version of the documentation
+* Add newest version of the pdf document to the page
+
+
+0.117.0
+=======
+`PR 298 SN File release tracker <https://github.com/smaht-dac/smaht-portal/pull/298>`_
+
+* Add calcprop to file returning concatenated string of `file_sets.libraries.assays.display_title`, `file_sets.sequencing.sequencer.display_title`, and `file_format.display_title`
+* If there are multiple values for assay or sequencer, return an empty string
+
+0.116.0
+=======
+`PR 299 SN RNA-seq filenames <https://github.com/smaht-dac/smaht-portal/pull/299>`
+
+* Create new item GeneAnnotation that OutputFile and SupplementaryFile link to with property `gene_annotation`
+* Update `commands/create_annotated_filenames.py` to include gencode version and gene/isoform information for RSEM tsv output files and RNA-seq aligned bams
+
+
+0.115.1
+=======
+`PR 302 SN fix sequencing validator <https://github.com/smaht-dac/smaht-portal/pull/302>`
+
+* Adds `on_target_rate` to sequencing validator in FileSet for DNA libraries
+
+
+0.115.0
+=======
+`PR 296 SN Sequencing validation <https://github.com/smaht-dac/smaht-portal/pull/296>`
+
+* Add custom validator to FileSet to ensure that `sequencing.target_coverage` is present if `libraries.analytes.molecule` contains "DNA" and `sequencing.target_read_count` is present if `libraries.analytes.molecule` contains "RNA"
+* Refactor custom validators
+* Specify molecule type in `submitted_ids` for workbook-inserts to keep track across tests
+
+
+0.114.1
+=======
+`PR 301 SN Add enum to extraction method <https://github.com/smaht-dac/smaht-portal/pull/301>`_
+
+* Add "Mechanical Dissociation" as an enum for `extraction_method` in AnalytePreparation
+
+
 0.114.0
 =======
 `PR 288 SN comparators description <https://github.com/smaht-dac/smaht-portal/pull/288>`_
