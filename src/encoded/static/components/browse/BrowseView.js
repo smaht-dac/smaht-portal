@@ -1,18 +1,16 @@
 'use strict';
 
-import React from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import memoize from 'memoize-one';
 import _ from 'underscore';
-import url from 'url';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import {
-    memoizedUrlParse,
     schemaTransforms,
     analytics,
     valueTransforms,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
-import { DetailPaneStateCache } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/DetailPaneStateCache';
 import { columnExtensionMap as originalColExtMap } from './columnExtensionMap';
 import { Schemas } from './../util';
 import {
@@ -33,19 +31,7 @@ import { BrowseViewControllerWithSelections } from '../static-pages/components/T
 import { AboveTableControlsBase } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/above-table-controls/AboveTableControlsBase';
 
 export default function BrowseView(props) {
-    const {
-        context: { '@type': searchPageType = ['ItemSearchResults'] },
-    } = props;
-    const isCaseSearch = searchPageType[0] === 'CaseSearchResults';
-
-    if (isCaseSearch) {
-        return (
-            <DetailPaneStateCache>
-                <BrowseViewBody {...props} {...{ isCaseSearch }} />
-            </DetailPaneStateCache>
-        );
-    }
-
+    console.log('BrowseView context', props.context);
     return <BrowseViewBody {...props} />;
 }
 
@@ -188,14 +174,11 @@ export class BrowseViewBody extends React.PureComponent {
                                 SMaHT Data Summary
                             </h2>
                             <div className="browse-summary d-flex flex-row p-4 mt-2 mb-3 flex-wrap">
-                                <BrowseSummaryStat type="File" value="151" />
-                                <BrowseSummaryStat type="Donor" value="3" />
-                                <BrowseSummaryStat type="Tissue" value="5" />
-                                <BrowseSummaryStat type="Assay" value="10" />
-                                <BrowseSummaryStat
-                                    type="File Size"
-                                    value="2.5"
-                                />
+                                <BrowseSummaryStatController type="File" />
+                                <BrowseSummaryStatController type="Donor" />
+                                <BrowseSummaryStatController type="Tissue" />
+                                <BrowseSummaryStatController type="Assay" />
+                                <BrowseSummaryStatController type="File Size" />
                             </div>
                         </div>
                         <hr />
@@ -472,11 +455,68 @@ const BrowseViewSearchTable = (props) => {
     );
 };
 
+const BrowseSummaryStatController = (props) => {
+    const { type } = props;
+
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const [value, setValue] = useState('');
+    const [units, setUnits] = useState('');
+
+    const postData = {
+        type: type !== 'File Size' ? type : 'File',
+        status: 'released',
+    };
+
+    const callbackFxn = useCallback((resp) => {
+        console.log('BrowseSummaryStatController resp', resp);
+        resp.forEach((facet) => {
+            if (facet.field == 'status' && type != 'File Size') {
+                facet.terms.forEach((term) => {
+                    if (term.key == 'released') {
+                        setValue(term.doc_count);
+                    }
+                });
+            } else if (facet.field == 'file_size' && type == 'File Size') {
+                setValue(valueTransforms.bytesToLargerUnitNoUnits(facet.sum));
+                setUnits(valueTransforms.bytesToLargerUnitOnly(facet.sum));
+            }
+            setLoading(false);
+            setError(false);
+        });
+    });
+
+    const fallbackFxn = useCallback((resp) => {
+        console.log('BrowseSummaryStatController error', resp);
+        setLoading(false);
+        setError(true);
+    });
+
+    const getStatistics = useCallback(() => {
+        if (!loading) setLoading(true);
+        if (error) setError(false);
+
+        ajax.load(
+            `/peek-metadata/`,
+            callbackFxn,
+            'POST',
+            fallbackFxn,
+            JSON.stringify(postData)
+        );
+    }, [callbackFxn, fallbackFxn]);
+
+    // On mount, get statistics
+    useEffect(() => {
+        getStatistics();
+    }, []);
+
+    return <BrowseSummaryStat {...{ value, type, loading, units }} />;
+};
+
 const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
-    const { type, value } = props;
+    const { type, value, loading, units } = props;
 
     let subtitle;
-    let units = null;
     switch (type) {
         case 'File':
             subtitle = 'Files Generated';
@@ -491,7 +531,6 @@ const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
             subtitle = 'Assays';
             break;
         case 'File Size':
-            units = 'TB';
             subtitle = 'Total File Size';
             break;
         default:
@@ -504,10 +543,20 @@ const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
         <div className="browse-summary-stat d-flex flex-row">
             <BrowseLinkIcon {...{ type }} cls="mt-04" />
             <div className="ms-2">
-                <div className="browse-summary-stat-value">
-                    {value}
-                    {units && <span>{units}</span>}
-                </div>
+                {loading && (
+                    <div className="browse-summary-stat-value">
+                        {' '}
+                        <i className="icon icon-circle-notch icon-spin fas" />
+                    </div>
+                )}
+                {!loading && (
+                    <>
+                        <div className="browse-summary-stat-value">
+                            {value}
+                            {units && <span>{units}</span>}
+                        </div>
+                    </>
+                )}
                 <div className="browse-summary-stat-subtitle">{subtitle}</div>
             </div>
         </div>
