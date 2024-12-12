@@ -80,7 +80,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     raw = request_arg_bool(request, "raw")
     willrfix = request_arg_bool(request, "willrfix")
 
-    def get_aggregation_field_grouping_cell_or_donor():
+    def get_aggregation_field_grouping_cell_or_donor() -> List[str]:
         # This specializes the aggregation query to group first by the cell-line field,
         # and then alternatively (if a cell-line field does not exist) by the donor field.
         # For troubleshooting/testing/or-maybe-if-we-change-our-minds we can alternatively
@@ -395,6 +395,11 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         additional_properties = {
             "debug": {
                 "query": query,
+                "aggregation_query_fields": [
+                    AGGREGATION_FIELD_RELEASE_DATE,
+                    *get_aggregation_field_grouping_cell_or_donor(),
+                    AGGREGATION_FIELD_FILE_DESCRIPTOR
+                ],
                 "aggregation_query": aggregation_query,
                 "raw_results": raw_results,
                 "aggregation_results": deepcopy(aggregation_results)
@@ -513,3 +518,110 @@ def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.requ
         annotate_with_uuids(normalized_results)
     except Exception:
         pass
+
+
+def print_normalized_aggregation_results(data: dict,
+                                         title: Optional[str] = None,
+                                         parent_grouping_name: Optional[str] = None,
+                                         parent_grouping_value: Optional[str] = None,
+                                         uuids: bool = False,
+                                         uuid_details: bool = False,
+                                         nobold: bool = False,
+                                         verbose: bool = False) -> None:
+    
+    """
+    For deveopment/troubleshooting only ...
+    """
+
+    from hms_utils.chars import chars
+    from hms_utils.terminal_utils import terminal_color
+
+    def get_aggregation_fields(data: dict) -> List[str]:
+        if not isinstance(aggregation_fields := data.get("debug", {}).get("aggregation_query_fields"), list):
+            aggregation_fields = []
+        return aggregation_fields
+
+    def print_results(data: dict,
+                      parent_grouping_name: Optional[str] = None,
+                      parent_grouping_value: Optional[str] = None,
+                      indent: int = 0) -> None:
+
+        nonlocal title, uuids, uuid_details, nobold, verbose
+        nonlocal aggregation_fields, red, green, gray, bold
+
+        def get_hits(data: dict) -> List[str]:
+            hits = []
+            if isinstance(portal_hits := data.get("debug", {}).get("portal_hits"), list):
+                for portal_hit in portal_hits:
+                    if isinstance(portal_hit, dict) and isinstance(uuid := portal_hit.get("uuid"), str) and uuid:
+                        hits.append(portal_hit)
+            return hits
+    
+        def format_hit_property_values(hit: dict, property_name: str) -> Optional[str]:
+            nonlocal parent_grouping_name, parent_grouping_value
+            if property_value := hit.get(property_name):
+                if property_name == parent_grouping_name:
+                    property_values = []
+                    for property_value in property_value.split(","):
+                        if (property_value := property_value.strip()) == parent_grouping_value:
+                            property_values.append(green(property_value))
+                        else:
+                            property_values.append(property_value)
+                    property_value = ", ".join(property_values)
+            return property_value
+    
+        def print_hit_property_values(hit: dict, property_name: str,
+                                      label: Optional[str] = None, prefix: Optional[str] = None) -> None:
+            nonlocal aggregation_fields
+            if property_values := format_hit_property_values(hit, property_name):
+                if not label:
+                    label = property_name
+                property_description = f"{prefix or ""}{chars.dot_hollow} {label}: {property_values}"
+                if property_name not in aggregation_fields:
+                    property_description = gray(property_description)
+                print(property_description)
+
+        if not (isinstance(data, dict) and data):
+            return
+        if not (isinstance(indent, int) and (indent > 0)):
+            indent = 0
+        spaces = (" " * indent) if indent > 0 else ""
+        grouping_name = data.get("name")
+        if isinstance(grouping_value := data.get("value"), str) and grouping_value:
+            grouping = bold(grouping_value)
+            if (verbose is True) and isinstance(grouping_name, str) and grouping_name:
+                grouping = f"{grouping_name} {chars.dot} {grouping}"
+        elif not (isinstance(grouping := title, str) and grouping):
+            grouping = "RESULTS"
+        grouping = f"{chars.diamond} {grouping}"
+        hits = get_hits(data) if (uuids is True) else []
+        if isinstance(count := data.get("count"), int):
+            note = ""
+            if len(hits) > count:
+                note = red(f" {chars.rarrow_hollow} MORE ACTUAL RESULTS: {len(hits) - count}")
+            print(f"{spaces}{grouping}: {count}{note}")
+        for hit in hits:
+            if isinstance(hit, dict) and isinstance(uuid := hit.get("uuid"), str) and uuid:
+                note = ""
+                if hit.get("elasticsearch_counted") is False:
+                    print(red(f"{spaces}  {chars.dot} {uuid} {chars.xmark} UNCOUNTED"))
+                else:
+                    print(f"{spaces}  {chars.dot} {uuid} {chars.check}")
+                if uuid_details is True:
+                    print_hit_property_values(hit, AGGREGATION_FIELD_CELL_MIXTURE, "sample-sources", f"{spaces}    ")
+                    print_hit_property_values(hit, AGGREGATION_FIELD_CELL_LINE, "cell-lines", f"{spaces}    ")
+                    print_hit_property_values(hit, AGGREGATION_FIELD_DONOR, "donors", f"{spaces}    ")
+        if isinstance(items := data.get("items"), list):
+            for element in items:
+                print_results(element,
+                              parent_grouping_name=grouping_name,
+                              parent_grouping_value=grouping_value,
+                              indent=indent + 2)
+
+    aggregation_fields = get_aggregation_fields(data)
+    red = lambda text: terminal_color(text, "red")  # noqa
+    green = lambda text: terminal_color(text, "green")  # noqa
+    gray = lambda text: terminal_color(text, "grey")  # noqa
+    bold = (lambda text: terminal_color(text, bold=True)) if (nobold is not True) else (lambda text: text)
+
+    print_results(data)
