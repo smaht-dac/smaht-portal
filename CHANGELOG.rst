@@ -7,12 +7,50 @@ smaht-portal
 Change Log
 ----------
 
-0.116.0
+0.119.0
 =======
 `PR 277 DSA Release <https://github.com/smaht-dac/smaht-portal/pull/277>`_
 * In `commands/release-file.py` and `commands/create-annotated-filenames.py`:
   * Assay and sequencer codes value set to XX for DSA fasta files and chain files
   * For Supplementary Files, use `title` instead of `code` for software part of annotated filename
+
+
+0.118.0
+=======
+`PR 303 SN Rnaseq filenames <https://github.com/smaht-dac/smaht-portal/pull/303>`
+
+* Make `annotation` link in OutputFile an array of links to ReferenceFile
+* Add `code` property to ReferenceFile
+
+
+0.117.1
+=======
+`PR 284: Bm nomenclature page3 <https://github.com/smaht-dac/smaht-portal/pull/284>`_
+
+* Rework various tables to match the new version of the documentation
+* Add newest version of the pdf document to the page
+
+
+0.117.0
+=======
+`PR 298 SN File release tracker <https://github.com/smaht-dac/smaht-portal/pull/298>`_
+
+* Add calcprop to file returning concatenated string of `file_sets.libraries.assays.display_title`, `file_sets.sequencing.sequencer.display_title`, and `file_format.display_title`
+* If there are multiple values for assay or sequencer, return an empty string
+
+0.116.0
+=======
+`PR 299 SN RNA-seq filenames <https://github.com/smaht-dac/smaht-portal/pull/299>`
+
+* Create new item GeneAnnotation that OutputFile and SupplementaryFile link to with property `gene_annotation`
+* Update `commands/create_annotated_filenames.py` to include gencode version and gene/isoform information for RSEM tsv output files and RNA-seq aligned bams
+
+
+0.115.1
+=======
+`PR 302 SN fix sequencing validator <https://github.com/smaht-dac/smaht-portal/pull/302>`
+
+* Adds `on_target_rate` to sequencing validator in FileSet for DNA libraries
 
 
 0.115.0

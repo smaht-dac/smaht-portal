@@ -130,6 +130,8 @@
                     "Genome Region",
                     "Germline Variant Calls",
                     "Quality Control",
+                    "Genome Assembly",
+                    "Genome Conversion",
                     "Reference Genome",
                     "Reference Conversion",
                     "Reference Transcriptome",

@@ -463,6 +463,9 @@ class FileRelease:
                 ),
                 file_constants.DATA_CATEGORY_REFERENCE_CONVERSION: (
                     file_constants.ACCESS_STATUS_OPEN
+                ),
+                file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
+                    file_constants.ACCESS_STATUS_OPEN
                 )
             },
             IPSC: {
@@ -480,6 +483,9 @@ class FileRelease:
                 ),
                 file_constants.DATA_CATEGORY_REFERENCE_CONVERSION: (
                     file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
+                    file_constants.ACCESS_STATUS_OPEN
                 )
             },
             self.TISSUE: {
@@ -497,6 +503,9 @@ class FileRelease:
                 ),
                 file_constants.DATA_CATEGORY_REFERENCE_CONVERSION: (
                     file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
+                    file_constants.ACCESS_STATUS_OPEN
                 )
             },
         }
@@ -504,6 +513,10 @@ class FileRelease:
             "colo829bl",
             "colo829t",
             "colo829blt_50to1",
+            "colo829blt_in_silico",
+            "colo829_snv_indel_challenge_data",
+            "hapmap_snv_indel_challenge_data",
+            "mei_detection_challenge_data",
             "hapmap",
             "hg002",
             "hg00438",
@@ -520,6 +533,7 @@ class FileRelease:
             "lb_ipsc_4",
             "lb_ipsc_52",
             "lb_ipsc_60",
+            "ipsc_snv_indel_challenge_data",
         ]:
             dataset_category = IPSC
         elif dataset == self.TISSUE:
