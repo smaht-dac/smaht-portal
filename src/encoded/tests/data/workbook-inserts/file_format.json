@@ -80,5 +80,16 @@
             "ReferenceFile",
             "SupplementaryFile"
         ]
+    },
+    {
+        "uuid": "c3e54d5f-647c-4ca2-9b21-5c01caa3f691",
+        "submission_centers": [
+            "smaht"
+        ],
+        "identifier": "GTF",
+        "standard_file_extension": "gtf",
+        "valid_item_types": [
+            "ReferenceFile"
+        ]
     }
 ]

@@ -7,8 +7,9 @@ smaht-portal
 Change Log
 ----------
 
-0.118.0
+0.119.0
 =======
+
 * 2024-11-20/dmichaels - branch: dmichaels-20241119-browse-view (PR-295)
 
 * Added module browse.py for /browse; adapted from fourfront/.../search.py/browse.
@@ -30,6 +31,14 @@ Change Log
   - src/encoded/elasticsearch_utils.py (maybe move to dcicutils eventually)
   - src/encoded/endpoint_utils.py (maybe move to dcicutils eventually)
   This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1192
+
+
+0.118.0
+=======
+`PR 303 SN Rnaseq filenames <https://github.com/smaht-dac/smaht-portal/pull/303>`
+
+* Make `annotation` link in OutputFile an array of links to ReferenceFile
+* Add `code` property to ReferenceFile
 
 
 0.117.1

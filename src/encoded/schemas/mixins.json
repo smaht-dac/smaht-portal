@@ -74,6 +74,17 @@
             }
         }
     },
+    "annotation": {
+        "annotation": {
+            "title": "Gene Annotation",
+            "description": "Gene annotation used for analysis",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "ReferenceFile"
+            }
+        }
+    },
     "attachment": {
         "attachment": {
             "title": "Attached File",
