@@ -751,6 +751,23 @@ h2.browse-summary-header {
 	font-weight: 600;
 }
 
+div.browse-body {
+	@include media-breakpoint-down(lg) {
+		padding-top: 1rem;
+		padding-bottom: 1rem;
+	}
+
+	@include media-breakpoint-between(md,lg) {
+		padding-left: 2.9rem;
+		padding-right: 2.9rem;
+	}
+
+	@include media-breakpoint-down(md) {
+		padding-left: 2rem;
+		padding-right: 2rem;
+	}
+}
+
 div.browse-summary {
 	background-color: #F9FCFF;
 	border: 1px solid #70A3E2;
@@ -777,6 +794,7 @@ div.browse-summary {
 h3.browse-links-header,
 div.browse-links {
 	margin-left: 10px;
+	margin-right: 20px;
 }
 
 h3.browse-links-header {

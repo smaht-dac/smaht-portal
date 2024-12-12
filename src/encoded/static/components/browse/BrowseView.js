@@ -171,7 +171,7 @@ export class BrowseViewBody extends React.PureComponent {
                             <BrowseLink type="Assay" disabled />
                         </div>
                     </div>
-                    <div>
+                    <div className="browse-body">
                         <h2 className="browse-summary-header">
                             SMaHT Data Summary
                         </h2>
