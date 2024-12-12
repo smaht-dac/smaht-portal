@@ -573,9 +573,9 @@ def print_normalized_aggregation_results(data: dict,
 
         def print_hit_property_values(hit: dict, property_name: str,
                                       label: Optional[str] = None, prefix: Optional[str] = None) -> None:
-            nonlocal aggregation_fields, chars_dot_hollow
+            nonlocal verbose, aggregation_fields, chars_dot_hollow, verbose
             if property_values := format_hit_property_values(hit, property_name):
-                if not label:
+                if (verbose is True) or (not label):
                     label = property_name
                 property_description = f"{prefix or ''}{chars_dot_hollow} {label}: {property_values}"
                 if property_name not in aggregation_fields:
