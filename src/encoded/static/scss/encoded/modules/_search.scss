@@ -44,8 +44,12 @@ $facetlist-excluding: #450000;
 	&[data-field="data_category"],
 	&[data-field="file_sets.assay.display_title"],
 	&[data-field="file_sets.sequencing.sequencer.display_title"],
+	&[data-field="file_sets.libraries.assay.display_title"],
 	&[data-field="file_format.display_title"],
 	&[data-field="software.name"],
+	&[data-field="software.display_title"],
+	&[data-field="sample_sources"],
+	&[data-field="donors"],
 	&[data-field="submission_centers.display_title"] {
 		// embedded search tables
 		> .inner,
