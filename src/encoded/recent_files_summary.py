@@ -560,7 +560,7 @@ def print_normalized_aggregation_results(normalized_results: dict,
 
         def format_hit_property_values(hit: dict, property_name: str,
                                        color: Optional[Callable] = None) -> Optional[str]:
-            nonlocal parent_grouping_name, parent_grouping_value, green, green_bold
+            nonlocal parent_grouping_name, parent_grouping_value, green, green_bold, chars_larrow_hollow
             if property_value := hit.get(property_name):
                 if property_name == parent_grouping_name:
                     property_values = []
@@ -574,7 +574,7 @@ def print_normalized_aggregation_results(normalized_results: dict,
                 elif hit.get("elasticsearch_counted") is False:
                     counted_grouping_name, counted_grouping_value = find_where_aggregated_and_counted(hit.get("uuid"))
                     if (counted_grouping_name == property_name) and (counted_grouping_value == property_value):
-                        property_value = green(property_value)
+                        property_value = green(f"{property_value} {chars_larrow_hollow} COUNTED HERE")
             return property_value
 
         def find_where_aggregated_and_counted(uuid: str) -> Tuple[str, str]:
@@ -678,5 +678,6 @@ def print_normalized_aggregation_results(normalized_results: dict,
     chars_dot_hollow = "◦"
     chars_diamond = "❖"
     chars_rarrow_hollow = "▷"
+    chars_larrow_hollow = "◁"
 
     print_results(normalized_results)
