@@ -77,7 +77,7 @@
     "annotation": {
         "annotation": {
             "title": "Gene Annotation",
-            "description": "Gene annotation used for gene or transcript quantification",
+            "description": "Gene annotation used for analysis",
             "type": "array",
             "items": {
                 "type": "string",
