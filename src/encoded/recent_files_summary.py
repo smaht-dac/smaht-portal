@@ -75,6 +75,7 @@ def recent_files_summary(request: PyramidRequest) -> dict:
     nomixtures = request_arg_bool(request, "nomixtures", request_arg_bool(request, "nomixture"))
     nodonors = request_arg_bool(request, "nodonors", request_arg_bool(request, "nodonor"))
     favor_donor = request_arg_bool(request, "favor_donor")
+    multi = request_arg_bool(request, "multi")
     nosort = request_arg_bool(request, "nosort")
     legacy = request_arg_bool(request, "legacy")
     debug = request_arg_bool(request, "debug")
@@ -160,7 +161,7 @@ def recent_files_summary(request: PyramidRequest) -> dict:
             return {}
 
         def create_field_aggregation(field: str) -> Optional[dict]:  # noqa
-            nonlocal aggregation_field_grouping_cell_or_donor, date_property_name
+            nonlocal aggregation_field_grouping_cell_or_donor, date_property_name, multi
             if field == date_property_name:
                 return {
                     "date_histogram": {
@@ -179,11 +180,34 @@ def recent_files_summary(request: PyramidRequest) -> dict:
                 for aggregation_field_grouping_index in range(len(aggregation_field_grouping_cell_or_donor)):
                     aggregation_field = aggregation_field_grouping_cell_or_donor[aggregation_field_grouping_index]
                     if_or_else_if = "if" if aggregation_field_grouping_index == 0 else "else if"
-                    script += f"""
-                        {if_or_else_if} (doc['embedded.{aggregation_field}.raw'].size() > 0) {{
-                            return '{aggregation_field}:' + doc['embedded.{aggregation_field}.raw'].value;
-                        }}
-                    """
+                    # Note that if there are multiple values for the aggregation field just the "first" one will be chosen;
+                    # where "first" means which was indexed first, which from an application POV is kind of arbitrary.
+                    # If we want to make it more deterministic we could order the results (say) alphabetically like so: 
+                    #   def value = doc['embedded.{aggregation_field}.raw'].stream().min((a, b) -> a.compareTo(b)).get();
+                    #   return '{aggregation_field}:' + value;
+                    # OR, if we actually want to aggregation on ALL values we could collect the results and return all like so:
+                    #   def values = [];
+                    #   for (value in doc['embedded.{aggregation_field}.raw']) {
+                    #       values.add('{aggregation_field}:' + value);
+                    #   }
+                    #   return values;
+                    # But then we'd get double counting and so on. We are told in any case that these groups should be distinct.
+                    if not multi:
+                        script += f"""
+                            {if_or_else_if} (doc['embedded.{aggregation_field}.raw'].size() > 0) {{
+                                return '{aggregation_field}:' + doc['embedded.{aggregation_field}.raw'].value;
+                            }}
+                        """
+                    else:
+                        script += f"""
+                            {if_or_else_if} (doc['embedded.{aggregation_field}.raw'].size() > 0) {{
+                                def values = [];
+                                for (value in doc['embedded.{aggregation_field}.raw']) {{
+                                    values.add('{aggregation_field}:' + value);
+                                }}
+                                return values;
+                            }}
+                        """
                 script += f"""
                     else {{
                         return 'unknown';
@@ -585,6 +609,10 @@ def print_normalized_aggregation_results(normalized_results: dict,
         def format_hit_property_values(hit: dict, property_name: str,
                                        color: Optional[Callable] = None) -> Optional[str]:
             nonlocal parent_grouping_name, parent_grouping_value, green, green_bold, chars_larrow_hollow
+            if hit.get("elasticsearch_counted") is False:
+                counted_grouping_name, counted_grouping_value = find_where_aggregated_and_counted(hit.get("uuid"))
+            else:
+                counted_grouping_name, counted_grouping_value = (None, None)
             if property_value := hit.get(property_name):
                 if property_name == parent_grouping_name:
                     property_values = []
@@ -593,7 +621,11 @@ def print_normalized_aggregation_results(normalized_results: dict,
                             property_value = color(property_value) if callable(color) else green_bold(property_value)
                             property_values.append(property_value)
                         else:
-                            property_values.append(property_value)
+                            if (counted_grouping_name, counted_grouping_value) == (property_name, property_value):
+                                property_values.append(green_bold(f"{property_value} {chars_larrow_hollow}") +
+                                                       green(" COUNTED HERE"))
+                            else:
+                                property_values.append(property_value)
                     property_value = ", ".join(property_values)
                 elif hit.get("elasticsearch_counted") is False:
                     counted_grouping_name, counted_grouping_value = find_where_aggregated_and_counted(hit.get("uuid"))
@@ -670,7 +702,7 @@ def print_normalized_aggregation_results(normalized_results: dict,
                     if isinstance(subcount_item := item.get("count"), int):
                         subcount += subcount_item
                 if subcount != count:
-                    note = f" {chars_xmark}"
+                    note = red(f" {chars_xmark} ACTUAL COUNT: {subcount}")
                 elif checks is True:
                     note = f" {chars_check}"
             elif checks:
