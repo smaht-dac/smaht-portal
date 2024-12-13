@@ -1526,7 +1526,7 @@ UsageStatsView.titleMap = {
         'file_list_views_by_assay_type': ['File Appearances In Search Results', 'by assay type', 'Assay Type'],
         'file_list_views_by_dataset': ['File Appearances In Search Results', 'by sample type', 'Sample Type'],
         'file_clicks_by_file_type': ['File Search Result Clicks', 'by file type', 'File Type'],
-        'file_clicks_by_assay_type': ['File Search Result Clicks', 'by assay type', 'File Type'],
+        'file_clicks_by_assay_type': ['File Search Result Clicks', 'by assay type', 'Assay Type'],
         'file_clicks_by_dataset': ['File Search Result Clicks', 'by sample type', 'Sample Type'],
         'file_detail_views_by_file_type': ['File Overview Page Views', 'by file type', 'File Type'],
         'file_detail_views_by_assay_type': ['File Overview Page Views', 'by assay type', 'Assay Type'],
