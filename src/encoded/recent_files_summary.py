@@ -1,4 +1,4 @@
-import pyramid
+from pyramid.request import Request as PyramidRequest
 from copy import deepcopy
 from typing import Callable, List, Optional, Tuple
 from dcicutils.misc_utils import normalize_spaces
@@ -37,7 +37,7 @@ AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR = [
 
 BASE_SEARCH_QUERY = "/search/"
 
-def recent_files_summary(request: pyramid.request.Request) -> dict:
+def recent_files_summary(request: PyramidRequest) -> dict:
     """
     This supports the (new as of 2024-12)  /recent_files_summary endpoint (for C4-1192) to return,
     by default, info for files released withing the past three months grouped by release-date,
@@ -102,7 +102,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
             aggregation_field_grouping_cell_or_donor.insert(0, AGGREGATION_FIELD_DONOR)
         return aggregation_field_grouping_cell_or_donor
 
-    def create_base_query_arguments(request: pyramid.request.Request) -> dict:
+    def create_base_query_arguments(request: PyramidRequest) -> dict:
 
         global QUERY_FILE_CATEGORIES, QUERY_FILE_STATUSES, QUERY_FILE_TYPES
 
@@ -118,7 +118,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
         return {key: value for key, value in base_query_arguments.items() if value is not None}
 
-    def create_query(request: pyramid.request.Request, base_query_arguments: Optional[dict] = None) -> str:
+    def create_query_arguments(request: PyramidRequest, base_query_arguments: Optional[dict] = None) -> str:
 
         global BASE_SEARCH_QUERY, QUERY_RECENT_MONTHS, QUERY_INCLUDE_CURRENT_MONTH
         nonlocal date_property_name
@@ -138,7 +138,9 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
         if isinstance(base_query_arguments, dict):
             query_arguments = {**base_query_arguments, **query_arguments}
+        return query_arguments
 
+    def create_query(query_arguments: Optional[dict] = None) -> str:
         return f"{BASE_SEARCH_QUERY}?{create_query_string(query_arguments)}"
 
     def create_aggregation_query(aggregation_fields: List[str]) -> dict:
@@ -250,7 +252,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
         return aggregation_query[date_property_name]
 
-    def execute_aggregation_query(request: pyramid.request.Request, query: str, aggregation_query: dict) -> str:
+    def execute_aggregation_query(request: PyramidRequest, query: str, aggregation_query: dict) -> str:
         query += "&from=0&limit=0"  # needed for aggregation query to not return the actual/individual item results.
         request = snovault_make_search_subreq(request, path=query, method="GET")
         results = snovault_search(None, request, custom_aggregations=aggregation_query)
@@ -297,7 +299,8 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
     aggregation_field_grouping_cell_or_donor = get_aggregation_field_grouping_cell_or_donor()
     base_query_arguments = create_base_query_arguments(request)
-    query = create_query(request, base_query_arguments)
+    query_arguments = create_query_arguments(request, base_query_arguments)
+    query = create_query(query_arguments)
 
     if not legacy:
         aggregate_by_cell_line_property_name = "aggregate_by_cell_line"
@@ -328,7 +331,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         }
 
     if debug_query:
-        return {"query": query, "aggregation_query": aggregation_query}
+        return {"query": query, "query_arguments": query_arguments, "aggregation_query": aggregation_query}
 
     raw_results = execute_aggregation_query(request, query, aggregation_query)
 
@@ -398,6 +401,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         additional_properties = {
             "debug": {
                 "query": query,
+                "query_arguments": query_arguments,
                 "aggregation_query_fields": [
                     AGGREGATION_FIELD_RELEASE_DATE,
                     *get_aggregation_field_grouping_cell_or_donor(),
@@ -433,7 +437,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     return normalized_results
 
 
-def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.request.Request) -> None:
+def add_info_for_troubleshooting(normalized_results: dict, request: PyramidRequest) -> None:
 
     def get_files(files, property_name, property_value, map_property_value = None):
         found = []

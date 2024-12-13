@@ -1,17 +1,17 @@
 import calendar
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
-import pyramid
+from pyramid.request import Request as PyramidRequest
 from typing import Any, List, Optional, Tuple, Union
 from urllib.parse import urlencode
 from dcicutils.datetime_utils import parse_datetime_string as dcicutils_parse_datetime_string
 
 
-def request_arg(request: pyramid.request.Request, name: str, fallback: Optional[str] = None) -> Optional[str]:
+def request_arg(request: PyramidRequest, name: str, fallback: Optional[str] = None) -> Optional[str]:
     return str(value).strip() if (value := request.params.get(name, None)) is not None else fallback
 
 
-def request_arg_int(request: pyramid.request.Request, name: str, fallback: Optional[int] = 0) -> Optional[Any]:
+def request_arg_int(request: PyramidRequest, name: str, fallback: Optional[int] = 0) -> Optional[Any]:
     if (value := request_arg(request, name)) is not None:
         try:
             return int(value)
@@ -20,11 +20,11 @@ def request_arg_int(request: pyramid.request.Request, name: str, fallback: Optio
     return fallback
 
 
-def request_arg_bool(request: pyramid.request.Request, name: str, fallback: Optional[bool] = False) -> Optional[bool]:
+def request_arg_bool(request: PyramidRequest, name: str, fallback: Optional[bool] = False) -> Optional[bool]:
     return fallback if (value := request_arg(request, name)) is None else (value.lower() == "true")
 
 
-def request_args(request: pyramid.request.Request,
+def request_args(request: PyramidRequest,
                  name: str, fallback: Optional[str] = None, duplicates: bool = False) -> List[str]:
     args = []
     if isinstance(value := request.params.getall(name), list):
@@ -70,7 +70,22 @@ def parse_date_range_related_arguments(
     nmonths arguments represents a non-zero integer, in which case the returned from/thru dates will represent
     the past (absolute value) nmonths months starting with the month previous to the month of "today"; however
     if the include_current_month is True it is rather the past nmonths starting with the month of "today".
+
+    FYI WRT smaht-portal/elasticsearch behavior and dates, when using a query like date_created.from=2024-11-01
+    and date_created.to=2024-10-31, what is actually passed to the elasticsearch filter/range query looks like:
+
+        "range": {
+            "date_created": {
+                "gte": "2024-10-31 00:00",
+                "lte": "lte": "2024-12-31 23:59"
+            }
+        }
+
+    I.e. so the "from" date is from the very BEGINNING of the date/day (00:00) and and greater-than-or-EQUAL
+    to and the "thru" date is thru the very END of the date/day (23:59). This is actually done by the method
+    snovault.search.lucene_builder.LuceneBuilder.handle_range_filters.
     """
+    include_current_month = include_current_month is True
     from_date = parse_datetime_string(from_date, notz=True)
     thru_date = parse_datetime_string(thru_date, last_day_of_month_if_no_day=True, notz=True)
     if not isinstance(nmonths, int):
@@ -93,14 +108,16 @@ def parse_date_range_related_arguments(
                 from_date = _add_months(thru_date, nmonths)
             elif nmonths == 0:
                 from_date = _get_first_date_of_month(thru_date)
-    elif isinstance(nmonths, int) and ((nmonths := abs(nmonths)) != 0):
+    elif ((nmonths := abs(nmonths)) != 0) or include_current_month:
         # If no (valid) from/thru dates given, but the absolute value of nmonths is a non-zero integer, then returns
         # from/thru dates for the last nmonths month ending with the last day of month previous to the current month.
         # thru_date = _add_months(_get_last_date_of_month(), -1)
         thru_date = _get_last_date_of_month()
-        if include_current_month is not True:
+        if not include_current_month:
             thru_date = _add_months(thru_date, -1)
+            nmonths -= 1
         from_date = _add_months(thru_date, -nmonths)
+        from_date = _get_first_date_of_month(from_date)
     if strings is True:
         return (from_date.strftime(f"%Y-%m-%d") if from_date else None,
                 thru_date.strftime(f"%Y-%m-%d") if thru_date else None)
