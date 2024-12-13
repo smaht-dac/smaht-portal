@@ -1233,25 +1233,27 @@ export function UsageStatsView(props){
     if (countBy.top_file_downloads && countBy.top_file_downloads.indexOf('top_files_') === 0) {
         topFilesLimit = parseInt(countBy.top_file_downloads.substring('top_files_'.length));
     }
+    const termColHeader = (mapKey) => UsageStatsView.titleMap[mapKey][countBy[mapKey]][2];
+    const settingsCls = "settings-label d-inline-block me-3 mb-2 pt-08";
 
     return (
         <div className="stats-charts-container" key="charts" id="usage">
 
             <GroupByDropdown {...{ groupByOptions, loadingStatus, handleGroupByChange, currentGroupBy }}
                 groupByTitle="Show" outerClassName={"dropdown-container mb-0" + (isSticky ? " sticky-top" : "")}>
-                <div className="settings-label d-inline-block me-15 pt-08">
+                <div className={settingsCls}>
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle} data-tip="Toggle between smooth/sharp edges">Smooth Edges</Checkbox>
                 </div>
-                <div className="settings-label d-inline-block me-3 mb-2 pt-08">
+                <div className={settingsCls}>
                     <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle} data-tip="Show as cumulative sum">Cumulative Sum</Checkbox>
                 </div>
-                <div className="settings-label d-inline-block me-3 mb-2 pt-08">
+                <div className={settingsCls}>
                     <Checkbox checked={transposed} onChange={() => setTransposed(!transposed)} data-tip="Transpose data table">Transpose Data</Checkbox>
                 </div>
-                <div className="settings-label d-inline-block me-3 mb-2 pt-08">
+                <div className={settingsCls}>
                     <Checkbox checked={hideEmptyColumns} onChange={() => setHideEmptyColumns(!hideEmptyColumns)} data-tip="Hide empty data table columns">Hide Empty Columns</Checkbox>
                 </div>
-                <div className="settings-label d-inline-block me-3 mb-2 pt-08">
+                <div className={settingsCls}>
                     <Checkbox checked={highContrast} onChange={() => setHighContrast(!highContrast)} data-tip="Toggle high contrast color scheme">High Contrast</Checkbox>
                 </div>
                 <div className="settings-label d-block d-md-inline-block pt-08">
@@ -1301,7 +1303,7 @@ export function UsageStatsView(props){
                         <StatisticsTable data={file_downloads}
                             key={'dt_file_downloads'}
                             {...commonTableProps}
-                            termColText={UsageStatsView.titleMap['file_downloads'][countBy['file_downloads']][2]} //refactor this code
+                            termColHeader={termColHeader('file_downloads')}
                             containerId="content_file_downloads" />
                     }
 
@@ -1350,6 +1352,7 @@ export function UsageStatsView(props){
                         <StatisticsTable data={top_file_set_downloads}
                             key={'dt_top_file_set_downloads'}
                             {...commonTableProps}
+                            termColHeader="File Set"
                             containerId="content_top_file_set_downloads"
                             limit={topFileSetLimit} excludeNones={true} />
                     }
@@ -1367,6 +1370,7 @@ export function UsageStatsView(props){
                             key={'dt_top_file_set_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
+                            termColHeader="File Set"
                             containerId="content_top_file_set_downloads_volume"
                             limit={topFileSetLimit} excludeNones={true} />
                     }
@@ -1399,6 +1403,7 @@ export function UsageStatsView(props){
                         <StatisticsTable data={top_file_downloads} 
                             key={'dt_top_file_downloads'}
                             {...commonTableProps}
+                            termColHeader="File"
                             containerId="content_top_file_downloads"
                             limit={topFilesLimit} excludeNones={true} />
                     }
@@ -1418,6 +1423,7 @@ export function UsageStatsView(props){
                             key={'dt_top_file_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
+                            termColHeader="File"
                             containerId="content_top_file_downloads_volume"
                             limit={topFilesLimit} excludeNones={true} />
                     }
@@ -1448,6 +1454,7 @@ export function UsageStatsView(props){
                         <StatisticsTable data={file_views} 
                             key={'dt_file_views'}
                             {...commonTableProps}
+                            termColHeader={termColHeader('file_views')}
                             containerId="content_file_views" />
                     }
 
@@ -1478,6 +1485,7 @@ export function UsageStatsView(props){
                         <StatisticsTable data={sessions_by_country} 
                             key={'dt_sessions_by_country'}
                             {...commonTableProps}
+                            termColHeader={termColHeader('sessions_by_country')}
                             containerId="content_sessions_by_country" />
                     }
 
@@ -1514,25 +1522,25 @@ export function UsageStatsView(props){
 UsageStatsView.titleMap = {
     'file_views': {
         'metadata_tsv_by_country': ['Total Files In Metadata.tsv', 'by location'],
-        'file_list_views_by_file_type': ['File Appearances In Search Results', 'by file type'],
-        'file_list_views_by_assay_type': ['File Appearances In Search Results', 'by assay type'],
-        'file_list_views_by_dataset': ['File Appearances In Search Results', 'by sample type'],
-        'file_clicks_by_file_type': ['File Search Result Clicks', 'by file type'],
-        'file_clicks_by_assay_type': ['File Search Result Clicks', 'by assay type'],
-        'file_clicks_by_dataset': ['File Search Result Clicks', 'by sample type'],
-        'file_detail_views_by_file_type': ['File Overview Page Views', 'by file type'],
-        'file_detail_views_by_assay_type': ['File Overview Page Views', 'by assay type'],
-        'file_detail_views_by_dataset': ['File Overview Page Views', 'by sample type'],
-        'file_detail_views_by_sequencer': ['File Overview Page Views', 'by sequencing platform'],
+        'file_list_views_by_file_type': ['File Appearances In Search Results', 'by file type', 'File Type'],
+        'file_list_views_by_assay_type': ['File Appearances In Search Results', 'by assay type', 'Assay Type'],
+        'file_list_views_by_dataset': ['File Appearances In Search Results', 'by sample type', 'Sample Type'],
+        'file_clicks_by_file_type': ['File Search Result Clicks', 'by file type', 'File Type'],
+        'file_clicks_by_assay_type': ['File Search Result Clicks', 'by assay type', 'File Type'],
+        'file_clicks_by_dataset': ['File Search Result Clicks', 'by sample type', 'Sample Type'],
+        'file_detail_views_by_file_type': ['File Overview Page Views', 'by file type', 'File Type'],
+        'file_detail_views_by_assay_type': ['File Overview Page Views', 'by assay type', 'Assay Type'],
+        'file_detail_views_by_dataset': ['File Overview Page Views', 'by sample type', 'Sample Type'],
+        'file_detail_views_by_sequencer': ['File Overview Page Views', 'by sequencing platform', 'Sequencing Platform'],
     },
     'sessions_by_country': {
-        'views_by_country': ['Page Views', 'by country'],
-        'views_by_city': ['Page Views', 'by city'],
-        'sessions_by_country': ['Unique Users', 'by country'],
-        'sessions_by_city': ['Unique Users', 'by city'],
-        'device_category': ['Page Views', 'by device category'],
-        'page_title': ['Page Views', 'by page title'],
-        'page_url': ['Page Views', 'by page url']
+        'views_by_country': ['Page Views', 'by country', 'Country'],
+        'views_by_city': ['Page Views', 'by city', 'City'],
+        'sessions_by_country': ['Unique Users', 'by country', 'Country'],
+        'sessions_by_city': ['Unique Users', 'by city', 'City'],
+        'device_category': ['Page Views', 'by device category', 'Device Category'],
+        'page_title': ['Page Views', 'by page title', 'Page Title'],
+        'page_url': ['Page Views', 'by page url', 'Page Url']
     },
     'file_downloads': {
         'assay_type': ['File Downloads', 'by assay type', 'Assay Type (number of download attempts)'],
@@ -1608,7 +1616,7 @@ export function SubmissionsStatsView(props) {
         currentGroupBy, groupByOptions, handleGroupByChange,
         currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeOptions, handleDateRangeChange, loadingStatus
     };
-    const invalidDateRange = currentDateRangeFrom && currentDateRangeTo && currentDateRangeFrom > currentDateRangeTo;
+    const error = currentDateRangeFrom && currentDateRangeTo && (currentDateRangeFrom > currentDateRangeTo) ? 'Invalid date range' : null;
 
     return (
         <div className="stats-charts-container" key="charts" id="submissions">
@@ -1630,14 +1638,14 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="files_uploading"
                     title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_uploading} />}
+                    subTitle={<ChartSubTitle error={error} data={files_uploading} />}
                     hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={files_uploading} />
                 </AreaChartContainer>
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_uploading"
                     title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_uploading} />}
+                    subTitle={<ChartSubTitle error={error} data={file_volume_uploading} />}
                     hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={file_volume_uploading} yAxisLabel="GB" />
                 </AreaChartContainer>
@@ -1652,14 +1660,14 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="files_uploaded"
                     title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_uploaded} />}
+                    subTitle={<ChartSubTitle error={error} data={files_uploaded} />}
                     hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={files_uploaded} />
                 </AreaChartContainer>
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_uploaded"
                     title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_uploaded} />}
+                    subTitle={<ChartSubTitle error={error} data={file_volume_uploaded} />}
                     hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={file_volume_uploaded} yAxisLabel="GB" />
                 </AreaChartContainer>
@@ -1675,14 +1683,14 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="files_released"
                     title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_released} />}
+                    subTitle={<ChartSubTitle error={error} data={files_released} />}
                     hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={files_released} />
                 </AreaChartContainer>
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_released"
                     title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_released} />}
+                    subTitle={<ChartSubTitle error={error} data={file_volume_released} />}
                     hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={file_volume_released} yAxisLabel="GB" />
                 </AreaChartContainer>
@@ -1767,9 +1775,9 @@ const convertDataRangeToXDomain = memoize(function (rangePreset = 'all', rangeFr
     return [firstWeekdayFrom, to];
 });
 
-const ChartSubTitle = memoize(function ({ title, data, invalidDateRange }) {
-    if (invalidDateRange === true) {
-        return <h4 className="fw-normal text-secondary">Invalid date range</h4>;
+const ChartSubTitle = memoize(function ({ title, data, error }) {
+    if (error) {
+        return <h4 className="fw-normal text-secondary">{error}</h4>;
     }
     if (!data || (Array.isArray(data) && data.length === 0)) {
         return <h4 className="fw-normal text-secondary">No data to display</h4>;
@@ -1797,7 +1805,7 @@ const ChartContainerTitle = function ({ titleMap, countBy, chartKey }) {
  */
 const StatisticsTable = React.memo((props) => {
     const {
-        data, termColText = null, valueLabel = null, session, schemas, containerId = '', 
+        data, termColHeader = null, valueLabel = null, session, schemas, containerId = '', 
         href, dateRoundInterval, transposed = false, windowWidth, cumulativeSum, hideEmptyColumns,
         limit = 0, excludeNones = false // limit and excludeNones are evaluated for only transposed data
      } = props;
@@ -1848,7 +1856,7 @@ const StatisticsTable = React.memo((props) => {
         // date or term column based on transposed or not
         let cols = {
             'display_title': {
-                title: transposed ? (termColText || 'Term') : 'Date',
+                title: transposed ? (termColHeader || 'Term') : 'Date',
                 type: 'string',
                 noSort: true,
                 widthMap: transposed ? { 'lg': 400, 'md': 200, 'sm': 200 } : { 'lg': 200, 'md': 200, 'sm': 200 },
