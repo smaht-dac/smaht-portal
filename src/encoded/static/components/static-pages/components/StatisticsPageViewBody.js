@@ -1298,9 +1298,10 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.file_downloads &&
-                        <StatisticsDataTable data={file_downloads}
+                        <StatisticsTable data={file_downloads}
                             key={'dt_file_downloads'}
                             {...commonTableProps}
+                            termColText={UsageStatsView.titleMap['file_downloads'][countBy['file_downloads']][2]} //refactor this code
                             containerId="content_file_downloads" />
                     }
 
@@ -1313,7 +1314,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.file_downloads_volume &&
-                        <StatisticsDataTable data={file_downloads_volume}
+                        <StatisticsTable data={file_downloads_volume}
                             key={'dt_file_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
@@ -1346,7 +1347,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.top_file_set_downloads &&
-                        <StatisticsDataTable data={top_file_set_downloads}
+                        <StatisticsTable data={top_file_set_downloads}
                             key={'dt_top_file_set_downloads'}
                             {...commonTableProps}
                             containerId="content_top_file_set_downloads"
@@ -1362,7 +1363,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.top_file_set_downloads_volume &&
-                        <StatisticsDataTable data={top_file_set_downloads_volume}
+                        <StatisticsTable data={top_file_set_downloads_volume}
                             key={'dt_top_file_set_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
@@ -1395,7 +1396,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.top_file_downloads &&
-                        <StatisticsDataTable data={top_file_downloads} 
+                        <StatisticsTable data={top_file_downloads} 
                             key={'dt_top_file_downloads'}
                             {...commonTableProps}
                             containerId="content_top_file_downloads"
@@ -1413,7 +1414,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.top_file_downloads_volume &&
-                        <StatisticsDataTable data={top_file_downloads_volume} 
+                        <StatisticsTable data={top_file_downloads_volume} 
                             key={'dt_top_file_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
@@ -1444,7 +1445,7 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.file_views &&
-                        <StatisticsDataTable data={file_views} 
+                        <StatisticsTable data={file_views} 
                             key={'dt_file_views'}
                             {...commonTableProps}
                             containerId="content_file_views" />
@@ -1474,7 +1475,7 @@ export function UsageStatsView(props){
 
 
                     {chartToggles.table?.sessions_by_country &&
-                        <StatisticsDataTable data={sessions_by_country} 
+                        <StatisticsTable data={sessions_by_country} 
                             key={'dt_sessions_by_country'}
                             {...commonTableProps}
                             containerId="content_sessions_by_country" />
@@ -1534,10 +1535,10 @@ UsageStatsView.titleMap = {
         'page_url': ['Page Views', 'by page url']
     },
     'file_downloads': {
-        'assay_type': ['File Downloads', 'by assay type'],
-        'filetype': ['File Downloads', 'by file type'],
-        'dataset': ['File Downloads', 'by sample type'],
-        'sequencer': ['File Downloads', 'by sequencing platform']
+        'assay_type': ['File Downloads', 'by assay type', 'Assay Type (number of download attempts)'],
+        'filetype': ['File Downloads', 'by file type', 'File Type (number of download attempts)'],
+        'dataset': ['File Downloads', 'by sample type', 'Sample Type (number of download attempts)'],
+        'sequencer': ['File Downloads', 'by sequencing platform', 'Sequencing Platform (number of download attempts)']
     },
     'top_file_downloads': {
         'top_files_10': ['Top File Downloads', 'top 10'],
@@ -1794,9 +1795,9 @@ const ChartContainerTitle = function ({ titleMap, countBy, chartKey }) {
 /**
  * converts aggregates to SearchView-compatible context objects and displays in table
  */
-const StatisticsDataTable = React.memo((props) => {
+const StatisticsTable = React.memo((props) => {
     const {
-        data, valueLabel = null, session, schemas, containerId = '', 
+        data, termColText = null, valueLabel = null, session, schemas, containerId = '', 
         href, dateRoundInterval, transposed = false, windowWidth, cumulativeSum, hideEmptyColumns,
         limit = 0, excludeNones = false // limit and excludeNones are evaluated for only transposed data
      } = props;
@@ -1847,7 +1848,7 @@ const StatisticsDataTable = React.memo((props) => {
         // date or term column based on transposed or not
         let cols = {
             'display_title': {
-                title: transposed ? 'Term' : 'Date',
+                title: transposed ? (termColText || 'Term') : 'Date',
                 type: 'string',
                 noSort: true,
                 widthMap: transposed ? { 'lg': 400, 'md': 200, 'sm': 200 } : { 'lg': 200, 'md': 200, 'sm': 200 },
@@ -1962,7 +1963,7 @@ const StatisticsDataTable = React.memo((props) => {
     const modalProps = {
         ...{ dateRoundInterval, schemas },
         forDate: modalForDate,
-        onTrackingItemViewerCancel: () => setShowModal(false)
+        onHide: () => setShowModal(false)
     };
 
     return (
@@ -1974,16 +1975,16 @@ const StatisticsDataTable = React.memo((props) => {
                     </SortController>
                 </CustomColumnController>
             </div>
-            {showModal && <TrackingItemViewerModal {...modalProps} />}
+            {showModal && <TrackingItemViewer {...modalProps} />}
         </React.Fragment>
     );
 });
 
 /**
- * displays relevant tracking item (fetched via ajax call) in item detail list
+ * displays tracking item ajax-fetched in ItemDetailList
  */
-const TrackingItemViewerModal = React.memo(function (props) {
-    const { schemas, forDate, dateRoundInterval='day', reportName, onTrackingItemViewerCancel } = props;
+const TrackingItemViewer = React.memo(function (props) {
+    const { schemas, forDate, dateRoundInterval='day', reportName, onHide } = props;
 
     const [isLoading, setIsLoading] = useState(true);
     const [trackingItem, setTrackingItem] = useState();
@@ -2012,7 +2013,7 @@ const TrackingItemViewerModal = React.memo(function (props) {
     }, [forDate, dateRoundInterval, reportName]);
 
     return (
-        <Modal show size="xl" onHide={onTrackingItemViewerCancel} className="tracking-item-viewer">
+        <Modal show size="xl" onHide={onHide} className="tracking-item-viewer">
             <Modal.Header closeButton>
                 <Modal.Title>{forDate}</Modal.Title>
             </Modal.Header>
@@ -2027,7 +2028,7 @@ const TrackingItemViewerModal = React.memo(function (props) {
         </Modal>
     );
 });
-TrackingItemViewerModal.propTypes = {
+TrackingItemViewer.propTypes = {
     forDate: PropTypes.string.isRequired,
     dateRoundInterval: PropTypes.oneOf(['daily', 'monthly']),
     onTrackingItemViewerCancel: PropTypes.func.isRequired,
