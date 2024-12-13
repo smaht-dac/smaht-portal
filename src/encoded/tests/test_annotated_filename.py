@@ -469,7 +469,7 @@ def test_get_donor_sex_and_age_parts(
 
 
 SOME_FILE = {"data_category": ["Aligned Reads"]}
-REFERENCE_FILE = {"data_category": ["Reference Genome"]}
+REFERENCE_FILE = {"data_category": ["Genome Assembly"]}
 SEQUENCER_CODE = "A"
 SOME_SEQUENCER = {"code": SEQUENCER_CODE}
 ANOTHER_SEQUENCER = {"code": "B"}
@@ -557,14 +557,15 @@ SOME_CHAIN_FILE = {
     "target_assembly":  REFERENCE_GENOME_CODE
 }
 SOME_FASTA_FILE = {
-    "data_type": ["Reference Sequence"],
+    "data_type": ["Genome Sequence"],
+    "data_category": ["Genome Assembly"],
     "donor_specific_assembly": "Some_DSA",
     "haplotype": HAPLOTYPE_CODE
 }
 
 ANOTHER_FASTA_FILE = {
     "data_category": ["Genome Assembly"],
-    "data_type": ["Reference Sequence"],
+    "data_type": ["Genome Sequence"],
 }
 SOME_TSV_FILE = {
     "data_type": ["Gene Expression"],
@@ -702,6 +703,18 @@ TSV_FILE_EXTENSION = {
             False,
         ),
         (
+            SOME_CHAIN_FILE,
+            [SOME_SOFTWARE, SOME_ITEM],
+            {},
+            {},
+            CHAIN_FILE_EXTENSION,
+            {},
+            {},
+            SOME_SOURCE_ASSEMBLY,
+            "",
+            True,
+        ),
+        (
             SOME_FASTA_FILE,
             [SOME_SOFTWARE, SOME_ITEM],
             {},
@@ -804,17 +817,14 @@ def test_get_analysis(
     assert_filename_part_matches(result, expected, errors)
 
 
-SUPPLEMENTARY_FILE = {'@type': ["SupplementaryFile"]}
-OTHER_FILE = {'@type': ["VariantCals"]}
 @pytest.mark.parametrize(
-    "file,software,expected",
+    "software,expected",
     [
-        (OTHER_FILE,[], ""),
-        (OTHER_FILE,[{"version": "2.3.4"}], ""),
-        (OTHER_FILE,[{"code": "foo", "version": "1.2.3"}], "foo_1.2.3"),
-        (OTHER_FILE,[{"code": "foo", "version": "1.2.3"}, {"version": "2.3.4"}], "foo_1.2.3"),
+        ([], ""),
+        ([{"version": "2.3.4"}], ""),
+        ([{"code": "foo", "version": "1.2.3"}], "foo_1.2.3"),
+        ([{"code": "foo", "version": "1.2.3"}, {"version": "2.3.4"}], "foo_1.2.3"),
         (
-            OTHER_FILE,
             [
                 {"code": "foo", "version": "1.2.3"},
                 {"version": "2.3.4"},
@@ -822,16 +832,14 @@ OTHER_FILE = {'@type': ["VariantCals"]}
             ],
             "bar_3.4.5_foo_1.2.3",
         ),
-        (SUPPLEMENTARY_FILE,[{"title": "Foo", "version": "1.2.3"}], ""),
     ],
 )
 def test_get_software_and_versions(
-    file: Dict[str, Any],
     software: List[Dict[str, Any]],
     expected: str
 ) -> None:
     """Test software names and versions retrieval."""
-    result = get_software_and_versions(file ,software)
+    result = get_software_and_versions(software)
     assert result == expected
 
 

@@ -21,14 +21,14 @@ def is_chain_file(properties: Dict[str, Any],request_handler: RequestHandler):
     return file_utils.get_file_extension(properties,request_handler) == "chain.gz"
 
 
-def is_reference_genome(properties: Dict[str, Any]):
-    """Check if data category is Reference Genome"""
-    return "Reference Genome" in file_utils.get_data_category(properties)
+def is_genome_assembly(properties: Dict[str, Any]):
+    """Check if data category is Genome Assembly"""
+    return "Genome Assembly" in file_utils.get_data_category(properties)
 
 
-def is_reference_conversion(properties: Dict[str, Any]):
-    """Check if data category is Reference Conversion"""
-    return "Reference Conversion" in file_utils.get_data_category(properties)
+def is_genome_conversion(properties: Dict[str, Any]):
+    """Check if data category is Genome Conversion"""
+    return "Genome Conversion" in file_utils.get_data_category(properties)
 
 
 def get_donor_specific_assembly(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:

@@ -29,7 +29,7 @@
             "Genome Assembly"
         ],
         "data_type": [
-            "Reference Sequence"
+            "Genome Sequence"
         ],
         "filename": "test_hela.fasta",
         "file_format": "FASTA",

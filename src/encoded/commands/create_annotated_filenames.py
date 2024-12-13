@@ -801,13 +801,13 @@ def get_sequencing_and_assay_codes(
 ) -> FilenamePart:
     """Get sequencing and assay codes for file.
     
-    Returns XX for Reference Genome and Reference Conversion files.
+    Returns XX for Genome Assembly and Genome Conversion files.
     """
     sequencing_codes = get_sequencing_codes(sequencers)
     assay_codes = get_assay_codes(assays)
     if len(sequencing_codes) == 1 and len(assay_codes) == 1:
         return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
-    elif supp_file_utils.is_reference_conversion(file) or supp_file_utils.is_reference_genome(file):
+    elif supp_file_utils.is_genome_assembly(file) or supp_file_utils.is_genome_conversion(file):
         return get_filename_part(value="XX")
     errors = []
     if not sequencing_codes:
@@ -862,7 +862,7 @@ def get_analysis(
     Some error handling here for missing data by file type, but not
     exhaustive and allowing for some flexibility in what is expected.
     """
-    software_and_versions = get_software_and_versions(file, software)
+    software_and_versions = get_software_and_versions(software)
     reference_genome_code = item_utils.get_code(reference_genome)
     gene_annotation_code = get_annotations_and_versions(gene_annotations)
     transcript_info_code = get_rna_seq_tsv_value(file, file_extension)
@@ -922,9 +922,6 @@ def get_analysis_errors(
     if file_format_utils.is_chain_file(file_extension):
         if not chain_code:
             errors.append("No target or source assembly found for chain conversion ")
-    elif file_format_utils.is_fasta_file(file_extension) and supp_file_utils.get_donor_specific_assembly(file):
-       if not haplotype_code:
-           errors.append("No haplotype code found for fasta file")
     return errors
 
 
@@ -999,7 +996,7 @@ def get_annotation_codes_missing_versions(
     ]
 
 
-def get_software_and_versions(file: Dict[str, Any], software: List[Dict[str, Any]]) -> str:
+def get_software_and_versions(software: List[Dict[str, Any]]) -> str:
     """Get software and accompanying versions for file.
 
     Currently looking for software items with codes, as these are expected to be the software used for naming.
@@ -1009,7 +1006,7 @@ def get_software_and_versions(file: Dict[str, Any], software: List[Dict[str, Any
         return ""
     software_with_codes_and_versions = get_software_with_versions(software_with_codes)
     if len(software_with_codes) == len(software_with_codes_and_versions):
-        return get_software_and_versions_string(file, software_with_codes_and_versions)
+        return get_software_and_versions_string(software_with_codes_and_versions)
     missing_versions = get_software_codes_missing_versions(software_with_codes)
     logger.warning(f"Missing versions for software items: {missing_versions}.")
     return ""
@@ -1022,13 +1019,6 @@ def get_software_with_codes(
     return [item for item in software_items if item_utils.get_code(item)]
 
 
-def get_software_with_title(
-    software_items: List[Dict[str, Any]]
-) -> List[Dict[str, Any]]:
-    """Get software items with title."""
-    return [item for item in software_items if item_utils.get_title(item)]
-
-
 def get_software_with_versions(
     software_items: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
@@ -1037,28 +1027,17 @@ def get_software_with_versions(
 
 
 def get_software_and_versions_string(
-        file: Dict[str, Any],
         software_items: List[Dict[str, Any]]
     ) -> str:
     """Get string representation of software and versions."""
-    if supp_file_utils.is_supplementary_file(file):
-        sorted_software_items = sorted(software_items, key=item_utils.get_title)
-        return ANALYSIS_INFO_SEPARATOR.join(
-            [
-                f"{item_utils.get_title(item).lower()}{ANALYSIS_INFO_SEPARATOR}"
-                f"{item_utils.get_version(item)}"
-                for item in sorted_software_items
-            ]
-        )
-    else:
-        sorted_software_items = sorted(software_items, key=item_utils.get_code)
-        return ANALYSIS_INFO_SEPARATOR.join(
-            [
-                f"{item_utils.get_code(item)}{ANALYSIS_INFO_SEPARATOR}"
-                f"{item_utils.get_version(item)}"
-                for item in sorted_software_items
-            ]
-        )
+    sorted_software_items = sorted(software_items, key=item_utils.get_code)
+    return ANALYSIS_INFO_SEPARATOR.join(
+        [
+            f"{item_utils.get_code(item)}{ANALYSIS_INFO_SEPARATOR}"
+            f"{item_utils.get_version(item)}"
+            for item in sorted_software_items
+        ]
+    )
 
 
 def get_software_codes_missing_versions(
@@ -1078,7 +1057,7 @@ def get_chain_file_value(
         source_assembly: Dict[str, Any],
         file_extension: Dict[str, Any]
     ) -> str:
-    """Get reference conversion direction for chain files."""
+    """Get genome conversion direction for chain files."""
     if file_format_utils.is_chain_file(file_extension):
         target_value = ""
         source_value = ""

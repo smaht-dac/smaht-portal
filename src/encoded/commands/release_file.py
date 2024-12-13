@@ -199,7 +199,7 @@ class FileRelease:
         )
         mwfrs = ff_utils.search_metadata(search_filter, key=self.key)
         if len(mwfrs) != 1:
-            if not supp_file_utils.is_reference_genome(self.file) and not supp_file_utils.is_reference_conversion(self.file):
+            if not supp_file_utils.is_genome_assembly(self.file) and not supp_file_utils.is_genome_conversion(self.file):
                 self.print_error_and_exit(
                     (
                         f"Expected exactly one associated MetaWorkflowRun, got"
@@ -458,10 +458,10 @@ class FileRelease:
                 file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
                     file_constants.ACCESS_STATUS_OPEN
                 ),
-                file_constants.DATA_CATEGORY_REFERENCE_GENOME: (
+                file_constants.DATA_CATEGORY_GENOME_ASSEMBLY: (
                     file_constants.ACCESS_STATUS_OPEN
                 ),
-                file_constants.DATA_CATEGORY_REFERENCE_CONVERSION: (
+                file_constants.DATA_CATEGORY_GENOME_CONVERSION: (
                     file_constants.ACCESS_STATUS_OPEN
                 ),
                 file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
@@ -478,10 +478,10 @@ class FileRelease:
                 file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
-                file_constants.DATA_CATEGORY_REFERENCE_GENOME: (
+                file_constants.DATA_CATEGORY_GENOME_ASSEMBLY: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
-                file_constants.DATA_CATEGORY_REFERENCE_CONVERSION: (
+                file_constants.DATA_CATEGORY_GENOME_CONVERSION: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
@@ -498,10 +498,10 @@ class FileRelease:
                 file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
                     file_constants.ACCESS_STATUS_OPEN
                 ),
-                file_constants.DATA_CATEGORY_REFERENCE_GENOME: (
+                file_constants.DATA_CATEGORY_GENOME_ASSEMBLY: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
-                file_constants.DATA_CATEGORY_REFERENCE_CONVERSION: (
+                file_constants.DATA_CATEGORY_GENOME_CONVERSION: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (

@@ -39,7 +39,7 @@ def test_file_release(es_testapp: TestApp, workbook: None) -> None:
             identifier = item_utils.get_uuid(file)
             file_release = FileRelease({}, identifier)
             file_release.prepare(dataset)
-            if not supp_file_utils.is_reference_conversion(file) and not supp_file_utils.is_reference_genome(file):
+            if not supp_file_utils.is_genome_conversion(file) and not supp_file_utils.is_genome_assembly(file):
                 assert file_release.file_sets
             assert file_release.libraries
             assert file_release.assays
