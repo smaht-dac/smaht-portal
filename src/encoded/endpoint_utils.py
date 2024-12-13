@@ -45,7 +45,7 @@ def parse_date_range_related_arguments(
         from_date: Optional[Union[str, datetime, date]],
         thru_date: Optional[Union[str, datetime, date]],
         nmonths: Optional[Union[str, int]] = None,
-        include_current_month: bool = True,
+        include_current_month: Optional[bool] = True,
         strings: bool = False) -> Tuple[Optional[Union[str, datetime]], Optional[Union[str, datetime]]]:
 
     """
@@ -53,8 +53,11 @@ def parse_date_range_related_arguments(
     Given dates may be datetime or date objects or strings. Returned dates are datetime objects, or
     if the the given strings arguments is True, then strings (formatted as YYYY-MM-DD).
 
-    If both of the given from/thru dates are specified/valid then those are returned
-    and the given nmonths argument is not used.
+    If BOTH of the given from/thru dates are specified/valid then those are parsed and returned;
+    and the given nmonths and include_current_month arguments are NOT used in this case.
+
+    Note that the include_current_month argument is used ONLY if NEITHER from NOR thru date
+    are specified; and note that its default value is True.
 
     If only the given from date is specified then a None thru date is returned, UNLESS the given nmonths
     argument represents a positive integer, in which case the returned thru date will be nmonths months
@@ -85,42 +88,48 @@ def parse_date_range_related_arguments(
     to and the "thru" date is thru the very END of the date/day (23:59). This is actually done by the method
     snovault.search.lucene_builder.LuceneBuilder.handle_range_filters.
     """
-    include_current_month = include_current_month is True
     from_date = parse_datetime_string(from_date, notz=True)
     thru_date = parse_datetime_string(thru_date, last_day_of_month_if_no_day=True, notz=True)
-    if not isinstance(nmonths, int):
-        if isinstance(nmonths, str) and (nmonths := nmonths.strip()):
-            try:
-                nmonths = int(nmonths)
-            except Exception:
+    if nmonths is None:
+        nmonths = 0
+        nmonths_none = True
+    else:
+        nmonths_none = False
+        if not isinstance(nmonths, int):
+            if isinstance(nmonths, str) and (nmonths := nmonths.strip()):
+                try:
+                    nmonths = int(nmonths)
+                except Exception:
+                    nmonths = 0
+            else:
                 nmonths = 0
-        else:
-            nmonths = 0
     if from_date:
         if (not thru_date) and isinstance(nmonths, int):
             if nmonths > 0:
                 thru_date = _add_months(from_date, nmonths)
-            elif nmonths == 0:
+            elif (nmonths == 0) and (not nmonths_none):
                 thru_date = _get_last_date_of_month(from_date)
     elif thru_date:
         if isinstance(nmonths, int):
             if nmonths < 0:
                 from_date = _add_months(thru_date, nmonths)
-            elif nmonths == 0:
+            elif (nmonths == 0) and (not nmonths_none):
                 from_date = _get_first_date_of_month(thru_date)
-    elif ((nmonths := abs(nmonths)) != 0) or include_current_month:
+    elif ((nmonths := abs(nmonths)) != 0) or (include_current_month is not False):
         # If no (valid) from/thru dates given, but the absolute value of nmonths is a non-zero integer, then returns
         # from/thru dates for the last nmonths month ending with the last day of month previous to the current month.
         # thru_date = _add_months(_get_last_date_of_month(), -1)
         thru_date = _get_last_date_of_month()
-        if not include_current_month:
-            thru_date = _add_months(thru_date, -1)
+        if include_current_month is False:
+            thru_date = _get_last_date_of_month(_add_months(thru_date, -1))
             nmonths -= 1
         from_date = _add_months(thru_date, -nmonths)
         from_date = _get_first_date_of_month(from_date)
     if strings is True:
-        return (from_date.strftime(f"%Y-%m-%d") if from_date else None,
-                thru_date.strftime(f"%Y-%m-%d") if thru_date else None)
+        from_date = from_date.strftime(f"%Y-%m-%d") if from_date else None
+        thru_date = thru_date.strftime(f"%Y-%m-%d") if thru_date else None
+    if from_date and thru_date and thru_date < from_date:
+        from_date, thru_date = thru_date, from_date
     return from_date, thru_date
 
 

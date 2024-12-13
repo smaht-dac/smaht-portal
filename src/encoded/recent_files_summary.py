@@ -533,7 +533,8 @@ def print_normalized_aggregation_results(normalized_results: dict,
                                          uuids: bool = False,
                                          uuid_details: bool = False,
                                          nobold: bool = False,
-                                         checks: bool = True,
+                                         checks: bool = False,
+                                         query: bool  = False,
                                          verbose: bool = False) -> None:
 
     """
@@ -553,7 +554,7 @@ def print_normalized_aggregation_results(normalized_results: dict,
                       parent_grouping_value: Optional[str] = None,
                       indent: int = 0) -> None:
 
-        nonlocal title, uuids, uuid_details, nobold, verbose
+        nonlocal title, uuids, uuid_details, nobold, query, verbose
         nonlocal aggregation_fields, red, green_bold, gray, bold
         nonlocal chars_check, chars_dot, chars_rarrow_hollow, chars_xmark
 
@@ -647,16 +648,20 @@ def print_normalized_aggregation_results(normalized_results: dict,
             note = ""
             if len(hits) > count:
                 note = red(f" {chars_rarrow_hollow} MORE ACTUAL RESULTS: {len(hits) - count}")
-            elif checks is True:
-                if isinstance(items := data.get("items"), list):
-                    subcount = 0
-                    for item in items:
-                        if isinstance(subcount_item := item.get("count"), int):
-                            subcount += subcount_item
-                    note = f" {chars_check}" if subcount == count else f" {chars_xmark}"
-                else:
+            elif isinstance(items := data.get("items"), list):
+                subcount = 0
+                for item in items:
+                    if isinstance(subcount_item := item.get("count"), int):
+                        subcount += subcount_item
+                if subcount != count:
+                    note = f" {chars_xmark}"
+                elif checks is True:
                     note = f" {chars_check}"
+            elif checks:
+                note = f" {chars_check}"
             print(f"{spaces}{grouping}: {count}{note}")
+        if (query is True) and (query_string := data.get("query")):
+            print(f"{spaces}  {query_string}")
         for hit in hits:
             if isinstance(hit, dict) and isinstance(uuid := hit.get("uuid"), str) and uuid:
                 note = ""
