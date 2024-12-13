@@ -22,7 +22,8 @@ from encoded.item_utils import (
     supplementary_file as supp_file_utils,
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
-    donor_specific_assembly as dsa_utils
+    donor_specific_assembly as dsa_utils,
+    reference_genome as rg_utils
 )
 from encoded.item_utils.constants import file as file_constants
 from encoded.item_utils.utils import RequestHandler
@@ -100,6 +101,8 @@ class AssociatedItems:
     tissue_samples: List[Dict[str, Any]]
     tissues: List[Dict[str, Any]]
     donors: List[Dict[str, Any]]
+    target_assembly: Dict[str, Any]
+    source_assembly: Dict[str, Any]
 
 
 def get_associated_items(
@@ -118,6 +121,8 @@ def get_associated_items(
     reference_genome = get_reference_genome(file, request_handler)
     gene_annotations = get_gene_annotations(file, request_handler)
     donor_specific_assembly = get_donor_specific_assembly(file, request_handler)
+    target_assembly = get_target_assembly(file, request_handler)
+    source_assembly = get_source_assembly(file, request_handler)
     if donor_specific_assembly:
         file_sets=get_derived_from_file_sets(file, request_handler)
     else:
@@ -148,6 +153,8 @@ def get_associated_items(
         tissues=tissues,
         cell_lines=cell_lines,
         donors=donors,
+        target_assembly=target_assembly,
+        source_assembly=source_assembly
     )
 
 
@@ -215,6 +222,20 @@ def get_reference_genome(
 ) -> Dict[str, Any]:
     """Get reference genome for file."""
     return get_item(file_utils.get_reference_genome(file), request_handler)
+
+
+def get_target_assembly(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> Union[None, Dict[str, Any]]:
+    """Get target assembly for file."""
+    return get_item(supp_file_utils.get_target_assembly(file), request_handler)
+
+
+def get_source_assembly(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> Union[None, Dict[str, Any]]:
+    """Get source assembly for file."""
+    return get_item(supp_file_utils.get_source_assembly(file), request_handler)
 
 
 def get_gene_annotations(
@@ -448,7 +469,10 @@ def get_annotated_filename(
         associated_items.software,
         associated_items.reference_genome,
         associated_items.gene_annotations,
-        associated_items.file_format
+        associated_items.file_format,
+        associated_items.target_assembly,
+        associated_items.source_assembly,
+        associated_items.donor_specific_assembly,
     )
     errors = collect_errors(
         project_id,
@@ -829,6 +853,9 @@ def get_analysis(
     reference_genome: Dict[str, Any],
     gene_annotations: Dict[str, Any],
     file_extension: Dict[str, Any],
+    target_assembly: Dict[str, Any],
+    source_assembly: Dict[str, Any],
+    donor_specific_assembly: Dict[str, Any],
 ) -> FilenamePart:
     """Get analysis info for file.
 
@@ -839,23 +866,23 @@ def get_analysis(
     reference_genome_code = item_utils.get_code(reference_genome)
     gene_annotation_code = get_annotations_and_versions(gene_annotations)
     transcript_info_code = get_rna_seq_tsv_value(file, file_extension)
+    haplotype_code = get_haplotype_value(file, file_extension, donor_specific_assembly)
+    chain_code = get_chain_file_value(file, target_assembly, source_assembly, file_extension)
     value = get_analysis_value(
         software_and_versions,
         reference_genome_code,
         gene_annotation_code,
-        transcript_info_code
+        transcript_info_code,
+        chain_code,
+        haplotype_code
     )
-    if file_format_utils.is_chain_file(file_extension):
-        value = ANALYSIS_INFO_SEPARATOR.join([value,get_chain_file_value(file)]) if value else get_chain_file_value(file)
-    elif file_format_utils.is_fasta_file(file_extension) and supp_file_utils.get_donor_specific_assembly(file):
-        if (haplotype := supp_file_utils.get_haplotype(file)):
-            value = f"{value}{ANALYSIS_INFO_SEPARATOR}{haplotype}"
-        value = f"{value}{ANALYSIS_INFO_SEPARATOR}{get_chain_file_value(file)}"
     errors = get_analysis_errors(
         file,
         reference_genome_code,
         gene_annotation_code,
         transcript_info_code,
+        chain_code,
+        haplotype_code,
         file_extension,
     )
     if errors:
@@ -872,6 +899,8 @@ def get_analysis_errors(
     reference_genome_code: str,
     gene_annotation_code: str,
     transcript_info_code:  str,
+    chain_code: str,
+    haplotype_code: str,
     file_extension: Dict[str, Any]
 ) -> List[str]:
     """Get analysis errors for file by file type."""
@@ -890,6 +919,12 @@ def get_analysis_errors(
             errors.append("No gene annotation code found")
         elif file_format_utils.is_tsv_file(file_extension) and not transcript_info_code:
             errors.append("No gene or isoform code found")
+    if file_format_utils.is_chain_file(file_extension):
+        if not chain_code:
+            errors.append("No target or source assembly found for chain conversion ")
+    elif file_format_utils.is_fasta_file(file_extension) and supp_file_utils.get_donor_specific_assembly(file):
+       if not haplotype_code:
+           errors.append("No haplotype code found for fasta file")
     return errors
 
 
@@ -897,12 +932,14 @@ def get_analysis_value(
     software_and_versions: str,
     reference_genome_code: str,
     gene_annotation_code: str,
-    transcript_info_code: str
+    transcript_info_code: str,
+    chain_code: str,
+    haplotype_code: str,
 ) -> str:
     """Get analysis value for filename."""
     to_write = [
         string
-        for string in [software_and_versions, reference_genome_code, gene_annotation_code, transcript_info_code]
+        for string in [software_and_versions, reference_genome_code, gene_annotation_code, transcript_info_code, chain_code, haplotype_code]
         if string
     ]
     return ANALYSIS_INFO_SEPARATOR.join(to_write)
@@ -1035,11 +1072,36 @@ def get_software_codes_missing_versions(
     ]
 
 
-def get_chain_file_value(file: Dict[str, Any]) -> str:
+def get_chain_file_value(
+        file: Dict[str, Any],
+        target_assembly: Dict[str, Any],
+        source_assembly: Dict[str, Any],
+        file_extension: Dict[str, Any]
+    ) -> str:
     """Get reference conversion direction for chain files."""
-    target_assembly=supp_file_utils.get_target_assembly(file)
-    source_assembly=supp_file_utils.get_source_assembly(file)
-    return CHAIN_FILE_INFO_SEPARATOR.join([source_assembly,target_assembly])
+    if file_format_utils.is_chain_file(file_extension):
+        target_value = ""
+        source_value = ""
+        if target_assembly and source_assembly:
+            target_value = DSA_INFO_VALUE if dsa_utils.is_donor_specific_assembly(target_assembly) else item_utils.get_code(target_assembly)
+            source_value = DSA_INFO_VALUE if dsa_utils.is_donor_specific_assembly(source_assembly) else item_utils.get_code(source_assembly)
+        if target_value and source_value:
+            return CHAIN_FILE_INFO_SEPARATOR.join([source_value,target_value])
+    return ""
+
+
+def get_haplotype_value(
+        file: Dict[str, Any],
+        file_extension: Dict[str, Any],
+        donor_specific_assembly: Dict[str, Any]
+    ):
+    """Get haplotype value for fasta file."""
+    if file_format_utils.is_fasta_file(file_extension):
+        if (haplotype := supp_file_utils.get_haplotype(file)):
+            return haplotype
+        elif donor_specific_assembly:
+            return DSA_INFO_VALUE
+    return ""
 
 
 def get_rna_seq_tsv_value(file: Dict[str, Any], file_extension: Dict[str, Any]) -> str:

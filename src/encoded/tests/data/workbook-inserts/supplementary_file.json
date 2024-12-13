@@ -3,7 +3,7 @@
         "uuid": "b444f958-9832-4d6e-be7a-4b1019d2df7c",
         "submitted_id": "TEST_SUPPLEMENTARY-FILE_HELA_GRCH38",
         "data_category": [
-            "Reference Conversion"
+            "Genome Conversion"
         ],
         "data_type": [
             "Chain File"
@@ -26,7 +26,7 @@
         "uuid": "f1074e68-5c24-462b-909d-472356e5a15f",
         "submitted_id": "TEST_SUPPLEMENTARY-FILE_HELA_FASTA",
         "data_category": [
-            "Reference Genome"
+            "Genome Assembly"
         ],
         "data_type": [
             "Reference Sequence"
