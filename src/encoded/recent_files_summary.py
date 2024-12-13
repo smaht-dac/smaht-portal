@@ -9,7 +9,8 @@ from encoded.elasticsearch_utils import normalize_elasticsearch_aggregation_resu
 from encoded.elasticsearch_utils import prune_elasticsearch_aggregation_results
 from encoded.elasticsearch_utils import sort_normalized_aggregation_results
 from encoded.elasticsearch_utils import AGGREGATION_MAX_BUCKETS, AGGREGATION_NO_VALUE
-from encoded.endpoint_utils import create_query_string, parse_date_range_related_arguments
+from encoded.endpoint_utils import create_query_string, deconstruct_query_string
+from encoded.endpoint_utils import get_date_range_for_month, parse_date_range_related_arguments
 from encoded.endpoint_utils import get_properties, parse_datetime_string
 from encoded.endpoint_utils import request_arg, request_args, request_arg_bool, request_arg_int
 from snovault.search.search import search as snovault_search
@@ -140,8 +141,10 @@ def recent_files_summary(request: PyramidRequest) -> dict:
             query_arguments = {**base_query_arguments, **query_arguments}
         return query_arguments
 
-    def create_query(query_arguments: Optional[dict] = None) -> str:
-        return f"{BASE_SEARCH_QUERY}?{create_query_string(query_arguments)}"
+    def create_query(request: PyramidRequest, base_query_arguments: Optional[dict] = None) -> str:
+        query_arguments = create_query_arguments(request, base_query_arguments)
+        query_string = create_query_string(query_arguments)
+        return f"{BASE_SEARCH_QUERY}?{query_string}"
 
     def create_aggregation_query(aggregation_fields: List[str]) -> dict:
 
@@ -279,8 +282,10 @@ def recent_files_summary(request: PyramidRequest) -> dict:
                 if value := normalized_results.get("value"):
                     if name == date_property_name:
                         # Special case for date value which is just year/month (e.g. 2024-12);
-                        # we want to turn this into a date range query for the month.
-                        from_date, thru_date = parse_date_range_related_arguments(value, None, strings=True)
+                        # we want to turn this into a date range query for the month; actually
+                        # this is not a special case, this is the NORMAL case we are dealing with.
+                        # from_date, thru_date = parse_date_range_related_arguments(value, None, nmonths=0, strings=True)
+                        from_date, thru_date = get_date_range_for_month(value, strings=True)
                         if from_date and thru_date:
                             base_query_arguments = {**base_query_arguments,
                                                     f"{name}.from": from_date, f"{name}.to": thru_date}
@@ -298,9 +303,11 @@ def recent_files_summary(request: PyramidRequest) -> dict:
                     add_queries_to_normalized_results(element, base_query_arguments)
 
     aggregation_field_grouping_cell_or_donor = get_aggregation_field_grouping_cell_or_donor()
+    # The base_query_arguments does not contain the from/thru dates as this is used;
+    # this is used to construct the query-string for the individually grouped items which
+    # will have the from/thru dates specifically representing their place within the group.
     base_query_arguments = create_base_query_arguments(request)
-    query_arguments = create_query_arguments(request, base_query_arguments)
-    query = create_query(query_arguments)
+    query = create_query(request, base_query_arguments)
 
     if not legacy:
         aggregate_by_cell_line_property_name = "aggregate_by_cell_line"
@@ -331,7 +338,16 @@ def recent_files_summary(request: PyramidRequest) -> dict:
         }
 
     if debug_query:
-        return {"query": query, "query_arguments": query_arguments, "aggregation_query": aggregation_query}
+        return {
+            "query": query,
+            "query_arguments": deconstruct_query_string(query),
+            "aggregation_query_fields": [
+                AGGREGATION_FIELD_RELEASE_DATE,
+                *get_aggregation_field_grouping_cell_or_donor(),
+                AGGREGATION_FIELD_FILE_DESCRIPTOR
+            ],
+            "aggregation_query": aggregation_query
+        }
 
     raw_results = execute_aggregation_query(request, query, aggregation_query)
 
@@ -401,7 +417,7 @@ def recent_files_summary(request: PyramidRequest) -> dict:
         additional_properties = {
             "debug": {
                 "query": query,
-                "query_arguments": query_arguments,
+                "query_arguments": deconstruct_query_string(query),
                 "aggregation_query_fields": [
                     AGGREGATION_FIELD_RELEASE_DATE,
                     *get_aggregation_field_grouping_cell_or_donor(),

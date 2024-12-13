@@ -3,7 +3,7 @@ from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 from pyramid.request import Request as PyramidRequest
 from typing import Any, List, Optional, Tuple, Union
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, urlencode
 from dcicutils.datetime_utils import parse_datetime_string as dcicutils_parse_datetime_string
 
 
@@ -173,6 +173,20 @@ def parse_datetime_string(value: Union[str, datetime, date],
     return value
 
 
+def get_date_range_for_month(
+        date: Union[str, datetime, date],
+        strings: bool = False) -> Tuple[Optional[Union[str, datetime]], Optional[Union[str, datetime]]]:
+    if date := parse_datetime_string(date, notz=True):
+        from_date = _get_first_date_of_month(date)
+        thru_date = _get_last_date_of_month(date)
+        if strings is True:
+            from_date = from_date.strftime(f"%Y-%m-%d") if from_date else None
+            thru_date = thru_date.strftime(f"%Y-%m-%d") if thru_date else None
+    else:
+        from_date = thru_date = None
+    return from_date, thru_date
+
+
 def _get_first_date_of_month(day: Optional[Union[datetime, date, str]] = None) -> datetime:
     """
     Returns a datetime object representing the first day of the month of the given date;
@@ -220,6 +234,15 @@ def create_query_string(query_arguments: dict, base: Optional[str] = None) -> st
     if isinstance(base, str) and base:
         query_string = f"{base}?{query_string}" if query_string else base
     return query_string
+
+
+def deconstruct_query_string(query_string: str) -> dict:
+    if isinstance(query_string, str):
+        if (question_mark_index := query_string.find("?")) >= 0:
+            query_string = query_string[question_mark_index + 1:]
+        query_string = query_string.replace("%21=", "=%21")
+        return {key: value[0] if len(value) == 1 else value for key, value in parse_qs(query_string).items()}
+    return {}
 
 
 def get_properties(data: dict, name: str, fallback: Optional[Any] = None, sort: bool = False) -> List[Any]:
