@@ -277,6 +277,9 @@ def recent_files_summary(request: PyramidRequest) -> dict:
             include_missing=include_missing,
             create_field_aggregation=create_field_aggregation)
 
+        if troubleshoot_elasticsearch:
+            add_debugging_to_elasticsearch_aggregation_query(aggregation_query[date_property_name])
+
         return aggregation_query[date_property_name]
 
     def execute_aggregation_query(request: PyramidRequest, query: str, aggregation_query: dict) -> str:
@@ -509,7 +512,7 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
             AGGREGATION_FIELD_RELEASE_DATE,
             AGGREGATION_FIELD_CELL_MIXTURE,
             AGGREGATION_FIELD_CELL_LINE,
-            # Some extra properties for troublehooting (as this whole thing is).
+            # Store some extra properties for troublehooting (as this whole thing is).
             "file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.display_title",
             "file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.cell_line.code",
             "file_sets.libraries.analytes.samples.sample_sources.display_title",
@@ -582,12 +585,51 @@ def print_normalized_aggregation_results(normalized_results: dict,
     """
     from hms_utils.terminal_utils import terminal_color
 
-    global AGGREGATION_FIELD_CELL_MIXTURE, AGGREGATION_FIELD_CELL_LINE, AGGREGATION_FIELD_DONOR
-
-    def get_aggregation_fields(data: dict) -> List[str]:
-        if not isinstance(aggregation_fields := data.get("debug", {}).get("aggregation_query_fields"), list):
+    def get_aggregation_fields(normalized_results: dict) -> List[str]:
+        # Returns all noted/important aggregation fields which ARE actually being used by the query;
+        # we only are interested in ones that are in AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR,
+        # which is all of the possible sample-source/cell-line/donor aggregations.
+        global AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR
+        if not isinstance(aggregation_fields :=
+                          normalized_results.get("debug", {}).get("aggregation_query_fields"), list):
             aggregation_fields = []
+        for aggregation_field in aggregation_fields:
+            # Remove the ones we are not interested in reporting on.
+            if aggregation_field not in AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR:
+                aggregation_fields.remove(aggregation_field)
         return aggregation_fields
+
+    def get_unused_aggregation_fields(normalized_results: dict) -> List[str]:
+        # Returns all noted/important aggregation fields which are NOT actually being used by the query;
+        # we only are interested in ones that are in AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR,
+        # which is all of the possible sample-source/cell-line/donor aggregations.
+        global AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR
+        unused_aggregation_fields = []
+        aggregation_fields = get_aggregation_fields(normalized_results)
+        for aggregation_field in AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR:
+            if aggregation_field not in aggregation_fields:
+                unused_aggregation_fields.append(aggregation_field)
+        unused_aggregation_fields.append(
+            "file_sets.libraries.analytes.samples.sample_sources.display_title")
+        return unused_aggregation_fields
+
+    def get_aggregation_field_labels() -> dict:
+        global AGGREGATION_FIELD_CELL_MIXTURE, AGGREGATION_FIELD_CELL_LINE, AGGREGATION_FIELD_DONOR
+        return {
+            AGGREGATION_FIELD_CELL_MIXTURE: "sample-sources",
+            AGGREGATION_FIELD_CELL_LINE: "cell-lines",
+            AGGREGATION_FIELD_DONOR: "donors",
+            "file_sets.libraries.analytes.samples.sample_sources.display_title": "sample-sources-title"
+        }
+
+    def get_aggregation_fields_to_print(normalized_results: dict) -> List[str]:
+        aggregation_fields = get_aggregation_fields(normalized_results)
+        unused_aggregation_fields = get_unused_aggregation_fields(normalized_results)
+        aggregation_fields_to_print = aggregation_fields + unused_aggregation_fields
+        for aggregation_field_label in get_aggregation_field_labels():
+            if aggregation_field_label not in aggregation_fields_to_print:
+                aggregation_field_labels.append(aggregation_field_label)
+        return aggregation_fields_to_print
 
     def print_results(data: dict,
                       parent_grouping_name: Optional[str] = None,
@@ -595,8 +637,8 @@ def print_normalized_aggregation_results(normalized_results: dict,
                       indent: int = 0) -> None:
 
         nonlocal title, uuids, uuid_details, nobold, query, verbose
-        nonlocal aggregation_fields, red, green_bold, gray, bold
-        nonlocal chars_check, chars_dot, chars_rarrow_hollow, chars_xmark
+        nonlocal chars_check, chars_dot, chars_rarrow_hollow, chars_xmark, red, green_bold, gray, bold
+        nonlocal aggregation_fields, aggregation_fields_to_print, aggregation_field_labels
 
         def get_portal_hits(data: dict) -> List[dict]:
             hits = []
@@ -669,14 +711,20 @@ def print_normalized_aggregation_results(normalized_results: dict,
                                       label: Optional[str] = None,
                                       prefix: Optional[str] = None,
                                       color: Optional[Callable] = None) -> None:
-            nonlocal verbose, aggregation_fields, chars_dot_hollow, verbose
-            if property_values := format_hit_property_values(hit, property_name, color=color):
-                if (verbose is True) or (not label):
-                    label = property_name
+            nonlocal aggregation_fields, aggregation_field_labels, chars_dot_hollow, chars_null, verbose
+            if not label:
+                label = aggregation_field_labels.get(property_name)
+            if (verbose is True) or (not label):
+                label = property_name
+            property_values = format_hit_property_values(hit, property_name, color=color)
+            if not property_values:
+                property_values = chars_null
+            if property_name not in aggregation_fields:
                 property_description = f"{prefix or ''}{chars_dot_hollow} {label}: {property_values}"
-                if property_name not in aggregation_fields:
-                    property_description = gray(property_description)
-                print(property_description)
+                property_description = gray(property_description)
+            else:
+                property_description = f"{prefix or ''}{chars_dot} {label}: {property_values}"
+            print(property_description)
 
         if not (isinstance(data, dict) and data):
             return
@@ -723,11 +771,8 @@ def print_normalized_aggregation_results(normalized_results: dict,
                     prefix =  f"{spaces}    "
                     # Show property values for troubleshooting (as this whole thing is);
                     # see add_info_for_troubleshooting.annotate_with_uuids.
-                    print_hit_property_values(hit, AGGREGATION_FIELD_CELL_MIXTURE, "sample-sources", prefix=prefix, color=color)
-                    print_hit_property_values(hit, AGGREGATION_FIELD_CELL_LINE, "cell-lines", prefix=prefix, color=color)
-                    print_hit_property_values(hit, "file_sets.libraries.analytes.samples.sample_sources.display_title",
-                                              "sample-sources-title", prefix=prefix, color=color)
-                    print_hit_property_values(hit, AGGREGATION_FIELD_DONOR, "donors", prefix=prefix, color=color)
+                    for aggregation_field in aggregation_fields_to_print:
+                        print_hit_property_values(hit, aggregation_field, prefix=prefix, color=color)
         if isinstance(items := data.get("items"), list):
             for element in items:
                 print_results(element,
@@ -736,6 +781,9 @@ def print_normalized_aggregation_results(normalized_results: dict,
                               indent=indent + 2)
 
     aggregation_fields = get_aggregation_fields(normalized_results)
+    aggregation_fields_to_print = get_aggregation_fields_to_print(normalized_results)
+    aggregation_field_labels = get_aggregation_field_labels()
+
     red = lambda text: terminal_color(text, "red")  # noqa
     red_bold = lambda text: terminal_color(text, "red", bold=True)  # noqa
     green = lambda text: terminal_color(text, "green")  # noqa
@@ -749,5 +797,6 @@ def print_normalized_aggregation_results(normalized_results: dict,
     chars_diamond = "❖"
     chars_rarrow_hollow = "▷"
     chars_larrow_hollow = "◁"
+    chars_null = "∅"
 
     print_results(normalized_results)
