@@ -260,7 +260,7 @@ def get_properties(data: dict, name: str, fallback: Optional[Any] = None, sort: 
             for key_index in range(nkeys):
                 if (value := data.get(keys[key_index], None)) is not None:
                     if key_index == key_index_max:
-                        return [value]
+                        return [value] if not isinstance(value, list) else value
                     elif isinstance(value, dict):
                         data = value
                         continue

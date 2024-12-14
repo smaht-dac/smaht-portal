@@ -630,7 +630,7 @@ def print_normalized_aggregation_results(normalized_results: dict,
         # Look at get_aggregation_field_labels above for other/miscellaneous fields we want to print.
         for aggregation_field_label in get_aggregation_field_labels():
             if aggregation_field_label not in aggregation_fields_to_print:
-                aggregation_field_labels.append(aggregation_field_label)
+                aggregation_fields_to_print.append(aggregation_field_label)
         return aggregation_fields_to_print
 
     def print_results(data: dict,
