@@ -792,7 +792,7 @@ def print_normalized_aggregation_results(normalized_results: dict,
                     for aggregation_field in aggregation_fields_to_print:
                         hit_counted_elsewhere = \
                             print_hit_property_values(hit, aggregation_field, prefix=prefix, color=color)
-                        if False and hit_counted_elsewhere:
+                        if hit_counted_elsewhere:
                             counted_elsewhere.extend(hit_counted_elsewhere)
                     # See if also grouped elsewhere for our FYI.
                     duplicative = hit.get("duplicative")
