@@ -1,6 +1,6 @@
 from pyramid.request import Request as PyramidRequest
 from copy import deepcopy
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple, Union
 from dcicutils.misc_utils import normalize_spaces
 from encoded.elasticsearch_utils import add_debugging_to_elasticsearch_aggregation_query
 from encoded.elasticsearch_utils import create_elasticsearch_aggregation_query
@@ -639,7 +639,7 @@ def print_normalized_aggregation_results(normalized_results: dict,
                       indent: int = 0) -> None:
 
         nonlocal title, uuids, uuid_details, nobold, query, verbose
-        nonlocal chars_check, chars_dot, chars_rarrow_hollow, chars_xmark, red, green_bold, gray, bold
+        nonlocal chars_check, chars_dot, chars_rarrow_hollow, chars_xmark, red, green, green_bold, gray, bold
         nonlocal aggregation_fields_to_print
 
         def get_portal_hits(data: dict) -> List[dict]:
@@ -651,8 +651,9 @@ def print_normalized_aggregation_results(normalized_results: dict,
             return hits
 
         def format_hit_property_values(hit: dict, property_name: str,
-                                       color: Optional[Callable] = None) -> Optional[str]:
+                                       color: Optional[Callable] = None) -> Tuple[Optional[str], List[Tuple[str, str]]]:
             nonlocal parent_grouping_name, parent_grouping_value, green, green_bold, chars_larrow_hollow
+            counted_elsewhere = []
             if hit.get("elasticsearch_counted") is False:
                 counted_grouping_name, counted_grouping_value = find_where_aggregated_and_counted(hit.get("uuid"))
             else:
@@ -668,6 +669,7 @@ def print_normalized_aggregation_results(normalized_results: dict,
                             if (counted_grouping_name, counted_grouping_value) == (property_name, property_value):
                                 property_values.append(green_bold(f"{property_value} {chars_larrow_hollow}") +
                                                        green(" COUNTED HERE"))
+                                counted_elsewhere.append((counted_grouping_name, counted_grouping_value))
                             else:
                                 property_values.append(property_value)
                     property_value = ", ".join(property_values)
@@ -675,9 +677,14 @@ def print_normalized_aggregation_results(normalized_results: dict,
                     counted_grouping_name, counted_grouping_value = find_where_aggregated_and_counted(hit.get("uuid"))
                     if (counted_grouping_name == property_name) and (counted_grouping_value == property_value):
                         property_value = green_bold(f"{property_value} {chars_larrow_hollow}") + green(" COUNTED HERE")
-            return property_value
+                        counted_elsewhere.append((counted_grouping_name, counted_grouping_value))
+            return property_value, counted_elsewhere
 
-        def find_where_aggregated_and_counted(uuid: str) -> Tuple[str, str]:
+        def find_where_aggregated_and_counted(
+                uuid: str,
+                multiple: bool = False,
+                ignore: Optional[Union[List[Tuple[str, str]],
+                Tuple[str, str]]] = None) -> Union[Tuple[str, str], List[Tuple[str, str]]]:
 
             nonlocal normalized_results
 
@@ -702,23 +709,30 @@ def print_normalized_aggregation_results(normalized_results: dict,
                 return found_uuid_grouping_names_and_values
 
             if found_uuid_grouping_names_and_values := list(find_where(normalized_results, uuid)):
-                if len(found_uuid_grouping_names_and_values) > 0:
-                    if len(found_uuid_grouping_names_and_values) > 1:
-                        # Something is wrong; should only be at most one iterm with elasticsearch_counted set to True.
-                        pass
-                    return found_uuid_grouping_names_and_values[0]
-            return None, None
+                if isinstance(ignore, tuple) and (len(ignore) == 2) and (ignore in found_uuid_grouping_names_and_values):
+                    found_uuid_grouping_names_and_values.remove(ignore)
+                elif isinstance(ignore, list):
+                    for ignore_item in ignore:
+                        if isinstance(ignore_item, tuple) and (len(ignore_item) == 2) and (ignore_item in found_uuid_grouping_names_and_values):
+                            found_uuid_grouping_names_and_values.remove(ignore_item)
+                if multiple is True:
+                    return found_uuid_grouping_names_and_values
+                if len(found_uuid_grouping_names_and_values) > 1:
+                    # Normally should only be at most one item with elasticsearch_counted set to True.
+                    pass
+                return found_uuid_grouping_names_and_values[0]
+            return [(None, None)] if multiple is True else (None, None)
 
         def print_hit_property_values(hit: dict, property_name: str,
                                       label: Optional[str] = None,
                                       prefix: Optional[str] = None,
-                                      color: Optional[Callable] = None) -> None:
+                                      color: Optional[Callable] = None) -> List[Tuple[str, str]]:
             nonlocal aggregation_fields, aggregation_field_labels, chars_dot_hollow, chars_null, verbose
             if not label:
                 label = aggregation_field_labels.get(property_name)
             if (verbose is True) or (not label):
                 label = property_name
-            property_values = format_hit_property_values(hit, property_name, color=color)
+            property_values, counted_elsewhere = format_hit_property_values(hit, property_name, color=color)
             if not property_values:
                 property_values = chars_null
             if property_name not in aggregation_fields:
@@ -727,6 +741,7 @@ def print_normalized_aggregation_results(normalized_results: dict,
             else:
                 property_description = f"{prefix or ''}{chars_dot} {label}: {property_values}"
             print(property_description)
+            return counted_elsewhere
 
         if not (isinstance(data, dict) and data):
             return
@@ -771,10 +786,37 @@ def print_normalized_aggregation_results(normalized_results: dict,
                     color = green_bold
                 if uuid_details is True:
                     prefix =  f"{spaces}    "
+                    counted_elsewhere = []
                     # Show property values for troubleshooting (as this whole thing is);
                     # see add_info_for_troubleshooting.annotate_with_uuids.
                     for aggregation_field in aggregation_fields_to_print:
-                        print_hit_property_values(hit, aggregation_field, prefix=prefix, color=color)
+                        hit_counted_elsewhere = \
+                            print_hit_property_values(hit, aggregation_field, prefix=prefix, color=color)
+                        if False and hit_counted_elsewhere:
+                            counted_elsewhere.extend(hit_counted_elsewhere)
+                    # See if also grouped elsewhere for our FYI.
+                    duplicative = hit.get("duplicative")
+                    duplicates = duplicative - 1 if isinstance(duplicative, int) else 0
+                    counted_groupings = find_where_aggregated_and_counted(
+                        hit.get("uuid"), multiple=True,
+                        ignore=counted_elsewhere + [(parent_grouping_name, parent_grouping_value)])
+                    if counted_groupings:
+                        message = f"{spaces}    {green(chars_rarrow_hollow)} {green('ALSO COUNTED HERE')}:"
+                        if verbose is True:
+                            if duplicates > 0:
+                                message += f" {duplicates}"
+                                if duplicates != len(counted_groupings):
+                                    message += red_bold(f" {chars_xmark} vs {len(counted_groupings)}")
+                            print(message)
+                            for counted_grouping in counted_groupings:
+                                print(f"{spaces}      - {counted_grouping[0]} {green(counted_grouping[1])}")
+                        else:
+                            counted_grouping_values = [green(counted_grouping[1]) for counted_grouping in counted_groupings]
+                            message = f"{message} {', '.join(counted_grouping_values)}"
+                            if duplicates > 0:
+                                if duplicates != len(counted_groupings):
+                                    message += red_bold(f" {chars_xmark} {duplicates} vs {len(counted_grouping_values)}")
+                            print(message)
         if isinstance(items := data.get("items"), list):
             for element in items:
                 print_results(element,
