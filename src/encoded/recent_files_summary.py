@@ -614,6 +614,7 @@ def print_normalized_aggregation_results(normalized_results: dict,
         return unused_aggregation_fields
 
     def get_aggregation_field_labels() -> dict:
+        # Shorter/nicer names for aggregation fields of interest to print.
         global AGGREGATION_FIELD_CELL_MIXTURE, AGGREGATION_FIELD_CELL_LINE, AGGREGATION_FIELD_DONOR
         return {
             AGGREGATION_FIELD_CELL_MIXTURE: "sample-sources",
@@ -626,6 +627,7 @@ def print_normalized_aggregation_results(normalized_results: dict,
         aggregation_fields = get_aggregation_fields(normalized_results)
         unused_aggregation_fields = get_unused_aggregation_fields(normalized_results)
         aggregation_fields_to_print = aggregation_fields + unused_aggregation_fields
+        # Look at get_aggregation_field_labels above for other/miscellaneous fields we want to print.
         for aggregation_field_label in get_aggregation_field_labels():
             if aggregation_field_label not in aggregation_fields_to_print:
                 aggregation_field_labels.append(aggregation_field_label)
@@ -638,7 +640,7 @@ def print_normalized_aggregation_results(normalized_results: dict,
 
         nonlocal title, uuids, uuid_details, nobold, query, verbose
         nonlocal chars_check, chars_dot, chars_rarrow_hollow, chars_xmark, red, green_bold, gray, bold
-        nonlocal aggregation_fields, aggregation_fields_to_print, aggregation_field_labels
+        nonlocal aggregation_fields_to_print
 
         def get_portal_hits(data: dict) -> List[dict]:
             hits = []
