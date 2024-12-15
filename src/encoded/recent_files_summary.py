@@ -1,6 +1,7 @@
-from pyramid.request import Request as PyramidRequest
 from contextlib import contextmanager
 from copy import deepcopy
+from pyramid.request import Request as PyramidRequest
+import re
 from typing import Callable, List, Optional, Tuple, Union
 from dcicutils.misc_utils import normalize_spaces
 from encoded.elasticsearch_utils import add_debugging_to_elasticsearch_aggregation_query
@@ -885,8 +886,6 @@ def capture_output_to_html_string():
 
 
 def ansi_to_html(text):
-    import re
-    ANSI_ESCAPE_RE = re.compile(r'\x1b\[(\d+)m')
     ANSI_COLOR_MAP = {
         '30': 'black',
         '31': 'red',
@@ -905,15 +904,27 @@ def ansi_to_html(text):
         '96': 'bright_cyan',
         '97': 'bright_white',
     }
+    ANSI_ESCAPE_RE = re.compile(r'\x1b\[([0-9;]*)m')
+    bold_active = False
     def replace_ansi(match):  # noqa
-        code = match.group(1)
-        color = ANSI_COLOR_MAP.get(code)
-        if color:
-            return f'<span style="color: {color};">'
-        elif code == '0':
-            return '</span>'
-        return ''
-    html_text = ANSI_ESCAPE_RE.sub(replace_ansi, text)
-    if html_text.count('<span') > html_text.count('</span>'):
-        html_text += '</span>'
-    return f'<pre>{html_text}</pre>'
+        nonlocal bold_active
+        codes = match.group(1).split(';')  # Split multiple codes (e.g., "1;31")
+        html_parts = []
+        for code in codes:
+            if code == '1':  # Bold
+                if not bold_active:  # Activate bold
+                    html_parts.append('<b>')
+                    bold_active = True
+            elif code in ANSI_COLOR_MAP:  # Colors
+                color = ANSI_COLOR_MAP[code]
+                html_parts.append(f'<span style="color: {color};">')
+            elif code == '0':  # Reset
+                if bold_active:
+                    html_parts.append('</b>')
+                    bold_active = False
+                html_parts.append('</span>')  # Close color
+        return ''.join(html_parts)
+    text_with_html = ANSI_ESCAPE_RE.sub(replace_ansi, text)
+    if bold_active:
+        text_with_html += '</b>'
+    return f'<pre>{text_with_html}</pre>'
