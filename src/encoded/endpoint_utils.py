@@ -2,6 +2,7 @@ import calendar
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 from pyramid.request import Request as PyramidRequest
+from termcolor import colored
 from typing import Any, List, Optional, Tuple, Union
 from urllib.parse import parse_qs, urlencode
 from dcicutils.datetime_utils import parse_datetime_string as dcicutils_parse_datetime_string
@@ -277,3 +278,24 @@ def get_properties(data: dict, name: str, fallback: Optional[Any] = None, sort: 
                         return sorted(values) if (sort is True) else values
                 break
     return fallback if isinstance(fallback, list) else ([] if fallback is None else [fallback])
+
+
+def terminal_color(value: str,
+                   color: Optional[str] = None,
+                   dark: bool = False,
+                   bold: bool = False,
+                   underline: bool = False,
+                   nocolor: bool = False) -> str:
+    # This is used only for troubleshooting by
+    if nocolor is True:
+        return value
+    attributes = []
+    if dark is True:
+        attributes.append("dark")
+    if bold is True:
+        attributes.append("bold")
+    if underline is True:
+        attributes.append("underline")
+    if isinstance(color, str) and color:
+        return colored(value, color.lower(), attrs=attributes)
+    return colored(value, attrs=attributes)

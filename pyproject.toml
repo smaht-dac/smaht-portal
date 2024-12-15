@@ -99,6 +99,7 @@ structlog = ">=19.2.0,<20"
 subprocess-middleware = "^0.3.0"
 supervisor = "^4.2.4"
 # Useful for picking apart pyproject.toml
+termcolor = "^2.4.0"
 toml = ">=0.10.1,<1"
 tqdm = "^4.59.0"
 transaction = "^3.0.0"

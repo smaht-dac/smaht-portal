@@ -599,7 +599,7 @@ def print_normalized_aggregation_results(normalized_results: dict,
     """
     For deveopment/troubleshooting only ...
     """
-    from hms_utils.terminal_utils import terminal_color
+    from encoded.endpoint_utils import terminal_color
 
     def get_aggregation_fields(normalized_results: dict) -> List[str]:
         # Returns all noted/important aggregation fields which ARE actually being used by the query;
