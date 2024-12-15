@@ -1,9 +1,12 @@
+import builtins
 from contextlib import contextmanager
 from copy import deepcopy
-from pyramid.request import Request as PyramidRequest
 import re
+from pyramid.request import Request as PyramidRequest
+from io import StringIO
 from termcolor import colored
 from typing import Any, Callable, List, Optional, Tuple, Union
+from unittest.mock import patch as patch
 from encoded.endpoints.endpoint_utils import parse_datetime_string
 from encoded.endpoints.recent_files_summary.recent_files_summary_fields import (
     AGGREGATION_FIELD_RELEASE_DATE,
@@ -12,7 +15,6 @@ from encoded.endpoints.recent_files_summary.recent_files_summary_fields import (
     AGGREGATION_FIELD_CELL_MIXTURE,
     AGGREGATION_FIELD_DONOR,
     AGGREGATION_FIELD_FILE_DESCRIPTOR)
-
 
 def add_info_for_troubleshooting(normalized_results: dict, request: PyramidRequest) -> None:
 
@@ -441,9 +443,6 @@ def _get_properties(data: dict, name: str, fallback: Optional[Any] = None, sort:
 @contextmanager
 def _capture_output_to_html_string():
 
-    from io import StringIO
-    from unittest.mock import patch as patch
-
     def ansi_to_html(text):
         ANSI_COLOR_MAP = {
             "30": "black",
@@ -488,7 +487,6 @@ def _capture_output_to_html_string():
             text_with_html += "</b>"
         return f"<pre>{text_with_html}</pre>"
 
-    print_original = print
     captured_output = StringIO()
     class CapturedOutput:  # noqa
         def __init__(self, captured_output: StringIO):
@@ -502,5 +500,9 @@ def _capture_output_to_html_string():
     def captured_print(*args, **kwargs):  # noqa
         nonlocal captured_output
         print_original(*args, **kwargs, file=captured_output)
-    with patch("builtins.print", captured_print):
-        yield CapturedOutput(captured_output)
+    print_original = builtins.print
+    try:
+        with patch("builtins.print", captured_print):
+            yield CapturedOutput(captured_output)
+    finally:
+        print = print_original
