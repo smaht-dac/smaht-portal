@@ -1,4 +1,4 @@
-from pyramid.httpexceptions import HTTPBadRequest, HTTPFound
+from pyramid.httpexceptions import HTTPFound
 from pyramid.security import Authenticated
 from pyramid.view import view_config
 import structlog
@@ -67,63 +67,8 @@ def recent_files_summary_endpoint(context, request):
     text = request_arg_bool(request, "text")
     results = recent_files_summary(request, troubleshooting=text)
     if text:
-        import json
-        import os
         from pyramid.response import Response
-        import sys
-        from encoded.recent_files_summary import print_normalized_aggregation_results
-        with capture_output_to_html_string() as captured_output:
-            print_normalized_aggregation_results(results, uuids=True, uuid_details=True)
-            text = captured_output.getvalue() 
-            text = ansi_to_html(text)
+        from encoded.recent_files_summary import get_normalized_aggregation_results_as_html_for_troublehshooting
+        text = get_normalized_aggregation_results_as_html_for_troublehshooting(results)
         return Response(f"<pre>{text}</pre>", content_type='text/html')
     return results
-
-
-from contextlib import contextmanager
-@contextmanager
-def capture_output_to_html_string():
-    from io import StringIO
-    from unittest.mock import patch as patch
-    print_original = print
-    captured_output = StringIO()
-    def captured_print(*args, **kwargs):
-        nonlocal captured_output
-        print_original(*args, **kwargs, file=captured_output)
-    with patch("builtins.print", captured_print):
-        yield captured_output
-
-
-def ansi_to_html(text):
-    import re
-    ANSI_ESCAPE_RE = re.compile(r'\x1b\[(\d+)m')
-    ANSI_COLOR_MAP = {
-        '30': 'black',
-        '31': 'red',
-        '32': 'green',
-        '33': 'yellow',
-        '34': 'blue',
-        '35': 'magenta',
-        '36': 'cyan',
-        '37': 'white',
-        '90': 'bright_black',
-        '91': 'bright_red',
-        '92': 'bright_green',
-        '93': 'bright_yellow',
-        '94': 'bright_blue',
-        '95': 'bright_magenta',
-        '96': 'bright_cyan',
-        '97': 'bright_white',
-    }
-    def replace_ansi(match):
-        code = match.group(1)  # Extract ANSI code
-        color = ANSI_COLOR_MAP.get(code)
-        if color:
-            return f'<span style="color: {color};">'
-        elif code == '0':  # Reset code
-            return '</span>'
-        return ''  # Ignore unsupported codes
-    html_text = ANSI_ESCAPE_RE.sub(replace_ansi, text)
-    if html_text.count('<span') > html_text.count('</span>'):
-        html_text += '</span>'
-    return f'<pre>{html_text}</pre>'

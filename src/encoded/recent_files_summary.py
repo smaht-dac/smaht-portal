@@ -1,4 +1,5 @@
 from pyramid.request import Request as PyramidRequest
+from contextlib import contextmanager
 from copy import deepcopy
 from typing import Callable, List, Optional, Tuple, Union
 from dcicutils.misc_utils import normalize_spaces
@@ -532,7 +533,7 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
         nonlocal aggregation_fields_for_troubleshooting
         uuid_records = []
         query = normalized_results.get("query")
-        if isinstance(debug := normalized_results.get("debug"), dict):
+        if isinstance(normalized_results.get("debug"), dict):
             normalized_results["debug"]["aggregation_fields_for_troubleshooting"] = (
                 aggregation_fields_for_troubleshooting)
         files = request.embed(f"{query}&limit=1000", as_user="IMPORT")["@graph"]
@@ -852,3 +853,67 @@ def print_normalized_aggregation_results(normalized_results: dict,
     chars_null = "∅"
 
     print_results(normalized_results)
+
+
+def get_normalized_aggregation_results_as_html_for_troublehshooting(normalized_results: dict):
+    with capture_output_to_html_string() as captured_output:
+        print_normalized_aggregation_results(normalized_results, uuids=True, uuid_details=True)
+        return captured_output.html
+    return
+
+
+@contextmanager
+def capture_output_to_html_string():
+    from io import StringIO
+    from unittest.mock import patch as patch
+    print_original = print
+    captured_output = StringIO()
+    class CapturedOutput:  # noqa
+        def __init__(self, captured_output: StringIO):
+            self._captured_output = captured_output
+        @property  # noqa
+        def text(self):
+            return self._captured_output.getvalue()
+        @property  # noqa
+        def html(self):
+            return ansi_to_html(self._captured_output.getvalue())
+    def captured_print(*args, **kwargs):  # noqa
+        nonlocal captured_output
+        print_original(*args, **kwargs, file=captured_output)
+    with patch("builtins.print", captured_print):
+        yield CapturedOutput(captured_output)
+
+
+def ansi_to_html(text):
+    import re
+    ANSI_ESCAPE_RE = re.compile(r'\x1b\[(\d+)m')
+    ANSI_COLOR_MAP = {
+        '30': 'black',
+        '31': 'red',
+        '32': 'green',
+        '33': 'yellow',
+        '34': 'blue',
+        '35': 'magenta',
+        '36': 'cyan',
+        '37': 'white',
+        '90': 'bright_black',
+        '91': 'bright_red',
+        '92': 'bright_green',
+        '93': 'bright_yellow',
+        '94': 'bright_blue',
+        '95': 'bright_magenta',
+        '96': 'bright_cyan',
+        '97': 'bright_white',
+    }
+    def replace_ansi(match):  # noqa
+        code = match.group(1)
+        color = ANSI_COLOR_MAP.get(code)
+        if color:
+            return f'<span style="color: {color};">'
+        elif code == '0':
+            return '</span>'
+        return ''
+    html_text = ANSI_ESCAPE_RE.sub(replace_ansi, text)
+    if html_text.count('<span') > html_text.count('</span>'):
+        html_text += '</span>'
+    return f'<pre>{html_text}</pre>'
