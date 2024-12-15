@@ -38,7 +38,7 @@ AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR = [
 
 BASE_SEARCH_QUERY = "/search/"
 
-def recent_files_summary(request: PyramidRequest) -> dict:
+def recent_files_summary(request: PyramidRequest, troubleshooting: bool = True) -> dict:
     """
     This supports the (new as of 2024-12)  /recent_files_summary endpoint (for C4-1192) to return,
     by default, info for files released withing the past three months grouped by release-date,
@@ -65,6 +65,7 @@ def recent_files_summary(request: PyramidRequest) -> dict:
     released can be queried for using one or more status query arguments, e.g. status=uploaded.
     """
 
+
     global AGGREGATION_FIELD_RELEASE_DATE
 
     date_property_name = request_arg(request, "date_property_name", AGGREGATION_FIELD_RELEASE_DATE)
@@ -84,6 +85,11 @@ def recent_files_summary(request: PyramidRequest) -> dict:
     troubleshoot_elasticsearch = request_arg_bool(request, "troubleshoot_elasticsearch")
     raw = request_arg_bool(request, "raw")
     willrfix = request_arg_bool(request, "willrfix")
+
+    if troubleshooting is True:
+        debug = True
+        troubleshoot = True
+        troubleshoot_elasticsearch = True
 
     def get_aggregation_field_grouping_cell_or_donor() -> List[str]:
         # This specializes the aggregation query to group first by the cell-line field,
