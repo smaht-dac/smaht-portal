@@ -1,11 +1,13 @@
 import pytest
 from typing import Optional
-from encoded.elasticsearch_utils import create_elasticsearch_aggregation_query
-from encoded.elasticsearch_utils import merge_elasticsearch_aggregation_results
-from encoded.elasticsearch_utils import normalize_elasticsearch_aggregation_results
-from encoded.recent_files_summary import AGGREGATION_FIELD_RELEASE_DATE
-from encoded.recent_files_summary import AGGREGATION_FIELD_CELL_LINE
-from encoded.recent_files_summary import AGGREGATION_FIELD_FILE_DESCRIPTOR
+from encoded.endpoints.elasticsearch_utils import (
+        create_elasticsearch_aggregation_query,
+        merge_elasticsearch_aggregation_results,
+        normalize_elasticsearch_aggregation_results)
+from encoded.endpoints.recent_files_summary.recent_files_summary import (
+        AGGREGATION_FIELD_RELEASE_DATE,
+        AGGREGATION_FIELD_CELL_LINE,
+        AGGREGATION_FIELD_FILE_DESCRIPTOR)
 
 def test_create_elasticsearch_aggregation_query_a():
 

@@ -6,7 +6,7 @@ from webob.multidict import MultiDict
 from urllib.parse import urlencode
 from snovault.search.search import search
 from snovault.util import debug_log
-from encoded.recent_files_summary import recent_files_summary
+from encoded.endpoints.recent_files_summary.recent_files_summary import recent_files_summary_endpoint
 
 log = structlog.getLogger(__name__)
 
@@ -14,7 +14,7 @@ log = structlog.getLogger(__name__)
 
 def includeme(config):
     config.add_route('browse', '/browse{slash:/?}')
-    config.add_route("recent_files_summary_endpoint", "/recent_files_summary")
+    config.add_route("recent_files_summary", "/recent_files_summary")
     config.scan(__name__)
 
 
@@ -60,15 +60,7 @@ def browse(context, request, search_type=DEFAULT_BROWSE_TYPE, return_generator=F
     return search(context, request, search_type, return_generator, forced_type="Browse")
 
 
-@view_config(route_name="recent_files_summary_endpoint", request_method=["GET"], effective_principals=Authenticated)
+@view_config(route_name="recent_files_summary", request_method=["GET"], effective_principals=Authenticated)
 @debug_log
-def recent_files_summary_endpoint(context, request):
-    from encoded.endpoint_utils import request_arg_bool
-    text = request_arg_bool(request, "text")
-    results = recent_files_summary(request, troubleshooting=text)
-    if text:
-        from pyramid.response import Response
-        from encoded.recent_files_summary import get_normalized_aggregation_results_as_html_for_troublehshooting
-        text = get_normalized_aggregation_results_as_html_for_troublehshooting(results)
-        return Response(f"<pre>{text}</pre>", content_type='text/html')
-    return results
+def recent_files_summary(context, request):
+    return recent_files_summary_endpoint(context, request)

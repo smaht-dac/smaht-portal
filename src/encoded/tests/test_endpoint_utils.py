@@ -2,7 +2,7 @@ from contextlib import contextmanager
 import datetime
 from typing import Optional, Union
 from unittest.mock import patch as mock_patch
-from encoded.endpoint_utils import parse_date_range_related_arguments, parse_datetime_string
+from encoded.endpoints.endpoint_utils import parse_date_range_related_arguments, parse_datetime_string
 
 DEFAULT_MOCK_DATETIME_TODAY_VALUE = "2024-11-06 07:54:16"
 
@@ -74,5 +74,6 @@ def mocked_datetime_today(value: Optional[Union[str, datetime.datetime]] = DEFAU
         @classmethod
         def today(cls):
             nonlocal value ; return value  # noqa
-    with (mock_patch("encoded.endpoint_utils.datetime", MockDateTime), mock_patch("datetime.datetime", MockDateTime)):
+    with (mock_patch("encoded.endpoints.endpoint_utils.datetime", MockDateTime),
+          mock_patch("datetime.datetime", MockDateTime)):
         yield
