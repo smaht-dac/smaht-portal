@@ -507,20 +507,28 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
                 count += 1
         return count
 
+    def dedup_list(data: list) -> list:  # noqa
+        return list(dict.fromkeys(data)) if isinstance(data, list) else []
+
+    aggregation_fields_for_troubleshooting = dedup_list([
+        AGGREGATION_FIELD_RELEASE_DATE,
+        AGGREGATION_FIELD_CELL_MIXTURE,
+        AGGREGATION_FIELD_CELL_LINE,
+        # Store some extra properties for troublehooting (as this whole thing is).
+#       "file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.display_title",
+#       "file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.cell_line.code",
+        "file_sets.libraries.analytes.samples.sample_sources.display_title",
+        AGGREGATION_FIELD_DONOR,
+        AGGREGATION_FIELD_FILE_DESCRIPTOR
+    ])
+
     def annotate_with_uuids(normalized_results: dict):
-        aggregation_fields = [
-            AGGREGATION_FIELD_RELEASE_DATE,
-            AGGREGATION_FIELD_CELL_MIXTURE,
-            AGGREGATION_FIELD_CELL_LINE,
-            # Store some extra properties for troublehooting (as this whole thing is).
-            "file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.display_title",
-            "file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.cell_line.code",
-            "file_sets.libraries.analytes.samples.sample_sources.display_title",
-            AGGREGATION_FIELD_DONOR,
-            AGGREGATION_FIELD_FILE_DESCRIPTOR
-        ]
+        nonlocal aggregation_fields_for_troubleshooting
         uuid_records = []
         query = normalized_results.get("query")
+        if isinstance(debug := normalized_results.get("debug"), dict):
+            normalized_results["debug"]["aggregation_fields_for_troubleshooting"] = (
+                aggregation_fields_for_troubleshooting)
         files = request.embed(f"{query}&limit=1000", as_user="IMPORT")["@graph"]
         for first_item in normalized_results["items"]:
             first_property_name = first_item["name"]
@@ -548,7 +556,7 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
                                         if not third_item["debug"].get("portal_hits"):
                                             third_item["debug"]["portal_hits"] = []
                                         uuid_record = {"uuid": uuid}
-                                        for aggregation_field in aggregation_fields:
+                                        for aggregation_field in aggregation_fields_for_troubleshooting:
                                             aggregation_values = ", ".join(get_properties(file, aggregation_field))
                                             uuid_record[aggregation_field] = aggregation_values or None
                                         if third_item["debug"].get("elasticsearch_hits"):
@@ -593,25 +601,29 @@ def print_normalized_aggregation_results(normalized_results: dict,
         if not isinstance(aggregation_fields :=
                           normalized_results.get("debug", {}).get("aggregation_query_fields"), list):
             aggregation_fields = []
+        else:
+            aggregation_fields = deepcopy(aggregation_fields)
         for aggregation_field in aggregation_fields:
             # Remove the ones we are not interested in reporting on.
             if aggregation_field not in AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR:
                 aggregation_fields.remove(aggregation_field)
         return aggregation_fields
 
-    def get_unused_aggregation_fields(normalized_results: dict) -> List[str]:
-        # Returns all noted/important aggregation fields which are NOT actually being used by the query;
-        # we only are interested in ones that are in AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR,
-        # which is all of the possible sample-source/cell-line/donor aggregations.
-        global AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR
-        unused_aggregation_fields = []
-        aggregation_fields = get_aggregation_fields(normalized_results)
-        for aggregation_field in AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR:
-            if aggregation_field not in aggregation_fields:
-                unused_aggregation_fields.append(aggregation_field)
-        unused_aggregation_fields.append(
-            "file_sets.libraries.analytes.samples.sample_sources.display_title")
-        return unused_aggregation_fields
+    def get_aggregation_fields_to_print(normalized_results: dict) -> List[str]:
+        aggregation_fields_to_print = get_aggregation_fields(normalized_results)
+        if isinstance(aggregation_fields_for_troubleshooting :=
+                      normalized_results.get("debug", {}).get("aggregation_fields_for_troubleshooting"), list):
+            for aggregation_field_for_troubleshooting in aggregation_fields_for_troubleshooting:
+                if aggregation_field_for_troubleshooting not in aggregation_fields_to_print:
+                    aggregation_fields_to_print.append(aggregation_field_for_troubleshooting)
+            aggregation_fields_to_not_print = [
+                AGGREGATION_FIELD_RELEASE_DATE,
+                AGGREGATION_FIELD_FILE_DESCRIPTOR 
+            ]
+            for aggregation_field_to_not_print in aggregation_fields_to_not_print:
+                if aggregation_field_to_not_print in aggregation_fields_to_print:
+                    aggregation_fields_to_print.remove(aggregation_field_to_not_print)
+        return aggregation_fields_to_print
 
     def get_aggregation_field_labels() -> dict:
         # Shorter/nicer names for aggregation fields of interest to print.
@@ -622,16 +634,6 @@ def print_normalized_aggregation_results(normalized_results: dict,
             AGGREGATION_FIELD_DONOR: "donors",
             "file_sets.libraries.analytes.samples.sample_sources.display_title": "sample-sources-title"
         }
-
-    def get_aggregation_fields_to_print(normalized_results: dict) -> List[str]:
-        aggregation_fields = get_aggregation_fields(normalized_results)
-        unused_aggregation_fields = get_unused_aggregation_fields(normalized_results)
-        aggregation_fields_to_print = aggregation_fields + unused_aggregation_fields
-        # Look at get_aggregation_field_labels above for other/miscellaneous fields we want to print.
-        for aggregation_field_label in get_aggregation_field_labels():
-            if aggregation_field_label not in aggregation_fields_to_print:
-                aggregation_fields_to_print.append(aggregation_field_label)
-        return aggregation_fields_to_print
 
     def print_results(data: dict,
                       parent_grouping_name: Optional[str] = None,
