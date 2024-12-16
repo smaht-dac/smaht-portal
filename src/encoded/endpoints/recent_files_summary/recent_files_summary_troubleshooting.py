@@ -422,12 +422,23 @@ def _get_properties(data: dict, name: str, fallback: Optional[Any] = None, sort:
     return fallback if isinstance(fallback, list) else ([] if fallback is None else [fallback])
 
 
+def colored_html(value: str, color: Optional[str] = None, attrs: Optional[list] = None) -> str:
+    if isinstance(value, str):
+        if isinstance(color, str) and color:
+            value = f"<span style='color: {color}'>{value}</span>"
+        if isinstance(attrs, list):
+            if "bold" in attrs:
+                value = f"<b>{value}</b>"
+    return value
+
+
 def _terminal_color(value: str,
                     color: Optional[str] = None,
                     dark: bool = False,
                     bold: bool = False,
                     underline: bool = False,
                     nocolor: bool = False) -> str:
+    colored = colored_html
     # This is used only for troubleshooting by
     if nocolor is True:
         return value
