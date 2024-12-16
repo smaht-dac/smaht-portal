@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.119.0
+=======
+`PR 306 SN Add cell_sorting_method <https://github.com/smaht-dac/smaht-portal/pull/306>`
+
+* Add property `cell_sorting_method` to AnalytePreparation
+
+
 0.118.0
 =======
 `PR 303 SN Rnaseq filenames <https://github.com/smaht-dac/smaht-portal/pull/303>`
