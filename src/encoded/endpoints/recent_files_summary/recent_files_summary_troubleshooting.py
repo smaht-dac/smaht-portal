@@ -4,6 +4,7 @@ from copy import deepcopy
 import re
 from pyramid.request import Request as PyramidRequest
 from io import StringIO
+import os
 from termcolor import colored
 from typing import Any, Callable, List, Optional, Tuple, Union
 from unittest.mock import patch as patch
@@ -112,6 +113,7 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
 
 
 def get_normalized_aggregation_results_as_html_for_troublehshooting(normalized_results: dict, debug: bool = False):
+    os.environ["TERM"] = "xterm-256color"
     with _capture_output_to_html_string() as captured_output:
         print_normalized_aggregation_results_for_troubleshooting(normalized_results, uuids=True, uuid_details=True)
         if debug is True:
@@ -508,6 +510,7 @@ def _capture_output_to_html_string():
         # nonlocal captured_output, print_original
         # print_original(*args, **kwargs, file=captured_output)
         nonlocal captured_output
+        os.environ["TERM"] = "xterm-256color"
         captured_output += str(args[0]) + "[" + colored("DEBUG", "red") + "]"
         captured_output += "\n"
     with patch("encoded.endpoints.recent_files_summary.recent_files_summary_troubleshooting.print", captured_print):
