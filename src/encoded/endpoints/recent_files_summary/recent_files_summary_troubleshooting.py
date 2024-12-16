@@ -108,9 +108,16 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
         pass
 
 
-def get_normalized_aggregation_results_as_html_for_troublehshooting(normalized_results: dict, debug: bool = False):
+def get_normalized_aggregation_results_as_html_for_troublehshooting(normalized_results: dict,
+                                                                    uuids: bool = True,
+                                                                    uuid_details: bool = True,
+                                                                    verbose: bool = False,
+                                                                    debug: bool = False):
     with _capture_output_to_html(debug=debug) as captured_output:
-        print_normalized_aggregation_results_for_troubleshooting(normalized_results, uuids=True, uuid_details=True)
+        print_normalized_aggregation_results_for_troubleshooting(normalized_results,
+                                                                 uuids=uuids,
+                                                                 uuid_details=uuid_details,
+                                                                 verbose=verbose)
         return captured_output.text
 
 
