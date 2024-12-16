@@ -508,7 +508,7 @@ def _capture_output_to_html_string():
         # nonlocal captured_output, print_original
         # print_original(*args, **kwargs, file=captured_output)
         nonlocal captured_output
-        captured_output += str(args[0]) + "[" + _terminal_color("DEBUG", "red") + "]"
+        captured_output += str(args[0]) + "[" + colored("DEBUG", "red") + "]"
         captured_output += "\n"
     with patch("encoded.endpoints.recent_files_summary.recent_files_summary_troubleshooting.print", captured_print):
         yield CapturedOutput(captured_output)
