@@ -81,6 +81,7 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
                             "name": AGGREGATION_FIELD_FILE_DESCRIPTOR,
                             "value": unique_release_tracker_description_value,
                             "count": 0,
+                            "elasticsearch_counted": False,
                             "debug_placeholder": True
                         })
                 third_items_to_delete = []
@@ -241,7 +242,7 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                                        color: Optional[Callable] = None) -> Tuple[Optional[str], List[Tuple[str, str]]]:
             nonlocal parent_grouping_name, parent_grouping_value, green, green_bold, chars_larrow_hollow
             counted_elsewhere = []
-            if hit.get("elasticsearch_counted") is False:
+            if hit.get("elasticsearch_counted", False) is False:
                 counted_grouping_name, counted_grouping_value = find_where_aggregated_and_counted(hit.get("uuid"))
             else:
                 counted_grouping_name, counted_grouping_value = (None, None)
@@ -260,7 +261,7 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                             else:
                                 property_values.append(property_value)
                     property_value = ", ".join(property_values)
-                elif hit.get("elasticsearch_counted") is False:
+                elif hit.get("elasticsearch_counted", False) is False:
                     counted_grouping_name, counted_grouping_value = find_where_aggregated_and_counted(hit.get("uuid"))
                     if (counted_grouping_name == property_name) and (counted_grouping_value == property_value):
                         property_value = green_bold(f"{property_value} {chars_larrow_hollow}") + green(" COUNTED HERE")
@@ -291,7 +292,7 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                     elif isinstance(hits := data.get("debug", {}).get("portal_hits"), list):
                         for hit in hits:
                             if hit.get("uuid") == uuid:
-                                if hit.get("elasticsearch_counted") is True:
+                                if hit.get("elasticsearch_counted", False) is True:
                                     found_uuid_grouping_names_and_values.add((parent_grouping_name, parent_grouping_value))
                 return found_uuid_grouping_names_and_values
 
@@ -372,7 +373,7 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                     print(f"{spaces}  {query_string}")
         for hit in hits:
             if isinstance(hit, dict) and isinstance(uuid := hit.get("uuid"), str) and uuid:
-                if hit.get("elasticsearch_counted") is False:
+                if hit.get("elasticsearch_counted", False) is False:
                     print(red(f"{spaces}  {chars_dot} {uuid} {chars_xmark} UNCOUNTED"))
                     color = red_bold
                 else:
