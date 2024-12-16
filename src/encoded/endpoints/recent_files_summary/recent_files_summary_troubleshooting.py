@@ -487,19 +487,25 @@ def _capture_output_to_html_string():
             text_with_html += "</b>"
         return f"<pre>{text_with_html}</pre>"
 
-    captured_output = StringIO()
-    print_original = builtins.print
+    #captured_output = StringIO()
+    captured_output = ""
+    # print_original = builtins.print
     class CapturedOutput:  # noqa
         def __init__(self, captured_output: StringIO):
             self._captured_output = captured_output
         @property  # noqa
         def text(self):
-            return self._captured_output.getvalue()
+            return captured_output
+            # return self._captured_output.getvalue()
         @property  # noqa
         def html(self):
-            return ansi_to_html(self._captured_output.getvalue())
+            return ansi_to_html(captured_output)
+            # return ansi_to_html(self._captured_output.getvalue())
     def captured_print(*args, **kwargs):  # noqa
-        nonlocal captured_output, print_original
-        print_original(*args, **kwargs, file=captured_output)
+        # nonlocal captured_output, print_original
+        # print_original(*args, **kwargs, file=captured_output)
+        nonlocal captured_output
+        captured_output += str(args[0])
+        captured_output += "\n"
     with patch("encoded.endpoints.recent_files_summary.recent_files_summary_troubleshooting.print", captured_print):
         yield CapturedOutput(captured_output)
