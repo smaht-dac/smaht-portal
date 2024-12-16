@@ -347,7 +347,7 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
         hits = get_portal_hits(data) if (uuids is True) else []
         note = ""
         if isinstance(count := data.get("count"), int):
-            if len(hits) > count:
+            if (len(hits) > count) and (uuids is True):
                 note = red(f" {chars_rarrow_hollow} MORE ACTUAL RESULTS: {len(hits) - count}")
             elif isinstance(items := data.get("items"), list):
                 subcount = 0
@@ -363,7 +363,7 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
         if not ((count == 0) and (len(hits) == 0) and (not note)):
             if (len(hits) == 0) and isinstance(items := data.get("items"), list):
                 # Count the actual hits for this non-terminal group.
-                if (items_nhits := count_unique_portal_hits_recursively(items)) > count:
+                if ((items_nhits := count_unique_portal_hits_recursively(items)) > count) and (uuids is True):
                     note += red(f" {chars_rarrow_hollow} MORE ACTUAL RESULTS: {items_nhits - count}")
             print(f"{spaces}{grouping}: {count}{note}")
             if (query is True) and (query_string := data.get("query")):
