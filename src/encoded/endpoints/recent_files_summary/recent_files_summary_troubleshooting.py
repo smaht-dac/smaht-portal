@@ -495,10 +495,12 @@ def _capture_output_to_html_string():
             self._captured_output = captured_output
         @property  # noqa
         def text(self):
+            nonlocal captured_output
             return captured_output
             # return self._captured_output.getvalue()
         @property  # noqa
         def html(self):
+            nonlocal captured_output
             return ansi_to_html(captured_output)
             # return ansi_to_html(self._captured_output.getvalue())
     def captured_print(*args, **kwargs):  # noqa
