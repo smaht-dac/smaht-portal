@@ -54,7 +54,12 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
     ])
 
     def annotate_with_uuids(normalized_results: dict):
+
+        def get_unique_release_tracker_description_values(normalized_results: dict) -> List[str]:
+            return _get_properties(normalized_results, "items.items.items.value")
+
         nonlocal aggregation_fields_for_troubleshooting
+        unique_release_tracker_description_values = get_unique_release_tracker_description_values(normalized_results)
         uuid_records = []
         query = normalized_results.get("query")
         if isinstance(normalized_results.get("debug"), dict):
@@ -67,7 +72,19 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
             for second_item in first_item["items"]:
                 second_property_name = second_item["name"]
                 second_property_value = second_item["value"]
-                for third_item in second_item["items"]:
+                second_item_items = second_item["items"]
+                # Put dummy elements in for AGGREGATION_FIELD_FILE_DESCRIPTOR items values which do not exist.
+                third_item_values = [third_item["value"] for third_item in second_item_items]
+                for unique_release_tracker_description_value in unique_release_tracker_description_values:
+                    if unique_release_tracker_description_value not in third_item_values:
+                        second_item["items"].append({
+                            "name": AGGREGATION_FIELD_FILE_DESCRIPTOR,
+                            "value": unique_release_tracker_description_value,
+                            "count": 0,
+                            "debug_placeholder": True
+                        })
+                third_items_to_delete = []
+                for third_item in second_item_items:
                     third_property_name = third_item["name"]
                     third_property_value = third_item["value"]
                     if debug_elasticsearch_hits := third_item.get("debug_elasticsearch_hits"):
@@ -97,6 +114,12 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
                                         uuid_records.append(uuid_record)
                                 if third_item.get("debug", {}).get("portal_hits"):
                                     third_item["debug"]["portal_hits"].sort(key=lambda item: item.get("uuid"))
+                    if ((third_item.get("count") == 0) and (third_item.get("debug_placeholder") is True) and
+                        (not third_item.get("debug", {}).get("elasticsearch_hits")) and (not third_item.get("debug", {}).get("portal_hits"))):
+                        third_items_to_delete.append(third_item)
+                if third_items_to_delete:
+                    for third_item in third_items_to_delete:
+                        second_item_items.remove(third_item)
 
         for uuid_record in uuid_records:
             if (count := count_uuid(uuid_records, uuid_record["uuid"])) > 1:
@@ -111,12 +134,14 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
 def get_normalized_aggregation_results_as_html_for_troublehshooting(normalized_results: dict,
                                                                     uuids: bool = True,
                                                                     uuid_details: bool = True,
+                                                                    query: bool = False,
                                                                     verbose: bool = False,
                                                                     debug: bool = False):
     with _capture_output_to_html(debug=debug) as captured_output:
         print_normalized_aggregation_results_for_troubleshooting(normalized_results,
                                                                  uuids=uuids,
                                                                  uuid_details=uuid_details,
+                                                                 query=query,
                                                                  verbose=verbose)
         return captured_output.text
 
@@ -186,7 +211,7 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
 
         def get_portal_hits(data: dict) -> List[dict]:
             hits = []
-            if isinstance(portal_hits := data.get("debug", {}).get("portal_hits"), list):
+            if isinstance(data, dict) and isinstance(portal_hits := data.get("debug", {}).get("portal_hits"), list):
                 for portal_hit in portal_hits:
                     if isinstance(portal_hit, dict) and isinstance(uuid := portal_hit.get("uuid"), str) and uuid:
                         hits.append(portal_hit)
@@ -314,9 +339,21 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                     note = f" {chars_check}"
             elif checks:
                 note = f" {chars_check}"
+        if not ((count == 0) and (len(hits) == 0) and (not note)):
+            if ((grouping_name in aggregation_fields) and
+                (len(hits) == 0) and isinstance(items := data.get("items"), list)):
+                # Count the actual hits for this noted aggregation field group.
+                items_nhits = 0
+                for item in items:
+                    items_nhits += len(get_portal_hits(item))
+                if items_nhits > count:
+                    note = red(f" {chars_rarrow_hollow} MORE ACTUAL RESULTS: {items_nhits - count}")
             print(f"{spaces}{grouping}: {count}{note}")
-        if (query is True) and (query_string := data.get("query")):
-            print(f"{spaces}  {query_string}")
+            if (query is True) and (query_string := data.get("query")):
+                if _terminal_color == _html_color:
+                    print(f"{spaces}  <small><a target=_blank href='{query_string}'>{query_string}</a></small>")
+                else:
+                    print(f"{spaces}  {query_string}")
         for hit in hits:
             if isinstance(hit, dict) and isinstance(uuid := hit.get("uuid"), str) and uuid:
                 note = ""
@@ -453,26 +490,27 @@ def _terminal_color(value: str,
     return colored(value, attrs=attributes)
 
 
+def _html_color(value: str,
+                color: Optional[str] = None,
+                dark: bool = False,
+                bold: bool = False,
+                underline: bool = False,
+                nocolor: bool = False) -> str:
+    if (nocolor is not True) and isinstance(value, str):
+        if isinstance(color, str) and color:
+            if dark is True:
+                value = f"<span style='color: dark{color}'>{value}</span>"
+            else:
+                value = f"<span style='color: {color}'>{value}</span>"
+        if bold is True:
+            value = f"<b>{value}</b>"
+        if underline is True:
+            value = f"<u>{value}</u>"
+    return value
+
+
 @contextmanager
 def _capture_output_to_html(debug: bool = False):
-
-    def html_color(value: str,
-                   color: Optional[str] = None,
-                   dark: bool = False,
-                   bold: bool = False,
-                   underline: bool = False,
-                   nocolor: bool = False) -> str:
-        if (nocolor is not True) and isinstance(value, str):
-            if isinstance(color, str) and color:
-                if dark is True:
-                    value = f"<span style='color: dark{color}'>{value}</span>"
-                else:
-                    value = f"<span style='color: {color}'>{value}</span>"
-            if bold is True:
-                value = f"<b>{value}</b>"
-            if underline is True:
-                value = f"<u>{value}</u>"
-        return value
 
     captured_output = ""
     class CapturedOutput:  # noqa
@@ -488,5 +526,5 @@ def _capture_output_to_html(debug: bool = False):
         with patch(f"{this_module}.print", captured_print):
             yield CapturedOutput()
     else:
-        with (patch(f"{this_module}.print", captured_print), patch(f"{this_module}._terminal_color", html_color)):
+        with (patch(f"{this_module}.print", captured_print), patch(f"{this_module}._terminal_color", _html_color)):
             yield CapturedOutput()

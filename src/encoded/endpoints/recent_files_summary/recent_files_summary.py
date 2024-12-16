@@ -41,13 +41,15 @@ def recent_files_summary_endpoint(context, request):
     text = request_arg_bool(request, "text")
     results = recent_files_summary(request, troubleshooting=text)
     if text:
-        text_verbose = request_arg_bool(request, "text_verbose")
         text_uuids = request_arg_bool(request, "text_uuids", True)
         text_uuid_details = request_arg_bool(request, "text_uuid_details", True)
+        text_query = request_arg_bool(request, "text_query")
+        text_verbose = request_arg_bool(request, "text_verbose")
         text_debug = request_arg_bool(request, "text_debug")
         results = get_normalized_aggregation_results_as_html_for_troublehshooting(results,
                                                                                   uuids=text_uuids,
                                                                                   uuid_details=text_uuid_details,
+                                                                                  query=text_query,
                                                                                   verbose=text_verbose,
                                                                                   debug=text_debug)
         results = PyramidResponse(f"<pre>{results}</pre>", content_type='text/html')
