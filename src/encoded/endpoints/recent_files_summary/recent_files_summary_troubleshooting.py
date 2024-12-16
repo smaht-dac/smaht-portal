@@ -173,26 +173,6 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
             "file_sets.libraries.analytes.samples.sample_sources.display_title": "sample-sources-title"
         }
 
-    def terminal_color(value: str,
-                       color: Optional[str] = None,
-                       dark: bool = False,
-                       bold: bool = False,
-                       underline: bool = False,
-                       nocolor: bool = False) -> str:
-        # This is used only for troubleshooting by
-        if nocolor is True:
-            return value
-        attributes = []
-        if dark is True:
-            attributes.append("dark")
-        if bold is True:
-            attributes.append("bold")
-        if underline is True:
-            attributes.append("underline")
-        if isinstance(color, str) and color:
-            return colored(value, color.lower(), attrs=attributes)
-        return colored(value, attrs=attributes)
-
     def print_results(data: dict,
                       parent_grouping_name: Optional[str] = None,
                       parent_grouping_value: Optional[str] = None,
@@ -388,12 +368,12 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
     aggregation_fields_to_print = get_aggregation_fields_to_print(normalized_results)
     aggregation_field_labels = get_aggregation_field_labels()
 
-    red = lambda text: terminal_color(text, "red")  # noqa
-    red_bold = lambda text: terminal_color(text, "red", bold=True)  # noqa
-    green = lambda text: terminal_color(text, "green")  # noqa
-    green_bold = lambda text: terminal_color(text, "green", bold=True)  # noqa
-    gray = lambda text: terminal_color(text, "grey")  # noqa
-    bold = (lambda text: terminal_color(text, bold=True)) if (nobold is not True) else (lambda text: text)
+    red = lambda text: _terminal_color(text, "red")  # noqa
+    red_bold = lambda text: _terminal_color(text, "red", bold=True)  # noqa
+    green = lambda text: _terminal_color(text, "green")  # noqa
+    green_bold = lambda text: _terminal_color(text, "green", bold=True)  # noqa
+    gray = lambda text: _terminal_color(text, "grey")  # noqa
+    bold = (lambda text: _terminal_color(text, bold=True)) if (nobold is not True) else (lambda text: text)
     chars_check = "✓"
     chars_xmark = "✗"
     chars_dot = "•"
@@ -438,6 +418,27 @@ def _get_properties(data: dict, name: str, fallback: Optional[Any] = None, sort:
                         return sorted(values) if (sort is True) else values
                 break
     return fallback if isinstance(fallback, list) else ([] if fallback is None else [fallback])
+
+
+def _terminal_color(value: str,
+                    color: Optional[str] = None,
+                    dark: bool = False,
+                    bold: bool = False,
+                    underline: bool = False,
+                    nocolor: bool = False) -> str:
+    # This is used only for troubleshooting by
+    if nocolor is True:
+        return value
+    attributes = []
+    if dark is True:
+        attributes.append("dark")
+    if bold is True:
+        attributes.append("bold")
+    if underline is True:
+        attributes.append("underline")
+    if isinstance(color, str) and color:
+        return colored(value, color.lower(), attrs=attributes)
+    return colored(value, attrs=attributes)
 
 
 @contextmanager
@@ -507,7 +508,7 @@ def _capture_output_to_html_string():
         # nonlocal captured_output, print_original
         # print_original(*args, **kwargs, file=captured_output)
         nonlocal captured_output
-        captured_output += str(args[0])
+        captured_output += str(args[0]) + "[" + _terminal_color("DEBUG", "red") + "]"
         captured_output += "\n"
     with patch("encoded.endpoints.recent_files_summary.recent_files_summary_troubleshooting.print", captured_print):
         yield CapturedOutput(captured_output)
