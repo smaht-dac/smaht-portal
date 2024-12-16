@@ -108,8 +108,8 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
         pass
 
 
-def get_normalized_aggregation_results_as_html_for_troublehshooting(normalized_results: dict):
-    with _capture_output_to_html() as captured_output:
+def get_normalized_aggregation_results_as_html_for_troublehshooting(normalized_results: dict, debug: bool = False):
+    with _capture_output_to_html(debug=debug) as captured_output:
         print_normalized_aggregation_results_for_troubleshooting(normalized_results, uuids=True, uuid_details=True)
         return captured_output.text
 
@@ -447,7 +447,7 @@ def _terminal_color(value: str,
 
 
 @contextmanager
-def _capture_output_to_html():
+def _capture_output_to_html(debug: bool = False):
 
     def html_color(value: str,
                    color: Optional[str] = None,
@@ -477,5 +477,9 @@ def _capture_output_to_html():
         nonlocal captured_output
         captured_output += str(args[0]) + "\n"
     this_module = "encoded.endpoints.recent_files_summary.recent_files_summary_troubleshooting"
-    with (patch(f"{this_module}.print", captured_print), patch(f"{this_module}._terminal_color", html_color)):
-        yield CapturedOutput()
+    if debug is True:
+        with patch(f"{this_module}.print", captured_print):
+            yield CapturedOutput()
+    else:
+        with (patch(f"{this_module}.print", captured_print), patch(f"{this_module}._terminal_color", html_color)):
+            yield CapturedOutput()

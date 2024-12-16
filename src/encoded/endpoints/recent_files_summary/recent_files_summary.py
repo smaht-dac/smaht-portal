@@ -41,7 +41,8 @@ def recent_files_summary_endpoint(context, request):
     text = request_arg_bool(request, "text")
     results = recent_files_summary(request, troubleshooting=text)
     if text:
-        results = get_normalized_aggregation_results_as_html_for_troublehshooting(results)
+        text_debug = request_arg_bool(request, "text_debug")
+        results = get_normalized_aggregation_results_as_html_for_troublehshooting(results, debug=text_debug)
         results = PyramidResponse(f"<pre>{results}</pre>", content_type='text/html')
     return results
 
