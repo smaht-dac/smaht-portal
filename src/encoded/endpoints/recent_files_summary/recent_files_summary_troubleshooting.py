@@ -1,10 +1,6 @@
-import builtins
 from contextlib import contextmanager
 from copy import deepcopy
-import re
 from pyramid.request import Request as PyramidRequest
-from io import StringIO
-import os
 from termcolor import colored
 from typing import Any, Callable, List, Optional, Tuple, Union
 from unittest.mock import patch as patch
@@ -112,13 +108,10 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
         pass
 
 
-def get_normalized_aggregation_results_as_html_for_troublehshooting(normalized_results: dict, debug: bool = False):
-    os.environ["TERM"] = "xterm-256color"
-    with _capture_output_to_html_string() as captured_output:
+def get_normalized_aggregation_results_as_html_for_troublehshooting(normalized_results: dict):
+    with _capture_output_to_html() as captured_output:
         print_normalized_aggregation_results_for_troubleshooting(normalized_results, uuids=True, uuid_details=True)
-        if debug is True:
-            return captured_output.text
-        return captured_output.html
+        return captured_output.text
 
 
 def print_normalized_aggregation_results_for_troubleshooting(normalized_results: dict,
@@ -438,7 +431,6 @@ def _terminal_color(value: str,
                     bold: bool = False,
                     underline: bool = False,
                     nocolor: bool = False) -> str:
-    colored = colored_html
     # This is used only for troubleshooting by
     if nocolor is True:
         return value
@@ -455,74 +447,35 @@ def _terminal_color(value: str,
 
 
 @contextmanager
-def _capture_output_to_html_string():
+def _capture_output_to_html():
 
-    def ansi_to_html(text):
-        ANSI_COLOR_MAP = {
-            "30": "black",
-            "31": "red",
-            "32": "green",
-            "33": "yellow",
-            "34": "blue",
-            "35": "magenta",
-            "36": "cyan",
-            "37": "white",
-            "90": "bright_black",
-            "91": "bright_red",
-            "92": "bright_green",
-            "93": "bright_yellow",
-            "94": "bright_blue",
-            "95": "bright_magenta",
-            "96": "bright_cyan",
-            "97": "bright_white",
-        }
-        ANSI_ESCAPE_RE = re.compile(r"\x1b\[([0-9;]*)m")
-        bold_active = False
-        def replace_ansi(match):  # noqa
-            nonlocal bold_active
-            codes = match.group(1).split(";")  # Split multiple codes (e.g., "1;31")
-            html_parts = []
-            for code in codes:
-                if code == "1":  # Bold
-                    if not bold_active:  # Activate bold
-                        html_parts.append("<b>")
-                        bold_active = True
-                elif code in ANSI_COLOR_MAP:  # Colors
-                    color = ANSI_COLOR_MAP[code]
-                    html_parts.append(f"<span style='color: {color};'>")
-                elif code == "0":  # Reset
-                    if bold_active:
-                        html_parts.append("</b>")
-                        bold_active = False
-                    html_parts.append("</span>")  # Close color
-            return "".join(html_parts)
-        text_with_html = ANSI_ESCAPE_RE.sub(replace_ansi, text)
-        if bold_active:
-            text_with_html += "</b>"
-        return f"<pre>{text_with_html}</pre>"
+    def html_color(value: str,
+                   color: Optional[str] = None,
+                   dark: bool = False,
+                   bold: bool = False,
+                   underline: bool = False,
+                   nocolor: bool = False) -> str:
+        if (nocolor is not True) and isinstance(value, str):
+            if isinstance(color, str) and color:
+                if dark is True:
+                    value = f"<span style='color: dark{color}'>{value}</span>"
+                else:
+                    value = f"<span style='color: {color}'>{value}</span>"
+            if bold is True:
+                value = f"<b>{value}</b>"
+            if underline is True:
+                value = f"<u>{value}</u>"
+        return value
 
-    #captured_output = StringIO()
     captured_output = ""
-    # print_original = builtins.print
     class CapturedOutput:  # noqa
-        def __init__(self, captured_output: StringIO):
-            self._captured_output = captured_output
         @property  # noqa
         def text(self):
             nonlocal captured_output
             return captured_output
-            # return self._captured_output.getvalue()
-        @property  # noqa
-        def html(self):
-            nonlocal captured_output
-            return ansi_to_html(captured_output)
-            # return ansi_to_html(self._captured_output.getvalue())
     def captured_print(*args, **kwargs):  # noqa
-        # nonlocal captured_output, print_original
-        # print_original(*args, **kwargs, file=captured_output)
         nonlocal captured_output
-        os.environ["TERM"] = "xterm-256color"
-        captured_output += str(args[0]) + "[" + colored("DEBUG", "red") + "]"
-        captured_output += "\n"
-    with patch("encoded.endpoints.recent_files_summary.recent_files_summary_troubleshooting.print", captured_print):
-        yield CapturedOutput(captured_output)
+        captured_output += str(args[0]) + "\n"
+    this_module = "encoded.endpoints.recent_files_summary.recent_files_summary_troubleshooting"
+    with (patch(f"{this_module}.print", captured_print), patch(f"{this_module}._terminal_color", html_color)):
+        yield CapturedOutput()
