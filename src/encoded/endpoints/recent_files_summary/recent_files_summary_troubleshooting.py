@@ -114,8 +114,10 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
                                         uuid_records.append(uuid_record)
                                 if third_item.get("debug", {}).get("portal_hits"):
                                     third_item["debug"]["portal_hits"].sort(key=lambda item: item.get("uuid"))
-                    if ((third_item.get("count") == 0) and (third_item.get("debug_placeholder") is True) and
-                        (not third_item.get("debug", {}).get("elasticsearch_hits")) and (not third_item.get("debug", {}).get("portal_hits"))):
+                    if ((third_item.get("count") == 0) and
+                        (third_item.get("debug_placeholder") is True) and
+                        (not third_item.get("debug", {}).get("elasticsearch_hits")) and
+                        (not third_item.get("debug", {}).get("portal_hits"))):  # noqa
                         third_items_to_delete.append(third_item)
                 if third_items_to_delete:
                     for third_item in third_items_to_delete:
@@ -216,6 +218,24 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                     if isinstance(portal_hit, dict) and isinstance(uuid := portal_hit.get("uuid"), str) and uuid:
                         hits.append(portal_hit)
             return hits
+
+        def count_unique_portal_hits_recursively(data: dict) -> int:
+            def get_portal_hits_recursively(data: dict) -> List[dict]:  # noqa
+                hits = []
+                if isinstance(data, dict):
+                    for key in data:
+                        if key == "portal_hits":
+                            if isinstance(data[key], list):
+                                hits.extend(data[key])
+                        else:
+                            hits.extend(get_portal_hits_recursively(data[key]))
+                elif isinstance(data, list):
+                    for element in data:
+                        hits.extend(get_portal_hits_recursively(element))
+                return hits
+            hits = get_portal_hits_recursively(data)
+            hits = [hit.get("uuid") for hit in hits]
+            return len(set(hits))
 
         def format_hit_property_values(hit: dict, property_name: str,
                                        color: Optional[Callable] = None) -> Tuple[Optional[str], List[Tuple[str, str]]]:
@@ -324,8 +344,8 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
             grouping = "RESULTS"
         grouping = f"{chars_diamond} {grouping}"
         hits = get_portal_hits(data) if (uuids is True) else []
+        note = ""
         if isinstance(count := data.get("count"), int):
-            note = ""
             if len(hits) > count:
                 note = red(f" {chars_rarrow_hollow} MORE ACTUAL RESULTS: {len(hits) - count}")
             elif isinstance(items := data.get("items"), list):
@@ -340,14 +360,10 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
             elif checks:
                 note = f" {chars_check}"
         if not ((count == 0) and (len(hits) == 0) and (not note)):
-            if ((grouping_name in aggregation_fields) and
-                (len(hits) == 0) and isinstance(items := data.get("items"), list)):
-                # Count the actual hits for this noted aggregation field group.
-                items_nhits = 0
-                for item in items:
-                    items_nhits += len(get_portal_hits(item))
-                if items_nhits > count:
-                    note = red(f" {chars_rarrow_hollow} MORE ACTUAL RESULTS: {items_nhits - count}")
+            if (len(hits) == 0) and isinstance(items := data.get("items"), list):
+                # Count the actual hits for this non-terminal group.
+                if (items_nhits := count_unique_portal_hits_recursively(items)) > count:
+                    note += red(f" {chars_rarrow_hollow} MORE ACTUAL RESULTS: {items_nhits - count}")
             print(f"{spaces}{grouping}: {count}{note}")
             if (query is True) and (query_string := data.get("query")):
                 if _terminal_color == _html_color:
@@ -356,7 +372,6 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                     print(f"{spaces}  {query_string}")
         for hit in hits:
             if isinstance(hit, dict) and isinstance(uuid := hit.get("uuid"), str) and uuid:
-                note = ""
                 if hit.get("elasticsearch_counted") is False:
                     print(red(f"{spaces}  {chars_dot} {uuid} {chars_xmark} UNCOUNTED"))
                     color = red_bold
