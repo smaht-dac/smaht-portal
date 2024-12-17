@@ -21,6 +21,16 @@ def is_chain_file(properties: Dict[str, Any],request_handler: RequestHandler):
     return file_utils.get_file_extension(properties,request_handler) == "chain.gz"
 
 
+def is_genome_assembly(properties: Dict[str, Any]):
+    """Check if data category is Genome Assembly"""
+    return "Genome Assembly" in file_utils.get_data_category(properties)
+
+
+def is_reference_conversion(properties: Dict[str, Any]):
+    """Check if data category is Genome Conversion"""
+    return "Reference Conversion" in file_utils.get_data_category(properties)
+
+
 def get_donor_specific_assembly(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
     """Get donor-specific assembly from properties."""
     return properties.get("donor_specific_assembly", "")
@@ -38,6 +48,11 @@ def get_target_assembly(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]
 def get_reference_genome(properties: Dict[str, Any]) -> Union[str, Dict[str, Any], None]:
     """Get reference genome from properties."""
     return properties.get("reference_genome", "")
+
+
+def get_haplotype(properties: Dict[str, Any]) -> Union[str, Dict[str, Any], None]:
+    """Get haplotype from properties."""
+    return properties.get("haplotype", "")
 
 
 def get_derived_from(
@@ -64,16 +79,3 @@ def get_derived_from_file_sets(
             file_utils.get_file_sets,
         )
     return properties.get("file_sets", [])  
-
-
-def get_dsa_software(
-        properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None 
-) -> List[Union[str, Dict[str, Any]]]:
-    """Get software from donor-specific assembly associated with file."""
-    if request_handler:
-        return get_property_value_from_identifier(
-            request_handler,
-            get_donor_specific_assembly(properties),
-            dsa_utils.get_software,
-        )
-    return []

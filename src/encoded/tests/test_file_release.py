@@ -6,7 +6,11 @@ from webtest import TestApp
 
 from .utils import get_search
 from ..commands.release_file import FileRelease
-from ..item_utils import file as file_utils, item as item_utils
+from ..item_utils import (
+    file as file_utils,
+    item as item_utils,
+    supplementary_file as supp_file_utils
+)
 from ..item_utils.utils import RequestHandler
 
 
@@ -35,7 +39,8 @@ def test_file_release(es_testapp: TestApp, workbook: None) -> None:
             identifier = item_utils.get_uuid(file)
             file_release = FileRelease({}, identifier)
             file_release.prepare(dataset)
-            assert file_release.file_sets
+            if not supp_file_utils.is_reference_conversion(file) and not supp_file_utils.is_genome_assembly(file):
+                assert file_release.file_sets
             assert file_release.libraries
             assert file_release.assays
             assert file_release.sequencings

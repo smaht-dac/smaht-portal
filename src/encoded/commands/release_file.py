@@ -24,6 +24,7 @@ from encoded.item_utils import (
     sample_source as sample_source_utils,
     submitted_file as submitted_file_utils,
     tissue as tissue_utils,
+    supplementary_file as supp_file_utils
 )
 from encoded.item_utils.constants import (
     file as file_constants,
@@ -198,12 +199,15 @@ class FileRelease:
         )
         mwfrs = ff_utils.search_metadata(search_filter, key=self.key)
         if len(mwfrs) != 1:
-            self.print_error_and_exit(
-                (
-                    f"Expected exactly one associated MetaWorkflowRun, got"
-                    f" {len(mwfrs)}: {search_filter}"
+            if not supp_file_utils.is_genome_assembly(self.file) and not supp_file_utils.is_reference_conversion(self.file):
+                self.print_error_and_exit(
+                    (
+                        f"Expected exactly one associated MetaWorkflowRun, got"
+                        f" {len(mwfrs)}: {search_filter}"
+                    )
                 )
-            )
+            else:
+                return []
         mwfr = mwfrs[0]
         file_sets = meta_workflow_run_utils.get_file_sets(mwfr)
         # Might need to be more general in the future
@@ -238,6 +242,7 @@ class FileRelease:
         self.add_release_items_to_patchdict(
             self.quality_metrics_zips, "Compressed QC metrics file"
         )
+
         self.add_release_items_to_patchdict(self.file_sets, "FileSet")
         self.add_release_items_to_patchdict(self.sequencings, "Sequencing")
         self.add_release_items_to_patchdict(self.libraries, "Library")
@@ -354,17 +359,16 @@ class FileRelease:
             item_utils.get_accession(file_set) for file_set in self.file_sets
         ]
         annotated_filename_info = self.get_annotated_filename_info()
-
         # Add file to file set and set status to released
         patch_body = {
             item_constants.UUID: item_utils.get_uuid(self.file),
             item_constants.STATUS: item_constants.STATUS_RELEASED,
-            file_constants.FILE_SETS: file_set_accessions,
             file_constants.DATASET: dataset,
             file_constants.ACCESS_STATUS: access_status,
             file_constants.ANNOTATED_FILENAME: annotated_filename_info.filename,
         }
-
+        if file_set_accessions:
+            patch_body[file_constants.FILE_SETS] = file_set_accessions
         # Take the extra files from the annotated filename object if available.
         # They will have the correct filenames
         if annotated_filename_info.patch_dict:
@@ -454,6 +458,12 @@ class FileRelease:
                 file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
                     file_constants.ACCESS_STATUS_OPEN
                 ),
+                file_constants.DATA_CATEGORY_GENOME_ASSEMBLY: (
+                    file_constants.ACCESS_STATUS_OPEN
+                ),
+                file_constants.DATA_CATEGORY_GENOME_CONVERSION: (
+                    file_constants.ACCESS_STATUS_OPEN
+                ),
                 file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
                     file_constants.ACCESS_STATUS_OPEN
                 )
@@ -466,6 +476,12 @@ class FileRelease:
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_GENOME_ASSEMBLY: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_GENOME_CONVERSION: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
@@ -481,6 +497,12 @@ class FileRelease:
                 ),
                 file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
                     file_constants.ACCESS_STATUS_OPEN
+                ),
+                file_constants.DATA_CATEGORY_GENOME_ASSEMBLY: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_GENOME_CONVERSION: (
+                    file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
                     file_constants.ACCESS_STATUS_OPEN
