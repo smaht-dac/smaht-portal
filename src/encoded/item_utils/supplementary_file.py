@@ -26,9 +26,9 @@ def is_genome_assembly(properties: Dict[str, Any]):
     return "Genome Assembly" in file_utils.get_data_category(properties)
 
 
-def is_genome_conversion(properties: Dict[str, Any]):
+def is_reference_conversion(properties: Dict[str, Any]):
     """Check if data category is Genome Conversion"""
-    return "Genome Conversion" in file_utils.get_data_category(properties)
+    return "Reference Conversion" in file_utils.get_data_category(properties)
 
 
 def get_donor_specific_assembly(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:

@@ -551,13 +551,13 @@ SOME_SOURCE_ASSEMBLY = {
     "code": DSA_CODE
 }
 SOME_CHAIN_FILE = {
-    "data_category": ["Genome Conversion"],
+    "data_category": ["Reference Conversion"],
     "data_type": ["Chain File"],
     "source_assembly": DSA_CODE,
     "target_assembly":  REFERENCE_GENOME_CODE
 }
 SOME_FASTA_FILE = {
-    "data_type": ["Genome Sequence"],
+    "data_type": ["DSA"],
     "data_category": ["Genome Assembly"],
     "donor_specific_assembly": "Some_DSA",
     "haplotype": HAPLOTYPE_CODE
@@ -565,7 +565,7 @@ SOME_FASTA_FILE = {
 
 ANOTHER_FASTA_FILE = {
     "data_category": ["Genome Assembly"],
-    "data_type": ["Genome Sequence"],
+    "data_type": ["Reference Sequence"],
 }
 SOME_TSV_FILE = {
     "data_type": ["Gene Expression"],

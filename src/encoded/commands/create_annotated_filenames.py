@@ -801,13 +801,13 @@ def get_sequencing_and_assay_codes(
 ) -> FilenamePart:
     """Get sequencing and assay codes for file.
     
-    Returns XX for Genome Assembly and Genome Conversion files.
+    Returns XX for Genome Assembly and Reference Conversion files.
     """
     sequencing_codes = get_sequencing_codes(sequencers)
     assay_codes = get_assay_codes(assays)
     if len(sequencing_codes) == 1 and len(assay_codes) == 1:
         return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
-    elif supp_file_utils.is_genome_assembly(file) or supp_file_utils.is_genome_conversion(file):
+    elif supp_file_utils.is_genome_assembly(file) or supp_file_utils.is_reference_conversion(file):
         return get_filename_part(value="XX")
     errors = []
     if not sequencing_codes:

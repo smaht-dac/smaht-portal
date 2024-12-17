@@ -3,7 +3,7 @@
         "uuid": "b444f958-9832-4d6e-be7a-4b1019d2df7c",
         "submitted_id": "TEST_SUPPLEMENTARY-FILE_HELA_GRCH38",
         "data_category": [
-            "Genome Conversion"
+            "Reference Conversion"
         ],
         "data_type": [
             "Chain File"
@@ -29,7 +29,7 @@
             "Genome Assembly"
         ],
         "data_type": [
-            "Genome Sequence"
+            "DSA"
         ],
         "filename": "test_hela.fasta",
         "file_format": "FASTA",
