@@ -349,6 +349,8 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
         if isinstance(count := data.get("count"), int):
             if (len(hits) > count) and (uuids is True):
                 note = red(f" {chars_rarrow_hollow} MORE ACTUAL RESULTS: {len(hits) - count}")
+                if count == 0:
+                    note = red(f' {chars_rarrow_hollow} UNCOUNTED') + note
             elif isinstance(items := data.get("items"), list):
                 subcount = 0
                 for item in items:
@@ -365,6 +367,8 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                 # Count the actual hits for this non-terminal group.
                 if ((items_nhits := count_unique_portal_hits_recursively(items)) > count) and (uuids is True):
                     note += red(f" {chars_rarrow_hollow} MORE ACTUAL RESULTS: {items_nhits - count}")
+                    if count == 0:
+                        note = red(f' {chars_rarrow_hollow} UNCOUNTED') + note
             print(f"{spaces}{grouping}: {count}{note}")
             if (query is True) and (query_string := data.get("query")):
                 if _terminal_color == _html_color:
