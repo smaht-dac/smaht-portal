@@ -117,30 +117,10 @@ export class BrowseViewBody extends React.PureComponent {
         return facets;
     }
 
-    /** Not currently used. */
-    static filteredFilters(filters) {
-        const typeFilterCount = filters.reduce(function (m, { field }) {
-            if (field === 'type') return m + 1;
-            return m;
-        }, 0);
-        return filters.filter(function ({ field, term }) {
-            if (field === 'type') {
-                if (term === 'Item') {
-                    return false;
-                }
-                if (typeFilterCount === 1) {
-                    return false;
-                }
-            }
-            return true;
-        });
-    }
-
     constructor(props) {
         super(props);
         this.memoized = {
             transformedFacets: memoize(BrowseViewBody.transformedFacets),
-            filteredFilters: memoize(BrowseViewBody.filteredFilters),
         };
     }
 
@@ -154,8 +134,6 @@ export class BrowseViewBody extends React.PureComponent {
             'toggleFullScreen',
             'isCaseSearch'
         );
-
-        //const filters = BrowseView.filteredFilters(context.filters || []);
 
         return (
             <div className="search-page-outer-container" id="content">
@@ -178,11 +156,19 @@ export class BrowseViewBody extends React.PureComponent {
                         <Alerts alerts={alerts} className="mt-2" />
                         <div>
                             <div className="browse-summary d-flex flex-row p-4 mt-2 mb-3 flex-wrap">
-                                <BrowseSummaryStatController type="File" />
+                                <BrowseSummaryStatController
+                                    type="File"
+                                    useSearch
+                                    additionalSearchQueries="&sample_summary.studies=Benchmarking"
+                                />
                                 <BrowseSummaryStatController type="Donor" />
                                 <BrowseSummaryStatController type="Tissue" />
                                 <BrowseSummaryStatController type="Assay" />
-                                <BrowseSummaryStatController type="File Size" />
+                                <BrowseSummaryStatController
+                                    type="File Size"
+                                    useSearch
+                                    additionalSearchQueries="&sample_summary.studies=Benchmarking"
+                                />
                             </div>
                         </div>
                         <hr />
@@ -407,27 +393,13 @@ const BrowseViewSearchTable = (props) => {
             },
         },
         // Tissue
-        sample_sources: {
-            render: function (result, parentProps) {
-                const { sample_sources = [] } = result || {};
-
-                const tissue = sample_sources[0];
-
-                const { anatomical_location = '', '@type': atType = [] } =
-                    tissue || {};
-                const { 0: itemType } = atType;
-                if (itemType != 'Tissue') {
-                    return null;
-                }
-                return anatomical_location?.split(':')[0] || display_title;
-            },
-        },
+        'sample_summary.tissues': {},
         // Donor
         donors: {
             render: function (result, parentProps) {
-                const { donors: { 0: { external_id } = {} } = [] } =
+                const { donors: { 0: { display_title } = {} } = [] } =
                     result || {};
-                return external_id || null;
+                return display_title || null;
             },
         },
     };
@@ -450,6 +422,9 @@ const BrowseViewSearchTable = (props) => {
                 'validation_errors.name',
                 'version',
                 'sample_summary.studies',
+                'data_type',
+                'submission_centers.display_title',
+                'software.display_title',
             ]}
             columns={{
                 '@type': {
@@ -464,7 +439,7 @@ const BrowseViewSearchTable = (props) => {
                 donors: {
                     title: 'Donor',
                 },
-                sample_sources: {
+                'sample_summary.tissues': {
                     title: 'Tissue',
                 },
                 'file_sets.libraries.assay.display_title': {
@@ -503,7 +478,7 @@ const BrowseViewSearchTable = (props) => {
 };
 
 const BrowseSummaryStatController = (props) => {
-    const { type } = props;
+    const { type, useSearch = false, additionalSearchQueries = '' } = props;
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -516,21 +491,37 @@ const BrowseSummaryStatController = (props) => {
     };
 
     const callbackFxn = useCallback((resp) => {
-        console.log('BrowseSummaryStatController resp', resp);
-        resp.forEach((facet) => {
-            if (facet.field == 'status' && type != 'File Size') {
-                facet.terms.forEach((term) => {
-                    if (term.key == 'released') {
-                        setValue(term.doc_count);
+        if (!useSearch) {
+            resp.forEach((facet) => {
+                if (facet.field == 'status') {
+                    facet.terms.forEach((term) => {
+                        if (term.key == 'released') {
+                            setValue(term.doc_count);
+                        }
+                    });
+                }
+            });
+        } else {
+            // Use search for File count total and File Size total
+            const { facets = [], total } = resp;
+            console.log('resp', resp);
+            if (type === 'File Size') {
+                facets.forEach((facet) => {
+                    if (facet.field === 'file_size') {
+                        setValue(
+                            valueTransforms.bytesToLargerUnitNoUnits(facet.sum)
+                        );
+                        setUnits(
+                            valueTransforms.bytesToLargerUnitOnly(facet.sum)
+                        );
                     }
                 });
-            } else if (facet.field == 'file_size' && type == 'File Size') {
-                setValue(valueTransforms.bytesToLargerUnitNoUnits(facet.sum));
-                setUnits(valueTransforms.bytesToLargerUnitOnly(facet.sum));
+            } else if (type === 'File') {
+                setValue(total);
             }
-            setLoading(false);
-            setError(false);
-        });
+        }
+        setLoading(false);
+        setError(false);
     });
 
     const fallbackFxn = useCallback((resp) => {
@@ -543,13 +534,24 @@ const BrowseSummaryStatController = (props) => {
         if (!loading) setLoading(true);
         if (error) setError(false);
 
-        ajax.load(
-            `/peek-metadata/`,
-            callbackFxn,
-            'POST',
-            fallbackFxn,
-            JSON.stringify(postData)
-        );
+        if (!useSearch) {
+            // Using peek-metadata for basic item counts
+            ajax.load(
+                `/peek-metadata/`,
+                callbackFxn,
+                'POST',
+                fallbackFxn,
+                JSON.stringify(postData)
+            );
+        } else {
+            // Use search for more complicated query-based metrics
+            ajax.load(
+                `/search/?type=${postData.type}&format=json&status=released&limit=&additional_facet=file_size${additionalSearchQueries}`,
+                callbackFxn,
+                'GET',
+                fallbackFxn
+            );
+        }
     }, [callbackFxn, fallbackFxn]);
 
     // On mount, get statistics
@@ -599,7 +601,7 @@ const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
                 {!loading && (
                     <>
                         <div className="browse-summary-stat-value">
-                            {value}
+                            {!value && value !== 0 ? '-' : value}
                             {units && <span>{units}</span>}
                         </div>
                     </>
