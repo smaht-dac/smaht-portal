@@ -223,21 +223,96 @@
         }
     },
     "facets": {
-        "file_sets.libraries.assay.display_title": {
-            "title": "Experimental Assay"
-        },
-        "file_sets.sequencing.sequencer.display_title": {
-            "title": "Sequencing Platform"
+        "access_status": {
+            "title": "Access"
         },
         "donors.display_title": {
             "title": "Donor",
-            "default_hidden": true
+            "search_type": "sayt_without_terms",
+            "sayt_item_type": "Donor"
+        },
+        "donors.age": {
+            "title": "Donor Age",
+            "aggregation_type": "range",
+            "number_step": 1,
+            "ranges": [
+                {
+                    "from": 0,
+                    "to": 9,
+                    "label": "0-9"
+                },
+                {
+                    "from": 10,
+                    "to": 19,
+                    "label": "10-19"
+                },
+                {
+                    "from": 20,
+                    "to": 29,
+                    "label": "20-29"
+                },
+                {
+                    "from": 30,
+                    "to": 39,
+                    "label": "30-39"
+                },
+                {
+                    "from": 40,
+                    "to": 49,
+                    "label": "40-49"
+                },
+                {
+                    "from": 50,
+                    "to": 59,
+                    "label": "50-59"
+                },
+                {
+                    "from": 60,
+                    "to": 69,
+                    "label": "60-69"
+                },
+                {
+                    "from": 70,
+                    "to": 79,
+                    "label": "70-79"
+                },
+                {
+                    "from": 80,
+                    "to": 89,
+                    "label": "80-89"
+                },
+                {
+                    "from": 90,
+                    "label": "90+"
+                }
+            ]
+        },
+        "donors.sex": {
+            "title": "Donor Sex"
+        },
+        "sample_summary.tissues": {
+            "title": "Tissue"
+        },
+        "file_sets.libraries.assay.display_title": {
+            "title": "Experimental Assay",
+            "search_type": "sayt",
+            "sayt_item_type": "Donor"
+        },
+        "file_sets.sequencing.sequencer.display_title": {
+            "title": "Sequencing Platform"
         },
         "file_format.display_title": {
             "title": "Data Format"
         },
         "data_type": {
             "title": "Data Category"
+        },
+        "reference_genome.display_title": {
+            "title": "Reference Genome"
+        },
+        "date_created": {
+            "title" : "Release Date",
+            "aggregation_type" : "stats"
         },
         "sequencing_center.display_title": {
             "title": "Sequencing Center"
