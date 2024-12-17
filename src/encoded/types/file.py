@@ -375,9 +375,13 @@ def _build_file_embedded_list() -> List[str]:
         "software.title",
         "software.version",
 
-        # For search
-        "donors.external_id",
-        "sample_sources.anatomical_location",
+        # For browse search columns
+        "donors.display_title",
+        "sample_summary.tissues",
+
+        # For facets
+        "donors.age",
+        "donors.sex"
     ]
 
 
