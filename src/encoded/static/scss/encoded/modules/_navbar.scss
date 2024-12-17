@@ -933,12 +933,18 @@ body[data-current-action="multiselect"] {
                 a.big-link {
                     color: inherit;
                     position: relative;
-                    &:hover {
+                    &:hover:not([data-disabled="true"]) {
                         color: #5d8a8e;
                         text-shadow: 0 0 0;
                         text-decoration: none;
                         &:after {
                             opacity: 1;
+                        }
+                    }
+                    &[data-disabled="true"] {
+                        cursor: default;
+                        &:after {
+                            opacity: 0 !important;
                         }
                     }
                     > div,
@@ -955,7 +961,7 @@ body[data-current-action="multiselect"] {
                         display: inline-block;
                         @include after-big-link-append;
                     }
-                    &:hover,
+                    &:hover:not([data-disabled="true"]),
                     &.active {
                         > div > div > h3,
                         > div > div > h5,

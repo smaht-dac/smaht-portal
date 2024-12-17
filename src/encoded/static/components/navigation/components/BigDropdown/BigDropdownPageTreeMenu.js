@@ -10,6 +10,7 @@ import {
     memoizedUrlParse,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { BigDropdownIntroductionWrapper } from './BigDropdownIntroductionWrapper';
+import { BigDropdownBigLink } from './BigDropdownBigLink';
 
 export function BigDropdownPageTreeMenuIntroduction(props) {
     const {
@@ -228,116 +229,112 @@ function CustomStaticLinks({ pathName, href }) {
     switch (pathName) {
         case 'data':
             return (
-                <>
-                    <div className="help-menu-tree level-1 col-12 col-md-6 col-lg-8 has-children">
-                        <div
-                            className={`level-1-title-container ${
-                                href.includes(pathName + '/benchmarking')
-                                    ? ' active'
-                                    : ''
-                            }`}>
-                            <div className="level-1-title text-medium">
-                                Benchmarking Data
+                <div className="row">
+                    <div className="col-md-6">
+                        <h3 className="mt-2 text-400 text-larger">
+                            Production Data
+                        </h3>
+                        <hr className="mb-0" />
+                        <BigDropdownBigLink
+                            href="/browse"
+                            titleIcon="file fas"
+                            className="primary-big-link">
+                            <h4 className="text-large">Browse By File</h4>
+                            <div className="description text-medium">
+                                Search All Files in the SMaHT Consortium
+                                Database
                             </div>
-                        </div>
-                        <div className="row">
-                            <div className="level-2 col-12 col-md-6">
-                                <div className="level-2-title-container my-1">
-                                    <div className="level-2-title text-medium text-600">
-                                        Cell Lines
-                                    </div>
-                                </div>
-
-                                <div className="level-3">
-                                    <a
-                                        className="level-3-title text-small d-block"
-                                        href="/data/benchmarking/COLO829"
-                                        id="menutree-linkto-colo829_page">
-                                        <span>COLO829</span>
-                                    </a>
-                                    <a
-                                        className="level-3-title text-small d-block"
-                                        href="/data/benchmarking/HapMap"
-                                        id="menutree-linkto-hapmap_page">
-                                        <span>HapMap</span>
-                                    </a>
-                                    <a
-                                        className="level-3-title text-small d-block"
-                                        href="/data/benchmarking/iPSC-fibroblasts"
-                                        id="menutree-linkto-ipscfirbro_page">
-                                        <span>iPSC and Fibroblasts</span>
-                                    </a>
-                                </div>
+                        </BigDropdownBigLink>
+                        <BigDropdownBigLink
+                            disabled
+                            href=""
+                            titleIcon="users fas"
+                            className="primary-big-link">
+                            <h4 className="text-large">
+                                Browse By Donor
+                                <span className="text-300 fst-italic text-medium">
+                                    {' '}
+                                    - Coming Soon
+                                </span>
+                            </h4>
+                            <div className="description text-medium">
+                                Search All Donors in the SMaHT Consortium
+                                Database
                             </div>
-                            <div className="level-2 col-12 col-md-6 mt-md-0 mt-1">
-                                <div className="level-2-title-container my-1">
-                                    <div className="level-2-title text-medium text-600">
-                                        Benchmarking Tissues
-                                    </div>
-                                </div>
-                                <div className="level-3">
-                                    <a
-                                        className="level-3-title text-small d-block"
-                                        href="/data/benchmarking/donor-st001"
-                                        id="menutree-linkto-st001_page">
-                                        <span>Donor ST001</span>
-                                    </a>
-                                    <a
-                                        className="level-3-title text-small d-block"
-                                        href="/data/benchmarking/donor-st002"
-                                        id="menutree-linkto-st002_page">
-                                        <span>Donor ST002</span>
-                                    </a>
-                                    <a
-                                        className="level-3-title text-small d-block"
-                                        href="/data/benchmarking/donor-st003"
-                                        id="menutree-linkto-st003_page">
-                                        <span>Donor ST003</span>
-                                    </a>
-                                    <a
-                                        className="level-3-title text-small d-block"
-                                        href="/data/benchmarking/donor-st004"
-                                        id="menutree-linkto-st004_page">
-                                        <span>Donor ST004</span>
-                                    </a>
-                                </div>
+                        </BigDropdownBigLink>
+                        <BigDropdownBigLink
+                            disabled
+                            href=""
+                            titleIcon="lungs fas"
+                            className="primary-big-link">
+                            <h4 className="text-large">
+                                Browse By Tissue
+                                <span className="text-300 fst-italic text-medium">
+                                    {' '}
+                                    - Coming Soon
+                                </span>
+                            </h4>
+                            <div className="description text-medium">
+                                Search All Tissues in the SMaHT Consortium
+                                Database
                             </div>
-                        </div>
+                        </BigDropdownBigLink>
+                        <BigDropdownBigLink
+                            disabled
+                            href=""
+                            titleIcon="dna fas"
+                            className="primary-big-link bottom-edge-child">
+                            <h4 className="text-large">
+                                Browse By Assay
+                                <span className="text-300 fst-italic text-medium">
+                                    {' '}
+                                    - Coming Soon
+                                </span>
+                            </h4>
+                            <div className="description text-medium">
+                                Search All Assays in the SMaHT Consortium
+                                Database
+                            </div>
+                        </BigDropdownBigLink>
                     </div>
-                    <div className="help-menu-tree level-1 col-12 col-md-6 col-lg-4 has-children">
-                        <div
-                            className={`level-1-title-container ${
-                                href.includes(pathName + '/benchmarking')
-                                    ? ' active'
-                                    : ''
-                            }`}>
-                            <div className="level-1-title text-medium">
-                                Benchmarking Analysis
+                    <div className="col-md-6">
+                        <h3 className="mt-2 text-400 text-larger">
+                            Benchmarking Data
+                        </h3>
+                        <hr className="mb-0" />
+                        <BigDropdownBigLink
+                            href="/data/benchmarking/COLO829"
+                            titleIcon="file fas"
+                            className="primary-big-link">
+                            <h4 className="text-large">Browse Cell Lines</h4>
+                            <div className="description text-medium">
+                                COLO829 - Hap Map - iPSC & Fibroblasts
                             </div>
-                        </div>
-                        <div className="row">
-                            <div className="level-2 col-12">
-                                <div className="level-2-title-container my-1">
-                                    <div className="level-2-title text-medium text-600">
-                                        SMaHT Challenges
-                                    </div>
-                                </div>
-
-                                <div className="level-3">
-                                    <a
-                                        className="level-3-title text-small d-block"
-                                        href="/data/analysis/colo829-snv-indel-detection"
-                                        id="menutree-linkto-colo829_snv_indel_detection_page">
-                                        <span>
-                                            COLO829 SNV/Indel Detection
-                                            Challenge
-                                        </span>
-                                    </a>
-                                </div>
+                        </BigDropdownBigLink>
+                        <BigDropdownBigLink
+                            href="/data/benchmarking/donor-st001"
+                            titleIcon="file fas"
+                            className="primary-big-link">
+                            <h4 className="text-large">
+                                Browse Benchmarking Tissues
+                            </h4>
+                            <div className="description text-medium">
+                                Donor: ST001, ST002, ST003, ST004
                             </div>
-                        </div>
+                        </BigDropdownBigLink>
+                        <BigDropdownBigLink
+                            href="/data/analysis/colo829-snv-indel-detection"
+                            titleIcon="file fas"
+                            className="primary-big-link bottom-edge-child">
+                            <h4 className="text-large">
+                                Browse By Benchmarking Analysis
+                            </h4>
+                            <div className="description text-medium">
+                                COLO829 SNV/Indel Detection Challenge
+                            </div>
+                        </BigDropdownBigLink>
                     </div>
-                </>
+                </div>
             );
         default:
             return null;
