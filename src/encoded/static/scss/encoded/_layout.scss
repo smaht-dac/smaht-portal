@@ -210,9 +210,9 @@ body.is-full-screen {
 /***
 Styling of page title container for static pages, user profiles, 
 **/
-body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-current-action="edit"]) #page-title-container,
-body.is-item-view[data-pathname^="/users/"] #page-title-container,
-#page-title-container.static-page-title {
+body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-current-action="edit"]):not([data-at-type*="Error"]) #page-title-container,
+body.is-item-view[data-pathname^="/users/"]:not([data-at-type*='Error']) #page-title-container,
+body:not([data-at-type*='Error']) #page-title-container.static-page-title {
 	background: $ss-title-background;
 	background-size: cover;
 	border: 1px solid #E7F0F3;

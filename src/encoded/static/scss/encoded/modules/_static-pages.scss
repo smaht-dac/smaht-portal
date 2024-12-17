@@ -1802,8 +1802,8 @@ body[data-pathname^="/data"] {
 /***
 Unique styling for benchmarking pages
 **/
-body[data-pathname^="/data/benchmarking"] {
-	#post-navbar-container>#content.container:not(.error-page) {
+body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
+	#post-navbar-container>#content.container:not(.error-page):not(.error-boundary) {
 		width: 100%;
 		max-width: calc(100% - 4em);
 		margin: 0 2em;
