@@ -229,8 +229,8 @@ function CustomStaticLinks({ pathName, href }) {
     switch (pathName) {
         case 'data':
             return (
-                <div className="row">
-                    <div className="col-md-6">
+                <div className="row mb-2">
+                    <div className="col-lg-6">
                         <h3 className="mt-2 text-400 text-larger">
                             Production Data
                         </h3>
@@ -265,7 +265,7 @@ function CustomStaticLinks({ pathName, href }) {
                         <BigDropdownBigLink
                             disabled
                             href=""
-                            titleIcon="lungs fas"
+                            titleIcon="lungs fas mb-03"
                             className="primary-big-link">
                             <h4 className="text-large">
                                 Browse By Tissue
@@ -297,14 +297,22 @@ function CustomStaticLinks({ pathName, href }) {
                             </div>
                         </BigDropdownBigLink>
                     </div>
-                    <div className="col-md-6">
+                    <div className="col-lg-6 mt-md-2 mt-lg-0">
                         <h3 className="mt-2 text-400 text-larger">
                             Benchmarking Data
                         </h3>
                         <hr className="mb-0" />
                         <BigDropdownBigLink
                             href="/data/benchmarking/COLO829"
-                            titleIcon="file fas"
+                            titleIcon={
+                                <div className="big-link-icon-circle rounded-circle">
+                                    <img
+                                        className="big-link-icon-svg"
+                                        src="/static/img/anatomy-icons/Cell Line Mixture.svg"
+                                        alt={`Cell lines icon`}
+                                    />
+                                </div>
+                            }
                             className="primary-big-link">
                             <h4 className="text-large">Browse Cell Lines</h4>
                             <div className="description text-medium">
@@ -313,7 +321,15 @@ function CustomStaticLinks({ pathName, href }) {
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
                             href="/data/benchmarking/donor-st001"
-                            titleIcon="file fas"
+                            titleIcon={
+                                <div className="big-link-icon-circle rounded-circle">
+                                    <img
+                                        className="big-link-icon-svg"
+                                        src="/static/img/anatomy-icons/Brain.svg"
+                                        alt={`Brain icon`}
+                                    />
+                                </div>
+                            }
                             className="primary-big-link">
                             <h4 className="text-large">
                                 Browse Benchmarking Tissues
@@ -324,7 +340,20 @@ function CustomStaticLinks({ pathName, href }) {
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
                             href="/data/analysis/colo829-snv-indel-detection"
-                            titleIcon="file fas"
+                            titleIcon={
+                                <div className="big-link-icon-circle rounded-circle">
+                                    <img
+                                        style={{
+                                            height: '30px',
+                                            width: '30px',
+                                            paddingTop: '3px',
+                                        }}
+                                        className="big-link-icon-svg"
+                                        src="/static/img/misc-icons/Benchmarking Analysis Icon.svg"
+                                        alt={`Analysis icon`}
+                                    />
+                                </div>
+                            }
                             className="primary-big-link bottom-edge-child">
                             <h4 className="text-large">
                                 Browse By Benchmarking Analysis

@@ -23,7 +23,9 @@ export function BigDropdownBigLink(props) {
     if (typeof titleIcon === 'string') {
         iconCol = (
             <div className="col-auto icon-beside-column text-end">
-                <i className={'icon icon-fw icon-2x icon-' + titleIcon} />
+                <div className="big-link-icon-circle-outline rounded-circle">
+                    <i className={'icon icon-fw icon-xl icon-' + titleIcon} />
+                </div>
             </div>
         );
     } else if (React.isValidElement(titleIcon)) {
@@ -36,7 +38,7 @@ export function BigDropdownBigLink(props) {
 
     return (
         <a
-            href={disabled ? href : '#'}
+            href={disabled ? 'javascript:void(0)' : href}
             data-disabled={disabled ? 'true' : ''}
             aria-disabled={disabled ? 'true' : 'false'}
             {...passProps}
