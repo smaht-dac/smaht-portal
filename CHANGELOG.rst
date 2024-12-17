@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.121.0
+=======
+`PR 300 SN Remove basecalling <https://github.com/smaht-dac/smaht-portal/pull/300>`
+
+* Remove Basecalling item and transfer properties to Software item
+
+
 0.120.0
 =======
 `PR 306 SN Add cell_sorting_method <https://github.com/smaht-dac/smaht-portal/pull/306>`
