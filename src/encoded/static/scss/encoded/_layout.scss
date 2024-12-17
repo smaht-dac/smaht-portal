@@ -210,7 +210,7 @@ body.is-full-screen {
 /***
 Styling of page title container for static pages, user profiles, 
 **/
-body[data-pathname^="/browse/"]:not([data-current-action="add"]):not([data-current-action="edit"]) #page-title-container,
+body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-current-action="edit"]) #page-title-container,
 body.is-item-view[data-pathname^="/users/"] #page-title-container,
 #page-title-container.static-page-title {
 	background: $ss-title-background;
