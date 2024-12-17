@@ -27,7 +27,7 @@ DEFAULT_BROWSE_FACETS = ["file_size"]
 
 DEFAULT_BROWSE_PARAM_LISTS = {
     "type": [DEFAULT_BROWSE_TYPE],
-    "sample_summary.studies": ["Production", "Benchmarking"], # TODO: remove benchmarking when done with local testing
+    "sample_summary.studies": ["Production"],
     "status": ["released"],
     # "additional_facet": DEFAULT_BROWSE_FACETS
 }

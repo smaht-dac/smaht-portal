@@ -159,7 +159,7 @@ export class BrowseViewBody extends React.PureComponent {
                                 <BrowseSummaryStatController
                                     type="File"
                                     useSearch
-                                    additionalSearchQueries="&sample_summary.studies=Benchmarking"
+                                    additionalSearchQueries="&sample_summary.studies=Production"
                                 />
                                 <BrowseSummaryStatController type="Donor" />
                                 <BrowseSummaryStatController type="Tissue" />
@@ -167,7 +167,7 @@ export class BrowseViewBody extends React.PureComponent {
                                 <BrowseSummaryStatController
                                     type="File Size"
                                     useSearch
-                                    additionalSearchQueries="&sample_summary.studies=Benchmarking"
+                                    additionalSearchQueries="&sample_summary.studies=Production"
                                 />
                             </div>
                         </div>
