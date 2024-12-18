@@ -1150,12 +1150,15 @@ body[data-current-action="multiselect"] {
                     .big-link {
                         .icon-beside-column {
                             width: 75px;
-                            margin-left: -75px;
                             opacity: 1;
                             transition: opacity .5s ease-out;
                         }
                     }
-
+                    .intro-section {
+                        .icon-beside-column {
+                            margin-left: -20px;
+                        }
+                    }
                 }
 			}
         }
