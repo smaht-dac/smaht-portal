@@ -1731,17 +1731,18 @@ File Overview Styles
 						.data-group {
 							display: flex;
 							flex-wrap: wrap;
-    						gap: 30px;
+    						gap: 60px;
 
 							.datum {
 								display: flex;
 								flex-direction: column;
-								gap: 10px;
+								gap: 16px;
 
 								&-title {
 									color: $carbon-gray;
 									font-size: 0.875rem;
 									font-weight: 500;
+									width: max-content;
 
 									span {
 										font-weight: 400;
@@ -1755,14 +1756,6 @@ File Overview Styles
 										color: #D8D8D8;
 									}
 								}
-
-								&.comparator {
-									width: 400px;
-									.datum-value {
-										margin-top: 6px;
-									}
-								}
-
 								&.software {
 									.datum-value {
 										display: flex;
@@ -1777,6 +1770,7 @@ File Overview Styles
 											background-color: $gray-10;
 											color: $body-color;
 											width: min-content;
+											margin-top: -5px;
 											
 											.title {
 												padding: 4px 12px;

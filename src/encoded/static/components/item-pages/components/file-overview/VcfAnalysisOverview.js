@@ -1,21 +1,28 @@
 import React from 'react';
 
 export const VcfAnalysisOverview = ({ context }) => {
-    console.log('VCF context', context);
-
     const {
-        comparator_description,
+        comparator_description = '',
         software = [],
         external_databases = [],
         filtering_methods = [],
+        mode = '',
     } = context;
 
     return (
         <div className="vcf-analysis-overview">
             <div className="data-group">
+                {mode && (
+                    <div className="datum mode">
+                        <span className="datum-title">Mode</span>
+                        <span className="datum-value">{mode ?? 'N/A'}</span>
+                    </div>
+                )}
                 <div className="datum comparator">
-                    <span className="datum-title">
-                        Comparator <span>(used to call somatic mutations)</span>
+                    <span
+                        className="datum-title"
+                        data-tip="Reference sample used to call variants against">
+                        Comparator
                     </span>
                     <span className="datum-value">
                         {comparator_description}
