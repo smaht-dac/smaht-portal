@@ -7,7 +7,8 @@ smaht-portal
 Change Log
 ----------
 
-0.119.0
+
+0.122.0
 =======
 
 * 2024-11-20/dmichaels - branch: dmichaels-20241119-browse-view (PR-295)
@@ -31,6 +32,27 @@ Change Log
   - src/encoded/elasticsearch_utils.py (maybe move to dcicutils eventually)
   - src/encoded/endpoint_utils.py (maybe move to dcicutils eventually)
   This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1192
+
+
+0.121.0
+=======
+`PR 300 SN Remove basecalling <https://github.com/smaht-dac/smaht-portal/pull/300>`
+
+* Remove Basecalling item and transfer properties to Software item
+
+
+0.120.0
+=======
+`PR 306 SN Add cell_sorting_method <https://github.com/smaht-dac/smaht-portal/pull/306>`
+
+* Add property `cell_sorting_method` to AnalytePreparation
+
+
+0.119.0
+=======
+`PR 304 SN remove recovery_datetime from tissue <https://github.com/smaht-dac/smaht-portal/pull/304>`_
+
+* Remove `recovery_datetime` from Tissue after having moved the property to TissueCollection, as it is protected information
 
 
 0.118.0
