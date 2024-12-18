@@ -36,8 +36,8 @@ import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAbove
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 
 export default function BrowseView(props) {
-    console.log('BrowseView context', props.context);
-    return <BrowseViewBody {...props} />;
+    const { session } = props;
+    return <BrowseViewBody {...props} key={session} />;
 }
 
 export class BrowseViewBody extends React.PureComponent {
@@ -189,7 +189,6 @@ export class BrowseViewBody extends React.PureComponent {
 const BrowseViewSearchTable = (props) => {
     const {
         session,
-        href,
         context,
         currentAction,
         schemas,
@@ -205,7 +204,6 @@ const BrowseViewSearchTable = (props) => {
     const tableColumnClassName = 'results-column col';
     const facetColumnClassName = 'facets-column col-auto';
 
-    console.log('BROWSEVIEWSEARCHTABLE PROPS', props);
     const selectedFileProps = {
         selectedItems, // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
