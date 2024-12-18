@@ -39,10 +39,20 @@ export const BrowseSummaryStatController = (props) => {
                 facets.forEach((facet) => {
                     if (facet.field === 'file_size') {
                         setValue(
-                            valueTransforms.bytesToLargerUnitNoUnits(facet.sum)
+                            valueTransforms.bytesToLargerUnit(
+                                facet.sum,
+                                0,
+                                false,
+                                true
+                            )
                         );
                         setUnits(
-                            valueTransforms.bytesToLargerUnitOnly(facet.sum)
+                            valueTransforms.bytesToLargerUnit(
+                                facet.sum,
+                                0,
+                                true,
+                                false
+                            )
                         );
                     }
                 });
