@@ -1,9 +1,8 @@
 'use strict';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React from 'react';
 import memoize from 'memoize-one';
 import _ from 'underscore';
-import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import {
     schemaTransforms,
@@ -11,6 +10,11 @@ import {
     valueTransforms,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
+
+import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
+import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
+import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
+
 import { columnExtensionMap as originalColExtMap } from './columnExtensionMap';
 import { Schemas } from './../util';
 import {
@@ -25,11 +29,11 @@ import {
     SelectAllFilesButton,
     SelectedItemsDownloadButton,
 } from '../static-pages/components/SelectAllAboveTableComponent';
-import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
-import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { BrowseViewControllerWithSelections } from '../static-pages/components/TableControllerWithSelections';
-import { AboveTableControlsBase } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/above-table-controls/AboveTableControlsBase';
-import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
+import { BrowseLink } from './browse-view/BrowseLink';
+import { BrowseSummaryStatController } from './browse-view/BrowseSummaryStatController';
+import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAboveFacetListComponent';
+import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 
 export default function BrowseView(props) {
     console.log('BrowseView context', props.context);
@@ -217,7 +221,7 @@ const BrowseViewSearchTable = (props) => {
 
     const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
     const aboveTableComponent = (
-        <AboveSmahtSearchViewTableControls
+        <BrowseViewAboveSearchTableControls
             topLeftChildren={
                 <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
             }>
@@ -230,7 +234,7 @@ const BrowseViewSearchTable = (props) => {
                 <i className="icon icon-download fas me-03" />
                 Download {selectedItems.size} Selected Files
             </SelectedItemsDownloadButton>
-        </AboveSmahtSearchViewTableControls>
+        </BrowseViewAboveSearchTableControls>
     );
 
     /**
@@ -477,208 +481,6 @@ const BrowseViewSearchTable = (props) => {
     );
 };
 
-const BrowseSummaryStatController = (props) => {
-    const { type, useSearch = false, additionalSearchQueries = '' } = props;
-
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
-    const [value, setValue] = useState('');
-    const [units, setUnits] = useState('');
-
-    const postData = {
-        type: type !== 'File Size' ? type : 'File',
-        status: 'released',
-    };
-
-    const callbackFxn = useCallback((resp) => {
-        if (!useSearch) {
-            resp.forEach((facet) => {
-                if (facet.field == 'status') {
-                    facet.terms.forEach((term) => {
-                        if (term.key == 'released') {
-                            setValue(term.doc_count);
-                        }
-                    });
-                }
-            });
-        } else {
-            // Use search for File count total and File Size total
-            const { facets = [], total } = resp;
-            console.log('resp', resp);
-            if (type === 'File Size') {
-                facets.forEach((facet) => {
-                    if (facet.field === 'file_size') {
-                        setValue(
-                            valueTransforms.bytesToLargerUnitNoUnits(facet.sum)
-                        );
-                        setUnits(
-                            valueTransforms.bytesToLargerUnitOnly(facet.sum)
-                        );
-                    }
-                });
-            } else if (type === 'File') {
-                setValue(total);
-            }
-        }
-        setLoading(false);
-        setError(false);
-    });
-
-    const fallbackFxn = useCallback((resp) => {
-        console.log('BrowseSummaryStatController error', resp);
-        setLoading(false);
-        setError(true);
-    });
-
-    const getStatistics = useCallback(() => {
-        if (!loading) setLoading(true);
-        if (error) setError(false);
-
-        if (!useSearch) {
-            // Using peek-metadata for basic item counts
-            ajax.load(
-                `/peek-metadata/`,
-                callbackFxn,
-                'POST',
-                fallbackFxn,
-                JSON.stringify(postData)
-            );
-        } else {
-            // Use search for more complicated query-based metrics
-            ajax.load(
-                `/search/?type=${postData.type}&format=json&status=released&limit=&additional_facet=file_size${additionalSearchQueries}`,
-                callbackFxn,
-                'GET',
-                fallbackFxn
-            );
-        }
-    }, [callbackFxn, fallbackFxn]);
-
-    // On mount, get statistics
-    useEffect(() => {
-        getStatistics();
-    }, []);
-
-    return <BrowseSummaryStat {...{ value, type, loading, units }} />;
-};
-
-const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
-    const { type, value, loading, units } = props;
-
-    let subtitle;
-    switch (type) {
-        case 'File':
-            subtitle = 'Files Generated';
-            break;
-        case 'Donor':
-            subtitle = 'Donors';
-            break;
-        case 'Tissue':
-            subtitle = 'Tissues';
-            break;
-        case 'Assay':
-            subtitle = 'Assays';
-            break;
-        case 'File Size':
-            subtitle = 'Total File Size';
-            break;
-        default:
-            throw new Error(
-                'Error in BrowseSummaryStat - Must provide a valid type.'
-            );
-    }
-
-    return (
-        <div className="browse-summary-stat d-flex flex-row">
-            <BrowseLinkIcon {...{ type }} cls="mt-04" />
-            <div className="ms-2">
-                {loading && (
-                    <div className="browse-summary-stat-value">
-                        {' '}
-                        <i className="icon icon-circle-notch icon-spin fas" />
-                    </div>
-                )}
-                {!loading && (
-                    <>
-                        <div className="browse-summary-stat-value">
-                            {!value && value !== 0 ? '-' : value}
-                            {units && <span>{units}</span>}
-                        </div>
-                    </>
-                )}
-                <div className="browse-summary-stat-subtitle">{subtitle}</div>
-            </div>
-        </div>
-    );
-});
-
-const BrowseLink = React.memo(function BrowseLink(props) {
-    const { type, disabled } = props;
-
-    if (disabled) {
-        return (
-            <div className="browse-link">
-                <BrowseLinkIcon {...{ type }} />
-                <div className="d-flex flex-column">
-                    {type}
-                    <span className="text-muted fst-italic text-xs">
-                        Coming Soon
-                    </span>
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <a href={`/browse/?type=${type}`} className="browse-link">
-            <BrowseLinkIcon {...{ type }} />
-            {type}
-        </a>
-    );
-});
-
-const BrowseLinkIcon = React.memo(function BrowseLinkIcon(props) {
-    const { type, cls = '' } = props;
-
-    let iconCls;
-    let dataAttribute;
-
-    switch (type) {
-        case 'File':
-            iconCls = 'file';
-            dataAttribute = 'file';
-            break;
-        case 'Donor':
-            iconCls = 'users';
-            dataAttribute = 'donor';
-            break;
-        case 'Tissue':
-            iconCls = 'lungs';
-            dataAttribute = 'tissue';
-            break;
-        case 'Assay':
-            iconCls = 'dna';
-            dataAttribute = 'assay';
-            break;
-        case 'File Size':
-            iconCls = 'download';
-            dataAttribute = 'file-size';
-            break;
-        default:
-            throw new Error(
-                'Error in BrowseLinkIcon - Must provide a valid type.'
-            );
-    }
-
-    return (
-        <div
-            className={'browse-link-icon ' + cls}
-            data-icon-type={dataAttribute}>
-            <i className={`icon fas icon-xl icon-${iconCls}`} />
-        </div>
-    );
-});
-
 const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
     const { context, schemas, currentAction, alerts } = props;
 
@@ -709,13 +511,7 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
             className="container-wide pb-2"
             alertsBelowTitleContainer>
             <div className="container-wide m-auto p-xl-0">
-                {/* {!breadCrumbsVisible ? (
-                    <StaticPageBreadcrumbs
-                        {...{ context, session, href }}
-                        key="breadcrumbs"
-                        className={commonCls + ' mx-0 px-0'}
-                    />
-                ) : null} */}
+                {/* Using static breadcrumbs here, but may update to use StaticPageBreadcrumbs (?) in future */}
                 <div className="static-page-breadcrumbs clearfix mx-0 px-0">
                     <div className="static-breadcrumb" data-name="Home" key="/">
                         <a href="/" className="link-underline-hover">
@@ -744,56 +540,6 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
         </PageTitleContainer>
     );
 });
-
-/**
- * Header section of the File Overview Table. Passed as a child to
- * EmbeddedSearchView (SPC), and recieves props from SelectedItemsController
- */
-const BrowseViewAboveFacetListComponent = (props) => {
-    const { context } = props;
-
-    const totalResultCount = context?.total ?? 0;
-
-    return (
-        <div className="above-facets-table-row d-flex w-100">
-            <div className="col-auto ms-0 ps-0">
-                <span className="text-400" id="results-count">
-                    {totalResultCount}
-                </span>{' '}
-                Results
-            </div>
-        </div>
-    );
-};
-
-const AboveSmahtSearchViewTableControls = React.memo(
-    function AboveSmahtSearchViewTableControls(props) {
-        const {
-            topLeftChildren,
-            children,
-            isFullscreen,
-            windowWidth,
-            toggleFullScreen,
-            sortBy,
-        } = props;
-
-        return (
-            <AboveTableControlsBase
-                useSmahtLayout
-                {...{
-                    children,
-                    topLeftChildren,
-                    isFullscreen,
-                    windowWidth,
-                    toggleFullScreen,
-                    sortBy,
-                }}
-                panelMap={AboveTableControlsBase.getCustomColumnSelectorPanelMapDefinition(
-                    props
-                )}></AboveTableControlsBase>
-        );
-    }
-);
 
 pageTitleViews.register(BrowseViewPageTitle, 'Browse');
 pageTitleViews.register(BrowseViewPageTitle, 'Browse', 'selection');
