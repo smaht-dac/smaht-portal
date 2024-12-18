@@ -250,6 +250,10 @@ const loadStateData = {
 const getDateString = (string) => {
     if (!string) return null;
 
+    /**
+     * Replace '-' with '/' for Safari compatibility, must have timezone
+     * specified to avoid conflicts with UTC midnight time
+     */
     const date = new Date(string.replace(/-/g, '/'));
 
     const options = {
