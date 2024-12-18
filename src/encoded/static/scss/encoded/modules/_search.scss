@@ -887,3 +887,21 @@ div.browse-link-icon {
 		}
 	}
 }
+
+/** FIX FOR BROWSE VIEW SEARCH TABLE WEIRDNESS **/
+// Overriding SPC _search.scss here because our browse view has more content before the table
+// this override prevents the arrows from behaving super strangely and appearing higher up on the page
+body.scrolled-past-80[data-path^="/browse"] .search-results-outer-container .search-results-container .shadow-border-layer.fixed-position-arrows > .edge-scroll-button > i.icon {
+	position: absolute;
+	margin-top: 0px;
+ 	top: unset;
+}
+body.scrolled-past-top[data-path^="/browse"] .search-results-outer-container .search-results-container .shadow-border-layer > .edge-scroll-button > i.icon {
+	margin-top: 0;
+	top: unset;
+}
+body.scrolled-past-80.scrolled-past-460[data-path^="/browse"] .search-results-outer-container .search-results-container .shadow-border-layer > .edge-scroll-button > i.icon {
+	position: fixed;
+	margin-top: 5px;
+	top: 50%;
+}
