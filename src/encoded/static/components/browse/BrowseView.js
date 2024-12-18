@@ -509,7 +509,7 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
             className="container-wide pb-2"
             alertsBelowTitleContainer>
             <div className="container-wide m-auto p-xl-0">
-                {/* Using static breadcrumbs here, but may update to use StaticPageBreadcrumbs (?) in future */}
+                {/* Using static breadcrumbs here, but will likely need its own component in future */}
                 <div className="static-page-breadcrumbs clearfix mx-0 px-0">
                     <div className="static-breadcrumb" data-name="Home" key="/">
                         <a href="/" className="link-underline-hover">
@@ -528,7 +528,7 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
                         className="static-breadcrumb nonclickable"
                         data-name="Production"
                         key="/browse">
-                        <span>Production Data</span>
+                        <span>Browse By File</span>
                     </div>
                 </div>
                 <OnlyTitle className={commonCls + ' mx-0 px-0'}>
