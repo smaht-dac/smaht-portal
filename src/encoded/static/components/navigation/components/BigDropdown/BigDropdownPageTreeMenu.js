@@ -314,7 +314,7 @@ function CustomStaticLinks({ pathName, href }) {
                                 </div>
                             }
                             className="primary-big-link">
-                            <h4 className="text-large">Browse Cell Lines</h4>
+                            <h4 className="text-large">Cell Lines</h4>
                             <div className="description text-medium">
                                 COLO829 - Hap Map - iPSC & Fibroblasts
                             </div>
@@ -331,9 +331,7 @@ function CustomStaticLinks({ pathName, href }) {
                                 </div>
                             }
                             className="primary-big-link">
-                            <h4 className="text-large">
-                                Browse Benchmarking Tissues
-                            </h4>
+                            <h4 className="text-large">Tissue Homogenates</h4>
                             <div className="description text-medium">
                                 Donor: ST001, ST002, ST003, ST004
                             </div>
@@ -356,7 +354,7 @@ function CustomStaticLinks({ pathName, href }) {
                             }
                             className="primary-big-link bottom-edge-child">
                             <h4 className="text-large">
-                                Browse By Benchmarking Analysis
+                                Truthset & Benchmarking Analysis
                             </h4>
                             <div className="description text-medium">
                                 COLO829 SNV/Indel Detection Challenge
