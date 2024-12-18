@@ -3,6 +3,11 @@ from snovault import collection, load_schema
 from .acl import ONLY_ADMIN_VIEW_ACL
 from .file import File
 
+def _build_output_file_embedded_list():
+    """Embeds for search on output files."""
+    return File.embedded_list + [
+        "reference_genome.display_title",
+    ]
 
 @collection(
     name="output-files",
@@ -15,7 +20,7 @@ from .file import File
 class OutputFile(File):
     item_type = "output_file"
     schema = load_schema("encoded:schemas/output_file.json")
-    embedded_list = File.embedded_list
+    embedded_list = _build_output_file_embedded_list()
 
     # processed files don't want md5 as unique key
     def unique_keys(self, properties):
