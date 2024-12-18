@@ -250,7 +250,7 @@ const loadStateData = {
 const getDateString = (string) => {
     if (!string) return null;
 
-    const date = new Date(string);
+    const date = new Date(string.replace(/-/g, '/'));
 
     const options = {
         year: 'numeric',
