@@ -87,7 +87,7 @@ class AssociatedItems:
     sequencing_center: Dict[str, Any]
     software: List[Dict[str, Any]]
     reference_genome: Dict[str, Any]
-    gene_annotation: Dict[str, Any]
+    gene_annotations: Dict[str, Any]
     file_sets: List[Dict[str, Any]]
     donor_specific_assembly: Dict[str, Any]
     assays: List[Dict[str, Any]]
@@ -114,7 +114,7 @@ def get_associated_items(
     file_format = get_file_format(file, request_handler)
     software = get_software(file, request_handler)
     reference_genome = get_reference_genome(file, request_handler)
-    gene_annotation = get_gene_annotation(file, request_handler)
+    gene_annotations = get_gene_annotations(file, request_handler)
     donor_specific_assembly = get_donor_specific_assembly(file, request_handler)
     if donor_specific_assembly:
         file_sets=get_derived_from_file_sets(file, request_handler)
@@ -135,7 +135,7 @@ def get_associated_items(
         file_format=file_format,
         software=software,
         reference_genome=reference_genome,
-        gene_annotation=gene_annotation,
+        gene_annotations=gene_annotations,
         file_sets=file_sets,
         donor_specific_assembly=donor_specific_assembly,
         assays=assays,
@@ -215,11 +215,11 @@ def get_reference_genome(
     return get_item(file_utils.get_reference_genome(file), request_handler)
 
 
-def get_gene_annotation(
+def get_gene_annotations(
     file: Dict[str, Any], request_handler: RequestHandler
 ) -> Dict[str, Any]:
-    """Get gene annotation for file."""
-    return get_item(file_utils.get_gene_annotation(file), request_handler)
+    """Get gene annotations for file."""
+    return get_items(file_utils.get_annotation(file), request_handler)
 
 
 def get_software(
@@ -443,7 +443,7 @@ def get_annotated_filename(
         file,
         associated_items.software,
         associated_items.reference_genome,
-        associated_items.gene_annotation,
+        associated_items.gene_annotations,
         associated_items.file_format
     )
     errors = collect_errors(
@@ -817,7 +817,7 @@ def get_analysis(
     file: Dict[str, Any],
     software: List[Dict[str, Any]],
     reference_genome: Dict[str, Any],
-    gene_annotation: Dict[str, Any],
+    gene_annotations: Dict[str, Any],
     file_extension: Dict[str, Any],
 ) -> FilenamePart:
     """Get analysis info for file.
@@ -827,7 +827,7 @@ def get_analysis(
     """
     software_and_versions = get_software_and_versions(software)
     reference_genome_code = item_utils.get_code(reference_genome)
-    gene_annotation_code = item_utils.get_code(gene_annotation)
+    gene_annotation_code = get_annotations_and_versions(gene_annotations)
     transcript_info_code = get_rna_seq_tsv_value(file, file_extension)
     value = get_analysis_value(
         software_and_versions,
@@ -892,6 +892,60 @@ def get_analysis_value(
         if string
     ]
     return ANALYSIS_INFO_SEPARATOR.join(to_write)
+
+
+def get_annotations_and_versions(gene_annotations: List[Dict[str, Any]]) -> str:
+    """Get gene annotation codes and accompanying versions for file.
+
+    Currently only looking for items with codes, as these are
+    expected to be the annotations used for naming.
+    """
+    annotations_with_codes = get_annotations_with_codes(gene_annotations)
+    if not annotations_with_codes:
+        return ""
+    annotations_with_codes_and_versions = get_annotations_with_versions(annotations_with_codes)
+    if len(annotations_with_codes) == len(annotations_with_codes_and_versions):
+        return get_annotations_and_versions_string(annotations_with_codes_and_versions)
+    missing_versions = get_annotation_codes_missing_versions(annotations_with_codes)
+    logger.warning(f"Missing versions for annotation items: {missing_versions}.")
+    return ""
+
+
+def get_annotations_with_codes(
+    annotation_items: List[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
+    """Get annotation reference file items with codes."""
+    return [item for item in annotation_items if item_utils.get_code(item)]
+
+
+def get_annotations_with_versions(
+    annotation_items: List[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
+    """Get annotation reference file items with versions."""
+    return [item for item in annotation_items if item_utils.get_version(item)]
+
+
+def get_annotations_and_versions_string(annotation_items: List[Dict[str, Any]]) -> str:
+    """Get string representation of annotation code and versions."""
+    sorted_annotation_items = sorted(annotation_items, key=item_utils.get_code)
+    return ANALYSIS_INFO_SEPARATOR.join(
+        [
+            f"{item_utils.get_code(item)}{ANALYSIS_INFO_SEPARATOR}"
+            f"{item_utils.get_version(item)}"
+            for item in sorted_annotation_items
+        ]
+    )
+
+
+def get_annotation_codes_missing_versions(
+    annotation_items: List[Dict[str, Any]]
+) -> List[str]:
+    """Get annotation reference file items missing versions."""
+    return [
+        item_utils.get_code(item)
+        for item in annotation_items
+        if not item_utils.get_version(item)
+    ]
 
 
 def get_software_and_versions(software: List[Dict[str, Any]]) -> str:

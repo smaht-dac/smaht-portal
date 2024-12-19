@@ -21,8 +21,7 @@
         "flow_cell": "R10.4.1",
         "target_coverage": 90,
         "target_read_length": 150000,
-        "sequencer": "ont_promethion_24",
-        "basecalling": "TEST_BASECALLING_DORADO"
+        "sequencer": "ont_promethion_24"
     },
     {
         "uuid": "2dcd6841-f71a-461d-b68f-649f413723e4",

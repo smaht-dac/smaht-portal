@@ -16,7 +16,8 @@
         "concentration_unit": "ng/uL",
         "samples": [
             "TEST_TISSUE-SAMPLE_LIVER"
-        ]
+        ],
+        "analyte_preparation": "TEST_ANALYTE-PREPARATION_LIVER"
     },
     {
         "uuid": "ecff361b-a0ce-4805-9201-301e42c868bf",
@@ -121,5 +122,22 @@
             "TEST_TISSUE-SAMPLE_LIVER",
             "TEST_TISSUE-SAMPLE_LIVER_2"
         ]
+    },
+    {
+        "uuid": "fa2191da-52d8-40a0-95a4-ae116b9ea518",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_ANALYTE_LIVER-CELL",
+        "molecule": [
+            "DNA"
+        ],
+        "molecule_detail": [
+            "Total DNA"
+        ],
+        "samples": [
+            "TEST_CELL-SAMPLE_LIVER-CELL"
+        ],
+        "analyte_preparation": "TEST_ANALYTE-PREPARATION_LIVER-CELL"
     }
 ]

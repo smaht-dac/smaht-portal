@@ -7,6 +7,43 @@ smaht-portal
 Change Log
 ----------
 
+0.121.0
+=======
+`PR 300 SN Remove basecalling <https://github.com/smaht-dac/smaht-portal/pull/300>`
+
+* Remove Basecalling item and transfer properties to Software item
+
+
+0.120.0
+=======
+`PR 306 SN Add cell_sorting_method <https://github.com/smaht-dac/smaht-portal/pull/306>`
+
+* Add property `cell_sorting_method` to AnalytePreparation
+
+
+0.119.0
+=======
+`PR 304 SN remove recovery_datetime from tissue <https://github.com/smaht-dac/smaht-portal/pull/304>`_
+
+* Remove `recovery_datetime` from Tissue after having moved the property to TissueCollection, as it is protected information
+
+
+0.118.0
+=======
+`PR 303 SN Rnaseq filenames <https://github.com/smaht-dac/smaht-portal/pull/303>`
+
+* Make `annotation` link in OutputFile an array of links to ReferenceFile
+* Add `code` property to ReferenceFile
+
+
+0.117.1
+=======
+`PR 284: Bm nomenclature page3 <https://github.com/smaht-dac/smaht-portal/pull/284>`_
+
+* Rework various tables to match the new version of the documentation
+* Add newest version of the pdf document to the page
+
+
 0.117.0
 =======
 `PR 298 SN File release tracker <https://github.com/smaht-dac/smaht-portal/pull/298>`_
