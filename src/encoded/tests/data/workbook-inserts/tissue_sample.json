@@ -49,5 +49,18 @@
         "category": "Core",
         "core_size": "1.5",
         "weight": 800
+    },
+    {
+        "uuid": "61850d04-9207-43ab-aab9-1a62821febc3",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE-SAMPLE_BRAIN",
+        "sample_sources": [
+            "TEST_TISSUE_BRAIN"
+        ],
+        "category": "Specimen",
+        "external_id": "SMHT001-3AJ-001S1",
+        "preservation_type": "Fresh"
     }
 ]

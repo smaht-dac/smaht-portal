@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.122.0
+=======
+`PR 308 SN Pathology report <https://github.com/smaht-dac/smaht-portal/pull/308>`
+
+* Add item PathologyReport
+* Add tests for brain-specific properties
+
+
 0.121.0
 =======
 `PR 300 SN Remove basecalling <https://github.com/smaht-dac/smaht-portal/pull/300>`
