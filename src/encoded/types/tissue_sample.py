@@ -23,6 +23,7 @@ from .utils import (
 )
 from ..item_utils import (
     tissue as tissue_utils,
+    tissue_sample as tissue_sample_utils,
     donor as donor_utils,
 )
 
