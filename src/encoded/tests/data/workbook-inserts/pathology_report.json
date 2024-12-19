@@ -1,0 +1,103 @@
+[
+    {
+        "uuid": "1eb2caa7-6351-4dd2-9c83-2569e0b033d3",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_PATHOLOGY-REPORT_SMHT001-1A-100A1",
+        "tissue_name": "Liver",
+        "outcome": "Acceptable",
+        "tissue_autolysis_score": 1,
+        "target_tissues": [
+            {
+                "target_tissue_subtype": "Liver",
+                "target_tissue_present": "Yes",
+                "target_tissue_percentage": ["50-100"],
+                "target_tissue_autolysis_score": 1
+            }
+        ],
+        "non_target_tissues": [
+            {
+                "non_target_tissue_subtype": "Fibroadipose",
+                "non_target_tissue_present": "Yes",
+                "non_target_tissue_percentage": "[0-10]"
+            }
+        ],
+        "pathologic_findings": [
+            {
+                "finding_type": "Inflammation",
+                "finding_present": "Yes",
+                "finding_percentage": "[0-10]"
+            }
+        ],
+        "tissue_sample": "TEST_TISSUE-SAMPLE_LIVER"
+    },
+    
+    {
+        "uuid": "2b72b38b-3df1-447c-98dd-5175d602f488",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_PATHOLOGY-REPORT_SMHT001-3AJ-001S1",
+        "tissue_name": "Brain",
+        "anatomical_sample_location": "Cerebellum Left Hemisphere",
+        "outcome": "Acceptable",
+        "final_review_determination": "Yes",
+        "tissue_autolysis_score": 0,
+        "target_tissues": [
+            {
+                "target_tissue_subtype": "Brain",
+                "target_tissue_present": "Yes",
+                "target_tissue_percentage": "[50-100]",
+                "target_tissue_autolysis_score": 0
+            }
+        ],
+        "pathologic_findings": [
+            {
+                "finding_type": "Developmental Neuropathology",
+                "finding_present": "No"
+            },
+            {
+                "finding_type": "Infectious Neuropathology",
+                "finding_present": "No"
+            },
+            {
+                "finding_type": "Inflammatory Neuropathology",
+                "finding_present": "No"
+            },
+            {
+                "finding_type": "Metabolic Neuropathology",
+                "finding_present": "No"
+            },
+            {
+                "finding_type": "Neoplastic Neuropathology",
+                "finding_present": "No"
+            },
+            {
+                "finding_type": "Neurodegenerative Neuropathology",
+                "finding_present": "No"
+            },
+            {
+                "finding_type": "Traumatic Brain Injury Neuropathology",
+                "finding_present": "No"
+            },
+            {
+                "finding_type": "Vascular Neuropathology",
+                "finding_present": "Yes",
+                "finding_percentage": "[0-10]"
+            },
+            {
+                "finding_type": "Artifacts",
+                "finding_present": "No"
+            },
+            {
+                "finding_type": "Other",
+                "finding_present": "No"
+            }
+        ],
+        "neuropathology_onset": "Acute",
+        "vascular_neuropathology_infarct_type": "Microinfarcts",
+        "vascular_neuropathology_details": "Accute Hemorrhage",
+        "tissue_sample": "TEST_TISSUE-SAMPLE_BRAIN"
+    }
+]

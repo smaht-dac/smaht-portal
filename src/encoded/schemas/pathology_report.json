@@ -68,7 +68,7 @@
             "type": "string"
         },
         "anatomical_sample_location": {
-            "title": "Brain Sample Location",
+            "title": "Anatomical Sample Location",
             "description": "Anatomical location from which the sample was taken",
             "type": "string",
             "enum": [
@@ -292,7 +292,16 @@
                             "Inflammation",
                             "Metaplasia",
                             "Neoplasia/Tumor/Carcinoma",
-                            "Other"
+                            "Other",
+                            "Artifacts",
+                            "Developmental Neuropathology",
+                            "Infectious Neuropathology",
+                            "Inflammatory Neuropathology",
+                            "Metabolic Neuropathology",
+                            "Neoplastic Neuropathology",
+                            "Neurodegenerative Neuropathology",
+                            "Traumatic Brain Injury Neuropathology",
+                            "Vascular Neuropathology"
                         ]
                     },
                     "finding_present": {
