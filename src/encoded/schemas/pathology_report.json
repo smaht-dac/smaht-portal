@@ -544,13 +544,16 @@
             },
             "then": {
                 "allOf": [
-                    {"not": {"required": ["neuropathology_onset"]}},
                     {"not": {"required": ["infectious_neuropathology_pattern_type"]}},
                     {"not": {"required": ["infectious_neuropathology_infection_type"]}},
                     {"not": {"required": ["inflammatory_neuropathology_type"]}},
+                    {"not": {"required": ["metabolic_neuropathology_type"]}},
                     {"not": {"required": ["neoplastic_neuropathology_type"]}},
                     {"not": {"required": ["neoplastic_neuropathology_details"]}},
                     {"not": {"required": ["neoplastic_neuropathology_origin_location"]}},
+                    {"not": {"required": ["neurodegenerative_neuropathology_type"]}},
+                    {"not": {"required": ["neuropathology_artifact_type"]}},
+                    {"not": {"required": ["neuropathology_onset"]}},
                     {"not": {"required": ["tbi_type"]}},
                     {"not": {"required": ["tbi_hemorrhage_present"]}},
                     {"not": {"required": ["tbi_edema_present"]}},
@@ -559,10 +562,7 @@
                     {"not": {"required": ["tbi_stage"]}},
                     {"not": {"required": ["tbi_location"]}},
                     {"not": {"required": ["vascular_neuropathology_infarct_type"]}},
-                    {"not": {"required": ["vascular_neuropathology_details"]}},
-                    {"not": {"required": ["neurodegenerative_neuropathology_type"]}},
-                    {"not": {"required": ["metabolic_neuropathology_type"]}},
-                    {"not": {"required": ["neuropathology_artifact_type"]}}
+                    {"not": {"required": ["vascular_neuropathology_details"]}}
                 ]
             }
         }
