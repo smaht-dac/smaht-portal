@@ -441,6 +441,7 @@ def donor_properties(test_second_submission_center: Dict[str, Any]) -> Dict[str,
         "submitted_id": f"{TEST_SECOND_CENTER_SUBMITTED_ID_CODE}_DONOR_1234",
         "age": 35,
         "sex": "Male",
+        "tpc_submitted": "False"
     }
 
 

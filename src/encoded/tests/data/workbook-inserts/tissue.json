@@ -30,5 +30,16 @@
         "anatomical_location": "Lung: Left Lobe",
         "weight": 3.4,
         "preservation_type": "Snap Frozen"
+    },
+    {
+        "uuid": "9d23bfb8-07ae-4dad-999e-4cc45f68af29",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE_LUNG_ALT1",
+        "external_id": "T12",
+        "donor": "TEST_DONOR_ALT1",
+        "uberon_id": "UBERON:0002108",
+        "anatomical_location": "Lung: Left Lobe"
     }
 ]
