@@ -102,7 +102,6 @@ def test_brain_conditional(
 ) -> None:
     """Ensure brain-specific properties are only allowed when tissue name is "Brain"."""
     path_report_item = get_item_from_search(es_testapp, "pathology_report")
-    import pdb; pdb.set_trace()
     delete_field(
         es_testapp,
         path_report_item["uuid"],
