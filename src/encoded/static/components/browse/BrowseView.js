@@ -424,7 +424,6 @@ const BrowseViewSearchTable = (props) => {
                 'validation_errors.name',
                 'version',
                 'sample_summary.studies',
-                'data_type',
                 'submission_centers.display_title',
                 'software.display_title',
             ]}

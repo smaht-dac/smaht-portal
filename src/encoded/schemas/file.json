@@ -231,7 +231,7 @@
             "search_type": "sayt_without_terms",
             "sayt_item_type": "Donor"
         },
-        "donors.age": {
+        "file_sets.libraries.analytes.samples.sample_sources.donor.age": {
             "title": "Donor Age",
             "aggregation_type": "range",
             "number_step": 1,
@@ -287,7 +287,7 @@
                 }
             ]
         },
-        "donors.sex": {
+        "file_sets.libraries.analytes.samples.sample_sources.donor.sex": {
             "title": "Donor Sex"
         },
         "sample_summary.tissues": {
@@ -304,8 +304,11 @@
         "file_format.display_title": {
             "title": "Data Format"
         },
-        "data_type": {
+        "data_category": {
             "title": "Data Category"
+        },
+        "data_type": {
+            "title": "Data Type"
         },
         "reference_genome.display_title": {
             "title": "Reference Genome"
