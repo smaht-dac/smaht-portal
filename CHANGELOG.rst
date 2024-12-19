@@ -7,15 +7,39 @@ smaht-portal
 Change Log
 ----------
 
-=======
-0.122.0
+0.123.0
 =======
 `PR246: feat: homepage updates <https://github.com/smaht-dac/smaht-portal/pull/246>`_
 
 * Implement new announcements panel on homepage
 
 
+0.122.0
 =======
+
+* 2024-11-20/dmichaels - branch: dmichaels-20241119-browse-view (PR-295)
+
+* Added module browse.py for /browse; adapted from fourfront/.../search.py/browse.
+  This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1184
+
+* New endpoint /recent_files_summary which, by default, returns info for files released
+  within the past three months grouped by release-date, cell-line or donor, and 
+  ile-description. The specific fields used for these groupings are:
+  - release-date: file_status_tracking.released
+  - cell-line: file_sets.libraries.analytes.samples.sample_sources.cell_line.code
+  - donor: donors.display_title
+  - file-dsecription: release_tracker_description
+  Note that release_tracker_description is a newer (2024-12) calcprop (PR-298/sn_file_release_tracker);
+  and included in this branch are these files from the branch sn_file_release_tracker:
+  - src/encoded/item_utils/file.py
+  - src/encoded/types/file.py
+  Added these new modules to support this new endpoint:
+  - src/encoded/recent_files_summary.py
+  - src/encoded/elasticsearch_utils.py (maybe move to dcicutils eventually)
+  - src/encoded/endpoint_utils.py (maybe move to dcicutils eventually)
+  This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1192
+
+
 0.121.0
 =======
 `PR 300 SN Remove basecalling <https://github.com/smaht-dac/smaht-portal/pull/300>`
