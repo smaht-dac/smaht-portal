@@ -21,7 +21,7 @@ def test_sequence_files_rev_link(
     assert len(item.get("sequence_files","")) == 1
 
 
-def test_chain_files_rev_link(
+def test_supplementary_files_rev_link(
     testapp: TestApp,
     test_chain_file: Dict[str, Any],
     test_sequence_file: Dict[str, Any],
@@ -34,7 +34,7 @@ def test_chain_files_rev_link(
         collection="DonorSpecificAssembly",
         frame="object"
     )
-    assert len(item.get("chain_files","")) == 1
+    assert len(item.get("supplementary_files","")) == 1
 
 
 def test_cell_lines_calc_prop(
@@ -96,13 +96,13 @@ def test_es_sequence_files_rev_link(es_testapp: TestApp, workbook: None) -> None
 
 
 @pytest.mark.workbook
-def test_es_chain_files_rev_link(es_testapp: TestApp, workbook: None) -> None:
+def test_es_supplementary_files_rev_link(es_testapp: TestApp, workbook: None) -> None:
     """Ensure chain files rev link works."""
-    chain_file_set_search = get_search(
+    supp_file_set_search = get_search(
         es_testapp,
-        "?type=DonorSpecificAssembly&chain_files.uuid!=No+value"
+        "?type=DonorSpecificAssembly&supplementary_files.uuid!=No+value"
     )
-    assert chain_file_set_search
+    assert supp_file_set_search
 
 
 @pytest.mark.workbook

@@ -46,7 +46,7 @@ export const BenchmarkingDataMap = {
                     COLO829BL cells at a mixture ratio of 1:50 (COLO829BLT50).
                 </p>
                 <p>
-                    <span className="font-italic">In silico</span> COLO829BLT50
+                    <span className="fst-italic">In silico</span> COLO829BLT50
                     BAM files were created by sampling and merging COLO829T and
                     COLO829BL Illumina WGS data at a mixture ratio of 1:50 at
                     varying sequencing depths (100 - 500X).
@@ -80,18 +80,59 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829blt_in_silico',
             },
+            {
+                eventKey: '#truthset',
+                title: 'Truth Set',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829_snv_indel_challenge_data&tags=truth_set',
+                facetsToHide: [
+                    'dataset',
+                    'file_sets.libraries.analytes.samples.sample_sources.code',
+                    'status',
+                    'validation_errors.name',
+                    'file_sets.libraries.assay.display_title',
+                    'file_sets.sequencing.sequencer.display_title',
+                    'sequencing_center.display_title',
+                    'software.display_title',
+                    'tags',
+                ],
+                columns: {
+                    '@type': {},
+                    access_status: {},
+                    annotated_filename: {},
+                    data_type: {},
+                    'file_format.display_title': {},
+                    data_category: {},
+                    'submission_centers.display_title': {},
+                    date_created: {},
+                    file_size: {},
+                },
+            },
         ],
         callout: (
             <div className="callout warning">
                 <p className="callout-text">
                     <span className="flag">Attention: </span>
-                    <span className="headline">
-                        Illumina WGS BAMs from COLO829-BL, COLO829-T, and
-                        COLO829-BLT50 from UW have been reprocessed{' '}
-                    </span>
-                    to include the local realignment step. If you downloaded
-                    these datasets <u>before May 6</u>, please download them
-                    again for your benchmarking analyses.
+                    The{' '}
+                    <a
+                        href="/SMAFI557D2E7"
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="link-underline-hover">
+                        original BAM file
+                    </a>{' '}
+                    of COLO829-T standard ONT WGS data{' '}
+                    <strong>
+                        was retracted due to missing methylation tags
+                    </strong>
+                    . The replacement BAM with proper tags is made{' '}
+                    <a
+                        href="/SMAFIB6EQLZM"
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="link-underline-hover">
+                        available here.
+                    </a>
                 </p>
             </div>
         ),
@@ -124,6 +165,14 @@ export const BenchmarkingDataMap = {
                     </li>
                     <li>83.5%: HG005 (Male; Chinese)</li>
                 </ul>
+
+                <p>
+                    For the MEI Detection Challenge, DAC used the bulk WGS data
+                    from BCM-GCC to downsample the HapMap mixture data to 50X,
+                    100X, 200X, and 300X for Illumina (originally ~400X); and to
+                    30X, 60X, and 90X for PacBio and ONT (originally ~100X
+                    each).{' '}
+                </p>
             </div>
         ),
         type: 'Cell Line Data',
@@ -134,6 +183,18 @@ export const BenchmarkingDataMap = {
                 title: 'HapMap mixture',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=hapmap',
+            },
+            {
+                eventKey: '#hapmap-downsampled',
+                title: 'Downsampled',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=mei_detection_challenge_data',
+            },
+            {
+                eventKey: '#hapmap-truthset',
+                title: 'Truth Set',
+                // searchHref:
+                //     '/search/?type=File&status=released&status=restricted&status=public&dataset=hapmap_snv_indel_challenge_data',
             },
         ],
     },
@@ -194,6 +255,12 @@ export const BenchmarkingDataMap = {
                 title: 'LB-LA2 iPSC-60',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_60',
+            },
+            {
+                eventKey: '#lb_ipsc_truthset',
+                title: 'Truth Set',
+                // searchHref:
+                //     '/search/?type=File&status=released&status=restricted&status=public&dataset=ipsc_snv_indel_challenge_data',
             },
         ],
     },

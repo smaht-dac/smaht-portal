@@ -78,10 +78,10 @@ export const DownloadAllFilesFromSearchHrefButton = ({
         <SelectedItemsDownloadButton
             id="download_tsv_from_search"
             disabled={selectedItems.size === 0}
-            className={'btn btn-primary btn-sm mr-05 align-items-center ' + cls}
+            className={'btn btn-primary btn-sm me-05 align-items-center ' + cls}
             {...{ selectedItems, session }}
             analyticsAddItemsToCart>
-            <i className="icon icon-download fas mr-03" />
+            <i className="icon icon-download fas me-03" />
             {children ? children : `Download ${selectedItems.size} Files`}
         </SelectedItemsDownloadButton>
     );

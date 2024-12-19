@@ -1,0 +1,44 @@
+# Action that Runs Cypress Tests
+
+name: Cypress Tests - Devtest
+
+# Controls when the action will run.
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  cypress-run:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false  # suggested by Cypress
+      matrix:
+        containers: [1, 2, 3, 4, 5]
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Setup Node.js 20
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v6
+        with:
+          project: ./deploy/post_deploy_testing
+          record: true
+          browser: chrome
+          parallel: true
+          config: baseUrl=https://devtest.smaht.org/
+        env:
+          # pass GitHub token to allow accurately detecting a build vs a re-run build
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_KEY }}
+          CYPRESS_Auth0Client: ${{ secrets.Auth0Client_Test }}
+          CYPRESS_Auth0Secret: ${{ secrets.Auth0Secret_Test }}

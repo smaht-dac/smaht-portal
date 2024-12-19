@@ -490,31 +490,15 @@ h3.submission-subtitle {
 
 @mixin statusColorStyles {
 
-	// Blue
-	&[data-status="Benign"]:before,
-	&[data-status="Not a candidate"]:before,
-	&[data-status="Known gene for phenotype"]:before {						// Applicable to ClinVar Clinical Significance
-		color: #fff;
-		background-color: $primary;
-	}
-
-	// Dark Blue
-	&[data-status="Likely benign"]:before,
-	&[data-status="Weak candidate"]:before {					// Applicable to ClinVar Clinical Significance
-		color: #fff;
-		background-color: $primary-dark;
-	}
-
 	// Green
 	&[data-status="current"]:before,						// Applicable to Item.status
 	&[data-status="shared"]:before,							// Applicable to Item.status
 	&[data-status="released"]:before,						// Applicable to Item.status
-	&[data-status="uploaded"]:before,						// Applicable to File.status
 	&[data-status="public"]:before,							// Applicable to Pages & UserContent
 	&[data-status="complete"]:before,						// Applicable to WorkflowRun.run_status + columnExtensionMap columns
 	&[data-status="protective"]:before {					// Applicable to ClinVar Clinical Significance
 		color: #fff;
-		background-color: #308756;
+		background-color: #299902;
 	}
 
 	// Greener Yellow
@@ -526,7 +510,6 @@ h3.submission-subtitle {
 	// Green-Yellow
 	&[data-status="released to institution"]:before,		// Applicable to Item.status
 	&[data-status="in public review"]:before,				// Applicable to Item.status
-	&[data-status="uploading"]:before,						// Applicable to File.status
 	&[data-status="output_files_transferring"]:before,		// Applicable to WorkflowRun.run_status
 	&[data-status="output_file_transfer_finished"]:before {	// Applicable to WorkflowRun.run_status
 		color: #fff;
@@ -539,20 +522,16 @@ h3.submission-subtitle {
 	&[data-status="running"]:before,						// Applicable to WorkflowRun.run_status + columnExtensionMap columns
 	&[data-status="in progress"]:before, 					// Applicable to columnExtensionMap columns
 	&[data-status="incomplete"]:before, 					// Applicable to columnExtensionMap columns
-	&[data-status="uncertain significance"]:before,			// Applicable to ClinVar Clinical Significance
-	&[data-status="associaton"]:before {					// Applicable to ClinVar Clinical Significance
+	&[data-status="uploaded"]:before,						// Applicable to File.status
+	&[data-status="uploading"]:before {						// Applicable to File.status
 		color: #fff;
-		background-color: #d8bd22;
+		background-color: #F6D62D;
 	}
 
 	// Maroon/dark-red
 	&[data-status="replaced"]:before,						// Applicable to Item.status
 	&[data-status="inactive"]:before,						// Applicable to Item.status
 	&[data-status="revoked"]:before,						// Applicable to User.status
-	&[data-status="probable-pathogenic"]:before,			// Applicable to ClinVar Clinical Significance
-	&[data-status="Likely pathogenic"]:before,				// Applicable to SampleVariant Interpretation Classification
-	&[data-status="Moderate candidate"]:before,
-	&[data-status="affects"]:before,						// Applicable to ClinVar Clinical Significance
 	&[data-status="restricted"]:before{						// Deprecated?
 		color: #fff;
 		background-color: #812423;
@@ -561,12 +540,11 @@ h3.submission-subtitle {
 	// Bright Red
 	&[data-status="deleted"]:before,						// Applicable to Item.status
 	&[data-status="upload failed"]:before,					// Applicable to File.status
-	&[data-status="error"]:before,							// Applicable to WorkflowRun.run_status + columnExtensionMap columns
-	&[data-status="risk factor"]:before,					// Applicable to ClinVar Clinical Significance
-	&[data-status="Pathogenic"]:before, 					// Applicable to ClinVar Clinical Significance
-	&[data-status="Strong candidate"]:before {
+	&[data-status="retracted"]:before,						// Applicable to File.status
+	&[data-status="obsolete"]:before,						// Applicable to File.status
+	&[data-status="error"]:before {							// Applicable to WorkflowRun.run_status + columnExtensionMap columns
 		color: #fff;
-		background-color: #a90d0b;
+		background-color: #B90F05;
 	}
 
 	// Purple
@@ -577,14 +555,9 @@ h3.submission-subtitle {
 	}
 
 	// Gray
-	&[data-status="obsolete"]:before,						// Applicable to Item.status
 	&[data-status="not implemented"]:before,				// Applicable to columnExtensionMap columns
 	&[data-status="not started"]:before,					// Applicable to columnExtensionMap columns
-	&[data-status="not provided"]:before,					// Applicable to ClinVar Clinical Significance
-	&[data-status="Uncertain significance"]:before,			// Applicable to SampleVariant Interpretation Classification
-	&[data-status="unspecified"]:before,					// Deprecated? Fallback for lack of status in some cases?
-	&[data-status="Weak candidate"]:before,
-	&[data-status="Known gene for phenotype"]:before {
+	&[data-status="unspecified"]:before {				// Deprecated? Fallback for lack of status in some cases?
 	    color: #fff;
 		background-color: #7b7b7b;
 	}
@@ -823,7 +796,7 @@ i.status-indicator-dot {
 
 	}
 
-	@include media-breakpoint-down(sm){
+	@include media-breakpoint-down(md){
 		/* Deprecated ? */
 		.array-group .array-group-row.list-item:not(.first-item) {
 			.item-label {
@@ -860,6 +833,97 @@ i.status-indicator-dot {
 	}
 }
 
+/* ShowHideInformationToggle component */
+.show-hide-information-toggle {
+
+	.toggle-information-container {
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+
+		.toggle-information-text-button {
+			font-family: "Inter", Helvetica, Arial, sans-serif;
+			display: flex;
+			align-items: center;
+			justify-content: flex-start;
+			margin-top: 10px;
+			background-color: transparent;
+			border: none;
+			border-radius: 4px;
+			color: $link-color;
+			font-size: 0.875rem;
+			font-weight: 500;
+
+			.icon {
+				margin-right: 8px;
+			}
+
+			.toggle-information-text {
+				margin: 0;
+				height: 25px;
+			}
+
+			&:hover {
+				font-weight: 600;
+			}
+			&.btn:focus,
+			&.btn:active {
+				outline: none !important;
+				box-shadow: none;
+			}
+		}
+
+		&.expanded, &.collapsed {
+			transition: max-height 150ms ease-in-out;
+			overflow: hidden;
+			display: flex;
+			flex-direction: column;
+		}
+
+		&.expanded {
+			max-height: 200px;
+			overflow: scroll;
+		}
+
+		&.collapsed {
+			max-height: 40px;
+			display: -webkit-box;
+			@include prefix(line-clamp, 2);
+			@include prefix(box-orient, vertical);
+		}
+	}	
+}
+
+.callout {
+	border-radius: 7px;
+	border-top-left-radius: 0.25rem;
+	border-bottom-left-radius: 0.25rem;
+	
+	&-text {
+		font-family: Inter;
+		color: #5D5E63;
+		font-size: 0.875rem;
+		padding: 8px;
+		line-height: 20px;
+
+		.flag {
+			font-weight: 600;
+		}
+		.headline {
+			font-weight: 600;
+		}
+	}
+	&.warning {
+		background-color: #FFF9F9;
+		border: 1px solid #F6D6D6;
+		border-left: 4px solid #BB3F3F;
+
+		.flag {
+			font-weight: 600;
+			color: #BB3F3F;
+		}
+	}
+}
 
 
 
@@ -881,7 +945,7 @@ body[data-pathname^="/users/"] {
 		
 				// Override of prev CSS
 				.col-md-3.text-right.text-left-xs {
-					@include media-breakpoint-down(sm){
+					@include media-breakpoint-down(md){
 						text-align: left !important;
 					}
 				}
@@ -937,7 +1001,7 @@ body[data-pathname^="/users/"] {
 			
 					// Override of prev CSS
 					.col-md-3.text-right.text-left-xs {
-						@include media-breakpoint-down(sm){
+						@include media-breakpoint-down(md){
 							text-align: left !important;
 						}
 					}
@@ -1012,7 +1076,7 @@ body[data-pathname^="/users/"] {
 						}
 					}
 		
-					@include media-breakpoint-down(sm){
+					@include media-breakpoint-down(md){
 		
 						.user-title-col {
 							padding-top: 2px;
@@ -1061,7 +1125,7 @@ body[data-pathname^="/users/"] {
 							}
 						}
 		
-						@include media-breakpoint-down(sm){
+						@include media-breakpoint-down(md){
 							img.gravatar {
 								width: 94px; /* Account for border */
 								height: 70px;
@@ -1353,6 +1417,11 @@ File Overview Styles
 									color: #B90F05;
 								}
 							}
+							&[data-status="retracted"] {
+								.icon-circle {
+									color: #B90F05;
+								}
+							}
 							&[data-status="deleted"] {
 								.icon-circle {
 									color: #B90F05;
@@ -1622,6 +1691,15 @@ File Overview Styles
 										.value {
 											text-align: left;
 										}
+
+										a {
+											text-decoration: none;
+											text-underline-offset: 0.125em;
+
+											&:not(.btn):hover {
+												text-decoration: underline !important;
+											}
+										}
 									}
 			
 									&[data-first-visible-column]{
@@ -1713,7 +1791,7 @@ File Overview Styles
 		}
 	}
 
-	@include media-breakpoint-down(lg){
+	@include media-breakpoint-down(xl){
 		.file-view {
 			&-content {
 				.data-cards-container {
@@ -1726,7 +1804,7 @@ File Overview Styles
 		}
 	}
 
-	@include media-breakpoint-down(sm){
+	@include media-breakpoint-down(md){
 		.file-view {
 			&-title {
 				word-break: break-all;
@@ -1800,7 +1878,7 @@ File Overview Styles
 							div.d-flex:first-of-type {
 								flex-wrap: wrap;
 				
-								& > div.ml-auto:last-of-type {
+								& > div.ms-auto:last-of-type {
 									margin-top: 10px;
 									padding-left: 0px;
 								}

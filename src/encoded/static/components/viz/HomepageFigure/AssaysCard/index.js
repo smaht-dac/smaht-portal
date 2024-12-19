@@ -2,8 +2,8 @@ import React from 'react';
 import {
     OverlayTrigger,
     Popover,
-    PopoverContent,
-    PopoverTitle,
+    PopoverBody,
+    PopoverHeader,
 } from 'react-bootstrap';
 
 const AssayList = ({ list }) => {
@@ -19,13 +19,13 @@ const AssayList = ({ list }) => {
                                 rootClose
                                 overlay={
                                     <Popover>
-                                        <PopoverTitle>
+                                        <PopoverHeader>
                                             {item.title}
-                                        </PopoverTitle>
-                                        <PopoverContent>
+                                        </PopoverHeader>
+                                        <PopoverBody>
                                             Additional information about{' '}
                                             {item.title} here
-                                        </PopoverContent>
+                                        </PopoverBody>
                                     </Popover>
                                 }>
                                 <div>{item.title}</div>

@@ -91,7 +91,7 @@ def convert_external_links(content, reference_domain):
         # compares the found links with domain (we have a special condition to check staging/data indexing)
         # todo: replace hard-coded domain names with env. variables etc.
         if (reference_domain_lower != match_domain_lower) and not (
-                reference_domain_lower == 'staging.4dnucleome.org' and match_domain_lower == 'data.4dnucleome.org'):
+                reference_domain_lower == 'staging.smaht.org' and match_domain_lower == 'data.smaht.org'):
             external_link = re.sub(r'<a(?P<in_a>[^>]+)>(?P<in_link>[^<]+)</a>',
                                    r'<a\g<in_a> target="_blank" rel="noopener noreferrer">\g<in_link></a>', match[0])
             content = content.replace(match[0], external_link)

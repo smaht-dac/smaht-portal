@@ -1,13 +1,21 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import {
     Accordion,
     AccordionContext,
-    useAccordionToggle,
+    useAccordionButton,
 } from 'react-bootstrap';
 import Card from 'react-bootstrap/esm/Card';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import ReactTooltip from 'react-tooltip';
 
-const TimelineItem = ({ currentTier, setCurrentTier, data, itemKey }) => {
+const TimelineItem = ({
+    currentTier,
+    setCurrentTier,
+    data,
+    itemKey,
+    isError,
+    loadData,
+}) => {
     const { title, subtitle, categories } = data;
 
     return (
@@ -21,7 +29,7 @@ const TimelineItem = ({ currentTier, setCurrentTier, data, itemKey }) => {
                 className="timeline-marker"
                 onClick={() => setCurrentTier(itemKey)}></div>
             <div className="timeline-item-header">
-                <h3 className="text-left">
+                <h3 className="text-start">
                     {title}&nbsp;
                     {subtitle ? (
                         <i className="timeline-item-subheader">
@@ -47,6 +55,8 @@ const TimelineItem = ({ currentTier, setCurrentTier, data, itemKey }) => {
                                 link={category.link}
                                 categoryKey={j}
                                 key={j}
+                                isError={isError}
+                                loadData={loadData}
                             />
                         );
                     })}
@@ -64,15 +74,17 @@ function ContextAwareToggle({
     tier,
     setCurrentTier,
     link,
+    isError,
+    loadData,
 }) {
-    const currentEventKey = useContext(AccordionContext);
+    const { activeEventKey } = useContext(AccordionContext);
 
-    const decoratedOnClick = useAccordionToggle(
+    const decoratedOnClick = useAccordionButton(
         eventKey,
         () => callback && callback(eventKey)
     );
 
-    const isCurrentEventKey = currentEventKey === eventKey;
+    const isCurrentEventKey = activeEventKey === eventKey;
 
     const openStatusIconCls = isCurrentEventKey
         ? 'icon icon-minus fas'
@@ -88,10 +100,20 @@ function ContextAwareToggle({
                     setCurrentTier(tier);
                 }}>
                 <div className="d-flex justify-start">
-                    <i className={openStatusIconCls + ' m-auto mr-1'} />
+                    {!isError && (
+                        <i className={openStatusIconCls + ' m-auto me-1'} />
+                    )}
                     {children}
                 </div>
             </button>
+            {isError && (
+                <button
+                    type="button"
+                    className="retry btn-xs btn-link btn"
+                    onClick={loadData}>
+                    Retry
+                </button>
+            )}
             {link ? (
                 <a href={link} className="card-header-link">
                     <svg
@@ -125,6 +147,8 @@ function TimelineAccordionDrawer(props) {
         tier,
         setCurrentTier,
         link,
+        isError,
+        loadData,
     } = props;
     return (
         <Card>
@@ -136,33 +160,44 @@ function TimelineAccordionDrawer(props) {
                         currentTier,
                         setCurrentTier,
                         link,
+                        isError,
+                        loadData,
                     }}>
-                    <span className="text-left">{title}</span>
+                    <span className="text-start">{title}</span>
                 </ContextAwareToggle>
             </Card.Header>
             <Accordion.Collapse {...{ eventKey }}>
                 <Card.Body>
                     <div className="card-divider"></div>
-                    <TimelineCardContent values={values} />
+                    <TimelineCardContent values={values} isError={isError} />
                 </Card.Body>
             </Accordion.Collapse>
         </Card>
     );
 }
 
-const TimelineCardContent = ({ values }) => {
+const TimelineCardContent = ({ values, isError }) => {
     return (
         <>
             {values.map(({ value = null, unit }, i) => {
                 return (
                     <div className="number-group" key={i}>
-                        <h4>
-                            {value === null ? (
-                                <i className="icon icon-spin icon-circle-notch fas" />
-                            ) : (
-                                value || '-'
-                            )}
-                        </h4>
+                        {isError ? (
+                            <i
+                                className="icon icon-exclamation-circle fas text-warning"
+                                data-tip="Error: something went wrong while fetching statistics"
+                            />
+                        ) : (
+                            <>
+                                <h4>
+                                    {value === null ? (
+                                        <i className="icon icon-spin icon-circle-notch fas" />
+                                    ) : (
+                                        value || '-'
+                                    )}
+                                </h4>
+                            </>
+                        )}
                         <div>
                             {unit.split(' ').map((line, j) => {
                                 return <span key={j}>{line}</span>;
@@ -232,18 +267,42 @@ const getDateString = (string) => {
 
 export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
     const [data, setData] = useState(loadStateData);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isError, setIsError] = useState(false);
+
+    const callbackFxn = useCallback((res) => {
+        setIsLoading(false);
+        setIsError(false);
+
+        const release_date = getDateString(res['date']);
+        const data = {
+            release_date,
+            timeline_content: res['@graph'],
+        };
+        setData(data);
+    });
+
+    const fallbackFxn = useCallback((resp) => {
+        setIsLoading(false);
+        setIsError(true);
+    });
+
+    const loadData = useCallback(() => {
+        if (!isLoading) setIsLoading(true);
+        if (isError) setIsError(false);
+
+        ajax.load('/home', callbackFxn, 'GET', fallbackFxn);
+    }, [callbackFxn, fallbackFxn]);
 
     // Load latest data from server and update state
     useEffect(() => {
-        ajax.load('/home', (res) => {
-            const release_date = getDateString(res['date']);
-            const data = {
-                release_date,
-                timeline_content: res['@graph'],
-            };
-            setData(data);
-        });
+        loadData();
     }, []);
+
+    // When error is triggered, reload tooltips
+    useEffect(() => {
+        ReactTooltip.rebuild();
+    }, [isError]);
 
     return (
         <div className="container">
@@ -251,9 +310,19 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                 <span className="latest-release">
                     <b>Latest Release: </b>
                     {data.release_date ?? (
-                        <span className="spinner">
-                            <i className="icon icon-spin icon-circle-notch fas" />
-                        </span>
+                        <>
+                            {isLoading && (
+                                <span className="spinner">
+                                    <i className="icon icon-spin icon-circle-notch fas" />
+                                </span>
+                            )}
+                            {isError && (
+                                <i
+                                    className="icon icon-exclamation-circle fas text-warning"
+                                    data-tip="Error: something went wrong while fetching statistics"
+                                />
+                            )}
+                        </>
                     )}
                 </span>
 
@@ -265,6 +334,8 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                             data={d}
                             itemKey={i}
                             key={i}
+                            isError={isError}
+                            loadData={loadData}
                         />
                     );
                 })}

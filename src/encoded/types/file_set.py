@@ -19,6 +19,7 @@ from ..item_utils import (
     item as item_utils,
     library as library_utils,
     sequencing as sequencing_utils,
+    analyte as analyte_utils,
     sample as sample_utils
 )
 from ..item_utils.utils import (
@@ -63,16 +64,21 @@ def _build_file_set_embedded_list():
         # Sequencing/Sequencer LinkTo - used in file_merge_group
         "sequencing.submitted_id",
         "sequencing.target_coverage",
+        "sequencing.target_read_count",
         "sequencing.read_type",
         "sequencing.target_read_length",
         "sequencing.flow_cell",
         "sequencing.sequencer.identifier",
 
+        "files.accession",
         "files.o2_path",
         "files.upload_key",
         "files.file_format.display_title",
         "files.file_status_tracking",
+        "files.quality_metrics.overall_quality_status",
+        
         "meta_workflow_runs.meta_workflow.display_title",
+        "meta_workflow_runs.meta_workflow.category",
         "meta_workflow_runs.accession",
         "meta_workflow_runs.final_status",
         "meta_workflow_runs.date_created",
@@ -282,45 +288,29 @@ class FileSet(SubmittedItem):
 
 @link_related_validator
 def validate_compatible_assay_and_sequencer_on_add(context, request):
-    """Check filesets to make sure they are linked to compatible library.assay and sequencing items on add.
-    
-    The assays with `valid_sequencers` property may need to be updated as new techologies come out 
-    or are added to the portal.
-    """
+    """Check filesets to make sure they are linked to compatible library.assay and sequencing items on add."""
     data = request.json
-    assays = []
-    valid_sequencers = []
-    for library in data['libraries']:
-        assay_aid = library_utils.get_assay(
-            get_item_or_none(request, library, 'library')
-        )
-        assay = get_item_or_none(request, assay_aid, 'assay')
-        assays.append(
-            item_utils.get_identifier(assay)
-        )
-        valid_sequencers += assay_utils.get_valid_sequencers(assay)
-    sequencer_aid = sequencing_utils.get_sequencer(
-        get_item_or_none(request, data['sequencing'], 'sequencing')
-    )
-    sequencer = item_utils.get_identifier(
-        get_item_or_none(request, sequencer_aid, 'sequencer')
-    )
-    if valid_sequencers:
-        if sequencer not in valid_sequencers:
-            msg = f"Sequencer {sequencer} is not allowed for assay {assay}. Valid sequencers are {','.join(valid_sequencers)}"
-            return request.errors.add('body', 'FileSet: invalid links', msg)
-    return request.validated.update({})
+    libraries = data['libraries']
+    sequencing = data['sequencing']
+    return check_compatible_assay_and_sequencer(request, libraries, sequencing)
 
 
+@link_related_validator
 def validate_compatible_assay_and_sequencer_on_edit(context, request):
-    """Check filesets to make sure they are linked to compatible library.assay and sequencing items on edit.
-    
-    The assays with `valid_sequencers` property may need to be updated as new techologies come out 
-    or are added to the portal.
-    """
+    """Check filesets to make sure they are linked to compatible library.assay and sequencing items on edit."""
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
     libraries = get_property_for_validation('libraries', existing_properties, properties_to_update)
+    sequencing = get_property_for_validation('sequencing', existing_properties, properties_to_update)
+    return check_compatible_assay_and_sequencer(request, libraries, sequencing)
+
+
+def check_compatible_assay_and_sequencer(request, libraries: List[str], sequencing: str):
+    """Checks that if library.assay has a valid_sequencer property, that sequencing.sequencer is among them.
+    
+    The assays with `valid_sequencers` property may need to be updated as new techologies come out 
+    or are added to the portal.
+    """
     assays = []
     valid_sequencers = []
     for library in libraries:
@@ -332,7 +322,6 @@ def validate_compatible_assay_and_sequencer_on_edit(context, request):
             item_utils.get_identifier(assay)
         )
         valid_sequencers += assay_utils.get_valid_sequencers(assay)
-    sequencing = get_property_for_validation('sequencing', existing_properties, properties_to_update)
     sequencer_aid = sequencing_utils.get_sequencer(
         get_item_or_none(request, sequencing, 'sequencing')
     )
@@ -341,13 +330,68 @@ def validate_compatible_assay_and_sequencer_on_edit(context, request):
     )
     if valid_sequencers:
         if sequencer not in valid_sequencers:
-            msg = f"Sequencer {sequencer} is not allowed for assay {assays}. Valid sequencers are {','.join(valid_sequencers)}"
+            msg = f"Sequencer {sequencer} is not allowed for assay {assay}. Valid sequencers are {','.join(valid_sequencers)}"
             return request.errors.add('body', 'FileSet: invalid links', msg)
     return request.validated.update({})
 
 
+@link_related_validator
+def validate_molecule_sequencing_properties_on_add(context, request):
+    """Check that sequencing properties are molecule-appropriate on add."""
+    data = request.json
+    libraries = data['libraries']
+    sequencing = data['sequencing']
+    return check_molecule_sequencing_properties(request, libraries, sequencing)
+
+
+@link_related_validator
+def validate_molecule_sequencing_properties_on_edit(context, request):
+    """Check that sequencing properties are molecule-appropriate on edit."""
+    existing_properties = get_properties(context)
+    properties_to_update = get_properties(request)
+    libraries = get_property_for_validation('libraries', existing_properties, properties_to_update)
+    sequencing = get_property_for_validation('sequencing', existing_properties, properties_to_update)
+    return check_molecule_sequencing_properties(request, libraries, sequencing)
+
+
+def check_molecule_sequencing_properties(request, libraries: List[str], sequencing: str):
+    """Check at the FileSet level if Sequencing molecule-specific properties are present.
+
+    If 'RNA' is in libraries.analytes.molecule, sequencing.target_read_count is present.
+    If 'DNA' is in libraries.analytes.molecule, sequencing.target_coverage is present
+    """
+    molecules = []
+    for library in libraries:
+        analytes_aid = library_utils.get_analytes(
+            get_item_or_none(request, library, 'library')
+        )
+        for analyte in analytes_aid:
+            molecules += analyte_utils.get_molecule(
+                get_item_or_none(request, analyte, 'analytes')
+            )
+    target_coverage = sequencing_utils.get_target_coverage(
+        get_item_or_none(request, sequencing, 'sequencing')
+    )
+    on_target_rate = sequencing_utils.get_on_target_rate(
+        get_item_or_none(request, sequencing, 'sequencing')
+    )
+    target_read_count = sequencing_utils.get_target_read_count(
+        get_item_or_none(request, sequencing, 'sequencing')
+    )
+    if "RNA" in molecules:
+        if not target_read_count:
+            msg = "property `target_read_counts` is required for sequencing of RNA libraries"
+            return request.errors.add('body', 'Sequencing: invalid property', msg)
+    if "DNA" in molecules:
+        if not target_coverage and not on_target_rate:
+            msg = "either `on_target_rate` or `target_coverage` are required for sequencing of DNA libraries"
+            return request.errors.add('body', 'Sequencing: invalid property', msg)
+    return request.validated.update({})
+
+
 FILE_SET_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
-    validate_compatible_assay_and_sequencer_on_add
+    validate_compatible_assay_and_sequencer_on_add,
+    validate_molecule_sequencing_properties_on_add
 ]
 
 @view_config(
@@ -362,11 +406,13 @@ def file_set_add(context, request, render=None):
 
 
 FILE_SET_EDIT_PATCH_VALIDATORS = SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS + [
-    validate_compatible_assay_and_sequencer_on_edit
+    validate_compatible_assay_and_sequencer_on_edit,
+    validate_molecule_sequencing_properties_on_edit
 ]
 
 FILE_SET_EDIT_PUT_VALIDATORS = SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [
-    validate_compatible_assay_and_sequencer_on_edit
+    validate_compatible_assay_and_sequencer_on_edit,
+    validate_molecule_sequencing_properties_on_edit
 ]
 
 @view_config(

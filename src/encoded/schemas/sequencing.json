@@ -105,7 +105,7 @@
         },
         "on_target_rate": {
             "title": "On Target Rate",
-            "description": "Expected rate of enrichment signals from the target of interest on the ends of reads. Relevant for target capture sequencing",
+            "description": " An expected ratio, the number of reads with enrichment signals for the targeted element versus the overall reads sequenced. Relevant for target capture sequencing",
             "type": "number",
             "minimum": 0
         },
@@ -134,12 +134,6 @@
             "description": "Target monomer length for Kinnex/MAS-Seq (bp)",
             "type": "integer",
             "minimum": 0
-        },
-        "basecalling": {
-            "title": "Basecalling",
-            "description": "Details of pipeline used to call bases from raw sequencing data, if applicable. Relevant for ONT",
-            "type": "string",
-            "linkTo": "Basecalling"
         },
         "sequencer": {
             "title": "Sequencer",

@@ -64,7 +64,7 @@ export class StatsViewController extends React.PureComponent {
     }
 
     performAggRequests(){
-        const { searchURIs, href } = this.props;
+        const { searchURIs, href, transformResultItems } = this.props;
         const resultStateToSet = {};
         const hrefParts = href && memoizedUrlParse(href); // href may not be passed in.
         const ownHost = hrefParts && hrefParts.host;
@@ -87,7 +87,7 @@ export class StatsViewController extends React.PureComponent {
                 failureCallback();
                 return;
             }
-            resultStateToSet['resp' + key] = resp;
+            resultStateToSet['resp' + key] = typeof transformResultItems === 'function' ? transformResultItems(resp) : resp;
             uponAllRequestsCompleteCallback();
         };
 
@@ -127,15 +127,26 @@ export class StatsViewController extends React.PureComponent {
 export class StatsChartViewAggregator extends React.PureComponent {
 
     static propTypes = {
-        'aggregationsToChartData' : PropTypes.object.isRequired,
-        'shouldReaggregate' : PropTypes.func,
+        'aggregationsToChartData': PropTypes.object.isRequired,
+        'shouldReaggregate': PropTypes.func,
         'cumulativeSum': PropTypes.bool,
-        'children' : PropTypes.node.isRequired
+        'initialChartToggles': PropTypes.shape({
+            'chart': PropTypes.object,
+            'table': PropTypes.object,
+            'expanded': PropTypes.object
+        }),
+        'children': PropTypes.node.isRequired
     };
 
     constructor(props){
         super(props);
-        const { cumulativeSum = false } = props;
+        const {
+            cumulativeSum = false,
+            initialChartToggles = {
+                chart: {},
+                table: {},
+                expanded: {}
+            } } = props;
 
         this.getRefWidth = this.getRefWidth.bind(this);
         this.handleToggle = this.handleToggle.bind(this);
@@ -143,7 +154,7 @@ export class StatsChartViewAggregator extends React.PureComponent {
         this.handleToggleCumulativeSum = this.handleToggleCumulativeSum.bind(this);
         this.generateAggsToState = this.generateAggsToState.bind(this);
         this.state = _.extend(this.generateAggsToState(props, {}), {
-            'chartToggles' : {},
+            'chartToggles': initialChartToggles,
             'smoothEdges' : false,
             'cumulativeSum': cumulativeSum
         });
@@ -153,16 +164,16 @@ export class StatsChartViewAggregator extends React.PureComponent {
 
     componentDidUpdate(prevProps, prevState){
         const { shouldReaggregate } = this.props;
-        var updateState = false,
-            keys        = _.keys(this.props),
-            i, k;
+        const keys = _.keys(this.props);
+        let updateState = false;
+        let i, k;
 
         for (i = 0; i < keys.length; i++){
             k = keys[i];
             // eslint-disable-next-line react/destructuring-assignment
             if (prevProps[k] !== this.props[k]){
                 if (k !== 'aggregationsToChartData' && k !== 'externalTermMap'){
-                    var k4 = k.slice(0,4);
+                    const k4 = k.slice(0,4);
                     if (k4 !== 'resp'){
                         continue;
                     }
@@ -188,15 +199,16 @@ export class StatsChartViewAggregator extends React.PureComponent {
         return this.elemRef && this.elemRef.current && this.elemRef.current.clientWidth;
     }
 
-    handleToggle(key, cb){
+    handleToggle(id, typeKey, callbackFunc){
         this.setState(function(currState){
-            var nextTogglesState = _.extend({}, currState.chartToggles);
-            nextTogglesState[key] = !(nextTogglesState[key]);
+            // deep clone
+            var nextTogglesState =JSON.parse(JSON.stringify(currState.chartToggles));
+            nextTogglesState[typeKey][id] = !(nextTogglesState[typeKey][id]);
             return { 'chartToggles' : nextTogglesState };
-        }, cb);
+        }, callbackFunc);
     }
 
-    handleToggleSmoothEdges(smoothEdges, cb){
+    handleToggleSmoothEdges(smoothEdges, callbackFunc){
         this.setState(function(currState){
             if (typeof smoothEdges === 'boolean'){
                 if (smoothEdges === currState.smoothEdges){
@@ -207,10 +219,10 @@ export class StatsChartViewAggregator extends React.PureComponent {
                 smoothEdges = !currState.smoothEdges;
                 return { smoothEdges };
             }
-        });
+        }, callbackFunc);
     }
 
-    handleToggleCumulativeSum(cumulativeSum, cb){
+    handleToggleCumulativeSum(cumulativeSum, callbackFunc){
         this.setState(function(currState){
             if (typeof cumulativeSum === 'boolean'){
                 if (cumulativeSum === currState.cumulativeSum){
@@ -221,7 +233,7 @@ export class StatsChartViewAggregator extends React.PureComponent {
                 cumulativeSum = !currState.cumulativeSum;
                 return { cumulativeSum };
             }
-        });
+        }, callbackFunc);
     }
 
     generateAggsToState(props, state){
@@ -295,8 +307,8 @@ export class GroupByController extends React.PureComponent {
 
     static defaultProps = {
         'groupByOptions' : {
-            'data_generation_summary.submission_centers'    : <span><i className="icon icon-fw fas icon-university mr-1"/>Submission Center</span>,
-            'dataset'                                       : <span><i className="icon icon-fw fas icon-database mr-1"/>Sample</span>,
+            'data_generation_summary.submission_centers'    : <span><i className="icon icon-fw fas icon-university me-1"/>Submission Center</span>,
+            'dataset'                                       : <span><i className="icon icon-fw fas icon-database me-1"/>Sample</span>,
         },
         'initialGroupBy' : 'data_generation_summary.submission_centers'
     };
@@ -445,7 +457,7 @@ export class GroupByDropdown extends React.PureComponent {
                                 {dateRangeOptionItems}
                             </DropdownButton>
                             <div className="d-flex custom-date-range">
-                                <span className="text-300 pt-05 d-none d-md-inline-block mr-05">Custom:</span>
+                                <span className="text-300 pt-05 d-none d-md-inline-block me-05">Custom:</span>
                                 <input id="submission_data_range_from" type="date"
                                     className="form-control" value={tempDateRangeFrom || ''}
                                     onChange={(e) => { this.setState({ "tempDateRangeFrom": e.target.value }); }}
@@ -457,7 +469,7 @@ export class GroupByDropdown extends React.PureComponent {
                             </div>
                         </div>
                     </div>
-                    <div className="dropdown-container-col col-12 col-lg-3 align-top pl-1">
+                    <div className="dropdown-container-col col-12 col-lg-3 align-top ps-1">
                         <div className="text-500 d-block mb-1">Settings</div>
                         {children}
                     </div>
@@ -473,7 +485,7 @@ export class GroupByDropdown extends React.PureComponent {
                         {groupByOptionItems}
                     </DropdownButton>
                 </div>
-                <div className="dropdown-container-col col-12 col-lg-9 align-top pl-1">
+                <div className="dropdown-container-col col-12 col-lg-9 align-top ps-1">
                     <div className="text-500 d-block mb-1">Settings</div>
                     {children}
                 </div>
@@ -547,19 +559,33 @@ export class ColorScaleProvider extends React.PureComponent {
         });
     }
 
-    render(){
+    render() {
         const { children, className } = this.props;
-        const newChildren = React.Children.map(children, (child, childIndex) => {
+
+        // Helper function to handle children recursively
+        const processChild = (child) => {
             if (!child) return null;
             if (typeof child.type === 'string') {
-                return child; // Not component instance
+                return child; // Not a component instance
             }
+
+            if (child.type === React.Fragment) {
+                // If the child is a Fragment, recursively process its children
+                return (
+                    <React.Fragment>
+                        {React.Children.map(child.props.children, processChild)}
+                    </React.Fragment>
+                );
+            }
+            // For other components, clone and pass additional props
             return React.cloneElement(
                 child,
-                _.extend({}, _.omit(this.props, 'children'), { 'updateColorStore' : this.updateColorStore }, this.state)
+                _.extend({}, _.omit(this.props, 'children'), { 'updateColorStore': this.updateColorStore }, this.state)
             );
-        });
-        return <div className={className || null}>{ newChildren }</div>;
+        };
+
+        const newChildren = React.Children.map(children, processChild);
+        return <div className={className || null}>{newChildren}</div>;
     }
 
 }
@@ -606,7 +632,7 @@ export class HorizontalD3ScaleLegend extends React.Component {
 
     renderColorItem([term, color], idx, all){
         return (
-            <div className="col-sm-4 col-md-3 col-lg-2 mb-03 text-truncate" key={term} data-tip={term.length > 30 ? term : null}>
+            <div className="col-sm-12 col-md-6 col-lg-6 col-xl-3 mb-03 text-truncate" key={term} data-tip={term.length > 25 ? term : null}>
                 <div className="color-patch" style={{ 'backgroundColor': color }} data-term={term} />
                 { term }
             </div>
@@ -1096,9 +1122,7 @@ export class AreaChart extends React.PureComponent {
                 return (
                     <div className={"label-bg" + (isToLeft ? ' to-left' : '') + (hasCloseButton ? ' has-close-button' : '')}>
                         {hasCloseButton &&
-                            <button className="close float-left" type="button" onClick={(e) => { e.stopPropagation(); tProps.removeTooltip(); }}>
-                                <span>×</span>
-                            </button>
+                            <button className="btn-close float-start" type="button" onClick={(e) => { e.stopPropagation(); tProps.removeTooltip(); }} />
                         }
                         <h5 className={"text-500 mt-0 clearfix" + (isEmpty ? ' mb-0' : ' mb-11')}>
                             { dateString }{ total ? <span className="text-700 text-large pull-right" style={{ marginTop: -2 }}>&nbsp;&nbsp; { total }</span> : null }
@@ -1222,7 +1246,7 @@ export class AreaChart extends React.PureComponent {
     }
 
     render(){
-        const { data, width, height, transitionDuration, margin, showTooltipOnHover = true } = this.props;
+        const { data, width, height, transitionDuration, margin, showTooltipOnHover = true, show = true } = this.props;
         if (!data || this.state.drawingError) {
             return <div>Error</div>;
         }
@@ -1247,8 +1271,10 @@ export class AreaChart extends React.PureComponent {
 }
 
 
-export function LoadingIcon(props){
-    const { children } = props;
+export function LoadingIcon({
+    children = "Loading Chart Data",
+    ...props
+}) {
     return (
         <div className="mt-5 mb-5 text-center">
             <i className="icon icon-fw icon-spin icon-circle-notch icon-2x fas" style={{ opacity : 0.5 }}/>
@@ -1256,10 +1282,11 @@ export function LoadingIcon(props){
         </div>
     );
 }
-LoadingIcon.defaultProps = { 'children' : "Loading Chart Data" };
 
-export function ErrorIcon(props){
-    const { children } = props;
+export function ErrorIcon({
+    children = "Loading failed. Please try again later.",
+    ...props
+}) {
     return (
         <div className="mt-5 mb-5 text-center">
             <i className="icon icon-fw icon-times icon-2x fas"/>
@@ -1267,17 +1294,24 @@ export function ErrorIcon(props){
         </div>
     );
 }
-ErrorIcon.defaultProps = { 'children' : "Loading failed. Please try again later." };
 
 
 
 export class AreaChartContainer extends React.Component {
 
-    static isExpanded(props){
-        const { windowWidth, chartToggles, id } = props;
-        const gridState = layout.responsiveGridState(windowWidth);
-        if (gridState && gridState !== 'xl') return false;
-        return !!((chartToggles || {})[id]);
+
+    static isToggled(props, typeKey){
+        const { windowWidth, chartToggles = {}, id } = props;
+
+        const value = chartToggles[typeKey][id];
+        switch(typeKey) {
+            case 'expanded':
+                const gridState = layout.responsiveGridState(windowWidth);
+                if (gridState && ['lg', 'xl', 'xxl'].indexOf(gridState) === -1) return false;
+                return !!value;
+            default:
+                return !!value
+        }
     }
 
     static defaultProps = {
@@ -1289,8 +1323,8 @@ export class AreaChartContainer extends React.Component {
     constructor(props){
         super(props);
         this.buttonSection = this.buttonSection.bind(this);
-        this.toggleExpanded = _.throttle(this.toggleExpanded.bind(this), 1000);
-        this.expandButton = this.expandButton.bind(this);
+        this.toggleExpanded = _.throttle(this.toggleButton.bind(this), 1000);
+        this.commonButtons = this.commonButtons.bind(this);
 
         this.elemRef = React.createRef();
     }
@@ -1307,7 +1341,7 @@ export class AreaChartContainer extends React.Component {
         const { defaultColSize, width } = this.props;
         if (
             !(typeof width === 'number' && width) &&
-            (pastProps.defaultColSize !== defaultColSize || AreaChartContainer.isExpanded(pastProps) !== AreaChartContainer.isExpanded(this.props))
+            (pastProps.defaultColSize !== defaultColSize || AreaChartContainer.isToggled(pastProps, 'expanded') !== AreaChartContainer.isToggled(this.props, 'expanded'))
         ){
             setTimeout(()=>{ // Update w. new width.
                 this.forceUpdate();
@@ -1315,25 +1349,48 @@ export class AreaChartContainer extends React.Component {
         }
     }
 
-    toggleExpanded(e){
+    toggleButton(e, typeKey){
         const { onToggle, id } = this.props;
-        return typeof onToggle === 'function' && id && onToggle(id);
+        return typeof onToggle === 'function' && id && onToggle(id, typeKey);
     }
 
     getRefWidth(){
         return this.elemRef && this.elemRef.current && this.elemRef.current.clientWidth;
     }
 
-    expandButton(){
-        const { windowWidth } = this.props;
+    commonButtons(){
+        const { windowWidth, id, hideChartButton = false, hideTableButton = false } = this.props;
+        const buttons = [];
+
+        if (!hideChartButton) {
+        const toggled = AreaChartContainer.isToggled(this.props, 'chart');
+        const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-dark");
+            buttons.push(
+                <button type="button" className={className} onClick={(e) => this.toggleButton(e, 'chart')} data-tip="Toggle chart view" key={id + '_chart'}>
+                    <i className="icon icon-fw fas icon-chart-bar" />
+                </button>
+            );
+        }
+        if (!hideTableButton) {
+            const toggled = AreaChartContainer.isToggled(this.props, 'table');
+            const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-dark");
+            buttons.push(
+                <button type="button" className={className} onClick={(e) => this.toggleButton(e, 'table')} data-tip="Toggle data table view" key={id + '_table'}>
+                    <i className="icon icon-fw fas icon-table" />
+                </button>
+            );
+        }
         const gridState = layout.responsiveGridState(windowWidth);
-        if (['xs', 'sm'].indexOf(gridState) > -1) return null;
-        const expanded = AreaChartContainer.isExpanded(this.props);
-        return (
-            <button type="button" className="btn btn-outline-dark btn-sm" onClick={this.toggleExpanded}>
-                <i className={"icon icon-fw fas icon-search-" + (expanded ? 'minus' : 'plus')}/>
-            </button>
-        );
+        if (['xs', 'sm', 'md'].indexOf(gridState) === -1) {
+            const toggled = AreaChartContainer.isToggled(this.props, 'expanded');
+            const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-dark");
+            buttons.push(
+                <button type="button" className={className} onClick={(e) => this.toggleButton(e, 'expanded')} data-tip="Toggle full width" key={id + '_expanded'}>
+                    <i className="icon icon-fw fas icon-search-plus" />
+                </button>
+            );
+        }
+        return buttons;
     }
 
     buttonSection(){
@@ -1341,7 +1398,7 @@ export class AreaChartContainer extends React.Component {
         return (
             <div className="pull-right mt-05">
                 { extraButtons }
-                { this.expandButton() }
+                { this.commonButtons() }
             </div>
         );
     }
@@ -1349,7 +1406,7 @@ export class AreaChartContainer extends React.Component {
     render(){
         const { title, subTitle, children, width, defaultHeight, colorScale, chartMargin, updateColorStore, legend } = this.props;
 
-        const expanded = AreaChartContainer.isExpanded(this.props);
+        const expanded = AreaChartContainer.isToggled(this.props, 'expanded');
         const useWidth = width || this.getRefWidth();
         const chartInnerWidth = expanded ? useWidth * 3 : useWidth;
         const useHeight = expanded ? 500 : (defaultHeight || AreaChart.defaultProps.height);

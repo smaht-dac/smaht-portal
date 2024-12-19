@@ -255,7 +255,7 @@ export default class DefaultItemView extends React.PureComponent {
                         message: (
                             <span>
                                 You have been redirected from{' '}
-                                <a href={ourOldItem['@id']}>
+                                <a href={ourOldItem['@id']} className="link-underline-hover">
                                     {redirected_from_accession}
                                 </a>
                                 , which this item ({context.accession})
@@ -571,7 +571,7 @@ export class ItemActionsTab extends React.PureComponent {
                         onClick={this.toggleOpen}
                         data-tip="Open window showing this Item in raw JSON format.">
                         <i className="icon icon-fw fas icon-file-code" />
-                        <span className="text-monospace text-smaller">
+                        <span className="font-monospace text-smaller">
                             JSON
                         </span>
                     </div>

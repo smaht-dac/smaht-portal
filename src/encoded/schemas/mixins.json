@@ -74,6 +74,17 @@
             }
         }
     },
+    "annotation": {
+        "annotation": {
+            "title": "Gene Annotation",
+            "description": "Gene annotation used for analysis",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "ReferenceFile"
+            }
+        }
+    },
     "attachment": {
         "attachment": {
             "title": "Attached File",
@@ -345,7 +356,9 @@
                 "lb_ipsc_60",
                 "tissue",
                 "colo829_snv_indel_challenge_data",
-                "mei_detection_challenge_data"
+                "mei_detection_challenge_data",
+                "hapmap_snv_indel_challenge_data",
+                "ipsc_snv_indel_challenge_data"
             ]
         }
     },
@@ -360,6 +373,14 @@
             "description": "Flow cell lane for sequencing that generated this file",
             "type": "integer",
             "minimum": 1
+        }
+    },
+    "gene_annotation": {
+        "gene_annotation": {
+            "title": "Gene Annotation",
+            "description": "Gene annotation used for gene or transcript quantification",
+            "type": "string",
+            "linkTo": "GeneAnnotation"
         }
     },
     "identifier": {

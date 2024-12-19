@@ -5,10 +5,7 @@ import { Tab, Tabs } from 'react-bootstrap';
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
 
-import {
-    BenchmarkingTable,
-    BenchmarkingTableController,
-} from './BenchmarkingTable';
+import { BenchmarkingTable } from './BenchmarkingTable';
 import { navigate } from '../../../util';
 import { NotLoggedInAlert } from '../../../navigation/components';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
@@ -29,7 +26,7 @@ export const BenchmarkingLayout = ({
     return (
         <div className="benchmarking-layout">
             <div className="page-description row">
-                <div className="information-container col-auto col-lg-9">
+                <div className="information-container col-auto col-lg-9 position-relative">
                     <div className="title-container">
                         <h2 className="title">{title}</h2>
                     </div>
@@ -39,19 +36,10 @@ export const BenchmarkingLayout = ({
                             (showInformation ? ' expanded' : ' collapsed')
                         }
                         id="benchmarking-page-description-container">
-                        <div className={cls}>
-                            {description}
-                            <p className="disclaimer">
-                                <span className="">Note:</span> The raw sequence
-                                files, i.e. unaligned BAM and FASTQ, and the
-                                data from the benchmarking tissue samples that
-                                were not distributed by TPC will be available
-                                upon request at this time &#40;through
-                                Globus&#41;.
-                            </p>
-                        </div>
+                        <div className={cls}>{description}</div>
                         {callout}
                         <button
+                            type="button"
                             onClick={() => setShowInformation(!showInformation)}
                             className="toggle-information-text-button"
                             aria-label="Toggle full description"
@@ -70,7 +58,7 @@ export const BenchmarkingLayout = ({
                 {showBamQCLink && (
                     <div className="col-auto mb-2 mb-lg-0 col-lg-3">
                         <a
-                            className="btn btn-outline-secondary btn-sm float-right"
+                            className="btn btn-outline-secondary btn-sm float-end"
                             href={'/bam-qc-overview' + bamQCHash}
                             rel="noreferrer noopener"
                             target="_blank">
@@ -151,7 +139,7 @@ const TabTitle = ({ title, searchHref = '' }) => {
     return (
         <span className="nav-link-title">
             {title}
-            <span className="badge badge-secondary">
+            <span className="badge">
                 {fileCount === null ? '-' : fileCount}
             </span>
         </span>
@@ -175,7 +163,7 @@ export const HashBasedTabController = ({
     // By default, use the eventKey passed in; if none, set to the first item in the map
     const defaultActiveKey = defaultActiveKeyProp || tabMapArray[0]?.eventKey;
 
-    // Commons needed by BenchmarkingTableController...
+    // Commons needed by TableControllerWithSelections...
     const commonTableProps = { schemas, session, facets, href, context };
 
     // Grab the hash for use in setting the current active tab
@@ -223,7 +211,7 @@ export const HashBasedTabController = ({
                         }}>
                         <div className="mt-1">
                             <TableControllerWithSelections
-                                {...{ searchHref }}
+                                {...{ searchHref, tabMap }}
                                 {...commonTableProps}>
                                 <BenchmarkingTable />
                             </TableControllerWithSelections>

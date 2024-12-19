@@ -998,11 +998,22 @@ def assert_data_generation_summary_matches_expected(
         )
         for sequencing in sequencings
     ] if sequencings else []
-    expected_target_coverage = [
-        sequencing_utils.get_target_coverage(
-            get_item(es_testapp, item_utils.get_uuid(sequencing))
-        )
-        for sequencing in sequencings
+    if (override_coverage := file_utils.get_override_group_coverage(file)):
+        expected_target_coverage = [override_coverage]
+    else:
+        expected_target_coverage = [ target_coverage 
+            for sequencing in sequencings
+                
+            if (target_coverage := sequencing_utils.get_target_coverage(
+                    get_item(es_testapp, item_utils.get_uuid(sequencing))
+                ))
+
+            ] if sequencings else []
+    expected_target_read_count = [ target_coverage 
+        for sequencing in sequencings                     
+        if (target_coverage := sequencing_utils.get_target_read_count(
+                get_item(es_testapp, item_utils.get_uuid(sequencing))
+            ))
     ] if sequencings else []
     assert_values_match_if_present(
         data_generation_summary, "data_category", expected_data_category
@@ -1022,6 +1033,9 @@ def assert_data_generation_summary_matches_expected(
     )
     assert_values_match_if_present(
         data_generation_summary,"target_group_coverage",expected_target_coverage
+    )
+    assert_values_match_if_present(
+        data_generation_summary,"target_read_count",expected_target_read_count
     )
 
 
@@ -1187,6 +1201,52 @@ def assert_analysis_software_matches_expected(
         analysis_summary, "software", expected_software
     )
 
+
+@pytest.mark.workbook
+def test_release_tracker_description(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'release_tracker_description' calcprop fields correct for inserts.
+
+    Checks fields present on inserts and as expected by parsing
+    properties/embeds."""
+    
+    search_key = "release_tracker_description"
+    file_without_release_tracker_description = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
+    )
+    assert file_without_release_tracker_description  # Not expected for Reference Files
+
+    files_with_release_tracker_description = search_type_for_key(
+        es_testapp, "File", search_key
+    )
+    for file in files_with_release_tracker_description:
+        assert_release_tracker_description_matches_expected(file, es_testapp)
+
+
+def assert_release_tracker_description_matches_expected(file: Dict[str, Any], es_testapp: TestApp):
+    """Assert release_tracker_description calcprop matches expected."""
+
+    release_tracker_description = file_utils. get_release_tracker_description(file)
+
+    assay_from_calcprop = item_utils.get_display_title(
+        file_utils.get_assays(file)[0]
+    )
+    sequencer_from_calcprop = item_utils.get_display_title(
+        sequencing_utils.get_sequencer(
+            file_utils.get_sequencings(file)[0]
+        )
+    )
+    file_format = item_utils.get_display_title(
+        file_utils.get_file_format(file)
+    )                          
+    description_from_calcprops=f"{assay_from_calcprop} {sequencer_from_calcprop} {file_format}"
+    assert release_tracker_description == description_from_calcprops
+   
+    
+
+    
+
+
+
 @pytest.mark.workbook
 def test_unique_key(es_testapp: TestApp, workbook: None) -> None:
     """Ensure `submitted_id` is valid unique key for File."""
@@ -1198,3 +1258,14 @@ def test_unique_key(es_testapp: TestApp, workbook: None) -> None:
     get_item(
         es_testapp, f"/files/{item_utils.get_submitted_id(file_with_submitted_id)}"
     )
+
+
+# Fix for "sid" in properties.
+# https://hms-dbmi.atlassian.net/browse/C4-1189
+@pytest.mark.workbook
+def test_new_20241104( es_testapp: TestApp, workbook: None) -> None:
+    from dcicutils.portal_utils import Portal
+    portal = Portal(es_testapp)
+    unaligned_reads = portal.get_metadata("92e8371b-bcdf-44de-ad49-3a5f108e91eb", raw=True)
+    unaligned_reads_sid = unaligned_reads.get("sid")
+    assert unaligned_reads_sid is None

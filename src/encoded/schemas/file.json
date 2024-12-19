@@ -211,6 +211,12 @@
                 "type": "string"
             }
         },
+        "override_group_coverage": {
+            "title": "Group Coverage Override",
+            "desciption": "An override count for expected group coverage from sequencing that is used in the File Overview page if present, particularly for downsampled files",
+            "type": "number",
+            "minimum": 0
+        },
         "version": {
             "type": "string",
             "permission": "restricted_fields"
@@ -241,6 +247,9 @@
         },
         "software.display_title": {
             "title": "Analysis Method"
+        },
+        "version": {
+            "title": "Release Version"
         }
     },
     "columns": {

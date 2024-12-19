@@ -151,7 +151,7 @@ export class ItemFileAttachment extends React.PureComponent {
                         href={object.itemUtil.atId(context) + attachHref}
                         disabled={attachHref.length === 0}
                         className={
-                            ViewFileButton.defaultProps.className + ' btn-block'
+                            ViewFileButton.defaultProps.className + ' w-100'
                         }
                     />
                     <div>

@@ -17,8 +17,13 @@ RESTRICTED = "restricted"
 STATUS = "status"
 O2_PATH = "o2_path"
 SUBMITTED_FILE = "SubmittedFile"
+OUTPUT_FILE = "OutputFile"
 FILE_FORMAT = "file_format"
 DISPLAY_TITLE = "display_title"
+QUALITY_METRICS = "quality_metrics"
+UUID = "uuid"
+ACCESSION = "accession"
+OVERALL_QUALITY_STATUS = "overall_quality_status"
 
 WASHU_GCC = "WASHU GCC"
 BCM_GCC = "BCM GCC"
@@ -26,10 +31,138 @@ NYGC_GCC = "NYGC GCC"
 BROAD_GCC = "BROAD GCC"
 UWSC_GCC = "UWSC GCC"
 
+MAX_FILESETS = 30
+
 
 def includeme(config):
     config.add_route("get_submission_status", "/get_submission_status/")
+    config.add_route("get_file_group_qc", "/get_file_group_qc/")
     config.scan(__name__)
+
+
+@view_config(route_name="get_file_group_qc", request_method="POST")
+@debug_log
+def get_file_group_qc(context, request):
+    try:
+        post_params = request.json_body
+        file_set_uuid = post_params.get("fileSetUuid")
+        file_group = post_params.get("fileGroup")
+        warnings = []
+
+        files_with_qcs = []
+        filesets = {}
+
+        MAX_FG_FILESETS = 50
+        MAX_QUALITY_METRICS_ITEMS = 100
+
+        # Search for fileset with same file group
+        search_params = {}
+        search_params["type"] = FILESET
+        search_params["limit"] = MAX_FG_FILESETS
+
+        if file_group:
+            # Search for fileset with same file group
+            search_params["file_group.assay"] = file_group["assay"]
+            search_params["file_group.sample_source"] = file_group["sample_source"]
+            search_params["file_group.sequencing"] = file_group["sequencing"]
+            search_params["file_group.submission_center"] = file_group[
+                "submission_center"
+            ]
+        else:  # Just search for the current file set
+            search_params["uuid"] = file_set_uuid
+
+        subreq = make_search_subreq(
+            request, f"/search?{urlencode(search_params, True)}", inherit_user=True
+        )
+        search_res = search(context, subreq)["@graph"]
+
+        if len(search_res) == MAX_FG_FILESETS:
+            warnings.append(
+                f"Only {MAX_FG_FILESETS} file sets have been loaded for this file group"
+            )
+
+        total_submitted_files_qms = 0
+
+        # Get all relevant MetaWorkflow run here at once. It's too expensice to retrieve them
+        # individually later
+        all_alignment_mwfrs = get_all_alignments_mwfrs(context, request, search_res)
+
+        for fs in search_res:
+            files = fs.get("files", [])
+            meta_workflow_runs = fs.get("meta_workflow_runs", [])
+            submitted_file_qc_infos = get_submitted_files_info(files).get("qc_infos")
+            output_file_qc_infos = get_output_files_info(
+                files, meta_workflow_runs, all_alignment_mwfrs
+            ).get("qc_infos")
+
+            filesets[fs.get(UUID)] = {
+                "uuid": fs.get(UUID),
+                "tags": fs.get("tags", []),
+                "comments": fs.get("comments", []),
+                "submitted_id": fs.get("submitted_id"),
+            }
+
+            # We need to control the number of QualityMetrics objects that we need to retrieve
+            # for submitted files. We don't cap the QualityMetrics objects for output files. These
+            # are controlled by the number of filesets we load.
+            qms_to_get = []
+            for f in output_file_qc_infos:
+                for qm in f.get("quality_metrics",[]):
+                    qms_to_get.append(qm[UUID])
+
+            for f in submitted_file_qc_infos:
+                if total_submitted_files_qms >= MAX_QUALITY_METRICS_ITEMS:
+                    break
+                for qm in f.get("quality_metrics",[]):
+                    qms_to_get.append(qm[UUID])
+                total_submitted_files_qms += 1
+
+            # Get all QualityMetrics items at once via search (for the fileset)
+            qm_search_params=[("type", "QualityMetric")]
+            qm_search_params=[("limit", 2*MAX_QUALITY_METRICS_ITEMS)]
+            for uuid in qms_to_get:
+                qm_search_params.append(("uuid", uuid))
+            subreq = make_search_subreq(
+                request, f"/search?{urlencode(qm_search_params, True)}", inherit_user=True
+            )
+            qm_search_res = search(context, subreq)["@graph"]
+
+            # Collect all QualityMetrics items that were retrieved here
+            quality_metrics_items = {}
+            for qm in qm_search_res:
+                quality_metrics_items[qm[UUID]] = qm
+        
+            for f in submitted_file_qc_infos + output_file_qc_infos:
+                for qm in f.get("quality_metrics",[]):
+                    if qm[UUID] not in quality_metrics_items: 
+                        # This will only happen if there were too many submitted files
+                        continue
+                    files_with_qcs.append(
+                        {
+                            "accession": f["accession"],
+                            "display_title": f["display_title"],
+                            "is_output_file": f["is_output_file"],
+                            "fileset_submitted_id": fs.get("submitted_id"),
+                            "fileset_uuid": fs.get(UUID),
+                            "quality_metric": quality_metrics_items[qm[UUID]],
+                        }
+                    )
+
+        if total_submitted_files_qms >= MAX_QUALITY_METRICS_ITEMS:
+            warnings.append(
+                f"Only {MAX_QUALITY_METRICS_ITEMS} submitted files have been loaded."
+            )
+
+        return {
+            "files_with_qcs": files_with_qcs,
+            "filesets": filesets,
+            "warnings": warnings,
+        }
+
+    except Exception as e:
+        return {
+            "error": f"Error when trying to get file group QC data: {e}",
+        }
 
 
 @view_config(route_name="get_submission_status", request_method="POST")
@@ -49,7 +182,7 @@ def get_submission_status(context, request):
         # Generate search
         search_params = {}
         search_params["type"] = FILESET
-        search_params["limit"] = min(post_params.get("limit", 30), 30)
+        search_params["limit"] = min(post_params.get("limit", MAX_FILESETS), MAX_FILESETS)
         search_params["from"] = post_params["from"]
         search_params["sort"] = f"-date_created"
         add_submission_status_search_filters(search_params, filter, fileSetSearchId)
@@ -57,20 +190,32 @@ def get_submission_status(context, request):
             request, f"/search?{urlencode(search_params, True)}", inherit_user=True
         )
         search_res = search(context, subreq)["@graph"]
+
+        # Get all relevant MetaWorkflow run here at once. It's too expensice to retrieve them
+        # individually later
+        all_alignment_mwfrs = get_all_alignments_mwfrs(context, request, search_res)
+
         file_sets = []
         file_group_color_map = {}
         for res in search_res:
             file_set = res
-            file_set["submitted_files"] = process_files_metadata(res.get("files", []))
+            files = res.get("files", [])
+            meta_workflow_runs = res.get("meta_workflow_runs", [])
+            file_set["submitted_files"] = get_submitted_files_info(files)
+            file_set["output_files"] = get_output_files_info(
+                files, meta_workflow_runs, all_alignment_mwfrs
+            )
 
             if "file_group" in file_set:
                 fg = file_set["file_group"]
                 fg_str = f"{fg['submission_center']}_{fg['sample_source']}_{fg['sequencing']}_{fg['assay']}"
-                file_set["file_group"] = fg_str
+                file_set["file_group_str"] = fg_str
+                file_set["file_group"] = fg
                 # Place holder that will be replaced in the next step
                 file_group_color_map[fg_str] = None
             else:
-                file_set["file_group"] = "No file group assigned"
+                file_set["file_group_str"] = "No file group assigned"
+                file_set["file_group"] = None
                 file_set["file_group_color"] = "#eeeeee"
             file_sets.append(file_set)
 
@@ -82,7 +227,7 @@ def get_submission_status(context, request):
             file_group_color_map[fg] = fg_colors[i]
         for fs in file_sets:
             if "file_group_color" not in fs:
-                fs["file_group_color"] = file_group_color_map[fs["file_group"]]
+                fs["file_group_color"] = file_group_color_map[fs["file_group_str"]]
 
     except Exception as e:
         return {
@@ -171,23 +316,56 @@ def add_submission_status_search_filters(
         search_params["date_created.to"] = filter["fileset_created_to"]
 
 
-def process_files_metadata(files_metadata):
+def get_output_files_info(files, mwfrs, all_alignment_mwfrs):
+    output_files = list(filter(lambda f: OUTPUT_FILE in f["@type"], files))
+    output_files_qc = []
+
+    # Get the output files that are on the file set
+    for file in output_files:
+        qc_result = get_qc_result(file, is_output_file=True)
+        output_files_qc.append(qc_result)
+
+    # Go through all alignment MetaWorkflowRuns and collect the output files with QCs.
+    for mwfr in mwfrs:
+        if mwfr[UUID] not in all_alignment_mwfrs:
+            continue
+        mwfr_item = all_alignment_mwfrs[mwfr[UUID]]
+        wfrs = mwfr_item.get("workflow_runs", [])
+        for wfr in wfrs:
+            outputs = wfr.get("output", [])
+            for output in outputs:
+                if "file" not in output:
+                    continue
+                file = output["file"]
+                if QUALITY_METRICS not in file:
+                    continue
+                qc_result = get_qc_result(file, is_output_file=True)
+                output_files_qc.append(qc_result)
+
+    # Remove duplicates. Happens when the final output files have been released
+    output_files_qc_unique = list({v[ACCESSION]: v for v in output_files_qc}.values())
+
+    return {
+        "qc_infos": output_files_qc_unique,
+    }
+
+
+def get_submitted_files_info(files_metadata):
     is_upload_complete = True
-    num_files_copied_to_o2 = 0
     file_formats = []
     submitted_files = list(
         filter(lambda f: SUBMITTED_FILE in f["@type"], files_metadata)
     )
+    submitted_files_qc = []
     for file in submitted_files:
         if file[STATUS] == UPLOADING:
             is_upload_complete = False
         file_formats.append(file.get(FILE_FORMAT, {}).get(DISPLAY_TITLE))
 
-    for file in files_metadata:
-        if O2_PATH in file:
-            num_files_copied_to_o2 += 1
+        qc_result = get_qc_result(file, is_output_file=False)
+        submitted_files_qc.append(qc_result)
 
-    # Make it unqique
+    # Make it unique
     file_formats = list(set(file_formats))
 
     date_uploaded = None
@@ -211,8 +389,59 @@ def process_files_metadata(files_metadata):
         "num_fileset_files": len(files_metadata),
         "date_uploaded": date_uploaded,
         "file_formats": ", ".join(file_formats),
-        "num_files_copied_to_o2": num_files_copied_to_o2,
+        "qc_infos": submitted_files_qc,
     }
+
+
+def get_qc_result(file, is_output_file):
+    qc_result = {
+        DISPLAY_TITLE: file[DISPLAY_TITLE],
+        UUID: file[UUID],
+        ACCESSION: file[ACCESSION],
+        QUALITY_METRICS: [],
+        "is_output_file": is_output_file,
+    }
+    if QUALITY_METRICS in file:
+        qms = file[QUALITY_METRICS]
+        qc_result[QUALITY_METRICS] = [
+            {
+                OVERALL_QUALITY_STATUS: qm.get(OVERALL_QUALITY_STATUS, "NA"),
+                UUID: qm[UUID],
+            }
+            for qm in qms
+        ]
+    return qc_result
+
+def get_all_alignments_mwfrs(context, request, filesets_from_search):
+    mwfrs = {}
+    uuids_to_get = []
+    for fs in filesets_from_search:
+            mwfrs_fs = fs.get("meta_workflow_runs", [])
+            for mwfr in mwfrs_fs:
+                final_status = mwfr.get("final_status")
+                mwf_categories = mwfr.get("meta_workflow", {}).get("category", [])
+                if final_status != "completed" or "Alignment" not in mwf_categories:
+                    continue
+                uuids_to_get.append(mwfr[UUID])
+
+    if not uuids_to_get:
+        return mwfrs
+
+    # Get all MetaWorkflowRun items at once via search
+    search_params=[("type", "MetaWorkflowRun")]
+    search_params=[("limit", 2*MAX_FILESETS)]
+    for uuid in uuids_to_get:
+        search_params.append(("uuid", uuid))
+    subreq = make_search_subreq(
+        request, f"/search?{urlencode(search_params, True)}", inherit_user=True
+    )
+    search_res = search(context, subreq)["@graph"]
+
+    for r in search_res:
+        mwfrs[r[UUID]] = r
+
+    return mwfrs
+
 
 
 def search_total(context, request, search_params):

@@ -1,16 +1,18 @@
-import functools
+from boto3 import client as boto_client
 from datetime import datetime
+import functools
+from pyramid.exceptions import HTTPForbidden
+from pyramid.request import Request
+from pyramid.response import Response
+from pyramid.view import view_config
 from typing import Any, Dict, List, Optional, Union
 
-from pyramid.view import view_config
 from encoded_core.types.file import (
     HREF_SCHEMA,
     UNMAPPED_OBJECT_SCHEMA,
     UPLOAD_KEY_SCHEMA,
     File as CoreFile,
 )
-from pyramid.request import Request
-from pyramid.exceptions import HTTPForbidden
 from encoded_core.file_views import (
     validate_file_filename,
     validate_extra_file_format,
@@ -60,6 +62,7 @@ from ..item_utils import (
 from ..item_utils.utils import (
     get_property_value_from_identifier,
     get_property_values_from_identifiers,
+    get_unique_values,
     RequestHandler,
 )
 
@@ -189,6 +192,7 @@ class CalcPropConstants:
     DATA_GENERATION_ASSAYS = "assays"
     DATA_GENERATION_SEQUENCING_PLATFORMS = "sequencing_platforms"
     DATA_GENERATION_TARGET_COVERAGE = "target_group_coverage"
+    DATA_GENERATION_TARGET_READ_COUNT = "target_read_count"
     DATA_GENERATION_SCHEMA = {
         "title": "Data Generation Summary",
         "description": "Summary of data generation",
@@ -239,8 +243,19 @@ class CalcPropConstants:
                 "items": {
                     "type": "string"
                 }
+            },
+            DATA_GENERATION_TARGET_READ_COUNT: {
+                "title": "Target Read Count",
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
             }
         },
+    }
+    RELEASE_TRACKER_DESCRIPTION = {
+        "title": "Release Tracker Description",
+        "type": "string",
     }
     SAMPLE_SUMMARY_DONOR_IDS = "donor_ids"
     SAMPLE_SUMMARY_TISSUES = "tissues"
@@ -335,6 +350,7 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.libraries.assay",
         "file_sets.sequencing.sequencer",
         "file_sets.sequencing.target_coverage",
+        "file_sets.sequencing.target_read_count",
 
         # Sample summary + Link calcprops
         "file_sets.libraries.analytes.molecule",
@@ -347,6 +363,7 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.samples.sample_sources.description",
         "file_sets.samples.sample_sources.donor",
 
+        "quality_metrics.overall_quality_status",
         # For manifest
         "sequencing.sequencer.display_title",
 
@@ -683,6 +700,22 @@ class File(Item, CoreFile):
             reference_genome=reference_genome,
         )
 
+    @calculated_property(schema=CalcPropConstants.RELEASE_TRACKER_DESCRIPTION)
+    def release_tracker_description(
+        self,
+        request: Request,
+        file_sets: Optional[List[str]] = None
+    ) -> Union[str, None]:
+        """Get file release tracker description for display on home page."""
+        result = None
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            result = self._get_release_tracker_description(
+                request_handler,
+                file_properties=self.properties
+            )
+        return result     
+
     def _get_libraries(
         self, request: Request, file_sets: Optional[List[str]] = None
     ) -> List[str]:
@@ -845,16 +878,33 @@ class File(Item, CoreFile):
                 )
             ),
             constants.DATA_GENERATION_TARGET_COVERAGE: (
+                self._get_group_coverage(request_handler, file_properties)
+            ),
+            constants.DATA_GENERATION_TARGET_READ_COUNT: (
                 get_property_values_from_identifiers(
                     request_handler,
                     file_utils.get_sequencings(file_properties, request_handler),
-                    sequencing_utils.get_target_coverage
+                    sequencing_utils.get_target_read_count
                 )
             )
         }
         return {
             key: value for key, value in to_include.items() if value
         }
+    
+    def _get_group_coverage(
+        self, request_handler: Request, file_properties: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """"Get group coverage for display on file overview page.
+        
+        Use override_group_coverage if present, otherwise grab target_coverage from sequencing."""
+        if (override_group_coverage := file_utils.get_override_group_coverage(file_properties)):
+            return [override_group_coverage]
+        return get_property_values_from_identifiers(
+            request_handler,
+            file_utils.get_sequencings(file_properties, request_handler),
+            sequencing_utils.get_target_coverage
+        )
 
     def _get_sample_summary(
         self, request: Request, file_sets: Optional[List[str]] = None
@@ -950,6 +1000,39 @@ class File(Item, CoreFile):
             ),
         }
         return {key: value for key, value in to_include.items() if value}
+    
+    def _get_release_tracker_description(
+            self,
+            request_handler: RequestHandler,
+            file_properties: Dict[str, Any],
+        ) -> Union[str, None]:
+        """Get release tracker description for display on the home page."""
+        assay_title= get_unique_values(
+            request_handler.get_items(file_utils.get_assays(file_properties, request_handler)),
+            item_utils.get_display_title,
+            )
+        sequencer_title = get_unique_values(
+            request_handler.get_items(
+            file_utils.get_sequencers(file_properties, request_handler)),
+            item_utils.get_display_title,
+            )
+        file_format_title = get_property_value_from_identifier(
+                request_handler,
+                file_utils.get_file_format(file_properties),
+                item_utils.get_display_title,
+            )
+        if len(assay_title) > 1 or len(sequencer_title) > 1:
+            # More than one unique assay or sequencer
+            return ""
+        elif len(assay_title) == 0 or len(sequencer_title) == 0:
+            # No assay or sequencer
+            return ""
+        to_include = [
+            assay_title[0],
+            sequencer_title[0],
+            file_format_title
+        ]
+        return " ".join(to_include)
 
 
 @view_config(name='drs', context=File, request_method='GET',
@@ -976,6 +1059,12 @@ def post_upload(context, request):
 @debug_log
 def download_cli(context, request):
     """ Creates download credentials for files intended for use with awscli/rclone """
+    # 2024-11-05/dmichaels - limit to dbgap users like download
+    # Noticeed this endpoint lacked appropriate checking for dbgap
+    # group users which should be exactly like the download endpoint.
+    if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
+        raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
+                            'Please check with DAC/your PI about your status.')
     return CoreDownloadCli(context, request)
 
 
@@ -996,6 +1085,31 @@ def download(context, request):
         raise HTTPForbidden('This is a restricted file not available for download without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
     return CoreDownload(context, request)
+
+
+# This /files/upload_file_size endpoint was added specifically (2024-08-22) for smaht-submitr to
+# determine if a file to upload has already been uploaded, and to get its size as a side-effect,
+# to report to the submitter; if the file does not exist then HTTP 404 is returned, otherwise
+# HTTP 200 is returned and also its (byte) size, in the "size" element of the returned JSON.
+@view_config(name='upload_file_size', context=File, permission='view', request_method=['GET'])
+@debug_log
+def upload_file_size(context, request):
+    if upload_key := context.upload_key(request):
+        if not (upload_bucket := request.GET.get("upload_bucket")):
+            upload_bucket = request.registry.settings.get("file_upload_bucket")
+        if upload_bucket:
+            s3 = boto_client("s3")
+            try:
+                response = s3.head_object(Bucket=upload_bucket, Key=upload_key)
+                if isinstance(file_size := response.get("ContentLength", None), int):
+                    return {
+                        "bucket": upload_bucket,
+                        "key": upload_key,
+                        "size": file_size
+                    }
+            except Exception:
+                pass
+    return Response(status=404)
 
 
 def validate_processed_file_unique_md5_with_bypass(context, request):

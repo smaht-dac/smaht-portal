@@ -4,7 +4,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_ANALYTE_LIVER",
+        "submitted_id": "TEST_ANALYTE_LIVER-DNA",
         "molecule_detail": [
             "Total DNA"
         ],
@@ -16,14 +16,15 @@
         "concentration_unit": "ng/uL",
         "samples": [
             "TEST_TISSUE-SAMPLE_LIVER"
-        ]
+        ],
+        "analyte_preparation": "TEST_ANALYTE-PREPARATION_LIVER"
     },
     {
         "uuid": "ecff361b-a0ce-4805-9201-301e42c868bf",
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_ANALYTE_HELA",
+        "submitted_id": "TEST_ANALYTE_HELA-RNA",
         "molecule_detail": [
             "mRNA"
         ],
@@ -43,7 +44,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_ANALYTE_HELA_ONLY",
+        "submitted_id": "TEST_ANALYTE_HELA_ONLY-RNA",
         "molecule_detail": [
             "mRNA"
         ],
@@ -62,7 +63,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_ANALYTE_HELA-HEK293",
+        "submitted_id": "TEST_ANALYTE_HELA-HEK293-DNA",
         "molecule_detail": [
             "Total DNA"
         ],
@@ -78,7 +79,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_ANALYTE_LUNG-HOMOGENATE",
+        "submitted_id": "TEST_ANALYTE_LUNG-HOMOGENATE-DNA",
         "molecule_detail": [
             "Total DNA"
         ],
@@ -94,7 +95,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_ANALYTE_IPSC_FIBROBLAST",
+        "submitted_id": "TEST_ANALYTE_IPSC_FIBROBLAST-DNA",
         "molecule_detail": [
             "Total DNA"
         ],
@@ -121,5 +122,22 @@
             "TEST_TISSUE-SAMPLE_LIVER",
             "TEST_TISSUE-SAMPLE_LIVER_2"
         ]
+    },
+    {
+        "uuid": "fa2191da-52d8-40a0-95a4-ae116b9ea518",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_ANALYTE_LIVER-CELL",
+        "molecule": [
+            "DNA"
+        ],
+        "molecule_detail": [
+            "Total DNA"
+        ],
+        "samples": [
+            "TEST_CELL-SAMPLE_LIVER-CELL"
+        ],
+        "analyte_preparation": "TEST_ANALYTE-PREPARATION_LIVER-CELL"
     }
 ]

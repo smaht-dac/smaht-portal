@@ -402,6 +402,15 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 				}
 			}
 		}
+
+		a {
+			text-decoration: none;
+			text-underline-offset: 0.125em;
+		
+			&:not(.btn):hover {
+				text-decoration: underline !important;
+			}
+		}
 	}
 }
 
@@ -440,7 +449,7 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 					.text-danger {
 						word-break: break-word;
 
-						@include media-breakpoint-down(sm) {
+						@include media-breakpoint-down(md) {
 							word-break: break-all;
 						}
 					}
@@ -464,7 +473,7 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 					box-shadow: none;
 					gap: 30px;
 					
-					@include media-breakpoint-between(md, lg){
+					@include media-breakpoint-between(md, xl){
 						gap: 50px;
 					}
 
@@ -497,7 +506,7 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 						align-items: flex-end;
 						margin-left: 10px;
 
-						.nav-item {
+						.nav-item > button {
 							color: #5D5E63;
 							font-size: 1rem;
 							font-weight: 400;
@@ -539,7 +548,7 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 								color: #212529;
 
 
-								@include media-breakpoint-down(sm) {
+								@include media-breakpoint-down(md) {
 									word-break: break-all;
 								}
 							}
@@ -562,9 +571,22 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 						}
 					}
 				}
+
+				>div {
+					padding-left: 10px;
+					padding-right: 10px;
+				}
 			}
 			>.modal-footer {
 				background-color: #F8F8F8;
+
+				form {
+					button[type="submit"] {
+						b {
+							font-weight: 600;
+						}
+					}
+				}
 			}
 		}
 	}

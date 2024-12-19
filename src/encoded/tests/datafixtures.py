@@ -519,6 +519,7 @@ def test_assay(
         "title": "Bulk WGS",
         "code": "002",
         "submission_centers": [test_submission_center["uuid"]],
+        "valid_molecules": ["DNA"]
         }
     return post_item_and_return_location(testapp, item, 'assay')
 
@@ -565,30 +566,10 @@ def test_sequencer(
 
 
 @pytest.fixture
-def test_basecalling(
-    testapp,
-    test_submission_center
-):
-    item = {
-        "submission_centers": [test_submission_center["uuid"]],
-        "submitted_id": "TEST_BASECALLING_DORADO",
-        "title": "Dorado",
-        "model": "dna_r10.4.1_e8.2_400bps_fast@v4.3.0",
-        "version": "0.1.0",
-        "gpu": "NVIDIA A100",
-        "modification_tags": [
-            "5mCG_5hmCG"
-        ]
-    }
-    return post_item_and_return_location(testapp, item, 'basecalling')
-
-
-@pytest.fixture
 def test_sequencing(
     testapp,
     test_submission_center,
-    test_sequencer,
-    test_basecalling
+    test_sequencer
 ):
     item = {
         "read_type": "Paired-end",
@@ -597,8 +578,7 @@ def test_sequencing(
         "submitted_id": "TEST_SEQUENCING_NOVASEQ-500X",
         "flow_cell": "R9",
         "target_coverage": 500,
-        "target_read_length": 150,
-        "basecalling": test_basecalling["uuid"]
+        "target_read_length": 150
     }
     return post_item_and_return_location(testapp, item, 'sequencing')
 
@@ -643,7 +623,8 @@ def test_derived_paired_with(
     testapp,
     file_formats,
     test_fileset,
-    test_submission_center
+    test_submission_center,
+    test_software
 ):
     item = {
         "file_format": file_formats.get("FASTQ", {}).get("uuid", ""),
@@ -662,7 +643,8 @@ def test_derived_paired_with(
         "status": "released",
         "dataset": "colo829t",
         "flow_cell_barcode": "HAWT3ADXX",
-        "flow_cell_lane": 1
+        "flow_cell_lane": 1,
+        "software": [test_software["uuid"]]
     }
     return post_item_and_return_location(testapp, item, 'unaligned_reads')
 
@@ -724,23 +706,13 @@ def donor_specific_assembly(
     testapp,
     test_submission_center,
     test_derived_from_file,
-    test_software
 ):
     item = {
         "submission_centers": [test_submission_center["uuid"]],
         "derived_from": [test_derived_from_file["uuid"]],
         "submitted_id": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
         "title": "Hela_DSA",
-        "software": [
-           test_software["uuid"]
-        ],
-        "genome_size": 3100000000,
-        "total_ungapped_length": 2900000000,
-        "number_of_chromosomes": 23,
-        "number_of_scaffolds": 470,
-        "number_of_contigs": 1000,
-        "contig_n50": 50000000,
-        "scaffold_n50": 67000000
+        "genome_size": 3100000000
     }
     return post_item_and_return_location(testapp, item, 'donor_specific_assembly')
 
