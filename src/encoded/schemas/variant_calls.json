@@ -99,13 +99,10 @@
                 ]
             }
         },
-        "comparators": {
-            "title": "Comparators",
-            "description": "Link to comparator sample files used for normal matching",
-            "type": "array",
-            "items": {
-                "type": "string"
-            }
+        "comparator_description": {
+            "title": "Comparator Description",
+            "description": "Description of comparator sample files used for normal matching",
+            "type": "string"
         },
         "external_databases": {
             "title": "External Databases",
@@ -142,5 +139,22 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_VARIANT-CALLS_[A-Z0-9-_.]{4,}$"
         }
-    }
+    },
+    "anyOf": [
+        {
+            "not": {
+                "properties": {
+                    "mode": { "const": "Paired" }
+                },
+                "required": [
+                    "mode"
+                ]
+            }
+        },
+        { 
+            "required": [
+                "comparator_description"
+            ]
+        }
+  ]
 }

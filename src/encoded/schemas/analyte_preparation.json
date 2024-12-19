@@ -75,6 +75,28 @@
                 ]
             }
         },
+        "cell_sorting_method": {
+            "title": "Cell Sorting Method",
+            "description": "Cell sorting method for analyte extraction, if applicable. Relevant for extraction for single-cell assays",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Fluoresence-activated",
+                    "Magnetic-activated",
+                    "Selective Media",
+                    "Laser Capture Microdissection",
+                    "Micromanipulation",
+                    "Isopycnic Sedimentation",
+                    "Velocity Sedimentation",
+                    "Centrifugation",
+                    "Filtering",
+                    "Microfluidics"
+                ]
+            }
+        },
         "extraction_method": {
             "title": "Extraction Method",
             "description": "Method of analyte extraction",
@@ -84,7 +106,9 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "Density Gradient Centrifugation",
                     "Magnetic Beads",
+                    "Mechanical Dissociation",
                     "Not Applicable",
                     "Organic Chemicals",
                     "Silica Column"
@@ -93,7 +117,7 @@
         },
         "homogenization_method": {
             "title": "Homogenization method",
-            "description": "Method of sample homogenization, if applicable. Relevant for non-single-cell extraction",
+            "description": "Method of sample homogenization, if applicable",
             "type": "string"
         },
         "suspension_type": {

@@ -4,11 +4,11 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_FILE-SET_LIVER",
+        "submitted_id": "TEST_FILE-SET_LIVER-DNA",
         "libraries": [
-            "TEST_LIBRARY_LIVER"
+            "TEST_LIBRARY_LIVER-DNA"
         ],
-        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X",
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X-DNA",
         "samples": [
             "TEST_CELL-SAMPLE_LIVER-CELL"
         ]
@@ -18,44 +18,44 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_FILE-SET_HELA",
+        "submitted_id": "TEST_FILE-SET_HELA-RNA",
         "libraries": [
-            "TEST_LIBRARY_HELA"
+            "TEST_LIBRARY_HELA-RNA"
         ],
-        "sequencing": "TEST_SEQUENCING_RNA-NOVASEQ-500X"
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X-RNA"
     },
     {
         "uuid": "b9f0f412-927f-4129-b165-f6a99935a44f",
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_FILE-SET_HELA_ONLY",
+        "submitted_id": "TEST_FILE-SET_HELA_ONLY-RNA",
         "libraries": [
-            "TEST_LIBRARY_HELA_ONLY"
+            "TEST_LIBRARY_HELA_ONLY-RNA"
         ],
-        "sequencing": "TEST_SEQUENCING_PACBIO_30X-30H"
+        "sequencing": "TEST_SEQUENCING_PACBIO_30X-30H-RNA"
     },
     {
         "uuid": "e8e1885a-705a-46d7-8937-5969d30280f0",
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_FILE-SET_HELA-HEK293",
+        "submitted_id": "TEST_FILE-SET_HELA-HEK293-DNA",
         "libraries": [
-            "TEST_LIBRARY_HELA-HEK293"
+            "TEST_LIBRARY_HELA-HEK293-DNA"
         ],
-        "sequencing": "TEST_SEQUENCING_ONT-90X"
+        "sequencing": "TEST_SEQUENCING_ONT-90X-DNA"
     },
     {
         "uuid": "8a55c725-eb48-4ef9-9a54-9271bdf11239",
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_FILE-SET_LUNG-HOMOGENATE",
+        "submitted_id": "TEST_FILE-SET_LUNG-HOMOGENATE-DNA",
         "libraries": [
-            "TEST_LIBRARY_LUNG-HOMOGENATE"
+            "TEST_LIBRARY_LUNG-HOMOGENATE-DNA"
         ],
-        "sequencing": "TEST_SEQUENCING_PACBIO_30X-30H"
+        "sequencing": "TEST_SEQUENCING_PACBIO_30X-30H-DNA"
     },
     {
         "uuid": "6ae8d017-88f8-4fe7-8d6d-849f979836c9",
@@ -66,17 +66,17 @@
         "libraries": [
             "TEST_LIBRARY_LIVER_MERGED"
         ],
-        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X-DNA"
     },
     {
         "uuid": "0f50e72d-13c7-422e-9f8a-4e42ce927b87",
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_FILE-SET_IPSC_FIBROBLAST",
+        "submitted_id": "TEST_FILE-SET_IPSC_FIBROBLAST-DNA",
         "libraries": [
-            "TEST_LIBRARY_IPSC_FIBROBLAST"
+            "TEST_LIBRARY_IPSC_FIBROBLAST-DNA"
         ],
-        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X"
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X-DNA"
     }
 ]

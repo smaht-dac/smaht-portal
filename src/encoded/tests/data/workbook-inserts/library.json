@@ -4,9 +4,9 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_LIBRARY_LIVER",
+        "submitted_id": "TEST_LIBRARY_LIVER-DNA",
         "analytes": [
-            "TEST_ANALYTE_LIVER"
+            "TEST_ANALYTE_LIVER-DNA"
         ],
         "a260_a280_ratio": 3.2,
         "amplification_cycles": 10,
@@ -14,16 +14,17 @@
         "fragment_mean_length": 150.7,
         "insert_mean_length": 150.2,
         "preparation_date": "2023-05-11",
-        "assay": "bulk_wgs"
+        "assay": "bulk_wgs",
+        "library_preparation": "TEST_LIBRARY-PREPARATION_LIVER"
     },
     {
         "uuid": "f14533e1-de91-4390-9c16-28e420029d41",
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_LIBRARY_HELA",
+        "submitted_id": "TEST_LIBRARY_HELA-RNA",
         "analytes": [
-            "TEST_ANALYTE_HELA"
+            "TEST_ANALYTE_HELA-RNA"
         ],
         "a260_a280_ratio": 3.2,
         "fragment_mean_length": 150.7,
@@ -35,9 +36,9 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_LIBRARY_HELA_ONLY",
+        "submitted_id": "TEST_LIBRARY_HELA_ONLY-RNA",
         "analytes": [
-            "TEST_ANALYTE_HELA_ONLY"
+            "TEST_ANALYTE_HELA_ONLY-RNA"
         ],
         "assay": "bulk_mas_iso_seq"
     },
@@ -46,9 +47,9 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_LIBRARY_HELA-HEK293",
+        "submitted_id": "TEST_LIBRARY_HELA-HEK293-DNA",
         "analytes": [
-            "TEST_ANALYTE_HELA-HEK293"
+            "TEST_ANALYTE_HELA-HEK293-DNA"
         ],
         "assay": "cas9_nanopore"
     },
@@ -57,9 +58,9 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_LIBRARY_LUNG-HOMOGENATE",
+        "submitted_id": "TEST_LIBRARY_LUNG-HOMOGENATE-DNA",
         "analytes": [
-            "TEST_ANALYTE_LUNG-HOMOGENATE"
+            "TEST_ANALYTE_LUNG-HOMOGENATE-DNA"
         ],
         "assay": "bulk_fiberseq"
     },
@@ -79,9 +80,9 @@
         "submission_centers": [
             "smaht"
         ],
-        "submitted_id": "TEST_LIBRARY_IPSC_FIBROBLAST",
+        "submitted_id": "TEST_LIBRARY_IPSC_FIBROBLAST-DNA",
         "analytes": [
-            "TEST_ANALYTE_IPSC_FIBROBLAST"
+            "TEST_ANALYTE_IPSC_FIBROBLAST-DNA"
         ],
         "assay": "bulk_wgs"
     }

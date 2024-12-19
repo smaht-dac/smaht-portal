@@ -2,7 +2,6 @@
     <p>The mosaic SNV/indel Detection Challenge was carried out within the SMaHT consortium in May 2024 to test current SNV/indel-calling pipelines that use Illumina WGS as the primary sequencing data. The goal of this challenge is to determine the optimal pipeline for somatic mosaic SNV/indel pipelines for the consortium.</p>
     <div className="admonition info mt-3 mb-3" role="alert">
         <div className="admonition-title">
-            <i className="icon icon-exclamation-circle fas" />
             Version Notice
         </div>
         Version 1.0 (initially released via Globus on June 26, 2024) is an <b>unofficial release, and the V1.0 data are to be shared internally, i.e. within the SMaHT Network only</b>.
