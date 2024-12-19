@@ -1,7 +1,7 @@
 import React from 'react';
 
 export const VcfAnalysisOverview = ({ context }) => {
-    const {
+    let {
         comparator_description = '',
         software = [],
         external_databases = [],
@@ -9,13 +9,17 @@ export const VcfAnalysisOverview = ({ context }) => {
         mode = '',
     } = context;
 
+    mode = 'Single';
+
     return (
         <div className="vcf-analysis-overview">
             <div className="data-group">
                 {mode && (
                     <div className="datum mode">
                         <span className="datum-title">Mode</span>
-                        <span className="datum-value">{mode ?? 'N/A'}</span>
+                        <span className="datum-value">
+                            {mode ? mode + ' Sample' : 'N/A'}
+                        </span>
                     </div>
                 )}
                 <div className="datum comparator">
@@ -24,9 +28,13 @@ export const VcfAnalysisOverview = ({ context }) => {
                         data-tip="Reference sample used to call variants against">
                         Comparator
                     </span>
-                    <span className="datum-value">
-                        {comparator_description}
-                    </span>
+                    {mode === 'Paired' ? (
+                        <span className="datum-value">
+                            {comparator_description}
+                        </span>
+                    ) : (
+                        <span className="datum-value text-gray">N/A</span>
+                    )}
                 </div>
                 <div className="datum software">
                     <span className="datum-title">Software</span>
