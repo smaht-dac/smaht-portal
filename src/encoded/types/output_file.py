@@ -9,6 +9,14 @@ def _build_output_file_embedded_list():
         "reference_genome.display_title",
     ]
 
+def _build_output_file_embedded_list():
+    """Embeds for search on cell cultures."""
+    return File.embedded_list + [
+        "annotation.code",
+        "annotation.version",
+        "annotation.title",
+    ]
+
 @collection(
     name="output-files",
     acl=ONLY_ADMIN_VIEW_ACL,

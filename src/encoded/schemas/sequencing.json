@@ -135,12 +135,6 @@
             "type": "integer",
             "minimum": 0
         },
-        "basecalling": {
-            "title": "Basecalling",
-            "description": "Details of pipeline used to call bases from raw sequencing data, if applicable. Relevant for ONT",
-            "type": "string",
-            "linkTo": "Basecalling"
-        },
         "sequencer": {
             "title": "Sequencer",
             "description": "Instrument used for sequencing",

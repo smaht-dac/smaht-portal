@@ -1,17 +1,29 @@
-import pyramid
 from copy import deepcopy
+from pyramid.request import Request as PyramidRequest, Response as PyramidResponse
 from typing import List, Optional
 from dcicutils.misc_utils import normalize_spaces
-from encoded.elasticsearch_utils import add_debugging_to_elasticsearch_aggregation_query
-from encoded.elasticsearch_utils import create_elasticsearch_aggregation_query
-from encoded.elasticsearch_utils import merge_elasticsearch_aggregation_results
-from encoded.elasticsearch_utils import normalize_elasticsearch_aggregation_results
-from encoded.elasticsearch_utils import prune_elasticsearch_aggregation_results
-from encoded.elasticsearch_utils import sort_normalized_aggregation_results
-from encoded.elasticsearch_utils import AGGREGATION_MAX_BUCKETS, AGGREGATION_NO_VALUE
-from encoded.endpoint_utils import create_query_string, parse_date_range_related_arguments
-from encoded.endpoint_utils import get_properties, parse_datetime_string
-from encoded.endpoint_utils import request_arg, request_args, request_arg_bool, request_arg_int
+from encoded.endpoints.elasticsearch_utils import (
+        add_debugging_to_elasticsearch_aggregation_query,
+        create_elasticsearch_aggregation_query,
+        merge_elasticsearch_aggregation_results,
+        normalize_elasticsearch_aggregation_results,
+        prune_elasticsearch_aggregation_results,
+        sort_normalized_aggregation_results,
+        AGGREGATION_MAX_BUCKETS, AGGREGATION_NO_VALUE)
+from encoded.endpoints.endpoint_utils import (
+        request_arg, request_args, request_arg_bool, request_arg_int,
+        create_query_string, deconstruct_query_string,
+        get_date_range_for_month, parse_date_range_related_arguments)
+from encoded.endpoints.recent_files_summary.recent_files_summary_fields import (
+        AGGREGATION_FIELD_RELEASE_DATE,
+        AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR,
+        AGGREGATION_FIELD_CELL_LINE,
+        AGGREGATION_FIELD_CELL_MIXTURE,
+        AGGREGATION_FIELD_DONOR,
+        AGGREGATION_FIELD_FILE_DESCRIPTOR)
+from encoded.endpoints.recent_files_summary.recent_files_summary_troubleshooting import (
+        add_info_for_troubleshooting,
+        get_normalized_aggregation_results_as_html_for_troublehshooting)
 from snovault.search.search import search as snovault_search
 from snovault.search.search_utils import make_search_subreq as snovault_make_search_subreq
 
@@ -20,24 +32,31 @@ QUERY_FILE_STATUSES = ["released"]
 QUERY_FILE_CATEGORIES = ["!Quality Control"]
 QUERY_RECENT_MONTHS = 3
 QUERY_INCLUDE_CURRENT_MONTH = True
-
-AGGREGATION_FIELD_RELEASE_DATE = "file_status_tracking.released"
-# FYI FWIW: There is also file_sets.libraries.analytes.samples.sample_sources.display_title;
-# and that sometimes file_sets.libraries.analytes.samples.sample_sources.code does not exist.
-AGGREGATION_FIELD_CELL_MIXTURE = "file_sets.libraries.analytes.samples.sample_sources.code"
-AGGREGATION_FIELD_CELL_LINE = "file_sets.libraries.analytes.samples.sample_sources.cell_line.code"
-AGGREGATION_FIELD_DONOR = "donors.display_title"
-AGGREGATION_FIELD_FILE_DESCRIPTOR = "release_tracker_description"
-
-AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR = [
-    AGGREGATION_FIELD_CELL_MIXTURE,
-    AGGREGATION_FIELD_CELL_LINE,
-    AGGREGATION_FIELD_DONOR
-]
-
 BASE_SEARCH_QUERY = "/search/"
 
-def recent_files_summary(request: pyramid.request.Request) -> dict:
+
+def recent_files_summary_endpoint(context, request):
+    # This text=true support is purely for troublesooting purposes; it dumps
+    # terminal-like formatted output for the results returned by the query.
+    text = request_arg_bool(request, "text")
+    results = recent_files_summary(request, troubleshooting=text)
+    if text:
+        text_uuids = request_arg_bool(request, "text_uuids", True)
+        text_uuid_details = request_arg_bool(request, "text_uuid_details", True)
+        text_query = request_arg_bool(request, "text_query")
+        text_verbose = request_arg_bool(request, "text_verbose")
+        text_debug = request_arg_bool(request, "text_debug")
+        results = get_normalized_aggregation_results_as_html_for_troublehshooting(results,
+                                                                                  uuids=text_uuids,
+                                                                                  uuid_details=text_uuid_details,
+                                                                                  query=text_query,
+                                                                                  verbose=text_verbose,
+                                                                                  debug=text_debug)
+        results = PyramidResponse(f"<pre>{results}</pre>", content_type='text/html')
+    return results
+
+
+def recent_files_summary(request: PyramidRequest, troubleshooting: bool = True) -> dict:
     """
     This supports the (new as of 2024-12)  /recent_files_summary endpoint (for C4-1192) to return,
     by default, info for files released withing the past three months grouped by release-date,
@@ -64,8 +83,6 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     released can be queried for using one or more status query arguments, e.g. status=uploaded.
     """
 
-    global AGGREGATION_FIELD_RELEASE_DATE
-
     date_property_name = request_arg(request, "date_property_name", AGGREGATION_FIELD_RELEASE_DATE)
     max_buckets = request_arg_bool(request, "max_buckets", AGGREGATION_MAX_BUCKETS)
     include_queries = request_arg_bool(request, "include_queries", request_arg_bool(request, "include_query", True))
@@ -74,6 +91,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     nomixtures = request_arg_bool(request, "nomixtures", request_arg_bool(request, "nomixture"))
     nodonors = request_arg_bool(request, "nodonors", request_arg_bool(request, "nodonor"))
     favor_donor = request_arg_bool(request, "favor_donor")
+    multi = request_arg_bool(request, "multi")
     nosort = request_arg_bool(request, "nosort")
     legacy = request_arg_bool(request, "legacy")
     debug = request_arg_bool(request, "debug")
@@ -83,12 +101,16 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
     raw = request_arg_bool(request, "raw")
     willrfix = request_arg_bool(request, "willrfix")
 
+    if troubleshooting is True:
+        debug = True
+        troubleshoot = True
+        troubleshoot_elasticsearch = True
+
     def get_aggregation_field_grouping_cell_or_donor() -> List[str]:
         # This specializes the aggregation query to group first by the cell-line field,
         # and then alternatively (if a cell-line field does not exist) by the donor field.
         # For troubleshooting/testing/or-maybe-if-we-change-our-minds we can alternatively
         # look first for the donor field and then secondarily for the cell-line field.
-        global AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR
         nonlocal nocells, nomixtures, nodonors, favor_donor
         aggregation_field_grouping_cell_or_donor = deepcopy(AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR)
         if nocells:
@@ -102,7 +124,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
             aggregation_field_grouping_cell_or_donor.insert(0, AGGREGATION_FIELD_DONOR)
         return aggregation_field_grouping_cell_or_donor
 
-    def create_base_query_arguments(request: pyramid.request.Request) -> dict:
+    def create_base_query_arguments(request: PyramidRequest) -> dict:
 
         global QUERY_FILE_CATEGORIES, QUERY_FILE_STATUSES, QUERY_FILE_TYPES
 
@@ -118,7 +140,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
         return {key: value for key, value in base_query_arguments.items() if value is not None}
 
-    def create_query(request: pyramid.request.Request, base_query_arguments: Optional[dict] = None) -> str:
+    def create_query_arguments(request: PyramidRequest, base_query_arguments: Optional[dict] = None) -> str:
 
         global BASE_SEARCH_QUERY, QUERY_RECENT_MONTHS, QUERY_INCLUDE_CURRENT_MONTH
         nonlocal date_property_name
@@ -138,8 +160,12 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
 
         if isinstance(base_query_arguments, dict):
             query_arguments = {**base_query_arguments, **query_arguments}
+        return query_arguments
 
-        return f"{BASE_SEARCH_QUERY}?{create_query_string(query_arguments)}"
+    def create_query(request: PyramidRequest, base_query_arguments: Optional[dict] = None) -> str:
+        query_arguments = create_query_arguments(request, base_query_arguments)
+        query_string = create_query_string(query_arguments)
+        return f"{BASE_SEARCH_QUERY}?{query_string}"
 
     def create_aggregation_query(aggregation_fields: List[str]) -> dict:
 
@@ -155,7 +181,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
             return {}
 
         def create_field_aggregation(field: str) -> Optional[dict]:  # noqa
-            nonlocal aggregation_field_grouping_cell_or_donor, date_property_name
+            nonlocal aggregation_field_grouping_cell_or_donor, date_property_name, multi
             if field == date_property_name:
                 return {
                     "date_histogram": {
@@ -174,11 +200,34 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                 for aggregation_field_grouping_index in range(len(aggregation_field_grouping_cell_or_donor)):
                     aggregation_field = aggregation_field_grouping_cell_or_donor[aggregation_field_grouping_index]
                     if_or_else_if = "if" if aggregation_field_grouping_index == 0 else "else if"
-                    script += f"""
-                        {if_or_else_if} (doc['embedded.{aggregation_field}.raw'].size() > 0) {{
-                            return '{aggregation_field}:' + doc['embedded.{aggregation_field}.raw'].value;
-                        }}
-                    """
+                    # Note that if there are multiple values for the aggregation field just the "first" one will be chosen;
+                    # where "first" means which was indexed first, which from an application POV is kind of arbitrary.
+                    # If we want to make it more deterministic we could order the results (say) alphabetically like so: 
+                    #   def value = doc['embedded.{aggregation_field}.raw'].stream().min((a, b) -> a.compareTo(b)).get();
+                    #   return '{aggregation_field}:' + value;
+                    # OR, if we actually want to aggregation on ALL values we could collect the results and return all like so:
+                    #   def values = [];
+                    #   for (value in doc['embedded.{aggregation_field}.raw']) {
+                    #       values.add('{aggregation_field}:' + value);
+                    #   }
+                    #   return values;
+                    # But then we'd get double counting and so on. We are told in any case that these groups should be distinct.
+                    if not multi:
+                        script += f"""
+                            {if_or_else_if} (doc['embedded.{aggregation_field}.raw'].size() > 0) {{
+                                return '{aggregation_field}:' + doc['embedded.{aggregation_field}.raw'].value;
+                            }}
+                        """
+                    else:
+                        script += f"""
+                            {if_or_else_if} (doc['embedded.{aggregation_field}.raw'].size() > 0) {{
+                                def values = [];
+                                for (value in doc['embedded.{aggregation_field}.raw']) {{
+                                    values.add('{aggregation_field}:' + value);
+                                }}
+                                return values;
+                            }}
+                        """
                 script += f"""
                     else {{
                         return 'unknown';
@@ -248,9 +297,12 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
             include_missing=include_missing,
             create_field_aggregation=create_field_aggregation)
 
+        if troubleshoot_elasticsearch:
+            add_debugging_to_elasticsearch_aggregation_query(aggregation_query[date_property_name])
+
         return aggregation_query[date_property_name]
 
-    def execute_aggregation_query(request: pyramid.request.Request, query: str, aggregation_query: dict) -> str:
+    def execute_aggregation_query(request: PyramidRequest, query: str, aggregation_query: dict) -> str:
         query += "&from=0&limit=0"  # needed for aggregation query to not return the actual/individual item results.
         request = snovault_make_search_subreq(request, path=query, method="GET")
         results = snovault_search(None, request, custom_aggregations=aggregation_query)
@@ -277,8 +329,10 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                 if value := normalized_results.get("value"):
                     if name == date_property_name:
                         # Special case for date value which is just year/month (e.g. 2024-12);
-                        # we want to turn this into a date range query for the month.
-                        from_date, thru_date = parse_date_range_related_arguments(value, None, strings=True)
+                        # we want to turn this into a date range query for the month; actually
+                        # this is not a special case, this is the NORMAL case we are dealing with.
+                        # from_date, thru_date = parse_date_range_related_arguments(value, None, nmonths=0, strings=True)
+                        from_date, thru_date = get_date_range_for_month(value, strings=True)
                         if from_date and thru_date:
                             base_query_arguments = {**base_query_arguments,
                                                     f"{name}.from": from_date, f"{name}.to": thru_date}
@@ -296,6 +350,9 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
                     add_queries_to_normalized_results(element, base_query_arguments)
 
     aggregation_field_grouping_cell_or_donor = get_aggregation_field_grouping_cell_or_donor()
+    # The base_query_arguments does not contain the from/thru dates as this is used;
+    # this is used to construct the query-string for the individually grouped items which
+    # will have the from/thru dates specifically representing their place within the group.
     base_query_arguments = create_base_query_arguments(request)
     query = create_query(request, base_query_arguments)
 
@@ -328,7 +385,16 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         }
 
     if debug_query:
-        return {"query": query, "aggregation_query": aggregation_query}
+        return {
+            "query": query,
+            "query_arguments": deconstruct_query_string(query),
+            "aggregation_query_fields": [
+                AGGREGATION_FIELD_RELEASE_DATE,
+                *get_aggregation_field_grouping_cell_or_donor(),
+                AGGREGATION_FIELD_FILE_DESCRIPTOR
+            ],
+            "aggregation_query": aggregation_query
+        }
 
     raw_results = execute_aggregation_query(request, query, aggregation_query)
 
@@ -398,6 +464,7 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         additional_properties = {
             "debug": {
                 "query": query,
+                "query_arguments": deconstruct_query_string(query),
                 "aggregation_query_fields": [
                     AGGREGATION_FIELD_RELEASE_DATE,
                     *get_aggregation_field_grouping_cell_or_donor(),
@@ -431,209 +498,3 @@ def recent_files_summary(request: pyramid.request.Request) -> dict:
         add_info_for_troubleshooting(normalized_results, request)
 
     return normalized_results
-
-
-def add_info_for_troubleshooting(normalized_results: dict, request: pyramid.request.Request) -> None:
-
-    def get_files(files, property_name, property_value, map_property_value = None):
-        found = []
-        for file in files:
-            if properties := get_properties(file, property_name):
-                if callable(map_property_value):
-                    mapped_properties = []
-                    for value in properties:
-                        mapped_properties.append(map_property_value(value))
-                    properties = mapped_properties
-                if property_value in properties:
-                    found.append(file)
-        return found
-
-    def map_date_property_value(value):
-        if date_value := parse_datetime_string(value):
-            return f"{date_value.year}-{date_value.month:02}"
-        return value
-
-    def count_uuid(uuid_records: List[dict], uuid: str) -> int:
-        count = 0
-        for uuid_record in uuid_records:
-            if uuid_record.get("uuid") == uuid:
-                count += 1
-        return count
-
-    def annotate_with_uuids(normalized_results: dict):
-        aggregation_fields = [
-            AGGREGATION_FIELD_RELEASE_DATE,
-            AGGREGATION_FIELD_CELL_MIXTURE,
-            AGGREGATION_FIELD_CELL_LINE,
-            # Some extra properties for troublehooting (as this whole thing is).
-            "file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.display_title",
-            "file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.cell_line.code",
-            "file_sets.libraries.analytes.samples.sample_sources.display_title",
-            AGGREGATION_FIELD_DONOR,
-            AGGREGATION_FIELD_FILE_DESCRIPTOR
-        ]
-        uuid_records = []
-        query = normalized_results.get("query")
-        files = request.embed(f"{query}&limit=1000", as_user="IMPORT")["@graph"]
-        for first_item in normalized_results["items"]:
-            first_property_name = first_item["name"]
-            first_property_value = first_item["value"]
-            for second_item in first_item["items"]:
-                second_property_name = second_item["name"]
-                second_property_value = second_item["value"]
-                for third_item in second_item["items"]:
-                    third_property_name = third_item["name"]
-                    third_property_value = third_item["value"]
-                    if debug_elasticsearch_hits := third_item.get("debug_elasticsearch_hits"):
-                        if not third_item.get("debug"):
-                            third_item["debug"] = {}
-                        third_item["debug"]["elasticsearch_hits"] = debug_elasticsearch_hits
-                        third_item["debug"]["elasticsearch_hits"].sort()
-                        del third_item["debug_elasticsearch_hits"]
-                    if first_files := get_files(files, first_property_name, first_property_value,
-                                                map_property_value=map_date_property_value):
-                        if second_files := get_files(first_files, second_property_name, second_property_value):
-                            if third_files := get_files(second_files, third_property_name, third_property_value):
-                                for file in third_files:
-                                    if isinstance(uuid := file.get("uuid"), str):
-                                        if not third_item.get("debug"):
-                                            third_item["debug"] = {}
-                                        if not third_item["debug"].get("portal_hits"):
-                                            third_item["debug"]["portal_hits"] = []
-                                        uuid_record = {"uuid": uuid}
-                                        for aggregation_field in aggregation_fields:
-                                            aggregation_values = ", ".join(get_properties(file, aggregation_field))
-                                            uuid_record[aggregation_field] = aggregation_values or None
-                                        if third_item["debug"].get("elasticsearch_hits"):
-                                            uuid_record["elasticsearch_counted"] = \
-                                                uuid in third_item["debug"]["elasticsearch_hits"]
-                                        third_item["debug"]["portal_hits"].append(uuid_record)
-                                        uuid_records.append(uuid_record)
-                                if third_item.get("debug", {}).get("portal_hits"):
-                                    third_item["debug"]["portal_hits"].sort(key=lambda item: item.get("uuid"))
-
-        for uuid_record in uuid_records:
-            if (count := count_uuid(uuid_records, uuid_record["uuid"])) > 1:
-                uuid_record["duplicative"] = count
-
-    try:
-        annotate_with_uuids(normalized_results)
-    except Exception:
-        pass
-
-
-def print_normalized_aggregation_results(data: dict,
-                                         title: Optional[str] = None,
-                                         parent_grouping_name: Optional[str] = None,
-                                         parent_grouping_value: Optional[str] = None,
-                                         uuids: bool = False,
-                                         uuid_details: bool = False,
-                                         nobold: bool = False,
-                                         verbose: bool = False) -> None:
-
-    """
-    For deveopment/troubleshooting only ...
-    """
-    from hms_utils.terminal_utils import terminal_color
-
-    def get_aggregation_fields(data: dict) -> List[str]:
-        if not isinstance(aggregation_fields := data.get("debug", {}).get("aggregation_query_fields"), list):
-            aggregation_fields = []
-        return aggregation_fields
-
-    def print_results(data: dict,
-                      parent_grouping_name: Optional[str] = None,
-                      parent_grouping_value: Optional[str] = None,
-                      indent: int = 0) -> None:
-
-        nonlocal title, uuids, uuid_details, nobold, verbose
-        nonlocal aggregation_fields, red, green_bold, gray, bold
-        nonlocal chars_check, chars_dot, chars_rarrow_hollow, chars_xmark
-
-        def get_hits(data: dict) -> List[str]:
-            hits = []
-            if isinstance(portal_hits := data.get("debug", {}).get("portal_hits"), list):
-                for portal_hit in portal_hits:
-                    if isinstance(portal_hit, dict) and isinstance(uuid := portal_hit.get("uuid"), str) and uuid:
-                        hits.append(portal_hit)
-            return hits
-
-        def format_hit_property_values(hit: dict, property_name: str) -> Optional[str]:
-            nonlocal parent_grouping_name, parent_grouping_value
-            if property_value := hit.get(property_name):
-                if property_name == parent_grouping_name:
-                    property_values = []
-                    for property_value in property_value.split(","):
-                        if (property_value := property_value.strip()) == parent_grouping_value:
-                            property_values.append(green_bold(property_value))
-                        else:
-                            property_values.append(property_value)
-                    property_value = ", ".join(property_values)
-            return property_value
-
-        def print_hit_property_values(hit: dict, property_name: str,
-                                      label: Optional[str] = None, prefix: Optional[str] = None) -> None:
-            nonlocal verbose, aggregation_fields, chars_dot_hollow, verbose
-            if property_values := format_hit_property_values(hit, property_name):
-                if (verbose is True) or (not label):
-                    label = property_name
-                property_description = f"{prefix or ''}{chars_dot_hollow} {label}: {property_values}"
-                if property_name not in aggregation_fields:
-                    property_description = gray(property_description)
-                print(property_description)
-
-        if not (isinstance(data, dict) and data):
-            return
-        if not (isinstance(indent, int) and (indent > 0)):
-            indent = 0
-        spaces = (" " * indent) if indent > 0 else ""
-        grouping_name = data.get("name")
-        if isinstance(grouping_value := data.get("value"), str) and grouping_value:
-            grouping = bold(grouping_value)
-            if (verbose is True) and isinstance(grouping_name, str) and grouping_name:
-                grouping = f"{grouping_name} {chars_dot} {grouping}"
-        elif not (isinstance(grouping := title, str) and grouping):
-            grouping = "RESULTS"
-        grouping = f"{chars_diamond} {grouping}"
-        hits = get_hits(data) if (uuids is True) else []
-        if isinstance(count := data.get("count"), int):
-            note = ""
-            if len(hits) > count:
-                note = red(f" {chars_rarrow_hollow} MORE ACTUAL RESULTS: {len(hits) - count}")
-            print(f"{spaces}{grouping}: {count}{note}")
-        for hit in hits:
-            if isinstance(hit, dict) and isinstance(uuid := hit.get("uuid"), str) and uuid:
-                note = ""
-                if hit.get("elasticsearch_counted") is False:
-                    print(red(f"{spaces}  {chars_dot} {uuid} {chars_xmark} UNCOUNTED"))
-                else:
-                    print(f"{spaces}  {chars_dot} {uuid} {chars_check}")
-                if uuid_details is True:
-                    prefix =  f"{spaces}    "
-                    print_hit_property_values(hit, AGGREGATION_FIELD_CELL_MIXTURE, "sample-sources", prefix)
-                    print_hit_property_values(hit, AGGREGATION_FIELD_CELL_LINE, "cell-lines", prefix)
-                    # Some extra for troubleshooting (as this whole thing is).
-                    print_hit_property_values(hit, "file_sets.libraries.analytes.samples.sample_sources.display_title",
-                                              "sample-sources-title", prefix)
-                    print_hit_property_values(hit, AGGREGATION_FIELD_DONOR, "donors", prefix)
-        if isinstance(items := data.get("items"), list):
-            for element in items:
-                print_results(element,
-                              parent_grouping_name=grouping_name,
-                              parent_grouping_value=grouping_value,
-                              indent=indent + 2)
-
-    aggregation_fields = get_aggregation_fields(data)
-    red = lambda text: terminal_color(text, "red")  # noqa
-    green = lambda text: terminal_color(text, "green")  # noqa
-    green_bold = lambda text: terminal_color(text, "green", bold=True)  # noqa
-    gray = lambda text: terminal_color(text, "grey")  # noqa
-    bold = (lambda text: terminal_color(text, bold=True)) if (nobold is not True) else (lambda text: text)
-    chars_check = "✓"
-    chars_xmark = "✗"
-    chars_dot = "•"
-    chars_dot_hollow = "◦"
-    chars_diamond = "❖"
-    chars_rarrow_hollow = "▷"
-
-    print_results(data)

@@ -14,7 +14,8 @@
         "fragment_mean_length": 150.7,
         "insert_mean_length": 150.2,
         "preparation_date": "2023-05-11",
-        "assay": "bulk_wgs"
+        "assay": "bulk_wgs",
+        "library_preparation": "TEST_LIBRARY-PREPARATION_LIVER"
     },
     {
         "uuid": "f14533e1-de91-4390-9c16-28e420029d41",

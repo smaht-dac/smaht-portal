@@ -527,10 +527,10 @@ ANOTHER_SOFTWARE_VERSION = "2.3.4"
 ANOTHER_SOFTWARE = {"code": ANOTHER_SOFTWARE_CODE, "version": ANOTHER_SOFTWARE_VERSION}
 REFERENCE_GENOME_CODE = "GRCh38"
 TARGET_GENOME_CODE = "HELA_DSA"
-GENE_ANNOTATION_CODE = "gencode45"
-
+GENE_ANNOTATION_CODE = "gencode"
+GENE_ANNOTATION_VERSION = "v45"
 SOME_REFERENCE_GENOME = {"code": REFERENCE_GENOME_CODE}
-SOME_GENE_ANNOTATION = {"code": GENE_ANNOTATION_CODE}
+SOME_GENE_ANNOTATION = [{"code": GENE_ANNOTATION_CODE, "version": GENE_ANNOTATION_VERSION}]
 SOME_UNALIGNED_READS = {"data_type": ["Unaligned Reads"]}
 SOME_ALIGNED_READS = {"data_type": ["Aligned Reads"]}
 RNA_ALIGNED_READS = {"data_type": ["Aligned Reads"], "data_category": ["RNA Quantification"]}
@@ -578,7 +578,7 @@ TSV_FILE_EXTENSION = {
 
 
 @pytest.mark.parametrize(
-    "file,software,reference_genome,gene_annotation,file_extension,expected,errors",
+    "file,software,reference_genome,annotation,file_extension,expected,errors",
     [
         ({}, [], {}, {}, {},"" , True),
         (SOME_UNALIGNED_READS, [], {}, {}, SOME_FILE_EXTENSION,DEFAULT_ABSENT_FIELD, False),
@@ -646,7 +646,7 @@ TSV_FILE_EXTENSION = {
             SOME_REFERENCE_GENOME,
             SOME_GENE_ANNOTATION,
             TSV_FILE_EXTENSION,
-            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_gene",
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}_gene",
             False
         ),
         (
@@ -655,7 +655,7 @@ TSV_FILE_EXTENSION = {
             SOME_REFERENCE_GENOME,
             SOME_GENE_ANNOTATION,
             TSV_FILE_EXTENSION,
-            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_isoform",
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}_isoform",
             False
         ),
         (
@@ -673,7 +673,7 @@ TSV_FILE_EXTENSION = {
             SOME_REFERENCE_GENOME,
             SOME_GENE_ANNOTATION,
             SOME_FILE_EXTENSION,
-            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}",
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}",
             False
         ),
         (
@@ -691,13 +691,13 @@ def test_get_analysis(
     file: Dict[str, Any],
     software: List[Dict[str, Any]],
     reference_genome: Dict[str, Any],
-    gene_annotation: Dict[str, Any],
+    annotation: Dict[str, Any],
     file_extension: Dict[str, Any],
     expected: str,
     errors: bool,
 ) -> None:
     """Test analysis info retrieval for annotated filenames."""
-    result = get_analysis(file, software, reference_genome, gene_annotation, file_extension)
+    result = get_analysis(file, software, reference_genome, annotation, file_extension)
     assert_filename_part_matches(result, expected, errors)
 
 
