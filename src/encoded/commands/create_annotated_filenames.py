@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 FILENAME_SEPARATOR = "-"
 ANALYSIS_INFO_SEPARATOR = "_"
 CHAIN_FILE_INFO_SEPARATOR = "To"
-DSA_INFO_VALUE = "dsa"
+DSA_INFO_VALUE = "DSA"
 
 RNA_DATA_CATEGORY = "RNA Quantification"
 GENE_DATA_TYPE = "Gene Expression"
