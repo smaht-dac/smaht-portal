@@ -76,6 +76,11 @@ def get_reference_genome(properties: Dict[str, Any]) -> Union[str, Dict[str, Any
     return properties.get("reference_genome", "")
 
 
+def get_annotation(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
+    """Get annotation from properties."""
+    return properties.get("annotation", [])
+
+
 def get_file_sets(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
     """Get file sets from properties."""
     return properties.get("file_sets", [])
@@ -412,17 +417,11 @@ def has_mobile_element_insertions(file: Dict[str, Any]) -> bool:
     return "MEI" in get_data_type(file)
 
 
-def get_associated_files_status(
-    file: Dict[str, Any], request_handler: RequestHandler, at_id: str
-) -> List[str]:
-    """Get associated files status from the FileSet.files_status calcprop"""
-    return  get_property_values_from_identifiers(
-            request_handler,
-            get_file_sets(file),
-            partial(file_set.get_associated_files_status, request_handler, at_id)
-    )
-
-
 def get_override_group_coverage(file: Dict[str, Any]) -> str:
     """Get override group coverage from properties."""
     return file.get("override_group_coverage","")
+
+
+def get_release_tracker_description(file: Dict[str, Any]) -> str:
+    """Get release tracker description from properties."""
+    return file.get("release_tracker_description","")

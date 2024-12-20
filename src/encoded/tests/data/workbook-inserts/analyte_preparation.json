@@ -5,11 +5,22 @@
             "smaht"
         ],
         "submitted_id": "TEST_ANALYTE-PREPARATION_LIVER",
-        "cell_lysis_method": [
-            "Chemical"
-        ],
         "extraction_method": [
             "Magnetic Beads"
         ]
+    },
+    {
+        "uuid": "6ba66ffb-d509-4b75-9c91-00f317138383",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_ANALYTE-PREPARATION_LIVER-CELL",
+        "cell_sorting_method": [
+            "Magnetic-activated"
+        ],
+        "cell_lysis_method": [
+            "Chemical"
+        ],
+        "suspension_type": "Whole Cell"
     }
 ]

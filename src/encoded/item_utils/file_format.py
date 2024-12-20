@@ -10,4 +10,8 @@ def get_other_allowed_extensions(properties: Dict[str, Any]) -> str:
 
 
 def is_chain_file(properties: Dict[str, Any]) -> bool:
-    return get_standard_file_extension(properties) == "chain.gz"
+    return get_standard_file_extension(properties) in ["chain.gz","chain"]
+
+
+def is_tsv_file(properties: Dict[str, Any]) -> bool:
+    return get_standard_file_extension(properties) == "tsv"
