@@ -134,7 +134,9 @@ function TimelineAccordion(props) {
     const { defaultActiveKey, children, activeKey } = props;
 
     return (
-        <Accordion {...{ defaultActiveKey, activeKey }}>{children}</Accordion>
+        <Accordion {...{ defaultActiveKey, activeKey }} alwaysOpen>
+            {children}
+        </Accordion>
     );
 }
 
