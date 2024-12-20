@@ -13,7 +13,6 @@ import Modal from 'react-bootstrap/esm/Modal';
 
 import { Checkbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Checkbox';
 import { console, ajax, analytics, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { navigate } from './../../util';
 import { Term } from './../../util/Schemas';
 import { ColumnCombiner, CustomColumnController, SortController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/EmbeddedSearchView';
 import { ControlsAndResults } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/ControlsAndResults';
@@ -1521,7 +1520,7 @@ export function UsageStatsView(props){
 }
 UsageStatsView.titleMap = {
     'file_views': {
-        'metadata_tsv_by_country': ['Total Files In Metadata.tsv', 'by location'],
+        'metadata_tsv_by_country': ['Total Files In Metadata.tsv', 'by location', 'Location'],
         'file_list_views_by_file_type': ['File Appearances In Search Results', 'by file type', 'File Type'],
         'file_list_views_by_assay_type': ['File Appearances In Search Results', 'by assay type', 'Assay Type'],
         'file_list_views_by_dataset': ['File Appearances In Search Results', 'by sample type', 'Sample Type'],
@@ -2039,6 +2038,6 @@ const TrackingItemViewer = React.memo(function (props) {
 TrackingItemViewer.propTypes = {
     forDate: PropTypes.string.isRequired,
     dateRoundInterval: PropTypes.oneOf(['daily', 'monthly']),
-    onTrackingItemViewerCancel: PropTypes.func.isRequired,
+    onHide: PropTypes.func.isRequired,
     schemas: PropTypes.object
 }
