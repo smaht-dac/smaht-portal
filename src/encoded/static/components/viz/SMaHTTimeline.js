@@ -216,7 +216,7 @@ const TimelineCardContent = ({ values, isError }) => {
 const loadStateData = {
     timeline_content: [
         {
-            title: 'Tier 0: Benchmarking',
+            title: 'Benchmarking',
             subtitle: 'with all technologies',
             categories: [
                 {
@@ -234,13 +234,8 @@ const loadStateData = {
             ],
         },
         {
-            title: 'Tier 1',
+            title: 'Production',
             subtitle: 'with core + additional technologies',
-            categories: [{ title: 'Primary Tissues' }],
-        },
-        {
-            title: 'Tier 2',
-            subtitle: 'with core technologies',
             categories: [{ title: 'Primary Tissues' }],
         },
     ],
