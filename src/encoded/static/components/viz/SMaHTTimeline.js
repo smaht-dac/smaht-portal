@@ -42,11 +42,12 @@ const TimelineItem = ({
                 </h3>
             </div>
             <div className="timeline-content">
-                <TimelineAccordion defaultActiveKey={itemKey === 0 ? 1 : 0}>
+                <TimelineAccordion
+                    defaultActiveKey={itemKey === 0 ? ['1'] : ['0']}>
                     {categories.map((category, j) => {
                         return (
                             <TimelineAccordionDrawer
-                                eventKey={j + 1}
+                                eventKey={(j + 1).toString()}
                                 title={category.title}
                                 tier={itemKey}
                                 currentTier={currentTier}
@@ -77,14 +78,14 @@ function ContextAwareToggle({
     isError,
     loadData,
 }) {
-    const { activeEventKey } = useContext(AccordionContext);
+    const { activeEventKey = [] } = useContext(AccordionContext);
 
     const decoratedOnClick = useAccordionButton(
         eventKey,
         () => callback && callback(eventKey)
     );
 
-    const isCurrentEventKey = activeEventKey === eventKey;
+    const isCurrentEventKey = activeEventKey.includes(eventKey.toString());
 
     const openStatusIconCls = isCurrentEventKey
         ? 'icon icon-minus fas'
