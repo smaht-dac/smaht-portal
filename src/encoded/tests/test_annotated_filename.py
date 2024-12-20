@@ -399,6 +399,10 @@ SOME_HOMOGENATE_TISSUE_SAMPLE = {
     "category": "Homogenate",
     "external_id": TISSUE_SAMPLE_EXTERNAL_ID,
 }
+SOME_LIQUID_TISSUE_SAMPLE = {
+    "category": "Liquid",
+    "external_id": TISSUE_SAMPLE_EXTERNAL_ID,
+}
 SOME_OTHER_TISSUE_SAMPLE = {"category": "Core", "external_id": "SN001-01-010A1"}
 
 @pytest.mark.parametrize(
@@ -421,6 +425,7 @@ SOME_OTHER_TISSUE_SAMPLE = {"category": "Core", "external_id": "SN001-01-010A1"}
         ([], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], "100MC", False),
         ([], [], [SOME_CORE_TISSUE_SAMPLE,TPC_TISSUE_SAMPLE], TISSUE_SAMPLE_ALIQUOT_ID, False),
         ([], [], [SOME_HOMOGENATE_TISSUE_SAMPLE], DEFAULT_ABSENT_FIELD * 2, False),
+        ([], [], [SOME_LIQUID_TISSUE_SAMPLE], DEFAULT_ABSENT_FIELD * 2, False),
         ([], [], [SOME_CORE_TISSUE_SAMPLE, SOME_HOMOGENATE_TISSUE_SAMPLE], "MAMC", False),
         ([SOME_CELL_CULTURE_MIXTURE], [], [SOME_CORE_TISSUE_SAMPLE], "", True),
         ([], [SOME_CELL_LINE], [SOME_CORE_TISSUE_SAMPLE], "", True),
