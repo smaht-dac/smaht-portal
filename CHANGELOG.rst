@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.122.0
+=======
+`PR 310 SN Add liquid category <https://github.com/smaht-dac/smaht-portal/pull/310>`
+
+* Add "Liquid" to `category` for TissueSample, to be used to liquid tissue and cell culture samples
+* Adjust `FileSet.file_group` and `commands/create_annotated_filename.py` to reflect this change
+
+
 0.121.0
 =======
 `PR 300 SN Remove basecalling <https://github.com/smaht-dac/smaht-portal/pull/300>`
