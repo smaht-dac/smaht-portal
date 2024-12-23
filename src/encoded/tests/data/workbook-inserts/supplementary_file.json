@@ -26,10 +26,10 @@
         "uuid": "f1074e68-5c24-462b-909d-472356e5a15f",
         "submitted_id": "TEST_SUPPLEMENTARY-FILE_HELA_FASTA",
         "data_category": [
-            "Reference Genome"
+            "Genome Assembly"
         ],
         "data_type": [
-            "Reference Sequence"
+            "DSA"
         ],
         "filename": "test_hela.fasta",
         "file_format": "FASTA",

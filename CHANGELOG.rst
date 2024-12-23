@@ -8,7 +8,7 @@ Change Log
 ----------
 
 
-0.122.0
+0.123.0
 =======
 
 * 2024-11-20/dmichaels - branch: dmichaels-20241119-browse-view (PR-295)
@@ -32,6 +32,14 @@ Change Log
   - src/encoded/elasticsearch_utils.py (maybe move to dcicutils eventually)
   - src/encoded/endpoint_utils.py (maybe move to dcicutils eventually)
   This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1192
+
+
+0.122.0
+=======
+`PR 277 DSA Release <https://github.com/smaht-dac/smaht-portal/pull/277>`_
+* In `commands/release-file.py` and `commands/create-annotated-filenames.py`:
+  * Assay and sequencer codes value set to XX for DSA fasta files and chain files
+  * For Supplementary Files, use `haplotype`, `target_assembly`, and `source_assembly` properties to create annotated filenames for chain and fasta files
 
 
 0.121.0
