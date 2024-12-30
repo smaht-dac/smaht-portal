@@ -99,7 +99,7 @@ export const commonParsingFxn = {
                 'date' : todayAsString,
                 'count' : 0,
                 'children' : aggsList[aggsList.length - 1].children.map(function(c){
-                    return _.extend({}, c, { 'date' : todayAsString, 'count' : 0 });
+                    return _.extend({}, c, { 'date' : todayAsString, 'count' : 0, 'total': 0 });
                 })
             });
         }
@@ -1579,12 +1579,12 @@ UsageStatsView.getYScaleDefaults = function (yScale) {
         showScaleRange = false;
     }
     return { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep };
-}
+};
 UsageStatsView.yScaleLabels = {
     'Linear': 'Linear',
     'Symlog': 'Log',
     'Pow': 'Pow'
-}
+};
 
 export function SubmissionsStatsView(props) {
     const {
@@ -1869,7 +1869,7 @@ const StatisticsTable = React.memo((props) => {
                             {result.display_title} <strong>({overallSum})</strong>
                         </span>
                     ) : (
-                            <a href='#'
+                            <a href="#"
                                 onClick={(e) => {
                                     setModalForDate(result.display_title);
                                     setShowModal(true);
@@ -1902,7 +1902,7 @@ const StatisticsTable = React.memo((props) => {
                     render: function (result) {
                         if (result[dataKey] !== 0) {
                             return (
-                                <a href='#'
+                                <a href="#"
                                     onClick={(e) => {
                                         setModalForDate(transposed ? dataKey : result.display_title);
                                         setShowModal(true);
