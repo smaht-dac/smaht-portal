@@ -287,6 +287,11 @@ def peek_metadata(context, request):
     """ Helper for the UI that will retrieve faceting information about data retrieved from /metadata """
     # get arguments from helper
     args = handle_metadata_arguments(context, request)
+    if isinstance(args, Response):
+        # dmichaels/2024-12-16: Hackish fix for now; handle_metadata_arguments not returning MetadataArgs for ...
+        subreq = make_search_subreq(request, '{}?{}'.format('/search', urlencode(request.params, True)), inherit_user=True)
+        result = search(context, subreq)
+        return result['facets']
 
     # Generate search
     search_param = {}
