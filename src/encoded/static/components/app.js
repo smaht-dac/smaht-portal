@@ -218,8 +218,12 @@ export default class App extends React.PureComponent {
                         '@type': itemType,
                         display_title,
                         title,
-                        sequencing_center: { display_title: sequencingCenter } = {},
-                        data_generation_summary: { assays: [assayType] = [] } = {},
+                        sequencing_center: {
+                            display_title: sequencingCenter,
+                        } = {},
+                        data_generation_summary: {
+                            assays: [assayType] = [],
+                        } = {},
                         dataset,
                         data_category: [file_type] = [],
                     } = item;
@@ -230,9 +234,12 @@ export default class App extends React.PureComponent {
                     const prodItem = {
                         item_id: itemID || itemUUID,
                         item_name: display_title || title || null,
-                        item_category: categories.length >= 1 ? categories[0] : 'Unknown',
-                        item_category2: categories.length >= 2 ? categories[1] : 'Unknown',
-                        item_category3: categories.length >= 3 ? categories[2] : 'Unknown',
+                        item_category:
+                            categories.length >= 1 ? categories[0] : 'Unknown',
+                        item_category2:
+                            categories.length >= 2 ? categories[1] : 'Unknown',
+                        item_category3:
+                            categories.length >= 3 ? categories[2] : 'Unknown',
                         item_category4: assayType || null,
                         item_category5: dataset || null,
                         item_brand: sequencingCenter || null,
@@ -419,9 +426,9 @@ export default class App extends React.PureComponent {
 
             // TODO: Remove this temporary alert in first official launch version in 2024
             Alerts.queue({
-                'title' : '',
-                'style': 'info',
-                'message': (
+                title: '',
+                style: 'info',
+                message: (
                     <>
                         <div>
                             <b>New Features:</b> The SMaHT Data Portal, V1
@@ -757,7 +764,7 @@ export default class App extends React.PureComponent {
 
             const dispatchDict = {
                 href: windowHref,
-                context: event.state
+                context: event.state,
             };
             batchDispatch(store, dispatchDict);
         }
@@ -814,7 +821,12 @@ export default class App extends React.PureComponent {
      * @returns {void}
      */
     onHashChange(event) {
-        store.dispatch({ type: 'SET_HREF', payload: document.querySelector('link[rel="canonical"]').getAttribute('href') });
+        store.dispatch({
+            type: 'SET_HREF',
+            payload: document
+                .querySelector('link[rel="canonical"]')
+                .getAttribute('href'),
+        });
     }
 
     /**
@@ -1150,7 +1162,11 @@ export default class App extends React.PureComponent {
                     }
 
                     reduxDispatchDict.context = response;
-                    const payloadReduxDispatchDict = _.extend({}, reduxDispatchDict, includeReduxDispatch);
+                    const payloadReduxDispatchDict = _.extend(
+                        {},
+                        reduxDispatchDict,
+                        includeReduxDispatch
+                    );
                     batchDispatch(store, payloadReduxDispatchDict);
                     return response;
                 })
@@ -1778,6 +1794,7 @@ class BodyElement extends React.PureComponent {
             scrolledPast160: null,
             scrolledPast240: null,
             scrolledPast360: null,
+            scrolledPast460: null,
             //'scrollTop'             : null // Not used, too many state updates if were to be.
             windowWidth: null,
             windowHeight: null,
@@ -2088,6 +2105,7 @@ class BodyElement extends React.PureComponent {
                 let scrolledPast160 = false;
                 let scrolledPast240 = false;
                 let scrolledPast360 = false;
+                let scrolledPast460 = false;
 
                 if (
                     // Fixed nav takes effect at medium grid breakpoint or wider.
@@ -2108,6 +2126,9 @@ class BodyElement extends React.PureComponent {
                     if (currentScrollTop > 360) {
                         scrolledPast360 = true;
                     }
+                    if (currentScrollTop > 460) {
+                        scrolledPast460 = true;
+                    }
                 }
 
                 return {
@@ -2116,6 +2137,7 @@ class BodyElement extends React.PureComponent {
                     scrolledPast160,
                     scrolledPast240,
                     scrolledPast360,
+                    scrolledPast460,
                 };
             });
         };
@@ -2175,6 +2197,7 @@ class BodyElement extends React.PureComponent {
             scrolledPast160,
             scrolledPast240,
             scrolledPast360,
+            scrolledPast460,
             scrolledPastTop,
             classList,
             isFullscreen,
@@ -2189,6 +2212,7 @@ class BodyElement extends React.PureComponent {
         if (scrolledPast160) bodyClassList.push('scrolled-past-160');
         if (scrolledPast240) bodyClassList.push('scrolled-past-240');
         if (scrolledPast360) bodyClassList.push('scrolled-past-360');
+        if (scrolledPast460) bodyClassList.push('scrolled-past-460');
         if (isFullscreen) {
             bodyClassList.push('is-full-screen');
         } else if (testWarningPresent) {
@@ -2257,7 +2281,7 @@ class BodyElement extends React.PureComponent {
         let innerContainerMinHeight;
         if (mounted && windowHeight) {
             const rgs = responsiveGridState(windowWidth);
-            if ({ xxl:1, xl: 1, lg: 1, md: 1 }[rgs]) {
+            if ({ xxl: 1, xl: 1, lg: 1, md: 1 }[rgs]) {
                 innerContainerMinHeight =
                     // Hardcoded:
                     // - minus top nav full height, footer, [testWarning]
@@ -2299,9 +2323,12 @@ class BodyElement extends React.PureComponent {
 
         const tooltipGlobalEventOff = isMobileBrowser ? 'click' : undefined;
 
+        const { '@type': { 0: atType = '' } = [] } = context || {};
+
         return (
             // We skip setting `props.dangerouslySetInnerHTML` if mounted, since this data is only used for initializing over server-side-rendered HTML.
             <body
+                data-at-type={atType}
                 data-current-action={currentAction}
                 onClick={onBodyClick}
                 onSubmit={onBodySubmit}
@@ -2377,7 +2404,7 @@ class BodyElement extends React.PureComponent {
 
                 <div id="overlays-container" ref={this.overlaysContainerRef} />
 
-                {mounted ?
+                {mounted ? (
                     <ReactTooltip
                         effect="solid"
                         globalEventOff={tooltipGlobalEventOff}
@@ -2385,7 +2412,8 @@ class BodyElement extends React.PureComponent {
                         uuid="primary-tooltip-fake-uuid"
                         afterHide={this.onAfterTooltipHide}
                         ref={this.tooltipRef}
-                    /> : null}
+                    />
+                ) : null}
             </body>
         );
     }

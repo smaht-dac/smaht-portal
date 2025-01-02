@@ -189,7 +189,7 @@ def home(context, request):
         'date': f'{time.strftime("%Y-%m-%d %H:%M")} EST',
         '@graph': [
             {
-                "title": "Tier 0: Benchmarking",
+                "title": "Benchmarking",
                 "subtitle": "with all technologies",
                 "categories": [
                     {
@@ -237,7 +237,7 @@ def home(context, request):
                 ]
             },
             {
-                "title": "Tier 1",
+                "title": "Production",
                 "subtitle": "with core + additional technologies",
                 "categories": [
                     {
@@ -251,21 +251,6 @@ def home(context, request):
                     }
                 ]
             },
-            {
-                "title": "Tier 2",
-                "subtitle": "with core technologies",
-                "categories": [
-                    {
-                        "title": "Primary Tissues",
-                        "figures": [
-                            { "value": 0, "unit": "Donors" },
-                            { "value": 0, "unit": "Tissue Types" },
-                            { "value": 0, "unit": "Assays" },
-                            { "value": 0, "unit": "Files Generated" }
-                        ]
-                    }
-                ]
-            }
         ]
     }
     return response

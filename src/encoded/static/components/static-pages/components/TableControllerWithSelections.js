@@ -40,3 +40,30 @@ export const TableControllerWithSelections = (props) => {
         </SelectedItemsController>
     );
 };
+
+export const BrowseViewControllerWithSelections = (props) => {
+    // Mostly serves as an intermediary/wrapper HOC to make selectedItemsController methods
+    // and props available in child table's aboveTableComponent
+    const { schemas, facets, session, href, context } = props;
+
+    // Inject necessary props
+    const renderChildren = () => {
+        return React.Children.map(props.children, (child) => {
+            return React.cloneElement(child, {
+                session,
+                schemas,
+                href,
+                context,
+                facets,
+            });
+        });
+    };
+
+    return (
+        <SelectedItemsController
+            {...{ context, href }}
+            currentAction={'multiselect'}>
+            {renderChildren()}
+        </SelectedItemsController>
+    );
+};

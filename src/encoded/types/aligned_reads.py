@@ -3,6 +3,12 @@ from snovault import collection, load_schema
 from .submitted_file import SubmittedFile
 
 
+def _build_aligned_reads_embedded_list():
+    """Embeds for search on aligned reads files."""
+    return SubmittedFile.embedded_list + [
+        "reference_genome.display_title",
+    ]
+
 @collection(
     name="aligned-reads",
     unique_key="submitted_id",
@@ -14,4 +20,4 @@ from .submitted_file import SubmittedFile
 class AlignedReads(SubmittedFile):
     item_type = "aligned_reads"
     schema = load_schema("encoded:schemas/aligned_reads.json")
-    embedded_list = SubmittedFile.embedded_list
+    embedded_list = _build_aligned_reads_embedded_list()

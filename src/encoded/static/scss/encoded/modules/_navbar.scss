@@ -933,12 +933,18 @@ body[data-current-action="multiselect"] {
                 a.big-link {
                     color: inherit;
                     position: relative;
-                    &:hover {
-                        color: #5d8a8e;
+                    &:hover:not([data-disabled="true"]) {
+                        color: #2DB3FF;
                         text-shadow: 0 0 0;
                         text-decoration: none;
                         &:after {
                             opacity: 1;
+                        }
+                    }
+                    &[data-disabled="true"] {
+                        cursor: default;
+                        &:after {
+                            opacity: 0 !important;
                         }
                     }
                     > div,
@@ -955,7 +961,7 @@ body[data-current-action="multiselect"] {
                         display: inline-block;
                         @include after-big-link-append;
                     }
-                    &:hover,
+                    &:hover:not([data-disabled="true"]),
                     &.active {
                         > div > div > h3,
                         > div > div > h5,
@@ -971,6 +977,24 @@ body[data-current-action="multiselect"] {
                         h4 {
                             font-weight: 600;
                         }
+                    }
+                    div.big-link-icon-circle,
+                    div.big-link-icon-circle-outline {
+                        height: 50px;
+                        width: 50px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    div.big-link-icon-circle {
+                        background-color: #eee;
+                        img.big-link-icon-svg {
+                            width: 35px;
+                            filter: brightness(0) saturate(100%) invert(19%) sepia(11%) saturate(761%) hue-rotate(189deg) brightness(95%) contrast(90%);
+                        }
+                    }
+                    div.big-link-icon-circle-outline {
+                        border: 1px solid #eee;
                     }
                 }
 	
@@ -1126,12 +1150,15 @@ body[data-current-action="multiselect"] {
                     .big-link {
                         .icon-beside-column {
                             width: 75px;
-                            margin-left: -75px;
                             opacity: 1;
                             transition: opacity .5s ease-out;
                         }
                     }
-
+                    .intro-section {
+                        .icon-beside-column {
+                            margin-left: -20px;
+                        }
+                    }
                 }
 			}
         }

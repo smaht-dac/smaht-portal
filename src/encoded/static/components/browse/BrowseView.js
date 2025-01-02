@@ -3,40 +3,41 @@
 import React from 'react';
 import memoize from 'memoize-one';
 import _ from 'underscore';
-import url from 'url';
 
 import {
-    memoizedUrlParse,
     schemaTransforms,
     analytics,
+    valueTransforms,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
-import { DetailPaneStateCache } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/DetailPaneStateCache';
-import { columnExtensionMap } from './columnExtensionMap';
+
+import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
+import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
+import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
+
+import { columnExtensionMap as originalColExtMap } from './columnExtensionMap';
 import { Schemas } from './../util';
 import {
-    TitleAndSubtitleBeside,
     PageTitleContainer,
     TitleAndSubtitleUnder,
     pageTitleViews,
     EditingItemPageTitle,
+    OnlyTitle,
 } from './../PageTitleSection';
+import SlidingSidebarLayout from './../shared/SlidingSidebarLayout';
+import {
+    SelectAllFilesButton,
+    SelectedItemsDownloadButton,
+} from '../static-pages/components/SelectAllAboveTableComponent';
+import { BrowseViewControllerWithSelections } from '../static-pages/components/TableControllerWithSelections';
+import { BrowseLink } from './browse-view/BrowseLink';
+import { BrowseSummaryStatController } from './browse-view/BrowseSummaryStatController';
+import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAboveFacetListComponent';
+import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 
 export default function BrowseView(props) {
-    const {
-        context: { '@type': searchPageType = ['ItemSearchResults'] },
-    } = props;
-    const isCaseSearch = searchPageType[0] === 'CaseSearchResults';
-
-    if (isCaseSearch) {
-        return (
-            <DetailPaneStateCache>
-                <BrowseViewBody {...props} {...{ isCaseSearch }} />
-            </DetailPaneStateCache>
-        );
-    }
-
-    return <BrowseViewBody {...props} />;
+    const { session } = props;
+    return <BrowseViewBody {...props} key={session} />;
 }
 
 export class BrowseViewBody extends React.PureComponent {
@@ -120,42 +121,17 @@ export class BrowseViewBody extends React.PureComponent {
         return facets;
     }
 
-    /** Not currently used. */
-    static filteredFilters(filters) {
-        const typeFilterCount = filters.reduce(function (m, { field }) {
-            if (field === 'type') return m + 1;
-            return m;
-        }, 0);
-        return filters.filter(function ({ field, term }) {
-            if (field === 'type') {
-                if (term === 'Item') {
-                    return false;
-                }
-                if (typeFilterCount === 1) {
-                    return false;
-                }
-            }
-            return true;
-        });
-    }
-
     constructor(props) {
         super(props);
         this.memoized = {
             transformedFacets: memoize(BrowseViewBody.transformedFacets),
-            filteredFilters: memoize(BrowseViewBody.filteredFilters),
         };
     }
 
     render() {
-        const {
-            isCaseSearch = false,
-            context,
-            currentAction,
-            schemas,
-        } = this.props;
+        const { alerts } = this.props;
 
-        // We don't need full screen btn on CGAP as already full width.
+        // We don't need full screen btn on SMaHT
         const passProps = _.omit(
             this.props,
             'isFullscreen',
@@ -163,38 +139,344 @@ export class BrowseViewBody extends React.PureComponent {
             'isCaseSearch'
         );
 
-        //const filters = BrowseView.filteredFilters(context.filters || []);
-        const facets = this.memoized.transformedFacets(
-            context,
-            currentAction,
-            schemas
-        );
-        const tableColumnClassName = 'results-column col';
-        const facetColumnClassName = 'facets-column col-auto';
-
         return (
-            <div
-                className="container-wide search-page-outer-container"
-                id="content">
-                <CommonSearchView
-                    {...passProps}
-                    {...{
-                        columnExtensionMap,
-                        tableColumnClassName,
-                        facetColumnClassName,
-                        facets,
-                    }}
-                    renderDetailPane={null}
-                    termTransformFxn={Schemas.Term.toName}
-                    separateSingleTermFacets={false}
-                    rowHeight={31}
-                    openRowHeight={40}
-                />
-                HELLO: THIS IS BROWSE-VIEW!
+            <div className="search-page-outer-container" id="content">
+                <SlidingSidebarLayout>
+                    <div>
+                        <h3 className="browse-links-header">
+                            Browse Production Data By
+                        </h3>
+                        <div className="browse-links">
+                            <BrowseLink type="File" />
+                            <BrowseLink type="Donor" disabled />
+                            <BrowseLink type="Tissue" disabled />
+                            <BrowseLink type="Assay" disabled />
+                        </div>
+                    </div>
+                    <div className="browse-body">
+                        <h2 className="browse-summary-header">
+                            SMaHT Data Summary
+                        </h2>
+                        <Alerts alerts={alerts} className="mt-2" />
+                        <div>
+                            <div className="browse-summary d-flex flex-row p-4 mt-2 mb-3 flex-wrap">
+                                <BrowseSummaryStatController
+                                    type="File"
+                                    useSearch
+                                    additionalSearchQueries="&sample_summary.studies=Production"
+                                />
+                                <BrowseSummaryStatController type="Donor" />
+                                <BrowseSummaryStatController type="Tissue" />
+                                <BrowseSummaryStatController type="Assay" />
+                                <BrowseSummaryStatController
+                                    type="File Size"
+                                    useSearch
+                                    additionalSearchQueries="&sample_summary.studies=Production"
+                                />
+                            </div>
+                        </div>
+                        <hr />
+                        <BrowseViewControllerWithSelections {...passProps}>
+                            <BrowseViewSearchTable />
+                        </BrowseViewControllerWithSelections>
+                    </div>
+                </SlidingSidebarLayout>
             </div>
         );
     }
 }
+
+const BrowseViewSearchTable = (props) => {
+    const {
+        session,
+        context,
+        currentAction,
+        schemas,
+        selectedItems,
+        onSelectItem,
+        onResetSelectedItems,
+    } = props;
+    const facets = BrowseViewBody.transformedFacets(
+        context,
+        currentAction,
+        schemas
+    );
+    const tableColumnClassName = 'results-column col';
+    const facetColumnClassName = 'facets-column col-auto';
+
+    const selectedFileProps = {
+        selectedItems, // From SelectedItemsController
+        onSelectItem, // From SelectedItemsController
+        onResetSelectedItems, // From SelectedItemsController
+    };
+
+    const passProps = _.omit(
+        props,
+        'isFullscreen',
+        'toggleFullScreen',
+        'isCaseSearch'
+    );
+
+    const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
+    const aboveTableComponent = (
+        <BrowseViewAboveSearchTableControls
+            topLeftChildren={
+                <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
+            }>
+            <SelectedItemsDownloadButton
+                id="download_tsv_multiselect"
+                disabled={selectedItems.size === 0}
+                className="btn btn-primary btn-sm me-05 align-items-center"
+                {...{ selectedItems, session }}
+                analyticsAddItemsToCart>
+                <i className="icon icon-download fas me-03" />
+                Download {selectedItems.size} Selected Files
+            </SelectedItemsDownloadButton>
+        </BrowseViewAboveSearchTableControls>
+    );
+
+    /**
+     * A column extension map speifically for benchmarking tables.
+     * Some of these things may be worth moving to the global colextmap eventually.
+     */
+    const columnExtensionMap = {
+        ...originalColExtMap, // Pull in defaults for all tables
+        // Then overwrite or add onto the ones that already are there:
+        // Select all button
+        '@type': {
+            colTitle: (
+                // Context now passed in from HeadersRowColumn (for file count)
+                <SelectAllFilesButton {...selectedFileProps} type="checkbox" />
+            ),
+            hideTooltip: true,
+            noSort: true,
+            widthMap: { lg: 63, md: 63, sm: 63 },
+            render: (result, parentProps) => {
+                return (
+                    <SelectionItemCheckbox
+                        {...{ selectedItems, onSelectItem, result }}
+                        isMultiSelect={true}
+                    />
+                );
+            },
+        },
+        // Access
+        access_status: {
+            widthMap: { lg: 60, md: 60, sm: 60 },
+            colTitle: <i className="icon icon-lock fas" data-tip="Access" />,
+            render: function (result, parentProps) {
+                const { access_status } = result || {};
+
+                if (access_status === 'Protected') {
+                    return (
+                        <span className="value">
+                            <i
+                                className="icon icon-lock fas"
+                                data-tip="Protected"
+                            />
+                        </span>
+                    );
+                }
+                return (
+                    <span className="value text-start">{access_status}</span>
+                );
+            },
+        },
+        // File
+        annotated_filename: {
+            widthMap: { lg: 500, md: 400, sm: 300 },
+            render: function (result, parentProps) {
+                const {
+                    '@id': atId,
+                    display_title,
+                    annotated_filename,
+                } = result || {};
+
+                return (
+                    <span className="value text-start">
+                        <a
+                            href={atId}
+                            target="_blank"
+                            rel="noreferrer noopener">
+                            {annotated_filename || display_title}
+                        </a>
+                    </span>
+                );
+            },
+        },
+        // Data Category
+        data_category: {
+            render: function (result, parentProps) {
+                const { data_category = [] } = result || {};
+                if (data_category.length === 0) {
+                    return null;
+                } else if (data_category.length === 1) {
+                    return data_category[0];
+                } else {
+                    return data_category.join(', ');
+                }
+            },
+        },
+        // Data Type
+        data_type: {
+            widthMap: { lg: 155, md: 155, sm: 150 },
+            render: function (result, parentProps) {
+                const { data_type = [] } = result || {};
+                if (data_type.length === 0) {
+                    return null;
+                } else if (data_type.length === 1) {
+                    return data_type[0];
+                } else {
+                    return data_type.join(', ');
+                }
+            },
+        },
+        // Format
+        'file_format.display_title': {
+            widthMap: { lg: 100, md: 90, sm: 80 },
+        },
+        // Assay
+        'file_sets.assay.display_title': {
+            widthMap: { lg: 130, md: 130, sm: 130 },
+        },
+        // Platform
+        'file_sets.sequencing.sequencer.display_title': {
+            widthMap: { lg: 170, md: 160, sm: 150 },
+        },
+        // Generated By
+        'submission_centers.display_title': {
+            widthMap: { lg: 150, md: 150, sm: 150 },
+            render: function (result, parentProps) {
+                const { submission_centers: gccs = [] } = result || {};
+                if (gccs.length === 0) return null;
+                return (
+                    <span className="value text-start">
+                        {gccs.map((gcc) => gcc.display_title).join(', ')}
+                    </span>
+                );
+            },
+        },
+        // Sequencing Center
+        'sequencing_center.display_title': {
+            widthMap: { lg: 135, md: 135, sm: 135 },
+            colTitle: 'Seq Center',
+        },
+        // Method
+        'software.display_title': {
+            widthMap: { lg: 151, md: 151, sm: 130 },
+        },
+        // File Size
+        file_size: {
+            widthMap: { lg: 105, md: 100, sm: 100 },
+            render: function (result, parentProps) {
+                const value = result?.file_size;
+                if (!value) return null;
+                return (
+                    <span className="value text-end">
+                        {valueTransforms.bytesToLargerUnit(value)}
+                    </span>
+                );
+            },
+        },
+        // Submission Date
+        date_created: {
+            widthMap: { lg: 180, md: 160, sm: 140 },
+            render: function (result, parentProps) {
+                const value = result?.date_created;
+                if (!value) return null;
+                return (
+                    <span className="value text-end">
+                        <LocalizedTime
+                            timestamp={value}
+                            formatType="date-file"
+                        />
+                    </span>
+                );
+            },
+        },
+        // Tissue
+        'sample_summary.tissues': {},
+        // Donor
+        donors: {
+            render: function (result, parentProps) {
+                const { donors: { 0: { display_title } = {} } = [] } =
+                    result || {};
+                return display_title || null;
+            },
+        },
+    };
+
+    return (
+        <CommonSearchView
+            {...passProps}
+            {...{
+                columnExtensionMap,
+                tableColumnClassName,
+                facetColumnClassName,
+                facets,
+                aboveFacetListComponent,
+                aboveTableComponent,
+            }}
+            hideFacets={[
+                'dataset',
+                'file_sets.libraries.analytes.samples.sample_sources.code',
+                'status',
+                'validation_errors.name',
+                'version',
+                'sample_summary.studies',
+                'submission_centers.display_title',
+                'software.display_title',
+            ]}
+            columns={{
+                '@type': {
+                    title: 'Type',
+                },
+                access_status: {
+                    title: 'Access',
+                },
+                annotated_filename: {
+                    title: 'File',
+                },
+                donors: {
+                    title: 'Donor',
+                },
+                'sample_summary.tissues': {
+                    title: 'Tissue',
+                },
+                'file_sets.libraries.assay.display_title': {
+                    title: 'Assay',
+                },
+                file_size: {
+                    title: 'File Size',
+                },
+                date_created: {
+                    // TODO: is this correct?
+                    title: 'Release Date',
+                },
+                'file_sets.sequencing.sequencer.display_title': {
+                    title: 'Platform',
+                },
+                'file_format.display_title': {
+                    title: 'Format',
+                },
+                data_type: {
+                    title: 'Data Type',
+                },
+                'software.display_title': {
+                    title: 'Software',
+                },
+            }}
+            useCustomSelectionController
+            hideStickyFooter
+            currentAction={'multiselect'}
+            renderDetailPane={null}
+            termTransformFxn={Schemas.Term.toName}
+            separateSingleTermFacets={false}
+            rowHeight={31}
+            openRowHeight={40}
+        />
+    );
+};
 
 const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
     const { context, schemas, currentAction, alerts } = props;
@@ -218,21 +500,40 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
         );
     }
 
-    const thisTypeTitle = schemaTransforms.getSchemaTypeFromSearchContext(
-        context,
-        schemas
-    );
-    const subtitle = thisTypeTitle ? (
-        <span>
-            <small className="text-300">for</small> {thisTypeTitle}
-        </span>
-    ) : null;
+    const commonCls = 'col-12';
 
     return (
-        <PageTitleContainer alerts={alerts} className="container-wide">
-            <TitleAndSubtitleBeside subtitle={subtitle}>
-                Search
-            </TitleAndSubtitleBeside>
+        <PageTitleContainer
+            alerts={[]}
+            className="container-wide pb-2"
+            alertsBelowTitleContainer>
+            <div className="container-wide m-auto p-xl-0">
+                {/* Using static breadcrumbs here, but will likely need its own component in future */}
+                <div className="static-page-breadcrumbs clearfix mx-0 px-0">
+                    <div className="static-breadcrumb" data-name="Home" key="/">
+                        <a href="/" className="link-underline-hover">
+                            Home
+                        </a>
+                        <i className="icon icon-fw icon-angle-right fas" />
+                    </div>
+                    <div
+                        className="static-breadcrumb nonclickable"
+                        data-name="Data"
+                        key="/data">
+                        <span>Data</span>
+                        <i className="icon icon-fw icon-angle-right fas" />
+                    </div>
+                    <div
+                        className="static-breadcrumb nonclickable"
+                        data-name="Production"
+                        key="/browse">
+                        <span>Browse By File</span>
+                    </div>
+                </div>
+                <OnlyTitle className={commonCls + ' mx-0 px-0'}>
+                    SMaHT Production Data
+                </OnlyTitle>
+            </div>
         </PageTitleContainer>
     );
 });
