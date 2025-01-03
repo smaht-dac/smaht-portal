@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.124.0
+=======
+`PR 308 SN Pathology report <https://github.com/smaht-dac/smaht-portal/pull/308>`
+
+* Add item PathologyReport
+* Add tests for brain-specific properties
+
+
 0.123.0
 =======
 `PR 310 SN Add liquid category <https://github.com/smaht-dac/smaht-portal/pull/310>`

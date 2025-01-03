@@ -30,5 +30,18 @@
         "anatomical_location": "Lung: Left Lobe",
         "weight": 3.4,
         "preservation_type": "Snap Frozen"
+    },
+    {
+        "uuid": "6facfca7-ac0e-4577-963a-496435aa0bcd",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE_BRAIN",
+        "external_id": "SMHT001-3AJ",
+        "donor": "TEST_DONOR_MALE",
+        "uberon_id": "UBERON:0000955",
+        "anatomical_location": "Brain",
+        "weight": 3.4,
+        "preservation_type": "Fresh"
     }
 ]

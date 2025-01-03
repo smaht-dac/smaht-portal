@@ -1,0 +1,570 @@
+{
+    "title": "Pathology Report",
+    "description": "A pathology report for a tissue sample",
+    "$id": "/profiles/pathology_report.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "submission_centers",
+        "submitted_id",
+        "tissue_sample",
+        "tissue_name",
+        "outcome"
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/version"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "PR"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_PATHOLOGY-REPORT_[A-Z0-9-_.]{4,}$"
+        },
+        "additional_notes": {
+            "title": "Additional Notes",
+            "description": "Additional notes or other findings related to the sample",
+            "type": "string"
+        },
+        "anatomical_sample_location": {
+            "title": "Anatomical Sample Location",
+            "description": "Anatomical location from which the sample was taken",
+            "type": "string",
+            "enum": [
+                "Cerebellum Left Hemisphere",
+                "Frontal Lobe Left Hemisphere",
+                "Hippocampus Left Hemisphere",
+                "Hippocampus Right Hemisphere",
+                "Temporal Lobe Left Hemisphere",
+                "Left Adrenal",
+                "Right Adrenal",
+                "Skin Calf",
+                "Skin Abdomen",
+                "Left Ovary",
+                "Right Ovary",
+                "Left Testis",
+                "Right Testis"
+            ]
+        },
+        "final_review_determination": {
+            "title": "Final Review Determination",
+            "description": "Whether a final review determination was made for the sample",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "infectious_neuropathology_infection_type": {
+            "title": "Infection Type",
+            "description": "Infection type of infectious neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Bacterial",
+                "Viral",
+                "Fungal",
+                "Parasitic",
+                "Other"
+            ]
+        },
+        "infectious_neuropathology_pattern_type": {
+            "title": "Pattern Type",
+            "description": "Pattern type of infectiuos neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Diffuse",
+                "Focal",
+                "Regional"
+            ]
+        },
+        "inflammatory_neuropathology_type": {
+            "title": "Inflammatory Neuropathology Type",
+            "description": "Type of inflammatory neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Multiple Sclerosis.",
+                "Guillain-Barre",
+                "Meningitis",
+                "Encephalitis",
+                "Myelitis",
+                "Other"
+            ]
+        },
+        "is_indeterminate": {
+            "title": "Is Indeterminate",
+            "description": "Whether the tissue sample is indeterminate",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "metabolic_neuropathology_type": {
+            "title": "Metabolic Neuropathology Type",
+            "description": "Type of metabolic neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Hepatic Encephalopathy",
+                "Renal Encephalopathy",
+                "Other"
+            ]
+        },
+        "neoplastic_neuropathology_type": {
+            "title": "Neoplastic Neuropathology Type",
+            "description": "Type of neoplastic neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Primary",
+                "Secondary",
+                "Benign",
+                "Malignant"
+            ]
+        },
+        "neoplastic_neuropathology_origin_location": {
+            "title": "Neoplastic Neuropathology Origin Location",
+            "description": "Origin location of neoplastic neuropathology in the sample",
+            "type": "string"
+        },
+        "neoplastic_neuropathology_details": {
+            "title": "Neoplastic Neuropathology Details",
+            "description": "Details of neoplastic neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Intra-axial",
+                "Extra-axial",
+                "Other"
+            ]
+        },
+        "neurodegenerative_neuropathology_type": {
+            "title": "Neurodegenerative Neuropathology Type",
+            "description": "Type of neurodegenerative neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Primary Age-Related Taupath",
+                "Age-Related Tau Astrogliosis",
+                "Other"
+            ]
+        },
+        "neuropathology_artifact_type": {
+            "title": "Artifact Type",
+            "description": "Type of artifacts present in the sample",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Decomposition/Autolysis",
+                    "Swiss Cheese",
+                    "Saw Artifact",
+                    "Brainstem Ascension Stress",
+                    "Cerebellum Ascension Stress",
+                    "Underfixed",
+                    "Foreign Body",
+                    "Other"
+                ]
+            }
+        },
+        "neuropathology_onset": {
+            "title": "Neuropathology Onset",
+            "description": "Onset of infectious or vascular neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Acute",
+                "Chronic"
+            ]
+        },
+        "non_target_tissues": {
+            "title": "Non-Target Tissues",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "non_target_tissue_subtype",
+                    "non_target_tissue_present"
+                ],
+                "properties": {
+                    "non_target_tissue_subtype": {
+                        "title": "Non-Target Tissue Subtype",
+                        "description": "Subtype of non-target tissue in sample",
+                        "type": "string",
+                        "enum": [
+                            "Fibroadipose",
+                            "Lymphoid",
+                            "Other",
+                            "Epididymis",
+                            "Rete testes"
+                        ]
+                    },
+                    "non_target_tissue_present": {
+                        "title": "Non-Target Tissue Present",
+                        "description": "Whether the non-target tissue subtype was present in the sample",
+                        "type": "string",
+                        "enum": [
+                            "Yes",
+                            "No"
+                        ]
+                    },
+                    "non_target_tissue_percentage": {
+                        "title": "Non-Target Tissue Subtype Percentage",
+                        "description": "Percentage range of the sample that was the non-target tissue subtype (%)",
+                        "type": "string",
+                        "enum": [
+                            "[0-10]",
+                            "[11-25]]",
+                            "[26-49]",
+                            "[50-100]"
+                        ]
+                    },
+                    "non_target_tissue_description": {
+                        "title": "Non-Target Tissue Description",
+                        "description": "Description of other non-target tissue present in the sample",
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "outcome": {
+            "title": "Outcome",
+            "description": "Outcome of the pathology report",
+            "type": "string",
+            "enum": [
+                "Acceptable",
+                "Unacceptable"
+            ]
+        },
+        "pathologic_findings": {
+            "title": "Pathologic Findings",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "finding_type",
+                    "finding_present"
+                ],
+                "properties": {
+                    "finding_type": {
+                        "title": "Pathologic Finding Type",
+                        "description": "Type of pathologic/unexpected finding present in the sample",
+                        "type": "string",
+                        "enum": [
+                            "Inflammation",
+                            "Metaplasia",
+                            "Neoplasia/Tumor/Carcinoma",
+                            "Other",
+                            "Artifacts",
+                            "Developmental Neuropathology",
+                            "Infectious Neuropathology",
+                            "Inflammatory Neuropathology",
+                            "Metabolic Neuropathology",
+                            "Neoplastic Neuropathology",
+                            "Neurodegenerative Neuropathology",
+                            "Traumatic Brain Injury Neuropathology",
+                            "Vascular Neuropathology"
+                        ]
+                    },
+                    "finding_present": {
+                        "title": "Pathologic Finding Present",
+                        "description": "Whether pathologic/unexpected finding is present in the sample",
+                        "type": "string",
+                        "enum": [
+                            "Yes",
+                            "No"
+                        ]
+                    },
+                    "finding_description": {
+                        "title": "Pathologic Finding Description",
+                        "description": "Description of pathologic/unexpected finding",
+                        "type": "string"
+                    },
+                    "finding_percentage": {
+                        "title": "Pathologic Finding Percentage",
+                        "description": "Percentage range of the sample that displayed the pathologic/unexpected finding (%)",
+                        "type": "string",
+                        "enum": [
+                            "[0-10]",
+                            "[11-25]]",
+                            "[26-49]",
+                            "[50-100]"
+                        ]
+                    }
+                }
+            }
+        },
+        "tissue_autolysis_score": {
+            "title": "Overall Tissue Autolysis Score",
+            "description": "Overall tissue autolysis score of the sample. 0=None, 1=mild , 2=moderate, 3=severe",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+        },
+        "tissue_name": {
+            "title": "Tissue Name",
+            "description": "Name of the type of tissue the sample was taken from",
+            "type": "string",
+            "enum": [
+                "Brain",
+                "Adrenal",
+                "Aorta",
+                "Ascending Colon",
+                "Descending Colon",
+                "Esophagus",
+                "Heart Ventricle",
+                "Liver",
+                "Lung",
+                "Muscle",
+                "Ovary",
+                "Skin",
+                "Testis"
+            ]
+        },
+        "target_tissues": {
+            "title": "Target Tissues",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "target_tissue_subtype",
+                    "target_tissue_present",
+                    "target_tissue_percentage"
+                ],
+                "properties": {
+                    "target_tissue_subtype": {
+                        "title": "Target Tissue Subtype",
+                        "description": "Subtype of target tissue in sample",
+                        "type": "string",
+                        "enum": [
+                            "Brain",
+                            "Cortex",
+                            "Dermis",
+                            "Endocardium",
+                            "Epicardium",
+                            "Epidermis",
+                            "Fallopian Tube",
+                            "Leydig Cells",
+                            "Liver",
+                            "Lung",
+                            "Medulla",
+                            "Mucosa",
+                            "Muscularis propria",
+                            "Myocardium",
+                            "Ovarian Follicles",
+                            "Ovarian Stroma",
+                            "Semniferous Tubules",
+                            "Skeletal Muscle",
+                            "Vessel"
+                        ]
+                    },
+                    "target_tissue_present": {
+                        "title": "Target Tissue Present",
+                        "description": "Whether the target tissue subtype was present in the sample",
+                        "type": "string",
+                        "enum": [
+                            "Yes",
+                            "No"
+                        ]
+                    },
+                    "target_tissue_percentage": {
+                        "title": "Target Tissue Subtype Percentage",
+                        "description": "Percentage range of the sample that was the target tissue subtype (%)",
+                        "type": "string",
+                        "enum": [
+                            "[0-10]",
+                            "[11-25]]",
+                            "[26-49]",
+                            "[50-100]"
+                        ]
+                    },
+                    "target_tissue_autolysis_score": {
+                        "title": "Target Tissue Autolysis Score",
+                        "description": "Autolysis score of the target tissue in the sample. 0=None, 1=mild , 2=moderate, 3=severe",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 3
+                    }
+                }
+            }
+        },
+        "tbi_chronic_type": {
+            "title": "Chronic Traumatic Brain Injury Type",
+            "description": "Type of chronic traumatic brain injury in the sample",
+            "type": "string",
+            "enum": [
+                "Chronic Traumatic Brain Injury",
+                "Chronic Traumatic Encephalopathy",
+                "Not Applicable"
+            ]
+        },
+        "tbi_edema_present": {
+            "title": "Edema Present",
+            "description": "Whether edema is present in the sample",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "tbi_hemorrhage_present": {
+            "title": "Hemorrhage Present",
+            "description": "Whether hemorrage is present in the sample",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "tbi_herniation_present": {
+            "title": "Herniation Present",
+            "description": "Whether herniation is present in the sample",
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "tbi_location": {
+            "title": "Traumatic Brain Injury Location",
+            "description": "Location of traumatic brain injury in the sample",
+            "type": "string",
+            "enum": [
+                "Lobes",
+                "Brainstem",
+                "Cerebellum"
+            ]
+        },
+        "tbi_stage": {
+            "title": "Traumatic Brain Injury Stage",
+            "description": "Stage of traumatic brain injury in the sample",
+            "type": "string",
+            "enum": [
+                "Low",
+                "High"
+            ] 
+        },
+        "tbi_type": {
+            "title": "Traumatic Brain Injury Type",
+            "description": "Type of traumatic brain injury present in the sample",
+            "type": "string",
+            "enum": [
+                "Blunt",
+                "Penetrating"
+            ]
+        },
+        "unacceptable_description": {
+            "title": "Unacceptable Description",
+            "description": "Description of unacceptable review determination",
+            "type": "string"
+        },
+        "vascular_neuropathology_infarct_type": {
+            "title": "Vascular Neuropathology Infarct Type",
+            "description": "Infarct type of vascular neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Macroinfarcts",
+                "Microinfarcts"
+            ]
+        },
+        "vascular_neuropathology_details": {
+            "title": "Vascular Neuropathology Details",
+            "description": "Details of vascular neuropathology in the sample",
+            "type": "string",
+            "enum": [
+                "Accute Hemorrhage",
+                "Organizing",
+                "Remote",
+                "Other"
+            ]
+        },
+        "histology": {
+            "title": "Histology",
+            "description": "Link to associated histology",
+            "type": "string",
+            "linkTo": "Histology"
+        },
+        "tissue_sample": {
+            "title": "Tissue Sample",
+            "description": "Link to associated tissue sample",
+            "type": "string",
+            "linkTo": "TissueSample"
+        }
+    },
+    "allOf": [
+        {
+            "if": {
+                "not": {
+                    "properties": {
+                        "tissue_name": {
+                            "const": "Brain"
+                        }
+                    }
+                }
+                
+            },
+            "then": {
+                "allOf": [
+                    {"not": {"required": ["infectious_neuropathology_pattern_type"]}},
+                    {"not": {"required": ["infectious_neuropathology_infection_type"]}},
+                    {"not": {"required": ["inflammatory_neuropathology_type"]}},
+                    {"not": {"required": ["metabolic_neuropathology_type"]}},
+                    {"not": {"required": ["neoplastic_neuropathology_type"]}},
+                    {"not": {"required": ["neoplastic_neuropathology_details"]}},
+                    {"not": {"required": ["neoplastic_neuropathology_origin_location"]}},
+                    {"not": {"required": ["neurodegenerative_neuropathology_type"]}},
+                    {"not": {"required": ["neuropathology_artifact_type"]}},
+                    {"not": {"required": ["neuropathology_onset"]}},
+                    {"not": {"required": ["tbi_type"]}},
+                    {"not": {"required": ["tbi_hemorrhage_present"]}},
+                    {"not": {"required": ["tbi_edema_present"]}},
+                    {"not": {"required": ["tbi_herniation_present"]}},
+                    {"not": {"required": ["tbi_chronic_type"]}},
+                    {"not": {"required": ["tbi_stage"]}},
+                    {"not": {"required": ["tbi_location"]}},
+                    {"not": {"required": ["vascular_neuropathology_infarct_type"]}},
+                    {"not": {"required": ["vascular_neuropathology_details"]}}
+                ]
+            }
+        }
+    ]
+}
