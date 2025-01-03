@@ -355,6 +355,7 @@ def _build_file_embedded_list() -> List[str]:
         # Sample summary + Link calcprops
         "file_sets.libraries.analytes.molecule",
         "file_sets.libraries.analytes.samples.sample_sources.code",
+        "file_sets.libraries.analytes.samples.sample_sources.uberon_id"
         "file_sets.libraries.analytes.samples.sample_sources.description",
         "file_sets.libraries.analytes.samples.sample_sources.donor",
         "file_sets.libraries.analytes.samples.sample_sources.cell_line.code",
@@ -932,7 +933,7 @@ class File(Item, CoreFile):
             constants.SAMPLE_SUMMARY_TISSUES: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_tissues(file_properties, request_handler),
-                tissue_utils.get_location,
+                tissue_utils.get_uberon_title,
             ),
             constants.SAMPLE_SUMMARY_SAMPLE_NAMES: get_property_values_from_identifiers(
                 request_handler,

@@ -1,9 +1,19 @@
 [
     {
         "uuid": "69ac1b9e-b76d-4d41-90b9-aec992024929",
-        "identifier": "MONDO:0016668",
-        "title": "sickle cell-beta-thalassemia disease syndrome",
-        "submission_centers": [
+        "identifier": "UBERON:0002107",
+        "title": "liver",
+        "ontology": ["uberon"],
+        "consorta": [
+            "smaht"
+        ]
+    },
+    {
+        "uuid": "f2f84da1-59db-41f3-8268-81d415146815",
+        "identifier": "UBERON:0002048",
+        "title": "lung",
+        "ontology": ["uberon"],
+        "consorta": [
             "smaht"
         ]
     }

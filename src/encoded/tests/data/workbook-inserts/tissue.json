@@ -26,7 +26,7 @@
         "submitted_id": "TEST_TISSUE_LUNG",
         "external_id": "ST001-1D",
         "donor": "TEST_DONOR_MALE",
-        "uberon_id": "UBERON:0002108",
+        "uberon_id": "UBERON:0002048",
         "anatomical_location": "Lung: Left Lobe",
         "weight": 3.4,
         "preservation_type": "Snap Frozen"

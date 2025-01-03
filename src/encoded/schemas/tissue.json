@@ -138,8 +138,7 @@
             "title": "Uberon Id",
             "description": "Uberon Ontology identifier for the tissue.",
             "type": "string",
-            "pattern": "^UBERON:[0-9]{7}$",
-            "url": "https://www.ebi.ac.uk/ols4/ontologies/uberon"
+            "linkTo": "OntologyTerm"
         },
         "volume": {
             "title": "Volume",
