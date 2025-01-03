@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+
+0.123.1
+=======
+`PR 307: fix: adjust data release date on safari <https://github.com/smaht-dac/smaht-portal/pull/307>`
+
+* Adjust release date to prevent safari "Invalid date" bug
+
+
 0.123.0
 =======
 `PR 310 SN Add liquid category <https://github.com/smaht-dac/smaht-portal/pull/310>`
