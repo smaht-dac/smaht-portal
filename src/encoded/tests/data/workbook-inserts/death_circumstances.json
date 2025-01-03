@@ -8,7 +8,6 @@
         "donor": "TEST_DONOR_FEMALE",
         "blood_transfusion_products": [
             "Platelets"
-        ],
-        "hardy_scale": 3
+        ]
     }
 ]
