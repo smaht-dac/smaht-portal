@@ -127,9 +127,9 @@ export class WorkflowGraphSection extends React.PureComponent {
     }
 
     renderDetailPane(node, graphProps){
-        const { context, schemas } = this.props;
+        const { context, schemas, canDownloadFile } = this.props;
         const { showDetailsInPopup } = this.state;
-        return <WorkflowDetailPane {...graphProps} {...{ context, node, schemas, showDetailsInPopup }} />;
+        return <WorkflowDetailPane {...graphProps} {...{ context, node, schemas, showDetailsInPopup, canDownloadFile }} />;
     }
 
     render(){

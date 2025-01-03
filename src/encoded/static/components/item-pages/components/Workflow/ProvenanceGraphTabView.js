@@ -66,7 +66,7 @@ export const ProvenanceGraphTabView = React.memo(function ProvenanceGraphTabView
         context
     };
 
-    return <WorkflowGraphSection {..._.omit(props, 'graphSteps')} mounted={mounted} width={windowWidth} steps={graphSteps} />
+    return <WorkflowGraphSection {..._.omit(props, 'graphSteps')} mounted={mounted} width={windowWidth} steps={graphSteps} canDownloadFile />
 });
 
 ProvenanceGraphTabView.getTabObject = function(props){

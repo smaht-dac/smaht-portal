@@ -18,7 +18,7 @@ export function getFile(node){
 }
 
 export const WorkflowDetailPane = React.memo(function WorkflowDetailPane(props){
-    const { context, schemas, node, minHeight, deselectNode, showDetailsInPopup = false } = props;
+    const { context, schemas, node, minHeight, deselectNode, showDetailsInPopup = false, canDownloadFile = false } = props;
     if (!node){
         return <div className="detail-pane-container no-contents"/>;
     }
@@ -39,7 +39,7 @@ export const WorkflowDetailPane = React.memo(function WorkflowDetailPane(props){
             title = <a href={atId}>{accession || display_title}</a>;
         }
 
-        body = <FileDetailBody {...props} {...{file, title, typeName}} />;
+        body = <FileDetailBody {...props} {...{file, title, typeName, canDownloadFile}} />;
     } else if (nodeType === "step"){
         const { meta = {}, name: stepNodeName } = node;
         const { '@id': stepID, workflow = null, display_title } = meta;
@@ -91,7 +91,7 @@ export const WorkflowDetailPane = React.memo(function WorkflowDetailPane(props){
 WorkflowDetailPane.Legend = Legend;
 
 function FileDetailBody(props){
-    const { node, file, deselectNode, title, typeName, showDetailsInPopup, session } = props;
+    const { node, file, deselectNode, title, typeName, showDetailsInPopup, canDownloadFile, session } = props;
     const {
         "@Id": atId,
         quality_metric: propQC,
@@ -123,7 +123,7 @@ function FileDetailBody(props){
         </React.Fragment>
     );
 
-    const downloadEnabled = ['public', 'released'].indexOf(status) !== -1;
+    const downloadEnabled = (canDownloadFile === true) && ['public', 'released'].indexOf(status) !== -1;
     const downloadButton =  downloadEnabled && (
         <SelectedItemsDownloadButton
             id="download_tsv_multiselect"
