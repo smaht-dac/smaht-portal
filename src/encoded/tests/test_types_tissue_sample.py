@@ -42,7 +42,7 @@ def test_validate_external_id_on_edit(
     patch_body: Dict[str, Any],
     expected_status: int
     ) -> None:
-    """Ensure external_id is valid based on category if submitter is GCC on edit."""
+    """Ensure external_id is valid based on category if tissue is Benchmarking or Production on edit."""
     uuid =  item_utils.get_uuid(get_item_from_search(es_testapp, "TissueSample", add_on="&category!=Core"))
     patch_item(es_testapp, patch_body, uuid, status=expected_status)
 
@@ -68,7 +68,7 @@ def test_validate_external_id_on_add(
     expected_status: int,
     index: int
 ) -> None:
-    """Ensure external_id is valid based on category if submitter is GCC on add."""
+    """Ensure external_id is valid based on category if tissue is Benchmarking or Production on add."""
     insert = get_item_from_search(es_testapp, "TissueSample")
     post_body = {
         **patch_body,
