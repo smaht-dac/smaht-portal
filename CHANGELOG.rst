@@ -7,13 +7,29 @@ smaht-portal
 Change Log
 ----------
 
-0.122.0
+0.124.0
 =======
 `PR 308 SN Pathology report <https://github.com/smaht-dac/smaht-portal/pull/308>`
 
 * Add item PathologyReport
 * Add tests for brain-specific properties
 
+
+0.123.0
+=======
+`PR 310 SN Add liquid category <https://github.com/smaht-dac/smaht-portal/pull/310>`
+
+* Add "Liquid" to `category` for TissueSample, to be used to liquid tissue and cell culture samples
+* Adjust `FileSet.file_group` and `commands/create_annotated_filename.py` to reflect this change
+
+
+0.122.0
+=======
+`PR 277 DSA Release <https://github.com/smaht-dac/smaht-portal/pull/277>`_
+
+* In `commands/release-file.py` and `commands/create-annotated-filenames.py`:
+  * Assay and sequencer codes value set to XX for DSA fasta files and chain files
+  * For Supplementary Files, use `haplotype`, `target_assembly`, and `source_assembly` properties to create annotated filenames for chain and fasta files
 
 0.121.0
 =======

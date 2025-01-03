@@ -86,7 +86,8 @@
                 "Cells",
                 "Core",
                 "Homogenate",
-                "Specimen"
+                "Specimen",
+                "Liquid"
             ]
         },
         "core_size": {
