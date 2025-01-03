@@ -55,6 +55,23 @@ def is_homogenate(properties: Dict[str, Any]) -> bool:
     return get_category(properties) == "Homogenate"
 
 
+def is_core(properties: Dict[str, Any]) -> bool:
+    """Check if category from properties is Core."""
+    return get_category(properties) == "Core"
+
+
+def is_specimen(properties: Dict[str, Any]) -> bool:
+    """Check if category from properties is Specimen."""
+    return get_category(properties) == "Specimen"
+
+
+def has_spatial_information(properties: Dict[str, Any]) -> bool:
+    """Check if category from properties is Specimen or Core.
+    
+    This indicates the presence of spatial info in external id."""
+    return is_specimen(properties) or is_core(properties)
+
+
 def is_core_external_id(properties: Dict[str, Any]) -> bool:
     """Check if external_id matches core sample regex from benchmarking or production."""
     external_id = item_utils.get_external_id(properties)
