@@ -58,17 +58,15 @@ class TissueSample(Sample):
 
 
 def validate_external_id_on_add(context, request):
-    """Check that `external_id` is consistent with `category` nomenclature if the sample_source.donor is a TPC-submitted donor on add."""
+    """Check that `external_id` is consistent with `category` nomenclature if the sample_source.donor is a Benchmarking or Production tissue on add."""
     data = request.json
     external_id = data['external_id']
     sample_sources = data["sample_sources"]
     category = data['category']
-    donor = get_item_or_none(request,
-        tissue_utils.get_donor(
+    tissue = tissue_utils.get_study(
             get_item_or_none(request, sample_sources[0], 'sample-sources')
-        ), "donors"
     )
-    if donor_utils.is_tpc_submitted(donor):
+    if tissue:
         if not assert_external_id_category_match(external_id, category):
             msg = f"external_id {external_id} does not match nomenclature for {category} samples."
             return request.errors.add('body', 'TissueSample: invalid property', msg)
@@ -77,18 +75,16 @@ def validate_external_id_on_add(context, request):
 
 
 def validate_external_id_on_edit(context, request):
-    """Check that `external_id` is consistent with `category` nomenclature if the sample_source is a TPC tissue on edit."""
+    """Check that `external_id` is consistent with `category` nomenclature if the sample_source is a Benchmarking or Production tissue on edit."""
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
     sample_sources = get_property_for_validation('sample_sources',existing_properties,properties_to_update)
     category = get_property_for_validation('category',existing_properties,properties_to_update)
     external_id = get_property_for_validation('external_id',existing_properties,properties_to_update)
-    donor = get_item_or_none(request,
-        tissue_utils.get_donor(
+    tissue = tissue_utils.get_study(
             get_item_or_none(request, sample_sources[0], 'sample-sources')
-        ), "donors"
     )
-    if donor_utils.is_tpc_submitted(donor):
+    if tissue:
         if not assert_external_id_category_match(external_id, category):
             msg = f"external_id {external_id} does not match nomenclature for {category} samples."
             return request.errors.add('body', 'TissueSample: invalid property', msg)
