@@ -67,11 +67,12 @@ export const AccountNav = React.memo(function AccountNav(props) {
     const { windowWidth, href } = passProps;
 
     if (!session) {
+        const auth0PopupText = '<p><span class="text-danger fw-bold">NOTE</span> - If you are logging-in for the first time, please <a href="https://data.smaht.org/docs/access/creating-an-account" target="_blank">READ THIS DOCUMENT PAGE</a> about creating your account!<p>';
         // Render login button
         return (
             <div className="navbar-nav navbar-acct">
                 <HelpdeskButton />
-                <LoginController {...{ updateAppSessionState, auth0Options }}>
+                <LoginController {...{ updateAppSessionState, auth0Options, auth0PopupText }}>
                     <LoginNavItem
                         {...{ schemas, session, href, windowWidth }}
                         key="login-register"
