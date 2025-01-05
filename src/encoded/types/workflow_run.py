@@ -113,7 +113,7 @@ class WorkflowRun(Item, CoreWorkflowRun):
 
     item_type = 'workflow_run'
     schema = load_schema("encoded:schemas/workflow_run.json")
-    embedded_list = _build_workflow_run_embedded_list()
+    embedded_list = []  # _build_workflow_run_embedded_list()
 
     @calculated_property(schema=workflow_run_steps_property_schema, category='page')
     def steps(self, request):
