@@ -834,7 +834,7 @@ export class AreaChart extends React.PureComponent {
     constructor(props){
         super(props);
         _.bindAll(this, 'getInnerChartWidth', 'getInnerChartHeight', 'xScale', 'yScale',
-            'commonDrawingSetup', 'drawNewChart', 'updateTooltip', 'removeTooltip', 'updateExistingChart'
+            'commonDrawingSetup', 'drawNewChart', 'updateTooltip', 'removeTooltip', 'updateExistingChart', 'getXAxisGenerator'
         );
 
         this.updateExistingChart = _.debounce(this.updateExistingChart, 500);
