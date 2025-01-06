@@ -121,7 +121,7 @@ export default class StatisticsPageView extends React.PureComponent {
                 'previousyear'  : <span>Previous Year</span>,
                 'custom'        : <span>Custom</span>
         };
-        const initialDateRangePreset = 'thisyear';
+        const initialDateRangePreset = 'last12months';
 
         return (
             <dynamicImports.GroupByController {...{ groupByOptions, initialGroupBy, dateRangeOptions, initialDateRangePreset }}>
