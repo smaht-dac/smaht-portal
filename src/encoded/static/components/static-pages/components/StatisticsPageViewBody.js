@@ -1165,12 +1165,12 @@ export function UsageStatsView(props){
         smoothEdges, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
     } = props;
 
-    if (loadingStatus === 'failed'){
-        return <div className="stats-charts-container" key="charts" id="usage"><ErrorIcon/></div>;
-    }
-
     if (!mounted || (loadingStatus === 'loading' && (!file_downloads && !sessions_by_country))){
-        return <div className="stats-charts-container" key="charts" id="usage"><LoadingIcon/></div>;
+        return (
+            <div className="stats-charts-container" key="charts" id="usage">
+                <LoadingIcon />
+            </div>
+        );
     }
 
     const [transposed, setTransposed] = useState(true);
@@ -1235,47 +1235,60 @@ export function UsageStatsView(props){
     const termColHeader = (mapKey) => UsageStatsView.titleMap[mapKey][countBy[mapKey]][2];
     const settingsCls = "settings-label d-inline-block me-3 mb-2 pt-08";
 
+    const settings = () => (
+        <GroupByDropdown {...{ groupByOptions, loadingStatus, handleGroupByChange, currentGroupBy }}
+            groupByTitle="Show" outerClassName={"dropdown-container mb-0" + (isSticky ? " sticky-top" : "")}>
+            <div className={settingsCls}>
+                <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle} data-tip="Toggle between smooth/sharp edges">Smooth Edges</Checkbox>
+            </div>
+            <div className={settingsCls}>
+                <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle} data-tip="Show as cumulative sum">Cumulative Sum</Checkbox>
+            </div>
+            <div className={settingsCls}>
+                <Checkbox checked={transposed} onChange={() => setTransposed(!transposed)} data-tip="Transpose data table">Transpose Data</Checkbox>
+            </div>
+            <div className={settingsCls}>
+                <Checkbox checked={hideEmptyColumns} onChange={() => setHideEmptyColumns(!hideEmptyColumns)} data-tip="Hide empty data table columns">Hide Empty Columns</Checkbox>
+            </div>
+            <div className={settingsCls}>
+                <Checkbox checked={highContrast} onChange={() => setHighContrast(!highContrast)} data-tip="Toggle high contrast color scheme">High Contrast</Checkbox>
+            </div>
+            <div className="settings-label d-block d-md-inline-block pt-08">
+                <div className="d-md-flex">
+                    <span className="text-500 me-1">Y-Axis scale:</span>
+                    <div className='mb-15'>
+                        <DropdownButton size="sm"
+                            title={(scale && scale['yAxisScale'] && UsageStatsView.yScaleLabels[scale['yAxisScale']]) || '-'}
+                            onSelect={(e) => setScale({ yAxisScale: e, yAxisPower: e === 'Pow' ? 0.5 : 50 })}>
+                            <DropdownItem eventKey={'Linear'} key={'scale-linear'} >{UsageStatsView.yScaleLabels['Linear']}</DropdownItem>
+                            <DropdownItem eventKey={'Pow'} key={'scale-pow'} >{UsageStatsView.yScaleLabels['Pow']}</DropdownItem>
+                            <DropdownItem eventKey={'Symlog'} key={'scale-log'} >{UsageStatsView.yScaleLabels['Symlog']}</DropdownItem>
+                        </DropdownButton>
+                    </div>
+                    <div className={"ms-md-15" + (showScaleRange ? " d-block d-md-inline-block" : " d-none")}>
+                        <input type="range" id="input_range_y_scale_power" className='w-75'
+                            min={scaleRangeMin} max={scaleRangeMax} step={scaleRangeStep} value={scale['yAxisPower']} data-tip={scaleRangeTooltip}
+                            onChange={(e) => setScale({ yAxisScale: scale['yAxisScale'], yAxisPower: e.target.valueAsNumber })} />
+                        <span className='ms-05'>{scale['yAxisPower']}</span>
+                    </div>
+                </div>
+            </div>
+        </GroupByDropdown>
+    );
+
+    if (loadingStatus === 'failed'){
+        return (
+            <div className="stats-charts-container" key="charts" id="usage">
+                {settings()}
+                <ErrorIcon />
+            </div>
+        );
+    }
+
     return (
         <div className="stats-charts-container" key="charts" id="usage">
 
-            <GroupByDropdown {...{ groupByOptions, loadingStatus, handleGroupByChange, currentGroupBy }}
-                groupByTitle="Show" outerClassName={"dropdown-container mb-0" + (isSticky ? " sticky-top" : "")}>
-                <div className={settingsCls}>
-                    <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle} data-tip="Toggle between smooth/sharp edges">Smooth Edges</Checkbox>
-                </div>
-                <div className={settingsCls}>
-                    <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle} data-tip="Show as cumulative sum">Cumulative Sum</Checkbox>
-                </div>
-                <div className={settingsCls}>
-                    <Checkbox checked={transposed} onChange={() => setTransposed(!transposed)} data-tip="Transpose data table">Transpose Data</Checkbox>
-                </div>
-                <div className={settingsCls}>
-                    <Checkbox checked={hideEmptyColumns} onChange={() => setHideEmptyColumns(!hideEmptyColumns)} data-tip="Hide empty data table columns">Hide Empty Columns</Checkbox>
-                </div>
-                <div className={settingsCls}>
-                    <Checkbox checked={highContrast} onChange={() => setHighContrast(!highContrast)} data-tip="Toggle high contrast color scheme">High Contrast</Checkbox>
-                </div>
-                <div className="settings-label d-block d-md-inline-block pt-08">
-                    <div className="d-md-flex">
-                        <span className="text-500 me-1">Y-Axis scale:</span>
-                        <div className='mb-15'>
-                            <DropdownButton size="sm"
-                                title={(scale && scale['yAxisScale'] && UsageStatsView.yScaleLabels[scale['yAxisScale']]) || '-'}
-                                onSelect={(e) => setScale({ yAxisScale: e, yAxisPower: e === 'Pow' ? 0.5 : 50 })}>
-                                <DropdownItem eventKey={'Linear'} key={'scale-linear'} >{UsageStatsView.yScaleLabels['Linear']}</DropdownItem>
-                                <DropdownItem eventKey={'Pow'} key={'scale-pow'} >{UsageStatsView.yScaleLabels['Pow']}</DropdownItem>
-                                <DropdownItem eventKey={'Symlog'} key={'scale-log'} >{UsageStatsView.yScaleLabels['Symlog']}</DropdownItem>
-                            </DropdownButton>
-                        </div>
-                        <div className={"ms-md-15" + (showScaleRange ? " d-block d-md-inline-block" : " d-none")}>
-                            <input type="range" id="input_range_y_scale_power" className='w-75'
-                                min={scaleRangeMin} max={scaleRangeMax} step={scaleRangeStep} value={scale['yAxisPower']} data-tip={scaleRangeTooltip}
-                                onChange={(e) => setScale({ yAxisScale: scale['yAxisScale'], yAxisPower: e.target.valueAsNumber })} />
-                            <span className='ms-05'>{scale['yAxisPower']}</span>
-                        </div>
-                    </div>
-                </div>
-            </GroupByDropdown>
+            {settings()}
 
             { file_downloads ?
 
