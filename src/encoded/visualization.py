@@ -108,7 +108,7 @@ def date_histogram_aggregations(context, request):
         if not search_param_lists:
             search_param_lists = {}
 
-    if 'File' in search_param_lists['type']:
+    if 'SubmittedFile' in search_param_lists['type']:
         # Add predefined sub-aggs to collect Exp and File counts from ExpSet items, in addition to getting own doc_count.
 
         common_sub_agg = deepcopy(SUM_FILES_AGGREGATION_DEFINITION)
