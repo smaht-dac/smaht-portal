@@ -992,7 +992,7 @@ export class UsageStatsViewController extends React.PureComponent {
 export class SubmissionStatsViewController extends React.PureComponent {
 
     static createFileSearchUri(props, date_histogram) {
-        const params = { 'type': 'File' };
+        const params = { 'type': 'SubmittedFile' };
         if (props.currentGroupBy) { params.group_by = props.currentGroupBy; }
         if (props.currentDateRangePreset) {
             if (props.currentDateRangePreset !== 'custom')
