@@ -7,12 +7,20 @@ smaht-portal
 Change Log
 ----------
 
-0.123.1
+0.124.1
 =======
 `PR 313 SN Reference file columns <https://github.com/smaht-dac/smaht-portal/pull/313>`
 
 * Add `title` and `version` to columns for ReferenceFile
 * Minor fix: remove Basecalling from the automated spreadsheet script
+
+
+0.124.0
+=======
+`PR 311 SN Move donor properties <https://github.com/smaht-dac/smaht-portal/pull/311>`
+
+* For protection of potentially identifiable information, move properties `height`, `weight`, and `body_mass_index` to MedicalHistory. These will later be removed from Donor
+* Move `hardy_scale` to Donor, as this can be public information. Later will be removed from DeathCircumstances
 
 
 0.123.0
