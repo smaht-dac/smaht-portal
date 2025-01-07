@@ -1176,7 +1176,9 @@ export function UsageStatsView(props){
     const [transposed, setTransposed] = useState(true);
     const [hideEmptyColumns, setHideEmptyColumns] = useState(true);
     const [highContrast, setHighContrast] = useState(false);
-    const [ scale, setScale ] = useState({ yAxisScale: 'Pow', yAxisPower: 0.7 });
+    const [yAxisScale, setYAxisScale] = useState('Pow');
+    const [yAxisPower, setYAxisPower] = useState(0.7);
+    const handleAxisScaleChange = (scale, power) => { setYAxisScale(scale); setYAxisPower(power); };
     const { anyExpandedCharts, commonXDomain, dateRoundInterval } = useMemo(function(){
         const { fromDate: propFromDate, untilDate: propUntilDate } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
         let fromDate, untilDate, dateRoundInterval;
@@ -1212,14 +1214,12 @@ export function UsageStatsView(props){
         dateRoundInterval,
         'xDomain': commonXDomain,
         'curveFxn': smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter,
-        cumulativeSum: cumulativeSum
+        cumulativeSum, yAxisScale, yAxisPower
     };
     const countByDropdownProps = { countBy, changeCountByForChart };
 
     const sessionsByCountryChartHeight = ['page_title', 'page_url'].indexOf(countBy.sessions_by_country) > -1 ? 500 : commonContainerProps.defaultHeight;
     const enableSessionByCountryChartTooltipItemClick = (countBy.sessions_by_country === 'page_url');
-
-    const { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep } = UsageStatsView.getYScaleDefaults(scale['yAxisScale']);
 
     const isSticky = true; //!_.any(_.values(tableToggle), (v)=> v === true);
     const commonTableProps = { windowWidth, href, session, schemas, transposed, dateRoundInterval, cumulativeSum, hideEmptyColumns, chartToggles };
@@ -1233,7 +1233,7 @@ export function UsageStatsView(props){
         topFilesLimit = parseInt(countBy.top_file_downloads.substring('top_files_'.length));
     }
     const termColHeader = (mapKey) => UsageStatsView.titleMap[mapKey][countBy[mapKey]][2];
-    const settingsCls = "settings-label d-inline-block me-3 mb-2 pt-08";
+    const settingsCls = "settings-label d-inline-block me-3 mb-2 pt-0";
 
     const settings = () => (
         <GroupByDropdown {...{ groupByOptions, loadingStatus, handleGroupByChange, currentGroupBy }}
@@ -1254,24 +1254,7 @@ export function UsageStatsView(props){
                 <Checkbox checked={highContrast} onChange={() => setHighContrast(!highContrast)} data-tip="Toggle high contrast color scheme">High Contrast</Checkbox>
             </div>
             <div className="settings-label d-block d-md-inline-block pt-08">
-                <div className="d-md-flex">
-                    <span className="text-500 me-1">Y-Axis scale:</span>
-                    <div className='mb-15'>
-                        <DropdownButton size="sm"
-                            title={(scale && scale['yAxisScale'] && UsageStatsView.yScaleLabels[scale['yAxisScale']]) || '-'}
-                            onSelect={(e) => setScale({ yAxisScale: e, yAxisPower: e === 'Pow' ? 0.5 : 50 })}>
-                            <DropdownItem eventKey={'Linear'} key={'scale-linear'} >{UsageStatsView.yScaleLabels['Linear']}</DropdownItem>
-                            <DropdownItem eventKey={'Pow'} key={'scale-pow'} >{UsageStatsView.yScaleLabels['Pow']}</DropdownItem>
-                            <DropdownItem eventKey={'Symlog'} key={'scale-log'} >{UsageStatsView.yScaleLabels['Symlog']}</DropdownItem>
-                        </DropdownButton>
-                    </div>
-                    <div className={"ms-md-15" + (showScaleRange ? " d-block d-md-inline-block" : " d-none")}>
-                        <input type="range" id="input_range_y_scale_power" className='w-75'
-                            min={scaleRangeMin} max={scaleRangeMax} step={scaleRangeStep} value={scale['yAxisPower']} data-tip={scaleRangeTooltip}
-                            onChange={(e) => setScale({ yAxisScale: scale['yAxisScale'], yAxisPower: e.target.valueAsNumber })} />
-                        <span className='ms-05'>{scale['yAxisPower']}</span>
-                    </div>
-                </div>
+                <AxisScale scale={yAxisScale} power={yAxisPower} onChange={handleAxisScaleChange} label="Y-Axis scale" />
             </div>
         </GroupByDropdown>
     );
@@ -1306,7 +1289,7 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="file_downloads" key="file_downloads"
                         title={<h5 className="text-400 mt-0">Total File Count</h5>}>
                         {chartToggles.chart?.file_downloads ?
-                            <AreaChart {...commonChartProps} data={file_downloads} {...scale} />
+                            <AreaChart {...commonChartProps} data={file_downloads} />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
@@ -1322,7 +1305,7 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" key="file_downloads_volume" defaultHeight={300}
                         title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}>
                         {chartToggles.chart?.file_downloads_volume ?
-                            <AreaChart {...commonChartProps} data={file_downloads_volume} yAxisLabel="GB" {...scale} />
+                            <AreaChart {...commonChartProps} data={file_downloads_volume} yAxisLabel="GB" />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
@@ -1355,7 +1338,7 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="top_file_set_downloads" key="top_file_set_downloads" defaultHeight={300}
                         title={<h5 className="text-400 mt-0">Total Count for Daily Downloads</h5>}>
                         {chartToggles.chart?.top_file_set_downloads ?
-                            <AreaChart {...commonChartProps} data={top_file_set_downloads} showTooltipOnHover={true} {...scale} />
+                            <AreaChart {...commonChartProps} data={top_file_set_downloads} showTooltipOnHover />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
@@ -1372,7 +1355,7 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="top_file_set_downloads_volume" key="top_file_set_downloads_volume" 
                         defaultHeight={350} title={<h5 className="text-400 mt-0">Total Size for Daily Downloads (GB)</h5>}>
                         {chartToggles.chart?.top_file_set_downloads_volume ?
-                            <AreaChart {...commonChartProps} data={top_file_set_downloads_volume} showTooltipOnHover={true} yAxisLabel="GB" {...scale} />
+                            <AreaChart {...commonChartProps} data={top_file_set_downloads_volume} showTooltipOnHover yAxisLabel="GB" />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
@@ -1406,7 +1389,7 @@ export function UsageStatsView(props){
                         defaultHeight={300} title={<h5 className="text-400 mt-0">Total File Count for Daily Downloads</h5>}
                         subTitle={<h4 className="fw-normal text-secondary">Click bar to view details</h4>}>
                         {chartToggles.chart?.top_file_downloads ?
-                            <AreaChart {...commonChartProps} data={top_file_downloads} showTooltipOnHover={false} {...scale} />
+                            <AreaChart {...commonChartProps} data={top_file_downloads} showTooltipOnHover={false} />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
@@ -1425,7 +1408,7 @@ export function UsageStatsView(props){
                         extraButtons={[]}
                         subTitle={<h4 className="fw-normal text-secondary">Click bar to view details</h4>}>
                         {chartToggles.chart?.top_file_downloads_volume ?
-                            <AreaChart {...commonChartProps} data={top_file_downloads_volume} showTooltipOnHover={false} yAxisLabel="GB" {...scale} />
+                            <AreaChart {...commonChartProps} data={top_file_downloads_volume} showTooltipOnHover={false} yAxisLabel="GB" />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
@@ -1457,7 +1440,7 @@ export function UsageStatsView(props){
                         ]}
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
                         {chartToggles.chart?.file_views ?
-                            <AreaChart {...commonChartProps} data={file_views} {...scale} />
+                            <AreaChart {...commonChartProps} data={file_views} />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
@@ -1487,7 +1470,7 @@ export function UsageStatsView(props){
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}
                         defaultHeight={sessionsByCountryChartHeight}>
                         {chartToggles.chart?.sessions_by_country ?
-                            <AreaChart {...commonChartProps} data={sessions_by_country} showTooltipOnHover={!enableSessionByCountryChartTooltipItemClick} {...scale} />
+                            <AreaChart {...commonChartProps} data={sessions_by_country} showTooltipOnHover={!enableSessionByCountryChartTooltipItemClick} />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
@@ -1518,7 +1501,7 @@ export function UsageStatsView(props){
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}
                         hideTableButton>
                         {chartToggles.chart?.fields_faceted ?
-                            <AreaChart {...commonChartProps} data={fields_faceted} {...scale} />
+                            <AreaChart {...commonChartProps} data={fields_faceted} />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
@@ -1577,27 +1560,6 @@ UsageStatsView.titleMap = {
         'sessions': ['Top Fields Faceted', 'by unique users']
     }
 };
-UsageStatsView.getYScaleDefaults = function (yScale) {
-    let showScaleRange = true;
-    let scaleRangeTooltip = '';
-    let scaleRangeMin, scaleRangeMax, scaleRangeStep;
-    //set defaults
-    if (yScale === 'Pow') {
-        scaleRangeMin = 0; scaleRangeMax = 1; scaleRangeStep = 0.1;
-        scaleRangeTooltip = 'exponent';
-    } else if (yScale === 'Symlog') {
-        scaleRangeMin = 0; scaleRangeMax = 100; scaleRangeStep = 0.5;
-        scaleRangeTooltip = 'constant';
-    } else {
-        showScaleRange = false;
-    }
-    return { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep };
-};
-UsageStatsView.yScaleLabels = {
-    'Linear': 'Linear',
-    'Symlog': 'Log',
-    'Pow': 'Pow'
-};
 
 export function SubmissionsStatsView(props) {
     const {
@@ -1616,6 +1578,9 @@ export function SubmissionsStatsView(props) {
     if (loadingStatus === 'failed'){
         return <div className="stats-charts-container" key="charts" id="submissions"><ErrorIcon/></div>;
     }
+    const [yAxisScale, setYAxisScale] = useState('Pow');
+    const [yAxisPower, setYAxisPower] = useState(0.7);
+    const handleAxisScaleChange = (scale, power) => { setYAxisScale(scale); setYAxisPower(power); };
 
     const anyExpandedCharts = _.any(_.values(chartToggles));
     const commonContainerProps = {
@@ -1623,7 +1588,7 @@ export function SubmissionsStatsView(props) {
         'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250
     };
     const xDomain = convertDataRangeToXDomain(currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo);
-    const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter, cumulativeSum, xDomain };
+    const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter, cumulativeSum, xDomain, yAxisScale, yAxisPower };
     const groupByProps = {
         currentGroupBy, groupByOptions, handleGroupByChange,
         currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeOptions, handleDateRangeChange, loadingStatus
@@ -1634,11 +1599,14 @@ export function SubmissionsStatsView(props) {
         <div className="stats-charts-container" key="charts" id="submissions">
 
             <GroupByDropdown {...groupByProps} groupByTitle="Group Charts Below By" dateRangeTitle="Date" outerClassName="dropdown-container mb-15 sticky-top">
-                <div className="d-inline-block me-15">
+                <div className="settings-label d-inline-block me-15">
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
                 </div>
-                <div className="d-inline-block">
-                    <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle}>Show as cumulative sum</Checkbox>
+                <div className="settings-label d-inline-block">
+                    <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle}>Cumulative Sum</Checkbox>
+                </div>
+                <div className="settings-label d-block d-md-inline-block pt-08">
+                    <AxisScale scale={yAxisScale} power={yAxisPower} onChange={handleAxisScaleChange} label="Y-Axis scale" />
                 </div>
             </GroupByDropdown>
 
@@ -1815,7 +1783,7 @@ const ChartContainerTitle = function ({ titleMap, countBy, chartKey }) {
 /**
  * converts aggregates to SearchView-compatible context objects and displays in table
  */
-const StatisticsTable = React.memo((props) => {
+export const StatisticsTable = React.memo((props) => {
     const {
         data, termColHeader = null, valueLabel = null, session, schemas, containerId = '', 
         href, dateRoundInterval, transposed = false, windowWidth, cumulativeSum, hideEmptyColumns,
@@ -2003,7 +1971,7 @@ const StatisticsTable = React.memo((props) => {
 /**
  * displays tracking item ajax-fetched in ItemDetailList
  */
-const TrackingItemViewer = React.memo(function (props) {
+export const TrackingItemViewer = React.memo(function (props) {
     const { schemas, forDate, dateRoundInterval='day', reportName, onHide } = props;
 
     const [isLoading, setIsLoading] = useState(true);
@@ -2054,3 +2022,49 @@ TrackingItemViewer.propTypes = {
     onHide: PropTypes.func.isRequired,
     schemas: PropTypes.object
 }
+
+export const AxisScale = React.memo(function ({ scale, power, onChange, label = 'N/A' }) {
+    const labelPairs = _.pairs(AxisScale.labels);
+    const { showRange, rangeTooltip, rangeMin, rangeMax, rangeStep, defaultPower } = AxisScale.getDefaults(scale);
+    return (
+        <div className="d-md-flex">
+            <span className="text-500 me-1">{label}:</span>
+            <div className='mb-15'>
+                <DropdownButton size="sm" title={(scale && AxisScale.labels[scale]) || '-'} onSelect={(e) => onChange(e, defaultPower)}>
+                    {
+                        labelPairs.map(([key, val]) => (
+                            <DropdownItem eventKey={key} key={key}>{val}</DropdownItem>
+                        ))
+                    }
+                </DropdownButton>
+            </div>
+            <div className={"ms-md-15" + (showRange ? " d-block d-md-inline-block" : " d-none")}>
+                <input type="range" id="input_range_scale_power" className='w-75'
+                    min={rangeMin} max={rangeMax} step={rangeStep} value={power} data-tip={rangeTooltip}
+                    onChange={(e) => onChange(scale, e.target.valueAsNumber)} />
+                <span className='ms-05'>{power}</span>
+            </div>
+        </div>
+    );
+});
+AxisScale.labels = {
+    'Linear': 'Linear',
+    'Pow': 'Pow',
+    'Symlog': 'Log'
+};
+AxisScale.getDefaults = function (scale) {
+    let showRange = true;
+    let rangeTooltip = '';
+    let rangeMin, rangeMax, rangeStep, defaultPower;
+    //set defaults
+    if (scale === 'Pow') {
+        rangeMin = 0; rangeMax = 1; rangeStep = 0.1; defaultPower = 0.5;
+        rangeTooltip = 'exponent';
+    } else if (scale === 'Symlog') {
+        rangeMin = 0; rangeMax = 100; rangeStep = 0.5; defaultPower = 50;
+        rangeTooltip = 'constant';
+    } else {
+        showRange = false;
+    }
+    return { showRange, rangeTooltip, rangeMin, rangeMax, rangeStep, defaultPower };
+};
