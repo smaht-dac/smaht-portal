@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.123.1
+=======
+`PR 313 SN Reference file columns <https://github.com/smaht-dac/smaht-portal/pull/313>`
+
+* Add `title` and `version` to columns for ReferenceFile
+* Minor fix: remove Basecalling from the automated spreadsheet script
+
+
 0.123.0
 =======
 `PR 310 SN Add liquid category <https://github.com/smaht-dac/smaht-portal/pull/310>`
