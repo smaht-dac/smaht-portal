@@ -34,6 +34,7 @@ def test_submitted_id_resource_path(es_testapp: TestApp, workbook: None) -> None
         ({"sample_sources": ["TEST_TISSUE_LUNG"], "category": "Core", "core_size": "1.5", "external_id": "ST001-1D-001A2"}, 200),
         ({"sample_sources": ["TEST_TISSUE_LUNG"],  "category":"Core", "core_size": "1.5", "external_id": "ST001-1D-001S9"}, 422),
         ({"sample_sources": ["TEST_TISSUE_LUNG"], "category": "Core", "core_size": "1.5", "external_id": "ST001-1D-01A2"}, 422),
+        ({"sample_sources": ["TEST_TISSUE_LIVER"], "category": "Specimen", "external_id": "ST001-1D-001S9"}, 422),
     ]
 )
 def test_validate_external_id_on_edit(
@@ -59,6 +60,7 @@ def test_validate_external_id_on_edit(
         ({"sample_sources": ["TEST_TISSUE_LUNG"], "category": "Core", "core_size": "1.5", "external_id": "ST001-1D-001A2"}, 201, 7),
         ({"sample_sources": ["TEST_TISSUE_LUNG"],  "category":"Core", "core_size": "1.5", "external_id": "ST001-1D-001S9"}, 422, 8),
         ({"sample_sources": ["TEST_TISSUE_LUNG"], "category": "Core", "core_size": "1.5", "external_id": "ST001-1D-01A2"}, 422, 9),
+        ({"sample_sources": ["TEST_TISSUE_LIVER"], "category": "Specimen", "external_id": "ST001-1D-001S9"}, 422, 10),
     ]
 )
 def test_validate_external_id_on_add(

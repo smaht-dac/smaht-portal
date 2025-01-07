@@ -25,6 +25,7 @@ from ..item_utils import (
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
     donor as donor_utils,
+    item as item_utils
 )
 
 HOMOGENATE_EXTERNAL_ID_REGEX = "^[A-Z0-9]{3,}-[0-9][A-Z]-[0-9]{3}X$"
@@ -63,13 +64,14 @@ def validate_external_id_on_add(context, request):
     external_id = data['external_id']
     sample_sources = data["sample_sources"]
     category = data['category']
-    tissue = tissue_utils.get_study(
-            get_item_or_none(request, sample_sources[0], 'sample-sources')
-    )
-    if tissue:
+    tissue = get_item_or_none(request, sample_sources[0], 'sample-sources')
+    if (study := tissue_utils.get_study(tissue)):
         if not assert_external_id_category_match(external_id, category):
-            msg = f"external_id {external_id} does not match nomenclature for {category} samples."
+            msg = f"external_id {external_id} does not match {study} nomenclature for {category} samples."
             return request.errors.add('body', 'TissueSample: invalid property', msg)
+        if not assert_external_id_tissue_match(external_id, tissue):
+            msg = f"external_id {external_id} does not match Tissue external_id {item_utils.get_external_id(tissue)}."
+            return request.errors.add('body', 'TissueSample: invalid link', msg)
         else:
             return request.validated.update({}) 
 
@@ -81,13 +83,14 @@ def validate_external_id_on_edit(context, request):
     sample_sources = get_property_for_validation('sample_sources',existing_properties,properties_to_update)
     category = get_property_for_validation('category',existing_properties,properties_to_update)
     external_id = get_property_for_validation('external_id',existing_properties,properties_to_update)
-    tissue = tissue_utils.get_study(
-            get_item_or_none(request, sample_sources[0], 'sample-sources')
-    )
-    if tissue:
+    tissue = get_item_or_none(request, sample_sources[0], 'sample-sources')
+    if (study:=tissue_utils.get_study(tissue)):
         if not assert_external_id_category_match(external_id, category):
-            msg = f"external_id {external_id} does not match nomenclature for {category} samples."
+            msg = f"external_id {external_id} does not match {study} nomenclature for {category} samples."
             return request.errors.add('body', 'TissueSample: invalid property', msg)
+        if not assert_external_id_tissue_match(external_id, tissue):
+            msg = f"external_id {external_id} does not match Tissue external_id {item_utils.get_external_id(tissue)}."
+            return request.errors.add('body', 'TissueSample: invalid link', msg)
         else:
             return request.validated.update({})  
 
@@ -102,7 +105,13 @@ def assert_external_id_category_match(external_id: str, category: str):
     elif category == "Core":
         pattern = CORE_EXTERNAL_ID_REGEX
     return re.match(pattern, external_id)
-    
+
+
+def assert_external_id_tissue_match(external_id, tissue):
+    """Check that start of tissue sample external_id matches tissue external_id."""
+    tissue_id = item_utils.get_external_id(tissue)
+    tissue_kit_id = tissue_sample_utils.get_tissue_kit_id_from_external_id(external_id)
+    return tissue_id == tissue_kit_id
 
 
 TISSUE_SAMPLE_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
