@@ -233,13 +233,17 @@ export const commonParsingFxn = {
 
         return aggsList;
     },
-    'analytics_to_buckets' : function(resp, reportName, termBucketField, countKey, cumulativeSum, termDisplayAsFunc = null, topCount = 0){
+    'analytics_to_buckets' : function(resp, reportName, termBucketField, countKey, cumulativeSum, currentGroupBy, termDisplayAsFunc = null, topCount = 0){
         const termsInAllItems = new Set();
 
         // De-dupe -- not particularly necessary as D3 handles this, however nice to have well-formatted data.
-        const trackingItems = _.uniq(resp['@graph'], true, function(trackingItem){
+        let trackingItems = _.uniq(resp['@graph'], true, function(trackingItem){
             return trackingItem.google_analytics.for_date;
         }).reverse(); // We get these in decrementing order from back-end
+
+        // add missing dates
+        const { fromDate, untilDate, dateIncrement } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
+        trackingItems = commonParsingFxn.add_missing_analytics_dates(trackingItems, fromDate, untilDate, dateIncrement);
 
         let totalSessionsToDate = 0;
         const termTotals = {}; // e.g. { 'USA': { count: 5, total: 5 }, 'China': { count: 2, total: 2 } }
@@ -344,6 +348,64 @@ export const commonParsingFxn = {
         };
 
         return filterZeroTotalTerms(aggsList);
+    },
+    'add_missing_analytics_dates': function (data, fromDate, untilDate, dateIncrement = "daily") {
+        const sortedData = data; //already sorted, skip re-sorting again
+        // // Sort the data by ascending order of date
+        // const sortedData = data.sort(
+        //     (a, b) => new Date(a.google_analytics.for_date) - new Date(b.google_analytics.for_date)
+        // );
+
+        // Collect all existing dates into a Set for quick lookup
+        const existingDates = new Set(sortedData.map(d => d.google_analytics.for_date));
+
+        // Utility function to add days to a date
+        const addDays = function (date, days) {
+            const newDate = new Date(date);
+            newDate.setDate(newDate.getDate() + days);
+            return newDate;
+        }
+
+        // Utility function to add months to a date
+        const addMonths = function (date, months) {
+            const newDate = new Date(date);
+            newDate.setMonth(newDate.getMonth() + months);
+            return newDate;
+        }
+
+        // Choose the increment function based on the date_increment type
+        const incrementFunc = dateIncrement === "daily" ? addDays : addMonths;
+
+        // Initialize the current date and the end date
+        let currentDate = new Date(fromDate);
+        const endDate = new Date(untilDate);
+
+        // Copy the existing data to a new array
+        const completeData = [...sortedData];
+
+        while (currentDate <= endDate) {
+            const currentDateString = formatDate(currentDate, 'yyyy-MM-dd');
+
+            // If the date is missing, add a placeholder entry
+            if (!existingDates.has(currentDateString)) {
+                completeData.push({
+                    uuid: "uuid_for_missing_date_" + currentDateString, // Generate a unique (dummy) UUID for missing dates
+                    tracking_type: "google_analytics",
+                    google_analytics: {
+                        reports: {}, // Placeholder for missing data
+                        for_date: currentDateString,
+                        date_increment: dateIncrement
+                    }
+                });
+            }
+            // Move to the next day or month
+            currentDate = incrementFunc(currentDate, 1);
+        }
+
+        // Return the data sorted in descending order (newest to oldest)
+        return completeData.sort(
+            (a, b) => new Date(a.google_analytics.for_date) - new Date(b.google_analytics.for_date)
+        );
     }
 };
 
@@ -442,7 +504,7 @@ const aggregationsToChartData = {
 
             if (props.countBy.fields_faceted === 'sessions') countKey = 'unique_users';
 
-            return commonParsingFxn.analytics_to_buckets(resp, 'fields_faceted', groupingKey, countKey, props.cumulativeSum);
+            return commonParsingFxn.analytics_to_buckets(resp, 'fields_faceted', groupingKey, countKey, props.cumulativeSum, props.currentGroupBy);
         }
     },
     'sessions_by_country' : {
@@ -473,7 +535,7 @@ const aggregationsToChartData = {
                     break;
             }
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey, props.cumulativeSum);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey, props.cumulativeSum, props.currentGroupBy);
         }
     },
     /**
@@ -512,7 +574,7 @@ const aggregationsToChartData = {
 
             console.log("AGGR", resp, props, countBy, groupingKey, useReport);
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, props.currentGroupBy);
         }
     },
     'file_downloads_volume' : {
@@ -547,7 +609,7 @@ const aggregationsToChartData = {
 
             //convert volume to GB
             const gigabyte = 1024 * 1024 * 1024;
-            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum);
+            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, props.currentGroupBy);
             if (result && Array.isArray(result) && result.length > 0) {
                 _.forEach(result, (r) => {
                     r.total = r.total / gigabyte;
@@ -594,7 +656,7 @@ const aggregationsToChartData = {
 
             const termDisplayAsFunc = function(item){ return item.file_title ? item.file_title : (item.file_type ? `${item.term} (${item.file_type})` : item.term) };
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, termDisplayAsFunc, topCount);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, props.currentGroupBy, termDisplayAsFunc, topCount);
         }
     },
     'top_file_set_downloads_volume' : {
@@ -630,7 +692,7 @@ const aggregationsToChartData = {
             
             //convert volume to GB
             const gigabyte = 1024 * 1024 * 1024;
-            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, termDisplayAsFunc, topCount);
+            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, props.currentGroupBy, termDisplayAsFunc, topCount);
             if (result && Array.isArray(result) && result.length > 0) {
                 _.forEach(result, (r) => {
                     r.total = r.total / gigabyte;
@@ -677,7 +739,7 @@ const aggregationsToChartData = {
 
             const termDisplayAsFunc = function(item){ return item.file_title ? item.file_title : (item.file_type ? `${item.term} (${item.file_type})` : item.term) };
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, termDisplayAsFunc, topCount);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, props.currentGroupBy, termDisplayAsFunc, topCount);
         }
     },
     'top_file_downloads_volume' : {
@@ -713,7 +775,7 @@ const aggregationsToChartData = {
             
             //convert volume to GB
             const gigabyte = 1024 * 1024 * 1024;
-            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, termDisplayAsFunc, topCount);
+            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, props.currentGroupBy, termDisplayAsFunc, topCount);
             if (result && Array.isArray(result) && result.length > 0) {
                 _.forEach(result, (r) => {
                     r.total = r.total / gigabyte;
@@ -785,7 +847,7 @@ const aggregationsToChartData = {
                     break;
             }
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey, props.cumulativeSum);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey, props.cumulativeSum, props.currentGroupBy);
         }
     },
 };
@@ -811,11 +873,13 @@ export class UsageStatsViewController extends React.PureComponent {
     static getSearchReqMomentsForTimePeriod(currentGroupBy = "daily:60") {
         let untilDate = new Date();
         let fromDate;
+        let dateIncrement = '';
 
         if (currentGroupBy.startsWith("daily:")) {
             const days = parseInt(currentGroupBy.split(":")[1], 10); // Extract the number after 'daily:'
             untilDate = sub(untilDate, { days: 1 });
             fromDate = sub(untilDate, { days }); // Go back the specified number of days
+            dateIncrement = 'daily';
         } else if (currentGroupBy.startsWith("monthly:")) {
             const months = currentGroupBy.split(":")[1];
             if (months === "All") { // Special case for 'monthly:All'
@@ -826,16 +890,17 @@ export class UsageStatsViewController extends React.PureComponent {
                 untilDate = sub(startOfMonth(untilDate), { minutes: 1 }); // Last minute of previous month
                 fromDate = sub(untilDate, { months: numMonths }); // Go back the specified number of months
             }
+            dateIncrement = 'monthly';
         }
 
-        return { fromDate, untilDate };
+        return { fromDate, untilDate, dateIncrement };
     }
 
     static defaultProps = {
         'searchURIs' : {
             'TrackingItem' : function(props) {
                 const { currentGroupBy, href } = props;
-                const { fromDate, untilDate } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
+                const { fromDate, untilDate, dateIncrement } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
 
 
                 const report_names = [
@@ -855,11 +920,9 @@ export class UsageStatsViewController extends React.PureComponent {
                     "for_date"
                 ];
 
-                const date_increment = currentGroupBy.startsWith('monthly') ? 'monthly' : 'daily';
-
                 let uri = '/search/?type=TrackingItem&tracking_type=google_analytics&sort=-google_analytics.for_date&format=json';
 
-                uri += '&limit=all&google_analytics.date_increment=' + date_increment;
+                uri += '&limit=all&google_analytics.date_increment=' + dateIncrement;
                 uri += '&google_analytics.for_date.from=' + formatDate(fromDate, 'yyyy-MM-dd') + '&google_analytics.for_date.to=' + formatDate(untilDate, 'yyyy-MM-dd');
                 uri += "&" + report_names.map(function(n){ return "field=google_analytics.reports." + encodeURIComponent(n); }).join("&");
                 uri += "&field=google_analytics.for_date";
@@ -1179,27 +1242,25 @@ export function UsageStatsView(props){
     const [yAxisScale, setYAxisScale] = useState('Pow');
     const [yAxisPower, setYAxisPower] = useState(0.7);
     const handleAxisScaleChange = (scale, power) => { setYAxisScale(scale); setYAxisPower(power); };
-    const { anyExpandedCharts, commonXDomain, dateRoundInterval } = useMemo(function(){
-        const { fromDate: propFromDate, untilDate: propUntilDate } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
-        let fromDate, untilDate, dateRoundInterval;
+    const { anyExpandedCharts, commonXDomain, dateIncrement } = useMemo(function(){
+        const { fromDate: propFromDate, untilDate: propUntilDate, dateIncrement } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
+        let fromDate, untilDate;
         // We want all charts to share the same x axis. Here we round to date boundary.
         // Minor issue is that file downloads are stored in UTC/GMT while analytics are in EST timezone..
         // TODO improve on this somehow, maybe pass prop to FileDownload chart re: timezone parsing of some sort.
         if (currentGroupBy.startsWith('daily:')) {
             fromDate = add(startOfDay(propFromDate), { minutes: 15 });
             untilDate = add(endOfDay(propUntilDate), { minutes: 45 });
-            dateRoundInterval = 'day';
         } else if (currentGroupBy.startsWith('monthly:')) {
             fromDate = endOfMonth(propFromDate); // Not rly needed.
             untilDate = sub(endOfMonth(propUntilDate), { days: 1 });
-            dateRoundInterval = 'month';
-        } else if (currentGroupBy.startsWith('yearly')) { // Not yet implemented
-            dateRoundInterval = 'year';
+        } else if (currentGroupBy.startsWith('yearly')) {
+            // Not yet implemented
         }
         return {
             anyExpandedCharts: _.any(_.values(chartToggles.expanded || {})),
             commonXDomain: [fromDate, untilDate],
-            dateRoundInterval
+            dateIncrement
         };
     }, [ currentGroupBy, anyExpandedCharts ]);
 
@@ -1211,7 +1272,7 @@ export function UsageStatsView(props){
         'defaultHeight': anyExpandedCharts ? 200 : 250
     };
     const commonChartProps = {
-        dateRoundInterval,
+        dateRoundInterval: dateIncrement === 'daily' ? 'day' : (dayIncrement === 'yearly' ? 'year' : 'month'),
         'xDomain': commonXDomain,
         'curveFxn': smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter,
         cumulativeSum, yAxisScale, yAxisPower
@@ -1222,7 +1283,7 @@ export function UsageStatsView(props){
     const enableSessionByCountryChartTooltipItemClick = (countBy.sessions_by_country === 'page_url');
 
     const isSticky = true; //!_.any(_.values(tableToggle), (v)=> v === true);
-    const commonTableProps = { windowWidth, href, session, schemas, transposed, dateRoundInterval, cumulativeSum, hideEmptyColumns, chartToggles };
+    const commonTableProps = { windowWidth, href, session, schemas, transposed, dateIncrement, cumulativeSum, hideEmptyColumns, chartToggles };
     
     let topFileSetLimit = 0;
     if (countBy.top_file_set_downloads && countBy.top_file_set_downloads.indexOf('top_files_') === 0) {
@@ -1681,23 +1742,6 @@ export function SubmissionsStatsView(props) {
     );
 }
 
-/**
- * Use this only for charts with child terms 'Internal Release' and 'Public Release', which are
- * meant to have a separate color scale and child terms from other charts.
- *
- * @param {string} term - One of 'Internal Release' or 'Public Release'.
- * @returns {string} A CSS-valid color string.
- */
-SubmissionsStatsView.colorScaleForPublicVsInternal = function(term){
-    if (term === 'Internal Release' || term === 'Internally Released'){
-        return '#ff7f0e'; // Orange
-    } else if (term === 'Public Release' || term === 'Publicly Released'){
-        return '#1f77b4'; // Blue
-    } else {
-        logger.error("Term supplied is not one of 'Internal Release' or 'Public Release': '" + term + "'.");
-        throw new Error("Term supplied is not one of 'Internal Release' or 'Public Release': '" + term + "'.");
-    }
-};
 
 const convertDataRangeToXDomain = memoize(function (rangePreset = 'all', rangeFrom, rangeTo) {
     const rangeLower = (rangePreset || '').toLowerCase();
@@ -1786,7 +1830,7 @@ const ChartContainerTitle = function ({ titleMap, countBy, chartKey }) {
 export const StatisticsTable = React.memo((props) => {
     const {
         data, termColHeader = null, valueLabel = null, session, schemas, containerId = '', 
-        href, dateRoundInterval, transposed = false, windowWidth, cumulativeSum, hideEmptyColumns,
+        href, dateIncrement, transposed = false, windowWidth, cumulativeSum, hideEmptyColumns,
         limit = 0, excludeNones = false // limit and excludeNones are evaluated for only transposed data
      } = props;
     const [columns, setColumns] = useState({});
@@ -1949,7 +1993,7 @@ export const StatisticsTable = React.memo((props) => {
     };
 
     const modalProps = {
-        ...{ dateRoundInterval, schemas },
+        ...{ dateIncrement, schemas },
         forDate: modalForDate,
         onHide: () => setShowModal(false)
     };
@@ -1972,11 +2016,10 @@ export const StatisticsTable = React.memo((props) => {
  * displays tracking item ajax-fetched in ItemDetailList
  */
 export const TrackingItemViewer = React.memo(function (props) {
-    const { schemas, forDate, dateRoundInterval='day', reportName, onHide } = props;
+    const { schemas, forDate, dateIncrement='daily', reportName, onHide } = props;
 
     const [isLoading, setIsLoading] = useState(true);
     const [trackingItem, setTrackingItem] = useState();
-    const dateIncrement = (dateRoundInterval === 'month') ? 'monthly' : 'daily';
     const href=`/search/?type=TrackingItem&google_analytics.for_date=${forDate}&google_analytics.date_increment=${dateIncrement}`;
     
     useEffect(() => {
@@ -1998,7 +2041,7 @@ export const TrackingItemViewer = React.memo(function (props) {
                 setIsLoading(false);
             }
         );
-    }, [forDate, dateRoundInterval, reportName]);
+    }, [forDate, dateIncrement, reportName]);
 
     return (
         <Modal show size="xl" onHide={onHide} className="tracking-item-viewer">
@@ -2018,7 +2061,7 @@ export const TrackingItemViewer = React.memo(function (props) {
 });
 TrackingItemViewer.propTypes = {
     forDate: PropTypes.string.isRequired,
-    dateRoundInterval: PropTypes.oneOf(['daily', 'monthly']),
+    dateIncrement: PropTypes.oneOf(['daily', 'monthly', 'yearly']),
     onHide: PropTypes.func.isRequired,
     schemas: PropTypes.object
 }
