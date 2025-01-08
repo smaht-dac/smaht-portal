@@ -29,17 +29,14 @@ const AnnouncementCard = ({ title = '', body = '', type = 'info' }) => {
     );
 };
 
-const DataReleaseItem = ({ data }) => {
+const DataReleaseItem = ({ data, releaseItemIndex }) => {
     const [isExpanded, setIsExpanded] = useState(true);
     const { count, items: sample_groups, query, value } = data;
-
-    console.log('DataReleaseItem', data);
 
     // Replace hyphens with slashes for Safari compatibility
     const date = new Date(value.replace(/-/g, '/'));
     const month = date.toLocaleString('default', { month: 'long' });
     const year = date.toLocaleString('default', { year: 'numeric' });
-    console.log(month);
 
     return (
         <div
@@ -51,14 +48,14 @@ const DataReleaseItem = ({ data }) => {
                     <button
                         className="toggle-button"
                         onClick={() => {
-                            console.log('>>>');
                             setIsExpanded(!isExpanded);
                         }}>
                         <i className="icon icon-circle"></i>
                     </button>
                     <a className="header-link" href={query}>
                         <span>
-                            New Release: {month} {year}
+                            {releaseItemIndex === 0 ? 'New Release: ' : ''}
+                            {month} {year}
                         </span>
                         <span className="count">
                             {count} {count > 1 ? 'Files' : 'File'}
@@ -124,7 +121,13 @@ export const NotificationsPanel = () => {
                 <h3 className="section-header">Data Release Tracker</h3>
                 <div className="section-body">
                     {data.map((releaseItem, i) => {
-                        return <DataReleaseItem data={releaseItem} key={i} />;
+                        return (
+                            <DataReleaseItem
+                                data={releaseItem}
+                                key={i}
+                                releaseItemIndex={i}
+                            />
+                        );
                     })}
                 </div>
             </div>
