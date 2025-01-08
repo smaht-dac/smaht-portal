@@ -1272,7 +1272,7 @@ export function UsageStatsView(props){
         'defaultHeight': anyExpandedCharts ? 200 : 250
     };
     const commonChartProps = {
-        dateRoundInterval: dateIncrement === 'daily' ? 'day' : (dayIncrement === 'yearly' ? 'year' : 'month'),
+        dateRoundInterval: dateIncrement === 'daily' ? 'day' : (dateIncrement === 'yearly' ? 'year' : 'month'),
         'xDomain': commonXDomain,
         'curveFxn': smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter,
         cumulativeSum, yAxisScale, yAxisPower
@@ -1743,54 +1743,65 @@ export function SubmissionsStatsView(props) {
 }
 
 
+const defaultFromDate = '2023-11-08';
+const today = new Date();
+const month = today.getMonth();
+
+const DATE_RANGE_PRESETS = {
+    'thismonth': (from, to) => { return [from, to]},
+    'previousmonth': (from, to) => {
+        from.setMonth(month - 1);
+        to = new Date(today.getFullYear(), month, 1);
+        return [from, to];
+    },
+    'last3months': (from, to) => {
+        from.setMonth(month - 2);
+        return [from, to];
+    },
+    'last6months': (from, to) => {
+        from.setMonth(month - 5);
+        return [from, to];
+    },
+    'last12months': (from, to) => {
+        from.setMonth(month - 11);
+        return [from, to];
+    },
+    'thisyear': (from, to) => {
+        from = new Date(today.getFullYear(), 0, 1);
+        return [from, to];
+    },
+    'previousyear': (from, to) => {
+        from = new Date(today.getFullYear() - 1, 0, 1);
+        to = new Date(today.getFullYear(), 1, 1);
+        return [from, to];
+    },
+    'custom': (from, to, rangeFrom, rangeTo) => {
+        from = new Date(rangeFrom || defaultFromDate);
+        to = rangeTo ? new Date(rangeTo) : null;
+        if (from && to && (from > to)) {
+            from = new Date(defaultFromDate);
+            to = null;
+        }
+        return [from, to];
+    },
+    'all': (from, to) => {
+        from = new Date(defaultFromDate);
+        return [from, to];
+    },
+    'default': (from, to) => {
+        from = new Date(defaultFromDate);
+        return [from, to];
+    }
+};
+
 const convertDataRangeToXDomain = memoize(function (rangePreset = 'all', rangeFrom, rangeTo) {
     const rangeLower = (rangePreset || '').toLowerCase();
     
-    const defaultFromDate = '2023-11-08';
-    const today = new Date();
-    const month = today.getMonth();
     let from = new Date(today.getFullYear(), month, 1);
     let to = null;
 
-    switch (rangeLower) {
-        case 'thismonth':
-            //do nothing
-            break;
-        case 'previousmonth':
-            //override
-            from.setMonth(month - 1);
-            to = new Date(today.getFullYear(), month, 1);
-            break;
-        case 'last3months':
-            from.setMonth(month - 2);
-            break;
-        case 'last6months':
-            from.setMonth(month - 5);
-            break;
-        case 'last12months':
-            from.setMonth(month - 11);
-            break;
-        case 'thisyear':
-            from = new Date(today.getFullYear(), 0, 1);
-            break;
-        case 'previousyear':
-            //override
-            from = new Date(today.getFullYear() - 1, 0, 1);
-            to = new Date(today.getFullYear(), 1, 1);
-            break;
-        case 'custom':
-            from = new Date(rangeFrom || defaultFromDate);
-            to = rangeTo ? new Date(rangeTo) : null;
-            if (from && to && (from > to)) {
-                from = new Date(defaultFromDate);
-                to = null;
-            }
-            break;
-        case 'all':
-        default:
-            from = new Date(defaultFromDate);
-            break;
-    }
+    [from, to] = (DATE_RANGE_PRESETS[rangeLower] || DATE_RANGE_PRESETS['default'])(from, to, rangeFrom, rangeTo);
+
     // get first day of date's week
     const dayOfWeek = from.getDay(); // Sunday: 0, Monday: 1, ..., Saturday: 6
     const daysDifference = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Adjust for Monday being 1
