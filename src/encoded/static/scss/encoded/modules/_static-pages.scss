@@ -814,17 +814,25 @@ body[data-path="/"]>#application>#layout {
 
 										.count {
 											color: hsla(241, 84%, 40%, 0.6);
+											
+											i {
+												margin-left: 4px;
+											}
 										}
 
 										&-link {
 											width: 100%;
 											justify-content: space-between;
 											display: flex;
-											padding: 2px 8px;
+											padding: 4px 8px;
 											color: #1310BC;
+											border: 1px solid transparent;
+											border-radius: 3px;
 
 											&:hover {
 												background-color: #d3dff7;
+												transition: border-color 50ms;
+												border: 1px solid hsla(241, 84%, 40%, 0.6);
 											}
 
 										}
@@ -942,6 +950,7 @@ body[data-path="/"]>#application>#layout {
 												
 												&:hover {
 													background-color: rgba(168, 247, 200, 0.5);
+													border: 1px solid rgb(1 75 17 / 75%);
 												}
 											}
 											.count {

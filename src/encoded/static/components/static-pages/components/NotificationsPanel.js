@@ -59,6 +59,7 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                         </span>
                         <span className="count">
                             {count} {count > 1 ? 'Files' : 'File'}
+                            <i className="icon icon-arrow-right"></i>
                         </span>
                     </a>
                 </div>
