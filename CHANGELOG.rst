@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.124.0
+=======
+`PR 311 SN Move donor properties <https://github.com/smaht-dac/smaht-portal/pull/311>`
+
+* For protection of potentially identifiable information, move properties `height`, `weight`, and `body_mass_index` to MedicalHistory. These will later be removed from Donor
+* Move `hardy_scale` to Donor, as this can be public information. Later will be removed from DeathCircumstances
+
+
 0.123.0
 =======
 `PR 310 SN Add liquid category <https://github.com/smaht-dac/smaht-portal/pull/310>`
