@@ -228,7 +228,7 @@
         },
         "donors.display_title": {
             "title": "Donor",
-            "search_type": "sayt_without_terms",
+            "search_type": "sayt",
             "sayt_item_type": "Donor"
         },
         "file_sets.libraries.analytes.samples.sample_sources.donor.age": {
