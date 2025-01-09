@@ -793,21 +793,36 @@ div.browse-summary {
 	background-color: #F9FCFF;
 	border: 1px solid #70A3E2;
 	border-radius: 15px;
-	gap: 40px;
+	gap: 60px;
+	padding: 1.25rem;
 
-	div.browse-summary-stat > div {
-		div.browse-summary-stat-value {
-			line-height: 1;
-			font-size: 3rem;
-			font-weight: 700;
-			> span {
-				font-size: 2.5rem;
-			}
+	div.browse-summary-stat {
+		&:not(:last-child)::after {
+			content: '';
+			position: relative;
+			right: -30px; /* Adjust this value to control the space between the line and the element */
+			top: 0;
+			bottom: 0;
+			width: 1px;
+			background-color: #C0DBFB ; /* Adjust the color of the line */
+			height: 62px;
 		}
 
-		div.browse-summary-stat-subtitle {
-			color: #657B95;
-			font-weight: 600;
+		> div {
+			div.browse-summary-stat-value {
+				line-height: 1.2;
+				font-size: 2rem;
+				font-weight: 600;
+				> span {
+					font-size: 1.5rem;
+				}
+			}
+
+			div.browse-summary-stat-subtitle {
+				color: #657B95;
+				font-weight: 500;
+				font-size: 0.875rem;
+			}
 		}
 	}
 }
@@ -850,6 +865,10 @@ div.browse-link-icon {
 	width: 45px;
 	height: 45px;
 	border-radius: 22.5px;
+
+	&.browse-summary-stat-icon-smaller {
+		font-size: 1.2em;
+	}
 
 	&[data-icon-type='file'] {
 		background-color: #DDF1FF;

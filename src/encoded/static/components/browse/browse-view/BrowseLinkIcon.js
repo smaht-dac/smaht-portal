@@ -37,7 +37,7 @@ export const BrowseLinkIcon = React.memo(function BrowseLinkIcon(props) {
         <div
             className={'browse-link-icon ' + cls}
             data-icon-type={dataAttribute}>
-            <i className={`icon fas icon-xl icon-${iconCls}`} />
+            <i className={`icon fas icon-${iconCls}`} />
         </div>
     );
 });

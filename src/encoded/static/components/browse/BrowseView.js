@@ -159,7 +159,7 @@ export class BrowseViewBody extends React.PureComponent {
                         </h2>
                         <Alerts alerts={alerts} className="mt-2" />
                         <div>
-                            <div className="browse-summary d-flex flex-row p-4 mt-2 mb-3 flex-wrap">
+                            <div className="browse-summary d-flex flex-row mt-2 mb-3 flex-wrap">
                                 <BrowseSummaryStatController
                                     type="File"
                                     useSearch

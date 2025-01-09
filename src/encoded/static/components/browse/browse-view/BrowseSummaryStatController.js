@@ -128,7 +128,10 @@ const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
 
     return (
         <div className="browse-summary-stat d-flex flex-row">
-            <BrowseLinkIcon {...{ type }} cls="mt-04" />
+            <BrowseLinkIcon
+                {...{ type }}
+                cls="mt-04 browse-summary-stat-icon-smaller"
+            />
             <div className="ms-2">
                 {loading && (
                     <div className="browse-summary-stat-value">
