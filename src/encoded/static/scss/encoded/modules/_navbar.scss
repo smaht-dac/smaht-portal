@@ -931,9 +931,22 @@ body[data-current-action="multiselect"] {
 
                 // Same size, similar styling as intro-section
                 a.big-link {
+                    height: 83px;
+                    @include media-breakpoint-down(sm) {
+                        min-height: 83px;
+                        &:not(.is-fa-icon) {
+                            height: unset;
+                        }
+                        &.is-fa-icon {
+                            height: 83px;
+                        }
+                    }
                     color: inherit;
                     position: relative;
                     &:hover:not([data-disabled="true"]) {
+                        img {
+                            filter: brightness(0) saturate(100%) invert(58%) sepia(15%) saturate(6456%) hue-rotate(179deg) brightness(106%) contrast(101%);
+                        }
                         color: #2DB3FF;
                         text-shadow: 0 0 0;
                         text-decoration: none;
@@ -942,6 +955,12 @@ body[data-current-action="multiselect"] {
                         }
                     }
                     &[data-disabled="true"] {
+                        color: #aaa;
+                        > div > div > h3,
+                        > div > div > h5,
+                        > div > div > h4 {
+                            color: #aaa;
+                        }
                         cursor: default;
                         &:after {
                             opacity: 0 !important;
@@ -978,24 +997,12 @@ body[data-current-action="multiselect"] {
                             font-weight: 600;
                         }
                     }
-                    div.big-link-icon-circle,
-                    div.big-link-icon-circle-outline {
-                        height: 50px;
-                        width: 50px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
+                    
+                    img.big-link-icon-svg {
+                        width: 40px;
+                        filter: brightness(0) saturate(100%) invert(80%) sepia(0%) saturate(1720%) hue-rotate(168deg) brightness(105%) contrast(107%);
                     }
-                    div.big-link-icon-circle {
-                        background-color: #eee;
-                        img.big-link-icon-svg {
-                            width: 35px;
-                            filter: brightness(0) saturate(100%) invert(19%) sepia(11%) saturate(761%) hue-rotate(189deg) brightness(95%) contrast(90%);
-                        }
-                    }
-                    div.big-link-icon-circle-outline {
-                        border: 1px solid #eee;
-                    }
+
                 }
 	
 				.intro-section {
@@ -1152,11 +1159,6 @@ body[data-current-action="multiselect"] {
                             width: 75px;
                             opacity: 1;
                             transition: opacity .5s ease-out;
-                        }
-                    }
-                    .intro-section {
-                        .icon-beside-column {
-                            margin-left: -20px;
                         }
                     }
                 }

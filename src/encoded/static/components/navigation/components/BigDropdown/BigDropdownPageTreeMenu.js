@@ -238,18 +238,14 @@ function CustomStaticLinks({ pathName, href }) {
                         <BigDropdownBigLink
                             href="/browse"
                             titleIcon="file fas"
-                            className="primary-big-link">
+                            className="primary-big-link is-fa-icon">
                             <h4 className="text-large">Browse By File</h4>
-                            <div className="description text-medium">
-                                Search All Files in the SMaHT Consortium
-                                Database
-                            </div>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
                             disabled
                             href=""
                             titleIcon="users fas"
-                            className="primary-big-link">
+                            className="primary-big-link is-fa-icon">
                             <h4 className="text-large">
                                 Browse By Donor
                                 <span className="text-300 fst-italic text-medium">
@@ -257,16 +253,12 @@ function CustomStaticLinks({ pathName, href }) {
                                     - Coming Soon
                                 </span>
                             </h4>
-                            <div className="description text-medium">
-                                Search All Donors in the SMaHT Consortium
-                                Database
-                            </div>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
                             disabled
                             href=""
                             titleIcon="lungs fas mb-03"
-                            className="primary-big-link">
+                            className="primary-big-link is-fa-icon">
                             <h4 className="text-large">
                                 Browse By Tissue
                                 <span className="text-300 fst-italic text-medium">
@@ -274,16 +266,12 @@ function CustomStaticLinks({ pathName, href }) {
                                     - Coming Soon
                                 </span>
                             </h4>
-                            <div className="description text-medium">
-                                Search All Tissues in the SMaHT Consortium
-                                Database
-                            </div>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
                             disabled
                             href=""
                             titleIcon="dna fas"
-                            className="primary-big-link bottom-edge-child">
+                            className="primary-big-link is-fa-icon bottom-edge-child">
                             <h4 className="text-large">
                                 Browse By Assay
                                 <span className="text-300 fst-italic text-medium">
@@ -291,10 +279,6 @@ function CustomStaticLinks({ pathName, href }) {
                                     - Coming Soon
                                 </span>
                             </h4>
-                            <div className="description text-medium">
-                                Search All Assays in the SMaHT Consortium
-                                Database
-                            </div>
                         </BigDropdownBigLink>
                     </div>
                     <div className="col-lg-6 mt-md-2 mt-lg-0">
@@ -305,10 +289,10 @@ function CustomStaticLinks({ pathName, href }) {
                         <BigDropdownBigLink
                             href="/data/benchmarking/COLO829"
                             titleIcon={
-                                <div className="big-link-icon-circle rounded-circle">
+                                <div>
                                     <img
                                         className="big-link-icon-svg"
-                                        src="/static/img/anatomy-icons/Cell Line Mixture.svg"
+                                        src="/static/img/misc-icons/Cell Line bench.svg"
                                         alt={`Cell lines icon`}
                                     />
                                 </div>
@@ -321,15 +305,7 @@ function CustomStaticLinks({ pathName, href }) {
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
                             href="/data/benchmarking/donor-st001"
-                            titleIcon={
-                                <div className="big-link-icon-circle rounded-circle">
-                                    <img
-                                        className="big-link-icon-svg"
-                                        src="/static/img/anatomy-icons/Brain.svg"
-                                        alt={`Brain icon`}
-                                    />
-                                </div>
-                            }
+                            titleIcon="lungs fas"
                             className="primary-big-link">
                             <h4 className="text-large">Tissue Homogenates</h4>
                             <div className="description text-medium">
@@ -339,15 +315,10 @@ function CustomStaticLinks({ pathName, href }) {
                         <BigDropdownBigLink
                             href="/data/analysis/colo829-snv-indel-detection"
                             titleIcon={
-                                <div className="big-link-icon-circle rounded-circle">
+                                <div>
                                     <img
-                                        style={{
-                                            height: '30px',
-                                            width: '30px',
-                                            paddingTop: '3px',
-                                        }}
                                         className="big-link-icon-svg"
-                                        src="/static/img/misc-icons/Benchmarking Analysis Icon.svg"
+                                        src="/static/img/misc-icons/Analysis Bench.svg"
                                         alt={`Analysis icon`}
                                     />
                                 </div>

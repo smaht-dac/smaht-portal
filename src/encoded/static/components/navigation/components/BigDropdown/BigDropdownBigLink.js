@@ -23,8 +23,8 @@ export function BigDropdownBigLink(props) {
     if (typeof titleIcon === 'string') {
         iconCol = (
             <div className="col-auto icon-beside-column text-end">
-                <div className="big-link-icon-circle-outline rounded-circle">
-                    <i className={'icon icon-fw icon-xl icon-' + titleIcon} />
+                <div>
+                    <i className={'icon icon-fw icon-2x icon-' + titleIcon} />
                 </div>
             </div>
         );
@@ -47,7 +47,7 @@ export function BigDropdownBigLink(props) {
                 (className ? ' ' + className : '') +
                 (isActive ? ' active' : '')
             }>
-            <div className="row align-items-center">
+            <div className="row align-items-center justify-content-center h-100">
                 {iconCol}
                 {textCol}
             </div>
