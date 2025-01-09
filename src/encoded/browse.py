@@ -57,8 +57,6 @@ def browse(context, request, search_type=DEFAULT_BROWSE_TYPE, return_generator=F
                 detail="Redirected from " + str(request.path_info)
             )
 
-    # TODO
-    # No real /browse specific UI yet; initially just basically copied static/components/SearchView.js to BrowseView.js.
     return search(context, request, search_type, return_generator, forced_type="Browse")
 
 
