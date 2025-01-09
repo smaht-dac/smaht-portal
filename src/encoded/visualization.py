@@ -71,6 +71,7 @@ def date_histogram_aggregations(context, request):
         'yearly': 'year'
     }
 
+    date_from, date_to = None, None
     try:
         json_body = request.json_body
         search_param_lists = json_body.get('search_query_params', {})
@@ -152,12 +153,20 @@ def date_histogram_aggregations(context, request):
     outer_date_histogram_agg = {}
     for interval in date_histogram_intervals:
         for dh_field in date_histogram_fields:
-            outer_date_histogram_agg[interval + '_interval_' + dh_field] = {
-                "date_histogram": {
-                    "field": "embedded." + dh_field,
-                    "interval": interval_to_es_interval[interval],
-                    "format": "yyyy-MM-dd"
+            date_histogram = {
+                "field": "embedded." + dh_field,
+                "interval": interval_to_es_interval[interval],
+                "format": "yyyy-MM-dd"
+            }
+            # get empty buckets for missing dates
+            if (date_from is not None or date_to is not None):
+                date_histogram['min_doc_count'] = 0
+                date_histogram['extended_bounds'] = {
+                    "min": date_from.strftime("%Y-%m-%d") if date_from is not None else None,
+                    "max": date_to.strftime("%Y-%m-%d") if date_to is not None else None
                 }
+            outer_date_histogram_agg[interval + '_interval_' + dh_field] = {
+                "date_histogram": date_histogram
             }
             if histogram_sub_aggs:
                 outer_date_histogram_agg[interval + '_interval_' + dh_field]['aggs'] = histogram_sub_aggs
@@ -176,7 +185,7 @@ def date_histogram_aggregations(context, request):
 
 
 DATE_RANGE_PRESETS = {
-    'all': lambda today: (None, None),
+    'all': lambda today: (None, today),
     'thismonth': lambda today: (today.replace(day=1), None),
     'previousmonth': lambda today: (today.replace(day=1) - relativedelta(months=1), today.replace(day=1) - relativedelta(days=1)),
     'last3months': lambda today: (today.replace(day=1) - relativedelta(months=2), None),
