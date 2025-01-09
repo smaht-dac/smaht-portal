@@ -1,8 +1,8 @@
 # import uuid
 #
 # from botocore.exceptions import ClientError
-from copy import deepcopy
-from datetime import datetime
+from copy import copy, deepcopy
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 # from dcicutils.misc_utils import print_error_message
 # from pyramid.httpexceptions import HTTPBadRequest
@@ -164,13 +164,13 @@ def date_histogram_aggregations(context, request):
                 "interval": interval_to_es_interval[interval],
                 "format": "yyyy-MM-dd"
             }
-            # get empty buckets for missing dates
-            if (date_from is not None or date_to is not None):
-                date_histogram['min_doc_count'] = 0
-                date_histogram['extended_bounds'] = {
-                    "min": date_from.strftime("%Y-%m-%d") if date_from is not None else None,
-                    "max": date_to.strftime("%Y-%m-%d") if date_to is not None else None
-                }
+            # get empty buckets for missing dates (works for intervals, currently not spanning all time-frame)
+            # if (date_from is not None or date_to is not None):
+            #     date_histogram['min_doc_count'] = 0
+            #     date_histogram['extended_bounds'] = {
+            #         "min": date_from.strftime("%Y-%m-%d") if date_from is not None else None,
+            #         "max": date_to.strftime("%Y-%m-%d") if date_to is not None else None
+            #     }
             outer_date_histogram_agg[interval + '_interval_' + dh_field] = {
                 "date_histogram": date_histogram
             }
@@ -186,20 +186,29 @@ def date_histogram_aggregations(context, request):
         if search_result.get(field_to_delete) is None:
             continue
         del search_result[field_to_delete]
+    
+    search_result['from_date'] = date_from.strftime("%Y-%m-%d") if date_from is not None else None
+    search_result['to_date'] = date_to.strftime("%Y-%m-%d") if date_to is not None else None
+    search_result['interval'] = date_histogram_intervals
 
     return search_result
 
 
 DATE_RANGE_PRESETS = {
     'all': lambda today: (None, today),
-    'thismonth': lambda today: (today.replace(day=1), None),
+    'thismonth': lambda today: (today.replace(day=1), last_day_of_month(today)),
     'previousmonth': lambda today: (today.replace(day=1) - relativedelta(months=1), today.replace(day=1) - relativedelta(days=1)),
-    'last3months': lambda today: (today.replace(day=1) - relativedelta(months=2), None),
-    'last6months': lambda today: (today.replace(day=1) - relativedelta(months=5), None),
-    'last12months': lambda today: (today.replace(day=1) - relativedelta(months=11), None),
-    'thisyear': lambda today: (datetime(today.year, 1, 1), None),
+    'last3months': lambda today: (today.replace(day=1) - relativedelta(months=2), last_day_of_month(today)),
+    'last6months': lambda today: (today.replace(day=1) - relativedelta(months=5), last_day_of_month(today)),
+    'last12months': lambda today: (today.replace(day=1) - relativedelta(months=11), last_day_of_month(today)),
+    'thisyear': lambda today: (datetime(today.year, 1, 1), datetime(today.year, 12, 31)),
     'previousyear': lambda today: (datetime(today.year - 1, 1, 1), datetime(today.year - 1, 12, 31)),
 }
+
+
+def last_day_of_month(any_day):
+    next_month = any_day.replace(day=28) + timedelta(days=4)
+    return next_month - timedelta(days=next_month.day)
 
 
 def convert_date_range(date_range_str):
