@@ -243,7 +243,7 @@ export const commonParsingFxn = {
 
         // add missing dates
         const { fromDate, untilDate, dateIncrement } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
-        trackingItems = commonParsingFxn.add_missing_analytics_dates(trackingItems, fromDate, untilDate, dateIncrement);
+        trackingItems = commonParsingFxn.add_missing_dates(trackingItems, fromDate, untilDate, dateIncrement, 'google_analytics');
 
         let totalSessionsToDate = 0;
         const termTotals = {}; // e.g. { 'USA': { count: 5, total: 5 }, 'China': { count: 2, total: 2 } }
@@ -349,32 +349,44 @@ export const commonParsingFxn = {
 
         return filterZeroTotalTerms(aggsList);
     },
-    'add_missing_analytics_dates': function (data, fromDate, untilDate, dateIncrement = "daily") {
-        const sortedData = data; //already sorted, skip re-sorting again
+    'add_missing_dates': function (data, fromDate, untilDate, dateIncrement = "daily", type = "google_analytics") {
+        const forAnalytics = type === "google_analytics";
+        
+        const sortedData = data; // Already sorted, skip re-sorting again
         // // Sort the data by ascending order of date
         // const sortedData = data.sort(
         //     (a, b) => new Date(a.google_analytics.for_date) - new Date(b.google_analytics.for_date)
         // );
 
         // Collect all existing dates into a Set for quick lookup
-        const existingDates = new Set(sortedData.map(d => d.google_analytics.for_date));
+        const existingDates = new Set(sortedData.map(d => forAnalytics ? d.google_analytics.for_date : d.date ));
 
         // Utility function to add days to a date
         const addDays = function (date, days) {
             const newDate = new Date(date);
             newDate.setDate(newDate.getDate() + days);
             return newDate;
-        }
+        };
 
         // Utility function to add months to a date
         const addMonths = function (date, months) {
             const newDate = new Date(date);
             newDate.setMonth(newDate.getMonth() + months);
             return newDate;
-        }
+        };
+
+        // Utility function to add weeks to a date
+        const addWeeks = function (date, weeks) {
+            return addDays(date, weeks * 7);
+        };
 
         // Choose the increment function based on the date_increment type
-        const incrementFunc = dateIncrement === "daily" ? addDays : addMonths;
+        const incrementFunc =
+            dateIncrement === "daily"
+                ? addDays
+                : dateIncrement === "weekly"
+                    ? addWeeks
+                    : addMonths;
 
         // Initialize the current date and the end date
         let currentDate = new Date(fromDate);
@@ -388,23 +400,31 @@ export const commonParsingFxn = {
 
             // If the date is missing, add a placeholder entry
             if (!existingDates.has(currentDateString)) {
-                completeData.push({
-                    uuid: "uuid_for_missing_date_" + currentDateString, // Generate a unique (dummy) UUID for missing dates
-                    tracking_type: "google_analytics",
-                    google_analytics: {
-                        reports: {}, // Placeholder for missing data
-                        for_date: currentDateString,
-                        date_increment: dateIncrement
-                    }
-                });
+                if (forAnalytics) {
+                    completeData.push({
+                        uuid: "uuid_for_missing_date_" + currentDateString, // Generate a unique (dummy) UUID for missing dates
+                        tracking_type: "google_analytics",
+                        google_analytics: {
+                            reports: {}, // Placeholder for missing data
+                            for_date: currentDateString,
+                            date_increment: dateIncrement
+                        }
+                    });
+                } else {
+                    completeData.push({
+                        date: currentDateString,
+                        count: 0,
+                        children: []
+                    });
+                }
             }
-            // Move to the next day or month
+            // Move to the next day, week, or month
             currentDate = incrementFunc(currentDate, 1);
         }
 
         // Return the data sorted in descending order (newest to oldest)
         return completeData.sort(
-            (a, b) => new Date(a.google_analytics.for_date) - new Date(b.google_analytics.for_date)
+            (a, b) => new Date(forAnalytics ? a.google_analytics.for_date : a.date) - new Date(forAnalytics ? b.google_analytics.for_date : b.date)
         );
     }
 };
@@ -414,84 +434,84 @@ const aggregationsToChartData = {
         'requires'  : 'FileUploading',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = "weekly_interval_date_created"/*"weekly_interval_file_status_tracking.uploading"*/;
-            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
+            const agg = resp.interval[0] + "_interval_date_created"/*"weekly_interval_file_status_tracking.uploading"*/;
+            const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
+            if (!Array.isArray(buckets)) return null;
 
-            return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
-                props.cumulativeSum
-            );
+            let counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, props.externalTermMap);
+            counts = commonParsingFxn.add_missing_dates(counts, resp.from_date, resp.to_date, resp.interval[0], 'submission');
+
+            return commonParsingFxn.countsToTotals(counts, props.cumulativeSum);
         }
     },
     'file_volume_uploading' : {
         'requires'  : 'FileUploading',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = "weekly_interval_date_created"/*"weekly_interval_file_status_tracking.uploading"*/;
-            var weeklyIntervalBuckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
+            const agg = resp.interval[0] + "_interval_date_created"/*"weekly_interval_file_status_tracking.uploading"*/;
+            const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
+            if (!Array.isArray(buckets)) return null;
 
-            return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
-                props.cumulativeSum
-            );
+            let volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, props.externalTermMap);
+            volumes = commonParsingFxn.add_missing_dates(volumes, resp.from_date, resp.to_date, resp.interval[0], 'submission');
+
+            return commonParsingFxn.countsToTotals(volumes, props.cumulativeSum);
         }
     },
     'files_uploaded' : {
         'requires'  : 'FileUploaded',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = "weekly_interval_file_status_tracking.uploaded";
-            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
+            const agg = resp.interval[0] + "_interval_file_status_tracking.uploaded";
+            const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
+            if (!Array.isArray(buckets)) return null;
 
-            return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
-                props.cumulativeSum
-            );
+            let counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, props.externalTermMap);
+            counts = commonParsingFxn.add_missing_dates(counts, resp.from_date, resp.to_date, resp.interval[0], 'submission');
+
+            return commonParsingFxn.countsToTotals(counts, props.cumulativeSum);
         }
     },
     'file_volume_uploaded' : {
         'requires'  : 'FileUploaded',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = "weekly_interval_file_status_tracking.uploaded";
-            var weeklyIntervalBuckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
+            const agg = resp.interval[0] + "_interval_file_status_tracking.uploaded";
+            const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
+            if (!Array.isArray(buckets)) return null;
 
-            return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
-                props.cumulativeSum
-            );
+            let volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, props.externalTermMap);
+            volumes = commonParsingFxn.add_missing_dates(volumes, resp.from_date, resp.to_date, resp.interval[0], 'submission');
+
+            return commonParsingFxn.countsToTotals(volumes, props.cumulativeSum);
         }
     },
     'files_released' : {
         'requires'  : 'FileReleased',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = "weekly_interval_file_status_tracking.released";
-            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
+            const agg = resp.interval[0] + "_interval_file_status_tracking.released";
+            const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
+            if (!Array.isArray(buckets)) return null;
 
-            return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
-                props.cumulativeSum
-            );
+            let counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, props.externalTermMap);
+            counts = commonParsingFxn.add_missing_dates(counts, resp.from_date, resp.to_date, resp.interval[0], 'submission');
+
+            return commonParsingFxn.countsToTotals(counts, props.cumulativeSum);
         }
     },
     'file_volume_released' : {
         'requires'  : 'FileReleased',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = "weekly_interval_file_status_tracking.released";
-            var weeklyIntervalBuckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
+            const agg = resp.interval[0] + "_interval_file_status_tracking.released";
+            const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
+            if (!Array.isArray(buckets)) return null;
 
-            return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
-                props.cumulativeSum
-            );
+            let volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, props.externalTermMap);
+            volumes = commonParsingFxn.add_missing_dates(volumes, resp.from_date, resp.to_date, resp.interval[0], 'submission');
+
+            return commonParsingFxn.countsToTotals(volumes, props.cumulativeSum);
         }
     },
     'fields_faceted' : {
@@ -1768,6 +1788,7 @@ const DATE_RANGE_PRESETS = {
     },
     'thisyear': (from, to) => {
         from = new Date(today.getFullYear(), 0, 1);
+        to = new Date(today.getFullYear(), 11, 31);
         return [from, to];
     },
     'previousyear': (from, to) => {
