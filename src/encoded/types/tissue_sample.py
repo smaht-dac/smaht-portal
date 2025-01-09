@@ -63,12 +63,10 @@ def validate_external_id_on_add(context, request):
     external_id = data['external_id']
     sample_sources = data["sample_sources"]
     category = data['category']
-    tissue = tissue_utils.get_study(
-            get_item_or_none(request, sample_sources[0], 'sample-sources')
-    )
-    if tissue:
+    tissue = get_item_or_none(request, sample_sources[0], 'sample-sources')
+    if (study := tissue_utils.get_study(tissue)):
         if not assert_external_id_category_match(external_id, category):
-            msg = f"external_id {external_id} does not match nomenclature for {category} samples."
+            msg = f"external_id {external_id} does not match {study} nomenclature for {category} samples."
             return request.errors.add('body', 'TissueSample: invalid property', msg)
         else:
             return request.validated.update({}) 
@@ -81,12 +79,10 @@ def validate_external_id_on_edit(context, request):
     sample_sources = get_property_for_validation('sample_sources',existing_properties,properties_to_update)
     category = get_property_for_validation('category',existing_properties,properties_to_update)
     external_id = get_property_for_validation('external_id',existing_properties,properties_to_update)
-    tissue = tissue_utils.get_study(
-            get_item_or_none(request, sample_sources[0], 'sample-sources')
-    )
-    if tissue:
+    tissue = get_item_or_none(request, sample_sources[0], 'sample-sources')
+    if (study:=tissue_utils.get_study(tissue)):
         if not assert_external_id_category_match(external_id, category):
-            msg = f"external_id {external_id} does not match nomenclature for {category} samples."
+            msg = f"external_id {external_id} does not match {study} nomenclature for {category} samples."
             return request.errors.add('body', 'TissueSample: invalid property', msg)
         else:
             return request.validated.update({})  
