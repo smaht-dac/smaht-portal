@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 
 const SlidingSidebarLayout = (props) => {
-    const [showNav, setShowNav] = useState(true);
-    const { children } = props;
+    const { children, openByDefault = true } = props;
+
+    const [showNav, setShowNav] = useState(openByDefault);
 
     const childrenArray = React.Children.toArray(children);
 
