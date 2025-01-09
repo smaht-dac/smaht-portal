@@ -24,12 +24,7 @@ from .utils import (
 from ..item_utils import (
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
-    donor as donor_utils,
 )
-
-HOMOGENATE_EXTERNAL_ID_REGEX = "^[A-Z0-9]{3,}-[0-9][A-Z]-[0-9]{3}X$"
-SPECIMEN_EXTERNAL_ID_REGEX = "^[A-Z0-9]{3,}-[0-9][A-Z]-[0-9]{3}[S-W][1-9]$"
-CORE_EXTERNAL_ID_REGEX = "^[A-Z0-9]{3,}-[0-9][A-Z]-[0-9]{3}[A-F][1-6]$"
 
 
 def _build_tissue_sample_embedded_list() -> List[str]:
