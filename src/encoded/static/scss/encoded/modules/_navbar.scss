@@ -1037,6 +1037,15 @@ body[data-current-action="multiselect"] {
                 }
                 
                 > .tree-menu-container {
+
+                    .custom-static-links {
+                        @include media-breakpoint-down(md) {
+                            gap: 20px;
+                        }
+                        @include media-breakpoint-up(md) {
+                            gap: 25%;
+                        }
+                    }
 	
                     > .help-menu-tree {
 

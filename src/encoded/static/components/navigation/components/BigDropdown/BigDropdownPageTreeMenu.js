@@ -229,8 +229,8 @@ function CustomStaticLinks({ pathName, href }) {
     switch (pathName) {
         case 'data':
             return (
-                <div className="row mb-2">
-                    <div className="col-lg-6">
+                <div className="custom-static-links row mb-2">
+                    <div className="col-auto flex-fill">
                         <h3 className="mt-2 text-400 text-larger">
                             Production Data
                         </h3>
@@ -281,7 +281,7 @@ function CustomStaticLinks({ pathName, href }) {
                             </h4>
                         </BigDropdownBigLink>
                     </div>
-                    <div className="col-lg-6 mt-md-2 mt-lg-0">
+                    <div className="col-auto flex-fill mt-md-2 mt-lg-0">
                         <h3 className="mt-2 text-400 text-larger">
                             Benchmarking Data
                         </h3>
