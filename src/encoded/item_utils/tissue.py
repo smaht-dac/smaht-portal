@@ -37,16 +37,12 @@ def get_study(properties: Dict[str, Any]) -> str:
 TPC_ID_COMMON_PATTERN = donor.TPC_ID_COMMON_PATTERN + r"-[0-9][A-Z]{1,2}"
 BENCHMARKING_ID_REGEX = rf"{constants.BENCHMARKING_PREFIX}{TPC_ID_COMMON_PATTERN}"
 PRODUCTION_ID_REGEX = rf"{constants.PRODUCTION_PREFIX}{TPC_ID_COMMON_PATTERN}"
-TPC_ALT_ID_REGEX = rf"{constants.TPC_ALT_DONOR_PREFIX}{TPC_ID_COMMON_PATTERN}"
 
 BENCHMARKING_TISSUE_REGEX = re.compile(
     rf"{BENCHMARKING_ID_REGEX}$"
 )
 PRODUCTION_TISSUE_REGEX = re.compile(
     rf"{PRODUCTION_ID_REGEX}$"
-)
-TPC_ALT_TISSUE_REGEX = re.compile(
-    rf"{TPC_ALT_ID_REGEX}$"
 )
 
 def is_benchmarking(properties: Dict[str, Any]) -> bool:

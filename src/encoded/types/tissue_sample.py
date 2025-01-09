@@ -90,15 +90,14 @@ def validate_external_id_on_edit(context, request):
 
 def assert_external_id_category_match(external_id: str, category: str):
     """Check that external_id pattern matches for category."""
-    pattern = ""
-    if category == "Homogenate":
-        pattern = HOMOGENATE_EXTERNAL_ID_REGEX
+    if category == "Homogenate" or category == "Liquid":
+        return tissue_sample_utils.is_homogenate_external_id(external_id)
     elif category == "Specimen":
-        pattern = SPECIMEN_EXTERNAL_ID_REGEX
+        return tissue_sample_utils.is_specimen_external_id(external_id)
     elif category == "Core":
-        pattern = CORE_EXTERNAL_ID_REGEX
-    return re.match(pattern, external_id)
-    
+        return tissue_sample_utils.is_core_external_id(external_id)
+    else:
+        return ""
 
 
 TISSUE_SAMPLE_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
