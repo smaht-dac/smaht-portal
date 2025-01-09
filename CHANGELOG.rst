@@ -7,9 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.124.1
+=======
+`PR BM Register Text Fix <https://github.com/smaht-dac/smaht-portal/pull/297>`_
+
+* Update text in UserRegistrationModal to not refer to 2023 data release
+
+
 0.124.0
 =======
-`PR 311 SN Move donor properties <https://github.com/smaht-dac/smaht-portal/pull/311>`
+`PR 311 SN Move donor properties <https://github.com/smaht-dac/smaht-portal/pull/311>`_
 
 * For protection of potentially identifiable information, move properties `height`, `weight`, and `body_mass_index` to MedicalHistory. These will later be removed from Donor
 * Move `hardy_scale` to Donor, as this can be public information. Later will be removed from DeathCircumstances
@@ -17,7 +24,7 @@ Change Log
 
 0.123.0
 =======
-`PR 310 SN Add liquid category <https://github.com/smaht-dac/smaht-portal/pull/310>`
+`PR 310 SN Add liquid category <https://github.com/smaht-dac/smaht-portal/pull/310>`_
 
 * Add "Liquid" to `category` for TissueSample, to be used to liquid tissue and cell culture samples
 * Adjust `FileSet.file_group` and `commands/create_annotated_filename.py` to reflect this change
@@ -33,14 +40,14 @@ Change Log
 
 0.121.0
 =======
-`PR 300 SN Remove basecalling <https://github.com/smaht-dac/smaht-portal/pull/300>`
+`PR 300 SN Remove basecalling <https://github.com/smaht-dac/smaht-portal/pull/300>`_
 
 * Remove Basecalling item and transfer properties to Software item
 
 
 0.120.0
 =======
-`PR 306 SN Add cell_sorting_method <https://github.com/smaht-dac/smaht-portal/pull/306>`
+`PR 306 SN Add cell_sorting_method <https://github.com/smaht-dac/smaht-portal/pull/306>`_
 
 * Add property `cell_sorting_method` to AnalytePreparation
 
@@ -54,7 +61,7 @@ Change Log
 
 0.118.0
 =======
-`PR 303 SN Rnaseq filenames <https://github.com/smaht-dac/smaht-portal/pull/303>`
+`PR 303 SN Rnaseq filenames <https://github.com/smaht-dac/smaht-portal/pull/303>`_
 
 * Make `annotation` link in OutputFile an array of links to ReferenceFile
 * Add `code` property to ReferenceFile
@@ -77,7 +84,7 @@ Change Log
 
 0.116.0
 =======
-`PR 299 SN RNA-seq filenames <https://github.com/smaht-dac/smaht-portal/pull/299>`
+`PR 299 SN RNA-seq filenames <https://github.com/smaht-dac/smaht-portal/pull/299>`_
 
 * Create new item GeneAnnotation that OutputFile and SupplementaryFile link to with property `gene_annotation`
 * Update `commands/create_annotated_filenames.py` to include gencode version and gene/isoform information for RSEM tsv output files and RNA-seq aligned bams
@@ -85,14 +92,14 @@ Change Log
 
 0.115.1
 =======
-`PR 302 SN fix sequencing validator <https://github.com/smaht-dac/smaht-portal/pull/302>`
+`PR 302 SN fix sequencing validator <https://github.com/smaht-dac/smaht-portal/pull/302>`_
 
 * Adds `on_target_rate` to sequencing validator in FileSet for DNA libraries
 
 
 0.115.0
 =======
-`PR 296 SN Sequencing validation <https://github.com/smaht-dac/smaht-portal/pull/296>`
+`PR 296 SN Sequencing validation <https://github.com/smaht-dac/smaht-portal/pull/296>`_
 
 * Add custom validator to FileSet to ensure that `sequencing.target_coverage` is present if `libraries.analytes.molecule` contains "DNA" and `sequencing.target_read_count` is present if `libraries.analytes.molecule` contains "RNA"
 * Refactor custom validators
