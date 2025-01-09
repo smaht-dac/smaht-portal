@@ -774,13 +774,19 @@ h2.browse-summary-header {
 
 div.browse-body {
 	.search-page-container {
-		.search-view-controls-and-results .results-column .above-results-table-row .search-result-config-panel .column-option .checkbox {
-			border-radius: 4px;
-			&.is-active {
-				background-color: #ebf6ff;
-				border-color: #5f99cf;
+		.search-view-controls-and-results {
+			.facets-column .facets-container .facets-body .facet-list .search-selection-menu.dropdown > .dropdown-toggle {
+				font-size: .813rem;
 			}
-		}
+
+			.results-column .above-results-table-row .search-result-config-panel .column-option .checkbox {
+				border-radius: 4px;
+				&.is-active {
+					background-color: #ebf6ff;
+					border-color: #5f99cf;
+				}
+			}
+		} 
 	
 		.search-results-outer-container .search-results-container .search-result-row.detail-closed > .columns.result-table-row > .search-result-column-block[data-first-visible-column="true"][data-field="@type"],
 		.search-headers-row > .headers-columns-overflow-container > .columns > .search-headers-column-block[data-first-visible-column][data-field="@type"] {
