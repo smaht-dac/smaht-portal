@@ -4,6 +4,7 @@ import re
 from snovault import collection, load_schema
 from snovault.util import debug_log, get_item_or_none
 from pyramid.view import view_config
+from encoded.validator_decorators import link_related_validator
 from .sample import Sample
 
 from .submitted_item import (
@@ -52,6 +53,7 @@ class TissueSample(Sample):
         pass
 
 
+@link_related_validator
 def validate_external_id_on_add(context, request):
     """Check that `external_id` is consistent with `category` nomenclature if the sample_source.donor is a Benchmarking or Production tissue on add."""
     data = request.json
@@ -67,6 +69,7 @@ def validate_external_id_on_add(context, request):
             return request.validated.update({}) 
 
 
+@link_related_validator
 def validate_external_id_on_edit(context, request):
     """Check that `external_id` is consistent with `category` nomenclature if the sample_source is a Benchmarking or Production tissue on edit."""
     existing_properties = get_properties(context)
