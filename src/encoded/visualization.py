@@ -190,11 +190,11 @@ def date_histogram_aggregations(context, request):
 
 DATE_RANGE_PRESETS = {
     'all': lambda today: (None, today),
-    'thismonth': lambda today: (today.replace(day=1), last_day_of_month(today)),
+    'thismonth': lambda today: (today.replace(day=1), today),
     'previousmonth': lambda today: (today.replace(day=1) - relativedelta(months=1), today.replace(day=1) - relativedelta(days=1)),
-    'last3months': lambda today: (today.replace(day=1) - relativedelta(months=2), last_day_of_month(today)),
-    'last6months': lambda today: (today.replace(day=1) - relativedelta(months=5), last_day_of_month(today)),
-    'last12months': lambda today: (today.replace(day=1) - relativedelta(months=11), last_day_of_month(today)),
+    'last3months': lambda today: (today.replace(day=1) - relativedelta(months=2), today),
+    'last6months': lambda today: (today.replace(day=1) - relativedelta(months=5), today),
+    'last12months': lambda today: (today.replace(day=1) - relativedelta(months=11), today),
     'thisyear': lambda today: (datetime(today.year, 1, 1), datetime(today.year, 12, 31)),
     'previousyear': lambda today: (datetime(today.year - 1, 1, 1), datetime(today.year - 1, 12, 31)),
 }
