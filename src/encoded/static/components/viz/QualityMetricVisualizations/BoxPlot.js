@@ -133,7 +133,7 @@ export const BoxPlot = ({
 
             // Instantiate clip paths for the chart content and axes
             defs.append('clipPath')
-                .attr('id', 'clip')
+                .attr('id', 'clip-' + plotId)
                 .append('rect')
                 .attr('x', margins.left)
                 .attr('y', margins.top)
@@ -141,7 +141,7 @@ export const BoxPlot = ({
                 .attr('height', chartHeight - margins.top - margins.bottom);
 
             defs.append('clipPath')
-                .attr('id', 'clipx')
+                .attr('id', 'clipx-' + plotId)
                 .append('rect')
                 .attr('x', 0)
                 .attr('y', chartHeight - margins.bottom)
@@ -150,7 +150,7 @@ export const BoxPlot = ({
                 .attr('transform', 'translate(' + margins.left + ',0)');
 
             defs.append('clipPath')
-                .attr('id', 'clipy')
+                .attr('id', 'clipy-' + plotId)
                 .append('rect')
                 .attr('x', 0)
                 .attr('y', margins.top)
@@ -271,7 +271,7 @@ export const BoxPlot = ({
 
             const gXContainer = svg
                 .append('g')
-                .attr('clip-path', 'url(#clipx)');
+                .attr('clip-path', `url(#clipx-${plotId})`);
 
             const gX = gXContainer
                 .append('g')
@@ -304,7 +304,7 @@ export const BoxPlot = ({
 
             const gYContainer = svg
                 .append('g')
-                .attr('clip-path', 'url(#clipy)');
+                .attr('clip-path', `url(#clipy-${plotId})`);
 
             const gY = gYContainer
                 .append('g')
@@ -315,7 +315,7 @@ export const BoxPlot = ({
             // Group for content inside of the graph
             const svgContent = svg
                 .append('g')
-                .attr('clip-path', 'url(#clip)')
+                .attr('clip-path', `url(#clip-${plotId})`)
                 .attr('id', 'content');
 
             // Anchor the content group to cover the entire chart
