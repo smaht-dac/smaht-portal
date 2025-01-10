@@ -56,13 +56,16 @@ export const capitalize = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
-export const getBadge = (flag) => {
+export const getBadge = (flag, returnDefaultBadge = false) => {
     if (flag === 'Pass') {
         return <span className="badge text-white bg-success">Pass</span>;
     } else if (flag === 'Warn') {
         return <span className="badge text-white bg-warning">Warn</span>;
     } else if (flag === 'Fail') {
         return <span className="badge text-white bg-danger">Fail</span>;
+    } 
+    if (returnDefaultBadge) {
+        return <span className="badge text-white bg-secondary">NA</span>;
     }
     return '';
 };
@@ -138,7 +141,8 @@ export const getFileModalContent = (file, qcInfo) => {
     const filesetLink = '/' + fileset;
 
     const qcValues = file.quality_metrics.qc_values;
-
+    const overallQualityStatus = file.quality_metrics.overall_quality_status || "NA";
+    
     return (
         <div className="qc-modal-content">
             <table className="table table-sm overview table-borderless">
@@ -178,6 +182,10 @@ export const getFileModalContent = (file, qcInfo) => {
                     <tr>
                         <td className="restricted-width">Sample souce</td>
                         <td>{sampleSource}</td>
+                    </tr>
+                    <tr>
+                        <td className="restricted-width">Overall QC status</td>
+                        <td>{getBadge(overallQualityStatus, true)}</td>
                     </tr>
                     {/* {tooltipFields.map((tt, i) => {
                         return (

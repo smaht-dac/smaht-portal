@@ -340,7 +340,7 @@ export const ScatterPlot = ({
                 .attr('fill', (d) => {
                     return pointColor(d.submission_center.replace(" GCC", ""));
                 })
-                .attr('stroke', 'lightgray')
+                .attr('stroke', 'darkgray')
                 // .attr('stroke', (d) => {
                 //     return pointColor(d.submission_center);
                 // })
