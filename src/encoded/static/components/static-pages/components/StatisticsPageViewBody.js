@@ -368,32 +368,46 @@ export const commonParsingFxn = {
             return newDate;
         };
 
-        // Utility function to add months to a date
-        const addMonths = function (date, months) {
-            const newDate = new Date(date);
-            newDate.setMonth(newDate.getMonth() + months);
-            return newDate;
+        // Utility function to get the next occurrence of a specific weekday
+        const getNextWeekday = function (startDate, targetWeekday) {
+            const resultDate = new Date(startDate);
+            while (resultDate.getDay() !== targetWeekday) {
+                resultDate.setDate(resultDate.getDate() + 1);
+            }
+            return resultDate;
         };
-
-        // Utility function to add weeks to a date
-        const addWeeks = function (date, weeks) {
-            return addDays(date, weeks * 7);
-        };
-
-        // Choose the increment function based on the date_increment type
-        const incrementFunc =
-            dateIncrement === "daily"
-                ? addDays
-                : dateIncrement === "weekly"
-                    ? addWeeks
-                    : addMonths;
 
         // Initialize the current date and the end date
-        let currentDate = new Date(fromDate);
+        const startDate = new Date(fromDate);
         const endDate = new Date(untilDate);
+
+        // For weekly, align the start date to the nearest matching weekday with existing data
+        let currentDate;
+        if (dateIncrement === "weekly") {
+            // Find the day of the week for the first available data point
+            const firstExistingDate = sortedData.length > 0
+                ? new Date(forAnalytics ? sortedData[0].google_analytics.for_date : sortedData[0].date)
+                : startDate;
+            const targetWeekday = firstExistingDate.getDay();
+            currentDate = getNextWeekday(startDate, targetWeekday);
+        } else {
+            currentDate = new Date(fromDate);
+        }
 
         // Copy the existing data to a new array
         const completeData = [...sortedData];
+
+        // Function to choose the date increment logic
+        const incrementFunc =
+            dateIncrement === "daily"
+                ? (date) => addDays(date, 1)
+                : dateIncrement === "weekly"
+                    ? (date) => addDays(date, 7)
+                    : (date) => {
+                        const newDate = new Date(date);
+                        newDate.setMonth(newDate.getMonth() + 1);
+                        return newDate;
+                    };
 
         while (currentDate <= endDate) {
             const currentDateString = formatDate(currentDate, 'yyyy-MM-dd');
@@ -418,8 +432,8 @@ export const commonParsingFxn = {
                     });
                 }
             }
-            // Move to the next day, week, or month
-            currentDate = incrementFunc(currentDate, 1);
+            // Move to the next increment (daily, weekly, monthly)
+            currentDate = incrementFunc(currentDate);
         }
 
         // Return the data sorted in descending order (newest to oldest)
