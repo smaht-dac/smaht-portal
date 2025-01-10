@@ -899,6 +899,59 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
 /** QC Visualization styles */
 
+.qc-metrics-data-table {
+    max-height: 370px;
+    overflow-y: auto; 
+}
+
+.qc-metrics-data-table {
+    td, th{
+        white-space: nowrap;
+        font-size: 0.75rem;
+        text-align: left;
+        padding: 0.15rem 0.15rem;
+        line-height: 1.45rem;
+    }
+}
+#qc-metrics-tabs .nav-item .nav-link.active{
+    color: #343741;
+    font-weight: 600;
+    border-top: 4px solid #e99415;
+}
+
+.qc-link {
+	color: #428bca;
+    text-decoration: none;
+	cursor: pointer;
+}
+.qc-link:hover {
+    color: #2a6496;
+    text-decoration: underline;
+}
+
+.boxplot-canvas,
+.scatterplot-canvas {
+    .boxplot-svg,
+    .scatterplot-svg {
+
+        .legend {
+            .legend-item {
+                font-size: 0.75rem;
+            }
+        }
+
+        .data-point:hover {
+            cursor: pointer;
+            fill: black;
+        }
+        .data-point-highlighted {
+            fill: red;
+            stroke: red;
+            z-index: 10000;
+        }
+    }
+}
+
 .plot-group {
     display: flex;
     .boxplot-canvas,
@@ -927,44 +980,28 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         flex-direction: column;
     }
 }
-.popover-boxplot {
-    min-width: 340px;
-    .boxplot-popover-content {
-        .data-row {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 5px;
-            .label {
-                display: flex;
-                flex: 1;
-                font-weight: 600;
-            }
-            .value {
-                display: flex;
-                flex: 1;
-                font-weight: 400;
-            }
-        }
+.popover-d3-plot {
+    min-width: 350px;
+    .d3-popover-content .restricted-width {
+        max-width: 240px;
+    }
+    .d3-popover-content td, .d3-popover-content th{
+        font-size: 0.75rem;
+        text-align: left;
+        padding: 0.1rem 0.1rem;
+        line-height: 1.25rem;
     }
 }
-
-.popover-scatterplot {
-    min-width: 340px;
-    .scatterplot-popover-content {
-        .data-row {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 5px;
-            .label {
-                display: flex;
-                flex: 1;
-                font-weight: 600;
-            }
-            .value {
-                display: flex;
-                flex: 1;
-                font-weight: 400;
-            }
-        }
+.qc-modal-content .overview{
+    font-size: 0.85rem;
+    text-align: left;
+    padding: 0.1rem 0.1rem;
+    line-height: 1.25rem;
+    .restricted-width {
+        width: 140px;
+    }
+    td {
+        padding: .1rem .3rem;
+        text-align: left;
     }
 }

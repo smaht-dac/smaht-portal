@@ -2,45 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
 import { Popover, PopoverHeader, PopoverBody, Overlay } from 'react-bootstrap';
+import { PlotPopoverContent, addPaddingToExtend } from './utils';
 
-const ScatterPlotPopoverContent = ({ qc_info, data = null }) => {
-    // console.log('data: ', data);
-
-    let metrics = [];
-    for (let key in data) {
-        // console.log('key: ', key, typeof data[key]);
-        if (typeof data[key] === 'string') {
-            //     console.log(key, data[key]);
-            metrics = metrics.concat([{ key, value: data[key] }]);
-        }
-    }
-    // console.log('metrics: ', metrics);
-
-    return data ? (
-        <div className="scatterplot-popover-content">
-            {metrics.map((metric, i) => {
-                return (
-                    <div className="data-row" key={i}>
-                        <div className="label">
-                            <span>{metric.key}</span>
-                        </div>
-                        <div className="value">
-                            <span>{metric.value}</span>
-                        </div>
-                    </div>
-                );
-            })}
-            {/* <div className="data-row">
-                <div className="label">
-                    <span>Submission Center</span>
-                </div>
-                <div className="value">
-                    <span>{data.submission_center}</span>
-                </div>
-            </div> */}
-        </div>
-    ) : null;
-};
 
 export const ScatterPlot = ({
     plotId,
@@ -54,13 +17,17 @@ export const ScatterPlot = ({
     customFormat,
     customFilter,
     title = 'Untitled Scatter Plot',
-    thresholds_marks = [],
+    thresholdMarks = [],
     colorLegend = null,
+    updateHighlightedBam,
+    rerenderNumber = 0,
+    handleShowModal,
 }) => {
     const [showOverlay, setShowOverlay] = useState(false);
     const overlayTarget = useRef(null);
-    const { qc_info, qc_results } = data;
+    const { viz_info, qc_info, qc_results } = data;
     const isDrawn = useRef(false);
+    const oldRerenderNumber = useRef(rerenderNumber);
 
     // Assign a new ref to the popover target
     const handleShowOverlay = (e, d) => {
@@ -99,8 +66,16 @@ export const ScatterPlot = ({
     };
 
     useEffect(() => {
-        if (!isDrawn.current) {
+
+        let doRerender = false;
+        if (oldRerenderNumber.current !== rerenderNumber) {
+            oldRerenderNumber.current = rerenderNumber;
+            doRerender = true;
+        }
+
+        if (!isDrawn.current || doRerender) {
             const container = d3.select(containerRef.current);
+            container.selectAll('*').remove();
 
             // Create the SVG containers
             const svgContainer = container
@@ -138,7 +113,7 @@ export const ScatterPlot = ({
                         '), rotate(-90)'
                 )
                 .attr('text-anchor', 'middle')
-                .attr('style', 'font-family: Inter; font-size: 1rem')
+                .attr('style', 'font-family: Inter; font-size: 1.5rem')
                 .text(yAxisLabel ?? qc_info[yAxisField].key);
 
             svgContainer
@@ -153,7 +128,7 @@ export const ScatterPlot = ({
                         ')'
                 )
                 .attr('text-anchor', 'middle')
-                .attr('style', 'font-family: Inter; font-size: 1rem')
+                .attr('style', 'font-family: Inter; font-size: 1.5rem')
                 .text(xAxisLabel ?? qc_info[xAxisField].key);
 
             // Create the SVG group for the chart
@@ -199,20 +174,28 @@ export const ScatterPlot = ({
                 }
 
                 return !!(
-                    d?.quality_metrics[yAxisField] &&
-                    d?.quality_metrics[xAxisField]
+                    d?.quality_metrics.qc_values[yAxisField]['value'] &&
+                    d?.quality_metrics.qc_values[xAxisField]['value']
                 );
             });
 
             // Extent values for the Y axis
             let extentY =
                 customExtentY ??
-                d3.extent(filteredData, (d) => d.quality_metrics[yAxisField]);
+                d3.extent(filteredData, (d) => d.quality_metrics.qc_values[yAxisField]['value']);
+
+            if (!customExtentY) {
+                extentY = addPaddingToExtend(extentY);
+            }
 
             // Extent values for the X axis
             let extentX =
                 customExtentX ??
-                d3.extent(filteredData, (d) => d.quality_metrics[xAxisField]);
+                d3.extent(filteredData, (d) => d.quality_metrics.qc_values[xAxisField]['value']);
+
+            if (!customExtentX) {
+                extentX = addPaddingToExtend(extentX, 0.05, 0.20);
+            }
 
             const x = d3
                 .scaleLinear()
@@ -235,7 +218,7 @@ export const ScatterPlot = ({
                         (chartHeight - margins.bottom) +
                         ')'
                 )
-                .attr('style', 'font-family: Inter; font-size: 0.875rem')
+                .attr('style', 'font-family: Inter; font-size: 1.2rem')
                 .call(xAxis);
 
             const y = d3
@@ -261,7 +244,7 @@ export const ScatterPlot = ({
             const gY = gYContainer
                 .append('g')
                 .attr('transform', 'translate(' + margins.left + ',0)')
-                .attr('style', 'font-family: Inter; font-size: 0.875rem')
+                .attr('style', 'font-family: Inter; font-size: 1.2rem')
                 .call(yAxis);
 
             // Group for content inside of the graph
@@ -288,7 +271,7 @@ export const ScatterPlot = ({
                 );
 
             const submission_centers = new Set(
-                filteredData.map((d) => d.submission_center)
+                filteredData.map((d) => d.submission_center.replace(" GCC", ""))
             );
             // Create color scale for the data points
             const pointColor = d3
@@ -299,7 +282,7 @@ export const ScatterPlot = ({
             // Add horizontal threshold marker lines
             plotElements
                 .selectAll('.horizontalThresholdLines')
-                .data(thresholds_marks?.horizontal ?? [])
+                .data(thresholdMarks?.horizontal ?? [])
                 .enter()
                 .append('line')
                 .attr('x1', 0)
@@ -312,7 +295,7 @@ export const ScatterPlot = ({
             // Add vertical threshold marker lines
             plotElements
                 .selectAll('.verticalThresholdLines')
-                .data(thresholds_marks?.vertical ?? [])
+                .data(thresholdMarks?.vertical ?? [])
                 .enter()
                 .append('line')
                 .attr('x1', (d) => x(d.value))
@@ -328,41 +311,50 @@ export const ScatterPlot = ({
                 .data(filteredData)
                 .enter()
                 .append('circle')
-                .attr('class', 'data-point')
+                .attr('class', (d, i) => {
+                    return 'data-point';
+                })
                 .attr('data-point-index', (d, i) => {
-                    const pointId = plotId + '-' + i;
-                    d['data-point-index'] = pointId;
-                    return pointId;
+                    d['data-point-index'] = d['file_accession'];
+                    return d['file_accession'];
                 })
                 .attr('cy', (d) => {
-                    console.log(
-                        'd.quality_metrics[yAxisField]',
-                        yAxisField,
-                        d.quality_metrics[yAxisField]
-                    );
-                    return y(d.quality_metrics[yAxisField]);
+                    // console.log(
+                    //     'd.quality_metrics[yAxisField]',
+                    //     yAxisField,
+                    //     d.quality_metrics.qc_values[yAxisField]['value']
+                    // );
+                    return y(d.quality_metrics.qc_values[yAxisField]['value']);
                 })
                 .attr('cx', (d) => {
-                    console.log(
-                        d,
-                        'd.quality_metrics[xAxisField]',
-                        xAxisField,
-                        d.quality_metrics[xAxisField],
-                        x(d.quality_metrics[xAxisField])
-                    );
-                    return x(d.quality_metrics[xAxisField]);
+                    // console.log(
+                    //     d,
+                    //     'd.quality_metrics[xAxisField]',
+                    //     xAxisField,
+                    //     d.quality_metrics.qc_values[xAxisField]['value'],
+                    //     x(d.quality_metrics.qc_values[xAxisField]['value'])
+                    // );
+                    return x(d.quality_metrics.qc_values[xAxisField]['value']);
                 })
-                .attr('r', 4)
+                .attr('r', 8)
                 .attr('fill', (d) => {
-                    return pointColor(d.submission_center);
+                    return pointColor(d.submission_center.replace(" GCC", ""));
                 })
-                .attr('stroke', 'black')
+                .attr('stroke', 'lightgray')
+                // .attr('stroke', (d) => {
+                //     return pointColor(d.submission_center);
+                // })
+                .on('click', function (e, d) {
+                    handleShowModal(d);
+                })
                 .on('mouseover', function (e, d) {
                     // Trigger overlay on hover
                     handleShowOverlay(e, d);
+                    updateHighlightedBam(d['file_accession']);
                 })
                 .on('mouseout', function () {
                     setShowOverlay(false);
+                    updateHighlightedBam(null);
                 });
 
             // Add a legend
@@ -411,6 +403,7 @@ export const ScatterPlot = ({
                 .text((d) => d)
                 .attr('x', 25)
                 .attr('y', 10)
+                .attr('style', 'font-family: Inter; font-size: 1.2rem')
                 .attr('text-anchor', 'start')
                 .attr('alignment-baseline', 'middle');
 
@@ -509,25 +502,21 @@ export const ScatterPlot = ({
                 flip={true}>
                 <Popover
                     id="popover-scatterplot"
-                    className="popover-scatterplot">
-                    <PopoverHeader>
+                    className="popover-d3-plot">
+                    {/* <PopoverHeader>
                         {xAxisLabel ?? qc_info[xAxisField].key}:{' '}
                         {new Intl.NumberFormat().format(
-                            overlayTarget.current?.data?.quality_metrics[
-                                xAxisField
-                            ]
+                            overlayTarget.current?.data?.quality_metrics.qc_values[xAxisField]['value']
                         )}
                         <br />
                         {yAxisLabel ?? qc_info[yAxisField].key}:{' '}
                         {new Intl.NumberFormat().format(
-                            overlayTarget.current?.data?.quality_metrics[
-                                yAxisField
-                            ]
+                            overlayTarget.current?.data?.quality_metrics.qc_values[yAxisField]['value']
                         )}
-                    </PopoverHeader>
+                    </PopoverHeader> */}
                     <PopoverBody>
-                        <ScatterPlotPopoverContent
-                            qc_info={qc_info}
+                        <PlotPopoverContent
+                            vizInfo={viz_info}
                             data={overlayTarget?.current?.data}
                         />
                     </PopoverBody>

@@ -44,7 +44,7 @@ def get_qc_overview(context, request):
 
         upload_bucket = request.registry.settings.get("file_upload_bucket")
         # print("------------------------------------")
-        # print(upload_bucket)
+        print(upload_bucket)
         # upload_bucket = "aveit-tibanna-wolf"
 
         if upload_bucket:

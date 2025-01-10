@@ -1,22 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
-
-import { BoxPlotWithFacets } from './BoxPlotWithFacets';
-import { ScatterlotWithFacets } from './ScatterPlotWithFacets';
-import Tab from 'react-bootstrap/Tab';
-import Tabs from 'react-bootstrap/Tabs';
+import { BoxPlot } from './BoxPlots';
+import { ScatterPlot } from './ScatterPlot';
+import { DataTable } from './DataTable';
+import ReactTooltip from 'react-tooltip';
 
 const defaultSelectedQcMetric =
     'samtools_stats:percentage_of_properly_paired_reads';
 const defaultAssay = 'WGS';
 const defaultGrouping = 'submission_center';
 const defaultSampleSource = 'all_tissues';
-const defaultSequencer = 'Illumina NovaSeq X / Illumina NovaSeq X Plus';
+const defaultSequencer = "Illumina NovaSeq X / Illumina NovaSeq X Plus";
 
 export const QualityMetricVisualizations = () => {
     const [qcData, setQcData] = useState(null);
-    const [tab, setTab] = useState('key-metrics');
+    const [vizInfo, setVizInfo] = useState(null);
+    const [highlightedBam, sethighlightedBam] = useState(null);
+    const [selectedQcMetric, setSelectedQcMetric] = useState(
+        defaultSelectedQcMetric
+    );
+    const [selectedGrouping, setSelectedGrouping] = useState(defaultGrouping);
+    const [selectedAssay, setSelectedAssay] = useState(defaultAssay);
+    const [selectedSampleSource, setSelectedSampleSource] = useState(defaultSampleSource);
+    const [selectedSequencer, setSelectedSequencer] = useState(defaultSequencer);
 
     useEffect(() => {
         ajax.load(
@@ -28,6 +35,13 @@ export const QualityMetricVisualizations = () => {
                 }
                 console.log('resp.data: ', resp.data);
                 setQcData(resp.data);
+                setVizInfo(resp.data.viz_info);
+                const defaultSettings = resp.data.viz_info.default_settings.boxplot;
+                setSelectedQcMetric(defaultSettings.selectedQcMetric);
+                setSelectedGrouping(defaultSettings.grouping);
+                setSelectedAssay(defaultSettings.assay);
+                setSelectedSampleSource(defaultSettings.sampleSource);
+                setSelectedSequencer(defaultSettings.sequencer);
             },
             'POST',
             () => {
@@ -36,65 +50,70 @@ export const QualityMetricVisualizations = () => {
         );
     }, []);
 
+    const handleQcMetricChange = (event) => {
+        setSelectedQcMetric(event.target.value);
+    };
+
+    const handleGroupingChange = (event) => {
+        setSelectedGrouping(event.target.value);
+    };
+
+    const handleSampleSourceChange = (event) => {
+        setSelectedSampleSource(event.target.value);
+    };
+
+    const handleSequencerChange = (event) => {
+        setSelectedSequencer(event.target.value);
+    };
+
+    const handleAssayChange = (event) => {
+        const newAssay = event.target.value;
+        setSelectedAssay(newAssay);
+        if(newAssay === defaultAssay){
+            setSelectedQcMetric(defaultSelectedQcMetric);
+        }else{
+            setSelectedQcMetric(vizInfo.facets.qc_metrics[newAssay][0]['derived_from']);
+        }
+    };
+
+    if (qcData) {
+        const { qc_results } = qcData;
+
+        const assaySet = new Set();
+        for (const result of qc_results) {
+            assaySet.add(result.assay);
+        }
+        console.log(vizInfo);
+    }
+
+    const updateHighlightedBam = (bam) => {
+        sethighlightedBam(bam);
+    };
+
+    const customFilter = (
+        d,
+        qualityMetric,
+        assay,
+        tissueOrCellLine,
+        readLenth
+    ) => {
+        const toc = tissueOrCellLine
+            ? d?.tissue_or_cell_line === tissueOrCellLine
+            : true;
+        return (
+            d?.quality_metrics[qualityMetric] &&
+            d?.assay === assay &&
+            toc &&
+            d?.read_length === readLenth
+        );
+    };
+
+    const getKeyLabelOption = (q) => {
+        return <option value={q['key']}>{q['label']}</option>;
+    }
+
     return qcData ? (
         <>
-            <Tabs
-                id="qc-metrics-tabs"
-                activeKey={tab}
-                onSelect={(t) => setTab(t)}
-                className="mb-3">
-                <Tab eventKey="key-metrics" title="Key Metrics">
-                    <h4 className="mt-2">
-                        Sequencing throughput per BAM file (Cell line - Illumina
-                        - WGS)
-                    </h4>
-                    <p className="mb-3">
-                        This overview includes released and unreleased files
-                        from the <strong>cell line</strong> data sets.
-                    </p>
-                    <BoxPlotWithFacets
-                        qcData={qcData}
-                        showFacets={false}
-                        settings={{
-                            selectedQcMetric:
-                                'samtools_stats:raw_total_sequences',
-                            assay: 'WGS',
-                            grouping: 'submission_center',
-                            sampleSource: 'cell_line',
-                            sequencer: 'all_illumina',
-                        }}
-                    />
-
-                    <h4 className="mt-4">
-                        Sequencing throughput per BAM file (Tissues - Illumina -
-                        WGS)
-                    </h4>
-                    <p className="mb-3">
-                        This overview includes released and unreleased files
-                        from the <strong>tissue</strong> data sets.
-                    </p>
-
-                    <BoxPlotWithFacets
-                        qcData={qcData}
-                        showFacets={false}
-                        settings={{
-                            selectedQcMetric:
-                                'samtools_stats:raw_total_sequences',
-                            assay: 'WGS',
-                            grouping: 'submission_center',
-                            sampleSource: 'tissue',
-                            sequencer: 'all_illumina',
-                        }}
-                    />
-                </Tab>
-                <Tab eventKey="all-metrics" title="Metrics - All">
-                    <BoxPlotWithFacets qcData={qcData} />
-                </Tab>
-                <Tab eventKey="metrics-v-metric" title="Metric vs. Metric - All">
-                    <ScatterlotWithFacets qcData={qcData} />
-                </Tab>
-            </Tabs>
-
             {/* <h4>
                 Sequencing throughput per BAM file (Cell line - Illumina - WGS)
             </h4>
@@ -642,7 +661,7 @@ export const QualityMetricVisualizations = () => {
                 />
             </div> */}
 
-            {/* <h4 className="mt-5">Interactive visualization</h4>
+            <h4 className="mt-5">Interactive visualization</h4>
             <div className="bg-light">
                 <div className="row">
                     <div className="col-6">
@@ -742,7 +761,7 @@ export const QualityMetricVisualizations = () => {
                         highlightedBam={highlightedBam}
                     />
                 </div>
-            </div> */}
+            </div>
         </>
     ) : (
         <div className="loader-container text-center m-5">
@@ -753,3 +772,10 @@ export const QualityMetricVisualizations = () => {
         </div>
     );
 };
+
+function formatLargeInteger(num) {
+    if (num >= 1000000000) return (num / 1000000000).toFixed(1) + 'B';
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+}

@@ -2,62 +2,28 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
 import { Popover, PopoverHeader, PopoverBody, Overlay } from 'react-bootstrap';
-
-const BoxPlotPopoverContent = ({ qc_info, data = null }) => {
-    // console.log('data: ', data);
-
-    let metrics = [];
-    for (let key in data) {
-        // console.log('key: ', key, typeof data[key]);
-        if (typeof data[key] === 'string') {
-            //     console.log(key, data[key]);
-            metrics = metrics.concat([{ key, value: data[key] }]);
-        }
-    }
-    // console.log('metrics: ', metrics);
-
-    return data ? (
-        <div className="boxplot-popover-content">
-            {metrics.map((metric, i) => {
-                return (
-                    <div className="data-row" key={i}>
-                        <div className="label">
-                            <span>{metric.key}</span>
-                        </div>
-                        <div className="value">
-                            <span>{metric.value}</span>
-                        </div>
-                    </div>
-                );
-            })}
-            {/* <div className="data-row">
-                <div className="label">
-                    <span>Submission Center</span>
-                </div>
-                <div className="value">
-                    <span>{data.submission_center}</span>
-                </div>
-            </div> */}
-        </div>
-    ) : null;
-};
+import { PlotPopoverContent, addPaddingToExtend } from './utils';
 
 export const BoxPlot = ({
     plotId,
     data,
-    QCField,
-    getQCCategory = (d) => d.submission_center,
+    qcField,
+    qcCategory = 'submission_center',
     xAxisLabel = 'Submission Center',
     customExtent,
     customFormat,
     customFilter,
     title = 'Untitled Box Plot',
-    thresholds_marks = [],
+    thresholdMarks = [],
+    updateHighlightedBam,
+    rerenderNumber = 0,
+    handleShowModal,
 }) => {
     const [showOverlay, setShowOverlay] = useState(false);
     const overlayTarget = useRef(null);
-    const { qc_info, qc_results } = data;
+    const { viz_info, qc_info, qc_results } = data;
     const isDrawn = useRef(false);
+    const oldRerenderNumber = useRef(rerenderNumber);
 
     // Assign a new ref to the popover target
     const handleShowOverlay = (e, d) => {
@@ -95,14 +61,16 @@ export const BoxPlot = ({
         left: 100,
     };
 
-    // Define a width for the box plot
-    const boxWidth = 80;
-    const endLineWidth = boxWidth / 2;
-
     useEffect(() => {
-        if (!isDrawn.current) {
-            const container = d3.select(containerRef.current);
+        let doRerender = false;
+        if (oldRerenderNumber.current !== rerenderNumber) {
+            oldRerenderNumber.current = rerenderNumber;
+            doRerender = true;
+        }
 
+        if (!isDrawn.current || doRerender) {
+            const container = d3.select(containerRef.current);
+            container.selectAll('*').remove();
             // Create the SVG containers
             const svgContainer = container
                 .append('svg')
@@ -139,8 +107,8 @@ export const BoxPlot = ({
                         '), rotate(-90)'
                 )
                 .attr('text-anchor', 'middle')
-                .attr('style', 'font-family: Inter; font-size: 1rem')
-                .text(qc_info[QCField].key);
+                .attr('style', 'font-family: Inter; font-size: 1.5rem')
+                .text(qc_info[qcField].key);
 
             svgContainer
                 .append('text')
@@ -154,7 +122,7 @@ export const BoxPlot = ({
                         ')'
                 )
                 .attr('text-anchor', 'middle')
-                .attr('style', 'font-family: Inter; font-size: 1rem')
+                .attr('style', 'font-family: Inter; font-size: 1.5rem')
                 .text(xAxisLabel);
 
             // Create the SVG group for the chart
@@ -198,17 +166,24 @@ export const BoxPlot = ({
                 if (customFilter) {
                     return customFilter(d);
                 }
-                const value = d?.quality_metrics[QCField];
-                return value;
+                //const value = d?.quality_metrics["qc_values"][qcField]["value"];
+                return d;
             });
 
             // Log the data being used
-            // console.log('Data for', QCField, ': ', filteredData);
+            // console.log('Data for', qcField, ': ', filteredData);
 
             // Get minimum and maximum values for the quality metric
             let extent =
                 customExtent ??
-                d3.extent(filteredData, (d) => d.quality_metrics[QCField]);
+                d3.extent(
+                    filteredData,
+                    (d) => d.quality_metrics.qc_values[qcField]['value']
+                );
+            // add padding to the extent
+            if (!customExtent) {
+                extent = addPaddingToExtend(extent);
+            }
 
             // Group data by the QC category
             let groupedData = d3.rollup(
@@ -217,7 +192,10 @@ export const BoxPlot = ({
                     const q1 = d3.quantile(
                         d
                             .map(function (g) {
-                                const value = g.quality_metrics[QCField];
+                                const value =
+                                    g.quality_metrics.qc_values[qcField][
+                                        'value'
+                                    ];
                                 // if (value < 0) console.log('value under 0', g);
                                 return value;
                             })
@@ -227,7 +205,10 @@ export const BoxPlot = ({
                     const median = d3.quantile(
                         d
                             .map(function (g) {
-                                const value = g.quality_metrics[QCField];
+                                const value =
+                                    g.quality_metrics.qc_values[qcField][
+                                        'value'
+                                    ];
                                 // if (value < 0) console.log('value under 0', g);
                                 return value;
                             })
@@ -237,7 +218,8 @@ export const BoxPlot = ({
                     const q3 = d3.quantile(
                         d
                             .map(function (g) {
-                                return g.quality_metrics[QCField];
+                                return g
+                                    .quality_metrics.qc_values[qcField]['value'];
                             })
                             .sort(d3.ascending),
                         0.75
@@ -246,7 +228,7 @@ export const BoxPlot = ({
                     // Calculate the min and max point in the group
                     const [minVal, maxVal] = d3.extent(
                         d,
-                        (g) => g.quality_metrics[QCField]
+                        (g) => g.quality_metrics.qc_values[qcField]['value']
                     );
 
                     const interQuantileRange = q3 - q1;
@@ -266,15 +248,21 @@ export const BoxPlot = ({
                         length: d.length,
                     };
                 },
-                getQCCategory
+                (d) => d[qcCategory]
             );
 
-            // console.log('grouped: ', groupedData);
+            //console.log('grouped: ', groupedData);
 
             const x = d3
                 .scaleBand()
                 .domain(Array.from(groupedData.keys()).sort())
                 .range([0, chartWidth - margins.left - margins.right]);
+
+            // Define a width for the box plot depending on the number of groups
+            const boxWidth = Math.min(80, x.bandwidth() / 2);
+            const endLineWidth = boxWidth / 2;
+
+            //console.log('x: ', (chartWidth - margins.left - margins.right)/groupedData.size);
 
             const xAxis = d3
                 .axisBottom(x)
@@ -295,7 +283,7 @@ export const BoxPlot = ({
                         (chartHeight - margins.bottom) +
                         ')'
                 )
-                .attr('style', 'font-family: Inter; font-size: 0.875rem')
+                .attr('style', 'font-family: Inter; font-size: 1.2rem')
                 .call(xAxis);
 
             const y = d3
@@ -321,7 +309,7 @@ export const BoxPlot = ({
             const gY = gYContainer
                 .append('g')
                 .attr('transform', 'translate(' + margins.left + ',0)')
-                .attr('style', 'font-family: Inter; font-size: 0.875rem')
+                .attr('style', 'font-family: Inter; font-size: 1.2rem')
                 .call(yAxis);
 
             // Group for content inside of the graph
@@ -522,7 +510,7 @@ export const BoxPlot = ({
             // Add horizontal threshold marker lines
             plotElements
                 .selectAll('.horizontalThresholdLines')
-                .data(thresholds_marks?.horizontal ?? [])
+                .data(thresholdMarks?.horizontal ?? [])
                 .enter()
                 .append('line')
                 .attr('x1', margins.left)
@@ -533,9 +521,10 @@ export const BoxPlot = ({
                 .attr('stroke', (d) => d.fill);
 
             // Add vertical threshold marker lines
+
             plotElements
                 .selectAll('.verticalThresholdLines')
-                .data(thresholds_marks?.vertical ?? [])
+                .data(thresholdMarks?.vertical ?? [])
                 .enter()
                 .append('line')
                 .attr('x1', (d) => x(d.value))
@@ -551,33 +540,38 @@ export const BoxPlot = ({
                 .data(filteredData)
                 .enter()
                 .append('circle')
-                .attr('class', 'data-point')
+                .attr('class', (d, i) => {
+                    return 'data-point';
+                })
                 .attr('data-point-index', (d, i) => {
-                    const pointId = i;
-                    d['data-point-index'] = pointId;
-                    return pointId;
+                    d['data-point-index'] = d['file_accession'];
+                    return d['file_accession'];
                 })
                 .attr('cy', (d) => {
-                    const value = d.quality_metrics[QCField];
+                    const value = d.quality_metrics.qc_values[qcField]['value'];
                     return y(value);
                 })
                 .attr(
                     'cx',
                     (d) =>
-                        x(getQCCategory(d)) +
+                        x(d[qcCategory]) +
                         margins.left +
                         x.bandwidth() / 2 +
                         Math.random() * jitterWidth -
                         jitterWidth / 2
                 )
-                .attr('r', 4)
+                .attr('r', 6)
                 .attr('fill', (d) => {
                     return 'rgba(199, 205, 255, 0.5)';
                 })
                 .attr('stroke', 'black')
+                .on('click', function (e, d) {
+                    handleShowModal(d);
+                })
                 .on('mouseover', function (e, d) {
                     // Trigger overlay on hover
                     handleShowOverlay(e, d);
+                    updateHighlightedBam(d['file_accession']);
                 })
                 .on('mouseout', function () {
                     setShowOverlay(false);
@@ -585,6 +579,7 @@ export const BoxPlot = ({
                     //     .style('opacity', 0)
                     //     .style('left', '-100vw')
                     //     .style('top', '0px');
+                    updateHighlightedBam(null);
                 });
 
             // Zoom and panning behavior
@@ -664,18 +659,17 @@ export const BoxPlot = ({
                 show={showOverlay}
                 placement="bottom"
                 flip={true}>
-                <Popover id="popover-boxplot" className="popover-boxplot">
+                <Popover id="popover-boxplot" className="popover-d3-plot">
                     <PopoverHeader>
-                        {/* {qc_info[QCField].key}: */}
+                        {/* {qc_info[qcField].key}: */}
                         {new Intl.NumberFormat().format(
-                            overlayTarget.current?.data?.quality_metrics[
-                                QCField
-                            ]
+                            overlayTarget.current?.data?.quality_metrics
+                                .qc_values[qcField]['value']
                         )}
                     </PopoverHeader>
                     <PopoverBody>
-                        <BoxPlotPopoverContent
-                            qc_info={qc_info}
+                        <PlotPopoverContent
+                            vizInfo={viz_info}
                             data={overlayTarget?.current?.data}
                         />
                     </PopoverBody>
