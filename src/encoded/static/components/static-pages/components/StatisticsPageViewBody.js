@@ -64,19 +64,6 @@ export const commonParsingFxn = {
         return parsedBuckets;
     },
     /**
-     * Doesn't add up totals, just renames 'count' property to 'total' property.
-     * MODIFIES IN PLACE.
-     */
-    'countsToCountTotals' : function(parsedBuckets, excludeChildren = false){
-        parsedBuckets.forEach(function(bkt){
-            bkt.total = bkt.count;
-            bkt.children.forEach(function(c){
-                c.total = c.count;
-            });
-        });
-        return parsedBuckets;
-    },
-    /**
      * MODIFIES OBJECTS IN PLACE
      */
     'fillMissingChildBuckets' : function(aggsList, subAggTerms = [], externalTermMap = {}){
@@ -106,69 +93,14 @@ export const commonParsingFxn = {
     },
     /**
      * Converts date_histogram, histogram, or range aggregations from ElasticSearch result into similar but simpler bucket structure.
-     * Sets 'count' to be 'doc_count' value from histogram.
-     *
-     * @param {{ key_as_string: string, doc_count: number, group_by?: { buckets: { doc_count: number, key: string  }[] } }[]} intervalBuckets - Raw aggregation results returned from ElasticSearch
-     * @param {Object.<string>} [externalTermMap] - Object which maps external terms to true (external data) or false (internal data).
-     * @param {boolean} [excludeChildren=false] - If true, skips aggregating up children to increase performance very slightly.
-     */
-    'bucketDocCounts' : function(intervalBuckets, groupByField, externalTermMap, excludeChildren = false){
-        const subBucketKeysToDate = new Set();
-        const aggsList = intervalBuckets.map(function(bucket, index){
-            const {
-                doc_count,
-                key_as_string,
-                [groupByField] : { buckets: subBuckets = [] } = {}
-            } = bucket;
-
-            if (excludeChildren === true){
-                return {
-                    'date' : key_as_string.split('T')[0], // Sometimes we get a time back with date when 0 doc_count; correct it to date only.
-                    'count' : doc_count
-                };
-            } else {
-                _.pluck(subBuckets, 'key').forEach(function(k){
-                    subBucketKeysToDate.add(k);
-                });
-
-                const children = [ ...subBucketKeysToDate ].map(function(term){
-                    // Create a parsed 'bucket' even if none returned from ElasticSearch agg but it has appeared earlier.
-                    const subBucket = _.findWhere(subBuckets, { 'key' : term });
-                    const count = ((subBucket && subBucket.doc_count) || 0);
-
-                    return { term, count };
-                });
-
-                return {
-                    'date' : key_as_string.split('T')[0], // Sometimes we get a time back with date when 0 doc_count; correct it to date only.
-                    'count' : doc_count,
-                    'children' : children
-                };
-            }
-        });
-
-        if (subBucketKeysToDate.size === 0){ // No group by defined, fill with dummy child for each.
-            _.forEach(aggsList, function(dateBucket){
-                dateBucket.children = [{ term : null, count : dateBucket.count }];
-            });
-            subBucketKeysToDate.add(null);
-        }
-
-        // Ensure each datum has all child terms, even if blank.
-        commonParsingFxn.fillMissingChildBuckets(aggsList, _.difference([ ...subBucketKeysToDate ], (externalTermMap && _.keys(externalTermMap)) || [] ));
-
-        return aggsList;
-    },
-    /**
-     * Converts date_histogram, histogram, or range aggregations from ElasticSearch result into similar but simpler bucket structure.
      * Sets 'count' to be 'bucket.total_files.value' value from histogram.
      *
      * @param {{ key_as_string: string, doc_count: number, group_by?: { buckets: { doc_count: number, key: string  }[] } }[]} intervalBuckets - Raw aggregation results returned from ElasticSearch
      * @param {Object.<string>} [externalTermMap] - Object which maps external terms to true (external data) or false (internal data).
      */
-    'bucketTotalFilesCounts' : function(intervalBuckets, groupByField, externalTermMap){
+    'bucketTotalFilesCounts' : function(intervalBuckets, groupByField, externalTermMap, fromDate, toDate, interval){
         const subBucketKeysToDate = new Set();
-        const aggsList = intervalBuckets.map(function(bucket, index){
+        let aggsList = intervalBuckets.map(function(bucket, index){
             const {
                 key_as_string,
                 total_files : { value: totalFiles = 0 } = {},
@@ -193,16 +125,18 @@ export const commonParsingFxn = {
             };
         });
 
+        aggsList = commonParsingFxn.add_missing_dates(aggsList, fromDate, toDate, interval, 'submission');
+
         // Ensure each datum has all child terms, even if blank.
         commonParsingFxn.fillMissingChildBuckets(aggsList, _.difference([ ...subBucketKeysToDate ], (externalTermMap && _.keys(externalTermMap)) || [] ));
 
         return aggsList;
     },
-    'bucketTotalFilesVolume' : function(intervalBuckets, groupByField, externalTermMap){
+    'bucketTotalFilesVolume' : function(intervalBuckets, groupByField, externalTermMap, fromDate, toDate, interval){
         const gigabyte = 1024 * 1024 * 1024;
         const megabyte = 1024 * 1024;
         const subBucketKeysToDate = new Set();
-        const aggsList = intervalBuckets.map(function(bucket, index){
+        let aggsList = intervalBuckets.map(function(bucket, index){
             const {
                 key_as_string,
                 total_files_volume : { value: totalFilesVolume = 0 } = {},
@@ -227,6 +161,8 @@ export const commonParsingFxn = {
                 'children' : children
             };
         });
+
+        aggsList = commonParsingFxn.add_missing_dates(aggsList, fromDate, toDate, interval, 'submission');
 
         // Ensure each datum has all child terms, even if blank.
         commonParsingFxn.fillMissingChildBuckets(aggsList, _.difference(Array.from(subBucketKeysToDate), (externalTermMap && _.keys(externalTermMap)) || [] ));
@@ -448,12 +384,12 @@ const aggregationsToChartData = {
         'requires'  : 'FileUploading',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = resp.interval[0] + "_interval_date_created"/*"weekly_interval_file_status_tracking.uploading"*/;
+            const { interval: [interval], from_date, to_date } = resp;
+            const agg = interval + "_interval_date_created"/*"_interval_file_status_tracking.uploading"*/;
             const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
-            let counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, props.externalTermMap);
-            counts = commonParsingFxn.add_missing_dates(counts, resp.from_date, resp.to_date, resp.interval[0], 'submission');
+            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, props.externalTermMap, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(counts, props.cumulativeSum);
         }
@@ -462,12 +398,12 @@ const aggregationsToChartData = {
         'requires'  : 'FileUploading',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = resp.interval[0] + "_interval_date_created"/*"weekly_interval_file_status_tracking.uploading"*/;
+            const { interval: [interval], from_date, to_date } = resp;
+            const agg = interval + "_interval_date_created"/*"_interval_file_status_tracking.uploading"*/;
             const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
-            let volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, props.externalTermMap);
-            volumes = commonParsingFxn.add_missing_dates(volumes, resp.from_date, resp.to_date, resp.interval[0], 'submission');
+            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, props.externalTermMap, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(volumes, props.cumulativeSum);
         }
@@ -476,12 +412,12 @@ const aggregationsToChartData = {
         'requires'  : 'FileUploaded',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = resp.interval[0] + "_interval_file_status_tracking.uploaded";
+            const { interval: [interval], from_date, to_date } = resp;
+            const agg = interval + "_interval_file_status_tracking.uploaded";
             const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
-            let counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, props.externalTermMap);
-            counts = commonParsingFxn.add_missing_dates(counts, resp.from_date, resp.to_date, resp.interval[0], 'submission');
+            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, props.externalTermMap, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(counts, props.cumulativeSum);
         }
@@ -490,12 +426,12 @@ const aggregationsToChartData = {
         'requires'  : 'FileUploaded',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = resp.interval[0] + "_interval_file_status_tracking.uploaded";
+            const { interval: [interval], from_date, to_date } = resp;
+            const agg = interval + "_interval_file_status_tracking.uploaded";
             const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
-            let volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, props.externalTermMap);
-            volumes = commonParsingFxn.add_missing_dates(volumes, resp.from_date, resp.to_date, resp.interval[0], 'submission');
+            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, props.externalTermMap, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(volumes, props.cumulativeSum);
         }
@@ -504,12 +440,12 @@ const aggregationsToChartData = {
         'requires'  : 'FileReleased',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = resp.interval[0] + "_interval_file_status_tracking.released";
+            const { interval: [interval], from_date, to_date } = resp;
+            const agg = interval + "_interval_file_status_tracking.released";
             const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
-            let counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, props.externalTermMap);
-            counts = commonParsingFxn.add_missing_dates(counts, resp.from_date, resp.to_date, resp.interval[0], 'submission');
+            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, props.externalTermMap, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(counts, props.cumulativeSum);
         }
@@ -518,12 +454,12 @@ const aggregationsToChartData = {
         'requires'  : 'FileReleased',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = resp.interval[0] + "_interval_file_status_tracking.released";
+            const { interval: [interval], from_date, to_date } = resp;
+            const agg = interval + "_interval_file_status_tracking.released";
             const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
-            let volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, props.externalTermMap);
-            volumes = commonParsingFxn.add_missing_dates(volumes, resp.from_date, resp.to_date, resp.interval[0], 'submission');
+            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, props.externalTermMap, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(volumes, props.cumulativeSum);
         }
