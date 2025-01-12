@@ -12,7 +12,7 @@ import DropdownButton from 'react-bootstrap/esm/DropdownButton';
 import Modal from 'react-bootstrap/esm/Modal';
 
 import { Checkbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Checkbox';
-import { console, ajax, analytics, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { console, ajax, JWT, analytics, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { Term } from './../../util/Schemas';
 import { ColumnCombiner, CustomColumnController, SortController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/EmbeddedSearchView';
 import { ControlsAndResults } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/ControlsAndResults';
@@ -1252,8 +1252,14 @@ export function UsageStatsView(props){
     const sessionsByCountryChartHeight = ['page_title', 'page_url'].indexOf(countBy.sessions_by_country) > -1 ? 500 : commonContainerProps.defaultHeight;
     const enableSessionByCountryChartTooltipItemClick = (countBy.sessions_by_country === 'page_url');
 
+    let enableDetail = false;
+    const userGroups = (session && JWT.getUserGroups()) || null;
+    if (userGroups && userGroups.indexOf('admin') !== -1) {
+        enableDetail = true
+    }
+
     const isSticky = true; //!_.any(_.values(tableToggle), (v)=> v === true);
-    const commonTableProps = { windowWidth, href, session, schemas, transposed, dateIncrement, cumulativeSum, hideEmptyColumns, chartToggles };
+    const commonTableProps = { windowWidth, href, session, schemas, transposed, dateIncrement, cumulativeSum, hideEmptyColumns, chartToggles, enableDetail };
     
     let topFileSetLimit = 0;
     if (countBy.top_file_set_downloads && countBy.top_file_set_downloads.indexOf('top_files_') === 0) {
@@ -1811,9 +1817,10 @@ const ChartContainerTitle = function ({ titleMap, countBy, chartKey }) {
  */
 export const StatisticsTable = React.memo((props) => {
     const {
-        data, termColHeader = null, valueLabel = null, session, schemas, containerId = '', 
-        href, dateIncrement, transposed = false, windowWidth, cumulativeSum, hideEmptyColumns,
-        limit = 0, excludeNones = false // limit and excludeNones are evaluated for only transposed data
+        data, termColHeader = null, valueLabel = null, schemas, containerId = '', 
+        href, dateIncrement, transposed = false, cumulativeSum, hideEmptyColumns,
+        session, enableDetail = false, limit = 0, excludeNones = false, // limit and excludeNones are evaluated for only transposed data
+        windowWidth
      } = props;
     const [columns, setColumns] = useState({});
     const [columnDefinitions, setColumnDefinitions] = useState([]);
@@ -1871,7 +1878,7 @@ export const StatisticsTable = React.memo((props) => {
                     const overallSum = roundValue(result.overall_sum || 0, valueLabel);
                     const tooltip = `${result.display_title} (${overallSum})`;
 
-                    return transposed ? (
+                    return transposed || !enableDetail ? (
                         <span className="value text-truncate text-start" data-tip={tooltip.length > 40 ? tooltip : null}>
                             {result.display_title} <strong>({overallSum})</strong>
                         </span>
@@ -1908,7 +1915,7 @@ export const StatisticsTable = React.memo((props) => {
                     widthMap: { 'lg': 140, 'md': 120, 'sm': 120 },                  
                     render: function (result) {
                         if (result[dataKey] !== 0) {
-                            return (
+                            return enableDetail ? (
                                 <a href="#"
                                     onClick={(e) => {
                                         setModalForDate(transposed ? dataKey : result.display_title);
@@ -1919,7 +1926,7 @@ export const StatisticsTable = React.memo((props) => {
                                     className="value text-end fw-bold">
                                     {roundValue(result[dataKey], valueLabel)}
                                 </a>
-                            );
+                            ) : (<span className="value text-end">{roundValue(result[dataKey], valueLabel)}</span>);
                         } else {
                             return <span className="value text-end">0</span>
                         }
@@ -1993,6 +2000,23 @@ export const StatisticsTable = React.memo((props) => {
         </React.Fragment>
     );
 });
+StatisticsTable.propTypes = {
+    data: PropTypes.array.isRequired,
+    termColHeader: PropTypes.string,
+    valueLabel: PropTypes.string,
+    schemas: PropTypes.object,
+    containerId: PropTypes.string,
+    href: PropTypes.string,
+    dateIncrement: PropTypes.string.oneOf(['daily', 'monthly', 'yearly']),
+    transposed: PropTypes.bool,
+    cumulativeSum: PropTypes.bool,
+    hideEmptyColumns: PropTypes.bool,
+    session: PropTypes.object,
+    enableDetail: PropTypes.bool,
+    limit: PropTypes.number,
+    excludeNones: PropTypes.bool,
+    windowWidth: PropTypes.number
+};
 
 /**
  * displays tracking item ajax-fetched in ItemDetailList
