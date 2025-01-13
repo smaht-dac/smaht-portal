@@ -290,7 +290,7 @@ const BrowseViewSearchTable = (props) => {
                 <>
                     File
                     <TypeColumnTitlePopover
-                        className="pb-1 px-1 filename-popover-color"
+                        className="pb-08 px-1 filename-popover-color"
                         popID="type-title-popover"
                         tooltip="Click for more information">
                         <img
@@ -322,7 +322,7 @@ const BrowseViewSearchTable = (props) => {
         },
         // Donor
         donors: {
-            widthMap: { lg: 181, md: 181, sm: 181 },
+            widthMap: { lg: 102, md: 102, sm: 102 },
             render: function (result, parentProps) {
                 const { donors: { 0: { display_title } = {} } = [] } =
                     result || {};
