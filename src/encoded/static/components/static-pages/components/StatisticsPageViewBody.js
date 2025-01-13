@@ -1031,6 +1031,7 @@ export class SubmissionStatsViewController extends React.PureComponent {
             else
                 params.date_range = `custom|${props.currentDateRangeFrom || ''}|${props.currentDateRangeTo || ''}`;
         }
+        if (props.currentDateHistogramInterval) { params.date_histogram_interval = props.currentDateHistogramInterval; }
         params.date_histogram = Array.isArray(date_histogram) ? date_histogram : [date_histogram];
         const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
 
@@ -1056,7 +1057,8 @@ export class SubmissionStatsViewController extends React.PureComponent {
                 pastProps.currentGroupBy !== nextProps.currentGroupBy ||
                 pastProps.currentDateRangePreset !== nextProps.currentDateRangePreset ||
                 pastProps.currentDateRangeFrom !== nextProps.currentDateRangeFrom ||
-                pastProps.currentDateRangeTo !== nextProps.currentDateRangeTo
+                pastProps.currentDateRangeTo !== nextProps.currentDateRangeTo ||
+                pastProps.currentDateHistogramInterval !== nextProps.currentDateHistogramInterval 
             );
         }
     };
@@ -1578,6 +1580,7 @@ export function SubmissionsStatsView(props) {
         loadingStatus, mounted, session, windowWidth,
         currentGroupBy, groupByOptions, handleGroupByChange,
         currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeOptions, handleDateRangeChange,
+        currentDateHistogramInterval, dateHistogramIntervalOptions, handleDateHistogramIntervalChange,
         // Passed in from StatsChartViewAggregator:
         files_uploading, file_volume_uploading,  files_uploaded, file_volume_uploaded, files_released, file_volume_released,
         chartToggles, smoothEdges, width, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
@@ -1603,7 +1606,9 @@ export function SubmissionsStatsView(props) {
     const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter, cumulativeSum, xDomain, yAxisScale, yAxisPower };
     const groupByProps = {
         currentGroupBy, groupByOptions, handleGroupByChange,
-        currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeOptions, handleDateRangeChange, loadingStatus
+        currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeOptions, handleDateRangeChange,
+        currentDateHistogramInterval, dateHistogramIntervalOptions, handleDateHistogramIntervalChange,
+        loadingStatus
     };
     const error = currentDateRangeFrom && currentDateRangeTo && (currentDateRangeFrom > currentDateRangeTo) ? 'Invalid date range' : null;
 
