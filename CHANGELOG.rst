@@ -17,7 +17,7 @@ Change Log
 
 * New endpoint /recent_files_summary which, by default, returns info for files released
   within the past three months grouped by release-date, cell-line or donor, and 
-  ile-description. The specific fields used for these groupings are:
+  file-description. The specific fields used for these groupings are:
   - release-date: file_status_tracking.released
   - cell-line: file_sets.libraries.analytes.samples.sample_sources.cell_line.code
   - donor: donors.display_title
@@ -31,6 +31,7 @@ Change Log
   - src/encoded/elasticsearch_utils.py (maybe move to dcicutils eventually)
   - src/encoded/endpoint_utils.py (maybe move to dcicutils eventually)
   This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1192
+  - FYI commit before recent (2025-01-13) change for additional tissue info: bf7ed2bcb9df387721fd329e36e8c15b97a43681
 
 
 0.123.0

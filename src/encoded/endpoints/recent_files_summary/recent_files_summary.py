@@ -1,8 +1,9 @@
 from copy import deepcopy
 from pyramid.request import Request as PyramidRequest, Response as PyramidResponse
-from typing import List, Optional
+from typing import Callable, List, Optional
 from dcicutils.misc_utils import normalize_spaces
 from encoded.endpoints.elasticsearch_utils import (
+        add_additional_field_to_retrieve_to_elasticsearch_aggregation_query,
         add_debugging_to_elasticsearch_aggregation_query,
         create_elasticsearch_aggregation_query,
         merge_elasticsearch_aggregation_results,
@@ -56,7 +57,9 @@ def recent_files_summary_endpoint(context, request):
     return results
 
 
-def recent_files_summary(request: PyramidRequest, troubleshooting: bool = True) -> dict:
+def recent_files_summary(request: PyramidRequest,
+                         troubleshooting: bool = False,
+                         custom_execute_aggregation_query: Optional[Callable] = None) -> dict:
     """
     This supports the (new as of 2024-12)  /recent_files_summary endpoint (for C4-1192) to return,
     by default, info for files released withing the past three months grouped by release-date,
@@ -87,6 +90,8 @@ def recent_files_summary(request: PyramidRequest, troubleshooting: bool = True) 
     max_buckets = request_arg_bool(request, "max_buckets", AGGREGATION_MAX_BUCKETS)
     include_queries = request_arg_bool(request, "include_queries", request_arg_bool(request, "include_query", True))
     include_missing = request_arg_bool(request, "include_missing", request_arg_bool(request, "novalues"))
+    include_tissue_info = request_arg_bool(request, "include_tissue_info", True)
+    tissue_info_property_name = request_arg(request, "tissue_info_property_name", "sample_summary.tissues")
     nocells = request_arg_bool(request, "nocells", request_arg_bool(request, "nocell", True)) # N.B. default True
     nomixtures = request_arg_bool(request, "nomixtures", request_arg_bool(request, "nomixture"))
     nodonors = request_arg_bool(request, "nodonors", request_arg_bool(request, "nodonor"))
@@ -169,7 +174,7 @@ def recent_files_summary(request: PyramidRequest, troubleshooting: bool = True) 
 
     def create_aggregation_query(aggregation_fields: List[str]) -> dict:
 
-        nonlocal date_property_name, max_buckets, include_missing, favor_donor, troubleshoot_elasticsearch
+        nonlocal date_property_name, max_buckets, include_missing, favor_donor, troubleshoot_elasticsearch, include_tissue_info
 
         aggregations = []
         if not isinstance(aggregation_fields, list):
@@ -261,6 +266,9 @@ def recent_files_summary(request: PyramidRequest, troubleshooting: bool = True) 
 
         if troubleshoot_elasticsearch:
             add_debugging_to_elasticsearch_aggregation_query(aggregation_query[date_property_name])
+        if include_tissue_info:
+            add_additional_field_to_retrieve_to_elasticsearch_aggregation_query(aggregation_query[date_property_name],
+                                                                                tissue_info_property_name)
 
         return aggregation_query[date_property_name]
 
@@ -303,6 +311,10 @@ def recent_files_summary(request: PyramidRequest, troubleshooting: bool = True) 
         return aggregation_query[date_property_name]
 
     def execute_aggregation_query(request: PyramidRequest, query: str, aggregation_query: dict) -> str:
+        nonlocal custom_execute_aggregation_query
+        if callable(custom_execute_aggregation_query):
+            # For testing/mocking ONLY.
+            return custom_execute_aggregation_query(request, query, aggregation_query)
         query += "&from=0&limit=0"  # needed for aggregation query to not return the actual/individual item results.
         request = snovault_make_search_subreq(request, path=query, method="GET")
         results = snovault_search(None, request, custom_aggregations=aggregation_query)
@@ -320,6 +332,38 @@ def recent_files_summary(request: PyramidRequest, troubleshooting: bool = True) 
             if isinstance(items := normalized_results.get("items"), list):
                 for element in items:
                     fixup_names_values_for_normalized_results(element)
+
+    def hoist_items_additional_value_up_one_level(data: dict,
+                                                  items_property_name: Optional[str] = None,
+                                                  additional_value_property_name: Optional[str] = None) -> None:
+        """
+        The way the additional tissue info works (i.e. sample_summary.tissues) it is included in the ElasticSearch
+        results at the inner-most (hit) level. The normalize_elasticsearch_aggregation_results function puts these
+        in the additional_value property there, but we don't want these values at that inner-most level, i.e. at the
+        level of release_tracker_description, but rather one level up at the donor level (i.e. donors.display_title).
+        So this hoists these up to that level, but only if their values are all the same, which is practice they are.
+        """
+        if not isinstance(items_property_name, str):
+            items_property_name = "items"
+        if isinstance(data, dict) and isinstance(items := data.get(items_property_name), list):
+            if not isinstance(additional_value_property_name, str):
+                additional_value_property_name = "additional_value"
+            for item in items:
+                if isinstance(item.get(items_property_name), list):
+                    hoist_items_additional_value_up_one_level(item)
+            common_additional_value = None
+            for item in items:
+                if (additional_value := item.get(additional_value_property_name)) is None:
+                    break
+                if common_additional_value is None:
+                    common_additional_value = additional_value
+                elif common_additional_value != additional_value:
+                    common_additional_value = None
+                    break
+            if common_additional_value is not None:
+                data[additional_value_property_name] = common_additional_value
+                for item in items:
+                    del item[additional_value_property_name]
 
     def add_queries_to_normalized_results(normalized_results: dict, base_query_arguments: dict) -> None:
         global BASE_SEARCH_QUERY
@@ -400,7 +444,7 @@ def recent_files_summary(request: PyramidRequest, troubleshooting: bool = True) 
 
     if raw:
         # For debugging/troubleshooting only if raw=true then return raw ElasticSearch results.
-        # And note that unless we remove teh @id property we get redirected to the URL in this field,
+        # And note that unless we remove the @id property we get redirected to the URL in this field,
         # for example to: /search/?type=OutputFile&status=released&data_category%21=Quality+Control
         #                         &file_status_tracking.released.from=2024-09-30
         #                         &file_status_tracking.released.to=2024-12-31&from=0&limit=0'
@@ -411,16 +455,30 @@ def recent_files_summary(request: PyramidRequest, troubleshooting: bool = True) 
     if not (raw_results := raw_results.get("aggregations")):
         return {}
 
-    if debug:
-        raw_results = deepcopy(raw_results)  # otherwise may be overwritten by below
-
     prune_elasticsearch_aggregation_results(raw_results)
 
     if not legacy:
         aggregation_results = raw_results.get(aggregate_by_cell_line_property_name)
     else:
         aggregation_results = merge_elasticsearch_aggregation_results(raw_results.get(aggregate_by_cell_line_property_name),
-                                                                 raw_results.get(aggregate_by_donor_property_name))
+                                                                      raw_results.get(aggregate_by_donor_property_name))
+    if debug:
+        additional_properties = {
+            "debug": {
+                "query": query,
+                "query_arguments": deconstruct_query_string(query),
+                "aggregation_query_fields": [
+                    AGGREGATION_FIELD_RELEASE_DATE,
+                    *get_aggregation_field_grouping_cell_or_donor(),
+                    AGGREGATION_FIELD_FILE_DESCRIPTOR
+                ],
+                "aggregation_query": aggregation_query,
+                "raw_results": deepcopy(raw_results),  # copy otherwise may be overwritten by below
+                "aggregation_results": deepcopy(aggregation_results)
+            }
+        }
+    else:
+        additional_properties = None
 
     # Note that the doc_count values returned by ElasticSearch DO actually seem to be for UNIQUE items,
     # i.e. if an item appears in two different groups (e.g. if, say, f2584000-f810-44b6-8eb7-855298c58eb3
@@ -460,27 +518,15 @@ def recent_files_summary(request: PyramidRequest, troubleshooting: bool = True) 
     #     ]
     # }
 
-    if debug:
-        additional_properties = {
-            "debug": {
-                "query": query,
-                "query_arguments": deconstruct_query_string(query),
-                "aggregation_query_fields": [
-                    AGGREGATION_FIELD_RELEASE_DATE,
-                    *get_aggregation_field_grouping_cell_or_donor(),
-                    AGGREGATION_FIELD_FILE_DESCRIPTOR
-                ],
-                "aggregation_query": aggregation_query,
-                "raw_results": raw_results,
-                "aggregation_results": deepcopy(aggregation_results)
-            }
-        }
-    else:
-        additional_properties = None
+    normalized_results = normalize_elasticsearch_aggregation_results(
+        aggregation_results,
+        additional_field=tissue_info_property_name if include_tissue_info else None,
+        additional_properties=additional_properties,
+        remove_empty_items=not include_missing)
 
-    normalized_results = normalize_elasticsearch_aggregation_results(aggregation_results,
-                                                                     additional_properties=additional_properties,
-                                                                     remove_empty_items=not include_missing)
+    if include_tissue_info:
+        hoist_items_additional_value_up_one_level(normalized_results)
+
     if not legacy:
         fixup_names_values_for_normalized_results(normalized_results)
     if include_queries:

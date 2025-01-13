@@ -242,7 +242,7 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                                        color: Optional[Callable] = None) -> Tuple[Optional[str], List[Tuple[str, str]]]:
             nonlocal parent_grouping_name, parent_grouping_value, green, green_bold, chars_larrow_hollow
             counted_elsewhere = []
-            if hit.get("elasticsearch_counted", False) is False:
+            if hit.get("elasticsearch_counted", None) is False:
                 counted_grouping_name, counted_grouping_value = find_where_aggregated_and_counted(hit.get("uuid"))
             else:
                 counted_grouping_name, counted_grouping_value = (None, None)
@@ -261,7 +261,7 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                             else:
                                 property_values.append(property_value)
                     property_value = ", ".join(property_values)
-                elif hit.get("elasticsearch_counted", False) is False:
+                elif hit.get("elasticsearch_counted", None) is False:
                     counted_grouping_name, counted_grouping_value = find_where_aggregated_and_counted(hit.get("uuid"))
                     if (counted_grouping_name == property_name) and (counted_grouping_value == property_value):
                         property_value = green_bold(f"{property_value} {chars_larrow_hollow}") + green(" COUNTED HERE")
@@ -292,7 +292,7 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                     elif isinstance(hits := data.get("debug", {}).get("portal_hits"), list):
                         for hit in hits:
                             if hit.get("uuid") == uuid:
-                                if hit.get("elasticsearch_counted", False) is True:
+                                if hit.get("elasticsearch_counted", None) is True:
                                     found_uuid_grouping_names_and_values.add((parent_grouping_name, parent_grouping_value))
                 return found_uuid_grouping_names_and_values
 
@@ -309,7 +309,7 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                     # Normally should only be at most one item with elasticsearch_counted set to True.
                     pass
                 return found_uuid_grouping_names_and_values[0]
-            return [(None, None)] if multiple is True else (None, None)
+            return [] if multiple is True else (None, None)
 
         def print_hit_property_values(hit: dict, property_name: str,
                                       label: Optional[str] = None,
@@ -341,6 +341,8 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
             grouping = bold(grouping_value)
             if (verbose is True) and isinstance(grouping_name, str) and grouping_name:
                 grouping = f"{grouping_name} {chars_dot} {grouping}"
+                if (additional_value := data.get("additional_value")) is not None:
+                    grouping += f" ({additional_value})"
         elif not (isinstance(grouping := title, str) and grouping):
             grouping = "RESULTS"
         grouping = f"{chars_diamond} {grouping}"
@@ -377,7 +379,7 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                     print(f"{spaces}  {query_string}")
         for hit in hits:
             if isinstance(hit, dict) and isinstance(uuid := hit.get("uuid"), str) and uuid:
-                if hit.get("elasticsearch_counted", False) is False:
+                if hit.get("elasticsearch_counted", None) is False:
                     print(red(f"{spaces}  {chars_dot} {uuid} {chars_xmark} UNCOUNTED"))
                     color = red_bold
                 else:
