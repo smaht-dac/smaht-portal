@@ -293,7 +293,11 @@ const BrowseViewSearchTable = (props) => {
                         className="pb-1 px-1 filename-popover-color"
                         popID="type-title-popover"
                         tooltip="Click for more information">
-                        <h1>Need Image</h1>
+                        <img
+                            width="500"
+                            src="/static/img/Browse by file - file name breakdown.png"
+                            alt="File nomenclature breakdown"
+                        />
                     </TypeColumnTitlePopover>
                 </>
             ),

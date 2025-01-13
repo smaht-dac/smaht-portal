@@ -772,6 +772,25 @@ h2.browse-summary-header {
 	font-weight: 600;
 }
 
+// Popover used in File column title
+#type-title-popover {
+	min-width: 525px;
+	width: 525px;
+
+	.popover-body > img {
+		width: 500px;
+	}
+
+	@include media-breakpoint-down(sm) {
+		min-width: 375px;
+		width: 375px;
+
+		.popover-body > img {
+			width: 350px;
+		}
+	}
+}
+
 div.browse-body {
 	.search-page-container {
 		.search-view-controls-and-results {
@@ -821,19 +840,23 @@ div.browse-summary {
 	background-color: #F9FCFF;
 	border: 1px solid #70A3E2;
 	border-radius: 15px;
-	gap: 60px;
 	padding: 1.25rem;
+	row-gap: 20px;
 
 	div.browse-summary-stat {
-		&:not(:last-child)::after {
-			content: '';
-			position: relative;
-			right: -30px; /* Adjust this value to control the space between the line and the element */
-			top: 0;
-			bottom: 0;
-			width: 1px;
-			background-color: #C0DBFB ; /* Adjust the color of the line */
-			height: 62px;
+		height: 62px;
+
+		@media screen and (max-width: 1020px) {
+			padding-left: 30px;
+		}
+
+		&:not(:last-of-type) {
+			padding-right: 30px;
+			border-right: 1px solid #c0dbfb;
+		}
+
+		&:not(:first-of-type) {
+			padding-left: 30px;
 		}
 
 		> div {
