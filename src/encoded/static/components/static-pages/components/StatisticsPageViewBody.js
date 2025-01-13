@@ -66,10 +66,9 @@ export const commonParsingFxn = {
     /**
      * MODIFIES OBJECTS IN PLACE
      */
-    'fillMissingChildBuckets' : function(aggsList, subAggTerms = [], externalTermMap = {}){
+    'fillMissingChildBuckets' : function(aggsList, subAggTerms = []){
         aggsList.forEach(function(datum){
             subAggTerms.forEach(function(term){
-                if (externalTermMap && externalTermMap[term]) return;
                 if (!_.findWhere(datum.children, { term })){
                     datum.children.push({ term, 'count' : 0, 'total' : 0, 'date' : datum.date });
                 }
@@ -96,9 +95,8 @@ export const commonParsingFxn = {
      * Sets 'count' to be 'bucket.total_files.value' value from histogram.
      *
      * @param {{ key_as_string: string, doc_count: number, group_by?: { buckets: { doc_count: number, key: string  }[] } }[]} intervalBuckets - Raw aggregation results returned from ElasticSearch
-     * @param {Object.<string>} [externalTermMap] - Object which maps external terms to true (external data) or false (internal data).
      */
-    'bucketTotalFilesCounts' : function(intervalBuckets, groupByField, externalTermMap, fromDate, toDate, interval){
+    'bucketTotalFilesCounts' : function(intervalBuckets, groupByField, fromDate, toDate, interval){
         const subBucketKeysToDate = new Set();
         let aggsList = intervalBuckets.map(function(bucket, index){
             const {
@@ -128,11 +126,11 @@ export const commonParsingFxn = {
         aggsList = commonParsingFxn.add_missing_dates(aggsList, fromDate, toDate, interval, 'submission');
 
         // Ensure each datum has all child terms, even if blank.
-        commonParsingFxn.fillMissingChildBuckets(aggsList, _.difference([ ...subBucketKeysToDate ], (externalTermMap && _.keys(externalTermMap)) || [] ));
+        commonParsingFxn.fillMissingChildBuckets(aggsList, [ ...subBucketKeysToDate ]);
 
         return aggsList;
     },
-    'bucketTotalFilesVolume' : function(intervalBuckets, groupByField, externalTermMap, fromDate, toDate, interval){
+    'bucketTotalFilesVolume' : function(intervalBuckets, groupByField, fromDate, toDate, interval){
         const gigabyte = 1024 * 1024 * 1024;
         const megabyte = 1024 * 1024;
         const subBucketKeysToDate = new Set();
@@ -165,7 +163,7 @@ export const commonParsingFxn = {
         aggsList = commonParsingFxn.add_missing_dates(aggsList, fromDate, toDate, interval, 'submission');
 
         // Ensure each datum has all child terms, even if blank.
-        commonParsingFxn.fillMissingChildBuckets(aggsList, _.difference(Array.from(subBucketKeysToDate), (externalTermMap && _.keys(externalTermMap)) || [] ));
+        commonParsingFxn.fillMissingChildBuckets(aggsList, Array.from(subBucketKeysToDate));
 
         return aggsList;
     },
@@ -389,7 +387,7 @@ const aggregationsToChartData = {
             const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
-            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, props.externalTermMap, from_date, to_date, interval);
+            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(counts, props.cumulativeSum);
         }
@@ -403,7 +401,7 @@ const aggregationsToChartData = {
             const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
-            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, props.externalTermMap, from_date, to_date, interval);
+            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(volumes, props.cumulativeSum);
         }
@@ -417,7 +415,7 @@ const aggregationsToChartData = {
             const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
-            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, props.externalTermMap, from_date, to_date, interval);
+            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(counts, props.cumulativeSum);
         }
@@ -431,7 +429,7 @@ const aggregationsToChartData = {
             const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
-            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, props.externalTermMap, from_date, to_date, interval);
+            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(volumes, props.cumulativeSum);
         }
@@ -445,7 +443,7 @@ const aggregationsToChartData = {
             const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
-            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, props.externalTermMap, from_date, to_date, interval);
+            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(counts, props.cumulativeSum);
         }
@@ -459,7 +457,7 @@ const aggregationsToChartData = {
             const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
-            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, props.externalTermMap, from_date, to_date, interval);
+            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(volumes, props.cumulativeSum);
         }
@@ -1065,35 +1063,12 @@ export class SubmissionStatsViewController extends React.PureComponent {
 
     constructor(props){
         super(props);
-        this.fetchAndGenerateExternalTermMap = this.fetchAndGenerateExternalTermMap.bind(this);
-        this.state = { "externalTermMap" : null };
     }
 
     componentDidMount(){
-        this.fetchAndGenerateExternalTermMap();
     }
 
     componentDidUpdate(pastProps){
-        const { shouldRefetchAggs, session } = this.props;
-        if (shouldRefetchAggs(pastProps, this.props)){
-            if (pastProps.session !== session){
-                // Avoid triggering extra re-aggregation from new/unnecessary term map being loaded.
-                this.fetchAndGenerateExternalTermMap(true);
-            }
-        }
-    }
-
-    fetchAndGenerateExternalTermMap(refresh = false){
-        const { externalTermMap } = this.state;
-        if (!refresh && externalTermMap && _.keys(externalTermMap).length > 0) return;
-
-        ajax.load('/search/?type=SubmissionCenter&limit=all', (resp)=>{
-            this.setState({
-                'externalTermMap' : _.object(_.map(resp['@graph'] || [], function(submissionCenter){
-                    return [ submissionCenter.display_title, submissionCenter.identifier !== 'smaht_dac' ];
-                }))
-            });
-        });
     }
 
     render(){ return <StatsViewController {...this.props} {...this.state} />; }
@@ -2007,7 +1982,7 @@ StatisticsTable.propTypes = {
     schemas: PropTypes.object,
     containerId: PropTypes.string,
     href: PropTypes.string,
-    dateIncrement: PropTypes.string.oneOf(['daily', 'monthly', 'yearly']),
+    dateIncrement: PropTypes.oneOf(['daily', 'monthly', 'yearly']),
     transposed: PropTypes.bool,
     cumulativeSum: PropTypes.bool,
     hideEmptyColumns: PropTypes.bool,
