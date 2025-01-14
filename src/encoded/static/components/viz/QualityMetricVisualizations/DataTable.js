@@ -66,13 +66,21 @@ export const DataTable = ({
         return 0;
     };
 
-    if (groupBy) {
-        filteredData.sort((a, b) => {
-            if (a[groupBy] < b[groupBy]) return -1; // Primary key ascending
-            if (a[groupBy] > b[groupBy]) return 1;
-            return sortByQcField(a, b);
-        });
-    } else if (sortOrder) {
+    // Sort within groups
+    // if (groupBy) {
+    //     filteredData.sort((a, b) => {
+    //         if (a[groupBy] < b[groupBy]) return -1; // Primary key ascending
+    //         if (a[groupBy] > b[groupBy]) return 1;
+    //         return sortByQcField(a, b);
+    //     });
+    // } else if (sortOrder) {
+    //     filteredData.sort((a, b) => {
+    //         return sortByQcField(a, b);
+    //     });
+    // }
+
+    // Just sort by qc value
+    if (sortOrder) {
         filteredData.sort((a, b) => {
             return sortByQcField(a, b);
         });
@@ -88,7 +96,11 @@ export const DataTable = ({
                 {d['file_accession']}
             </a>
         );
-
+        result['Released'] = (
+            <div className="text-center">
+                {d['file_status'] == 'released' ? 'Yes' : 'No'}
+            </div>
+        );
         result['Overall QC'] = (
             <div className="text-center">
                 {getBadge(d.quality_metrics?.overall_quality_status)}
@@ -122,7 +134,6 @@ export const DataTable = ({
             result[c_formated] = d[c];
         });
         result['Seq Center'] = d['submission_center'];
-        result['Released'] = d['file_status'] == 'released' ? 'Yes' : 'No';
         result['Assay'] = d['assay'];
         result['Platform'] = d['sequencer'];
         return result;

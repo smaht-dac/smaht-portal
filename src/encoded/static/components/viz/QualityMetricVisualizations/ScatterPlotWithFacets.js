@@ -328,7 +328,7 @@ export const ScatterlotWithFacets = ({
                         qcFields={[selectedQcMetricX, selectedQcMetricY]}
                         qcFieldFormats={[',', ',']}
                         groupBy={selectedGrouping}
-                        sortOrder={'descending'}
+                        sortOrder={'ascending'}
                         customFilter={(d) => customFilter(d)}
                         highlightedBam={highlightedBam}
                         handleShowModal={handleShowModal}

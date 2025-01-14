@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
-
 import { BoxPlotWithFacets } from './BoxPlotWithFacets';
 import { ScatterlotWithFacets } from './ScatterPlotWithFacets';
 import Tab from 'react-bootstrap/Tab';
@@ -44,53 +43,159 @@ export const QualityMetricVisualizations = () => {
                 onSelect={(t) => setTab(t)}
                 className="mb-3">
                 <Tab eventKey="key-metrics" title="Key Metrics">
-                    <h4 className="mt-2">
-                        Sequencing throughput per BAM file (Cell line - Illumina
-                        - WGS)
-                    </h4>
-                    <p className="mb-3">
-                        This overview includes released and unreleased files
-                        from the <strong>cell line</strong> data sets.
-                    </p>
-                    <BoxPlotWithFacets
-                        qcData={qcData}
-                        showFacets={false}
-                        settings={{
-                            selectedQcMetric:
-                                'samtools_stats:raw_total_sequences',
-                            assay: 'WGS',
-                            grouping: 'submission_center',
-                            sampleSource: 'cell_line',
-                            sequencer: 'all_illumina',
-                        }}
-                    />
+                    <div className="row">
+                        <div className="col-lg-6">
+                            <h4 className="mt-2 mb-2 text-center">
+                                Estimated Average Coverage (short read)
+                            </h4>
+                            <BoxPlotWithFacets
+                                qcData={qcData}
+                                showFacets={false}
+                                showDataTable={false}
+                                boxPlotTitle="Tissue data sets - WGS - Illumina sequencing"
+                                settings={{
+                                    selectedQcMetric: 'mosdepth:total',
+                                    assay: 'WGS',
+                                    grouping: 'submission_center',
+                                    sampleSource: 'tissue',
+                                    sequencer: 'all_illumina',
+                                }}
+                            />
+                        </div>
+                        <div className="col-lg-6">
+                            <h4 className="mt-2 mb-2 text-center">
+                                Estimated Average Coverage (long read)
+                            </h4>
 
-                    <h4 className="mt-4">
-                        Sequencing throughput per BAM file (Tissues - Illumina -
-                        WGS)
-                    </h4>
-                    <p className="mb-3">
-                        This overview includes released and unreleased files
-                        from the <strong>tissue</strong> data sets.
-                    </p>
+                            <BoxPlotWithFacets
+                                qcData={qcData}
+                                showFacets={false}
+                                showDataTable={false}
+                                boxPlotTitle="Tissue data sets - WGS - PacBio / ONT sequencing"
+                                settings={{
+                                    selectedQcMetric: 'mosdepth:total',
+                                    assay: 'WGS',
+                                    grouping: 'submission_center',
+                                    sampleSource: 'tissue',
+                                    sequencer: 'all_long_read',
+                                }}
+                            />
+                        </div>
+                    </div>
 
-                    <BoxPlotWithFacets
-                        qcData={qcData}
-                        showFacets={false}
-                        settings={{
-                            selectedQcMetric:
-                                'samtools_stats:raw_total_sequences',
-                            assay: 'WGS',
-                            grouping: 'submission_center',
-                            sampleSource: 'tissue',
-                            sequencer: 'all_illumina',
-                        }}
-                    />
+                    <div className="row mt-2">
+                        <div className="col-lg-6">
+                            <h4 className="mt-2 mb-2 text-center">
+                                Percentage of Reads Mapped
+                            </h4>
+                            <BoxPlotWithFacets
+                                qcData={qcData}
+                                showFacets={false}
+                                showDataTable={false}
+                                boxPlotTitle="Tissue data sets - WGS - Illumina sequencing"
+                                settings={{
+                                    selectedQcMetric:
+                                        'samtools_stats_postprocessed:percentage_reads_mapped',
+                                    assay: 'WGS',
+                                    grouping: 'submission_center',
+                                    sampleSource: 'tissue',
+                                    sequencer: 'all_illumina',
+                                }}
+                            />
+                        </div>
+                        <div className="col-lg-6">
+                            <h4 className="mt-2 mb-2 text-center">
+                                Percentage of Properly Paired Reads
+                            </h4>
+
+                            <BoxPlotWithFacets
+                                qcData={qcData}
+                                showFacets={false}
+                                showDataTable={false}
+                                boxPlotTitle="Tissue data sets - WGS - Illumina sequencing"
+                                settings={{
+                                    selectedQcMetric:
+                                        'samtools_stats:percentage_of_properly_paired_reads',
+                                    assay: 'WGS',
+                                    grouping: 'submission_center',
+                                    sampleSource: 'tissue',
+                                    sequencer: 'all_illumina',
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="row mt-2">
+                        <div className="col-lg-6">
+                            <h4 className="mt-2 mb-2 text-center">
+                                Percentage of Reads Duplicated
+                            </h4>
+                            <BoxPlotWithFacets
+                                qcData={qcData}
+                                showFacets={false}
+                                showDataTable={false}
+                                boxPlotTitle="Tissue data sets - WGS - Illumina sequencing"
+                                settings={{
+                                    selectedQcMetric:
+                                        'samtools_stats_postprocessed:percentage_reads_duplicated',
+                                    assay: 'WGS',
+                                    grouping: 'submission_center',
+                                    sampleSource: 'tissue',
+                                    sequencer: 'all_illumina',
+                                }}
+                            />
+                        </div>
+                        <div className="col-lg-6">
+                            <h4 className="mt-2 mb-2 text-center">
+                                Aligned Bases Mismatch Rate
+                            </h4>
+
+                            <BoxPlotWithFacets
+                                qcData={qcData}
+                                showFacets={false}
+                                showDataTable={false}
+                                boxPlotTitle="Tissue data sets - WGS - Illumina sequencing"
+                                settings={{
+                                    selectedQcMetric:
+                                        'picard_collect_alignment_summary_metrics:pf_mismatch_rate',
+                                    assay: 'WGS',
+                                    grouping: 'submission_center',
+                                    sampleSource: 'tissue',
+                                    sequencer: 'all_illumina',
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="row mt-2">
+                        <div className="col-lg-6">
+                            <h4 className="mt-2 mb-2 text-center">
+                            Mean Insert Size
+                            </h4>
+                            <BoxPlotWithFacets
+                                qcData={qcData}
+                                showFacets={false}
+                                showDataTable={false}
+                                boxPlotTitle="Tissue data sets - WGS - Illumina sequencing"
+                                settings={{
+                                    selectedQcMetric:
+                                        'picard_collect_insert_size_metrics:mean_insert_size',
+                                    assay: 'WGS',
+                                    grouping: 'submission_center',
+                                    sampleSource: 'tissue',
+                                    sequencer: 'all_illumina',
+                                }}
+                            />
+                        </div>
+                        
+                    </div>
                 </Tab>
                 <Tab eventKey="all-metrics" title="Metrics - All">
                     <BoxPlotWithFacets qcData={qcData} />
                 </Tab>
-                <Tab eventKey="metrics-v-metric" title="Metric vs. Metric - All">
+                <Tab
+                    eventKey="metrics-v-metric"
+                    title="Metric vs. Metric - All">
                     <ScatterlotWithFacets qcData={qcData} />
                 </Tab>
             </Tabs>

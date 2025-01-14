@@ -271,7 +271,7 @@ export const ScatterPlot = ({
                 );
 
             const submission_centers = new Set(
-                filteredData.map((d) => d.submission_center.replace(" GCC", ""))
+                filteredData.map((d) => d.submission_center.replace(" GCC", "")).sort()
             );
             // Create color scale for the data points
             const pointColor = d3

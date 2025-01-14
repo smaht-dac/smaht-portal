@@ -90,7 +90,7 @@ export const BoxPlot = ({
                 .append('text')
                 .text(title)
                 .attr('text-anchor', 'middle')
-                .attr('style', 'font-family: Inter; font-size: 1.5rem')
+                .attr('style', 'font-family: Inter; font-size: 1.5rem; font-weight: 600')
                 .attr('x', chartWidth / 2)
                 .attr('y', margins.top / 2);
 

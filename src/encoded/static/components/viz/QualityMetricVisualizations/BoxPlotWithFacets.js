@@ -19,11 +19,11 @@ const ALL_LONG_READ = 'all_long_read';
 const CELL_LINE = 'cell_line';
 const TISSUE = 'tissue';
 
-
-
 export const BoxPlotWithFacets = ({
     qcData,
     showFacets = true,
+    showDataTable = true,
+    boxPlotTitle = "",
     settings = null,
 }) => {
     const vizInfo = qcData.viz_info;
@@ -259,40 +259,48 @@ export const BoxPlotWithFacets = ({
         </div>
     );
 
+    const boxplot = (
+        <BoxPlot
+            plotId={Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)}
+            title={boxPlotTitle}
+            data={qcData}
+            qcField={selectedQcMetric}
+            customFilter={(d) => customFilter(d)}
+            customFormat={(d) => formatLargeInteger(d)}
+            qcCategory={selectedGrouping}
+            updateHighlightedBam={updateHighlightedBam}
+            thresholdMarks={thresholdMarks}
+            rerenderNumber={rerenderNumber}
+            handleShowModal={handleShowModal}
+        />
+    );
+
+    const datatable = (
+        <DataTable
+            data={qcData}
+            qcFields={[selectedQcMetric]}
+            qcFieldFormats={[',']}
+            groupBy={selectedGrouping}
+            sortOrder={'ascending'}
+            customFilter={(d) => customFilter(d)}
+            highlightedBam={highlightedBam}
+            handleShowModal={handleShowModal}
+        />
+    );
+
     return (
         <>
             {showFacets && facets}
-            <div className="row">
-                <div className="col-lg-6">
-                    <BoxPlot
-                        plotId={Math.floor(
-                            Math.random() * Number.MAX_SAFE_INTEGER
-                        )}
-                        title=""
-                        data={qcData}
-                        qcField={selectedQcMetric}
-                        customFilter={(d) => customFilter(d)}
-                        customFormat={(d) => formatLargeInteger(d)}
-                        qcCategory={selectedGrouping}
-                        updateHighlightedBam={updateHighlightedBam}
-                        thresholdMarks={thresholdMarks}
-                        rerenderNumber={rerenderNumber}
-                        handleShowModal={handleShowModal}
-                    />
+
+            {showDataTable ? (
+                <div className="row">
+                    <div className="col-lg-6">{boxplot}</div>
+                    <div className="col-lg-6">{datatable}</div>
                 </div>
-                <div className="col-lg-6">
-                    <DataTable
-                        data={qcData}
-                        qcFields={[selectedQcMetric]}
-                        qcFieldFormats={[',']}
-                        groupBy={selectedGrouping}
-                        sortOrder={'descending'}
-                        customFilter={(d) => customFilter(d)}
-                        highlightedBam={highlightedBam}
-                        handleShowModal={handleShowModal}
-                    />
-                </div>
-            </div>
+            ) : (
+                <>{boxplot}</>
+            )}
+
             <Modal size="lg" show={showModal} onHide={handleCloseModal}>
                 <Modal.Header closeButton>
                     <Modal.Title>Review File QC</Modal.Title>
