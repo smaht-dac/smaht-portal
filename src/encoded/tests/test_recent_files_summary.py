@@ -1058,20 +1058,7 @@ def test_recent_files_summary():
 
     request = TestPyramidRequest({
         "date_property_name": "date_created",
-        "nmonths": 18,
-        # "include_current_month": "false",  # N.B. default is True
-        # "multi": "true",
-        # "nocells": False,  # N.B. default is True
-        # "legacy": True,
-        # "nomixtures": True,
-        # "favor_donor": True,
-        # "include_missing": True,
-        # "willrfix": True,
-        # "from_date": "202405",
-        # "thru_date": "202406",
-        # "troubleshoot": True,
-        # "troubleshoot_elasticsearch": True,
-        # "debug": True,
+        "nmonths": 18
     })
 
     mocked_execute_aggregation_query = lambda *args, **kwargs: recent_files_summary_raw_results  # noqa
