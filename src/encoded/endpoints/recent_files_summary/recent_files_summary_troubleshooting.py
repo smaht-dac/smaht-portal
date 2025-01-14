@@ -13,6 +13,10 @@ from encoded.endpoints.recent_files_summary.recent_files_summary_fields import (
     AGGREGATION_FIELD_DONOR,
     AGGREGATION_FIELD_FILE_DESCRIPTOR)
 
+# This module contains functions for dev/testing/troubleshooting; it is functionally unnecessary;
+# it started as a way to test from the command-line, pretty-ish printing the output for visual ease;
+# then adapted to actually return this terminal-style output to the browser, via text=true URL query argument.
+
 def add_info_for_troubleshooting(normalized_results: dict, request: PyramidRequest) -> None:
 
     def get_files(files, property_name, property_value, map_property_value = None):

@@ -27,9 +27,11 @@ Change Log
   - src/encoded/item_utils/file.py
   - src/encoded/types/file.py
   Added these new modules to support this new endpoint:
-  - src/encoded/recent_files_summary.py
-  - src/encoded/elasticsearch_utils.py (maybe move to dcicutils eventually)
-  - src/encoded/endpoint_utils.py (maybe move to dcicutils eventually)
+  - src/encoded/endpoints/recent_files_summary/recent_files_summary.py
+  - src/encoded/endpoints/recent_files_summary/recent_files_summary_fields.py
+  - src/encoded/endpoints/recent_files_summary/recent_files_summary_troubleshooting.py (functionally unnecessary)
+  - src/encoded/endpoints/elasticsearch_utils.py (maybe move to dcicutils eventually)
+  - src/encoded/endpoints/endpoint_utils.py (maybe move to dcicutils eventually)
   This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1192
   - FYI commit before recent (2025-01-13) change for additional tissue info: bf7ed2bcb9df387721fd329e36e8c15b97a43681
 
