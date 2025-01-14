@@ -39,8 +39,6 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
     const month = date.toLocaleString('default', { month: 'long' });
     const year = date.toLocaleString('default', { year: 'numeric' });
 
-    console.log('date', month, year);
-
     return (
         <div
             className={`data-release-item-container ${
@@ -71,10 +69,18 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                 </div>
                 <div className="body">
                     {sample_groups.map((sample_group, i) => {
+                        let sample_group_title = sample_group.value;
+
+                        if (sample_group?.additional_value) {
+                            sample_group_title += ` - ${
+                                sample_group.additional_value?.split(':')[0]
+                            }`;
+                        }
+
                         return (
                             <div className="release-item" key={i}>
                                 <a className="title" href={sample_group.query}>
-                                    {sample_group.value}
+                                    {sample_group_title}
                                     <svg
                                         width="22"
                                         height="16"
