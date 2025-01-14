@@ -4,6 +4,11 @@ import { release } from 'process';
 
 const announcements = [
     {
+        type: 'warning',
+        title: 'Attention Users',
+        body: 'The V1 Benchmarking data portal will be open to SMaHT consortium members only at this time.',
+    },
+    {
         type: 'info',
         title: 'Note',
         body: 'The raw sequence files, i.e. unaligned BAM and FASTQ, and the data from the benchmarking tissue samples that were not distributed by TPC will be available upon request at this time (through Globus).',
@@ -12,11 +17,6 @@ const announcements = [
         type: 'feature',
         title: 'New Features',
         body: 'The SMaHT Data Portal, V1 Benchmarking release, now makes benchmarking data available for download for authenticated consortium members. Users can continue to obtain the access keys for metadata submission.',
-    },
-    {
-        type: 'warning',
-        title: 'Attention Users',
-        body: 'The V1 Benchmarking data portal will be open to SMaHT consortium members only at this time.',
     },
 ];
 
@@ -33,10 +33,13 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
     const [isExpanded, setIsExpanded] = useState(true);
     const { count, items: sample_groups, query, value } = data;
 
-    // Replace hyphens with slashes for Safari compatibility
-    const date = new Date(value.replace(/-/g, '/'));
+    // Replace hyphens with slashes and add day field for Safari compatibility
+    const date_formatted = value.replace(/-/g, '/') + '/01';
+    const date = new Date(date_formatted);
     const month = date.toLocaleString('default', { month: 'long' });
     const year = date.toLocaleString('default', { year: 'numeric' });
+
+    console.log('date', month, year);
 
     return (
         <div
@@ -50,11 +53,14 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                         onClick={() => {
                             setIsExpanded(!isExpanded);
                         }}>
-                        <i className="icon icon-circle"></i>
+                        <i
+                            className={`icon icon-${
+                                isExpanded ? 'minus' : 'plus'
+                            }`}></i>
                     </button>
                     <a className="header-link" href={query}>
                         <span>
-                            {releaseItemIndex === 0 ? 'New Release: ' : ''}
+                            {releaseItemIndex === 0 ? 'Latest Release: ' : ''}
                             {month} {year}
                         </span>
                         <span className="count">
@@ -98,87 +104,83 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
 };
 
 export const NotificationsPanel = () => {
-    const [data, setData] = useState(exampleData?.items ?? null);
-    console.log('data', data);
+    const [data, setData] = useState(null);
 
-    // useEffect(() => {
-    //     ajax.load(
-    //         '/recent_files_summary?format=json&nmonths=8',
-    //         (resp) => {
-    //             console.log('resp', resp);
-    //         },
-    //         'GET',
-    //         (err) => {
-    //             if (err.notification !== 'No results found') {
-    //                 console.log('ERROR NotificationsPanel resp', err);
-    //             }
-    //         }
-    //     );
-    // }, []);
+    useEffect(() => {
+        ajax.load(
+            '/recent_files_summary?format=json&date_property_name=date_created&nmonths=6',
+            (resp) => {
+                console.log('>>> resp', resp);
+                setData(resp?.items ?? null);
+            },
+            'GET',
+            (err) => {
+                if (err.notification !== 'No results found') {
+                    console.log('ERROR NotificationsPanel resp', err);
+                }
+            }
+        );
+    }, []);
 
     return (
         <div className="notifications-panel container">
             <div className="data-release-tracker section">
                 <h3 className="section-header">Data Release Tracker</h3>
                 <div className="section-body">
-                    {data.map((releaseItem, i) => {
-                        return (
-                            <DataReleaseItem
-                                data={releaseItem}
-                                key={i}
-                                releaseItemIndex={i}
-                            />
-                        );
-                    })}
+                    {data ? (
+                        data.map((releaseItem, i) => {
+                            return (
+                                <DataReleaseItem
+                                    data={releaseItem}
+                                    key={i}
+                                    releaseItemIndex={i}
+                                />
+                            );
+                        })
+                    ) : (
+                        <i className="icon fas icon-spinner icon-spin"></i>
+                    )}
                 </div>
             </div>
             <div className="announcements section">
                 <h3 className="section-header">Announcements</h3>
-                <div className="section-body">
-                    {announcements.map((announcement, i) => {
-                        return (
-                            <AnnouncementCard
-                                key={i}
-                                title={announcement.title}
-                                body={announcement.body}
-                                type={announcement.type}
-                            />
-                        );
-                    })}
+                <div className="section-body-container">
+                    <div className="section-body">
+                        {announcements.map((announcement, i) => {
+                            return (
+                                <AnnouncementCard
+                                    key={i}
+                                    title={announcement.title}
+                                    body={announcement.body}
+                                    type={announcement.type}
+                                />
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
             <div className="about-consortium section">
                 <h3 className="section-header">About the Consortium</h3>
                 <div className="section-body">
                     <div className="about-consortium-links">
-                        <div className="link-container">
+                        <div className="link-container smaht-data">
                             <a
                                 href="/about/consortium/data"
                                 role="button"
-                                className="py-2 btn">
+                                className="btn">
+                                <img src="/static/img/homepage-smaht-data-screenshot.png"></img>
                                 <span>SMaHT Data Overview</span>
-                                <i className="icon-external-link-alt icon text-xs fas ml-2" />
                             </a>
                         </div>
-                        <div className="link-container">
-                            <a
-                                href="https://www.smaht.org"
-                                target="_blank"
-                                rel="noreferrer noopener"
-                                role="button"
-                                className="py-2 btn">
-                                <span>SMaHT OC Homepage</span>
-                                <i className="icon-external-link-alt icon icon-xs fas ml-2" />
-                            </a>
-                        </div>
-                        <div className="link-container">
+                        <div className="link-container nih">
                             <a
                                 href="https://commonfund.nih.gov/smaht"
                                 target="_blank"
                                 rel="noreferrer noopener"
                                 role="button"
                                 className="py-2 btn">
-                                <span>NIH SMaHT Homepage</span>
+                                <img src="/static/img/NIH-Symbol.png"></img>
+                                <span>SMaHT Homepage</span>
                                 <i className="icon-external-link-alt icon icon-xs fas ml-2" />
                             </a>
                         </div>
@@ -187,439 +189,4 @@ export const NotificationsPanel = () => {
             </div>
         </div>
     );
-};
-
-const exampleData = {
-    count: 166,
-    items: [
-        {
-            name: 'file_status_tracking.released',
-            value: '2024-07',
-            count: 39,
-            items: [
-                {
-                    name: 'file_sets.libraries.analytes.samples.sample_sources.code',
-                    value: 'ST001-1A',
-                    count: 9,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X Plus bam',
-                            count: 4,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+Plus+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X bam',
-                            count: 4,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free PacBio Revio bam',
-                            count: 1,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=WGS%2C+PCR-free+PacBio+Revio+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A',
-                },
-                {
-                    name: 'file_sets.libraries.analytes.samples.sample_sources.code',
-                    value: 'ST002-1D',
-                    count: 9,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X Plus bam',
-                            count: 4,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+Plus+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X bam',
-                            count: 4,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free PacBio Revio bam',
-                            count: 1,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&release_tracker_description=WGS%2C+PCR-free+PacBio+Revio+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D',
-                },
-                {
-                    name: 'file_sets.libraries.analytes.samples.sample_sources.code',
-                    value: 'ST001-1D',
-                    count: 8,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X Plus bam',
-                            count: 4,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+Plus+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X bam',
-                            count: 4,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D',
-                },
-                {
-                    name: 'file_sets.libraries.analytes.samples.sample_sources.code',
-                    value: 'ST002-1G',
-                    count: 7,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X bam',
-                            count: 4,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X Plus bam',
-                            count: 3,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+Plus+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G',
-                },
-                {
-                    name: 'file_sets.libraries.analytes.samples.sample_sources.code',
-                    value: 'ST004-1Q',
-                    count: 6,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X bam',
-                            count: 4,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X Plus bam',
-                            count: 2,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+Plus+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q',
-                },
-            ],
-            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31',
-        },
-        {
-            name: 'file_status_tracking.released',
-            value: '2024-06',
-            count: 48,
-            items: [
-                {
-                    name: 'file_sets.libraries.analytes.samples.sample_sources.code',
-                    value: 'ST001-1D',
-                    count: 11,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X bam',
-                            count: 4,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free PacBio Revio bam',
-                            count: 4,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&release_tracker_description=WGS%2C+PCR-free+PacBio+Revio+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free ONT PromethION 24 bam',
-                            count: 3,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&release_tracker_description=WGS%2C+PCR-free+ONT+PromethION+24+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D',
-                },
-                {
-                    name: 'file_sets.libraries.analytes.samples.sample_sources.code',
-                    value: 'ST002-1D',
-                    count: 10,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X bam',
-                            count: 4,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free ONT PromethION 24 bam',
-                            count: 3,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&release_tracker_description=WGS%2C+PCR-free+ONT+PromethION+24+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free PacBio Revio bam',
-                            count: 3,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&release_tracker_description=WGS%2C+PCR-free+PacBio+Revio+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D',
-                },
-                {
-                    name: 'file_sets.libraries.analytes.samples.sample_sources.code',
-                    value: 'ST001-1A',
-                    count: 8,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free ONT PromethION 24 bam',
-                            count: 3,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=WGS%2C+PCR-free+ONT+PromethION+24+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free PacBio Revio bam',
-                            count: 3,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=WGS%2C+PCR-free+PacBio+Revio+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'Fiber-seq PacBio Revio bam',
-                            count: 1,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=Fiber-seq+PacBio+Revio+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X bam',
-                            count: 1,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A',
-                },
-                {
-                    name: 'file_sets.libraries.analytes.samples.sample_sources.code',
-                    value: 'ST002-1G',
-                    count: 7,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X bam',
-                            count: 4,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free ONT PromethION 24 bam',
-                            count: 3,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&release_tracker_description=WGS%2C+PCR-free+ONT+PromethION+24+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G',
-                },
-                {
-                    name: 'file_sets.libraries.analytes.samples.sample_sources.code',
-                    value: 'ST003-1Q',
-                    count: 4,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X bam',
-                            count: 3,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'Fiber-seq PacBio Revio bam',
-                            count: 1,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q&release_tracker_description=Fiber-seq+PacBio+Revio+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q',
-                },
-                {
-                    name: 'file_sets.libraries.analytes.samples.sample_sources.code',
-                    value: 'ST004-1Q',
-                    count: 4,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X bam',
-                            count: 3,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'Fiber-seq PacBio Revio bam',
-                            count: 1,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q&release_tracker_description=Fiber-seq+PacBio+Revio+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q',
-                },
-                {
-                    name: 'file_sets.libraries.analytes.samples.sample_sources.code',
-                    value: 'HAPMAP6',
-                    count: 3,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X bam',
-                            count: 3,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6',
-                },
-                {
-                    name: 'file_sets.libraries.analytes.samples.sample_sources.code',
-                    value: 'COLO829BLT50',
-                    count: 1,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free ONT PromethION 24 bam',
-                            count: 1,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS%2C+PCR-free+ONT+PromethION+24+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50',
-                },
-            ],
-            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30',
-        },
-        {
-            name: 'file_status_tracking.released',
-            value: '2024-05',
-            count: 74,
-            items: [
-                {
-                    name: 'donors.display_title',
-                    value: 'DAC_DONOR_COLO829',
-                    count: 28,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X bam',
-                            count: 28,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&donors.display_title=DAC_DONOR_COLO829',
-                },
-                {
-                    name: 'file_sets.libraries.analytes.samples.sample_sources.code',
-                    value: 'COLO829BLT50',
-                    count: 26,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X bam',
-                            count: 9,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free PacBio Revio bam',
-                            count: 8,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS%2C+PCR-free+PacBio+Revio+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X Plus bam',
-                            count: 5,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+Plus+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free ONT PromethION 24 bam',
-                            count: 4,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS%2C+PCR-free+ONT+PromethION+24+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50',
-                },
-                {
-                    name: 'file_sets.libraries.analytes.samples.sample_sources.code',
-                    value: 'HAPMAP6',
-                    count: 20,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X bam',
-                            count: 8,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free Illumina NovaSeq X Plus bam',
-                            count: 4,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=WGS%2C+PCR-free+Illumina+NovaSeq+X+Plus+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free ONT PromethION 24 bam',
-                            count: 4,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=WGS%2C+PCR-free+ONT+PromethION+24+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'WGS, PCR-free PacBio Revio bam',
-                            count: 4,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=WGS%2C+PCR-free+PacBio+Revio+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6',
-                },
-            ],
-            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31',
-        },
-        {
-            name: 'file_status_tracking.released',
-            value: '2024-04',
-            count: 5,
-            items: [
-                {
-                    name: 'donors.display_title',
-                    value: 'DAC_DONOR_COLO829',
-                    count: 4,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'Fiber-seq PacBio Revio bam',
-                            count: 3,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-04-01&file_status_tracking.released.to=2024-04-30&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=Fiber-seq+PacBio+Revio+bam',
-                        },
-                        {
-                            name: 'release_tracker_description',
-                            value: 'Hi-C Illumina NovaSeq 6000 bam',
-                            count: 1,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-04-01&file_status_tracking.released.to=2024-04-30&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=Hi-C+Illumina+NovaSeq+6000+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-04-01&file_status_tracking.released.to=2024-04-30&donors.display_title=DAC_DONOR_COLO829',
-                },
-                {
-                    name: 'file_sets.libraries.analytes.samples.sample_sources.code',
-                    value: 'COLO829BLT50',
-                    count: 1,
-                    items: [
-                        {
-                            name: 'release_tracker_description',
-                            value: 'Fiber-seq PacBio Revio bam',
-                            count: 1,
-                            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-04-01&file_status_tracking.released.to=2024-04-30&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=Fiber-seq+PacBio+Revio+bam',
-                        },
-                    ],
-                    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-04-01&file_status_tracking.released.to=2024-04-30&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50',
-                },
-            ],
-            query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-04-01&file_status_tracking.released.to=2024-04-30',
-        },
-    ],
-    query: '/search/?type=OutputFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-04-01&file_status_tracking.released.to=2024-12-31',
 };
