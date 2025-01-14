@@ -316,6 +316,8 @@ def recent_files_summary(request: PyramidRequest,
             # For testing/mocking ONLY.
             return custom_execute_aggregation_query(request, query, aggregation_query)
         query += "&from=0&limit=0"  # needed for aggregation query to not return the actual/individual item results.
+
+        request.remote_user = "IMPORT"  # This allows anonymous (unauthorized) queries.
         request = snovault_make_search_subreq(request, path=query, method="GET")
         results = snovault_search(None, request, custom_aggregations=aggregation_query)
         return results
