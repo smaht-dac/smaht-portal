@@ -268,7 +268,7 @@ export const Alluvial = () => {
                     return d.source.color;
                 })
                 .style('stroke-width', function (d) {
-                    return 12; // constant stroke width
+                    return 10; // constant stroke width
                 })
                 .sort(function (a, b) {
                     return b.dy - a.dy;

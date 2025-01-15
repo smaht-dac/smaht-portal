@@ -1227,7 +1227,8 @@ $gcc-color: rgba(255, 128, 0, 0.6);
 $ttd-color: rgba(77, 175, 74, 0.8);
 
 .stackrow-table-container {
-	width: 100%;
+	width: 800px;
+    overflow-x: scroll;
 	height: auto;
 	display: flex;
 	flex-direction: column;
@@ -1346,6 +1347,22 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 							background-color: white;
 						}
 						&[data-row-title="UMich"] {
+							border-color: $ttd-color;
+							background-color: #F8F8F8;
+						}
+						&[data-row-title="BCH"] {
+							border-color: $ttd-color;
+							background-color: white;
+						}
+						&[data-row-title="NYU"] {
+							border-color: $ttd-color;
+							background-color: #F8F8F8;
+						}
+						&[data-row-title="Weill"] {
+							border-color: $ttd-color;
+							background-color: white;
+						}
+						&[data-row-title="UMC"] {
 							border-color: $ttd-color;
 							background-color: #F8F8F8;
 						}

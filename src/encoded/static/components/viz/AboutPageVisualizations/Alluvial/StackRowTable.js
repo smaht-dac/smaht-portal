@@ -36,18 +36,20 @@ const PopoverContents = ({ data }) => {
 };
 
 // Component serving as a trigger for the Bootstrap Popover component
-const OverlayTriggerContent = forwardRef(({ value, data, ...triggerHandler }, ref) => {
-    return (
-        <div
-            className="stackrow-item-container clickable"
-            tabIndex={0}
-            {...triggerHandler}>
-            <span className="stackrow-item-value" ref={ref}>
-                {value}
-            </span>
-        </div>
-    );
-});
+const OverlayTriggerContent = forwardRef(
+    ({ value, data, ...triggerHandler }, ref) => {
+        return (
+            <div
+                className="stackrow-item-container clickable"
+                tabIndex={0}
+                {...triggerHandler}>
+                <span className="stackrow-item-value" ref={ref}>
+                    {value}
+                </span>
+            </div>
+        );
+    }
+);
 
 /**
  * Renders an item to be shown on the table.
