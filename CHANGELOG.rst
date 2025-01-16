@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.124.2
+=======
+`Increase limit of SampleSources retrieved for SubmissionStatus page <https://github.com/smaht-dac/smaht-portal/pull/315>`_
+
+* Increase limit of SampleSources retrieved for SubmissionStatus page select to 300
+
+
 0.124.1
 =======
 `PR BM Register Text Fix <https://github.com/smaht-dac/smaht-portal/pull/297>`_
