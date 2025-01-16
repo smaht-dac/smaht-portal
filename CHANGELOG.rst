@@ -7,6 +7,35 @@ smaht-portal
 Change Log
 ----------
 
+0.125.0
+=======
+
+* 2024-11-20/dmichaels - branch: dmichaels-20241119-browse-view (PR-295)
+
+* Added module browse.py for /browse; adapted from fourfront/.../search.py/browse.
+  This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1184
+
+* New endpoint /recent_files_summary which, by default, returns info for files released
+  within the past three months grouped by release-date, cell-line or donor, and 
+  file-description. The specific fields used for these groupings are:
+  - release-date: file_status_tracking.released
+  - cell-line: file_sets.libraries.analytes.samples.sample_sources.cell_line.code
+  - donor: donors.display_title
+  - file-dsecription: release_tracker_description
+  Note that release_tracker_description is a newer (2024-12) calcprop (PR-298/sn_file_release_tracker);
+  and included in this branch are these files from the branch sn_file_release_tracker:
+  - src/encoded/item_utils/file.py
+  - src/encoded/types/file.py
+  Added these new modules to support this new endpoint:
+  - src/encoded/endpoints/recent_files_summary/recent_files_summary.py
+  - src/encoded/endpoints/recent_files_summary/recent_files_summary_fields.py
+  - src/encoded/endpoints/recent_files_summary/recent_files_summary_troubleshooting.py (functionally unnecessary)
+  - src/encoded/endpoints/elasticsearch_utils.py (maybe move to dcicutils eventually)
+  - src/encoded/endpoints/endpoint_utils.py (maybe move to dcicutils eventually)
+  This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1192
+  - FYI commit before recent (2025-01-13) change for additional tissue info: bf7ed2bcb9df387721fd329e36e8c15b97a43681
+
+
 0.124.2
 =======
 `Increase limit of SampleSources retrieved for SubmissionStatus page <https://github.com/smaht-dac/smaht-portal/pull/315>`_
@@ -44,6 +73,7 @@ Change Log
 * In `commands/release-file.py` and `commands/create-annotated-filenames.py`:
   * Assay and sequencer codes value set to XX for DSA fasta files and chain files
   * For Supplementary Files, use `haplotype`, `target_assembly`, and `source_assembly` properties to create annotated filenames for chain and fasta files
+
 
 0.121.0
 =======
