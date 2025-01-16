@@ -233,7 +233,7 @@
             "search_type": "sayt",
             "sayt_item_type": "Donor"
         },
-        "donor.age": {
+        "donors.age": {
             "title": "Donor Age",
             "aggregation_type": "range",
             "number_step": 1,
