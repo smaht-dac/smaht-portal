@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { release } from 'process';
 
 const announcements = [
     {
