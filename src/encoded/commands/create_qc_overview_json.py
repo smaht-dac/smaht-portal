@@ -17,8 +17,8 @@ SEARCH_QUERY = (
     "&submission_centers.display_title=BCM+GCC"
     "&field=uuid"
     "&type=FileSet"
-    # "&limit=10000"
-    "&limit=100&from=0"  # for testing
+     "&limit=10000"
+    #"&limit=100&from=0"  # for testing
     # "&accession=SMAFSADRYKW2"
 )
 
@@ -88,8 +88,8 @@ DEFAULT_FACET_ASSAY = [
 ]
 
 DEFAULT_FACET_SEQUENCER = [
-    {"key": ALL_ILLUMINA, "label": " / ".join(SHORT_READ_SEQS)},
-    {"key": ALL_LONG_READ, "label": " / ".join(LONG_READ_SEQS)},
+    {"key": ALL_ILLUMINA, "label": "All short read: Illumina"},
+    {"key": ALL_LONG_READ, "label": "All long read: ONT/PacBio"},
     {"key": SEQ_ONT, "label": SEQ_ONT},
     {"key": SEQ_PACBIO, "label": SEQ_PACBIO},
 ]
