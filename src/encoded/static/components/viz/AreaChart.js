@@ -474,10 +474,10 @@ export class GroupByDropdown extends React.PureComponent {
             );
             const selectedDateRangeValueTitle = (loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch" /> : dateRangeOptions[currentDateRangePreset]);
             // date histogram interval
-        const dateHistogramInvervalOptionItems = _.map(_.pairs(dateHistogramIntervalOptions), ([interval, title]) =>
-            <DropdownItem eventKey={interval} key={interval} active={interval === currentDateHistogramInterval}>{ title }</DropdownItem>
-        );
-        const selectedDateHistogramIntervalValueTitle = loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch"/> : dateHistogramIntervalOptions[currentDateHistogramInterval];
+            const dateHistogramInvervalOptionItems = _.map(_.pairs(dateHistogramIntervalOptions), ([interval, title]) =>
+                <DropdownItem eventKey={interval} key={interval} active={interval === currentDateHistogramInterval}>{title}</DropdownItem>
+            );
+            const selectedDateHistogramIntervalValueTitle = loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch" /> : dateHistogramIntervalOptions[currentDateHistogramInterval];
             return (
                 <div className={outerClassName}>
                     <div className="dropdown-container-col col-12 col-lg-2 align-top">
