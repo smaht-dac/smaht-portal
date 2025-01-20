@@ -1058,7 +1058,7 @@ export class SubmissionStatsViewController extends React.PureComponent {
                 pastProps.currentDateRangePreset !== nextProps.currentDateRangePreset ||
                 pastProps.currentDateRangeFrom !== nextProps.currentDateRangeFrom ||
                 pastProps.currentDateRangeTo !== nextProps.currentDateRangeTo ||
-                pastProps.currentDateHistogramInterval !== nextProps.currentDateHistogramInterval 
+                pastProps.currentDateHistogramInterval !== nextProps.currentDateHistogramInterval
             );
         }
     };
