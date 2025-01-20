@@ -186,7 +186,7 @@ def date_histogram_aggregations(context, request):
         if search_result.get(field_to_delete) is None:
             continue
         del search_result[field_to_delete]
-    
+
     search_result['from_date'] = date_from.strftime("%Y-%m-%d") if date_from is not None else None
     search_result['to_date'] = date_to.strftime("%Y-%m-%d") if date_to is not None else None
     search_result['interval'] = date_histogram_intervals
@@ -195,7 +195,7 @@ def date_histogram_aggregations(context, request):
 
 
 DATE_RANGE_PRESETS = {
-    'all': lambda today: (None, today),
+    'all': lambda today: (datetime(2023, 1, 1), today),
     'thismonth': lambda today: (today.replace(day=1), today),
     'previousmonth': lambda today: (today.replace(day=1) - relativedelta(months=1), today.replace(day=1) - relativedelta(days=1)),
     'last3months': lambda today: (today.replace(day=1) - relativedelta(months=2), today),
