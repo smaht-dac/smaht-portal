@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.125.1
+=======
+
+* Show archival status of Unaligned Reads on Submission Status page
+
+
 0.125.0
 =======
 
