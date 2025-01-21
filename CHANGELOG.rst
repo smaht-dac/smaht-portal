@@ -43,6 +43,13 @@ Change Log
   - FYI commit before recent (2025-01-13) change for additional tissue info: bf7ed2bcb9df387721fd329e36e8c15b97a43681
 
 
+0.124.2
+=======
+`Increase limit of SampleSources retrieved for SubmissionStatus page <https://github.com/smaht-dac/smaht-portal/pull/315>`_
+
+* Increase limit of SampleSources retrieved for SubmissionStatus page select to 300
+
+
 0.124.1
 =======
 `PR BM Register Text Fix <https://github.com/smaht-dac/smaht-portal/pull/297>`_
