@@ -652,6 +652,10 @@ export const BoxPlot = ({
         }
     });
 
+    // In some edge cases, when switching the assay, this might not be available.
+    const overlayTargetQcField = overlayTarget.current?.data?.quality_metrics.qc_values[qcField];
+    const overlayTargetValue = overlayTargetQcField?.value;
+
     return (
         <div className="boxplot-canvas" ref={containerRef}>
             <Overlay
@@ -663,8 +667,7 @@ export const BoxPlot = ({
                     <PopoverHeader>
                         {/* {qc_info[qcField].key}: */}
                         {new Intl.NumberFormat().format(
-                            overlayTarget.current?.data?.quality_metrics
-                                .qc_values[qcField]['value']
+                            overlayTargetValue || 0
                         )}
                     </PopoverHeader>
                     <PopoverBody>

@@ -156,7 +156,7 @@ export const BoxPlotWithFacets = ({
             sampleSourceFilter =
                 d?.sample_source_group === selectedSampleSource;
         } else {
-            sampleSourceFilter = d?.sample_source === selectedSampleSource;
+            sampleSourceFilter = d?.sample_source_subgroup === selectedSampleSource;
         }
 
         return (
