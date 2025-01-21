@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "0.124.0"
+version = "0.125.0"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -99,6 +99,7 @@ structlog = ">=19.2.0,<20"
 subprocess-middleware = "^0.3.0"
 supervisor = "^4.2.4"
 # Useful for picking apart pyproject.toml
+termcolor = "^2.4.0"
 toml = ">=0.10.1,<1"
 tqdm = "^4.59.0"
 transaction = "^3.0.0"

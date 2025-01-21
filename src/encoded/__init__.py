@@ -312,6 +312,7 @@ def main(global_config, **local_config):
     if 'elasticsearch.server' in config.registry.settings:
         config.include('snovault.elasticsearch')
         config.include('snovault.search.search')
+        config.include('encoded.browse')
         config.include('snovault.search.compound_search')
 
     # this contains fall back url, so make sure it comes just before static_resoruces
