@@ -3,8 +3,14 @@ from functools import partial
 
 from .utils import RequestHandler, get_property_value_from_identifier, get_property_values_from_identifiers
 from . import (
-    file as file_utils
+    file as file_utils,
+    item as item_utils
 )
+
+def is_donor_specific_assembly(properties: Dict[str, Any]) -> bool:
+    """Check if item is a donor specific assembly."""
+    return item_utils.get_type(properties) == "DonorSpecificAssembly"
+
 
 def get_file_format_id(request_handler: RequestHandler,identifier: str):
     """Return identifier of file_format for file."""

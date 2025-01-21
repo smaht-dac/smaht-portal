@@ -399,6 +399,10 @@ SOME_HOMOGENATE_TISSUE_SAMPLE = {
     "category": "Homogenate",
     "external_id": TISSUE_SAMPLE_EXTERNAL_ID,
 }
+SOME_LIQUID_TISSUE_SAMPLE = {
+    "category": "Liquid",
+    "external_id": TISSUE_SAMPLE_EXTERNAL_ID,
+}
 SOME_OTHER_TISSUE_SAMPLE = {"category": "Core", "external_id": "SN001-01-010A1"}
 
 @pytest.mark.parametrize(
@@ -421,6 +425,7 @@ SOME_OTHER_TISSUE_SAMPLE = {"category": "Core", "external_id": "SN001-01-010A1"}
         ([], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], "100MC", False),
         ([], [], [SOME_CORE_TISSUE_SAMPLE,TPC_TISSUE_SAMPLE], TISSUE_SAMPLE_ALIQUOT_ID, False),
         ([], [], [SOME_HOMOGENATE_TISSUE_SAMPLE], DEFAULT_ABSENT_FIELD * 2, False),
+        ([], [], [SOME_LIQUID_TISSUE_SAMPLE], DEFAULT_ABSENT_FIELD * 2, False),
         ([], [], [SOME_CORE_TISSUE_SAMPLE, SOME_HOMOGENATE_TISSUE_SAMPLE], "MAMC", False),
         ([SOME_CELL_CULTURE_MIXTURE], [], [SOME_CORE_TISSUE_SAMPLE], "", True),
         ([], [SOME_CELL_LINE], [SOME_CORE_TISSUE_SAMPLE], "", True),
@@ -468,6 +473,8 @@ def test_get_donor_sex_and_age_parts(
         assert_filename_part_matches(result, expected, errors)
 
 
+SOME_FILE = {"data_category": ["Aligned Reads"]}
+REFERENCE_FILE = {"data_category": ["Genome Assembly"]}
 SEQUENCER_CODE = "A"
 SOME_SEQUENCER = {"code": SEQUENCER_CODE}
 ANOTHER_SEQUENCER = {"code": "B"}
@@ -477,25 +484,27 @@ ANOTHER_ASSAY = {"code": "002"}
 
 
 @pytest.mark.parametrize(
-    "sequencers,assays,expected,errors",
+    "file,sequencers,assays,expected,errors",
     [
-        ([], [], "", True),
-        ([SOME_SEQUENCER], [], "", True),
-        ([], [SOME_ASSAY], "", True),
-        ([SOME_SEQUENCER], [SOME_ASSAY], f"{SEQUENCER_CODE}{ASSAY_CODE}", False),
-        ([SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY], "", True),
-        ([SOME_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "", True),
-        ([SOME_SEQUENCER, SOME_ITEM], [SOME_ASSAY], "", True),
+        (SOME_FILE,[], [], "", True),
+        (SOME_FILE,[SOME_SEQUENCER], [], "", True),
+        (SOME_FILE,[], [SOME_ASSAY], "", True),
+        (SOME_FILE,[SOME_SEQUENCER], [SOME_ASSAY], f"{SEQUENCER_CODE}{ASSAY_CODE}", False),
+        (SOME_FILE,[SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY], "", True),
+        (REFERENCE_FILE,[SOME_SEQUENCER, ANOTHER_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "XX", False),
+        (SOME_FILE,[SOME_SEQUENCER], [SOME_ASSAY, ANOTHER_ASSAY], "", True),
+        (SOME_FILE,[SOME_SEQUENCER, SOME_ITEM], [SOME_ASSAY], "", True),
     ],
 )
 def test_get_sequencing_and_assay_codes(
+    file: Dict[str, Any],
     sequencers: List[Dict[str, Any]],
     assays: List[Dict[str, Any]],
     expected: str,
     errors: bool,
 ) -> None:
     """Test sequencing and assay codes retrieval for annotated filenames."""
-    result = get_sequencing_and_assay_codes(sequencers, assays)
+    result = get_sequencing_and_assay_codes(file, sequencers, assays)
     assert_filename_part_matches(result, expected, errors)
 
 
@@ -526,18 +535,42 @@ ANOTHER_SOFTWARE_CODE = "bar"
 ANOTHER_SOFTWARE_VERSION = "2.3.4"
 ANOTHER_SOFTWARE = {"code": ANOTHER_SOFTWARE_CODE, "version": ANOTHER_SOFTWARE_VERSION}
 REFERENCE_GENOME_CODE = "GRCh38"
-TARGET_GENOME_CODE = "HELA_DSA"
-GENE_ANNOTATION_CODE = "gencode45"
+DSA_CODE = "Hela_DSA"
+DSA_VALUE = "DSA"
+HAPLOTYPE_CODE = "hapX"
 
+GENE_ANNOTATION_CODE = "gencode"
+GENE_ANNOTATION_VERSION = "v45"
 SOME_REFERENCE_GENOME = {"code": REFERENCE_GENOME_CODE}
-SOME_GENE_ANNOTATION = {"code": GENE_ANNOTATION_CODE}
+SOME_GENE_ANNOTATION = [{"code": GENE_ANNOTATION_CODE, "version": GENE_ANNOTATION_VERSION}]
 SOME_UNALIGNED_READS = {"data_type": ["Unaligned Reads"]}
 SOME_ALIGNED_READS = {"data_type": ["Aligned Reads"]}
 RNA_ALIGNED_READS = {"data_type": ["Aligned Reads"], "data_category": ["RNA Quantification"]}
+
+SOME_TARGET_ASSEMBLY = {
+    "@type": ["ReferenceGenome"],
+    "code": REFERENCE_GENOME_CODE
+}
+SOME_SOURCE_ASSEMBLY = {
+    "@type": ["DonorSpecificAssembly"],
+    "code": DSA_CODE
+}
 SOME_CHAIN_FILE = {
-    "data_type": ["SupplementaryFile"],
-    "source_assembly": REFERENCE_GENOME_CODE,
-    "target_assembly": TARGET_GENOME_CODE
+    "data_category": ["Reference Conversion"],
+    "data_type": ["Chain File"],
+    "source_assembly": DSA_CODE,
+    "target_assembly":  REFERENCE_GENOME_CODE
+}
+SOME_FASTA_FILE = {
+    "data_type": ["DSA"],
+    "data_category": ["Genome Assembly"],
+    "donor_specific_assembly": "Some_DSA",
+    "haplotype": HAPLOTYPE_CODE
+}
+
+ANOTHER_FASTA_FILE = {
+    "data_category": ["Genome Assembly"],
+    "data_type": ["Reference Sequence"],
 }
 SOME_TSV_FILE = {
     "data_type": ["Gene Expression"],
@@ -570,6 +603,11 @@ CHAIN_FILE_EXTENSION = {
     "standard_file_extension": "chain.gz",
     "valid_item_types": ["SupplementaryFile"]
 }
+FASTA_FILE_EXTENSION = {
+    "identifier": "FASTA",
+    "standard_file_extension": "fa",
+    "valid_item_types": ["SupplementaryFile"]
+}
 TSV_FILE_EXTENSION = {
     "identifier": "TSV",
     "standard_file_extension": "tsv",
@@ -578,38 +616,58 @@ TSV_FILE_EXTENSION = {
 
 
 @pytest.mark.parametrize(
-    "file,software,reference_genome,gene_annotation,file_extension,expected,errors",
+    "file,software,reference_genome,annotation,file_extension,target_assembly,source_assembly,dsa,expected,errors",
     [
-        ({}, [], {}, {}, {},"" , True),
-        (SOME_UNALIGNED_READS, [], {}, {}, SOME_FILE_EXTENSION,DEFAULT_ABSENT_FIELD, False),
+        ({}, [], {}, {}, {}, {}, {}, {}, "" , True),
+        (SOME_UNALIGNED_READS, [], {}, {}, SOME_FILE_EXTENSION,  {}, {}, {}, DEFAULT_ABSENT_FIELD, False),
         (
             SOME_UNALIGNED_READS,
             [SOME_SOFTWARE],
             {},
             {},
             SOME_FILE_EXTENSION,
+            {},
+            {},
+            {},
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}",
             False,
         ),
-        (SOME_UNALIGNED_READS, [SOME_SOFTWARE], SOME_REFERENCE_GENOME, {}, SOME_FILE_EXTENSION, "", True),
-        (SOME_ALIGNED_READS, [], {}, {}, {},"", True),
-        (SOME_ALIGNED_READS, [SOME_SOFTWARE], {}, {}, SOME_FILE_EXTENSION, "", True),
+        (SOME_UNALIGNED_READS, [SOME_SOFTWARE], SOME_REFERENCE_GENOME, {}, SOME_FILE_EXTENSION,  {}, {}, {}, "", True),
+        (SOME_ALIGNED_READS, [], {}, {}, {}, {}, {}, {}, "", True),
+        (SOME_ALIGNED_READS, [SOME_SOFTWARE], {}, {}, SOME_FILE_EXTENSION, {}, {}, {}, "", True),
         (
             SOME_ALIGNED_READS,
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             {},
             SOME_FILE_EXTENSION,
+            {},
+            {},
+            {},
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}",
             False,
         ),
-        (SOME_SOMATIC_VARIANT_CALLS, [SOME_SOFTWARE], SOME_REFERENCE_GENOME, {}, VCF_FILE_EXTENSION, f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}", False),
+        (
+            SOME_SOMATIC_VARIANT_CALLS,
+            [SOME_SOFTWARE],
+            SOME_REFERENCE_GENOME,
+            {},
+            VCF_FILE_EXTENSION,
+            {},
+            {},
+            {}, 
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}", 
+            False
+        ),
         (
             SOME_VARIANT_CALLS,
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             {},
             VCF_FILE_EXTENSION,
+            {},
+            {},
+            {},
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}",
             False,
         ),
@@ -619,6 +677,9 @@ TSV_FILE_EXTENSION = {
             SOME_REFERENCE_GENOME,
             {},
             SOME_FILE_EXTENSION,
+            {},
+            {},
+            {}, 
             f"{ANOTHER_SOFTWARE_CODE}_{ANOTHER_SOFTWARE_VERSION}_{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}",
             False,
         ),
@@ -628,6 +689,9 @@ TSV_FILE_EXTENSION = {
             SOME_REFERENCE_GENOME,
             {},
             SOME_FILE_EXTENSION,
+            {},
+            {}, 
+            {},
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}",
             False,
         ),
@@ -637,7 +701,46 @@ TSV_FILE_EXTENSION = {
             {},
             {},
             CHAIN_FILE_EXTENSION,
-            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}To{TARGET_GENOME_CODE}",
+            SOME_TARGET_ASSEMBLY,
+            SOME_SOURCE_ASSEMBLY,
+            SOME_SOURCE_ASSEMBLY,
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}To{REFERENCE_GENOME_CODE}",
+            False,
+        ),
+        (
+            SOME_CHAIN_FILE,
+            [SOME_SOFTWARE, SOME_ITEM],
+            {},
+            {},
+            CHAIN_FILE_EXTENSION,
+            {},
+            {},
+            SOME_SOURCE_ASSEMBLY,
+            "",
+            True,
+        ),
+        (
+            SOME_FASTA_FILE,
+            [SOME_SOFTWARE, SOME_ITEM],
+            {},
+            {},
+            FASTA_FILE_EXTENSION,
+            {},
+            {},
+            SOME_SOURCE_ASSEMBLY, 
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{HAPLOTYPE_CODE}",
+            False,
+        ),
+        (
+            ANOTHER_FASTA_FILE,
+            [SOME_SOFTWARE, SOME_ITEM],
+            {},
+            {},
+            FASTA_FILE_EXTENSION,
+            {},
+            {},
+            {},
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}",
             False,
         ),
         (
@@ -646,8 +749,11 @@ TSV_FILE_EXTENSION = {
             SOME_REFERENCE_GENOME,
             SOME_GENE_ANNOTATION,
             TSV_FILE_EXTENSION,
-            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_gene",
-            False
+            {},
+            {},
+            {},
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}_gene",
+            False,
         ),
         (
             SOME_ISOFORM_TSV_FILE,
@@ -655,7 +761,10 @@ TSV_FILE_EXTENSION = {
             SOME_REFERENCE_GENOME,
             SOME_GENE_ANNOTATION,
             TSV_FILE_EXTENSION,
-            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_isoform",
+            {},
+            {},
+            {},
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}_isoform",
             False
         ),
         (
@@ -664,6 +773,9 @@ TSV_FILE_EXTENSION = {
             SOME_REFERENCE_GENOME,
             SOME_GENE_ANNOTATION,
             TSV_FILE_EXTENSION,
+            {},
+            {},
+            {},
             "",
             True
         ),
@@ -673,7 +785,10 @@ TSV_FILE_EXTENSION = {
             SOME_REFERENCE_GENOME,
             SOME_GENE_ANNOTATION,
             SOME_FILE_EXTENSION,
-            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}",
+            {},
+            {},
+            {},
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}",
             False
         ),
         (
@@ -682,6 +797,9 @@ TSV_FILE_EXTENSION = {
             SOME_REFERENCE_GENOME,
             {},
             SOME_FILE_EXTENSION,
+            {},
+            {},
+            {},
             "",
             True
         )
@@ -691,13 +809,16 @@ def test_get_analysis(
     file: Dict[str, Any],
     software: List[Dict[str, Any]],
     reference_genome: Dict[str, Any],
-    gene_annotation: Dict[str, Any],
+    annotation: Dict[str, Any],
     file_extension: Dict[str, Any],
+    target_assembly: Dict[str, Any],
+    source_assembly: Dict[str, Any],
+    dsa: Dict[str, Any],
     expected: str,
     errors: bool,
 ) -> None:
     """Test analysis info retrieval for annotated filenames."""
-    result = get_analysis(file, software, reference_genome, gene_annotation, file_extension)
+    result = get_analysis(file, software, reference_genome, annotation, file_extension, target_assembly, source_assembly, dsa)
     assert_filename_part_matches(result, expected, errors)
 
 
@@ -719,7 +840,8 @@ def test_get_analysis(
     ],
 )
 def test_get_software_and_versions(
-    software: List[Dict[str, Any]], expected: str
+    software: List[Dict[str, Any]],
+    expected: str
 ) -> None:
     """Test software names and versions retrieval."""
     result = get_software_and_versions(software)
