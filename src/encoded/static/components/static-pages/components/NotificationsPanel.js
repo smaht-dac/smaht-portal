@@ -152,7 +152,7 @@ export const NotificationsPanel = () => {
                 </div>
             </div>
             <div className="announcements section">
-                <h3 className="section-header">Announcements</h3>
+                <h3 className="section-header">DAC Announcements</h3>
                 <div className="section-body-container">
                     <div className="section-body">
                         {announcements.map((announcement, i) => {
@@ -178,7 +178,7 @@ export const NotificationsPanel = () => {
                                 role="button"
                                 className="btn">
                                 <img src="/static/img/homepage-smaht-data-screenshot.png"></img>
-                                <span>SMaHT Proposed Assays</span>
+                                <span>Sequencing methods in SMaHT</span>
                             </a>
                         </div>
                         <div className="link-container nih">
