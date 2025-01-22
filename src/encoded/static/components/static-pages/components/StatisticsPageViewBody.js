@@ -1312,7 +1312,7 @@ export function UsageStatsView(props){
                         <StatisticsTable data={file_downloads}
                             key={'dt_file_downloads'}
                             {...commonTableProps}
-                            termColHeader={termColHeader('file_downloads')}
+                            termColHeader={termColHeader('file_downloads') + ' (number of download attempts)'}
                             containerId="content_file_downloads" />
                     }
 
@@ -1329,6 +1329,7 @@ export function UsageStatsView(props){
                             key={'dt_file_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
+                            termColHeader={termColHeader('file_downloads')}
                             containerId="content_file_downloads_volume" />
                     }
 
@@ -1552,10 +1553,10 @@ UsageStatsView.titleMap = {
         'page_url': ['Page Views', 'by page url', 'Page Url']
     },
     'file_downloads': {
-        'assay_type': ['File Downloads', 'by assay type', 'Assay Type (number of download attempts)'],
-        'filetype': ['File Downloads', 'by file type', 'File Type (number of download attempts)'],
-        'dataset': ['File Downloads', 'by sample type', 'Sample Type (number of download attempts)'],
-        'sequencer': ['File Downloads', 'by sequencing platform', 'Sequencing Platform (number of download attempts)']
+        'assay_type': ['File Downloads', 'by assay type', 'Assay Type'],
+        'filetype': ['File Downloads', 'by file type', 'File Type'],
+        'dataset': ['File Downloads', 'by sample type', 'Sample Type'],
+        'sequencer': ['File Downloads', 'by sequencing platform', 'Sequencing Platform']
     },
     'top_file_downloads': {
         'top_files_10': ['Top File Downloads', 'top 10'],
