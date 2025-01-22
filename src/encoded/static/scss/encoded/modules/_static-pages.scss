@@ -798,14 +798,51 @@ body[data-path="/"]>#application>#layout {
 
 					&.data-release-tracker {
 						display: flex;
+
 						.section-body {
-							background-color: rgba(255, 255, 255, 80%);
-							padding: 15px;
+							display: flex;
+							flex-direction: column;
+							background-color: transparent;
+							width: 100%;
+							padding: 0px 6px 0px 0px;
+    						margin: 6px;
+							overflow-x: hidden;
+							border: none;
+
+
+							&-container {
+								flex: 1;
+								display: flex;
+								overflow-y: scroll;
+								background-color: #eef6fe;
+								border-radius: 12px;
+								border: 1px solid #b4c1f7;
+							}
+
+							&::-webkit-scrollbar {
+								width: 12px;
+								background-color: white;
+								border-radius: 8px;
+								background-color: rgba(255, 255, 255, 0.8);
+							}
+							&::-webkit-scrollbar-thumb {
+								border-radius: 8px;
+								background-color: #D5DFF2;
+								box-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
+							}
+
+							.icon-spinner {
+								margin: auto;
+							}
 
 							.data-release-item-container {
+								background-color: rgba(255, 255, 255, 80%);
+								border-radius: 9px;
+
 								.content {
 									position: relative;
-									padding-left: 12px;
+									padding: 0px 5px 0px 25px;
+									margin-top: 5px;
 									padding-bottom: 16px;
 									
 									.header {
@@ -853,7 +890,7 @@ body[data-path="/"]>#application>#layout {
 											background-color: transparent;
 											border: none;
 											top: 7px;
-											left: -6px;
+											left: 5px;
 											padding: 0px;
 											height: min-content;
 											display: flex;
@@ -871,7 +908,6 @@ body[data-path="/"]>#application>#layout {
 
 												&:before {
 													font-size: 9px;
-													margin-top: 1px;
 												}
 											}
 										}
@@ -995,7 +1031,6 @@ body[data-path="/"]>#application>#layout {
 								flex: 1;
 								display: flex;
 								overflow-y: scroll;
-								max-height: 230px;
 								background-color: white;
 								border-radius: 12px;
 								background-color: #eef6fe;
@@ -1007,9 +1042,9 @@ body[data-path="/"]>#application>#layout {
 							gap: 8px;
 							padding: 0px;
 							padding-right: 6px;
-							border-radius: 0px;
+							border-radius: 9px;
 							overflow-x: hidden;
-							margin: 10px 6px;
+							margin: 6px;
 							border: none;
     						background-color: transparent;
 
@@ -1096,14 +1131,22 @@ body[data-path="/"]>#application>#layout {
 									}
 
 									&.nih {
+										display: flex;
+										justify-content: space-between;
+										gap: 10px;
+									
 										a {
-											padding: 0px 20px;
+											flex: 1;
+											padding: 5px;
+											justify-content: center;
+											gap: 5px;
 
 											span {
-												margin-right: 5px;
+												font-size: 0.75rem;
+												margin: 0px;
 											}
 											img {
-												height: 20px;
+												height: 18px;
 												width: auto;
 											}
 										}
@@ -1227,7 +1270,7 @@ body[data-path="/"]>#application>#layout {
 					padding: 40px 15px;
 					height: 100%;
 					right: 0px;
-					width: 320px;
+					width: 330px;
 					border-right: none;
 					border-bottom: none;
 					border-left: 1px solid rgba(169, 169, 255, 0.6);
@@ -1238,16 +1281,13 @@ body[data-path="/"]>#application>#layout {
 					.section {
 						flex: 1;
 						overflow: auto;
+						
 						&-body {
 							max-height: none;
 						}
 
-						&.announcements {
-							.section-body {
-								&-container {
-									max-height: none;
-								}
-							}
+						.section-body-container {
+							max-height: none;
 						}
 
 						&.about-consortium {
@@ -1257,7 +1297,7 @@ body[data-path="/"]>#application>#layout {
 								.about-consortium-links {
 									.link-container {
 										a {
-											gap: 8px;
+											gap: 4px;
 											padding: 0px 2.5rem;
 										}
 									}

@@ -9,7 +9,7 @@ const announcements = [
     },
     {
         type: 'info',
-        title: 'Note',
+        title: 'Portal Update',
         body: 'The raw sequence files, i.e. unaligned BAM and FASTQ, and the data from the benchmarking tissue samples that were not distributed by TPC will be available upon request at this time (through Globus).',
     },
     {
@@ -57,7 +57,7 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                     </button>
                     <a className="header-link" href={query}>
                         <span>
-                            {releaseItemIndex === 0 ? 'Latest Release: ' : ''}
+                            {releaseItemIndex === 0 ? 'Latest: ' : ''}
                             {month} {year}
                         </span>
                         <span className="count">
@@ -131,20 +131,22 @@ export const NotificationsPanel = () => {
         <div className="notifications-panel container">
             <div className="data-release-tracker section">
                 <h3 className="section-header">Data Release Tracker</h3>
-                <div className="section-body">
-                    {data ? (
-                        data.map((releaseItem, i) => {
-                            return (
-                                <DataReleaseItem
-                                    data={releaseItem}
-                                    key={i}
-                                    releaseItemIndex={i}
-                                />
-                            );
-                        })
-                    ) : (
-                        <i className="icon fas icon-spinner icon-spin"></i>
-                    )}
+                <div className="section-body-container">
+                    <div className="section-body">
+                        {data ? (
+                            data.map((releaseItem, i) => {
+                                return (
+                                    <DataReleaseItem
+                                        data={releaseItem}
+                                        key={i}
+                                        releaseItemIndex={i}
+                                    />
+                                );
+                            })
+                        ) : (
+                            <i className="icon fas icon-spinner icon-spin"></i>
+                        )}
+                    </div>
                 </div>
             </div>
             <div className="announcements section">
@@ -174,7 +176,7 @@ export const NotificationsPanel = () => {
                                 role="button"
                                 className="btn">
                                 <img src="/static/img/homepage-smaht-data-screenshot.png"></img>
-                                <span>SMaHT Data Overview</span>
+                                <span>SMaHT Proposed Assays</span>
                             </a>
                         </div>
                         <div className="link-container nih">
@@ -183,9 +185,18 @@ export const NotificationsPanel = () => {
                                 target="_blank"
                                 rel="noreferrer noopener"
                                 role="button"
-                                className="py-2 btn">
+                                className="btn">
                                 <img src="/static/img/NIH-Symbol.png"></img>
-                                <span>SMaHT Homepage</span>
+                                <span>& SMaHT</span>
+                                <i className="icon-external-link-alt icon icon-xs fas ml-2" />
+                            </a>
+                            <a
+                                href="https://commonfund.nih.gov/smaht"
+                                target="_blank"
+                                rel="noreferrer noopener"
+                                role="button"
+                                className="btn">
+                                <span>SMaHT OC</span>
                                 <i className="icon-external-link-alt icon icon-xs fas ml-2" />
                             </a>
                         </div>
