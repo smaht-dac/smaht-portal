@@ -49,10 +49,6 @@ export const HomepageFigure = ({ currentTier, setCurrentTier }) => {
                 <AssaysCard currentTier={currentTier} />
             </div>
             <div className="homepage-figure-tier-selector">
-                <p className="footnote">
-                    Select a tier below to see which tissues and assays will be
-                    used
-                </p>
                 <TierSelector
                     currentTier={currentTier}
                     setCurrentTier={setCurrentTier}

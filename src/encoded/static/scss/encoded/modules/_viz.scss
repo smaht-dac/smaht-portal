@@ -615,14 +615,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         margin-bottom: 50px;
         margin-top: 20px;
 
-        .footnote {
-            color: #5B7595;
-            font-size: 0.75rem;
-            font-weight: 500;
-            margin: auto auto 5px auto;
-            width: 250px;
-            text-align: center;
-        }
 
         .selector-buttons {
             position: relative;
@@ -761,11 +753,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             margin-top: 0px;
             margin-bottom: 60px;
     
-            .footnote {
-                margin-bottom: 5px;
-                width: 100%;
-            }
-    
             .selector-buttons {
                 button {
                     font-size: 1rem;
@@ -869,7 +856,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             }
         }
         &-tier-selector {
-            margin-top: 40px;
+            margin-top: 25px;
             margin-bottom: 0px;
         }
         

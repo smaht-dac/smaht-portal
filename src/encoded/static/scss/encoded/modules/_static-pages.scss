@@ -816,9 +816,10 @@ body[data-path="/"]>#application>#layout {
 								overflow-y: scroll;
 								background-color: #eef6fe;
 								border-radius: 12px;
+								border: 1px solid #b4c1f7;
 								
 								.section-body-items-container {
-									border: 1px solid lch(78 28.76 278.57 / 0.5);
+									border: 1px solid #b4c1f7;
 									border-radius: 9px;
 								}
 							}
@@ -841,7 +842,6 @@ body[data-path="/"]>#application>#layout {
 
 							.data-release-item-container {
 								background-color: rgba(255, 255, 255, 80%);
-								border-radius: 9px;
 
 								.content {
 									position: relative;
@@ -982,6 +982,8 @@ body[data-path="/"]>#application>#layout {
 									}
 								}
 								&:first-of-type {
+									border-top-left-radius: 9px;
+									border-top-right-radius: 9px;
 									.content {
 										.header {
 											background-color: rgba(195 255 219 / 50%);
@@ -1002,8 +1004,10 @@ body[data-path="/"]>#application>#layout {
 									}
 								}
 								&:last-of-type {
+									border-bottom-left-radius: 9px;
+									border-bottom-right-radius: 9px;
 									.content {
-										padding-bottom: 5px;
+										padding-bottom: 10px;
 										&:before {
 											display: none;
 										}
@@ -1065,7 +1069,7 @@ body[data-path="/"]>#application>#layout {
 							
 							.announcement-container {
 								background-color: rgba(255, 255, 255, 0.8);
-								border: 1px solid #C0CAFF;
+								border: 1px solid #b4c1f7;
 								padding: 12px;
 								border-radius: 9px;
 								
@@ -1126,6 +1130,8 @@ body[data-path="/"]>#application>#layout {
 											flex-direction: column;
 											padding: 10px;
 											gap: 10px;
+											border: 1px solid #b4c1f7;
+											border-radius: 9px;
 
 											img {
 												width: 100%;
@@ -1140,12 +1146,14 @@ body[data-path="/"]>#application>#layout {
 									
 										a {
 											flex: 1;
-											padding: 5px;
+											padding: 7px;
 											justify-content: center;
+											border-radius: 7px;
 											gap: 5px;
+											border: 1px solid #b4c1f7;
 
 											span {
-												font-size: 0.75rem;
+												font-size: 0.875rem;
 												margin: 0px;
 											}
 											img {
@@ -1291,6 +1299,10 @@ body[data-path="/"]>#application>#layout {
 
 						.section-body-container {
 							max-height: none;
+						}
+
+						&.data-release-tracker {
+							flex: 2;
 						}
 
 						&.about-consortium {

@@ -169,7 +169,7 @@ export const NotificationsPanel = () => {
                 </div>
             </div>
             <div className="about-consortium section">
-                <h3 className="section-header">About the Consortium</h3>
+                <h3 className="section-header">Data Overview</h3>
                 <div className="section-body">
                     <div className="about-consortium-links">
                         <div className="link-container smaht-data">
