@@ -7,7 +7,7 @@
     "required": [
         "submission_centers",
         "submitted_id",
-        "tissue_sample",
+        "tissue_samples",
         "tissue_name",
         "outcome"
     ],
@@ -517,17 +517,14 @@
                 "Other"
             ]
         },
-        "histology": {
-            "title": "Histology",
-            "description": "Link to associated histology",
-            "type": "string",
-            "linkTo": "Histology"
-        },
-        "tissue_sample": {
-            "title": "Tissue Sample",
-            "description": "Link to associated tissue sample",
-            "type": "string",
-            "linkTo": "TissueSample"
+        "tissue_samples": {
+            "title": "Tissue Samples",
+            "description": "Link to associated tissue samples",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "TissueSample"
+            }
         }
     },
     "allOf": [
