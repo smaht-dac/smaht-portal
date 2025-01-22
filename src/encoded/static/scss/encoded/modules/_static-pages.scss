@@ -816,7 +816,11 @@ body[data-path="/"]>#application>#layout {
 								overflow-y: scroll;
 								background-color: #eef6fe;
 								border-radius: 12px;
-								border: 1px solid #b4c1f7;
+								
+								.section-body-items-container {
+									border: 1px solid lch(78 28.76 278.57 / 0.5);
+									border-radius: 9px;
+								}
 							}
 
 							&::-webkit-scrollbar {
@@ -841,8 +845,7 @@ body[data-path="/"]>#application>#layout {
 
 								.content {
 									position: relative;
-									padding: 0px 5px 0px 25px;
-									margin-top: 5px;
+									padding: 5px 5px 0px 25px;
 									padding-bottom: 16px;
 									
 									.header {
@@ -851,8 +854,8 @@ body[data-path="/"]>#application>#layout {
 										background-color: #ecf2fe;
 										color: #1310BC;
 										font-weight: 700;
+										border-radius: 7px;
 										font-size: 0.625rem;
-										border-radius: 3px;
 
 										.count {
 											color: hsla(241, 84%, 40%, 0.6);
@@ -869,7 +872,7 @@ body[data-path="/"]>#application>#layout {
 											padding: 6px 8px;
 											color: #1310BC;
 											border: 1px solid transparent;
-											border-radius: 3px;
+											border-radius: inherit;
 											align-items: baseline;
 
 											&:hover {
@@ -889,7 +892,7 @@ body[data-path="/"]>#application>#layout {
 											position: absolute;
 											background-color: transparent;
 											border: none;
-											top: 7px;
+											top: 13px;
 											left: 5px;
 											padding: 0px;
 											height: min-content;
@@ -971,8 +974,8 @@ body[data-path="/"]>#application>#layout {
 										content: "";
 										display: block;
 										position: absolute;
-										top: 10px;
-										left: 1px;
+										top: 20px;
+										left: 12px;
 										width: 1px;
 										height: 100%;
 										background-color: #2B28BD;
@@ -1320,19 +1323,21 @@ body[data-path="/"]>#application>#layout {
 			}
 		}
 	}
+	@media screen and (min-width: 1600px) {
+		.homepage-contents {
+			.container {
+				.homepage-figure-container {
+					justify-content: center;
+				}
+			}
+		}
+	}
 	@include media-breakpoint-up(xxxl) {
 		position: relative;
 		.homepage-contents {
 			.container {
 				.homepage-header {
 					margin-top: 25px;
-
-					h1 {
-						font-size: 2.125rem;
-					}
-					h2 {
-						font-size: 1.25rem;
-					}
 				}
 				.homepage-timeline-figure-container {
 					margin-top: 50px;
@@ -1345,12 +1350,6 @@ body[data-path="/"]>#application>#layout {
 				.notifications-panel {
 					width: 400px;
 					padding: 38px 27px;
-
-					.section.data-release-tracker {
-						.section-body {
-							padding: 30px 20px;
-						}
-					}
 				}
 			}
 		}

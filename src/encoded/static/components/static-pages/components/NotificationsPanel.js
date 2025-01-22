@@ -133,19 +133,21 @@ export const NotificationsPanel = () => {
                 <h3 className="section-header">Data Release Tracker</h3>
                 <div className="section-body-container">
                     <div className="section-body">
-                        {data ? (
-                            data.map((releaseItem, i) => {
-                                return (
-                                    <DataReleaseItem
-                                        data={releaseItem}
-                                        key={i}
-                                        releaseItemIndex={i}
-                                    />
-                                );
-                            })
-                        ) : (
-                            <i className="icon fas icon-spinner icon-spin"></i>
-                        )}
+                        <div className="section-body-items-container">
+                            {data ? (
+                                data.map((releaseItem, i) => {
+                                    return (
+                                        <DataReleaseItem
+                                            data={releaseItem}
+                                            key={i}
+                                            releaseItemIndex={i}
+                                        />
+                                    );
+                                })
+                            ) : (
+                                <i className="icon fas icon-spinner icon-spin"></i>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

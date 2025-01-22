@@ -53,7 +53,7 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                             setCurrentTier={setCurrentTier}
                         />
                     </div>
-                    <div className="homepage-figure-container col-12 col-lg-8 col-xl-7 col-xxl-6 d-flex mb-2 my-lg-2 ">
+                    <div className="homepage-figure-container col-12 col-lg-8 col-xl-7 col-xxxl-6 d-flex mb-2 my-lg-2 ">
                         <HomepageFigure
                             currentTier={currentTier}
                             setCurrentTier={setCurrentTier}
