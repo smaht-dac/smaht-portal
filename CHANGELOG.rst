@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+0.126.0
+=======
+`Submissions statistics updates  <https://github.com/smaht-dac/smaht-portal/pull/317>`_
+
+* New hide empty colums option in the usage statistics page
+* New high contrast option for the usage statistics page
+* New date histogram interval option for submission statistics page
+* Change file item type as SubmittedFile for submission statistics page
+* Refator cumulative sum calculation
+
+
 0.125.0
 =======
 
