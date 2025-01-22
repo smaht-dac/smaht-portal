@@ -1184,6 +1184,7 @@ $workflow-node-color-type-global-context: #ffb3b3;
 
             .custom-date-range {
                 margin-left: 15px;
+                font-size: 80%;
 
                 .form-control {
                     margin-right: 12px;
@@ -1206,14 +1207,15 @@ $workflow-node-color-type-global-context: #ffb3b3;
 
             @include media-breakpoint-up(xxl) {
                 .custom-date-range {
-                    margin-left: 45px;
-
                     .form-control {
                         margin-right: 20px;
                     }
                 }
             }
+        }
 
+        .settings-label {
+            font-size: 80%;
         }
     }
 

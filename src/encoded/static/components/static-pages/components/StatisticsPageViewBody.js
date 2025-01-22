@@ -12,8 +12,7 @@ import DropdownButton from 'react-bootstrap/esm/DropdownButton';
 import Modal from 'react-bootstrap/esm/Modal';
 
 import { Checkbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Checkbox';
-import { console, ajax, analytics, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { navigate } from './../../util';
+import { console, ajax, JWT, analytics, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { Term } from './../../util/Schemas';
 import { ColumnCombiner, CustomColumnController, SortController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/EmbeddedSearchView';
 import { ControlsAndResults } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/ControlsAndResults';
@@ -65,25 +64,11 @@ export const commonParsingFxn = {
         return parsedBuckets;
     },
     /**
-     * Doesn't add up totals, just renames 'count' property to 'total' property.
-     * MODIFIES IN PLACE.
-     */
-    'countsToCountTotals' : function(parsedBuckets, excludeChildren = false){
-        parsedBuckets.forEach(function(bkt){
-            bkt.total = bkt.count;
-            bkt.children.forEach(function(c){
-                c.total = c.count;
-            });
-        });
-        return parsedBuckets;
-    },
-    /**
      * MODIFIES OBJECTS IN PLACE
      */
-    'fillMissingChildBuckets' : function(aggsList, subAggTerms = [], externalTermMap = {}){
+    'fillMissingChildBuckets' : function(aggsList, subAggTerms = []){
         aggsList.forEach(function(datum){
             subAggTerms.forEach(function(term){
-                if (externalTermMap && externalTermMap[term]) return;
                 if (!_.findWhere(datum.children, { term })){
                     datum.children.push({ term, 'count' : 0, 'total' : 0, 'date' : datum.date });
                 }
@@ -100,76 +85,20 @@ export const commonParsingFxn = {
                 'date' : todayAsString,
                 'count' : 0,
                 'children' : aggsList[aggsList.length - 1].children.map(function(c){
-                    return _.extend({}, c, { 'date' : todayAsString, 'count' : 0 });
+                    return _.extend({}, c, { 'date' : todayAsString, 'count' : 0, 'total': 0 });
                 })
             });
         }
     },
     /**
      * Converts date_histogram, histogram, or range aggregations from ElasticSearch result into similar but simpler bucket structure.
-     * Sets 'count' to be 'doc_count' value from histogram.
-     *
-     * @param {{ key_as_string: string, doc_count: number, group_by?: { buckets: { doc_count: number, key: string  }[] } }[]} intervalBuckets - Raw aggregation results returned from ElasticSearch
-     * @param {Object.<string>} [externalTermMap] - Object which maps external terms to true (external data) or false (internal data).
-     * @param {boolean} [excludeChildren=false] - If true, skips aggregating up children to increase performance very slightly.
-     */
-    'bucketDocCounts' : function(intervalBuckets, groupByField, externalTermMap, excludeChildren = false){
-        const subBucketKeysToDate = new Set();
-        const aggsList = intervalBuckets.map(function(bucket, index){
-            const {
-                doc_count,
-                key_as_string,
-                [groupByField] : { buckets: subBuckets = [] } = {}
-            } = bucket;
-
-            if (excludeChildren === true){
-                return {
-                    'date' : key_as_string.split('T')[0], // Sometimes we get a time back with date when 0 doc_count; correct it to date only.
-                    'count' : doc_count
-                };
-            } else {
-                _.pluck(subBuckets, 'key').forEach(function(k){
-                    subBucketKeysToDate.add(k);
-                });
-
-                const children = [ ...subBucketKeysToDate ].map(function(term){
-                    // Create a parsed 'bucket' even if none returned from ElasticSearch agg but it has appeared earlier.
-                    const subBucket = _.findWhere(subBuckets, { 'key' : term });
-                    const count = ((subBucket && subBucket.doc_count) || 0);
-
-                    return { term, count };
-                });
-
-                return {
-                    'date' : key_as_string.split('T')[0], // Sometimes we get a time back with date when 0 doc_count; correct it to date only.
-                    'count' : doc_count,
-                    'children' : children
-                };
-            }
-        });
-
-        if (subBucketKeysToDate.size === 0){ // No group by defined, fill with dummy child for each.
-            _.forEach(aggsList, function(dateBucket){
-                dateBucket.children = [{ term : null, count : dateBucket.count }];
-            });
-            subBucketKeysToDate.add(null);
-        }
-
-        // Ensure each datum has all child terms, even if blank.
-        commonParsingFxn.fillMissingChildBuckets(aggsList, _.difference([ ...subBucketKeysToDate ], (externalTermMap && _.keys(externalTermMap)) || [] ));
-
-        return aggsList;
-    },
-    /**
-     * Converts date_histogram, histogram, or range aggregations from ElasticSearch result into similar but simpler bucket structure.
      * Sets 'count' to be 'bucket.total_files.value' value from histogram.
      *
      * @param {{ key_as_string: string, doc_count: number, group_by?: { buckets: { doc_count: number, key: string  }[] } }[]} intervalBuckets - Raw aggregation results returned from ElasticSearch
-     * @param {Object.<string>} [externalTermMap] - Object which maps external terms to true (external data) or false (internal data).
      */
-    'bucketTotalFilesCounts' : function(intervalBuckets, groupByField, externalTermMap){
+    'bucketTotalFilesCounts' : function(intervalBuckets, groupByField, fromDate, toDate, interval){
         const subBucketKeysToDate = new Set();
-        const aggsList = intervalBuckets.map(function(bucket, index){
+        let aggsList = intervalBuckets.map(function(bucket, index){
             const {
                 key_as_string,
                 total_files : { value: totalFiles = 0 } = {},
@@ -194,16 +123,18 @@ export const commonParsingFxn = {
             };
         });
 
+        aggsList = commonParsingFxn.add_missing_dates(aggsList, fromDate, toDate, interval, 'submission');
+
         // Ensure each datum has all child terms, even if blank.
-        commonParsingFxn.fillMissingChildBuckets(aggsList, _.difference([ ...subBucketKeysToDate ], (externalTermMap && _.keys(externalTermMap)) || [] ));
+        commonParsingFxn.fillMissingChildBuckets(aggsList, [ ...subBucketKeysToDate ]);
 
         return aggsList;
     },
-    'bucketTotalFilesVolume' : function(intervalBuckets, groupByField, externalTermMap){
+    'bucketTotalFilesVolume' : function(intervalBuckets, groupByField, fromDate, toDate, interval){
         const gigabyte = 1024 * 1024 * 1024;
         const megabyte = 1024 * 1024;
         const subBucketKeysToDate = new Set();
-        const aggsList = intervalBuckets.map(function(bucket, index){
+        let aggsList = intervalBuckets.map(function(bucket, index){
             const {
                 key_as_string,
                 total_files_volume : { value: totalFilesVolume = 0 } = {},
@@ -229,18 +160,24 @@ export const commonParsingFxn = {
             };
         });
 
+        aggsList = commonParsingFxn.add_missing_dates(aggsList, fromDate, toDate, interval, 'submission');
+
         // Ensure each datum has all child terms, even if blank.
-        commonParsingFxn.fillMissingChildBuckets(aggsList, _.difference(Array.from(subBucketKeysToDate), (externalTermMap && _.keys(externalTermMap)) || [] ));
+        commonParsingFxn.fillMissingChildBuckets(aggsList, Array.from(subBucketKeysToDate));
 
         return aggsList;
     },
-    'analytics_to_buckets' : function(resp, reportName, termBucketField, countKey, cumulativeSum, termDisplayAsFunc = null, topCount = 0){
+    'analytics_to_buckets' : function(resp, reportName, termBucketField, countKey, cumulativeSum, currentGroupBy, termDisplayAsFunc = null, topCount = 0){
         const termsInAllItems = new Set();
 
         // De-dupe -- not particularly necessary as D3 handles this, however nice to have well-formatted data.
-        const trackingItems = _.uniq(resp['@graph'], true, function(trackingItem){
+        let trackingItems = _.uniq(resp['@graph'], true, function(trackingItem){
             return trackingItem.google_analytics.for_date;
         }).reverse(); // We get these in decrementing order from back-end
+
+        // add missing dates
+        const { fromDate, untilDate, dateIncrement } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
+        trackingItems = commonParsingFxn.add_missing_dates(trackingItems, fromDate, untilDate, dateIncrement, 'google_analytics');
 
         let totalSessionsToDate = 0;
         const termTotals = {}; // e.g. { 'USA': { count: 5, total: 5 }, 'China': { count: 2, total: 2 } }
@@ -345,6 +282,98 @@ export const commonParsingFxn = {
         };
 
         return filterZeroTotalTerms(aggsList);
+    },
+    'add_missing_dates': function (data, fromDate, untilDate, dateIncrement = "daily", type = "google_analytics") {
+        const forAnalytics = type === "google_analytics";
+        
+        const sortedData = data; // Already sorted, skip re-sorting again
+        // // Sort the data by ascending order of date
+        // const sortedData = data.sort(
+        //     (a, b) => new Date(a.google_analytics.for_date) - new Date(b.google_analytics.for_date)
+        // );
+
+        // Collect all existing dates into a Set for quick lookup
+        const existingDates = new Set(sortedData.map(d => forAnalytics ? d.google_analytics.for_date : d.date ));
+
+        // Utility function to add days to a date
+        const addDays = function (date, days) {
+            const newDate = new Date(date);
+            newDate.setDate(newDate.getDate() + days);
+            return newDate;
+        };
+
+        // Utility function to get the next occurrence of a specific weekday
+        const getNextWeekday = function (startDate, targetWeekday) {
+            const resultDate = new Date(startDate);
+            while (resultDate.getDay() !== targetWeekday) {
+                resultDate.setDate(resultDate.getDate() + 1);
+            }
+            return resultDate;
+        };
+
+        // Initialize the current date and the end date
+        const startDate = new Date(fromDate);
+        const endDate = new Date(untilDate);
+
+        // For weekly, align the start date to the nearest matching weekday with existing data
+        let currentDate;
+        if (dateIncrement === "weekly") {
+            // Find the day of the week for the first available data point
+            const firstExistingDate = sortedData.length > 0
+                ? new Date(forAnalytics ? sortedData[0].google_analytics.for_date : sortedData[0].date)
+                : startDate;
+            const targetWeekday = firstExistingDate.getDay();
+            currentDate = getNextWeekday(startDate, targetWeekday);
+        } else {
+            currentDate = new Date(fromDate);
+        }
+
+        // Copy the existing data to a new array
+        const completeData = [...sortedData];
+
+        // Function to choose the date increment logic
+        const incrementFunc =
+            dateIncrement === "daily"
+                ? (date) => addDays(date, 1)
+                : dateIncrement === "weekly"
+                    ? (date) => addDays(date, 7)
+                    : (date) => {
+                        const newDate = new Date(date);
+                        newDate.setMonth(newDate.getMonth() + 1);
+                        return newDate;
+                    };
+
+        while (currentDate <= endDate) {
+            const currentDateString = formatDate(currentDate, 'yyyy-MM-dd');
+
+            // If the date is missing, add a placeholder entry
+            if (!existingDates.has(currentDateString)) {
+                if (forAnalytics) {
+                    completeData.push({
+                        uuid: "uuid_for_missing_date_" + currentDateString, // Generate a unique (dummy) UUID for missing dates
+                        tracking_type: "google_analytics",
+                        google_analytics: {
+                            reports: {}, // Placeholder for missing data
+                            for_date: currentDateString,
+                            date_increment: dateIncrement
+                        }
+                    });
+                } else {
+                    completeData.push({
+                        date: currentDateString,
+                        count: 0,
+                        children: []
+                    });
+                }
+            }
+            // Move to the next increment (daily, weekly, monthly)
+            currentDate = incrementFunc(currentDate);
+        }
+
+        // Return the data sorted in descending order (newest to oldest)
+        return completeData.sort(
+            (a, b) => new Date(forAnalytics ? a.google_analytics.for_date : a.date) - new Date(forAnalytics ? b.google_analytics.for_date : b.date)
+        );
     }
 };
 
@@ -353,84 +382,84 @@ const aggregationsToChartData = {
         'requires'  : 'FileUploading',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = "weekly_interval_date_created"/*"weekly_interval_file_status_tracking.uploading"*/;
-            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
+            const { interval: [interval], from_date, to_date } = resp;
+            const agg = interval + "_interval_date_created"/*"_interval_file_status_tracking.uploading"*/;
+            const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
+            if (!Array.isArray(buckets)) return null;
 
-            return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
-                props.cumulativeSum
-            );
+            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, from_date, to_date, interval);
+
+            return commonParsingFxn.countsToTotals(counts, props.cumulativeSum);
         }
     },
     'file_volume_uploading' : {
         'requires'  : 'FileUploading',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = "weekly_interval_date_created"/*"weekly_interval_file_status_tracking.uploading"*/;
-            var weeklyIntervalBuckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
+            const { interval: [interval], from_date, to_date } = resp;
+            const agg = interval + "_interval_date_created"/*"_interval_file_status_tracking.uploading"*/;
+            const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
+            if (!Array.isArray(buckets)) return null;
 
-            return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
-                props.cumulativeSum
-            );
+            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, from_date, to_date, interval);
+
+            return commonParsingFxn.countsToTotals(volumes, props.cumulativeSum);
         }
     },
     'files_uploaded' : {
         'requires'  : 'FileUploaded',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = "weekly_interval_file_status_tracking.uploaded";
-            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
+            const { interval: [interval], from_date, to_date } = resp;
+            const agg = interval + "_interval_file_status_tracking.uploaded";
+            const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
+            if (!Array.isArray(buckets)) return null;
 
-            return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
-                props.cumulativeSum
-            );
+            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, from_date, to_date, interval);
+
+            return commonParsingFxn.countsToTotals(counts, props.cumulativeSum);
         }
     },
     'file_volume_uploaded' : {
         'requires'  : 'FileUploaded',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = "weekly_interval_file_status_tracking.uploaded";
-            var weeklyIntervalBuckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
+            const { interval: [interval], from_date, to_date } = resp;
+            const agg = interval + "_interval_file_status_tracking.uploaded";
+            const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
+            if (!Array.isArray(buckets)) return null;
 
-            return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
-                props.cumulativeSum
-            );
+            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, from_date, to_date, interval);
+
+            return commonParsingFxn.countsToTotals(volumes, props.cumulativeSum);
         }
     },
     'files_released' : {
         'requires'  : 'FileReleased',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = "weekly_interval_file_status_tracking.released";
-            var weeklyIntervalBuckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
+            const { interval: [interval], from_date, to_date } = resp;
+            const agg = interval + "_interval_file_status_tracking.released";
+            const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
+            if (!Array.isArray(buckets)) return null;
 
-            return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesCounts(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
-                props.cumulativeSum
-            );
+            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, from_date, to_date, interval);
+
+            return commonParsingFxn.countsToTotals(counts, props.cumulativeSum);
         }
     },
     'file_volume_released' : {
         'requires'  : 'FileReleased',
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
-            const agg = "weekly_interval_file_status_tracking.released";
-            var weeklyIntervalBuckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
-            if (!Array.isArray(weeklyIntervalBuckets)/* || weeklyIntervalBuckets.length < 2*/) return null;
+            const { interval: [interval], from_date, to_date } = resp;
+            const agg = interval + "_interval_file_status_tracking.released";
+            const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
+            if (!Array.isArray(buckets)) return null;
 
-            return commonParsingFxn.countsToTotals(
-                commonParsingFxn.bucketTotalFilesVolume(weeklyIntervalBuckets, props.currentGroupBy, props.externalTermMap),
-                props.cumulativeSum
-            );
+            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, from_date, to_date, interval);
+
+            return commonParsingFxn.countsToTotals(volumes, props.cumulativeSum);
         }
     },
     'fields_faceted' : {
@@ -443,7 +472,7 @@ const aggregationsToChartData = {
 
             if (props.countBy.fields_faceted === 'sessions') countKey = 'unique_users';
 
-            return commonParsingFxn.analytics_to_buckets(resp, 'fields_faceted', groupingKey, countKey, props.cumulativeSum);
+            return commonParsingFxn.analytics_to_buckets(resp, 'fields_faceted', groupingKey, countKey, props.cumulativeSum, props.currentGroupBy);
         }
     },
     'sessions_by_country' : {
@@ -474,7 +503,7 @@ const aggregationsToChartData = {
                     break;
             }
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey, props.cumulativeSum);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey, props.cumulativeSum, props.currentGroupBy);
         }
     },
     /**
@@ -513,7 +542,7 @@ const aggregationsToChartData = {
 
             console.log("AGGR", resp, props, countBy, groupingKey, useReport);
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, props.currentGroupBy);
         }
     },
     'file_downloads_volume' : {
@@ -548,7 +577,7 @@ const aggregationsToChartData = {
 
             //convert volume to GB
             const gigabyte = 1024 * 1024 * 1024;
-            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum);
+            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, props.currentGroupBy);
             if (result && Array.isArray(result) && result.length > 0) {
                 _.forEach(result, (r) => {
                     r.total = r.total / gigabyte;
@@ -595,7 +624,7 @@ const aggregationsToChartData = {
 
             const termDisplayAsFunc = function(item){ return item.file_title ? item.file_title : (item.file_type ? `${item.term} (${item.file_type})` : item.term) };
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, termDisplayAsFunc, topCount);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, props.currentGroupBy, termDisplayAsFunc, topCount);
         }
     },
     'top_file_set_downloads_volume' : {
@@ -631,7 +660,7 @@ const aggregationsToChartData = {
             
             //convert volume to GB
             const gigabyte = 1024 * 1024 * 1024;
-            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, termDisplayAsFunc, topCount);
+            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, props.currentGroupBy, termDisplayAsFunc, topCount);
             if (result && Array.isArray(result) && result.length > 0) {
                 _.forEach(result, (r) => {
                     r.total = r.total / gigabyte;
@@ -678,7 +707,7 @@ const aggregationsToChartData = {
 
             const termDisplayAsFunc = function(item){ return item.file_title ? item.file_title : (item.file_type ? `${item.term} (${item.file_type})` : item.term) };
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, termDisplayAsFunc, topCount);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, props.currentGroupBy, termDisplayAsFunc, topCount);
         }
     },
     'top_file_downloads_volume' : {
@@ -714,7 +743,7 @@ const aggregationsToChartData = {
             
             //convert volume to GB
             const gigabyte = 1024 * 1024 * 1024;
-            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, termDisplayAsFunc, topCount);
+            const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, props.currentGroupBy, termDisplayAsFunc, topCount);
             if (result && Array.isArray(result) && result.length > 0) {
                 _.forEach(result, (r) => {
                     r.total = r.total / gigabyte;
@@ -786,7 +815,7 @@ const aggregationsToChartData = {
                     break;
             }
 
-            return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey, props.cumulativeSum);
+            return commonParsingFxn.analytics_to_buckets(resp, useReport, termBucketField, countKey, props.cumulativeSum, props.currentGroupBy);
         }
     },
 };
@@ -812,11 +841,13 @@ export class UsageStatsViewController extends React.PureComponent {
     static getSearchReqMomentsForTimePeriod(currentGroupBy = "daily:60") {
         let untilDate = new Date();
         let fromDate;
+        let dateIncrement = '';
 
         if (currentGroupBy.startsWith("daily:")) {
             const days = parseInt(currentGroupBy.split(":")[1], 10); // Extract the number after 'daily:'
             untilDate = sub(untilDate, { days: 1 });
             fromDate = sub(untilDate, { days }); // Go back the specified number of days
+            dateIncrement = 'daily';
         } else if (currentGroupBy.startsWith("monthly:")) {
             const months = currentGroupBy.split(":")[1];
             if (months === "All") { // Special case for 'monthly:All'
@@ -827,16 +858,17 @@ export class UsageStatsViewController extends React.PureComponent {
                 untilDate = sub(startOfMonth(untilDate), { minutes: 1 }); // Last minute of previous month
                 fromDate = sub(untilDate, { months: numMonths }); // Go back the specified number of months
             }
+            dateIncrement = 'monthly';
         }
 
-        return { fromDate, untilDate };
+        return { fromDate, untilDate, dateIncrement };
     }
 
     static defaultProps = {
         'searchURIs' : {
             'TrackingItem' : function(props) {
                 const { currentGroupBy, href } = props;
-                const { fromDate, untilDate } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
+                const { fromDate, untilDate, dateIncrement } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
 
 
                 const report_names = [
@@ -856,11 +888,9 @@ export class UsageStatsViewController extends React.PureComponent {
                     "for_date"
                 ];
 
-                const date_increment = currentGroupBy.startsWith('monthly') ? 'monthly' : 'daily';
-
                 let uri = '/search/?type=TrackingItem&tracking_type=google_analytics&sort=-google_analytics.for_date&format=json';
 
-                uri += '&limit=all&google_analytics.date_increment=' + date_increment;
+                uri += '&limit=all&google_analytics.date_increment=' + dateIncrement;
                 uri += '&google_analytics.for_date.from=' + formatDate(fromDate, 'yyyy-MM-dd') + '&google_analytics.for_date.to=' + formatDate(untilDate, 'yyyy-MM-dd');
                 uri += "&" + report_names.map(function(n){ return "field=google_analytics.reports." + encodeURIComponent(n); }).join("&");
                 uri += "&field=google_analytics.for_date";
@@ -993,7 +1023,7 @@ export class UsageStatsViewController extends React.PureComponent {
 export class SubmissionStatsViewController extends React.PureComponent {
 
     static createFileSearchUri(props, date_histogram) {
-        const params = { 'type': 'File' };
+        const params = { 'type': 'SubmittedFile' };
         if (props.currentGroupBy) { params.group_by = props.currentGroupBy; }
         if (props.currentDateRangePreset) {
             if (props.currentDateRangePreset !== 'custom')
@@ -1001,6 +1031,7 @@ export class SubmissionStatsViewController extends React.PureComponent {
             else
                 params.date_range = `custom|${props.currentDateRangeFrom || ''}|${props.currentDateRangeTo || ''}`;
         }
+        if (props.currentDateHistogramInterval) { params.date_histogram_interval = props.currentDateHistogramInterval; }
         params.date_histogram = Array.isArray(date_histogram) ? date_histogram : [date_histogram];
         const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
 
@@ -1026,42 +1057,20 @@ export class SubmissionStatsViewController extends React.PureComponent {
                 pastProps.currentGroupBy !== nextProps.currentGroupBy ||
                 pastProps.currentDateRangePreset !== nextProps.currentDateRangePreset ||
                 pastProps.currentDateRangeFrom !== nextProps.currentDateRangeFrom ||
-                pastProps.currentDateRangeTo !== nextProps.currentDateRangeTo
+                pastProps.currentDateRangeTo !== nextProps.currentDateRangeTo ||
+                pastProps.currentDateHistogramInterval !== nextProps.currentDateHistogramInterval
             );
         }
     };
 
     constructor(props){
         super(props);
-        this.fetchAndGenerateExternalTermMap = this.fetchAndGenerateExternalTermMap.bind(this);
-        this.state = { "externalTermMap" : null };
     }
 
     componentDidMount(){
-        this.fetchAndGenerateExternalTermMap();
     }
 
     componentDidUpdate(pastProps){
-        const { shouldRefetchAggs, session } = this.props;
-        if (shouldRefetchAggs(pastProps, this.props)){
-            if (pastProps.session !== session){
-                // Avoid triggering extra re-aggregation from new/unnecessary term map being loaded.
-                this.fetchAndGenerateExternalTermMap(true);
-            }
-        }
-    }
-
-    fetchAndGenerateExternalTermMap(refresh = false){
-        const { externalTermMap } = this.state;
-        if (!refresh && externalTermMap && _.keys(externalTermMap).length > 0) return;
-
-        ajax.load('/search/?type=SubmissionCenter&limit=all', (resp)=>{
-            this.setState({
-                'externalTermMap' : _.object(_.map(resp['@graph'] || [], function(submissionCenter){
-                    return [ submissionCenter.display_title, submissionCenter.identifier !== 'smaht_dac' ];
-                }))
-            });
-        });
     }
 
     render(){ return <StatsViewController {...this.props} {...this.state} />; }
@@ -1166,56 +1175,68 @@ export function UsageStatsView(props){
         smoothEdges, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
     } = props;
 
-    if (loadingStatus === 'failed'){
-        return <div className="stats-charts-container" key="charts" id="usage"><ErrorIcon/></div>;
-    }
-
     if (!mounted || (loadingStatus === 'loading' && (!file_downloads && !sessions_by_country))){
-        return <div className="stats-charts-container" key="charts" id="usage"><LoadingIcon/></div>;
+        return (
+            <div className="stats-charts-container" key="charts" id="usage">
+                <LoadingIcon />
+            </div>
+        );
     }
 
-    const [isTransposed, setIsTransposed] = useState(true);
-    const [ scale, setScale ] = useState({ yAxisScale: 'Pow', yAxisPower: 0.5 });
-    const { anyExpandedCharts, commonXDomain, dateRoundInterval } = useMemo(function(){
-        const { fromDate: propFromDate, untilDate: propUntilDate } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
-        let fromDate, untilDate, dateRoundInterval;
+    const [transposed, setTransposed] = useState(true);
+    const [hideEmptyColumns, setHideEmptyColumns] = useState(true);
+    const [highContrast, setHighContrast] = useState(false);
+    const [yAxisScale, setYAxisScale] = useState('Pow');
+    const [yAxisPower, setYAxisPower] = useState(0.7);
+    const handleAxisScaleChange = (scale, power) => { setYAxisScale(scale); setYAxisPower(power); };
+    const { anyExpandedCharts, commonXDomain, dateIncrement } = useMemo(function(){
+        const { fromDate: propFromDate, untilDate: propUntilDate, dateIncrement } = UsageStatsViewController.getSearchReqMomentsForTimePeriod(currentGroupBy);
+        let fromDate, untilDate;
         // We want all charts to share the same x axis. Here we round to date boundary.
         // Minor issue is that file downloads are stored in UTC/GMT while analytics are in EST timezone..
         // TODO improve on this somehow, maybe pass prop to FileDownload chart re: timezone parsing of some sort.
         if (currentGroupBy.startsWith('daily:')) {
             fromDate = add(startOfDay(propFromDate), { minutes: 15 });
             untilDate = add(endOfDay(propUntilDate), { minutes: 45 });
-            dateRoundInterval = 'day';
         } else if (currentGroupBy.startsWith('monthly:')) {
             fromDate = endOfMonth(propFromDate); // Not rly needed.
             untilDate = sub(endOfMonth(propUntilDate), { days: 1 });
-            dateRoundInterval = 'month';
-        } else if (currentGroupBy.startsWith('yearly')) { // Not yet implemented
-            dateRoundInterval = 'year';
+        } else if (currentGroupBy.startsWith('yearly')) {
+            // Not yet implemented
         }
         return {
             anyExpandedCharts: _.any(_.values(chartToggles.expanded || {})),
             commonXDomain: [fromDate, untilDate],
-            dateRoundInterval
+            dateIncrement
         };
     }, [ currentGroupBy, anyExpandedCharts ]);
 
-    const commonContainerProps = { 'onToggle' : onChartToggle, chartToggles, windowWidth, 'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250 };
+    const commonContainerProps = {
+        'onToggle': onChartToggle,
+        chartToggles,
+        windowWidth,
+        'defaultColSize': '12',
+        'defaultHeight': anyExpandedCharts ? 200 : 250
+    };
     const commonChartProps = {
-        dateRoundInterval,
+        dateRoundInterval: dateIncrement === 'daily' ? 'day' : (dateIncrement === 'yearly' ? 'year' : 'month'),
         'xDomain': commonXDomain,
         'curveFxn': smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter,
-        cumulativeSum: cumulativeSum
+        cumulativeSum, yAxisScale, yAxisPower
     };
     const countByDropdownProps = { countBy, changeCountByForChart };
 
     const sessionsByCountryChartHeight = ['page_title', 'page_url'].indexOf(countBy.sessions_by_country) > -1 ? 500 : commonContainerProps.defaultHeight;
     const enableSessionByCountryChartTooltipItemClick = (countBy.sessions_by_country === 'page_url');
 
-    const { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep } = UsageStatsView.getYScaleDefaults(scale['yAxisScale']);
+    let enableDetail = false;
+    const userGroups = (session && JWT.getUserGroups()) || null;
+    if (userGroups && userGroups.indexOf('admin') !== -1) {
+        enableDetail = true
+    }
 
     const isSticky = true; //!_.any(_.values(tableToggle), (v)=> v === true);
-    const commonTableProps = { windowWidth, href, session, schemas, isTransposed, dateRoundInterval, cumulativeSum, chartToggles };
+    const commonTableProps = { windowWidth, href, session, schemas, transposed, dateIncrement, cumulativeSum, hideEmptyColumns, chartToggles, enableDetail };
     
     let topFileSetLimit = 0;
     if (countBy.top_file_set_downloads && countBy.top_file_set_downloads.indexOf('top_files_') === 0) {
@@ -1225,46 +1246,50 @@ export function UsageStatsView(props){
     if (countBy.top_file_downloads && countBy.top_file_downloads.indexOf('top_files_') === 0) {
         topFilesLimit = parseInt(countBy.top_file_downloads.substring('top_files_'.length));
     }
+    const termColHeader = (mapKey) => UsageStatsView.titleMap[mapKey][countBy[mapKey]][2];
+    const settingsCls = "settings-label d-inline-block me-3 mb-2 pt-0";
+
+    const settings = () => (
+        <GroupByDropdown {...{ groupByOptions, loadingStatus, handleGroupByChange, currentGroupBy }}
+            groupByTitle="Show" outerClassName={"dropdown-container mb-0" + (isSticky ? " sticky-top" : "")}>
+            <div className={settingsCls}>
+                <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle} data-tip="Toggle between smooth/sharp edges">Smooth Edges</Checkbox>
+            </div>
+            <div className={settingsCls}>
+                <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle} data-tip="Show as cumulative sum">Cumulative Sum</Checkbox>
+            </div>
+            <div className={settingsCls}>
+                <Checkbox checked={transposed} onChange={() => setTransposed(!transposed)} data-tip="Transpose data table">Transpose Data</Checkbox>
+            </div>
+            <div className={settingsCls}>
+                <Checkbox checked={hideEmptyColumns} onChange={() => setHideEmptyColumns(!hideEmptyColumns)} data-tip="Hide empty data table columns">Hide Empty Columns</Checkbox>
+            </div>
+            <div className={settingsCls}>
+                <Checkbox checked={highContrast} onChange={() => setHighContrast(!highContrast)} data-tip="Toggle high contrast color scheme">High Contrast</Checkbox>
+            </div>
+            <div className="settings-label d-block d-md-inline-block pt-08">
+                <AxisScale scale={yAxisScale} power={yAxisPower} onChange={handleAxisScaleChange} label="Y-Axis scale" />
+            </div>
+        </GroupByDropdown>
+    );
+
+    if (loadingStatus === 'failed'){
+        return (
+            <div className="stats-charts-container" key="charts" id="usage">
+                {settings()}
+                <ErrorIcon />
+            </div>
+        );
+    }
 
     return (
         <div className="stats-charts-container" key="charts" id="usage">
 
-            <GroupByDropdown {...{ groupByOptions, loadingStatus, handleGroupByChange, currentGroupBy }}
-                groupByTitle="Show" outerClassName={"dropdown-container mb-0" + (isSticky ? " sticky-top" : "")}>
-                <div className="d-inline-block me-15 pt-08">
-                    <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle} data-tip="Toggle between smooth/sharp edges">Smooth Edges</Checkbox>
-                </div>
-                <div className="d-inline-block me-3 mb-2 pt-08">
-                    <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle} data-tip="Show as cumulative sum">Cumulative Sum</Checkbox>
-                </div>
-                <div className="d-inline-block me-3 mb-2 pt-08">
-                    <Checkbox checked={isTransposed} onChange={() => setIsTransposed(!isTransposed)} data-tip="Transpose data table">Transpose Data</Checkbox>
-                </div>
-                <div className="d-block d-md-inline-block pt-08">
-                    <div className="d-md-flex">
-                        <span className="text-500 me-1">Y-Axis scale:</span>
-                        <div className='mb-15'>
-                            <DropdownButton
-                                title={(scale && scale['yAxisScale'] && UsageStatsView.yScaleLabels[scale['yAxisScale']]) || '-'}
-                                onSelect={(e) => setScale({ yAxisScale: e, yAxisPower: e === 'Pow' ? 0.5 : 50 })}>
-                                <DropdownItem eventKey={'Linear'} key={'scale-linear'} >{UsageStatsView.yScaleLabels['Linear']}</DropdownItem>
-                                <DropdownItem eventKey={'Pow'} key={'scale-pow'} >{UsageStatsView.yScaleLabels['Pow']}</DropdownItem>
-                                <DropdownItem eventKey={'Symlog'} key={'scale-log'} >{UsageStatsView.yScaleLabels['Symlog']}</DropdownItem>
-                            </DropdownButton>
-                        </div>
-                        <div className={"ms-md-15" + (showScaleRange ? " d-block d-md-inline-block" : " d-none")}>
-                            <input type="range" id="input_range_y_scale_power" className='w-75'
-                                min={scaleRangeMin} max={scaleRangeMax} step={scaleRangeStep} value={scale['yAxisPower']} data-tip={scaleRangeTooltip}
-                                onChange={(e) => setScale({ yAxisScale: scale['yAxisScale'], yAxisPower: e.target.valueAsNumber })} />
-                            <span className='ms-05'>{scale['yAxisPower']}</span>
-                        </div>
-                    </div>
-                </div>
-            </GroupByDropdown>
+            {settings()}
 
             { file_downloads ?
 
-                <ColorScaleProvider resetScalesWhenChange={file_downloads}>
+                <ColorScaleProvider resetScalesWhenChange={file_downloads} highContrast={highContrast}>
                 
                     <div className="clearfix">
                         <div className="pull-right mt-05">
@@ -1278,31 +1303,33 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="file_downloads" key="file_downloads"
                         title={<h5 className="text-400 mt-0">Total File Count</h5>}>
                         {chartToggles.chart?.file_downloads ?
-                            <AreaChart {...commonChartProps} data={file_downloads} {...scale} />
+                            <AreaChart {...commonChartProps} data={file_downloads} />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
 
                     {chartToggles.table?.file_downloads &&
-                        <StatisticsDataTable data={file_downloads}
+                        <StatisticsTable data={file_downloads}
                             key={'dt_file_downloads'}
                             {...commonTableProps}
+                            termColHeader={termColHeader('file_downloads') + ' (number of download attempts)'}
                             containerId="content_file_downloads" />
                     }
 
                     <AreaChartContainer {...commonContainerProps} id="file_downloads_volume" key="file_downloads_volume" defaultHeight={300}
                         title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}>
                         {chartToggles.chart?.file_downloads_volume ?
-                            <AreaChart {...commonChartProps} data={file_downloads_volume} yAxisLabel="GB" {...scale} />
+                            <AreaChart {...commonChartProps} data={file_downloads_volume} yAxisLabel="GB" />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
 
                     {chartToggles.table?.file_downloads_volume &&
-                        <StatisticsDataTable data={file_downloads_volume}
+                        <StatisticsTable data={file_downloads_volume}
                             key={'dt_file_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
+                            termColHeader={termColHeader('file_downloads')}
                             containerId="content_file_downloads_volume" />
                     }
 
@@ -1312,7 +1339,7 @@ export function UsageStatsView(props){
 
             {top_file_set_downloads ?
 
-                <ColorScaleProvider resetScalesWhenChange={top_file_set_downloads}>
+                <ColorScaleProvider resetScalesWhenChange={top_file_set_downloads} highContrast={highContrast}>
 
                     <div className="clearfix">
                         <div className="pull-right mt-05">
@@ -1326,15 +1353,16 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="top_file_set_downloads" key="top_file_set_downloads" defaultHeight={300}
                         title={<h5 className="text-400 mt-0">Total Count for Daily Downloads</h5>}>
                         {chartToggles.chart?.top_file_set_downloads ?
-                            <AreaChart {...commonChartProps} data={top_file_set_downloads} showTooltipOnHover={true} {...scale} />
+                            <AreaChart {...commonChartProps} data={top_file_set_downloads} showTooltipOnHover />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
 
                     {chartToggles.table?.top_file_set_downloads &&
-                        <StatisticsDataTable data={top_file_set_downloads}
+                        <StatisticsTable data={top_file_set_downloads}
                             key={'dt_top_file_set_downloads'}
                             {...commonTableProps}
+                            termColHeader="File Set"
                             containerId="content_top_file_set_downloads"
                             limit={topFileSetLimit} excludeNones={true} />
                     }
@@ -1342,16 +1370,17 @@ export function UsageStatsView(props){
                     <AreaChartContainer {...commonContainerProps} id="top_file_set_downloads_volume" key="top_file_set_downloads_volume" 
                         defaultHeight={350} title={<h5 className="text-400 mt-0">Total Size for Daily Downloads (GB)</h5>}>
                         {chartToggles.chart?.top_file_set_downloads_volume ?
-                            <AreaChart {...commonChartProps} data={top_file_set_downloads_volume} showTooltipOnHover={true} yAxisLabel="GB" {...scale} />
+                            <AreaChart {...commonChartProps} data={top_file_set_downloads_volume} showTooltipOnHover yAxisLabel="GB" />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
 
                     {chartToggles.table?.top_file_set_downloads_volume &&
-                        <StatisticsDataTable data={top_file_set_downloads_volume}
+                        <StatisticsTable data={top_file_set_downloads_volume}
                             key={'dt_top_file_set_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
+                            termColHeader="File Set"
                             containerId="content_top_file_set_downloads_volume"
                             limit={topFileSetLimit} excludeNones={true} />
                     }
@@ -1362,7 +1391,7 @@ export function UsageStatsView(props){
 
             { top_file_downloads && false ?
 
-                <ColorScaleProvider resetScalesWhenChange={top_file_downloads}>
+                <ColorScaleProvider resetScalesWhenChange={top_file_downloads} highContrast={highContrast}>
                 
                     <div className="clearfix">
                         <div className="pull-right mt-05">
@@ -1375,15 +1404,16 @@ export function UsageStatsView(props){
                         defaultHeight={300} title={<h5 className="text-400 mt-0">Total File Count for Daily Downloads</h5>}
                         subTitle={<h4 className="fw-normal text-secondary">Click bar to view details</h4>}>
                         {chartToggles.chart?.top_file_downloads ?
-                            <AreaChart {...commonChartProps} data={top_file_downloads} showTooltipOnHover={false} {...scale} />
+                            <AreaChart {...commonChartProps} data={top_file_downloads} showTooltipOnHover={false} />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
 
                     {chartToggles.table?.top_file_downloads &&
-                        <StatisticsDataTable data={top_file_downloads} 
+                        <StatisticsTable data={top_file_downloads} 
                             key={'dt_top_file_downloads'}
                             {...commonTableProps}
+                            termColHeader="File"
                             containerId="content_top_file_downloads"
                             limit={topFilesLimit} excludeNones={true} />
                     }
@@ -1393,16 +1423,17 @@ export function UsageStatsView(props){
                         extraButtons={[]}
                         subTitle={<h4 className="fw-normal text-secondary">Click bar to view details</h4>}>
                         {chartToggles.chart?.top_file_downloads_volume ?
-                            <AreaChart {...commonChartProps} data={top_file_downloads_volume} showTooltipOnHover={false} yAxisLabel="GB" {...scale} />
+                            <AreaChart {...commonChartProps} data={top_file_downloads_volume} showTooltipOnHover={false} yAxisLabel="GB" />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
 
                     {chartToggles.table?.top_file_downloads_volume &&
-                        <StatisticsDataTable data={top_file_downloads_volume} 
+                        <StatisticsTable data={top_file_downloads_volume} 
                             key={'dt_top_file_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
+                            termColHeader="File"
                             containerId="content_top_file_downloads_volume"
                             limit={topFilesLimit} excludeNones={true} />
                     }
@@ -1415,7 +1446,7 @@ export function UsageStatsView(props){
 
             { file_views ?
 
-                <ColorScaleProvider resetScalesWhenChange={file_views}>
+                <ColorScaleProvider resetScalesWhenChange={file_views} highContrast={highContrast}>
 
                     <AreaChartContainer {...commonContainerProps} id="file_views" key="file_views"
                         title={<ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'file_views' }} />}
@@ -1424,15 +1455,16 @@ export function UsageStatsView(props){
                         ]}
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}>
                         {chartToggles.chart?.file_views ?
-                            <AreaChart {...commonChartProps} data={file_views} {...scale} />
+                            <AreaChart {...commonChartProps} data={file_views} />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
 
                     {chartToggles.table?.file_views &&
-                        <StatisticsDataTable data={file_views} 
+                        <StatisticsTable data={file_views} 
                             key={'dt_file_views'}
                             {...commonTableProps}
+                            termColHeader={termColHeader('file_views')}
                             containerId="content_file_views" />
                     }
 
@@ -1442,7 +1474,7 @@ export function UsageStatsView(props){
 
             { sessions_by_country ?
 
-                <ColorScaleProvider resetScaleLegendWhenChange={sessions_by_country}>
+                <ColorScaleProvider resetScaleLegendWhenChange={sessions_by_country} highContrast={highContrast}>
 
                     <AreaChartContainer {...commonContainerProps} id="sessions_by_country" key="sessions_by_country"
                         title={<ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'sessions_by_country' }} />}
@@ -1453,16 +1485,17 @@ export function UsageStatsView(props){
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}
                         defaultHeight={sessionsByCountryChartHeight}>
                         {chartToggles.chart?.sessions_by_country ?
-                            <AreaChart {...commonChartProps} data={sessions_by_country} showTooltipOnHover={!enableSessionByCountryChartTooltipItemClick} {...scale} />
+                            <AreaChart {...commonChartProps} data={sessions_by_country} showTooltipOnHover={!enableSessionByCountryChartTooltipItemClick} />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
 
 
                     {chartToggles.table?.sessions_by_country &&
-                        <StatisticsDataTable data={sessions_by_country} 
+                        <StatisticsTable data={sessions_by_country} 
                             key={'dt_sessions_by_country'}
                             {...commonTableProps}
+                            termColHeader={termColHeader('sessions_by_country')}
                             containerId="content_sessions_by_country" />
                     }
 
@@ -1473,7 +1506,7 @@ export function UsageStatsView(props){
 
             {/* { fields_faceted ?
 
-                <ColorScaleProvider resetScaleLegendWhenChange={fields_faceted}>
+                <ColorScaleProvider resetScaleLegendWhenChange={fields_faceted} highContrast={highContrast}>
 
                     <AreaChartContainer {...commonContainerProps} id="fields_faceted" key="fields_faceted"
                         title={<ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'fields_faceted' }} />}
@@ -1483,7 +1516,7 @@ export function UsageStatsView(props){
                         legend={<HorizontalD3ScaleLegend {...{ loadingStatus }} />}
                         hideTableButton>
                         {chartToggles.chart?.fields_faceted ?
-                            <AreaChart {...commonChartProps} data={fields_faceted} {...scale} />
+                            <AreaChart {...commonChartProps} data={fields_faceted} />
                             : <React.Fragment />
                         }
                     </AreaChartContainer>
@@ -1498,32 +1531,32 @@ export function UsageStatsView(props){
 }
 UsageStatsView.titleMap = {
     'file_views': {
-        'metadata_tsv_by_country': ['Total Files In Metadata.tsv', 'by location'],
-        'file_list_views_by_file_type': ['File Appearances In Search Results', 'by file type'],
-        'file_list_views_by_assay_type': ['File Appearances In Search Results', 'by assay type'],
-        'file_list_views_by_dataset': ['File Appearances In Search Results', 'by sample type'],
-        'file_clicks_by_file_type': ['File Search Result Clicks', 'by file type'],
-        'file_clicks_by_assay_type': ['File Search Result Clicks', 'by assay type'],
-        'file_clicks_by_dataset': ['File Search Result Clicks', 'by sample type'],
-        'file_detail_views_by_file_type': ['File Overview Page Views', 'by file type'],
-        'file_detail_views_by_assay_type': ['File Overview Page Views', 'by assay type'],
-        'file_detail_views_by_dataset': ['File Overview Page Views', 'by sample type'],
-        'file_detail_views_by_sequencer': ['File Overview Page Views', 'by sequencing platform'],
+        'metadata_tsv_by_country': ['Total Files In Metadata.tsv', 'by location', 'Location'],
+        'file_list_views_by_file_type': ['File Appearances In Search Results', 'by file type', 'File Type'],
+        'file_list_views_by_assay_type': ['File Appearances In Search Results', 'by assay type', 'Assay Type'],
+        'file_list_views_by_dataset': ['File Appearances In Search Results', 'by sample type', 'Sample Type'],
+        'file_clicks_by_file_type': ['File Search Result Clicks', 'by file type', 'File Type'],
+        'file_clicks_by_assay_type': ['File Search Result Clicks', 'by assay type', 'Assay Type'],
+        'file_clicks_by_dataset': ['File Search Result Clicks', 'by sample type', 'Sample Type'],
+        'file_detail_views_by_file_type': ['File Overview Page Views', 'by file type', 'File Type'],
+        'file_detail_views_by_assay_type': ['File Overview Page Views', 'by assay type', 'Assay Type'],
+        'file_detail_views_by_dataset': ['File Overview Page Views', 'by sample type', 'Sample Type'],
+        'file_detail_views_by_sequencer': ['File Overview Page Views', 'by sequencing platform', 'Sequencing Platform'],
     },
     'sessions_by_country': {
-        'views_by_country': ['Page Views', 'by country'],
-        'views_by_city': ['Page Views', 'by city'],
-        'sessions_by_country': ['Unique Users', 'by country'],
-        'sessions_by_city': ['Unique Users', 'by city'],
-        'device_category': ['Page Views', 'by device category'],
-        'page_title': ['Page Views', 'by page title'],
-        'page_url': ['Page Views', 'by page url']
+        'views_by_country': ['Page Views', 'by country', 'Country'],
+        'views_by_city': ['Page Views', 'by city', 'City'],
+        'sessions_by_country': ['Unique Users', 'by country', 'Country'],
+        'sessions_by_city': ['Unique Users', 'by city', 'City'],
+        'device_category': ['Page Views', 'by device category', 'Device Category'],
+        'page_title': ['Page Views', 'by page title', 'Page Title'],
+        'page_url': ['Page Views', 'by page url', 'Page Url']
     },
     'file_downloads': {
-        'assay_type': ['File Downloads', 'by assay type'],
-        'filetype': ['File Downloads', 'by file type'],
-        'dataset': ['File Downloads', 'by sample type'],
-        'sequencer': ['File Downloads', 'by sequencing platform']
+        'assay_type': ['File Downloads', 'by assay type', 'Assay Type'],
+        'filetype': ['File Downloads', 'by file type', 'File Type'],
+        'dataset': ['File Downloads', 'by sample type', 'Sample Type'],
+        'sequencer': ['File Downloads', 'by sequencing platform', 'Sequencing Platform']
     },
     'top_file_downloads': {
         'top_files_10': ['Top File Downloads', 'top 10'],
@@ -1542,33 +1575,13 @@ UsageStatsView.titleMap = {
         'sessions': ['Top Fields Faceted', 'by unique users']
     }
 };
-UsageStatsView.getYScaleDefaults = function (yScale) {
-    let showScaleRange = true;
-    let scaleRangeTooltip = '';
-    let scaleRangeMin, scaleRangeMax, scaleRangeStep;
-    //set defaults
-    if (yScale === 'Pow') {
-        scaleRangeMin = 0; scaleRangeMax = 1; scaleRangeStep = 0.1;
-        scaleRangeTooltip = 'exponent';
-    } else if (yScale === 'Symlog') {
-        scaleRangeMin = 0; scaleRangeMax = 100; scaleRangeStep = 0.5;
-        scaleRangeTooltip = 'constant';
-    } else {
-        showScaleRange = false;
-    }
-    return { showScaleRange, scaleRangeTooltip, scaleRangeMin, scaleRangeMax, scaleRangeStep };
-}
-UsageStatsView.yScaleLabels = {
-    'Linear': 'Linear',
-    'Symlog': 'Log',
-    'Pow': 'Pow'
-}
 
 export function SubmissionsStatsView(props) {
     const {
         loadingStatus, mounted, session, windowWidth,
         currentGroupBy, groupByOptions, handleGroupByChange,
         currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeOptions, handleDateRangeChange,
+        currentDateHistogramInterval, dateHistogramIntervalOptions, handleDateHistogramIntervalChange,
         // Passed in from StatsChartViewAggregator:
         files_uploading, file_volume_uploading,  files_uploaded, file_volume_uploaded, files_released, file_volume_released,
         chartToggles, smoothEdges, width, onChartToggle, onSmoothEdgeToggle, cumulativeSum, onCumulativeSumToggle
@@ -1581,6 +1594,9 @@ export function SubmissionsStatsView(props) {
     if (loadingStatus === 'failed'){
         return <div className="stats-charts-container" key="charts" id="submissions"><ErrorIcon/></div>;
     }
+    const [yAxisScale, setYAxisScale] = useState('Pow');
+    const [yAxisPower, setYAxisPower] = useState(0.7);
+    const handleAxisScaleChange = (scale, power) => { setYAxisScale(scale); setYAxisPower(power); };
 
     const anyExpandedCharts = _.any(_.values(chartToggles));
     const commonContainerProps = {
@@ -1588,22 +1604,27 @@ export function SubmissionsStatsView(props) {
         'defaultColSize' : '12', 'defaultHeight' : anyExpandedCharts ? 200 : 250
     };
     const xDomain = convertDataRangeToXDomain(currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo);
-    const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter, cumulativeSum, xDomain };
+    const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter, cumulativeSum, xDomain, yAxisScale, yAxisPower };
     const groupByProps = {
         currentGroupBy, groupByOptions, handleGroupByChange,
-        currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeOptions, handleDateRangeChange, loadingStatus
+        currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeOptions, handleDateRangeChange,
+        currentDateHistogramInterval, dateHistogramIntervalOptions, handleDateHistogramIntervalChange,
+        loadingStatus
     };
-    const invalidDateRange = currentDateRangeFrom && currentDateRangeTo && currentDateRangeFrom > currentDateRangeTo;
+    const error = currentDateRangeFrom && currentDateRangeTo && (currentDateRangeFrom > currentDateRangeTo) ? 'Invalid date range' : null;
 
     return (
         <div className="stats-charts-container" key="charts" id="submissions">
 
             <GroupByDropdown {...groupByProps} groupByTitle="Group Charts Below By" dateRangeTitle="Date" outerClassName="dropdown-container mb-15 sticky-top">
-                <div className="d-inline-block me-15">
+                <div className="settings-label d-inline-block me-15">
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
                 </div>
-                <div className="d-inline-block">
-                    <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle}>Show as cumulative sum</Checkbox>
+                <div className="settings-label d-inline-block">
+                    <Checkbox checked={cumulativeSum} onChange={onCumulativeSumToggle}>Cumulative Sum</Checkbox>
+                </div>
+                <div className="settings-label d-block d-md-inline-block pt-08">
+                    <AxisScale scale={yAxisScale} power={yAxisPower} onChange={handleAxisScaleChange} label="Y-Axis scale" />
                 </div>
             </GroupByDropdown>
 
@@ -1615,14 +1636,14 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="files_uploading"
                     title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_uploading} />}
+                    subTitle={<ChartSubTitle error={error} data={files_uploading} />}
                     hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={files_uploading} />
                 </AreaChartContainer>
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_uploading"
                     title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_uploading} />}
+                    subTitle={<ChartSubTitle error={error} data={file_volume_uploading} />}
                     hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={file_volume_uploading} yAxisLabel="GB" />
                 </AreaChartContainer>
@@ -1637,14 +1658,14 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="files_uploaded"
                     title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_uploaded} />}
+                    subTitle={<ChartSubTitle error={error} data={files_uploaded} />}
                     hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={files_uploaded} />
                 </AreaChartContainer>
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_uploaded"
                     title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_uploaded} />}
+                    subTitle={<ChartSubTitle error={error} data={file_volume_uploaded} />}
                     hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={file_volume_uploaded} yAxisLabel="GB" />
                 </AreaChartContainer>
@@ -1660,14 +1681,14 @@ export function SubmissionsStatsView(props) {
 
                 <AreaChartContainer {...commonContainerProps} id="files_released"
                     title={<h5 className="text-400 mt-0">Total File Count</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={files_released} />}
+                    subTitle={<ChartSubTitle error={error} data={files_released} />}
                     hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={files_released} />
                 </AreaChartContainer>
 
                 <AreaChartContainer {...commonContainerProps} id="file_volume_released"
                     title={<h5 className="text-400 mt-0">Total File Size (GB)</h5>}
-                    subTitle={<ChartSubTitle invalidDateRange={invalidDateRange} data={file_volume_released} />}
+                    subTitle={<ChartSubTitle error={error} data={file_volume_released} />}
                     hideChartButton hideTableButton>
                     <AreaChart {...commonChartProps} data={file_volume_released} yAxisLabel="GB" />
                 </AreaChartContainer>
@@ -1678,72 +1699,67 @@ export function SubmissionsStatsView(props) {
     );
 }
 
-/**
- * Use this only for charts with child terms 'Internal Release' and 'Public Release', which are
- * meant to have a separate color scale and child terms from other charts.
- *
- * @param {string} term - One of 'Internal Release' or 'Public Release'.
- * @returns {string} A CSS-valid color string.
- */
-SubmissionsStatsView.colorScaleForPublicVsInternal = function(term){
-    if (term === 'Internal Release' || term === 'Internally Released'){
-        return '#ff7f0e'; // Orange
-    } else if (term === 'Public Release' || term === 'Publicly Released'){
-        return '#1f77b4'; // Blue
-    } else {
-        logger.error("Term supplied is not one of 'Internal Release' or 'Public Release': '" + term + "'.");
-        throw new Error("Term supplied is not one of 'Internal Release' or 'Public Release': '" + term + "'.");
+
+const defaultFromDate = '2023-11-08';
+const today = new Date();
+const month = today.getMonth();
+
+const DATE_RANGE_PRESETS = {
+    'thismonth': (from, to) => { return [from, to]},
+    'previousmonth': (from, to) => {
+        from.setMonth(month - 1);
+        to = new Date(today.getFullYear(), month, 1);
+        return [from, to];
+    },
+    'last3months': (from, to) => {
+        from.setMonth(month - 2);
+        return [from, to];
+    },
+    'last6months': (from, to) => {
+        from.setMonth(month - 5);
+        return [from, to];
+    },
+    'last12months': (from, to) => {
+        from.setMonth(month - 11);
+        return [from, to];
+    },
+    'thisyear': (from, to) => {
+        from = new Date(today.getFullYear(), 0, 1);
+        to = new Date(today.getFullYear(), 11, 31);
+        return [from, to];
+    },
+    'previousyear': (from, to) => {
+        from = new Date(today.getFullYear() - 1, 0, 1);
+        to = new Date(today.getFullYear(), 1, 1);
+        return [from, to];
+    },
+    'custom': (from, to, rangeFrom, rangeTo) => {
+        from = new Date(rangeFrom || defaultFromDate);
+        to = rangeTo ? new Date(rangeTo) : null;
+        if (from && to && (from > to)) {
+            from = new Date(defaultFromDate);
+            to = null;
+        }
+        return [from, to];
+    },
+    'all': (from, to) => {
+        from = new Date(defaultFromDate);
+        return [from, to];
+    },
+    'default': (from, to) => {
+        from = new Date(defaultFromDate);
+        return [from, to];
     }
 };
 
 const convertDataRangeToXDomain = memoize(function (rangePreset = 'all', rangeFrom, rangeTo) {
     const rangeLower = (rangePreset || '').toLowerCase();
     
-    const defaultFromDate = '2023-11-08';
-    const today = new Date();
-    const month = today.getMonth();
     let from = new Date(today.getFullYear(), month, 1);
     let to = null;
 
-    switch (rangeLower) {
-        case 'thismonth':
-            //do nothing
-            break;
-        case 'previousmonth':
-            //override
-            from.setMonth(month - 1);
-            to = new Date(today.getFullYear(), month, 1);
-            break;
-        case 'last3months':
-            from.setMonth(month - 2);
-            break;
-        case 'last6months':
-            from.setMonth(month - 5);
-            break;
-        case 'last12months':
-            from.setMonth(month - 11);
-            break;
-        case 'thisyear':
-            from = new Date(today.getFullYear(), 0, 1);
-            break;
-        case 'previousyear':
-            //override
-            from = new Date(today.getFullYear() - 1, 0, 1);
-            to = new Date(today.getFullYear(), 1, 1);
-            break;
-        case 'custom':
-            from = new Date(rangeFrom || defaultFromDate);
-            to = rangeTo ? new Date(rangeTo) : null;
-            if (from && to && (from > to)) {
-                from = new Date(defaultFromDate);
-                to = null;
-            }
-            break;
-        case 'all':
-        default:
-            from = new Date(defaultFromDate);
-            break;
-    }
+    [from, to] = (DATE_RANGE_PRESETS[rangeLower] || DATE_RANGE_PRESETS['default'])(from, to, rangeFrom, rangeTo);
+
     // get first day of date's week
     const dayOfWeek = from.getDay(); // Sunday: 0, Monday: 1, ..., Saturday: 6
     const daysDifference = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Adjust for Monday being 1
@@ -1752,9 +1768,9 @@ const convertDataRangeToXDomain = memoize(function (rangePreset = 'all', rangeFr
     return [firstWeekdayFrom, to];
 });
 
-const ChartSubTitle = memoize(function ({ title, data, invalidDateRange }) {
-    if (invalidDateRange === true) {
-        return <h4 className="fw-normal text-secondary">Invalid date range</h4>;
+const ChartSubTitle = memoize(function ({ title, data, error }) {
+    if (error) {
+        return <h4 className="fw-normal text-secondary">{error}</h4>;
     }
     if (!data || (Array.isArray(data) && data.length === 0)) {
         return <h4 className="fw-normal text-secondary">No data to display</h4>;
@@ -1780,11 +1796,12 @@ const ChartContainerTitle = function ({ titleMap, countBy, chartKey }) {
 /**
  * converts aggregates to SearchView-compatible context objects and displays in table
  */
-const StatisticsDataTable = React.memo((props) => {
+export const StatisticsTable = React.memo((props) => {
     const {
-        data, valueLabel = null, session, schemas, containerId = '', 
-        href, dateRoundInterval, isTransposed = false, windowWidth, cumulativeSum,
-        limit = 0, excludeNones = false // limit and excludeNones are evaluated for only transposed data
+        data, termColHeader = null, valueLabel = null, schemas, containerId = '', 
+        href, dateIncrement, transposed = false, cumulativeSum, hideEmptyColumns,
+        session, enableDetail = false, limit = 0, excludeNones = false, // limit and excludeNones are evaluated for only transposed data
+        windowWidth
      } = props;
     const [columns, setColumns] = useState({});
     const [columnDefinitions, setColumnDefinitions] = useState([]);
@@ -1828,26 +1845,26 @@ const StatisticsDataTable = React.memo((props) => {
             return;
         }
 
-        const processData = isTransposed ? transposeData(data).slice(0, limit > 0 ? limit : undefined) : data;
+        const processData = transposed ? transposeData(data).slice(0, limit > 0 ? limit : undefined) : data;
 
         // date or term column based on transposed or not
         let cols = {
             'display_title': {
-                title: isTransposed ? 'Term' : 'Date',
+                title: transposed ? (termColHeader || 'Term') : 'Date',
                 type: 'string',
                 noSort: true,
-                widthMap: isTransposed ? { 'lg': 400, 'md': 200, 'sm': 200 } : { 'lg': 200, 'md': 200, 'sm': 200 },
+                widthMap: transposed ? { 'lg': 400, 'md': 200, 'sm': 200 } : { 'lg': 200, 'md': 200, 'sm': 200 },
                 render: function (result) {
                     // overall sum
                     const overallSum = roundValue(result.overall_sum || 0, valueLabel);
                     const tooltip = `${result.display_title} (${overallSum})`;
 
-                    return isTransposed ? (
+                    return transposed || !enableDetail ? (
                         <span className="value text-truncate text-start" data-tip={tooltip.length > 40 ? tooltip : null}>
                             {result.display_title} <strong>({overallSum})</strong>
                         </span>
                     ) : (
-                            <a href='#'
+                            <a href="#"
                                 onClick={(e) => {
                                     setModalForDate(result.display_title);
                                     setShowModal(true);
@@ -1861,11 +1878,17 @@ const StatisticsDataTable = React.memo((props) => {
             }
         };
 
+        // Function to check a vertical slice (column)
+        const hasNonZeroInColumn = (arrays, columnIndex) => _.any(arrays, (row) => row.children[columnIndex].count !== 0);
+
         // create columns and columnExtensionMap
         const [item] = processData;
         if (item && Array.isArray(item.children) && item.children.length > 0) {
-            const keys = isTransposed ? _.pluck(item.children, 'date') : _.pluck(item.children, 'term');
-            cols = _.reduce(keys, (memo, dataKey) => {
+            const keys = transposed ? _.pluck(item.children, 'date') : _.pluck(item.children, 'term');
+            cols = _.reduce(keys, (memo, dataKey, index) => {
+                if (hideEmptyColumns && !hasNonZeroInColumn(processData, index)) {
+                    return memo;
+                }
                 memo[dataKey] = {
                     title: dataKey,
                     type: 'integer',
@@ -1873,10 +1896,10 @@ const StatisticsDataTable = React.memo((props) => {
                     widthMap: { 'lg': 140, 'md': 120, 'sm': 120 },                  
                     render: function (result) {
                         if (result[dataKey] !== 0) {
-                            return (
-                                <a href='#'
+                            return enableDetail ? (
+                                <a href="#"
                                     onClick={(e) => {
-                                        setModalForDate(isTransposed ? dataKey : result.display_title);
+                                        setModalForDate(transposed ? dataKey : result.display_title);
                                         setShowModal(true);
                                         e.preventDefault();
                                     }}
@@ -1884,7 +1907,7 @@ const StatisticsDataTable = React.memo((props) => {
                                     className="value text-end fw-bold">
                                     {roundValue(result[dataKey], valueLabel)}
                                 </a>
-                            );
+                            ) : (<span className="value text-end">{roundValue(result[dataKey], valueLabel)}</span>);
                         } else {
                             return <span className="value text-end">0</span>
                         }
@@ -1901,19 +1924,19 @@ const StatisticsDataTable = React.memo((props) => {
         // create @graph
         const result = _.map(processData, function (d) {
             return {
-                display_title: isTransposed ? (d.termDisplayAs || d.term) : d.date,
-                '@id': isTransposed ? d.term : d.date,
+                display_title: transposed ? (d.termDisplayAs || d.term) : d.date,
+                '@id': transposed ? d.term : d.date,
                 ..._.reduce(d.children, (memo2, c) => {
-                    memo2[isTransposed ? c.date : c.term] = c.count;
+                    memo2[transposed ? c.date : c.term] = c.count;
                     return memo2;
                 }, {}),
                 '@type': ['Item'],
                 'overall_sum': !cumulativeSum ? (d.total || 0) : _.reduce(d.children, (memo, c) => memo + c.count, 0),
-                'date_created': isTransposed ? d.term : d.date
+                'date_created': transposed ? d.term : d.date
             };
         });
         setGraph(result);
-    }, [data, isTransposed]);
+    }, [data, transposed, hideEmptyColumns]);
 
     const passProps = {
         isFullscreen: false,
@@ -1940,9 +1963,9 @@ const StatisticsDataTable = React.memo((props) => {
     };
 
     const modalProps = {
-        ...{ dateRoundInterval, schemas },
+        ...{ dateIncrement, schemas },
         forDate: modalForDate,
-        onTrackingItemViewerCancel: () => setShowModal(false)
+        onHide: () => setShowModal(false)
     };
 
     return (
@@ -1954,20 +1977,36 @@ const StatisticsDataTable = React.memo((props) => {
                     </SortController>
                 </CustomColumnController>
             </div>
-            {showModal && <TrackingItemViewerModal {...modalProps} />}
+            {showModal && <TrackingItemViewer {...modalProps} />}
         </React.Fragment>
     );
 });
+StatisticsTable.propTypes = {
+    data: PropTypes.array.isRequired,
+    termColHeader: PropTypes.string,
+    valueLabel: PropTypes.string,
+    schemas: PropTypes.object,
+    containerId: PropTypes.string,
+    href: PropTypes.string,
+    dateIncrement: PropTypes.oneOf(['daily', 'monthly', 'yearly']),
+    transposed: PropTypes.bool,
+    cumulativeSum: PropTypes.bool,
+    hideEmptyColumns: PropTypes.bool,
+    session: PropTypes.object,
+    enableDetail: PropTypes.bool,
+    limit: PropTypes.number,
+    excludeNones: PropTypes.bool,
+    windowWidth: PropTypes.number
+};
 
 /**
- * displays relevant tracking item (fetched via ajax call) in item detail list
+ * displays tracking item ajax-fetched in ItemDetailList
  */
-const TrackingItemViewerModal = React.memo(function (props) {
-    const { schemas, forDate, dateRoundInterval='day', reportName, onTrackingItemViewerCancel } = props;
+export const TrackingItemViewer = React.memo(function (props) {
+    const { schemas, forDate, dateIncrement='daily', reportName, onHide } = props;
 
     const [isLoading, setIsLoading] = useState(true);
     const [trackingItem, setTrackingItem] = useState();
-    const dateIncrement = (dateRoundInterval === 'month') ? 'monthly' : 'daily';
     const href=`/search/?type=TrackingItem&google_analytics.for_date=${forDate}&google_analytics.date_increment=${dateIncrement}`;
     
     useEffect(() => {
@@ -1989,10 +2028,10 @@ const TrackingItemViewerModal = React.memo(function (props) {
                 setIsLoading(false);
             }
         );
-    }, [forDate, dateRoundInterval, reportName]);
+    }, [forDate, dateIncrement, reportName]);
 
     return (
-        <Modal show size="xl" onHide={onTrackingItemViewerCancel} className="tracking-item-viewer">
+        <Modal show size="xl" onHide={onHide} className="tracking-item-viewer">
             <Modal.Header closeButton>
                 <Modal.Title>{forDate}</Modal.Title>
             </Modal.Header>
@@ -2007,9 +2046,55 @@ const TrackingItemViewerModal = React.memo(function (props) {
         </Modal>
     );
 });
-TrackingItemViewerModal.propTypes = {
+TrackingItemViewer.propTypes = {
     forDate: PropTypes.string.isRequired,
-    dateRoundInterval: PropTypes.oneOf(['daily', 'monthly']),
-    onTrackingItemViewerCancel: PropTypes.func.isRequired,
+    dateIncrement: PropTypes.oneOf(['daily', 'monthly', 'yearly']),
+    onHide: PropTypes.func.isRequired,
     schemas: PropTypes.object
 }
+
+export const AxisScale = React.memo(function ({ scale, power, onChange, label = 'N/A' }) {
+    const labelPairs = _.pairs(AxisScale.labels);
+    const { showRange, rangeTooltip, rangeMin, rangeMax, rangeStep, defaultPower } = AxisScale.getDefaults(scale);
+    return (
+        <div className="d-md-flex">
+            <span className="text-500 me-1">{label}:</span>
+            <div className='mb-15'>
+                <DropdownButton size="sm" title={(scale && AxisScale.labels[scale]) || '-'} onSelect={(e) => onChange(e, defaultPower)}>
+                    {
+                        labelPairs.map(([key, val]) => (
+                            <DropdownItem eventKey={key} key={key}>{val}</DropdownItem>
+                        ))
+                    }
+                </DropdownButton>
+            </div>
+            <div className={"ms-md-15" + (showRange ? " d-block d-md-inline-block" : " d-none")}>
+                <input type="range" id="input_range_scale_power" className='w-75'
+                    min={rangeMin} max={rangeMax} step={rangeStep} value={power} data-tip={rangeTooltip}
+                    onChange={(e) => onChange(scale, e.target.valueAsNumber)} />
+                <span className='ms-05'>{power}</span>
+            </div>
+        </div>
+    );
+});
+AxisScale.labels = {
+    'Linear': 'Linear',
+    'Pow': 'Pow',
+    'Symlog': 'Log'
+};
+AxisScale.getDefaults = function (scale) {
+    let showRange = true;
+    let rangeTooltip = '';
+    let rangeMin, rangeMax, rangeStep, defaultPower;
+    //set defaults
+    if (scale === 'Pow') {
+        rangeMin = 0; rangeMax = 1; rangeStep = 0.1; defaultPower = 0.5;
+        rangeTooltip = 'exponent';
+    } else if (scale === 'Symlog') {
+        rangeMin = 0; rangeMax = 100; rangeStep = 0.5; defaultPower = 50;
+        rangeTooltip = 'constant';
+    } else {
+        showRange = false;
+    }
+    return { showRange, rangeTooltip, rangeMin, rangeMax, rangeStep, defaultPower };
+};
