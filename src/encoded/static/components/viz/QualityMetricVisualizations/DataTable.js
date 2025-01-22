@@ -3,28 +3,45 @@ import * as d3 from 'd3';
 
 import { getBadge, capitalize } from './utils';
 
-
 export const DataTable = ({
     data,
     qcFields,
     qcFieldFormats,
     customFilter,
-    groupBy,
-    sortOrder,
     additionalColumns,
     highlightedBam,
     handleShowModal,
 }) => {
-    // const [showOverlay, setShowOverlay] = useState(false);
 
+    const prevQcFields = useRef();
     const { qc_info, qc_results } = data;
     let highlightedDatapointInPlot = null;
 
-    useEffect(() => {
-        // console.log(qc_info);
-        // console.log(qc_results);
-        // console.log(filteredData);
+    const removeToolName = (metric) => {
+        return metric.replace(' [Samtools]', '').replace(' [Picard]', '');
+    };
+
+    // Initialize sorting to the first QC field in the list
+    const firstQcField = removeToolName(qc_info[qcFields[0]]['key']);
+    const [sortInfo, setSortInfo] = useState({
+        col: firstQcField,
+        order: 'ascending',
     });
+
+    useEffect(() => {
+        if (prevQcFields.current !== undefined) {
+            if (
+                JSON.stringify(prevQcFields.current) !==
+                JSON.stringify(qcFields)
+            ) {
+                setSortInfo({
+                    col: firstQcField,
+                    order: 'ascending',
+                });
+            }
+        }
+        prevQcFields.current = qcFields;
+    }, [qcFields]);
 
     const highlightDatapointInPlot = (e, bam) => {
         if (bam) {
@@ -44,6 +61,21 @@ export const DataTable = ({
         }
     };
 
+    const handleSort = (col) => {
+        if (sortInfo.col == col) {
+            setSortInfo({
+                col: col,
+                order:
+                    sortInfo.order == 'ascending' ? 'descending' : 'ascending',
+            });
+        } else {
+            setSortInfo({
+                col: col,
+                order: 'ascending',
+            });
+        }
+    };
+
     const filteredData = qc_results.filter((d) => {
         // Use custom filter if provided
         if (customFilter) {
@@ -52,76 +84,76 @@ export const DataTable = ({
         return d;
     });
 
-    const sortByQcField = (a, b) => {
-        const a_value = a['quality_metrics']['qc_values'][qcFields[0]]['value'];
-        const b_value = b['quality_metrics']['qc_values'][qcFields[0]]['value'];
-
-        if (sortOrder == 'ascending') {
-            if (a_value < b_value) return -1;
-            if (a_value > b_value) return 1;
+    const sortFormattedData = (a, b) => {
+        // Primary sorting by col
+        if (sortInfo.order == 'ascending') {
+            if (a[sortInfo.col] < b[sortInfo.col]) return -1;
+            if (a[sortInfo.col] > b[sortInfo.col]) return 1;
         } else {
-            if (a_value < b_value) return 1;
-            if (a_value > b_value) return -1;
+            if (a[sortInfo.col] < b[sortInfo.col]) return 1;
+            if (a[sortInfo.col] > b[sortInfo.col]) return -1;
         }
+        // At this point a[sortInfo.col] == b[sortInfo.col]
+        // Secondary sorting by first QC value
+        if (a[firstQcField] < b[firstQcField]) return -1;
+        if (a[firstQcField] > b[firstQcField]) return 1;
         return 0;
     };
 
-    // Sort within groups
-    // if (groupBy) {
-    //     filteredData.sort((a, b) => {
-    //         if (a[groupBy] < b[groupBy]) return -1; // Primary key ascending
-    //         if (a[groupBy] > b[groupBy]) return 1;
-    //         return sortByQcField(a, b);
-    //     });
-    // } else if (sortOrder) {
-    //     filteredData.sort((a, b) => {
-    //         return sortByQcField(a, b);
-    //     });
-    // }
-
-    // Just sort by qc value
-    if (sortOrder) {
-        filteredData.sort((a, b) => {
-            return sortByQcField(a, b);
-        });
-    }
-
-    //const tableHeaderValues = ['File', qc_info[QCField]['key'], 'Assay', 'Platform', 'Seq Center'];
-
-    const tableBodyData = filteredData.map((d) => {
+    // Extract the relevant infomration from filteredData. We need this in order to do sorting
+    const filteredDataFormatted = filteredData.map((d) => {
         const result = {};
-        const file_link = '/' + d['file_accession'];
+        result['File'] = d['file_accession'];
+        result['Released'] = d['file_status'] == 'released' ? 'Yes' : 'No';
+        result['Overall QC'] = d.quality_metrics?.overall_quality_status;
+        qcFields.forEach((qcField, i) => {
+            const metric = d.quality_metrics?.qc_values[qcField]['value'];
+            const flag = d.quality_metrics?.qc_values[qcField]['flag'];
+            const metric_key = removeToolName(qc_info[qcField]['key']);
+            result[metric_key] = metric;
+            result[metric_key + '_flag'] = flag;
+        });
+        additionalColumns?.forEach((c) => {
+            result[c] = d[c];
+        });
+        result['Seq Center'] = d['submission_center'];
+        result['Assay'] = d['assay'];
+        result['Platform'] = d['sequencer'];
+        result['original'] = d; // We need all the original data for the modal
+        return result;
+    });
+
+    filteredDataFormatted.sort((a, b) => {
+        return sortFormattedData(a, b);
+    });
+
+    const tableBodyData = filteredDataFormatted.map((d) => {
+        const result = {};
+        const file_link = '/' + d['File'];
         result['File'] = (
             <a href={file_link} target="_blank">
-                {d['file_accession']}
+                {d['File']}
             </a>
         );
-        result['Released'] = (
-            <div className="text-center">
-                {d['file_status'] == 'released' ? 'Yes' : 'No'}
-            </div>
-        );
+        result['Released'] = <div className="text-center">{d['Released']}</div>;
         result['Overall QC'] = (
-            <div className="text-center">
-                {getBadge(d.quality_metrics?.overall_quality_status)}
-            </div>
+            <div className="text-center">{getBadge(d['Overall QC'])}</div>
         );
         result['Review QC'] = (
-            <div className="qc-link" onClick={() => handleShowModal(d)}>
+            <div
+                className="qc-link"
+                onClick={() => handleShowModal(d.original)}>
                 Review QC
             </div>
         );
         qcFields.forEach((qcField, i) => {
-            const metric = d.quality_metrics?.qc_values[qcField]['value'];
-            const flag = d.quality_metrics?.qc_values[qcField]['flag'];
+            const metric_key = removeToolName(qc_info[qcField]['key']);
+            const metric = d[metric_key];
+            const flag = d[metric_key + '_flag'];
             const metric_formatted = qcFieldFormats
                 ? d3.format(qcFieldFormats[i])(metric)
                 : metric;
-            // Remove tool name from table headers to save space
-            let metric_key = qc_info[qcField]['key'];
-            metric_key = metric_key
-                .replace(' [Samtools]', '')
-                .replace(' [Picard]', '');
+
             result[metric_key] = (
                 <span>
                     {metric_formatted} {getBadge(flag)}
@@ -133,26 +165,42 @@ export const DataTable = ({
             const c_formated = capitalize(c.replace('_', ' '));
             result[c_formated] = d[c];
         });
-        result['Seq Center'] = d['submission_center'];
-        result['Assay'] = d['assay'];
-        result['Platform'] = d['sequencer'];
+        result['Seq Center'] = d['Seq Center'];
+        result['Assay'] = d['Assay'];
+        result['Platform'] = d['Platform'];
         return result;
     });
     const tableHeaderValues =
         tableBodyData.length > 0 ? Object.keys(tableBodyData[0]) : [];
-    const bamAccessions = filteredData.map((d) => d['file_accession']);
+    const tableHeader = tableHeaderValues.map((col) => {
+        const colsforSorting = Object.keys(filteredDataFormatted[0]);
+        let sortIcon = '';
+        if (colsforSorting.includes(col)) {
+            const sortIconClass =
+                sortInfo.col == col
+                    ? 'sort-icon icon icon-fw icon-sort fas active'
+                    : 'sort-icon icon icon-fw icon-sort fas';
+            sortIcon = (
+                <i
+                    className={sortIconClass}
+                    onClick={() => handleSort(col)}></i>
+            );
+        }
 
-    
+        return (
+            <th key={col}>
+                {col} {sortIcon}
+            </th>
+        );
+    });
+    const bamAccessions = filteredDataFormatted.map((d) => d['File']);
+
     return (
         <>
             <div className="table-responsive qc-metrics-data-table">
                 <table className="table table-hover table-striped table-bordered table-sm qc-metrics-data-table">
                     <thead>
-                        <tr>
-                            {tableHeaderValues.map((col) => (
-                                <th key={col}>{col}</th>
-                            ))}
-                        </tr>
+                        <tr>{tableHeader}</tr>
                     </thead>
                     <tbody>
                         {tableBodyData.map((row, rowIndex) => {

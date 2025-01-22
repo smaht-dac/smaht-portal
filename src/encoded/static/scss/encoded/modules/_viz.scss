@@ -905,14 +905,38 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 }
 
 .qc-metrics-data-table {
-    td, th{
+    td{
         white-space: nowrap;
         font-size: 0.75rem;
         text-align: left;
-        padding: 0.15rem 0.15rem;
+        padding: 0.15rem 0.25rem;
         line-height: 1.45rem;
     }
+    th{
+        white-space: nowrap;
+        font-size: 0.75rem;
+        text-align: left;
+        padding: 0.3rem 0.25rem;
+        line-height: 1.45rem;
+        background-color: #f1f9ff !important;
+    }
+    .sort-icon{
+        cursor: pointer;
+        color: #adb5bd;
+    }
+    .sort-icon:hover{
+        color: #343741;
+    }
+    .sort-icon.active{
+        cursor: pointer;
+        color: #343741;
+    }
 }
+
+.qc-metrics-facets-container {
+    background-color: #f1f9ff;
+}
+
 #qc-metrics-tabs .nav-item .nav-link.active{
     color: #343741;
     font-weight: 600;

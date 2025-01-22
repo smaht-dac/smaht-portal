@@ -173,7 +173,7 @@ export const BoxPlotWithFacets = ({
 
     //console.log(selectedAssay, vizInfo.facets.qc_metrics[selectedAssay]);
     const facets = (
-        <div className="bg-light mb-2">
+        <div className="qc-metrics-facets-container mb-2">
             <div className="row">
                 <div className="col-6">
                     <div className="p-3">
@@ -280,8 +280,6 @@ export const BoxPlotWithFacets = ({
             data={qcData}
             qcFields={[selectedQcMetric]}
             qcFieldFormats={[',']}
-            groupBy={selectedGrouping}
-            sortOrder={'ascending'}
             customFilter={(d) => customFilter(d)}
             highlightedBam={highlightedBam}
             handleShowModal={handleShowModal}
