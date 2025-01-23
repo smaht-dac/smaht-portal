@@ -288,7 +288,8 @@
         "file_sets.libraries.assay.display_title": {
             "title": "Experimental Assay",
             "search_type": "sayt",
-            "sayt_item_type": "Donor"
+            "sayt_item_type": "Donor",
+            "group_by_field": "file_sets.libraries.assay.category"
         },
         "file_sets.sequencing.sequencer.display_title": {
             "title": "Sequencing Platform"
