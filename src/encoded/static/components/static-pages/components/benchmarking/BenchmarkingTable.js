@@ -49,7 +49,7 @@ export const BenchmarkingTable = (props) => {
     };
 
     /**
-     * A column extension map speifically for benchmarking tables.
+     * A column extension map specifically for benchmarking tables.
      * Some of these things may be worth moving to the global colextmap eventually.
      */
     const benchmarkingColExtMap = {
@@ -90,7 +90,9 @@ export const BenchmarkingTable = (props) => {
                         </span>
                     );
                 }
-                return <span className="value text-start">{access_status}</span>;
+                return (
+                    <span className="value text-start">{access_status}</span>
+                );
             },
         },
         // File
@@ -217,8 +219,6 @@ export const BenchmarkingTable = (props) => {
         },
     };
 
-    console.log('tabMap', tabMap);
-
     return (
         <EmbeddedItemSearchTable
             key={session}
@@ -255,6 +255,14 @@ export const BenchmarkingTable = (props) => {
                     'status',
                     'validation_errors.name',
                     'version',
+                    // File facets used in production browse ui
+                    'access_status',
+                    'donors.display_title',
+                    'donors.age',
+                    'donors.sex',
+                    'sample_summary.tissues',
+                    'reference_genome.display_title',
+                    'date_created',
                 ]
             }
             hideColumns={['display_title']}

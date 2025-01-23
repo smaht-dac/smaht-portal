@@ -2,6 +2,11 @@ from snovault import collection, load_schema
 
 from .submitted_file import SubmittedFile
 
+def _build_variant_calls_embedded_list():
+    """Embeds for search on variant calls files."""
+    return SubmittedFile.embedded_list + [
+        "reference_genome.display_title",
+    ]
 
 @collection(
     name="variant-calls",
@@ -13,4 +18,4 @@ from .submitted_file import SubmittedFile
 class VariantCalls(SubmittedFile):
     item_type = "variant_calls"
     schema = load_schema("encoded:schemas/variant_calls.json")
-    embedded_list = SubmittedFile.embedded_list
+    embedded_list = _build_variant_calls_embedded_list()

@@ -931,14 +931,39 @@ body[data-current-action="multiselect"] {
 
                 // Same size, similar styling as intro-section
                 a.big-link {
+                    height: 83px;
+                    @include media-breakpoint-down(sm) {
+                        min-height: 83px;
+                        &:not(.is-fa-icon) {
+                            height: unset;
+                        }
+                        &.is-fa-icon {
+                            height: 83px;
+                        }
+                    }
                     color: inherit;
                     position: relative;
-                    &:hover {
-                        color: #5d8a8e;
+                    &:hover:not([data-disabled="true"]) {
+                        img {
+                            filter: brightness(0) saturate(100%) invert(58%) sepia(15%) saturate(6456%) hue-rotate(179deg) brightness(106%) contrast(101%);
+                        }
+                        color: #2DB3FF;
                         text-shadow: 0 0 0;
                         text-decoration: none;
                         &:after {
                             opacity: 1;
+                        }
+                    }
+                    &[data-disabled="true"] {
+                        color: #aaa;
+                        > div > div > h3,
+                        > div > div > h5,
+                        > div > div > h4 {
+                            color: #aaa;
+                        }
+                        cursor: default;
+                        &:after {
+                            opacity: 0 !important;
                         }
                     }
                     > div,
@@ -955,7 +980,7 @@ body[data-current-action="multiselect"] {
                         display: inline-block;
                         @include after-big-link-append;
                     }
-                    &:hover,
+                    &:hover:not([data-disabled="true"]),
                     &.active {
                         > div > div > h3,
                         > div > div > h5,
@@ -972,6 +997,12 @@ body[data-current-action="multiselect"] {
                             font-weight: 600;
                         }
                     }
+                    
+                    img.big-link-icon-svg {
+                        width: 40px;
+                        filter: brightness(0) saturate(100%) invert(80%) sepia(0%) saturate(1720%) hue-rotate(168deg) brightness(105%) contrast(107%);
+                    }
+
                 }
 	
 				.intro-section {
@@ -1006,6 +1037,15 @@ body[data-current-action="multiselect"] {
                 }
                 
                 > .tree-menu-container {
+
+                    .custom-static-links {
+                        @include media-breakpoint-down(md) {
+                            gap: 20px;
+                        }
+                        @include media-breakpoint-up(md) {
+                            gap: 10%;
+                        }
+                    }
 	
                     > .help-menu-tree {
 
@@ -1126,12 +1166,10 @@ body[data-current-action="multiselect"] {
                     .big-link {
                         .icon-beside-column {
                             width: 75px;
-                            margin-left: -75px;
                             opacity: 1;
                             transition: opacity .5s ease-out;
                         }
                     }
-
                 }
 			}
         }
