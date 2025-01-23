@@ -400,8 +400,9 @@ export class GroupByDropdown extends React.PureComponent {
             'textAlign' : 'left'
         },
         'outerClassName' : "dropdown-container mb-15",
-        'groupById' : "select_primary_charts_group_by",
-        'dateRangeId' : "select_primary_charts_date_range"
+        'groupById' : "select_charts_group_by",
+        'dateRangeId' : "select_charts_date_range",
+        "dateHistogramIntervalId" : "select_charts_date_histogram_interval"
     };
 
     constructor(props){
@@ -480,21 +481,21 @@ export class GroupByDropdown extends React.PureComponent {
             const selectedDateHistogramIntervalValueTitle = loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch" /> : dateHistogramIntervalOptions[currentDateHistogramInterval];
             return (
                 <div className={outerClassName}>
-                    <div className="dropdown-container-col col-12 col-lg-2 align-top">
+                    <div className="dropdown-container-col col-12 col-lg-3 align-top">
                         <div className="text-500 d-block mb-1">{groupByTitle}</div>
                         <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyle} disabled={groupByOptionItems.length < 2} size="sm">
                             {groupByOptionItems}
                         </DropdownButton>
                     </div>
-                    <div className="dropdown-container-col col-12 col-lg-5 align-top">
+                    <div className="dropdown-container-col col-12 col-lg-3 align-top">
                         <div className="text-500 d-block mb-1">{dateRangeTitle}</div>
-                        <div className="date-range">
+                        <div className="date-range flex-column">
                             <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={(e) => this.onDateRangeSelect(e, null, null)} 
                                 style={buttonStyle} size="sm" variant="outline-secondary" disabled={dateRangeOptionItems.length < 2}>
                                 {dateRangeOptionItems}
                             </DropdownButton>
-                            <div className="d-flex custom-date-range">
-                                <span className="text-300 pt-05 d-none d-md-inline-block me-05">Custom:</span>
+                            <div className="d-flex custom-date-range mt-05">
+                                {/* <span className="text-300 pt-05 d-none d-md-inline-block me-05">Custom:</span> */}
                                 <input id="submission_data_range_from" type="date"
                                     className="form-control" value={tempDateRangeFrom || ''}
                                     onChange={(e) => { this.setState({ "tempDateRangeFrom": e.target.value }); }}
@@ -506,7 +507,7 @@ export class GroupByDropdown extends React.PureComponent {
                             </div>
                         </div>
                     </div>
-                    <div className="dropdown-container-col col-12 col-lg-2 align-top">
+                    <div className="dropdown-container-col col-12 col-lg-3 align-top">
                         <div className="text-500 d-block mb-1">{'Histogram Interval'}</div>
                         <DropdownButton id={dateHistogramIntervalId} title={selectedDateHistogramIntervalValueTitle}
                             onSelect={this.onDateHistogramIntervalSelect} disabled={dateHistogramIntervalOptions.length < 2}
