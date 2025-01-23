@@ -507,7 +507,7 @@ export class GroupByDropdown extends React.PureComponent {
                             </div>
                         </div>
                     </div>
-                    <div className="dropdown-container-col col-12 col-lg-3 align-top">
+                    <div className="dropdown-container-col col-12 col-lg-2 align-top">
                         <div className="text-500 d-block mb-1">{'Histogram Interval'}</div>
                         <DropdownButton id={dateHistogramIntervalId} title={selectedDateHistogramIntervalValueTitle}
                             onSelect={this.onDateHistogramIntervalSelect} disabled={dateHistogramIntervalOptions.length < 2}
@@ -515,7 +515,7 @@ export class GroupByDropdown extends React.PureComponent {
                             {dateHistogramInvervalOptionItems}
                         </DropdownButton>
                     </div>
-                    <div className="dropdown-container-col col-12 col-lg-3 align-top ps-1">
+                    <div className="dropdown-container-col col-12 col-lg-4 align-top ps-1">
                         <div className="text-500 d-block mb-1">Settings</div>
                         {children}
                     </div>

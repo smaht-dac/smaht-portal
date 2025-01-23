@@ -2058,7 +2058,7 @@ export const AxisScale = React.memo(function ({ scale, power, onChange, label = 
     const { showRange, rangeTooltip, rangeMin, rangeMax, rangeStep, defaultPower } = AxisScale.getDefaults(scale);
     return (
         <div class="d-flex justify-content-center">
-            <div className="d-md-flex align-items-center">
+            <div className="d-md-flex align-items-center w-100">
                 <span className="text-500 me-1">{label}:</span>
                 <div>
                     <DropdownButton size="sm" title={(scale && AxisScale.labels[scale]) || '-'} onSelect={(e) => onChange(e, defaultPower)} variant="outline-secondary">
