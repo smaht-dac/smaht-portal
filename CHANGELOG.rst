@@ -15,6 +15,7 @@ Change Log
 * Implements UI of browse view + generalization of benchmarking layout
 * Rework navbar to include new structure
 * Adjustments to home page to include only two tiers
+* Slight schema edits for facets and columns
 
 
 0.126.1
