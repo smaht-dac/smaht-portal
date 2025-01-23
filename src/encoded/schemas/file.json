@@ -278,9 +278,6 @@
         "data_type": {
             "title": "Data Type"
         },
-        "reference_genome.display_title": {
-            "title": "Reference Genome"
-        },
         "date_created": {
             "title" : "Release Date",
             "aggregation_type" : "stats"
