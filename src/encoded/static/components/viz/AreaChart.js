@@ -1430,7 +1430,7 @@ export class AreaChartContainer extends React.Component {
 
         if (!hideChartButton) {
         const toggled = AreaChartContainer.isToggled(this.props, 'chart');
-        const className = "btn btn-sm me-05 " + (toggled ? "btn-outline-primary" : "btn-outline-secondary");
+        const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-secondary");
             buttons.push(
                 <button type="button" className={className} onClick={(e) => this.toggleButton(e, 'chart')} data-tip="Toggle chart view" key={id + '_chart'}>
                     <i className="icon icon-fw fas icon-chart-bar" />
@@ -1439,7 +1439,7 @@ export class AreaChartContainer extends React.Component {
         }
         if (!hideTableButton) {
             const toggled = AreaChartContainer.isToggled(this.props, 'table');
-            const className = "btn btn-sm me-05 " + (toggled ? "btn-outline-primary" : "btn-outline-secondary");
+            const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-secondary");
             buttons.push(
                 <button type="button" className={className} onClick={(e) => this.toggleButton(e, 'table')} data-tip="Toggle data table view" key={id + '_table'}>
                     <i className="icon icon-fw fas icon-table" />
@@ -1449,7 +1449,7 @@ export class AreaChartContainer extends React.Component {
         const gridState = layout.responsiveGridState(windowWidth);
         if (['xs', 'sm', 'md'].indexOf(gridState) === -1) {
             const toggled = AreaChartContainer.isToggled(this.props, 'expanded');
-            const className = "btn btn-sm me-05 " + (toggled ? "btn-outline-primary" : "btn-outline-secondary");
+            const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-secondary");
             buttons.push(
                 <button type="button" className={className} onClick={(e) => this.toggleButton(e, 'expanded')} data-tip="Toggle full width" key={id + '_expanded'}>
                     <i className="icon icon-fw fas icon-expand-alt" />
