@@ -3,6 +3,11 @@ from snovault import collection, load_schema
 from .acl import ONLY_ADMIN_VIEW_ACL
 from .file import File
 
+def _build_output_file_embedded_list():
+    """Embeds for search on output files."""
+    return File.embedded_list + [
+        "reference_genome.display_title",
+    ]
 
 def _build_output_file_embedded_list():
     """Embeds for search on cell cultures."""
