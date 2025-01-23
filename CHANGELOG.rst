@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.127.1
+=======
+Hotfixes for browse view
+* Remove reference to `reference_genome` from File schema https://github.com/smaht-dac/smaht-portal/pull/320
+* Remove `reference_genome` embed from UnalignedReads/Reference File https://github.com/smaht-dac/smaht-portal/pull/321
+
 0.127.0
 =======
 `PR 305: BM Browse View <https://github.com/smaht-dac/smaht-portal/pull/305>`_
