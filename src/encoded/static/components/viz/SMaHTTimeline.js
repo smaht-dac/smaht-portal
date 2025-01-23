@@ -305,7 +305,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
     }, [isError]);
 
     return (
-        <div className="container">
+        <div className="container timeline-container">
             <div id="timeline" className={`tier-${currentTier}`}>
                 <span className="latest-release">
                     <b>Latest Release: </b>
