@@ -9,13 +9,25 @@ const announcements = [
     },
     {
         type: 'info',
-        title: 'Portal Update',
-        body: 'The raw sequence files, i.e. unaligned BAM and FASTQ, and the data from the benchmarking tissue samples that were not distributed by TPC will be available upon request at this time (through Globus).',
-    },
-    {
-        type: 'feature',
-        title: 'New Features',
-        body: 'The SMaHT Data Portal, V1 Benchmarking release, now makes benchmarking data available for download for authenticated consortium members. Users can continue to obtain the access keys for metadata submission.',
+        title: 'Data-related news',
+        body: (
+            <>
+                <ul>
+                    <li>
+                        The raw sequence files, i.e. unaligned BAM and FASTQ,
+                        and the data from the benchmarking tissue samples that
+                        were not distributed by TPC will be available upon
+                        request at this time (through Globus).
+                    </li>
+                    <li>
+                        The SMaHT Data Portal, V1 Benchmarking release, now
+                        makes benchmarking data available for download for
+                        authenticated consortium members. Users can continue to
+                        obtain the access keys for metadata submission.
+                    </li>
+                </ul>
+            </>
+        ),
     },
 ];
 
@@ -152,7 +164,7 @@ export const NotificationsPanel = () => {
                 </div>
             </div>
             <div className="announcements section">
-                <h3 className="section-header">DAC Announcements</h3>
+                <h3 className="section-header">Announcements</h3>
                 <div className="section-body-container">
                     <div className="section-body">
                         {announcements.map((announcement, i) => {

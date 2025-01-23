@@ -821,6 +821,9 @@ body[data-path="/"]>#application>#layout {
 								.section-body-items-container {
 									border: 1px solid #b4c1f7;
 									border-radius: 9px;
+									flex: 1;
+									display: flex;
+									flex-direction: column;
 								}
 							}
 
@@ -838,6 +841,7 @@ body[data-path="/"]>#application>#layout {
 
 							.icon-spinner {
 								margin: auto;
+								color: #485983;
 							}
 
 							.data-release-item-container {
@@ -1084,6 +1088,14 @@ body[data-path="/"]>#application>#layout {
 									font-size: 0.75rem;
 									margin-top: 0px;
 									color: #485983;
+
+									ul {
+										padding-left: 16px;
+
+										li {
+											margin-top: 5px;
+										}
+									}
 								}
 
 								&.warning {
