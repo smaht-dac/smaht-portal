@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.126.1
+=======
+`PR 313 SN Reference file columns <https://github.com/smaht-dac/smaht-portal/pull/313>`
+
+* Add `title` and `version` to columns for ReferenceFile
+* Minor fix: remove Basecalling from the automated spreadsheet script
+
 0.126.0
 =======
 `PR246: feat: homepage updates <https://github.com/smaht-dac/smaht-portal/pull/246>`_
