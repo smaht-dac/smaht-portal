@@ -1,0 +1,12 @@
+[
+    {
+        "uuid": "ceac8520-2d3c-49f3-a839-1a0fbccdcb43",
+        "submitted_id": "TEST_HISTOLOGY-IMAGE_LIVER",
+        "submission_centers": [
+            "smaht"
+        ],
+        "filename": "SMHT001-1A-100A1.svs",
+        "file_format": "SVS",
+        "pathology_report": "TEST_PATHOLOGY-REPORT_SMHT001-1A-100A1"
+    }
+]
