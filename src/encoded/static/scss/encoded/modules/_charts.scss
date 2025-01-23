@@ -1404,9 +1404,7 @@ $workflow-node-color-type-global-context: #ffb3b3;
             }
             .search-headers-column-block {
                 &[data-first-visible-column=true] {
-                    .column-title {
-                        color: #ffffff !important;
-                    }
+                    background-color: $baby-20;
                 }
             }
             .search-result-column-block[data-field="display_title"] {
