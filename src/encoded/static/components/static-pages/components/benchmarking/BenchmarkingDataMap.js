@@ -95,6 +95,14 @@ export const BenchmarkingDataMap = {
                     'sequencing_center.display_title',
                     'software.display_title',
                     'tags',
+                    // File facets used in production browse ui
+                    'access_status',
+                    'donors.display_title',
+                    'donors.age',
+                    'donors.sex',
+                    'sample_summary.tissues',
+                    'reference_genome.display_title',
+                    'date_created',
                 ],
                 columns: {
                     '@type': {},
