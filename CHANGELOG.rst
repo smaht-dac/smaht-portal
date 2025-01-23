@@ -9,18 +9,18 @@ Change Log
 
 0.127.0
 =======
-
 `PR 305: BM Browse View <https://github.com/smaht-dac/smaht-portal/pull/305>`_
 
 * Implements UI of browse view + generalization of benchmarking layout
 * Rework navbar to include new structure
 * Adjustments to home page to include only two tiers
 * Slight schema edits for facets and columns
+* Update to SPC version 0.1.92
 
 
 0.126.1
 =======
-`PR 313 SN Reference file columns <https://github.com/smaht-dac/smaht-portal/pull/313>`
+`PR 313 SN Reference file columns <https://github.com/smaht-dac/smaht-portal/pull/313>`_
 
 * Add `title` and `version` to columns for ReferenceFile
 * Minor fix: remove Basecalling from the automated spreadsheet script

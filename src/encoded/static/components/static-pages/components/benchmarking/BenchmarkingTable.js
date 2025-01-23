@@ -49,7 +49,7 @@ export const BenchmarkingTable = (props) => {
     };
 
     /**
-     * A column extension map speifically for benchmarking tables.
+     * A column extension map specifically for benchmarking tables.
      * Some of these things may be worth moving to the global colextmap eventually.
      */
     const benchmarkingColExtMap = {

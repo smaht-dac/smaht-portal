@@ -237,7 +237,7 @@ const BrowseViewSearchTable = (props) => {
     );
 
     /**
-     * A column extension map speifically for benchmarking tables.
+     * A column extension map specifically for browse view file tables.
      * Some of these things may be worth moving to the global colextmap eventually.
      */
     const columnExtensionMap = {
