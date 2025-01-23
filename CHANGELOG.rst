@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.127.1
+0.127.0
 =======
 `PR 319 SN Reference file columns <https://github.com/smaht-dac/smaht-portal/pull/319>`
 
