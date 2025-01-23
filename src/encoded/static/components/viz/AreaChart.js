@@ -489,7 +489,8 @@ export class GroupByDropdown extends React.PureComponent {
                     <div className="dropdown-container-col col-12 col-lg-5 align-top">
                         <div className="text-500 d-block mb-1">{dateRangeTitle}</div>
                         <div className="date-range">
-                            <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={(e) => this.onDateRangeSelect(e, null, null)} style={buttonStyle} size="sm">
+                            <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={(e) => this.onDateRangeSelect(e, null, null)} 
+                                style={buttonStyle} size="sm" variant="outline-secondary" disabled={dateRangeOptionItems.length < 2}>
                                 {dateRangeOptionItems}
                             </DropdownButton>
                             <div className="d-flex custom-date-range">
@@ -507,7 +508,9 @@ export class GroupByDropdown extends React.PureComponent {
                     </div>
                     <div className="dropdown-container-col col-12 col-lg-2 align-top">
                         <div className="text-500 d-block mb-1">{'Histogram Interval'}</div>
-                        <DropdownButton id={dateHistogramIntervalId} title={selectedDateHistogramIntervalValueTitle} onSelect={this.onDateHistogramIntervalSelect} style={buttonStyle} disabled={dateHistogramIntervalOptions.length < 2} size="sm">
+                        <DropdownButton id={dateHistogramIntervalId} title={selectedDateHistogramIntervalValueTitle}
+                            onSelect={this.onDateHistogramIntervalSelect} disabled={dateHistogramIntervalOptions.length < 2}
+                            style={buttonStyle} size="sm" variant="outline-secondary">
                             {dateHistogramInvervalOptionItems}
                         </DropdownButton>
                     </div>
@@ -1426,7 +1429,7 @@ export class AreaChartContainer extends React.Component {
 
         if (!hideChartButton) {
         const toggled = AreaChartContainer.isToggled(this.props, 'chart');
-        const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-dark");
+        const className = "btn btn-sm me-05 " + (toggled ? "btn-outline-primary" : "btn-outline-secondary");
             buttons.push(
                 <button type="button" className={className} onClick={(e) => this.toggleButton(e, 'chart')} data-tip="Toggle chart view" key={id + '_chart'}>
                     <i className="icon icon-fw fas icon-chart-bar" />
@@ -1435,7 +1438,7 @@ export class AreaChartContainer extends React.Component {
         }
         if (!hideTableButton) {
             const toggled = AreaChartContainer.isToggled(this.props, 'table');
-            const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-dark");
+            const className = "btn btn-sm me-05 " + (toggled ? "btn-outline-primary" : "btn-outline-secondary");
             buttons.push(
                 <button type="button" className={className} onClick={(e) => this.toggleButton(e, 'table')} data-tip="Toggle data table view" key={id + '_table'}>
                     <i className="icon icon-fw fas icon-table" />
@@ -1445,10 +1448,10 @@ export class AreaChartContainer extends React.Component {
         const gridState = layout.responsiveGridState(windowWidth);
         if (['xs', 'sm', 'md'].indexOf(gridState) === -1) {
             const toggled = AreaChartContainer.isToggled(this.props, 'expanded');
-            const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-dark");
+            const className = "btn btn-sm me-05 " + (toggled ? "btn-outline-primary" : "btn-outline-secondary");
             buttons.push(
                 <button type="button" className={className} onClick={(e) => this.toggleButton(e, 'expanded')} data-tip="Toggle full width" key={id + '_expanded'}>
-                    <i className="icon icon-fw fas icon-search-plus" />
+                    <i className="icon icon-fw fas icon-expand-alt" />
                 </button>
             );
         }

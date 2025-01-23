@@ -1098,7 +1098,7 @@ class UsageChartsCountByDropdown extends React.PureComponent {
     }
 
     render(){
-        const { countBy, chartID } = this.props;
+        const { countBy, chartID, variant } = this.props;
         const currCountBy = countBy[chartID];
 
         const menuOptions = new Map();
@@ -1150,7 +1150,7 @@ class UsageChartsCountByDropdown extends React.PureComponent {
         return (
             <div className="d-inline-block me-05">
                 <DropdownButton size="sm" id={"select_count_for_" + chartID}
-                    onSelect={this.handleSelection} title={dropdownTitle}>
+                    onSelect={this.handleSelection} title={dropdownTitle} variant={variant}>
                     {_.map([ ...menuOptions.entries() ], function([ k, title ]){
                         return <DropdownItem eventKey={k} key={k}>{ title }</DropdownItem>;
                     })}
@@ -1224,7 +1224,7 @@ export function UsageStatsView(props){
         'curveFxn': smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter,
         cumulativeSum, yAxisScale, yAxisPower
     };
-    const countByDropdownProps = { countBy, changeCountByForChart };
+    const countByDropdownProps = { countBy, changeCountByForChart, variant: 'outline-secondary' };
 
     const sessionsByCountryChartHeight = ['page_title', 'page_url'].indexOf(countBy.sessions_by_country) > -1 ? 500 : commonContainerProps.defaultHeight;
     const enableSessionByCountryChartTooltipItemClick = (countBy.sessions_by_country === 'page_url');
@@ -1970,7 +1970,7 @@ export const StatisticsTable = React.memo((props) => {
 
     return (
         <React.Fragment>
-            <div className="container" id={containerId}>
+            <div className="container search-page-container" id={containerId}>
                 <CustomColumnController {...{ windowWidth }} hiddenColumns={{}} columnDefinitions={columnDefinitions} context={passProps.context}>
                     <SortController>
                         <ControlsAndResults {...passProps} />
@@ -2060,7 +2060,7 @@ export const AxisScale = React.memo(function ({ scale, power, onChange, label = 
         <div className="d-md-flex">
             <span className="text-500 me-1">{label}:</span>
             <div className='mb-15'>
-                <DropdownButton size="sm" title={(scale && AxisScale.labels[scale]) || '-'} onSelect={(e) => onChange(e, defaultPower)}>
+                <DropdownButton size="sm" title={(scale && AxisScale.labels[scale]) || '-'} onSelect={(e) => onChange(e, defaultPower)} variant="outline-secondary">
                     {
                         labelPairs.map(([key, val]) => (
                             <DropdownItem eventKey={key} key={key}>{val}</DropdownItem>
