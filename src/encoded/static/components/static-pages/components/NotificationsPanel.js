@@ -190,7 +190,7 @@ export const NotificationsPanel = () => {
                                 role="button"
                                 className="btn">
                                 <img src="/static/img/homepage-smaht-data-screenshot.png"></img>
-                                <span>Sequencing methods in SMaHT</span>
+                                <span>Sequencing Methods in SMaHT</span>
                             </a>
                         </div>
                         <div className="link-container nih">
