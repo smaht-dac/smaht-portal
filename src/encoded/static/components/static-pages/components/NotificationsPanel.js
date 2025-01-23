@@ -205,7 +205,7 @@ export const NotificationsPanel = () => {
                                 <i className="icon-external-link-alt icon icon-xs fas ml-2" />
                             </a>
                             <a
-                                href="https://commonfund.nih.gov/smaht"
+                                href="https://smaht.org/"
                                 target="_blank"
                                 rel="noreferrer noopener"
                                 role="button"
