@@ -108,31 +108,6 @@ export const ScatterlotWithFacets = ({
         setRerenderNumber(rerenderNumber + 1);
     };
 
-    // useEffect(() => {
-    //     updateThresholdMarks();
-    //     setRerenderNumber(rerenderNumber + 1);
-    //   }, [selectedQcMetricX, selectedQcMetricY, selectedSequencer, selectedAssay]);
-
-    // const updateThresholdMarks = () => {
-    //     const thresholdCategory = selectedSequencer + '_' + selectedAssay;
-    //     const thresholdInfo = vizInfo.qc_thresholds[thresholdCategory];
-    //     if(!thresholdInfo || ! thresholdInfo[selectedQcMetricX]){
-    //         setThresholdMarks(null);
-    //         return;
-    //     }
-
-    //     setThresholdMarks({
-    //         horizontal: [
-    //             {
-    //                 value: thresholdInfo[selectedQcMetricX],
-    //                 fill: 'red',
-    //             },
-    //         ],
-
-    //     });
-
-    // };
-
     const updateHighlightedBam = (bam) => {
         sethighlightedBam(bam);
     };
@@ -157,7 +132,8 @@ export const ScatterlotWithFacets = ({
             sampleSourceFilter =
                 d?.sample_source_group === selectedSampleSource;
         } else {
-            sampleSourceFilter = d?.sample_source_subgroup === selectedSampleSource;
+            sampleSourceFilter =
+                d?.sample_source_subgroup === selectedSampleSource;
         }
 
         return (
@@ -196,20 +172,7 @@ export const ScatterlotWithFacets = ({
                                 };
                             })}
                         />
-                        {/* <select
-                            className="form-select form-select-sm"
-                            value={selectedQcMetricX}
-                            onChange={handleQcMetricChangeX}>
-                            {vizInfo.facets.qc_metrics[selectedAssay].map(
-                                (q) => {
-                                    return (
-                                        <option value={q['derived_from']}>
-                                            {q['key']}
-                                        </option>
-                                    );
-                                }
-                            )}
-                        </select> */}
+
                         <div className="mt-1 fw-bold fs-6">
                             QC metric (y-axis)
                         </div>
@@ -230,29 +193,6 @@ export const ScatterlotWithFacets = ({
                                 };
                             })}
                         />
-                        {/* <select
-                            className="form-select form-select-sm"
-                            value={selectedQcMetricY}
-                            onChange={handleQcMetricChangeY}>
-                            {vizInfo.facets.qc_metrics[selectedAssay].map(
-                                (q) => {
-                                    return (
-                                        <option value={q['derived_from']}>
-                                            {q['key']}
-                                        </option>
-                                    );
-                                }
-                            )}
-                        </select> */}
-                        {/* <div className="mt-1 fw-bold fs-6">Grouping</div>
-                        <select
-                            className="form-select form-select-sm"
-                            value={selectedGrouping}
-                            onChange={handleGroupingChange}>
-                            {vizInfo.facets.grouping.map((q) => {
-                                return getKeyLabelOption(q);
-                            })}
-                        </select> */}
                     </div>
                 </div>
                 <div className="col-6">
