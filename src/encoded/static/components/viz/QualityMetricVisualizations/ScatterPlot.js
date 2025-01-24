@@ -194,7 +194,16 @@ export const ScatterPlot = ({
                 .domain(extentX)
                 .range([0, chartWidth - margins.left - margins.right]);
 
-            const xAxis = d3.axisBottom(x).ticks(5).tickSizeOuter(0);
+            const xAxis = d3
+                .axisBottom(x)
+                .ticks(5)
+                .tickFormat((d) => {
+                    if (customFormat) {
+                        return customFormat(d);
+                    }
+                    return d;
+                })
+                .tickSizeOuter(0);
 
             const gXContainer = svg
                 .append('g')
