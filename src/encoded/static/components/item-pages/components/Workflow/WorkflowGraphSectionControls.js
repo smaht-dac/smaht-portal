@@ -78,6 +78,7 @@ export class WorkflowGraphSection extends React.PureComponent {
             ...graphData,
             rowSpacingType,
             legendItems,
+            scale: 0.85,
             renderDetailPane: this.renderDetailPane,
             renderNodeElement: this.renderNodeElement
         };
