@@ -926,6 +926,16 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 .qc-metrics-data-table {
     max-height: 370px;
     overflow-y: auto; 
+
+    @include media-breakpoint-between(lg, xl) {
+		max-height: 330px;
+	}
+    @include media-breakpoint-between(xl, xxl) {
+		max-height: 400px;
+	}
+	@include media-breakpoint-up(xxl) {
+		max-height: 450px;
+	}
 }
 
 .qc-metrics-data-table {
