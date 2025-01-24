@@ -51,6 +51,11 @@ class SearchBase:
         ],
         'additional_facet': 'donors.display_title'  # required since this is default_hidden for now
     }
+    PRODUCTION_TISSUES_FILES_SEARCH_PARAMS = {
+        'type': 'File',
+        'status': ['released', 'restricted', 'public'],
+        'dataset': ['Production']
+    }
 
 
 def make_concurrent_search_requests(search_helpers):
@@ -139,20 +144,38 @@ def generate_ipsc_assay_count(context, request):
 
 
 def generate_tissue_file_count(context, request):
-    """ Get total file count for tissues """
+    """ Get total file count for benchmarking tissues """
     search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
     return generate_search_total(context, request, search_param)
 
 
 def generate_tissue_donor_count(context, request):
-    """ Get donor count by aggregating on donor """
+    """ Get benchmarking tissue donor count by aggregating on donor """
     search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
     return generate_unique_facet_count(context, request, search_param, 'donors.display_title')
 
 
 def generate_tissue_assay_count(context, request):
-    """ Get total assay count for tissues """
+    """ Get total assay count for benchmarking tissues """
     search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
+    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
+
+
+def generate_production_file_count(context, request):
+    """ Get total file count for production tissues """
+    search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
+    return generate_search_total(context, request, search_param)
+
+
+def generate_production_tissue_donor_count(context, request):
+    """ Get production tissue donor count """
+    search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
+    return generate_unique_facet_count(context, request, search_param, 'donors.display_title')
+
+
+def generate_production_tissue_assay_count(context, request):
+    """ Get production tissue assay counts """
+    search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
     return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
 
 
@@ -181,6 +204,10 @@ def home(context, request):
         (generate_tissue_donor_count, {'context': context, 'request': request}),  # 7
         (generate_tissue_assay_count, {'context': context, 'request': request}),  # 8
 
+        # Production stats
+        (generate_production_file_count, {'context': context, 'request': request}),  # 9
+        (generate_production_tissue_donor_count, {'context': context, 'request': request}),  # 10
+        (generate_production_tissue_assay_count, {'context': context, 'request': request}),  # 11
     ])
     time = datetime.now(timezone('EST'))
     response = {
@@ -243,10 +270,10 @@ def home(context, request):
                     {
                         "title": "Primary Tissues",
                         "figures": [
-                            { "value": 0, "unit": "Donors" },
-                            { "value": 0, "unit": "Tissue Types" },
-                            { "value": 0, "unit": "Assays" },
-                            { "value": 0, "unit": "Files Generated" }
+                            { "value": search_results[10], "unit": "Donors" },
+                            { "value": 21, "unit": "Tissue Types" },
+                            { "value": search_results[11], "unit": "Assays" },
+                            { "value": search_results[9], "unit": "Files Generated" }
                         ]
                     }
                 ]
