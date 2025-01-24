@@ -5,6 +5,9 @@ from collections import OrderedDict
 from dcicutils import ff_utils
 from dcicutils.creds_utils import SMaHTKeyManager
 
+# Location of resulting file in portal
+# s3://smaht-production-application-files/25d09e18-2f77-4541-a32c-0f1d99defbd3/SMAFILZCEQ1X.json
+
 # Define where to get the data from
 ENV = "data"
 SMAHT_KEY = SMaHTKeyManager().get_keydict_for_env(ENV)
