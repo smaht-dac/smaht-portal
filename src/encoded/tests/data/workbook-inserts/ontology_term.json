@@ -2,8 +2,7 @@
     {
         "uuid": "69ac1b9e-b76d-4d41-90b9-aec992024929",
         "identifier": "UBERON:0002107",
-        "title": "liver",
-        "ontology": ["uberon"],
+        "name": "liver",
         "consorta": [
             "smaht"
         ]
@@ -11,8 +10,18 @@
     {
         "uuid": "f2f84da1-59db-41f3-8268-81d415146815",
         "identifier": "UBERON:0002048",
-        "title": "lung",
-        "ontology": ["uberon"],
+        "name": "lung",
+        "consorta": [
+            "smaht"
+        ]
+    },
+    {
+        "uuid": "8cb0c4e5-af9e-44c6-b625-ea489c715dc6",
+        "identifier": "UBERON:0008952",
+        "name": "upper lobe of left lung",
+        "url": "http://purl.obolibrary.org/obo/UBERON_0008952",
+        "description": "The lobe of the left lung that is closest to the head.",
+        "parent_term": "UBERON:0002048",
         "consorta": [
             "smaht"
         ]

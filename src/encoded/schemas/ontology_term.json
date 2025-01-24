@@ -86,17 +86,14 @@
         "description": {
             "description": "Description of the ontology term"
         },
-        "ontology": {
-            "title": "Ontology",
-            "description": "Ontology the term is part of",
-            "type": "array",
-            "items": {
-                "type": "string",
-                "linkTo": "Ontology"
-            }
-        },
         "url": {
             "description": "The url that uniquely identifies term - often purl."
+        },
+        "parent_term": {
+            "title": "Parent Term",
+            "description": "Ontology term that is a parent to the term",
+            "type": "string",
+            "linkTo": "OntologyTerm"
         }
     }
 }
