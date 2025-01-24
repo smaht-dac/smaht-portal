@@ -17,8 +17,8 @@ SEARCH_QUERY = (
     "&submission_centers.display_title=BCM+GCC"
     "&field=uuid"
     "&type=FileSet"
-     "&limit=10000"
-    #"&limit=100&from=0"  # for testing
+    "&limit=10000"
+    #"&limit=30&from=100"  # for testing
     # "&accession=SMAFSADRYKW2"
 )
 
@@ -259,8 +259,8 @@ class FileStats:
                 tissues.append(tissue_code_to_word(ssc) or "?")
 
             sample_source_codes = ", ".join(sample_source_codes)
-            sample_source_codes_for_facets.append(sample_source_codes)
             tissues = ", ".join(tissues)
+            
 
             # Get the alignment MWFR to process the fastp outputs and get the final BAM
             mwfr = self.get_alignment_mwfr(fileset)
@@ -274,6 +274,8 @@ class FileStats:
                     f"Warning: Fileset {fileset[ACCESSION]} has no final output file"
                 )
                 continue
+
+            sample_source_codes_for_facets.append(tissues if ("?" not in tissues) else sample_source_codes)
 
             result = {}
             result["fileset"] = fileset_accession
@@ -291,8 +293,10 @@ class FileStats:
             result[SAMPLE_SOURCE] = sample_source_codes
             if tissues != "?":
                 result["tissue"] = tissues
+                result["sample_source_subgroup"] = tissues
                 result[SAMPLE_SOURCE_GROUP] = TISSUES
             else:
+                result["sample_source_subgroup"] = sample_source_codes
                 result[SAMPLE_SOURCE_GROUP] = CELL_LINE
             result["read_length"] = "long" if sequencer in LONG_READ_SEQS else "short"
             result["quality_metrics"] = {}
@@ -336,10 +340,13 @@ class FileStats:
         sample_source_codes_for_facets = list(set(sample_source_codes_for_facets))
         sample_source_codes_for_facets.sort()
         for ssc in sample_source_codes_for_facets:
-            tissue = tissue_code_to_word(ssc)
-            label = f"{ssc} ({tissue})" if tissue else ssc
+            # tissue = tissue_code_to_word(ssc)
+            # label = f"{ssc} ({tissue})" if tissue else ssc
+            # self.viz_info["facets"]["sample_source"].append(
+            #     {"key": ssc, "label": label},
+            # )
             self.viz_info["facets"]["sample_source"].append(
-                {"key": ssc, "label": label},
+                {"key": ssc, "label": ssc},
             )
 
     def write_json(self):

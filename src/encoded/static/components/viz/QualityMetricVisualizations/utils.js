@@ -78,6 +78,14 @@ const isFloat = (num) => {
     return Number(num) === num && num % 1 !== 0;
 };
 
+export const removeToolName = (metric) => {
+    return metric
+        .replace(' [Samtools]', '')
+        .replace(' [Picard]', '')
+        .replace(' [RNA-SeQC]', '')
+        .replace(' [bamstats]', '');
+};
+
 export const formatQcValue = (value) => {
     if (isInteger(value)) {
         return d3.format(',')(value);

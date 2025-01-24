@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
-import { getBadge, capitalize } from './utils';
+import { getBadge, capitalize, removeToolName } from './utils';
 
 export const DataTable = ({
     data,
@@ -12,14 +12,8 @@ export const DataTable = ({
     highlightedBam,
     handleShowModal,
 }) => {
-
     const prevQcFields = useRef();
     const { qc_info, qc_results } = data;
-    let highlightedDatapointInPlot = null;
-
-    const removeToolName = (metric) => {
-        return metric.replace(' [Samtools]', '').replace(' [Picard]', '');
-    };
 
     // Initialize sorting to the first QC field in the list
     const firstQcField = removeToolName(qc_info[qcFields[0]]['key']);
@@ -44,19 +38,17 @@ export const DataTable = ({
     }, [qcFields]);
 
     const highlightDatapointInPlot = (e, bam) => {
+        // Remove highlight from previous data points
+        const targetPoints = document.querySelectorAll('[data-point-index]');
+        targetPoints.forEach((targetPoint) => {
+            targetPoint.classList.remove('data-point-highlighted');
+        });
+
         if (bam) {
-            highlightedDatapointInPlot = bam;
             const query = '[data-point-index="' + bam + '"]';
             const targetPoints = document.querySelectorAll(query);
             targetPoints.forEach((targetPoint) => {
                 targetPoint.classList.add('data-point-highlighted');
-            });
-        } else if (highlightedDatapointInPlot) {
-            const query =
-                '[data-point-index="' + highlightedDatapointInPlot + '"]';
-            const targetPoints = document.querySelectorAll(query);
-            targetPoints.forEach((targetPoint) => {
-                targetPoint.classList.remove('data-point-highlighted');
             });
         }
     };
@@ -100,7 +92,7 @@ export const DataTable = ({
         return 0;
     };
 
-    // Extract the relevant infomration from filteredData. We need this in order to do sorting
+    // Extract the relevant information from filteredData. We need this in order to do sorting
     const filteredDataFormatted = filteredData.map((d) => {
         const result = {};
         result['File'] = d['file_accession'];
@@ -137,7 +129,7 @@ export const DataTable = ({
         );
         result['Released'] = <div className="text-center">{d['Released']}</div>;
         result['Overall QC'] = (
-            <div className="text-center">{getBadge(d['Overall QC'])}</div>
+            <div className="text-center">{getBadge(d['Overall QC'], true)}</div>
         );
         result['Review QC'] = (
             <div
@@ -194,6 +186,15 @@ export const DataTable = ({
         );
     });
     const bamAccessions = filteredDataFormatted.map((d) => d['File']);
+
+    if (filteredDataFormatted.length === 0) {
+        return (
+            <div className="p-5 text-center">
+                <i className="icon fas icon-exclamation-triangle icon-fw text-warning" />{' '}
+                No data available for the selected filters.
+            </div>
+        );
+    }
 
     return (
         <>

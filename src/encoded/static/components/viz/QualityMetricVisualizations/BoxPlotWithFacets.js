@@ -23,19 +23,11 @@ export const BoxPlotWithFacets = ({
     qcData,
     showFacets = true,
     showDataTable = true,
-    boxPlotTitle = "",
+    boxPlotTitle = '',
     settings = null,
 }) => {
     const vizInfo = qcData.viz_info;
 
-    // Default settings
-    // {
-    //     "selectedQcMetric": "samtools_stats:percentage_of_properly_paired_reads",
-    //     "assay": "WGS",
-    //     "grouping": "submission_center",
-    //     "sampleSource": "tissue",
-    //     "sequencer": "all_illumina"
-    // }
     const defaultSettings = settings || vizInfo.default_settings.boxplot;
 
     // Overwrite default setting with props
@@ -156,7 +148,8 @@ export const BoxPlotWithFacets = ({
             sampleSourceFilter =
                 d?.sample_source_group === selectedSampleSource;
         } else {
-            sampleSourceFilter = d?.sample_source_subgroup === selectedSampleSource;
+            sampleSourceFilter =
+                d?.sample_source_subgroup === selectedSampleSource;
         }
 
         return (
@@ -171,6 +164,15 @@ export const BoxPlotWithFacets = ({
         return <option value={q['key']}>{q['label']}</option>;
     };
 
+    const thresholdInfo = thresholdMarks ? (
+        <div className='pt-4'>
+            <i className="icon icon-info-circle fas text-muted icon-fw"></i>
+            This metric has a  PASS threshold of <strong>{thresholdMarks.horizontal[0].value}</strong>.
+        </div>
+    ) : (
+        ''
+    );
+
     //console.log(selectedAssay, vizInfo.facets.qc_metrics[selectedAssay]);
     const facets = (
         <div className="qc-metrics-facets-container mb-2">
@@ -178,23 +180,7 @@ export const BoxPlotWithFacets = ({
                 <div className="col-6">
                     <div className="p-3">
                         <div className="fw-bold fs-6">QC metric</div>
-                        {/* <select
-                            className="form-select form-select-sm"
-                            value={selectedQcMetric}
-                            onChange={handleQcMetricChange}>
-                            {vizInfo.facets.qc_metrics[selectedAssay].map(
-                                (q) => {
-                                    return (
-                                        <option value={q['derived_from']}>
-                                            {q['key']}
-                                        </option>
-                                    );
-                                }
-                            )}
-                        </select> */}
                         <Select
-                            // className="form-select form-select-sm"
-                            //value={selectedQcMetric}
                             value={{
                                 value: selectedQcMetric,
                                 label: qcData.qc_info[selectedQcMetric].key,
@@ -220,6 +206,7 @@ export const BoxPlotWithFacets = ({
                                 return getKeyLabelOption(q);
                             })}
                         </select>
+                        {thresholdInfo}
                     </div>
                 </div>
                 <div className="col-6">
