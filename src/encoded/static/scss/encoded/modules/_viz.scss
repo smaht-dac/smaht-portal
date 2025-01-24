@@ -961,6 +961,11 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     background-color: #f1f9ff;
 }
 
+#qc-metrics-tabs .nav-item {
+    display: flex;
+    border-bottom: none;
+}
+
 #qc-metrics-tabs .nav-item .nav-link.active{
     color: #343741;
     font-weight: 600;
