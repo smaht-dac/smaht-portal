@@ -7,11 +7,19 @@ smaht-portal
 Change Log
 ----------
 
+0.128.0
+=======
+`PR 322: QC metrics visualization <https://github.com/smaht-dac/smaht-portal/pull/322>`_
+
+* Add QC metrics visualization
+
+
 0.127.1
 =======
 Hotfixes for browse view
 * Remove reference to `reference_genome` from File schema https://github.com/smaht-dac/smaht-portal/pull/320
 * Remove `reference_genome` embed from UnalignedReads/Reference File https://github.com/smaht-dac/smaht-portal/pull/321
+
 
 0.127.0
 =======
