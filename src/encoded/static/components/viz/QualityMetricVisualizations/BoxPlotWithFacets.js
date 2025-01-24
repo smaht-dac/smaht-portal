@@ -104,8 +104,6 @@ export const BoxPlotWithFacets = ({
         setRerenderNumber(rerenderNumber + 1);
     }, [selectedQcMetric, selectedSequencer, selectedAssay]);
 
-    //console.log(vizInfo);
-
     const updateThresholdMarks = () => {
         const thresholdCategory = selectedSequencer + '_' + selectedAssay;
         const thresholdInfo = vizInfo.qc_thresholds[thresholdCategory];
@@ -165,15 +163,15 @@ export const BoxPlotWithFacets = ({
     };
 
     const thresholdInfo = thresholdMarks ? (
-        <div className='pt-4'>
+        <div className="pt-4">
             <i className="icon icon-info-circle fas text-muted icon-fw"></i>
-            This metric has a  PASS threshold of <strong>{thresholdMarks.horizontal[0].value}</strong>.
+            This metric has a PASS threshold of{' '}
+            <strong>{thresholdMarks.horizontal[0].value}</strong>.
         </div>
     ) : (
         ''
     );
 
-    //console.log(selectedAssay, vizInfo.facets.qc_metrics[selectedAssay]);
     const facets = (
         <div className="qc-metrics-facets-container mb-2">
             <div className="row">

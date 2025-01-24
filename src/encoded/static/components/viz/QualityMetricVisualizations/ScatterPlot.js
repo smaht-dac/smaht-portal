@@ -4,7 +4,6 @@ import * as d3 from 'd3';
 import { Popover, PopoverHeader, PopoverBody, Overlay } from 'react-bootstrap';
 import { PlotPopoverContent, addPaddingToExtend } from './utils';
 
-
 export const ScatterPlot = ({
     plotId,
     data,
@@ -32,19 +31,7 @@ export const ScatterPlot = ({
     // Assign a new ref to the popover target
     const handleShowOverlay = (e, d) => {
         const targetId = e.target.getAttribute('data-point-index');
-
-        // console.log('target ');
-        // console.log('overlay props', e, d);
-        // console.log(
-        //     overlayTarget?.current?.data['data-point-index'],
-        //     d['data-point-index']
-        // );
-
         const scatterPlot = d3.select('#scatterplot-svg' + '-' + plotId);
-        // console.log(
-        //     'boxPlot point: ',
-        //     boxPlot.select(`[data-point-index='${d['data-point-index']}']`)
-        // );
 
         overlayTarget.current = {
             node: scatterPlot.select(`[data-point-index='${targetId}']`).node(),
@@ -66,7 +53,6 @@ export const ScatterPlot = ({
     };
 
     useEffect(() => {
-
         let doRerender = false;
         if (oldRerenderNumber.current !== rerenderNumber) {
             oldRerenderNumber.current = rerenderNumber;
@@ -182,7 +168,10 @@ export const ScatterPlot = ({
             // Extent values for the Y axis
             let extentY =
                 customExtentY ??
-                d3.extent(filteredData, (d) => d.quality_metrics.qc_values[yAxisField]['value']);
+                d3.extent(
+                    filteredData,
+                    (d) => d.quality_metrics.qc_values[yAxisField]['value']
+                );
 
             if (!customExtentY) {
                 extentY = addPaddingToExtend(extentY);
@@ -191,10 +180,13 @@ export const ScatterPlot = ({
             // Extent values for the X axis
             let extentX =
                 customExtentX ??
-                d3.extent(filteredData, (d) => d.quality_metrics.qc_values[xAxisField]['value']);
+                d3.extent(
+                    filteredData,
+                    (d) => d.quality_metrics.qc_values[xAxisField]['value']
+                );
 
             if (!customExtentX) {
-                extentX = addPaddingToExtend(extentX, 0.05, 0.20);
+                extentX = addPaddingToExtend(extentX, 0.05, 0.2);
             }
 
             const x = d3
@@ -271,7 +263,9 @@ export const ScatterPlot = ({
                 );
 
             const submission_centers = new Set(
-                filteredData.map((d) => d.submission_center.replace(" GCC", "")).sort()
+                filteredData
+                    .map((d) => d.submission_center.replace(' GCC', ''))
+                    .sort()
             );
             // Create color scale for the data points
             const pointColor = d3
@@ -319,26 +313,14 @@ export const ScatterPlot = ({
                     return d['file_accession'];
                 })
                 .attr('cy', (d) => {
-                    // console.log(
-                    //     'd.quality_metrics[yAxisField]',
-                    //     yAxisField,
-                    //     d.quality_metrics.qc_values[yAxisField]['value']
-                    // );
                     return y(d.quality_metrics.qc_values[yAxisField]['value']);
                 })
                 .attr('cx', (d) => {
-                    // console.log(
-                    //     d,
-                    //     'd.quality_metrics[xAxisField]',
-                    //     xAxisField,
-                    //     d.quality_metrics.qc_values[xAxisField]['value'],
-                    //     x(d.quality_metrics.qc_values[xAxisField]['value'])
-                    // );
                     return x(d.quality_metrics.qc_values[xAxisField]['value']);
                 })
                 .attr('r', 8)
                 .attr('fill', (d) => {
-                    return pointColor(d.submission_center.replace(" GCC", ""));
+                    return pointColor(d.submission_center.replace(' GCC', ''));
                 })
                 .attr('stroke', 'darkgray')
                 // .attr('stroke', (d) => {
@@ -500,9 +482,7 @@ export const ScatterPlot = ({
                 show={showOverlay}
                 placement="bottom"
                 flip={true}>
-                <Popover
-                    id="popover-scatterplot"
-                    className="popover-d3-plot">
+                <Popover id="popover-scatterplot" className="popover-d3-plot">
                     {/* <PopoverHeader>
                         {xAxisLabel ?? qc_info[xAxisField].key}:{' '}
                         {new Intl.NumberFormat().format(

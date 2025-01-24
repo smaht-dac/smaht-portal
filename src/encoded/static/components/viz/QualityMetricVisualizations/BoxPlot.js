@@ -28,19 +28,7 @@ export const BoxPlot = ({
     // Assign a new ref to the popover target
     const handleShowOverlay = (e, d) => {
         const targetId = e.target.getAttribute('data-point-index');
-
-        // console.log('target ');
-        // console.log('overlay props', e, d);
-        // console.log(
-        //     overlayTarget?.current?.data['data-point-index'],
-        //     d['data-point-index']
-        // );
-
         const boxPlot = d3.select('#boxplot-svg' + '-' + plotId);
-        // console.log(
-        //     'boxPlot point: ',
-        //     boxPlot.select(`[data-point-index='${d['data-point-index']}']`)
-        // );
 
         overlayTarget.current = {
             node: boxPlot.select(`[data-point-index='${targetId}']`).node(),
@@ -90,7 +78,10 @@ export const BoxPlot = ({
                 .append('text')
                 .text(title)
                 .attr('text-anchor', 'middle')
-                .attr('style', 'font-family: Inter; font-size: 1.5rem; font-weight: 600')
+                .attr(
+                    'style',
+                    'font-family: Inter; font-size: 1.5rem; font-weight: 600'
+                )
                 .attr('x', chartWidth / 2)
                 .attr('y', margins.top / 2);
 
@@ -170,9 +161,6 @@ export const BoxPlot = ({
                 return d;
             });
 
-            // Log the data being used
-            // console.log('Data for', qcField, ': ', filteredData);
-
             // Get minimum and maximum values for the quality metric
             let extent =
                 customExtent ??
@@ -196,7 +184,6 @@ export const BoxPlot = ({
                                     g.quality_metrics.qc_values[qcField][
                                         'value'
                                     ];
-                                // if (value < 0) console.log('value under 0', g);
                                 return value;
                             })
                             .sort(d3.ascending),
@@ -209,7 +196,6 @@ export const BoxPlot = ({
                                     g.quality_metrics.qc_values[qcField][
                                         'value'
                                     ];
-                                // if (value < 0) console.log('value under 0', g);
                                 return value;
                             })
                             .sort(d3.ascending),
@@ -251,8 +237,6 @@ export const BoxPlot = ({
                 (d) => d[qcCategory]
             );
 
-            //console.log('grouped: ', groupedData);
-
             const x = d3
                 .scaleBand()
                 .domain(Array.from(groupedData.keys()).sort())
@@ -261,8 +245,6 @@ export const BoxPlot = ({
             // Define a width for the box plot depending on the number of groups
             const boxWidth = Math.min(80, x.bandwidth() / 2);
             const endLineWidth = boxWidth / 2;
-
-            //console.log('x: ', (chartWidth - margins.left - margins.right)/groupedData.size);
 
             const xAxis = d3
                 .axisBottom(x)
@@ -338,7 +320,6 @@ export const BoxPlot = ({
                 .enter()
                 .append('line')
                 .attr('x1', (d) => {
-                    // console.log('x1: ', x(d[0]));
                     return x(d[0]) + margins.left + x.bandwidth() / 2;
                 })
                 .attr('x2', (d) => x(d[0]) + margins.left + x.bandwidth() / 2)
@@ -653,7 +634,8 @@ export const BoxPlot = ({
     });
 
     // In some edge cases, when switching the assay, this might not be available.
-    const overlayTargetQcField = overlayTarget.current?.data?.quality_metrics.qc_values[qcField];
+    const overlayTargetQcField =
+        overlayTarget.current?.data?.quality_metrics.qc_values[qcField];
     const overlayTargetValue = overlayTargetQcField?.value;
 
     return (

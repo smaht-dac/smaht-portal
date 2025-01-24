@@ -25,14 +25,6 @@ export const ScatterlotWithFacets = ({
 }) => {
     const vizInfo = qcData.viz_info;
 
-    // Default settings
-    // {
-    //     "selectedQcMetric": "samtools_stats:percentage_of_properly_paired_reads",
-    //     "assay": "WGS",
-    //     "grouping": "submission_center",
-    //     "sampleSource": "tissue",
-    //     "sequencer": "all_illumina"
-    // }
     const defaultSettings = settings || vizInfo.default_settings.scatterplot;
 
     // Overwrite default setting with props
@@ -180,7 +172,7 @@ export const ScatterlotWithFacets = ({
     const getKeyLabelOption = (q) => {
         return <option value={q['key']}>{q['label']}</option>;
     };
-    //console.log(selectedAssay, vizInfo.facets.qc_metrics[selectedAssay]);
+
     const facets = (
         <div className="qc-metrics-facets-container mb-2">
             <div className="row">
