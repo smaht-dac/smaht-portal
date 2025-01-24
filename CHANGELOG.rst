@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.128.0
+======
+`PR 323 SN Ontology terms <https://github.com/smaht-dac/smaht-portal/pull/323>`_
+
+* Update properties for OntologyTerm item to be implemented with Tissue `uberon_id`
+
+
 0.127.1
 =======
 Hotfixes for browse view
