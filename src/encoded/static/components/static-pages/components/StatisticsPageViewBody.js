@@ -1022,8 +1022,8 @@ export class UsageStatsViewController extends React.PureComponent {
 
 export class SubmissionStatsViewController extends React.PureComponent {
 
-    static createFileSearchUri(props, date_histogram) {
-        const params = { 'type': 'SubmittedFile' };
+    static createFileSearchUri(props, dateHistogram, itemType = 'SubmittedFile') {
+        const params = { 'type': itemType };
         if (props.currentGroupBy) { params.group_by = props.currentGroupBy; }
         if (props.currentDateRangePreset) {
             if (props.currentDateRangePreset !== 'custom')
@@ -1032,7 +1032,7 @@ export class SubmissionStatsViewController extends React.PureComponent {
                 params.date_range = `custom|${props.currentDateRangeFrom || ''}|${props.currentDateRangeTo || ''}`;
         }
         if (props.currentDateHistogramInterval) { params.date_histogram_interval = props.currentDateHistogramInterval; }
-        params.date_histogram = Array.isArray(date_histogram) ? date_histogram : [date_histogram];
+        params.date_histogram = Array.isArray(dateHistogram) ? dateHistogram : [dateHistogram];
         const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
 
         // For local dev/debugging; don't forget to comment out if using.
@@ -1049,7 +1049,7 @@ export class SubmissionStatsViewController extends React.PureComponent {
                 return SubmissionStatsViewController.createFileSearchUri(props, 'file_status_tracking.uploaded');
             },
             'FileReleased' : function(props) {
-                return SubmissionStatsViewController.createFileSearchUri(props, 'file_status_tracking.released');
+                return SubmissionStatsViewController.createFileSearchUri(props, 'file_status_tracking.released', 'File');
             },
         },
         'shouldRefetchAggs' : function(pastProps, nextProps){
