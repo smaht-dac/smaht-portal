@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
 import { Popover, PopoverHeader, PopoverBody, Overlay } from 'react-bootstrap';
-import { PlotPopoverContent, addPaddingToExtend } from './utils';
+import { PlotPopoverContent, addPaddingToExtend, removeToolName } from './utils';
 
 export const ScatterPlot = ({
     plotId,
@@ -100,7 +100,7 @@ export const ScatterPlot = ({
                 )
                 .attr('text-anchor', 'middle')
                 .attr('style', 'font-family: Inter; font-size: 1.5rem')
-                .text(yAxisLabel ?? qc_info[yAxisField].key);
+                .text(yAxisLabel ?? removeToolName(qc_info[yAxisField].key));
 
             svgContainer
                 .append('text')
@@ -115,7 +115,7 @@ export const ScatterPlot = ({
                 )
                 .attr('text-anchor', 'middle')
                 .attr('style', 'font-family: Inter; font-size: 1.5rem')
-                .text(xAxisLabel ?? qc_info[xAxisField].key);
+                .text(xAxisLabel ?? removeToolName(qc_info[xAxisField].key));
 
             // Create the SVG group for the chart
             const svg = svgContainer.append('g').attr('class', 'chartBody');

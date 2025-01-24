@@ -83,6 +83,8 @@ export const removeToolName = (metric) => {
         .replace(' [Samtools]', '')
         .replace(' [Picard]', '')
         .replace(' [RNA-SeQC]', '')
+        .replace(' [mosdepth]', '')
+        .replace(' [VerifyBamID2]', '')
         .replace(' [bamstats]', '');
 };
 

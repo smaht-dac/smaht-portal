@@ -159,8 +159,18 @@ export const BoxPlotWithFacets = ({
     };
 
     const getKeyLabelOption = (q) => {
-        return <option value={q['key']}>{q['label']}</option>;
+        return <option value={q['key']} key={q['key']}>{q['label']}</option>;
     };
+
+    const getGroupLabel = (group) => {
+        let groupLabel = "NA";
+        vizInfo.facets.grouping.forEach((g) => {    
+            if (g['key'] === group) {
+                groupLabel = g['label'];
+            }
+        });
+        return groupLabel;
+    }
 
     const thresholdInfo = thresholdMarks ? (
         <div className="pt-4">
@@ -253,6 +263,7 @@ export const BoxPlotWithFacets = ({
             customFilter={(d) => customFilter(d)}
             customFormat={(d) => formatLargeInteger(d)}
             qcCategory={selectedGrouping}
+            xAxisLabel={getGroupLabel(selectedGrouping)}
             updateHighlightedBam={updateHighlightedBam}
             thresholdMarks={thresholdMarks}
             rerenderNumber={rerenderNumber}

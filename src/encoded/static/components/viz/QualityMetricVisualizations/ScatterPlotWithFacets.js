@@ -146,7 +146,7 @@ export const ScatterlotWithFacets = ({
     };
 
     const getKeyLabelOption = (q) => {
-        return <option value={q['key']}>{q['label']}</option>;
+        return <option value={q['key']} key={q['key']}>{q['label']}</option>;
     };
 
     const facets = (

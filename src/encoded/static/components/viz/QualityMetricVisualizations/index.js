@@ -25,7 +25,6 @@ export const QualityMetricVisualizations = () => {
                     console.error(resp.error);
                     return;
                 }
-                console.log('resp.data: ', resp.data);
                 setQcData(resp.data);
             },
             'POST',

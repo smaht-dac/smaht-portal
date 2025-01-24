@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
 import { Popover, PopoverHeader, PopoverBody, Overlay } from 'react-bootstrap';
-import { PlotPopoverContent, addPaddingToExtend } from './utils';
+import { PlotPopoverContent, addPaddingToExtend, removeToolName } from './utils';
 
 export const BoxPlot = ({
     plotId,
@@ -99,7 +99,7 @@ export const BoxPlot = ({
                 )
                 .attr('text-anchor', 'middle')
                 .attr('style', 'font-family: Inter; font-size: 1.5rem')
-                .text(qc_info[qcField].key);
+                .text(removeToolName(qc_info[qcField].key));
 
             svgContainer
                 .append('text')
