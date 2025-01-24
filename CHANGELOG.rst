@@ -7,6 +7,39 @@ smaht-portal
 Change Log
 ----------
 
+0.127.1
+=======
+Hotfixes for browse view
+* Remove reference to `reference_genome` from File schema https://github.com/smaht-dac/smaht-portal/pull/320
+* Remove `reference_genome` embed from UnalignedReads/Reference File https://github.com/smaht-dac/smaht-portal/pull/321
+
+0.127.0
+=======
+`PR 305: BM Browse View <https://github.com/smaht-dac/smaht-portal/pull/305>`_
+
+* Implements UI of browse view + generalization of benchmarking layout
+* Rework navbar to include new structure
+* Adjustments to home page to include only two tiers
+* Slight schema edits for facets and columns
+* Update to SPC version 0.1.92
+
+
+0.126.1
+=======
+`PR 313 SN Reference file columns <https://github.com/smaht-dac/smaht-portal/pull/313>`_
+
+* Add `title` and `version` to columns for ReferenceFile
+* Minor fix: remove Basecalling from the automated spreadsheet script
+
+
+0.126.0
+=======
+`PR246: feat: homepage updates <https://github.com/smaht-dac/smaht-portal/pull/246>`_
+
+* Implement new announcements panel on homepage
+* Resize homepage layout for larger screens
+
+
 0.125.0
 =======
 
@@ -45,7 +78,7 @@ Change Log
 
 0.124.1
 =======
-`PR BM Register Text Fix <https://github.com/smaht-dac/smaht-portal/pull/297>`_
+`PR 297: BM Register Text Fix <https://github.com/smaht-dac/smaht-portal/pull/297>`_
 
 * Update text in UserRegistrationModal to not refer to 2023 data release
 
