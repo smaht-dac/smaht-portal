@@ -31,17 +31,6 @@ def get_uberon_id(properties: Dict[str, Any]) -> str:
     return properties.get("uberon_id","")
 
 
-def get_uberon_title(properties: Dict[str, Any], request_handler: RequestHandler) -> str:
-    """Get uberon id title associated with tissue"""
-    return get_property_value_from_identifier(
-        request_handler,
-        get_uberon_id(properties),
-        functools.partial(
-            item_utils.get_title, request_handler=request_handler
-        )
-    )
-
-
 def get_study(properties: Dict[str, Any]) -> str:
     """Get study associated with tissue.
 

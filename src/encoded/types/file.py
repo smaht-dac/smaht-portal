@@ -933,7 +933,7 @@ class File(Item, CoreFile):
             constants.SAMPLE_SUMMARY_TISSUES: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_tissues(file_properties, request_handler),
-                tissue_utils.get_uberon_title,
+                tissue_utils.get_location,
             ),
             constants.SAMPLE_SUMMARY_SAMPLE_NAMES: get_property_values_from_identifiers(
                 request_handler,
