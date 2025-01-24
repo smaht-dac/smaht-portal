@@ -813,7 +813,8 @@ body[data-path="/"]>#application>#layout {
 							&-container {
 								flex: 1;
 								display: flex;
-								overflow-y: scroll;
+								overflow-y: auto;
+								overflow-x: hidden;
 								background-color: #eef6fe;
 								border-radius: 12px;
 								border: 1px solid #b4c1f7;
@@ -1041,7 +1042,8 @@ body[data-path="/"]>#application>#layout {
 							&-container {
 								flex: 1;
 								display: flex;
-								overflow-y: scroll;
+								overflow-y: auto;
+								overflow-x: hidden;
 								background-color: white;
 								border-radius: 12px;
 								background-color: #eef6fe;
@@ -1124,6 +1126,7 @@ body[data-path="/"]>#application>#layout {
 							background-color: transparent;
 							border: none;
 							border-radius: 0px;
+							overflow: hidden;
 
 							.about-consortium-links {
 								flex-direction: column;
