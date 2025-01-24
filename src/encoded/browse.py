@@ -27,7 +27,9 @@ DEFAULT_BROWSE_FACETS = ["file_size"]
 
 DEFAULT_BROWSE_PARAM_LISTS = {
     "type": [DEFAULT_BROWSE_TYPE],
-    "additional_facet": DEFAULT_BROWSE_FACETS
+    "sample_summary.studies": ["Production"],
+    "status": ["released"],
+    # "additional_facet": DEFAULT_BROWSE_FACETS
 }
 
 @view_config(route_name='browse', request_method='GET', permission='search')
@@ -55,8 +57,6 @@ def browse(context, request, search_type=DEFAULT_BROWSE_TYPE, return_generator=F
                 detail="Redirected from " + str(request.path_info)
             )
 
-    # TODO
-    # No real /browse specific UI yet; initially just basically copied static/components/SearchView.js to BrowseView.js.
     return search(context, request, search_type, return_generator, forced_type="Browse")
 
 
