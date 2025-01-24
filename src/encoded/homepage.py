@@ -158,7 +158,8 @@ def generate_tissue_donor_count(context, request):
 def generate_tissue_assay_count(context, request):
     """ Get total assay count for benchmarking tissues """
     search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
+    # note: must use uuid rather than display_title due to sayt/facet term grouping
+    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.uuid')
 
 
 def generate_production_file_count(context, request):
@@ -176,7 +177,8 @@ def generate_production_tissue_donor_count(context, request):
 def generate_production_tissue_assay_count(context, request):
     """ Get production tissue assay counts """
     search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
+    # note: must use uuid rather than display_title due to sayt/facet term grouping
+    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.uuid')
 
 
 @view_config(route_name='home', request_method=['GET'])
@@ -271,7 +273,7 @@ def home(context, request):
                         "title": "Primary Tissues",
                         "figures": [
                             { "value": search_results[10], "unit": "Donors" },
-                            { "value": 21, "unit": "Tissue Types" },
+                            { "value": 20, "unit": "Tissue Types" },
                             { "value": search_results[11], "unit": "Assays" },
                             { "value": search_results[9], "unit": "Files Generated" }
                         ]
