@@ -5,7 +5,7 @@
     "type": "object",
     "required": [
         "identifier",
-        "name"
+        "title"
     ],
     "anyOf": [
         {
@@ -54,7 +54,7 @@
             "$ref": "mixins.json#/tags"
         },
         {
-            "$ref": "mixins.json#/name"
+            "$ref": "mixins.json#/title"
         },
         {
             "$ref": "mixins.json#/url"
@@ -67,8 +67,8 @@
         "identifier": {
             "pattern": "^[A-Z]+:[0-9]+$"
         },
-        "name": {
-            "description": "Name of the ontology term"
+        "title": {
+            "description": "Title of the ontology term"
         },
         "schema_version": {
             "default": "1"
