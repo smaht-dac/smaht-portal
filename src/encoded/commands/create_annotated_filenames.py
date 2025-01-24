@@ -710,7 +710,7 @@ def get_aliquot_id_from_samples(tissue_samples: List[Dict[str], Any]) -> Filenam
 def get_multiple_aliquot_id_from_samples(ids: List[str]):
     """Get filename part for files merged from multiple tissue sample aliquots.
     
-    `aliquot_id` is the first two or three numbers indicating the tissue sample aliquot (e.g. 01 or 001) and `core_id` is the last two values which are either an alpha-numeric code for Core or Specimen samples (e.g. A1), or XX for Homogenate samples.
+    `aliquot_id` is the first two or three numbers indicating the tissue sample aliquot (e.g. 01 or 001) and `core_id` is the last two values which are either an alpha-numeric code for Core or Specimen samples (e.g. A1), or XX for samples without spatial information (Homogenate and Liquid).
     """
     aliquot_ids = []
     core_ids = []
@@ -729,11 +729,11 @@ def get_multiple_aliquot_id_from_samples(ids: List[str]):
 def get_aliquot_id_from_tissue_sample(tissue_sample: Dict[str, Any]) -> str:
     """Get aliquot ID from tissue sample item.
 
-    If TissueSample is homogenate, provide default value.
+    If TissueSample is does not contain spatial information in external id (Homogenate or Liquid), provide default value.
 
     Otherwise, return the aliquot ID from the metadata.
     """
-    if tissue_sample_utils.is_homogenate(tissue_sample):
+    if not tissue_sample_utils.has_spatial_information(tissue_sample):
         return DEFAULT_ABSENT_FIELD * 2
     return sample_utils.get_aliquot_id(tissue_sample)
 

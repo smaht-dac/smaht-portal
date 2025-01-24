@@ -10,6 +10,7 @@ import { UserRegistrationModal } from './../../navigation/components/UserRegistr
 import { auth0Options as navAuth0Options } from './../../navigation/components/AccountNav';
 import SMaHTTimeline from '../../viz/SMaHTTimeline';
 import Card from 'react-bootstrap/esm/Card';
+import { NotificationsPanel } from '../components/NotificationsPanel';
 // import { Fade } from 'react-bootstrap';
 
 import { HomepageFigure } from '../../viz/HomepageFigure';
@@ -33,10 +34,10 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
 
     return (
         <div className="homepage-contents">
-            <div className="container d-flex flex-column justify-content-around">
+            <div className="container d-flex flex-column justify-content-around justify-content-xxl-start">
                 <div className="row">
                     <div className="homepage-header col-12">
-                        <h1 className="mb-1">
+                        <h1 className="">
                             Somatic Mosaicism across Human Tissues Data Portal
                         </h1>
                         <h2 className="">
@@ -45,69 +46,21 @@ export const GuestHomeView = React.memo(function GuestHomeView(props) {
                         </h2>
                     </div>
                 </div>
-                <div className="row my-2 flex-column flex-lg-row">
-                    <div className="col-12 col-lg-4 col-xl-5">
+                <div className="homepage-timeline-figure-container row flex-column flex-lg-row">
+                    <div className="col-12 col-lg-4 col-xl-5 col-xxl-4">
                         <SMaHTTimeline
                             currentTier={currentTier}
                             setCurrentTier={setCurrentTier}
                         />
                     </div>
-                    <div className="col-12 col-lg-8 col-xl-7 d-flex justify-content-center align-items-center mb-2 my-lg-2 ">
+                    <div className="homepage-figure-container col-12 col-lg-8 col-xl-7 col-xxxl-6 d-flex mb-2 my-lg-2 ">
                         <HomepageFigure
                             currentTier={currentTier}
                             setCurrentTier={setCurrentTier}
                         />
                     </div>
                 </div>
-                <div className="row g-0">
-                    <Card className="about-consortium col-12 w-100 mb-3">
-                        <h3 className="">About the Consortium</h3>
-                        <div className="row">
-                            <div className="col-12 col-lg-4">
-                                <a
-                                    href="https://commonfund.nih.gov/smaht"
-                                    target="_blank"
-                                    rel="noreferrer noopener"
-                                    role="button"
-                                    className="w-100 py-2 btn">
-                                    NIH SMaHT Homepage
-                                    <i className="icon-external-link-alt icon fas ms-2" />
-                                </a>
-                            </div>
-                            <div className="col-12 col-lg-4">
-                                <a
-                                    href="https://www.smaht.org"
-                                    target="_blank"
-                                    rel="noreferrer noopener"
-                                    role="button"
-                                    className="w-100 py-2 btn">
-                                    SMaHT OC Homepage
-                                    <i className="icon-external-link-alt icon fas ms-2" />
-                                </a>
-                            </div>
-                            <div className="col-12 col-lg-4">
-                                <a
-                                    href="https://www.youtube.com/watch?v=8KX3lkMB5nU"
-                                    target="_blank"
-                                    rel="noreferrer noopener"
-                                    role="button"
-                                    className="w-100 py-2 btn">
-                                    SMaHT Overview Video
-                                    <i className="icon-external-link-alt icon fas ms-2" />
-                                </a>
-                            </div>
-                            {/** @TODO: Link might change */}
-                            {/* <div className="col-12 col-md-6 col-lg-3">
-                                <a
-                                    href="/about"
-                                    role="button"
-                                    className="w-100 py-2 btn">
-                                    SMaHT Consortium Map <span className="fst-italic">(coming soon)</span>
-                                </a>
-                            </div> */}
-                        </div>
-                    </Card>
-                </div>
+                <NotificationsPanel {...props} />
             </div>
         </div>
     );

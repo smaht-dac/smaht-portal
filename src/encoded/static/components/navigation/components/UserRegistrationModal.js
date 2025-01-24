@@ -62,18 +62,22 @@ export const UserRegistrationModal = React.memo(function UserRegistrationModal(
             <ul className="mt-1">
                 <li>
                     Please note that the SMaHT Data Portal is currently under
-                    development and is available to a limited number of
-                    consortium members only for the purpose of access key
-                    generation required for data submission.
-                </li>
-                <li>
-                    General users and other interested parties: please check
-                    back in early 2023 for the first official launch.
+                    development and is available to consortium members only.
                 </li>
                 <li>
                     If you are submitting data to SMaHT Data Analysis Center and
                     need to have access now, please click the button below to
                     contact the SMaHT Data Analysis Center DAC team.
+                </li>
+                <li>
+                    More information about account creation can be found{' '}
+                    <a
+                        href="/docs/access/creating-an-account"
+                        target="_blank"
+                        rel="noreferrer noopener">
+                        here
+                    </a>
+                    .
                 </li>
             </ul>
 
