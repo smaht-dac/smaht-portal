@@ -9,7 +9,7 @@ Change Log
 
 0.129.0
 =======
-* 2024-11-20 / dmichaels / branch: dmichaels-20250125-recent-files-summary-fix / PR-??
+* 2025-01-25 / dmichaels / branch: dmichaels-20250125-recent-files-summary-fix / PR-??
 * Fix in endpoints/recent_files_summary/recent_files_summary.py/hoist_items_additional_value_up_one_level;
   was not checking existence first for: del item[additional_value_property_name]
 
