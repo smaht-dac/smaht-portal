@@ -352,7 +352,8 @@ def recent_files_summary(request: PyramidRequest,
                 additional_value_property_name = "additional_value"
             for item in items:
                 if isinstance(item.get(items_property_name), list):
-                    hoist_items_additional_value_up_one_level(item)
+                    hoist_items_additional_value_up_one_level(item, items_property_name=items_property_name,
+                                                              additional_value_property_name=additional_value_property_name)
             common_additional_value = None
             for item in items:
                 if (additional_value := item.get(additional_value_property_name)) is None:
@@ -365,7 +366,8 @@ def recent_files_summary(request: PyramidRequest,
             if common_additional_value is not None:
                 data[additional_value_property_name] = common_additional_value
                 for item in items:
-                    del item[additional_value_property_name]
+                    if additional_value_property_name in item:
+                        del item[additional_value_property_name]
 
     def add_queries_to_normalized_results(normalized_results: dict, base_query_arguments: dict) -> None:
         global BASE_SEARCH_QUERY
