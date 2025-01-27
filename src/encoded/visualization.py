@@ -156,13 +156,6 @@ def date_histogram_aggregations(context, request):
                 "interval": interval_to_es_interval[interval],
                 "format": "yyyy-MM-dd"
             }
-            # get empty buckets for missing dates (works for intervals, currently not spanning all time-frame)
-            # if (date_from is not None or date_to is not None):
-            #     date_histogram['min_doc_count'] = 0
-            #     date_histogram['extended_bounds'] = {
-            #         "min": date_from.strftime("%Y-%m-%d") if date_from is not None else None,
-            #         "max": date_to.strftime("%Y-%m-%d") if date_to is not None else None
-            #     }
             outer_date_histogram_agg[interval + '_interval_' + dh_field] = {
                 "date_histogram": date_histogram
             }
