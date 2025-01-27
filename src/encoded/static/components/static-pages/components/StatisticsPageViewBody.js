@@ -1594,6 +1594,13 @@ export function SubmissionsStatsView(props) {
     if (loadingStatus === 'failed'){
         return <div className="stats-charts-container" key="charts" id="submissions"><ErrorIcon/></div>;
     }
+
+    // TODO: remove when the final release is ready
+    const userGroups = JWT.getUserGroups() || null;
+    if (userGroups && userGroups.indexOf('admin') !== -1) {
+        return <div className="stats-charts-container" key="charts" id="submissions"><ErrorIcon/></div>;
+    }
+
     const [yAxisScale, setYAxisScale] = useState('Pow');
     const [yAxisPower, setYAxisPower] = useState(0.7);
     const handleAxisScaleChange = (scale, power) => { setYAxisScale(scale); setYAxisPower(power); };
