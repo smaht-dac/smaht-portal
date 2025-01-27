@@ -1597,7 +1597,7 @@ export function SubmissionsStatsView(props) {
 
     // TODO: remove when the final release is ready
     const userGroups = JWT.getUserGroups() || null;
-    if (userGroups && userGroups.indexOf('admin') !== -1) {
+    if (userGroups && userGroups.indexOf('admin') === -1) {
         return <div className="stats-charts-container" key="charts" id="submissions"><ErrorIcon/></div>;
     }
 
