@@ -50,6 +50,7 @@ def include_encoded(config):
     config.include('encoded.debugging')
     config.include('encoded.upgrade')
     config.include('encoded.submission_status')
+    config.include('encoded.qc_overview')
     config.include('encoded.ingestion.ingestion_status')
     config.include('encoded.ingestion.metadata_template')
     config.include('encoded.validators')
@@ -313,6 +314,7 @@ def main(global_config, **local_config):
     if 'elasticsearch.server' in config.registry.settings:
         config.include('snovault.elasticsearch')
         config.include('snovault.search.search')
+        config.include('encoded.browse')
         config.include('snovault.search.compound_search')
 
     # this contains fall back url, so make sure it comes just before static_resoruces
