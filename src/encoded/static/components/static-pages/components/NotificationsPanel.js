@@ -3,6 +3,19 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 
 const announcements = [
     {
+        type: 'info',
+        title: 'New Features',
+        body: (
+            <>
+                <span>
+                    Explore the{' '}
+                    <a href="/qc-metrics">Interactive QC Assessment</a> page for
+                    data on the portal.
+                </span>
+            </>
+        ),
+    },
+    {
         type: 'warning',
         title: 'Attention Users',
         body: 'The V1 Benchmarking data portal will be open to SMaHT consortium members only at this time.',
