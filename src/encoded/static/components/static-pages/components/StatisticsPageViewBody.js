@@ -1033,7 +1033,13 @@ export class SubmissionStatsViewController extends React.PureComponent {
         }
         if (props.currentDateHistogramInterval) { params.date_histogram_interval = props.currentDateHistogramInterval; }
         params.date_histogram = Array.isArray(dateHistogram) ? dateHistogram : [dateHistogram];
-        const uri = '/date_histogram_aggregations/?' + queryString.stringify(params) + '&limit=0&format=json';
+
+        let encodedParams = queryString.stringify(params);
+        if (itemType === 'SubmittedFile') {
+            encodedParams += '&data_generation_summary.submission_centers!=HMS+DAC';
+        }
+
+        const uri = '/date_histogram_aggregations/?' + encodedParams + '&limit=0&format=json';
 
         // For local dev/debugging; don't forget to comment out if using.
         //uri = 'https://data.smaht.org' + uri;
