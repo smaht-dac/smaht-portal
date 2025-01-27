@@ -6,6 +6,7 @@ import { ConsortiumMap } from '../../viz/AboutPageVisualizations/ConsortiumMap/C
 import { SubmissionStatus } from '../components/internal/SubmissionStatus';
 import { Alluvial } from '../../viz/AboutPageVisualizations/Alluvial/Alluvial';
 import { StackRowTable } from '../../viz/AboutPageVisualizations/Alluvial/StackRowTable';
+import { QualityMetricVisualizations } from '../../viz/QualityMetricVisualizations';
 import memoize from 'memoize-one';
 import _ from 'underscore';
 
@@ -37,6 +38,7 @@ const placeholders = {
     YoutubeVideoEmbed,
     ConsortiumMap,
     Alluvial,
+    QualityMetricVisualizations,
     SubmissionStatus,
     StackRowTable,
     BenchmarkingUI,
