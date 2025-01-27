@@ -244,7 +244,7 @@ export const QualityMetricVisualizations = () => {
         selectedSampleSource === benchmarkingTissues &&
         selectedAssay === rnaSeq ? (
             <div className="row">
-                {getRnaSeqMetricsPlots('tissue', 'Benchmarking Cell Lines')}
+                {getRnaSeqMetricsPlots('tissue', 'Tissue Homogenates')}
             </div>
         ) : (
             ''
