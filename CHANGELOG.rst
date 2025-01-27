@@ -7,10 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.128.1
+=======
 `PR 307: fix: adjust data release date on safari <https://github.com/smaht-dac/smaht-portal/pull/307>`
 
 * Adjust release date to prevent safari "Invalid date" bug
-=======
+
+
 0.128.0
 =======
 `PR 322: QC metrics visualization <https://github.com/smaht-dac/smaht-portal/pull/322>`_
