@@ -1024,7 +1024,13 @@ export class SubmissionStatsViewController extends React.PureComponent {
 
     static createFileSearchUri(props, dateHistogram, itemType = 'SubmittedFile') {
         const params = { 'type': itemType };
-        if (props.currentGroupBy) { params.group_by = props.currentGroupBy; }
+        if (props.currentGroupBy) {
+            const [groupByField, queryKeyword] = props.currentGroupBy.split(':');
+            params.group_by = groupByField;
+            if (queryKeyword && itemType === 'SubmittedFile') {
+                params.q = queryKeyword;
+            }
+        }
         if (props.currentDateRangePreset) {
             if (props.currentDateRangePreset !== 'custom')
                 params.date_range = props.currentDateRangePreset;
