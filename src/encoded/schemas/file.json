@@ -130,6 +130,7 @@
                     "Genome Region",
                     "Germline Variant Calls",
                     "Quality Control",
+                    "Genome Assembly",
                     "Reference Genome",
                     "Reference Conversion",
                     "Reference Transcriptome",
@@ -154,6 +155,7 @@
                     "In Silico Generated",
                     "Index",
                     "Reference Sequence",
+                    "DSA",
                     "Chain File",
                     "Sequence Interval",
                     "Statistics",
@@ -223,21 +225,62 @@
         }
     },
     "facets": {
+        "access_status": {
+            "title": "Access"
+        },
+        "donors.display_title": {
+            "title": "Donor",
+            "search_type": "sayt",
+            "sayt_item_type": "Donor"
+        },
+        "donors.age": {
+            "title": "Donor Age",
+            "aggregation_type": "range",
+            "number_step": 1,
+            "ranges": [
+                {
+                    "from": 18,
+                    "to": 30
+                },
+                {
+                    "from": 30,
+                    "to": 55
+                },
+                {
+                    "from": 55,
+                    "to": 65
+                },
+                {
+                    "from": 65
+                }
+            ]
+        },
+        "file_sets.libraries.analytes.samples.sample_sources.donor.sex": {
+            "title": "Donor Sex"
+        },
+        "sample_summary.tissues": {
+            "title": "Tissue"
+        },
         "file_sets.libraries.assay.display_title": {
-            "title": "Experimental Assay"
+            "title": "Experimental Assay",
+            "search_type": "sayt",
+            "sayt_item_type": "Donor"
         },
         "file_sets.sequencing.sequencer.display_title": {
             "title": "Sequencing Platform"
         },
-        "donors.display_title": {
-            "title": "Donor",
-            "default_hidden": true
-        },
         "file_format.display_title": {
             "title": "Data Format"
         },
-        "data_type": {
+        "data_category": {
             "title": "Data Category"
+        },
+        "data_type": {
+            "title": "Data Type"
+        },
+        "date_created": {
+            "title" : "Release Date",
+            "aggregation_type" : "stats"
         },
         "sequencing_center.display_title": {
             "title": "Sequencing Center"

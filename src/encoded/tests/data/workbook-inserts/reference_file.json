@@ -21,5 +21,24 @@
         ],
         "file_size": 8000,
         "status": "restricted"
+    },
+    {
+        "uuid": "8fc6f554-59c9-490a-b6dc-86665a0b971d",
+        "aliases": [
+            "smaht:ReferenceFile-collapsed-genes-gencode_v45"
+        ],
+        "code": "gencode",
+        "title": "GENCODEv45",
+        "version": "v45",
+        "data_type": [
+            "Gene Model"
+        ],
+        "data_category": [
+            "Genome Annotation"
+        ],
+        "file_format": "GTF",
+        "consortia": [
+            "smaht"
+        ]
     }
 ]

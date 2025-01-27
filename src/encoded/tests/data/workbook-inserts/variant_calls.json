@@ -49,7 +49,8 @@
         "reference_genome": "GRCh38",
         "file_size": 100000,
         "status": "uploaded",
-        "annotated_filename": "SMHTHELAHEK293-X-X-NN-D099-test-SMAVCFO3516G-GRCh38.vcf",
-        "dataset": "colo829t"
+        "annotated_filename": "SMHTHELAHEK293-X-X-NN-D099-test-SMAVCFO3516G-dorado_0.1.0_GRCh38.vcf",
+        "dataset": "colo829t",
+        "software": ["TEST_SOFTWARE_DORADO"]
     }
 ]

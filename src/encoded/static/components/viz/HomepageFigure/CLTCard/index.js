@@ -27,9 +27,7 @@ const CLTList = ({ list }) => {
                                         <PopoverHeader>
                                             {item.title}
                                         </PopoverHeader>
-                                        <PopoverBody>
-                                            {item.data}
-                                        </PopoverBody>
+                                        <PopoverBody>{item.data}</PopoverBody>
                                     </Popover>
                                 }>
                                 <div>
@@ -71,7 +69,6 @@ export const CLTCard = ({ currentTier }) => {
                     title: 'Brain: unrelated donors',
                     tier_0: true,
                     tier_1: false,
-                    tier_2: false,
                     // TODO: Discuss implications adjusting overall popover style override for
                     // max-width in _bootstrap-theme-overrides.scss (potential effect on consortium map?)
                     data: (
@@ -92,7 +89,6 @@ export const CLTCard = ({ currentTier }) => {
                     title: 'Brain: 4 subregions',
                     tier_0: false,
                     tier_1: true,
-                    tier_2: true,
                     // TODO: Does this also require the same note as above?
                 },
                 {
@@ -100,7 +96,6 @@ export const CLTCard = ({ currentTier }) => {
                     title: 'Sun-exposed skin',
                     tier_0: true,
                     tier_1: true,
-                    tier_2: true,
                 },
                 {
                     // TODO: Double check that it was correct to remove this from just Tier 0
@@ -108,14 +103,12 @@ export const CLTCard = ({ currentTier }) => {
                     title: 'Non-exposed skin',
                     tier_0: false,
                     tier_1: true,
-                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Adrenal Gland.svg',
                     title: 'Adrenal medulla',
                     tier_0: false,
                     tier_1: true,
-                    tier_2: true,
                 },
             ],
         },
@@ -127,28 +120,24 @@ export const CLTCard = ({ currentTier }) => {
                     title: 'Heart',
                     tier_0: false,
                     tier_1: true,
-                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Blood.svg',
                     title: 'Blood',
                     tier_0: false,
                     tier_1: true,
-                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Skeletal Muscle.svg',
                     title: 'Skeletal Muscle',
                     tier_0: false,
                     tier_1: true,
-                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Aorta.svg',
                     title: 'Aorta',
                     tier_0: false,
                     tier_1: true,
-                    tier_2: true,
                 },
             ],
         },
@@ -160,28 +149,24 @@ export const CLTCard = ({ currentTier }) => {
                     title: 'Liver',
                     tier_0: true,
                     tier_1: true,
-                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Lung.svg',
                     title: 'Lung',
                     tier_0: true,
                     tier_1: true,
-                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Colon.svg',
                     title: 'Colon',
                     tier_0: true,
                     tier_1: false,
-                    tier_2: false,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Ascending Colon.svg',
                     title: 'Ascending Colon',
                     tier_0: false,
                     tier_1: true,
-                    tier_2: true,
                 },
                 {
                     // TODO: Double check it was correct to remove this from just tier 0
@@ -189,14 +174,12 @@ export const CLTCard = ({ currentTier }) => {
                     title: 'Descending Colon',
                     tier_0: false,
                     tier_1: true,
-                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Esophagus.svg',
                     title: 'Esophagus',
                     tier_0: false,
                     tier_1: true,
-                    tier_2: true,
                 },
             ],
         },
@@ -208,28 +191,24 @@ export const CLTCard = ({ currentTier }) => {
                     title: 'COLO829 Mixture',
                     tier_0: true,
                     tier_1: false,
-                    tier_2: false,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Cell Line Mixture.svg',
                     title: 'HapMap Mixture',
                     tier_0: true,
                     tier_1: false,
-                    tier_2: false,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Cell Line Mixture.svg',
                     title: 'iPSC & Fibroblast',
                     tier_0: true,
                     tier_1: false,
-                    tier_2: false,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Cell Line Mixture.svg',
                     title: 'Descending Colon',
                     tier_0: false,
                     tier_1: false,
-                    tier_2: false,
                 },
             ],
         },
@@ -241,21 +220,18 @@ export const CLTCard = ({ currentTier }) => {
                     title: 'Buccal Swab',
                     tier_0: false,
                     tier_1: true,
-                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Fibroblast.svg',
                     title: 'Skin Fibroblast',
                     tier_0: false,
                     tier_1: true,
-                    tier_2: true,
                 },
                 {
                     iconSrc: '/static/img/anatomy-icons/Testes or Ovary.svg',
                     title: 'Testis / Ovary',
                     tier_0: false,
                     tier_1: true,
-                    tier_2: true,
                 },
             ],
         },

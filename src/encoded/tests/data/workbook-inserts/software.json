@@ -28,6 +28,20 @@
         "version": "3.1.1"
     },
     {
+        "uuid": "0e6ee3a4-2831-4ee4-b648-f53808282f38",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_SOFTWARE_BWA-MEM_2.0.0",
+        "category": [
+            "Alignment"
+        ],
+        "name": "bwa_mem_v2",
+        "title": "BWA-MEM",
+        "code": "bwamem",
+        "version": "2.0.0"
+    },
+    {
         "uuid": "be085e03-0989-4b44-81af-37efef5aa086",
         "submission_centers": [
             "smaht"
@@ -41,5 +55,21 @@
         "name": "vep",
         "title": "VEP",
         "version": "3.1.1"
+    },
+    {
+        "uuid": "57d0e975-2f7c-4b72-b9b1-e8ecca3824c4",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_SOFTWARE_DORADO",
+        "title": "Dorado",
+        "code": "dorado",
+        "category": ["Basecaller"],
+        "model": "dna_r10.4.1_e8.2_400bps_fast@v4.3.0",
+        "version": "0.1.0",
+        "gpu": "NVIDIA A100",
+        "modification_tags": [
+            "5mCG_5hmCG"
+        ]
     }
 ]

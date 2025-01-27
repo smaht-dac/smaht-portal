@@ -36,9 +36,6 @@
             "$ref": "mixins.json#/file_release"
         },
         {
-            "$ref": "mixins.json#/gene_annotation"
-        },
-        {
             "$ref": "mixins.json#/modified"
         },
         {
@@ -97,8 +94,10 @@
             "description": "Haplotype name for the file (for fasta files).",
             "type": "string",
             "suggested_enum": [
-                "Hap1",
-                "Hap2"
+                "hapX",
+                "hapY",
+                "hapX1",
+                "hapX2"
             ]
         },
         "target_assembly": {

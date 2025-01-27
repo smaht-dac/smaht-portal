@@ -19,17 +19,12 @@ const TierSelector = ({ currentTier, setCurrentTier }) => {
             <button
                 onClick={() => setCurrentTier(0)}
                 className={currentTier === 0 ? 'active' : ''}>
-                <span>Tier 0</span>
+                <span>Benchmarking</span>
             </button>
             <button
                 onClick={() => setCurrentTier(1)}
                 className={currentTier === 1 ? 'active' : ''}>
-                <span>Tier 1</span>
-            </button>
-            <button
-                onClick={() => setCurrentTier(2)}
-                className={currentTier === 2 ? 'active' : ''}>
-                <span>Tier 2</span>
+                <span>Production</span>
             </button>
         </div>
     );
@@ -49,10 +44,6 @@ export const HomepageFigure = ({ currentTier, setCurrentTier }) => {
                 <AssaysCard currentTier={currentTier} />
             </div>
             <div className="homepage-figure-tier-selector">
-                <p className="footnote">
-                    Select a tier below to see which tissues and assays will be
-                    used
-                </p>
                 <TierSelector
                     currentTier={currentTier}
                     setCurrentTier={setCurrentTier}
