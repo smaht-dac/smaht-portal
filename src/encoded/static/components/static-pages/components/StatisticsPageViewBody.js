@@ -1658,7 +1658,10 @@ export function SubmissionsStatsView(props) {
     return (
         <div className="stats-charts-container" key="charts" id="submissions">
 
-            <GroupByDropdown {...groupByProps} groupByTitle="Group Charts Below By" dateRangeTitle="Date" outerClassName="dropdown-container mb-15 sticky-top">
+            <GroupByDropdown {...groupByProps}
+                groupByTitle="Group Charts Below By" dateRangeTitle="Date"
+                singleSelectFilterTooltip="The filter is only effective on the 'Metadata submitted' and 'Data submitted' sections"
+                outerClassName="dropdown-container mb-15 sticky-top">
                 <div className="settings-label d-inline-block me-15">
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
                 </div>

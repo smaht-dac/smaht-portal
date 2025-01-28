@@ -490,7 +490,7 @@ export class GroupByDropdown extends React.PureComponent {
     render(){
         const {
             groupByOptions, currentGroupBy, groupByTitle,
-            singleSelectFilterOptions, currentSingleSelectFilter,
+            singleSelectFilterOptions, currentSingleSelectFilter, singleSelectFilterTooltip,
             dateRangeOptions, currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeTitle,
             dateHistogramIntervalOptions, currentDateHistogramInterval,
             loadingStatus, buttonStyle, outerClassName, children,
@@ -520,9 +520,9 @@ export class GroupByDropdown extends React.PureComponent {
                         <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyle} disabled={groupByOptionItems.length < 2} size="sm">
                             {groupByOptionItems}
                         </DropdownButton>
-                        <div className="d-flex mt-1 single-select-filter">
+                        <div className="d-flex mt-15 single-select-filter">
                             {singleSelectFilterOptions && _.map(_.pairs(singleSelectFilterOptions), ([field, title]) =>
-                                <div className="me-1" key={field}>
+                                <div className="me-1" key={field} data-tip={singleSelectFilterTooltip}>
                                     <input type="radio" id={"single_select_filter_" + field} name="single_select_filter" value={field} checked={field === currentSingleSelectFilter} onChange={(e) => this.onSingleSelectFilterSelect(e.target.value)} />
                                     <label htmlFor={"single_select_filter_" + field}>{title}</label>
                                 </div>

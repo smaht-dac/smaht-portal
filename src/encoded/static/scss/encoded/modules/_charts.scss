@@ -1169,10 +1169,18 @@ $workflow-node-color-type-global-context: #ffb3b3;
                 }
             }
             .single-select-filter {
+                flex-wrap: wrap;
                 font-size: 80%;
                 label {
                     font-weight: 200;
                     margin-left: 5px;
+                }
+                > div {
+                    white-space: nowrap;
+
+                    @media screen and (max-width: 1500px) {
+                        min-width: 40% !important;
+                    }
                 }
             }
         }
