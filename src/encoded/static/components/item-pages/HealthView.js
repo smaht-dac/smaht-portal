@@ -386,7 +386,7 @@ const DatabaseCountsInfo = React.memo(function DatabaseCountsInfo(props) {
         <React.Fragment>
             <h3 className="text-400 mb-2 mt-3">Database Counts</h3>
 
-            <div class="d-grid gap-1">
+            <div className="d-grid gap-1">
                 <button
                     type="button"
                     className="btn btn-outline-dark refresh-counts-button w-100 mt-2"
