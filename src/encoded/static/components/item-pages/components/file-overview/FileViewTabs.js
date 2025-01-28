@@ -71,7 +71,6 @@ const AssociatedFilesTab = (props) => {
 
 // DotRouterTab content for displaying Analysis information for the current file.
 const AnalysisInformationTab = (props) => {
-    console.log('AnalysisInformationTab props', props);
     if (
         props?.context?.file_summary?.file_format === 'vcf' ||
         props?.context?.file_summary?.file_format === 'vcf_gz'

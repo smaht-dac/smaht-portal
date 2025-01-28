@@ -9,8 +9,6 @@ export const VcfAnalysisOverview = ({ context }) => {
         mode = '',
     } = context;
 
-    console.log('context', context);
-
     return (
         <div className="vcf-analysis-overview">
             <div className="data-group">
@@ -46,7 +44,9 @@ export const VcfAnalysisOverview = ({ context }) => {
                                 ? software.map(
                                       ({ title = '', version = '' }, i) => {
                                           return title && version ? (
-                                              <div className="software-group">
+                                              <div
+                                                  className="software-group"
+                                                  key={i}>
                                                   <div className="title">
                                                       <span>{title}</span>
                                                   </div>
