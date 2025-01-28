@@ -1168,6 +1168,13 @@ $workflow-node-color-type-global-context: #ffb3b3;
                     padding-left: 1rem !important;
                 }
             }
+            .single-select-filter {
+                font-size: 80%;
+                label {
+                    font-weight: 200;
+                    margin-left: 5px;
+                }
+            }
         }
 
         #select_charts_date_range {
@@ -1177,6 +1184,9 @@ $workflow-node-color-type-global-context: #ffb3b3;
             min-width: 100%;
         }
         #select_charts_date_histogram_interval {
+            min-width: 90%
+        }
+        #select_charts_group_by {
             min-width: 90%
         }
 
