@@ -386,8 +386,9 @@ const aggregationsToChartData = {
             const agg = interval + "_interval_date_created"/*"_interval_file_status_tracking.uploading"*/;
             const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
+            const groupByField = props.currentGroupBy.split(':')[0];
 
-            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, from_date, to_date, interval);
+            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, groupByField, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(counts, props.cumulativeSum);
         }
@@ -400,8 +401,9 @@ const aggregationsToChartData = {
             const agg = interval + "_interval_date_created"/*"_interval_file_status_tracking.uploading"*/;
             const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
+            const groupByField = props.currentGroupBy.split(':')[0];
 
-            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, from_date, to_date, interval);
+            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, groupByField, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(volumes, props.cumulativeSum);
         }
@@ -414,8 +416,9 @@ const aggregationsToChartData = {
             const agg = interval + "_interval_file_status_tracking.uploaded";
             const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
+            const groupByField = props.currentGroupBy.split(':')[0];
 
-            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, from_date, to_date, interval);
+            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, groupByField, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(counts, props.cumulativeSum);
         }
@@ -428,8 +431,9 @@ const aggregationsToChartData = {
             const agg = interval + "_interval_file_status_tracking.uploaded";
             const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
+            const groupByField = props.currentGroupBy.split(':')[0];
 
-            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, from_date, to_date, interval);
+            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, groupByField, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(volumes, props.cumulativeSum);
         }
@@ -442,8 +446,9 @@ const aggregationsToChartData = {
             const agg = interval + "_interval_file_status_tracking.released";
             const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
+            const groupByField = props.currentGroupBy.split(':')[0];
 
-            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, props.currentGroupBy, from_date, to_date, interval);
+            const counts = commonParsingFxn.bucketTotalFilesCounts(buckets, groupByField, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(counts, props.cumulativeSum);
         }
@@ -456,8 +461,9 @@ const aggregationsToChartData = {
             const agg = interval + "_interval_file_status_tracking.released";
             const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
+            const groupByField = props.currentGroupBy.split(':')[0];
 
-            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, props.currentGroupBy, from_date, to_date, interval);
+            const volumes = commonParsingFxn.bucketTotalFilesVolume(buckets, groupByField, from_date, to_date, interval);
 
             return commonParsingFxn.countsToTotals(volumes, props.cumulativeSum);
         }
