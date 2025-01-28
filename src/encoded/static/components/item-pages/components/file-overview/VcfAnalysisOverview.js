@@ -9,19 +9,17 @@ export const VcfAnalysisOverview = ({ context }) => {
         mode = '',
     } = context;
 
-    mode = 'Single';
+    console.log('context', context);
 
     return (
         <div className="vcf-analysis-overview">
             <div className="data-group">
-                {mode && (
-                    <div className="datum mode">
-                        <span className="datum-title">Mode</span>
-                        <span className="datum-value">
-                            {mode ? mode + ' Sample' : 'N/A'}
-                        </span>
-                    </div>
-                )}
+                <div className="datum mode">
+                    <span className="datum-title">Mode</span>
+                    <span className="datum-value">
+                        {mode ? mode + ' Sample' : 'N/A'}
+                    </span>
+                </div>
                 <div className="datum comparator">
                     <span
                         className="datum-title"
@@ -36,27 +34,31 @@ export const VcfAnalysisOverview = ({ context }) => {
                         <span className="datum-value text-gray">N/A</span>
                     )}
                 </div>
-                <div className="datum software">
-                    <span className="datum-title">Software</span>
-                    <div className="datum-value">
-                        {software.length > 0
-                            ? software.map(
-                                  ({ title = '', version = '' }, i) => {
-                                      return title && version ? (
-                                          <div className="software-group">
-                                              <div className="title">
-                                                  <span>{title}</span>
+                {software.length > 0 && (
+                    <div className="datum software">
+                        <span className="datum-title">Software</span>
+                        <div className="datum-value">
+                            {software.length > 0
+                                ? software.map(
+                                      ({ title = '', version = '' }, i) => {
+                                          return title && version ? (
+                                              <div className="software-group">
+                                                  <div className="title">
+                                                      <span>{title}</span>
+                                                  </div>
+                                                  <div className="version">
+                                                      <span>
+                                                          {'v' + version}
+                                                      </span>
+                                                  </div>
                                               </div>
-                                              <div className="version">
-                                                  <span>v{version}</span>
-                                              </div>
-                                          </div>
-                                      ) : null;
-                                  }
-                              )
-                            : 'N/A'}
+                                          ) : null;
+                                      }
+                                  )
+                                : 'N/A'}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
             {(external_databases.length > 0 ||
                 filtering_methods.length > 0) && (
