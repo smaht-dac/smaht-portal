@@ -1168,6 +1168,34 @@ $workflow-node-color-type-global-context: #ffb3b3;
                     padding-left: 1rem !important;
                 }
             }
+            .single-select-filter {
+                flex-wrap: wrap;
+                font-size: 80%;
+                label {
+                    font-weight: 200;
+                    margin-left: 5px;
+                }
+                > div {
+                    white-space: nowrap;
+
+                    @media screen and (max-width: 1500px) {
+                        min-width: 40% !important;
+                    }
+                }
+            }
+        }
+
+        #select_charts_date_range {
+            @media screen and (min-width: 1500px) {
+                min-width: 80% !important;
+            }
+            min-width: 100%;
+        }
+        #select_charts_date_histogram_interval {
+            min-width: 90%
+        }
+        #select_charts_group_by {
+            min-width: 90%
         }
 
         .btn-primary {
@@ -1175,15 +1203,15 @@ $workflow-node-color-type-global-context: #ffb3b3;
         }
 
         input[type="date"] {
-            width: 150px; 
-            font-size: 0.9rem;
+            width: 140px; 
+            font-size: 90%;
         }
 
         .date-range {
             display: flex !important;
 
             .custom-date-range {
-                margin-left: 15px;
+                font-size: 80%;
 
                 .form-control {
                     margin-right: 12px;
@@ -1206,14 +1234,15 @@ $workflow-node-color-type-global-context: #ffb3b3;
 
             @include media-breakpoint-up(xxl) {
                 .custom-date-range {
-                    margin-left: 45px;
-
                     .form-control {
                         margin-right: 20px;
                     }
                 }
             }
+        }
 
+        .settings-label {
+            font-size: 80%;
         }
     }
 
@@ -1402,9 +1431,7 @@ $workflow-node-color-type-global-context: #ffb3b3;
             }
             .search-headers-column-block {
                 &[data-first-visible-column=true] {
-                    .column-title {
-                        color: #ffffff !important;
-                    }
+                    background-color: $baby-20;
                 }
             }
             .search-result-column-block[data-field="display_title"] {
