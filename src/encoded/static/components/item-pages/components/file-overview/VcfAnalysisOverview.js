@@ -17,7 +17,11 @@ export const VcfAnalysisOverview = ({ context }) => {
                 <div className="datum mode">
                     <span className="datum-title">Mode</span>
                     <span className="datum-value">
-                        {mode ? mode + ' Sample' : 'N/A'}
+                        {mode ? (
+                            <span className="datum-value">{mode}</span>
+                        ) : (
+                            <span className="datum-value text-gray">N/A</span>
+                        )}
                     </span>
                 </div>
                 <div className="datum comparator">
