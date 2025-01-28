@@ -296,7 +296,7 @@ export class GroupByController extends React.PureComponent {
                 _.extend(stateObj, { 'currentGroupBy': initialGroupBy });
             }
         }
-        if (typeof singleSelectFilterOptions[currentSingleSelectFilter] === 'undefined') {
+        if (singleSelectFilterOptions && typeof singleSelectFilterOptions[currentSingleSelectFilter] === 'undefined') {
             if (typeof singleSelectFilterOptions[initialSingleSelectFilter] === 'undefined') {
                 logger.error('Changed props.singleSelectFilterOptions but state.currentSingleSelectFilter and props.initialSingleSelectFilter are now both invalid.');
                 throw new Error('Changed props.singleSelectFilterOptions but state.currentSingleSelectFilter and props.initialSingleSelectFilter are now both invalid.');
