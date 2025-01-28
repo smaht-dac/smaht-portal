@@ -7,6 +7,18 @@ smaht-portal
 Change Log
 ----------
 
+0.129.0
+=======
+`Submissions statistics updates  <https://github.com/smaht-dac/smaht-portal/pull/317>`_
+
+* New GCC-only, TTD-only etc. filtering options for the submission statistics page
+* New hide empty columns setting in the usage statistics page
+* New high contrast setting for the usage statistics page
+* New date histogram interval options for the submission statistics page
+* Change file item type to SubmittedFile for the submission statistics page
+* Refactor cumulative sum calculation
+
+
 0.128.2
 =======
 
