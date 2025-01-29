@@ -1662,7 +1662,7 @@ body[data-path="/statistics"] {
                 display: inline-block;
                 white-space: nowrap;
                 transform-origin: 0 0;
-                transform: rotate(-45deg);
+                transform: rotate(-90deg);
                 width: 20px;
                 font-weight: 600;
                 color: #111;
@@ -1687,6 +1687,20 @@ body[data-path="/statistics"] {
 
     .blocks-container {
         display: flex;
+
+        /* Define CSS classes for different intervals */
+        .bg-color-low {
+            background-color: #ffcccc; /* Light red */
+        }
+
+        .bg-color-medium {
+            background-color: #ff6666; /* Medium red */
+        }
+
+        .bg-color-high {
+            background-color: #cc0000; /* Dark red */
+        }
+
         .stacked-block {
             // @include planned-submitted-cell-styles;
             display: inline-block;
