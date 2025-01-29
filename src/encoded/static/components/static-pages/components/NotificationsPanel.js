@@ -138,7 +138,7 @@ export const NotificationsPanel = () => {
 
     useEffect(() => {
         ajax.load(
-            '/recent_files_summary?format=json&date_property_name=date_created&nmonths=18',
+            '/recent_files_summary?format=json&nmonths=18',
             (resp) => {
                 setData(resp?.items ?? null);
             },
