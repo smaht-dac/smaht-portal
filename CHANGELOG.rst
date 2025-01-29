@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.130.1
+=======
+`PR 325: feat: updates to notifications panel <https://github.com/smaht-dac/smaht-portal/pull/325>`
+
+* Refactor Notifications Panel component
+
+
 0.130.0
 =======
 * 2025-01-25 / dmichaels / branch: dmichaels-20250125-recent-files-summary-fix / PR-??
