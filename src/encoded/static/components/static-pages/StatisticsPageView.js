@@ -99,8 +99,6 @@ export default class StatisticsPageView extends React.PureComponent {
         // GroupByController is on outside here because SubmissionStatsViewController detects if props.currentGroupBy has changed in orded to re-fetch aggs.
         const groupByOptions = {
             'data_generation_summary.submission_centers'    : <span><i className="icon icon-fw fas icon-university me-1" />Submission Center</span>,
-            'data_generation_summary.submission_centers:ttd': <span><i className="icon icon-fw fas icon-university me-1" />Submission Center (TTD-only)</span>,
-            'data_generation_summary.submission_centers:gcc': <span><i className="icon icon-fw fas icon-university me-1" />Submission Center (GCC-only)</span>,
             'dataset'                                       : <span><i className="icon icon-fw fas icon-database me-1" />Sample</span>,
             // 'data_generation_summary.data_type'          : <span><i className="icon icon-fw fas icon-cubes me-1"/>Data Type</span>,
             // 'data_generation_summary.data_category'      : <span><i className="icon icon-fw fas icon-sitemap me-1"/>Data Category</span>,
@@ -111,6 +109,14 @@ export default class StatisticsPageView extends React.PureComponent {
             // 'software.display_title'                     : <span><i className="icon icon-fw fas icon-code me-1"/>Software</span>,
         };
         const initialGroupBy = 'data_generation_summary.submission_centers';
+        
+        const singleSelectFilterOptions = {
+            'all'            : <span>All</span>,
+            'all_without_dac': <span>All (w/o HMS-DAC)</span>,
+            'gcc_only'       : <span>GCC-only</span>,
+            'ttd_only'       : <span>TTD-only</span>
+        }
+        const initialSingleSelectFilter = 'all_without_dac';
 
         const dateRangeOptions = {
             'all'           : <span>All</span>,
@@ -132,8 +138,15 @@ export default class StatisticsPageView extends React.PureComponent {
         }
         const initialDateHistogramInterval = 'weekly';
 
+        const groupByControllerProps = {
+            groupByOptions, initialGroupBy,
+            singleSelectFilterOptions, initialSingleSelectFilter,
+            dateRangeOptions, initialDateRangePreset,
+            dateHistogramIntervalOptions, initialDateHistogramInterval
+        };
+
         return (
-            <dynamicImports.GroupByController {...{ groupByOptions, initialGroupBy, dateRangeOptions, initialDateRangePreset, dateHistogramIntervalOptions, initialDateHistogramInterval }}>
+            <dynamicImports.GroupByController {...groupByControllerProps}>
                 <dynamicImports.SubmissionStatsViewController {..._.pick(this.props, 'session', 'windowWidth')}>
                     <dynamicImports.StatsChartViewAggregator {...{ shouldReaggregate }} aggregationsToChartData={dynamicImports.submissionsAggsToChartData}>
                         <dynamicImports.SubmissionsStatsView />

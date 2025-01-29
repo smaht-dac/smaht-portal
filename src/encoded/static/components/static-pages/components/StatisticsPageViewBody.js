@@ -1023,29 +1023,49 @@ export class UsageStatsViewController extends React.PureComponent {
 export class SubmissionStatsViewController extends React.PureComponent {
 
     static createFileSearchUri(props, dateHistogram, itemType = 'SubmittedFile') {
+        const {
+            currentGroupBy, currentSingleSelectFilter, currentDateHistogramInterval,
+            currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo
+        } = props;
+        
         const params = { 'type': itemType };
-        if (props.currentGroupBy) {
-            const [groupByField, queryKeyword] = props.currentGroupBy.split(':');
-            params.group_by = groupByField;
-            if (queryKeyword && itemType === 'SubmittedFile') {
-                params.q = queryKeyword;
-            }
+        if (currentGroupBy) {
+            params.group_by = currentGroupBy;
         }
-        if (props.currentDateRangePreset) {
-            if (props.currentDateRangePreset !== 'custom')
-                params.date_range = props.currentDateRangePreset;
+        if (currentDateRangePreset) {
+            if (currentDateRangePreset !== 'custom')
+                params.date_range = currentDateRangePreset;
             else
-                params.date_range = `custom|${props.currentDateRangeFrom || ''}|${props.currentDateRangeTo || ''}`;
+                params.date_range = `custom|${currentDateRangeFrom || ''}|${currentDateRangeTo || ''}`;
         }
-        if (props.currentDateHistogramInterval) { params.date_histogram_interval = props.currentDateHistogramInterval; }
+        if (currentDateHistogramInterval) { params.date_histogram_interval = currentDateHistogramInterval; }
         params.date_histogram = Array.isArray(dateHistogram) ? dateHistogram : [dateHistogram];
 
-        let encodedParams = queryString.stringify(params);
+        let notEncodedParams = '&data_generation_summary.submission_centers!=HMS+DAC';
         if (itemType === 'SubmittedFile') {
-            encodedParams += '&data_generation_summary.submission_centers!=HMS+DAC';
+            switch (currentSingleSelectFilter) {
+                case "all":
+                    notEncodedParams = null;
+                    break;
+                case "all_without_dac":
+                    break;
+                case "ttd_only":
+                    params.q = "ttd";
+                    break;
+                case "gcc_only":
+                    params.q = "gcc";
+                    break;
+            }
+        } else {
+            notEncodedParams = null;
         }
 
-        const uri = '/date_histogram_aggregations/?' + encodedParams + '&limit=0&format=json';
+        let strParams = queryString.stringify(params);
+        if (notEncodedParams) {
+            strParams += notEncodedParams;
+        }
+
+        const uri = '/date_histogram_aggregations/?' + strParams + '&limit=0&format=json';
 
         // For local dev/debugging; don't forget to comment out if using.
         //uri = 'https://data.smaht.org' + uri;
@@ -1067,6 +1087,7 @@ export class SubmissionStatsViewController extends React.PureComponent {
         'shouldRefetchAggs' : function(pastProps, nextProps){
             return StatsViewController.defaultProps.shouldRefetchAggs(pastProps, nextProps) || (
                 pastProps.currentGroupBy !== nextProps.currentGroupBy ||
+                pastProps.currentSingleSelectFilter != nextProps.currentSingleSelectFilter ||
                 pastProps.currentDateRangePreset !== nextProps.currentDateRangePreset ||
                 pastProps.currentDateRangeFrom !== nextProps.currentDateRangeFrom ||
                 pastProps.currentDateRangeTo !== nextProps.currentDateRangeTo ||
@@ -1592,6 +1613,7 @@ export function SubmissionsStatsView(props) {
     const {
         loadingStatus, mounted, session, windowWidth,
         currentGroupBy, groupByOptions, handleGroupByChange,
+        currentSingleSelectFilter, singleSelectFilterOptions, handleSingleSelectFilterChange,
         currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeOptions, handleDateRangeChange,
         currentDateHistogramInterval, dateHistogramIntervalOptions, handleDateHistogramIntervalChange,
         // Passed in from StatsChartViewAggregator:
@@ -1606,6 +1628,13 @@ export function SubmissionsStatsView(props) {
     if (loadingStatus === 'failed'){
         return <div className="stats-charts-container" key="charts" id="submissions"><ErrorIcon/></div>;
     }
+
+    // TODO: remove when the final release is ready
+    const userGroups = JWT.getUserGroups() || null;
+    if (userGroups && userGroups.indexOf('admin') === -1) {
+        return <div className="stats-charts-container" key="charts" id="submissions"><ErrorIcon/></div>;
+    }
+
     const [yAxisScale, setYAxisScale] = useState('Pow');
     const [yAxisPower, setYAxisPower] = useState(0.7);
     const handleAxisScaleChange = (scale, power) => { setYAxisScale(scale); setYAxisPower(power); };
@@ -1619,6 +1648,7 @@ export function SubmissionsStatsView(props) {
     const commonChartProps = { 'curveFxn' : smoothEdges ? d3.curveMonotoneX : d3.curveStepAfter, cumulativeSum, xDomain, yAxisScale, yAxisPower };
     const groupByProps = {
         currentGroupBy, groupByOptions, handleGroupByChange,
+        currentSingleSelectFilter, singleSelectFilterOptions, handleSingleSelectFilterChange,
         currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeOptions, handleDateRangeChange,
         currentDateHistogramInterval, dateHistogramIntervalOptions, handleDateHistogramIntervalChange,
         loadingStatus
@@ -1628,7 +1658,10 @@ export function SubmissionsStatsView(props) {
     return (
         <div className="stats-charts-container" key="charts" id="submissions">
 
-            <GroupByDropdown {...groupByProps} groupByTitle="Group Charts Below By" dateRangeTitle="Date" outerClassName="dropdown-container mb-15 sticky-top">
+            <GroupByDropdown {...groupByProps}
+                groupByTitle="Group Charts Below By" dateRangeTitle="Date"
+                singleSelectFilterTooltip="The filter is only effective on the 'Metadata submitted' and 'Data submitted' sections"
+                outerClassName="dropdown-container mb-15 sticky-top">
                 <div className="settings-label d-inline-block me-15">
                     <Checkbox checked={smoothEdges} onChange={onSmoothEdgeToggle}>Smooth Edges</Checkbox>
                 </div>

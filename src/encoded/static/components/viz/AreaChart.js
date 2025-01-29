@@ -280,9 +280,12 @@ export class StatsChartViewAggregator extends React.PureComponent {
  */
 export class GroupByController extends React.PureComponent {
 
-    static getDerivedStateFromProps(props, state){
-        const { groupByOptions, initialGroupBy, dateRangeOptions, initialDateRangePreset, dateHistogramIntervalOptions, initialDateHistogramInterval } = props;
-        const { currentGroupBy, currentDateRangePreset, currentDateHistogramInterval } = state;
+    static getDerivedStateFromProps(props, state) {
+        const { groupByOptions, initialGroupBy,
+            singleSelectFilterOptions, initialSingleSelectFilter,
+            dateRangeOptions, initialDateRangePreset,
+            dateHistogramIntervalOptions, initialDateHistogramInterval } = props;
+        const { currentGroupBy, currentSingleSelectFilter, currentDateRangePreset, currentDateHistogramInterval } = state;
 
         const stateObj = {};
         if (typeof groupByOptions[currentGroupBy] === 'undefined') {
@@ -291,6 +294,14 @@ export class GroupByController extends React.PureComponent {
                 throw new Error('Changed props.groupByOptions but state.currentGroupBy and props.initialGroupBy are now both invalid.');
             } else {
                 _.extend(stateObj, { 'currentGroupBy': initialGroupBy });
+            }
+        }
+        if (singleSelectFilterOptions && typeof singleSelectFilterOptions[currentSingleSelectFilter] === 'undefined') {
+            if (typeof singleSelectFilterOptions[initialSingleSelectFilter] === 'undefined') {
+                logger.error('Changed props.singleSelectFilterOptions but state.currentSingleSelectFilter and props.initialSingleSelectFilter are now both invalid.');
+                throw new Error('Changed props.singleSelectFilterOptions but state.currentSingleSelectFilter and props.initialSingleSelectFilter are now both invalid.');
+            } else {
+                _.extend(stateObj, { 'currentSingleSelectFilter': initialSingleSelectFilter });
             }
         }
         if (dateRangeOptions && typeof dateRangeOptions[currentDateRangePreset] === 'undefined') {
@@ -324,10 +335,12 @@ export class GroupByController extends React.PureComponent {
     constructor(props){
         super(props);
         this.handleGroupByChange = this.handleGroupByChange.bind(this);
+        this.handleSingleSelectFilterChange = this.handleSingleSelectFilterChange.bind(this);
         this.handleDateRangeChange = this.handleDateRangeChange.bind(this);
         this.handleDateHistogramIntervalChange = this.handleDateHistogramIntervalChange.bind(this);
         this.state = {
             'currentGroupBy': props.initialGroupBy,
+            'currentSingleSelectFilter': props.initialSingleSelectFilter,
             'currentDateRangePreset': props.initialDateRangePreset,
             'currentDateRangeFrom': props.initialDateRangeFrom || null,
             'currentDateRangeTo': props.initialDateRangeTo || null,
@@ -341,6 +354,15 @@ export class GroupByController extends React.PureComponent {
                 return null;
             }
             return { 'currentGroupBy' : field };
+        });
+    }
+
+    handleSingleSelectFilterChange(field) {
+        this.setState(function (currState) {
+            if (currState.currentSingleSelectFilter === field) {
+                return null;
+            }
+            return { 'currentSingleSelectFilter': field };
         });
     }
 
@@ -370,12 +392,14 @@ export class GroupByController extends React.PureComponent {
 
     render(){
         const { children } = this.props;
-        const { currentGroupBy, currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, currentDateHistogramInterval } = this.state;
+        const { currentGroupBy, currentSingleSelectFilter, currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, currentDateHistogramInterval } = this.state;
         const childProps = _.extend(
-            _.omit(this.props, 'children', 'initialGroupBy', 'initialDateRangePreset', 'initialDateRangeFrom', 'initialDateRangeTo', 'initialDateHistogramInterval'),
+            _.omit(this.props, 'children', 'initialGroupBy', 'initialSingleSelectFilter', 'initialDateRangePreset', 'initialDateRangeFrom', 'initialDateRangeTo', 'initialDateHistogramInterval'),
             {
                 currentGroupBy,
                 'handleGroupByChange': this.handleGroupByChange,
+                currentSingleSelectFilter,
+                'handleSingleSelectFilterChange': this.handleSingleSelectFilterChange,
                 currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo,
                 'handleDateRangeChange': this.handleDateRangeChange,
                 currentDateHistogramInterval,
@@ -408,6 +432,7 @@ export class GroupByDropdown extends React.PureComponent {
     constructor(props){
         super(props);
         this.onGroupBySelect = _.throttle(this.onGroupBySelect.bind(this), 1000);
+        this.onSingleSelectFilterSelect = this.onSingleSelectFilterSelect.bind(this);
         this.onDateRangeSelect = this.onDateRangeSelect.bind(this);
         this.onDateHistogramIntervalSelect = this.onDateHistogramIntervalSelect.bind(this);
         //used as workaround to fix input type="date" unwanted reset bug
@@ -438,6 +463,14 @@ export class GroupByDropdown extends React.PureComponent {
         handleGroupByChange(eventKey);
     }
 
+    onSingleSelectFilterSelect(eventKey, evt){
+        const { handleSingleSelectFilterChange } = this.props;
+        if (typeof handleSingleSelectFilterChange !== 'function'){
+            throw new Error("No handleSingleSelectFilterChange function passed to SingleSelectFilter.");
+        }
+        handleSingleSelectFilterChange(eventKey);
+    }
+
     onDateRangeSelect(presetField, from, to){
         const { handleDateRangeChange } = this.props;
         if (typeof handleDateRangeChange !== 'function'){
@@ -449,7 +482,7 @@ export class GroupByDropdown extends React.PureComponent {
     onDateHistogramIntervalSelect(eventKey, evt){
         const { handleDateHistogramIntervalChange } = this.props;
         if (typeof handleDateHistogramIntervalChange !== 'function'){
-            throw new Error("No handleDateHistogramIntervalChange function passed to GroupByDropdown.");
+            throw new Error("No handleDateHistogramIntervalChange function passed to DateHistogramInterval.");
         }
         handleDateHistogramIntervalChange(eventKey);
     }
@@ -457,6 +490,7 @@ export class GroupByDropdown extends React.PureComponent {
     render(){
         const {
             groupByOptions, currentGroupBy, groupByTitle,
+            singleSelectFilterOptions, currentSingleSelectFilter, singleSelectFilterTooltip,
             dateRangeOptions, currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeTitle,
             dateHistogramIntervalOptions, currentDateHistogramInterval,
             loadingStatus, buttonStyle, outerClassName, children,
@@ -486,6 +520,14 @@ export class GroupByDropdown extends React.PureComponent {
                         <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyle} disabled={groupByOptionItems.length < 2} size="sm">
                             {groupByOptionItems}
                         </DropdownButton>
+                        <div className="d-flex mt-15 single-select-filter">
+                            {singleSelectFilterOptions && _.map(_.pairs(singleSelectFilterOptions), ([field, title]) =>
+                                <div className="me-1" key={field} data-tip={singleSelectFilterTooltip}>
+                                    <input type="radio" id={"single_select_filter_" + field} name="single_select_filter" value={field} checked={field === currentSingleSelectFilter} onChange={(e) => this.onSingleSelectFilterSelect(e.target.value)} />
+                                    <label htmlFor={"single_select_filter_" + field}>{title}</label>
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <div className="dropdown-container-col col-12 col-lg-3 align-top">
                         <div className="text-500 d-block mb-1">{dateRangeTitle}</div>
