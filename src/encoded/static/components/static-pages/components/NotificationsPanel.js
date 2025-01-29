@@ -78,13 +78,10 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                             }`}></i>
                     </button>
                     <a className="header-link" href={query}>
-                        {releaseItemIndex === 0 ? (
-                            <span>LATEST</span>
-                        ) : (
-                            <span>
-                                {month} {year}
-                            </span>
-                        )}
+                        <span>
+                            {releaseItemIndex === 0 ? 'Latest: ' : ''}
+                            {month} {year}
+                        </span>
                         <span className="count">
                             {count} {count > 1 ? 'Files' : 'File'}
                             <i className="icon icon-arrow-right"></i>
