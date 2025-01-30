@@ -94,6 +94,7 @@
     "react-draggable": "^4.4.4",
     "react-jsx-parser": "^2.0.0",
     "react-redux": "^9.1.2",
+    "react-select": "^5.9.0",
     "react-tooltip": "^4.2.21",
     "react-transition-group": "^4.4.2",
     "redux": "^5.0.1",

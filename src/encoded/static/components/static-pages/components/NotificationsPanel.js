@@ -3,6 +3,16 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 
 const announcements = [
     {
+        type: 'info',
+        title: 'New Features',
+        body: (
+            <span>
+                Explore the <a href="/qc-metrics">Interactive QC Assessment</a>{' '}
+                page for data on the portal.
+            </span>
+        ),
+    },
+    {
         type: 'warning',
         title: 'Attention Users',
         body: 'The V1 Benchmarking data portal will be open to SMaHT consortium members only at this time.',
@@ -35,7 +45,7 @@ const AnnouncementCard = ({ title = '', body = '', type = 'info' }) => {
     return (
         <div className={`announcement-container ${type}`}>
             <h5 className="header">{title}</h5>
-            <p className="body">{body}</p>
+            <div className="body">{body}</div>
         </div>
     );
 };
@@ -68,10 +78,13 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                             }`}></i>
                     </button>
                     <a className="header-link" href={query}>
-                        <span>
-                            {releaseItemIndex === 0 ? 'Latest: ' : ''}
-                            {month} {year}
-                        </span>
+                        {releaseItemIndex === 0 ? (
+                            <span>LATEST</span>
+                        ) : (
+                            <span>
+                                {month} {year}
+                            </span>
+                        )}
                         <span className="count">
                             {count} {count > 1 ? 'Files' : 'File'}
                             <i className="icon icon-arrow-right"></i>
@@ -125,9 +138,8 @@ export const NotificationsPanel = () => {
 
     useEffect(() => {
         ajax.load(
-            '/recent_files_summary?format=json&date_property_name=date_created&nmonths=18',
+            '/recent_files_summary?format=json&nmonths=18',
             (resp) => {
-                console.log('>>> resp', resp);
                 setData(resp?.items ?? null);
             },
             'GET',

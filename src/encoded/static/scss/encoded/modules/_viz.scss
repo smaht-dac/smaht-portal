@@ -918,3 +918,153 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         }
     }
 }
+
+
+
+/** QC Visualization styles */
+
+.qc-metrics-data-table {
+    max-height: 370px;
+    overflow-y: auto; 
+
+    @include media-breakpoint-between(lg, xl) {
+		max-height: 330px;
+	}
+    @include media-breakpoint-between(xl, xxl) {
+		max-height: 400px;
+	}
+	@include media-breakpoint-up(xxl) {
+		max-height: 450px;
+	}
+}
+
+.qc-metrics-data-table {
+    td{
+        white-space: nowrap;
+        font-size: 0.75rem;
+        text-align: left;
+        padding: 0.15rem 0.25rem;
+        line-height: 1.45rem;
+    }
+    th{
+        white-space: nowrap;
+        font-size: 0.75rem;
+        text-align: left;
+        padding: 0.3rem 0.25rem;
+        line-height: 1.45rem;
+        background-color: #f1f9ff !important;
+    }
+    .sort-icon{
+        cursor: pointer;
+        color: #adb5bd;
+    }
+    .sort-icon:hover{
+        color: #343741;
+    }
+    .sort-icon.active{
+        cursor: pointer;
+        color: #343741;
+    }
+}
+
+.qc-metrics-facets-container {
+    background-color: #f1f9ff;
+}
+
+#qc-metrics-tabs .nav-item {
+    display: flex;
+    border-bottom: none;
+}
+
+#qc-metrics-tabs .nav-item .nav-link.active{
+    color: #343741;
+    font-weight: 600;
+    border-top: 4px solid #e99415;
+}
+
+.qc-link {
+	color: #428bca;
+    text-decoration: none;
+	cursor: pointer;
+}
+.qc-link:hover {
+    color: #2a6496;
+    text-decoration: underline;
+}
+
+.boxplot-canvas,
+.scatterplot-canvas {
+    .boxplot-svg,
+    .scatterplot-svg {
+
+        .legend {
+            .legend-item {
+                font-size: 0.75rem;
+            }
+        }
+
+        .data-point:hover {
+            cursor: pointer;
+            fill: black;
+        }
+        .data-point-highlighted {
+            fill: red;
+            stroke: red;
+            z-index: 10000;
+        }
+    }
+}
+
+.plot-group {
+    display: flex;
+    .boxplot-canvas,
+    .scatterplot-canvas {
+        
+        display: flex;
+        flex: 1;
+        .boxplot-svg,
+        .scatterplot-svg {
+
+            .legend {
+                .legend-item {
+                    font-size: 0.75rem;
+                }
+            }
+
+            .data-point:hover {
+                cursor: pointer;
+                fill: black;
+            }
+        }
+    }
+
+    @include media-breakpoint-down(lg) {
+        display: flex;
+        flex-direction: column;
+    }
+}
+.popover-d3-plot {
+    min-width: 350px;
+    .d3-popover-content .restricted-width {
+        max-width: 240px;
+    }
+    .d3-popover-content td, .d3-popover-content th{
+        font-size: 0.75rem;
+        text-align: left;
+        padding: 0.1rem 0.1rem;
+        line-height: 1.25rem;
+    }
+}
+.qc-modal-content .overview{
+    font-size: 0.85rem;
+    text-align: left;
+    padding: 0.1rem 0.1rem;
+    line-height: 1.25rem;
+    .restricted-width {
+        width: 140px;
+    }
+    td {
+        padding: .1rem .3rem;
+        text-align: left;
+    }
+}
