@@ -41,21 +41,36 @@ $facetlist-excluding: #450000;
 	&[data-field="access_status"],
 	&[data-field="annotation_filename"],
 	&[data-field="data_type"],
+	&[data-field="data_category"],
 	&[data-field="file_sets.assay.display_title"],
 	&[data-field="file_sets.sequencing.sequencer.display_title"],
+	&[data-field="file_sets.libraries.assay.display_title"],
 	&[data-field="file_format.display_title"],
 	&[data-field="software.name"],
+	&[data-field="software.display_title"],
+	&[data-field="sample_summary.tissues"],
+	&[data-field="donors"],
 	&[data-field="submission_centers.display_title"] {
+		// embedded search tables
 		> .inner,
 		> span.value {
+			text-align: left !important;
+		}
+		// browse view
+		>.inner>span.value {
 			text-align: left !important;
 		}
 	}
 
 	&[data-field="file_size"],
 	&[data-field="date_created"] {
+		// embedded search tables
 		> .inner,
 		> span.value {
+			text-align: right !important;
+		}
+		// browse view
+		>.inner>span.value {
 			text-align: right !important;
 		}
 	}
@@ -251,6 +266,12 @@ $facetlist-excluding: #450000;
 
 
 /** Btn vertical alignment (probably temporary) **/
+.above-facets-table-row {
+	min-height: 41px; // needs to match $search-results-result-row-height in search-view-table.scss in SPC
+	padding-bottom: 5px; // needs to match $search-results-above-results-row-bottom-padding in search-view-table.scss in SPC
+    margin-top: 7px;
+}
+
 .above-results-table-row {
 	margin-top: 5px;
 
@@ -326,8 +347,11 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 				border-color: $search-header-icon-color;
 			}
 	
-			&[data-first-visible-column] {
-				padding-left: 16px;
+			&[data-first-visible-column]{
+				padding-left: 0px; 
+				&[data-field="@type"] {
+					padding-left: 16px;
+				}
 			}
 	
 			.inner > .column-title {
@@ -658,6 +682,26 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 	}
 
 	.search-results-outer-container {
+		.search-results-container .search-result-row
+		{
+			&.is-draggable > .columns.result-table-row[draggable="true"]:hover {
+				box-shadow: none;
+			}
+
+			&.detail-closed >.columns.result-table-row>.search-result-column-block {
+				
+				&[data-first-visible-column=true]{
+					padding-left: 0px;
+					&[data-field="@type"] {
+						padding-left: 16px !important;
+					}
+				}
+
+				>.inner>.toggle-detail-button-container {
+					display: none;
+				}
+			}
+		}
 
 		.search-headers-row {
 			position: sticky;
@@ -716,4 +760,218 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 			}
 		}
 	}
+}
+
+/**
+* Browse View
+**/
+
+h2.browse-summary-header {
+	font-size: 1.5rem;
+	color: #343741;
+	font-weight: 600;
+}
+
+// Popover used in File column title
+#type-title-popover {
+	min-width: 525px;
+	width: 525px;
+
+	.popover-body > img {
+		width: 500px;
+	}
+
+	@include media-breakpoint-down(sm) {
+		min-width: 375px;
+		width: 375px;
+
+		.popover-body > img {
+			width: 350px;
+		}
+	}
+}
+
+div.browse-body {
+	.search-page-container {
+		.search-view-controls-and-results {
+			.facets-column .facets-container .facets-body .facet-list .search-selection-menu.dropdown > .dropdown-toggle {
+				font-size: .813rem;
+			}
+
+			.results-column .above-results-table-row .search-result-config-panel .column-option .checkbox {
+				border-radius: 4px;
+				&.is-active {
+					background-color: #ebf6ff;
+					border-color: #5f99cf;
+				}
+			}
+		} 
+	
+		.search-results-outer-container .search-results-container .search-result-row.detail-closed > .columns.result-table-row > .search-result-column-block[data-first-visible-column="true"][data-field="@type"],
+		.search-headers-row > .headers-columns-overflow-container > .columns > .search-headers-column-block[data-first-visible-column][data-field="@type"] {
+			padding-left: 5px !important;
+		}
+		.search-headers-row > .headers-columns-overflow-container > .columns > .search-headers-column-block[data-field="annotated_filename"] .filename-popover-color {
+			color: #657B95;
+			&:hover {
+				color: darken(#657B95, 15%);
+			}
+		}
+	}
+	
+
+	@include media-breakpoint-down(lg) {
+		padding-top: 1rem;
+		padding-bottom: 1rem;
+	}
+
+	@include media-breakpoint-between(md,lg) {
+		padding-left: 2.9rem;
+		padding-right: 2.9rem;
+	}
+
+	@include media-breakpoint-down(md) {
+		padding-left: 2rem;
+		padding-right: 2rem;
+	}
+}
+
+div.browse-summary {
+	background-color: #F9FCFF;
+	border: 1px solid #70A3E2;
+	border-radius: 15px;
+	padding: 1.25rem;
+	row-gap: 20px;
+
+	div.browse-summary-stat {
+		height: 62px;
+
+		@media screen and (max-width: 1020px) {
+			padding-left: 30px;
+		}
+
+		&:not(:last-of-type) {
+			padding-right: 30px;
+			border-right: 1px solid #c0dbfb;
+		}
+
+		&:not(:first-of-type) {
+			padding-left: 30px;
+		}
+
+		> div {
+			div.browse-summary-stat-value {
+				line-height: 1.2;
+				font-size: 2rem;
+				font-weight: 600;
+				> span {
+					font-size: 1.5rem;
+				}
+			}
+
+			div.browse-summary-stat-subtitle {
+				color: #657B95;
+				font-weight: 500;
+				font-size: 0.875rem;
+			}
+		}
+	}
+}
+
+h3.browse-links-header,
+div.browse-links {
+	margin-left: 10px;
+	margin-right: 20px;
+}
+
+h3.browse-links-header {
+	font-size: 0.9rem;
+	font-weight: 600;
+	margin-bottom: 20px;
+}
+
+div.browse-links {
+	display: flex;
+	flex-direction: column;
+	gap: 30px;
+	div.browse-link,
+	a.browse-link {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		font-size: 1.125rem;
+		color: #343741;
+		font-weight: 600;
+		>div>span {
+			font-size: 0.7rem;
+			font-weight: 400;
+		}
+	}
+}
+
+div.browse-link-icon {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 45px;
+	height: 45px;
+	border-radius: 22.5px;
+
+	&.browse-summary-stat-icon-smaller {
+		font-size: 1.2em;
+	}
+
+	&[data-icon-type='file'] {
+		background-color: #DDF1FF;
+		border: 1px solid #6DAAD5;
+		> i {
+			color: #0D74BD;
+		}
+	}
+	&[data-icon-type='donor'] {
+		background-color: #FBE8E8;
+		border: 1px solid #CC8B8B;
+		> i {
+			color: #B10808;
+		}
+	}
+	&[data-icon-type='tissue'] {
+		background-color: #D6F7EB;
+		border: 1px solid #5FBD8D;
+		> i {
+			color: #09AE5E;
+		}
+	}
+	&[data-icon-type='assay'] {
+		background-color: #E7E6FF;
+		border: 1px solid #775FBD;
+		> i {
+			color: #6A28AF;
+		}
+	}
+	&[data-icon-type='file-size'] {
+		background-color: #FFEFDB;
+		border: 1px solid #F47F6B;
+		> i {
+			color: #CC5D4A;
+		}
+	}
+}
+
+/** FIX FOR BROWSE VIEW SEARCH TABLE WEIRDNESS **/
+// Overriding SPC _search.scss here because our browse view has more content before the table
+// this override prevents the arrows from behaving super strangely and appearing higher up on the page
+body.scrolled-past-80[data-path^="/browse"] .search-results-outer-container .search-results-container .shadow-border-layer.fixed-position-arrows > .edge-scroll-button > i.icon {
+	position: absolute;
+	margin-top: 0px;
+ 	top: unset;
+}
+body.scrolled-past-top[data-path^="/browse"] .search-results-outer-container .search-results-container .shadow-border-layer > .edge-scroll-button > i.icon {
+	margin-top: 0;
+	top: unset;
+}
+body.scrolled-past-80.scrolled-past-460[data-path^="/browse"] .search-results-outer-container .search-results-container .shadow-border-layer > .edge-scroll-button > i.icon {
+	position: fixed;
+	margin-top: 5px;
+	top: 50%;
 }
