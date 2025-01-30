@@ -7,6 +7,20 @@ smaht-portal
 Change Log
 ----------
 
+0.130.1
+=======
+`PR 325: feat: updates to notifications panel <https://github.com/smaht-dac/smaht-portal/pull/325>`
+
+* Refactor Notifications Panel component
+
+
+0.130.0
+=======
+* 2025-01-25 / dmichaels / branch: dmichaels-20250125-recent-files-summary-fix / PR-??
+* Fix in endpoints/recent_files_summary/recent_files_summary.py/hoist_items_additional_value_up_one_level;
+  was not checking existence first for: del item[additional_value_property_name]
+
+
 0.129.0
 =======
 `Submissions statistics updates  <https://github.com/smaht-dac/smaht-portal/pull/317>`_
