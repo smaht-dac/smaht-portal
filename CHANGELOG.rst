@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.131.1
+=======
+
+* Show archival status of Unaligned Reads on Submission Status page
+
+
 0.131.0
 =======
 `PR 319 SN Reference file columns <https://github.com/smaht-dac/smaht-portal/pull/319>`
