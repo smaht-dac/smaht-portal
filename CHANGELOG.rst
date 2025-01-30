@@ -7,11 +7,17 @@ smaht-portal
 Change Log
 ----------
 
-0.131.0
+0.132.0
 =======
 `PR 323 SN Ontology terms <https://github.com/smaht-dac/smaht-portal/pull/323>`_
 
 * Update properties for OntologyTerm item to be implemented with Tissue `uberon_id`
+
+0.131.0
+=======
+`PR 319 SN Reference file columns <https://github.com/smaht-dac/smaht-portal/pull/319>`
+
+* Remove `height`, `weight`, and `body_mass_index` from Donor, as these properties have been transferred to MedicalHistory;  remove `hardy_scale` from DeathCircumstances, as this property has been transferred to Donor
 
 0.130.1
 =======
