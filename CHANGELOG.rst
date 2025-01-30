@@ -7,12 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.131.0
+0.132.0
 =======
 `PR 308 SN Pathology report <https://github.com/smaht-dac/smaht-portal/pull/308>`
 
 * Add items PathologyReport and HistologyImage
 * Add tests for brain-specific properties
+
+0.131.0
+=======
+`PR 319 SN Reference file columns <https://github.com/smaht-dac/smaht-portal/pull/319>`
+
+* Remove `height`, `weight`, and `body_mass_index` from Donor, as these properties have been transferred to MedicalHistory;  remove `hardy_scale` from DeathCircumstances, as this property has been transferred to Donor
 
 0.130.1
 =======
