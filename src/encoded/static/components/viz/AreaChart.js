@@ -280,9 +280,12 @@ export class StatsChartViewAggregator extends React.PureComponent {
  */
 export class GroupByController extends React.PureComponent {
 
-    static getDerivedStateFromProps(props, state){
-        const { groupByOptions, initialGroupBy, dateRangeOptions, initialDateRangePreset } = props;
-        const { currentGroupBy, currentDateRangePreset } = state;
+    static getDerivedStateFromProps(props, state) {
+        const { groupByOptions, initialGroupBy,
+            singleSelectFilterOptions, initialSingleSelectFilter,
+            dateRangeOptions, initialDateRangePreset,
+            dateHistogramIntervalOptions, initialDateHistogramInterval } = props;
+        const { currentGroupBy, currentSingleSelectFilter, currentDateRangePreset, currentDateHistogramInterval } = state;
 
         const stateObj = {};
         if (typeof groupByOptions[currentGroupBy] === 'undefined') {
@@ -293,12 +296,28 @@ export class GroupByController extends React.PureComponent {
                 _.extend(stateObj, { 'currentGroupBy': initialGroupBy });
             }
         }
+        if (singleSelectFilterOptions && typeof singleSelectFilterOptions[currentSingleSelectFilter] === 'undefined') {
+            if (typeof singleSelectFilterOptions[initialSingleSelectFilter] === 'undefined') {
+                logger.error('Changed props.singleSelectFilterOptions but state.currentSingleSelectFilter and props.initialSingleSelectFilter are now both invalid.');
+                throw new Error('Changed props.singleSelectFilterOptions but state.currentSingleSelectFilter and props.initialSingleSelectFilter are now both invalid.');
+            } else {
+                _.extend(stateObj, { 'currentSingleSelectFilter': initialSingleSelectFilter });
+            }
+        }
         if (dateRangeOptions && typeof dateRangeOptions[currentDateRangePreset] === 'undefined') {
             if (typeof dateRangeOptions[initialDateRangePreset] === 'undefined') {
                 logger.error('Changed props.dateRangeOptions but state.currentDateRangePreset and props.initialDateRangePreset are now both invalid.');
                 throw new Error('Changed props.dateRangeOptions but state.currentDateRangePreset and props.initialDateRangePreset are now both invalid.');
             } else {
                 _.extend(stateObj, { 'currentDateRangePreset': initialDateRangePreset });
+            }
+        }
+        if (dateHistogramIntervalOptions && typeof dateHistogramIntervalOptions[currentDateHistogramInterval] === 'undefined') {
+            if (typeof dateHistogramIntervalOptions[initialDateHistogramInterval] === 'undefined') {
+                logger.error('Changed props.dateHistogramIntervalOptions but state.currentDateHistogramInterval and props.initialDateHistogramInterval are now both invalid.');
+                throw new Error('Changed props.dateHistogramIntervalOptions but state.currentDateHistogramInterval and props.initialDateHistogramInterval are now both invalid.');
+            } else {
+                _.extend(stateObj, { 'currentDateHistogramInterval': initialDateHistogramInterval });
             }
         }
 
@@ -316,12 +335,16 @@ export class GroupByController extends React.PureComponent {
     constructor(props){
         super(props);
         this.handleGroupByChange = this.handleGroupByChange.bind(this);
+        this.handleSingleSelectFilterChange = this.handleSingleSelectFilterChange.bind(this);
         this.handleDateRangeChange = this.handleDateRangeChange.bind(this);
+        this.handleDateHistogramIntervalChange = this.handleDateHistogramIntervalChange.bind(this);
         this.state = {
             'currentGroupBy': props.initialGroupBy,
+            'currentSingleSelectFilter': props.initialSingleSelectFilter,
             'currentDateRangePreset': props.initialDateRangePreset,
             'currentDateRangeFrom': props.initialDateRangeFrom || null,
-            'currentDateRangeTo': props.initialDateRangeTo || null
+            'currentDateRangeTo': props.initialDateRangeTo || null,
+            'currentDateHistogramInterval': props.initialDateHistogramInterval,
         };
     }
 
@@ -331,6 +354,15 @@ export class GroupByController extends React.PureComponent {
                 return null;
             }
             return { 'currentGroupBy' : field };
+        });
+    }
+
+    handleSingleSelectFilterChange(field) {
+        this.setState(function (currState) {
+            if (currState.currentSingleSelectFilter === field) {
+                return null;
+            }
+            return { 'currentSingleSelectFilter': field };
         });
     }
 
@@ -349,16 +381,29 @@ export class GroupByController extends React.PureComponent {
         });
     }
 
+    handleDateHistogramIntervalChange(interval){
+        this.setState(function(currState){
+            if (currState.currentDateHistogramInterval === interval){
+                return null;
+            }
+            return { 'currentDateHistogramInterval' : interval };
+        });
+    }
+
     render(){
         const { children } = this.props;
-        const { currentGroupBy, currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo } = this.state;
+        const { currentGroupBy, currentSingleSelectFilter, currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, currentDateHistogramInterval } = this.state;
         const childProps = _.extend(
-            _.omit(this.props, 'children', 'initialGroupBy', 'initialDateRangePreset', 'initialDateRangeFrom', 'initialDateRangeTo'),
+            _.omit(this.props, 'children', 'initialGroupBy', 'initialSingleSelectFilter', 'initialDateRangePreset', 'initialDateRangeFrom', 'initialDateRangeTo', 'initialDateHistogramInterval'),
             {
                 currentGroupBy,
                 'handleGroupByChange': this.handleGroupByChange,
+                currentSingleSelectFilter,
+                'handleSingleSelectFilterChange': this.handleSingleSelectFilterChange,
                 currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo,
-                'handleDateRangeChange': this.handleDateRangeChange
+                'handleDateRangeChange': this.handleDateRangeChange,
+                currentDateHistogramInterval,
+                'handleDateHistogramIntervalChange': this.handleDateHistogramIntervalChange
             });
 
         if (Array.isArray(children)){
@@ -379,14 +424,17 @@ export class GroupByDropdown extends React.PureComponent {
             'textAlign' : 'left'
         },
         'outerClassName' : "dropdown-container mb-15",
-        'groupById' : "select_primary_charts_group_by",
-        'dateRangeId' : "select_primary_charts_date_range"
+        'groupById' : "select_charts_group_by",
+        'dateRangeId' : "select_charts_date_range",
+        "dateHistogramIntervalId" : "select_charts_date_histogram_interval"
     };
 
     constructor(props){
         super(props);
         this.onGroupBySelect = _.throttle(this.onGroupBySelect.bind(this), 1000);
+        this.onSingleSelectFilterSelect = this.onSingleSelectFilterSelect.bind(this);
         this.onDateRangeSelect = this.onDateRangeSelect.bind(this);
+        this.onDateHistogramIntervalSelect = this.onDateHistogramIntervalSelect.bind(this);
         //used as workaround to fix input type="date" unwanted reset bug
         this.state = {
             'tempDateRangeFrom': '',
@@ -415,6 +463,14 @@ export class GroupByDropdown extends React.PureComponent {
         handleGroupByChange(eventKey);
     }
 
+    onSingleSelectFilterSelect(eventKey, evt){
+        const { handleSingleSelectFilterChange } = this.props;
+        if (typeof handleSingleSelectFilterChange !== 'function'){
+            throw new Error("No handleSingleSelectFilterChange function passed to SingleSelectFilter.");
+        }
+        handleSingleSelectFilterChange(eventKey);
+    }
+
     onDateRangeSelect(presetField, from, to){
         const { handleDateRangeChange } = this.props;
         if (typeof handleDateRangeChange !== 'function'){
@@ -423,12 +479,23 @@ export class GroupByDropdown extends React.PureComponent {
         handleDateRangeChange(presetField, from, to);
     }
 
+    onDateHistogramIntervalSelect(eventKey, evt){
+        const { handleDateHistogramIntervalChange } = this.props;
+        if (typeof handleDateHistogramIntervalChange !== 'function'){
+            throw new Error("No handleDateHistogramIntervalChange function passed to DateHistogramInterval.");
+        }
+        handleDateHistogramIntervalChange(eventKey);
+    }
+
     render(){
         const {
             groupByOptions, currentGroupBy, groupByTitle,
+            singleSelectFilterOptions, currentSingleSelectFilter, singleSelectFilterTooltip,
             dateRangeOptions, currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo, dateRangeTitle,
+            dateHistogramIntervalOptions, currentDateHistogramInterval,
             loadingStatus, buttonStyle, outerClassName, children,
-            groupById, dateRangeId } = this.props;
+            groupById, dateRangeId, dateHistogramIntervalId
+        } = this.props;
         const { tempDateRangeFrom, tempDateRangeTo } = this.state;
         // group by
         const groupByOptionItems = _.map(_.pairs(groupByOptions), ([field, title]) =>
@@ -441,23 +508,36 @@ export class GroupByDropdown extends React.PureComponent {
                 <DropdownItem eventKey={field} key={field} active={field === currentDateRangePreset}>{title}</DropdownItem>
             );
             const selectedDateRangeValueTitle = (loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch" /> : dateRangeOptions[currentDateRangePreset]);
+            // date histogram interval
+            const dateHistogramInvervalOptionItems = _.map(_.pairs(dateHistogramIntervalOptions), ([interval, title]) =>
+                <DropdownItem eventKey={interval} key={interval} active={interval === currentDateHistogramInterval}>{title}</DropdownItem>
+            );
+            const selectedDateHistogramIntervalValueTitle = loadingStatus === 'loading' ? <i className="icon icon-fw icon-spin fas icon-circle-notch" /> : dateHistogramIntervalOptions[currentDateHistogramInterval];
             return (
                 <div className={outerClassName}>
                     <div className="dropdown-container-col col-12 col-lg-3 align-top">
                         <div className="text-500 d-block mb-1">{groupByTitle}</div>
-                        <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyle} disabled={groupByOptionItems.length < 2}>
+                        <DropdownButton id={groupById} title={selectedGroupByValueTitle} onSelect={this.onGroupBySelect} style={buttonStyle} disabled={groupByOptionItems.length < 2} size="sm">
                             {groupByOptionItems}
                         </DropdownButton>
+                        <div className="d-flex mt-15 single-select-filter">
+                            {singleSelectFilterOptions && _.map(_.pairs(singleSelectFilterOptions), ([field, title]) =>
+                                <div className="me-1" key={field} data-tip={singleSelectFilterTooltip}>
+                                    <input type="radio" id={"single_select_filter_" + field} name="single_select_filter" value={field} checked={field === currentSingleSelectFilter} onChange={(e) => this.onSingleSelectFilterSelect(e.target.value)} />
+                                    <label htmlFor={"single_select_filter_" + field}>{title}</label>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                    <div className="dropdown-container-col col-12 col-lg-6 align-top">
+                    <div className="dropdown-container-col col-12 col-lg-3 align-top">
                         <div className="text-500 d-block mb-1">{dateRangeTitle}</div>
-                        <div className="date-range">
-                            {/* <span className="text-300 pt-05">Presets</span> */}
-                            <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={(e) => this.onDateRangeSelect(e, null, null)} style={buttonStyle}>
+                        <div className="date-range flex-column">
+                            <DropdownButton id={dateRangeId} title={selectedDateRangeValueTitle} onSelect={(e) => this.onDateRangeSelect(e, null, null)} 
+                                style={buttonStyle} size="sm" variant="outline-secondary" disabled={dateRangeOptionItems.length < 2}>
                                 {dateRangeOptionItems}
                             </DropdownButton>
-                            <div className="d-flex custom-date-range">
-                                <span className="text-300 pt-05 d-none d-md-inline-block me-05">Custom:</span>
+                            <div className="d-flex custom-date-range mt-05">
+                                {/* <span className="text-300 pt-05 d-none d-md-inline-block me-05">Custom:</span> */}
                                 <input id="submission_data_range_from" type="date"
                                     className="form-control" value={tempDateRangeFrom || ''}
                                     onChange={(e) => { this.setState({ "tempDateRangeFrom": e.target.value }); }}
@@ -469,7 +549,15 @@ export class GroupByDropdown extends React.PureComponent {
                             </div>
                         </div>
                     </div>
-                    <div className="dropdown-container-col col-12 col-lg-3 align-top ps-1">
+                    <div className="dropdown-container-col col-12 col-lg-2 align-top">
+                        <div className="text-500 d-block mb-1">{'Histogram Interval'}</div>
+                        <DropdownButton id={dateHistogramIntervalId} title={selectedDateHistogramIntervalValueTitle}
+                            onSelect={this.onDateHistogramIntervalSelect} disabled={dateHistogramIntervalOptions.length < 2}
+                            style={buttonStyle} size="sm" variant="outline-secondary">
+                            {dateHistogramInvervalOptionItems}
+                        </DropdownButton>
+                    </div>
+                    <div className="dropdown-container-col col-12 col-lg-4 align-top ps-1">
                         <div className="text-500 d-block mb-1">Settings</div>
                         {children}
                     </div>
@@ -506,26 +594,44 @@ export class ColorScaleProvider extends React.PureComponent {
         // Only relevant if --not-- providing own colorScale and letting this component create/re-create one.
         'resetScalesWhenChange' : null,
         'resetScaleLegendWhenChange' : null,
-        'colorScale'            : null
+        'colorScale'            : null,
+        'highContrast'          : false
     };
+
+    static HighContrastColorScheme = [
+        '#E69F00', // Orange
+        '#56B4E9', // Light Blue
+        '#009E73', // Green
+        '#F0E442', // Yellow
+        '#0072B2', // Blue
+        '#D55E00', // Vermillion
+        '#CC79A7', // Reddish Purple
+        '#999999'  // Gray
+    ];
 
     constructor(props){
         super(props);
         this.resetColorScale = this.resetColorScale.bind(this);
         this.updateColorStore = this.updateColorStore.bind(this);
 
-        var colorScale = props.colorScale || d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemePastel1));
+        var colorScale = props.colorScale ||
+            (props.highContrast
+                ? d3.scaleOrdinal(ColorScaleProvider.HighContrastColorScheme)
+                : d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemePastel1)));
         this.state = { colorScale, 'colorScaleStore' : {} };
     }
 
     componentDidUpdate(pastProps){
-        const { resetScalesWhenChange, resetScaleLegendWhenChange } = this.props;
+        const { resetScalesWhenChange, resetScaleLegendWhenChange, highContrast } = this.props;
         if (resetScalesWhenChange !== pastProps.resetScalesWhenChange){
             console.warn("Color scale reset");
             this.resetColorScale();
         } else if (resetScaleLegendWhenChange !== pastProps.resetScaleLegendWhenChange){
             console.warn("Color scale reset (LEGEND ONLY)");
             this.resetColorScale(true);
+        } else if (highContrast !== pastProps.highContrast){
+            console.warn("Color scale reset (HIGH CONTRAST)");
+            this.resetColorScale();
         }
     }
 
@@ -535,14 +641,16 @@ export class ColorScaleProvider extends React.PureComponent {
             return;
         }
 
-        const { colorScale : propColorScale } = this.props;
+        const { colorScale : propColorScale, highContrast } = this.props;
         let colorScale;
         const colorScaleStore = {};
 
         if (typeof propColorScale === 'function'){
             colorScale = propColorScale; // Does nothing.
         } else {
-            colorScale = d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemePastel1));
+            colorScale = highContrast
+                ? d3.scaleOrdinal(ColorScaleProvider.HighContrastColorScheme)
+                : d3.scaleOrdinal(d3.schemeCategory10.concat(d3.schemePastel1));
         }
 
         this.setState({ colorScale, colorScaleStore });
@@ -814,7 +922,7 @@ export class AreaChart extends React.PureComponent {
     constructor(props){
         super(props);
         _.bindAll(this, 'getInnerChartWidth', 'getInnerChartHeight', 'xScale', 'yScale',
-            'commonDrawingSetup', 'drawNewChart', 'updateTooltip', 'removeTooltip', 'updateExistingChart'
+            'commonDrawingSetup', 'drawNewChart', 'updateTooltip', 'removeTooltip', 'updateExistingChart', 'getXAxisGenerator'
         );
 
         this.updateExistingChart = _.debounce(this.updateExistingChart, 500);
@@ -1364,7 +1472,7 @@ export class AreaChartContainer extends React.Component {
 
         if (!hideChartButton) {
         const toggled = AreaChartContainer.isToggled(this.props, 'chart');
-        const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-dark");
+        const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-secondary");
             buttons.push(
                 <button type="button" className={className} onClick={(e) => this.toggleButton(e, 'chart')} data-tip="Toggle chart view" key={id + '_chart'}>
                     <i className="icon icon-fw fas icon-chart-bar" />
@@ -1373,7 +1481,7 @@ export class AreaChartContainer extends React.Component {
         }
         if (!hideTableButton) {
             const toggled = AreaChartContainer.isToggled(this.props, 'table');
-            const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-dark");
+            const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-secondary");
             buttons.push(
                 <button type="button" className={className} onClick={(e) => this.toggleButton(e, 'table')} data-tip="Toggle data table view" key={id + '_table'}>
                     <i className="icon icon-fw fas icon-table" />
@@ -1383,10 +1491,10 @@ export class AreaChartContainer extends React.Component {
         const gridState = layout.responsiveGridState(windowWidth);
         if (['xs', 'sm', 'md'].indexOf(gridState) === -1) {
             const toggled = AreaChartContainer.isToggled(this.props, 'expanded');
-            const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-dark");
+            const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-secondary");
             buttons.push(
                 <button type="button" className={className} onClick={(e) => this.toggleButton(e, 'expanded')} data-tip="Toggle full width" key={id + '_expanded'}>
-                    <i className="icon icon-fw fas icon-search-plus" />
+                    <i className="icon icon-fw fas icon-expand-alt" />
                 </button>
             );
         }

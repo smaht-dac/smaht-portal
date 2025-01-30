@@ -423,28 +423,6 @@ export default class App extends React.PureComponent {
                 // upon login success ( https://github.com/4dn-dcic/shared-portal-components/blob/master/src/components/navigation/components/LoginController.js#L111 )
                 Alerts.queue(NotLoggedInAlert);
             }
-
-            // TODO: Remove this temporary alert in first official launch version in 2024
-            Alerts.queue({
-                title: '',
-                style: 'info',
-                message: (
-                    <>
-                        <div>
-                            <b>New Features:</b> The SMaHT Data Portal, V1
-                            Benchmarking release, now makes benchmarking data
-                            available for download for authenticated consortium
-                            members. Users can continue to obtain the access
-                            keys for metadata submission.
-                        </div>
-                        <div className="mt-1">
-                            <b>Attention Users:</b> The V1 Benchmarking data
-                            portal will be open to SMaHT consortium members only
-                            at this time.
-                        </div>
-                    </>
-                ),
-            });
         });
     }
 
