@@ -7,10 +7,90 @@ smaht-portal
 Change Log
 ----------
 
-0.125.1
+0.131.0
+=======
+`PR 319 SN Reference file columns <https://github.com/smaht-dac/smaht-portal/pull/319>`
+
+* Remove `height`, `weight`, and `body_mass_index` from Donor, as these properties have been transferred to MedicalHistory;  remove `hardy_scale` from DeathCircumstances, as this property has been transferred to Donor
+
+0.130.1
+=======
+`PR 325: feat: updates to notifications panel <https://github.com/smaht-dac/smaht-portal/pull/325>`
+
+* Refactor Notifications Panel component
+
+
+0.130.0
+=======
+* 2025-01-25 / dmichaels / branch: dmichaels-20250125-recent-files-summary-fix / PR-??
+* Fix in endpoints/recent_files_summary/recent_files_summary.py/hoist_items_additional_value_up_one_level;
+  was not checking existence first for: del item[additional_value_property_name]
+
+
+0.129.0
+=======
+`Submissions statistics updates  <https://github.com/smaht-dac/smaht-portal/pull/317>`_
+
+* New GCC-only, TTD-only etc. filtering options for the submission statistics page
+* New hide empty columns setting in the usage statistics page
+* New high contrast setting for the usage statistics page
+* New date histogram interval options for the submission statistics page
+* Change file item type to SubmittedFile for the submission statistics page
+* Refactor cumulative sum calculation
+
+
+0.128.2
 =======
 
-* Show archival status of Unaligned Reads on Submission Status page
+* Add key metrics to QC metrics
+
+
+0.128.1
+=======
+`PR 307: fix: adjust data release date on safari <https://github.com/smaht-dac/smaht-portal/pull/307>`
+
+* Adjust release date to prevent safari "Invalid date" bug
+
+
+0.128.0
+=======
+`PR 322: QC metrics visualization <https://github.com/smaht-dac/smaht-portal/pull/322>`_
+
+* Add QC metrics visualization
+
+
+0.127.1
+=======
+Hotfixes for browse view
+* Remove reference to `reference_genome` from File schema https://github.com/smaht-dac/smaht-portal/pull/320
+* Remove `reference_genome` embed from UnalignedReads/Reference File https://github.com/smaht-dac/smaht-portal/pull/321
+
+
+0.127.0
+=======
+`PR 305: BM Browse View <https://github.com/smaht-dac/smaht-portal/pull/305>`_
+
+* Implements UI of browse view + generalization of benchmarking layout
+* Rework navbar to include new structure
+* Adjustments to home page to include only two tiers
+* Slight schema edits for facets and columns
+* Update to SPC version 0.1.92
+
+
+0.126.1
+=======
+`PR 313 SN Reference file columns <https://github.com/smaht-dac/smaht-portal/pull/313>`_
+
+* Add `title` and `version` to columns for ReferenceFile
+* Minor fix: remove Basecalling from the automated spreadsheet script
+
+
+0.126.0
+=======
+`PR246: feat: homepage updates <https://github.com/smaht-dac/smaht-portal/pull/246>`_
+
+* Implement new announcements panel on homepage
+* Resize homepage layout for larger screens
 
 
 0.125.0
@@ -24,21 +104,28 @@ Change Log
 * New endpoint /recent_files_summary which, by default, returns info for files released
   within the past three months grouped by release-date, cell-line or donor, and 
   file-description. The specific fields used for these groupings are:
+  
   - release-date: file_status_tracking.released
   - cell-line: file_sets.libraries.analytes.samples.sample_sources.cell_line.code
   - donor: donors.display_title
   - file-dsecription: release_tracker_description
+  
   Note that release_tracker_description is a newer (2024-12) calcprop (PR-298/sn_file_release_tracker);
   and included in this branch are these files from the branch sn_file_release_tracker:
+  
   - src/encoded/item_utils/file.py
   - src/encoded/types/file.py
+  
   Added these new modules to support this new endpoint:
+  
   - src/encoded/endpoints/recent_files_summary/recent_files_summary.py
   - src/encoded/endpoints/recent_files_summary/recent_files_summary_fields.py
   - src/encoded/endpoints/recent_files_summary/recent_files_summary_troubleshooting.py (functionally unnecessary)
   - src/encoded/endpoints/elasticsearch_utils.py (maybe move to dcicutils eventually)
   - src/encoded/endpoints/endpoint_utils.py (maybe move to dcicutils eventually)
+  
   This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1192
+  
   - FYI commit before recent (2025-01-13) change for additional tissue info: bf7ed2bcb9df387721fd329e36e8c15b97a43681
 
 
@@ -51,7 +138,7 @@ Change Log
 
 0.124.1
 =======
-`PR BM Register Text Fix <https://github.com/smaht-dac/smaht-portal/pull/297>`_
+`PR 297: BM Register Text Fix <https://github.com/smaht-dac/smaht-portal/pull/297>`_
 
 * Update text in UserRegistrationModal to not refer to 2023 data release
 

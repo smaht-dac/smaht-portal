@@ -68,12 +68,6 @@
             "minimum": 0,
             "maximum": 89
         },
-        "body_mass_index": {
-            "title": "Body Mass Index",
-            "description": "Body mass index of the donor (m/kg^2)",
-            "type": "number",
-            "minimum": 0
-        },
         "eligibility": {
             "title": "Eligibility",
             "description": "Whether donor was deemed eligible for the study",
@@ -91,12 +85,6 @@
             "minimum": 0,
             "maximum": 4
         },
-        "height": {
-            "title": "Height",
-            "description": "Height of the donor (meters)",
-            "type": "number",
-            "minimum": 0
-        },
         "sex": {
             "title": "Sex",
             "description": "Sex of the donor",
@@ -106,12 +94,6 @@
                 "Female",
                 "Unknown"
             ]
-        },
-        "weight": {
-            "title": "Weight",
-            "description": "Weight of the donor (kg)",
-            "type": "number",
-            "minimum": 0
         },
         "tpc_submitted": {
             "title": "TPC Submitted",
