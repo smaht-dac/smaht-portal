@@ -2734,7 +2734,7 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 						overflow: hidden;
 	
 						.benchmarking-nav-section {
-							animation: widthSet 100ms ease-in;
+							animation: widthSet 100ms ease-in; // defined in _layout.scss
 						}
 					}
 				}
@@ -2754,20 +2754,6 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 			}
 		}
 	}
-
-// Prevents text-wrap in side nav section content during reveal
-@keyframes widthSet {
-	0% {
-		opacity: 0;
-		width: 300px;
-	}
-	80% {
-		width: 100%;
-	}
-	100% {
-		opacity: 1;
-	}
-}
 
 	.search-result-row.detail-closed >.columns.result-table-row>.search-result-column-block {
 		&[data-first-visible-column=true] {
