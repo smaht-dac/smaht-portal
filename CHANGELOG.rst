@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.131.2
+=======
+`PR 329 SN Add Kinnex enums <https://github.com/smaht-dac/smaht-portal/pull/329>`
+
+* Add enums to `data_category` and `data_type` in File schema for Kinnex file types
+
+
 0.131.1
 =======
 
