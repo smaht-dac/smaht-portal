@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.132.2
+=======
+`PR 332 feat: add animation to sidebar <https://github.com/smaht-dac/smaht-portal/pull/332>`
+
+* Add animation to sliding sidebar
+
+
 0.132.1
 =======
 `PR 328 fix: update broken link in error page <https://github.com/smaht-dac/smaht-portal/pull/328>`
