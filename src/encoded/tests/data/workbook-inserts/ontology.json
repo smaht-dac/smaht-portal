@@ -1,0 +1,18 @@
+[
+    {
+        "uuid": "812db02f-1817-46c8-b10b-181b115814ea",
+        "identifier": "UBERON",
+        "title": "Uberon",
+        "consortia": [
+            "smaht"
+        ]
+    },
+    {
+        "uuid": "b2914abe-1b3e-40bd-ab90-811067d530f6",
+        "identifier": "CHEBI",
+        "title": "Chemical Entities of Biological Interest",
+        "consortia": [
+            "smaht"
+        ]
+    }
+]
