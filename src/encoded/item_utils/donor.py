@@ -55,12 +55,12 @@ def get_study(properties: Dict[str, Any]) -> str:
 
 
 def is_benchmarking(properties: Dict[str, Any]) -> bool:
-    """Check if tissue is from benchmarking study."""
+    """Check if donor is from benchmarking study."""
     external_id = item.get_external_id(properties)
     return BENCHMARKING_DONOR_REGEX.match(external_id) is not None
 
 
 def is_production(properties: Dict[str, Any]) -> bool:
-    """Check if tissue is from production study."""
+    """Check if donor is from production study."""
     external_id = item.get_external_id(properties)
     return PRODUCTION_DONOR_REGEX.match(external_id) is not None

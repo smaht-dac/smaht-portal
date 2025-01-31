@@ -21,11 +21,6 @@ def get_donor(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
     return properties.get("donor", "")
 
 
-def get_uberon_id(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-    """Get uberon_id associated with tissue."""
-    return properties.get("uberon_id", "")
-
-
 def get_location(properties: Dict[str, Any]) -> str:
     """Get location of tissue."""
     return properties.get("anatomical_location", "")
