@@ -1,8 +1,15 @@
+import functools
 import re
 from typing import Any, Dict, Union
 
 from . import constants, donor, item
 
+from ..item_utils import item as item_utils
+
+from .utils import (
+    get_property_value_from_identifier,
+    RequestHandler,
+)
 
 def is_tissue(properties: Dict[str, Any]) -> bool:
     """Check if sample source is tissue."""
@@ -17,6 +24,11 @@ def get_donor(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
 def get_location(properties: Dict[str, Any]) -> str:
     """Get location of tissue."""
     return properties.get("anatomical_location", "")
+
+
+def get_uberon_id(properties: Dict[str, Any]) -> str:
+    """Get uberon id associated with tissue"""
+    return properties.get("uberon_id","")
 
 
 def get_study(properties: Dict[str, Any]) -> str:

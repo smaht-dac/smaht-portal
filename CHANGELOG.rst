@@ -7,11 +7,24 @@ smaht-portal
 Change Log
 ----------
 
-0.131.2
-=======
 `PR 330 chore: update PI information for UW <https://github.com/smaht-dac/smaht-portal/pull/330>`
 
 * Update PI information in awardees page
+=======
+0.132.1
+=======
+`PR 328 fix: update broken link in error page <https://github.com/smaht-dac/smaht-portal/pull/328>`
+
+* Correct broken link to account creation doc
+
+
+=======
+0.132.0
+=======
+`PR 323 SN Ontology terms <https://github.com/smaht-dac/smaht-portal/pull/323>`_
+
+* Update properties for OntologyTerm item to be implemented with Tissue `uberon_id`
+* Add parent item Ontology
 
 
 0.131.1
