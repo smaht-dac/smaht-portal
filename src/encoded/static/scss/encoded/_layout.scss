@@ -319,7 +319,7 @@ Layout
 			.sliding-sidebar-nav {
 				width: 100%;
 				position: relative;
-				padding: 25px 0px 0px 0px;
+				padding: 25px 20px 0px 0px;
 
 				.toggle-button {
 					position: absolute;
@@ -356,6 +356,18 @@ Layout
 				max-width: 275px;
 				border-right: 1px solid #dee2e6;
 				transition: width 100ms ease-in-out;
+
+				.sidebar-nav-body {
+					overflow: hidden;
+
+					.browse-links-header {
+						animation: widthSet 100ms ease-in;
+					}
+
+					.browse-link {
+						animation: widthSet 100ms ease-in;
+					}
+				}
 			}
 			.sliding-sidebar-layout-container {
 				width: 80%;
@@ -379,6 +391,20 @@ Layout
 				}
 			}
 		}
+	}
+}
+
+// Prevents text-wrap in side nav section content during reveal
+@keyframes widthSet {
+	0% {
+		opacity: 0;
+		width: 300px;
+	}
+	80% {
+		width: 100%;
+	}
+	100% {
+		opacity: 1;
 	}
 }
 
