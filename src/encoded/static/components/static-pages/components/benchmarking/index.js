@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { BenchmarkingLayout, HashBasedTabController } from './BenchmarkingUI';
 import { BenchmarkingDataMap } from './BenchmarkingDataMap';
 import { BenchmarkingUINav } from './BenchmarkingNav';
+import SlidingSidebarLayout from '../../../shared/SlidingSidebarLayout';
 
 /**
  * In order to be used in static sections, the following componentes MUST be imported
@@ -15,18 +16,10 @@ export const BenchmarkingUI = (props) => {
 
     // Note: each child needs to be passed schemas, session, facets, href, and context
     return (
-        <div
-            className={
-                'benchmarking-ui-container row' +
-                (showNav ? ' show-nav' : ' collapse-nav')
-            }>
-            <div className="benchmarking-nav-container col-12 col-xl-2">
-                <BenchmarkingUINav {...{ showNav, setShowNav, href }} />
-            </div>
-            <div className="benchmarking-layout-container col-12 col-xl-10">
-                {children}
-            </div>
-        </div>
+        <SlidingSidebarLayout>
+            <BenchmarkingUINav {...{ showNav, setShowNav, href }} />
+            <>{children}</>
+        </SlidingSidebarLayout>
     );
 };
 

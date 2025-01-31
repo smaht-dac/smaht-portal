@@ -355,6 +355,7 @@ def _build_file_embedded_list() -> List[str]:
         # Sample summary + Link calcprops
         "file_sets.libraries.analytes.molecule",
         "file_sets.libraries.analytes.samples.sample_sources.code",
+        "file_sets.libraries.analytes.samples.sample_sources.uberon_id"
         "file_sets.libraries.analytes.samples.sample_sources.description",
         "file_sets.libraries.analytes.samples.sample_sources.donor",
         "file_sets.libraries.analytes.samples.sample_sources.cell_line.code",
@@ -374,6 +375,14 @@ def _build_file_embedded_list() -> List[str]:
         "software.code",
         "software.title",
         "software.version",
+
+        # For browse search columns
+        "donors.display_title",
+        "sample_summary.tissues",
+
+        # For facets
+        "donors.age",
+        "donors.sex"
     ]
 
 

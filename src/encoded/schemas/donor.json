@@ -69,12 +69,6 @@
             "minimum": 0,
             "maximum": 89
         },
-        "body_mass_index": {
-            "title": "Body Mass Index",
-            "description": "Body mass index of the donor (m/kg^2)",
-            "type": "number",
-            "minimum": 0
-        },
         "eligibility": {
             "title": "Eligibility",
             "description": "Whether donor was deemed eligible for the study",
@@ -85,11 +79,12 @@
                 "Unknown"
             ]
         },
-        "height": {
-            "title": "Height",
-            "description": "Height of the donor (meters)",
-            "type": "number",
-            "minimum": 0
+        "hardy_scale": {
+            "title": "Hardy Scale",
+            "description": "Death classification based on the 4-point Hardy Scale",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4
         },
         "sex": {
             "title": "Sex",
@@ -100,12 +95,6 @@
                 "Female",
                 "Unknown"
             ]
-        },
-        "weight": {
-            "title": "Weight",
-            "description": "Weight of the donor (kg)",
-            "type": "number",
-            "minimum": 0
         },
         "tpc_submitted": {
             "title": "TPC Submitted",

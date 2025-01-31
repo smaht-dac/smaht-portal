@@ -13,6 +13,8 @@ UPLOADED = "uploaded"
 RELEASED = "released"
 PUBLIC = "public"
 UPLOADING = "uploading"
+ARCHIVED = "archived"
+DELTED = "deleted"
 RESTRICTED = "restricted"
 STATUS = "status"
 O2_PATH = "o2_path"
@@ -24,6 +26,7 @@ QUALITY_METRICS = "quality_metrics"
 UUID = "uuid"
 ACCESSION = "accession"
 OVERALL_QUALITY_STATUS = "overall_quality_status"
+UNALIGNED_READS = "UnalignedReads"
 
 WASHU_GCC = "WASHU GCC"
 BCM_GCC = "BCM GCC"
@@ -107,23 +110,25 @@ def get_file_group_qc(context, request):
             # are controlled by the number of filesets we load.
             qms_to_get = []
             for f in output_file_qc_infos:
-                for qm in f.get("quality_metrics",[]):
+                for qm in f.get("quality_metrics", []):
                     qms_to_get.append(qm[UUID])
 
             for f in submitted_file_qc_infos:
                 if total_submitted_files_qms >= MAX_QUALITY_METRICS_ITEMS:
                     break
-                for qm in f.get("quality_metrics",[]):
+                for qm in f.get("quality_metrics", []):
                     qms_to_get.append(qm[UUID])
                 total_submitted_files_qms += 1
 
             # Get all QualityMetrics items at once via search (for the fileset)
-            qm_search_params=[("type", "QualityMetric")]
-            qm_search_params=[("limit", 2*MAX_QUALITY_METRICS_ITEMS)]
+            qm_search_params = [("type", "QualityMetric")]
+            qm_search_params = [("limit", 2 * MAX_QUALITY_METRICS_ITEMS)]
             for uuid in qms_to_get:
                 qm_search_params.append(("uuid", uuid))
             subreq = make_search_subreq(
-                request, f"/search?{urlencode(qm_search_params, True)}", inherit_user=True
+                request,
+                f"/search?{urlencode(qm_search_params, True)}",
+                inherit_user=True,
             )
             qm_search_res = search(context, subreq)["@graph"]
 
@@ -131,10 +136,10 @@ def get_file_group_qc(context, request):
             quality_metrics_items = {}
             for qm in qm_search_res:
                 quality_metrics_items[qm[UUID]] = qm
-        
+
             for f in submitted_file_qc_infos + output_file_qc_infos:
-                for qm in f.get("quality_metrics",[]):
-                    if qm[UUID] not in quality_metrics_items: 
+                for qm in f.get("quality_metrics", []):
+                    if qm[UUID] not in quality_metrics_items:
                         # This will only happen if there were too many submitted files
                         continue
                     files_with_qcs.append(
@@ -182,7 +187,9 @@ def get_submission_status(context, request):
         # Generate search
         search_params = {}
         search_params["type"] = FILESET
-        search_params["limit"] = min(post_params.get("limit", MAX_FILESETS), MAX_FILESETS)
+        search_params["limit"] = min(
+            post_params.get("limit", MAX_FILESETS), MAX_FILESETS
+        )
         search_params["from"] = post_params["from"]
         search_params["sort"] = f"-date_created"
         add_submission_status_search_filters(search_params, filter, fileSetSearchId)
@@ -367,6 +374,7 @@ def get_submitted_files_info(files_metadata):
 
     # Make it unique
     file_formats = list(set(file_formats))
+    file_formats.sort()
 
     date_uploaded = None
     if is_upload_complete and len(submitted_files) > 0:
@@ -383,13 +391,28 @@ def get_submitted_files_info(files_metadata):
                     else date_uploaded
                 )
 
+    # Submitted reads are a subset of all submitted files
+    unaligned_reads = list(
+        filter(lambda f: UNALIGNED_READS in f["@type"], files_metadata)
+    )
+    overall_status_unaligned_reads = ""
+    unaligned_reads_statuses = [f[STATUS] for f in unaligned_reads]
+    unaligned_reads_statuses = list(set(unaligned_reads_statuses))
+    if len(unaligned_reads_statuses) == 1 and unaligned_reads_statuses[0] in [
+        ARCHIVED,
+        DELTED,
+    ]:
+        overall_status_unaligned_reads = unaligned_reads_statuses[0]
+
     return {
         "is_upload_complete": is_upload_complete,
         "num_submitted_files": len(submitted_files),
         "num_fileset_files": len(files_metadata),
+        "num_unaligned_reads_files": len(unaligned_reads),
         "date_uploaded": date_uploaded,
         "file_formats": ", ".join(file_formats),
         "qc_infos": submitted_files_qc,
+        "overall_status_unaligned_reads": overall_status_unaligned_reads,
     }
 
 
@@ -412,24 +435,25 @@ def get_qc_result(file, is_output_file):
         ]
     return qc_result
 
+
 def get_all_alignments_mwfrs(context, request, filesets_from_search):
     mwfrs = {}
     uuids_to_get = []
     for fs in filesets_from_search:
-            mwfrs_fs = fs.get("meta_workflow_runs", [])
-            for mwfr in mwfrs_fs:
-                final_status = mwfr.get("final_status")
-                mwf_categories = mwfr.get("meta_workflow", {}).get("category", [])
-                if final_status != "completed" or "Alignment" not in mwf_categories:
-                    continue
-                uuids_to_get.append(mwfr[UUID])
+        mwfrs_fs = fs.get("meta_workflow_runs", [])
+        for mwfr in mwfrs_fs:
+            final_status = mwfr.get("final_status")
+            mwf_categories = mwfr.get("meta_workflow", {}).get("category", [])
+            if final_status != "completed" or "Alignment" not in mwf_categories:
+                continue
+            uuids_to_get.append(mwfr[UUID])
 
     if not uuids_to_get:
         return mwfrs
 
     # Get all MetaWorkflowRun items at once via search
-    search_params=[("type", "MetaWorkflowRun")]
-    search_params=[("limit", 2*MAX_FILESETS)]
+    search_params = [("type", "MetaWorkflowRun")]
+    search_params = [("limit", 2 * MAX_FILESETS)]
     for uuid in uuids_to_get:
         search_params.append(("uuid", uuid))
     subreq = make_search_subreq(
@@ -441,7 +465,6 @@ def get_all_alignments_mwfrs(context, request, filesets_from_search):
         mwfrs[r[UUID]] = r
 
     return mwfrs
-
 
 
 def search_total(context, request, search_params):
