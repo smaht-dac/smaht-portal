@@ -25,14 +25,14 @@ export default class ErrorPage extends React.PureComponent {
                         Please note: our authentication system will
                         automatically attempt to log you in through your
                         selected provider if you are already logged in there. If
-                        you have an account with 4DN, please make sure that you
-                        are logged in to the provider (e.g. google) with the
+                        you have an account with SMaHT, please make sure that
+                        you are logged in to the provider (e.g. google) with the
                         matching email address.
                     </h5>
-                    <h5>Access is restricted to 4DN consortium members.</h5>
+                    <h5>Access is restricted to SMaHT consortium members.</h5>
                     <h5>
                         <a
-                            href="mailto:4DN.DCIC.support@hms-dbmi.atlassian.net"
+                            href="mailto:smhelp@hms-dbmi.atlassian.net"
                             className="link-underline-hover">
                             Request an account.
                         </a>
