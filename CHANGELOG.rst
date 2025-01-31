@@ -7,9 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.131.2
+=======
 `PR 330 chore: update PI information for UW <https://github.com/smaht-dac/smaht-portal/pull/330>`
 
 * Update PI information in awardees page
+
+
 =======
 0.132.1
 =======
