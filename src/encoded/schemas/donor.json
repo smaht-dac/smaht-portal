@@ -130,6 +130,9 @@
         }
     },
     "columns": {
+        "submitted_id": {
+            "title": "Submitted ID"
+        },
         "sex": {
             "title": "Sex"
         },

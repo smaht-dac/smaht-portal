@@ -14,6 +14,11 @@ def get_donor(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
     return properties.get("donor", "")
 
 
+def get_uberon_id(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
+    """Get uberon_id associated with tissue."""
+    return properties.get("uberon_id", "")
+
+
 def get_location(properties: Dict[str, Any]) -> str:
     """Get location of tissue."""
     return properties.get("anatomical_location", "")
@@ -83,6 +88,11 @@ def get_donor_kit_id_from_external_id(external_id: str) -> str:
     if BENCHMARKING_TISSUE_REGEX.match(external_id):
         return external_id.split("-")[0].strip(constants.BENCHMARKING_PREFIX)
     return ""
+
+
+def get_donor_id_from_external_id(external_id: str) -> str:
+    """Get donor ID from external ID."""
+    return external_id.split("-")[0]
 
 
 def get_protocol_id(properties: Dict[str, Any]) -> str:
