@@ -7,9 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.132.1
+=======
 `PR 328 fix: update broken link in error page <https://github.com/smaht-dac/smaht-portal/pull/328>`
 
 * Correct broken link to account creation doc
+
+
 =======
 0.132.0
 =======
