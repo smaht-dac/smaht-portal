@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.132.2
+=======
+`PR 334 feat: tooltip for sample information definitions <https://github.com/smaht-dac/smaht-portal/pull/334>`
+
+* Correct broken link to account creation doc
+
+
 0.132.1
 =======
 `PR 328 fix: update broken link in error page <https://github.com/smaht-dac/smaht-portal/pull/328>`
