@@ -143,7 +143,7 @@ export class BrowseViewBody extends React.PureComponent {
         return (
             <div className="search-page-outer-container" id="content">
                 <SlidingSidebarLayout openByDefault={false}>
-                    <div>
+                    <div className="sidebar-nav-body">
                         <h3 className="browse-links-header">
                             Browse Production Data By
                         </h3>
