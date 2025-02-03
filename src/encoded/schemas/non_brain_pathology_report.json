@@ -1,7 +1,7 @@
 {
-    "title": "Brain Pathology Report",
-    "description": "A pathology report for a tissue sample",
-    "$id": "/profiles/brain_pathology_report.json",
+    "title": "Non-Brain Pathology Report",
+    "description": "A pathology report for a non-brain tissue sample",
+    "$id": "/profiles/non_brain_pathology_report.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
@@ -50,33 +50,26 @@
         },
         {
             "$ref": "mixins.json#/version"
+        },
+        {
+            "$ref": "pathology_report.json#/properties"
         }
     ],
     "properties": {
         "accession": {
-            "accessionType": "PR"
+            "accessionType": "NP"
         },
         "schema_version": {
             "default": "1"
         },
         "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_PATHOLOGY-REPORT_[A-Z0-9-_.]{4,}$"
-        },
-        "additional_notes": {
-            "title": "Additional Notes",
-            "description": "Additional notes or other findings related to the sample",
-            "type": "string"
+            "pattern": "^[A-Z0-9]{3,}_NON-BRAIN-PATHOLOGY-REPORT_[A-Z0-9-_.]{4,}$"
         },
         "anatomical_sample_location": {
             "title": "Anatomical Sample Location",
             "description": "Anatomical location from which the sample was taken",
             "type": "string",
             "enum": [
-                "Cerebellum Left Hemisphere",
-                "Frontal Lobe Left Hemisphere",
-                "Hippocampus Left Hemisphere",
-                "Hippocampus Right Hemisphere",
-                "Temporal Lobe Left Hemisphere",
                 "Left Adrenal",
                 "Right Adrenal",
                 "Skin Calf",
@@ -85,24 +78,6 @@
                 "Right Ovary",
                 "Left Testis",
                 "Right Testis"
-            ]
-        },
-        "final_review_determination": {
-            "title": "Final Review Determination",
-            "description": "Whether a final review determination was made for the sample",
-            "type": "string",
-            "enum": [
-                "Yes",
-                "No"
-            ]
-        },
-        "is_indeterminate": {
-            "title": "Is Indeterminate",
-            "description": "Whether the tissue sample is indeterminate",
-            "type": "string",
-            "enum": [
-                "Yes",
-                "No"
             ]
         },
         "non_target_tissues": {
@@ -156,15 +131,6 @@
                 }
             }
         },
-        "outcome": {
-            "title": "Outcome",
-            "description": "Outcome of the pathology report",
-            "type": "string",
-            "enum": [
-                "Acceptable",
-                "Unacceptable"
-            ]
-        },
         "pathologic_findings": {
             "title": "Pathologic Findings",
             "type": "array",
@@ -184,16 +150,8 @@
                             "Inflammation",
                             "Metaplasia",
                             "Neoplasia/Tumor/Carcinoma",
-                            "Other",
-                            "Artifacts",
-                            "Developmental Neuropathology",
-                            "Infectious Neuropathology",
-                            "Inflammatory Neuropathology",
-                            "Metabolic Neuropathology",
-                            "Neoplastic Neuropathology",
-                            "Neurodegenerative Neuropathology",
-                            "Traumatic Brain Injury Neuropathology",
-                            "Vascular Neuropathology"
+                            "Necrosis",
+                            "Other"
                         ]
                     },
                     "finding_present": {
@@ -224,19 +182,11 @@
                 }
             }
         },
-        "tissue_autolysis_score": {
-            "title": "Overall Tissue Autolysis Score",
-            "description": "Overall tissue autolysis score of the sample. 0=None, 1=mild , 2=moderate, 3=severe",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 3
-        },
         "tissue_name": {
             "title": "Tissue Name",
             "description": "Name of the type of tissue the sample was taken from",
             "type": "string",
             "enum": [
-                "Brain",
                 "Adrenal",
                 "Aorta",
                 "Ascending Colon",
@@ -268,7 +218,6 @@
                         "description": "Subtype of target tissue in sample",
                         "type": "string",
                         "enum": [
-                            "Brain",
                             "Cortex",
                             "Dermis",
                             "Endocardium",
@@ -317,20 +266,6 @@
                         "maximum": 3
                     }
                 }
-            }
-        },
-        "unacceptable_description": {
-            "title": "Unacceptable Description",
-            "description": "Description of unacceptable review determination",
-            "type": "string"
-        },
-        "tissue_samples": {
-            "title": "Tissue Samples",
-            "description": "Link to associated tissue samples",
-            "type": "array",
-            "items": {
-                "type": "string",
-                "linkTo": "TissueSample"
             }
         }
     }

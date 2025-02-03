@@ -34,6 +34,8 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
         "tissue",
         "tissue_sample",
         "pathology_report",
+        "brain_pathology_report",
+        "non_brain_pathology_report",
         "histology_image",
         "cell_line",
         "cell_culture",

@@ -13,5 +13,6 @@ from .submitted_item import SubmittedItem
 )
 class PathologyReport(SubmittedItem):
     item_type = "pathology_report"
+    base_types = ["PathologyReport"] + SubmittedItem.base_types
     schema = load_schema("encoded:schemas/pathology_report.json")
     embedded_list = []
