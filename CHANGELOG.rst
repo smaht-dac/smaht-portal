@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.133.0
+=======
+* 2025-02-03 / dmichaels
+  - Branch: dmichaels-20250203-non-admin-view-raw | from main (54b86b7c6cd0910daafbe9c31c1be90d9120dcd3) | PR-??
+  - Changed to allow non-admin users to use frame=raw; for smaht-submitr which relies on this.
+
 0.132.1
 =======
 `PR 328 fix: update broken link in error page <https://github.com/smaht-dac/smaht-portal/pull/328>`
