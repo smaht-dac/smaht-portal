@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.133.2
+=======
+* 2025-02-04 / dmichaels
+  - Branch: dmichaels-20250204-fix-types-file | from main (94e6200508ee4116fefd54134eb24cd1a56fdf33) | PR-335
+  - Fixed typo (missing comma in array list) in types/file.py.
+
+
 0.133.1
 =======
 `PR 330 chore: update PI information for UW <https://github.com/smaht-dac/smaht-portal/pull/330>`
