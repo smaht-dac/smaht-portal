@@ -1227,30 +1227,45 @@ $gcc-color: rgba(255, 128, 0, 0.6);
 $ttd-color: rgba(77, 175, 74, 0.8);
 
 .stackrow-table-container {
-	width: 800px;
-    overflow-x: scroll;
+    overflow-x: hidden;
 	height: auto;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
+	
+	.table-container {
+		overflow-x: auto;
+		overflow-y: hidden;
+	}
 
 	.stackrow {
 		&-table {
 			width: max-content;
 			margin: auto;
 
+			&:before {
+				content: "";
+				display: block;
+				height: 200px;
+				width: 118px;
+				background-color: white;
+				overflow: hidden;
+				position: absolute;
+				z-index: 2;
+			}
+
 			&-top-labels {
 				background-color: transparent;
 				display:flex;
 				justify-content: end;
-				height: 100px;
-				margin-top: 100px;
+				height: min-content;
 				padding-right: 30px;
 
 				& > tr { 
 					width: 100%;
-					display:flex;
+					display: flex;
 					justify-content: end;
+					height: 200px;
 				}
 
 				.label {
@@ -1269,7 +1284,8 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 						font-weight: normal;
 						
 						&:hover {
-							cursor: pointer
+							cursor: pointer;
+							font-weight: 500;
 						}
 						&:focus-visible {
 							outline-width: 2px;
@@ -1304,7 +1320,7 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 			&-body {
 				display: flex;
 				flex-direction: column;
-				padding-right: 30px;
+				padding: 0px 30px 30px 0px;
 
 				& > .stackrow-row {
 					display: flex;
@@ -1315,6 +1331,9 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 					}
 
 					& > .stackrow-left-label {
+						position: sticky;
+						left: 0px;
+						z-index: 2;
 						display: flex;
 						height: 50px;
 						width: 120px;
@@ -1425,6 +1444,7 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 				margin: 20px auto auto auto;
 				color: gray;
 				font-size: 1rem;
+				text-align: center;
 			}
 		}
 	}

@@ -172,35 +172,40 @@ const StackRow = ({ rowTitle, platforms, data }) => {
  */
 export const StackRowTable = ({ data = tableData }) => {
     return (
-        <div className="stackrow-table-container container">
+        <div className="stackrow-table-container">
             <p className="visualization-warning d-block d-sm-none">
                 <span>Note:</span> for the best experience, please view the
                 visualization below on a tablet or desktop.
             </p>
-            <table className="stackrow-table">
-                {/* Render the row labels (across the top of table) */}
-                <thead className="stackrow-table-top-labels">
-                    <tr>
-                        {data.map((d, i) => {
-                            return <StackRowTopLabel assayType={d} key={i} />;
+            <div className="table-container">
+                <table className="stackrow-table">
+                    {/* Render the row labels (across the top of table) */}
+                    <thead className="stackrow-table-top-labels">
+                        <tr>
+                            {data.map((d, i) => {
+                                return (
+                                    <StackRowTopLabel assayType={d} key={i} />
+                                );
+                            })}
+                        </tr>
+                    </thead>
+                    {/* Render the left labels and body of the table */}
+                    <tbody className="stackrow-table-body">
+                        {Object.keys(graph.platforms).map((gcc, i) => {
+                            return (
+                                <StackRow
+                                    key={i}
+                                    rowTitle={gcc}
+                                    platforms={graph.platforms[gcc]}
+                                    data={data}
+                                />
+                            );
                         })}
-                    </tr>
-                </thead>
-                {/* Render the left labels and body of the table */}
-                <tbody className="stackrow-table-body">
-                    {Object.keys(graph.platforms).map((gcc, i) => {
-                        return (
-                            <StackRow
-                                key={i}
-                                rowTitle={gcc}
-                                platforms={graph.platforms[gcc]}
-                                data={data}
-                            />
-                        );
-                    })}
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
             <p className="stackrow-table-footnote">
+                Scroll to the right to view more assays. <br />
                 Hover over assay types to see additional details.
             </p>
             <StackRowItemLegend
