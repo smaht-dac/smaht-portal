@@ -10,7 +10,7 @@ Change Log
 0.133.2
 =======
 * 2025-02-04 / dmichaels
-  - Branch: main (94e6200508ee4116fefd54134eb24cd1a56fdf33) | No PR (i.e thug commit)
+  - Branch: dmichaels-20250204-fix-types-file | from main (94e6200508ee4116fefd54134eb24cd1a56fdf33) | PR-335
   - Fixed typo (missing comma in array list) in types/file.py.
 
 
