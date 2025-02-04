@@ -68,7 +68,7 @@ class SearchBase:
     PRODUCTION_TISSUES_FILES_SEARCH_PARAMS = {
         'type': 'File',
         'status': ['released', 'restricted', 'public'],
-        'dataset': ['Production'],
+        'sample_summary.studies': ['Production'],
         'additional_facet': [
             'file_sets.libraries.assay.display_title'
         ]
