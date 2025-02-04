@@ -1,7 +1,10 @@
+from datetime import datetime
 from pyramid.request import Request as PyramidRequest
 from typing import Optional
+from unittest.mock import patch
 from webob.multidict import MultiDict
 from encoded.endpoints.recent_files_summary.recent_files_summary import recent_files_summary
+import encoded.endpoints.endpoint_utils
 
 recent_files_summary_raw_results = {
     "@context": "/terms/",
@@ -1061,6 +1064,8 @@ def test_recent_files_summary():
         "nmonths": 18
     })
 
-    mocked_execute_aggregation_query = lambda *args, **kwargs: recent_files_summary_raw_results  # noqa
-    response = recent_files_summary(request, custom_execute_aggregation_query=mocked_execute_aggregation_query)
-    assert response == recent_files_summary_expected_results
+    fixed_datetime = datetime(2025, 1, 30)
+    with patch("encoded.endpoints.endpoint_utils._get_today", return_value=fixed_datetime):
+        mocked_execute_aggregation_query = lambda *args, **kwargs: recent_files_summary_raw_results  # noqa
+        response = recent_files_summary(request, custom_execute_aggregation_query=mocked_execute_aggregation_query)
+        assert response == recent_files_summary_expected_results

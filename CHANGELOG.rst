@@ -7,11 +7,39 @@ smaht-portal
 Change Log
 ----------
 
-0.132.2
+0.133.3
 =======
 `PR 334 feat: tooltip for sample information definitions <https://github.com/smaht-dac/smaht-portal/pull/334>`
 
-* Correct broken link to account creation doc
+* Adds tooltips for specific values in sample summary
+
+
+0.133.2
+=======
+* 2025-02-04 / dmichaels
+  - Branch: dmichaels-20250204-fix-types-file | from main (94e6200508ee4116fefd54134eb24cd1a56fdf33) | PR-335
+  - Fixed typo (missing comma in array list) in types/file.py.
+
+
+0.133.1
+=======
+`PR 330 chore: update PI information for UW <https://github.com/smaht-dac/smaht-portal/pull/330>`
+
+* Update PI information in awardees page
+
+
+0.133.0
+=======
+* 2025-02-03 / dmichaels
+  - Branch: dmichaels-20250203-non-admin-view-raw | from main (54b86b7c6cd0910daafbe9c31c1be90d9120dcd3) | PR-333
+  - Changed to allow non-admin users to use frame=raw; for smaht-submitr which relies on this.
+
+
+0.132.2
+=======
+`PR 332 feat: add animation to sidebar <https://github.com/smaht-dac/smaht-portal/pull/332>`
+
+* Add animation to sliding sidebar
 
 
 0.132.1
