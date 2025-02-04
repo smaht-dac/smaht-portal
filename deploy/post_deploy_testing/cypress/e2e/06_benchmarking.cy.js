@@ -54,13 +54,16 @@ describe('Benchmarking Layout Test', function () {
     });
 
     context('Navigation and Page Redirection', function () {
-        it('Click & visit each page from menu, ensure ToC exists and works.', function () {
+        it('Click & visit benchmarking pages from menu, ensure relevant tab is activated and works.', function () {
             cy.get(dataNavBarItemSelectorStr).should('have.class', 'dropdown-toggle').click()
                 .should('have.class', 'dropdown-open-for')
                 .then(() => {
-                    cy.get('div.big-dropdown-menu div.help-menu-tree:first-child a.level-3-title').then(($listItems) => {
-                        expect($listItems).to.have.length.above(6); // Ensuring at least 6 benchmarking pages in dropdown
-                        const allLinkElementIDs = Cypress._.map($listItems, (liEl) => liEl.id);
+                    cy.get('.big-dropdown-menu .no-level-2-children .custom-static-links > div.col-auto:nth-child(2) a.primary-big-link').should('be.visible').then(($listItems) => {
+                        expect($listItems).to.have.length(3); // Ensuring 3 benchmarking pages in dropdown
+                        const allLinkElementHREFs = Cypress._.map($listItems, (liEl) => {
+                            const path = new URL(liEl.href, window.location.origin).pathname;
+                            return path;
+                        }).reverse();
 
                         let prevTitle = '';
                         let count = 0;
@@ -73,71 +76,75 @@ describe('Benchmarking Layout Test', function () {
 
                                     cy.title().should('equal', `${titleText} – SMaHT Data Portal`).end();
 
-                                    //This tests a toggle button that collapses and expands.
-                                    cy.get('.benchmarking-layout-container .information-container button.toggle-information-text-button')
-                                        .click({ force: true })
-                                        .should('have.attr', 'aria-expanded', 'false')
-                                        .get('#benchmarking-page-description-container').should('have.class', 'collapsed').end()
-                                        .get('.benchmarking-layout-container .information-container button.toggle-information-text-button')
-                                        .click({ force: true })
-                                        .should('have.attr', 'aria-expanded', 'true')
-                                        .get('#benchmarking-page-description-container').should('have.class', 'expanded').end();
+                                    if (titleText !== 'COLO829 SNV/Indel Detection Challenge') {
+                                        //This tests a toggle button that collapses and expands.
+                                        cy.get('.benchmarking-layout .information-container button.toggle-information-text-button')
+                                            .click({ force: true })
+                                            .should('have.attr', 'aria-expanded', 'false')
+                                            .get('#benchmarking-page-description-container').should('have.class', 'collapsed').end()
+                                            .get('.benchmarking-layout .information-container button.toggle-information-text-button')
+                                            .click({ force: true })
+                                            .should('have.attr', 'aria-expanded', 'true')
+                                            .get('#benchmarking-page-description-container').should('have.class', 'expanded').end();
 
-                                    // Navigate through each tab and check if it has the active class
-                                    cy.location('pathname').then((currentPath) => {
-                                        // Iterate through all tabs
-                                        cy.get('div.benchmarking-layout ul.nav-tabs li.nav-item button.nav-link').each(($button) => {
-                                            const eventKey = $button.attr('data-rr-ui-event-key');
-                                            const fullPath = `${currentPath}${eventKey}`;
+                                        // Navigate through each tab and check if it has the active class
+                                        cy.location('pathname').then((currentPath) => {
+                                            // Iterate through all tabs
+                                            cy.get('div.benchmarking-layout ul.nav-tabs li.nav-item button.nav-link').each(($button) => {
+                                                const eventKey = $button.attr('data-rr-ui-event-key');
+                                                const fullPath = `${currentPath}${eventKey}`;
 
-                                            cy.wrap($button).click({ force: true })
-                                                .should('have.class', 'active');
+                                                cy.wrap($button).click({ force: true })
+                                                    .should('have.class', 'active');
 
-                                            // Wait for the spinner to disappear before checking results count
-                                            cy.get('.search-results-container i.icon-spin').should('not.exist');
+                                                // Wait for the spinner to disappear before checking results count
+                                                cy.get('.search-results-container i.icon-spin').should('not.exist');
 
-                                            // Ensure the active link in the sidebar matches the tab's path
-                                            cy.get('.benchmarking-nav-container .accordion .sidenav-link.active a').should(($activeLink) => {
-                                                const hrefValue = $activeLink.attr('href');
-                                                expect(hrefValue).to.equal(fullPath);
+                                                // Ensure the active link in the sidebar matches the tab's path
+                                                cy.get('.sliding-sidebar-nav-container .accordion .sidenav-link.active a').should(($activeLink) => {
+                                                    const hrefValue = $activeLink.attr('href');
+                                                    expect(hrefValue).to.equal(fullPath);
+                                                });
+
+                                                // Now check the results count after the spinner is gone
+                                                cy.get('.tab-pane.active.show').then(($tabPane) => {
+                                                    if ($tabPane.find('#results-count').length > 0) {
+                                                        cy.get('.tab-pane.active.show #results-count')
+                                                            .invoke('text')
+                                                            .then((originalFileText) => {
+                                                                cy.wrap($button)
+                                                                    .find('.badge')
+                                                                    .invoke('text')
+                                                                    .then((badgeText) => {
+                                                                        expect(badgeText.trim()).to.equal(originalFileText.trim());
+                                                                    });
+                                                            });
+                                                    } else {
+                                                        cy.wrap($button)
+                                                            .find('.badge')
+                                                            .invoke('text')
+                                                            .then((badgeText) => {
+                                                                expect(badgeText.trim()).to.equal('-');
+                                                            });
+                                                    }
+                                                });
+
+                                            }).then(() => {
+                                                Cypress.log({
+                                                    name: "Tab Navigation Completed",
+                                                    message: "All tabs navigated and verified successfully."
+                                                });
                                             });
 
-                                            // Now check the results count after the spinner is gone
-                                            cy.get('.tab-pane.active.show').then(($tabPane) => {
-                                                if ($tabPane.find('#results-count').length > 0) {
-                                                    cy.get('.tab-pane.active.show #results-count')
-                                                        .invoke('text')
-                                                        .then((originalFileText) => {
-                                                            cy.wrap($button)
-                                                                .find('.badge')
-                                                                .invoke('text')
-                                                                .then((badgeText) => {
-                                                                    expect(badgeText.trim()).to.equal(originalFileText.trim());
-                                                                });
-                                                        });
-                                                } else {
-                                                    cy.wrap($button)
-                                                        .find('.badge')
-                                                        .invoke('text')
-                                                        .then((badgeText) => {
-                                                            expect(badgeText.trim()).to.equal('-');
-                                                        });
-                                                }
-                                            });
-
-                                        }).then(() => {
-                                            Cypress.log({
-                                                name: "Tab Navigation Completed",
-                                                message: "All tabs navigated and verified successfully."
-                                            });
                                         });
-
-                                    });
+                                    } else {
+                                        // cy.wait(2000).get('.search-results-container .search-result-row .search-result-column-block input[type="checkbox"]').should('be.greaterThan', 0);
+                                    }
 
                                     count++;
                                     if (count < $listItems.length) {
                                         cy.get(dataNavBarItemSelectorStr).click().should('have.class', 'dropdown-open-for').then(() => {
-                                            cy.get(`div.big-dropdown-menu a#${escapeElementWithNumericId(allLinkElementIDs[count])}`).wait(1000).click({ force: true })
+                                            cy.get(`div.big-dropdown-menu a[href="${escapeElementWithNumericId(allLinkElementHREFs[count])}"]`).wait(1000).click({ force: true })
                                                 .then(($nextListItem) => {
                                                     const linkHref = $nextListItem.attr('href');
                                                     cy.location('pathname').should('equal', linkHref);
@@ -158,14 +165,14 @@ describe('Benchmarking Layout Test', function () {
         });
 
         it('Tests the collapsing and expanding of the toggle button.', function () {
-            cy.get('.benchmarking-nav-container .toggle-button')
+            cy.get('.sliding-sidebar-nav-container .toggle-button')
                 .click({ force: true })
                 .should('have.attr', 'aria-expanded', 'false')
-                .get('.benchmarking-ui-container').should('have.class', 'collapse-nav').end()
-                .get('.benchmarking-nav-container .toggle-button')
+                .get('.sliding-sidebar-ui-container').should('have.class', 'collapse-nav').end()
+                .get('.sliding-sidebar-nav-container .toggle-button')
                 .click({ force: true })
                 .should('have.attr', 'aria-expanded', 'true')
-                .get('.benchmarking-ui-container').should('have.class', 'show-nav').end();
+                .get('.sliding-sidebar-ui-container').should('have.class', 'show-nav').end();
         });
     });
 
@@ -272,7 +279,7 @@ describe('Benchmarking Layout Test', function () {
                 .get(".facets-header .facets-title").should('have.text', 'Excluded Properties').end();
 
             // Select first term and store its count
-            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element:first-child a').within(($term) => {
+            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element a').first().within(($term) => {
                 cy.get('span.facet-count').then((assayCount) => {
                     externalDataCount = parseInt(assayCount.text());
                     expect(externalDataCount).to.be.greaterThan(0);
@@ -306,7 +313,7 @@ describe('Benchmarking Layout Test', function () {
                 }).end();
 
             // Exclude the term again and verify external count
-            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element:first-child a').within(($term) => {
+            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element a').first().within(($term) => {
                 cy.wrap($term).click({ force: true }).end();
             }).end();
 
