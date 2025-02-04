@@ -21,21 +21,33 @@ class SearchBase:
     ALL_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
         'status': ['released', 'restricted', 'public'],
+        'additional_facet': [
+            'file_sets.libraries.assay.uuid'
+        ]
     }
     COLO829_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
         'status': ['released', 'restricted', 'public'],
-        'dataset': ['colo829blt_50to1', 'colo829t', 'colo829bl']
+        'dataset': ['colo829blt_50to1', 'colo829t', 'colo829bl'],
+        'additional_facet': [
+            'file_sets.libraries.assay.uuid'
+        ]
     }
     HAPMAP_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
         'status': ['released', 'restricted', 'public'],
-        'dataset': ['hapmap']
+        'dataset': ['hapmap'],
+        'additional_facet': [
+            'file_sets.libraries.assay.uuid'
+        ]
     }
     IPSC_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
         'status': ['released', 'restricted', 'public'],
-        'dataset': ['lb_fibroblast', 'lb_ipsc_1', 'lb_ipsc_2', 'lb_ipsc_4', 'lb_ipsc_52', 'lb_ipsc_60']
+        'dataset': ['lb_fibroblast', 'lb_ipsc_1', 'lb_ipsc_2', 'lb_ipsc_4', 'lb_ipsc_52', 'lb_ipsc_60'],
+        'additional_facet': [
+            'file_sets.libraries.assay.uuid'
+        ]
     }
     TISSUES_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
@@ -49,12 +61,17 @@ class SearchBase:
             'ST003-1Q',
             'ST004-1Q'
         ],
-        'additional_facet': 'donors.display_title'  # required since this is default_hidden for now
+        'additional_facet': [
+            'donors.display_title', 'file_sets.libraries.assay.uuid'
+        ]  # required since this is default_hidden for now
     }
     PRODUCTION_TISSUES_FILES_SEARCH_PARAMS = {
         'type': 'File',
         'status': ['released', 'restricted', 'public'],
-        'dataset': ['Production']
+        'dataset': ['Production'],
+        'additional_facet': [
+            'file_sets.libraries.assay.uuid'
+        ]
     }
 
 
@@ -128,7 +145,7 @@ def generate_hapmap_cell_line_file_count(context, request):
 def generate_hapmap_assay_count(context, request):
     """ Makes a search subrequest the same as the above to extract the assay counts for hapmap """
     search_param = SearchBase.HAPMAP_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
+    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.uuid')
 
 
 def generate_ipsc_cell_line_file_count(context, request):
@@ -140,7 +157,7 @@ def generate_ipsc_cell_line_file_count(context, request):
 def generate_ipsc_assay_count(context, request):
     """ Makes a search subrequest the same as the above to extract the assay counts for ipsc """
     search_param = SearchBase.IPSC_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
+    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.uuid')
 
 
 def generate_tissue_file_count(context, request):
