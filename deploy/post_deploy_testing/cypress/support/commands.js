@@ -404,3 +404,22 @@ Cypress.Commands.add(
         return subject;
     }
 );
+
+/*** Browse View Utils ****/
+
+Cypress.Commands.add("getQuickInfoBar", () => {
+    const infoTypes = ["file", "donor", "tissue", "assay", "file-size"];
+    
+    let result = {};
+  
+    cy.get(".browse-summary-stat").each(($el) => {
+      const iconType = $el.find(".browse-link-icon").attr("data-icon-type");
+      const valueText = $el.find(".browse-summary-stat-value").text().trim();
+      const value = valueText === "-" ? 0 : Number(valueText);
+  
+      if (infoTypes.includes(iconType)) {
+        result[iconType] = value;
+      }
+    }).then(() => result);
+  });
+  
