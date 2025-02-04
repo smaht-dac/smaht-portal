@@ -43,12 +43,20 @@ describe('Browse Views - Basic Tests', function () {
 
         it('There is at least 1 Donor in default browse view.', function () {
             cy.getQuickInfoBar().then((info) => {
-                cy.log(info);
-                // expect(info.file).to.be.at.least(0);
+                cy.log("Files Generated: " + info.file);
+                expect(info.file).to.be.at.least(0);
+                
+                cy.log("Donors: " + info.donor);
                 expect(info.donor).to.be.at.least(1);
+                
+                cy.log("Tissues: " + info.tissue);
                 expect(info.tissue).to.be.at.least(1);
+
+                cy.log("Assays: " + info.assay);
                 expect(info.assay).to.be.at.least(1);
-                // expect(info["file-size"]).to.be.at.least(0);
+
+                cy.log("Total File Size: " + info["file-size"]);
+                expect(info["file-size"]).to.be.at.least(0);
             });
         });
 
