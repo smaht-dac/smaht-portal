@@ -64,7 +64,7 @@ export const Alluvial = () => {
 
             const margin = { top: 200, right: 200, bottom: 50, left: 100 },
                 width = 1200 - margin.left - margin.right,
-                height = 700 - margin.top - margin.bottom;
+                height = 800 - margin.top - margin.bottom;
 
             // append the svg object to the body of the page
             const svgContainer = d3
@@ -268,7 +268,7 @@ export const Alluvial = () => {
                     return d.source.color;
                 })
                 .style('stroke-width', function (d) {
-                    return 12; // constant stroke width
+                    return 10; // constant stroke width
                 })
                 .sort(function (a, b) {
                     return b.dy - a.dy;

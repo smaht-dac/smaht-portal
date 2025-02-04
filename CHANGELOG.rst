@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.133.3
+=======
+`PR 314 chore: update PI information for UW <https://github.com/smaht-dac/smaht-portal/pull/314>`
+
+* Update the About page Alluvial plot and data matrix
+
+
 0.133.2
 =======
 * 2025-02-04 / dmichaels
