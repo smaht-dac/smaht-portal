@@ -22,7 +22,7 @@ class SearchBase:
         'type': 'File',
         'status': ['released', 'restricted', 'public'],
         'additional_facet': [
-            'file_sets.libraries.assay.uuid'
+            'file_sets.libraries.assay.display_title'
         ]
     }
     COLO829_RELEASED_FILES_SEARCH_PARAMS = {
@@ -30,7 +30,7 @@ class SearchBase:
         'status': ['released', 'restricted', 'public'],
         'dataset': ['colo829blt_50to1', 'colo829t', 'colo829bl'],
         'additional_facet': [
-            'file_sets.libraries.assay.uuid'
+            'file_sets.libraries.assay.display_title'
         ]
     }
     HAPMAP_RELEASED_FILES_SEARCH_PARAMS = {
@@ -38,7 +38,7 @@ class SearchBase:
         'status': ['released', 'restricted', 'public'],
         'dataset': ['hapmap'],
         'additional_facet': [
-            'file_sets.libraries.assay.uuid'
+            'file_sets.libraries.assay.display_title'
         ]
     }
     IPSC_RELEASED_FILES_SEARCH_PARAMS = {
@@ -46,7 +46,7 @@ class SearchBase:
         'status': ['released', 'restricted', 'public'],
         'dataset': ['lb_fibroblast', 'lb_ipsc_1', 'lb_ipsc_2', 'lb_ipsc_4', 'lb_ipsc_52', 'lb_ipsc_60'],
         'additional_facet': [
-            'file_sets.libraries.assay.uuid'
+            'file_sets.libraries.assay.display_title'
         ]
     }
     TISSUES_RELEASED_FILES_SEARCH_PARAMS = {
@@ -62,7 +62,7 @@ class SearchBase:
             'ST004-1Q'
         ],
         'additional_facet': [
-            'donors.display_title', 'file_sets.libraries.assay.uuid'
+            'donors.display_title', 'file_sets.libraries.assay.display_title'
         ]  # required since this is default_hidden for now
     }
     PRODUCTION_TISSUES_FILES_SEARCH_PARAMS = {
@@ -70,7 +70,7 @@ class SearchBase:
         'status': ['released', 'restricted', 'public'],
         'dataset': ['Production'],
         'additional_facet': [
-            'file_sets.libraries.assay.uuid'
+            'file_sets.libraries.assay.display_title'
         ]
     }
 
@@ -111,11 +111,11 @@ def extract_desired_facet_from_search(facets, desired_facet_name):
     return None
 
 
-def generate_unique_facet_count(context, request, search_param, desired_fact):
+def generate_unique_facet_count(context, request, search_param, desired_facet):
     """ Helper function that extracts the number of unique facet terms """
     search_param['limit'] = 0  # we do not care about search results, just facet counts
     result = generate_admin_search_given_params(context, request, search_param)
-    facet = extract_desired_facet_from_search(result['facets'], desired_fact)
+    facet = extract_desired_facet_from_search(result['facets'], desired_facet)
     # correct for no value, worst case we check the whole list of facet terms
     # but this is usually a manageable sized list - Will 28 March 2024
     for term in facet['terms']:
@@ -145,7 +145,7 @@ def generate_hapmap_cell_line_file_count(context, request):
 def generate_hapmap_assay_count(context, request):
     """ Makes a search subrequest the same as the above to extract the assay counts for hapmap """
     search_param = SearchBase.HAPMAP_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.uuid')
+    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
 
 
 def generate_ipsc_cell_line_file_count(context, request):
@@ -157,7 +157,7 @@ def generate_ipsc_cell_line_file_count(context, request):
 def generate_ipsc_assay_count(context, request):
     """ Makes a search subrequest the same as the above to extract the assay counts for ipsc """
     search_param = SearchBase.IPSC_RELEASED_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.uuid')
+    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
 
 
 def generate_tissue_file_count(context, request):
@@ -176,7 +176,7 @@ def generate_tissue_assay_count(context, request):
     """ Get total assay count for benchmarking tissues """
     search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
     # note: must use uuid rather than display_title due to sayt/facet term grouping
-    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.uuid')
+    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
 
 
 def generate_production_file_count(context, request):
@@ -195,7 +195,7 @@ def generate_production_tissue_assay_count(context, request):
     """ Get production tissue assay counts """
     search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
     # note: must use uuid rather than display_title due to sayt/facet term grouping
-    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.uuid')
+    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
 
 
 @view_config(route_name='home', request_method=['GET'])
