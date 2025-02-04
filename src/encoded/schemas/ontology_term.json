@@ -5,7 +5,8 @@
     "type": "object",
     "required": [
         "identifier",
-        "title"
+        "title",
+        "ontologies"
     ],
     "anyOf": [
         {
@@ -31,6 +32,9 @@
         },
         {
             "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
         },
         {
             "$ref": "mixins.json#/identifier"
@@ -64,8 +68,41 @@
         "identifier": {
             "pattern": "^[A-Z]+:[0-9]+$"
         },
+        "title": {
+            "description": "Title of the ontology term"
+        },
         "schema_version": {
             "default": "1"
+        },
+        "status": {
+            "default": "released",
+            "enum": [
+                "released",
+                "current",
+                "obsolete",
+                "deleted"
+            ]
+        },
+        "description": {
+            "description": "Description of the ontology term"
+        },
+        "ontologies": {
+            "title": "Ontologies",
+            "description": "Ontologies that this term is a part of",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "Ontology"
+            }
+        },
+        "url": {
+            "description": "The url that uniquely identifies term - often purl."
+        },
+        "grouping_term": {
+            "title": "Grouping Term",
+            "description": "Ontology term that this term is grouped under - less specific term used in search",
+            "type": "string",
+            "linkTo": "OntologyTerm"
         }
     }
 }

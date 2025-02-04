@@ -42,11 +42,12 @@ const TimelineItem = ({
                 </h3>
             </div>
             <div className="timeline-content">
-                <TimelineAccordion defaultActiveKey={itemKey === 0 ? 1 : 0}>
+                <TimelineAccordion
+                    defaultActiveKey={itemKey === 0 ? ['1'] : ['0']}>
                     {categories.map((category, j) => {
                         return (
                             <TimelineAccordionDrawer
-                                eventKey={j + 1}
+                                eventKey={(j + 1).toString()}
                                 title={category.title}
                                 tier={itemKey}
                                 currentTier={currentTier}
@@ -77,14 +78,14 @@ function ContextAwareToggle({
     isError,
     loadData,
 }) {
-    const { activeEventKey } = useContext(AccordionContext);
+    const { activeEventKey = [] } = useContext(AccordionContext);
 
     const decoratedOnClick = useAccordionButton(
         eventKey,
         () => callback && callback(eventKey)
     );
 
-    const isCurrentEventKey = activeEventKey === eventKey;
+    const isCurrentEventKey = activeEventKey.includes(eventKey.toString());
 
     const openStatusIconCls = isCurrentEventKey
         ? 'icon icon-minus fas'
@@ -134,7 +135,9 @@ function TimelineAccordion(props) {
     const { defaultActiveKey, children, activeKey } = props;
 
     return (
-        <Accordion {...{ defaultActiveKey, activeKey }}>{children}</Accordion>
+        <Accordion {...{ defaultActiveKey, activeKey }} alwaysOpen>
+            {children}
+        </Accordion>
     );
 }
 
@@ -216,7 +219,7 @@ const TimelineCardContent = ({ values, isError }) => {
 const loadStateData = {
     timeline_content: [
         {
-            title: 'Tier 0: Benchmarking',
+            title: 'Benchmarking',
             subtitle: 'with all technologies',
             categories: [
                 {
@@ -234,13 +237,8 @@ const loadStateData = {
             ],
         },
         {
-            title: 'Tier 1',
+            title: 'Production',
             subtitle: 'with core + additional technologies',
-            categories: [{ title: 'Primary Tissues' }],
-        },
-        {
-            title: 'Tier 2',
-            subtitle: 'with core technologies',
             categories: [{ title: 'Primary Tissues' }],
         },
     ],
@@ -250,7 +248,11 @@ const loadStateData = {
 const getDateString = (string) => {
     if (!string) return null;
 
-    const date = new Date(string);
+    /**
+     * Replace '-' with '/' for Safari compatibility, must have timezone
+     * specified to avoid conflicts with UTC midnight time
+     */
+    const date = new Date(string.replace(/-/g, '/'));
 
     const options = {
         year: 'numeric',
@@ -305,7 +307,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
     }, [isError]);
 
     return (
-        <div className="container">
+        <div className="container timeline-container">
             <div id="timeline" className={`tier-${currentTier}`}>
                 <span className="latest-release">
                     <b>Latest Release: </b>
