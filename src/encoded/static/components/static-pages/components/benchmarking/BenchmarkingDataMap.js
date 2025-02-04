@@ -101,7 +101,6 @@ export const BenchmarkingDataMap = {
                     'donors.age',
                     'donors.sex',
                     'sample_summary.tissues',
-                    'reference_genome.display_title',
                     'date_created',
                 ],
                 columns: {

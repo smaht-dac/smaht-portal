@@ -21,7 +21,6 @@ export const BrowseSummaryStatController = (props) => {
     };
 
     const callbackFxn = useCallback((resp) => {
-        console.log('BrowseSummaryStatController resp', resp);
         if (!useSearch) {
             resp.forEach((facet) => {
                 if (facet.field == 'status') {

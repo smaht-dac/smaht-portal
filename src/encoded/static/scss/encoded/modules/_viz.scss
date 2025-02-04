@@ -30,7 +30,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     flex-direction: column;
     // margin: 30px 15px;
     padding: 0px;
-    width: 100%;
+    width: 95%;
     animation: fadeIn 200ms ease-out;
     @include prefix(transition, all 0.4s ease);
 
@@ -90,7 +90,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 align-items: center;
                 flex-direction: column;
                 align-items: flex-start;
-                font-size: 1.313rem;
+                font-size: 1.125rem;
                 animation: fadeIn 200ms ease-in;
                 
                 i {
@@ -257,7 +257,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 
                         h4 {
                             display: flex;
-                            font-size: 1.75rem;
+                            font-size: 1.625rem;
                             font-weight: 600;
                             color: $homepage-card-text-color;
                             margin-right: 8px;
@@ -274,7 +274,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                             margin: auto auto auto 0;
 
                             span {
-                                font-size: 0.75rem;
+                                font-size: 0.625rem;
                                 font-weight: 500;
                                 color: $homepage-card-text-color;
                                 width: max-content;
@@ -341,6 +341,9 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                         }
                     }
                 }
+                &-divider {
+                    background-color: #CDE4FF;
+                }
                 &:hover {
                     border: 2px solid $homepage-card-border-color;
                     .card-header {
@@ -383,9 +386,8 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 h3 {
                     flex-direction: column;
                     align-items: flex-start;
-                    font-size: 1.313rem;
                     i {
-                        font-size: 1rem;
+                        font-size: 0.938rem;
                     }
                 }
             }
@@ -413,10 +415,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                             .number-group {
                                 padding-right: 10px;
 
-                                h4 {
-                                    font-size: 1.75rem;
-                                }
-
                                 &:last-of-type {
                                     padding-right: 0px;
                                 }
@@ -435,22 +433,26 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                     align-items: center;
                 }
             }
-            &:before {
-                // left: -10px;
-            }
-            .timeline {
-                &-marker {
-                    // left: -10px;
-                }
-            }
         }
     }
-    @media screen and (min-width: 1500px) {
+    @include media-breakpoint-up(xxl) {
+        .latest-release {
+            margin-left: 20px;
+        }
         .timeline-item {
+            padding-left: 16px;
+
             &-header {
                 h3 {
-                    font-size: 1.5rem;
+                    // font-size: 1.125rem;
                 }
+            }
+
+            .timeline-marker {
+                width: 15px;
+                height: 15px;
+                min-height: 15px;
+                left: -8px;
             }
         }
     }
@@ -489,7 +491,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 h4 {
                     margin: auto;
                     padding: 0;
-                    font-size: 1rem;
+                    font-size: 0.875rem;
                     font-weight: 700;
                     color: #1E366C;
                     letter-spacing: 1.5px;
@@ -584,7 +586,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                     }
                     ul {
                         li {
-                            font-size: 0.875rem;
+                            font-size: 0.813rem;
                             font-weight: 500;
                             line-height: 20px;
                             color: #0E3669;
@@ -613,14 +615,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         margin-bottom: 50px;
         margin-top: 20px;
 
-        .footnote {
-            color: #5B7595;
-            font-size: 0.75rem;
-            font-weight: 500;
-            margin: auto auto 5px auto;
-            width: 250px;
-            text-align: center;
-        }
 
         .selector-buttons {
             position: relative;
@@ -691,9 +685,12 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         left: 0;
         z-index: 2;
         width: fit-content;
+        height: 100%;
         
         img {
             animation: fadeIn 200ms ease-in;
+            width: 95%;
+            margin: auto;
         }
         & > div {
             margin: auto;
@@ -756,11 +753,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             margin-top: 0px;
             margin-bottom: 60px;
     
-            .footnote {
-                margin-bottom: 5px;
-                width: 100%;
-            }
-    
             .selector-buttons {
                 button {
                     font-size: 1rem;
@@ -802,20 +794,30 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
                 width: auto;
                 
                 &-body {
-                    width: 231px;
+                    width: 215px;
                     height: 621px;
                     min-height: none;
 
                     .card-list {
                         margin-bottom: 20px;
-                        margin-right: 20px;
+                        margin-right: 10px;
+
                         h5 {
                             text-align: left;
+                            margin-bottom: 5px;
                         }
                         ul {
-    
                             li {
                                 text-align: left;
+                                div {
+                                    img {
+                                        margin-right: 6px;
+                                    }
+                                    span {
+                                        font-size: 0.813rem;
+                                        line-height: 1.125rem;
+                                    }
+                                }
                             }
                         }
                     }
@@ -854,7 +856,7 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             }
         }
         &-tier-selector {
-            margin-top: 40px;
+            margin-top: 25px;
             margin-bottom: 0px;
         }
         
@@ -884,6 +886,28 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
             display: flex;
         }
     }
+    @include media-breakpoint-up(xxxl) {
+        width: 650px;
+        &-content {
+            .card {
+                &-body {
+                    width: 230px;
+
+                    .card-list {
+                        ul {
+                            li {
+                                div {
+                                    span {
+                                        font-size: 0.875rem;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 #popover {
@@ -892,5 +916,155 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         &-organ {
             max-width: 300px;
         }
+    }
+}
+
+
+
+/** QC Visualization styles */
+
+.qc-metrics-data-table {
+    max-height: 370px;
+    overflow-y: auto; 
+
+    @include media-breakpoint-between(lg, xl) {
+		max-height: 330px;
+	}
+    @include media-breakpoint-between(xl, xxl) {
+		max-height: 400px;
+	}
+	@include media-breakpoint-up(xxl) {
+		max-height: 450px;
+	}
+}
+
+.qc-metrics-data-table {
+    td{
+        white-space: nowrap;
+        font-size: 0.75rem;
+        text-align: left;
+        padding: 0.15rem 0.25rem;
+        line-height: 1.45rem;
+    }
+    th{
+        white-space: nowrap;
+        font-size: 0.75rem;
+        text-align: left;
+        padding: 0.3rem 0.25rem;
+        line-height: 1.45rem;
+        background-color: #f1f9ff !important;
+    }
+    .sort-icon{
+        cursor: pointer;
+        color: #adb5bd;
+    }
+    .sort-icon:hover{
+        color: #343741;
+    }
+    .sort-icon.active{
+        cursor: pointer;
+        color: #343741;
+    }
+}
+
+.qc-metrics-facets-container {
+    background-color: #f1f9ff;
+}
+
+#qc-metrics-tabs .nav-item {
+    display: flex;
+    border-bottom: none;
+}
+
+#qc-metrics-tabs .nav-item .nav-link.active{
+    color: #343741;
+    font-weight: 600;
+    border-top: 4px solid #e99415;
+}
+
+.qc-link {
+	color: #428bca;
+    text-decoration: none;
+	cursor: pointer;
+}
+.qc-link:hover {
+    color: #2a6496;
+    text-decoration: underline;
+}
+
+.boxplot-canvas,
+.scatterplot-canvas {
+    .boxplot-svg,
+    .scatterplot-svg {
+
+        .legend {
+            .legend-item {
+                font-size: 0.75rem;
+            }
+        }
+
+        .data-point:hover {
+            cursor: pointer;
+            fill: black;
+        }
+        .data-point-highlighted {
+            fill: red;
+            stroke: red;
+            z-index: 10000;
+        }
+    }
+}
+
+.plot-group {
+    display: flex;
+    .boxplot-canvas,
+    .scatterplot-canvas {
+        
+        display: flex;
+        flex: 1;
+        .boxplot-svg,
+        .scatterplot-svg {
+
+            .legend {
+                .legend-item {
+                    font-size: 0.75rem;
+                }
+            }
+
+            .data-point:hover {
+                cursor: pointer;
+                fill: black;
+            }
+        }
+    }
+
+    @include media-breakpoint-down(lg) {
+        display: flex;
+        flex-direction: column;
+    }
+}
+.popover-d3-plot {
+    min-width: 350px;
+    .d3-popover-content .restricted-width {
+        max-width: 240px;
+    }
+    .d3-popover-content td, .d3-popover-content th{
+        font-size: 0.75rem;
+        text-align: left;
+        padding: 0.1rem 0.1rem;
+        line-height: 1.25rem;
+    }
+}
+.qc-modal-content .overview{
+    font-size: 0.85rem;
+    text-align: left;
+    padding: 0.1rem 0.1rem;
+    line-height: 1.25rem;
+    .restricted-width {
+        width: 140px;
+    }
+    td {
+        padding: .1rem .3rem;
+        text-align: left;
     }
 }

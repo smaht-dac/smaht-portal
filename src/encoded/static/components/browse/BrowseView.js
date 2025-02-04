@@ -143,7 +143,7 @@ export class BrowseViewBody extends React.PureComponent {
         return (
             <div className="search-page-outer-container" id="content">
                 <SlidingSidebarLayout openByDefault={false}>
-                    <div>
+                    <div className="sidebar-nav-body">
                         <h3 className="browse-links-header">
                             Browse Production Data By
                         </h3>
@@ -237,7 +237,7 @@ const BrowseViewSearchTable = (props) => {
     );
 
     /**
-     * A column extension map speifically for benchmarking tables.
+     * A column extension map specifically for browse view file tables.
      * Some of these things may be worth moving to the global colextmap eventually.
      */
     const columnExtensionMap = {

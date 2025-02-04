@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * Header section of the File Overview Table. Passed as a child to
+ * Header section of the Browse Table. Passed as a child to
  * EmbeddedSearchView (SPC), and recieves props from SelectedItemsController
  */
 export const BrowseViewAboveFacetListComponent = (props) => {

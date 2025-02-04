@@ -49,7 +49,7 @@ export const BenchmarkingTable = (props) => {
     };
 
     /**
-     * A column extension map speifically for benchmarking tables.
+     * A column extension map specifically for benchmarking tables.
      * Some of these things may be worth moving to the global colextmap eventually.
      */
     const benchmarkingColExtMap = {
@@ -261,7 +261,6 @@ export const BenchmarkingTable = (props) => {
                     'donors.age',
                     'donors.sex',
                     'sample_summary.tissues',
-                    'reference_genome.display_title',
                     'date_created',
                 ]
             }

@@ -60,7 +60,8 @@ def browse(context, request, search_type=DEFAULT_BROWSE_TYPE, return_generator=F
     return search(context, request, search_type, return_generator, forced_type="Browse")
 
 
-@view_config(route_name="recent_files_summary", request_method=["GET"], effective_principals=Authenticated)
+# @view_config(route_name="recent_files_summary", request_method=["GET"], effective_principals=Authenticated)
+@view_config(route_name="recent_files_summary", request_method=["GET"], permission="search")
 @debug_log
 def recent_files_summary(context, request):
     return recent_files_summary_endpoint(context, request)

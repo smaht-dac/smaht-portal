@@ -1,5 +1,6 @@
 from copy import deepcopy
 from typing import Any, Callable, List, Optional, Tuple, Union
+from encoded.endpoints.endpoint_utils import get_properties
 
 AGGREGATION_MAX_BUCKETS = 100
 AGGREGATION_NO_VALUE = "No value"
@@ -142,10 +143,38 @@ def create_elasticsearch_aggregation_query(fields: List[str],
     return aggregation
 
 
+def add_additional_field_to_retrieve_to_elasticsearch_aggregation_query(aggregation_query: dict, field:  str) -> None:
+    def get_innermost_aggs_ignoring_top_hits_debug(data: dict):  # noqa
+        def get_first_dictionary_property(data: dict) -> Optional[dict]:  # noqa
+            if isinstance(data, dict):
+                for key in data:
+                    if isinstance(data[key], dict):
+                        return data[key]
+            return None
+        if isinstance(data, dict):
+            for key in data:
+                if key == "aggs":
+                    if isinstance(data[key], dict) and (not data[key].get("top_hits_debug")):
+                        if (aggs := get_innermost_aggs_ignoring_top_hits_debug(data[key])) is not None:
+                            return aggs
+                        return get_first_dictionary_property(data[key])
+                elif (aggs := get_innermost_aggs_ignoring_top_hits_debug(data[key])) is not None:
+                    return aggs
+        return None
+    if isinstance(aggregation_query, dict) and isinstance(field, str) and field:
+        if aggs := get_innermost_aggs_ignoring_top_hits_debug(aggregation_query):
+            aggregation_name = f"additional_field_{field.replace('.', '_')}"
+            if isinstance(aggs.get("aggs"), dict):
+                aggs["aggs"].update({aggregation_name: {"top_hits": {"size": 1,"_source": {"includes": [f"embedded.{field}"]}}}})
+            else:
+                aggs["aggs"] = {aggregation_name: {"top_hits": {"size": 1,"_source": {"includes": [f"embedded.{field}"]}}}}
+
+
 def add_debugging_to_elasticsearch_aggregation_query(aggregation_query: dict) -> None:  # noqa
     top_hits_debug = {"aggs": {"top_hits_debug": {"top_hits": {"_source": False,
                                                                "docvalue_fields": ["_id"], "size": 100 }}}}
     def add_debug_query(aggs: dict) -> None:  # noqa
+        nonlocal top_hits_debug
         if "aggs" in aggs:
             for _, agg in aggs["aggs"].items():
                 add_debug_query(agg)
@@ -351,7 +380,9 @@ def merge_elasticsearch_aggregation_results(target: dict, source: dict, copy: bo
     return target
 
 
-def normalize_elasticsearch_aggregation_results(aggregation: dict, additional_properties: Optional[dict] = None,
+def normalize_elasticsearch_aggregation_results(aggregation: dict,
+                                                additional_field: Optional[str] = None,
+                                                additional_properties: Optional[dict] = None,
                                                 remove_empty_items: bool = True,
                                                 retain_original_item_count: bool = False) -> dict:
 
@@ -451,7 +482,7 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict, additional_pr
                           key: Optional[str] = None, value: Optional[str] = None,
                           additional_properties: Optional[dict] = None) -> dict:
 
-        nonlocal remove_empty_items, retain_original_item_count
+        nonlocal additional_field, remove_empty_items, retain_original_item_count
 
         if not (aggregation_key := get_aggregation_key(aggregation)):
             return {}
@@ -482,6 +513,14 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict, additional_pr
                     else:
                         if (remove_empty_items is False) or (bucket_item_count > 0):
                             group_item = {"name": aggregation_key, "value": bucket_value, "count": bucket_item_count}
+                            if additional_field:
+                                additional_field_aggregation_name = \
+                                    f"additional_field_{additional_field.replace('.', '_')}"
+                                additional_field_property_name = \
+                                    f"{additional_field_aggregation_name}.hits.hits._source.embedded.{additional_field}"
+                                if additional_field_value := get_properties(bucket, additional_field_property_name):
+                                    if additional_field_value := str(additional_field_value[0]):
+                                        group_item["additional_value"] = additional_field_value
                             if debug_hits:
                                 group_item["debug_elasticsearch_hits"] = debug_hits
                             group_items.append(group_item)
@@ -489,6 +528,9 @@ def normalize_elasticsearch_aggregation_results(aggregation: dict, additional_pr
         if (remove_empty_items is not False) and (not group_items):
             return {}
         results = {"name": key, "value": value, "count": item_count, "items": group_items}
+
+        if not (isinstance(additional_field, str) and (additional_field := additional_field.strip())):
+            additional_field = None
 
         if isinstance(additional_properties, dict) and additional_properties:
             results = {**additional_properties, **results}

@@ -15,4 +15,4 @@ from .file import File
 class ReferenceFile(File):
     item_type = "reference_file"
     schema = load_schema("encoded:schemas/reference_file.json")
-    embedded_list = ["reference_genome.display_title"]
+    embedded_list = []

@@ -248,7 +248,11 @@ const loadStateData = {
 const getDateString = (string) => {
     if (!string) return null;
 
-    const date = new Date(string);
+    /**
+     * Replace '-' with '/' for Safari compatibility, must have timezone
+     * specified to avoid conflicts with UTC midnight time
+     */
+    const date = new Date(string.replace(/-/g, '/'));
 
     const options = {
         year: 'numeric',
@@ -303,7 +307,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
     }, [isError]);
 
     return (
-        <div className="container">
+        <div className="container timeline-container">
             <div id="timeline" className={`tier-${currentTier}`}>
                 <span className="latest-release">
                     <b>Latest Release: </b>
