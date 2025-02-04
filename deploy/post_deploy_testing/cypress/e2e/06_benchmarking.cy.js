@@ -76,6 +76,8 @@ describe('Benchmarking Layout Test', function () {
 
                                     cy.title().should('equal', `${titleText} – SMaHT Data Portal`).end();
 
+                                    Cypress.log({name: 'Page Title', message: titleText});
+                                    // Since COLO829 SNV/Indel Detection Challenge has a different layout, we need to handle it differently
                                     if (titleText !== 'COLO829 SNV/Indel Detection Challenge') {
                                         //This tests a toggle button that collapses and expands.
                                         cy.get('.benchmarking-layout .information-container button.toggle-information-text-button')
@@ -138,13 +140,17 @@ describe('Benchmarking Layout Test', function () {
 
                                         });
                                     } else {
-                                        // cy.wait(2000).get('.search-results-container .search-result-row .search-result-column-block input[type="checkbox"]').should('be.greaterThan', 0);
+                                        cy
+                                            .get('.search-results-container.fully-loaded')
+                                            .should('be.visible').end()
+                                            .get('.search-results-container .search-result-row .search-result-column-block input[type="checkbox"]')
+                                            .should('have.length.greaterThan', 0);
                                     }
 
                                     count++;
                                     if (count < $listItems.length) {
                                         cy.get(dataNavBarItemSelectorStr).click().should('have.class', 'dropdown-open-for').then(() => {
-                                            cy.get(`div.big-dropdown-menu a[href="${escapeElementWithNumericId(allLinkElementHREFs[count])}"]`).wait(1000).click({ force: true })
+                                            cy.get(`div.big-dropdown-menu a[href="${escapeElementWithNumericId(allLinkElementHREFs[count])}"]`).click({ force: true })
                                                 .then(($nextListItem) => {
                                                     const linkHref = $nextListItem.attr('href');
                                                     cy.location('pathname').should('equal', linkHref);
@@ -155,7 +161,7 @@ describe('Benchmarking Layout Test', function () {
                                 });
                         }
 
-                        cy.wrap($listItems.eq(0)).should('be.visible').click({ force: true }).then(($linkElem) => {
+                        cy.wrap($listItems.last()).should('be.visible').click({ force: true }).then(($linkElem) => {
                             const linkHref = $linkElem.attr('href');
                             cy.location('pathname').should('equal', linkHref);
                             testVisit();
