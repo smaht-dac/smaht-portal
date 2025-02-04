@@ -1826,6 +1826,14 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 	.table-container {
 		overflow-x: auto;
 		overflow-y: hidden;
+		&::-webkit-scrollbar {
+			height: 8px;
+			background-color: white;
+		}
+		&::-webkit-scrollbar-thumb {
+			border-radius: 5px;
+			background-color: gray;
+		}
 	}
 
 	.stackrow {
@@ -1837,7 +1845,7 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 				content: "";
 				display: block;
 				height: 200px;
-				width: 118px;
+				width: 130px;
 				background-color: white;
 				overflow: hidden;
 				position: absolute;
@@ -1910,7 +1918,7 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 			&-body {
 				display: flex;
 				flex-direction: column;
-				padding: 0px 30px 30px 0px;
+				padding: 0px 30px 10px 0px;
 
 				& > .stackrow-row {
 					display: flex;
@@ -1926,53 +1934,54 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 						z-index: 2;
 						display: flex;
 						height: 50px;
-						width: 120px;
+						width: 130px;
 						padding-left: 20px;
 						border-left: 10px solid;
 						border-style: none none none solid;
+						border-right: 4px solid rgba(238, 238, 238, 0.8);
 	
 						&[data-row-title="BCM-GCC"] {
-							border-color: $gcc-color;
+							border-left-color: $gcc-color;
 							background-color: #F8F8F8;
 						}
 						&[data-row-title="Broad"] {
-							border-color: $gcc-color;
+							border-left-color: $gcc-color;
 							background-color: white;
 						}
 						&[data-row-title="NYGC"] {
-							border-color: $gcc-color;
+							border-left-color: $gcc-color;
 							background-color: #F8F8F8;
 						}
 						&[data-row-title="UW"] {
-							border-color: $gcc-color;
+							border-left-color: $gcc-color;
 							background-color: white;
 						}
 						&[data-row-title="WashU"] {
-							border-color: $gcc-color;
+							border-left-color: $gcc-color;
 							background-color: #F8F8F8;
 						}
 						&[data-row-title="BCM-TTD"] {
-							border-color: $ttd-color;
+							border-left-color: $ttd-color;
 							background-color: white;
 						}
 						&[data-row-title="UMich"] {
-							border-color: $ttd-color;
+							border-left-color: $ttd-color;
 							background-color: #F8F8F8;
 						}
 						&[data-row-title="BCH"] {
-							border-color: $ttd-color;
+							border-left-color: $ttd-color;
 							background-color: white;
 						}
 						&[data-row-title="NYU"] {
-							border-color: $ttd-color;
+							border-left-color: $ttd-color;
 							background-color: #F8F8F8;
 						}
 						&[data-row-title="Weill"] {
-							border-color: $ttd-color;
+							border-left-color: $ttd-color;
 							background-color: white;
 						}
 						&[data-row-title="UMC"] {
-							border-color: $ttd-color;
+							border-left-color: $ttd-color;
 							background-color: #F8F8F8;
 						}
 
