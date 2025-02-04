@@ -194,7 +194,7 @@ def _get_first_date_of_month(day: Optional[Union[datetime, date, str]] = None) -
     datetime; if the given argument is unspecified or incorrect then assumes "today".
     """
     if not (day := parse_datetime_string(day, notz=True)):
-        day = datetime.today().replace(tzinfo=None)
+        day = _get_today()
     return day.replace(day=1)
 
 
@@ -205,7 +205,7 @@ def _get_last_date_of_month(day: Optional[Union[datetime, date, str]] = None) ->
     datetime; if the given argument is unspecified or incorrect then assumes "today".
     """
     if not (day := parse_datetime_string(day)):
-        day = datetime.today().replace(tzinfo=None)
+        day = _get_today()
     return datetime(day.year, day.month, calendar.monthrange(day.year, day.month)[1])
 
 
@@ -217,7 +217,7 @@ def _add_months(day: Optional[Union[datetime, date, str]] = None, nmonths: int =
     is unspecified or incorrect then assumes "today".
     """
     if not (day := parse_datetime_string(day, notz=True)):
-        day = datetime.today().replace(tzinfo=None)
+        day = _get_today()
     if isinstance(nmonths, int) and (nmonths != 0):
         return day + relativedelta(months=nmonths)
     return day
@@ -276,3 +276,7 @@ def get_properties(data: dict, name: str, fallback: Optional[Any] = None, sort: 
                         return sorted(values) if (sort is True) else values
                 break
     return fallback if isinstance(fallback, list) else ([] if fallback is None else [fallback])
+
+
+def _get_today():
+    return datetime.today().replace(tzinfo=None)

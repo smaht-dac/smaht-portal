@@ -62,7 +62,7 @@ export const BenchmarkingUINav = (props) => {
     });
 
     return (
-        <>
+        <div className="sidebar-nav-body">
             <div className="benchmarking-nav-section">
                 <div className="benchmarking-nav-section-title text-small text-600">
                     Cell Line Data
@@ -92,7 +92,7 @@ export const BenchmarkingUINav = (props) => {
                     />
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 
