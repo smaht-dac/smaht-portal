@@ -60,6 +60,21 @@ describe('Browse Views - Basic Tests', function () {
             });
         });
 
+        it('Tests the expanding and collapsing of the toggle button.', function () {
+            cy.get('.sliding-sidebar-nav-container .toggle-button')
+                .click({ force: true })
+                .should('have.attr', 'aria-expanded', 'true')
+                .get('.sliding-sidebar-ui-container').should('have.class', 'show-nav').end()
+                .get('.sliding-sidebar-nav-container .toggle-button')
+                .click({ force: true })
+                .should('have.attr', 'aria-expanded', 'false')
+                .get('.sliding-sidebar-ui-container').should('have.class', 'collapse-nav').end();
+        });
+
+        // TODO: Add facet filtering test when we have more data to test with.
+
+        // TODO: Add file download test when we have more data to test with.
+
     });
 
 
