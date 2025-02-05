@@ -1229,8 +1229,6 @@ def assert_release_tracker_description_matches_expected(file: Dict[str, Any], es
     file_format = item_utils.get_display_title(
         file_utils.get_file_format(file)
     )
-    if "override_release_tracker_description" in file:
-        description_from_calcprops=f"{file_utils.get_override_release_tracker_description(file)} {file_format}"
     if "file_sets" in file:
         assay_from_calcprop = item_utils.get_display_title(
             file_utils.get_assays(file)[0]
@@ -1241,6 +1239,8 @@ def assert_release_tracker_description_matches_expected(file: Dict[str, Any], es
             )
         )                 
         description_from_calcprops=f"{assay_from_calcprop} {sequencer_from_calcprop} {file_format}"
+    if "override_release_tracker_description" in file:
+        description_from_calcprops=f"{file_utils.get_override_release_tracker_description(file)} {file_format}"
     assert release_tracker_description == description_from_calcprops
    
     
