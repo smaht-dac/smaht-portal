@@ -30,7 +30,6 @@ from snovault.search.search import search as snovault_search
 from snovault.search.search_utils import make_search_subreq as snovault_make_search_subreq
 
 QUERY_FILE_TYPES = ["OutputFile", "SubmittedFile"]
-QUERY_FILE_TYPES = ["OutputFile"]
 QUERY_FILE_STATUSES = ["released"]
 QUERY_FILE_CATEGORIES = ["!Quality Control"]
 QUERY_RECENT_MONTHS = 3
@@ -92,6 +91,7 @@ def recent_files_summary(request: PyramidRequest,
     max_buckets = request_arg_bool(request, "max_buckets", AGGREGATION_MAX_BUCKETS)
     include_missing = request_arg_bool(request, "include_missing", request_arg_bool(request, "novalues"))
     exclude_tissue_info = request_arg_bool(request, "exclude_tissue_info")
+    exclude_submitted_file = request_arg_bool(request, "exclude_submitted_file")
     tissue_info_property_name = request_arg(request, "tissue_info_property_name", "sample_summary.tissues")
     multi = request_arg_bool(request, "multi")
     nosort = request_arg_bool(request, "nosort")
@@ -117,10 +117,14 @@ def recent_files_summary(request: PyramidRequest,
     def create_base_query_arguments(request: PyramidRequest) -> dict:
 
         global QUERY_FILE_CATEGORIES, QUERY_FILE_STATUSES, QUERY_FILE_TYPES
+        nonlocal exclude_submitted_file
 
         types = request_args(request, "type", QUERY_FILE_TYPES)
         statuses = request_args(request, "status", QUERY_FILE_STATUSES)
         categories = request_args(request, "category", QUERY_FILE_CATEGORIES)
+
+        if exclude_submitted_file and ("SubmittedFile" in types):
+            types.remove("SubmittedFile")
 
         base_query_arguments = {
             "type": types if types else None,
