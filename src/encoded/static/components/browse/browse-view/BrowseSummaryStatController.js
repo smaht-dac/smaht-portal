@@ -16,7 +16,6 @@ export const BrowseSummaryStatController = (props) => {
     const [units, setUnits] = useState('');
 
     const callbackFxn = useCallback((resp) => {
-        // Use search for File count total and File Size total
         const { facets = [], total } = resp;
         if (type === 'File Size') {
             facets.forEach((facet) => {
@@ -78,7 +77,7 @@ export const BrowseSummaryStatController = (props) => {
         if (!loading) setLoading(true);
         if (error) setError(false);
 
-        // Use search for more complicated query-based metrics
+        // Use search for query-based metrics
         ajax.load(
             `/search/?type=File&sample_summary.studies=Production&format=json&status=released${additionalSearchQueries}`,
             callbackFxn,
