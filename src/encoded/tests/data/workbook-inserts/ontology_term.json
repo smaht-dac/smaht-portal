@@ -6,7 +6,8 @@
         "title": "liver",
         "consortia": [
             "smaht"
-        ]
+        ],
+        "preferred_name": "Liver"
     },
     {
         "uuid": "f2f84da1-59db-41f3-8268-81d415146815",
@@ -15,7 +16,8 @@
         "title": "lung",
         "consortia": [
             "smaht"
-        ]
+        ],
+        "preferred_name": "Lung"
     },
     {
         "uuid": "8cb0c4e5-af9e-44c6-b625-ea489c715dc6",
