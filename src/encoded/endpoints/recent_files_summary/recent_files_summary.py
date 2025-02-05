@@ -20,6 +20,8 @@ from encoded.endpoints.recent_files_summary.recent_files_summary_fields import (
         AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR,
         AGGREGATION_FIELD_CELL_MIXTURE,
         AGGREGATION_FIELD_DONOR,
+        AGGREGATION_FIELD_DSA_DONOR,
+        AGGREGATION_FIELD_CELL_LINE,
         AGGREGATION_FIELD_FILE_DESCRIPTOR)
 from encoded.endpoints.recent_files_summary.recent_files_summary_troubleshooting import (
         add_info_for_troubleshooting,
