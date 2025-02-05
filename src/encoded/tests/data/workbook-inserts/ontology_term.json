@@ -7,7 +7,11 @@
         "consortia": [
             "smaht"
         ],
-        "preferred_name": "Liver"
+        "preferred_name": "Liver",
+        "tags":[
+            "test_terms",
+            "test_top_terms-Liver"
+        ]
     },
     {
         "uuid": "f2f84da1-59db-41f3-8268-81d415146815",
@@ -29,6 +33,10 @@
         "grouping_term": "UBERON:0002048",
         "consortia": [
             "smaht"
+        ],
+        "tags":[
+            "test_terms",
+            "test_top_terms-Lung"
         ]
     },
     {

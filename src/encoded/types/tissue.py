@@ -8,6 +8,8 @@ from .sample_source import SampleSource
 def _build_tissue_embedded_list() -> List[str]:
     return [
         "donor.external_id",
+        "uberon_id.identifier",
+        "uberon_id.grouping_term",
     ]
 
 
