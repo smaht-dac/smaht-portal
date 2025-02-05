@@ -1225,20 +1225,22 @@ def test_release_tracker_description(es_testapp: TestApp, workbook: None) -> Non
 def assert_release_tracker_description_matches_expected(file: Dict[str, Any], es_testapp: TestApp):
     """Assert release_tracker_description calcprop matches expected."""
 
-    release_tracker_description = file_utils. get_release_tracker_description(file)
-
-    assay_from_calcprop = item_utils.get_display_title(
-        file_utils.get_assays(file)[0]
-    )
-    sequencer_from_calcprop = item_utils.get_display_title(
-        sequencing_utils.get_sequencer(
-            file_utils.get_sequencings(file)[0]
-        )
-    )
+    release_tracker_description = file_utils.get_release_tracker_description(file)
     file_format = item_utils.get_display_title(
         file_utils.get_file_format(file)
-    )                          
-    description_from_calcprops=f"{assay_from_calcprop} {sequencer_from_calcprop} {file_format}"
+    )
+    if "override_release_tracker_description" in file:
+        description_from_calcprops=f"{file_utils.get_override_release_tracker_description(file)} {file_format}"
+    if "file_sets" in file:
+        assay_from_calcprop = item_utils.get_display_title(
+            file_utils.get_assays(file)[0]
+        )
+        sequencer_from_calcprop = item_utils.get_display_title(
+            sequencing_utils.get_sequencer(
+                file_utils.get_sequencings(file)[0]
+            )
+        )                 
+        description_from_calcprops=f"{assay_from_calcprop} {sequencer_from_calcprop} {file_format}"
     assert release_tracker_description == description_from_calcprops
    
     
