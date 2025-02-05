@@ -100,7 +100,7 @@ describe('Benchmarking Layout Test', function () {
                                                     .should('have.class', 'active');
 
                                                 // Wait for the spinner to disappear before checking results count
-                                                cy.get('.search-results-container i.icon-spin').should('not.exist');
+                                                cy.get('.tab-pane.active .search-results-outer-container').should('have.attr', 'data-context-loading', 'false').end();
 
                                                 // Ensure the active link in the sidebar matches the tab's path
                                                 cy.get('.sliding-sidebar-nav-container .accordion .sidenav-link.active a').should(($activeLink) => {
