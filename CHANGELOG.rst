@@ -12,9 +12,10 @@ Change Log
 * 2025-02-05 / dmichaels
   - Branch: dmichaels-20250130-release-tracker-api-add-submitted-file | PR-337
     - Dervived from branch: main (commit: 8616c891bb93001d756f5a7eb6cbe0910d74780c)
-    - With merged in branch: sn_dsa_embed (src/encoded/types/supplementary_file.py)
-  - Added support for additional SubmittedFile type to release track API i.e. /recent_released_files.
-
+    - With merged in branch: sn_dsa_embed
+  - Added support for additional SubmittedFile type to release tracker API i.e. /recent_released_files.
+    This requires that the new File.override_release_tracker_description property be populated for affected types;
+    the calculated property release_tracker_description will depend on this (TODO: how is that populated).
 
 0.133.2
 =======
