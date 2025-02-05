@@ -167,7 +167,11 @@ export class BrowseViewBody extends React.PureComponent {
                                     additionalSearchQueries="&sample_summary.studies=Production"
                                 />
                                 <BrowseSummaryStatController type="Donor" />
-                                <BrowseSummaryStatController type="Tissue" />
+                                <BrowseSummaryStatController
+                                    type="Tissue"
+                                    useSearch
+                                    additionalSearchQueries="&sample_summary.studies=Production&additional_facet=file_sets.libraries.analytes.samples.sample_sources.uberon_id"
+                                />
                                 <BrowseSummaryStatController type="Assay" />
                                 <BrowseSummaryStatController
                                     type="File Size"

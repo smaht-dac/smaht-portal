@@ -16,7 +16,7 @@ export const BrowseSummaryStatController = (props) => {
     const [units, setUnits] = useState('');
 
     const postData = {
-        type: type !== 'File Size' ? type : 'File',
+        type: type === 'File Size' || type === 'Tissue' ? 'File' : type,
         status: 'released',
     };
 
@@ -57,6 +57,15 @@ export const BrowseSummaryStatController = (props) => {
                 });
             } else if (type === 'File') {
                 setValue(total);
+            } else if (type === 'Tissue') {
+                facets.forEach((facet) => {
+                    if (
+                        facet.field ===
+                        'file_sets.libraries.analytes.samples.sample_sources.uberon_id'
+                    ) {
+                        setValue(facet.terms.length);
+                    }
+                });
             }
         }
         setLoading(false);
