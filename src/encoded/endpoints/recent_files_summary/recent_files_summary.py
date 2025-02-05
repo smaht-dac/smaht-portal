@@ -29,6 +29,7 @@ from encoded.endpoints.recent_files_summary.recent_files_summary_troubleshooting
 from snovault.search.search import search as snovault_search
 from snovault.search.search_utils import make_search_subreq as snovault_make_search_subreq
 
+QUERY_FILE_TYPES = ["OutputFile", "SubmittedFile"]
 QUERY_FILE_TYPES = ["OutputFile"]
 QUERY_FILE_STATUSES = ["released"]
 QUERY_FILE_CATEGORIES = ["!Quality Control"]

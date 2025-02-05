@@ -7,11 +7,12 @@
 AGGREGATION_FIELD_RELEASE_DATE = "file_status_tracking.released"
 AGGREGATION_FIELD_CELL_MIXTURE = "file_sets.libraries.analytes.samples.sample_sources.code"
 AGGREGATION_FIELD_DONOR = "donors.display_title"
-AGGREGATION_FIELD_DSA_DONOR = "donor_specific_assembly.donors,display_title"  # 2025-02-04
+AGGREGATION_FIELD_DSA_DONOR = "donor_specific_assembly.donors.display_title"  # 2025-02-04
 AGGREGATION_FIELD_CELL_LINE = "file_sets.libraries.analytes.samples.sample_sources.cell_line.code"  # unused by default
 AGGREGATION_FIELD_FILE_DESCRIPTOR = "release_tracker_description"
 
 AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR = [
     AGGREGATION_FIELD_CELL_MIXTURE,
-    AGGREGATION_FIELD_DONOR
+    AGGREGATION_FIELD_DONOR,
+    AGGREGATION_FIELD_DSA_DONOR
 ]
