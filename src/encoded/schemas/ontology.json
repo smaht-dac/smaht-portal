@@ -1,12 +1,11 @@
 {
-    "title": "Ontology Term",
-    "$id": "/profiles/ontology_term.json",
+    "title": "Ontology",
+    "$id": "/profiles/ontology.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
         "identifier",
-        "title",
-        "ontologies"
+        "title"
     ],
     "anyOf": [
         {
@@ -32,9 +31,6 @@
         },
         {
             "$ref": "mixins.json#/attribution"
-        },
-        {
-            "$ref": "mixins.json#/description"
         },
         {
             "$ref": "mixins.json#/identifier"
@@ -65,11 +61,8 @@
         }
     ],
     "properties": {
-        "identifier": {
-            "pattern": "^[A-Z]+:[0-9]+$"
-        },
         "title": {
-            "description": "Title of the ontology term"
+            "description": "Title of the ontology"
         },
         "schema_version": {
             "default": "1"
@@ -83,26 +76,8 @@
                 "deleted"
             ]
         },
-        "description": {
-            "description": "Description of the ontology term"
-        },
-        "ontologies": {
-            "title": "Ontologies",
-            "description": "Ontologies that this term is a part of",
-            "type": "array",
-            "items": {
-                "type": "string",
-                "linkTo": "Ontology"
-            }
-        },
         "url": {
-            "description": "The url that uniquely identifies term - often purl."
-        },
-        "grouping_term": {
-            "title": "Grouping Term",
-            "description": "Ontology term that this term is grouped under - less specific term used in search",
-            "type": "string",
-            "linkTo": "OntologyTerm"
+            "description": "An external link to information about the ontology."
         }
     }
 }

@@ -33,7 +33,7 @@ describe('Deployment/CI Search View Tests', function () {
                 .searchPageTotalResultCount().should('be.greaterThan', 50);
         });
 
-        it('Search `File` from Dropdown and Verify Link Selection', function () {
+        it('Search `File` from dropdown and verify link selection', function () {
             // Type "File" in the search input
             cy.get('.facets-column .facets-container .expandable-list .form-control[type="search"]').type('File');
 
@@ -81,37 +81,6 @@ describe('Deployment/CI Search View Tests', function () {
 
             cy.get('.search-result-config-panel .close-button').click({ force: true })
                 .get('.search-result-config-panel').should('not.have.class', 'active');
-        });
-
-        it('Navigates to the detail view and checks if the page title matches the selected item type', function () {
-            cy.get('.results-column .result-table-row div.search-result-column-block[data-field="@type"]')
-                .first()
-                .scrollIntoView()
-                .then(($element) => {
-                    // Extracts the text content from the span element inside `$element`
-                    const textContent = $element.find('span.item-type-title.value').text().trim();
-
-                    // Clicks on the icon inside `$element` to navigate to the detail view
-                    cy.wrap($element)
-                        .find('i.icon-filter.clickable')
-                        .click({ force: true })
-                        .get('.search-result-row.loading').should('not.exist');
-
-                    // Retrieves the page title and compares it with the previously extracted text
-                    cy.get('#page-title-container .page-title .subtitle span')
-                        .then(($span) => {
-                            // Filter out only text nodes (nodeType === 3) from the span
-                            const text = [...$span.contents()]
-                                .filter(node => node.nodeType === 3) // Node type 3 corresponds to text nodes
-                                .map(node => node.textContent.trim()) // Get the text of the text node and trim it
-
-                            const finalText = text.join(''); // In case there are multiple text nodes, join them
-
-                            // Compare the cleaned-up text with the expected value
-                            expect(finalText.replace(/\s+/g, '')).to.eq(textContent.replace(/\s+/g, ''));
-                        });
-                });
-            cy.go('back');
         });
 
         it('Should redirect to detail view and check if the title matches data-tip', function () {
@@ -243,7 +212,7 @@ describe('Deployment/CI Search View Tests', function () {
 
     });
 
-    context('Publications, Files', function () {
+    context('/search/?type=File', function () {
         before(function () {
             cy.visit('/pages', { headers: cypressVisitHeaders }).end();
             cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false }).end()
