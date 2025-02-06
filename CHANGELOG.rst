@@ -11,11 +11,23 @@ Change Log
 =======
 * 2025-02-05 / dmichaels
   - Branch: dmichaels-20250130-release-tracker-api-add-submitted-file | PR-337
-    - Dervived from branch: main (commit: 8616c891bb93001d756f5a7eb6cbe0910d74780c)
+    - Derived from branch: main (commit: 8616c891bb93001d756f5a7eb6cbe0910d74780c)
     - With merged in branch: sn_dsa_embed
   - Added support for additional SubmittedFile type to release tracker API i.e. /recent_released_files.
     This requires that the new File.override_release_tracker_description property be populated for affected types;
     the calculated property release_tracker_description will depend on this (TODO: how is that populated).
+
+
+0.133.3
+=======
+`PR 336 Cypress test updates <https://github.com/smaht-dac/smaht-portal/pull/336>`
+
+* Home page: added new tests for Data Release Tracker and Announcements feeds
+* Home page: updated benchmarking/broduction expand/collapse panels
+* Benchmarking: updated traversing tabs, sidebar navigation
+* Benchmarking: added COLO829 SNV/Indel Detection Challenge tests
+* Browse View: added new tests for results table and quick info bar
+
 
 0.133.2
 =======
