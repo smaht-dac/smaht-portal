@@ -38,7 +38,7 @@
         ],
         "submitted_id": "TEST_TISSUE_BRAIN",
         "external_id": "SMHT001-3AJ",
-        "donor": "TEST_DONOR_MALE",
+        "donor": "TEST_DONOR_FEMALE",
         "uberon_id": "UBERON:0000955",
         "anatomical_location": "Brain",
         "weight": 3.4,
