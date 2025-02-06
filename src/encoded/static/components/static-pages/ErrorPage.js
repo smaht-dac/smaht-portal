@@ -16,19 +16,24 @@ export default class ErrorPage extends React.PureComponent {
                 <div>
                     <h3>
                         The account you provided is not valid.{' '}
-                        <a href="/" className="link-underline-hover">Return</a> to the homepage.
+                        <a href="/" className="link-underline-hover">
+                            Return
+                        </a>{' '}
+                        to the homepage.
                     </h3>
                     <h5>
                         Please note: our authentication system will
                         automatically attempt to log you in through your
                         selected provider if you are already logged in there. If
-                        you have an account with 4DN, please make sure that you
-                        are logged in to the provider (e.g. google) with the
+                        you have an account with SMaHT, please make sure that
+                        you are logged in to the provider (e.g. google) with the
                         matching email address.
                     </h5>
-                    <h5>Access is restricted to 4DN consortium members.</h5>
+                    <h5>Access is restricted to SMaHT consortium members.</h5>
                     <h5>
-                        <a href="mailto:4DN.DCIC.support@hms-dbmi.atlassian.net" className="link-underline-hover">
+                        <a
+                            href="mailto:smhelp@hms-dbmi.atlassian.net"
+                            className="link-underline-hover">
                             Request an account.
                         </a>
                     </h5>
@@ -44,7 +49,10 @@ export default class ErrorPage extends React.PureComponent {
                     {
                         "The page you've requested does not exist or you have found an error."
                     }{' '}
-                    <a href="/" className="link-underline-hover">Return</a> to the homepage.
+                    <a href="/" className="link-underline-hover">
+                        Return
+                    </a>{' '}
+                    to the homepage.
                 </h3>
             );
         }
@@ -77,7 +85,10 @@ const HTTPNotFoundView = React.memo(function (props) {
                 {"The page you've requested does not exist."}
             </h4>
             <p className="mb-0 mt-0">
-                <a href="/" className="link-underline-hover">Return</a> to the homepage.
+                <a href="/" className="link-underline-hover">
+                    Return
+                </a>{' '}
+                to the homepage.
             </p>
         </ErrorContainer>
     );
@@ -91,11 +102,19 @@ const HTTPForbiddenView = React.memo(function HTTPForbiddenView(props) {
             </h4>
             <p className="mb-0 mt-0">
                 If you have an account, please try logging in or return to the{' '}
-                <a href="/" className="link-underline-hover">homepage</a>.
+                <a href="/" className="link-underline-hover">
+                    homepage
+                </a>
+                .
                 <br />
                 For instructions on how to set up an account, please visit the
                 help page for{' '}
-                <a href="/help/account-creation" className="link-underline-hover">Creating an Account</a>.
+                <a
+                    href="/docs/access/creating-an-account"
+                    className="link-underline-hover">
+                    Creating an Account
+                </a>
+                .
             </p>
         </ErrorContainer>
     );

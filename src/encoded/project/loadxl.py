@@ -20,6 +20,7 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
         "filter_set",
         "higlass_view_config",
         "ingestion_submission",
+        "ontology",
         "ontology_term",
         "protocol",
         "donor",
