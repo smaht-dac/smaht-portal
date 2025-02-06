@@ -4,7 +4,7 @@ from .pathology_report import PathologyReport
 
 
 @collection(
-    name="non_brain-pathology-reports",
+    name="non-brain-pathology-reports",
     unique_key="submitted_id",
     properties={
         "title": "Non-Brain Pathology Reports",

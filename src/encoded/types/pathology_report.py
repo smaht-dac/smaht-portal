@@ -1,9 +1,9 @@
-from snovault import collection, load_schema
+from snovault import abstract_collection, load_schema
 
 from .submitted_item import SubmittedItem
 
 
-@collection(
+@abstract_collection(
     name="pathology-reports",
     unique_key="submitted_id",
     properties={

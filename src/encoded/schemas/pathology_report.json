@@ -70,22 +70,7 @@
         "anatomical_sample_location": {
             "title": "Anatomical Sample Location",
             "description": "Anatomical location from which the sample was taken",
-            "type": "string",
-            "enum": [
-                "Cerebellum Left Hemisphere",
-                "Frontal Lobe Left Hemisphere",
-                "Hippocampus Left Hemisphere",
-                "Hippocampus Right Hemisphere",
-                "Temporal Lobe Left Hemisphere",
-                "Left Adrenal",
-                "Right Adrenal",
-                "Skin Calf",
-                "Skin Abdomen",
-                "Left Ovary",
-                "Right Ovary",
-                "Left Testis",
-                "Right Testis"
-            ]
+            "type": "string"
         },
         "final_review_determination": {
             "title": "Final Review Determination",
@@ -179,22 +164,7 @@
                     "finding_type": {
                         "title": "Pathologic Finding Type",
                         "description": "Type of pathologic/unexpected finding present in the sample",
-                        "type": "string",
-                        "enum": [
-                            "Inflammation",
-                            "Metaplasia",
-                            "Neoplasia/Tumor/Carcinoma",
-                            "Other",
-                            "Artifacts",
-                            "Developmental Neuropathology",
-                            "Infectious Neuropathology",
-                            "Inflammatory Neuropathology",
-                            "Metabolic Neuropathology",
-                            "Neoplastic Neuropathology",
-                            "Neurodegenerative Neuropathology",
-                            "Traumatic Brain Injury Neuropathology",
-                            "Vascular Neuropathology"
-                        ]
+                        "type": "string"
                     },
                     "finding_present": {
                         "title": "Pathologic Finding Present",
@@ -234,22 +204,7 @@
         "tissue_name": {
             "title": "Tissue Name",
             "description": "Name of the type of tissue the sample was taken from",
-            "type": "string",
-            "enum": [
-                "Brain",
-                "Adrenal",
-                "Aorta",
-                "Ascending Colon",
-                "Descending Colon",
-                "Esophagus",
-                "Heart Ventricle",
-                "Liver",
-                "Lung",
-                "Muscle",
-                "Ovary",
-                "Skin",
-                "Testis"
-            ]
+            "type": "string"
         },
         "target_tissues": {
             "title": "Target Tissues",

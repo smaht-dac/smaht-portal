@@ -66,8 +66,6 @@
             "pattern": "^[A-Z0-9]{3,}_NON-BRAIN-PATHOLOGY-REPORT_[A-Z0-9-_.]{4,}$"
         },
         "anatomical_sample_location": {
-            "title": "Anatomical Sample Location",
-            "description": "Anatomical location from which the sample was taken",
             "type": "string",
             "enum": [
                 "Left Adrenal",
@@ -92,41 +90,16 @@
                 ],
                 "properties": {
                     "non_target_tissue_subtype": {
-                        "title": "Non-Target Tissue Subtype",
-                        "description": "Subtype of non-target tissue in sample",
-                        "type": "string",
-                        "enum": [
-                            "Fibroadipose",
-                            "Lymphoid",
-                            "Other",
-                            "Epididymis",
-                            "Rete testes"
-                        ]
+                        "$merge": "pathology_report.json#/properties/non_target_tissues/items/properties/non_target_tissue_subtype"
                     },
                     "non_target_tissue_present": {
-                        "title": "Non-Target Tissue Present",
-                        "description": "Whether the non-target tissue subtype was present in the sample",
-                        "type": "string",
-                        "enum": [
-                            "Yes",
-                            "No"
-                        ]
+                        "$merge": "pathology_report.json#/properties/non_target_tissues/items/properties/non_target_tissue_present"
                     },
                     "non_target_tissue_percentage": {
-                        "title": "Non-Target Tissue Subtype Percentage",
-                        "description": "Percentage range of the sample that was the non-target tissue subtype (%)",
-                        "type": "string",
-                        "enum": [
-                            "[0-10]",
-                            "[11-25]]",
-                            "[26-49]",
-                            "[50-100]"
-                        ]
+                        "$merge": "pathology_report.json#/properties/non_target_tissues/items/properties/non_target_tissue_percentage"
                     },
                     "non_target_tissue_description": {
-                        "title": "Non-Target Tissue Description",
-                        "description": "Description of other non-target tissue present in the sample",
-                        "type": "string"
+                        "$merge": "pathology_report.json#/properties/non_target_tissues/items/properties/non_target_tissue_description"
                     }
                 }
             }
@@ -143,8 +116,7 @@
                 ],
                 "properties": {
                     "finding_type": {
-                        "title": "Pathologic Finding Type",
-                        "description": "Type of pathologic/unexpected finding present in the sample",
+                        "$merge": "pathology_report.json#/properties/pathologic_findings/items/properties/finding_type",
                         "type": "string",
                         "enum": [
                             "Inflammation",
@@ -155,36 +127,18 @@
                         ]
                     },
                     "finding_present": {
-                        "title": "Pathologic Finding Present",
-                        "description": "Whether pathologic/unexpected finding is present in the sample",
-                        "type": "string",
-                        "enum": [
-                            "Yes",
-                            "No"
-                        ]
+                        "$merge": "pathology_report.json#/properties/pathologic_findings/items/properties/finding_present"
                     },
                     "finding_description": {
-                        "title": "Pathologic Finding Description",
-                        "description": "Description of pathologic/unexpected finding",
-                        "type": "string"
+                        "$merge": "pathology_report.json#/properties/pathologic_findings/items/properties/finding_description"
                     },
                     "finding_percentage": {
-                        "title": "Pathologic Finding Percentage",
-                        "description": "Percentage range of the sample that displayed the pathologic/unexpected finding (%)",
-                        "type": "string",
-                        "enum": [
-                            "[0-10]",
-                            "[11-25]]",
-                            "[26-49]",
-                            "[50-100]"
-                        ]
+                        "$merge": "pathology_report.json#/properties/pathologic_findings/items/properties/finding_percentage"
                     }
                 }
             }
         },
         "tissue_name": {
-            "title": "Tissue Name",
-            "description": "Name of the type of tissue the sample was taken from",
             "type": "string",
             "enum": [
                 "Adrenal",
@@ -214,8 +168,7 @@
                 ],
                 "properties": {
                     "target_tissue_subtype": {
-                        "title": "Target Tissue Subtype",
-                        "description": "Subtype of target tissue in sample",
+                        "$merge": "pathology_report.json#/properties/target_tissues/items/properties/target_tissue_subtype",
                         "type": "string",
                         "enum": [
                             "Cortex",
@@ -239,31 +192,13 @@
                         ]
                     },
                     "target_tissue_present": {
-                        "title": "Target Tissue Present",
-                        "description": "Whether the target tissue subtype was present in the sample",
-                        "type": "string",
-                        "enum": [
-                            "Yes",
-                            "No"
-                        ]
+                        "$merge": "pathology_report.json#/properties/target_tissues/items/properties/target_tissue_present"
                     },
                     "target_tissue_percentage": {
-                        "title": "Target Tissue Subtype Percentage",
-                        "description": "Percentage range of the sample that was the target tissue subtype (%)",
-                        "type": "string",
-                        "enum": [
-                            "[0-10]",
-                            "[11-25]]",
-                            "[26-49]",
-                            "[50-100]"
-                        ]
+                        "$merge": "pathology_report.json#/properties/target_tissues/items/properties/target_tissue_percentage"
                     },
                     "target_tissue_autolysis_score": {
-                        "title": "Target Tissue Autolysis Score",
-                        "description": "Autolysis score of the target tissue in the sample. 0=None, 1=mild , 2=moderate, 3=severe",
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 3
+                        "$merge": "pathology_report.json#/properties/target_tissues/items/properties/target_tissue_autolysis_score"
                     }
                 }
             }
