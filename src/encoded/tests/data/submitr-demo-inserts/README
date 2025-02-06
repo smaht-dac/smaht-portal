@@ -1,0 +1,25 @@
+This files are suitable (at least as of circa February 2025) for import into a locally running smaht-portal for
+some basic testing of smaht-submitr, per this load script: https://github.com/smaht-dac/submitr/blob/master/demo.sh
+
+Here is one way to load these files into smaht-portal, after it is up/running (i.e. make deploy1/deploy2):
+
+  pip install dmichaels-utils
+  hms-portal-update --ini development.ini --load src/encoded/tests/data/submitr-demo-inserts --verbose
+
+Your IDENTITY environment variable must be appropriately set (e.g. export IDENTITY=C4AppConfigSmahtWolf),
+and your current AWS credentials should be referring to the appropriate account (e.g. smaht-wolf/537626822796), 
+i.e. the same one used for running smaht-portal (i.e. via make deploy1/deploy2).  
+
+Here is one way (via bash) to generate these files in the first place, exporting (say) from
+staging (i.e. staging.smaht.org) to local files suitable for import (via above mechanism);
+this makes use of a script in the dmichaels-utils package referenced/installed above.
+
+  ENV=smaht-data
+  COUNT=1000
+  OUTPUT_DIR=/tmp/your_output_directory
+  TYPES=(assays donors file-formats preparation-kits quality-metrics sequencers sequencing software submission-centers users)
+  for TYPE in "${TYPES[@]}"; do
+      view-portal-object --env ${ENV} "/${TYPE}?limit=${COUNT}" --insert-files --verbose --force --output ${OUTPUT_DIR}
+  done
+
+The ENV variable (e.g. smaht-data) is the local name of the AWS environment from whic you wish to export data.

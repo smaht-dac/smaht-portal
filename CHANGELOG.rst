@@ -16,6 +16,7 @@ Change Log
   - Added support for additional SubmittedFile type to release tracker API i.e. /recent_released_files.
     This requires that the new File.override_release_tracker_description property be populated for affected types;
     the calculated property release_tracker_description will depend on this (TODO: how is that populated).
+  - Added src/encoded/tests/data/submitr-demo-inserts directory with files to import for demo.sh script in submitr repo.
 
 
 0.133.3

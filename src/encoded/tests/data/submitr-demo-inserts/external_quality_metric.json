@@ -1,0 +1,644 @@
+[
+    {
+        "qc_values": [
+            {
+                "tooltip": "L50 of contigs: the count of the smallest number of contigs whose total length makes up 50% of the assembly size",
+                "derived_from": "contig_l50",
+                "value": 8,
+                "key": " Contig L50"
+            },
+            {
+                "tooltip": "N50 of contigs: the sequence length of the shortest contig at 50% of the total assembly length (bp)",
+                "derived_from": "contig_n50",
+                "value": 130146602,
+                "key": "Contig N50"
+            },
+            {
+                "tooltip": "GC content of assembly excluding N (%)",
+                "derived_from": "gc_content",
+                "value": 40.78201139,
+                "key": "GC Content"
+            },
+            {
+                "tooltip": "Size of the largest contig in the assembly (bp)",
+                "derived_from": "largest_contig_size",
+                "value": 248314242,
+                "key": "Largest Contig Size"
+            },
+            {
+                "tooltip": "Number of contigs in the assembly",
+                "derived_from": "number_of_contigs",
+                "value": 37,
+                "key": "Number of Contigs"
+            },
+            {
+                "tooltip": "Number of scaffolds in the assembly",
+                "derived_from": "number_of_scaffolds",
+                "value": 9,
+                "key": "Number of Scaffolds"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with fragmented representation in the assembly (BUSCO)",
+                "derived_from": "percent_single_copy",
+                "value": 95.5,
+                "key": "Percent Single Copy"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with multiple copies present in the assembly (BUSCO)",
+                "derived_from": "percent_multi_copy",
+                "value": 0.65,
+                "key": "Percent Multiple Copy"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with fragmented representation in the assembly (BUSCO)",
+                "derived_from": "percent_fragmented",
+                "value": 0.34,
+                "key": "Percent Fragmented"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes that are missing from the assembly (BUSCO)",
+                "derived_from": "percent_missing",
+                "value": 3.14,
+                "key": "Percent Missing"
+            },
+            {
+                "tooltip": "Consensus quality value (QV) of the assembly (from Merqury)",
+                "derived_from": "quality_value",
+                "value": 62.8292,
+                "key": "Quality Value"
+            },
+            {
+                "tooltip": "L50 of scaffolds: the count of the smallest number of scaffolds whose total length makes up 50% of the assembly size",
+                "derived_from": "scaffold_l50",
+                "value": 8,
+                "key": "Scaffold L50"
+            },
+            {
+                "tooltip": " N50 of scaffolds: the sequence length of the shortest scaffold at 50% of the total assembly length (bp)",
+                "derived_from": "scaffold_n50",
+                "value": 134927773,
+                "key": "Scaffold N50"
+            },
+            {
+                "tooltip": "Total ungapped length of the assembly (bp)",
+                "derived_from": "total_ungapped_length",
+                "value": 2919634514,
+                "key": "Total Ungapped Length"
+            },
+            {
+                "tooltip": "Number of chromosomes in the assembly",
+                "derived_from": "number_of_chromosomes",
+                "value": 23,
+                "key": "Number of Chromosomes"
+            }
+        ],
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "accession": "SMAEQKRCC31I",
+        "category": [
+            "Donor Specific Assembly"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_EXTERNAL-QUALITY-METRIC_DSA_COLO829BL_3-HAP2",
+        "uuid": "6a05cb37-f3cf-483d-b86c-1b0e8853cbba",
+        "status": "in review"
+    },
+    {
+        "qc_values": [
+            {
+                "tooltip": "L50 of contigs: the count of the smallest number of contigs whose total length makes up 50% of the assembly size",
+                "derived_from": "contig_l50",
+                "value": 9,
+                "key": " Contig L50"
+            },
+            {
+                "tooltip": "N50 of contigs: the sequence length of the shortest contig at 50% of the total assembly length (bp)",
+                "derived_from": "contig_n50",
+                "value": 129512034,
+                "key": "Contig N50"
+            },
+            {
+                "tooltip": "GC content of assembly excluding N (%)",
+                "derived_from": "gc_content",
+                "value": 40.83249694,
+                "key": "GC Content"
+            },
+            {
+                "tooltip": "Size of the largest contig in the assembly (bp)",
+                "derived_from": "largest_contig_size",
+                "value": 200088031,
+                "key": "Largest Contig Size"
+            },
+            {
+                "tooltip": "Number of contigs in the assembly",
+                "derived_from": "number_of_contigs",
+                "value": 35,
+                "key": "Number of Contigs"
+            },
+            {
+                "tooltip": "Number of scaffolds in the assembly",
+                "derived_from": "number_of_scaffolds",
+                "value": 10,
+                "key": "Number of Scaffolds"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with fragmented representation in the assembly (BUSCO)",
+                "derived_from": "percent_single_copy",
+                "value": 98.84,
+                "key": "Percent Single Copy"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with multiple copies present in the assembly (BUSCO)",
+                "derived_from": "percent_multi_copy",
+                "value": 0.69,
+                "key": "Percent Multiple Copy"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with fragmented representation in the assembly (BUSCO)",
+                "derived_from": "percent_fragmented",
+                "value": 0.34,
+                "key": "Percent Fragmented"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes that are missing from the assembly (BUSCO)",
+                "derived_from": "percent_missing",
+                "value": 0.12,
+                "key": "Percent Missing"
+            },
+            {
+                "tooltip": "Consensus quality value (QV) of the assembly (from Merqury)",
+                "derived_from": "quality_value",
+                "value": 61.6001,
+                "key": "Quality Value"
+            },
+            {
+                "tooltip": "L50 of scaffolds: the count of the smallest number of scaffolds whose total length makes up 50% of the assembly size",
+                "derived_from": "scaffold_l50",
+                "value": 8,
+                "key": "Scaffold L50"
+            },
+            {
+                "tooltip": " N50 of scaffolds: the sequence length of the shortest scaffold at 50% of the total assembly length (bp)",
+                "derived_from": "scaffold_n50",
+                "value": 146995301,
+                "key": "Scaffold N50"
+            },
+            {
+                "tooltip": "Total ungapped length of the assembly (bp)",
+                "derived_from": "total_ungapped_length",
+                "value": 2997805701,
+                "key": "Total Ungapped Length"
+            },
+            {
+                "tooltip": "Number of chromosomes in the assembly",
+                "derived_from": "number_of_chromosomes",
+                "value": 23,
+                "key": "Number of Chromosomes"
+            }
+        ],
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "accession": "SMAEQ9CEG8EB",
+        "category": [
+            "Donor Specific Assembly"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_EXTERNAL-QUALITY-METRIC_DSA_COLO829BL_3-HAP1",
+        "uuid": "f6a31f7a-4883-437e-948f-35fe1b43c6c8",
+        "status": "in review"
+    },
+    {
+        "qc_values": [
+            {
+                "tooltip": "L50 of contigs: the count of the smallest number of contigs whose total length makes up 50% of the assembly size",
+                "derived_from": "contig_l50",
+                "value": 8,
+                "key": " Contig L50"
+            },
+            {
+                "tooltip": "N50 of contigs: the sequence length of the shortest contig at 50% of the total assembly length (bp)",
+                "derived_from": "contig_n50",
+                "value": 140006557,
+                "key": "Contig N50"
+            },
+            {
+                "tooltip": "GC content of assembly excluding N (%)",
+                "derived_from": "gc_content",
+                "value": 40.80412673,
+                "key": "GC Content"
+            },
+            {
+                "tooltip": "Size of the largest contig in the assembly (bp)",
+                "derived_from": "largest_contig_size",
+                "value": 248300735,
+                "key": "Largest Contig Size"
+            },
+            {
+                "tooltip": "Number of contigs in the assembly",
+                "derived_from": "number_of_contigs",
+                "value": 56,
+                "key": "Number of Contigs"
+            },
+            {
+                "tooltip": "Number of scaffolds in the assembly",
+                "derived_from": "number_of_scaffolds",
+                "value": 9,
+                "key": "Number of Scaffolds"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with fragmented representation in the assembly (BUSCO)",
+                "derived_from": "percent_single_copy",
+                "value": 98.84,
+                "key": "Percent Single Copy"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with multiple copies present in the assembly (BUSCO)",
+                "derived_from": "percent_multi_copy",
+                "value": 0.7,
+                "key": "Percent Multiple Copy"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with fragmented representation in the assembly (BUSCO)",
+                "derived_from": "percent_fragmented",
+                "value": 0.36,
+                "key": "Percent Fragmented"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes that are missing from the assembly (BUSCO)",
+                "derived_from": "percent_missing",
+                "value": 0.1,
+                "key": "Percent Missing"
+            },
+            {
+                "tooltip": "Consensus quality value (QV) of the assembly (from Merqury)",
+                "derived_from": "quality_value",
+                "value": 60.0389,
+                "key": "Quality Value"
+            },
+            {
+                "tooltip": "L50 of scaffolds: the count of the smallest number of scaffolds whose total length makes up 50% of the assembly size",
+                "derived_from": "scaffold_l50",
+                "value": 7,
+                "key": "Scaffold L50"
+            },
+            {
+                "tooltip": " N50 of scaffolds: the sequence length of the shortest scaffold at 50% of the total assembly length (bp)",
+                "derived_from": "scaffold_n50",
+                "value": 145640694,
+                "key": "Scaffold N50"
+            },
+            {
+                "tooltip": "Total ungapped length of the assembly (bp)",
+                "derived_from": "total_ungapped_length",
+                "value": 3001116022,
+                "key": "Total Ungapped Length"
+            },
+            {
+                "tooltip": "Number of chromosomes in the assembly",
+                "derived_from": "number_of_chromosomes",
+                "value": 23,
+                "key": "Number of Chromosomes"
+            }
+        ],
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "accession": "SMAEQPNR5U6O",
+        "category": [
+            "Donor Specific Assembly"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_EXTERNAL-QUALITY-METRIC_DSA_COLO829BL_2-HAP2",
+        "uuid": "470c427e-08a7-4053-b8ed-496eb4dbc7a4",
+        "status": "in review"
+    },
+    {
+        "qc_values": [
+            {
+                "tooltip": "L50 of contigs: the count of the smallest number of contigs whose total length makes up 50% of the assembly size",
+                "derived_from": "contig_l50",
+                "value": 9,
+                "key": " Contig L50"
+            },
+            {
+                "tooltip": "N50 of contigs: the sequence length of the shortest contig at 50% of the total assembly length (bp)",
+                "derived_from": "contig_n50",
+                "value": 133816786,
+                "key": "Contig N50"
+            },
+            {
+                "tooltip": "GC content of assembly excluding N (%)",
+                "derived_from": "gc_content",
+                "value": 40.83439074,
+                "key": "GC Content"
+            },
+            {
+                "tooltip": "Size of the largest contig in the assembly (bp)",
+                "derived_from": "largest_contig_size",
+                "value": 201942571,
+                "key": "Largest Contig Size"
+            },
+            {
+                "tooltip": "Number of contigs in the assembly",
+                "derived_from": "number_of_contigs",
+                "value": 80,
+                "key": "Number of Contigs"
+            },
+            {
+                "tooltip": "Number of scaffolds in the assembly",
+                "derived_from": "number_of_scaffolds",
+                "value": 6,
+                "key": "Number of Scaffolds"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with fragmented representation in the assembly (BUSCO)",
+                "derived_from": "percent_single_copy",
+                "value": 95.52,
+                "key": "Percent Single Copy"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with multiple copies present in the assembly (BUSCO)",
+                "derived_from": "percent_multi_copy",
+                "value": 0.66,
+                "key": "Percent Multiple Copy"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with fragmented representation in the assembly (BUSCO)",
+                "derived_from": "percent_fragmented",
+                "value": 0.33,
+                "key": "Percent Fragmented"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes that are missing from the assembly (BUSCO)",
+                "derived_from": "percent_missing",
+                "value": 3.5,
+                "key": "Percent Missing"
+            },
+            {
+                "tooltip": "Consensus quality value (QV) of the assembly (from Merqury)",
+                "derived_from": "quality_value",
+                "value": 56.3249,
+                "key": "Quality Value"
+            },
+            {
+                "tooltip": "L50 of scaffolds: the count of the smallest number of scaffolds whose total length makes up 50% of the assembly size",
+                "derived_from": "scaffold_l50",
+                "value": 8,
+                "key": "Scaffold L50"
+            },
+            {
+                "tooltip": " N50 of scaffolds: the sequence length of the shortest scaffold at 50% of the total assembly length (bp)",
+                "derived_from": "scaffold_n50",
+                "value": 134918475,
+                "key": "Scaffold N50"
+            },
+            {
+                "tooltip": "Total ungapped length of the assembly (bp)",
+                "derived_from": "total_ungapped_length",
+                "value": 2902706174,
+                "key": "Total Ungapped Length"
+            },
+            {
+                "tooltip": "Number of chromosomes in the assembly",
+                "derived_from": "number_of_chromosomes",
+                "value": 23,
+                "key": "Number of Chromosomes"
+            }
+        ],
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "accession": "SMAEQLOSKPNV",
+        "category": [
+            "Donor Specific Assembly"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_EXTERNAL-QUALITY-METRIC_DSA_COLO829BL_2-HAP1",
+        "uuid": "93ea9aee-0101-432f-a1f6-b98f504fc2fa",
+        "status": "in review"
+    },
+    {
+        "qc_values": [
+            {
+                "tooltip": "L50 of contigs: the count of the smallest number of contigs whose total length makes up 50% of the assembly size",
+                "derived_from": "contig_l50",
+                "value": 9,
+                "key": " Contig L50"
+            },
+            {
+                "tooltip": "N50 of contigs: the sequence length of the shortest contig at 50% of the total assembly length (bp)",
+                "derived_from": "contig_n50",
+                "value": 108537977,
+                "key": "Contig N50"
+            },
+            {
+                "tooltip": "GC content of assembly excluding N (%)",
+                "derived_from": "gc_content",
+                "value": 40.77156427,
+                "key": "GC Content"
+            },
+            {
+                "tooltip": "Size of the largest contig in the assembly (bp)",
+                "derived_from": "largest_contig_size",
+                "value": 242464589,
+                "key": "Largest Contig Size"
+            },
+            {
+                "tooltip": "Number of contigs in the assembly",
+                "derived_from": "number_of_contigs",
+                "value": 120,
+                "key": "Number of Contigs"
+            },
+            {
+                "tooltip": "Number of scaffolds in the assembly",
+                "derived_from": "number_of_scaffolds",
+                "value": 0,
+                "key": "Number of Scaffolds"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with fragmented representation in the assembly (BUSCO)",
+                "derived_from": "percent_single_copy",
+                "value": 95.46,
+                "key": "Percent Single Copy"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with multiple copies present in the assembly (BUSCO)",
+                "derived_from": "percent_multi_copy",
+                "value": 0.68,
+                "key": "Percent Multiple Copy"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with fragmented representation in the assembly (BUSCO)",
+                "derived_from": "percent_fragmented",
+                "value": 0.34,
+                "key": "Percent Fragmented"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes that are missing from the assembly (BUSCO)",
+                "derived_from": "percent_missing",
+                "value": 3.52,
+                "key": "Percent Missing"
+            },
+            {
+                "tooltip": "Consensus quality value (QV) of the assembly (from Merqury)",
+                "derived_from": "quality_value",
+                "value": 59.8156,
+                "key": "Quality Value"
+            },
+            {
+                "tooltip": "L50 of scaffolds: the count of the smallest number of scaffolds whose total length makes up 50% of the assembly size",
+                "derived_from": "scaffold_l50",
+                "value": 9,
+                "key": "Scaffold L50"
+            },
+            {
+                "tooltip": " N50 of scaffolds: the sequence length of the shortest scaffold at 50% of the total assembly length (bp)",
+                "derived_from": "scaffold_n50",
+                "value": 108537977,
+                "key": "Scaffold N50"
+            },
+            {
+                "tooltip": "Total ungapped length of the assembly (bp)",
+                "derived_from": "total_ungapped_length",
+                "value": 2965724099,
+                "key": "Total Ungapped Length"
+            },
+            {
+                "tooltip": "Number of chromosomes in the assembly",
+                "derived_from": "number_of_chromosomes",
+                "value": 23,
+                "key": "Number of Chromosomes"
+            }
+        ],
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "accession": "SMAEQQ1823FS",
+        "category": [
+            "Donor Specific Assembly"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_EXTERNAL-QUALITY-METRIC_DSA_COLO829BL_1-HAP2",
+        "uuid": "e181294f-02cf-4161-9253-80e29471856f",
+        "status": "in review"
+    },
+    {
+        "qc_values": [
+            {
+                "tooltip": "L50 of contigs: the count of the smallest number of contigs whose total length makes up 50% of the assembly size",
+                "derived_from": "contig_l50",
+                "value": 11,
+                "key": " Contig L50"
+            },
+            {
+                "tooltip": "N50 of contigs: the sequence length of the shortest contig at 50% of the total assembly length (bp)",
+                "derived_from": "contig_n50",
+                "value": 96795455,
+                "key": "Contig N50"
+            },
+            {
+                "tooltip": "GC content of assembly excluding N (%)",
+                "derived_from": "gc_content",
+                "value": 40.84465934,
+                "key": "GC Content"
+            },
+            {
+                "tooltip": "Size of the largest contig in the assembly (bp)",
+                "derived_from": "largest_contig_size",
+                "value": 241806090,
+                "key": "Largest Contig Size"
+            },
+            {
+                "tooltip": "Number of contigs in the assembly",
+                "derived_from": "number_of_contigs",
+                "value": 136,
+                "key": "Number of Contigs"
+            },
+            {
+                "tooltip": "Number of scaffolds in the assembly",
+                "derived_from": "number_of_scaffolds",
+                "value": 0,
+                "key": "Number of Scaffolds"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with fragmented representation in the assembly (BUSCO)",
+                "derived_from": "percent_single_copy",
+                "value": 98.76,
+                "key": "Percent Single Copy"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with multiple copies present in the assembly (BUSCO)",
+                "derived_from": "percent_multi_copy",
+                "value": 0.78,
+                "key": "Percent Multiple Copy"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes with fragmented representation in the assembly (BUSCO)",
+                "derived_from": "percent_fragmented",
+                "value": 0.35,
+                "key": "Percent Fragmented"
+            },
+            {
+                "tooltip": "Percentage of highly conserved genes that are missing from the assembly (BUSCO)",
+                "derived_from": "percent_missing",
+                "value": 0.11,
+                "key": "Percent Missing"
+            },
+            {
+                "tooltip": "Consensus quality value (QV) of the assembly (from Merqury)",
+                "derived_from": "quality_value",
+                "value": 60.2525,
+                "key": "Quality Value"
+            },
+            {
+                "tooltip": "L50 of scaffolds: the count of the smallest number of scaffolds whose total length makes up 50% of the assembly size",
+                "derived_from": "scaffold_l50",
+                "value": 11,
+                "key": "Scaffold L50"
+            },
+            {
+                "tooltip": " N50 of scaffolds: the sequence length of the shortest scaffold at 50% of the total assembly length (bp)",
+                "derived_from": "scaffold_n50",
+                "value": 96795455,
+                "key": "Scaffold N50"
+            },
+            {
+                "tooltip": "Total ungapped length of the assembly (bp)",
+                "derived_from": "total_ungapped_length",
+                "value": 3000435672,
+                "key": "Total Ungapped Length"
+            },
+            {
+                "tooltip": "Number of chromosomes in the assembly",
+                "derived_from": "number_of_chromosomes",
+                "value": 23,
+                "key": "Number of Chromosomes"
+            }
+        ],
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "accession": "SMAEQ7FAO5HK",
+        "category": [
+            "Donor Specific Assembly"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_EXTERNAL-QUALITY-METRIC_DSA_COLO829BL_1-HAP1",
+        "uuid": "8fe48bbf-7e31-4e69-a930-4139e39f9a05",
+        "status": "in review"
+    }
+]

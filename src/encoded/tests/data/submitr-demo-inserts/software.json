@@ -1,0 +1,1859 @@
+[
+    {
+        "aliases": [
+            "smaht:Software-mosdepth_v0.3.9"
+        ],
+        "accession": "SMASWHX93ZS2",
+        "title": "mosdepth",
+        "version": "v0.3.9",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "debeee99-4367-42d7-8efa-5aaf23c65d31",
+        "source_url": "https://github.com/brentp/mosdepth",
+        "name": "mosdepth",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Quality Control"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWJQF1SXS",
+        "title": "Dorado",
+        "version": "7.3.11",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "DFCI_SOFTWARE_DORADO",
+        "uuid": "c0183731-bc5e-48df-953c-499ae7d8b39c",
+        "submission_centers": [
+            "4d453907-8a18-474e-85d0-8d8158e5a9ff"
+        ],
+        "category": [
+            "Basecaller"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASW6VA37O1",
+        "title": "FastQ Screen",
+        "version": "0.15.3",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "BCH2_SOFTWARE_FASTQ_SCREEN",
+        "uuid": "60a6a2b4-8700-48f1-80b4-b98a4f3313af",
+        "submission_centers": [
+            "7bc5691a-8720-45a1-ae9b-4d9d80b43e6a"
+        ],
+        "category": [
+            "Quality Control"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASW6TOQYQV",
+        "title": "FastQC",
+        "version": "0.12.1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "BCH2_SOFTWARE_FASTQC",
+        "uuid": "c09a21f1-f1a7-4854-8b58-bceb26a7c823",
+        "submission_centers": [
+            "7bc5691a-8720-45a1-ae9b-4d9d80b43e6a"
+        ],
+        "category": [
+            "Quality Control"
+        ],
+        "status": "in review"
+    },
+    {
+        "commit": "fe1cc9e",
+        "description": "A tool for processing sequences in the FASTA or FASTQ format.",
+        "accession": "SMASWDR1VFYW",
+        "title": "seqtk",
+        "version": "1.3",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_SEQTK_1.3",
+        "uuid": "d8f0ae2f-302c-4334-b700-134396fa982d",
+        "source_url": "https://github.com/lh3/seqtk/archive/refs/tags/v1.3.tar.gz",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Read Manipulation"
+        ],
+        "status": "in review"
+    },
+    {
+        "code": "minimap2",
+        "commit": "8170693.0",
+        "description": "A versatile sequence alignment program that aligns DNA or mRNA sequences against a large reference database.",
+        "accession": "SMASWTIJBSUT",
+        "title": "minimap2",
+        "version": "2.28",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_MINIMAP2_2.28",
+        "uuid": "12299b6d-e88f-412b-b0ad-1d17a76f52f8",
+        "source_url": "https://github.com/lh3/minimap2/archive/refs/tags/v2.28.tar.gz",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "binary_url": "https://github.com/lh3/minimap2/releases/download/v2.28/minimap2-2.28_x64-linux.tar.bz2",
+        "category": [
+            "Alignment"
+        ],
+        "status": "in review"
+    },
+    {
+        "code": "paf2chain",
+        "commit": "d327468",
+        "description": "A tool to convert files from PAF format to CHAIN format.",
+        "accession": "SMASWMNYA7KP",
+        "title": "paf2chain",
+        "version": "0.1.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_PAF2CHAIN_0.1.0",
+        "uuid": "dc7ad196-5320-4630-888e-a5663070e1d9",
+        "source_url": "https://github.com/AndreaGuarracino/paf2chain/archive/refs/tags/v0.1.0.tar.gz",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Format Conversion"
+        ],
+        "status": "in review"
+    },
+    {
+        "code": "verkko_2",
+        "commit": "932e872",
+        "description": "Genome assembly pipeline developed for telomere-to-telomere assembly of accurate long reads (PacBio HiFi, Oxford Nanopore Duplex, HERRO corrected Oxford Nanopore Simplex) and Oxford Nanopore ultra-long reads. Verkko is Finnish for net, mesh and graph.",
+        "accession": "SMASWI4Q8FV8",
+        "title": "Verkko",
+        "version": "2.1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_VERKKO_2.1",
+        "uuid": "5d7b60b0-08b0-4e96-8ba0-5b21160bc338",
+        "source_url": "https://github.com/marbl/verkko/releases/download/v2.1/verkko-v2.1.tar.gz",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Assembly"
+        ],
+        "status": "in review"
+    },
+    {
+        "code": "verkko_1",
+        "commit": "963b381",
+        "description": "Genome assembly pipeline developed for telomere-to-telomere assembly of accurate long reads (PacBio HiFi, Oxford Nanopore Duplex, HERRO corrected Oxford Nanopore Simplex) and Oxford Nanopore ultra-long reads. Verkko is Finnish for net, mesh and graph.",
+        "accession": "SMASW54O56Z1",
+        "title": "Verkko",
+        "version": "1.4.1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_VERKKO_1.4.1",
+        "uuid": "aad2f880-2c53-446f-af71-bd117a44c8d0",
+        "source_url": "https://github.com/marbl/verkko/releases/download/v1.4.1/verkko-v1.4.1.tar.gz",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Assembly"
+        ],
+        "status": "in review"
+    },
+    {
+        "code": "hifiasm",
+        "commit": "94a284b",
+        "description": "A fast haplotype-resolved de novo assembler initially designed for PacBio HiFi reads.",
+        "accession": "SMASWH9GEMKT",
+        "title": "Hifiasm",
+        "version": "0.19.6",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_HIFIASM_0.19.6",
+        "uuid": "edfd3e1a-2e85-4d0e-b7ee-0baef3d3c8e9",
+        "source_url": "https://github.com/chhylp123/hifiasm/archive/refs/tags/0.19.6.tar.gz",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Assembly"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "A tool for filtering variants from all pairwise comparison of multiple clones or single cells.",
+        "accession": "SMASW6PBAWG7",
+        "title": "All2",
+        "version": "1.0.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "MAYO_SOFTWARE_ALL2",
+        "uuid": "465c2797-a2f1-4ae6-9877-71e4143593f9",
+        "source_url": "https://github.com/abyzovlab/All2",
+        "submission_centers": [
+            "d530e9b9-04bd-481f-bf2f-c53e351fa0aa"
+        ],
+        "category": [
+            "Variant Manipulation"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Strelka2 is a fast and accurate small variant caller optimized for analysis of germline variation in small cohorts and somatic variation in tumor/normal sample pairs.",
+        "accession": "SMASWA41FB23",
+        "title": "Strelka2",
+        "version": "2.8.4",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "MAYO_SOFTWARE_STRELKA2",
+        "uuid": "5b70dd7f-ea00-478a-8303-7b7151610093",
+        "source_url": "https://github.com/Illumina/strelka",
+        "submission_centers": [
+            "d530e9b9-04bd-481f-bf2f-c53e351fa0aa"
+        ],
+        "category": [
+            "Variant Calling"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Call somatic short mutations via local assembly of haplotypes. Short mutations include single nucleotide (SNA) and insertion and deletion (indel) alterations.",
+        "accession": "SMASWZ7NT2Z5",
+        "title": "Mutect2",
+        "version": "4.3.0.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "MAYO_SOFTWARE_MUTECT2",
+        "uuid": "1c7c41d7-3afa-4450-b36d-bf37cfdb00bd",
+        "source_url": "https://software.broadinstitute.org/gatk",
+        "submission_centers": [
+            "d530e9b9-04bd-481f-bf2f-c53e351fa0aa"
+        ],
+        "category": [
+            "Variant Calling"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWBT73R8Y",
+        "title": "PacBio Revio ICS",
+        "version": "12.0.40",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "MAYO_SOFTWARE_SMRT-BASECALLER",
+        "uuid": "1b9d05aa-4c5e-4224-90f9-65c5ac442638",
+        "submission_centers": [
+            "d530e9b9-04bd-481f-bf2f-c53e351fa0aa"
+        ],
+        "category": [
+            "Basecaller",
+            "Format Conversion"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWUG61699",
+        "title": "GATK Mutect2",
+        "version": "4.5.0.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UMASS_SOFTWARE_GATK_MUTECT2",
+        "uuid": "ac5a1fc0-976b-4c9d-bbd5-162ce8d70a6e",
+        "submission_centers": [
+            "23972a38-a728-42ad-8b3a-2fda39653af3"
+        ],
+        "category": [
+            "Variant Calling"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWCKLWL1G",
+        "title": "GATK BQSR",
+        "version": "4.5.0.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UMASS_SOFTWARE_GATK_BQSR",
+        "uuid": "3e82238b-f9b5-48c6-ab80-cd6b0702ced0",
+        "submission_centers": [
+            "23972a38-a728-42ad-8b3a-2fda39653af3"
+        ],
+        "category": [
+            "Quality Control"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWUI7PT2U",
+        "title": "samtools",
+        "version": "1.2",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UMASS_SOFTWARE_SAMTOOLS",
+        "uuid": "84d24a54-bf9c-4fde-bd37-4ae6e743f418",
+        "submission_centers": [
+            "23972a38-a728-42ad-8b3a-2fda39653af3"
+        ],
+        "category": [
+            "Read Manipulation"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWTN9NE9Y",
+        "title": "GATK MarkDuplicates",
+        "version": "4.5.0.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UMASS_SOFTWARE_GATK_MARKDUPLICATES",
+        "uuid": "3f39cecc-b7d1-4843-b02d-ebee54655c90",
+        "submission_centers": [
+            "23972a38-a728-42ad-8b3a-2fda39653af3"
+        ],
+        "category": [
+            "Alignment Manipulation"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASW477T1Z2",
+        "title": "bwa-mem",
+        "version": "0.7.17-r1188",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UMASS_SOFTWARE_BWA_MEM",
+        "uuid": "d0c8281d-9ffc-4473-a987-2ba6d31cc71e",
+        "submission_centers": [
+            "23972a38-a728-42ad-8b3a-2fda39653af3"
+        ],
+        "category": [
+            "Alignment"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-ReplaceReadGroups_e379584"
+        ],
+        "accession": "SMASWEBM7FJK",
+        "title": "ReplaceReadGroups",
+        "version": "e379584",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "1e81d8ae-64f7-472d-bb9b-f566887d8aa9",
+        "source_url": "https://github.com/smaht-dac/pipelines-scripts",
+        "name": "ReplaceReadGroups",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-AddReadGroups_e379584"
+        ],
+        "accession": "SMASWNODRY9Y",
+        "title": "AddReadGroups",
+        "version": "e379584",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "579b7d16-badd-4ab2-8b96-e61f5fc3d5e0",
+        "source_url": "https://github.com/smaht-dac/pipelines-scripts",
+        "name": "AddReadGroups",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Package for reading, manipulating, and writing genomic data",
+        "accession": "SMASW13D4P7C",
+        "title": "pysam",
+        "version": "v0.22.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "DAC_SOFTWARE_PYSAM_0.22.0",
+        "uuid": "44f33ce7-d783-48b2-87f1-57c3c1bbef6f",
+        "source_url": "https://github.com/pysam-developers/pysam",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Alignment Manipulation"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWQFEQWTO",
+        "title": "Samtools",
+        "version": "v1.18",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "DAC_SOFTWARE_SAMTOOLS_1.18",
+        "uuid": "a7948f07-49a8-442a-9bf6-1c509bc4e99f",
+        "source_url": "https://github.com/samtools/samtools",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Alignment Manipulation",
+            "Variant Manipulation",
+            "Quality Control",
+            "Format Conversion"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Sentieon implementation of Haplotype Caller",
+        "accession": "SMASWBTBTOTJ",
+        "title": "Sentieon Haplotype Caller",
+        "version": "202112.06",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "DAC_SOFTWARE_SENTIEON-HAPLOTYPER",
+        "uuid": "fd7dd4e0-1e01-4101-955f-6af61eca0511",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Variant Calling"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Identifies uniquely mappable regions of genome",
+        "accession": "SMASWY27PLVP",
+        "title": "UMAP",
+        "version": "1.1.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "DAC_SOFTWARE_UMAP",
+        "uuid": "f349ceba-ac73-4332-b9cb-5cd3b4598d60",
+        "source_url": "https://zenodo.org/records/800648",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Alignment",
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWIBHV8DI",
+        "title": "RUFUS",
+        "version": "0.1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "DAC_SOFTWARE_RUFUS",
+        "uuid": "365e60f6-086e-45ed-8d53-62bece415cdd",
+        "source_url": "https://github.com/jandrewrfarrell/RUFUS",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Variant Calling"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWEM9JQPW",
+        "title": "VarNet",
+        "version": "1.1.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "DAC_SOFTWARE_VARNET",
+        "uuid": "beebb4a1-5a70-4c0b-9813-981c4deca99f",
+        "source_url": "https://github.com/skandlab/VarNet",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Variant Calling"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWR7QICAO",
+        "title": "Strelka2",
+        "version": "2.9.2",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "DAC_SOFTWARE_STRELKA2",
+        "uuid": "c7fa2e1b-1685-4b36-98b3-fbb606abbc09",
+        "source_url": "https://github.com/Illumina/strelka",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Variant Calling"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Sentieon implementation of Mutect2",
+        "accession": "SMASW2GLCQ74",
+        "title": "Sentieon TNHaplotyper2",
+        "version": "202308.01",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "DAC_SOFTWARE_SENTIEON-TNHAPLOTYPER2",
+        "uuid": "9185b7a1-26ca-45bf-b880-f8f90b63c39a",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Variant Calling"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-Kraken2_v2.1.3"
+        ],
+        "accession": "SMASW5HI8KCG",
+        "title": "Kraken2",
+        "version": "v2.1.3",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "143edd97-6a68-4d12-83a2-76a3b57b5e79",
+        "source_url": "https://github.com/DerrickWood/kraken2",
+        "name": "Kraken2",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Quality Control"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-VerifyBamID2_2.0.1"
+        ],
+        "accession": "SMASW2D82Q9P",
+        "title": "VerifyBamID2",
+        "version": "2.0.1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "282ee6b5-3e3d-40a8-80e3-2284ed3ffe72",
+        "source_url": "https://github.com/Griffan/VerifyBamID",
+        "name": "VerifyBamID2",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Quality Control"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASW3PLI6GC",
+        "title": "HaplotagLR",
+        "version": "1.1.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UMICH_SOFTWARE_PHASER-HAPLOTAGLR-1.1.0",
+        "uuid": "5fd1828b-c241-4588-967e-46db67d6a70e",
+        "submission_centers": [
+            "66352171-aba7-4847-8f94-a017700dc627"
+        ],
+        "category": [
+            "Alignment"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWMHFOL6C",
+        "title": "dorado",
+        "version": "0.3.4",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UMICH_SOFTWARE_BASECALLER-DORADO-0.3.4",
+        "uuid": "88844aa0-eade-46f9-90a2-54645b8e8c6f",
+        "submission_centers": [
+            "66352171-aba7-4847-8f94-a017700dc627"
+        ],
+        "category": [
+            "Basecaller"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWIDZOPD6",
+        "title": "minimap2",
+        "version": "2.26-r1175",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UMICH_SOFTWARE_ALIGNMENT-MINIMAP2-2.26",
+        "uuid": "625a2255-e29a-432f-aaae-b9d12183341b",
+        "submission_centers": [
+            "66352171-aba7-4847-8f94-a017700dc627"
+        ],
+        "category": [
+            "Alignment"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWGAU95WL",
+        "title": "samtools",
+        "version": "1.13",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UMICH_SOFTWARE_PROCESSER-SAMTOOLS-1.13",
+        "uuid": "13858d29-20d2-4a9e-bf49-0496582c9758",
+        "submission_centers": [
+            "66352171-aba7-4847-8f94-a017700dc627"
+        ],
+        "category": [
+            "Alignment Manipulation",
+            "Read Manipulation"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASW2S5WZVS",
+        "title": "bwa mem",
+        "version": "0.7.17-r1188",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UMICH_SOFTWARE_ALIGNMENT-BWA-MEM-0.7.17",
+        "uuid": "b1bd22f3-6e31-40c3-a9bd-8457c9040312",
+        "submission_centers": [
+            "66352171-aba7-4847-8f94-a017700dc627"
+        ],
+        "category": [
+            "Alignment"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "fibertools-rs adds m6A modifications to each PacBio molecule.",
+        "accession": "SMASWJOET9AH",
+        "title": "fibertools-rs",
+        "version": "0.42",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_FIBERTOOLS-RS_0.4.2",
+        "uuid": "0c1402e3-0f38-4f89-bd7f-92e0d4263184",
+        "source_url": "https://github.com/fiberseq/fibertools-rs",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "General utilities for sam/bam/cram formats",
+        "accession": "SMASWYIILEXJ",
+        "title": "Samtools",
+        "version": "1.19.2",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_SAMTOOLS_V1.19.2",
+        "uuid": "ac37ee80-ced0-4462-9c72-908cc50cc5e2",
+        "source_url": "http://www.htslib.org/",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Alignment Manipulation"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Revio software controls the instrument and the primary and post-primary analyses (basecalling, consensus calling, CpG methylation)",
+        "accession": "SMASW754FC23",
+        "title": "Revio Instrument Control Software",
+        "version": "13.1.0.221972",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_REVIO_ICS_13.1.0.221972",
+        "uuid": "e8d64d3e-e744-4052-89bf-833ab22bb71d",
+        "source_url": "https://www.pacb.com/support/software-downloads/",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Basecaller",
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "code": "rnaseqc",
+        "aliases": [
+            "smaht:Software-RNA-SeQC_v2.4.2"
+        ],
+        "accession": "SMASW3NWM5O4",
+        "title": "RNA-SeQC",
+        "version": "v2.4.2",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "621c74d6-9f20-4946-a41f-3b161ec30aa5",
+        "source_url": "https://github.com/getzlab/rnaseqc",
+        "name": "RNA-SeQC",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Quality Control",
+            "Gene Quantification"
+        ],
+        "status": "in review"
+    },
+    {
+        "code": "rsem",
+        "aliases": [
+            "smaht:Software-RSEM_v1.3.3"
+        ],
+        "accession": "SMASWVNGF22A",
+        "title": "RSEM",
+        "version": "v1.3.3",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "b5c512cb-689c-420c-979a-92588abd6e85",
+        "source_url": "https://github.com/deweylab/RSEM",
+        "name": "RSEM",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Transcript Quantification",
+            "Gene Quantification"
+        ],
+        "status": "in review"
+    },
+    {
+        "code": "star",
+        "aliases": [
+            "smaht:Software-STAR_2.7.10b"
+        ],
+        "accession": "SMASWXPBGWI2",
+        "title": "STAR",
+        "version": "2.7.10b",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "c88bceb3-6c69-4021-9530-6e7464a0b6bc",
+        "source_url": "https://github.com/alexdobin/STAR",
+        "name": "STAR",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Alignment"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-NanoPlot_1.42.0"
+        ],
+        "accession": "SMASWBT24TWY",
+        "title": "NanoPlot",
+        "version": "1.42.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "8f08eff3-60f4-4192-bc43-a31ff04a0a8f",
+        "source_url": "https://github.com/wdecoster/NanoPlot",
+        "name": "NanoPlot",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Quality Control"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWLJGW87M",
+        "title": "Samtools",
+        "version": "v1.15.1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "DAC_SOFTWARE_SAMTOOLS",
+        "uuid": "e7e69d6d-ebb8-4d92-a83a-a69414a2e7a2",
+        "source_url": "https://github.com/samtools/samtools",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Alignment Manipulation",
+            "Variant Manipulation",
+            "Quality Control",
+            "Format Conversion"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASW5S5Z66Q",
+        "title": "Picard",
+        "version": "v3.0.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "DAC_SOFTWARE_PICARD",
+        "uuid": "d818cbfe-2c51-486d-9200-74dc6e46ca26",
+        "source_url": "https://github.com/broadinstitute/picard",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Alignment Manipulation",
+            "Variant Manipulation",
+            "Quality Control"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWWPH2WHL",
+        "title": "DRAGEN",
+        "version": "07.021.624.3.10.4",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "BROAD_SOFTWARE_DRAGEN_07.021.624.3.10.4",
+        "uuid": "e3ff4cc0-d6c6-41be-8b6a-53d931ea7aaf",
+        "submission_centers": [
+            "51e0ae88-8ff9-40c2-ae59-c8ca3c085717"
+        ],
+        "category": [
+            "Alignment"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWVOVNQ6W",
+        "title": "Samtools mpileup",
+        "version": "1.3.1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "BCM1_SOFTWARE_SAMTOOLS",
+        "uuid": "f968bfc2-e473-42f6-a19f-ca60bf3eb379",
+        "source_url": "https://samtools.github.io",
+        "submission_centers": [
+            "3c0a5056-a253-472c-a313-18c3f4a9b554"
+        ],
+        "category": [
+            "Variant Calling"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWVBSAYDO",
+        "title": "Custom scripts for Duplex calling",
+        "version": "v0.1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "BCM1_SOFTWARE_COMPDUPLEX-CALL",
+        "uuid": "80efbd69-4377-479d-a123-56ab72b4229f",
+        "source_url": "https://github.com/zonglab/CompDuplex",
+        "submission_centers": [
+            "3c0a5056-a253-472c-a313-18c3f4a9b554"
+        ],
+        "category": [
+            "Variant Calling"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWVGCINT9",
+        "title": "BWA MEM",
+        "version": "v0.7.13-r1126",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "BCM1_SOFTWARE_BWA-MEM",
+        "uuid": "2b1c20cb-6fc5-4c40-9130-9739bfee648f",
+        "source_url": "https://github.com/lh3/bwa",
+        "submission_centers": [
+            "3c0a5056-a253-472c-a313-18c3f4a9b554"
+        ],
+        "category": [
+            "Alignment"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASW4IRN4G1",
+        "title": "NovaSeq X Software",
+        "version": "v1.2",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_NOVASEQ",
+        "uuid": "73444b09-2814-493b-b4ec-294e0b1d7522",
+        "source_url": "https://sapac.support.illumina.com/content/dam/illumina-support/documents/downloads/software/novaseq-x-series/200047871_01_NovaSeq_X_Plus_v1.2_X_Customer_Release_Notes.pdf",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Basecaller"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Revio software controls the instrument and the primary and post-primary analyses (basecalling, consensus calling, CpG methylation, Demultiplexing, trimming and refinement)",
+        "accession": "SMASW2RU579M",
+        "title": "Revio Instrument Control Software",
+        "version": "13.0.0.207600",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_SMRTLINK_13.0.0.207600",
+        "uuid": "7384eae8-c0c4-49ee-b7cf-c5360d99e550",
+        "source_url": "https://www.pacb.com/support/software-downloads/",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Basecaller",
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "fibertools-rs adds m6A modifications to each PacBio molecule.",
+        "accession": "SMASWUZF3BY4",
+        "title": "fibertools-rs",
+        "version": "0.3.1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_FIBERTOOLS-RS_0.3.1",
+        "uuid": "82db5e0b-1c7a-4e5c-bed7-4464bf9a2b11",
+        "source_url": "https://github.com/fiberseq/fibertools-rs",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "fibertools-rs adds m6A modifications to each PacBio molecule.",
+        "accession": "SMASWLVB4BIB",
+        "title": "fibertools-rs",
+        "version": "0.3.2",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_FIBERTOOLS-RS_0.3.2",
+        "uuid": "c58e9222-f50b-4082-ba07-47d4c159663c",
+        "source_url": "https://github.com/fiberseq/fibertools-rs",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Filter PacBio BAM data by ZMW ID",
+        "accession": "SMASWCEVGIUJ",
+        "title": "Zmwfilter",
+        "version": "3.1.1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_PACBIO_ZMWFILTER_3.1.1",
+        "uuid": "9d3a595e-7209-4b5d-b7b3-eefa446e2f55",
+        "source_url": "https://www.pacb.com/support/software-downloads/",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Alignment Manipulation",
+            "Read Manipulation"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Long-read sequencing alignment",
+        "accession": "SMASWTKZV1JT",
+        "title": "Pbmm2",
+        "version": "1.13.1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_PBMM2_1.13.1",
+        "uuid": "1e1d8505-2891-4159-9261-6f7b3cff6614",
+        "source_url": "https://github.com/PacificBiosciences/pbmm2",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Alignment"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "General utilities for sam/bam/cram formats",
+        "accession": "SMASW9RMRLX6",
+        "title": "Samtools",
+        "version": "1.17",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_SAMTOOLS_V1.17",
+        "uuid": "9d46c666-2369-47c0-acb1-ec03bb80e684",
+        "source_url": "http://www.htslib.org/",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Alignment Manipulation"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASW1P4RPPB",
+        "title": "VEP",
+        "version": "1.0.1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "DAC_SOFTWARE_VEPX",
+        "uuid": "7adaef81-3101-44cb-a09c-7fcebc24424a",
+        "source_url": "https://grch37.ensembl.org/info/docs/tools/vep/index.html",
+        "name": "vep",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Variant Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Open source basecaller for Oxford Nanopore reads. ( basecalling, alignment, modified basecalling; 5hmCG, 5hmC, 5mC, 6mA )",
+        "accession": "SMASWTKY86WC",
+        "title": "Dorado",
+        "version": "0.4.2",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_DORADO_0.4.2",
+        "uuid": "fda1d686-c835-4df7-a27d-c733ca11738a",
+        "source_url": "https://github.com/nanoporetech/dorado",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "binary_url": "https://cdn.oxfordnanoportal.com/software/analysis/dorado-0.4.2-linux-x64.tar.gz",
+        "category": [
+            "Basecaller"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Guppy basecaller for R9 data",
+        "accession": "SMASWGBAYYYX",
+        "title": "Guppy",
+        "version": "6.5.7",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_GUPPY_6.5.7",
+        "uuid": "f246319e-21f0-482c-b367-e0e84ff948d4",
+        "source_url": "https://community.nanoporetech.com/downloads/guppy/release_notes",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "binary_url": "https://cdn.oxfordnanoportal.com/software/analysis/ont-guppy_6.5.7_linux64.tar.gz",
+        "category": [
+            "Basecaller"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "PacBio's demultiplexing software",
+        "accession": "SMASWMIM8W8U",
+        "title": "lima",
+        "version": "2.9.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "BCM_SOFTWARE_LIMA",
+        "uuid": "117289ce-67cb-461f-8c3d-cfb51611caee",
+        "source_url": "https://github.com/pacificbiosciences/barcoding/",
+        "submission_centers": [
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
+        ],
+        "category": [
+            "Read Manipulation"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "PacBio's suite of software tools for various data analyses",
+        "accession": "SMASWKC5EMVN",
+        "title": "SMRTLink",
+        "version": "13.0.0.207600",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "BCM_SOFTWARE_SMRTLINK",
+        "uuid": "e8f8df52-002f-425f-b78f-96a038d46678",
+        "source_url": "https://www.pacb.com/wp-content/uploads/SMRT-Link-Release-Notes-v13.0.pdf",
+        "submission_centers": [
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
+        ],
+        "category": [
+            "Format Conversion"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "PacBio Revio's instrument control software that controls the on-instrument basecalling and hifi reads generation",
+        "accession": "SMASWEYG6ARF",
+        "title": "Revio-ICS",
+        "version": "13.0.0.212033",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "BCM_SOFTWARE_REVIO-ICS",
+        "uuid": "84255b67-96b4-4e77-a996-3b589798169c",
+        "source_url": "https://www.pacb.com/wp-content/uploads/SMRT-Link-Release-Notes-v13.0.pdf",
+        "submission_centers": [
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
+        ],
+        "category": [
+            "Basecaller",
+            "Format Conversion"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Used to concatenate 1000+ unaligned bams into single bam or fastq",
+        "accession": "SMASWT14USY4",
+        "title": "samtools",
+        "version": "1.12",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "BCM_SOFTWARE_SAMTOOLS",
+        "uuid": "ac340104-597f-414e-9e70-80d69ca35aee",
+        "source_url": "https://github.com/samtools/samtools",
+        "submission_centers": [
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
+        ],
+        "category": [
+            "Format Conversion"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "ONT basecalling software, also known as guppy version 7.1.4",
+        "accession": "SMASWQH353K4",
+        "title": "Dorado",
+        "version": "7.1.4",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "BCM_SOFTWARE_DORADO",
+        "uuid": "a7fd560e-873f-4386-91e7-42cbf5911082",
+        "source_url": "https://github.com/nanoporetech/dorado",
+        "submission_centers": [
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
+        ],
+        "category": [
+            "Basecaller",
+            "Format Conversion"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Core software that controls the ONT sequencer, which does on-instrument sequencing and basecalling",
+        "accession": "SMASWP5V19Z2",
+        "title": "MinKNOW",
+        "version": "23.07.12",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "BCM_SOFTWARE_MINKNOW",
+        "uuid": "599e8314-f1fc-488d-af0e-fb82d02f1135",
+        "source_url": "https://community.nanoporetech.com/docs/prepare/library_prep_protocols/experiment-companion-minknow/v/mke_1013_v1_revda_11apr2016/installing-minknow-on-linu",
+        "submission_centers": [
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
+        ],
+        "category": [
+            "Basecaller",
+            "Format Conversion"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Revio software controls the instrument and the primary and post-primary analyses (basecalling, consensus calling, CpG methylation)",
+        "accession": "SMASWHZ2CHGO",
+        "title": "Revio Instrument Control Software",
+        "version": "13.0.0.212033",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_REVIO_ICS_13.0.0.212033",
+        "uuid": "f63c3fea-ef78-4a01-9ab0-80eacb4d45ab",
+        "source_url": "https://www.pacb.com/support/software-downloads/",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Basecaller",
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Revio software controls the instrument and the primary and post-primary analyses (basecalling, consensus calling, CpG methylation)",
+        "accession": "SMASWLDYC8NH",
+        "title": "Revio Instrument Control Software",
+        "version": "13.0.0.208615",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_REVIO_ICS_13.0.0.208615",
+        "uuid": "c1605e4e-b033-4a93-8789-02ec58f93e9d",
+        "source_url": "https://www.pacb.com/support/software-downloads/",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Basecaller",
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Revio software controls the instrument and the primary and post-primary analyses (basecalling, consensus calling, CpG methylation)",
+        "accession": "SMASWG5BNEZH",
+        "title": "Revio Instrument Control Software",
+        "version": "12.0.0.183503",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_REVIO_ICS_12.0.0.183503",
+        "uuid": "2e504d72-30df-4dfb-aa05-a3abf10b4f87",
+        "source_url": "https://www.pacb.com/support/software-downloads/",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Basecaller",
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "fibertools-rs adds m6A modifications to each PacBio molecule.",
+        "accession": "SMASWXXLGBE1",
+        "title": "fibertools-rs",
+        "version": "0.3.8",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "UWSC_SOFTWARE_FIBERTOOLS-RS_0.3.8",
+        "uuid": "0e4df838-01e8-4ed7-b050-879735ca1170",
+        "source_url": "https://github.com/fiberseq/fibertools-rs",
+        "submission_centers": [
+            "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d"
+        ],
+        "category": [
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "description": "Demultiplexes Illumina short-read sequences and converts BCL basecall files to FASTQ sequence files",
+        "accession": "SMASWSZK8SQE",
+        "title": "bcl2fastq2",
+        "version": "2.20.0.422",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "BCM_SOFTWARE_BCL2FASTQ2",
+        "uuid": "daeb9104-d766-40bc-802d-439a4321375c",
+        "source_url": "https://support.illumina.com/sequencing/sequencing_software/bcl2fastq-conversion-software.html",
+        "submission_centers": [
+            "f8da20ff-1b39-4a8f-af46-1c82ee601374"
+        ],
+        "category": [
+            "Format Conversion"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASWPS2IOCM",
+        "title": "GATK",
+        "version": "gatk-4.4.0.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "CWRU_SOFTWARE_ISLET1-SCDIPC_GATK",
+        "uuid": "29e2c0f1-2b3d-45a5-ba2a-e900ad275dd8",
+        "source_url": "https://gatk.broadinstitute.org/hc/en-us",
+        "submission_centers": [
+            "47a1e892-5542-416c-b9cc-c93f4afd643d"
+        ],
+        "category": [
+            "Variant Calling"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASW2LKWFYY",
+        "title": "BWA",
+        "version": "0.7.17-r1198-dirty",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "CWRU_SOFTWARE_ISLET1-SCDIPC_BWA-MEM",
+        "uuid": "49e6aa41-453b-4021-aed5-020ba306ac98",
+        "source_url": "https://github.com/lh3/bwa",
+        "submission_centers": [
+            "47a1e892-5542-416c-b9cc-c93f4afd643d"
+        ],
+        "category": [
+            "Alignment"
+        ],
+        "status": "in review"
+    },
+    {
+        "code": "sentieon_minimap2",
+        "aliases": [
+            "smaht:Software-Sentieon_minimap2_202308.01"
+        ],
+        "accession": "SMASWMNGAK9Q",
+        "title": "Sentieon minimap2",
+        "version": "202308.01",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "71f84baf-b16c-427d-8fc4-b805a36f61b8",
+        "source_url": "https://www.sentieon.com",
+        "name": "Sentieon_minimap2",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Alignment"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-Sentieon_202308.01"
+        ],
+        "accession": "SMASW6HFLWLI",
+        "title": "Sentieon",
+        "version": "202308.01",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "7829d386-c49b-4570-94f2-4756dd86b01e",
+        "source_url": "https://www.sentieon.com",
+        "name": "Sentieon",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Alignment",
+            "Variant Calling",
+            "Format Conversion",
+            "Alignment Manipulation"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-ReplaceReadGroups_8d7fd75"
+        ],
+        "accession": "SMASW16GEZW8",
+        "title": "ReplaceReadGroups",
+        "version": "8d7fd75",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "72a2cf5e-baf7-4a0e-b8d0-5b3fd92c606a",
+        "source_url": "https://github.com/smaht-dac/pipelines-scripts",
+        "name": "ReplaceReadGroups",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-AddReadGroups_8d7fd75"
+        ],
+        "accession": "SMASWIXLCRNQ",
+        "title": "AddReadGroups",
+        "version": "8d7fd75",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "e90cd792-797b-4122-813a-c9009456b220",
+        "source_url": "https://github.com/smaht-dac/pipelines-scripts",
+        "name": "AddReadGroups",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-methylink_0.6.0"
+        ],
+        "accession": "SMASWX75I9PE",
+        "title": "methylink",
+        "version": "0.6.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "3aad3216-cd2b-423b-8cf0-b3b368066e2c",
+        "source_url": "https://github.com/projectoriented/methylink",
+        "name": "methylink",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "code": "sentieon_bwamem",
+        "aliases": [
+            "smaht:Software-Sentieon_BWA-MEM_202308.01"
+        ],
+        "accession": "SMASWSEPYRDG",
+        "title": "Sentieon BWA-MEM",
+        "version": "202308.01",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "b42e44e5-a829-4687-aeff-65cd040b1528",
+        "source_url": "https://www.sentieon.com",
+        "name": "Sentieon_BWA-MEM",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Alignment"
+        ],
+        "status": "released"
+    },
+    {
+        "code": "deepsomatic",
+        "description": "Determines variant and indel differences between two sets of data while informed by a reference genome",
+        "accession": "SMASWINJA7RE",
+        "title": "DeepSomatic",
+        "version": "1.6.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "DAC_SOFTWARE_DEEPSOMATIC-1.6.0",
+        "uuid": "530a3803-78e0-4afd-8412-e859fbd2c290",
+        "source_url": "https://github.com/google/deepsomatic",
+        "name": "deepsomatic",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Variant Calling"
+        ],
+        "status": "released"
+    },
+    {
+        "accession": "SMASWZVH2YVB",
+        "title": "FastQC",
+        "version": "3.5.1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "DAC_SOFTWARE_FASTQC",
+        "uuid": "321056dc-de15-452a-bc34-d190230197cd",
+        "name": "fastqc",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Quality Control",
+            "Alignment"
+        ],
+        "status": "in review"
+    },
+    {
+        "accession": "SMASW3WWK91C",
+        "title": "VEP",
+        "version": "1.0.1",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submitted_id": "DAC_SOFTWARE_ENSEMBL-VEP",
+        "uuid": "24761c7c-bed7-45ba-b077-40ac79eee5d8",
+        "source_url": "https://grch37.ensembl.org/info/docs/tools/vep/index.html",
+        "name": "vep",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Variant Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-ReplaceReadGroups_2cde1f0"
+        ],
+        "accession": "SMASWQ3EMXN7",
+        "title": "ReplaceReadGroups",
+        "version": "2cde1f0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "be782ef5-5cd6-47c0-98b1-a15b3c19696d",
+        "source_url": "https://github.com/smaht-dac/pipelines-scripts",
+        "name": "ReplaceReadGroups",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-AddReadGroups_2cde1f0"
+        ],
+        "accession": "SMASW9KQC6XA",
+        "title": "AddReadGroups",
+        "version": "2cde1f0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "be889378-268f-47e7-a5fb-4aab87ced76f",
+        "source_url": "https://github.com/smaht-dac/pipelines-scripts",
+        "name": "AddReadGroups",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "code": "pbmm2",
+        "aliases": [
+            "smaht:Software-pbmm2_1.13.0"
+        ],
+        "accession": "SMASWAEUN8HW",
+        "title": "pbmm2",
+        "version": "1.13.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "3da83aec-d8b1-4996-9c71-e8ad53608758",
+        "source_url": "https://github.com/PacificBiosciences/pbmm2",
+        "name": "pbmm2",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Alignment"
+        ],
+        "status": "released"
+    },
+    {
+        "aliases": [
+            "smaht:Software-Sentieon_202308"
+        ],
+        "accession": "SMASWUU2NCXB",
+        "title": "Sentieon",
+        "version": "202308",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "a94c8fde-2369-4a34-896e-d62114f2f564",
+        "source_url": "https://www.sentieon.com",
+        "name": "Sentieon",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Alignment",
+            "Variant Calling",
+            "Format Conversion",
+            "Alignment Manipulation"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-AddReadGroups_b1267b0"
+        ],
+        "accession": "SMASWJFNXWTW",
+        "title": "AddReadGroups",
+        "version": "b1267b0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "06fe243f-47fa-4074-88a4-7cb863a1f37c",
+        "source_url": "https://github.com/smaht-dac/pipelines-scripts",
+        "name": "AddReadGroups",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Feature Annotation"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-pigz_v2.7"
+        ],
+        "accession": "SMASWYAPJ5FD",
+        "title": "pigz",
+        "version": "v2.7",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "815171b3-1bac-4f33-bcec-8b89094e2be2",
+        "source_url": "https://zlib.net/pigz",
+        "name": "pigz",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Data Compression"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-qc-parser_in_dev"
+        ],
+        "accession": "SMASWQULBIUM",
+        "title": "qc-parser",
+        "version": "in_dev",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "86080d42-668d-4570-a419-5970b1b075db",
+        "source_url": "https://github.com/smaht-dac/qc-parser",
+        "name": "qc-parser",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Quality Control"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-FastQC_v0.12.0"
+        ],
+        "accession": "SMASW7N5NYX1",
+        "title": "FastQC",
+        "version": "v0.12.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "ddc17b60-0b2c-427d-8bee-944760f7dd35",
+        "source_url": "https://github.com/s-andrews/FastQC",
+        "name": "FastQC",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Quality Control"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-GATK_4.4.0.0"
+        ],
+        "accession": "SMASW6DV54YJ",
+        "title": "GATK",
+        "version": "4.4.0.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "c10f112a-8a09-4c31-9293-114335c459f9",
+        "source_url": "https://github.com/broadinstitute/gatk",
+        "name": "GATK",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Alignment Manipulation",
+            "Variant Manipulation",
+            "Quality Control",
+            "Variant Calling"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-fastp_0.23.2"
+        ],
+        "accession": "SMASWGR9IDSG",
+        "title": "fastp",
+        "version": "0.23.2",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "e4945570-2ab9-4888-b9bf-8f10038f9cdd",
+        "source_url": "https://github.com/OpenGene/fastp",
+        "name": "fastp",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Read Manipulation"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-Picard_3.0.0"
+        ],
+        "accession": "SMASW46ALFQE",
+        "title": "Picard",
+        "version": "3.0.0",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "4c5cc995-813d-467e-af02-0636417d41c3",
+        "source_url": "https://github.com/broadinstitute/picard",
+        "name": "Picard",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Alignment Manipulation",
+            "Variant Manipulation",
+            "Quality Control"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-Bcftools_1.17"
+        ],
+        "accession": "SMASW91A722P",
+        "title": "Bcftools",
+        "version": "1.17",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "36964bfe-20c9-4fdf-8c9e-624b834a6831",
+        "source_url": "https://github.com/samtools/bcftools",
+        "name": "Bcftools",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Variant Manipulation",
+            "Format Conversion",
+            "Quality Control"
+        ],
+        "status": "in review"
+    },
+    {
+        "aliases": [
+            "smaht:Software-Samtools_1.17"
+        ],
+        "accession": "SMASW5ATXGK7",
+        "title": "Samtools",
+        "version": "1.17",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "3818c7e2-9f7f-49a5-9747-4932429358ad",
+        "source_url": "https://github.com/samtools/samtools",
+        "name": "Samtools",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "category": [
+            "Alignment Manipulation",
+            "Format Conversion",
+            "Quality Control"
+        ],
+        "status": "in review"
+    }
+]
