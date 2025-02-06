@@ -370,6 +370,8 @@ def _build_file_embedded_list() -> List[str]:
         # Include file groups tags
         "file_sets.file_group.*",
 
+        "meta_workflow_run_inputs.meta_workflow.name",
+
         # Analysis summary
         "software.code",
         "software.title",
