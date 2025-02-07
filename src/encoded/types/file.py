@@ -1032,10 +1032,10 @@ class File(Item, CoreFile):
                 )
             if len(assay_title) > 1 or len(sequencer_title) > 1:
                 # More than one unique assay or sequencer
-                return ""
+                return None
             elif len(assay_title) == 0 or len(sequencer_title) == 0:
                 # No assay or sequencer
-                return ""
+                return None
             to_include = [
                 assay_title[0],
                 sequencer_title[0],
