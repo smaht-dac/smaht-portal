@@ -66,7 +66,7 @@
             "title": "Pathology Reports",
             "description": "Link to the pathology report for the section",
             "type": "array",
-            "item": {
+            "items": {
                 "type": "string",
                 "linkTo": "PathologyReport"
             }
