@@ -11,8 +11,8 @@ Change Log
 =======
 `PR 308 SN Pathology report <https://github.com/smaht-dac/smaht-portal/pull/308>`
 
-* Add items PathologyReport and HistologyImage
-* Add tests for brain-specific properties
+* Add items PathologyReport, NonBrainPathologyReport, BrainPathologyReport, and HistologyImage
+
 
 0.133.4
 =======

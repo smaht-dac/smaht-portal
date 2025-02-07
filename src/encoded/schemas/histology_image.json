@@ -9,7 +9,7 @@
         "submitted_id",
         "filename",
         "file_format",
-        "pathology_report"
+        "pathology_reports"
     ],
     "identifyingProperties": [
         "accession",
