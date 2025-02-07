@@ -7,6 +7,73 @@ smaht-portal
 Change Log
 ----------
 
+0.133.3
+=======
+`PR 336 Cypress test updates <https://github.com/smaht-dac/smaht-portal/pull/336>`
+
+* Home page: added new tests for Data Release Tracker and Announcements feeds
+* Home page: updated benchmarking/broduction expand/collapse panels
+* Benchmarking: updated traversing tabs, sidebar navigation
+* Benchmarking: added COLO829 SNV/Indel Detection Challenge tests
+* Browse View: added new tests for results table and quick info bar
+
+
+0.133.2
+=======
+* 2025-02-04 / dmichaels
+  - Branch: dmichaels-20250204-fix-types-file | from main (94e6200508ee4116fefd54134eb24cd1a56fdf33) | PR-335
+  - Fixed typo (missing comma in array list) in types/file.py.
+
+
+0.133.1
+=======
+`PR 330 chore: update PI information for UW <https://github.com/smaht-dac/smaht-portal/pull/330>`
+
+* Update PI information in awardees page
+
+
+0.133.0
+=======
+* 2025-02-03 / dmichaels
+  - Branch: dmichaels-20250203-non-admin-view-raw | from main (54b86b7c6cd0910daafbe9c31c1be90d9120dcd3) | PR-333
+  - Changed to allow non-admin users to use frame=raw; for smaht-submitr which relies on this.
+
+
+0.132.2
+=======
+`PR 332 feat: add animation to sidebar <https://github.com/smaht-dac/smaht-portal/pull/332>`
+
+* Add animation to sliding sidebar
+
+
+0.132.1
+=======
+`PR 328 fix: update broken link in error page <https://github.com/smaht-dac/smaht-portal/pull/328>`
+
+* Correct broken link to account creation doc
+
+
+=======
+0.132.0
+=======
+`PR 323 SN Ontology terms <https://github.com/smaht-dac/smaht-portal/pull/323>`_
+
+* Update properties for OntologyTerm item to be implemented with Tissue `uberon_id`
+* Add parent item Ontology
+
+
+0.131.1
+=======
+
+* Show archival status of Unaligned Reads on Submission Status page
+
+
+0.131.0
+=======
+`PR 319 SN Reference file columns <https://github.com/smaht-dac/smaht-portal/pull/319>`
+
+* Remove `height`, `weight`, and `body_mass_index` from Donor, as these properties have been transferred to MedicalHistory;  remove `hardy_scale` from DeathCircumstances, as this property has been transferred to Donor
+
 0.130.1
 =======
 `PR 325: feat: updates to notifications panel <https://github.com/smaht-dac/smaht-portal/pull/325>`

@@ -404,3 +404,32 @@ Cypress.Commands.add(
         return subject;
     }
 );
+
+/*** Browse View Utils ****/
+
+Cypress.Commands.add("getQuickInfoBar", () => {
+    const infoTypes = ["file", "donor", "tissue", "assay", "file-size"];
+    let result = {};
+  
+    cy.get(".browse-summary-stat").each(($el) => {
+      const iconType = $el.find(".browse-link-icon").attr("data-icon-type");
+  
+      if (infoTypes.includes(iconType)) {
+        // wait till fully loaded
+        cy.wrap($el)
+          .find(".browse-summary-stat-value .icon-circle-notch.icon-spin")
+          .should("not.exist");
+  
+        // read value
+        cy.wrap($el)
+          .find(".browse-summary-stat-value")
+          .invoke("text")
+          .then((text) => {
+            const value = text.trim() === "-" ? 0 : Number(text.trim());
+            result[iconType] = value;
+          });
+      }
+    }).then(() => result);
+  });
+  
+  
