@@ -3,6 +3,8 @@ from typing import List
 import re
 from snovault import collection, load_schema
 from snovault.util import debug_log, get_item_or_none
+from snovault.elasticsearch import ELASTIC_SEARCH
+from snovault.search.search_utils import make_search_subreq
 from pyramid.view import view_config
 from encoded.validator_decorators import link_related_validator
 
@@ -77,8 +79,8 @@ def validate_external_id_on_edit(context, request):
     """Check that `external_id` matches linked tissue `external_id` if Benchmarking or Production tissue sample on edit."""
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
-    sample_sources = get_property_for_validation('sample_sources',existing_properties,properties_to_update)
-    external_id = get_property_for_validation('external_id',existing_properties,properties_to_update)
+    sample_sources = get_property_for_validation('sample_sources', existing_properties, properties_to_update)
+    external_id = get_property_for_validation('external_id', existing_properties, properties_to_update)
     tissue = get_item_or_none(request, sample_sources[0], 'sample-sources')
     if (study:=tissue_utils.get_study(tissue)):
         if not assert_external_id_tissue_match(external_id, tissue):
@@ -93,6 +95,41 @@ def assert_external_id_tissue_match(external_id, tissue):
     tissue_id = item_utils.get_external_id(tissue)
     tissue_kit_id = tissue_sample_utils.get_tissue_kit_id_from_external_id(external_id)
     return tissue_id == tissue_kit_id
+
+
+def validate_tissue_sample_metadata_on_edit(context, request):
+    """Check that metadata matches with TPC-submitted tissue sample items with the same external_id, unless you tell it not to, on edit
+    """
+    existing_properties = get_properties(context)
+    properties_to_update = get_properties(request)
+    external_id = get_property_for_validation('external_id', existing_properties, properties_to_update)
+    check_properties = [
+        "category",
+        "sample_sources",
+        "preservation_type",
+        "core_size"
+    ]
+    if 'force_pass' in request.query_string:
+        return
+    search_url = f"/search/?type=TissueSample&submission_centers.display_title=NDRI+TPC&external_id={external_id}"
+    if ELASTIC_SEARCH in request.registry:
+        search = make_search_subreq(request, search_url)
+        search_resp = request.invoke_subrequest(search, True)
+        conn = request.registry['connection']
+        if search_resp.status_int >= 400:
+            # No TPC item in database with matching external_id
+            return
+        else:  # find it in the database
+            import pdb; pdb.set_trace()
+            for check_property in check_properties:
+                gcc_property = get_property_for_validation(check_property,existing_properties,properties_to_update)
+            
+                res = conn.get_by_json(check_property, gcc_property, 'tissue_sample')
+                if res is None:
+                    # property does not match
+                    found = res.properties['accession']
+                    request.errors.add('body', f"TissueSample: metadata mismatch, {check_property}{gcc_property} does not match TPC Tissue Sample {found}")
+            return request.validated.update({})  
 
 
 TISSUE_SAMPLE_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
@@ -111,11 +148,13 @@ def tissue_sample_add(context, request, render=None):
 
 
 TISSUE_SAMPLE_EDIT_PATCH_VALIDATORS = SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS + [
-    validate_external_id_on_edit
+    validate_external_id_on_edit,
+    validate_tissue_sample_metadata_on_edit
 ]
 
 TISSUE_SAMPLE_EDIT_PUT_VALIDATORS = SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [
-    validate_external_id_on_edit
+    validate_external_id_on_edit,
+    validate_tissue_sample_metadata_on_edit
 ]
 
 @view_config(

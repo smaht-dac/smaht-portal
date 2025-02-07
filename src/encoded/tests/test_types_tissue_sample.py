@@ -66,3 +66,37 @@ def test_validate_external_id_on_add(
         'submission_centers': item_utils.get_submission_centers(insert),
     }
     post_item(es_testapp, post_body, 'tissue_sample', status=expected_status)
+
+
+@pytest.mark.workbook
+@pytest.mark.parametrize(
+    "patch_body,expected_status", [
+        ({"sample_sources": ["TEST_TISSUE_LUNG"], "category": "Homogenate", "preservation_type": "Snap Frozen"}, 200),
+        ({"sample_sources": ["TEST_TISSUE_LUNG"], "category": "Homogenate", "preservation_type": "Fresh"}, 422),
+    ]
+)
+def test_validate_tissue_sample_metadata_on_edit(
+    es_testapp: TestApp,
+    workbook: None,
+    patch_body: Dict[str, Any],
+    expected_status: int,
+) -> None:
+    """Ensure metadata matches TPC tissue sample metadata with the same external_id."""
+    import pdb; pdb.set_trace()
+    uuid = item_utils.get_uuid(
+        get_item(
+            es_testapp,
+            "TEST_TISSUE-SAMPLE_LUNG-HOMOGENATE",
+            collection="TissueSample"
+        )
+    )
+    patch_item(es_testapp, patch_body, uuid, status=expected_status)
+                                             
+
+
+
+# def test_tissue_sample_force_pass(testapp: TestApp, output_file: Dict[str, Any], output_file2: Dict[str, Any]) -> None:
+#     """ Tests that we can skip md5 check by passing ?force_md5 to patch output_file2 to md5 of output_file """
+#     atid = output_file2['@id']
+#     testapp.patch_json(f'/{atid}', {'md5sum': '00000000000000000000000000000001'}, status=422)  # fails without force_md5
+#     testapp.patch_json(f'/{atid}?force_pass', {'md5sum': '00000000000000000000000000000001'}, status=200)
