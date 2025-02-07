@@ -141,6 +141,40 @@ MULTI_TYPE_ITEMS = [
     'CellCultureMixture'
 ]
 
+UNIVERSAL_PROPERTIES = {
+    "submission_centers": {
+        "title": "Submission Centers",
+        "description": "Submission Centers that created this item",
+        "type": "array",
+        "items": {
+            "linkTo": "Submission Center",
+            "type": "string"
+        },
+        "is_required": "True"
+    },
+    "consortia": {
+        "title": "Consortia",
+        "description": "Consortia associated with this item",
+        "type": "array",
+        "items": {
+            "linkTo": "Consortium",
+            "type": "string"
+        },
+        "is_required": "True"
+    }
+}
+
+PSEUDO_PROPERTIES = {
+    "FileSet": {
+        "expected_file_count": {
+            "title": "Expected File Count",
+            "description": "Number of files expected to be within the file set",
+            "type": "integer",
+            "is_required": "True"
+        }
+    }
+}
+
 
 @dataclass(frozen=True)
 class SheetsClient:
@@ -860,6 +894,7 @@ def get_nested_links(spreadsheet: Spreadsheet) -> List[Property]:
 def get_properties(item: str, submission_schema: Dict[str, Any]) -> List[Property]:
     """Get property information from the submission schema"""
     properties = schema_utils.get_properties(submission_schema)
+    import pdb; pdb.set_trace()
     property_list = []
     for key, value in properties.items():
         property_list += get_nested_properties(item, key, value)
@@ -1374,6 +1409,8 @@ def get_comment_search(property_: Property, indent: str) -> List[str]:
     if property_.search:
         if property_.name == "file_format":
             return [f"Search:{indent}{property_.search}&valid_item_types={property_.item}"]
+        elif property_.name == "tissue" or property_.name == "donor":
+            return [f"Search:{indent}{property_.search}&submission_centers=NDRI+TPC"]
         return [f"Search:{indent}{property_.search}"]
     return []
 
