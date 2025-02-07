@@ -324,13 +324,15 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
             'age': 37,
             'sex': 'Female',
             'submission_centers': [test_submission_center['uuid']],
-            'submitted_id': 'TEST_DONOR_ABCD'
+            'submitted_id': 'TEST_DONOR_ABCD',
+            "tpc_submitted": "False"
         }, status=403)
         submission_center_user_app.post_json('/Donor', {  # cannot submit a donor under a diferrent center
             'age': 37,
             'sex': 'Female',
             'submission_centers': [test_second_submission_center['uuid']],
-            'submitted_id': 'SECONDTEST_DONOR_ABCD'
+            'submitted_id': 'SECONDTEST_DONOR_ABCD',
+            "tpc_submitted": "False"
         }, status=403)
         submission_center_user_app.post_json('/AccessKey', {  # can still create an access key
             'user': smaht_gcc_user['@id'],
@@ -345,13 +347,15 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
             'age': 37,
             'sex': 'Female',
             'submission_centers': [test_second_submission_center['uuid']],
-            'submitted_id': 'SECONDTEST_DONOR_ABCD'
+            'submitted_id': 'SECONDTEST_DONOR_ABCD',
+            "tpc_submitted": "False"
         }, status=403)
         submission_center2_user_app.post_json('/Donor', {  # cannot submit a donor on opposing center
             'age': 37,
             'sex': 'Female',
             'submission_centers': [test_submission_center['uuid']],
-            'submitted_id': 'TEST_DONOR_ABCD'
+            'submitted_id': 'TEST_DONOR_ABCD',
+            "tpc_submitted": "False"
         }, status=403)
 
     @staticmethod
