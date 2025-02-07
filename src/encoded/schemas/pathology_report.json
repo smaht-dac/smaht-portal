@@ -104,14 +104,7 @@
                     "non_target_tissue_subtype": {
                         "title": "Non-Target Tissue Subtype",
                         "description": "Subtype of non-target tissue in sample",
-                        "type": "string",
-                        "enum": [
-                            "Fibroadipose",
-                            "Lymphoid",
-                            "Other",
-                            "Epididymis",
-                            "Rete testes"
-                        ]
+                        "type": "string"
                     },
                     "non_target_tissue_present": {
                         "title": "Non-Target Tissue Present",
@@ -221,28 +214,7 @@
                     "target_tissue_subtype": {
                         "title": "Target Tissue Subtype",
                         "description": "Subtype of target tissue in sample",
-                        "type": "string",
-                        "enum": [
-                            "Brain",
-                            "Cortex",
-                            "Dermis",
-                            "Endocardium",
-                            "Epicardium",
-                            "Epidermis",
-                            "Fallopian Tube",
-                            "Leydig Cells",
-                            "Liver",
-                            "Lung",
-                            "Medulla",
-                            "Mucosa",
-                            "Muscularis propria",
-                            "Myocardium",
-                            "Ovarian Follicles",
-                            "Ovarian Stroma",
-                            "Semniferous Tubules",
-                            "Skeletal Muscle",
-                            "Vessel"
-                        ]
+                        "type": "string"
                     },
                     "target_tissue_present": {
                         "title": "Target Tissue Present",

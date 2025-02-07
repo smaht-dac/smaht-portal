@@ -62,11 +62,15 @@
         "schema_version": {
             "default": "1"
         },
-        "pathology_report": {
-            "title": "Pathology Report",
+        "pathology_reports": {
+            "title": "Pathology Reports",
             "description": "Link to the pathology report for the section",
-            "type": "string",
-            "linkTo": "PathologyReport"
+            "type": "array",
+            "item": {
+                "type": "string",
+                "linkTo": "PathologyReport"
+            }
+           
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_HISTOLOGY-IMAGE_[A-Z0-9-_.]{4,}$"

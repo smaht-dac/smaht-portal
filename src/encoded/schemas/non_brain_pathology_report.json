@@ -90,7 +90,15 @@
                 ],
                 "properties": {
                     "non_target_tissue_subtype": {
-                        "$merge": "pathology_report.json#/properties/non_target_tissues/items/properties/non_target_tissue_subtype"
+                        "$merge": "pathology_report.json#/properties/non_target_tissues/items/properties/non_target_tissue_subtype",
+                        "type": "string",
+                        "enum": [
+                            "Fibroadipose",
+                            "Lymphoid",
+                            "Other",
+                            "Epididymis",
+                            "Rete testes"
+                        ]
                     },
                     "non_target_tissue_present": {
                         "$merge": "pathology_report.json#/properties/non_target_tissues/items/properties/non_target_tissue_present"

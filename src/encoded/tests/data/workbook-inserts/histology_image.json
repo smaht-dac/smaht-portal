@@ -7,6 +7,6 @@
         ],
         "filename": "SMHT001-1A-100A1.svs",
         "file_format": "SVS",
-        "pathology_report": "TEST_NON-BRAIN-PATHOLOGY-REPORT_SMHT001-1A-100A1"
+        "pathology_reports": ["TEST_NON-BRAIN-PATHOLOGY-REPORT_SMHT001-1A-100A1"]
     }
 ]
