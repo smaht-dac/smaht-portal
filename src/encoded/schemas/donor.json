@@ -8,7 +8,8 @@
         "age",
         "sex",
         "submission_centers",
-        "submitted_id"
+        "submitted_id",
+        "tpc_submitted"
     ],
     "identifyingProperties": [
         "accession",
@@ -118,6 +119,9 @@
         }
     },
     "columns": {
+        "submitted_id": {
+            "title": "Submitted ID"
+        },
         "sex": {
             "title": "Sex"
         },
