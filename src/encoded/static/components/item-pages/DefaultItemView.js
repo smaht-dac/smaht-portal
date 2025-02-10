@@ -709,7 +709,6 @@ const ViewJSONMenuOption = React.memo(function ViewJSONMenuOption({ href }) {
 });
 
 const DetailsTabView = React.memo(function DetailsTabView(props) {
-    console.log('DetailsTabView props:', props);
     return (
         <div className="container-wide">
             <h3 className="tab-section-title">
