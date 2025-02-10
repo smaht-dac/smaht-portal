@@ -355,6 +355,7 @@ def _build_file_embedded_list() -> List[str]:
         # Sample summary + Link calcprops
         "file_sets.libraries.analytes.molecule",
         "file_sets.libraries.analytes.samples.sample_sources.code",
+        "file_sets.libraries.analytes.samples.sample_sources.uberon_id",
         "file_sets.libraries.analytes.samples.sample_sources.description",
         "file_sets.libraries.analytes.samples.sample_sources.donor",
         "file_sets.libraries.analytes.samples.sample_sources.cell_line.code",
@@ -369,6 +370,8 @@ def _build_file_embedded_list() -> List[str]:
 
         # Include file groups tags
         "file_sets.file_group.*",
+
+        "meta_workflow_run_inputs.meta_workflow.name",
 
         # Analysis summary
         "software.code",

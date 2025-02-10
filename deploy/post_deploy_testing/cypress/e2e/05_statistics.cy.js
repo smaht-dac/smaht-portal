@@ -49,7 +49,8 @@ describe('Statistics Page Validation (Submissions and Usage)', function () {
         });
     });
 
-    it('Submission statistics tab displays the Metadata submitted, Data submitted and Data released to the portal charts', function () {
+    // TODO: enable this test once the submissions statistics is available for non-admins
+    it.skip('Submission statistics tab displays the Metadata submitted, Data submitted and Data released to the portal charts', function () {
         cy.get('.chart-section-control-wrapper.row a.select-section-btn[href="#submissions"]').then(function ($tabBtn) {
             cy.wrap($tabBtn).click({ force: true }).end();
             cy.get('#submissions.stats-charts-container .legend').should('contain', 'HMS DAC').end();

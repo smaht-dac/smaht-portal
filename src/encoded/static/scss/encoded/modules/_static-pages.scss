@@ -2724,20 +2724,17 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 				}
 			}
 			&.show-nav {
-				.sliding-sidebar-nav-container{
-					.sliding-sidebar-nav {
-						width: 100%;
-						padding-right: 20px;
+				.sliding-sidebar-nav-container {
+					width: 20%;
+					max-width: 275px;
+					border-right: 1px solid #dee2e6;
+					transition: width 100ms ease-in-out;
 
-						&-section {
-							overflow: hidden;
-							&-title {
-								animation: widthSet 100ms ease-in-out;
-								margin-bottom: 10px;
-							}
-							.accordion {
-								animation: widthSet 100ms ease-in-out;
-							}
+					.sidebar-nav-body {
+						overflow: hidden;
+	
+						.benchmarking-nav-section {
+							animation: widthSet 100ms ease-in; // defined in _layout.scss
 						}
 					}
 				}
@@ -2755,16 +2752,6 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 					}
 				}
 			}
-		}
-	}
-
-	// Prevents text-wrap in side nav section content during reveal
-	@keyframes widthSet {
-		0% {
-			width: 300px;
-		}
-		100% {
-			width: 100%;
 		}
 	}
 
