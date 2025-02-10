@@ -172,6 +172,10 @@
         },
         "code": {
             "title": "Code"
+        },
+        "category": {
+            "title": "Category",
+            "default_hidden": true
         }
     }
 }
