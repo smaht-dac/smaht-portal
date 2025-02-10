@@ -6,7 +6,7 @@ export const VcfAnalysisOverview = ({ context }) => {
         software = [],
         external_databases = [],
         filtering_methods = [],
-        mode = '',
+        mode = 'Single',
     } = context;
 
     return (
