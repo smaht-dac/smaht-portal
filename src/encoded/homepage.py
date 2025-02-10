@@ -106,9 +106,11 @@ def extract_desired_facet_from_search(facets, desired_facet_name):
     """ Grabs a single facet from a search response facets block """
     for d in facets:
         if d['field'] == desired_facet_name:
+            if 'original_terms' in d:
+                d['terms'] = d['original_terms']  # discard group_by_field information
             return d
     log.error(f'Did not locate specified facet on homepage: {desired_facet_name}')
-    return None
+    return {}
 
 
 def generate_unique_facet_count(context, request, search_param, desired_facet):
@@ -175,7 +177,6 @@ def generate_tissue_donor_count(context, request):
 def generate_tissue_assay_count(context, request):
     """ Get total assay count for benchmarking tissues """
     search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
-    # note: must use uuid rather than display_title due to sayt/facet term grouping
     return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
 
 
@@ -194,8 +195,14 @@ def generate_production_tissue_donor_count(context, request):
 def generate_production_tissue_assay_count(context, request):
     """ Get production tissue assay counts """
     search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
-    # note: must use uuid rather than display_title due to sayt/facet term grouping
     return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
+
+
+def generate_production_tissue_type_count(context, request):
+    """ Get production tissue type counts """
+    search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
+    return generate_unique_facet_count(context, request, search_param,
+                                       'file_sets.libraries.analytes.samples.sample_sources.uberon_id')
 
 
 @view_config(route_name='home', request_method=['GET'])
@@ -227,6 +234,7 @@ def home(context, request):
         (generate_production_file_count, {'context': context, 'request': request}),  # 9
         (generate_production_tissue_donor_count, {'context': context, 'request': request}),  # 10
         (generate_production_tissue_assay_count, {'context': context, 'request': request}),  # 11
+        (generate_production_tissue_type_count, {'context': context, 'request': request}),  # 12
     ])
     time = datetime.now(timezone('EST'))
     response = {
@@ -290,7 +298,7 @@ def home(context, request):
                         "title": "Primary Tissues",
                         "figures": [
                             { "value": search_results[10], "unit": "Donors" },
-                            { "value": 20, "unit": "Tissue Types" },
+                            { "value": search_results[12], "unit": "Tissue Types" },
                             { "value": search_results[11], "unit": "Assays" },
                             { "value": search_results[9], "unit": "Files Generated" }
                         ]
