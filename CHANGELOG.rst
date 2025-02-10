@@ -19,6 +19,14 @@ Change Log
   - Added src/encoded/tests/data/submitr-demo-inserts directory with files to import for demo.sh script in submitr repo.
 
 
+0.133.4
+=======
+`PR 339 Embedd Metaworflow name into file <https://github.com/smaht-dac/smaht-portal/pull/339>`
+
+* Minor changes to the script that creates the input for the QC overview page
+* Embedd Metaworflow name into file, so that we can query if a file has been the input to a specific MWF
+
+
 0.133.3
 =======
 `PR 336 Cypress test updates <https://github.com/smaht-dac/smaht-portal/pull/336>`
