@@ -7,6 +7,33 @@ smaht-portal
 Change Log
 ----------
 
+0.133.5
+=======
+`PR 341 feat: add title row to top of detail page <https://github.com/smaht-dac/smaht-portal/pull/341>`
+
+- Remove title from excluded keys
+- Add title row to top of details
+
+
+0.133.4
+=======
+`PR 339 Embedd Metaworflow name into file <https://github.com/smaht-dac/smaht-portal/pull/339>`
+
+* Minor changes to the script that creates the input for the QC overview page
+* Embedd Metaworflow name into file, so that we can query if a file has been the input to a specific MWF
+
+
+0.133.3
+=======
+`PR 336 Cypress test updates <https://github.com/smaht-dac/smaht-portal/pull/336>`
+
+* Home page: added new tests for Data Release Tracker and Announcements feeds
+* Home page: updated benchmarking/broduction expand/collapse panels
+* Benchmarking: updated traversing tabs, sidebar navigation
+* Benchmarking: added COLO829 SNV/Indel Detection Challenge tests
+* Browse View: added new tests for results table and quick info bar
+
+
 0.133.2
 =======
 * 2025-02-04 / dmichaels

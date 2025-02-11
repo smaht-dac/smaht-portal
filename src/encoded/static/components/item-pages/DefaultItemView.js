@@ -42,6 +42,7 @@ const { TabObject, Item } = typedefs;
  */
 export const propsForDetailList = {
     stickyKeys: [
+        'title',
         'accession',
         'description',
         'status',
@@ -54,7 +55,6 @@ export const propsForDetailList = {
         'actions',
         '@context',
         'display_title',
-        'title',
         'aggregated-items',
     ],
     alwaysCollapsibleKeys: [
@@ -255,7 +255,9 @@ export default class DefaultItemView extends React.PureComponent {
                         message: (
                             <span>
                                 You have been redirected from{' '}
-                                <a href={ourOldItem['@id']} className="link-underline-hover">
+                                <a
+                                    href={ourOldItem['@id']}
+                                    className="link-underline-hover">
                                     {redirected_from_accession}
                                 </a>
                                 , which this item ({context.accession})
