@@ -70,7 +70,8 @@ class SearchBase:
         'status': ['released', 'restricted', 'public'],
         'sample_summary.studies': ['Production'],
         'additional_facet': [
-            'file_sets.libraries.assay.display_title'
+            'file_sets.libraries.assay.display_title',
+            'file_sets.libraries.analytes.samples.sample_sources.uberon_id'
         ]
     }
 
