@@ -263,7 +263,7 @@
         },
         "file_sets.libraries.assay.display_title": {
             "title": "Experimental Assay",
-            "search_type": "sayt",
+            "search_type": "basic",
             "sayt_item_type": "Assay",
             "group_by_field": "file_sets.libraries.assay.category"
         },
