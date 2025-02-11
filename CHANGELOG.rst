@@ -17,6 +17,8 @@ Change Log
     This requires that the new File.override_release_tracker_description property be populated for affected types;
     the calculated property release_tracker_description will depend on this (TODO: how is that populated).
   - Added src/encoded/tests/data/submitr-demo-inserts directory with files to import for demo.sh script in submitr repo.
+  - Added support for qc_values "psuedo-columns" for smaht-submitr; and also for multiple sheets of same type.
+    This is by virtue of using CustomExcel in ingestion_processor.py.
 
 
 0.133.5
