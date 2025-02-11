@@ -8,8 +8,8 @@ def test_extract_desired_facet():
         {'field': 'type', 'title': 'Data Type', 'total': 0, 'hide_from_view': True, 'aggregation_type': 'terms',
          'terms': [{'key': 'File', 'doc_count': 7}, {'key': 'Item', 'doc_count': 7}]}
     ]
-    assert extract_desired_facet_from_search(example_facets, 'type') is not None
-    assert extract_desired_facet_from_search(example_facets, 'not-found') is None
+    assert extract_desired_facet_from_search(example_facets, 'type') is not {}
+    assert extract_desired_facet_from_search(example_facets, 'not-found') is {}
 
 
 @pytest.mark.workbook
