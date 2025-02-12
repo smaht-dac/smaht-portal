@@ -19,7 +19,8 @@ Change Log
   - Added support for qc_values "psuedo-columns" for smaht-submitr; and also for multiple sheets of same type.
     This is by virtue of using dcicutils.submitr.custom_excel.CustomExcel in ingestion_processor.py.
   - In ingestion/submission_folio.py no longer assume consortia comes through from submitr;
-    this was causing problems for non-admin users.
+    this was causing problems for non-admin users; but actually changed it back to let it come through;
+    went back/forth on this; in the end removed restricted_fields designation for consortia in mixins.json.
   - In ingestion/load_extensions.py use  noset_last_modified=True for loadxl call;
     this was causing problems for non-admin users; requires dcicsnovault 11.24.0+.
 
