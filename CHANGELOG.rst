@@ -16,13 +16,19 @@ Change Log
   - Added support for additional SubmittedFile type to release tracker API i.e. /recent_released_files.
     This requires that the new File.override_release_tracker_description property be populated for affected types;
     the calculated property release_tracker_description will depend on this (TODO: how is that populated).
-  - Added src/encoded/tests/data/submitr-demo-inserts directory with files to import for demo.sh script in submitr repo.
   - Added support for qc_values "psuedo-columns" for smaht-submitr; and also for multiple sheets of same type.
     This is by virtue of using dcicutils.submitr.custom_excel.CustomExcel in ingestion_processor.py.
   - In ingestion/submission_folio.py no longer assume consortia comes through from submitr;
     this was causing problems for non-admin users.
   - In ingestion/load_extensions.py use  noset_last_modified=True for loadxl call;
     this was causing problems for non-admin users; requires dcicsnovault 11.24.0+.
+
+
+0.133.6
+=======
+`PR 327: chore: add month back to latest header <https://github.com/smaht-dac/smaht-portal/pull/327>`
+
+* Update the notifications panel latest release item header to show month and year
 
 
 0.133.5
