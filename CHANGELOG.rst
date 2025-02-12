@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.133.6
+=======
+`PR 327: chore: add month back to latest header <https://github.com/smaht-dac/smaht-portal/pull/327>`
+
+* Update the notifications panel latest release item header to show month and year
+
+
 0.133.5
 =======
 `PR 341 feat: add title row to top of detail page <https://github.com/smaht-dac/smaht-portal/pull/341>`
