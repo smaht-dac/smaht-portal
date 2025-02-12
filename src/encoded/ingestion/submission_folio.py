@@ -32,6 +32,10 @@ class SmahtSubmissionFolio:
         self.ref_nocache = get_parameter(submission.parameters, "ref_nocache", as_type=bool, default=False)
         self.autoadd = get_parameter(submission.parameters, "autoadd", as_type=str, default=None)
         self.merge = get_parameter(submission.parameters, "merge", as_type=bool, default=False)
+        # N.B. 2025-02-11: We no longer pass consortia to the IngestionSubmissoin creation process from
+        # smaht-submitr; so this consortia will be empty; but we need it elsewhere, and it is pass in
+        # elsewhere, here, from smaht-submitr; i.e. within the autoadd field; which we will pickup below.
+        # This came up with permission problems for non-admin users using submitr.
         self.consortium = get_parameter(submission.parameters, "consortium", as_type=str, default=None)
         self.submission_center = get_parameter(submission.parameters, "submission_center", as_type=str, default=None)
         self.user = get_parameter(submission.parameters, "user", as_type=str, default=None)
@@ -39,6 +43,11 @@ class SmahtSubmissionFolio:
         if self.autoadd:
             try:
                 self.autoadd = json.loads(self.autoadd)
+                if not self.consortium:
+                    if isinstance(consortia := self.autoadd.get("consortia"), list):
+                        self.consortium = consortia[0]
+                        # 2025-02-11: We no longer set this automatically because it is automatically set by the system.
+                        del self.autoadd["consortia"]
             except Exception:
                 self.autoadd = None
         if self.user:
@@ -72,7 +81,7 @@ class SmahtSubmissionFolio:
         # TODO: what do we actually do we the consortium and submission_center?
         # Should we validate that each submitted object, if specified, contains
         # values for these which match these values here in the submission folio?
-        self.consortium = get_parameter(submission.parameters, "consortium")
+        self.consortium = get_parameter(submission.parameters, "consortium", default=None)
         self.submission_center = get_parameter(submission.parameters, "submission_center")
         self.portal_vapp = submission.vapp
         # Prevent non-admin things; currently just no validation skipping allowed.

@@ -18,7 +18,9 @@ Change Log
     the calculated property release_tracker_description will depend on this (TODO: how is that populated).
   - Added src/encoded/tests/data/submitr-demo-inserts directory with files to import for demo.sh script in submitr repo.
   - Added support for qc_values "psuedo-columns" for smaht-submitr; and also for multiple sheets of same type.
-    This is by virtue of using CustomExcel in ingestion_processor.py.
+    This is by virtue of using dcicutils.submitr.custom_excel.CustomExcel in ingestion_processor.py.
+  - In ingestion/submission_folio.py no longer assume consortia comes through from submitr;
+    this was causing problems for non-admin users.
 
 
 0.133.5
