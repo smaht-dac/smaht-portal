@@ -7,8 +7,6 @@ def _build_supplementary_file_embedded_list():
     """Embeds for search on supplementary files."""
     return SubmittedFile.embedded_list + [
         "reference_genome.display_title",
-        "donor_specific_assembly.donors",
-        "donor_specific_assembly.cell_lines.code",
     ]
 
 

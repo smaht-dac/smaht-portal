@@ -63,7 +63,7 @@ class AnnotatedFilenameInfo:
 
 
 # dataset is required but comes in through input args for now
-REQUIRED_FILE_PROPS = [file_constants.SEQUENCING_CENTER, "release_tracker_description"]
+REQUIRED_FILE_PROPS = [file_constants.SEQUENCING_CENTER]
 
 
 class FileRelease:

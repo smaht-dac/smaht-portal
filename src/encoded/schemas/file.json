@@ -217,15 +217,7 @@
             "title": "Group Coverage Override",
             "desciption": "An override count for expected group coverage from sequencing that is used in the File Overview page if present, particularly for downsampled files",
             "type": "number",
-            "minimum": 0,
-            "permission": "restricted_fields"
-        },
-        "override_release_tracker_description": {
-            "title": "Release Tracker Description Override",
-            "desciption": "An override value for release tracker description that is used in the File Release Tracker on the home page if present, particularly for supplementary files",
-            "type": "string",
-            "minimum": 0,
-            "permission": "restricted_fields"
+            "minimum": 0
         },
         "version": {
             "type": "string",
