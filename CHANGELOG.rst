@@ -21,6 +21,8 @@ Change Log
     This is by virtue of using dcicutils.submitr.custom_excel.CustomExcel in ingestion_processor.py.
   - In ingestion/submission_folio.py no longer assume consortia comes through from submitr;
     this was causing problems for non-admin users.
+  - In ingestion/load_extensions.py use  noset_last_modified=True for loadxl call;
+    this was causing problems for non-admin users; requires dcicsnovault 11.24.0+.
 
 
 0.133.5
