@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.133.5
+=======
+`PR 341 feat: add title row to top of detail page <https://github.com/smaht-dac/smaht-portal/pull/341>`
+
+- Remove title from excluded keys
+- Add title row to top of details
+
+
 0.133.4
 =======
 `PR 339 Embedd Metaworflow name into file <https://github.com/smaht-dac/smaht-portal/pull/339>`
