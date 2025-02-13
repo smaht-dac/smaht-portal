@@ -789,6 +789,15 @@ h2.browse-summary-header {
 			width: 350px;
 		}
 	}
+	
+	@include media-breakpoint-up(xl) {
+		min-width: 775px;
+		width: 775px;
+
+		.popover-body > img {
+			width: 750px;
+		}
+	}
 }
 
 div.browse-body {

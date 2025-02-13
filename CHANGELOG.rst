@@ -7,16 +7,25 @@ smaht-portal
 Change Log
 ----------
 
+0.133.7
+=======
+`PR 338: browse view 2 <https://github.com/smaht-dac/smaht-portal/pull/338>`_
+
+* Add link to browse view from production data arrow
+* Enlarge size of file data modal image
+* Rework statistics data components to use new search method; pull more accurate data
+
+
 0.133.6
 =======
-`PR 327: chore: add month back to latest header <https://github.com/smaht-dac/smaht-portal/pull/327>`
+`PR 327: chore: add month back to latest header <https://github.com/smaht-dac/smaht-portal/pull/327>`_
 
 * Update the notifications panel latest release item header to show month and year
 
 
 0.133.5
 =======
-`PR 341 feat: add title row to top of detail page <https://github.com/smaht-dac/smaht-portal/pull/341>`
+`PR 341 feat: add title row to top of detail page <https://github.com/smaht-dac/smaht-portal/pull/341>`_
 
 - Remove title from excluded keys
 - Add title row to top of details
@@ -24,7 +33,7 @@ Change Log
 
 0.133.4
 =======
-`PR 339 Embedd Metaworflow name into file <https://github.com/smaht-dac/smaht-portal/pull/339>`
+`PR 339 Embedd Metaworflow name into file <https://github.com/smaht-dac/smaht-portal/pull/339>`_
 
 * Minor changes to the script that creates the input for the QC overview page
 * Embedd Metaworflow name into file, so that we can query if a file has been the input to a specific MWF
@@ -32,7 +41,7 @@ Change Log
 
 0.133.3
 =======
-`PR 336 Cypress test updates <https://github.com/smaht-dac/smaht-portal/pull/336>`
+`PR 336 Cypress test updates <https://github.com/smaht-dac/smaht-portal/pull/336>`_
 
 * Home page: added new tests for Data Release Tracker and Announcements feeds
 * Home page: updated benchmarking/broduction expand/collapse panels
@@ -50,7 +59,7 @@ Change Log
 
 0.133.1
 =======
-`PR 330 chore: update PI information for UW <https://github.com/smaht-dac/smaht-portal/pull/330>`
+`PR 330 chore: update PI information for UW <https://github.com/smaht-dac/smaht-portal/pull/330>`_
 
 * Update PI information in awardees page
 
@@ -64,14 +73,14 @@ Change Log
 
 0.132.2
 =======
-`PR 332 feat: add animation to sidebar <https://github.com/smaht-dac/smaht-portal/pull/332>`
+`PR 332 feat: add animation to sidebar <https://github.com/smaht-dac/smaht-portal/pull/332>`_
 
 * Add animation to sliding sidebar
 
 
 0.132.1
 =======
-`PR 328 fix: update broken link in error page <https://github.com/smaht-dac/smaht-portal/pull/328>`
+`PR 328 fix: update broken link in error page <https://github.com/smaht-dac/smaht-portal/pull/328>`_
 
 * Correct broken link to account creation doc
 
