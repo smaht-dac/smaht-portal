@@ -23,6 +23,8 @@ Change Log
     went back/forth on this; in the end removed restricted_fields designation for consortia in mixins.json.
   - In ingestion/load_extensions.py use  noset_last_modified=True for loadxl call;
     this was causing problems for non-admin users; requires dcicsnovault 11.24.0+.
+  - Updated the smaht-submitr spreadsheet template version;
+    see SUBMITR_METADATA_TEMPLATE_SHEET_ID and METADATA_TEMPLATE_VERSION_SHEET in metadata_template.py
 
 
 0.133.6
