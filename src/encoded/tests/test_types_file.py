@@ -1092,6 +1092,18 @@ def assert_sample_summary_matches_expected(
     )
     expected_tissues = get_unique_values(
         [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
+        functools.partial(
+            tissue_utils.get_top_grouping_term, request_handler=request_handler
+        ),
+    )
+    expected_tissue_subtypes = get_unique_values(
+        [tissue_utils.get_uberon_id(
+            get_item(es_testapp, item_utils.get_uuid(tissue)))
+                      for tissue in tissues],
+        item_utils.get_display_title
+    )
+    expected_tissue_details = get_unique_values(
+        [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
         tissue_utils.get_location,
     )
     expected_donor_ids = get_unique_values(
@@ -1116,6 +1128,7 @@ def assert_sample_summary_matches_expected(
             sample_utils.get_studies, request_handler=request_handler
         ),
     )
+    import pdb; pdb.set_trace()
     assert_values_match_if_present(
         sample_summary, "analytes", expected_analytes
     )
@@ -1124,6 +1137,12 @@ def assert_sample_summary_matches_expected(
     )
     assert_values_match_if_present(
         sample_summary, "tissues", expected_tissues
+    )
+    assert_values_match_if_present(
+        sample_summary, "tissue_subtypes", expected_tissue_subtypes
+    )
+    assert_values_match_if_present(
+        sample_summary, "tissue_details", expected_tissue_details
     )
     assert_values_match_if_present(
         sample_summary, "donor_ids", expected_donor_ids

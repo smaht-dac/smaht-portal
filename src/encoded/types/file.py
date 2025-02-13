@@ -259,7 +259,7 @@ class CalcPropConstants:
     }
     SAMPLE_SUMMARY_DONOR_IDS = "donor_ids"
     SAMPLE_SUMMARY_TISSUES = "tissues"
-    SAMPLE_SUMMARY_TISSUE_SUBTYPES = "tissue_subtype"
+    SAMPLE_SUMMARY_TISSUE_SUBTYPES = "tissue_subtypes"
     SAMPLE_SUMMARY_TISSUE_DETAILS = "tissue_details"
     SAMPLE_SUMMARY_SAMPLE_NAMES = "sample_names"
     SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS = "sample_descriptions"
