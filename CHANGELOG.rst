@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.134.0
+=======
+`PR227: feat: VCF comparator and software information  <https://github.com/smaht-dac/smaht-portal/pull/227>`_
+
+* Provide comparator information for VCFs in the file overview page
+
+
 0.133.8
 =======
 `PR 312: BM submission doc fix<https://github.com/smaht-dac/smaht-portal/pull/312>`_
