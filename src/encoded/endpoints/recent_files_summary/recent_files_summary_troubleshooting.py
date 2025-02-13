@@ -8,9 +8,9 @@ from encoded.endpoints.endpoint_utils import parse_datetime_string
 from encoded.endpoints.recent_files_summary.recent_files_summary_fields import (
     AGGREGATION_FIELD_RELEASE_DATE,
     AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR,
-    AGGREGATION_FIELD_CELL_LINE,
     AGGREGATION_FIELD_CELL_MIXTURE,
     AGGREGATION_FIELD_DONOR,
+    AGGREGATION_FIELD_DSA_DONOR,
     AGGREGATION_FIELD_FILE_DESCRIPTOR)
 
 # This module contains functions for dev/testing/troubleshooting; it is functionally unnecessary;
@@ -50,10 +50,11 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
     aggregation_fields_for_troubleshooting = dedup_list([
         AGGREGATION_FIELD_RELEASE_DATE,
         AGGREGATION_FIELD_CELL_MIXTURE,
-        AGGREGATION_FIELD_CELL_LINE,
-        # Store some extra properties for troublehooting (as this whole thing is).
-        "file_sets.libraries.analytes.samples.sample_sources.display_title",
         AGGREGATION_FIELD_DONOR,
+        AGGREGATION_FIELD_DSA_DONOR,
+        # Store some extra properties for troublehooting (as this whole thing is).
+        "file_sets.libraries.analytes.samples.sample_sources.cell_line.code",
+        "file_sets.libraries.analytes.samples.sample_sources.display_title",
         AGGREGATION_FIELD_FILE_DESCRIPTOR
     ])
 
@@ -202,8 +203,9 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
         # Shorter/nicer names for aggregation fields of interest to print.
         return {
             AGGREGATION_FIELD_CELL_MIXTURE: "sample-sources",
-            AGGREGATION_FIELD_CELL_LINE: "cell-lines",
             AGGREGATION_FIELD_DONOR: "donors",
+            AGGREGATION_FIELD_DSA_DONOR: "dsa-donors",
+            "file_sets.libraries.analytes.samples.sample_sources.cell_line.code": "cell-lines",
             "file_sets.libraries.analytes.samples.sample_sources.display_title": "sample-sources-title"
         }
 

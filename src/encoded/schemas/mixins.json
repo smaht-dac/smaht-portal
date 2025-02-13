@@ -176,8 +176,7 @@
             "items": {
                 "type": "string",
                 "linkTo": "Consortium"
-            },
-            "permission": "restricted_fields"
+            }
         }
     },
     "category": {

@@ -19,10 +19,12 @@ from encoded.utils import get_configuration_value
 # even though it (the key) is only useful for accessing public documents.
 
 # These are defined in the application .ini file (populated via assume_identity / AWS Secrets).
-SUBMITR_METADATA_TEMPLATE_SHEET_ID = "1sEXIA3JvCd35_PFHLj2BC-ZyImin4T-TtoruUe6dKT4"
+# SUBMITR_METADATA_TEMPLATE_SHEET_ID = "1sEXIA3JvCd35_PFHLj2BC-ZyImin4T-TtoruUe6dKT4"  # updated below 2025-02-13
+SUBMITR_METADATA_TEMPLATE_SHEET_ID = "1LEaS5QTwm86iZjjKt3tKRe_P31sE9-aJZ7tMINxw3ZM"
 GOOGLE_API_KEY = None
 # These are hardcoded for now; probably fine/wont-change; dont want to create too much config clutter.
-METADATA_TEMPLATE_VERSION_SHEET = "(Overview/Guidelines)"
+# METADATA_TEMPLATE_VERSION_SHEET = "(Overview/Guidelines)"  # updated below 2025-02-13
+METADATA_TEMPLATE_VERSION_SHEET = "(Overview Guidelines)"
 METADATA_TEMPLATE_VERSION_CELL = "B1"
 METADATA_TEMPLATE_VERSION_LOCATION = f"{METADATA_TEMPLATE_VERSION_SHEET}!{METADATA_TEMPLATE_VERSION_CELL}"
 GOOGLE_SHEETS_BASE_URL = f"https://docs.google.com/spreadsheets/d"
@@ -68,8 +70,10 @@ def _parse_metadata_template_version(value: str) -> Optional[str]:
     """
     Parses and returns the version from a string like "version: 1.2.3".
     """
-    if value.strip().lower().startswith("version:"):
+    if (value := value.strip().lower()).startswith("version:"):
         return value.replace("version:", "").strip()
+    elif value.startswith("v"):
+        return value[1:]
     return None
 
 
