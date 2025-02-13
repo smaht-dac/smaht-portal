@@ -66,3 +66,17 @@ def test_homogenate_external_id_regex(external_id: Dict[str, Any], expected_matc
     """Test Homogenate external ID regex."""
     result = tissue_sample_utils.is_homogenate_external_id(external_id)
     assert result == expected_match
+
+
+@pytest.mark.parametrize(
+    "properties,expected",
+    [
+        ({}, ""),
+        ({"external_id": "FooBar"}, ""),
+        ({"external_id": "ST001-1A-001X"}, "ST001-1A"),
+        ({"external_id": "SMHT001-1A-001B1"}, "SMHT001-1A"),
+    ],
+)
+def test_get_tissue_kit_id(properties: Dict[str, Any], expected: str) -> None:
+    """Test tissue kit ID retrieval for annotated filenames."""
+    assert tissue_sample_utils.get_tissue_kit_id(properties) == expected
