@@ -8,6 +8,7 @@ import {
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import { FileOverviewTableController } from './FileOverviewTable';
+import { VcfAnalysisOverview } from './VcfAnalysisOverview';
 import ReactTooltip from 'react-tooltip';
 
 /**
@@ -69,19 +70,27 @@ const AssociatedFilesTab = (props) => {
 };
 
 // DotRouterTab content for displaying Analysis information for the current file.
-const AnalysisInformationTab = ({ context }) => {
-    return (
-        <div className="no-results">
-            <div className="no-results-content">
-                <i className="icon icon-network-wired fas"></i>
-                <h3 className="header">Analysis Information Coming Soon</h3>
-                <span className="subheader">
-                    Check back for updates on Analysis Information development
-                    with future portal releases
-                </span>
+const AnalysisInformationTab = (props) => {
+    if (
+        props?.context?.file_summary?.file_format === 'vcf' ||
+        props?.context?.file_summary?.file_format === 'vcf_gz'
+    ) {
+        return <VcfAnalysisOverview {...props} />;
+    } else {
+        // no results
+        return (
+            <div className="no-results">
+                <div className="no-results-content">
+                    <i className="icon icon-network-wired fas"></i>
+                    <h3 className="header">Analysis Information Coming Soon</h3>
+                    <span className="subheader">
+                        Check back for updates on Analysis Information
+                        development with future portal releases
+                    </span>
+                </div>
             </div>
-        </div>
-    );
+        );
+    }
 };
 
 // DotRouterTab content for displaying QC information for the current file.
@@ -145,23 +154,23 @@ export const FileViewTabs = (props) => {
                 isActive={true}
                 prependDotPath="file-overview">
                 <DotRouterTab
-                    dotPath=".associated-files"
-                    tabTitle={associatedFilesTitle}
-                    arrowTabs={false}
-                    default>
-                    <AssociatedFilesTab {...props} />
-                </DotRouterTab>
-                <DotRouterTab
                     dotPath=".analysis-information"
                     tabTitle="Analysis Information"
-                    arrowTabs={false}>
-                    <AnalysisInformationTab />
+                    arrowTabs={false}
+                    default>
+                    <AnalysisInformationTab {...props} />
                 </DotRouterTab>
                 <DotRouterTab
                     dotPath=".qc-overview"
                     tabTitle="QC Overview"
                     arrowTabs={false}>
                     <QCOverviewTab />
+                </DotRouterTab>
+                <DotRouterTab
+                    dotPath=".associated-files"
+                    tabTitle="Associated Files"
+                    arrowTabs={false}>
+                    <AssociatedFilesTab {...props} />
                 </DotRouterTab>
             </DotRouter>
         </div>

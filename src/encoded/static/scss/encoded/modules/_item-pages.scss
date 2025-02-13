@@ -1725,6 +1725,93 @@ File Overview Styles
 							}
 						}
 					}
+
+					.vcf-analysis-overview {
+						padding: 15px 10px 20px 10px;
+						.data-group {
+							display: flex;
+							flex-wrap: wrap;
+    						gap: 60px;
+
+							.datum {
+								display: flex;
+								flex-direction: column;
+								gap: 16px;
+
+								&-title {
+									color: $carbon-gray;
+									font-size: 0.875rem;
+									font-weight: 500;
+									width: max-content;
+
+									span {
+										font-weight: 400;
+									}
+								}
+								&-value {
+									color: $body-color;
+									font-weight: 400;
+
+									&.text-gray {
+										color: #D8D8D8;
+									}
+								}
+								&.software {
+									.datum-value {
+										display: flex;
+										flex-wrap: wrap;
+										gap: 12px;
+										
+										.software-group {
+											display: flex;
+											align-items: center;
+											border: 1px solid $mercury;
+											border-radius: 12px;
+											background-color: $gray-10;
+											color: $body-color;
+											width: min-content;
+											margin-top: -5px;
+											
+											.title {
+												padding: 4px 12px;
+												font-weight: 400;
+												width: max-content;
+											}
+											.version {
+												height: 100%;
+												background-color: $mercury;
+												font-weight: 500;
+												padding: 4px 12px;
+												border-radius: 0px 11px 11px 0px;
+											}
+										}
+									}
+								}
+							}
+							
+
+							&.notes {
+								flex-direction: column;
+								margin-top: 25px;
+								padding-top: 25px;
+								border-top: 1px solid $mercury;
+								
+								.datum {
+									width: 90%;
+									&-value {
+										p {
+											margin: 0px 0px 5px 0px;
+											
+											b {
+												font-weight: 500;
+											}
+										}
+									}
+								}
+							}
+
+						}
+					}
 				}
 			}
 		
