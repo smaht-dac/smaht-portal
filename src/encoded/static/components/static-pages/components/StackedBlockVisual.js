@@ -90,7 +90,7 @@ export class VisualBody extends React.PureComponent {
         }
 
         if (isGroup){
-            const keysToInclude = _.uniq(_.keys(titleMap).concat(['sub_cat', 'sub_cat_title', 'data_source', columnGrouping]).concat(groupingProperties));
+            const keysToInclude = _.uniq(_.keys(titleMap).concat(['sub_cat', 'sub_cat_title', columnGrouping]).concat(groupingProperties));
             aggrData = StackedBlockVisual.aggregateObjectFromList(
                 data, keysToInclude, ['sub_cat_title'] // We use this property as an object key (string) so skip parsing to React JSX list;
             );
@@ -137,8 +137,6 @@ export class VisualBody extends React.PureComponent {
             </div>
         );
 
-        const data_source = aggrData.data_source;
-
         function makeSearchButton(disabled=false){
             const currentFilteringProperties = groupingProperties.slice(0, depth + 1).concat([columnGrouping]);
             const currentFilteringPropertiesVals = _.object(
@@ -146,8 +144,6 @@ export class VisualBody extends React.PureComponent {
                     const facetField = fieldChangeMap[property];
                     let facetTerm = aggrData[property];
                     if (valueChangeMap && valueChangeMap[property]){
-                        // Convert back to in-database value for use in the search query.
-                        // const reversedValChangeMapForCurrSource = _.invert(valueChangeMap[data_source][property]);
                         const reversedValChangeMapForCurrSource = VisualBody.invert(valueChangeMap[property]);
                         facetTerm = reversedValChangeMapForCurrSource[facetTerm] || facetTerm;
                     }
@@ -874,7 +870,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 : null }
                             <h4 className="text-truncate"
                                 data-tip={group && typeof group === 'string' && group.length > 20 ? group : null}>
-                                { toggleIcon }<span class="inner">{ group }</span>
+                                { toggleIcon }<span className="inner">{ group }</span>
                             </h4>
                         </div>
                         {/* this.childLabels() */}
