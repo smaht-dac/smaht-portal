@@ -7,9 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+0.133.8
+=======
+`PR 312: BM submission doc fix<https://github.com/smaht-dac/smaht-portal/pull/312>`_
+
+* Swap the "Validation" and "Submission" sections
+* Slight text edit for first line in Validation section to remove reference to Submission paragraph
+
+
 0.133.7
 =======
-`PR 338: browse view 2 <https://github.com/smaht-dac/smaht-portal/pull/338>`_
+`PR 338: Browse view 2 <https://github.com/smaht-dac/smaht-portal/pull/338>`_
 
 * Add link to browse view from production data arrow
 * Enlarge size of file data modal image
