@@ -49,7 +49,7 @@ READ_LENGTH = "read_length"
 WGS = "WGS"
 RNA_SEQ = "RNA-seq"
 
-WGS_ASSAYS = ["WGS", "Ultra-Long WGS", "PCR WGS"]
+WGS_ASSAYS = ["WGS", "Ultra-Long WGS", "PCR WGS", "Fiber-seq"]
 RNA_ASSAYS = ["RNA-seq"]
 
 # Supported sequencers
@@ -122,7 +122,7 @@ VISIBLE_FIELDS_IN_TOOLTIP = [
     {"key": "file_status", "label": "Status"},
     {"key": "fileset", "label": "Fileset"},
     {"key": "submission_center", "label": "Submission center"},
-    {"key": "assay", "label": "Assay"},
+    {"key": "assay_label", "label": "Assay"},
     {"key": "sequencer", "label": "Sequencer"},
     {"key": "sample_source", "label": "Sample source"},
 ]
@@ -288,6 +288,7 @@ class FileStats:
             result[SUBMISSION_CENTER] = submission_centers
             result["tags"] = tags
             result[ASSAY] = assay
+            result["assay_label"] = ",".join(assays)
             result[SEQUENCER] = sequencer
             if sequencer in SHORT_READ_SEQS:
                 result["sequencer_group"] = ALL_ILLUMINA
