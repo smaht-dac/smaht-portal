@@ -271,10 +271,16 @@ export const BenchmarkingDataMap = {
             },
         ],
         callout: (
-            <div className="callout warning">
+            <div className="callout success">
                 <p className="callout-text">
-                    The iPSC and fibroblast data are available via Globus upon
-                    request. Please contact DAC
+                    <span className="flag">Note:</span> The iPSC and fibroblast
+                    data are available via Globus upon request. To access the
+                    data on Globus, please contact SMaHT Data Analysis Center
+                    (DAC) through the{' '}
+                    <a href="mailto:smhelp@hms-dbmi.atlassian.net?subject=Helpdesk%20Inquiry%20from%20data.smaht.org&body=Name%3A%0D%0AContact%20Information%20(so%20we%20can%20get%20back%20to%20you!)%3A%0D%0A%0D%0AQuestions%2FComments%3A%0D%0A%0D%0A">
+                        Helpdesk
+                    </a>
+                    .
                 </p>
             </div>
         ),
