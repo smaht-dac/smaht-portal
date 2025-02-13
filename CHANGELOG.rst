@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.135.0
+=======
+`PR343: feat: alert updates <https://github.com/smaht-dac/smaht-portal/pull/343>`_
+
+* Update colors for alerts
+* Add alert about sample swap and data retraction
+* Add alert banner for iPSC
+
+
 0.134.0
 =======
 `PR227: feat: VCF comparator and software information  <https://github.com/smaht-dac/smaht-portal/pull/227>`_
