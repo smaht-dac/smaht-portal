@@ -111,7 +111,7 @@
         },
         "target_coverage": {
             "title": "Target Coverage",
-            "description": "Expected coverage for the sequencing",
+            "description": "Expected coverage for the sequencing. For Duplex sequencing, this applies to the target duplex coverage for sequencing",
             "type": "number",
             "minimum": 0
         },

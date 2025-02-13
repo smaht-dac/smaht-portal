@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Union, Optional
+from typing import Any, Dict, List, Union
 
 from pyramid.view import view_config
 from pyramid.request import Request
@@ -20,11 +20,12 @@ from ..item_utils import (
     library as library_utils,
     sequencing as sequencing_utils,
     analyte as analyte_utils,
-    sample as sample_utils
+    sample as sample_utils,
+    tissue_sample as tissue_sample_utils
 )
 from ..item_utils.utils import (
     RequestHandler,
-    get_property_value_from_identifier
+    get_property_value_from_identifier,
 )
 from ..utils import load_extended_descriptions_in_schemas
 
@@ -179,13 +180,13 @@ class FileSet(SubmittedItem):
         if len(samples) > 1:
             samples_meta = request_handler.get_items(samples)
             for sample_meta in samples_meta:
-                if sample_utils.is_tissue_sample(sample_meta) and sample_meta.get('category') != 'Homogenate':
+                if sample_utils.is_tissue_sample(sample_meta) and tissue_sample_utils.has_spatial_information(sample_meta):
                     return None # this should give some kind of warning. Should not have multiple intact tissue samples
         if len(samples) == 1:
             sample = samples[0]
             if 'tissue' in sample:
                 sample_meta = request_handler.get_item(sample)
-                if sample_meta.get('category') != 'Homogenate':
+                if tissue_sample_utils.has_spatial_information(sample_meta):
                     return get_property_value_from_identifier(
                         request_handler, sample, item_utils.get_submitted_id
                     )

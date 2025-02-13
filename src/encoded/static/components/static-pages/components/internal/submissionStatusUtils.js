@@ -44,9 +44,9 @@ function isFloat(num) {
     return Number(num) === num && num % 1 !== 0;
 }
 
-export const createBadge = (type, description) => {
+export const createBadge = (type, description, tooltip="") => {
     const cn = 'badge text-white bg-' + type;
-    return <span className={cn}>{description}</span>;
+    return <span className={cn} data-tip={tooltip}>{description}</span>;
 };
 
 export const createQcBadgeLink = (type, identifier, description) => {

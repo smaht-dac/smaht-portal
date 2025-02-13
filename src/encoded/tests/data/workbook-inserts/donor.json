@@ -8,17 +8,28 @@
         ],
         "age": 65,
         "sex": "Female",
-        "body_mass_index": 21.5,
-        "height": 3.2,
-        "weight": 45
+        "hardy_scale": 3,
+        "tpc_submitted": "True"
     },
     {
         "uuid": "637232c9-4008-462c-9b2f-bfc376db641e",
         "submitted_id": "TEST_DONOR_MALE",
+        "external_id": "ST001",
         "submission_centers": [
             "smaht"
         ],
         "age": 45,
-        "sex": "Male"
+        "sex": "Male",
+        "tpc_submitted": "True"
+    },
+    {
+        "uuid": "a6f312a3-909b-41cd-ac14-bb72541df6b9",
+        "submitted_id": "TEST_DONOR_ALT1",
+        "submission_centers": [
+            "smaht"
+        ],
+        "age": 89,
+        "sex": "Male",
+        "tpc_submitted": "False"
     }
 ]

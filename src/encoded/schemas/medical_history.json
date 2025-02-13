@@ -98,6 +98,12 @@
             "description": "Details of the autograft transplantation",
             "type": "string"
         },
+        "body_mass_index": {
+            "title": "Body Mass Index",
+            "description": "Body mass index of the donor (m/kg^2)",
+            "type": "number",
+            "minimum": 0
+        },
         "cancer_chemotherapy": {
             "title": "Cancer Chemotherapy",
             "description": "Whether the donor had a history of cancer chemotherapy",
@@ -264,6 +270,12 @@
                 "Yes"
             ]
         },
+        "height": {
+            "title": "Height",
+            "description": "Height of the donor (meters)",
+            "type": "number",
+            "minimum": 0
+        },
         "hepatitis_b_core_antibody": {
             "title": "Hepatitis B Core Antibody",
             "description": "Results of testing for hepatitis B core antibody",
@@ -424,6 +436,12 @@
                 ">3, Identical",
                 ">3, Unknown"
             ]
+        },
+        "weight": {
+            "title": "Weight",
+            "description": "Weight of the donor (kg)",
+            "type": "number",
+            "minimum": 0
         },
         "xenograft_transplantation": {
             "title": "Xenograft Transplantation",
