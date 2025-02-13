@@ -135,7 +135,7 @@ const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
                     <>
                         <div className="browse-summary-stat-value">
                             {!value && value !== 0 ? '-' : value}
-                            {units && <span>{units}</span>}
+                            {units && <span>&nbsp;{units}</span>}
                         </div>
                     </>
                 )}
