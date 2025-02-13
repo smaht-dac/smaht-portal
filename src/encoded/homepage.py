@@ -21,21 +21,33 @@ class SearchBase:
     ALL_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
         'status': ['released', 'restricted', 'public'],
+        'additional_facet': [
+            'file_sets.libraries.assay.display_title'
+        ]
     }
     COLO829_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
         'status': ['released', 'restricted', 'public'],
-        'dataset': ['colo829blt_50to1', 'colo829t', 'colo829bl']
+        'dataset': ['colo829blt_50to1', 'colo829t', 'colo829bl'],
+        'additional_facet': [
+            'file_sets.libraries.assay.display_title'
+        ]
     }
     HAPMAP_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
         'status': ['released', 'restricted', 'public'],
-        'dataset': ['hapmap']
+        'dataset': ['hapmap'],
+        'additional_facet': [
+            'file_sets.libraries.assay.display_title'
+        ]
     }
     IPSC_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
         'status': ['released', 'restricted', 'public'],
-        'dataset': ['lb_fibroblast', 'lb_ipsc_1', 'lb_ipsc_2', 'lb_ipsc_4', 'lb_ipsc_52', 'lb_ipsc_60']
+        'dataset': ['lb_fibroblast', 'lb_ipsc_1', 'lb_ipsc_2', 'lb_ipsc_4', 'lb_ipsc_52', 'lb_ipsc_60'],
+        'additional_facet': [
+            'file_sets.libraries.assay.display_title'
+        ]
     }
     TISSUES_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
@@ -49,7 +61,18 @@ class SearchBase:
             'ST003-1Q',
             'ST004-1Q'
         ],
-        'additional_facet': 'donors.display_title'  # required since this is default_hidden for now
+        'additional_facet': [
+            'donors.display_title', 'file_sets.libraries.assay.display_title'
+        ]  # required since this is default_hidden for now
+    }
+    PRODUCTION_TISSUES_FILES_SEARCH_PARAMS = {
+        'type': 'File',
+        'status': ['released', 'restricted', 'public'],
+        'sample_summary.studies': ['Production'],
+        'additional_facet': [
+            'file_sets.libraries.assay.display_title',
+            'file_sets.libraries.analytes.samples.sample_sources.uberon_id'
+        ]
     }
 
 
@@ -84,16 +107,18 @@ def extract_desired_facet_from_search(facets, desired_facet_name):
     """ Grabs a single facet from a search response facets block """
     for d in facets:
         if d['field'] == desired_facet_name:
+            if 'original_terms' in d:
+                d['terms'] = d['original_terms']  # discard group_by_field information
             return d
     log.error(f'Did not locate specified facet on homepage: {desired_facet_name}')
-    return None
+    return {}
 
 
-def generate_unique_facet_count(context, request, search_param, desired_fact):
+def generate_unique_facet_count(context, request, search_param, desired_facet):
     """ Helper function that extracts the number of unique facet terms """
     search_param['limit'] = 0  # we do not care about search results, just facet counts
     result = generate_admin_search_given_params(context, request, search_param)
-    facet = extract_desired_facet_from_search(result['facets'], desired_fact)
+    facet = extract_desired_facet_from_search(result['facets'], desired_facet)
     # correct for no value, worst case we check the whole list of facet terms
     # but this is usually a manageable sized list - Will 28 March 2024
     for term in facet['terms']:
@@ -139,21 +164,46 @@ def generate_ipsc_assay_count(context, request):
 
 
 def generate_tissue_file_count(context, request):
-    """ Get total file count for tissues """
+    """ Get total file count for benchmarking tissues """
     search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
     return generate_search_total(context, request, search_param)
 
 
 def generate_tissue_donor_count(context, request):
-    """ Get donor count by aggregating on donor """
+    """ Get benchmarking tissue donor count by aggregating on donor """
     search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
     return generate_unique_facet_count(context, request, search_param, 'donors.display_title')
 
 
 def generate_tissue_assay_count(context, request):
-    """ Get total assay count for tissues """
+    """ Get total assay count for benchmarking tissues """
     search_param = SearchBase.TISSUES_RELEASED_FILES_SEARCH_PARAMS
     return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
+
+
+def generate_production_file_count(context, request):
+    """ Get total file count for production tissues """
+    search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
+    return generate_search_total(context, request, search_param)
+
+
+def generate_production_tissue_donor_count(context, request):
+    """ Get production tissue donor count """
+    search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
+    return generate_unique_facet_count(context, request, search_param, 'donors.display_title')
+
+
+def generate_production_tissue_assay_count(context, request):
+    """ Get production tissue assay counts """
+    search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
+    return generate_unique_facet_count(context, request, search_param, 'file_sets.libraries.assay.display_title')
+
+
+def generate_production_tissue_type_count(context, request):
+    """ Get production tissue type counts """
+    search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
+    return generate_unique_facet_count(context, request, search_param,
+                                       'file_sets.libraries.analytes.samples.sample_sources.uberon_id')
 
 
 @view_config(route_name='home', request_method=['GET'])
@@ -181,6 +231,11 @@ def home(context, request):
         (generate_tissue_donor_count, {'context': context, 'request': request}),  # 7
         (generate_tissue_assay_count, {'context': context, 'request': request}),  # 8
 
+        # Production stats
+        (generate_production_file_count, {'context': context, 'request': request}),  # 9
+        (generate_production_tissue_donor_count, {'context': context, 'request': request}),  # 10
+        (generate_production_tissue_assay_count, {'context': context, 'request': request}),  # 11
+        (generate_production_tissue_type_count, {'context': context, 'request': request}),  # 12
     ])
     time = datetime.now(timezone('EST'))
     response = {
@@ -243,10 +298,10 @@ def home(context, request):
                     {
                         "title": "Primary Tissues",
                         "figures": [
-                            { "value": 0, "unit": "Donors" },
-                            { "value": 0, "unit": "Tissue Types" },
-                            { "value": 0, "unit": "Assays" },
-                            { "value": 0, "unit": "Files Generated" }
+                            { "value": search_results[10], "unit": "Donors" },
+                            { "value": search_results[12], "unit": "Tissue Types" },
+                            { "value": search_results[11], "unit": "Assays" },
+                            { "value": search_results[9], "unit": "Files Generated" }
                         ]
                     }
                 ]

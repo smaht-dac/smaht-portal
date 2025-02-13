@@ -347,7 +347,7 @@ def _build_file_embedded_list() -> List[str]:
     """Embeds for search on files."""
     return [
         # Facets + Data generation summary + Link calcprops
-        "file_sets.libraries.assay",
+        "file_sets.libraries.assay.category",  # needed for group_by_field
         "file_sets.sequencing.sequencer",
         "file_sets.sequencing.target_coverage",
         "file_sets.sequencing.target_read_count",
@@ -725,7 +725,7 @@ class File(Item, CoreFile):
                 request_handler,
                 file_properties=self.properties
             )
-        return result     
+        return result
 
     def _get_libraries(
         self, request: Request, file_sets: Optional[List[str]] = None
@@ -902,12 +902,12 @@ class File(Item, CoreFile):
         return {
             key: value for key, value in to_include.items() if value
         }
-    
+
     def _get_group_coverage(
         self, request_handler: Request, file_properties: Optional[List[str]] = None
     ) -> Union[List[str], None]:
         """"Get group coverage for display on file overview page.
-        
+
         Use override_group_coverage if present, otherwise grab target_coverage from sequencing."""
         if (override_group_coverage := file_utils.get_override_group_coverage(file_properties)):
             return [override_group_coverage]
@@ -1011,7 +1011,7 @@ class File(Item, CoreFile):
             ),
         }
         return {key: value for key, value in to_include.items() if value}
-    
+
     def _get_release_tracker_description(
             self,
             request_handler: RequestHandler,
