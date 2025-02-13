@@ -270,6 +270,14 @@ export const BenchmarkingDataMap = {
                 //     '/search/?type=File&status=released&status=restricted&status=public&dataset=ipsc_snv_indel_challenge_data',
             },
         ],
+        callout: (
+            <div className="callout warning">
+                <p className="callout-text">
+                    The iPSC and fibroblast data are available via Globus upon
+                    request. Please contact DAC
+                </p>
+            </div>
+        ),
     },
     Donor1: {
         navBarTitle: 'Donor ST001',
