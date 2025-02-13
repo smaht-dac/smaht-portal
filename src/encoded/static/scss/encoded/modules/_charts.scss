@@ -1736,8 +1736,6 @@ body[data-path="/statistics"] {
         }
     }
 
-   
-
     .grouping {
 
         border: none;
@@ -2028,6 +2026,39 @@ body[data-path="/statistics"] {
 
     }
 
+    &.has-active-block {
+        .stacked-block, .label-container, .column-group-header {
+            opacity: 0.3;
+            transition: opacity 0.3s;
+        }
+        .column-group-header.active-column {
+            opacity: 1 !important;
+
+            .inner:after {
+                font-family: "Font Awesome 6 Free";
+                content: "\f0d9";
+                display: inline-block;
+                padding-left: 10px;
+                font-weight: 600;
+            }
+        }
+          
+        .label-container.active-row {
+            opacity: 1 !important;
+
+            .inner:before {
+                font-family: "Font Awesome 6 Free";
+                content: "\f0da";
+                display: inline-block;
+                padding-right: 10px;
+                font-weight: 900;
+            }
+        }
+    }
+      
+    .active-row.active-column {
+        opacity: 1 !important;
+    }
 }
 
 // The popover for matrix is rendered outside of viz container -- 

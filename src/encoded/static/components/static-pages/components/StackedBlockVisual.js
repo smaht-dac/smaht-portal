@@ -4,7 +4,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _, { clone } from 'underscore';
 import memoize from 'memoize-one';
+import url from 'url';
+import queryString from 'query-string';
 import OverlayTrigger from 'react-bootstrap/esm/OverlayTrigger';
+import { Popover, Button } from 'react-bootstrap';
 import { console, object, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 
@@ -22,53 +25,222 @@ export function groupByMultiple(objList, propertiesList){
 
 }
 
-/**
- * Taken from https://stackoverflow.com/questions/15298912/javascript-generating-combinations-from-n-arrays-with-m-elements
-  */
-export function cartesian() {
-    var r = [], arg = arguments, max = arg.length-1;
-    function helper(arr, i) {
-        for (var j=0, l=arg[i].length; j<l; j++) {
-            var a = arr.slice(0); // clone arr
-            a.push(arg[i][j]);
-            if (i==max)
-                r.push(a);
-            else
-                helper(a, i+1);
-        }
-    }
-    helper([], 0);
-    return r;
-}
-
 export function extendListObjectsWithIndex(objList){
     return _.map(objList || [], function(o, idx){
         return _.extend({ 'index' : idx }, o);
     });
 }
 
-export function sumPropertyFromList(objList, property){
-    function getCount(num){
-        try {
-            var n = parseInt(num);
-            if (isNaN(n)) return 0;
-            return n;
-        } catch (e){
-            return 0;
+export class VisualBody extends React.PureComponent {
+
+    static blockRenderedContents(data, blockProps){
+        const { additionalData, groupingProperties, columnGrouping } = blockProps;
+        var count = 0;
+        if (Array.isArray(data)) {
+            count = data.length;
+        } else if (data) {
+            count = 1;
         }
+        if (count > 100){
+            return <span style={{ 'fontSize' : '0.95rem', 'position' : 'relative', 'top' : -1 }}>{ count }</span>;
+        }
+        return <span>{ count }</span>;
+    }
+    /**
+     * replacement of underscore's invert function.
+     * While underscore's invert requires all of object's values should be
+     * unique and string serializable, VisualBody.invert allows multiple
+     * mappings and convert them to array.
+     **/
+    static invert(object) {
+        const result = {};
+        const keys = Object.keys(object);
+        for (var i = 0, length = keys.length; i < length; i++) {
+            if (result[object[keys[i]]] instanceof Array) {
+                result[object[keys[i]]].push(keys[i]);
+            } else if (result[object[keys[i]]]) {
+                const temp = result[object[keys[i]]];
+                result[object[keys[i]]] = [temp, keys[i]];
+            } else {
+                result[object[keys[i]]] = keys[i];
+            }
+        }
+        return result;
     }
 
-    if (Array.isArray(objList)) {
-        return _.reduce(objList, function(m,v){
-            return m + getCount(object.getNestedProperty(v, property));
-        }, 0);
-    } else {
-        console.log('Not an array');
-        throw new Error('Not an array');
+    constructor(props){
+        super(props);
+        this.blockPopover = this.blockPopover.bind(this);
+    }
+
+    /**
+     * @param {*} data An ExperimentSet or list of ExperimentSet, represented by a block/tile.
+     * @param {Object} props Props passed in from the StackedBlockVisual Component instance.
+     */
+    blockPopover(data, blockProps, parentGrouping){
+        const { queryUrl, fieldChangeMap, valueChangeMap, titleMap, groupingProperties, columnGrouping } = this.props;
+        const { depth } = blockProps;
+        const isGroup = (Array.isArray(data) && data.length > 1) || false;
+        let aggrData;
+
+        const additionalItems = _.filter(data, function (item) { return item.is_additional_data === true; });
+
+        if (!isGroup && Array.isArray(data)){
+            data = data[0];
+        }
+
+        if (isGroup){
+            const keysToInclude = _.uniq(_.keys(titleMap).concat(['sub_cat', 'sub_cat_title', 'data_source', columnGrouping]).concat(groupingProperties));
+            aggrData = StackedBlockVisual.aggregateObjectFromList(
+                data, keysToInclude, ['sub_cat_title'] // We use this property as an object key (string) so skip parsing to React JSX list;
+            );
+
+            // Custom parsing down into string -- remove 'Default' from list and ensure is saved as string.
+            if (Array.isArray(aggrData.sub_cat_title)){
+                aggrData.sub_cat_title = _.without(_.uniq(aggrData.sub_cat_title), 'Default');
+                if (aggrData.sub_cat_title.length !== 1){ // If multiple or if none.
+                    aggrData.sub_cat_title = 'Assay Details';
+                } else {
+                    aggrData.sub_cat_title = aggrData.sub_cat_title[0];
+                }
+            }
+        } else {
+            aggrData = data;
+            if (aggrData.sub_cat_title && aggrData.sub_cat_title === "Default"){ // Or maybe remove entirely? <- handled in standardize4DNResult()
+                aggrData.sub_cat_title = 'Assay Details';
+            }
+        }
+
+        const groupingPropertyCurrent = groupingProperties[depth] || null;
+        const groupingPropertyCurrentTitle = (
+            groupingPropertyCurrent === 'sub_cat' ? aggrData['sub_cat_title'] // <- Special case
+                : (groupingPropertyCurrent && titleMap[groupingPropertyCurrent]) || groupingPropertyCurrent || null
+        );
+        const groupingPropertyCurrentValue = aggrData[groupingPropertyCurrent];
+
+        // Generate title area which shows current grouping vals.
+        const yAxisGroupingTitle = (columnGrouping && titleMap[columnGrouping]) || columnGrouping || null;
+        const yAxisGroupingValue = (isGroup ? data[0][columnGrouping] : data[columnGrouping]) || null;
+        const popoverTitle = (
+            <div className="clearfix matrix-popover-title">
+                <div className="x-axis-title">
+                    <div className="text-300">{groupingPropertyCurrentTitle}</div>
+                    <div className="text-400">{groupingPropertyCurrentValue}</div>
+                </div>
+                <div className="mid-icon">
+                    <i className="icon icon-times fas"/>
+                </div>
+                <div className="y-axis-title">
+                    <div className="text-300">{yAxisGroupingTitle}</div>
+                    <div className="text-400">{yAxisGroupingValue}</div>
+                </div>
+            </div>
+        );
+
+        const data_source = aggrData.data_source;
+
+        function makeSearchButton(disabled=false){
+            const currentFilteringProperties = groupingProperties.slice(0, depth + 1).concat([columnGrouping]);
+            const currentFilteringPropertiesVals = _.object(
+                _.map(currentFilteringProperties, function(property){
+                    const facetField = fieldChangeMap[property];
+                    let facetTerm = aggrData[property];
+                    if (valueChangeMap && valueChangeMap[property]){
+                        // Convert back to in-database value for use in the search query.
+                        // const reversedValChangeMapForCurrSource = _.invert(valueChangeMap[data_source][property]);
+                        const reversedValChangeMapForCurrSource = VisualBody.invert(valueChangeMap[property]);
+                        facetTerm = reversedValChangeMapForCurrSource[facetTerm] || facetTerm;
+                    }
+                    return [ facetField, facetTerm ];
+                })
+            );
+
+            const initialHref = queryUrl;
+            const hrefParts = url.parse(initialHref, true);
+            const hrefQuery = _.clone(hrefParts.query);
+            delete hrefQuery.limit;
+            delete hrefQuery.field;
+            _.extend(hrefQuery, currentFilteringPropertiesVals);
+            hrefParts.search = '?' + queryString.stringify(hrefQuery);
+            const linkHref = url.format(hrefParts);
+
+            return (
+                <Button disabled={disabled} href={linkHref} target="_blank" bsStyle="primary" className="w-100 mt-1">View Experiment Sets</Button>
+            );
+        }
+
+        function makeSingleItemButton(disabled=false) {
+            let path = object.itemUtil.atId(data);
+            const hrefParts = url.parse(queryUrl, true);
+            if (hrefParts && hrefParts.hostname && hrefParts.protocol) {
+                path = hrefParts.protocol + "//" + hrefParts.hostname + path;
+            }// else will be abs path relative to current domain.
+            return (
+                <Button disabled={disabled} href={path} target="_blank" bsStyle="primary" className="w-100 mt-1">View Experiment Set</Button>
+            );
+        }
+
+        // We will render only values shown in titleMap _minus_ groupingProperties & columnGrouping
+        const keysToShow = _.without(_.keys(titleMap), columnGrouping, ...groupingProperties);
+        const keyValsToShow = _.pick(aggrData, ...keysToShow);
+
+        // 'sub_cat' and 'sub_cat_title' are special case where we want sub_cat_title as key and sub_cat as value.
+        if (
+            (typeof titleMap.sub_cat !== 'undefined' || typeof titleMap.sub_cat_title !== 'undefined') &&
+            (aggrData.sub_cat && aggrData.sub_cat !== 'No value' && aggrData.sub_cat_title)
+        ){
+            keyValsToShow[aggrData.sub_cat_title] = aggrData.sub_cat;
+            delete keyValsToShow.sub_cat;
+            delete keyValsToShow.sub_cat_title;
+        }
+
+        // format title by experiment set counts
+        let title;
+        const dataLength = Array.isArray(data) ? data.length : 1;
+        const onlyNonAdditionalItemsCount = dataLength - additionalItems.length;
+        if (onlyNonAdditionalItemsCount > 0 && additionalItems.length > 0) {
+            title = `${dataLength} Experiment Set(s) (${additionalItems.length} - Planned)`;
+        } else if (onlyNonAdditionalItemsCount > 0 && additionalItems.length === 0) {
+            title = `${dataLength} Experiment Set(s)`;
+        } else if (onlyNonAdditionalItemsCount === 0 && additionalItems.length > 0) {
+            title = `${additionalItems.length} - Planned Experiment Set(s)`;
+        }
+
+        const experimentSetViewButtonDisabled = (onlyNonAdditionalItemsCount === 0 && additionalItems.length > 0) || false;
+        return (
+            <Popover id="jap-popover" title={popoverTitle} style={{ maxWidth : 540, width: '100%' }}>
+                { isGroup ?
+                    <div className="inner">
+                        <h5 className="text-400 mt-08 mb-15 text-center"><b>{ title }</b></h5>
+                        <hr className="mt-0 mb-1"/>
+                        { StackedBlockVisual.generatePopoverRowsFromJSON(keyValsToShow, this.props) }
+                        { makeSearchButton(experimentSetViewButtonDisabled) }
+                    </div>
+                    :
+                    <div className="inner">
+                        <h5 className="text-400 mt-08 mb-15 text-center"><b>{title}</b></h5>
+                        <hr className="mt-0 mb-1" />
+                        {StackedBlockVisual.generatePopoverRowsFromJSON(keyValsToShow, this.props)}
+                        {makeSingleItemButton(experimentSetViewButtonDisabled)}
+                    </div>
+                }
+            </Popover>
+        );
+
+    }
+
+    render(){
+        const { results } = this.props;
+        return (
+            <StackedBlockVisual data={results} checkCollapsibility
+                {..._.pick(this.props, 'groupingProperties', 'columnGrouping', 'titleMap', 'headerPadding', 'additionalData',
+                    'columnSubGrouping', 'defaultDepthsOpen', 'duplicateHeaders', 'headerColumnsOrder', 'columnSubGroupingOrder', 'labelClassName', 'listingClassName', 'colorLevelClassMap')}
+                blockPopover={this.blockPopover}
+                blockRenderedContents={VisualBody.blockRenderedContents}
+            />
+        );
     }
 }
-
-
 
 export class StackedBlockVisual extends React.PureComponent {
 
@@ -248,37 +420,13 @@ export class StackedBlockVisual extends React.PureComponent {
         var state = {
             'sorting' : 'both',
             'sortField': null,
-            'mounted' : true
+            'mounted' : true,
+            'activeRow': null,
+            'activeColumn': null,
         };
         this.memoized = {
             sortBlock: memoize(StackedBlockGroupedRow.sortBlock)
         };
-
-        /*
-        var maxCollapsibleDepth = props.groupingProperties.length - 1;
-        var unique_open_keys = [];
-
-        _.forEach(props.groupingProperties.slice(0, maxCollapsibleDepth), function(property){
-            var values = _.uniq(_.pluck(props.data, property));
-            unique_open_keys.push(values);
-        });
-
-        var unique_open_keys_full = unique_open_keys[0].slice(0);
-
-        for (var sliceEnd = 2; sliceEnd <= maxCollapsibleDepth; sliceEnd++){
-            unique_open_keys_full = unique_open_keys_full.concat(_.map(cartesian.apply(cartesian, unique_open_keys.slice(0, sliceEnd)), function(keySet){
-                return keySet.join('~');
-            }));
-        }
-
-        _.forEach(unique_open_keys_full, function(comboKey){
-            if (props && Array.isArray(props.defaultOpenKeys) && props.defaultOpenKeys.indexOf(comboKey) > -1) {
-                state['open_' + comboKey] = true;
-            } else {
-                state['open_' + comboKey] = false;
-            }
-        });
-        */
 
         this.state = state;
     }
@@ -319,7 +467,7 @@ export class StackedBlockVisual extends React.PureComponent {
 
     renderContents(){
         const { data : propData, groupingProperties, columnGrouping, additionalData } = this.props;
-        const { mounted, sorting, sortField } = this.state;
+        const { mounted, sorting, sortField, activeRow, activeColumn } = this.state;
         if (!mounted) return null;
         let tempData = [].concat(propData);
         if (additionalData) {
@@ -381,7 +529,10 @@ export class StackedBlockVisual extends React.PureComponent {
 
             return _.map(leftAxisKeys, (k, idx) =>
                 <StackedBlockGroupedRow {...this.props} groupedDataIndices={columnGroups} parentState={this.state} data={nestedData[k]}
-                    key={k} group={k} depth={0} index={idx} toggleGroupingOpen={this.toggleGroupingOpen} onSorterClick={this.handleSorterClick} sorting={sorting} sortField={sortField} />
+                    key={k} group={k} depth={0} index={idx} toggleGroupingOpen={this.toggleGroupingOpen} 
+                    onSorterClick={this.handleSorterClick} sorting={sorting} sortField={sortField}
+                    handleMouseEnter={this.handleMouseEnter} handleMouseLeave={this.handleMouseLeave}
+                    activeColumn={activeColumn} activeRow={activeRow} />
             );
         } else {
             // TODO: Render ... plain blocks w/o left column?
@@ -389,10 +540,25 @@ export class StackedBlockVisual extends React.PureComponent {
 
     }
 
-    render(){
+    handleMouseEnter = (row, column) => {
+        this.setState({ activeRow: row, activeColumn: column });
+    };
+
+    handleMouseLeave = () => {
+        this.setState({ activeRow: null, activeColumn: null });
+    };
+
+    render() {
+        let className = "stacked-block-viz-container";
+        if (this.props.duplicateHeaders) {
+            className += ' with-duplicated-headers';
+        }
+        if (this.state.activeColumn !== null || this.state.activeRow !== null) {
+            className += ' has-active-block';
+        }
         return (
-            <div className={"stacked-block-viz-container" + (this.props.duplicateHeaders ? ' with-duplicated-headers' : '')}>
-                { this.renderContents() }
+            <div className={className}>
+                {this.renderContents()}
             </div>
         );
     }
@@ -479,7 +645,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
         const commonProps = _.pick(props, 'blockHeight', 'blockHorizontalSpacing', 'blockVerticalSpacing',
             'groupingProperties', 'depth', 'titleMap', 'blockClassName', 'blockRenderedContents',
-            'groupedDataIndices', 'headerColumnsOrder', 'columnGrouping', 'blockPopover', 'colorLevelClassMap', 'additionalData');
+            'groupedDataIndices', 'headerColumnsOrder', 'columnGrouping', 'blockPopover', 'colorLevelClassMap', 'additionalData',
+            'activeRow', 'activeColumn', 'handleMouseEnter', 'handleMouseLeave');
         const width = (props.blockHeight + (props.blockHorizontalSpacing * 2)) + 1;
         const containerGroupStyle = {
             'width'         : width, // Width for each column
@@ -552,7 +719,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, props.headerColumnsOrder);
                 }
 
-                inner = _.map(columnKeys, function(k){
+                inner = _.map(columnKeys, function(k, colIdx){
                     var blocksForGroup = blocksByColumnGroup[k];
 
                     // If we have columnSubGrouping (we should, if we reached this comment, b/c otherwise we do the allChildBlocksPerGroup clause), we group these into smaller blocks/groups.
@@ -575,7 +742,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     // We have columnSubGrouping so these are -pairs- of (0) columnSubGrouping val, (1) blocks
                                     blockData = blockData[1];
                                 }
-                                return <Block key={i} {...commonProps} {...{ parentGrouping, subGrouping }} data={blockData} indexInGroup={i} />;
+                                return <Block key={i} {...commonProps} {...{ parentGrouping, subGrouping }} data={blockData} indexInGroup={i} rowIndex={props.index} colIndex={colIdx} />;
                             }) }
                         </div>
                     );
@@ -584,7 +751,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             }
         } else {
             // Stack blocks left-to-right if no column grouping (?)
-            inner = _.map(allChildBlocks, ([ key, data ]) => <Block {...commonProps} {...{ key, data }} />);
+            inner = _.map(allChildBlocks, ([ key, data ], colIndex) => <Block {...commonProps} {...{ key, data }} rowIndex={props.index} colIndex={colIndex} />);
         }
 
         return <div className="blocks-container" style={{ 'minHeight' : containerGroupStyle.minHeight }}>{ inner }</div>;
@@ -608,7 +775,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const {
             groupingProperties, depth, titleMap, group, blockHeight, blockVerticalSpacing, blockHorizontalSpacing, headerColumnsOrder,
             data, groupedDataIndices, index, duplicateHeaders, showGroupingPropertyTitles, checkCollapsibility, headerPadding, labelClassName, listingClassName, additionalData,
-            onSorterClick, sorting, sortField } = this.props;
+            onSorterClick, sorting, sortField, activeRow, activeColumn } = this.props;
         const { open } = this.state;
 
         let groupingPropertyTitle = null;
@@ -640,7 +807,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
             header = (
                 <div className="header-for-viz">
-                    { columnKeys.map(function(columnKey){
+                    { columnKeys.map(function(columnKey, colIndex){
                         //sort order icons
                         let countSortIcon;
                         if ((sorting === 'desc') && (columnKey === sortField)) {
@@ -654,7 +821,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         const countSortIconClassName = 'column-sort-icon' + (['asc', 'desc'].indexOf(sorting) > -1 && columnKey === sortField ? ' active' : '');
 
                         return (
-                            <div key={'col-' + columnKey} className="column-group-header" style={headerItemStyle}>
+                            <div key={'col-' + columnKey} className={'column-group-header' + (activeColumn === colIndex ? ' active-column' : '')} style={headerItemStyle}>
                                 <div className="inner">
                                     <span>{columnKey}</span>
                                 </div>
@@ -701,13 +868,13 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 <span className={labelSortIconClassName}>{labelSortIcon}</span>
                             </div>
                         ) : null}
-                        <div className="label-container" style={{ 'minHeight' : rowHeight }}>
+                        <div className={"label-container" + (index === activeRow ? " active-row" : "")} style={{ 'minHeight' : rowHeight }}>
                             { groupingPropertyTitle && showGroupingPropertyTitles ?
                                 <small className="text-400 mb-0 mt-0">{ groupingPropertyTitle }</small>
                                 : null }
                             <h4 className="text-truncate"
                                 data-tip={group && typeof group === 'string' && group.length > 20 ? group : null}>
-                                { toggleIcon }{ group }
+                                { toggleIcon }<span class="inner">{ group }</span>
                             </h4>
                         </div>
                         {/* this.childLabels() */}
@@ -732,11 +899,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
 }
 
-
 const Block = React.memo(function Block(props){
     const {
         blockHeight, blockVerticalSpacing, data, parentGrouping,
         blockClassName, blockRenderedContents, blockPopover, indexInGroup, colorLevelClassMap,
+        handleMouseEnter, handleMouseLeave, rowIndex, colIndex, activeRow, activeColumn
     } = props;
 
     const style = {
@@ -771,7 +938,20 @@ const Block = React.memo(function Block(props){
         className += ' ' + (colorLevelClassMap.apply(colorLevelClassMap, [data]) || '');
     }
 
-    const blockElem = <div className={className} style={style} tabIndex={1} data-place="bottom" data-block-value={dataLength}>{ contents }</div>;
+    if (rowIndex === activeRow) {
+        className += ' active-row';
+    }
+
+    if (colIndex === activeColumn) {
+        className += ' active-column';
+    }
+
+    const blockElem = (
+        <div className={className} style={style} tabIndex={1} data-place="bottom" data-block-value={dataLength}
+            onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)} onMouseLeave={handleMouseLeave}>
+            {contents}
+        </div>
+    );
 
     if (popover){
         return <OverlayTrigger trigger="click" placement="bottom" overlay={popover} rootClose>{ blockElem }</OverlayTrigger>;
@@ -779,8 +959,6 @@ const Block = React.memo(function Block(props){
 
     return blockElem;
 });
-
-
 
 function FaIcon(props) {
     const { icon, iconClass } = props;
