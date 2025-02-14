@@ -39,7 +39,7 @@
         "submitted_id": "TEST_TISSUE_LUNG_ALT1",
         "external_id": "T12",
         "donor": "TEST_DONOR_ALT1",
-        "uberon_id": "UBERON:0002108",
+        "uberon_id": "UBERON:0002107",
         "anatomical_location": "Lung: Left Lobe"
     }
 ]
