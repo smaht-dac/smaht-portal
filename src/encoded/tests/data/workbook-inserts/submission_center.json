@@ -1,13 +1,13 @@
 [
     {
-        "identifier": "smaht",
-        "title": "SMaHT Test Center",
-        "code": "test"
-    },
-    {
         "identifier": "ndri_tpc",
         "title": "NDRI TPC",
         "code": "ndritest",
         "uuid": "15f3b53f-f2a8-4f8a-bd38-4f843767fe60"
+    },
+    {
+        "identifier": "smaht",
+        "title": "SMaHT Test Center",
+        "code": "test"
     }
 ]
