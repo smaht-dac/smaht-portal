@@ -3,6 +3,11 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 
 const announcements = [
     {
+        type: 'warning',
+        title: 'Attention Users',
+        body: '<alert about sample swap and data retraction>',
+    },
+    {
         type: 'info',
         title: 'New Features',
         body: (

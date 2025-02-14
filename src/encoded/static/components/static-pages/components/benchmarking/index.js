@@ -72,7 +72,8 @@ export const IPSCFibroblastData = ({
         <BenchmarkingLayout
             {...{ schemas }}
             title={BenchmarkingDataMap.iPScFibroblasts?.title}
-            description={BenchmarkingDataMap.iPScFibroblasts?.description}>
+            description={BenchmarkingDataMap.iPScFibroblasts?.description}
+            callout={BenchmarkingDataMap.iPScFibroblasts?.callout}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 controllerId="IPSC-Tab-Renderer"
