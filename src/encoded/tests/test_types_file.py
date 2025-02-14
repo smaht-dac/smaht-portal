@@ -1128,7 +1128,6 @@ def assert_sample_summary_matches_expected(
             sample_utils.get_studies, request_handler=request_handler
         ),
     )
-    import pdb; pdb.set_trace()
     assert_values_match_if_present(
         sample_summary, "analytes", expected_analytes
     )

@@ -469,6 +469,34 @@ def test_cell_line(
 
 
 @pytest.fixture
+def test_ontology(
+    testapp,
+    test_consortium
+): 
+    item = {
+        "identifier": "UBERON",
+        "title": "Uberon",
+        "consortia": [test_consortium["uuid"]]
+    }
+    return post_item_and_return_location(testapp, item, 'ontology')
+
+
+@pytest.fixture
+def test_ontology_term(
+    testapp,
+    test_ontology,
+    test_consortium
+): 
+    item = {
+        "identifier": "UBERON:0002107",
+        "ontologies": [test_ontology["uuid"]],
+        "title": "liver",
+        "consortia": [test_consortium["uuid"]]
+    }
+    return post_item_and_return_location(testapp, item, 'ontology_term')
+
+
+@pytest.fixture
 def test_cell_culture(
     testapp,
     test_submission_center,

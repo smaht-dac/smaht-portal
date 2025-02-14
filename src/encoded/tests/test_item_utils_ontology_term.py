@@ -16,7 +16,6 @@ def test_get_top_grouping_term(es_testapp: TestApp, workbook: None) -> None:
 
     request_handler = RequestHandler(test_app=es_testapp)
     for term in ont_search:
-        import pdb; pdb.set_trace()
         result = get_top_grouping_term(term, request_handler)
         expected = get_expected_top_grouping_term(term)
         assert result == expected
