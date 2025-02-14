@@ -18,9 +18,10 @@ from encoded.endpoints.endpoint_utils import (
 from encoded.endpoints.recent_files_summary.recent_files_summary_fields import (
         AGGREGATION_FIELD_RELEASE_DATE,
         AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR,
-        AGGREGATION_FIELD_CELL_LINE,
         AGGREGATION_FIELD_CELL_MIXTURE,
         AGGREGATION_FIELD_DONOR,
+        AGGREGATION_FIELD_DSA_DONOR,
+        AGGREGATION_FIELD_CELL_LINE,
         AGGREGATION_FIELD_FILE_DESCRIPTOR)
 from encoded.endpoints.recent_files_summary.recent_files_summary_troubleshooting import (
         add_info_for_troubleshooting,
@@ -28,7 +29,7 @@ from encoded.endpoints.recent_files_summary.recent_files_summary_troubleshooting
 from snovault.search.search import search as snovault_search
 from snovault.search.search_utils import make_search_subreq as snovault_make_search_subreq
 
-QUERY_FILE_TYPES = ["OutputFile"]
+QUERY_FILE_TYPES = ["OutputFile", "SubmittedFile"]
 QUERY_FILE_STATUSES = ["released"]
 QUERY_FILE_CATEGORIES = ["!Quality Control"]
 QUERY_RECENT_MONTHS = 3
@@ -88,23 +89,17 @@ def recent_files_summary(request: PyramidRequest,
 
     date_property_name = request_arg(request, "date_property_name", AGGREGATION_FIELD_RELEASE_DATE)
     max_buckets = request_arg_bool(request, "max_buckets", AGGREGATION_MAX_BUCKETS)
-    include_queries = request_arg_bool(request, "include_queries", request_arg_bool(request, "include_query", True))
     include_missing = request_arg_bool(request, "include_missing", request_arg_bool(request, "novalues"))
-    include_tissue_info = request_arg_bool(request, "include_tissue_info", True)
+    exclude_tissue_info = request_arg_bool(request, "exclude_tissue_info")
+    exclude_submitted_file = request_arg_bool(request, "exclude_submitted_file")
     tissue_info_property_name = request_arg(request, "tissue_info_property_name", "sample_summary.tissues")
-    nocells = request_arg_bool(request, "nocells", request_arg_bool(request, "nocell", True)) # N.B. default True
-    nomixtures = request_arg_bool(request, "nomixtures", request_arg_bool(request, "nomixture"))
-    nodonors = request_arg_bool(request, "nodonors", request_arg_bool(request, "nodonor"))
-    favor_donor = request_arg_bool(request, "favor_donor")
     multi = request_arg_bool(request, "multi")
     nosort = request_arg_bool(request, "nosort")
-    legacy = request_arg_bool(request, "legacy")
     debug = request_arg_bool(request, "debug")
     debug_query = request_arg_bool(request, "debug_query")
     troubleshoot = request_arg_bool(request, "troubleshoot")
     troubleshoot_elasticsearch = request_arg_bool(request, "troubleshoot_elasticsearch")
     raw = request_arg_bool(request, "raw")
-    willrfix = request_arg_bool(request, "willrfix")
 
     if troubleshooting is True:
         debug = True
@@ -116,26 +111,20 @@ def recent_files_summary(request: PyramidRequest,
         # and then alternatively (if a cell-line field does not exist) by the donor field.
         # For troubleshooting/testing/or-maybe-if-we-change-our-minds we can alternatively
         # look first for the donor field and then secondarily for the cell-line field.
-        nonlocal nocells, nomixtures, nodonors, favor_donor
         aggregation_field_grouping_cell_or_donor = deepcopy(AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR)
-        if nocells:
-            aggregation_field_grouping_cell_or_donor.remove(AGGREGATION_FIELD_CELL_LINE)
-        if nomixtures:
-            aggregation_field_grouping_cell_or_donor.remove(AGGREGATION_FIELD_CELL_MIXTURE)
-        if nodonors:
-            aggregation_field_grouping_cell_or_donor.remove(AGGREGATION_FIELD_DONOR)
-        if favor_donor:
-            aggregation_field_grouping_cell_or_donor.remove(AGGREGATION_FIELD_DONOR)
-            aggregation_field_grouping_cell_or_donor.insert(0, AGGREGATION_FIELD_DONOR)
         return aggregation_field_grouping_cell_or_donor
 
     def create_base_query_arguments(request: PyramidRequest) -> dict:
 
         global QUERY_FILE_CATEGORIES, QUERY_FILE_STATUSES, QUERY_FILE_TYPES
+        nonlocal exclude_submitted_file
 
         types = request_args(request, "type", QUERY_FILE_TYPES)
         statuses = request_args(request, "status", QUERY_FILE_STATUSES)
         categories = request_args(request, "category", QUERY_FILE_CATEGORIES)
+
+        if exclude_submitted_file and ("SubmittedFile" in types):
+            types.remove("SubmittedFile")
 
         base_query_arguments = {
             "type": types if types else None,
@@ -174,7 +163,7 @@ def recent_files_summary(request: PyramidRequest,
 
     def create_aggregation_query(aggregation_fields: List[str]) -> dict:
 
-        nonlocal date_property_name, max_buckets, include_missing, favor_donor, troubleshoot_elasticsearch, include_tissue_info
+        nonlocal date_property_name, max_buckets, include_missing, troubleshoot_elasticsearch, exclude_tissue_info
 
         aggregations = []
         if not isinstance(aggregation_fields, list):
@@ -197,7 +186,7 @@ def recent_files_summary(request: PyramidRequest,
                         "order": {"_key": "desc"}
                     }
                 }
-            elif field == AGGREGATION_FIELD_CELL_LINE:
+            elif field == AGGREGATION_FIELD_CELL_MIXTURE:
                 # Note how we prefix the result with the aggregation field name;
                 # this is so later we can tell which grouping/field was matched;
                 # see fixup_names_values_for_normalized_results for this fixup.
@@ -250,7 +239,7 @@ def recent_files_summary(request: PyramidRequest,
 
         def create_field_filter(field: str) -> Optional[dict]:  # noqa
             nonlocal aggregation_field_grouping_cell_or_donor
-            if field == AGGREGATION_FIELD_CELL_LINE:
+            if field == AGGREGATION_FIELD_CELL_MIXTURE:
                 filter = {"bool": {"should": [], "minimum_should_match": 1}}
                 for aggregation_field in aggregation_field_grouping_cell_or_donor:
                     filter["bool"]["should"].append({"exists": { "field": f"embedded.{aggregation_field}.raw"}})
@@ -266,47 +255,9 @@ def recent_files_summary(request: PyramidRequest,
 
         if troubleshoot_elasticsearch:
             add_debugging_to_elasticsearch_aggregation_query(aggregation_query[date_property_name])
-        if include_tissue_info:
+        if not exclude_tissue_info:
             add_additional_field_to_retrieve_to_elasticsearch_aggregation_query(aggregation_query[date_property_name],
                                                                                 tissue_info_property_name)
-
-        return aggregation_query[date_property_name]
-
-    def create_aggregation_query_legacy(aggregation_fields: List[str]) -> dict:
-
-        nonlocal date_property_name, max_buckets, include_missing
-
-        aggregations = []
-        if not isinstance(aggregation_fields, list):
-            aggregation_fields = [aggregation_fields]
-        for item in aggregation_fields:
-            if isinstance(item, str) and (item := item.strip()) and (item not in aggregations):
-                aggregations.append(item)
-        if not aggregations:
-            return {}
-
-        def create_field_aggregation(field: str) -> Optional[dict]:  # noqa
-            nonlocal date_property_name
-            if field == date_property_name:
-                return {
-                    "date_histogram": {
-                        "field": f"embedded.{field}",
-                        "calendar_interval": "month",
-                        "format": "yyyy-MM",
-                        "missing": "1970-01",
-                        "order": {"_key": "desc"}
-                    }
-                }
-
-        aggregation_query = create_elasticsearch_aggregation_query(
-            aggregations,
-            max_buckets=max_buckets,
-            missing_value=AGGREGATION_NO_VALUE,
-            include_missing=include_missing,
-            create_field_aggregation=create_field_aggregation)
-
-        if troubleshoot_elasticsearch:
-            add_debugging_to_elasticsearch_aggregation_query(aggregation_query[date_property_name])
 
         return aggregation_query[date_property_name]
 
@@ -371,7 +322,7 @@ def recent_files_summary(request: PyramidRequest,
 
     def add_queries_to_normalized_results(normalized_results: dict, base_query_arguments: dict) -> None:
         global BASE_SEARCH_QUERY
-        nonlocal date_property_name, willrfix
+        nonlocal date_property_name
         if isinstance(normalized_results, dict):
             if name := normalized_results.get("name"):
                 if value := normalized_results.get("value"):
@@ -386,12 +337,6 @@ def recent_files_summary(request: PyramidRequest,
                                                     f"{name}.from": from_date, f"{name}.to": thru_date}
                     else:
                         base_query_arguments = {**base_query_arguments, name: value}
-                if willrfix:
-                    if name == AGGREGATION_FIELD_CELL_LINE:
-                        base_query_arguments[AGGREGATION_FIELD_CELL_MIXTURE] = AGGREGATION_NO_VALUE
-                    elif name == AGGREGATION_FIELD_DONOR:
-                        base_query_arguments[AGGREGATION_FIELD_CELL_MIXTURE] = AGGREGATION_NO_VALUE
-                        base_query_arguments[AGGREGATION_FIELD_CELL_LINE] = AGGREGATION_NO_VALUE
                 normalized_results["query"] = create_query_string(base_query_arguments, BASE_SEARCH_QUERY)
             if isinstance(items := normalized_results.get("items"), list):
                 for element in items:
@@ -404,33 +349,15 @@ def recent_files_summary(request: PyramidRequest,
     base_query_arguments = create_base_query_arguments(request)
     query = create_query(request, base_query_arguments)
 
-    if not legacy:
-        aggregate_by_cell_line_property_name = "aggregate_by_cell_line"
-        aggregate_by_cell_line = [
-            date_property_name,
-            AGGREGATION_FIELD_CELL_LINE,
-            AGGREGATION_FIELD_FILE_DESCRIPTOR
-        ]
-        aggregation_query = {
-            aggregate_by_cell_line_property_name: create_aggregation_query(aggregate_by_cell_line)
-        }
-    else:
-        aggregate_by_cell_line_property_name = "aggregate_by_cell_line"
-        aggregate_by_cell_line = [
-            date_property_name,
-            AGGREGATION_FIELD_CELL_LINE,
-            AGGREGATION_FIELD_FILE_DESCRIPTOR
-        ]
-        aggregate_by_donor_property_name = "aggregate_by_donor"
-        aggregate_by_donor = [
-            date_property_name,
-            AGGREGATION_FIELD_DONOR,
-            AGGREGATION_FIELD_FILE_DESCRIPTOR
-        ]
-        aggregation_query = {
-            aggregate_by_cell_line_property_name: create_aggregation_query_legacy(aggregate_by_cell_line),
-            aggregate_by_donor_property_name: create_aggregation_query_legacy(aggregate_by_donor)
-        }
+    aggregate_by_cell_line_property_name = "aggregate_by_cell_line"
+    aggregate_by_cell_line = [
+        date_property_name,
+        AGGREGATION_FIELD_CELL_MIXTURE,
+        AGGREGATION_FIELD_FILE_DESCRIPTOR
+    ]
+    aggregation_query = {
+        aggregate_by_cell_line_property_name: create_aggregation_query(aggregate_by_cell_line)
+    }
 
     if debug_query:
         return {
@@ -438,7 +365,7 @@ def recent_files_summary(request: PyramidRequest,
             "query_arguments": deconstruct_query_string(query),
             "aggregation_query_fields": [
                 AGGREGATION_FIELD_RELEASE_DATE,
-                *get_aggregation_field_grouping_cell_or_donor(),
+                *aggregation_field_grouping_cell_or_donor,
                 AGGREGATION_FIELD_FILE_DESCRIPTOR
             ],
             "aggregation_query": aggregation_query
@@ -461,11 +388,8 @@ def recent_files_summary(request: PyramidRequest,
 
     prune_elasticsearch_aggregation_results(raw_results)
 
-    if not legacy:
-        aggregation_results = raw_results.get(aggregate_by_cell_line_property_name)
-    else:
-        aggregation_results = merge_elasticsearch_aggregation_results(raw_results.get(aggregate_by_cell_line_property_name),
-                                                                      raw_results.get(aggregate_by_donor_property_name))
+    aggregation_results = raw_results.get(aggregate_by_cell_line_property_name)
+
     if debug:
         additional_properties = {
             "debug": {
@@ -473,7 +397,7 @@ def recent_files_summary(request: PyramidRequest,
                 "query_arguments": deconstruct_query_string(query),
                 "aggregation_query_fields": [
                     AGGREGATION_FIELD_RELEASE_DATE,
-                    *get_aggregation_field_grouping_cell_or_donor(),
+                    *aggregation_field_grouping_cell_or_donor,
                     AGGREGATION_FIELD_FILE_DESCRIPTOR
                 ],
                 "aggregation_query": aggregation_query,
@@ -524,18 +448,16 @@ def recent_files_summary(request: PyramidRequest,
 
     normalized_results = normalize_elasticsearch_aggregation_results(
         aggregation_results,
-        additional_field=tissue_info_property_name if include_tissue_info else None,
+        additional_field=tissue_info_property_name if not exclude_tissue_info else None,
         additional_properties=additional_properties,
         remove_empty_items=not include_missing)
 
-    if include_tissue_info:
+    if not exclude_tissue_info:
         hoist_items_additional_value_up_one_level(normalized_results)
 
-    if not legacy:
-        fixup_names_values_for_normalized_results(normalized_results)
-    if include_queries:
-        add_queries_to_normalized_results(normalized_results, base_query_arguments)
-        normalized_results["query"] = query
+    fixup_names_values_for_normalized_results(normalized_results)
+    add_queries_to_normalized_results(normalized_results, base_query_arguments)
+    normalized_results["query"] = query
 
     if not nosort:
         # We can sort on the aggregations by level; outermost/left to innermost/right.

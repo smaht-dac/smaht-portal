@@ -1,5 +1,6 @@
 import re
 from typing import Optional
+from dcicutils.submitr.custom_excel import CustomExcel
 from dcicutils.submitr.progress_constants import PROGRESS_INGESTER
 from dcicutils.structured_data import Portal, StructuredDataSet
 from snovault.ingestion.ingestion_processors import ingestion_processor
@@ -87,6 +88,7 @@ def parse_structured_data(file: str,
                                              ref_lookup_nocache=ref_nocache,
                                              order=ITEM_INDEX_ORDER, prune=prune,
                                              merge=submission.merge,
+                                             excel_class=CustomExcel,
                                              progress=structured_data_set_progress,
                                              debug_sleep=submission.debug_sleep if submission else None)
 
