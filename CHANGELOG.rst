@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.135.0
+=======
+`PR 308 SN Pathology report <https://github.com/smaht-dac/smaht-portal/pull/308>`
+
+* Add items PathologyReport, NonBrainPathologyReport, BrainPathologyReport, and HistologyImage
+
+
 0.134.1
 =======
 `PR 329 SN Add Kinnex enums <https://github.com/smaht-dac/smaht-portal/pull/329>`

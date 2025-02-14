@@ -91,5 +91,16 @@
         "valid_item_types": [
             "ReferenceFile"
         ]
+    },
+    {
+        "uuid": "1599fad0-4312-4043-b364-7e367404ddd9",
+        "submission_centers": [
+            "smaht"
+        ],
+        "identifier": "SVS",
+        "standard_file_extension": "svs",
+        "valid_item_types": [
+            "HistologyImage"
+        ]
     }
 ]

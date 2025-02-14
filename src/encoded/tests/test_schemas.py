@@ -116,6 +116,7 @@ def test_load_schema(schema, master_mixins, registry, testapp):
         'file.json',
         'user_content.json',
         'preparation.json',
+        'pathology_report.json',
         'sample.json',
         'sample_source.json',
         'submitted_file.json',
