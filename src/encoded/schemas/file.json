@@ -136,7 +136,8 @@
                     "Reference Transcriptome",
                     "RNA Quantification",
                     "Sequencing Reads",
-                    "Somatic Variant Calls"
+                    "Somatic Variant Calls",
+                    "Transcriptome Annotation"
                 ]
             }
         },
@@ -165,7 +166,9 @@
                     "Indel",
                     "MEI",
                     "SNV",
-                    "SV"
+                    "SV",
+                    "Transcript Sequence",
+                    "Transcript Model"
                 ]
             }
         },

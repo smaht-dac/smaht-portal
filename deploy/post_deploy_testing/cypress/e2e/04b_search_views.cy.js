@@ -57,7 +57,9 @@ describe('Post-Deployment Search View Tests', function () {
 
                     cy.get('.search-result-row.detail-closed[data-row-number="' + intervalCount + '"] .search-result-column-block[data-field="@type"] .icon-container .icon').click({ force: true }).end();
                     cy.get('#slow-load-container').should('not.have.class', 'visible').end();
-                    cy.get('#page-title-container .page-title').should('contain', typeTitle.replace(separator, '')).end();
+                    cy.get('#page-title-container .page-title .subtitle').should('contain', 'for').invoke('text').then((pageTitle) => {
+                        expect(pageTitle.replace(/\s+/g, "")).contains('for' + typeTitle.replace(/\s+/g, ""));
+                    }).end();
                 }).end().logoutSMaHT();
 
             });

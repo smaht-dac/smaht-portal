@@ -166,6 +166,9 @@
         }
     },
     "columns": {
+        "submitted_id": {
+            "title": "Submitted ID"
+        },
         "donor.display_title": {
             "title": "Donor"
         },
