@@ -12,6 +12,7 @@ from . import (
     sample,
     sequencing,
     tissue,
+    ontology_term,
 )
 from .constants import file as file_constants
 from .utils import (
@@ -208,6 +209,17 @@ def get_tissues(
         for sample_source in sample_sources
         if isinstance(sample_source, dict) and tissue.is_tissue(sample_source)
     ]
+
+
+def get_uberon_ids(
+    properties: Dict[str, Any], request_handler: RequestHandler
+) -> List[Union[str, Dict[str, Any]]]:
+    """Get uberon_ids from tissues associated with file."""
+    return get_property_values_from_identifiers(
+        request_handler,
+        get_tissues(properties, request_handler),
+        tissue.get_uberon_id  
+    )
 
 
 def get_cell_culture_mixtures(
