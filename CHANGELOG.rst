@@ -16,6 +16,13 @@ Change Log
 * Add alert banner for iPSC
 
 
+0.134.1
+=======
+`PR 329 SN Add Kinnex enums <https://github.com/smaht-dac/smaht-portal/pull/329>`
+
+* Add enums to `data_category` and `data_type` in File schema for Kinnex file types
+
+
 0.134.0
 =======
 `PR227: feat: VCF comparator and software information  <https://github.com/smaht-dac/smaht-portal/pull/227>`_
