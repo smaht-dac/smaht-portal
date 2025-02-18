@@ -913,13 +913,21 @@ i.status-indicator-dot {
 			font-weight: 600;
 		}
 	}
+	&.success {
+		background-color: #F9FFFB;
+		border: 1px solid #A8DBAE;
+		border-left: 4px solid #0E6B0E;
+
+		.flag {
+			color: #0E6B0E;
+		}
+	}
 	&.warning {
 		background-color: #FFF9F9;
 		border: 1px solid #F6D6D6;
 		border-left: 4px solid #BB3F3F;
 
 		.flag {
-			font-weight: 600;
 			color: #BB3F3F;
 		}
 	}
