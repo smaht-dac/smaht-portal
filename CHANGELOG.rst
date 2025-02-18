@@ -9,9 +9,8 @@ Change Log
 
 0.135.2
 =======
-`PR 343: feat: alert updates <https://github.com/smaht-dac/smaht-portal/pull/343>`_
+`PR 343: feat: iPSC alert <https://github.com/smaht-dac/smaht-portal/pull/343>`_
 
-* Update colors for alerts
 * Add alert banner for iPSC
 
 
