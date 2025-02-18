@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.135.1
+=======
+`PR 347 feat: remove release tracker links <https://github.com/smaht-dac/smaht-portal/pull/347>`
+
+* Remove links from release tracker
+
+
 0.135.0
 =======
 * 2025-02-05 / dmichaels
