@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.135.2
+=======
+`PR 343: feat: iPSC alert <https://github.com/smaht-dac/smaht-portal/pull/343>`_
+
+* Add alert banner for iPSC
+
+
 0.135.1
 =======
 `PR 347 feat: remove release tracker links <https://github.com/smaht-dac/smaht-portal/pull/347>`
