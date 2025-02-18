@@ -7,21 +7,14 @@ smaht-portal
 Change Log
 ----------
 
-0.134.2
+0.135.1
 =======
-`PR 329 SN Add Kinnex enums <https://github.com/smaht-dac/smaht-portal/pull/329>`
+`PR 347 feat: remove release tracker links <https://github.com/smaht-dac/smaht-portal/pull/347>`
 
 * Remove links from release tracker
 
 
-0.134.1
-=======
-`PR 329 SN Add Kinnex enums <https://github.com/smaht-dac/smaht-portal/pull/329>`
-
-* Add enums to `data_category` and `data_type` in File schema for Kinnex file types
-
-
-0.134.0
+0.135.0
 =======
 * 2025-02-05 / dmichaels
   - Branch: dmichaels-20250130-release-tracker-api-add-submitted-file | PR-337
@@ -39,6 +32,20 @@ Change Log
     this was causing problems for non-admin users; requires dcicsnovault 11.24.0+.
   - Updated the smaht-submitr spreadsheet template version;
     see SUBMITR_METADATA_TEMPLATE_SHEET_ID and METADATA_TEMPLATE_VERSION_SHEET in metadata_template.py
+
+
+0.134.1
+=======
+`PR 329 SN Add Kinnex enums <https://github.com/smaht-dac/smaht-portal/pull/329>`
+
+* Add enums to `data_category` and `data_type` in File schema for Kinnex file types
+
+
+0.134.0
+=======
+`PR227: feat: VCF comparator and software information  <https://github.com/smaht-dac/smaht-portal/pull/227>`_
+
+* Provide comparator information for VCFs in the file overview page
 
 
 0.133.8
