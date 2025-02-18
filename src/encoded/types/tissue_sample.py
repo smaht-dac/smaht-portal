@@ -97,6 +97,7 @@ def assert_external_id_tissue_match(external_id, tissue):
     return tissue_id == tissue_kit_id
 
 
+@link_related_validator
 def validate_tissue_sample_metadata_on_edit(context, request):
     """Check that metadata matches with TPC-submitted tissue sample items with the same external_id, unless you tell it not to, on edit
     """
@@ -138,6 +139,7 @@ def validate_tissue_sample_metadata_on_edit(context, request):
             return request.validated.update({})
         
 
+@link_related_validator
 def validate_tissue_sample_metadata_on_add(context, request):
     """Check that metadata matches with TPC-submitted tissue sample items with the same external_id, unless you tell it not to, on add
     """
@@ -167,14 +169,14 @@ def validate_tissue_sample_metadata_on_add(context, request):
                         if res[check_property] != gcc_property:
                         # property does not match
                             found = res['accession']
-                            request.errors.add('body', f"TissueSample: metadata mismatch, {check_property}{gcc_property} does not match TPC Tissue Sample {found}")
+                            request.errors.add('body', f"TissueSample: metadata mismatch, {check_property} {gcc_property} does not match TPC Tissue Sample {found}")
             sample_source_ids = data['sample_sources']
             sample_source_res = search_resp.json_body['@graph'][0]['sample_sources'][0]['uuid']
             gcc_uuid = item_utils.get_uuid(get_item_or_none(request, sample_source_ids[0], 'sample-sources'))        
             if sample_source_res != gcc_uuid:
                 # property does not match
                 found = res['accession']
-                request.errors.add('body', f"TissueSample: metadata mismatch, sample_sources {gcc_uuid} does not match TPC Tissue Sample {found}sample_sources {sample_source_res}")
+                request.errors.add('body', f"TissueSample: metadata mismatch, sample_sources {gcc_uuid} does not match TPC Tissue Sample {found} sample_sources {sample_source_res}")
             return request.validated.update({})  
 
 
