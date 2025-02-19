@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.137.0
+=======
+`PR 350: SN Release tracker description <https://github.com/smaht-dac/smaht-portal/pull/350>`_
+
+* Add property `override_release_tracker_description` to file.json that can set the calcprop `release_tracker_description` to desired value
+* In `release-file.py`, require that a file has `release_tracker_description` set prior to release
+* Make reference_genome `code` non-unique
+
+
 0.136.0
 =======
 `PR 308 SN Pathology report <https://github.com/smaht-dac/smaht-portal/pull/308>`
