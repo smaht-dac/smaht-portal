@@ -9,10 +9,9 @@ Change Log
 
 0.135.3
 =======
-`PR 340: SN Release tracker description <https://github.com/smaht-dac/smaht-portal/pull/340>`_
+`PR 350: SN Release tracker description <https://github.com/smaht-dac/smaht-portal/pull/350>`_
 
 * Add property `override_release_tracker_description` to file.json that can set the calcprop `release_tracker_description` to desired value
-* Embed `donor_specific_assembly.donors` and `donor_specific_assembly.cell_lines.code` in file.py
 * In `release-file.py`, require that a file has `release_tracker_description` set prior to release 
 
 
