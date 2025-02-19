@@ -35,6 +35,7 @@ import { BrowseLink } from './browse-view/BrowseLink';
 import { BrowseSummaryStatController } from './browse-view/BrowseSummaryStatController';
 import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
+import { transformedFacets } from './SearchView';
 
 export default function BrowseView(props) {
     const { session } = props;
@@ -42,90 +43,11 @@ export default function BrowseView(props) {
 }
 
 export class BrowseViewBody extends React.PureComponent {
-    /**
-     * Function which is passed into a `.filter()` call to
-     * filter context.facets down, usually in response to frontend-state.
-     *
-     * Currently is meant to filter out type facet if we're in selection mode,
-     * as well as some fields from embedded 'experiment_set' which might
-     * give unexpected results.
-     *
-     * @todo Potentially get rid of this and do on backend.
-     *
-     * @param {{ field: string }} facet - Object representing a facet.
-     * @returns {boolean} Whether to keep or discard facet.
-     */
-    static filterFacet(facet, currentAction) {
-        // Set in backend or schema for facets which are under development or similar.
-        if (facet.hide_from_view) return false;
-
-        // Remove the @type facet while in selection mode.
-        if (facet.field === 'type' && currentAction === 'selection')
-            return false;
-
-        return true;
-    }
-
-    /** Filter the `@type` facet options down to abstract types only (if none selected) for Search. */
-    static transformedFacets(context, currentAction, schemas) {
-        // Clone/filter list of facets.
-        // We may filter out type facet completely at this step,
-        // in which case we can return out of func early.
-        const facets = context.facets.filter(function (facet) {
-            return BrowseViewBody.filterFacet(facet, currentAction);
-        });
-
-        // Find facet for '@type'
-        const searchItemTypes =
-            schemaTransforms.getAllSchemaTypesFromSearchContext(context); // "Item" is excluded
-
-        if (searchItemTypes.length > 0) {
-            console.info(
-                "A (non-'Item') type filter is present. Will skip filtering Item types in Facet."
-            );
-            // Keep all terms/leaf-types - backend should already filter down to only valid sub-types through
-            // nature of search itself.
-
-            if (searchItemTypes.length > 1) {
-                const errMsg =
-                    'More than one "type" filter is selected. This is intended to not occur, at least as a consequence of interacting with the UI. Perhaps have entered multiple types into URL.';
-                analytics.exception('CGAP SearchView - ' + errMsg);
-                console.warn(errMsg);
-            }
-
-            return facets;
-        }
-
-        const typeFacetIndex = _.findIndex(facets, { field: 'type' });
-        if (typeFacetIndex === -1) {
-            console.error(
-                'Could not get type facet, though some filter for it is present.'
-            );
-            return facets; // Facet not present, return.
-        }
-
-        // Avoid modifying in place.
-        facets[typeFacetIndex] = _.clone(facets[typeFacetIndex]);
-
-        // Show only base types for when itemTypesInSearch.length === 0 (aka 'type=Item').
-        facets[typeFacetIndex].terms = _.filter(
-            facets[typeFacetIndex].terms,
-            function (itemType) {
-                const parentType = schemaTransforms.getAbstractTypeForType(
-                    itemType.key,
-                    schemas
-                );
-                return !parentType || parentType === itemType.key;
-            }
-        );
-
-        return facets;
-    }
-
+    
     constructor(props) {
         super(props);
         this.memoized = {
-            transformedFacets: memoize(BrowseViewBody.transformedFacets),
+            transformedFacets: memoize(transformedFacets),
         };
     }
 
@@ -185,7 +107,7 @@ export class BrowseViewBody extends React.PureComponent {
     }
 }
 
-const BrowseViewSearchTable = (props) => {
+export const BrowseViewSearchTable = (props) => {
     const {
         session,
         context,
@@ -195,7 +117,7 @@ const BrowseViewSearchTable = (props) => {
         onSelectItem,
         onResetSelectedItems,
     } = props;
-    const facets = BrowseViewBody.transformedFacets(
+    const facets = transformedFacets(
         context,
         currentAction,
         schemas
