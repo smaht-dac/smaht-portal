@@ -122,7 +122,6 @@ FileTableWithSelectedFilesCheckboxes.propTypes = {
     'schemas'                   : PropTypes.object,
     'browseBaseState'           : PropTypes.string.isRequired,
     'selectItem'                : PropTypes.func,
-    'unselectFile'              : PropTypes.func,
     'selectedItems'             : PropTypes.objectOf(PropTypes.object),
 };
 

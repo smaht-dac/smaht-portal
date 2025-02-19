@@ -58,8 +58,7 @@ export class BrowseViewBody extends React.PureComponent {
         const passProps = _.omit(
             this.props,
             'isFullscreen',
-            'toggleFullScreen',
-            'isCaseSearch'
+            'toggleFullScreen'
         );
 
         return (
@@ -134,8 +133,7 @@ export const BrowseViewSearchTable = (props) => {
     const passProps = _.omit(
         props,
         'isFullscreen',
-        'toggleFullScreen',
-        'isCaseSearch'
+        'toggleFullScreen'
     );
 
     const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;

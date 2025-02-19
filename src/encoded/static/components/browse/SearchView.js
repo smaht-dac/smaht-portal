@@ -106,15 +106,6 @@ export default function SearchView(props) {
     const {
         context: { '@type': searchPageType = ['ItemSearchResults'] },
     } = props;
-    const isCaseSearch = searchPageType[0] === 'CaseSearchResults';
-
-    if (isCaseSearch) {
-        return (
-            <DetailPaneStateCache>
-                <SearchViewBody {...props} {...{ isCaseSearch }} />
-            </DetailPaneStateCache>
-        );
-    }
 
     return <SearchViewBody {...props} />;
 }
@@ -130,7 +121,6 @@ export class SearchViewBody extends React.PureComponent {
 
     render() {
         const {
-            isCaseSearch = false,
             context,
             currentAction,
             schemas,
@@ -140,8 +130,7 @@ export class SearchViewBody extends React.PureComponent {
         const passProps = _.omit(
             this.props,
             'isFullscreen',
-            'toggleFullScreen',
-            'isCaseSearch'
+            'toggleFullScreen'
         );
 
         const facets = this.memoized.transformedFacets(
