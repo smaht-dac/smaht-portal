@@ -6,6 +6,12 @@ smaht-portal
 ----------
 Change Log
 ----------
+`PR 354: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/354>`_
+0.138.0
+=======
+
+* Add calcprop to File, `release_tracker_title`, which displays in order of priority `override_release_tracker_title`, `CellCultureMixture.code`, `CellLine.code`, or `Donor.display_title` for use as a header in the Release Tracker on the home page
+
 
 0.137.2
 =======
