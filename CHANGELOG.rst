@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.137.1
+=======
+`PR 352: SN Fix release date facet <https://github.com/smaht-dac/smaht-portal/pull/352>`_
+
+* Fix facet for `file.json` so Release Date shows `file_status_tracking.released_date`
+
+
 0.137.0
 =======
 `PR 350: SN Release tracker description <https://github.com/smaht-dac/smaht-portal/pull/350>`_
