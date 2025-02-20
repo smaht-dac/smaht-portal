@@ -1,12 +1,15 @@
 {
-    "title": "Histology",
-    "$id": "/profiles/histology.json",
+    "title": "Histology Image",
+    "description": "Histological image files of a tissue sample section",
+    "$id": "/profiles/histology_image.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
         "submission_centers",
         "submitted_id",
-        "tissue"
+        "filename",
+        "file_format",
+        "pathology_reports"
     ],
     "identifyingProperties": [
         "accession",
@@ -22,13 +25,16 @@
             "$ref": "mixins.json#/attribution"
         },
         {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/file_release"
+        },
+        {
             "$ref": "mixins.json#/modified"
         },
         {
             "$ref": "mixins.json#/schema_version"
-        },
-        {
-            "$ref": "mixins.json#/status"
         },
         {
             "$ref": "mixins.json#/submitted"
@@ -41,6 +47,12 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "file.json#/properties"
+        },
+        {
+            "$ref": "submitted_file.json#/properties"
         }
     ],
     "properties": {
@@ -50,30 +62,18 @@
         "schema_version": {
             "default": "1"
         },
-        "section_location": {
-            "title": "Section Location",
-            "description": "Location in the source material that was prepared for the slide",
-            "type": "string"
-        },
-        "images": {
-            "title": "Images",
-            "description": "Links to the images associated with the section",
+        "pathology_reports": {
+            "title": "Pathology Reports",
+            "description": "Link to the pathology report for the section",
             "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
             "items": {
                 "type": "string",
-                "linkTo": "Image"
+                "linkTo": "PathologyReport"
             }
-        },
-        "tissue": {
-            "title": "Tissue",
-            "description": "Link to the tissue from which the section was prepared",
-            "type": "string",
-            "linkTo": "Tissue"
+           
         },
         "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_HISTOLOGY_[A-Z0-9-_.]{4,}$"
+            "pattern": "^[A-Z0-9]{3,}_HISTOLOGY-IMAGE_[A-Z0-9-_.]{4,}$"
         }
     }
 }

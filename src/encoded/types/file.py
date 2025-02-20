@@ -718,14 +718,12 @@ class File(Item, CoreFile):
         file_sets: Optional[List[str]] = None
     ) -> Union[str, None]:
         """Get file release tracker description for display on home page."""
-        result = None
-        if file_sets:
-            request_handler = RequestHandler(request=request)
-            result = self._get_release_tracker_description(
-                request_handler,
-                file_properties=self.properties
-            )
-        return result     
+        request_handler = RequestHandler(request=request)
+        result = self._get_release_tracker_description(
+            request_handler,
+            file_properties=self.properties
+        )
+        return result    
 
     def _get_libraries(
         self, request: Request, file_sets: Optional[List[str]] = None
@@ -1018,32 +1016,40 @@ class File(Item, CoreFile):
             file_properties: Dict[str, Any],
         ) -> Union[str, None]:
         """Get release tracker description for display on the home page."""
-        assay_title= get_unique_values(
-            request_handler.get_items(file_utils.get_assays(file_properties, request_handler)),
-            item_utils.get_display_title,
-            )
-        sequencer_title = get_unique_values(
-            request_handler.get_items(
-            file_utils.get_sequencers(file_properties, request_handler)),
-            item_utils.get_display_title,
-            )
+        to_include = None
         file_format_title = get_property_value_from_identifier(
-                request_handler,
-                file_utils.get_file_format(file_properties),
+            request_handler,
+            file_utils.get_file_format(file_properties),
+            item_utils.get_display_title,
+        )
+        if "file_sets" in file_properties:
+            assay_title= get_unique_values(
+                request_handler.get_items(file_utils.get_assays(file_properties, request_handler)),
                 item_utils.get_display_title,
-            )
-        if len(assay_title) > 1 or len(sequencer_title) > 1:
-            # More than one unique assay or sequencer
-            return ""
-        elif len(assay_title) == 0 or len(sequencer_title) == 0:
-            # No assay or sequencer
-            return ""
-        to_include = [
-            assay_title[0],
-            sequencer_title[0],
-            file_format_title
-        ]
-        return " ".join(to_include)
+                )
+            sequencer_title = get_unique_values(
+                request_handler.get_items(
+                file_utils.get_sequencers(file_properties, request_handler)),
+                item_utils.get_display_title,
+                )
+            if len(assay_title) > 1 or len(sequencer_title) > 1:
+                # More than one unique assay or sequencer
+                return None
+            elif len(assay_title) == 0 or len(sequencer_title) == 0:
+                # No assay or sequencer
+                return None
+            to_include = [
+                assay_title[0],
+                sequencer_title[0],
+                file_format_title
+            ]
+        if "override_release_tracker_description" in file_properties:
+            to_include = [
+                file_utils.get_override_release_tracker_description(file_properties),
+                file_format_title
+            ]
+        if to_include:
+            return " ".join(to_include)
 
 
 @view_config(name='drs', context=File, request_method='GET',
