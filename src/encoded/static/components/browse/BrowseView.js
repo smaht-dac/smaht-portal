@@ -161,18 +161,16 @@ export class BrowseViewBody extends React.PureComponent {
                         <Alerts alerts={alerts} className="mt-2" />
                         <div>
                             <div className="browse-summary d-flex flex-row mt-2 mb-3 flex-wrap">
-                                <BrowseSummaryStatController
-                                    type="File"
-                                    useSearch
-                                    additionalSearchQueries="&sample_summary.studies=Production"
-                                />
+                                <BrowseSummaryStatController type="File" />
                                 <BrowseSummaryStatController type="Donor" />
-                                <BrowseSummaryStatController type="Tissue" />
+                                <BrowseSummaryStatController
+                                    type="Tissue"
+                                    additionalSearchQueries="&additional_facet=file_sets.libraries.analytes.samples.sample_sources.uberon_id"
+                                />
                                 <BrowseSummaryStatController type="Assay" />
                                 <BrowseSummaryStatController
                                     type="File Size"
-                                    useSearch
-                                    additionalSearchQueries="&sample_summary.studies=Production"
+                                    additionalSearchQueries="&additional_facet=file_size"
                                 />
                             </div>
                         </div>

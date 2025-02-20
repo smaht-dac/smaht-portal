@@ -136,7 +136,8 @@
                     "Reference Transcriptome",
                     "RNA Quantification",
                     "Sequencing Reads",
-                    "Somatic Variant Calls"
+                    "Somatic Variant Calls",
+                    "Transcriptome Annotation"
                 ]
             }
         },
@@ -165,7 +166,9 @@
                     "Indel",
                     "MEI",
                     "SNV",
-                    "SV"
+                    "SV",
+                    "Transcript Sequence",
+                    "Transcript Model"
                 ]
             }
         },
@@ -217,7 +220,15 @@
             "title": "Group Coverage Override",
             "desciption": "An override count for expected group coverage from sequencing that is used in the File Overview page if present, particularly for downsampled files",
             "type": "number",
-            "minimum": 0
+            "minimum": 0,
+            "permission": "restricted_fields"
+        },
+        "override_release_tracker_description": {
+            "title": "Release Tracker Description Override",
+            "desciption": "An override value for release tracker description that is used in the File Release Tracker on the home page if present, particularly for supplementary files",
+            "type": "string",
+            "minimum": 0,
+            "permission": "restricted_fields"
         },
         "version": {
             "type": "string",
