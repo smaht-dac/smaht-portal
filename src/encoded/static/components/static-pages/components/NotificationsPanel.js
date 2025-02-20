@@ -92,6 +92,13 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                     {sample_groups.map((sample_group, i) => {
                         let sample_group_title = sample_group.value;
 
+                        if (sample_group_title?.includes('DAC_DONOR_')) {
+                            sample_group_title = sample_group_title.replace(
+                                'DAC_DONOR_',
+                                ''
+                            );
+                        }
+
                         if (sample_group?.additional_value) {
                             sample_group_title += ` - ${
                                 sample_group.additional_value?.split(':')[0]
