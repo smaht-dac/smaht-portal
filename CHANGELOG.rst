@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.137.1
+=======
+`fix: remove "DAC_DONOR_" from sample group title <https://github.com/smaht-dac/smaht-portal/pull/353>`
+
+* Remove "DAC_DONOR_" from sample group title
+
+
 0.137.0
 =======
 `PR 350: SN Release tracker description <https://github.com/smaht-dac/smaht-portal/pull/350>`_
