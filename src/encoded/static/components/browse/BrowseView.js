@@ -154,22 +154,152 @@ export const BrowseViewSearchTable = (props) => {
         </BrowseViewAboveSearchTableControls>
     );
 
-    /**
-     * A column extension map specifically for browse view file tables.
-     * Some of these things may be worth moving to the global colextmap eventually.
-     */
+    const { columnExtensionMap, columns, hideFacets } = createBrowseColumnExtensionMap(selectedFileProps);
+
+    return (
+        <CommonSearchView
+            {...passProps}
+            {...{
+                columnExtensionMap,
+                tableColumnClassName,
+                facetColumnClassName,
+                facets,
+                aboveFacetListComponent,
+                aboveTableComponent,
+                columns,
+                hideFacets
+            }}
+            useCustomSelectionController
+            hideStickyFooter
+            currentAction={'multiselect'}
+            renderDetailPane={null}
+            termTransformFxn={Schemas.Term.toName}
+            separateSingleTermFacets={false}
+            rowHeight={31}
+            openRowHeight={40}
+        />
+    );
+};
+
+const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
+    const { context, schemas, currentAction, alerts } = props;
+
+    if (currentAction === 'add') {
+        // Fallback unless any custom PageTitles registered for @type=<ItemType>SearchResults & currentAction=add
+        return (
+            <EditingItemPageTitle
+                {...{ context, schemas, currentAction, alerts }}
+            />
+        );
+    }
+
+    if (currentAction === 'selection' || currentAction === 'multiselect') {
+        return (
+            <PageTitleContainer alerts={alerts} className="container-wide">
+                <TitleAndSubtitleUnder subtitle="Drag and drop Items from this view into other window(s).">
+                    Selecting
+                </TitleAndSubtitleUnder>
+            </PageTitleContainer>
+        );
+    }
+
+    const commonCls = 'col-12';
+
+    return (
+        <PageTitleContainer
+            alerts={[]}
+            className="container-wide pb-2"
+            alertsBelowTitleContainer>
+            <div className="container-wide m-auto p-xl-0">
+                {/* Using static breadcrumbs here, but will likely need its own component in future */}
+                <div className="static-page-breadcrumbs clearfix mx-0 px-0">
+                    <div className="static-breadcrumb" data-name="Home" key="/">
+                        <a href="/" className="link-underline-hover">
+                            Home
+                        </a>
+                        <i className="icon icon-fw icon-angle-right fas" />
+                    </div>
+                    <div
+                        className="static-breadcrumb nonclickable"
+                        data-name="Data"
+                        key="/data">
+                        <span>Data</span>
+                        <i className="icon icon-fw icon-angle-right fas" />
+                    </div>
+                    <div
+                        className="static-breadcrumb nonclickable"
+                        data-name="Production"
+                        key="/browse">
+                        <span>Browse By File</span>
+                    </div>
+                </div>
+                <OnlyTitle className={commonCls + ' mx-0 px-0'}>
+                    SMaHT Production Data
+                </OnlyTitle>
+            </div>
+        </PageTitleContainer>
+    );
+});
+
+const TypeColumnTitlePopover = function (props) {
+    const {
+        children = [],
+        className,
+        popID,
+        tooltip,
+        placement = 'auto',
+    } = props || {};
+
+    const popover = (
+        <Popover id={popID}>
+            <Popover.Body>{children}</Popover.Body>
+        </Popover>
+    );
+    const cls =
+        'btn btn-link text-decoration-none' +
+        (className ? ' ' + className : '');
+    return (
+        <OverlayTrigger
+            trigger="click"
+            overlay={popover}
+            rootClose
+            rootCloseEvent="click"
+            {...{ placement }}>
+            {function ({ ref, ...triggerHandlers }) {
+                return (
+                    <button
+                        type="button"
+                        ref={ref}
+                        {...triggerHandlers}
+                        className={cls}
+                        data-tip={tooltip || 'Click for more information'}>
+                        <i className="icon icon-info-circle fas" />
+                    </button>
+                );
+            }}
+        </OverlayTrigger>
+    );
+};
+
+/**
+ *  A column extension map specifically for browse view file tables.
+ */
+export function createBrowseColumnExtensionMap({ selectedItems, onSelectItem, onResetSelectedItems }) {
     const columnExtensionMap = {
         ...originalColExtMap, // Pull in defaults for all tables
         // Then overwrite or add onto the ones that already are there:
+        'display_title': {
+            default_hidden: true
+        },
         // Select all button
         '@type': {
             colTitle: (
                 // Context now passed in from HeadersRowColumn (for file count)
-                <SelectAllFilesButton {...selectedFileProps} type="checkbox" />
+                <SelectAllFilesButton {...{ selectedItems, onSelectItem, onResetSelectedItems }} type="checkbox" />
             ),
             hideTooltip: true,
             noSort: true,
-            widthMap: { lg: 40, md: 40, sm: 40 },
+            widthMap: { lg: 60, md: 60, sm: 60 },
             render: (result, parentProps) => {
                 return (
                     <SelectionItemCheckbox
@@ -324,177 +454,59 @@ export const BrowseViewSearchTable = (props) => {
         },
     };
 
-    return (
-        <CommonSearchView
-            {...passProps}
-            {...{
-                columnExtensionMap,
-                tableColumnClassName,
-                facetColumnClassName,
-                facets,
-                aboveFacetListComponent,
-                aboveTableComponent,
-            }}
-            hideFacets={[
-                'dataset',
-                'file_sets.libraries.analytes.samples.sample_sources.code',
-                'status',
-                'validation_errors.name',
-                'version',
-                'sample_summary.studies',
-                'submission_centers.display_title',
-                'software.display_title',
-            ]}
-            columns={{
-                '@type': {
-                    title: 'Selected',
-                },
-                access_status: {
-                    title: 'Access',
-                },
-                annotated_filename: {
-                    title: 'File',
-                },
-                donors: {
-                    title: 'Donor',
-                },
-                'sample_summary.tissues': {
-                    title: 'Tissue',
-                },
-                'file_sets.libraries.assay.display_title': {
-                    title: 'Assay',
-                },
-                file_size: {
-                    title: 'File Size',
-                },
-                date_created: {
-                    // TODO: is this correct?
-                    title: 'Release Date',
-                },
-                'file_sets.sequencing.sequencer.display_title': {
-                    title: 'Platform',
-                },
-                'file_format.display_title': {
-                    title: 'Format',
-                },
-                data_type: {
-                    title: 'Data Type',
-                },
-                'software.display_title': {
-                    title: 'Software',
-                },
-            }}
-            useCustomSelectionController
-            hideStickyFooter
-            currentAction={'multiselect'}
-            renderDetailPane={null}
-            termTransformFxn={Schemas.Term.toName}
-            separateSingleTermFacets={false}
-            rowHeight={31}
-            openRowHeight={40}
-        />
-    );
-};
+    const columns = {
+        '@type': {
+            title: 'Selected',
+        },
+        access_status: {
+            title: 'Access',
+        },
+        annotated_filename: {
+            title: 'File',
+        },
+        donors: {
+            title: 'Donor',
+        },
+        'sample_summary.tissues': {
+            title: 'Tissue',
+        },
+        'file_sets.libraries.assay.display_title': {
+            title: 'Assay',
+        },
+        file_size: {
+            title: 'File Size',
+        },
+        date_created: {
+            // TODO: is this correct?
+            title: 'Release Date',
+        },
+        'file_sets.sequencing.sequencer.display_title': {
+            title: 'Platform',
+        },
+        'file_format.display_title': {
+            title: 'Format',
+        },
+        data_type: {
+            title: 'Data Type',
+        },
+        'software.display_title': {
+            title: 'Software',
+        },
+    };
 
-const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
-    const { context, schemas, currentAction, alerts } = props;
+    const hideFacets = [
+        'dataset',
+        'file_sets.libraries.analytes.samples.sample_sources.code',
+        'status',
+        'validation_errors.name',
+        'version',
+        'sample_summary.studies',
+        'submission_centers.display_title',
+        'software.display_title',
+    ];
 
-    if (currentAction === 'add') {
-        // Fallback unless any custom PageTitles registered for @type=<ItemType>SearchResults & currentAction=add
-        return (
-            <EditingItemPageTitle
-                {...{ context, schemas, currentAction, alerts }}
-            />
-        );
-    }
-
-    if (currentAction === 'selection' || currentAction === 'multiselect') {
-        return (
-            <PageTitleContainer alerts={alerts} className="container-wide">
-                <TitleAndSubtitleUnder subtitle="Drag and drop Items from this view into other window(s).">
-                    Selecting
-                </TitleAndSubtitleUnder>
-            </PageTitleContainer>
-        );
-    }
-
-    const commonCls = 'col-12';
-
-    return (
-        <PageTitleContainer
-            alerts={[]}
-            className="container-wide pb-2"
-            alertsBelowTitleContainer>
-            <div className="container-wide m-auto p-xl-0">
-                {/* Using static breadcrumbs here, but will likely need its own component in future */}
-                <div className="static-page-breadcrumbs clearfix mx-0 px-0">
-                    <div className="static-breadcrumb" data-name="Home" key="/">
-                        <a href="/" className="link-underline-hover">
-                            Home
-                        </a>
-                        <i className="icon icon-fw icon-angle-right fas" />
-                    </div>
-                    <div
-                        className="static-breadcrumb nonclickable"
-                        data-name="Data"
-                        key="/data">
-                        <span>Data</span>
-                        <i className="icon icon-fw icon-angle-right fas" />
-                    </div>
-                    <div
-                        className="static-breadcrumb nonclickable"
-                        data-name="Production"
-                        key="/browse">
-                        <span>Browse By File</span>
-                    </div>
-                </div>
-                <OnlyTitle className={commonCls + ' mx-0 px-0'}>
-                    SMaHT Production Data
-                </OnlyTitle>
-            </div>
-        </PageTitleContainer>
-    );
-});
-
-const TypeColumnTitlePopover = function (props) {
-    const {
-        children = [],
-        className,
-        popID,
-        tooltip,
-        placement = 'auto',
-    } = props || {};
-
-    const popover = (
-        <Popover id={popID}>
-            <Popover.Body>{children}</Popover.Body>
-        </Popover>
-    );
-    const cls =
-        'btn btn-link text-decoration-none' +
-        (className ? ' ' + className : '');
-    return (
-        <OverlayTrigger
-            trigger="click"
-            overlay={popover}
-            rootClose
-            rootCloseEvent="click"
-            {...{ placement }}>
-            {function ({ ref, ...triggerHandlers }) {
-                return (
-                    <button
-                        type="button"
-                        ref={ref}
-                        {...triggerHandlers}
-                        className={cls}
-                        data-tip={tooltip || 'Click for more information'}>
-                        <i className="icon icon-info-circle fas" />
-                    </button>
-                );
-            }}
-        </OverlayTrigger>
-    );
-};
+    return { columnExtensionMap, columns, hideFacets };
+}
 
 pageTitleViews.register(BrowseViewPageTitle, 'Browse');
 pageTitleViews.register(BrowseViewPageTitle, 'Browse', 'selection');

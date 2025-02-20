@@ -5,14 +5,14 @@ import PropTypes from 'prop-types';
 import memoize from 'memoize-one';
 import _ from 'underscore';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
-import { SelectionItemCheckbox, SelectedItemsController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
-import { DisplayTitleColumnWrapper, DisplayTitleColumnDefault } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons';
+import { SelectedItemsController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { navigate, Schemas } from './../util';
 import { columnExtensionMap as originalColExtMap } from './columnExtensionMap';
 import { transformedFacets } from './SearchView';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import { SelectAllFilesButton, SelectedItemsDownloadButton } from '../static-pages/components/SelectAllAboveTableComponent';
+import { createBrowseColumnExtensionMap } from './BrowseView';
 
 
 
@@ -35,38 +35,10 @@ function FileTableWithSelectedFilesCheckboxes(props){
         windowHeight, windowWidth, registerWindowOnScrollHandler,
         toggleFullScreen, isFullscreen, session,
         selectedItems, onSelectItem, selectItem, onResetSelectedItems,
-        columnExtensionMap = originalColExtMap,
+        columnExtensionMap: propColumnExtensionMap = originalColExtMap,
         currentAction
     } = props;
-    const columnExtensionMapWithSelectedFilesCheckboxes = useMemo(function(){
-
-        if (typeof selectedItems === 'undefined'){
-            // We don't need to add checkbox(es) for file selection.
-            return columnExtensionMap;
-        }
-
-        // Add Checkboxes
-        return _.extend({}, columnExtensionMap, {
-            'display_title': _.extend({}, originalColExtMap.display_title, {
-                'widthMap': { 'lg': 210, 'md': 210, 'sm': 200 },
-                'render': (result, parentProps) => {
-                    const { rowNumber, detailOpen, toggleDetailOpen } = parentProps;
-                    return (
-                        <DisplayTitleColumnWrapper {...{ href, context, rowNumber, detailOpen, toggleDetailOpen, result }}>
-                            <SelectionItemCheckbox
-                                {...{ selectedItems, onSelectItem, result }}
-                                isMultiSelect={true}
-                            />
-                            <DisplayTitleColumnDefault />
-                        </DisplayTitleColumnWrapper>
-                    );
-                }
-            })
-        });
-
-    }, [columnExtensionMap, selectedItems, selectItem]);
-
-
+ 
     const facets = useMemo(function(){
         return transformedFacets(context, currentAction, schemas);
     }, [ context, currentAction, session, schemas ]);
@@ -76,6 +48,12 @@ function FileTableWithSelectedFilesCheckboxes(props){
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
     };
+
+    const { columnExtensionMap, columns, hideFacets } = useMemo(function () {
+        let { columnExtensionMap, columns } = createBrowseColumnExtensionMap(selectedFileProps);
+        columnExtensionMap = _.extend({}, propColumnExtensionMap, columnExtensionMap);
+        return { columnExtensionMap, columns };
+    }, [propColumnExtensionMap, selectedFileProps]);
 
     const aboveTableComponent = (
             <BrowseViewAboveSearchTableControls
@@ -100,10 +78,11 @@ function FileTableWithSelectedFilesCheckboxes(props){
         session, schemas,
         windowHeight, windowWidth, registerWindowOnScrollHandler,
         aboveTableComponent, aboveFacetListComponent,
-        columnExtensionMap: columnExtensionMapWithSelectedFilesCheckboxes,
+        columnExtensionMap,
         navigate: propNavigate,
         toggleFullScreen, isFullscreen, // todo: remove maybe, pass only to AboveTableControls
-        keepSelectionInStorage: true
+        keepSelectionInStorage: true,
+        columns, hideFacets
     };
 
     return <CommonSearchView {...passProps} termTransformFxn={Schemas.Term.toName} />;
