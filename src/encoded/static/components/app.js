@@ -1661,9 +1661,19 @@ const ContentRenderer = React.memo(function ContentRenderer(props) {
         // error catching
         content = <ErrorPage currRoute={routeLeaf} status={status} />;
     } else if (context) {
+        // Hack for associating the /browse/ searches with BrowseView.
+        // Otherwise it will use FileSearchView since Regisry.lookup checks for first matching view 
+        let lookupContext = context;
+        const browseIdx = context?.['@type']?.indexOf('Browse') ||  -1;
+        if (browseIdx > -1) {
+            const cloned = context['@type'].slice();
+            cloned.splice(browseIdx, 1);
+            cloned.unshift('Browse');
+            lookupContext = { '@type': cloned };
+        }
         // What should occur (success)
         const ContentView = (contentViews || globalContentViews).lookup(
-            context,
+            lookupContext,
             currentAction
         );
 
