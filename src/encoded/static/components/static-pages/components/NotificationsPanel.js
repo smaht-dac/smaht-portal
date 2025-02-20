@@ -92,6 +92,13 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                     {sample_groups.map((sample_group, i) => {
                         let sample_group_title = sample_group.value;
 
+                        if (sample_group_title?.includes('DAC_DONOR_')) {
+                            sample_group_title = sample_group_title.replace(
+                                'DAC_DONOR_',
+                                ''
+                            );
+                        }
+
                         if (sample_group?.additional_value) {
                             sample_group_title += ` - ${
                                 sample_group.additional_value?.split(':')[0]
@@ -131,22 +138,22 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
 };
 
 export const NotificationsPanel = () => {
-    const [data, setData] = useState(null);
+    const [data, setData] = useState(example);
 
-    useEffect(() => {
-        ajax.load(
-            '/recent_files_summary?format=json&nmonths=18',
-            (resp) => {
-                setData(resp?.items ?? null);
-            },
-            'GET',
-            (err) => {
-                if (err.notification !== 'No results found') {
-                    console.log('ERROR NotificationsPanel resp', err);
-                }
-            }
-        );
-    }, []);
+    // useEffect(() => {
+    //     ajax.load(
+    //         '/recent_files_summary?format=json&nmonths=18',
+    //         (resp) => {
+    //             setData(resp?.items ?? null);
+    //         },
+    //         'GET',
+    //         (err) => {
+    //             if (err.notification !== 'No results found') {
+    //                 console.log('ERROR NotificationsPanel resp', err);
+    //             }
+    //         }
+    //     );
+    // }, []);
 
     return (
         <div className="notifications-panel container">
@@ -229,3 +236,600 @@ export const NotificationsPanel = () => {
         </div>
     );
 };
+
+const example = [
+    {
+        name: 'file_status_tracking.released',
+        value: '2024-10',
+        count: 10,
+        items: [
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'HAPMAP6',
+                count: 10,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-10-01&file_status_tracking.released.to=2024-10-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=WGS+Illumina+NovaSeq+X+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS ONT PromethION 24 bam',
+                        count: 3,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-10-01&file_status_tracking.released.to=2024-10-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=WGS+ONT+PromethION+24+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS PacBio Revio bam',
+                        count: 3,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-10-01&file_status_tracking.released.to=2024-10-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=WGS+PacBio+Revio+bam',
+                    },
+                ],
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-10-01&file_status_tracking.released.to=2024-10-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6',
+            },
+        ],
+        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-10-01&file_status_tracking.released.to=2024-10-31',
+    },
+    {
+        name: 'file_status_tracking.released',
+        value: '2024-09',
+        count: 1,
+        items: [
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'ST002-1G',
+                count: 1,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'Fiber-seq PacBio Revio bam',
+                        count: 1,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-09-01&file_status_tracking.released.to=2024-09-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&release_tracker_description=Fiber-seq+PacBio+Revio+bam',
+                    },
+                ],
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-09-01&file_status_tracking.released.to=2024-09-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G',
+            },
+        ],
+        additional_value:
+            'Colon: Halfway between hepatic flexure and cecum. Anterior anti-mesenteric side',
+        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-09-01&file_status_tracking.released.to=2024-09-30',
+    },
+    {
+        name: 'file_status_tracking.released',
+        value: '2024-08',
+        count: 5,
+        items: [
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'ST003-1Q',
+                count: 4,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-08-01&file_status_tracking.released.to=2024-08-31&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q&release_tracker_description=WGS+Illumina+NovaSeq+X+bam',
+                    },
+                ],
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-08-01&file_status_tracking.released.to=2024-08-31&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q',
+            },
+            {
+                name: 'donors.display_title',
+                value: 'DAC_DONOR_COLO829',
+                count: 1,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS ONT PromethION 24 bam',
+                        count: 1,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-08-01&file_status_tracking.released.to=2024-08-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=WGS+ONT+PromethION+24+bam',
+                    },
+                ],
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-08-01&file_status_tracking.released.to=2024-08-31&donors.display_title=DAC_DONOR_COLO829',
+            },
+        ],
+        additional_value: 'Brain: Frontal lobe, cortex',
+        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-08-01&file_status_tracking.released.to=2024-08-31',
+    },
+    {
+        name: 'file_status_tracking.released',
+        value: '2024-07',
+        count: 39,
+        items: [
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'ST001-1A',
+                count: 9,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X Plus bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=WGS+Illumina+NovaSeq+X+Plus+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=WGS+Illumina+NovaSeq+X+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS PacBio Revio bam',
+                        count: 1,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=WGS+PacBio+Revio+bam',
+                    },
+                ],
+                additional_value:
+                    'Liver: Central right lobe, 1 cm below capsule.',
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A',
+            },
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'ST002-1D',
+                count: 9,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X Plus bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&release_tracker_description=WGS+Illumina+NovaSeq+X+Plus+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&release_tracker_description=WGS+Illumina+NovaSeq+X+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS PacBio Revio bam',
+                        count: 1,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&release_tracker_description=WGS+PacBio+Revio+bam',
+                    },
+                ],
+                additional_value: 'Lung: Inferior segment of left upper lobe',
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D',
+            },
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'ST001-1D',
+                count: 8,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X Plus bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&release_tracker_description=WGS+Illumina+NovaSeq+X+Plus+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&release_tracker_description=WGS+Illumina+NovaSeq+X+bam',
+                    },
+                ],
+                additional_value: 'Lung: Inferior segment of left upper lobe',
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D',
+            },
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'ST002-1G',
+                count: 7,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&release_tracker_description=WGS+Illumina+NovaSeq+X+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X Plus bam',
+                        count: 3,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&release_tracker_description=WGS+Illumina+NovaSeq+X+Plus+bam',
+                    },
+                ],
+                additional_value:
+                    'Colon: Halfway between hepatic flexure and cecum. Anterior anti-mesenteric side',
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G',
+            },
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'ST004-1Q',
+                count: 6,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q&release_tracker_description=WGS+Illumina+NovaSeq+X+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X Plus bam',
+                        count: 2,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q&release_tracker_description=WGS+Illumina+NovaSeq+X+Plus+bam',
+                    },
+                ],
+                additional_value: 'Brain: Frontal lobe, cortex',
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q',
+            },
+        ],
+        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-07-01&file_status_tracking.released.to=2024-07-31',
+    },
+    {
+        name: 'file_status_tracking.released',
+        value: '2024-06',
+        count: 45,
+        items: [
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'ST001-1D',
+                count: 11,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&release_tracker_description=WGS+Illumina+NovaSeq+X+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS PacBio Revio bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&release_tracker_description=WGS+PacBio+Revio+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS ONT PromethION 24 bam',
+                        count: 3,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&release_tracker_description=WGS+ONT+PromethION+24+bam',
+                    },
+                ],
+                additional_value: 'Lung: Inferior segment of left upper lobe',
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D',
+            },
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'ST002-1D',
+                count: 10,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&release_tracker_description=WGS+Illumina+NovaSeq+X+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS ONT PromethION 24 bam',
+                        count: 3,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&release_tracker_description=WGS+ONT+PromethION+24+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS PacBio Revio bam',
+                        count: 3,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&release_tracker_description=WGS+PacBio+Revio+bam',
+                    },
+                ],
+                additional_value: 'Lung: Inferior segment of left upper lobe',
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D',
+            },
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'ST001-1A',
+                count: 8,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS ONT PromethION 24 bam',
+                        count: 3,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=WGS+ONT+PromethION+24+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS PacBio Revio bam',
+                        count: 3,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=WGS+PacBio+Revio+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'Fiber-seq PacBio Revio bam',
+                        count: 1,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=Fiber-seq+PacBio+Revio+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X bam',
+                        count: 1,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=WGS+Illumina+NovaSeq+X+bam',
+                    },
+                ],
+                additional_value:
+                    'Liver: Central right lobe, 1 cm below capsule.',
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A',
+            },
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'ST002-1G',
+                count: 7,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&release_tracker_description=WGS+Illumina+NovaSeq+X+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS ONT PromethION 24 bam',
+                        count: 3,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&release_tracker_description=WGS+ONT+PromethION+24+bam',
+                    },
+                ],
+                additional_value:
+                    'Colon: Halfway between hepatic flexure and cecum. Anterior anti-mesenteric side',
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G',
+            },
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'ST003-1Q',
+                count: 4,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X bam',
+                        count: 3,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q&release_tracker_description=WGS+Illumina+NovaSeq+X+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'Fiber-seq PacBio Revio bam',
+                        count: 1,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q&release_tracker_description=Fiber-seq+PacBio+Revio+bam',
+                    },
+                ],
+                additional_value: 'Brain: Frontal lobe, cortex',
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q',
+            },
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'ST004-1Q',
+                count: 4,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X bam',
+                        count: 3,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q&release_tracker_description=WGS+Illumina+NovaSeq+X+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'Fiber-seq PacBio Revio bam',
+                        count: 1,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q&release_tracker_description=Fiber-seq+PacBio+Revio+bam',
+                    },
+                ],
+                additional_value: 'Brain: Frontal lobe, cortex',
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q',
+            },
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'COLO829BLT50',
+                count: 1,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS ONT PromethION 24 bam',
+                        count: 1,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS+ONT+PromethION+24+bam',
+                    },
+                ],
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50',
+            },
+        ],
+        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-06-01&file_status_tracking.released.to=2024-06-30',
+    },
+    {
+        name: 'file_status_tracking.released',
+        value: '2024-05',
+        count: 76,
+        items: [
+            {
+                name: 'donors.display_title',
+                value: 'DAC_DONOR_COLO829',
+                count: 33,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X bam',
+                        count: 33,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=WGS+Illumina+NovaSeq+X+bam',
+                    },
+                ],
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&donors.display_title=DAC_DONOR_COLO829',
+            },
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'COLO829BLT50',
+                count: 26,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X bam',
+                        count: 9,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS+Illumina+NovaSeq+X+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS PacBio Revio bam',
+                        count: 8,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS+PacBio+Revio+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X Plus bam',
+                        count: 5,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS+Illumina+NovaSeq+X+Plus+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS ONT PromethION 24 bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS+ONT+PromethION+24+bam',
+                    },
+                ],
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50',
+            },
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'HAPMAP6',
+                count: 17,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X bam',
+                        count: 5,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=WGS+Illumina+NovaSeq+X+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS Illumina NovaSeq X Plus bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=WGS+Illumina+NovaSeq+X+Plus+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS ONT PromethION 24 bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=WGS+ONT+PromethION+24+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS PacBio Revio bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=WGS+PacBio+Revio+bam',
+                    },
+                ],
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6',
+            },
+        ],
+        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-05-01&file_status_tracking.released.to=2024-05-31',
+    },
+    {
+        name: 'file_status_tracking.released',
+        value: '2024-04',
+        count: 5,
+        items: [
+            {
+                name: 'donors.display_title',
+                value: 'DAC_DONOR_COLO829',
+                count: 4,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'Fiber-seq PacBio Revio bam',
+                        count: 3,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-04-01&file_status_tracking.released.to=2024-04-30&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=Fiber-seq+PacBio+Revio+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'Hi-C Illumina NovaSeq 6000 bam',
+                        count: 1,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-04-01&file_status_tracking.released.to=2024-04-30&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=Hi-C+Illumina+NovaSeq+6000+bam',
+                    },
+                ],
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-04-01&file_status_tracking.released.to=2024-04-30&donors.display_title=DAC_DONOR_COLO829',
+            },
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'COLO829BLT50',
+                count: 1,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'Fiber-seq PacBio Revio bam',
+                        count: 1,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-04-01&file_status_tracking.released.to=2024-04-30&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=Fiber-seq+PacBio+Revio+bam',
+                    },
+                ],
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-04-01&file_status_tracking.released.to=2024-04-30&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50',
+            },
+        ],
+        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-04-01&file_status_tracking.released.to=2024-04-30',
+    },
+    {
+        name: 'file_status_tracking.released',
+        value: '2024-03',
+        count: 9,
+        items: [
+            {
+                name: 'donors.display_title',
+                value: 'DAC_DONOR_COLO829',
+                count: 8,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'Ultra-Long WGS ONT PromethION 24 bam',
+                        count: 4,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-03-01&file_status_tracking.released.to=2024-03-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=Ultra-Long+WGS+ONT+PromethION+24+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'Fiber-seq PacBio Revio bam',
+                        count: 2,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-03-01&file_status_tracking.released.to=2024-03-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=Fiber-seq+PacBio+Revio+bam',
+                    },
+                    {
+                        name: 'release_tracker_description',
+                        value: 'WGS ONT PromethION 24 bam',
+                        count: 2,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-03-01&file_status_tracking.released.to=2024-03-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=WGS+ONT+PromethION+24+bam',
+                    },
+                ],
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-03-01&file_status_tracking.released.to=2024-03-31&donors.display_title=DAC_DONOR_COLO829',
+            },
+            {
+                name: 'file_sets.libraries.analytes.samples.sample_sources.code',
+                value: 'HAPMAP6',
+                count: 1,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'Fiber-seq PacBio Revio bam',
+                        count: 1,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-03-01&file_status_tracking.released.to=2024-03-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=Fiber-seq+PacBio+Revio+bam',
+                    },
+                ],
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-03-01&file_status_tracking.released.to=2024-03-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6',
+            },
+        ],
+        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-03-01&file_status_tracking.released.to=2024-03-31',
+    },
+    {
+        name: 'file_status_tracking.released',
+        value: '2024-01',
+        count: 1,
+        items: [
+            {
+                name: 'donors.display_title',
+                value: 'DAC_DONOR_COLO829',
+                count: 1,
+                items: [
+                    {
+                        name: 'release_tracker_description',
+                        value: 'Fiber-seq PacBio Revio vcf_gz',
+                        count: 1,
+                        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-01-01&file_status_tracking.released.to=2024-01-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=Fiber-seq+PacBio+Revio+vcf_gz',
+                    },
+                ],
+                query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-01-01&file_status_tracking.released.to=2024-01-31&donors.display_title=DAC_DONOR_COLO829',
+            },
+        ],
+        query: '/search/?type=OutputFile&type=SubmittedFile&status=released&data_category%21=Quality+Control&file_status_tracking.released.from=2024-01-01&file_status_tracking.released.to=2024-01-31',
+    },
+];
