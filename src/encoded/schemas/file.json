@@ -230,6 +230,13 @@
             "minimum": 0,
             "permission": "restricted_fields"
         },
+        "override_release_tracker_title": {
+            "title": "Release Tracker Title Override",
+            "desciption": "An override value for release tracker title that is used in the File Release Tracker on the home page if present, particularly for supplementary files",
+            "type": "string",
+            "minimum": 0,
+            "permission": "restricted_fields"
+        },
         "version": {
             "type": "string",
             "permission": "restricted_fields"
