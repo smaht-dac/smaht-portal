@@ -37,5 +37,14 @@
         "consortia": [
             "smaht"
         ]
+    },
+    {
+        "uuid": "0e6a892a-2740-42bb-9bf7-7c8d577d60fa",
+        "identifier": "UBERON:0000955",
+        "ontologies": ["UBERON"],
+        "title": "brain",
+        "consortia": [
+            "smaht"
+        ]
     }
 ]
