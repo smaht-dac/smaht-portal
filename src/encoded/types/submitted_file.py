@@ -96,6 +96,8 @@ class SubmittedFile(File, SubmittedItem):
 @link_related_validator
 def validate_basecalling_software_for_ont_on_add(context, request):
     """Validate software and sequencer.platform if ONT on add"""
+    if context.type_info.item_type not in ['aligned_reads','unaligned_reads', 'variant_calls']:
+        return
     data = request.json
     software = data['software'] if 'software' in data else None
     file_sets = data['file_sets'] if 'file_sets' in data else None
@@ -105,6 +107,8 @@ def validate_basecalling_software_for_ont_on_add(context, request):
 @link_related_validator
 def validate_basecalling_software_for_ont_on_edit(context, request):
     """Validate software and sequencer.platform if ONT on edit."""
+    if context.type_info.item_type not in ['aligned_reads','unaligned_reads', 'variant_calls']:
+        return
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
     software = get_property_for_validation('software', existing_properties, properties_to_update)
