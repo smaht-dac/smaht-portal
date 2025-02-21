@@ -1274,8 +1274,8 @@ def assert_release_tracker_title_matches_expected(file: Dict[str, Any], request_
             title_from_calcprops = item_utils.get_code(request_handler.get_items(cell_culture_mixture_from_calcprop)[0])      
         elif (cell_line_from_calcprop := file_utils.get_cell_lines(file, request_handler)):
             title_from_calcprops = item_utils.get_code(request_handler.get_items(cell_line_from_calcprop)[0])
-        elif (donor_from_calcprop := file_utils.get_donors(file)):
-            title_from_calcprops = item_utils.get_display_title(donor_from_calcprop[0])
+        elif (tissue_from_calcprop := file_utils.get_tissues(file)):
+            title_from_calcprops = item_utils.get_display_title(tissue_from_calcprop[0])
     if "override_release_tracker_title" in file:
         title_from_calcprops=file_utils.get_override_release_tracker_title(file)
     assert release_tracker_title == title_from_calcprops

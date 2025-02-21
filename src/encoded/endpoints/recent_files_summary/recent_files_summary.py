@@ -18,6 +18,7 @@ from encoded.endpoints.endpoint_utils import (
 from encoded.endpoints.recent_files_summary.recent_files_summary_fields import (
         AGGREGATION_FIELD_RELEASE_DATE,
         AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR,
+        AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE,
         AGGREGATION_FIELD_CELL_MIXTURE,
         AGGREGATION_FIELD_DONOR,
         AGGREGATION_FIELD_DSA_DONOR,
@@ -35,6 +36,7 @@ QUERY_FILE_CATEGORIES = ["!Quality Control"]
 QUERY_RECENT_MONTHS = 3
 QUERY_INCLUDE_CURRENT_MONTH = True
 BASE_SEARCH_QUERY = "/search/"
+LEGACY_DEFAULT = False
 
 
 def recent_files_summary_endpoint(context, request):
@@ -48,12 +50,14 @@ def recent_files_summary_endpoint(context, request):
         text_query = request_arg_bool(request, "text_query")
         text_verbose = request_arg_bool(request, "text_verbose")
         text_debug = request_arg_bool(request, "text_debug")
+        legacy = request_arg_bool(request, "legacy", LEGACY_DEFAULT)
         results = get_normalized_aggregation_results_as_html_for_troublehshooting(results,
                                                                                   uuids=text_uuids,
                                                                                   uuid_details=text_uuid_details,
                                                                                   query=text_query,
                                                                                   verbose=text_verbose,
-                                                                                  debug=text_debug)
+                                                                                  debug=text_debug,
+                                                                                  legacy=legacy)
         results = PyramidResponse(f"<pre>{results}</pre>", content_type='text/html')
     return results
 
@@ -100,6 +104,7 @@ def recent_files_summary(request: PyramidRequest,
     troubleshoot = request_arg_bool(request, "troubleshoot")
     troubleshoot_elasticsearch = request_arg_bool(request, "troubleshoot_elasticsearch")
     raw = request_arg_bool(request, "raw")
+    legacy = request_arg_bool(request, "legacy", LEGACY_DEFAULT)
 
     if troubleshooting is True:
         debug = True
@@ -111,7 +116,13 @@ def recent_files_summary(request: PyramidRequest,
         # and then alternatively (if a cell-line field does not exist) by the donor field.
         # For troubleshooting/testing/or-maybe-if-we-change-our-minds we can alternatively
         # look first for the donor field and then secondarily for the cell-line field.
+        nonlocal legacy
         aggregation_field_grouping_cell_or_donor = deepcopy(AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR)
+        if not legacy:
+            # 2025-02-21: This is now the default (using release_tracker_title).
+            if AGGREGATION_FIELD_CELL_MIXTURE in aggregation_field_grouping_cell_or_donor:
+                aggregation_field_grouping_cell_or_donor.remove(AGGREGATION_FIELD_CELL_MIXTURE)
+            aggregation_field_grouping_cell_or_donor.insert(0, AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE)
         return aggregation_field_grouping_cell_or_donor
 
     def create_base_query_arguments(request: PyramidRequest) -> dict:
@@ -175,7 +186,7 @@ def recent_files_summary(request: PyramidRequest,
             return {}
 
         def create_field_aggregation(field: str) -> Optional[dict]:  # noqa
-            nonlocal aggregation_field_grouping_cell_or_donor, date_property_name, multi
+            nonlocal aggregation_field_grouping_cell_or_donor, date_property_name, legacy, multi
             if field == date_property_name:
                 return {
                     "date_histogram": {
@@ -186,7 +197,7 @@ def recent_files_summary(request: PyramidRequest,
                         "order": {"_key": "desc"}
                     }
                 }
-            elif field == AGGREGATION_FIELD_CELL_MIXTURE:
+            elif legacy and (field == AGGREGATION_FIELD_CELL_MIXTURE):
                 # Note how we prefix the result with the aggregation field name;
                 # this is so later we can tell which grouping/field was matched;
                 # see fixup_names_values_for_normalized_results for this fixup.
@@ -352,7 +363,7 @@ def recent_files_summary(request: PyramidRequest,
     aggregate_by_cell_line_property_name = "aggregate_by_cell_line"
     aggregate_by_cell_line = [
         date_property_name,
-        AGGREGATION_FIELD_CELL_MIXTURE,
+        AGGREGATION_FIELD_CELL_MIXTURE if legacy else AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE,
         AGGREGATION_FIELD_FILE_DESCRIPTOR
     ]
     aggregation_query = {

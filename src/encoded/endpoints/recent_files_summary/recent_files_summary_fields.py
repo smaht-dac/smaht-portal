@@ -6,6 +6,7 @@
 
 AGGREGATION_FIELD_RELEASE_DATE = "file_status_tracking.released"
 AGGREGATION_FIELD_CELL_MIXTURE = "file_sets.libraries.analytes.samples.sample_sources.code"
+AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE = "release_tracker_title"  # 2025-02-21: new/default (if NOT legacy=true)
 AGGREGATION_FIELD_DONOR = "donors.display_title"
 AGGREGATION_FIELD_DSA_DONOR = "donor_specific_assembly.donors.display_title"  # 2025-02-04
 AGGREGATION_FIELD_CELL_LINE = "file_sets.libraries.analytes.samples.sample_sources.cell_line.code"  # unused by default
