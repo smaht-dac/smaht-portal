@@ -423,7 +423,7 @@
         },
         "twin_or_multiple_birth_details": {
             "title": "Twin or Multiple Birth Details",
-            "description": "Details of the twin or multiple birth",
+            "description": "Details of the twin or multiple birth the donor was a part of",
             "type": "string",
             "enum": [
                 "Triplet, Fraternal",
