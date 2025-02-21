@@ -66,7 +66,7 @@ class AnnotatedFilenameInfo:
 REQUIRED_FILE_PROPS = [file_constants.SEQUENCING_CENTER]
 SECONDARY_REQUIRED_FILE_PROPS = [
     "release_tracker_description",
-    #"release_tracker_title"
+    "release_tracker_title"
 ]
 
 class FileRelease:
