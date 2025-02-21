@@ -748,6 +748,7 @@ def test_link_to_another_submission_center_item(
     donor: Dict[str, Any],
     test_submission_center: Dict[str, Any],
     test_second_submission_center: Dict[str, Any],
+    test_ontology_term: Dict[str, Any]
 ) -> None:
     """Ensure item can link to one under different submission center.
 
@@ -768,7 +769,7 @@ def test_link_to_another_submission_center_item(
         "donor": donor["uuid"],
         "submitted_id": "TEST_TISSUE_WXYZ",
         "external_id": "ST-WXYZ",
-        "uberon_id": "UBERON:0001111",
+        "uberon_id": test_ontology_term["uuid"],
     }
     post_item(submission_center_user_app, tissue_properties, "Tissue", status=201)
 
