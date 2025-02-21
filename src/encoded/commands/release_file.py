@@ -295,7 +295,7 @@ class FileRelease:
 
     def execute(self) -> None:
         print("Validating all patch dictionaries...")
-        self.file = self.get_metadata(item_utils.get_uuuid(self.file))
+        self.file = self.get_metadata(item_utils.get_uuid(self.file))
         self.validate_file_after_patch()
         try:
             for patch_dict in self.patch_dicts[1:]:
