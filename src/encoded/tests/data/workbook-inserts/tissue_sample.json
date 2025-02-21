@@ -37,6 +37,19 @@
         ]
     },
     {
+        "uuid": "61850d04-9207-43ab-aab9-1a62821febc3",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE-SAMPLE_BRAIN",
+        "sample_sources": [
+            "TEST_TISSUE_BRAIN"
+        ],
+        "category": "Specimen",
+        "external_id": "SMHT001-3AJ-001S1",
+        "preservation_type": "Fresh"
+    },
+    {
         "uuid": "b59d424d-85a4-43f2-ac1c-ed81d41dd6b4",
         "submission_centers": [
             "smaht"
