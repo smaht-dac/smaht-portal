@@ -63,8 +63,11 @@ class AnnotatedFilenameInfo:
 
 
 # dataset is required but comes in through input args for now
-REQUIRED_FILE_PROPS = [file_constants.SEQUENCING_CENTER, "release_tracker_description", "release_tracker_title"]
-
+REQUIRED_FILE_PROPS = [file_constants.SEQUENCING_CENTER]
+SECONDARY_REQUIRED_FILE_PROPS = [
+    "release_tracker_description",
+    #"release_tracker_title"
+]
 
 class FileRelease:
 
@@ -238,6 +241,8 @@ class FileRelease:
     ) -> None:
         self.validate_file()
         self.add_file_patchdict(dataset)
+        self.add_release_file_patchdict(dataset)
+
         self.add_release_items_to_patchdict(self.quality_metrics, "QualityMetric")
         self.add_release_items_to_patchdict(
             self.quality_metrics_zips, "Compressed QC metrics file"
@@ -259,7 +264,6 @@ class FileRelease:
         if obsolete_file_identifier:
             obsolete_file = self.get_metadata(obsolete_file_identifier)
             self.add_obsolete_file_patchdict(obsolete_file)
-
         print("\nThe following metadata patches will be carried out in the next step:")
         for info in self.patch_infos:
             print(info)
@@ -270,10 +274,31 @@ class FileRelease:
             for warning in self.warnings:
                 print(warning)
 
+    def execute_initial(self) -> None:
+        print("Validating file patch dictionary...")
+        try:
+            self.validate_patch(self.patch_dicts[0])
+        except Exception as e:
+            print(str(e))
+            self.print_error_and_exit("Validation failed.")
+
+        print("Validation done. Patchin file metadata...")
+        try:
+            self.patch_metadata(self.patch_dicts[0])
+            print(f"Patching of File {self.file_accession} completed.")
+        except Exception as e:
+            print(str(e))
+            self.print_error_and_exit("Patching failed.")
+        
+        to_print = f"Patching of File {self.file_accession} completed."
+        print(ok_green_text(to_print))
+
     def execute(self) -> None:
         print("Validating all patch dictionaries...")
+        self.file = self.get_metadata(item_utils.get_uuuid(self.file))
+        self.validate_file_after_patch()
         try:
-            for patch_dict in self.patch_dicts:
+            for patch_dict in self.patch_dicts[1:]:
                 self.validate_patch(patch_dict)
         except Exception as e:
             print(str(e))
@@ -281,12 +306,12 @@ class FileRelease:
 
         print("Validation done. Patching...")
         try:
-            for patch_dict in self.patch_dicts:
+            for patch_dict in self.patch_dicts[1:]:
                 self.patch_metadata(patch_dict)
         except Exception as e:
             print(str(e))
             self.print_error_and_exit("Patching failed.")
-
+        
         to_print = f"Release of File {self.file_accession} completed."
         print(ok_green_text(to_print))
 
@@ -391,6 +416,21 @@ class FileRelease:
                 self.get_okay_message(file_constants.ACCESS_STATUS, access_status),
                 self.get_okay_message(
                     file_constants.ANNOTATED_FILENAME, annotated_filename_info.filename
+                ),
+            ]
+        )
+        self.patch_dicts.append(patch_body)
+
+    def add_release_file_patchdict(self, dataset: str) -> None:
+        patch_body = {
+            item_constants.UUID: item_utils.get_uuid(self.file),
+            item_constants.STATUS: item_constants.STATUS_RELEASED,
+        }
+        self.patch_infos.extend(
+            [
+                f"\nFile ({self.file_accession}):",
+                self.get_okay_message(
+                    item_constants.STATUS, item_constants.STATUS_RELEASED
                 ),
             ]
         )
@@ -583,8 +623,19 @@ class FileRelease:
         self.validate_file_output_status()
         self.validate_file_status()
 
+    def validate_file_after_patch(self) -> None:
+        self.validate_secondary_required_file_props()
+
     def validate_required_file_props(self) -> None:
         for prop in REQUIRED_FILE_PROPS:
+            if prop not in self.file:
+                self.print_error_and_exit(
+                    f"File {self.file_accession} does not have the required property"
+                    f" `{prop}`."
+                )
+
+    def validate_secondary_required_file_props(self) -> None:
+        for prop in SECONDARY_REQUIRED_FILE_PROPS:
             if prop not in self.file:
                 self.print_error_and_exit(
                     f"File {self.file_accession} does not have the required property"
@@ -751,7 +802,7 @@ def main() -> None:
 
     while True:
         resp = input(
-            f"\nDo you want to proceed with release and execute patches above? "
+            f"\nDo you want to proceed with file patching above? "
             f"Data will be patched on {warning_text(server)}."
             f"\nYou have the following options: "
             f"\ny - Proceed with release"
@@ -761,8 +812,26 @@ def main() -> None:
         )
 
         if resp in ["y", "yes"]:
-            file_release.execute()
-            break
+            file_release.execute_initial()
+            resp = input(
+            f"\nDo you want to proceed with release and execute all patches above? "
+            f"Data will be patched on {warning_text(server)}."
+            f"\nYou have the following options: "
+            f"\ny - Proceed with release"
+            f"\np - Show patch dictionaries "
+            f"\nn - Abort "
+            f"\n(y,p,n): "
+            )
+
+            if resp in ["y", "yes"]:
+                file_release.execute()
+                break
+            elif resp in ["p"]:
+                file_release.show_patch_dicts()
+                continue
+            else:
+                print(f"{warning_text('Aborted by user.')}")
+                exit()
         elif resp in ["p"]:
             file_release.show_patch_dicts()
             continue
