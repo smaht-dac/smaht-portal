@@ -120,9 +120,7 @@ def recent_files_summary(request: PyramidRequest,
         aggregation_field_grouping_cell_or_donor = deepcopy(AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR)
         if not legacy:
             # 2025-02-21: This is now the default (using release_tracker_title).
-            if AGGREGATION_FIELD_CELL_MIXTURE in aggregation_field_grouping_cell_or_donor:
-                aggregation_field_grouping_cell_or_donor.remove(AGGREGATION_FIELD_CELL_MIXTURE)
-            aggregation_field_grouping_cell_or_donor.insert(0, AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE)
+            aggregation_field_grouping_cell_or_donor = [AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE]
         return aggregation_field_grouping_cell_or_donor
 
     def create_base_query_arguments(request: PyramidRequest) -> dict:
@@ -168,7 +166,13 @@ def recent_files_summary(request: PyramidRequest,
         return query_arguments
 
     def create_query(request: PyramidRequest, base_query_arguments: Optional[dict] = None) -> str:
+        nonlocal legacy
         query_arguments = create_query_arguments(request, base_query_arguments)
+        if not legacy:
+            if AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE not in query_arguments:
+                query_arguments[AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE] = f"!{AGGREGATION_NO_VALUE}"
+            if AGGREGATION_FIELD_FILE_DESCRIPTOR not in query_arguments:
+                query_arguments[AGGREGATION_FIELD_FILE_DESCRIPTOR] = f"!{AGGREGATION_NO_VALUE}"
         query_string = create_query_string(query_arguments)
         return f"{BASE_SEARCH_QUERY}?{query_string}"
 
@@ -333,7 +337,7 @@ def recent_files_summary(request: PyramidRequest,
 
     def add_queries_to_normalized_results(normalized_results: dict, base_query_arguments: dict) -> None:
         global BASE_SEARCH_QUERY
-        nonlocal date_property_name
+        nonlocal date_property_name, legacy
         if isinstance(normalized_results, dict):
             if name := normalized_results.get("name"):
                 if value := normalized_results.get("value"):
@@ -348,7 +352,13 @@ def recent_files_summary(request: PyramidRequest,
                                                     f"{name}.from": from_date, f"{name}.to": thru_date}
                     else:
                         base_query_arguments = {**base_query_arguments, name: value}
-                normalized_results["query"] = create_query_string(base_query_arguments, BASE_SEARCH_QUERY)
+                query_arguments = deepcopy(base_query_arguments)
+                if not legacy:
+                    if AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE not in query_arguments:
+                        query_arguments[AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE] = f"!{AGGREGATION_NO_VALUE}"
+                    if AGGREGATION_FIELD_FILE_DESCRIPTOR not in query_arguments:
+                        query_arguments[AGGREGATION_FIELD_FILE_DESCRIPTOR] = f"!{AGGREGATION_NO_VALUE}"
+                normalized_results["query"] = create_query_string(query_arguments, BASE_SEARCH_QUERY)
             if isinstance(items := normalized_results.get("items"), list):
                 for element in items:
                     add_queries_to_normalized_results(element, base_query_arguments)

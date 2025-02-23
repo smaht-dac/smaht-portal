@@ -50,6 +50,7 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
 
     aggregation_fields_for_troubleshooting = dedup_list([
         AGGREGATION_FIELD_RELEASE_DATE,
+        AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE,
         AGGREGATION_FIELD_CELL_MIXTURE,
         AGGREGATION_FIELD_DONOR,
         AGGREGATION_FIELD_DSA_DONOR,
@@ -181,9 +182,10 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
             aggregation_field_grouping_cell_or_donor = deepcopy(AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR)
             if not legacy:
                 # 2025-02-21: This is now the default (using release_tracker_title).
-                if AGGREGATION_FIELD_CELL_MIXTURE in aggregation_field_grouping_cell_or_donor:
-                    aggregation_field_grouping_cell_or_donor.remove(AGGREGATION_FIELD_CELL_MIXTURE)
-                aggregation_field_grouping_cell_or_donor.insert(0, AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE)
+                # if AGGREGATION_FIELD_CELL_MIXTURE in aggregation_field_grouping_cell_or_donor:
+                #     aggregation_field_grouping_cell_or_donor.remove(AGGREGATION_FIELD_CELL_MIXTURE)
+                # aggregation_field_grouping_cell_or_donor.insert(0, AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE)
+                aggregation_field_grouping_cell_or_donor = [AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE]
             return aggregation_field_grouping_cell_or_donor
         if not isinstance(aggregation_fields :=
                           normalized_results.get("debug", {}).get("aggregation_query_fields"), list):
@@ -215,6 +217,7 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
     def get_aggregation_field_labels() -> dict:
         # Shorter/nicer names for aggregation fields of interest to print.
         return {
+            AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE: "title",
             AGGREGATION_FIELD_CELL_MIXTURE: "sample-sources",
             AGGREGATION_FIELD_DONOR: "donors",
             AGGREGATION_FIELD_DSA_DONOR: "dsa-donors",
