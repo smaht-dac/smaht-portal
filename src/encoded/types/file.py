@@ -1050,12 +1050,12 @@ class File(Item, CoreFile):
                 if len(cell_culture_mixture_title) > 1:
                     return None
                 to_include = item_utils.get_code(cell_line_title[0])
-            elif (donor_title := request_handler.get_items(
-                file_utils.get_donors(file_properties, request_handler)
+            elif (tissue_title := request_handler.get_items(
+                file_utils.get_tissues(file_properties, request_handler)
             )):
-                if len(donor_title) > 1:
+                if len(tissue_title) > 1:
                     return None
-                to_include = item_utils.get_display_title(donor_title[0])   
+                to_include = item_utils.get_display_title(tissue_title[0])   
         if "override_release_tracker_title" in file_properties:
             to_include = file_utils.get_override_release_tracker_title(file_properties)
         if to_include:
