@@ -30,6 +30,13 @@ from encoded.endpoints.recent_files_summary.recent_files_summary_troubleshooting
 from snovault.search.search import search as snovault_search
 from snovault.search.search_utils import make_search_subreq as snovault_make_search_subreq
 
+# N.B. This implementation has undergone a number of iterations/changes. Currently (2025-02-24) it is much simpler
+# than it originally was due to the introduction of the (calculated) property "release_tracker_title"; previous to
+# that we used special code ("painless") in the ElasticSearch aggregation query to choose from among three possible
+# properties (AGGREGATION_FIELD_CELL_MIXTURE, AGGREGATION_FIELD_DONOR, AGGREGATION_FIELD_DSA_DONOR); but now the
+# query is much mroe straightforward. So some this code can/should eventually be elided; though for the time being
+# it is still here and even accessible using the "legacy=true" URL query argument to the API.
+
 QUERY_FILE_TYPES = ["OutputFile", "SubmittedFile"]
 QUERY_FILE_STATUSES = ["released"]
 QUERY_FILE_CATEGORIES = ["!Quality Control"]
@@ -309,7 +316,7 @@ def recent_files_summary(request: PyramidRequest,
         results at the inner-most (hit) level. The normalize_elasticsearch_aggregation_results function puts these
         in the additional_value property there, but we don't want these values at that inner-most level, i.e. at the
         level of release_tracker_description, but rather one level up at the donor level (i.e. donors.display_title).
-        So this hoists these up to that level, but only if their values are all the same, which is practice they are.
+        So this hoists these up to that level, but only if their values are all the same, which in practice they are.
         """
         if not isinstance(items_property_name, str):
             items_property_name = "items"
@@ -474,7 +481,10 @@ def recent_files_summary(request: PyramidRequest,
         remove_empty_items=not include_missing)
 
     if not exclude_tissue_info:
-        hoist_items_additional_value_up_one_level(normalized_results)
+        if False:
+            # 2025-02-24: No longer hoist this (sample_summary.tissues) property up one level;
+            # actually forget why this was originally done this way; but in any case no longer desired.
+            hoist_items_additional_value_up_one_level(normalized_results)
 
     fixup_names_values_for_normalized_results(normalized_results)
     add_queries_to_normalized_results(normalized_results, base_query_arguments)
