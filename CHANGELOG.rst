@@ -19,9 +19,16 @@ Change Log
 * Add calcprop to File, `release_tracker_title`, which displays in order of priority `override_release_tracker_title`, `CellCultureMixture.code`, `CellLine.code`, or `Tissue.display_title` for use as a header in the Release Tracker on the home page
 
 
+0.137.3
+=======
+`PR 356: fix: correct existing data link <https://github.com/smaht-dac/smaht-portal/pull/356>`
+
+* fix: update link in doc
+
+
 0.137.2
 =======
-`fix: remove "DAC_DONOR_" from sample group title <https://github.com/smaht-dac/smaht-portal/pull/353>`
+`PR 353: fix: remove "DAC_DONOR_" from sample group title <https://github.com/smaht-dac/smaht-portal/pull/353>`
 
 * Remove "DAC_DONOR_" from sample group title
 
