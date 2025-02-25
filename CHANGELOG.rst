@@ -13,6 +13,7 @@ Change Log
 
 * Change `uberon_id`` in Tissue from a string to a linkTo to OntologyTerm
 * Add upgrader for tissue
+* Update File `sample_summary` to include tissue information from OntologyTerm
 
 
 0.137.3
