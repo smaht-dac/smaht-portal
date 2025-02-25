@@ -15,9 +15,16 @@ Change Log
 * Add upgrader for tissue
 
 
+0.137.3
+=======
+`PR 356: fix: correct existing data link <https://github.com/smaht-dac/smaht-portal/pull/356>`
+
+* fix: update link in doc
+
+
 0.137.2
 =======
-`fix: remove "DAC_DONOR_" from sample group title <https://github.com/smaht-dac/smaht-portal/pull/353>`
+`PR 353: fix: remove "DAC_DONOR_" from sample group title <https://github.com/smaht-dac/smaht-portal/pull/353>`
 
 * Remove "DAC_DONOR_" from sample group title
 
