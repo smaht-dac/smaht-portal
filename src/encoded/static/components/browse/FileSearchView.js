@@ -20,7 +20,7 @@ export default function FileSearchView (props){
     const { schemas, session, facets, href, context } = props;
     if (!context.facets) return null;
     return (
-        <div className="search-page-container container" id="content">
+        <div className="search-page-container container-wide" id="content">
             <SelectedItemsController {...{ context, href }} currentAction={'multiselect'}>
                 <FileTableWithSelectedFilesCheckboxes {...{ schemas, facets, session, href, context }} />
             </SelectedItemsController>
