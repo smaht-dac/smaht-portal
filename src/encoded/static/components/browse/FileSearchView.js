@@ -82,6 +82,7 @@ function FileTableWithSelectedFilesCheckboxes(props){
         navigate: propNavigate,
         toggleFullScreen, isFullscreen, // todo: remove maybe, pass only to AboveTableControls
         keepSelectionInStorage: true,
+        separateSingleTermFacets: false,
         columns, hideFacets
     };
 
