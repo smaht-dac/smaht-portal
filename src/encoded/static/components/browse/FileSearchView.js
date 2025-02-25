@@ -55,6 +55,9 @@ function FileTableWithSelectedFilesCheckboxes(props){
         return { columnExtensionMap, columns };
     }, [propColumnExtensionMap, selectedFileProps]);
 
+    const tableColumnClassName = 'results-column col';
+    const facetColumnClassName = 'facets-column col-auto';
+
     const aboveTableComponent = (
             <BrowseViewAboveSearchTableControls
                 topLeftChildren={
@@ -78,6 +81,7 @@ function FileTableWithSelectedFilesCheckboxes(props){
         session, schemas,
         windowHeight, windowWidth, registerWindowOnScrollHandler,
         aboveTableComponent, aboveFacetListComponent,
+        tableColumnClassName, facetColumnClassName,
         columnExtensionMap,
         navigate: propNavigate,
         toggleFullScreen, isFullscreen, // todo: remove maybe, pass only to AboveTableControls
