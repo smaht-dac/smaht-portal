@@ -749,7 +749,6 @@ def test_link_to_another_submission_center_item(
     test_ontology_term: Dict[str, Any],
     test_submission_center: Dict[str, Any],
     test_second_submission_center: Dict[str, Any],
-    test_ontology_term: Dict[str, Any]
 ) -> None:
     """Ensure item can link to one under different submission center.
 
