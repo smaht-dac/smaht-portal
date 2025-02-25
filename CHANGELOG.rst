@@ -7,6 +7,77 @@ smaht-portal
 Change Log
 ----------
 
+0.137.3
+=======
+`PR 356: fix: correct existing data link <https://github.com/smaht-dac/smaht-portal/pull/356>`
+
+* fix: update link in doc
+
+
+0.137.2
+=======
+`PR 353: fix: remove "DAC_DONOR_" from sample group title <https://github.com/smaht-dac/smaht-portal/pull/353>`
+
+* Remove "DAC_DONOR_" from sample group title
+
+
+0.137.1
+=======
+`PR 352: SN Fix release date facet <https://github.com/smaht-dac/smaht-portal/pull/352>`_
+
+* Fix facet for `file.json` so Release Date shows `file_status_tracking.released_date`
+
+
+0.137.0
+=======
+`PR 350: SN Release tracker description <https://github.com/smaht-dac/smaht-portal/pull/350>`_
+
+* Add property `override_release_tracker_description` to file.json that can set the calcprop `release_tracker_description` to desired value
+* In `release-file.py`, require that a file has `release_tracker_description` set prior to release
+* Make reference_genome `code` non-unique
+
+
+0.136.0
+=======
+`PR 308 SN Pathology report <https://github.com/smaht-dac/smaht-portal/pull/308>`
+
+* Add items PathologyReport, NonBrainPathologyReport, BrainPathologyReport, and HistologyImage
+
+
+0.135.2
+=======
+`PR 343: feat: iPSC alert <https://github.com/smaht-dac/smaht-portal/pull/343>`_
+
+* Add alert banner for iPSC
+
+
+0.135.1
+=======
+`PR 347 feat: remove release tracker links <https://github.com/smaht-dac/smaht-portal/pull/347>`
+
+* Remove links from release tracker
+
+
+0.135.0
+=======
+* 2025-02-05 / dmichaels
+  - Branch: dmichaels-20250130-release-tracker-api-add-submitted-file | PR-337
+    - Derived from branch: main (commit: 8616c891bb93001d756f5a7eb6cbe0910d74780c)
+    - With merged in branch: sn_dsa_embed -> NEVERMIND -> BACKED OUT THIS MERGE FOR THIS BRANCH
+  - Added support for additional SubmittedFile type to release tracker API i.e. /recent_released_files.
+    This requires that the new File.override_release_tracker_description property be populated for affected types;
+    the calculated property release_tracker_description will depend on this (TODO: how is that populated).
+  - Added support for qc_values "psuedo-columns" for smaht-submitr; and also for multiple sheets of same type.
+    This is by virtue of using dcicutils.submitr.custom_excel.CustomExcel in ingestion_processor.py.
+  - In ingestion/submission_folio.py no longer assume consortia comes through from submitr;
+    this was causing problems for non-admin users; but actually changed it back to let it come through;
+    went back/forth on this; in the end removed restricted_fields designation for consortia in mixins.json.
+  - In ingestion/load_extensions.py use  noset_last_modified=True for loadxl call;
+    this was causing problems for non-admin users; requires dcicsnovault 11.24.0+.
+  - Updated the smaht-submitr spreadsheet template version;
+    see SUBMITR_METADATA_TEMPLATE_SHEET_ID and METADATA_TEMPLATE_VERSION_SHEET in metadata_template.py
+
+
 0.134.1
 =======
 `PR 329 SN Add Kinnex enums <https://github.com/smaht-dac/smaht-portal/pull/329>`

@@ -214,7 +214,8 @@
                     "5mC_5hmC",
                     "5mCG_5hmCG",
                     "6mA",
-                    "m6A_DRACH"
+                    "m6A_DRACH",
+                    "None"
                 ]
             }
         }
