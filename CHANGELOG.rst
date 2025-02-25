@@ -16,6 +16,15 @@ Change Log
 * Update File `sample_summary` to include tissue information from OntologyTerm
 
 
+0.137.4
+=======
+`PR 358: Cypress homepage and benchmarking facets test updates <https://github.com/smaht-dac/smaht-portal/pull/358>`
+
+* Homepage: Test for timeline items and below-figure button clicks were improved
+* Benchmarking: Bug fix for Exclude Properties test
+* Browse view: Quick Info Bar test is skipped until data is available
+
+
 0.137.3
 =======
 `PR 356: fix: correct existing data link <https://github.com/smaht-dac/smaht-portal/pull/356>`

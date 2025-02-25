@@ -66,8 +66,18 @@ describe('Home Page', function () {
 
                         if (index === 0) {
                             expect(buttonText).to.equal('benchmarking');
+                            cy.get('#timeline .timeline-item.tier-active')
+                                .invoke('text')
+                                .then((text) => {
+                                    expect(text).to.contain('Benchmarking');
+                                });
                         } else if (index === 1) {
                             expect(buttonText).to.equal('production');
+                            cy.get('#timeline .timeline-item.tier-active')
+                                .invoke('text')
+                                .then((text) => {
+                                    expect(text).to.contain('Production');
+                                });
                         }
 
                         const className = `tier-${index}`;
