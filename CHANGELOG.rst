@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.138.0
+=======
+`PR 351: FileSearchView for type=File search <https://github.com/smaht-dac/smaht-portal/pull/351>`
+
+* New FileSearchView component to handle type=File searches
+* Refactoring and improvements to BrowseView
+
+
 0.137.4
 =======
 `PR 358: Cypress homepage and benchmarking facets test updates <https://github.com/smaht-dac/smaht-portal/pull/358>`
