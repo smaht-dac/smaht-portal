@@ -161,7 +161,7 @@ export class VisualBody extends React.PureComponent {
             const linkHref = url.format(hrefParts);
 
             return (
-                <Button disabled={disabled} href={linkHref} target="_blank" bsStyle="primary" className="w-100 mt-1">View Experiment Sets</Button>
+                <Button disabled={disabled} href={linkHref} target="_blank" bsStyle="primary" className="w-100 mt-1">View Files</Button>
             );
         }
 
@@ -172,7 +172,7 @@ export class VisualBody extends React.PureComponent {
                 path = hrefParts.protocol + "//" + hrefParts.hostname + path;
             }// else will be abs path relative to current domain.
             return (
-                <Button disabled={disabled} href={path} target="_blank" bsStyle="primary" className="w-100 mt-1">View Experiment Set</Button>
+                <Button disabled={disabled} href={path} target="_blank" bsStyle="primary" className="w-100 mt-1">View File</Button>
             );
         }
 
@@ -230,7 +230,7 @@ export class VisualBody extends React.PureComponent {
         return (
             <StackedBlockVisual data={results} checkCollapsibility
                 {..._.pick(this.props, 'groupingProperties', 'columnGrouping', 'titleMap', 'headerPadding', 'additionalData',
-                    'columnSubGrouping', 'defaultDepthsOpen', 'duplicateHeaders', 'headerColumnsOrder', 'columnSubGroupingOrder', 'labelClassName', 'listingClassName', 'colorLevelClassMap')}
+                    'columnSubGrouping', 'defaultDepthsOpen', 'duplicateHeaders', 'headerColumnsOrder', 'columnSubGroupingOrder', 'labelClassName', 'listingClassName', 'colorRanges')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
             />
@@ -641,8 +641,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
         const commonProps = _.pick(props, 'blockHeight', 'blockHorizontalSpacing', 'blockVerticalSpacing',
             'groupingProperties', 'depth', 'titleMap', 'blockClassName', 'blockRenderedContents',
-            'groupedDataIndices', 'headerColumnsOrder', 'columnGrouping', 'blockPopover', 'colorLevelClassMap', 'additionalData',
-            'activeRow', 'activeColumn', 'handleMouseEnter', 'handleMouseLeave');
+            'groupedDataIndices', 'headerColumnsOrder', 'columnGrouping', 'blockPopover', 'colorRanges',
+            'activeRow', 'activeColumn', 'handleMouseEnter', 'handleMouseLeave', 'additionalData');
         const width = (props.blockHeight + (props.blockHorizontalSpacing * 2)) + 1;
         const containerGroupStyle = {
             'width'         : width, // Width for each column
@@ -898,7 +898,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 const Block = React.memo(function Block(props){
     const {
         blockHeight, blockVerticalSpacing, data, parentGrouping,
-        blockClassName, blockRenderedContents, blockPopover, indexInGroup, colorLevelClassMap,
+        blockClassName, blockRenderedContents, blockPopover, indexInGroup, colorRanges,
         handleMouseEnter, handleMouseLeave, rowIndex, colIndex, activeRow, activeColumn
     } = props;
 
@@ -913,6 +913,7 @@ const Block = React.memo(function Block(props){
     const blockFxnArguments = [data, props, parentGrouping];
 
     let className = "stacked-block";
+ 
     if (typeof blockClassName === 'function'){
         className += ' ' + blockClassName.apply(blockClassName, blockFxnArguments);
     } else if (typeof blockClassName === 'string'){
@@ -929,10 +930,16 @@ const Block = React.memo(function Block(props){
         popover = blockPopover.apply(blockPopover, blockFxnArguments);
     }
 
+    const getColor = function (value) {
+        const range = colorRanges.find(r => 
+          value >= r.min && (r.max === undefined || value < r.max)
+        );
+        return range ? range.color : null; // bulunamazsa null döndürüyoruz
+      }
+      
+
     const dataLength = data?.length || 0;
-    if (typeof colorLevelClassMap === 'function') {
-        className += ' ' + (colorLevelClassMap.apply(colorLevelClassMap, [data]) || '');
-    }
+    style['backgroundColor'] = getColor(dataLength);
 
     if (rowIndex === activeRow) {
         className += ' active-row';
