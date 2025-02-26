@@ -1,38 +1,26 @@
 'use strict';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import { Button, Form, Popover } from 'react-bootstrap';
 import { console, object, ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { VisualBody } from '../components';
+import { DataMatrixConfigurator } from './DataMatrixConfigurator';
 
 
 export class DataMatrix extends React.PureComponent {
 
     static defaultProps = {
         "queries": {
-            "url": "https://www.encodeproject.org/search/?type=Experiment&biosample_summary=H1-hESC&biosample_summary=HFFc6&status!=archived&status!=revoked&limit=all",
-            "url_fields": ["assay_slims", "biosample_summary", "assay_term_name", "description", "lab", "status"]
+            "url": "https://data.smaht.org/search/?type=File&limit=all",
+            "url_fields": []
         },
-        "valueChangeMap": {
-            "cell_type": {
-                "H1": "H1-hESC"
-            },
-            "state": {
-                "released": "Submitted"
-            }
-        },
-        "fieldChangeMap": {
-            "experiment_category": "assay_slims",
-            "experiment_type": "assay_term_name",
-            "cell_type": "biosample_summary",
-            "lab_name": "lab.title",
-            "short_description": "description",
-            "state": "status"
-        },
-        "groupingProperties": ["experiment_category", "experiment_type"],
-        "columnGrouping": "cell_type",
-        "headerFor": <h3 className="mt-2 mb-0 text-300">ENCODE</h3>,
+        "valueChangeMap": {},
+        "fieldChangeMap": {},
+        "groupingProperties": [],
+        "columnGrouping": "",
+        "headerFor": <h3 className="mt-2 mb-0 text-300">SMaHT</h3>,
         "sectionStyle": {
             "sectionClassName": "col-6",
             "labelClassName": "col-4",
@@ -40,29 +28,17 @@ export class DataMatrix extends React.PureComponent {
         },
         "fallbackNameForBlankField" : "None",
         /** Which state to set/prioritize if multiple expsets per group */
-        "statePrioritizationForGroups" : ["Submitted", "Internal Release", "In Submission", "Planned", "Out of date", "Deleted"],
+        "statePrioritizationForGroups" : [],
         "headerPadding"             : 300,
-        "headerColumnsOrder"        : ["H1-hESC", "H1-DE", "HFFc6"],
-        "titleMap"                  : {
-            "sub_cat"                   : "AnyStringHereBecauseSubCatTitleIsUsed",
-            "experiment_type"           : "Experiment Type",
-            "cell_type"                 : "Cell Type",
-            "lab_name"                  : "Lab",
-            "experiment_category"       : "Category",
-            "state"                     : "Submission Status",
-            "short_description"         : "Description",
-        },
-        "columnSubGroupingOrder": ["Submitted", "In Submission", "Planned", "Not Planned"],
-        "colorLevelClassMap": function (data) {
-            const dataLength = data?.length || 0;
-            if (dataLength < 10) {
-                return 'bg-color-low';
-            } else if (dataLength >= 10 && dataLength < 20) {
-                return 'bg-color-medium';
-            } else {
-                return 'bg-color-high';
-            }
-        }
+        "headerColumnsOrder"        : [],
+        "titleMap"                  : {},
+        "columnSubGroupingOrder": [],
+        "allowedFields": [
+            "file_sets.libraries.analytes.samples.sample_sources.donor.display_title", 
+            "file_sets.sequencing.sequencer.display_title",
+            "file_sets.libraries.assay.display_title",
+            "sample_summary.tissues"
+        ]
     };
 
     static propTypes = {
@@ -123,37 +99,29 @@ export class DataMatrix extends React.PureComponent {
         super(props);
         this.standardizeResult = this.standardizeResult.bind(this);
         this.loadSearchQueryResults = this.loadSearchQueryResults.bind(this);
+        this.onApplyConfiguration = this.onApplyConfiguration.bind(this);
         this.state = {
             "mounted"  : false,
-            "_results" : null
+            "_results" : null,
+            "queries"  : props.queries,
+            "fieldChangeMap": props.fieldChangeMap,
+            "columnGrouping": props.columnGrouping,
+            "groupingProperties": props.groupingProperties,
+            "colorRanges": [
+                { min: 0, max: 20, color: '#ff0000' },
+                { min: 20, max: 50, color: '#00ff00' },
+                { min: 50, color: '#0000ff' }
+            ]
         };
     }
 
     standardizeResult(result){
-        const { fallbackNameForBlankField, statusStateTitleMap, fieldChangeMap : propFieldChangeMap, valueChangeMap, groupingPropertiesSearchParamMap } = this.props;
-        const fieldChangeMap = propFieldChangeMap || groupingPropertiesSearchParamMap; // prop name `groupingPropertiesSearchParamMap` has been deprecated.
-
+        const { fallbackNameForBlankField, statusStateTitleMap, valueChangeMap } = this.props;
+        const { fieldChangeMap } = this.state;
+        
         const fullResult = DataMatrix.convertResult(
             result, fieldChangeMap, valueChangeMap, statusStateTitleMap, fallbackNameForBlankField
         );
-
-        // Remove accessions from short description(s).
-        if (fieldChangeMap.short_description && fieldChangeMap.short_description === "experiments_in_set.display_title"){
-            let experiment_titles = _.map(result.experiments_in_set || [], function(exp){
-                return exp.display_title.replace(" - " + exp.accession, "");
-            });
-            experiment_titles = _.uniq(experiment_titles);
-            if (experiment_titles.length > 1){
-                console.warn("We have 2+ experiment titles (experiments_in_set.display_title, minus accession) for ", result);
-            }
-            _.extend(fullResult, { "short_description" : experiment_titles[0] || null });
-        }
-
-        // Remove sub_cat_title & sub_cat (special case) if are "Default" & "None"
-        if (fullResult.sub_cat === fallbackNameForBlankField && fullResult.sub_cat_title === "Default"){
-            delete fullResult.sub_cat;
-            delete fullResult.sub_cat_title;
-        }
 
         return fullResult;
     }
@@ -165,7 +133,12 @@ export class DataMatrix extends React.PureComponent {
 
     componentDidUpdate(pastProps, pastState){
         const { session } = this.props;
-        if (session !== pastProps.session){
+        const { queries, fieldChangeMap, columnGrouping, groupingProperties } = this.state;
+        if (session !== pastProps.session ||
+            !_.isEqual(queries, pastState.queries) ||
+            !_.isEqual(fieldChangeMap, pastState.fieldChangeMap) ||
+            columnGrouping !== pastState.columnGrouping ||
+            !_.isEqual(groupingProperties, pastState.groupingProperties)) {
             this.loadSearchQueryResults();
         }
     }
@@ -188,7 +161,7 @@ export class DataMatrix extends React.PureComponent {
             this.setState(updatedState);
         };
 
-        const { queries } = this.props;
+        const { queries } = this.state;
         this.setState(
             { "_results": null }, // (Re)Set all result states to 'null'
             () => {
@@ -211,16 +184,30 @@ export class DataMatrix extends React.PureComponent {
         );
     }
 
+    onApplyConfiguration(column, row1, row2, ranges) {
+        console.log(column, row1, row2, ranges);
+        this.setState({
+            queries: {
+                ...this.state.queries,
+                url_fields: row2 ? [column, row1, row2] : [column, row1]
+            },
+            fieldChangeMap: {
+                [DataMatrixConfigurator.getNestedFieldName(column)]: column,
+                [DataMatrixConfigurator.getNestedFieldName(row1)]: row1
+            },
+            columnGrouping: DataMatrixConfigurator.getNestedFieldName(column),
+            groupingProperties: [DataMatrixConfigurator.getNestedFieldName(row1)],
+            colorRanges: ranges
+        });
+    }
+
     render() {
-        const {
-            queries, groupingProperties, columnGrouping, headerFor, sectionStyle, colorLevelClassMap: propColorLevelClassMap,
-            fieldChangeMap, valueChangeMap, additionalData
-        } = this.props;
+        const { headerFor, sectionStyle, valueChangeMap, additionalData, allowedFields } = this.props;
+        const { queries, fieldChangeMap, columnGrouping, groupingProperties, colorRanges } = this.state;
 
         const isLoading = 
                 // eslint-disable-next-line react/destructuring-assignment
-                this.state['_results'] === null && queries &&
-                queries.url !== null && typeof queries.url !== 'undefined';
+                this.state['_results'] === null && queries && queries.url !== null && typeof queries.url !== 'undefined';
 
         if (isLoading){
             return (
@@ -235,25 +222,29 @@ export class DataMatrix extends React.PureComponent {
         const sectionClassName = sectionStyle['sectionClassName'] || "col-12";
         const labelClassName = sectionStyle['labelClassName'] || "col-2";
         const listingClassName = sectionStyle['listingClassName'] || "col-10";
-        const colorLevelClassMap = propColorLevelClassMap || null;
-        const additional = additionalData;
+        const bodyProps = {
+            groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping,
+            additionalData, listingClassName, labelClassName, colorRanges
+        }; 
+        
         const body = (
             <div className={sectionClassName}>
+                <DataMatrixConfigurator
+                    columnDimensions={allowedFields}
+                    rowDimensions={allowedFields}
+                    selectedColumnValue={queries.url_fields[0]}
+                    selectedRow1Value={queries.url_fields[1]}
+                    selectedRow2Value={queries.url_fields.length > 2 ? queries.url_fields[2] : null}
+                    colorRanges={colorRanges}
+                    onApply={this.onApplyConfiguration}
+                />
                 {/* { (headerFor && headerFor) || {null} } */}
                 <VisualBody
-                    {..._.pick(this.props, 'headerColumnsOrder',
-                        'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
+                    {..._.pick(this.props, 'headerColumnsOrder', 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
                     queryUrl={url}
-                    groupingProperties={groupingProperties}
-                    fieldChangeMap={fieldChangeMap}
-                    valueChangeMap={valueChangeMap}
-                    columnGrouping={columnGrouping}
-                    additionalData={additional}
+                    {...bodyProps}
                     duplicateHeaders={false}
                     columnSubGrouping="state"
-                    labelClassName={labelClassName}
-                    listingClassName={listingClassName}
-                    colorLevelClassMap={colorLevelClassMap}
                     // eslint-disable-next-line react/destructuring-assignment
                     results={this.state[resultKey]}
                     //defaultDepthsOpen={[true, false, false]}
@@ -270,5 +261,4 @@ export class DataMatrix extends React.PureComponent {
             </div>
         );
     }
-
 }
