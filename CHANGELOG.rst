@@ -9,7 +9,7 @@ Change Log
 
 0.139.0
 =======
-`PR 314 chore: update PI information for UW <https://github.com/smaht-dac/smaht-portal/pull/314>`
+`PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`
 
 * Update the About page Alluvial plot and data matrix
 
