@@ -180,6 +180,8 @@ def load_data_into_database(submission_uuid: str,
         patch_only=patch_only,
         validate_only=validate_only,
         skip_links=True,
+        # 2025-02-12: Added noset_last_modified; non-admin user error on setting last_modified (willr confirmed).
+        noset_last_modified=True,
         progress=define_progress_tracker(submission_uuid, validation=validate_only, total=nrows, vapp=portal_vapp))
 
     loadxl_response = package_loadxl_response(loadxl_response)
