@@ -235,6 +235,10 @@ describe('Benchmarking Layout Test', function () {
     });
 
     context('Facet Interaction and Filtering Validation', function () {
+        before(function () {
+            cy.visit('/data/benchmarking/COLO829', { headers: cypressVisitHeaders });
+        });
+
         it('Verify Column Sorting Icon Transitions', function () {
             cy.get('div.search-headers-column-block[data-column-key="annotated_filename"] .column-sort-icon > i.icon-sort-down')
                 .scrollIntoView()
@@ -270,20 +274,19 @@ describe('Benchmarking Layout Test', function () {
             cy.get(".facets-header .facets-title").should('have.text', 'Included Properties')
                 .scrollToCenterElement().end()
                 .get(".facets-header button").first().click({ force: true }).end()
-                .get(".facets-header .facets-title").should('have.text', 'Excluded Properties').end();
+                .get(".facets-header .facets-title").should('have.text', 'Excluded Properties').end()
+                .get('.facet.closed[data-field="file_sets.libraries.assay.display_title"] > h5').scrollIntoView().should('be.visible').click().end()
+                .get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element a').first().within(($term) => {
+                    cy.get('span.facet-count').then((assayCount) => {
+                        externalDataCount = parseInt(assayCount.text());
+                        expect(externalDataCount).to.be.greaterThan(0);
+                    }).end();
 
-            // Select first term and store its count
-            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element a').first().within(($term) => {
-                cy.get('span.facet-count').then((assayCount) => {
-                    externalDataCount = parseInt(assayCount.text());
-                    expect(externalDataCount).to.be.greaterThan(0);
+                    cy.wrap($term)
+                        .scrollIntoView()
+                        .should('be.visible')
+                        .click({ force: true }).end();
                 }).end();
-
-                cy.wrap($term)
-                    .scrollIntoView()
-                    .should('be.visible')
-                    .click({ force: true }).end();
-            }).end();
 
             // Verify count after exclusion
             cy.get('.facets-container').should('have.attr', 'data-context-loading', 'false').end()
