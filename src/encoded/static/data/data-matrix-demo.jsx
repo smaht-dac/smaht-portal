@@ -5,7 +5,7 @@
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
             "url": "/search/?type=File&limit=all",
-            "url_fields": ["file_sets.libraries.analytes.samples.sample_sources.donor.display_title", "file_sets.sequencing.sequencer.display_title"]
+            "url_fields": ["file_sets.sequencing.sequencer.display_title", "file_sets.libraries.analytes.samples.sample_sources.donor.display_title"]
         }}
         valueChangeMap={{
         }}
