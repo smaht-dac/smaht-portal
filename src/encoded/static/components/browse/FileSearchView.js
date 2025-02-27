@@ -50,9 +50,9 @@ function FileTableWithSelectedFilesCheckboxes(props){
     };
 
     const { columnExtensionMap, columns, hideFacets } = useMemo(function () {
-        let { columnExtensionMap, columns } = createBrowseColumnExtensionMap(selectedFileProps);
+        let { columnExtensionMap, columns, hideFacets } = createBrowseColumnExtensionMap(selectedFileProps);
         columnExtensionMap = _.extend({}, propColumnExtensionMap, columnExtensionMap);
-        return { columnExtensionMap, columns };
+        return { columnExtensionMap, columns, hideFacets };
     }, [propColumnExtensionMap, selectedFileProps]);
 
     const tableColumnClassName = 'results-column col';
