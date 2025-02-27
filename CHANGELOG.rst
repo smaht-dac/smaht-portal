@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.139.0
+=======
+`PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`
+
+* Update the About page Alluvial plot and data matrix
+
+
 0.138.0
 =======
 `PR 351: FileSearchView for type=File search <https://github.com/smaht-dac/smaht-portal/pull/351>`

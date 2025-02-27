@@ -82,13 +82,13 @@
         "name": "WGS CompDuplex-Seq",
         "display_name": "CompDuplex-Seq",
         "description": "Accurate detection of somatic mutations by duplex-seq with comprehensive genome coverage",
-        "link": "https://www.protocols.io/view/compduplex-accurate-detection-of-somatic-mutations-c7rkzm4w"
+        "link": "https://www.protocols.io/view/compduplex-accurate-detection-of-somatic-mutations-kxygx3x4og8j/v1"
     },
     {
         "name": "WGS scCompDuplex-Seq",
         "display_name": "scCompDuplex-Seq",
         "description": "Click below to learn more about the scCompDuplex-Seq protocol",
-        "link": "https://www.protocols.io/view/compduplex-accurate-detection-of-somatic-mutations-c7rkzm4w"
+        "link": "https://www.protocols.io/view/compduplex-accurate-detection-of-somatic-mutations-kxygx3x4og8j/v1"
     },
     {
         "name": "WGS MALBAC-amplifed",
@@ -101,5 +101,42 @@
         "display_name": "TEnCATS",
         "description": "Cas9-targeted enrichment for L1 mobile elements",
         "link":"https://www.nature.com/articles/s41467-021-23918-y"
+    },
+    {
+        "name": "TN5-duplex-seq",
+        "display_name": "TN5-duplex-seq",
+        "description": "Click below to learn more about the TN5-duplex-seq protocol",
+        "link":"https://www.protocols.io/view/tn5-duplex-sequencing-tn5-duplex-seq-for-low-input-6qpvr3nbzvmk/v1"
+    },
+    {
+        "name": "Ultra-deep ATAC-seq",
+        "display_name": "Ultra-deep ATAC-seq",
+        "description": "Click below to learn more about the Ultra-deep ATAC-seq protocol",
+        "link":"https://www.protocols.io/view/ultra-deep-atac-seq-for-sorted-neurons-eq2lyw35rvx9/v1"
+    },
+    {
+        "name": "HiDEF seq",
+        "display_name": "HiDEF seq",
+        "description": "Click below to learn more about the HiDEF seq protocol",
+        "link":"https://www.protocols.io/view/hidef-seq-kxygxy9mwl8j/v1"
+    },
+    {
+        "name": "Slide-tags snRNA-seq",
+        "display_name": "Slide-tags snRNA-seq",
+        "description": "Click below to learn more about the Slide-tags snRNA-seq protocol",
+        "link":"https://www.protocols.io/view/slide-tags-snrna-seq-protocol-v-1-2-tags-ewov196wylr2/v1"
+    },
+    {
+        "name": "GoT-ChA",
+        "display_name": "GoT-ChA",
+        "description": "Click below to learn more about the GoT-ChA protocol",
+        "link":"https://www.protocols.io/view/got-cha-genotyping-of-targeted-loci-with-single-ce-ewov19pn2lr2/v1"
+    },
+    {
+        "name": "varCUT&Tag",
+        "display_name": "varCUT&Tag",
+        "description": "Click below to learn more about the varCUT&Tag protocol",
+        "link":"https://github.com/k8newcomer/VarCUTandTag"
     }
+    
 ]
