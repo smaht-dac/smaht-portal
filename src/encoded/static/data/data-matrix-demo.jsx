@@ -4,7 +4,7 @@
         key="data-matrix-demo-2"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
-            "url": "/search/?type=File&limit=all",
+            "url": "/search/?type=SubmittedFile&limit=all",
             "url_fields": ["file_sets.sequencing.sequencer.display_title", "file_sets.libraries.analytes.samples.sample_sources.donor.display_title"]
         }}
         valueChangeMap={{
@@ -18,9 +18,6 @@
         headerFor={(
             <React.Fragment>
                 <h3 className="mt-2 mb-0 text-300">SMaHT</h3>
-                <h5 className="mt-0 text-500" style={{ 'marginBottom': -20, 'height': 20, 'position': 'relative', 'zIndex': 10 }}>
-                    <a href="https://www.encodeproject.org/search/?type=Experiment&biosample_ontology.term_name=H1&biosample_ontology.term_name=HFFc6&biosample_ontology.term_name=WTC11&status%21=archived&status%21=revoked"> Browse all</a> H1, HFF and WTC-11 data from ENCODE
-                </h5>
             </React.Fragment>
         )}
         sectionStyle={{
@@ -30,8 +27,6 @@
         }}
         headerColumnsOrder={[]}
         columnSubGroupingOrder={[]}
-        titleMap={{
-        }}
         fallbackNameForBlankField="None"
     />
     <h4>SMaHT Demo 2</h4>
@@ -53,9 +48,6 @@
         headerFor={(
             <React.Fragment>
                 <h3 className="mt-2 mb-0 text-300">SMaHT</h3>
-                <h5 className="mt-0 text-500" style={{ 'marginBottom': -20, 'height': 20, 'position': 'relative', 'zIndex': 10 }}>
-                    <a href="https://www.encodeproject.org/search/?type=Experiment&biosample_ontology.term_name=H1&biosample_ontology.term_name=HFFc6&biosample_ontology.term_name=WTC11&status%21=archived&status%21=revoked"> Browse all</a> H1, HFF and WTC-11 data from ENCODE
-                </h5>
             </React.Fragment>
         )}
         sectionStyle={{
@@ -65,8 +57,6 @@
         }}
         headerColumnsOrder={[]}
         columnSubGroupingOrder={[]}
-        titleMap={{
-        }}
         fallbackNameForBlankField="None"
     />
     <h4>ENCODE</h4>
@@ -129,5 +119,6 @@
             "experimentset_type": "Set Type"
         }}
         fallbackNameForBlankField="None"
+        disableConfigurator={true}
     /> 
 </div>
