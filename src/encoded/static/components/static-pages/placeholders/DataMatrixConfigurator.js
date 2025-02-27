@@ -151,7 +151,7 @@ export const DataMatrixConfigurator = ({
 
             {/* Button to toggle popover */}
             <Button variant="link" id="config-btn" className="p-0" onClick={() => setShowPopover(!showPopover)}>
-                <i className="icon icon-fw icon-gear fas" />
+                <i className="icon icon-fw icon-gear fas" /> <span className='text-muted small'>{DataMatrixConfigurator.getNestedFieldName(selectedRow1Value) + ' x ' + DataMatrixConfigurator.getNestedFieldName(selectedColumnValue)}</span>
             </Button>
 
             {/* Popover content */}
