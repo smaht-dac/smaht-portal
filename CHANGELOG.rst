@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.139.0
+=======
+`PR 360: fix: add resources to hard-coded disabled breadcrumbs <https://github.com/smaht-dac/smaht-portal/pull/360>`_
+
+* Disable breadcrumbs for resources pages
+
+
 0.138.0
 =======
 `PR 351: FileSearchView for type=File search <https://github.com/smaht-dac/smaht-portal/pull/351>`
