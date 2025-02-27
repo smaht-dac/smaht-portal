@@ -367,6 +367,13 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 			.inner > .column-sort-icon {
 				color: $search-header-icon-color;
 			}
+
+			&[data-field="annotated_filename"] .filename-popover-color {
+				color: #657B95;
+				&:hover {
+					color: darken(#657B95, 15%);
+				}
+			}
 		}
 	}
 	

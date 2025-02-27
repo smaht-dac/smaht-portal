@@ -290,7 +290,7 @@
         "data_type": {
             "title": "Data Type"
         },
-        "date_created": {
+        "file_status_tracking.released_date": {
             "title" : "Release Date",
             "aggregation_type" : "stats"
         },
