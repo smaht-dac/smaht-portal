@@ -190,7 +190,7 @@ export class DataMatrix extends React.PureComponent {
 
                     if (Array.isArray(requestUrlFields) && requestUrlFields.length > 0) {
                         _.forEach(requestUrlFields, function (f) {
-                            requestUrl += '&field=' + encodeURIComponent(f);
+                            requestUrl += '&field=' + encodeURIComponent(f) + '&' + f + '!=No+value';
                         });
                     }
                     // Exclude 'Authorization' header for requests to different domains (not allowed).
