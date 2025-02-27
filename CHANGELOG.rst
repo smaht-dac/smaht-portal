@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.138.0
+0.139.0
 =======
 `PR 354: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/354>`_
 * 2025-02-21 / dmichaels
@@ -17,6 +17,22 @@ Change Log
     property release_tracker_title (created by Sarah in branch: sn_release_tracker_title);
     old way of doing it can be accessed using the legacy=true URL query argument.
 * Add calcprop to File, `release_tracker_title`, which displays in order of priority `override_release_tracker_title`, `CellCultureMixture.code`, `CellLine.code`, or `Tissue.display_title` for use as a header in the Release Tracker on the home page
+
+0.138.0
+=======
+`PR 351: FileSearchView for type=File search <https://github.com/smaht-dac/smaht-portal/pull/351>`
+
+* New FileSearchView component to handle type=File searches
+* Refactoring and improvements to BrowseView
+
+
+0.137.4
+=======
+`PR 358: Cypress homepage and benchmarking facets test updates <https://github.com/smaht-dac/smaht-portal/pull/358>`
+
+* Homepage: Test for timeline items and below-figure button clicks were improved
+* Benchmarking: Bug fix for Exclude Properties test
+* Browse view: Quick Info Bar test is skipped until data is available
 
 
 0.137.3
