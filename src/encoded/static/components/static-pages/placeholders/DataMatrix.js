@@ -29,7 +29,7 @@ export class DataMatrix extends React.PureComponent {
         "fallbackNameForBlankField" : "None",
         /** Which state to set/prioritize if multiple expsets per group */
         "statePrioritizationForGroups" : [],
-        "headerPadding"             : 300,
+        "headerPadding"             : 200,
         "headerColumnsOrder"        : [],
         "titleMap"                  : {},
         "columnSubGroupingOrder": [],
@@ -37,7 +37,11 @@ export class DataMatrix extends React.PureComponent {
             "file_sets.libraries.analytes.samples.sample_sources.donor.display_title", 
             "file_sets.sequencing.sequencer.display_title",
             "file_sets.libraries.assay.display_title",
-            "sample_summary.tissues"
+            "sample_summary.tissues",
+            "data_type",
+            "file_format.display_title",
+            "data_category",
+            "software.display_title"
         ],
         "disableConfigurator": false
     };
