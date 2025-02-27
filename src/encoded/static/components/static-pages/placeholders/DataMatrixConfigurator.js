@@ -7,6 +7,7 @@ import { Button, Form, Popover } from 'react-bootstrap';
 import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 export const DataMatrixConfigurator = ({
+    searchUrl: propSearchUrl,
     columnDimensions,
     rowDimensions,
     colorRanges = [],
@@ -15,6 +16,7 @@ export const DataMatrixConfigurator = ({
     selectedRow2Value,
     onApply
 }) => {
+    const [searchUrl, setSearchUrl] = useState(propSearchUrl);
     const [selectedColumn, setSelectedColumn] = useState(selectedColumnValue);
     const [selectedRow1, setSelectedRow1] = useState(selectedRow1Value);
     const [selectedRow2, setSelectedRow2] = useState(selectedRow2Value);
@@ -84,15 +86,19 @@ export const DataMatrixConfigurator = ({
 
         // If this is the last row and user entered a max, auto-add a new row
         if (newRanges[index].max !== '' && index === newRanges.length - 1) {
-            newRanges.push({ min: newRanges[index].max, max: '', color: '' });
+            newRanges.push({ min: newRanges[index].max, max: '', color: getScaledColor(newRanges[index].color, minValue, maxValue, (min + maxValue) / 2) });
         }
 
         setRanges(newRanges);
     };
 
     const handleColorChange = (index, color) => {
-        const newRanges = [...ranges];
-        newRanges[index].color = color;
+        let newRanges = [...ranges];
+        if (index === 0) {
+            newRanges = updateColorRanges(newRanges, color, -100);
+        } else {
+            newRanges[index].color = color;
+        }
         setRanges(newRanges);
     };
 
@@ -126,7 +132,7 @@ export const DataMatrixConfigurator = ({
             return;
         }
 
-        onApply(selectedColumn, selectedRow1, selectedRow2, ranges);
+        onApply(searchUrl, selectedColumn, selectedRow1, selectedRow2, ranges);
         setShowPopover(false);
     };
 
@@ -136,13 +142,8 @@ export const DataMatrixConfigurator = ({
             {showPopover && (
                 <div
                     style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                        zIndex: 1000,
+                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.3)', zIndex: 1000,
                     }}
                     onClick={() => setShowPopover(false)}
                 />
@@ -155,21 +156,20 @@ export const DataMatrixConfigurator = ({
 
             {/* Popover content */}
             {showPopover && (
-                <Popover
-                    id="config-popover"
-                    ref={popoverRef}
-                    style={{ maxWidth: '450px', width: '100%', zIndex: 1050, position: 'absolute' }}
-                >
+                <Popover id="config-popover" ref={popoverRef} style={{ maxWidth: '450px', width: '100%', zIndex: 1050, position: 'absolute' }}>
                     <Popover.Body>
                         <div className="d-flex flex-column">
+                            <h5 className='mt-0 mb-1'>Data Matrix Configurator</h5>
+                            {/* Column Dimension */}
+                            <Form.Group className="d-flex align-items-center mb-05">
+                                <Form.Label className="me-2" style={{ width: '150px' }}>Search URL</Form.Label>
+                                <Form.Control type="text" value={searchUrl} onChange={(e) => setSearchUrl(e.target.value)} />
+                            </Form.Group>
+
                             {/* Column Dimension */}
                             <Form.Group className="d-flex align-items-center mb-05">
                                 <Form.Label className="me-2" style={{ width: '150px' }}>Column Field</Form.Label>
-                                <Form.Control
-                                    as="select"
-                                    value={selectedColumn}
-                                    onChange={(e) => setSelectedColumn(e.target.value)}
-                                >
+                                <Form.Control as="select" value={selectedColumn} onChange={(e) => setSelectedColumn(e.target.value)}>
                                     <option key={0} value={null}>{'-- Select --'}</option>
                                     {columnDimensions.map((dim, idx) => (
                                         <option key={idx + 1} value={dim}>{DataMatrixConfigurator.getNestedFieldName(dim)}</option>
@@ -180,11 +180,7 @@ export const DataMatrixConfigurator = ({
                             {/* Row Dimension 1 */}
                             <Form.Group className="d-flex align-items-center mb-05">
                                 <Form.Label className="me-2" style={{ width: '150px' }}>Row Field 1</Form.Label>
-                                <Form.Control
-                                    as="select"
-                                    value={selectedRow1}
-                                    onChange={(e) => setSelectedRow1(e.target.value)}
-                                >
+                                <Form.Control as="select" value={selectedRow1} onChange={(e) => setSelectedRow1(e.target.value)}>
                                     <option key={0} value={null}>{'-- Select --'}</option>
                                     {rowDimensions.map((dim, idx) => (
                                         <option key={idx + 1} value={dim}>{DataMatrixConfigurator.getNestedFieldName(dim)}</option>
@@ -195,11 +191,7 @@ export const DataMatrixConfigurator = ({
                             {/* Row Dimension 2 */}
                             <Form.Group className="d-flex align-items-center mb-05">
                                 <Form.Label className="me-2" style={{ width: '150px' }}>Row Field 2</Form.Label>
-                                <Form.Control
-                                    as="select"
-                                    value={selectedRow2}
-                                    onChange={(e) => setSelectedRow2(e.target.value)} disabled
-                                >
+                                <Form.Control as="select" value={selectedRow2} onChange={(e) => setSelectedRow2(e.target.value)} disabled>
                                     <option key={0} value={null}>{'-- Select --'}</option>
                                     {rowDimensions.map((dim, idx) => (
                                         <option key={idx + 1} value={dim}>{dim}</option>
@@ -213,34 +205,16 @@ export const DataMatrixConfigurator = ({
                                 return (
                                     <Form.Group key={index} className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={{ width: '100px' }}>Range {index + 1}</Form.Label>
+                                        <Form.Control type="number" value={range.min} disabled className="me-2" style={{ width: '80px' }} />
                                         <Form.Control
-                                            type="number"
-                                            value={range.min}
-                                            disabled
-                                            className="me-2"
-                                            style={{ width: '80px' }}
-                                        />
-                                        <Form.Control
-                                            type="number"
-                                            placeholder="Max"
-                                            value={range.max}
+                                            type="number" placeholder="Max" value={range.max}
                                             onChange={(e) => handleMaxChange(index, e.target.value)}
                                             onBlur={() => validateMaxValue(index)}
-                                            className="me-2"
-                                            style={{ width: '80px' }}
-                                            isInvalid={!!errorMsg}
+                                            className="me-2" style={{ width: '80px' }} isInvalid={!!errorMsg}
                                         />
-                                        <Form.Control
-                                            type="color"
-                                            value={range.color}
-                                            onChange={(e) => handleColorChange(index, e.target.value)}
-                                            style={{ width: '40px' }}
-                                        />
-                                        <Button
-                                            variant="link"
-                                            disabled={index === 0}
-                                            onClick={() => removeRange(index)}
-                                        >
+                                        <Form.Control type="color" value={range.color}
+                                            onChange={(e) => handleColorChange(index, e.target.value)} style={{ width: '40px' }} />
+                                        <Button variant="link" disabled={index === 0} onClick={() => removeRange(index)}>
                                             <i className="icon icon-fw icon-trash fas" />
                                         </Button>
                                         {errorMsg && (
@@ -280,49 +254,96 @@ DataMatrixConfigurator.getNestedFieldName = (field = '') => {
 function shadeColor(color, amount) {
     // Remove the "#" if present
     let col = color.replace(/^#/, '');
-
-    // If it's a 3-character hex, convert to 6 characters (e.g., "#f00" => "#ff0000")
+    
+    // If it's a 3-character hex, expand it (e.g., "#f00" => "#ff0000")
     if (col.length === 3) {
-        col = col[0] + col[0] + col[1] + col[1] + col[2] + col[2];
+      col = col[0] + col[0] + col[1] + col[1] + col[2] + col[2];
     }
-
-    // Convert the R, G, B values from hex to integer
+    
+    // Convert R, G, B from hex to integer
     let r = parseInt(col.substring(0, 2), 16);
     let g = parseInt(col.substring(2, 4), 16);
     let b = parseInt(col.substring(4, 6), 16);
-
-    // Adjust each component by `amount`, clamping between 0 and 255
+    
+    // Clamp each channel to [0, 255]
     r = Math.max(Math.min(r + amount, 255), 0);
     g = Math.max(Math.min(g + amount, 255), 0);
     b = Math.max(Math.min(b + amount, 255), 0);
-
-    // Convert back to hex format
-    const newColor =
-        '#' +
-        ((1 << 24) + (r << 16) + (g << 8) + b)
-            .toString(16)
-            .slice(1);
-
-    return newColor;
-}
-
-/**
- * Given a base color (e.g., "#ff0000"), a min and max range (e.g., 0 to 100),
- * and a current value, this function returns a shade that darkens (or lightens)
- * the color proportionally as the value increases.
- * 
- * Example: getScaledColor('#ff0000', 0, 100, 50)
- */
-function getScaledColor(baseColor, minValue, maxValue, currentValue) {
-    // Calculate the ratio of the current value within [minValue, maxValue] (0 to 1)
-    const ratio = (currentValue - minValue) / (maxValue - minValue);
-
-    // If you want the color to get darker as the value increases,
-    // use a negative multiplier (e.g., -100). Adjust to your preference.
-    const amount = -100 * ratio;
-
-    // Use the shadeColor function to apply the calculated shade
-    return shadeColor(baseColor, amount);
-}  
+  
+    // Convert back to hex
+    return (
+      '#' +
+      ((1 << 24) + (r << 16) + (g << 8) + b)
+        .toString(16)
+        .slice(1)
+    );
+  }
+  
+  /**
+   * Updates the colorRanges array so that when you change the FIRST color,
+   * all subsequent colors become gradually darker (or lighter) versions
+   * of the new base color.
+   *
+   * @param {Array} colorRanges - The array of color objects, each with { min, max, color }
+   * @param {string} newBaseColor - New base color in hex format (e.g. "#ff0000")
+   * @param {number} darkestShift - How much darker the final color should be compared to the base.
+   *                                This should be a negative number for darkening (e.g., -100).
+   *                                If you want it lighter, pass a positive number (e.g., 100).
+   * @returns {Array} Updated colorRanges array with adjusted colors.
+   *
+   * Example usage:
+   *   const cr = [
+   *     { min: 0,   max: 20, color: '#ff0000' },
+   *     { min: 20,  max: 50, color: '#00ff00' },
+   *     { min: 50,           color: '#0000ff' }
+   *   ];
+   *   updateColorRanges(cr, '#00ffff', -100);
+   *   // Now cr[0].color = '#00ffff'
+   *   //     cr[1].color = (somewhere between #00ffff and darkest shade)
+   *   //     cr[2].color = darkest shade
+   */
+  function updateColorRanges(colorRanges, newBaseColor, darkestShift = -100) {
+    // Number of "steps" between first and last
+    const steps = colorRanges.length - 1;
+    if (steps < 1) return colorRanges; // If there's only one color or empty
+  
+    // For each index, we’ll compute a ratio from 0 to 1.
+    // index = 0 => ratio = 0 => no shift (base color)
+    // index = steps => ratio = 1 => darkestShift
+    colorRanges.forEach((range, i) => {
+      if (i === 0) {
+        // First color is exactly the new base color
+        range.color = newBaseColor;
+      } else {
+        // Calculate how far along this entry is in the list
+        const ratio = i / steps;
+        // Apply that ratio to the darkestShift
+        const amount = Math.round(darkestShift * ratio);
+        // Use shadeColor to adjust from the base color
+        range.color = shadeColor(newBaseColor, amount);
+      }
+    });
+  
+    return colorRanges;
+  }
+  
+// ---- Example usage ----
+//   const colorRanges = [
+//     { min: 0, max: 20, color: '#ff0000' },
+//     { min: 20, max: 50, color: '#00ff00' },
+//     { min: 50, color: '#0000ff' }
+//   ];
+  
+// Suppose we want to change the first color to cyan (#00ffff)
+// and have the last color be 100 units darker.
+// updateColorRanges(colorRanges, '#00ffff', -100);
+  
+// console.log(colorRanges);
+// [
+//   { min: 0, max: 20, color: '#00ffff' }, // base
+//   { min: 20, max: 50, color: '...' },    // slightly darker
+//   { min: 50, color: '...' }             // darkest among them
+// ]
+  
 
 export default DataMatrixConfigurator;
