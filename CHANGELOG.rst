@@ -7,12 +7,23 @@ smaht-portal
 Change Log
 ----------
 
-0.139.1
+0.140.1
 =======
 `PR 361: fix: comment out unused Submissions page <https://github.com/smaht-dac/smaht-portal/pull/361>`_
 
 * Comment out the submissions page calculated property
 
+
+0.140.0
+=======
+`PR 354: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/354>`_
+* 2025-02-21 / dmichaels
+  - Branch: dmichaels-20250221-release-tracker-api-title | PR-355
+    - Derived from branch: sn_release_tracker_title (commit: d202c1c55b69389d031070ada85ce180b1ed603d)
+  - Changes to the release tracker API (i.e. /recent_files_summary) to use the new (calculated)
+    property release_tracker_title (created by Sarah in branch: sn_release_tracker_title);
+    old way of doing it can be accessed using the legacy=true URL query argument.
+* Add calcprop to File, `release_tracker_title`, which displays in order of priority `override_release_tracker_title`, `CellCultureMixture.code`, `CellLine.code`, or `Tissue.display_title` for use as a header in the Release Tracker on the home page
 
 0.139.0
 =======
