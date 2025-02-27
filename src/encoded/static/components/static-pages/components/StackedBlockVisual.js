@@ -41,7 +41,10 @@ export class VisualBody extends React.PureComponent {
         } else if (data) {
             count = 1;
         }
-        if (count > 100){
+        if (count > 999){
+            return <span style={{ 'fontSize' : '0.70rem', 'position' : 'relative', 'top' : -1 }}>{ count }</span>;
+        }
+        else if (count > 99){
             return <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }}>{ count }</span>;
         }
         return <span>{ count }</span>;
@@ -202,7 +205,7 @@ export class VisualBody extends React.PureComponent {
             title = `${additionalItems.length} - Planned Experiment Set(s)`;
         }
 
-        const experimentSetViewButtonDisabled = (onlyNonAdditionalItemsCount === 0 && additionalItems.length > 0) || false;
+        const viewButtonDisabled = (onlyNonAdditionalItemsCount === 0 && additionalItems.length > 0) || false;
         return (
             <Popover id="jap-popover" title={popoverTitle} style={{ maxWidth : 540, width: '100%' }}>
                 { isGroup ?
@@ -210,14 +213,14 @@ export class VisualBody extends React.PureComponent {
                         <h5 className="text-400 mt-08 mb-15 text-center"><b>{ title }</b></h5>
                         <hr className="mt-0 mb-1"/>
                         { StackedBlockVisual.generatePopoverRowsFromJSON(keyValsToShow, this.props) }
-                        { makeSearchButton(experimentSetViewButtonDisabled) }
+                        { makeSearchButton(viewButtonDisabled) }
                     </div>
                     :
                     <div className="inner">
                         <h5 className="text-400 mt-08 mb-15 text-center"><b>{title}</b></h5>
                         <hr className="mt-0 mb-1" />
                         {StackedBlockVisual.generatePopoverRowsFromJSON(keyValsToShow, this.props)}
-                        {makeSingleItemButton(experimentSetViewButtonDisabled)}
+                        {makeSingleItemButton(viewButtonDisabled)}
                     </div>
                 }
             </Popover>
