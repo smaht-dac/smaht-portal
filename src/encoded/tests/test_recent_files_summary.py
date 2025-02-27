@@ -1063,7 +1063,8 @@ def test_recent_files_summary():
 
     request = TestPyramidRequest({
         "date_property_name": "date_created",
-        "nmonths": 18
+        "nmonths": 18,
+        "legacy": True
     })
 
     fixed_datetime = datetime(2025, 1, 30)

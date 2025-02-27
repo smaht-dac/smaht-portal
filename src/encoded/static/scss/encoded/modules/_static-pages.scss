@@ -880,11 +880,11 @@ body[data-path="/"]>#application>#layout {
 											border-radius: inherit;
 											align-items: baseline;
 
-											// &:hover {
-											// 	background-color: #d3dff7;
-											// 	transition: border-color 50ms;
-											// 	border: 1px solid hsla(241, 84%, 40%, 0.6);
-											// }
+											&:hover {
+												background-color: #d3dff7;
+												transition: border-color 50ms;
+												border: 1px solid hsla(241, 84%, 40%, 0.6);
+											}
 
 										}
 										&:hover {
@@ -938,18 +938,18 @@ body[data-path="/"]>#application>#layout {
 													display: none;
 												}
 	
-												// &:hover {
-												// 	display: flex;
-												// 	cursor: pointer;
-												// 	color: #3C71F9;
+												&:hover {
+													display: flex;
+													cursor: pointer;
+													color: #3C71F9;
 	
-												// 	svg {
-												// 		display: flex;
-												// 		fill: #3C71F9;
-												// 		width: 12px;
-												// 		margin-left: 4px;
-												// 	}
-												// }
+													svg {
+														display: flex;
+														fill: #3C71F9;
+														width: 12px;
+														margin-left: 4px;
+													}
+												}
 											}
 	
 											ul {
@@ -996,10 +996,10 @@ body[data-path="/"]>#application>#layout {
 											&-link {
 												color: #014B11;
 												
-												// &:hover {
-												// 	background-color: rgba(168, 247, 200, 0.5);
-												// 	border: 1px solid rgb(1 75 17 / 75%);
-												// }
+												&:hover {
+													background-color: rgba(168, 247, 200, 0.5);
+													border: 1px solid rgb(1 75 17 / 75%);
+												}
 											}
 											.count {
 												color: rgb(1 75 17 / 75%);
