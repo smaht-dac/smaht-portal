@@ -3,7 +3,7 @@
         key="data-matrix-demo-5"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
-            "url": "/search/?type=File&limit=all",
+            "url": "/search/?type=SubmittedFile&limit=all",
             "url_fields": ["file_sets.libraries.assay.display_title", "donors.display_title"]
         }}
         fieldChangeMap={{
@@ -19,7 +19,7 @@
         key="data-matrix-demo-1"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
-            "url": "/search/?type=File&limit=all",
+            "url": "/search/?type=SubmittedFile&limit=all",
             "url_fields": ["file_sets.libraries.assay.display_title", "sample_summary.tissues"]
         }}
         fieldChangeMap={{
@@ -35,7 +35,7 @@
         key="data-matrix-demo-2"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
-            "url": "/search/?type=File&limit=all",
+            "url": "/search/?type=SubmittedFile&limit=all",
             "url_fields": ["sample_summary.tissues", "donors.display_title"]
         }}
         fieldChangeMap={{
@@ -51,7 +51,7 @@
         key="data-matrix-demo-3"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
-            "url": "/search/?type=File&file_sets.sequencing.sequencer.display_title!=No+value&limit=all",
+            "url": "/search/?type=SubmittedFile&file_sets.sequencing.sequencer.display_title!=No+value&limit=all",
             "url_fields": ["file_sets.libraries.assay.display_title", "file_sets.sequencing.sequencer.display_title"]
         }}
         fieldChangeMap={{
@@ -67,7 +67,7 @@
         key="data-matrix-demo-4"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
-            "url": "/search/?type=File&limit=all",
+            "url": "/search/?type=SubmittedFile&limit=all",
             "url_fields": ["data_type", "data_category"]
         }}
         fieldChangeMap={{
