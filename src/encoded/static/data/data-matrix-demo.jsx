@@ -1,13 +1,26 @@
 <div key="someRandomKey">
-    <h4>SMaHT Demo 1</h4>
+    <DataMatrix
+        key="data-matrix-demo-1"   // Required to prevent re-instantiation of component upon window resize & similar.
+        session={session}        // Required - hooks in 'session' (boolean) from App.
+        queries={{
+            "url": "/search/?type=File&limit=all",
+            "url_fields": ["data_type", "data_category"]
+        }}
+        fieldChangeMap={{
+            "data_category": "data_category",
+            "data_type": "data_type"
+        }}
+        groupingProperties={["data_category"]}
+        columnGrouping="data_type"
+        headerFor={<h3 className="mt-2 mb-0 text-300">SMaHT</h3>}
+        baseColorOverride="#e0475b"
+    />
     <DataMatrix
         key="data-matrix-demo-2"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
-            "url": "/search/?type=SubmittedFile&limit=all",
+            "url": "/search/?type=File&limit=all",
             "url_fields": ["file_sets.sequencing.sequencer.display_title", "file_sets.libraries.analytes.samples.sample_sources.donor.display_title"]
-        }}
-        valueChangeMap={{
         }}
         fieldChangeMap={{
             "donor": "file_sets.libraries.analytes.samples.sample_sources.donor.display_title",
@@ -15,51 +28,26 @@
         }}
         groupingProperties={["donor"]}
         columnGrouping="sequencer"
-        headerFor={(
-            <React.Fragment>
-                <h3 className="mt-2 mb-0 text-300">SMaHT</h3>
-            </React.Fragment>
-        )}
-        sectionStyle={{
-            "sectionClassName": "col-12",
-            "labelClassName": "col-2",
-            "listingClassName": "col-10",
-        }}
-        headerColumnsOrder={[]}
-        columnSubGroupingOrder={[]}
-        fallbackNameForBlankField="None"
+        headerFor={<h3 className="mt-2 mb-0 text-300">SMaHT</h3>}
+        baseColorOverride="#6f2da8"
     />
-    <h4>SMaHT Demo 2</h4>
     <DataMatrix
-        key="data-matrix-demo-2"   // Required to prevent re-instantiation of component upon window resize & similar.
+        key="data-matrix-demo-3"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
             "url": "/search/?type=File&file_sets.sequencing.sequencer.display_title!=No+value&limit=all",
             "url_fields": ["file_sets.libraries.assay.display_title", "file_sets.sequencing.sequencer.display_title"]
         }}
-        valueChangeMap={{
-        }}
         fieldChangeMap={{
-            "assay_type": "file_sets.libraries.assay.display_title",
+            "assay": "file_sets.libraries.assay.display_title",
             "sequencer": "file_sets.sequencing.sequencer.display_title"
         }}
-        groupingProperties={["assay_type"]}
+        groupingProperties={["assay"]}
         columnGrouping="sequencer"
-        headerFor={(
-            <React.Fragment>
-                <h3 className="mt-2 mb-0 text-300">SMaHT</h3>
-            </React.Fragment>
-        )}
-        sectionStyle={{
-            "sectionClassName": "col-12",
-            "labelClassName": "col-2",
-            "listingClassName": "col-10",
-        }}
-        headerColumnsOrder={[]}
-        columnSubGroupingOrder={[]}
-        fallbackNameForBlankField="None"
+        headerFor={<h3 className="mt-2 mb-0 text-300">SMaHT</h3>}
+        baseColorOverride="#84e3c8"
     />
-    <h4>ENCODE</h4>
+    {/* <h4>ENCODE</h4>
     <DataMatrix
         key="data-matrix-demo-1"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
@@ -120,5 +108,5 @@
         }}
         fallbackNameForBlankField="None"
         disableConfigurator={true}
-    /> 
+    />  */}
 </div>
