@@ -38,7 +38,8 @@ export class DataMatrix extends React.PureComponent {
             "file_sets.sequencing.sequencer.display_title",
             "file_sets.libraries.assay.display_title",
             "sample_summary.tissues"
-        ]
+        ],
+        "disableConfigurator": false
     };
 
     static propTypes = {
@@ -55,7 +56,8 @@ export class DataMatrix extends React.PureComponent {
         'headerColumnsOrder': PropTypes.arrayOf(PropTypes.string),
         'titleMap': PropTypes.object,
         'columnSubGroupingOrder': PropTypes.arrayOf(PropTypes.string),
-        'additionalData': PropTypes.object
+        'additionalData': PropTypes.object,
+        'disableConfigurator': PropTypes.bool
     };
 
     static convertResult(result, fieldChangeMap, valueChangeMap, statusStateTitleMap, fallbackNameForBlankField){
@@ -184,11 +186,12 @@ export class DataMatrix extends React.PureComponent {
         );
     }
 
-    onApplyConfiguration(column, row1, row2, ranges) {
-        console.log(column, row1, row2, ranges);
+    onApplyConfiguration(searchUrl, column, row1, row2, ranges) {
+        console.log(searchUrl, column, row1, row2, ranges);
         this.setState({
             queries: {
                 ...this.state.queries,
+                url: searchUrl,
                 url_fields: row2 ? [column, row1, row2] : [column, row1]
             },
             fieldChangeMap: {
@@ -202,7 +205,7 @@ export class DataMatrix extends React.PureComponent {
     }
 
     render() {
-        const { headerFor, sectionStyle, valueChangeMap, additionalData, allowedFields } = this.props;
+        const { headerFor, sectionStyle, valueChangeMap, additionalData, allowedFields, disableConfigurator = false } = this.props;
         const { queries, fieldChangeMap, columnGrouping, groupingProperties, colorRanges } = this.state;
 
         const isLoading = 
@@ -225,19 +228,24 @@ export class DataMatrix extends React.PureComponent {
         const bodyProps = {
             groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping,
             additionalData, listingClassName, labelClassName, colorRanges
-        }; 
+        };
+        
+        const configurator = !disableConfigurator && (
+            <DataMatrixConfigurator
+                columnDimensions={allowedFields}
+                rowDimensions={allowedFields}
+                searchUrl={queries.url}
+                selectedColumnValue={queries.url_fields[0]}
+                selectedRow1Value={queries.url_fields[1]}
+                selectedRow2Value={queries.url_fields.length > 2 ? queries.url_fields[2] : null}
+                colorRanges={colorRanges}
+                onApply={this.onApplyConfiguration}
+            />
+        );
         
         const body = (
             <div className={sectionClassName}>
-                <DataMatrixConfigurator
-                    columnDimensions={allowedFields}
-                    rowDimensions={allowedFields}
-                    selectedColumnValue={queries.url_fields[0]}
-                    selectedRow1Value={queries.url_fields[1]}
-                    selectedRow2Value={queries.url_fields.length > 2 ? queries.url_fields[2] : null}
-                    colorRanges={colorRanges}
-                    onApply={this.onApplyConfiguration}
-                />
+                {configurator}
                 {/* { (headerFor && headerFor) || {null} } */}
                 <VisualBody
                     {..._.pick(this.props, 'headerColumnsOrder', 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
