@@ -41,8 +41,8 @@ export class DataMatrix extends React.PureComponent {
         ],
         "baseColorOverride": null, // color hex or rgba code (if set, will override colorRanges)
         "allowedFields": [
-            "file_sets.libraries.analytes.samples.sample_sources.donor.display_title", 
-            "file_sets.sequencing.sequencer.display_title",
+            "donors.display_title", 
+            "sequencing.sequencer.display_title",
             "file_sets.libraries.assay.display_title",
             "sample_summary.tissues",
             "data_type",
