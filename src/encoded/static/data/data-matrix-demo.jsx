@@ -1,6 +1,6 @@
 <div key="someRandomKey">
     <DataMatrix
-        key="data-matrix-demo-5"   // Required to prevent re-instantiation of component upon window resize & similar.
+        key="data-matrix-demo-1"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
             "url": "/search/?type=SubmittedFile&limit=all",
@@ -16,7 +16,7 @@
         baseColorOverride="#6f2da8"
     />
     <DataMatrix
-        key="data-matrix-demo-1"   // Required to prevent re-instantiation of component upon window resize & similar.
+        key="data-matrix-demo-2"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
             "url": "/search/?type=SubmittedFile&limit=all",
@@ -32,7 +32,7 @@
         baseColorOverride="#e0475b"
     />
     <DataMatrix
-        key="data-matrix-demo-2"   // Required to prevent re-instantiation of component upon window resize & similar.
+        key="data-matrix-demo-3"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
             "url": "/search/?type=SubmittedFile&limit=all",
@@ -48,7 +48,7 @@
         baseColorOverride="#4F7942"
     />
     <DataMatrix
-        key="data-matrix-demo-3"   // Required to prevent re-instantiation of component upon window resize & similar.
+        key="data-matrix-demo-4"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
             "url": "/search/?type=SubmittedFile&limit=all",
@@ -58,13 +58,13 @@
             "assay": "file_sets.libraries.assay.display_title",
             "sequencer": "file_sets.sequencing.sequencer.display_title"
         }}
-        groupingProperties={["assay"]}
-        columnGrouping="sequencer"
+        groupingProperties={["sequencer"]}
+        columnGrouping="assay"
         headerFor={<h3 className="mt-2 mb-0 text-300">SMaHT</h3>}
         baseColorOverride="#84e3c8"
     />
     <DataMatrix
-        key="data-matrix-demo-4"   // Required to prevent re-instantiation of component upon window resize & similar.
+        key="data-matrix-demo-5"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
             "url": "/search/?type=SubmittedFile&limit=all",
