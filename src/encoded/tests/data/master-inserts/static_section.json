@@ -529,7 +529,7 @@
         "identifier": "data-matrix",
         "title": "Data Matrix",
         "file": "/src/encoded/static/data/data-matrix-demo.jsx",
-        "status": "public",
+        "status": "draft",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
