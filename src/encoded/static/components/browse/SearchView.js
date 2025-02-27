@@ -158,6 +158,7 @@ export class SearchViewBody extends React.PureComponent {
                     separateSingleTermFacets={false}
                     rowHeight={31}
                     openRowHeight={40}
+                    defaultColAlignment="text-start"
                 />
             </div>
         );
