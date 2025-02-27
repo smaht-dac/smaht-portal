@@ -42,7 +42,7 @@ export class VisualBody extends React.PureComponent {
             count = 1;
         }
         if (count > 100){
-            return <span style={{ 'fontSize' : '0.95rem', 'position' : 'relative', 'top' : -1 }}>{ count }</span>;
+            return <span style={{ 'fontSize' : '0.90rem', 'position' : 'relative', 'top' : -1 }}>{ count }</span>;
         }
         return <span>{ count }</span>;
     }
