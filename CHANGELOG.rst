@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.139.1
+=======
+`PR 361: fix: comment out unused Submissions page <https://github.com/smaht-dac/smaht-portal/pull/361>`_
+
+* Comment out the submissions page calculated property
+
+
 0.139.0
 =======
 `PR 360: fix: add resources to hard-coded disabled breadcrumbs <https://github.com/smaht-dac/smaht-portal/pull/360>`_
