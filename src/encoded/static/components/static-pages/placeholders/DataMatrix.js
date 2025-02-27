@@ -6,7 +6,7 @@ import _ from 'underscore';
 import { Button, Form, Popover } from 'react-bootstrap';
 import { console, object, ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { VisualBody } from '../components';
-import { DataMatrixConfigurator } from './DataMatrixConfigurator';
+import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
 
 
 export class DataMatrix extends React.PureComponent {
@@ -22,17 +22,24 @@ export class DataMatrix extends React.PureComponent {
         "columnGrouping": "",
         "headerFor": <h3 className="mt-2 mb-0 text-300">SMaHT</h3>,
         "sectionStyle": {
-            "sectionClassName": "col-6",
-            "labelClassName": "col-4",
-            "listingClassName": "col-8"
+            "sectionClassName": "col-12",
+            "labelClassName": "col-2",
+            "listingClassName": "col-10"
         },
         "fallbackNameForBlankField" : "None",
-        /** Which state to set/prioritize if multiple expsets per group */
+        /** Which state to set/prioritize if multiple files per group */
         "statePrioritizationForGroups" : [],
         "headerPadding"             : 200,
         "headerColumnsOrder"        : [],
         "titleMap"                  : {},
         "columnSubGroupingOrder": [],
+        "colorRanges": [
+                { min: 0, max: 25, color: '#ff0000' },
+                { min: 25, max: 50, color: '#00ff00' },
+                { min: 50, max: 100, color: '#0000ff' },
+                { min: 100 }
+        ],
+        "baseColorOverride": null, // color hex or rgba code (if set, will override colorRanges)
         "allowedFields": [
             "file_sets.libraries.analytes.samples.sample_sources.donor.display_title", 
             "file_sets.sequencing.sequencer.display_title",
@@ -41,7 +48,8 @@ export class DataMatrix extends React.PureComponent {
             "data_type",
             "file_format.display_title",
             "data_category",
-            "software.display_title"
+            "software.display_title",
+            "file_format.display_title",
         ],
         "disableConfigurator": false
     };
@@ -106,6 +114,12 @@ export class DataMatrix extends React.PureComponent {
         this.standardizeResult = this.standardizeResult.bind(this);
         this.loadSearchQueryResults = this.loadSearchQueryResults.bind(this);
         this.onApplyConfiguration = this.onApplyConfiguration.bind(this);
+
+        let colorRangesOverriden = null;
+        if (props.colorRanges && props.baseColorOverride) {
+            colorRangesOverriden = updateColorRanges(props.colorRanges, props.baseColorOverride, -100);
+        }
+
         this.state = {
             "mounted"  : false,
             "_results" : null,
@@ -113,11 +127,7 @@ export class DataMatrix extends React.PureComponent {
             "fieldChangeMap": props.fieldChangeMap,
             "columnGrouping": props.columnGrouping,
             "groupingProperties": props.groupingProperties,
-            "colorRanges": [
-                { min: 0, max: 20, color: '#ff0000' },
-                { min: 20, max: 50, color: '#00ff00' },
-                { min: 50, color: '#0000ff' }
-            ]
+            "colorRanges": colorRangesOverriden || props.colorRanges || []
         };
     }
 

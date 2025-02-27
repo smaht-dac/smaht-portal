@@ -6,7 +6,7 @@ import _ from 'underscore';
 import { Button, Form, Popover } from 'react-bootstrap';
 import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
-export const DataMatrixConfigurator = ({
+const DataMatrixConfigurator = ({
     searchUrl: propSearchUrl,
     columnDimensions,
     rowDimensions,
@@ -277,55 +277,57 @@ function shadeColor(color, amount) {
         .toString(16)
         .slice(1)
     );
-  }
-  
-  /**
-   * Updates the colorRanges array so that when you change the FIRST color,
-   * all subsequent colors become gradually darker (or lighter) versions
-   * of the new base color.
-   *
-   * @param {Array} colorRanges - The array of color objects, each with { min, max, color }
-   * @param {string} newBaseColor - New base color in hex format (e.g. "#ff0000")
-   * @param {number} darkestShift - How much darker the final color should be compared to the base.
-   *                                This should be a negative number for darkening (e.g., -100).
-   *                                If you want it lighter, pass a positive number (e.g., 100).
-   * @returns {Array} Updated colorRanges array with adjusted colors.
-   *
-   * Example usage:
-   *   const cr = [
-   *     { min: 0,   max: 20, color: '#ff0000' },
-   *     { min: 20,  max: 50, color: '#00ff00' },
-   *     { min: 50,           color: '#0000ff' }
-   *   ];
-   *   updateColorRanges(cr, '#00ffff', -100);
-   *   // Now cr[0].color = '#00ffff'
-   *   //     cr[1].color = (somewhere between #00ffff and darkest shade)
-   *   //     cr[2].color = darkest shade
-   */
-  function updateColorRanges(colorRanges, newBaseColor, darkestShift = -100) {
+}
+
+/**
+ * Updates the colorRanges array so that when you change the FIRST color,
+ * all subsequent colors become gradually darker (or lighter) versions
+ * of the new base color.
+ *
+ * @param {Array} colorRanges - The array of color objects, each with { min, max, color }
+ * @param {string} newBaseColor - New base color in hex format (e.g. "#ff0000")
+ * @param {number} darkestShift - How much darker the final color should be compared to the base.
+ *                                This should be a negative number for darkening (e.g., -100).
+ *                                If you want it lighter, pass a positive number (e.g., 100).
+ * @returns {Array} Updated colorRanges array with adjusted colors.
+ *
+ * Example usage:
+ *   const cr = [
+ *     { min: 0,   max: 20, color: '#ff0000' },
+ *     { min: 20,  max: 50, color: '#00ff00' },
+ *     { min: 50,           color: '#0000ff' }
+ *   ];
+ *   updateColorRanges(cr, '#00ffff', -100);
+ *   // Now cr[0].color = '#00ffff'
+ *   //     cr[1].color = (somewhere between #00ffff and darkest shade)
+ *   //     cr[2].color = darkest shade
+ */
+const updateColorRanges = function (colorRanges, newBaseColor, darkestShift = -100) {
     // Number of "steps" between first and last
     const steps = colorRanges.length - 1;
     if (steps < 1) return colorRanges; // If there's only one color or empty
-  
+
+    const clonedColorRanges = JSON.parse(JSON.stringify(colorRanges));
+
     // For each index, we’ll compute a ratio from 0 to 1.
     // index = 0 => ratio = 0 => no shift (base color)
     // index = steps => ratio = 1 => darkestShift
-    colorRanges.forEach((range, i) => {
-      if (i === 0) {
-        // First color is exactly the new base color
-        range.color = newBaseColor;
-      } else {
-        // Calculate how far along this entry is in the list
-        const ratio = i / steps;
-        // Apply that ratio to the darkestShift
-        const amount = Math.round(darkestShift * ratio);
-        // Use shadeColor to adjust from the base color
-        range.color = shadeColor(newBaseColor, amount);
-      }
+    clonedColorRanges.forEach((range, i) => {
+        if (i === 0) {
+            // First color is exactly the new base color
+            range.color = newBaseColor;
+        } else {
+            // Calculate how far along this entry is in the list
+            const ratio = i / steps;
+            // Apply that ratio to the darkestShift
+            const amount = Math.round(darkestShift * ratio);
+            // Use shadeColor to adjust from the base color
+            range.color = shadeColor(newBaseColor, amount);
+        }
     });
-  
-    return colorRanges;
-  }
+
+    return clonedColorRanges;
+}
   
 // ---- Example usage ----
 //   const colorRanges = [
@@ -346,4 +348,4 @@ function shadeColor(color, amount) {
 // ]
   
 
-export default DataMatrixConfigurator;
+export { DataMatrixConfigurator, updateColorRanges };
