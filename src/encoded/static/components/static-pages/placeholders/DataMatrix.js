@@ -184,7 +184,7 @@ export class DataMatrix extends React.PureComponent {
                     // eslint-disable-next-line react/destructuring-assignment
                     let requestUrl = queries.url;
                     // eslint-disable-next-line react/destructuring-assignment
-                    const requestUrlFields = queries.url_fields;
+                    const requestUrlFields = JSON.parse(JSON.stringify(queries.url_fields));
 
                     if (typeof requestUrl !== 'string' || !requestUrl) return;
 

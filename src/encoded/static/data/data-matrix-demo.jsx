@@ -51,7 +51,7 @@
         key="data-matrix-demo-3"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
-            "url": "/search/?type=SubmittedFile&file_sets.sequencing.sequencer.display_title!=No+value&limit=all",
+            "url": "/search/?type=SubmittedFile&limit=all",
             "url_fields": ["file_sets.libraries.assay.display_title", "file_sets.sequencing.sequencer.display_title"]
         }}
         fieldChangeMap={{
