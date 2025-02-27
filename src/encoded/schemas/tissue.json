@@ -162,6 +162,12 @@
     "facets": {
         "submission_centers.display_title": {
             "title": "Submitted By"
+        },
+        "donor.display_title": {
+            "title": "Donor"
+        },
+        "status": {
+            "title": "Status"
         }
     },
     "columns": {

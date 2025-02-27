@@ -102,7 +102,9 @@
                 "Hi-C",
                 "Dip-C",
                 "Repeat Element Targeted Sequencing",
-                "ATAC-seq"
+                "ATAC-seq",
+                "NT-seq",
+                "Strand-seq"
             ]
         },
         "cell_isolation_method": {
