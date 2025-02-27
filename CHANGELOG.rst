@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.141.0
+=======
+`PR 349: SN OntologyTerm update <https://github.com/smaht-dac/smaht-portal/pull/349>`_
+
+* Change `uberon_id`` in Tissue from a string to a linkTo to OntologyTerm
+* Add upgrader for tissue
+* Update File `sample_summary` to include tissue information from OntologyTerm
+
+
 0.140.0
 =======
 `PR 354: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/354>`_

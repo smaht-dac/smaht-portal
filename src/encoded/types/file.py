@@ -263,6 +263,8 @@ class CalcPropConstants:
     }
     SAMPLE_SUMMARY_DONOR_IDS = "donor_ids"
     SAMPLE_SUMMARY_TISSUES = "tissues"
+    SAMPLE_SUMMARY_TISSUE_SUBTYPES = "tissue_subtypes"
+    SAMPLE_SUMMARY_TISSUE_DETAILS = "tissue_details"
     SAMPLE_SUMMARY_SAMPLE_NAMES = "sample_names"
     SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS = "sample_descriptions"
     SAMPLE_SUMMARY_ANALYTES = "analytes"
@@ -280,6 +282,20 @@ class CalcPropConstants:
             },
             SAMPLE_SUMMARY_TISSUES: {
                 "title": "Tissue",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_TISSUE_SUBTYPES: {
+                "title": "Tissue Subtype",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_TISSUE_DETAILS: {
+                "title": "Tissue Details",
                 "type": "array",
                 "items": {
                     "type": "string",
@@ -957,6 +973,18 @@ class File(Item, CoreFile):
                 item_utils.get_external_id,
             ),
             constants.SAMPLE_SUMMARY_TISSUES: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_tissues(file_properties, request_handler),
+                functools.partial(
+                    tissue_utils.get_top_grouping_term, request_handler=request_handler
+                ),
+            ),
+            constants.SAMPLE_SUMMARY_TISSUE_SUBTYPES: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_uberon_ids(file_properties, request_handler),
+                item_utils.get_display_title,
+            ),
+            constants.SAMPLE_SUMMARY_TISSUE_DETAILS: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_tissues(file_properties, request_handler),
                 tissue_utils.get_location,
