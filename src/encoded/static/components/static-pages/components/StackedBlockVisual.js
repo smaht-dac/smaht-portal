@@ -42,7 +42,7 @@ export class VisualBody extends React.PureComponent {
             count = 1;
         }
         if (count > 100){
-            return <span style={{ 'fontSize' : '0.90rem', 'position' : 'relative', 'top' : -1 }}>{ count }</span>;
+            return <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }}>{ count }</span>;
         }
         return <span>{ count }</span>;
     }
@@ -197,7 +197,7 @@ export class VisualBody extends React.PureComponent {
         if (onlyNonAdditionalItemsCount > 0 && additionalItems.length > 0) {
             title = `${dataLength} Experiment Set(s) (${additionalItems.length} - Planned)`;
         } else if (onlyNonAdditionalItemsCount > 0 && additionalItems.length === 0) {
-            title = `${dataLength} Experiment Set(s)`;
+            title = `${dataLength} File(s)`;
         } else if (onlyNonAdditionalItemsCount === 0 && additionalItems.length > 0) {
             title = `${additionalItems.length} - Planned Experiment Set(s)`;
         }
