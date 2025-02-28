@@ -413,7 +413,7 @@ export class StaticPageBreadcrumbs extends React.Component {
         var inner;
 
         // Hard-coded link groups to disable
-        const breadcrumbsToDisable = ['docs', 'data', 'about'];
+        const breadcrumbsToDisable = ['docs', 'data', 'about', 'resources'];
         const shouldDisable = ancestor.identifier
             .split('/')
             .some((ancestor) => breadcrumbsToDisable.includes(ancestor));
@@ -423,7 +423,11 @@ export class StaticPageBreadcrumbs extends React.Component {
         } else if (shouldDisable) {
             inner = <span>{ancestor.display_title}</span>;
         } else {
-            inner = <a href={ancestor['@id']} className="link-underline-hover">{ancestor.display_title}</a>;
+            inner = (
+                <a href={ancestor['@id']} className="link-underline-hover">
+                    {ancestor.display_title}
+                </a>
+            );
         }
         return (
             <div

@@ -57,7 +57,7 @@ from ..item_utils import (
     sample as sample_utils,
     software as software_utils,
     tissue as tissue_utils,
-    sequencing as sequencing_utils
+    sequencing as sequencing_utils,
 )
 from ..item_utils.utils import (
     get_property_value_from_identifier,
@@ -257,6 +257,10 @@ class CalcPropConstants:
         "title": "Release Tracker Description",
         "type": "string",
     }
+    RELEASE_TRACKER_TITLE = {
+        "title": "Release Tracker Title",
+        "type": "string",
+    }
     SAMPLE_SUMMARY_DONOR_IDS = "donor_ids"
     SAMPLE_SUMMARY_TISSUES = "tissues"
     SAMPLE_SUMMARY_SAMPLE_NAMES = "sample_names"
@@ -358,7 +362,6 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.libraries.analytes.samples.sample_sources.uberon_id",
         "file_sets.libraries.analytes.samples.sample_sources.description",
         "file_sets.libraries.analytes.samples.sample_sources.donor",
-        "file_sets.libraries.analytes.samples.sample_sources.code",
         "file_sets.libraries.analytes.samples.sample_sources.cell_line.code",
         "file_sets.libraries.analytes.samples.sample_sources.components.cell_culture.cell_line.code",
         "file_sets.samples.sample_sources.code",
@@ -724,7 +727,21 @@ class File(Item, CoreFile):
             request_handler,
             file_properties=self.properties
         )
-        return result    
+        return result
+
+    @calculated_property(schema=CalcPropConstants.RELEASE_TRACKER_TITLE)
+    def release_tracker_title(
+        self,
+        request: Request,
+        file_sets: Optional[List[str]] = None
+    ) -> Union[str, None]:
+        """Get file release tracker title for display on home page."""
+        request_handler = RequestHandler(request=request)
+        result = self._get_release_tracker_title(
+            request_handler,
+            file_properties=self.properties
+        )
+        return result     
 
     def _get_libraries(
         self, request: Request, file_sets: Optional[List[str]] = None
@@ -1010,7 +1027,40 @@ class File(Item, CoreFile):
             ),
         }
         return {key: value for key, value in to_include.items() if value}
-
+    
+    def _get_release_tracker_title(
+            self,
+            request_handler: RequestHandler,
+            file_properties: Dict[str, Any],
+        ) -> Union[str, None]:
+        """Get release tracker title for display on the home page."""
+        to_include = None
+        if "file_sets" in file_properties:    
+            if (cell_culture_mixture_title := get_unique_values(
+                request_handler.get_items(
+                    file_utils.get_cell_culture_mixtures(file_properties, request_handler)),
+                    item_utils.get_code,
+            )):
+                if len(cell_culture_mixture_title) > 1:
+                    return None
+                to_include = cell_culture_mixture_title[0]
+            elif (cell_line_title := request_handler.get_items(
+                file_utils.get_cell_lines(file_properties, request_handler)
+            )):
+                if len(cell_culture_mixture_title) > 1:
+                    return None
+                to_include = item_utils.get_code(cell_line_title[0])
+            elif (tissue_title := request_handler.get_items(
+                file_utils.get_tissues(file_properties, request_handler)
+            )):
+                if len(tissue_title) > 1:
+                    return None
+                to_include = item_utils.get_display_title(tissue_title[0])   
+        if "override_release_tracker_title" in file_properties:
+            to_include = file_utils.get_override_release_tracker_title(file_properties)
+        if to_include:
+            return to_include
+    
     def _get_release_tracker_description(
             self,
             request_handler: RequestHandler,

@@ -8,6 +8,7 @@ from encoded.endpoints.endpoint_utils import parse_datetime_string
 from encoded.endpoints.recent_files_summary.recent_files_summary_fields import (
     AGGREGATION_FIELD_RELEASE_DATE,
     AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR,
+    AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE,
     AGGREGATION_FIELD_CELL_MIXTURE,
     AGGREGATION_FIELD_DONOR,
     AGGREGATION_FIELD_DSA_DONOR,
@@ -49,6 +50,7 @@ def add_info_for_troubleshooting(normalized_results: dict, request: PyramidReque
 
     aggregation_fields_for_troubleshooting = dedup_list([
         AGGREGATION_FIELD_RELEASE_DATE,
+        AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE,
         AGGREGATION_FIELD_CELL_MIXTURE,
         AGGREGATION_FIELD_DONOR,
         AGGREGATION_FIELD_DSA_DONOR,
@@ -144,13 +146,15 @@ def get_normalized_aggregation_results_as_html_for_troublehshooting(normalized_r
                                                                     uuid_details: bool = True,
                                                                     query: bool = False,
                                                                     verbose: bool = False,
-                                                                    debug: bool = False):
+                                                                    debug: bool = False,
+                                                                    legacy: bool = False):
     with _capture_output_to_html(debug=debug) as captured_output:
         print_normalized_aggregation_results_for_troubleshooting(normalized_results,
                                                                  uuids=uuids,
                                                                  uuid_details=uuid_details,
                                                                  query=query,
-                                                                 verbose=verbose)
+                                                                 verbose=verbose,
+                                                                 legacy=legacy)
         return captured_output.text
 
 
@@ -163,7 +167,8 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
                                                              nobold: bool = False,
                                                              checks: bool = False,
                                                              query: bool  = False,
-                                                             verbose: bool = False) -> None:
+                                                             verbose: bool = False,
+                                                             legacy: bool = False) -> None:
 
     """
     For deveopment/troubleshooting only ...
@@ -172,6 +177,16 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
         # Returns all noted/important aggregation fields which ARE actually being used by the query;
         # we only are interested in ones that are in AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR,
         # which is all of the possible sample-source/cell-line/donor aggregations.
+        def get_aggregation_field_grouping_cell_or_donor() -> List[str]:  # noqa
+            nonlocal legacy
+            aggregation_field_grouping_cell_or_donor = deepcopy(AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR)
+            if not legacy:
+                # 2025-02-21: This is now the default (using release_tracker_title).
+                # if AGGREGATION_FIELD_CELL_MIXTURE in aggregation_field_grouping_cell_or_donor:
+                #     aggregation_field_grouping_cell_or_donor.remove(AGGREGATION_FIELD_CELL_MIXTURE)
+                # aggregation_field_grouping_cell_or_donor.insert(0, AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE)
+                aggregation_field_grouping_cell_or_donor = [AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE]
+            return aggregation_field_grouping_cell_or_donor
         if not isinstance(aggregation_fields :=
                           normalized_results.get("debug", {}).get("aggregation_query_fields"), list):
             aggregation_fields = []
@@ -179,7 +194,7 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
             aggregation_fields = deepcopy(aggregation_fields)
         for aggregation_field in aggregation_fields:
             # Remove the ones we are not interested in reporting on.
-            if aggregation_field not in AGGREGATION_FIELD_GROUPING_CELL_OR_DONOR:
+            if aggregation_field not in get_aggregation_field_grouping_cell_or_donor():
                 aggregation_fields.remove(aggregation_field)
         return aggregation_fields
 
@@ -202,6 +217,7 @@ def print_normalized_aggregation_results_for_troubleshooting(normalized_results:
     def get_aggregation_field_labels() -> dict:
         # Shorter/nicer names for aggregation fields of interest to print.
         return {
+            AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE: "title",
             AGGREGATION_FIELD_CELL_MIXTURE: "sample-sources",
             AGGREGATION_FIELD_DONOR: "donors",
             AGGREGATION_FIELD_DSA_DONOR: "dsa-donors",
