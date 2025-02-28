@@ -892,9 +892,14 @@ def get_nested_links(spreadsheet: Spreadsheet) -> List[Property]:
 
 
 def get_properties(item: str, submission_schema: Dict[str, Any]) -> List[Property]:
-    """Get property information from the submission schema"""
+    """Get property information from the submission schema.
+     
+     Add submission_centers and consortia from universal properties and add any special pseudo-properties that are item-specific"""
     properties = schema_utils.get_properties(submission_schema)
     import pdb; pdb.set_trace()
+    properties = {**properties, **UNIVERSAL_PROPERTIES}
+    if item in PSEUDO_PROPERTIES.keys():
+        properties = {**properties,**PSEUDO_PROPERTIES[item]}
     property_list = []
     for key, value in properties.items():
         property_list += get_nested_properties(item, key, value)
@@ -1406,12 +1411,11 @@ def get_comment_search(property_: Property, indent: str) -> List[str]:
     
     If property is file_format, include query for specific File type
     """
+    search_text = "Use URL to search for the submitted_id or identifer of relevant items"
     if property_.search:
         if property_.name == "file_format":
-            return [f"Search:{indent}{property_.search}&valid_item_types={property_.item}"]
-        elif property_.name == "tissue" or property_.name == "donor":
-            return [f"Search:{indent}{property_.search}&submission_centers=NDRI+TPC"]
-        return [f"Search:{indent}{property_.search}"]
+            return [f"{search_text}:{indent}{property_.search}&valid_item_types={property_.item}"]
+        return [f"{search_text}:{indent}{property_.search}"]
     return []
 
 

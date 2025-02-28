@@ -362,6 +362,13 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 			.inner > .column-sort-icon {
 				color: $search-header-icon-color;
 			}
+
+			&[data-field="annotated_filename"] .filename-popover-color {
+				color: #657B95;
+				&:hover {
+					color: darken(#657B95, 15%);
+				}
+			}
 		}
 	}
 	
@@ -787,6 +794,15 @@ h2.browse-summary-header {
 
 		.popover-body > img {
 			width: 350px;
+		}
+	}
+	
+	@include media-breakpoint-up(xl) {
+		min-width: 775px;
+		width: 775px;
+
+		.popover-body > img {
+			width: 750px;
 		}
 	}
 }

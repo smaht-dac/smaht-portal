@@ -1,0 +1,215 @@
+{
+    "title": "Non-Brain Pathology Report",
+    "description": "A pathology report for a non-brain tissue sample",
+    "$id": "/profiles/non_brain_pathology_report.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "submission_centers",
+        "submitted_id",
+        "tissue_samples",
+        "tissue_name",
+        "outcome"
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "mixins.json#/version"
+        },
+        {
+            "$ref": "pathology_report.json#/properties"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "NP"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_NON-BRAIN-PATHOLOGY-REPORT_[A-Z0-9-_.]{4,}$"
+        },
+        "anatomical_sample_location": {
+            "type": "string",
+            "enum": [
+                "Left Adrenal",
+                "Right Adrenal",
+                "Skin Calf",
+                "Skin Abdomen",
+                "Left Ovary",
+                "Right Ovary",
+                "Left Testis",
+                "Right Testis"
+            ]
+        },
+        "non_target_tissues": {
+            "title": "Non-Target Tissues",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "non_target_tissue_subtype",
+                    "non_target_tissue_present"
+                ],
+                "properties": {
+                    "non_target_tissue_subtype": {
+                        "$merge": "pathology_report.json#/properties/non_target_tissues/items/properties/non_target_tissue_subtype",
+                        "type": "string",
+                        "enum": [
+                            "Fibroadipose",
+                            "Lymphoid",
+                            "Other",
+                            "Epididymis",
+                            "Rete testes"
+                        ]
+                    },
+                    "non_target_tissue_present": {
+                        "$merge": "pathology_report.json#/properties/non_target_tissues/items/properties/non_target_tissue_present"
+                    },
+                    "non_target_tissue_percentage": {
+                        "$merge": "pathology_report.json#/properties/non_target_tissues/items/properties/non_target_tissue_percentage"
+                    },
+                    "non_target_tissue_description": {
+                        "$merge": "pathology_report.json#/properties/non_target_tissues/items/properties/non_target_tissue_description"
+                    }
+                }
+            }
+        },
+        "pathologic_findings": {
+            "title": "Pathologic Findings",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "finding_type",
+                    "finding_present"
+                ],
+                "properties": {
+                    "finding_type": {
+                        "$merge": "pathology_report.json#/properties/pathologic_findings/items/properties/finding_type",
+                        "type": "string",
+                        "enum": [
+                            "Inflammation",
+                            "Metaplasia",
+                            "Neoplasia/Tumor/Carcinoma",
+                            "Necrosis",
+                            "Other"
+                        ]
+                    },
+                    "finding_present": {
+                        "$merge": "pathology_report.json#/properties/pathologic_findings/items/properties/finding_present"
+                    },
+                    "finding_description": {
+                        "$merge": "pathology_report.json#/properties/pathologic_findings/items/properties/finding_description"
+                    },
+                    "finding_percentage": {
+                        "$merge": "pathology_report.json#/properties/pathologic_findings/items/properties/finding_percentage"
+                    }
+                }
+            }
+        },
+        "tissue_name": {
+            "type": "string",
+            "enum": [
+                "Adrenal",
+                "Aorta",
+                "Ascending Colon",
+                "Descending Colon",
+                "Esophagus",
+                "Heart Ventricle",
+                "Liver",
+                "Lung",
+                "Muscle",
+                "Ovary",
+                "Skin",
+                "Testis"
+            ]
+        },
+        "target_tissues": {
+            "title": "Target Tissues",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "target_tissue_subtype",
+                    "target_tissue_present",
+                    "target_tissue_percentage"
+                ],
+                "properties": {
+                    "target_tissue_subtype": {
+                        "$merge": "pathology_report.json#/properties/target_tissues/items/properties/target_tissue_subtype",
+                        "type": "string",
+                        "enum": [
+                            "Cortex",
+                            "Dermis",
+                            "Endocardium",
+                            "Epicardium",
+                            "Epidermis",
+                            "Fallopian Tube",
+                            "Leydig Cells",
+                            "Liver",
+                            "Lung",
+                            "Medulla",
+                            "Mucosa",
+                            "Muscularis propria",
+                            "Myocardium",
+                            "Ovarian Follicles",
+                            "Ovarian Stroma",
+                            "Semniferous Tubules",
+                            "Skeletal Muscle",
+                            "Vessel"
+                        ]
+                    },
+                    "target_tissue_present": {
+                        "$merge": "pathology_report.json#/properties/target_tissues/items/properties/target_tissue_present"
+                    },
+                    "target_tissue_percentage": {
+                        "$merge": "pathology_report.json#/properties/target_tissues/items/properties/target_tissue_percentage"
+                    },
+                    "target_tissue_autolysis_score": {
+                        "$merge": "pathology_report.json#/properties/target_tissues/items/properties/target_tissue_autolysis_score"
+                    }
+                }
+            }
+        }
+    }
+}

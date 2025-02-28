@@ -1225,27 +1225,61 @@ def test_release_tracker_description(es_testapp: TestApp, workbook: None) -> Non
 def assert_release_tracker_description_matches_expected(file: Dict[str, Any], es_testapp: TestApp):
     """Assert release_tracker_description calcprop matches expected."""
 
-    release_tracker_description = file_utils. get_release_tracker_description(file)
-
-    assay_from_calcprop = item_utils.get_display_title(
-        file_utils.get_assays(file)[0]
-    )
-    sequencer_from_calcprop = item_utils.get_display_title(
-        sequencing_utils.get_sequencer(
-            file_utils.get_sequencings(file)[0]
-        )
-    )
+    release_tracker_description = file_utils.get_release_tracker_description(file)
     file_format = item_utils.get_display_title(
         file_utils.get_file_format(file)
-    )                          
-    description_from_calcprops=f"{assay_from_calcprop} {sequencer_from_calcprop} {file_format}"
+    )
+    if "file_sets" in file:
+        assay_from_calcprop = item_utils.get_display_title(
+            file_utils.get_assays(file)[0]
+        )
+        sequencer_from_calcprop = item_utils.get_display_title(
+            sequencing_utils.get_sequencer(
+                file_utils.get_sequencings(file)[0]
+            )
+        )                 
+        description_from_calcprops=f"{assay_from_calcprop} {sequencer_from_calcprop} {file_format}"
+    if "override_release_tracker_description" in file:
+        description_from_calcprops=f"{file_utils.get_override_release_tracker_description(file)} {file_format}"
     assert release_tracker_description == description_from_calcprops
+
+
+@pytest.mark.workbook
+def test_release_tracker_title(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure 'release_tracker_title' calcprop fields correct for inserts.
+
+    Checks fields present on inserts and as expected by parsing
+    properties/embeds."""
+    
+    search_key = "release_tracker_title"
+    request_handler = RequestHandler(test_app=es_testapp)
+    file_without_release_tracker_title = search_type_for_key(
+        es_testapp, "File", search_key, exists=False
+    )
+    assert file_without_release_tracker_title  # Not expected for Reference Files
+
+    files_with_release_tracker_title = search_type_for_key(
+        es_testapp, "File", search_key
+    )
+    for file in files_with_release_tracker_title:
+        assert_release_tracker_title_matches_expected(file, request_handler)
+
+
+def assert_release_tracker_title_matches_expected(file: Dict[str, Any], request_handler: RequestHandler):
+    """Assert release_tracker_title calcprop matches expected."""
+
+    release_tracker_title = file_utils.get_release_tracker_title(file)
+    if "file_sets" in file:
+        if (cell_culture_mixture_from_calcprop := file_utils.get_cell_culture_mixtures(file, request_handler)):
+            title_from_calcprops = item_utils.get_code(request_handler.get_items(cell_culture_mixture_from_calcprop)[0])      
+        elif (cell_line_from_calcprop := file_utils.get_cell_lines(file, request_handler)):
+            title_from_calcprops = item_utils.get_code(request_handler.get_items(cell_line_from_calcprop)[0])
+        elif (tissue_from_calcprop := file_utils.get_tissues(file)):
+            title_from_calcprops = item_utils.get_display_title(tissue_from_calcprop[0])
+    if "override_release_tracker_title" in file:
+        title_from_calcprops=file_utils.get_override_release_tracker_title(file)
+    assert release_tracker_title == title_from_calcprops
    
-    
-
-    
-
-
 
 @pytest.mark.workbook
 def test_unique_key(es_testapp: TestApp, workbook: None) -> None:

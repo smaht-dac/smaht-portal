@@ -57,7 +57,7 @@ from ..item_utils import (
     sample as sample_utils,
     software as software_utils,
     tissue as tissue_utils,
-    sequencing as sequencing_utils
+    sequencing as sequencing_utils,
 )
 from ..item_utils.utils import (
     get_property_value_from_identifier,
@@ -255,6 +255,10 @@ class CalcPropConstants:
     }
     RELEASE_TRACKER_DESCRIPTION = {
         "title": "Release Tracker Description",
+        "type": "string",
+    }
+    RELEASE_TRACKER_TITLE = {
+        "title": "Release Tracker Title",
         "type": "string",
     }
     SAMPLE_SUMMARY_DONOR_IDS = "donor_ids"
@@ -718,13 +722,25 @@ class File(Item, CoreFile):
         file_sets: Optional[List[str]] = None
     ) -> Union[str, None]:
         """Get file release tracker description for display on home page."""
-        result = None
-        if file_sets:
-            request_handler = RequestHandler(request=request)
-            result = self._get_release_tracker_description(
-                request_handler,
-                file_properties=self.properties
-            )
+        request_handler = RequestHandler(request=request)
+        result = self._get_release_tracker_description(
+            request_handler,
+            file_properties=self.properties
+        )
+        return result
+
+    @calculated_property(schema=CalcPropConstants.RELEASE_TRACKER_TITLE)
+    def release_tracker_title(
+        self,
+        request: Request,
+        file_sets: Optional[List[str]] = None
+    ) -> Union[str, None]:
+        """Get file release tracker title for display on home page."""
+        request_handler = RequestHandler(request=request)
+        result = self._get_release_tracker_title(
+            request_handler,
+            file_properties=self.properties
+        )
         return result     
 
     def _get_libraries(
@@ -1012,38 +1028,79 @@ class File(Item, CoreFile):
         }
         return {key: value for key, value in to_include.items() if value}
     
+    def _get_release_tracker_title(
+            self,
+            request_handler: RequestHandler,
+            file_properties: Dict[str, Any],
+        ) -> Union[str, None]:
+        """Get release tracker title for display on the home page."""
+        to_include = None
+        if "file_sets" in file_properties:    
+            if (cell_culture_mixture_title := get_unique_values(
+                request_handler.get_items(
+                    file_utils.get_cell_culture_mixtures(file_properties, request_handler)),
+                    item_utils.get_code,
+            )):
+                if len(cell_culture_mixture_title) > 1:
+                    return None
+                to_include = cell_culture_mixture_title[0]
+            elif (cell_line_title := request_handler.get_items(
+                file_utils.get_cell_lines(file_properties, request_handler)
+            )):
+                if len(cell_culture_mixture_title) > 1:
+                    return None
+                to_include = item_utils.get_code(cell_line_title[0])
+            elif (tissue_title := request_handler.get_items(
+                file_utils.get_tissues(file_properties, request_handler)
+            )):
+                if len(tissue_title) > 1:
+                    return None
+                to_include = item_utils.get_display_title(tissue_title[0])   
+        if "override_release_tracker_title" in file_properties:
+            to_include = file_utils.get_override_release_tracker_title(file_properties)
+        if to_include:
+            return to_include
+    
     def _get_release_tracker_description(
             self,
             request_handler: RequestHandler,
             file_properties: Dict[str, Any],
         ) -> Union[str, None]:
         """Get release tracker description for display on the home page."""
-        assay_title= get_unique_values(
-            request_handler.get_items(file_utils.get_assays(file_properties, request_handler)),
-            item_utils.get_display_title,
-            )
-        sequencer_title = get_unique_values(
-            request_handler.get_items(
-            file_utils.get_sequencers(file_properties, request_handler)),
-            item_utils.get_display_title,
-            )
+        to_include = None
         file_format_title = get_property_value_from_identifier(
-                request_handler,
-                file_utils.get_file_format(file_properties),
+            request_handler,
+            file_utils.get_file_format(file_properties),
+            item_utils.get_display_title,
+        )
+        if "file_sets" in file_properties:
+            assay_title= get_unique_values(
+                request_handler.get_items(file_utils.get_assays(file_properties, request_handler)),
                 item_utils.get_display_title,
-            )
-        if len(assay_title) > 1 or len(sequencer_title) > 1:
-            # More than one unique assay or sequencer
-            return ""
-        elif len(assay_title) == 0 or len(sequencer_title) == 0:
-            # No assay or sequencer
-            return ""
-        to_include = [
-            assay_title[0],
-            sequencer_title[0],
-            file_format_title
-        ]
-        return " ".join(to_include)
+                )
+            sequencer_title = get_unique_values(
+                request_handler.get_items(
+                file_utils.get_sequencers(file_properties, request_handler)),
+                item_utils.get_display_title,
+                )
+            if len(assay_title) > 1 or len(sequencer_title) > 1:
+                # More than one unique assay or sequencer
+                return None
+            elif len(assay_title) == 0 or len(sequencer_title) == 0:
+                # No assay or sequencer
+                return None
+            to_include = [
+                assay_title[0],
+                sequencer_title[0],
+                file_format_title
+            ]
+        if "override_release_tracker_description" in file_properties:
+            to_include = [
+                file_utils.get_override_release_tracker_description(file_properties),
+                file_format_title
+            ]
+        if to_include:
+            return " ".join(to_include)
 
 
 @view_config(name='drs', context=File, request_method='GET',
