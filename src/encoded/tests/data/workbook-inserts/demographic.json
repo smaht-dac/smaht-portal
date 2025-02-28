@@ -6,11 +6,6 @@
             "smaht"
         ],
         "donor": "TEST_DONOR_FEMALE",
-        "ethnicity_or_race": [
-            "Asian",
-            "Hispanic, Latino, or Spanish Origin",
-            "Other",
-            "White"
-        ]
+        "military_association": "No"
     }
 ]
