@@ -90,50 +90,6 @@
                 "No"
             ]
         },
-        "non_target_tissues": {
-            "title": "Non-Target Tissues",
-            "type": "array",
-            "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                    "non_target_tissue_subtype",
-                    "non_target_tissue_present"
-                ],
-                "properties": {
-                    "non_target_tissue_subtype": {
-                        "title": "Non-Target Tissue Subtype",
-                        "description": "Subtype of non-target tissue in sample",
-                        "type": "string"
-                    },
-                    "non_target_tissue_present": {
-                        "title": "Non-Target Tissue Present",
-                        "description": "Whether the non-target tissue subtype was present in the sample",
-                        "type": "string",
-                        "enum": [
-                            "Yes",
-                            "No"
-                        ]
-                    },
-                    "non_target_tissue_percentage": {
-                        "title": "Non-Target Tissue Subtype Percentage",
-                        "description": "Percentage range of the sample that was the non-target tissue subtype (%)",
-                        "type": "string",
-                        "enum": [
-                            "[0-10]",
-                            "[11-25]]",
-                            "[26-49]",
-                            "[50-100]"
-                        ]
-                    },
-                    "non_target_tissue_description": {
-                        "title": "Non-Target Tissue Description",
-                        "description": "Description of other non-target tissue present in the sample",
-                        "type": "string"
-                    }
-                }
-            }
-        },
         "outcome": {
             "title": "Outcome",
             "description": "Outcome of the pathology report",
