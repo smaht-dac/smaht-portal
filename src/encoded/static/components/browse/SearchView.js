@@ -213,8 +213,8 @@ const SearchViewPageTitle = React.memo(function SearchViewPageTitle(props) {
                     </div>
                     <div
                         className="static-breadcrumb nonclickable"
-                        data-name="Production"
-                        key="/browse">
+                        data-name="Search"
+                        key="/search">
                         <span>Search</span>
                     </div>
                 </div>
