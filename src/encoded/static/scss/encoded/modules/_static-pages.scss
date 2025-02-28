@@ -1742,6 +1742,8 @@ div#popover-consortium-map {
         color: gray;
         font-size: .9rem;
         font-style: italic;
+		margin-top: 20px;
+		
 		@media screen and (min-width: 768px) and (max-width: 992px) {
 			font-size: .8rem;
 		}
@@ -1923,9 +1925,14 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 				& > .stackrow-row {
 					display: flex;
 					margin-right: auto;
+					background-color: white;
 
 					&:nth-child(odd) {
 						background-color: #F8F8F8;
+
+						& > .stackrow-left-label {
+							background-color: #F8F8F8;
+						}
 					}
 
 					& > .stackrow-left-label {
@@ -1936,55 +1943,18 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 						height: 50px;
 						width: 130px;
 						padding-left: 20px;
+						background-color: white;
 						border-left: 10px solid;
 						border-style: none none none solid;
 						border-right: 4px solid rgba(238, 238, 238, 0.8);
-	
-						&[data-row-title="BCM-GCC"] {
-							border-left-color: $gcc-color;
-							background-color: #F8F8F8;
-						}
-						&[data-row-title="Broad"] {
-							border-left-color: $gcc-color;
-							background-color: white;
-						}
-						&[data-row-title="NYGC"] {
-							border-left-color: $gcc-color;
-							background-color: #F8F8F8;
-						}
-						&[data-row-title="UW"] {
-							border-left-color: $gcc-color;
-							background-color: white;
-						}
-						&[data-row-title="WashU"] {
-							border-left-color: $gcc-color;
-							background-color: #F8F8F8;
-						}
-						&[data-row-title="BCM-TTD"] {
-							border-left-color: $ttd-color;
-							background-color: white;
-						}
-						&[data-row-title="UMich"] {
-							border-left-color: $ttd-color;
-							background-color: #F8F8F8;
-						}
-						&[data-row-title="BCH"] {
-							border-left-color: $ttd-color;
-							background-color: white;
-						}
-						&[data-row-title="NYU"] {
-							border-left-color: $ttd-color;
-							background-color: #F8F8F8;
-						}
-						&[data-row-title="Weill"] {
-							border-left-color: $ttd-color;
-							background-color: white;
-						}
-						&[data-row-title="UMC"] {
-							border-left-color: $ttd-color;
-							background-color: #F8F8F8;
-						}
 
+						&[data-row-category="GCC"] {
+							border-left-color: $gcc-color;
+						}
+						&[data-row-category="TTD"] {
+							border-left-color: $ttd-color;
+						}
+	
 						.label {
 							display: flex;
 							justify-content: center;

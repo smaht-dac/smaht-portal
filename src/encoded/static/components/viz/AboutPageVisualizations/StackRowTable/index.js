@@ -5,8 +5,27 @@ import {
     PopoverBody,
     PopoverHeader,
 } from 'react-bootstrap';
-import tableData from './data/stackrow_data.json';
-import graph from './data/alluvial_data.json';
+import tableData from '../Alluvial/data/stackrow_data.json';
+import graph from '../Alluvial/data/alluvial_data.json';
+
+const stackRowTableData = tableData;
+
+const getStackRowTableData = () => {
+    const data_generator_nodes = graph.nodes.reduce((acc, d) => {
+        if (d.type === 'data_generator') {
+            return { ...acc, [d.name]: { ...d, ...graph.platforms[d.name] } };
+        } else {
+            return acc;
+        }
+    }, []);
+
+    console.log(
+        'StackRowTableData',
+        data_generator_nodes,
+        Object.keys(graph.platforms)
+    );
+    // return stackRowTableData;
+};
 
 // Legend rendered below the table
 const StackRowItemLegend = ({ text }) => {
@@ -139,26 +158,29 @@ const StackRowTopLabel = ({ assayType }) => {
 };
 
 // Header corresponding to each row on the table
-const StackRow = ({ rowTitle, platforms, data }) => {
+const StackRow = ({ node, data }) => {
+    const { name, display_name, data_generator_category } = node;
+
     return (
         <tr className="stackrow-row">
             <th
                 className="stackrow-left-label"
                 scope="row"
-                data-row-title={rowTitle}>
+                data-row-category={data_generator_category}
+                data-row-title={display_name}>
                 <div className="label">
-                    <span className="">{rowTitle}</span>
+                    <span className="">{display_name}</span>
                 </div>
             </th>
             {data.map((d, j) => {
-                const platformList = platforms[d.name] ?? [];
+                const platformList = graph.platforms[name][d.name] ?? [];
 
                 return (
                     <StackRowItem
                         key={j}
                         value={platformList.length}
                         data={platformList}
-                        data_generator={rowTitle}
+                        data_generator={display_name}
                     />
                 );
             })}
@@ -171,6 +193,7 @@ const StackRow = ({ rowTitle, platforms, data }) => {
  * and vertical headers representing Assay Types and GCC's, respectively.
  */
 export const StackRowTable = ({ data = tableData }) => {
+    getStackRowTableData();
     return (
         <div className="stackrow-table-container">
             <p className="visualization-warning d-block d-sm-none">
@@ -191,15 +214,12 @@ export const StackRowTable = ({ data = tableData }) => {
                     </thead>
                     {/* Render the left labels and body of the table */}
                     <tbody className="stackrow-table-body">
-                        {Object.keys(graph.platforms).map((gcc, i) => {
-                            return (
-                                <StackRow
-                                    key={i}
-                                    rowTitle={gcc}
-                                    platforms={graph.platforms[gcc]}
-                                    data={data}
-                                />
-                            );
+                        {graph.nodes.map((node, i) => {
+                            if (node.type === 'data_generator') {
+                                return (
+                                    <StackRow key={i} node={node} data={data} />
+                                );
+                            }
                         })}
                     </tbody>
                 </table>

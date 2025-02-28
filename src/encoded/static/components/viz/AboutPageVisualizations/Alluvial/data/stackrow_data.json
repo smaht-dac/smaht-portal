@@ -27,7 +27,7 @@
         "description": "Single-nucleus RNA-Seq."
     },
     {
-        "name": "WGS CODEC",
+        "name": "CODEC",
         "display_name": "CODEC",
         "description": "Concatenating Original Duplex for Error Correction (CODEC); a variation of duplex sequencing.",
         "link": "https://pubmed.ncbi.nlm.nih.gov/37106072/"
@@ -135,8 +135,61 @@
     {
         "name": "varCUT&Tag",
         "display_name": "varCUT&Tag",
-        "description": "Click below to learn more about the varCUT&Tag protocol",
+        "description": "Identification and characterization of sequence variants in regulatory elements and genes.",
         "link":"https://github.com/k8newcomer/VarCUTandTag"
+    },
+    {
+        "name": "ppm-Seq",
+        "display_name": "ppm-Seq",
+        "description": "Paired plus minus sequencing (ppm-Seq); Duplex sequencing strategy.",
+        "link": "https://www.ultimagenomics.com/ppmseq-for-rare-event-detection/"
+    },
+    {
+        "name": "ATAC-seq",
+        "display_name": "ATAC-seq",
+        "description": "Assay for Transposase-Accessible Chromatin using sequencing (ATAC-Seq); genome wide profiling of chromatin accessibility.",
+        "link": "https://doi.org/10.1038/nmeth.2688"
+    },
+    {
+        "name": "VISTA-seq",
+        "display_name": "VISTA-seq",
+        "description": "Tn5 transposase-based Duplex-sequencing strategy at a single-cell, microbulk (10 to 100s of cells), or bulk tissue resolution.",
+        "link": "https://www.protocols.io/view/tn5-duplex-sequencing-tn5-duplex-seq-for-low-input-6qpvr3nbzvmk/v1"
+    },
+    {
+        "name": "scDip-C",
+        "display_name": "scDip-C",
+        "description": "Tn5 transposase-based Duplex-sequencing strategy at a single-cell, microbulk (10 to 100s of cells), or bulk tissue resolution.",
+        "link": "https://www.protocols.io/view/tn5-duplex-sequencing-tn5-duplex-seq-for-low-input-6qpvr3nbzvmk/v1"
+    },
+    {
+        "name": "HAT-seq",
+        "display_name": "HAT-seq",
+        "description": "Human Active Transposon sequencing (HAT-seq); a PCR-based targeted bulk sequencing method for identifiying L1Hs insertions at a single-cell, microbulk (10 to 100s of cells), or bulk tissue resolution.",
+        "link": "https://doi.org/10.1371/journal.pgen.1008043"
+    },
+    {
+        "name": "L1-ONT",
+        "display_name": "L1-ONT",
+        "description": "Enrichment for L1 mobile elements followed by ONT sequencing.",
+        "link": "https://doi.org/10.1371/journal.pgen.1008043"
+    },
+    {
+        "name": "PTA-amplified WGS",
+        "display_name": "PTA-amplified WGS",
+        "description": "Primary template-directed amplification-based single-cell whole genome amplification.",
+        "link": "https://doi.org/10.1073/pnas.2024176118"
+    },
+    {
+        "name": "HiDEF-seq",
+        "display_name": "HiDEF-seq",
+        "description": "Hairpin Duplex Enhanced Fidelity Sequencing (HiDEF-seq) Duplex-sequencing strategy.",
+        "link": "https://doi.org/10.1038/s41586-024-07532-8"
+    },
+    {
+        "name": "Strand-seq",
+        "display_name": "Strand-seq",
+        "description": "Single-cell template strand sequencing.",
+        "link": "https://doi.org/10.1038/nprot.2017.029"
     }
-    
 ]
