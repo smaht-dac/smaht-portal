@@ -86,7 +86,7 @@ const DataMatrixConfigurator = ({
 
         // If this is the last row and user entered a max, auto-add a new row
         if (newRanges[index].max !== '' && index === newRanges.length - 1) {
-            newRanges.push({ min: newRanges[index].max, max: '', color: getScaledColor(newRanges[index].color, minValue, maxValue, (min + maxValue) / 2) });
+            newRanges.push({ min: newRanges[index].max, max: '', color: null });
         }
 
         setRanges(newRanges);
