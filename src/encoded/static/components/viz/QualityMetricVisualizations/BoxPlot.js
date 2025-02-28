@@ -654,7 +654,7 @@ export const BoxPlot = ({
                     </PopoverHeader>
                     <PopoverBody>
                         <PlotPopoverContent
-                            vizInfo={viz_info}
+                            tooltipFields={viz_info.default_settings.boxplot.tooltipFields}
                             data={overlayTarget?.current?.data}
                         />
                     </PopoverBody>

@@ -3,8 +3,7 @@
 import React from 'react';
 import * as d3 from 'd3';
 
-export const PlotPopoverContent = ({ vizInfo, data = null }) => {
-    const tooltipFields = vizInfo.default_settings.boxplot.tooltipFields;
+export const PlotPopoverContent = ({ tooltipFields, data = null }) => {
 
     return data ? (
         <div className="d3-popover-content">

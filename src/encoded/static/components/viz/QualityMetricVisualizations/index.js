@@ -3,6 +3,7 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 
 import { BoxPlotWithFacets } from './BoxPlotWithFacets';
 import { ScatterlotWithFacets } from './ScatterPlotWithFacets';
+import { SampleContamination } from './SampleContamination';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 import Nav from 'react-bootstrap/Nav';
@@ -32,10 +33,11 @@ export const QualityMetricVisualizations = () => {
             '/get_qc_overview/',
             (resp) => {
                 if (resp.error) {
-                    console.error(resp.error);
+                    console.error(resp.error_msg);
                     return;
                 }
                 setQcData(resp.data);
+                console.log(resp.data);
             },
             'POST',
             () => {
@@ -359,6 +361,11 @@ export const QualityMetricVisualizations = () => {
                     eventKey="metrics-v-metric"
                     title="Metric vs. Metric - All">
                     <ScatterlotWithFacets qcData={qcData} />
+                </Tab>
+                <Tab
+                    eventKey="sample-contamination"
+                    title="Sample Identity">
+                    <SampleContamination qcData={qcData} />
                 </Tab>
             </Tabs>
         </>

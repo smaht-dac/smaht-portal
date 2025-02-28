@@ -6,6 +6,7 @@ import {
     formatLargeInteger,
     getFileModalContent,
     customReactSelectStyle,
+    removeToolName
 } from './utils';
 import { Modal } from 'react-bootstrap';
 import Select from 'react-select';
@@ -242,9 +243,11 @@ export const ScatterlotWithFacets = ({
                             Math.random() * Number.MAX_SAFE_INTEGER
                         )}
                         title=""
-                        data={qcData}
+                        data={qcData.qc_results}
                         yAxisField={selectedQcMetricY}
+                        yAxisLabel={removeToolName(qcData.qc_info[selectedQcMetricY].key)}
                         xAxisField={selectedQcMetricX}
+                        xAxisLabel={removeToolName(qcData.qc_info[selectedQcMetricX].key)}
                         customFilter={(d) => customFilter(d)}
                         customFormat={(d) => formatLargeInteger(d)}
                         qcCategory={selectedGrouping}
@@ -252,6 +255,8 @@ export const ScatterlotWithFacets = ({
                         //thresholdMarks={thresholdMarks}
                         rerenderNumber={rerenderNumber}
                         handleShowModal={handleShowModal}
+                        groupBy="submission_center"
+                        tooltipFields={vizInfo.default_settings.scatterplot.tooltipFields}
                     />
                 </div>
                 <div className="col-lg-6">

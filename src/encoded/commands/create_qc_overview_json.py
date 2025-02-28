@@ -1,4 +1,5 @@
 import json, sys, subprocess, pprint, time, csv, datetime
+import requests
 import click
 from pathlib import Path
 from collections import OrderedDict
@@ -12,7 +13,7 @@ from dcicutils.creds_utils import SMaHTKeyManager
 ENV = "data"
 SMAHT_KEY = SMaHTKeyManager().get_keydict_for_env(ENV)
 
-SEARCH_QUERY = (
+SEARCH_QUERY_QC = (
     "search/?submission_centers.display_title=UWSC+GCC"
     "&submission_centers.display_title=WASHU+GCC"
     "&submission_centers.display_title=BROAD+GCC"
@@ -20,8 +21,8 @@ SEARCH_QUERY = (
     "&submission_centers.display_title=BCM+GCC"
     "&field=uuid"
     "&type=FileSet"
-    "&limit=10000"
-    #"&limit=30&from=100"  # for testing
+    #"&limit=10000"
+    "&limit=50&from=100"  # for testing
     # "&accession=SMAFSADRYKW2"
 )
 
@@ -40,6 +41,7 @@ STATUS = "status"
 DISPLAY_TITLE = "display_title"
 DELETED = "deleted"
 COMPLETED = "completed"
+EXTERNAL_ID = "external_id"
 
 SAMPLE_SOURCE = "sample_source"
 SAMPLE_SOURCE_GROUP = "sample_source_group"
@@ -74,10 +76,10 @@ TISSUES = "tissue"
 
 DEFAULT_FACET_GROUPING = [
     {"key": SUBMISSION_CENTER, "label": "Submission Center"},
-    #{"key": ASSAY, "label": "Assay"},
+    # {"key": ASSAY, "label": "Assay"},
     {"key": SAMPLE_SOURCE, "label": "Sample source"},
-    #{"key": SAMPLE_SOURCE_GROUP, "label": "Tissue / Cell line"},
-    #{"key": READ_LENGTH, "label": "Read length (short / long)"},
+    # {"key": SAMPLE_SOURCE_GROUP, "label": "Tissue / Cell line"},
+    # {"key": READ_LENGTH, "label": "Read length (short / long)"},
 ]
 
 DEFAULT_FACET_SAMPLE_SOURCE = [
@@ -127,7 +129,15 @@ VISIBLE_FIELDS_IN_TOOLTIP = [
     {"key": "sample_source", "label": "Sample source"},
 ]
 
-# This is hardcoded for now, but it should be extracted from the MWF in the future 
+VISIBLE_FIELDS_IN_TOOLTIP_SAMPLE_IDENTITY = [
+    {"key": "sample_a", "label": "Sample A"},
+    {"key": "sample_b", "label": "Sample B"},
+    {"key": "relatedness", "label": "Relatedness"},
+    {"key": "ibs0", "label": "IBS0"},
+    {"key": "ibs2", "label": "IBS2"},
+]
+
+# This is hardcoded for now, but it should be extracted from the MWF in the future
 QC_THRESHOLDS = {
     f"{ALL_ILLUMINA}_{WGS}": {
         "verifybamid:freemix_alpha": 0.01,
@@ -145,8 +155,6 @@ QC_THRESHOLDS = {
         "samtools_stats_postprocessed:percentage_reads_mapped": 98.0,
         "picard_collect_alignment_summary_metrics:pf_mismatch_rate": 0.003,
     },
-    
-
 }
 
 
@@ -156,6 +164,7 @@ class FileStats:
         self.warnings = []
         self.output_path = output
         self.stats = []
+        self.somalier_results = {}
         self.qc_info = {}
         self.viz_info = {
             "facets": {
@@ -164,6 +173,7 @@ class FileStats:
                 "assay": DEFAULT_FACET_ASSAY,
                 "sample_source": DEFAULT_FACET_SAMPLE_SOURCE,
                 "sequencer": DEFAULT_FACET_SEQUENCER,
+                "sample_identity_donors": [],
             },
             "default_settings": {
                 "boxplot": {
@@ -183,6 +193,9 @@ class FileStats:
                     "sequencer": DEFAULT_SEQUENCER_SCATTERPLOT,
                     "tooltipFields": VISIBLE_FIELDS_IN_TOOLTIP,
                 },
+                "scatterplot_sample_identity": {
+                    "tooltipFields": VISIBLE_FIELDS_IN_TOOLTIP_SAMPLE_IDENTITY,
+                },
             },
             "qc_thresholds": QC_THRESHOLDS,
         }
@@ -192,7 +205,7 @@ class FileStats:
 
         sample_source_codes_for_facets = []
 
-        filesets = search(SEARCH_QUERY)
+        filesets = search(SEARCH_QUERY_QC)
         print(f"Number of filesets considered: {len(filesets)}")
         for fileset_from_search in progressbar(filesets, "Processing filesets "):
             fileset = get_item(fileset_from_search[UUID])
@@ -263,7 +276,6 @@ class FileStats:
 
             sample_source_codes = ", ".join(sample_source_codes)
             tissues = ", ".join(tissues)
-            
 
             # Get the alignment MWFR to process the fastp outputs and get the final BAM
             mwfr = self.get_alignment_mwfr(fileset)
@@ -278,7 +290,9 @@ class FileStats:
                 )
                 continue
 
-            sample_source_codes_for_facets.append(tissues if ("?" not in tissues) else sample_source_codes)
+            sample_source_codes_for_facets.append(
+                tissues if ("?" not in tissues) else sample_source_codes
+            )
 
             result = {}
             result["fileset"] = fileset_accession
@@ -307,7 +321,9 @@ class FileStats:
 
             qm = self.get_quality_metrics(final_ouput_file)
             qc_values = qm["qc_values"]
-            result["quality_metrics"]["overall_quality_status"] = qm.get("overall_quality_status", "NA")
+            result["quality_metrics"]["overall_quality_status"] = qm.get(
+                "overall_quality_status", "NA"
+            )
             result["quality_metrics"]["qc_values"] = {}
             for qc_value in qc_values:
                 derived_from = qc_value["derived_from"]
@@ -353,6 +369,73 @@ class FileStats:
                 {"key": ssc, "label": ssc},
             )
 
+        # GET SAMPLE IDENTITY CHECK RESULTS
+        print("\n\nWorking on sample identity results")
+        print("Retrieving donors")
+
+        search_query_donors = "search/?type=Donor" "&limit=10000"
+        donors = search(search_query_donors)
+        for donor in donors:
+            donor_accession = donor[ACCESSION]
+            print(donor[ACCESSION])
+
+            latest_run = get_latest_somalier_run_for_donor(donor_accession)
+            if not latest_run:
+                continue
+
+            latest_run = latest_run[0]
+            #print(f"Latest run: {latest_run[ACCESSION]}")
+
+            self.viz_info["facets"]["sample_identity_donors"].append(
+                {"value": donor_accession, "label": donor[DISPLAY_TITLE]},
+            )
+
+            somalier_relate_wfr = get_somalier_relate_worklfow(latest_run)
+            overall_quality_status = somalier_relate_wfr["output"][0]["file"]["quality_metrics"][0][
+                "overall_quality_status"
+            ]
+            tsv_content = get_somalier_relate_output(latest_run)
+            if not tsv_content:
+                raise Exception(
+                    f"Could not get TSV content for somalier run {latest_run[ACCESSION]}"
+                )
+            self.somalier_results[donor_accession] = {
+                "info": {
+                    "overall_quality_status": overall_quality_status
+                },
+                "results": []
+            }
+            for line in tsv_content.splitlines():
+                # file header: #sample_a	sample_b	relatedness	ibs0	ibs2	hom_concordance	hets_a	hets_b	hets_ab	shared_hets	hom_alts_a	hom_alts_b	shared_hom_alts	n	x_ibs0	x_ibs2	expected_relatedness
+                if line.startswith("#"):
+                    continue
+                line_ = line.split("\t")
+                sample_a = line_[0]
+                sample_b = line_[1]
+                ibs0 = float(line_[3])
+                ibs2 = float(line_[4])
+                relatedness = float(line_[2])
+
+                # We need to bring this into this format so that it's compatible with the scatter plot (same format as QC results)
+                somalier_result = {
+                    "sample_a": sample_a,
+                    "sample_b": sample_b,
+                    #"data_point_identifier": f"{sample_a}_{sample_b}",
+                    "relatedness": relatedness,
+                    "ibs0": ibs0,
+                    "ibs2": ibs2,
+                    # "quality_metrics": {
+                    #     "overall_quality_status": "NA",
+                    #     "qc_values": {
+                    #         "somalier:ibs0": {"value": ibs0, "flag": "NA"},
+                    #         "somalier:ibs2": {"value": ibs2, "flag": "NA"},
+                    #         "somalier:relatedness": {"value": relatedness, "flag": "NA"},
+                    #     },
+                    # },
+                }
+                
+                self.somalier_results[donor_accession]["results"].append(somalier_result)
+
     def write_json(self):
         if len(self.stats) == 0:
             print("No results found.")
@@ -367,6 +450,7 @@ class FileStats:
             "viz_info": self.viz_info,
             "qc_info": self.qc_info,
             "qc_results": self.stats,
+            "somalier_results": self.somalier_results,
         }
 
         with open(self.output_path, "w") as file:
@@ -438,11 +522,30 @@ def search(query):
     return ff_utils.search_metadata(query, key=SMAHT_KEY)
 
 
-def download_file_from_portal(file_uuid, output_path):
+# def download_file_from_portal(file_uuid, output_path):
+#     file = get_item(file_uuid)
+#     href = file["href"]
+#     cmd = f"curl -sL --user {SMAHT_KEY['key']}:{SMAHT_KEY['secret']} {SMAHT_KEY['server']}{href} --output {output_path}"
+#     subprocess.Popen(cmd, shell=True).wait()
+
+
+def get_file_content_from_portal_file(file_uuid):
     file = get_item(file_uuid)
     href = file["href"]
-    cmd = f"curl -sL --user {SMAHT_KEY['key']}:{SMAHT_KEY['secret']} {SMAHT_KEY['server']}{href} --output {output_path}"
-    subprocess.Popen(cmd, shell=True).wait()
+    url = f"{SMAHT_KEY['server']}{href}"
+    response = requests.get(
+        url, auth=(SMAHT_KEY["key"], SMAHT_KEY["secret"]), allow_redirects=True
+    )
+
+    if response.status_code == 200:
+        return response.text
+    else:
+        print(f"Error: {response.status_code}")
+
+
+# The QC visualization assume that sample identity MWFRs are tagged as follows:
+def get_tag_for_sample_identity_check(donor_accession):
+    return f"sample_identity_check_for_donor_{donor_accession}"
 
 
 def tissue_code_to_word(code):
@@ -456,6 +559,34 @@ def tissue_code_to_word(code):
         return "Brain"
     elif "-1K" in code:
         return "Skin"
+
+
+def get_latest_somalier_run_for_donor(donor_accession):
+    search_filter = (
+        "?type=MetaWorkflowRun"
+        f"&meta_workflow.name=sample_identity_check"
+        f"&tags={get_tag_for_sample_identity_check(donor_accession)}"
+        "&final_status=completed"
+        "&sort=-date_created"
+        "&limit=1"
+    )
+    return search(f"/search/{search_filter}")
+
+
+def get_somalier_relate_worklfow(mwfr):
+    workflow_run = next(
+        (item for item in mwfr["workflow_runs"] if item["name"] == "somalier_relate"),
+        None,
+    )
+    if not workflow_run:
+        raise Exception(f"No somalier_relate workflow run found")
+
+    return workflow_run
+
+def get_somalier_relate_output(mwfr):
+    workflow_run = get_somalier_relate_worklfow(mwfr)
+    tsv_uuid = workflow_run["output"][0]["file"][UUID]
+    return get_file_content_from_portal_file(tsv_uuid)
 
 
 def progressbar(it, prefix="", size=60, out=sys.stdout):
