@@ -3,6 +3,7 @@ import * as d3 from 'd3';
 
 import { Popover, PopoverHeader, PopoverBody, Overlay } from 'react-bootstrap';
 import { PlotPopoverContent, addPaddingToExtend } from './utils';
+import { el } from 'date-fns/locale';
 
 export const SampleContaminationHeatmap = ({
     plotId,
@@ -20,8 +21,39 @@ export const SampleContaminationHeatmap = ({
     const margins = {
         top: 20,
         right: 50,
-        bottom: 100,
-        left: 120,
+        bottom: 120,
+        left: 160,
+    };
+
+    const getMouseOverHtml = (d) => {
+        const html = `
+            <table>
+                <tr>
+                    <td class='text-left text-600'>Sample A:</td>
+                    <td class='text-left'>${d.sample_a}</td>
+                </tr>
+                <tr>
+                    <td class='text-left text-600'>Sample B:</td>
+                    <td class='text-left'>${d.sample_b}</td>
+                </tr>
+                <tr>
+                    <td class='text-left text-600'>Relatedness:</td>
+                    <td class='text-left'>${d.relatedness}</td>
+                </tr>
+                <tr>
+                    <td class='text-left text-600'>IBS0:</td>
+                    <td class='text-left'>${d.ibs0}</td>
+                </tr>
+                <tr>
+                    <td class='text-left text-600'>IBS2:</td>
+                    <td class='text-left'>${d.ibs2}</td>
+                </tr>
+            </table>
+            <div class='border-top pt-1 mt-1'>
+                <i>Hold key 'a' + click to go to Sample A<br>
+                Hold key 'b' + click to go to Sample B</i>
+            </div>`;
+        return html;
     };
 
     useEffect(() => {
@@ -34,6 +66,14 @@ export const SampleContaminationHeatmap = ({
         if (!isDrawn.current || doRerender) {
             const container = d3.select(containerRef.current);
             container.selectAll('*').remove();
+
+            // Labels of row and columns -> unique identifier of the column called 'group' and 'variable'
+            const myGroups = Array.from(new Set(data.map((d) => d.sample_a)));
+            const myVars = Array.from(new Set(data.map((d) => d.sample_b)));
+            if (myVars.length > 50){
+                margins.left = 130;
+                margins.bottom = 90;
+            }
 
             // Create the SVG containers
             const svgContainer = container
@@ -49,20 +89,23 @@ export const SampleContaminationHeatmap = ({
                 )
                 .attr('text-anchor', 'middle');
 
-            // Add title to the chart
-            // svgContainer
-            //     .append('text')
-            //     .text(title)
-            //     .attr('text-anchor', 'middle')
-            //     .attr('style', 'font-family: Inter; font-size: 1.5rem')
-            //     .attr('x', chartWidth / 2)
-            //     .attr('y', margins.top / 2);
+            svgContainer
+                .append('text')
+                .text('Sample A')
+                .attr('text-anchor', 'middle')
+                .attr('style', 'font-family: Inter; font-size: 1.2rem')
+                .attr('x', chartWidth / 2 + margins.left / 2)
+                .attr('y', chartHeight);
+            svgContainer
+                .append('text')
+                .text('Sample B')
+                .attr('text-anchor', 'middle')
+                .attr('style', 'font-family: Inter; font-size: 1.2rem')
+                .attr('transform', 'rotate(-90)')
+                .attr('x', -(chartHeight - margins.bottom) / 2)
+                .attr('y', 20);
 
-            console.log(data);
-
-            // Labels of row and columns -> unique identifier of the column called 'group' and 'variable'
-            const myGroups = Array.from(new Set(data.map((d) => d.sample_a)));
-            const myVars = Array.from(new Set(data.map((d) => d.sample_b)));
+            
 
             // Build X scales and axis:
             const x = d3
@@ -135,25 +178,38 @@ export const SampleContaminationHeatmap = ({
             };
             const mousemove = function (event, d) {
                 tooltip
-                    .html(
-                        'Sample A: ' +
-                            d.sample_a +
-                            '<br>' +
-                            'Sample B: ' +
-                            d.sample_b +
-                            '<br>' +
-                            'Relatedness: ' +
-                            d.relatedness
-                    )
+                    .html(getMouseOverHtml(d))
                     .style('left', tooltip_x + 'px')
                     .style('top', tooltip_y + 'px');
                 //console.log(d3.select(this).attr('x'), d3.select(this).attr('y'), d3.select(this).attr('y'),event.y);
             };
             const mouseleave = function (event, d) {
-                tooltip.style('opacity', 0);
+                tooltip
+                    .style('opacity', 0)
+                    .style('left', '-1000px')
+                    .style('top', '-1000px');
                 d3.select(this).style('stroke', 'none').style('opacity', 0.8);
             };
 
+            let isBDown = false;
+            let isADown = false;
+
+            // Detect if "b" key is pressed down
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'b') {
+                    isBDown = true;
+                } else if (event.key === 'a') {
+                    isADown = true;
+                }
+            });
+
+            document.addEventListener('keyup', (event) => {
+                if (event.key === 'b') {
+                    isBDown = false;
+                } else if (event.key === 'a') {
+                    isADown = false;
+                }
+            });
             // add the squares
             svgContainer
                 .selectAll()
@@ -179,7 +235,14 @@ export const SampleContaminationHeatmap = ({
                 .style('opacity', 0.8)
                 .on('mouseover', mouseover)
                 .on('mousemove', mousemove)
-                .on('mouseleave', mouseleave);
+                .on('mouseleave', mouseleave)
+                .on('click', (event, d) => {
+                    if (isBDown) {
+                        window.open('/' + d.sample_b, '_blank');
+                    } else if (isADown) {
+                        window.open('/' + d.sample_a, '_blank');
+                    }
+                });
 
             // Create a legend container
             const legendWidth = 300;
@@ -189,14 +252,14 @@ export const SampleContaminationHeatmap = ({
                 .attr(
                     'transform',
                     `translate(${chartWidth - legendWidth}, ${
-                        chartHeight - margins.bottom -3*legendHeight
+                        chartHeight - margins.bottom - 3 * legendHeight
                     })`
                 );
 
             // Define color scale (continuous scale example)
             const colorScale = d3
                 .scaleSequential(d3.interpolateRdYlGn)
-                .domain([0, 1]); 
+                .domain([0, 1]);
 
             // Create gradient for the legend
             const defs = svgContainer.append('defs');
@@ -241,18 +304,17 @@ export const SampleContaminationHeatmap = ({
                 .remove(); // Optional: Remove axis line
 
             svgContainer
-                .append("text") // Append a text element
-                .attr("text-anchor", "start") // Align text (optional)
-                .style("font-size", "16px") // Font size
-                .style("fill", "black") // Text color
-                .text("Relatedness") // The text content
+                .append('text') // Append a text element
+                .attr('text-anchor', 'start') // Align text (optional)
+                .style('font-size', '16px') // Font size
+                .style('fill', 'black') // Text color
+                .text('Relatedness') // The text content
                 .attr(
                     'transform',
                     `translate(${chartWidth - legendWidth}, ${
-                        chartHeight - margins.bottom -3*legendHeight - 10
+                        chartHeight - margins.bottom - 3 * legendHeight - 10
                     })`
                 );
-            
 
             // Cleanup function to prevent rerender
             return () => {

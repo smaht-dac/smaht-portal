@@ -95,7 +95,11 @@ export const SampleContamination = ({ qcData }) => {
             <div className="row">
                 <div className="col-12">
                     <h4>Pairwise sample relatedness</h4>
-                    <p>The pairwise relatedness was calculated using somalier. Samples of the same donor are expected to have a very high degree of relatedness. </p>
+                    <p>
+                        The pairwise relatedness was calculated using somalier.
+                        Samples of the same donor are expected to have a very
+                        high degree of relatedness.{' '}
+                    </p>
                     <SampleContaminationHeatmap
                         plotId={1}
                         rerenderNumber={rerenderNumber}
@@ -103,35 +107,13 @@ export const SampleContamination = ({ qcData }) => {
                             somalierResults[selectedDonor['value']]['results']
                         }></SampleContaminationHeatmap>
                 </div>
-                <div className="col-lg-6">
-                    <ScatterPlot
-                        plotId={Math.floor(
-                            Math.random() * Number.MAX_SAFE_INTEGER
-                        )}
-                        title=""
-                        data={
-                            somalierResults[selectedDonor['value']]['results']
-                        }
-                        yAxisField="somalier:ibs2"
-                        yAxisLabel="IBS2"
-                        xAxisField="somalier:relatedness"
-                        xAxisLabel="Relatedness"
-                        customFormat={(d) => formatLargeInteger(d)}
-                        //updateHighlightedBam={updateHighlightedBam}
-                        rerenderNumber={rerenderNumber}
-                        //handleShowModal={handleShowModal}
-                        showLegend={false}
-                        tooltipFields={
-                            vizInfo.default_settings.scatterplot_sample_identity
-                                .tooltipFields
-                        }
-                        dataPointIndexField="data_point_identifier"
-                    />
-                </div>
-                <div className="col-lg-6">
-                    {/* <SampleContaminationDataTable
-                        selectedDonor={selectedDonor['value']}
-                        data={qcData}></SampleContaminationDataTable> */}
+                <div className="col-12">
+                    <div className="pt-5">
+                        <SampleContaminationDataTable
+                            data={
+                                somalierResults[selectedDonor['value']]
+                            }></SampleContaminationDataTable>
+                    </div>
                 </div>
             </div>
         </>

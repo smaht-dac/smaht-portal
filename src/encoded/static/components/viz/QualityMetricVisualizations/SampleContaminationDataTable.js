@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 
 import { getBadge, capitalize, removeToolName } from './utils';
 
-export const SampleContaminationDataTable = ({ selectedDonor, data }) => {
-    const { somalier_results } = data;
+export const SampleContaminationDataTable = ({ data }) => {
 
-    const filteredData = somalier_results[selectedDonor]['results'];
+    // We need a deep copy here, otherwise the sorting messes up the heatmap
+    const filteredData = JSON.parse(JSON.stringify(data['results']));
     filteredData.sort((a, b) => a.relatedness - b.relatedness);
 
     const tableBodyData = filteredData.map((d) => {
