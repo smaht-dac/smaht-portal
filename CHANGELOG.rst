@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.140.1
+=======
+`PR 361: fix: comment out unused Submissions page <https://github.com/smaht-dac/smaht-portal/pull/361>`_
+
+* Comment out the submissions page calculated property
+
+
 0.140.0
 =======
 `PR 354: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/354>`_
