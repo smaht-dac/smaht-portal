@@ -270,13 +270,12 @@ body:not([data-at-type*='Error']) #page-title-container.static-page-title {
 		}
 	
 		> .subtitle.prominent {
-			/* Subtitles which are part of the title, e.g. Experiment Set <.subtitle>4324ADADF</.subtitle> */
+			/* Subtitles which are part of the title, e.g. Search for <.subtitle>File</.subtitle> */
 	
-			font-weight: 400;
-			font-size : 0.75em;
+			font-weight: 600;
+			font-size : 1.5rem;
 			display: inline-block;
 			margin-left: 9px;
-			vertical-align: middle;
 	
 			body[data-pathname="/search/"] & {
 				margin-left: 6px;
