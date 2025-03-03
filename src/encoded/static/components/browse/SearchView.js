@@ -11,6 +11,7 @@ import {
     analytics,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
+import { AboveSearchViewTableControls } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/above-table-controls/AboveSearchViewTableControls';
 import { DetailPaneStateCache } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/DetailPaneStateCache';
 import { columnExtensionMap } from './columnExtensionMap';
 import { Schemas } from './../util';
@@ -140,6 +141,9 @@ export class SearchViewBody extends React.PureComponent {
         );
         const tableColumnClassName = 'results-column col';
         const facetColumnClassName = 'facets-column col-auto';
+        const aboveTableComponent = (
+            <AboveSearchViewTableControls customizationButtonClassName='btn btn-sm btn-outline-secondary mt-05' />
+        );
 
         return (
             <div
@@ -153,6 +157,7 @@ export class SearchViewBody extends React.PureComponent {
                         facetColumnClassName,
                         facets,
                     }}
+                    aboveTableComponent={aboveTableComponent}
                     renderDetailPane={null}
                     termTransformFxn={Schemas.Term.toName}
                     separateSingleTermFacets={false}
