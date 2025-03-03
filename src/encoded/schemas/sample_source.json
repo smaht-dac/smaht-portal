@@ -61,5 +61,18 @@
             "type": "integer",
             "minimum": 1
         }
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        }
+    },
+    "columns": {
+        "submitted_id": {
+            "title": "Submitted ID"
+        },
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        }
     }
 }
