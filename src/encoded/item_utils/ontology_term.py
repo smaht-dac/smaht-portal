@@ -28,7 +28,7 @@ def get_top_grouping_term(
     if grouping_term:
         to_get = set(
             get_property_values_from_identifiers(
-                request_handler, [grouping_term], item_utils.get_at_id
+                request_handler, [grouping_term], item_utils.get_uuid
             )
         )
         seen = set()
