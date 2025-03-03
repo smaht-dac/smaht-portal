@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.140.1
+=======
+`PR 364: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/364>`_
+* Add "Consensus Reads" to `data_category` enums for File
+
+
 0.140.0
 =======
 `PR 354: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/354>`_
