@@ -95,7 +95,7 @@ function FileTableWithSelectedFilesCheckboxes(props){
 FileTableWithSelectedFilesCheckboxes.propTypes = {
     // Props' type validation based on contents of this.props during render.
     'href'                      : PropTypes.string.isRequired,
-    'columnExtensionMap'        : PropTypes.object.isRequired,
+    'columnExtensionMap'        : PropTypes.object,
     'context'                   : PropTypes.shape({
         'columns'                   : PropTypes.objectOf(PropTypes.object).isRequired,
         'total'                     : PropTypes.number.isRequired
@@ -104,7 +104,6 @@ FileTableWithSelectedFilesCheckboxes.propTypes = {
         'title'                     : PropTypes.string.isRequired
     })),
     'schemas'                   : PropTypes.object,
-    'browseBaseState'           : PropTypes.string.isRequired,
     'selectItem'                : PropTypes.func,
     'selectedItems'             : PropTypes.objectOf(PropTypes.object),
 };
