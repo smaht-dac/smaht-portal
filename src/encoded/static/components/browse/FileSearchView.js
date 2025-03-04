@@ -87,7 +87,9 @@ function FileTableWithSelectedFilesCheckboxes(props){
         toggleFullScreen, isFullscreen, // todo: remove maybe, pass only to AboveTableControls
         keepSelectionInStorage: true,
         separateSingleTermFacets: false,
-        columns, hideFacets
+        columns, hideFacets,
+        rowHeight: 31,
+        openRowHeight: 40
     };
 
     return <CommonSearchView {...passProps} termTransformFxn={Schemas.Term.toName} />;
