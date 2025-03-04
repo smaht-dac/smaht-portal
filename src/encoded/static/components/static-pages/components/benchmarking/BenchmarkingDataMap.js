@@ -95,6 +95,13 @@ export const BenchmarkingDataMap = {
                     'sequencing_center.display_title',
                     'software.display_title',
                     'tags',
+                    // File facets used in production browse ui
+                    'access_status',
+                    'donors.display_title',
+                    'donors.age',
+                    'donors.sex',
+                    'sample_summary.tissues',
+                    'date_created',
                 ],
                 columns: {
                     '@type': {},
@@ -263,6 +270,20 @@ export const BenchmarkingDataMap = {
                 //     '/search/?type=File&status=released&status=restricted&status=public&dataset=ipsc_snv_indel_challenge_data',
             },
         ],
+        callout: (
+            <div className="callout success">
+                <p className="callout-text">
+                    <span className="flag">Note:</span> The iPSC and fibroblast
+                    data are available via Globus upon request. To access the
+                    data on Globus, please contact SMaHT Data Analysis Center
+                    (DAC) through the{' '}
+                    <a href="mailto:smhelp@hms-dbmi.atlassian.net?subject=Helpdesk%20Inquiry%20from%20data.smaht.org&body=Name%3A%0D%0AContact%20Information%20(so%20we%20can%20get%20back%20to%20you!)%3A%0D%0A%0D%0AQuestions%2FComments%3A%0D%0A%0D%0A">
+                        Helpdesk
+                    </a>
+                    .
+                </p>
+            </div>
+        ),
     },
     Donor1: {
         navBarTitle: 'Donor ST001',

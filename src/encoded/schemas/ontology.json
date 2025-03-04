@@ -1,0 +1,83 @@
+{
+    "title": "Ontology",
+    "$id": "/profiles/ontology.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "identifier",
+        "title"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "aliases",
+        "identifier",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/identifier"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/title"
+        },
+        {
+            "$ref": "mixins.json#/url"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "title": {
+            "description": "Title of the ontology"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "status": {
+            "default": "released",
+            "enum": [
+                "released",
+                "current",
+                "obsolete",
+                "deleted"
+            ]
+        },
+        "url": {
+            "description": "An external link to information about the ontology."
+        }
+    }
+}

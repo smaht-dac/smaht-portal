@@ -26,6 +26,7 @@ def test_submitted_id_resource_path(es_testapp: TestApp, workbook: None) -> None
 @pytest.mark.parametrize(
     "patch_body,expected_status", [
         ({"sample_sources": ["TEST_TISSUE_LUNG"], "category": "Homogenate", "external_id": "ST001-1D-001X"}, 200),
+<<<<<<< HEAD
         ({"sample_sources": ["TEST_TISSUE_LUNG"], "category": "Homogenate","external_id": "ST001-1D-001S9"}, 422),
         ({"sample_sources": ["TEST_TISSUE_LUNG_ALT1"], "category": "Homogenate", "external_id": "ST001-1D-001X"}, 200),
         ({"sample_sources": ["TEST_TISSUE_LUNG_ALT1"], "category": "Homogenate", "external_id": "ST001-1D-001S9"}, 200),
@@ -34,6 +35,11 @@ def test_submitted_id_resource_path(es_testapp: TestApp, workbook: None) -> None
         ({"sample_sources": ["TEST_TISSUE_LUNG"], "category": "Core", "core_size": "1.5", "external_id": "ST001-1D-001A2"}, 200),
         ({"sample_sources": ["TEST_TISSUE_LUNG"],  "category":"Core", "core_size": "1.5", "external_id": "ST001-1D-001S9"}, 422),
         ({"sample_sources": ["TEST_TISSUE_LUNG"], "category": "Core", "core_size": "1.5", "external_id": "ST001-1D-01A2"}, 422),
+=======
+        ({"sample_sources": ["TEST_TISSUE_LUNG_ALT1"], "category": "Homogenate", "external_id": "ST001-1D-001X"}, 200),
+        ({"sample_sources": ["TEST_TISSUE_LUNG_ALT1"], "category": "Homogenate", "external_id": "ST001-1D-001S9"}, 200),
+        ({"sample_sources": ["TEST_TISSUE_LIVER"], "category": "Specimen", "external_id": "ST001-1D-001S9"}, 422),
+>>>>>>> main
     ]
 )
 def test_validate_external_id_on_edit(
@@ -42,7 +48,11 @@ def test_validate_external_id_on_edit(
     patch_body: Dict[str, Any],
     expected_status: int
     ) -> None:
+<<<<<<< HEAD
     """Ensure external_id is valid based on category if tissue is Benchmarking or Production on edit."""
+=======
+    """Ensure external_id matches tissue external_id if Benchmarking or Production on edit."""
+>>>>>>> main
     uuid =  item_utils.get_uuid(get_item_from_search(es_testapp, "TissueSample", add_on="&category!=Core"))
     patch_item(es_testapp, patch_body, uuid, status=expected_status)
 
@@ -51,6 +61,7 @@ def test_validate_external_id_on_edit(
 @pytest.mark.parametrize(
     "patch_body,expected_status,index", [
         ({"sample_sources": ["TEST_TISSUE_LUNG"], "category": "Homogenate", "external_id": "ST001-1D-001X"}, 201, 1),
+<<<<<<< HEAD
         ({"sample_sources": ["TEST_TISSUE_LUNG"], "category": "Homogenate","external_id": "ST001-1D-001S9"}, 422, 2),
         ({"sample_sources": ["TEST_TISSUE_LUNG_ALT1"], "category": "Homogenate", "external_id": "ST001-1D-001X"}, 201, 3),
         ({"sample_sources": ["TEST_TISSUE_LUNG_ALT1"], "category": "Homogenate", "external_id": "ST001-1D-001S9"}, 201, 4),
@@ -59,6 +70,11 @@ def test_validate_external_id_on_edit(
         ({"sample_sources": ["TEST_TISSUE_LUNG"], "category": "Core", "core_size": "1.5", "external_id": "ST001-1D-001A2"}, 201, 7),
         ({"sample_sources": ["TEST_TISSUE_LUNG"],  "category":"Core", "core_size": "1.5", "external_id": "ST001-1D-001S9"}, 422, 8),
         ({"sample_sources": ["TEST_TISSUE_LUNG"], "category": "Core", "core_size": "1.5", "external_id": "ST001-1D-01A2"}, 422, 9),
+=======
+        ({"sample_sources": ["TEST_TISSUE_LUNG_ALT1"], "category": "Homogenate", "external_id": "ST001-1D-001X"}, 201, 3),
+        ({"sample_sources": ["TEST_TISSUE_LUNG_ALT1"], "category": "Homogenate", "external_id": "ST001-1D-001S9"}, 201, 4),
+        ({"sample_sources": ["TEST_TISSUE_LIVER"], "category": "Specimen", "external_id": "ST001-1D-001S9"}, 422, 5),
+>>>>>>> main
     ]
 )
 def test_validate_external_id_on_add(
@@ -68,7 +84,11 @@ def test_validate_external_id_on_add(
     expected_status: int,
     index: int
 ) -> None:
+<<<<<<< HEAD
     """Ensure external_id is valid based on category if tissue is Benchmarking or Production on add."""
+=======
+    """Ensure external_id matches tissue external_id if Benchmarking or Production on add."""
+>>>>>>> main
     insert = get_item_from_search(es_testapp, "TissueSample")
     post_body = {
         **patch_body,

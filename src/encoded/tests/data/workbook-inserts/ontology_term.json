@@ -1,9 +1,59 @@
 [
     {
         "uuid": "69ac1b9e-b76d-4d41-90b9-aec992024929",
-        "identifier": "MONDO:0016668",
-        "title": "sickle cell-beta-thalassemia disease syndrome",
-        "submission_centers": [
+        "identifier": "UBERON:0002107",
+        "ontologies": ["UBERON"],
+        "title": "liver",
+        "consortia": [
+            "smaht"
+        ],
+        "preferred_name": "Liver",
+        "tags":[
+            "test_terms",
+            "test_top_terms-Liver"
+        ]
+    },
+    {
+        "uuid": "f2f84da1-59db-41f3-8268-81d415146815",
+        "identifier": "UBERON:0002048",
+        "ontologies": ["UBERON"],
+        "title": "lung",
+        "consortia": [
+            "smaht"
+        ],
+        "preferred_name": "Lung"
+    },
+    {
+        "uuid": "8cb0c4e5-af9e-44c6-b625-ea489c715dc6",
+        "identifier": "UBERON:0008952",
+        "ontologies": ["UBERON"],
+        "title": "upper lobe of left lung",
+        "url": "http://purl.obolibrary.org/obo/UBERON_0008952",
+        "description": "The lobe of the left lung that is closest to the head.",
+        "grouping_term": "UBERON:0002048",
+        "consortia": [
+            "smaht"
+        ],
+        "tags":[
+            "test_terms",
+            "test_top_terms-Lung"
+        ]
+    },
+    {
+        "uuid": "90118425-2a51-475a-b6ef-ecf1accd0304",
+        "identifier": "CHEBI:17790",
+        "ontologies": ["CHEBI"],
+        "title": "methanol",
+        "consortia": [
+            "smaht"
+        ]
+    },
+    {
+        "uuid": "0e6a892a-2740-42bb-9bf7-7c8d577d60fa",
+        "identifier": "UBERON:0000955",
+        "ontologies": ["UBERON"],
+        "title": "brain",
+        "consortia": [
             "smaht"
         ]
     }

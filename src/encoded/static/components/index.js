@@ -27,6 +27,8 @@ import DocumentView from './item-pages/DocumentView';
 import StaticSectionView from './item-pages/StaticSectionView';
 import SMaHTSubmissionView from './forms/SMaHTSubmissionView';
 import SearchView from './browse/SearchView';
+import BrowseView from './browse/BrowseView';
+import FileSearchView from './browse/FileSearchView';
 import FileView from './item-pages/FileView';
 
 /**
@@ -58,6 +60,13 @@ content_views.register(SMaHTSubmissionView, 'Search', 'add');
 content_views.register(SearchView, 'Search');
 content_views.register(SearchView, 'Search', 'selection');
 content_views.register(SearchView, 'Search', 'multiselect');
+
+content_views.register(BrowseView, 'Browse');
+content_views.register(BrowseView, 'Browse', 'selection');
+content_views.register(BrowseView, 'Browse', 'multiselect');
+
+content_views.register(FileSearchView, 'FileSearchResults');
+content_views.register(FileSearchView, 'SubmittedFileSearchResults');
 
 // Fallback for anything we haven't registered
 content_views.fallback = function () {

@@ -1,7 +1,10 @@
 import re
 from typing import Any, Dict, Union
 
-from . import constants
+from . import (
+    constants,
+    item,
+)
 
 
 TPC_ID_COMMON_PATTERN = r"[0-9]{3}"
@@ -34,3 +37,30 @@ def get_sex(properties: Dict[str, Any]) -> str:
 def is_tpc_submitted(properties: Dict[str, Any]) -> str:
     """Check if tpc_submitted is True."""
     return properties.get("tpc_submitted","") == "True"
+
+
+def get_study(properties: Dict[str, Any]) -> str:
+    """Get study associated with donor.
+
+    Parse external ID to see if matches TPC naming standards to
+    indicate benchmarking vs. production. TTD donors unlikely to match
+    TPC naming standards, but not impossible; may be more robust to
+    check submission centers or more detailed regex on TPC nomenclature.
+    """
+    if is_benchmarking(properties):
+        return constants.BENCHMARKING_STUDY
+    if is_production(properties):
+        return constants.PRODUCTION_STUDY
+    return ""
+
+
+def is_benchmarking(properties: Dict[str, Any]) -> bool:
+    """Check if donor is from benchmarking study."""
+    external_id = item.get_external_id(properties)
+    return BENCHMARKING_DONOR_REGEX.match(external_id) is not None
+
+
+def is_production(properties: Dict[str, Any]) -> bool:
+    """Check if donor is from production study."""
+    external_id = item.get_external_id(properties)
+    return PRODUCTION_DONOR_REGEX.match(external_id) is not None

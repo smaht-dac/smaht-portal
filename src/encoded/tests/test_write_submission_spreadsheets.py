@@ -601,7 +601,7 @@ def test_get_ordered_properties(
                 "Type:  string\n"
                 "Link:  Yes\n"
                 "Required:  No\n"
-                "Search:  test.url.com\n"
+                "Use URL to search for the submitted_id or identifer of relevant items:  test.url.com\n"
                 "Nested:  Yes"
             ),
         ),

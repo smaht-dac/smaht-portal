@@ -15,7 +15,7 @@ import {
     getQcResults,
     getQcResultsSummary,
     getCommentsList,
-    getTargetCoverage
+    getTargetCoverage,
 } from './submissionStatusUtils';
 
 import {
@@ -382,12 +382,12 @@ class SubmissionStatusComponent extends React.PureComponent {
         this.patchFileset(fs_uuid, filesets, payload);
     };
 
-    toggleFileGroupQc = (fs, reload=false) => {
+    toggleFileGroupQc = (fs, reload = false) => {
         if (this.state.modal) {
             this.setState({
                 modal: null,
             });
-            if(reload){
+            if (reload) {
                 this.refresh();
             }
             return;
@@ -413,7 +413,8 @@ class SubmissionStatusComponent extends React.PureComponent {
                 <li className="ss-line-height-140">Status: {status}</li>,
                 <li className="ss-line-height-140">
                     Sequencer:{' '}
-                    {getLink(sequencer?.uuid, sequencer?.display_title)} ({targetCoverage})
+                    {getLink(sequencer?.uuid, sequencer?.display_title)} (
+                    {targetCoverage})
                 </li>,
             ];
 
@@ -445,7 +446,12 @@ class SubmissionStatusComponent extends React.PureComponent {
                     <ul>
                         {fs_details}
                         {this.getCommentInputField(fs)}
-                        {getCommentsList(fs.uuid, fs.comments, this.state.isUserAdmin, this.removeComment)}
+                        {getCommentsList(
+                            fs.uuid,
+                            fs.comments,
+                            this.state.isUserAdmin,
+                            this.removeComment
+                        )}
                     </ul>
                 </small>
             );
@@ -521,6 +527,20 @@ class SubmissionStatusComponent extends React.PureComponent {
 
             const outputFilesQc = getQcResults(fs.output_files.qc_infos, true);
 
+            let unaligned_reads_badge = '';
+            const status_unaligned_reads = fs.submitted_files.overall_status_unaligned_reads;
+            if (status_unaligned_reads === 'archived') {
+                const tooltip =
+                    fs.submitted_files.num_unaligned_reads_files +
+                    ' submitted Unaligned Reads files have been archived';
+                unaligned_reads_badge = createBadge('warning', status_unaligned_reads, tooltip);
+            } else if (status_unaligned_reads === 'deleted') {
+                const tooltip =
+                    fs.submitted_files.num_unaligned_reads_files +
+                    ' submitted Unaligned Reads files have been deleted';
+                unaligned_reads_badge = createBadge('danger', status_unaligned_reads, tooltip);
+            }
+
             return (
                 <tr key={fs.accession}>
                     <td
@@ -554,7 +574,8 @@ class SubmissionStatusComponent extends React.PureComponent {
                             ? formatDate(fs.submitted_files.date_uploaded)
                             : createBadge('warning', 'in progress')}
                         <small className="d-block ss-line-height-140">
-                            {fs.submitted_files.num_submitted_files} files
+                            {fs.submitted_files.num_submitted_files} files{' '}
+                            {unaligned_reads_badge}
                         </small>
                         <small className="d-block ss-line-height-140">
                             {fs.submitted_files.file_formats}
@@ -588,7 +609,7 @@ class SubmissionStatusComponent extends React.PureComponent {
 
                         <small className="d-block text-secondary ss-line-height-140 mt-2">
                             <div
-                                className='ss-link'
+                                className="ss-link"
                                 onClick={() => this.toggleFileGroupQc(fs)}>
                                 Review File Group QC
                             </div>

@@ -7,9 +7,384 @@ smaht-portal
 Change Log
 ----------
 
+0.141.0
+=======
+`PR 349: SN OntologyTerm update <https://github.com/smaht-dac/smaht-portal/pull/349>`_
+
+* Change `uberon_id`` in Tissue from a string to a linkTo to OntologyTerm
+* Add upgrader for tissue
+* Update File `sample_summary` to include tissue information from OntologyTerm
+
+
+0.140.2
+=======
+`PR 362: page title and search table style updates <https://github.com/smaht-dac/smaht-portal/pull/362>`_
+
+* Adds background and breadcrumb to Search View, My Profile, and Impersonate a User page titles
+* Left aligns all search result table column's content unless it is explicitly defined (e.g. Benchmarking, Browse View, and File Search Views)
+* Fixes missing File Search View registration with SubmittedFile
+* Fixes LoadMoreAsYouScroll bug
+
+
+0.140.1
+=======
+`PR 364: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/364>`_
+* Add "Consensus Reads" to `data_category` enums for File
+
+
+0.140.0
+=======
+`PR 354: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/354>`_
+* 2025-02-21 / dmichaels
+  - Branch: dmichaels-20250221-release-tracker-api-title | PR-355
+    - Derived from branch: sn_release_tracker_title (commit: d202c1c55b69389d031070ada85ce180b1ed603d)
+  - Changes to the release tracker API (i.e. /recent_files_summary) to use the new (calculated)
+    property release_tracker_title (created by Sarah in branch: sn_release_tracker_title);
+    old way of doing it can be accessed using the legacy=true URL query argument.
+* Add calcprop to File, `release_tracker_title`, which displays in order of priority `override_release_tracker_title`, `CellCultureMixture.code`, `CellLine.code`, or `Tissue.display_title` for use as a header in the Release Tracker on the home page
+
+0.139.0
+=======
+`PR 360: fix: add resources to hard-coded disabled breadcrumbs <https://github.com/smaht-dac/smaht-portal/pull/360>`_
+
+* Disable breadcrumbs for resources pages
+
+
+0.138.0
+=======
+`PR 351: FileSearchView for type=File search <https://github.com/smaht-dac/smaht-portal/pull/351>`
+
+* New FileSearchView component to handle type=File searches
+* Refactoring and improvements to BrowseView
+
+
+0.137.4
+=======
+`PR 358: Cypress homepage and benchmarking facets test updates <https://github.com/smaht-dac/smaht-portal/pull/358>`
+
+* Homepage: Test for timeline items and below-figure button clicks were improved
+* Benchmarking: Bug fix for Exclude Properties test
+* Browse view: Quick Info Bar test is skipped until data is available
+
+
+0.137.3
+=======
+`PR 356: fix: correct existing data link <https://github.com/smaht-dac/smaht-portal/pull/356>`
+
+* fix: update link in doc
+
+
+0.137.2
+=======
+`PR 353: fix: remove "DAC_DONOR_" from sample group title <https://github.com/smaht-dac/smaht-portal/pull/353>`
+
+* Remove "DAC_DONOR_" from sample group title
+
+
+0.137.1
+=======
+`PR 352: SN Fix release date facet <https://github.com/smaht-dac/smaht-portal/pull/352>`_
+
+* Fix facet for `file.json` so Release Date shows `file_status_tracking.released_date`
+
+
+0.137.0
+=======
+`PR 350: SN Release tracker description <https://github.com/smaht-dac/smaht-portal/pull/350>`_
+
+* Add property `override_release_tracker_description` to file.json that can set the calcprop `release_tracker_description` to desired value
+* In `release-file.py`, require that a file has `release_tracker_description` set prior to release
+* Make reference_genome `code` non-unique
+
+
+0.136.0
+=======
+`PR 308 SN Pathology report <https://github.com/smaht-dac/smaht-portal/pull/308>`
+
+* Add items PathologyReport, NonBrainPathologyReport, BrainPathologyReport, and HistologyImage
+
+
+0.135.2
+=======
+`PR 343: feat: iPSC alert <https://github.com/smaht-dac/smaht-portal/pull/343>`_
+
+* Add alert banner for iPSC
+
+
+0.135.1
+=======
+`PR 347 feat: remove release tracker links <https://github.com/smaht-dac/smaht-portal/pull/347>`
+
+* Remove links from release tracker
+
+
+0.135.0
+=======
+* 2025-02-05 / dmichaels
+  - Branch: dmichaels-20250130-release-tracker-api-add-submitted-file | PR-337
+    - Derived from branch: main (commit: 8616c891bb93001d756f5a7eb6cbe0910d74780c)
+    - With merged in branch: sn_dsa_embed -> NEVERMIND -> BACKED OUT THIS MERGE FOR THIS BRANCH
+  - Added support for additional SubmittedFile type to release tracker API i.e. /recent_released_files.
+    This requires that the new File.override_release_tracker_description property be populated for affected types;
+    the calculated property release_tracker_description will depend on this (TODO: how is that populated).
+  - Added support for qc_values "psuedo-columns" for smaht-submitr; and also for multiple sheets of same type.
+    This is by virtue of using dcicutils.submitr.custom_excel.CustomExcel in ingestion_processor.py.
+  - In ingestion/submission_folio.py no longer assume consortia comes through from submitr;
+    this was causing problems for non-admin users; but actually changed it back to let it come through;
+    went back/forth on this; in the end removed restricted_fields designation for consortia in mixins.json.
+  - In ingestion/load_extensions.py use  noset_last_modified=True for loadxl call;
+    this was causing problems for non-admin users; requires dcicsnovault 11.24.0+.
+  - Updated the smaht-submitr spreadsheet template version;
+    see SUBMITR_METADATA_TEMPLATE_SHEET_ID and METADATA_TEMPLATE_VERSION_SHEET in metadata_template.py
+
+
+0.134.1
+=======
+`PR 329 SN Add Kinnex enums <https://github.com/smaht-dac/smaht-portal/pull/329>`
+
+* Add enums to `data_category` and `data_type` in File schema for Kinnex file types
+
+
+0.134.0
+=======
+`PR227: feat: VCF comparator and software information  <https://github.com/smaht-dac/smaht-portal/pull/227>`_
+
+* Provide comparator information for VCFs in the file overview page
+
+
+0.133.8
+=======
+`PR 312: BM submission doc fix<https://github.com/smaht-dac/smaht-portal/pull/312>`_
+
+* Swap the "Validation" and "Submission" sections
+* Slight text edit for first line in Validation section to remove reference to Submission paragraph
+
+
+0.133.7
+=======
+`PR 338: Browse view 2 <https://github.com/smaht-dac/smaht-portal/pull/338>`_
+
+* Add link to browse view from production data arrow
+* Enlarge size of file data modal image
+* Rework statistics data components to use new search method; pull more accurate data
+
+
+0.133.6
+=======
+`PR 327: chore: add month back to latest header <https://github.com/smaht-dac/smaht-portal/pull/327>`_
+
+* Update the notifications panel latest release item header to show month and year
+
+
+0.133.5
+=======
+`PR 341 feat: add title row to top of detail page <https://github.com/smaht-dac/smaht-portal/pull/341>`_
+
+- Remove title from excluded keys
+- Add title row to top of details
+
+
+0.133.4
+=======
+`PR 339 Embedd Metaworflow name into file <https://github.com/smaht-dac/smaht-portal/pull/339>`_
+
+* Minor changes to the script that creates the input for the QC overview page
+* Embedd Metaworflow name into file, so that we can query if a file has been the input to a specific MWF
+
+
+0.133.3
+=======
+`PR 336 Cypress test updates <https://github.com/smaht-dac/smaht-portal/pull/336>`_
+
+* Home page: added new tests for Data Release Tracker and Announcements feeds
+* Home page: updated benchmarking/broduction expand/collapse panels
+* Benchmarking: updated traversing tabs, sidebar navigation
+* Benchmarking: added COLO829 SNV/Indel Detection Challenge tests
+* Browse View: added new tests for results table and quick info bar
+
+
+0.133.2
+=======
+* 2025-02-04 / dmichaels
+  - Branch: dmichaels-20250204-fix-types-file | from main (94e6200508ee4116fefd54134eb24cd1a56fdf33) | PR-335
+  - Fixed typo (missing comma in array list) in types/file.py.
+
+
+0.133.1
+=======
+`PR 330 chore: update PI information for UW <https://github.com/smaht-dac/smaht-portal/pull/330>`_
+
+* Update PI information in awardees page
+
+
+0.133.0
+=======
+* 2025-02-03 / dmichaels
+  - Branch: dmichaels-20250203-non-admin-view-raw | from main (54b86b7c6cd0910daafbe9c31c1be90d9120dcd3) | PR-333
+  - Changed to allow non-admin users to use frame=raw; for smaht-submitr which relies on this.
+
+
+0.132.2
+=======
+`PR 332 feat: add animation to sidebar <https://github.com/smaht-dac/smaht-portal/pull/332>`_
+
+* Add animation to sliding sidebar
+
+
+0.132.1
+=======
+`PR 328 fix: update broken link in error page <https://github.com/smaht-dac/smaht-portal/pull/328>`_
+
+* Correct broken link to account creation doc
+
+
+=======
+0.132.0
+=======
+`PR 323 SN Ontology terms <https://github.com/smaht-dac/smaht-portal/pull/323>`_
+
+* Update properties for OntologyTerm item to be implemented with Tissue `uberon_id`
+* Add parent item Ontology
+
+
+0.131.1
+=======
+
+* Show archival status of Unaligned Reads on Submission Status page
+
+
+0.131.0
+=======
+`PR 319 SN Reference file columns <https://github.com/smaht-dac/smaht-portal/pull/319>`
+
+* Remove `height`, `weight`, and `body_mass_index` from Donor, as these properties have been transferred to MedicalHistory;  remove `hardy_scale` from DeathCircumstances, as this property has been transferred to Donor
+
+0.130.1
+=======
+`PR 325: feat: updates to notifications panel <https://github.com/smaht-dac/smaht-portal/pull/325>`
+
+* Refactor Notifications Panel component
+
+
+0.130.0
+=======
+* 2025-01-25 / dmichaels / branch: dmichaels-20250125-recent-files-summary-fix / PR-??
+* Fix in endpoints/recent_files_summary/recent_files_summary.py/hoist_items_additional_value_up_one_level;
+  was not checking existence first for: del item[additional_value_property_name]
+
+
+0.129.0
+=======
+`Submissions statistics updates  <https://github.com/smaht-dac/smaht-portal/pull/317>`_
+
+* New GCC-only, TTD-only etc. filtering options for the submission statistics page
+* New hide empty columns setting in the usage statistics page
+* New high contrast setting for the usage statistics page
+* New date histogram interval options for the submission statistics page
+* Change file item type to SubmittedFile for the submission statistics page
+* Refactor cumulative sum calculation
+
+
+0.128.2
+=======
+
+* Add key metrics to QC metrics
+
+
+0.128.1
+=======
+`PR 307: fix: adjust data release date on safari <https://github.com/smaht-dac/smaht-portal/pull/307>`
+
+* Adjust release date to prevent safari "Invalid date" bug
+
+
+0.128.0
+=======
+`PR 322: QC metrics visualization <https://github.com/smaht-dac/smaht-portal/pull/322>`_
+
+* Add QC metrics visualization
+
+
+0.127.1
+=======
+Hotfixes for browse view
+* Remove reference to `reference_genome` from File schema https://github.com/smaht-dac/smaht-portal/pull/320
+* Remove `reference_genome` embed from UnalignedReads/Reference File https://github.com/smaht-dac/smaht-portal/pull/321
+
+
+0.127.0
+=======
+`PR 305: BM Browse View <https://github.com/smaht-dac/smaht-portal/pull/305>`_
+
+* Implements UI of browse view + generalization of benchmarking layout
+* Rework navbar to include new structure
+* Adjustments to home page to include only two tiers
+* Slight schema edits for facets and columns
+* Update to SPC version 0.1.92
+
+
+0.126.1
+=======
+`PR 313 SN Reference file columns <https://github.com/smaht-dac/smaht-portal/pull/313>`_
+
+* Add `title` and `version` to columns for ReferenceFile
+* Minor fix: remove Basecalling from the automated spreadsheet script
+
+
+0.126.0
+=======
+`PR246: feat: homepage updates <https://github.com/smaht-dac/smaht-portal/pull/246>`_
+
+* Implement new announcements panel on homepage
+* Resize homepage layout for larger screens
+
+
+0.125.0
+=======
+
+* 2024-11-20/dmichaels - branch: dmichaels-20241119-browse-view (PR-295)
+
+* Added module browse.py for /browse; adapted from fourfront/.../search.py/browse.
+  This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1184
+
+* New endpoint /recent_files_summary which, by default, returns info for files released
+  within the past three months grouped by release-date, cell-line or donor, and 
+  file-description. The specific fields used for these groupings are:
+  
+  - release-date: file_status_tracking.released
+  - cell-line: file_sets.libraries.analytes.samples.sample_sources.cell_line.code
+  - donor: donors.display_title
+  - file-dsecription: release_tracker_description
+  
+  Note that release_tracker_description is a newer (2024-12) calcprop (PR-298/sn_file_release_tracker);
+  and included in this branch are these files from the branch sn_file_release_tracker:
+  
+  - src/encoded/item_utils/file.py
+  - src/encoded/types/file.py
+  
+  Added these new modules to support this new endpoint:
+  
+  - src/encoded/endpoints/recent_files_summary/recent_files_summary.py
+  - src/encoded/endpoints/recent_files_summary/recent_files_summary_fields.py
+  - src/encoded/endpoints/recent_files_summary/recent_files_summary_troubleshooting.py (functionally unnecessary)
+  - src/encoded/endpoints/elasticsearch_utils.py (maybe move to dcicutils eventually)
+  - src/encoded/endpoints/endpoint_utils.py (maybe move to dcicutils eventually)
+  
+  This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1192
+  
+  - FYI commit before recent (2025-01-13) change for additional tissue info: bf7ed2bcb9df387721fd329e36e8c15b97a43681
+
+
+0.124.2
+=======
+`Increase limit of SampleSources retrieved for SubmissionStatus page <https://github.com/smaht-dac/smaht-portal/pull/315>`_
+
+* Increase limit of SampleSources retrieved for SubmissionStatus page select to 300
+
+
 0.124.1
 =======
-`PR BM Register Text Fix <https://github.com/smaht-dac/smaht-portal/pull/297>`_
+`PR 297: BM Register Text Fix <https://github.com/smaht-dac/smaht-portal/pull/297>`_
 
 * Update text in UserRegistrationModal to not refer to 2023 data release
 
@@ -37,6 +412,7 @@ Change Log
 * In `commands/release-file.py` and `commands/create-annotated-filenames.py`:
   * Assay and sequencer codes value set to XX for DSA fasta files and chain files
   * For Supplementary Files, use `haplotype`, `target_assembly`, and `source_assembly` properties to create annotated filenames for chain and fasta files
+
 
 0.121.0
 =======

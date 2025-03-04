@@ -5,6 +5,11 @@ from snovault import collection, load_schema
 from snovault.util import debug_log, get_item_or_none
 from pyramid.view import view_config
 from encoded.validator_decorators import link_related_validator
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> main
 from .sample import Sample
 
 from .submitted_item import (
@@ -25,6 +30,11 @@ from .utils import (
 from ..item_utils import (
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
+<<<<<<< HEAD
+=======
+    donor as donor_utils,
+    item as item_utils
+>>>>>>> main
 )
 
 
@@ -55,6 +65,7 @@ class TissueSample(Sample):
 
 @link_related_validator
 def validate_external_id_on_add(context, request):
+<<<<<<< HEAD
     """Check that `external_id` is consistent with `category` nomenclature if the sample_source.donor is a Benchmarking or Production tissue on add."""
     data = request.json
     external_id = data['external_id']
@@ -65,12 +76,24 @@ def validate_external_id_on_add(context, request):
         if not assert_external_id_category_match(external_id, category):
             msg = f"external_id {external_id} does not match {study} nomenclature for {category} samples."
             return request.errors.add('body', 'TissueSample: invalid property', msg)
+=======
+    """Check that `external_id` matches linked tissue `external_id` if Benchmarking or Production tissue sample on addd."""
+    data = request.json
+    external_id = data['external_id']
+    sample_sources = data["sample_sources"]
+    tissue = get_item_or_none(request, sample_sources[0], 'sample-sources')
+    if (study := tissue_utils.get_study(tissue)):
+        if not assert_external_id_tissue_match(external_id, tissue):
+            msg = f"external_id {external_id} does not match Tissue external_id {item_utils.get_external_id(tissue)}."
+            return request.errors.add('body', 'TissueSample: invalid link', msg)
+>>>>>>> main
         else:
             return request.validated.update({}) 
 
 
 @link_related_validator
 def validate_external_id_on_edit(context, request):
+<<<<<<< HEAD
     """Check that `external_id` is consistent with `category` nomenclature if the sample_source is a Benchmarking or Production tissue on edit."""
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
@@ -82,10 +105,23 @@ def validate_external_id_on_edit(context, request):
         if not assert_external_id_category_match(external_id, category):
             msg = f"external_id {external_id} does not match {study} nomenclature for {category} samples."
             return request.errors.add('body', 'TissueSample: invalid property', msg)
+=======
+    """Check that `external_id` matches linked tissue `external_id` if Benchmarking or Production tissue sample on edit."""
+    existing_properties = get_properties(context)
+    properties_to_update = get_properties(request)
+    sample_sources = get_property_for_validation('sample_sources',existing_properties,properties_to_update)
+    external_id = get_property_for_validation('external_id',existing_properties,properties_to_update)
+    tissue = get_item_or_none(request, sample_sources[0], 'sample-sources')
+    if (study:=tissue_utils.get_study(tissue)):
+        if not assert_external_id_tissue_match(external_id, tissue):
+            msg = f"external_id {external_id} does not match Tissue external_id {item_utils.get_external_id(tissue)}."
+            return request.errors.add('body', 'TissueSample: invalid link', msg)
+>>>>>>> main
         else:
             return request.validated.update({})  
 
 
+<<<<<<< HEAD
 def assert_external_id_category_match(external_id: str, category: str):
     """Check that external_id pattern matches for category."""
     if category == "Homogenate" or category == "Liquid":
@@ -96,6 +132,13 @@ def assert_external_id_category_match(external_id: str, category: str):
         return tissue_sample_utils.is_core_external_id(external_id)
     else:
         return ""
+=======
+def assert_external_id_tissue_match(external_id, tissue):
+    """Check that start of tissue sample external_id matches tissue external_id."""
+    tissue_id = item_utils.get_external_id(tissue)
+    tissue_kit_id = tissue_sample_utils.get_tissue_kit_id_from_external_id(external_id)
+    return tissue_id == tissue_kit_id
+>>>>>>> main
 
 
 TISSUE_SAMPLE_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [

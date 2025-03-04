@@ -10,6 +10,7 @@ from ..item_utils import (
 from .utils import RequestHandler, get_property_values_from_identifiers
 
 from . import (
+    constants,
     item as item_utils,
     sample as sample_utils,
     tissue as tissue_utils
@@ -107,3 +108,15 @@ def get_donor(request_handler: RequestHandler, properties: Dict[str, Any]) -> Li
             tissues,
             tissue_utils.get_donor
         )
+
+
+def get_tissue_kit_id(properties: Dict[str, Any]) -> str:
+    """Get tissue kit ID associated with tissue sample."""
+    external_id = item_utils.get_external_id(properties)
+    if is_production(properties) or is_benchmarking(properties):
+        return get_tissue_kit_id_from_external_id(external_id)
+    return ""
+
+def get_tissue_kit_id_from_external_id(external_id: str) -> str:
+    """Get tissue kit ID from external ID."""
+    return "-".join(external_id.split("-")[0:2])
