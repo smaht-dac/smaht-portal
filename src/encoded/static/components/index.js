@@ -66,6 +66,7 @@ content_views.register(BrowseView, 'Browse', 'selection');
 content_views.register(BrowseView, 'Browse', 'multiselect');
 
 content_views.register(FileSearchView, 'FileSearchResults');
+content_views.register(FileSearchView, 'SubmittedFileSearchResults');
 
 // Fallback for anything we haven't registered
 content_views.fallback = function () {
