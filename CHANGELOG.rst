@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.140.2
+=======
+`PR 362: page title and search table style updates <https://github.com/smaht-dac/smaht-portal/pull/362>`_
+
+* Adds background and breadcrumb to Search View, My Profile, and Impersonate a User page titles
+* Left aligns all search result table column's content unless it is explicitly defined (e.g. Benchmarking, Browse View, and File Search Views)
+* Fixes missing File Search View registration with SubmittedFile
+* Fixes LoadMoreAsYouScroll bug
+
+
 0.140.1
 =======
 `PR 364: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/364>`_
