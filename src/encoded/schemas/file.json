@@ -126,6 +126,7 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "Consensus Reads",
                     "Genome Annotation",
                     "Genome Region",
                     "Germline Variant Calls",

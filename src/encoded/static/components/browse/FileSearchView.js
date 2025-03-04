@@ -87,7 +87,9 @@ function FileTableWithSelectedFilesCheckboxes(props){
         toggleFullScreen, isFullscreen, // todo: remove maybe, pass only to AboveTableControls
         keepSelectionInStorage: true,
         separateSingleTermFacets: false,
-        columns, hideFacets
+        columns, hideFacets,
+        rowHeight: 31,
+        openRowHeight: 40
     };
 
     return <CommonSearchView {...passProps} termTransformFxn={Schemas.Term.toName} />;
@@ -95,7 +97,7 @@ function FileTableWithSelectedFilesCheckboxes(props){
 FileTableWithSelectedFilesCheckboxes.propTypes = {
     // Props' type validation based on contents of this.props during render.
     'href'                      : PropTypes.string.isRequired,
-    'columnExtensionMap'        : PropTypes.object.isRequired,
+    'columnExtensionMap'        : PropTypes.object,
     'context'                   : PropTypes.shape({
         'columns'                   : PropTypes.objectOf(PropTypes.object).isRequired,
         'total'                     : PropTypes.number.isRequired
@@ -104,7 +106,6 @@ FileTableWithSelectedFilesCheckboxes.propTypes = {
         'title'                     : PropTypes.string.isRequired
     })),
     'schemas'                   : PropTypes.object,
-    'browseBaseState'           : PropTypes.string.isRequired,
     'selectItem'                : PropTypes.func,
     'selectedItems'             : PropTypes.objectOf(PropTypes.object),
 };
