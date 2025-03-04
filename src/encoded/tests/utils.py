@@ -390,10 +390,20 @@ def replace_affiliations(
         for key, value in item_insert.items()
         if key not in ["submission_centers", "consortia"]
     }
-    return {
+    test_insert = {
         **insert_without_affiliation,
         "submission_centers": [submission_center["uuid"]],
     }
+    if 'submitted_id' in item_insert:
+        test_insert['submitted_id'] = replace_submitted_id(item_insert.get("submitted_id",""), submission_center)
+    return test_insert
+
+
+def replace_submitted_id(
+    submitted_id: str, submission_center: Dict[str, Any]
+) -> str:
+    """Replace affiliation portion of submitted_id to display test submission center code."""
+    return f"{submission_center.get('code','').upper()}_{('_').join(submitted_id.split('_')[1:])}"
 
 
 def post_identifying_insert(

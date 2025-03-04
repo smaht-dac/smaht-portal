@@ -7,7 +7,11 @@ from ..item_utils import (
     item as item_utils
 )
 
-from .utils import RequestHandler, get_property_values_from_identifiers
+from .utils import (
+    RequestHandler,
+    get_property_values_from_identifiers,
+    get_property_value_from_identifier,
+)
 
 from . import (
     constants,
