@@ -23,3 +23,17 @@ def upgrade_tissue_3_4(value: Dict[str, Any], system: Dict[str, Any]) -> Dict[st
     existing_recovery_datetime = value.get("recovery_datetime")
     if existing_recovery_datetime:
         del value["recovery_datetime"]
+
+
+@upgrade_step("tissue", "4", "5")
+def upgrade_tissue_4_5(value: Dict[str, Any], system: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle change of uberon_id from a string to a linkTo to OntologyTerm"""
+    if "uberon_id" in value:
+        terms = system['registry']['collections']['OntologyTerm']
+        oterm = terms.get(value['uberon_id'])
+        del value['uberon_id']
+        if oterm:
+            try:
+                value['uberon_id'] = str(oterm.uuid)
+            except AttributeError:
+                pass
