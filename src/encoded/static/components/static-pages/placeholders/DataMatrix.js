@@ -1,9 +1,9 @@
 'use strict';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import { Button, Form, Popover } from 'react-bootstrap';
+import ReactTooltip from 'react-tooltip';
 import { console, object, ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { VisualBody } from '../components';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
@@ -13,7 +13,7 @@ export class DataMatrix extends React.PureComponent {
 
     static defaultProps = {
         "queries": {
-            "url": "https://data.smaht.org/search/?type=File&limit=all",
+            "url": "/search/?type=SubmittedFile&limit=all",
             "url_fields": []
         },
         "valueChangeMap": {},
@@ -167,7 +167,7 @@ export class DataMatrix extends React.PureComponent {
             updatedState[resultKey] = result["@graph"] || [];
             updatedState[resultKey] = _.map(updatedState[resultKey], (r) => this.standardizeResult(r));
 
-            this.setState(updatedState);
+            this.setState(updatedState, () => ReactTooltip.rebuild());
         };
 
         const commonFallback = (result) => {

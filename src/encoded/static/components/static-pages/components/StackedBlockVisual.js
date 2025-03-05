@@ -9,6 +9,7 @@ import queryString from 'query-string';
 import OverlayTrigger from 'react-bootstrap/esm/OverlayTrigger';
 import { Popover, Button } from 'react-bootstrap';
 import { console, object, logger } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { roundLargeNumber } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
 
 export function groupByMultiple(objList, propertiesList){
@@ -41,10 +42,11 @@ export class VisualBody extends React.PureComponent {
         } else if (data) {
             count = 1;
         }
-        if (count > 999){
-            return <span style={{ 'fontSize' : '0.70rem', 'position' : 'relative', 'top' : -1 }}>{ count }</span>;
+        if (count >= 1000){
+            const decimal = count >= 10000 ? 0 : 1;
+            return <span style={{ 'fontSize' : '0.70rem', 'position' : 'relative', 'top' : -1 }} data-tip={count}>{ roundLargeNumber(count, decimal) }</span>;
         }
-        else if (count > 99){
+        else if (count >= 100){
             return <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }}>{ count }</span>;
         }
         return <span>{ count }</span>;
@@ -77,7 +79,7 @@ export class VisualBody extends React.PureComponent {
     }
 
     /**
-     * @param {*} data An ExperimentSet or list of ExperimentSet, represented by a block/tile.
+     * @param {*} data A File or list of Files, represented by a block/tile.
      * @param {Object} props Props passed in from the StackedBlockVisual Component instance.
      */
     blockPopover(data, blockProps, parentGrouping){
