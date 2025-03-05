@@ -114,5 +114,10 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_ALIGNED-READS_[A-Z0-9-_.]{4,}$"
         }
+    },
+    "facets": {
+        "reference_genome.display_title": {
+            "title": "Reference Genome"
+        }
     }
 }

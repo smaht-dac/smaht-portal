@@ -7,6 +7,20 @@ smaht-portal
 Change Log
 ----------
 
+0.141.2
+=======
+`PR 366: SN reference genome facet <https://github.com/smaht-dac/smaht-portal/pull/366>`_
+
+* Add `reference_genome.display_title` facet to all file types with a `reference_genome` property (AlignedReads, OutputFile, SupplementaryFile, and VariantCalls) so that the facet shows up in File Search view
+
+
+0.141.1
+=======
+`PR 365: SN relatives enums <https://github.com/smaht-dac/smaht-portal/pull/365>`_
+
+* Add enums to `relatives` in FamilyHistory
+
+
 0.141.0
 =======
 `PR 349: SN OntologyTerm update <https://github.com/smaht-dac/smaht-portal/pull/349>`_
