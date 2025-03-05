@@ -103,9 +103,7 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                             sample_group?.items?.[0]?.['additional_value'];
 
                         if (sample_group_type) {
-                            sample_group_title += ` - ${
-                                sample_group_type?.split(':')[0]
-                            }`;
+                            sample_group_title += ` - ${sample_group_type}`;
                         }
 
                         return (
