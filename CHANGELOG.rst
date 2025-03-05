@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.141.1
+=======
+`PR 365: SN OntologyTerm update <https://github.com/smaht-dac/smaht-portal/pull/365>`_
+
+* Add enums to `relatives` in FamilyHistory
+
+
 0.141.0
 =======
 `PR 349: SN OntologyTerm update <https://github.com/smaht-dac/smaht-portal/pull/349>`_
