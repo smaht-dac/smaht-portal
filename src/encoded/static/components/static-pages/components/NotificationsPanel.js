@@ -7,7 +7,7 @@ const announcements = [
         title: 'Data Retraction',
         body: (
             <span>
-                The WGS ONT PromethION 24 BAM file of COLO829-BLT50,{' '}
+                One WGS ONT PromethION 24 BAM from COLO829-BLT50,{' '}
                 <a href="/output-files/beca52fb-ad5b-4eaa-832a-2929c7bf7577/">
                     SMAFIPHR8QOG
                 </a>
