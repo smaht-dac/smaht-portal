@@ -28,13 +28,15 @@ def get_software(properties: Dict[str, Any]):
 
 
 def get_cell_lines(
-    properties: Dict[str, Any], request_handler: RequestHandler
+    properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
 ) -> List[Union[str, Dict[str, Any]]]:
     """Get cell_lines from the derived_from files of the assembly."""
-    derived_from = get_derived_from(properties)
-    return get_property_values_from_identifiers(
-                request_handler, derived_from, partial(file_utils.get_cell_lines, request_handler=request_handler)
-            )
+    if request_handler:
+        derived_from = get_derived_from(properties)
+        return get_property_values_from_identifiers(
+                    request_handler, derived_from, partial(file_utils.get_cell_lines, request_handler=request_handler)
+                )
+    return properties.get("cell_lines", [])
 
 
 def get_donors(
@@ -45,7 +47,7 @@ def get_donors(
         return get_property_values_from_identifiers(
                 request_handler, get_derived_from(properties), partial(file_utils.get_donors, request_handler=request_handler)
             )
-    return get_derived_from(properties).get("donors","")
+    return properties.get("donors", [])
 
 
 

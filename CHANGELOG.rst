@@ -7,11 +7,68 @@ smaht-portal
 Change Log
 ----------
 
-0.139.0
+0.142.0
 =======
 `PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`
 
 * Update the About page Alluvial plot and data matrix
+
+
+0.141.2
+=======
+`PR 366: SN reference genome facet <https://github.com/smaht-dac/smaht-portal/pull/366>`_
+
+* Add `reference_genome.display_title` facet to all file types with a `reference_genome` property (AlignedReads, OutputFile, SupplementaryFile, and VariantCalls) so that the facet shows up in File Search view
+
+
+0.141.1
+=======
+`PR 365: SN relatives enums <https://github.com/smaht-dac/smaht-portal/pull/365>`_
+
+* Add enums to `relatives` in FamilyHistory
+
+
+0.141.0
+=======
+`PR 349: SN OntologyTerm update <https://github.com/smaht-dac/smaht-portal/pull/349>`_
+
+* Change `uberon_id`` in Tissue from a string to a linkTo to OntologyTerm
+* Add upgrader for tissue
+* Update File `sample_summary` to include tissue information from OntologyTerm
+
+
+0.140.2
+=======
+`PR 362: page title and search table style updates <https://github.com/smaht-dac/smaht-portal/pull/362>`_
+
+* Adds background and breadcrumb to Search View, My Profile, and Impersonate a User page titles
+* Left aligns all search result table column's content unless it is explicitly defined (e.g. Benchmarking, Browse View, and File Search Views)
+* Fixes missing File Search View registration with SubmittedFile
+* Fixes LoadMoreAsYouScroll bug
+
+
+0.140.1
+=======
+`PR 364: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/364>`_
+* Add "Consensus Reads" to `data_category` enums for File
+
+
+0.140.0
+=======
+`PR 354: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/354>`_
+* 2025-02-21 / dmichaels
+  - Branch: dmichaels-20250221-release-tracker-api-title | PR-355
+    - Derived from branch: sn_release_tracker_title (commit: d202c1c55b69389d031070ada85ce180b1ed603d)
+  - Changes to the release tracker API (i.e. /recent_files_summary) to use the new (calculated)
+    property release_tracker_title (created by Sarah in branch: sn_release_tracker_title);
+    old way of doing it can be accessed using the legacy=true URL query argument.
+* Add calcprop to File, `release_tracker_title`, which displays in order of priority `override_release_tracker_title`, `CellCultureMixture.code`, `CellLine.code`, or `Tissue.display_title` for use as a header in the Release Tracker on the home page
+
+0.139.0
+=======
+`PR 360: fix: add resources to hard-coded disabled breadcrumbs <https://github.com/smaht-dac/smaht-portal/pull/360>`_
+
+* Disable breadcrumbs for resources pages
 
 
 0.138.0
