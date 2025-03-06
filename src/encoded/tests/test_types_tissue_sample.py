@@ -225,7 +225,7 @@ def test_validate_tissue_sample_metadata_on_add(
     post_item(es_testapp, post_body, 'tissue_sample', status=expected_status)
 
 
-def test_tissue_sample_force_pass(testapp: TestApp, workbook: None, output_file2: Dict[str, Any]) -> None:
+def test_tissue_sample_force_pass(es_testapp: TestApp, workbook: None, output_file2: Dict[str, Any]) -> None:
     """ Tests that we can skip md5 check by passing ?force_md5 to patch output_file2 to md5 of output_file """
     atid = item_utils.get_at_id(
         get_item(
@@ -234,5 +234,5 @@ def test_tissue_sample_force_pass(testapp: TestApp, workbook: None, output_file2
             collection="TissueSample"
         )
     )
-    testapp.patch_json(f'/{atid}', {"preservation_type": "Fresh"}, status=422)  # fails without force_pass
-    testapp.patch_json(f'/{atid}?force_pass', {"preservation_type": "Fresh"}, status=200)
+    es_testapp.patch_json(f'/{atid}', {"preservation_type": "Fresh"}, status=422)  # fails without force_pass
+    es_testapp.patch_json(f'/{atid}?force_pass', {"preservation_type": "Fresh"}, status=200)
