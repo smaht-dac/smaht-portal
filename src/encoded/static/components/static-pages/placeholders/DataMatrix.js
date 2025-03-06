@@ -48,8 +48,7 @@ export class DataMatrix extends React.PureComponent {
             "data_type",
             "file_format.display_title",
             "data_category",
-            "software.display_title",
-            "file_format.display_title",
+            "software.display_title"
         ],
         "disableConfigurator": false
     };
