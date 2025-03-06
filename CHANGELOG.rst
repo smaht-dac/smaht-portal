@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.142.0
+=======
+`PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`
+
+* Update the About page Alluvial plot and data matrix
+
+
 0.141.2
 =======
 `PR 366: SN reference genome facet <https://github.com/smaht-dac/smaht-portal/pull/366>`_

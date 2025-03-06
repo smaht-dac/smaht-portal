@@ -89,7 +89,7 @@ export function sankeyFunc() {
     };
 
     sankey.link = function () {
-        var curvature = 0.5;
+        var curvature = 0.4;
 
         function link(d) {
             var x0 = d.source.x + d.source.dx,
@@ -343,12 +343,19 @@ export function sankeyFunc() {
         }
 
         function alphabetical(a, b) {
-            return a.name.localeCompare(b.name);
+            console.log(a, b);
+            if (a?.data_generator_category === b?.data_generator_category) {
+                return a.name.localeCompare(b.name);
+            }
+            if (b?.data_generator_category === 'GCC') return 1;
+            return a?.name?.localeCompare(b?.name);
         }
 
         function categorical(a, b) {
-            if (b.category === 'genetic') return 1; // force genetic as top
-            return a.category.localeCompare(b.category);
+            if (a?.category && b?.category && a.type === b.type) {
+                if (b.category === 'genetic') return 1; // force genetic as top
+                return a.category.localeCompare(b.category);
+            }
         }
 
         function descendingDepth(a, b) {
@@ -375,7 +382,7 @@ export function sankeyFunc() {
                 ty = 0;
             node.sourceLinks.forEach(function (link) {
                 link.sy = sy;
-                sy += link.dy;
+                sy += link.dy / 2;
             });
             node.targetLinks.forEach(function (link) {
                 link.ty = ty;
