@@ -390,6 +390,7 @@ def replace_affiliations(
         for key, value in item_insert.items()
         if key not in ["submission_centers", "consortia"]
     }
+    
     test_insert = {
         **insert_without_affiliation,
         "submission_centers": [submission_center["uuid"]],
