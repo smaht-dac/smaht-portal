@@ -939,7 +939,7 @@ const Block = React.memo(function Block(props){
         const range = colorRanges.find(r => 
           value >= r.min && (r.max === undefined || value < r.max)
         );
-        return range ? range.color : null; // bulunamazsa null döndürüyoruz
+        return range ? range.color : null;
       }
       
 
