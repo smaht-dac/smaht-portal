@@ -159,6 +159,8 @@ export class VisualBody extends React.PureComponent {
             const initialHref = queryUrl;
             const hrefParts = url.parse(initialHref, true);
             const hrefQuery = _.clone(hrefParts.query);
+            //override path
+            hrefParts.pathname = '/search/';
             delete hrefQuery.limit;
             delete hrefQuery.field;
             _.extend(hrefQuery, currentFilteringPropertiesVals);
@@ -222,7 +224,7 @@ export class VisualBody extends React.PureComponent {
                         <h5 className="text-400 mt-08 mb-15 text-center"><b>{title}</b></h5>
                         <hr className="mt-0 mb-1" />
                         {StackedBlockVisual.generatePopoverRowsFromJSON(keyValsToShow, this.props)}
-                        {makeSingleItemButton(viewButtonDisabled)}
+                        { makeSearchButton(viewButtonDisabled)/* makeSingleItemButton(viewButtonDisabled) */}
                     </div>
                 }
             </Popover>
