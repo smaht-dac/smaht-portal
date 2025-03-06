@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.142.1
+=======
+`PR 367: feat: COLO829BLT50 bam file retraction announcement <https://github.com/smaht-dac/smaht-portal/pull/367>`_
+
+* Add retraction announcement
+
+
 0.142.0
 =======
 `PR 309: SN validate external_id <https://github.com/smaht-dac/smaht-portal/pull/309>`_
