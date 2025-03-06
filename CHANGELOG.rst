@@ -7,14 +7,21 @@ smaht-portal
 Change Log
 ----------
 
-0.141.3
+0.142.1
 =======
 `PR 359: feat: release tracker updates <hhttps://github.com/smaht-dac/smaht-portal/pull/359>`_
 
 * Enable release tracker Links
 
 
+0.142.0
 =======
+`PR 309: SN validate external_id <https://github.com/smaht-dac/smaht-portal/pull/309>`_
+
+*  Add a custom validator to TissueSample that ensures the `external_id` for items from benchmarking and production Donors matches the pattern expected for category (currently only applied to TPC submitted items)
+* Make `tpc_submitted` a required property for Donor
+
+
 0.141.2
 =======
 `PR 366: SN reference genome facet <https://github.com/smaht-dac/smaht-portal/pull/366>`_
