@@ -5,7 +5,7 @@ from copy import copy, deepcopy
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 # from dcicutils.misc_utils import print_error_message
-# from pyramid.httpexceptions import HTTPBadRequest
+from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.view import view_config
 # from snovault import CONNECTION
 from snovault.util import debug_log
@@ -14,6 +14,7 @@ from snovault.search.search import (
     make_search_subreq
 )
 from urllib.parse import urlencode
+import json
 #
 # from .types.base import SMAHTItem
 # from snovault.types.base import get_item_or_none
@@ -50,6 +51,7 @@ def includeme(config):
     # config.add_route('get_higlass_viewconf', '/get_higlass_viewconf/')
     # config.add_route('get_higlass_cohort_viewconf', '/get_higlass_cohort_viewconf/')
     config.add_route('date_histogram_aggregations', '/date_histogram_aggregations/')
+    config.add_route('bar_plot_chart',              '/bar_plot_aggregations')
     config.scan(__name__)
 
 
@@ -197,11 +199,6 @@ DATE_RANGE_PRESETS = {
 }
 
 
-def last_day_of_month(any_day):
-    next_month = any_day.replace(day=28) + timedelta(days=4)
-    return next_month - timedelta(days=next_month.day)
-
-
 def convert_date_range(date_range_str):
     data_range_split = date_range_str.split('|')
     preset = data_range_split[0]
@@ -221,6 +218,106 @@ def convert_date_range(date_range_str):
             date_to = datetime.strptime(data_range_split[2], '%Y-%m-%d')
 
     return [date_from, date_to]
+
+
+
+@view_config(route_name='bar_plot_chart', request_method=['GET', 'POST'])
+@debug_log
+def bar_plot_chart(context, request):
+
+    MAX_BUCKET_COUNT = 30  # Max amount of bars or bar sections to return, excluding 'other'.
+    DEFAULT_BROWSE_PARAM_LISTS = {'type': ['SubmittedFile']}
+    SUM_FILES_EXPS_AGGREGATION_DEFINITION = {}
+
+    try:
+        json_body = request.json_body
+        search_param_lists = json_body.get('search_query_params', deepcopy(DEFAULT_BROWSE_PARAM_LISTS))
+        fields_to_aggregate_for = json_body.get('fields_to_aggregate_for', request.params.getall('field'))
+    except json.decoder.JSONDecodeError:
+        search_param_lists = request.GET.dict_of_lists()
+        fields_to_aggregate_for = request.params.getall('field')
+
+    if len(fields_to_aggregate_for) == 0:
+        raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
+
+    primary_agg = {
+        "field_0": {
+            "terms": {
+                "field": "embedded." + fields_to_aggregate_for[0] + '.raw',
+                "missing": TERM_NAME_FOR_NO_VALUE,
+                "size": MAX_BUCKET_COUNT
+            },
+            "aggs": deepcopy(SUM_FILES_EXPS_AGGREGATION_DEFINITION)
+        }
+    }
+
+    primary_agg.update(deepcopy(SUM_FILES_EXPS_AGGREGATION_DEFINITION))
+
+    # Nest in additional fields, if any
+    curr_field_aggs = primary_agg['field_0']['aggs']
+    for field_index, field in enumerate(fields_to_aggregate_for):
+        if field_index == 0:
+            continue
+        curr_field_aggs["field_" + str(field_index)] = {
+            "terms": {
+                "field": "embedded." + field + '.raw',
+                "missing": TERM_NAME_FOR_NO_VALUE,
+                "size": MAX_BUCKET_COUNT
+            },
+            "aggs": deepcopy(SUM_FILES_EXPS_AGGREGATION_DEFINITION)
+        }
+        curr_field_aggs = curr_field_aggs['field_' + str(field_index)]['aggs']
+
+    search_param_lists['limit'] = search_param_lists['from'] = [0]
+    subreq = make_search_subreq(request, '{}?{}'.format('/search/', urlencode(search_param_lists, True)))
+    search_result = perform_search_request(None, subreq, custom_aggregations=primary_agg)
+
+    for field_to_delete in ['@context', '@id', '@type', '@graph', 'title', 'filters', 'facets', 'sort', 'clear_filters', 'actions', 'columns']:
+        if search_result.get(field_to_delete) is None:
+            continue
+        del search_result[field_to_delete]
+
+    ret_result = {  # We will fill up the "terms" here from our search_result buckets and then return this dictionary.
+        "field": fields_to_aggregate_for[0],
+        "terms": {},
+        "total": {
+            "files": search_result['total'],
+        },
+        "other_doc_count": search_result['aggregations']['field_0'].get('sum_other_doc_count', 0),
+        "time_generated": str(datetime.utcnow())
+    }
+
+    def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0):
+
+        curr_bucket_totals = {
+            'files': int(bucket_result['doc_count'])
+        }
+
+        next_field_name = None
+        if len(fields_to_aggregate_for) > curr_field_depth + 1:  # More fields agg results to add
+            next_field_name = fields_to_aggregate_for[curr_field_depth + 1]
+            returned_buckets[bucket_result['key']] = {
+                "term": bucket_result['key'],
+                "field": next_field_name,
+                "total": curr_bucket_totals,
+                "terms": {},
+                "other_doc_count": bucket_result['field_' + str(curr_field_depth + 1)].get('sum_other_doc_count', 0),
+            }
+            for bucket in bucket_result['field_' + str(curr_field_depth + 1)]['buckets']:
+                format_bucket_result(bucket, returned_buckets[bucket_result['key']]['terms'], curr_field_depth + 1)
+
+        else:
+            # Terminal field aggregation -- return just totals, nothing else.
+            returned_buckets[bucket_result['key']] = curr_bucket_totals
+
+    for bucket in search_result['aggregations']['field_0']['buckets']:
+        format_bucket_result(bucket, ret_result['terms'], 0)
+
+    return ret_result
+
+
+
+
 
 #
 #
