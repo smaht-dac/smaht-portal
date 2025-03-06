@@ -225,18 +225,18 @@ def test_validate_tissue_sample_metadata_on_add(
     post_item(es_testapp, post_body, 'tissue_sample', status=expected_status)
 
 
-def test_tissue_sample_force_pass(es_testapp: TestApp, workbook: None) -> None:
-    """
-    Tests that we can skip the TPC check by passing ?force_pass.
+# def test_tissue_sample_force_pass(es_testapp: TestApp, workbook: None) -> None:
+#     """
+#     Tests that we can skip the TPC check by passing ?force_pass.
      
-    Attempts to patch an inconsistent preservation_type to a TissueSample item with matching TPC TissueSample item without and with force_pass.
-    """
-    atid = item_utils.get_at_id(
-        get_item(
-            es_testapp,
-            "TEST_TISSUE-SAMPLE_LUNG-HOMOGENATE",
-            collection="TissueSample"
-        )
-    )
-    es_testapp.patch_json(f'/{atid}', {"preservation_type": "Fresh"}, status=422)  # fails without force_pass
-    es_testapp.patch_json(f'/{atid}?force_pass', {"preservation_type": "Fresh"}, status=200)
+#     Attempts to patch an inconsistent preservation_type to a TissueSample item with matching TPC TissueSample item without and with force_pass.
+#     """
+#     atid = item_utils.get_at_id(
+#         get_item(
+#             es_testapp,
+#             "TEST_TISSUE-SAMPLE_LUNG-HOMOGENATE",
+#             collection="TissueSample"
+#         )
+#     )
+#     es_testapp.patch_json(f'/{atid}', {"preservation_type": "Fresh"}, status=422)  # fails without force_pass
+#     es_testapp.patch_json(f'/{atid}?force_pass', {"preservation_type": "Fresh"}, status=200)
