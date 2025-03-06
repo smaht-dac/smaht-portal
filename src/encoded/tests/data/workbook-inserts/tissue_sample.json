@@ -24,6 +24,19 @@
         ]
     },
     {
+        "uuid": "92b37a58-3abc-48aa-bde2-c839f3b67dd3",
+        "submission_centers": [
+            "ndri_tpc"
+        ],
+        "submitted_id": "NDRITEST_TISSUE-SAMPLE_LUNG-HOMOGENATE-X",
+        "external_id": "ST001-1D-020X",
+        "category": "Homogenate",
+        "preservation_type": "Snap Frozen",
+        "sample_sources": [
+            "TEST_TISSUE_LUNG"
+        ]
+    },
+    {
         "uuid": "61850d04-9207-43ab-aab9-1a62821febc3",
         "submission_centers": [
             "smaht"
