@@ -68,7 +68,6 @@ export class DataMatrix extends React.PureComponent {
         'headerColumnsOrder': PropTypes.arrayOf(PropTypes.string),
         'titleMap': PropTypes.object,
         'columnSubGroupingOrder': PropTypes.arrayOf(PropTypes.string),
-        'additionalData': PropTypes.object,
         'disableConfigurator': PropTypes.bool
     };
 
@@ -219,7 +218,7 @@ export class DataMatrix extends React.PureComponent {
     }
 
     render() {
-        const { headerFor, sectionStyle, valueChangeMap, additionalData, allowedFields, disableConfigurator = false } = this.props;
+        const { headerFor, sectionStyle, valueChangeMap, allowedFields, disableConfigurator = false } = this.props;
         const { queries, fieldChangeMap, columnGrouping, groupingProperties, colorRanges } = this.state;
 
         const isLoading = 
@@ -241,7 +240,7 @@ export class DataMatrix extends React.PureComponent {
         const listingClassName = sectionStyle['listingClassName'] || "col-10";
         const bodyProps = {
             groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping,
-            additionalData, listingClassName, labelClassName, colorRanges
+            listingClassName, labelClassName, colorRanges
         };
         
         const configurator = !disableConfigurator && (

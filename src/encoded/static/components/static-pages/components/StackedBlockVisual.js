@@ -35,7 +35,7 @@ export function extendListObjectsWithIndex(objList){
 export class VisualBody extends React.PureComponent {
 
     static blockRenderedContents(data, blockProps){
-        const { additionalData, groupingProperties, columnGrouping } = blockProps;
+        const { groupingProperties, columnGrouping } = blockProps;
         var count = 0;
         if (Array.isArray(data)) {
             count = data.length;
@@ -234,8 +234,10 @@ export class VisualBody extends React.PureComponent {
         const { results } = this.props;
         return (
             <StackedBlockVisual data={results} checkCollapsibility
-                {..._.pick(this.props, 'groupingProperties', 'columnGrouping', 'titleMap', 'headerPadding', 'additionalData',
-                    'columnSubGrouping', 'defaultDepthsOpen', 'duplicateHeaders', 'headerColumnsOrder', 'columnSubGroupingOrder', 'labelClassName', 'listingClassName', 'colorRanges')}
+                {..._.pick(this.props, 
+                    'groupingProperties', 'columnGrouping', 'titleMap', 'headerPadding',
+                    'columnSubGrouping', 'defaultDepthsOpen', 'duplicateHeaders', 'headerColumnsOrder',
+                    'columnSubGroupingOrder', 'labelClassName', 'listingClassName', 'colorRanges')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
             />
@@ -248,7 +250,6 @@ export class StackedBlockVisual extends React.PureComponent {
     static defaultProps = {
         'groupingProperties' : ['grant_type', 'center_name',  'lab_name'],
         'columnGrouping' : null,
-        'additionalData' : null,
         'blockHeight' : 28,
         'blockVerticalSpacing' : 2,
         'blockHorizontalSpacing' : 2,
@@ -467,21 +468,11 @@ export class StackedBlockVisual extends React.PureComponent {
     }
 
     renderContents(){
-        const { data : propData, groupingProperties, columnGrouping, additionalData } = this.props;
+        const { data : propData, groupingProperties, columnGrouping } = this.props;
         const { mounted, sorting, sortField, activeRow, activeColumn } = this.state;
         if (!mounted) return null;
         let tempData = [].concat(propData);
-        if (additionalData) {
-            // AdditionalData values corresponding to the keys. It is compared with the values coming from the database.
-            // If it is a new field, we add it into the data with a push operation.
-            _.each(additionalData, (item) => {
-                const cloned = _.clone(item);
-                delete cloned.count;
-                cloned.is_additional_data = true;
-                const appendedData = _.times(item.count, function (n) { return _.clone(cloned); });
-                tempData = tempData.concat(appendedData);
-            });
-        }
+        
         const data = extendListObjectsWithIndex(tempData);
         const nestedData = groupByMultiple(data, groupingProperties); // { 'Grant1' : { Lab1: { PI1: [...], PI2: [...] }, Lab2: {} } }
         let columnGroups = null;
@@ -647,7 +638,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const commonProps = _.pick(props, 'blockHeight', 'blockHorizontalSpacing', 'blockVerticalSpacing',
             'groupingProperties', 'depth', 'titleMap', 'blockClassName', 'blockRenderedContents',
             'groupedDataIndices', 'headerColumnsOrder', 'columnGrouping', 'blockPopover', 'colorRanges',
-            'activeRow', 'activeColumn', 'handleMouseEnter', 'handleMouseLeave', 'additionalData');
+            'activeRow', 'activeColumn', 'handleMouseEnter', 'handleMouseLeave');
         const width = (props.blockHeight + (props.blockHorizontalSpacing * 2)) + 1;
         const containerGroupStyle = {
             'width'         : width, // Width for each column
@@ -775,7 +766,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
     render(){
         const {
             groupingProperties, depth, titleMap, group, blockHeight, blockVerticalSpacing, blockHorizontalSpacing, headerColumnsOrder,
-            data, groupedDataIndices, index, duplicateHeaders, showGroupingPropertyTitles, checkCollapsibility, headerPadding, labelClassName, listingClassName, additionalData,
+            data, groupedDataIndices, index, duplicateHeaders, showGroupingPropertyTitles, checkCollapsibility, headerPadding, labelClassName, listingClassName,
             onSorterClick, sorting, sortField, activeRow, activeColumn } = this.props;
         const { open } = this.state;
 
