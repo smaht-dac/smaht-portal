@@ -99,10 +99,11 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                             );
                         }
 
-                        if (sample_group?.additional_value) {
-                            sample_group_title += ` - ${
-                                sample_group.additional_value?.split(':')[0]
-                            }`;
+                        const sample_group_type =
+                            sample_group?.items?.[0]?.['additional_value'];
+
+                        if (sample_group_type) {
+                            sample_group_title += ` - ${sample_group_type}`;
                         }
 
                         return (
@@ -119,10 +120,11 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                                 </div>
                                 <ul>
                                     {sample_group.items.map((item, i) => {
+                                        const { value, count } = item;
                                         return (
                                             <li key={i}>
                                                 <div>
-                                                    {item.count} {item.value}
+                                                    {count} {value}
                                                 </div>
                                             </li>
                                         );
