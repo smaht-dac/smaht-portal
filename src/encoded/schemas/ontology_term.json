@@ -108,6 +108,14 @@
             "description": "Ontology term that this term is grouped under - less specific term used in search",
             "type": "string",
             "linkTo": "OntologyTerm"
+        },
+        "valid_protocol_ids":{
+            "title": "Valid Protocol IDs",
+            "description": "Tissue protocol IDs that are valid for the ontology term - used to check that Uberon IDs are correctly linked to tissue items.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         }
     },
     "columns": {

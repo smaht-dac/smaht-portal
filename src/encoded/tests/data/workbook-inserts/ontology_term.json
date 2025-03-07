@@ -37,7 +37,8 @@
         "tags":[
             "test_terms",
             "test_top_terms-Lung"
-        ]
+        ],
+        "valid_protocol_ids": ["3Q","3R","1D"]
     },
     {
         "uuid": "90118425-2a51-475a-b6ef-ecf1accd0304",
@@ -55,6 +56,7 @@
         "title": "brain",
         "consortia": [
             "smaht"
-        ]
+        ],
+        "valid_protocol_ids": ["3AJ"]
     }
 ]
