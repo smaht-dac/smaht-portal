@@ -107,6 +107,19 @@ const FileViewHeader = (props) => {
                     Download File
                 </SelectedItemsDownloadButton>
             </div>
+
+            {!accessionsOfInterest.includes(accession) &&
+            status === 'retracted' ? (
+                <div className="callout warning mt-2 mb-1">
+                    <p className="callout-text">
+                        <span className="flag">Attention: </span>
+                        {notes_to_tsv && notes_to_tsv.length > 0
+                            ? notes_to_tsv[0].split(':')[1]
+                            : 'This file has been retracted.'}
+                    </p>
+                </div>
+            ) : null}
+
             {accessionsOfInterest.includes(accession) ? (
                 <div className="callout warning mt-2 mb-1">
                     <p className="callout-text">
@@ -133,6 +146,7 @@ const FileViewHeader = (props) => {
                     </p>
                 </div>
             ) : null}
+
             <div className="data-group data-row">
                 <div className="datum">
                     <span className="datum-title">File Accession </span>
