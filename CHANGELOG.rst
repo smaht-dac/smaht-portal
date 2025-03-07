@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.142.2
+=======
+`PR 369: fix: file size NaN bug <https://github.com/smaht-dac/smaht-portal/pull/369>`_
+
+* Prevent file size from rendering as NaN when undefined
+
+
 0.142.1
 =======
 `PR 359: feat: release tracker updates <hhttps://github.com/smaht-dac/smaht-portal/pull/359>`_
