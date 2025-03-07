@@ -43,6 +43,12 @@ export const VcfAnalysisOverview = ({ context }) => {
                             {software.length > 0
                                 ? software.map(
                                       ({ title = '', version = '' }, i) => {
+                                          // Add a "v" to number if not present
+                                          const version_string =
+                                              version[0] === 'v'
+                                                  ? version
+                                                  : 'v' + version;
+
                                           return title && version ? (
                                               <div
                                                   className="software-group"
@@ -52,7 +58,7 @@ export const VcfAnalysisOverview = ({ context }) => {
                                                   </div>
                                                   <div className="version">
                                                       <span>
-                                                          {'v' + version}
+                                                          {version_string}
                                                       </span>
                                                   </div>
                                               </div>

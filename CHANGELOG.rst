@@ -7,9 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+0.142.2
+=======
+`PR 368: fix: prevent version tag bug <https://github.com/smaht-dac/smaht-portal/pull/368>`_
+
+* style: keep version on one line
+* fix: don't append "v" to version if already present
+
+
 0.142.1
 =======
-`PR 359: feat: release tracker updates <hhttps://github.com/smaht-dac/smaht-portal/pull/359>`_
+`PR 359: feat: release tracker updates <https://github.com/smaht-dac/smaht-portal/pull/359>`_
 
 * Enable release tracker Links
 
