@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
 import { getBadge, capitalize, removeToolName } from './utils';
+import { head } from 'underscore';
 
 export const DataTable = ({
     data,
@@ -97,7 +98,7 @@ export const DataTable = ({
         const result = {};
         result['File'] = d['file_accession'];
         result['Released'] = d['file_status'] == 'released' ? 'Yes' : 'No';
-        result['Overall QC'] = d.quality_metrics?.overall_quality_status;
+        result['Overall QC status'] = d.quality_metrics?.overall_quality_status;
         qcFields.forEach((qcField, i) => {
             const metric = d.quality_metrics?.qc_values[qcField]['value'];
             const flag = d.quality_metrics?.qc_values[qcField]['flag'];
@@ -128,16 +129,6 @@ export const DataTable = ({
             </a>
         );
         result['Released'] = <div className="text-center">{d['Released']}</div>;
-        result['Overall QC'] = (
-            <div className="text-center">{getBadge(d['Overall QC'], true)}</div>
-        );
-        result['Review QC'] = (
-            <div
-                className="qc-link"
-                onClick={() => handleShowModal(d.original)}>
-                Review QC
-            </div>
-        );
         qcFields.forEach((qcField, i) => {
             const metric_key = removeToolName(qc_info[qcField]['key']);
             const metric = d[metric_key];
@@ -152,6 +143,16 @@ export const DataTable = ({
                 </span>
             );
         });
+        result['QC details'] = (
+            <div
+                className="qc-link"
+                onClick={() => handleShowModal(d.original)}>
+                QC details
+            </div>
+        );
+        result['Overall QC status'] = (
+            <div className="text-center">{getBadge(d['Overall QC status'], true)}</div>
+        );
 
         additionalColumns?.forEach((c) => {
             const c_formated = capitalize(c.replace('_', ' '));
@@ -179,9 +180,15 @@ export const DataTable = ({
             );
         }
 
+        const headerClass = col.length > 20 ? 'width-100' : '';
+
         return (
             <th key={col}>
-                {col} {sortIcon}
+                <div className="d-flex flex-row">
+                    <div className={headerClass}>{col}</div>
+                    <div className="align-self-center">{sortIcon}</div>
+                </div>
+                {/* <div className='width-40'>{col}</div> {sortIcon} */}
             </th>
         );
     });

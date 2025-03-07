@@ -2,6 +2,40 @@
 
 import React from 'react';
 import * as d3 from 'd3';
+import { BoxPlotWithFacets } from './BoxPlotWithFacets';
+
+export const getBoxPlot = (
+    qcData,
+    title,
+    metric,
+    assay,
+    sampleSource,
+    sequencer,
+    study
+) => {
+    const titleDiv = title ? <div className="qc-boxplot-title p-2">{title}</div> : null;
+    return (
+        <>
+            {titleDiv}
+            <div className="p-2">
+                <BoxPlotWithFacets
+                    qcData={qcData}
+                    showFacets={false}
+                    showDataTable={false}
+                    boxPlotTitle={''}
+                    settings={{
+                        selectedQcMetric: metric,
+                        assay: assay,
+                        grouping: 'submission_center',
+                        sampleSource: sampleSource,
+                        sequencer: sequencer,
+                        study: study,
+                    }}
+                />
+            </div>
+        </>
+    );
+};
 
 export const PlotPopoverContent = ({ tooltipFields, data = null }) => {
 
@@ -33,6 +67,7 @@ export const formatLargeInteger = (num) => {
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num.toString();
 };
+
 
 export const addPaddingToExtend = (
     extend,
@@ -127,6 +162,49 @@ export const customReactSelectStyle = {
     menuList: (provided) => ({
         ...provided,
         padding: '0', // Remove extra padding around the list
+    }),
+    option: (provided, state) => ({
+        ...provided,
+        fontSize: '0.875rem', // Adjust font size
+        padding: '4px 10px', // Adjust padding to make options smaller
+    }),
+};
+
+export const customReactSelectStyleMulti = {
+    control: (provided, state) => ({
+        ...provided,
+        fontSize: '0.875rem', // Adjust font size
+        borderColor: state.isFocused ? 'blue' : '#dee2e6',
+        boxShadow: state.isFocused ? '0 0 0 1px blue' : 'none',
+    }),
+    valueContainer: (provided) => ({
+        ...provided,
+        padding: '0 6px',
+    }),
+    input: (provided) => ({
+        ...provided,
+        margin: '0', // Remove extra margin
+        padding: '0',
+    }),
+    indicatorsContainer: (provided) => ({
+        ...provided,
+    }),
+    menu: (provided) => ({
+        ...provided,
+        marginTop: '0px', // Optional: adjust spacing between control and dropdown
+    }),
+    menuList: (provided) => ({
+        ...provided,
+        padding: '0', // Remove extra padding around the list
+    }),
+    multiValueLabel: (provided) => ({
+        ...provided,
+        padding: '0px 0px',
+    }),
+    multiValue: (provided) => ({
+        ...provided,
+        padding: '0px 0px',
+        backgroundColor: '#f2f2f2',
     }),
     option: (provided, state) => ({
         ...provided,

@@ -46,6 +46,9 @@ export const BoxPlotWithFacets = ({
     const [selectedSequencer, setSelectedSequencer] = useState(
         defaultSettings.sequencer
     );
+    const [selectedStudy, setSelectedStudy] = useState(
+        defaultSettings.study || null
+    );
     const [rerenderNumber, setRerenderNumber] = useState(0);
 
     const [thresholdMarks, setThresholdMarks] = useState(null);
@@ -150,11 +153,17 @@ export const BoxPlotWithFacets = ({
                 d?.sample_source_subgroup === selectedSampleSource;
         }
 
+        let studyFilter = true;
+        if (selectedStudy) {
+            studyFilter = d?.study === selectedStudy;
+        }
+
         return (
             d?.quality_metrics?.qc_values[selectedQcMetric] &&
             d?.assay === selectedAssay &&
             seqFilter &&
-            sampleSourceFilter
+            sampleSourceFilter &&
+            studyFilter
         );
     };
 
@@ -177,8 +186,8 @@ export const BoxPlotWithFacets = ({
     };
 
     const thresholdInfo = thresholdMarks ? (
-        <div className="pt-4">
-            <i className="icon icon-info-circle fas text-muted icon-fw"></i>
+        <div className="alert alert-warning mt-2">
+            <i className="icon icon-info-circle fas text-warning icon-fw mr-1"></i>
             This metric has a PASS threshold of{' '}
             <strong>{thresholdMarks.horizontal[0].value}</strong>.
         </div>

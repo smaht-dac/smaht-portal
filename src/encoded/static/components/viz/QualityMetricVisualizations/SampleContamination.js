@@ -74,7 +74,7 @@ export const SampleContamination = ({ qcData }) => {
                         <div className="fw-bold">Selected donor</div>
                     </div>
                 </div>
-                <div className="col-6">
+                <div className="col-5">
                     <div className="p-3">
                         <Select
                             value={selectedDonor}
@@ -97,7 +97,7 @@ export const SampleContamination = ({ qcData }) => {
                     <h4>Pairwise sample relatedness</h4>
                     <p>
                         The pairwise relatedness was calculated using somalier.
-                        Samples of the same donor are expected to have a very
+                        Samples of the same donor are expected to have a
                         high degree of relatedness.{' '}
                     </p>
                     <SampleContaminationHeatmap
@@ -108,7 +108,8 @@ export const SampleContamination = ({ qcData }) => {
                         }></SampleContaminationHeatmap>
                 </div>
                 <div className="col-12">
-                    <div className="pt-5">
+                    <div className="pt-5 h4">Somalier results</div>
+                    <div>
                         <SampleContaminationDataTable
                             data={
                                 somalierResults[selectedDonor['value']]

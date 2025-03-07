@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
-import { Popover, PopoverHeader, PopoverBody, Overlay } from 'react-bootstrap';
-import { PlotPopoverContent, addPaddingToExtend } from './utils';
-import { el } from 'date-fns/locale';
-
 export const SampleContaminationHeatmap = ({
     plotId,
     data,
@@ -143,8 +139,6 @@ export const SampleContaminationHeatmap = ({
                 .call(d3.axisLeft(y).tickSize(0))
                 .select('.domain')
                 .remove();
-
-            console.log(y.bandwidth(), x.bandwidth());
 
             // Build color scale
             const myColor = d3

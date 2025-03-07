@@ -21,8 +21,8 @@ SEARCH_QUERY_QC = (
     "&submission_centers.display_title=BCM+GCC"
     "&field=uuid"
     "&type=FileSet"
-    #"&limit=10000"
-    "&limit=50&from=100"  # for testing
+    "&limit=10000"
+    #"&limit=5&from=100"  # for testing
     # "&accession=SMAFSADRYKW2"
 )
 
@@ -69,6 +69,10 @@ ALL_LONG_READ = "all_long_read"
 LONG_READ_SEQS = [SEQ_ONT, SEQ_PACBIO]
 SHORT_READ_SEQS = [SEQ_ILL_NX, SEQ_ILL_NXP, SEQ_ILL_N6000]
 SUPPORTED_SEQUENCERS = LONG_READ_SEQS + SHORT_READ_SEQS
+
+# Studies
+BENCHMARKING = "Benchmarking"
+PRODUCTION = "Production"
 
 # Sample source groups
 CELL_LINE = "cell_line"
@@ -119,6 +123,22 @@ DEFAULT_GROUPING_SCATTERPLOT = SUBMISSION_CENTER
 DEFAULT_SAMPLE_SOURCE_SCATTERPLOT = TISSUES
 DEFAULT_SEQUENCER_SCATTERPLOT = ALL_ILLUMINA
 
+DEFAULT_SELECTED_QC_METRICSS_BY_FILE_WGS = [
+    "samtools_stats:raw_total_sequences",
+    "samtools_stats_postprocessed:percentage_reads_mapped",
+    "verifybamid:freemix_alpha",
+    "samtools_stats_postprocessed:percentage_reads_duplicated",
+]
+
+DEFAULT_SELECTED_QC_METRICSS_BY_FILE_RNA_SEQ= [
+    "rnaseqc:total_reads",
+    "rnaseqc:mapping_rate",
+    "rnaseqc:duplicate_rate_of_mapped",
+    "rnaseqc:mean_3p_bias",
+    "rnaseqc:exonic_intron_ratio",
+    "rnaseqc:rrna_rate",
+]
+
 VISIBLE_FIELDS_IN_TOOLTIP = [
     {"key": "file_display_title", "label": "File"},
     {"key": "file_status", "label": "Status"},
@@ -163,6 +183,8 @@ class FileStats:
         self.errors = []
         self.warnings = []
         self.output_path = output
+        self.all_tissues = self.get_all_tissues()
+        #self.all_donors = self.get_all_donors()
         self.stats = []
         self.somalier_results = {}
         self.qc_info = {}
@@ -193,9 +215,15 @@ class FileStats:
                     "sequencer": DEFAULT_SEQUENCER_SCATTERPLOT,
                     "tooltipFields": VISIBLE_FIELDS_IN_TOOLTIP,
                 },
-                "scatterplot_sample_identity": {
+                "heatmap_sample_identity": {
                     "tooltipFields": VISIBLE_FIELDS_IN_TOOLTIP_SAMPLE_IDENTITY,
                 },
+                "metrics_by_file": {
+                    "default_metrics": {
+                        WGS: DEFAULT_SELECTED_QC_METRICSS_BY_FILE_WGS,
+                        RNA_SEQ: DEFAULT_SELECTED_QC_METRICSS_BY_FILE_RNA_SEQ,
+                    }
+                }
             },
             "qc_thresholds": QC_THRESHOLDS,
         }
@@ -241,13 +269,30 @@ class FileStats:
                 )
                 continue
 
+            study = ""
             sample_source_codes = []
+            sample_source_descriptions = []
+            tissue_or_cell_line = None
             for sample_source in self.get_sample_sources_from_fileset(fileset):
                 code = sample_source.get("code")
                 if "Tissue" in sample_source["@type"]:
-                    if not code:
-                        break
-                    sample_source_codes.append(f"{code}")
+                    tissue_or_cell_line = TISSUES
+
+                    tissue_uuid = sample_source[UUID]
+                    tissue = self.all_tissues.get(tissue_uuid)
+                    tissue_display_title = tissue[DISPLAY_TITLE]
+                    tissue_external_id = tissue["external_id"]
+                    if tissue_external_id.startswith("ST"):
+                        study = BENCHMARKING
+                    elif tissue_external_id.startswith("SMHT"):
+                        study = PRODUCTION
+                    else:
+                        raise Exception(
+                            f"Could not determine study for tissue {tissue_external_id}"
+                        )
+                    location = tissue_external_id_to_word(tissue_external_id)
+                    sample_source_codes.append(f"{tissue_display_title}")
+                    sample_source_descriptions.append(f"{location}")
                 else:
                     if not code:
                         cell_line = sample_source.get("cell_line", {})
@@ -255,12 +300,18 @@ class FileStats:
                             for cl in cell_line:
                                 code = cl.get("code", "")
                                 sample_source_codes.append(f"{code}")
+                                sample_source_descriptions.append(f"{code}")
                         else:
                             code = sample_source.get("cell_line", {}).get("code", None)
                             if code:
                                 sample_source_codes.append(f"{code}")
+                                sample_source_descriptions.append(f"{code}")
                     else:
                         sample_source_codes.append(f"{code}")
+                        sample_source_descriptions.append(f"{code}")
+
+                    tissue_or_cell_line = CELL_LINE
+                    study = BENCHMARKING
 
             if not sample_source_codes:
                 self.warnings.append(
@@ -269,13 +320,12 @@ class FileStats:
                 continue
             sample_source_codes = list(set(sample_source_codes))
             sample_source_codes.sort()
-
-            tissues = []
-            for ssc in sample_source_codes:
-                tissues.append(tissue_code_to_word(ssc) or "?")
+            sample_source_descriptions = list(set(sample_source_descriptions))
+            sample_source_descriptions.sort()   
 
             sample_source_codes = ", ".join(sample_source_codes)
-            tissues = ", ".join(tissues)
+            sample_source_descriptions = ", ".join(sample_source_descriptions)
+            sample_source_descriptions = f"{sample_source_descriptions} - {study}"
 
             # Get the alignment MWFR to process the fastp outputs and get the final BAM
             mwfr = self.get_alignment_mwfr(fileset)
@@ -290,9 +340,7 @@ class FileStats:
                 )
                 continue
 
-            sample_source_codes_for_facets.append(
-                tissues if ("?" not in tissues) else sample_source_codes
-            )
+            sample_source_codes_for_facets.append(sample_source_descriptions)
 
             result = {}
             result["fileset"] = fileset_accession
@@ -309,13 +357,9 @@ class FileStats:
             elif sequencer in LONG_READ_SEQS:
                 result["sequencer_group"] = ALL_LONG_READ
             result[SAMPLE_SOURCE] = sample_source_codes
-            if tissues != "?":
-                result["tissue"] = tissues
-                result["sample_source_subgroup"] = tissues
-                result[SAMPLE_SOURCE_GROUP] = TISSUES
-            else:
-                result["sample_source_subgroup"] = sample_source_codes
-                result[SAMPLE_SOURCE_GROUP] = CELL_LINE
+            result["sample_source_subgroup"] = sample_source_descriptions
+            result[SAMPLE_SOURCE_GROUP] = tissue_or_cell_line
+            result["study"] = study
             result["read_length"] = "long" if sequencer in LONG_READ_SEQS else "short"
             result["quality_metrics"] = {}
 
@@ -375,35 +419,35 @@ class FileStats:
 
         search_query_donors = "search/?type=Donor" "&limit=10000"
         donors = search(search_query_donors)
-        for donor in donors:
+        # Hapmap does not have a single donor, so we need to add it manually
+        donors.append({ACCESSION: "HAPMAP", DISPLAY_TITLE: "HAPMAP"})
+        donors = sorted(donors, key=lambda x: x[DISPLAY_TITLE])
+        for donor in progressbar(donors, "Processing donors "):
             donor_accession = donor[ACCESSION]
-            print(donor[ACCESSION])
 
             latest_run = get_latest_somalier_run_for_donor(donor_accession)
             if not latest_run:
                 continue
 
             latest_run = latest_run[0]
-            #print(f"Latest run: {latest_run[ACCESSION]}")
+            # print(f"Latest run: {latest_run[ACCESSION]}")
 
             self.viz_info["facets"]["sample_identity_donors"].append(
                 {"value": donor_accession, "label": donor[DISPLAY_TITLE]},
             )
 
             somalier_relate_wfr = get_somalier_relate_worklfow(latest_run)
-            overall_quality_status = somalier_relate_wfr["output"][0]["file"]["quality_metrics"][0][
-                "overall_quality_status"
-            ]
+            overall_quality_status = somalier_relate_wfr["output"][0]["file"][
+                "quality_metrics"
+            ][0]["overall_quality_status"]
             tsv_content = get_somalier_relate_output(latest_run)
             if not tsv_content:
                 raise Exception(
                     f"Could not get TSV content for somalier run {latest_run[ACCESSION]}"
                 )
             self.somalier_results[donor_accession] = {
-                "info": {
-                    "overall_quality_status": overall_quality_status
-                },
-                "results": []
+                "info": {"overall_quality_status": overall_quality_status},
+                "results": [],
             }
             for line in tsv_content.splitlines():
                 # file header: #sample_a	sample_b	relatedness	ibs0	ibs2	hom_concordance	hets_a	hets_b	hets_ab	shared_hets	hom_alts_a	hom_alts_b	shared_hom_alts	n	x_ibs0	x_ibs2	expected_relatedness
@@ -420,21 +464,14 @@ class FileStats:
                 somalier_result = {
                     "sample_a": sample_a,
                     "sample_b": sample_b,
-                    #"data_point_identifier": f"{sample_a}_{sample_b}",
                     "relatedness": relatedness,
                     "ibs0": ibs0,
                     "ibs2": ibs2,
-                    # "quality_metrics": {
-                    #     "overall_quality_status": "NA",
-                    #     "qc_values": {
-                    #         "somalier:ibs0": {"value": ibs0, "flag": "NA"},
-                    #         "somalier:ibs2": {"value": ibs2, "flag": "NA"},
-                    #         "somalier:relatedness": {"value": relatedness, "flag": "NA"},
-                    #     },
-                    # },
                 }
-                
-                self.somalier_results[donor_accession]["results"].append(somalier_result)
+
+                self.somalier_results[donor_accession]["results"].append(
+                    somalier_result
+                )
 
     def write_json(self):
         if len(self.stats) == 0:
@@ -489,6 +526,29 @@ class FileStats:
                     file["status"] not in ["deleted", "retracted"]
                 ):
                     return file
+
+    def get_all_tissues(self):
+        query = (
+            "search/?type=Tissue"
+            "&field=uuid&field=code&field=external_id&field=display_title&field=anatomical_location"
+            "&submission_centers.display_title=NDRI+TPC"
+        )
+        tissues_from_search = search(query)
+        tissues = {}
+        for tissue in tissues_from_search:
+            tissues[tissue[UUID]] = tissue
+        return tissues
+
+    def get_all_donors(self):
+        query = (
+            "search/?type=Donor"
+            "&submission_centers.display_title=NDRI+TPC&submission_centers.display_title=HMS+DAC"
+        )
+        donors_from_search = search(query)
+        donors = {}
+        for donor in donors_from_search:
+            donors[donor[UUID]] = donor
+        return donors
 
     def get_quality_metrics(self, file):
         qms = file.get(QUALITY_METRICS, [])
@@ -548,17 +608,56 @@ def get_tag_for_sample_identity_check(donor_accession):
     return f"sample_identity_check_for_donor_{donor_accession}"
 
 
-def tissue_code_to_word(code):
-    if "-1A" in code:
-        return "Liver"
-    elif "-1D" in code:
-        return "Lung"
-    elif "-1G" in code:
-        return "Colon"
-    elif "-1Q" in code:
-        return "Brain"
-    elif "-1K" in code:
-        return "Skin"
+def tissue_external_id_to_word(external_id):
+    code = external_id.split("-")[1]
+
+    mapping = {
+        "1A": "Liver",
+        "1D": "Lung",
+        "1G": "Colon",
+        "1Q": "Brain",
+        "1K": "Skin",
+        "3A": "Blood",
+        "3AC": "Skin",
+        "3AD": "Skin",
+        "3AE": "Skin",
+        "3AF": "Skin",
+        "3AG": "Skin",
+        "3AH": "Muscle",
+        "3AI": "Muscle",
+        "3AJ": "Brain",
+        "3AK": "Brain",
+        "3AL": "Brain",
+        "3AM": "Brain",
+        "3AN": "Brain",
+        "3AO": "Brain",
+        "3B": "Buccal Swap",
+        "3C": "Esophagus",
+        "3D": "Esophagus",
+        "3E": "Colon",
+        "3F": "Colon",
+        "3G": "Colon",
+        "3H": "Colon",
+        "3I": "Liver",
+        "3J": "Liver",
+        "3K": "Adrenal Gland",
+        "3L": "Adrenal Gland",
+        "3M": "Adrenal Gland",
+        "3N": "Adrenal Gland",
+        "3O": "Aorta",
+        "3P": "Aorta",
+        "3R": "Lung",
+        "3Q": "Lung",
+        "3S": "Heart",
+        "3T": "Heart",
+        "3U": "Testis",
+        "3V": "Testis",
+        "3W": "Testis",
+        "3X": "Testis",
+    }
+    if code not in mapping:
+        raise Exception(f"Unknown tissue code {external_id}")
+    return mapping[code]
 
 
 def get_latest_somalier_run_for_donor(donor_accession):
@@ -582,6 +681,7 @@ def get_somalier_relate_worklfow(mwfr):
         raise Exception(f"No somalier_relate workflow run found")
 
     return workflow_run
+
 
 def get_somalier_relate_output(mwfr):
     workflow_run = get_somalier_relate_worklfow(mwfr)

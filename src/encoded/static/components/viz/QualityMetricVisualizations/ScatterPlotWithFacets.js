@@ -47,6 +47,9 @@ export const ScatterlotWithFacets = ({
     const [selectedSequencer, setSelectedSequencer] = useState(
         defaultSettings.sequencer
     );
+    const [selectedStudy, setSelectedStudy] = useState(
+        defaultSettings.study || null
+    );
     const [rerenderNumber, setRerenderNumber] = useState(0);
 
     const [thresholdMarks, setThresholdMarks] = useState(null);
@@ -137,12 +140,18 @@ export const ScatterlotWithFacets = ({
                 d?.sample_source_subgroup === selectedSampleSource;
         }
 
+        let studyFilter = true;
+        if (selectedStudy) {
+            studyFilter = d?.study === selectedStudy;
+        }
+
         return (
             d?.quality_metrics?.qc_values[selectedQcMetricX] &&
             d?.quality_metrics?.qc_values[selectedQcMetricY] &&
             d?.assay === selectedAssay &&
             seqFilter &&
-            sampleSourceFilter
+            sampleSourceFilter &&
+            studyFilter
         );
     };
 
