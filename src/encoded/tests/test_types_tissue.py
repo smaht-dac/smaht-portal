@@ -38,7 +38,13 @@ def test_validate_external_id_on_edit(
     expected_status: int
     ) -> None:
     """Ensure external_id matches donor external_id if Benchmarking or Production on edit."""
-    uuid =  item_utils.get_uuid(get_item_from_search(es_testapp, "Tissue"))
+    uuid = item_utils.get_uuid(
+        get_item(
+            es_testapp,
+            "TEST_TISSUE_LUNG",
+            collection="TissueSample"
+        )
+    )
     patch_item(es_testapp, patch_body, uuid, status=expected_status)
 
 

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Any
 
 import re
 from snovault import collection, load_schema
@@ -80,6 +80,9 @@ def validate_external_id_on_add(context, request):
         elif not assert_external_id_tissue_match(external_id, tissue):
             msg = f"external_id {external_id} does not match Tissue external_id {item_utils.get_external_id(tissue)}."
             return request.errors.add('body', 'TissueSample: invalid link', msg)
+        elif not assert_tissue_category_match(category, external_id):
+            msg = f"category {category} should be Liquid for TissueSample items with external_id {tissue_sample_utils.get_protocol_id_from_external_id(external_id)}."
+            return request.errors.add('body', 'TissueSample: invalid property', msg)
         else:
             return request.validated.update({}) 
 
@@ -107,9 +110,11 @@ def validate_external_id_on_edit(context, request):
         elif not assert_external_id_tissue_match(external_id, tissue):
             msg = f"external_id {external_id} does not match Tissue external_id {item_utils.get_external_id(tissue)}."
             return request.errors.add('body', 'TissueSample: invalid link', msg)
+        elif not assert_tissue_category_match(category, external_id):
+            msg = f"category {category} should be Liquid for TissueSample items with external_id {tissue_sample_utils.get_protocol_id_from_external_id(external_id)}."
+            return request.errors.add('body', 'TissueSample: invalid property', msg)
         else:
             return request.validated.update({})
-    """Check that `external_id` matches linked tissue `external_id` if Benchmarking or Production tissue sample on edit.""" 
 
 
 def assert_external_id_category_match(external_id: str, category: str):
@@ -124,7 +129,20 @@ def assert_external_id_category_match(external_id: str, category: str):
         return ""
 
 
-def assert_external_id_tissue_match(external_id, tissue):
+def assert_tissue_category_match(category: str, external_id: str):
+    """
+    Check that category is Liquid if protocol id of external_id is among certain types.
+    
+    Current types are blood, buccal swab, and fibroblast cell culture.
+    """
+    protocol_ids = ["3AC", "3A", "3B"]
+    protocol_id = tissue_sample_utils.get_protocol_id_from_external_id(external_id)
+    if protocol_id in protocol_ids:
+        return category == "Liquid"
+    return True
+
+
+def assert_external_id_tissue_match(external_id: str, tissue: Dict[str, Any]):
     """Check that start of tissue sample external_id matches tissue external_id."""
     tissue_id = item_utils.get_external_id(tissue)
     tissue_kit_id = tissue_sample_utils.get_tissue_kit_id_from_external_id(external_id)
