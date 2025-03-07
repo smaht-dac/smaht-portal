@@ -120,11 +120,11 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                                 </div>
                                 <ul>
                                     {sample_group.items.map((item, i) => {
-                                        const { value, count, query } = item;
+                                        const { value, count } = item;
                                         return (
                                             <li key={i}>
                                                 <div>
-                                                    {item.count} {item.value}
+                                                    {count} {value}
                                                 </div>
                                             </li>
                                         );
