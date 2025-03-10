@@ -69,8 +69,14 @@ const default_file_properties = [
     },
     {
         title: 'Size',
-        getProp: (context = {}) =>
-            bytesToLargerUnit(context?.file_summary?.file_size),
+        getProp: (context = {}) => {
+            const fileSize = context?.file_summary?.file_size;
+            if (fileSize) {
+                return bytesToLargerUnit(fileSize);
+            } else {
+                return null;
+            }
+        },
     },
     {
         title: 'MD5 Checksum',
