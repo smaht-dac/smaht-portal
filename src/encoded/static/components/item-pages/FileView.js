@@ -87,10 +87,44 @@ const FileViewTitle = (props) => {
 // Header component containing high-level information for the file item
 const FileViewHeader = (props) => {
     const { context = {}, session } = props;
-    const { accession, status, description, notes_to_tsv } = context;
+    const {
+        accession,
+        status,
+        description,
+        notes_to_tsv,
+        release_tracker_description = '',
+        release_tracker_title = '',
+    } = context;
     const selectedFile = new Map([[context['@id'], context]]);
 
+    // Accessions of files whose alert banners are rendered differently
     const accessionsOfInterest = ['SMAFI557D2E7', 'SMAFIB6EQLZM'];
+
+    // Prepare a message string for the retracted warning banner
+    let retractedWarningMessage = '';
+    if (!accessionsOfInterest.includes(accession) && status === 'retracted') {
+        const title = release_tracker_title
+            ? ' ' + `from ${release_tracker_title}`
+            : '';
+        const description =
+            release_tracker_description ||
+            `${context?.file_format?.display_title} file`;
+        const note = context?.notes_to_tsv?.[0] ?? 'was retracted';
+
+        retractedWarningMessage = (
+            <>
+                This{' '}
+                <a
+                    href={context['@id']}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="link-underline-hover">
+                    {description ? description : 'file'}
+                </a>
+                {title} {note}.
+            </>
+        );
+    }
 
     return (
         <div className="file-view-header">
@@ -113,9 +147,7 @@ const FileViewHeader = (props) => {
                 <div className="callout warning mt-2 mb-1">
                     <p className="callout-text">
                         <span className="flag">Attention: </span>
-                        {notes_to_tsv && notes_to_tsv.length > 0
-                            ? notes_to_tsv[0].split(':')[1]
-                            : 'This file has been retracted.'}
+                        {retractedWarningMessage}
                     </p>
                 </div>
             ) : null}
