@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.143.0
+=======
+`PR 367: feat: COLO829BLT50 bam file retraction announcement <https://github.com/smaht-dac/smaht-portal/pull/367>`_
+
+* Implement default warning banner for retracted files
+* Add retraction announcement
+
+
 0.142.3
 =======
 `PR 369: fix: file size NaN bug <https://github.com/smaht-dac/smaht-portal/pull/369>`_
