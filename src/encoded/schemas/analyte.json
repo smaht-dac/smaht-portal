@@ -422,6 +422,9 @@
         "submission_centers.display_title": {
             "title": "Submission Centers"
         },
+        "submitted_id": {
+            "title": "Submitted ID"
+        },
         "molecule": {
             "title": "Molecule"
         }
