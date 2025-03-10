@@ -109,11 +109,13 @@ const FileViewHeader = (props) => {
         const description =
             release_tracker_description ||
             `${context?.file_format?.display_title} file`;
-        const note = context?.notes_to_tsv?.[0] ?? 'was retracted';
+        const note = context?.notes_to_tsv?.[0]
+            ? `was ${context?.notes_to_tsv?.[0]}`
+            : 'was retracted';
 
         retractedWarningMessage = (
             <>
-                This{' '}
+                {context?.notes_to_tsv ? 'The' : 'This'}{' '}
                 <a
                     href={context['@id']}
                     target="_blank"
@@ -235,7 +237,8 @@ const FileViewHeader = (props) => {
                                             'datum-value-notes-to-tsv text-gray ' +
                                             (i > 0 ? 'mt-1' : '')
                                         }>
-                                        {note}
+                                        {note.substring(0, 1).toUpperCase() +
+                                            note.substring(1)}
                                     </li>
                                 ))}
                             </ul>
