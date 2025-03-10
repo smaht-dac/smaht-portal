@@ -119,7 +119,7 @@ const FileViewHeader = (props) => {
                     target="_blank"
                     rel="noreferrer noopener"
                     className="link-underline-hover">
-                    {description ? description : 'file'}
+                    {description}
                 </a>
                 {title} {note}.
             </>
