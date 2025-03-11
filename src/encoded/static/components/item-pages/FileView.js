@@ -115,14 +115,7 @@ const FileViewHeader = (props) => {
 
         retractedWarningMessage = (
             <>
-                {context?.notes_to_tsv ? 'The' : 'This'}{' '}
-                <a
-                    href={context['@id']}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="link-underline-hover">
-                    {description}
-                </a>
+                This {description}
                 {title} {note}.
             </>
         );
