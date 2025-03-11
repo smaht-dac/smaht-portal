@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.143.1
+=======
+`PR 372: chore: update text in data retraction alert <https://github.com/smaht-dac/smaht-portal/pull/372>`_
+
+* Change "The" to "This"
+* Remove hyperlink on file
+
+
 0.143.0
 =======
 `PR 367: feat: COLO829BLT50 bam file retraction announcement <https://github.com/smaht-dac/smaht-portal/pull/367>`_
