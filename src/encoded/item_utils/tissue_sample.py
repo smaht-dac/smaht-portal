@@ -7,7 +7,11 @@ from ..item_utils import (
     item as item_utils
 )
 
-from .utils import RequestHandler, get_property_values_from_identifiers
+from .utils import (
+    RequestHandler,
+    get_property_values_from_identifiers,
+    get_property_value_from_identifier,
+)
 
 from . import (
     constants,
@@ -73,21 +77,18 @@ def has_spatial_information(properties: Dict[str, Any]) -> bool:
     return is_specimen(properties) or is_core(properties)
 
 
-def is_core_external_id(properties: Dict[str, Any]) -> bool:
+def is_core_external_id(external_id: str) -> bool:
     """Check if external_id matches core sample regex from benchmarking or production."""
-    external_id = item_utils.get_external_id(properties)
     return BENCHMARKING_CORE_EXTERNAL_ID_REGEX.match(external_id) is not None or PRODUCTION_CORE_EXTERNAL_ID_REGEX.match(external_id) is not None
 
 
-def is_specimen_external_id(properties: Dict[str, Any]) -> bool:
+def is_specimen_external_id(external_id: str) -> bool:
     """Check if external_id matches specimen sample regex from benchmarking or production."""
-    external_id = item_utils.get_external_id(properties)
     return BENCHMARKING_SPECIMEN_EXTERNAL_ID_REGEX.match(external_id) is not None or PRODUCTION_SPECIMEN_EXTERNAL_ID_REGEX.match(external_id) is not None
 
 
-def is_homogenate_external_id(properties: Dict[str, Any]) -> bool:
+def is_homogenate_external_id(external_id: str) -> bool:
     """Check if external_id matches homogenate sample regex from benchmarking or production."""
-    external_id = item_utils.get_external_id(properties)
     return BENCHMARKING_HOMOGENATE_EXTERNAL_ID_REGEX.match(external_id) is not None or PRODUCTION_HOMOGENATE_EXTERNAL_ID_REGEX.match(external_id) is not None
 
 
