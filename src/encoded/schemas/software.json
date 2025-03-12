@@ -148,9 +148,9 @@
         "source_url": {
             "$merge": "encoded_core:schemas/software.json#/properties/source_url"
         },
-        "gpu": {
-            "title": "GPU",
-            "description": "GPU used for basecalling software, particularly for ONT data",
+        "gpu_architecture": {
+            "title": "GPU Architecture",
+            "description": "GPU architecture used for basecalling software, particularly for ONT data",
             "type": "string",
             "suggested_enum": [
                 "NVIDIA A100",
