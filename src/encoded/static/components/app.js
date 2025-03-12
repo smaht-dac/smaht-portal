@@ -442,14 +442,10 @@ export default class App extends React.PureComponent {
             // Add a debounce so it runs again after a delay, so other components get a chance to mount.
             App.debouncedOnNavigationTooltipRebuild();
 
-            if (!session && href) {
-                const hrefParts = memoizedUrlParse(href);
-                const routeList = hrefParts.pathname.split('/');
-                const routeLeaf = routeList[routeList.length - 1];
-
+            if (!session && href && typeof href === "string") {
                 // show not logged in alert for pages that are public but require session to display the results
                 // (mostly) redirects from notification pane in home page 
-                if (routeLeaf === 'qc-metrics' || routeLeaf === 'search') {
+                if (href.indexOf('/qc-metrics') > -1 || href.indexOf('/search/') > -1) {
                     Alerts.queue(NotLoggedInAlert);
                 }
             }
