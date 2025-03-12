@@ -1547,9 +1547,9 @@ export default class App extends React.PureComponent {
                     <link rel="canonical" href={canonical} />
                     {/* <script data-prop-name="inline" type="application/javascript" charSet="utf-8" dangerouslySetInnerHTML={{__html: this.props.inline}}/> <-- SAVED FOR REFERENCE */}
                 </head>
-                <React.Fragment>
+                <React.StrictMode>
                     <BodyElement {...bodyElementProps} />
-                </React.Fragment>
+                </React.StrictMode>
             </html>
         );
     }
