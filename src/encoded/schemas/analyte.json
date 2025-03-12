@@ -420,7 +420,7 @@
     },
     "columns": {
         "submission_centers.display_title": {
-            "title": "Submission Centers"
+            "title": "Submitted By"
         },
         "submitted_id": {
             "title": "Submitted ID"

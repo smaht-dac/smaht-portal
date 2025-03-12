@@ -104,5 +104,10 @@
         "submission_centers.display_title": {
             "title": "Submitted By"
         }
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        }
     }
 }
