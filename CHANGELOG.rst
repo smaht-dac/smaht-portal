@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.143.2
+=======
+`PR 374: Cypress Test.04 - search view updates  <https://github.com/smaht-dac/smaht-portal/pull/374>`_
+
+* Updates 04a_search_views_local.cy.js upon recent file search view and other search view changes
+
+
 0.143.1
 =======
 `PR 372: chore: update text in data retraction alert <https://github.com/smaht-dac/smaht-portal/pull/372>`_
