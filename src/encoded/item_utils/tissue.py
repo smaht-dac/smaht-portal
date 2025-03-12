@@ -87,6 +87,11 @@ def is_production(properties: Dict[str, Any]) -> bool:
     return PRODUCTION_TISSUE_REGEX.match(external_id) is not None
 
 
+def is_valid_external_id(external_id: str) -> bool:
+    """Check if tissue external_id matches Benchmarking or Production."""
+    return PRODUCTION_TISSUE_REGEX.match(external_id) is not None or BENCHMARKING_TISSUE_REGEX.match(external_id) is not None
+
+
 def get_project_id(properties: Dict[str, Any]) -> str:
     """Get project ID associated with tissue."""
     if is_benchmarking(properties):

@@ -30,6 +30,7 @@ def test_submitted_id_resource_path(es_testapp: TestApp, workbook: None) -> None
         ({"donor": "TEST_DONOR_FEMALE", "external_id": "ST001-1D", "uberon_id": "UBERON:0008952"}, 422),
         ({"donor": "TEST_DONOR_MALE", "external_id": "ST001-1D", "uberon_id": "UBERON:0008952"}, 200),
         ({"donor": "TEST_DONOR_MALE", "external_id": "ST001-1D", "uberon_id": "UBERON:0000955"}, 422),
+        ({"donor": "TEST_DONOR_FEMALE", "external_id": "SL001-1D", "uberon_id": "UBERON:0008952"}, 422),
     ]
 )
 def test_validate_external_id_on_edit(
@@ -50,6 +51,7 @@ def test_validate_external_id_on_edit(
         ({"donor": "TEST_DONOR_FEMALE", "external_id": "ST001-1D", "uberon_id": "UBERON:0008952"}, 422, 2),
         ({"donor": "TEST_DONOR_MALE", "external_id": "ST001-1D", "uberon_id": "UBERON:0008952"}, 201, 3),
         ({"donor": "TEST_DONOR_MALE", "external_id": "ST001-1D", "uberon_id": "UBERON:0000955"}, 422, 4),
+        ({"donor": "TEST_DONOR_FEMALE", "external_id": "SL001-1D", "uberon_id": "UBERON:0008952"}, 422, 5),
 
     ]
 )
