@@ -441,6 +441,18 @@ export default class App extends React.PureComponent {
             // We need to rebuild tooltips after navigation to a different page.
             // Add a debounce so it runs again after a delay, so other components get a chance to mount.
             App.debouncedOnNavigationTooltipRebuild();
+
+            if (!session && href) {
+                const hrefParts = memoizedUrlParse(href);
+                const routeList = hrefParts.pathname.split('/');
+                const routeLeaf = routeList[routeList.length - 1];
+
+                // show not logged in alert for pages that are public but require session to display the results
+                // (mostly) redirects from notification pane in home page 
+                if (routeLeaf === 'qc-metrics' || routeLeaf === 'search') {
+                    Alerts.queue(NotLoggedInAlert);
+                }
+            }
         }
 
         // We can skip doing this unless debugging on localhost-
@@ -1535,9 +1547,9 @@ export default class App extends React.PureComponent {
                     <link rel="canonical" href={canonical} />
                     {/* <script data-prop-name="inline" type="application/javascript" charSet="utf-8" dangerouslySetInnerHTML={{__html: this.props.inline}}/> <-- SAVED FOR REFERENCE */}
                 </head>
-                <React.StrictMode>
+                <React.Fragment>
                     <BodyElement {...bodyElementProps} />
-                </React.StrictMode>
+                </React.Fragment>
             </html>
         );
     }
