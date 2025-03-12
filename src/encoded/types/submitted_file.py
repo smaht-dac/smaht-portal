@@ -35,7 +35,7 @@ from ..item_utils import (
 )
 
 SEQUENCER_DEPENDENT = {
-    "ONT": ["gpu", "model", "modification_tags"]
+    "ONT": ["gpu_architecture", "model", "modification_tags"]
 }
 
 def show_upload_credentials(request=None, context=None, status=None):
