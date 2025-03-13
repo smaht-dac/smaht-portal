@@ -36,20 +36,22 @@ def get_qc_overview(context, request):
         search_params["sort"] = "-date_created"
         search_params["tags"] = f"qc_overview_data:{JSON_VERSION}"
 
-        # subreq = make_search_subreq(
-        #     request, f"/search?{urlencode(search_params, True)}", inherit_user=True
-        # )
-        # search_res = search(context, subreq)["@graph"]
-
-        # if len(search_res) != 1:
-        #     response["error_msg"] = "Reference file not found."
-        #     return response
-
-        # reference_file = search_res[0]
-        # reference_file_upload_key = reference_file["upload_key"]
-        reference_file_upload_key = (
-            "25d09e18-2f77-4541-a32c-0f1d99defbd3/SMAFILZCEQ1X.json"
+        subreq = make_search_subreq(
+            request, f"/search?{urlencode(search_params, True)}", inherit_user=True
         )
+        search_res = search(context, subreq)["@graph"]
+
+        if len(search_res) != 1:
+            response["error_msg"] = "Reference file not found."
+            return response
+
+        reference_file = search_res[0]
+        reference_file_upload_key = reference_file["upload_key"]
+        
+        # For local testing purposes
+        # reference_file_upload_key = (
+        #     "25d09e18-2f77-4541-a32c-0f1d99defbd3/SMAFILZCEQ1X.json"
+        # )
 
         upload_bucket = request.registry.settings.get("file_upload_bucket")
 
