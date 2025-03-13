@@ -34,7 +34,7 @@ def get_qc_overview(context, request):
         search_params["type"] = REFERENCE_FILE
         search_params["limit"] = 1
         search_params["sort"] = "-date_created"
-        search_params["tags"] = f"qc_overview_data:{JSON_VERSION}"
+        search_params["tags"] = f"qc_overview_data_{JSON_VERSION}"
 
         subreq = make_search_subreq(
             request, f"/search?{urlencode(search_params, True)}", inherit_user=True
@@ -47,7 +47,7 @@ def get_qc_overview(context, request):
 
         reference_file = search_res[0]
         reference_file_upload_key = reference_file["upload_key"]
-        
+
         # For local testing purposes
         # reference_file_upload_key = (
         #     "25d09e18-2f77-4541-a32c-0f1d99defbd3/SMAFILZCEQ1X.json"
