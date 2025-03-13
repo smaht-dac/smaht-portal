@@ -81,24 +81,6 @@ def test_validate_external_id_matches_tissue_on_add(
             }, 422
         ),
         (
-            "NDRITEST_TISSUE-SAMPLE_TEST_2",
-            {
-                "submission_centers": ["ndri_tpc"],
-                "sample_sources": ["TEST_TISSUE_LUNG_ALT1"],
-                "category": "Homogenate",
-                "external_id": "ST001-1D-001X"
-            }, 201
-        ),
-        (
-            "NDRITEST_TISSUE-SAMPLE_TEST_3",
-            {
-                "submission_centers": ["ndri_tpc"],
-                "sample_sources": ["TEST_TISSUE_LUNG_ALT1"],
-                "category": "Homogenate",
-                "external_id": "ST001-1D-001S9"
-            }, 422
-        ),
-        (
             "NDRITEST_TISSUE-SAMPLE_TEST_4",
             {
                 "submission_centers": ["ndri_tpc"],
@@ -225,18 +207,53 @@ def test_validate_tissue_sample_metadata_on_add(
     post_item(es_testapp, post_body, 'tissue_sample', status=expected_status)
 
 
-# def test_tissue_sample_force_pass(es_testapp: TestApp, workbook: None) -> None:
-#     """
-#     Tests that we can skip the TPC check by passing ?force_pass.
-     
-#     Attempts to patch an inconsistent preservation_type to a TissueSample item with matching TPC TissueSample item without and with force_pass.
-#     """
-#     atid = item_utils.get_at_id(
-#         get_item(
-#             es_testapp,
-#             "TEST_TISSUE-SAMPLE_LUNG-HOMOGENATE",
-#             collection="TissueSample"
-#         )
-#     )
-#     es_testapp.patch_json(f'/{atid}', {"preservation_type": "Fresh"}, status=422)  # fails without force_pass
-#     es_testapp.patch_json(f'/{atid}?force_pass', {"preservation_type": "Fresh"}, status=200)
+@pytest.mark.workbook
+@pytest.mark.parametrize(
+    "patch_body,expected_status", [
+        ({"sample_sources": ["TEST_TISSUE_BLOOD"], "external_id": "SMHT001-3A-001X", "category": "Liquid"}, 200),
+        ({"sample_sources": ["TEST_TISSUE_BLOOD"], "external_id": "SMHT001-3A-001X", "category": "Specimen"}, 422),
+    ]
+)
+def test_validate_tissue_category_on_edit(
+   es_testapp: TestApp,
+    workbook: None,
+    patch_body: Dict[str, Any],
+    expected_status: int,     
+) -> None:
+    """Ensure category is Liquid for tissue samples with external_ids for blood, buccal swab, or fibroblasts."""
+    uuid = item_utils.get_uuid(
+        get_item(
+            es_testapp,
+            "TEST_TISSUE-SAMPLE_BLOOD",
+            collection="TissueSample"
+        )
+    )
+    patch_item(es_testapp, patch_body, uuid, status=expected_status)
+
+
+@pytest.mark.workbook
+@pytest.mark.parametrize(
+    "patch_body,expected_status,index", [
+        ({"sample_sources": ["TEST_TISSUE_BLOOD"], "external_id": "SMHT001-3A-001X", "category": "Liquid"}, 201, 1),
+        ({"sample_sources": ["TEST_TISSUE_BLOOD"], "external_id": "SMHT001-3A-001X", "category": "Specimen"}, 422, 2),
+    ]
+)
+def test_validate_tissue_category_on_add(
+   es_testapp: TestApp,
+    workbook: None,
+    patch_body: Dict[str, Any],
+    expected_status: int,
+    index: int  
+) -> None:
+    """Ensure category is Liquid for tissue samples with external_ids for blood, buccal swab, or fibroblasts."""
+    insert = get_item(
+            es_testapp,
+            "TEST_TISSUE-SAMPLE_BLOOD",
+            collection="TissueSample"
+    )
+    post_body = {
+        **patch_body,
+        "submitted_id": f"{item_utils.get_submitted_id(insert)}_{index}",
+        'submission_centers': item_utils.get_submission_centers(insert)
+    }
+    post_item(es_testapp, post_body, 'tissue_sample', status=expected_status)

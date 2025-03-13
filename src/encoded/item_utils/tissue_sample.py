@@ -124,3 +124,7 @@ def get_tissue_kit_id(properties: Dict[str, Any]) -> str:
 def get_tissue_kit_id_from_external_id(external_id: str) -> str:
     """Get tissue kit ID from external ID."""
     return "-".join(external_id.split("-")[0:2])
+
+def get_protocol_id_from_external_id(external_id: str) -> str:
+    """Get protocol ID from external ID."""
+    return external_id.split("-")[1]

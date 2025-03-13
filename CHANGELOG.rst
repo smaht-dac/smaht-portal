@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.145.0
+=======
+`PR 370: SN Add liquid category check <https://github.com/smaht-dac/smaht-portal/pull/370>`_
+
+* Add check to TissueSample ensuring that items with `external_id `values with protocol id for blood, buccal swab, or fibroblasts (3A, 3B, or 3AC) have category of "Liquid"
+
+
 0.144.0
 =======
 `PR 371: SN Add uberon_id check for tissue <https://github.com/smaht-dac/smaht-portal/pull/371>`_
