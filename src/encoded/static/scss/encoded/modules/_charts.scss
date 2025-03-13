@@ -1664,7 +1664,7 @@ body[data-path="/statistics"] {
                 transform-origin: 0 0;
                 transform: rotate(-90deg);
                 width: 20px;
-                font-weight: 600;
+                font-weight: 450;
                 color: #111;
             }
         }
@@ -1776,7 +1776,7 @@ body[data-path="/statistics"] {
                         width: 100%;
                         padding-left: 25px;
                         font-size: 1rem;
-                        font-weight: 600;
+                        font-weight: 450;
                     }
                     > small {
                         color: #777;
@@ -2028,8 +2028,8 @@ body[data-path="/statistics"] {
 
     &.has-active-block {
         .stacked-block, .label-container, .column-group-header {
-            opacity: 0.3;
-            transition: opacity 0.3s;
+            // opacity: 0.3;
+            // transition: opacity 0.3s;
         }
         .column-group-header.active-column {
             opacity: 1 !important;
