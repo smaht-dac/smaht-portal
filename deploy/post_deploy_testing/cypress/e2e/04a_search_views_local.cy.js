@@ -55,6 +55,27 @@ describe('Deployment/CI Search View Tests', function () {
         it('Should show/hide columns and ensure correct behavior in the results table', function () {
             cy.get('.above-results-table-row button[data-tip="Configure visible columns"]').click({ force: true }).should('have.class', 'active');
             cy.get('.search-result-config-panel').should('have.class', 'show');
+            // since all columns selected, unselect one of them (currently, 3rd one)
+            cy.get('.search-result-config-panel .row .column-option:nth-child(4) .checkbox.clickable.is-active')
+                .first()
+                .scrollIntoView()
+                .click()
+                .should('have.not.class', 'is-active')
+                .find('label input')
+                .invoke('val')
+                .then((value) => {
+                    cy.get(`.search-results-container .search-headers-row div[data-field="${value}"]`)
+                        .should('not.exist');
+
+                    cy.get(`.search-result-config-panel .row .checkbox.clickable:not(.is-active) input[value="${value}"]`)
+                        .click()
+                        .should('not.have.class', 'is-active')
+                        .then(() => {
+                            cy.get(`.search-results-container .search-headers-row div[data-field="${value}"]`)
+                                .should('not.exist');
+                        });
+                });
+            // re-select it
             cy.get('.search-result-config-panel .row .checkbox.clickable:not(.is-active)')
                 .first()
                 .scrollIntoView()
@@ -86,13 +107,14 @@ describe('Deployment/CI Search View Tests', function () {
         it('Should redirect to detail view and check if the title matches data-tip', function () {
             cy.visit('/search/?type=File&status=released', { headers: cypressVisitHeaders });
 
-            cy.get('.results-column .result-table-row div.search-result-column-block[data-field="display_title"] .title-block a')
+            cy.get('.results-column .result-table-row div.search-result-column-block[data-field="annotated_filename"] .value a')
                 .first()
                 .scrollIntoView()
                 .then(($element) => {
 
                     const textContent = $element.text();
                     cy.wrap($element)
+                        .invoke('removeAttr', 'target') // we prevent new tab display since cypress not supports multi-tab testing
                         .click({ force: true });
 
                     cy.get('.file-view-title h1.file-view-title-text')
@@ -229,8 +251,8 @@ describe('Deployment/CI Search View Tests', function () {
         });
 
         it('Should have columns for data category, format', function () {
-            cy.get('.headers-columns-overflow-container .columns .search-headers-column-block[data-field="data_type"]').contains("Data Category");
-            cy.get('.headers-columns-overflow-container .columns .search-headers-column-block[data-field="file_format.display_title"]').contains("Data Format");
+            cy.get('.headers-columns-overflow-container .columns .search-headers-column-block[data-field="data_type"]').contains("Data Type");
+            cy.get('.headers-columns-overflow-container .columns .search-headers-column-block[data-field="file_format.display_title"]').contains("Format");
         });
     });
 

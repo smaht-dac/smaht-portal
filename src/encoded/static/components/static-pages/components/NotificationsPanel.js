@@ -3,6 +3,19 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 
 const announcements = [
     {
+        type: 'warning',
+        title: 'Data Retraction',
+        body: (
+            <span>
+                One WGS ONT PromethION 24 BAM from COLO829-BLT50,{' '}
+                <a href="/output-files/beca52fb-ad5b-4eaa-832a-2929c7bf7577/">
+                    SMAFIPHR8QOG
+                </a>
+                , has been retracted due to sample swap.
+            </span>
+        ),
+    },
+    {
         type: 'info',
         title: 'New Features',
         body: (
