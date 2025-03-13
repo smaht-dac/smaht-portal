@@ -167,6 +167,7 @@ export class DataMatrix extends React.PureComponent {
             "fieldChangeMap": props.fieldChangeMap,
             "columnGrouping": props.columnGrouping,
             "groupingProperties": props.groupingProperties,
+            "headerColumnsOrder": props.headerColumnsOrder || [],
             "colorRanges": colorRangesOverriden || props.colorRanges || []
         };
     }
@@ -244,8 +245,8 @@ export class DataMatrix extends React.PureComponent {
         );
     }
 
-    onApplyConfiguration(searchUrl, column, row1, row2, ranges) {
-        console.log(searchUrl, column, row1, row2, ranges);
+    onApplyConfiguration(searchUrl, column, row1, row2, headerColumnsOrder, ranges) {
+        console.log(searchUrl, column, row1, row2, headerColumnsOrder, ranges);
         this.setState({
             queries: {
                 ...this.state.queries,
@@ -258,13 +259,14 @@ export class DataMatrix extends React.PureComponent {
             },
             columnGrouping: DataMatrixConfigurator.getNestedFieldName(column),
             groupingProperties: [DataMatrixConfigurator.getNestedFieldName(row1)],
+            headerColumnsOrder: headerColumnsOrder || [],
             colorRanges: ranges
         });
     }
 
     render() {
         const { headerFor, sectionStyle, valueChangeMap, allowedFields, disableConfigurator = false } = this.props;
-        const { queries, fieldChangeMap, columnGrouping, groupingProperties, colorRanges } = this.state;
+        const { queries, fieldChangeMap, columnGrouping, groupingProperties, headerColumnsOrder, colorRanges } = this.state;
 
         const isLoading = 
                 // eslint-disable-next-line react/destructuring-assignment
@@ -284,7 +286,7 @@ export class DataMatrix extends React.PureComponent {
         const labelClassName = sectionStyle['labelClassName'] || "col-2";
         const listingClassName = sectionStyle['listingClassName'] || "col-10";
         const bodyProps = {
-            groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping,
+            groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, headerColumnsOrder,
             listingClassName, labelClassName, colorRanges
         };
         
@@ -296,6 +298,7 @@ export class DataMatrix extends React.PureComponent {
                 selectedColumnValue={queries.url_fields[0]}
                 selectedRow1Value={queries.url_fields[1]}
                 selectedRow2Value={queries.url_fields.length > 2 ? queries.url_fields[2] : null}
+                headerColumnsOrderValue={headerColumnsOrder}
                 colorRanges={colorRanges}
                 onApply={this.onApplyConfiguration}
             />
@@ -306,7 +309,7 @@ export class DataMatrix extends React.PureComponent {
                 {configurator}
                 {/* { (headerFor && headerFor) || {null} } */}
                 <VisualBody
-                    {..._.pick(this.props, 'headerColumnsOrder', 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
+                    {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
                     queryUrl={url}
                     {...bodyProps}
                     duplicateHeaders={false}

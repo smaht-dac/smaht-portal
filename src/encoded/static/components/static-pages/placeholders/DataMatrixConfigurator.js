@@ -14,12 +14,14 @@ const DataMatrixConfigurator = ({
     selectedColumnValue,
     selectedRow1Value,
     selectedRow2Value,
+    headerColumnsOrderValue,
     onApply
 }) => {
     const [searchUrl, setSearchUrl] = useState(propSearchUrl);
     const [selectedColumn, setSelectedColumn] = useState(selectedColumnValue);
     const [selectedRow1, setSelectedRow1] = useState(selectedRow1Value);
     const [selectedRow2, setSelectedRow2] = useState(selectedRow2Value);
+    const [headerColumnsOrder, setHeaderColumnsOrder] = useState(() => Array.isArray(headerColumnsOrderValue) && headerColumnsOrderValue.length > 0 ? '"' + headerColumnsOrderValue.join('", "') + '"' : null )
     const [ranges, setRanges] = useState(colorRanges.length > 0 ? colorRanges : [{ min: 0, max: '', color: '' }]);
     const [showPopover, setShowPopover] = useState(false);
     const [errors, setErrors] = useState({});
@@ -118,6 +120,21 @@ const DataMatrixConfigurator = ({
         setRanges(newRanges);
     };
 
+    function stringToArray(input) {
+        return (input.length > 0) ? input.split(",").map(item => item.trim().replace(/^"(.*)"$/, "$1")) : [];
+    }
+
+    function validateString(input) {
+        if (input.length === 0) return true;
+        // Regex explanation:
+        // ^                    -> Indicates the start of the string.
+        // (\s*".*?"\s*)        -> Matches the first element: optional spaces, a pair of double quotes containing any characters (non-greedy), and optional spaces.
+        // (,\s*".*?"\s*)*      -> Matches zero or more occurrences of: a comma, optional spaces, a double-quoted string, and optional spaces.
+        // $                    -> Indicates the end of the string.
+        const regex = /^(\s*".*?"\s*)(,\s*".*?"\s*)*$/;
+        return regex.test(input);
+      }
+
     const handleApply = () => {
         // All ranges except the last one must have max defined
         const filledMax = ranges.slice(0, -1).every((r) => r.max !== '');
@@ -132,7 +149,12 @@ const DataMatrixConfigurator = ({
             return;
         }
 
-        onApply(searchUrl, selectedColumn, selectedRow1, selectedRow2, ranges);
+        if(!validateString(headerColumnsOrder)){
+            alert('Columns Order format is incorrect. (e.g. "Col1", "Col3", "Col2")');
+            return;
+        }
+
+        onApply(searchUrl, selectedColumn, selectedRow1, selectedRow2, stringToArray(headerColumnsOrder), ranges);
         setShowPopover(false);
     };
 
@@ -160,7 +182,7 @@ const DataMatrixConfigurator = ({
                     <Popover.Body>
                         <div className="d-flex flex-column">
                             <h5 className='mt-0 mb-1'>Data Matrix Configurator</h5>
-                            {/* Column Dimension */}
+                            {/* Search Url */}
                             <Form.Group className="d-flex align-items-center mb-05">
                                 <Form.Label className="me-2" style={{ width: '150px' }}>Search URL</Form.Label>
                                 <Form.Control type="text" value={searchUrl} onChange={(e) => setSearchUrl(e.target.value)} />
@@ -197,6 +219,12 @@ const DataMatrixConfigurator = ({
                                         <option key={idx + 1} value={dim}>{dim}</option>
                                     ))}
                                 </Form.Control>
+                            </Form.Group>
+
+                            {/* Header Columns Order */}
+                            <Form.Group className="d-flex align-items-center mb-05">
+                                <Form.Label className="me-2" style={{ width: '150px' }}>Columns Order</Form.Label>
+                                <Form.Control type="text" value={headerColumnsOrder} onChange={(e) => setHeaderColumnsOrder(e.target.value)} />
                             </Form.Group>
 
                             {/* Ranges */}
