@@ -32,6 +32,19 @@
         "preservation_type": "Snap Frozen"
     },
     {
+        "uuid": "6facfca7-ac0e-4577-963a-496435aa0bcd",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE_BRAIN",
+        "external_id": "SMHT001-3AJ",
+        "donor": "TEST_DONOR_FEMALE",
+        "uberon_id": "UBERON:0000955",
+        "anatomical_location": "Brain",
+        "weight": 3.4,
+        "preservation_type": "Fresh"
+    },
+    {
         "uuid": "9d23bfb8-07ae-4dad-999e-4cc45f68af29",
         "submission_centers": [
             "smaht"
@@ -39,7 +52,7 @@
         "submitted_id": "TEST_TISSUE_LUNG_ALT1",
         "external_id": "T12",
         "donor": "TEST_DONOR_ALT1",
-        "uberon_id": "UBERON:0002108",
+        "uberon_id": "UBERON:0008952",
         "anatomical_location": "Lung: Left Lobe"
     }
 ]
