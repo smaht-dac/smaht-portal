@@ -12,7 +12,10 @@ import Tabs from 'react-bootstrap/Tabs';
 
 export const QualityMetricVisualizations = () => {
     const [qcData, setQcData] = useState(null);
-    const [tab, setTab] = useState('key-metrics');
+    const [tab, setTab] = useState('sample-contamination');
+    const [selectedFile, setSelectedFile] = useState(null);
+
+    
     
     useEffect(() => {
         ajax.load(
@@ -23,7 +26,14 @@ export const QualityMetricVisualizations = () => {
                     return;
                 }
                 setQcData(resp.data);
-                console.log(resp.data);
+
+                // If the file parameter is provided, we want to show the "Metrics by file" tab by default
+                const urlParams = new URLSearchParams(window.location.search);
+                const file = urlParams.get("file");
+                if(file){
+                    setSelectedFile(file);
+                    setTab('metrics-by-file');
+                }
             },
             'POST',
             () => {
@@ -40,6 +50,9 @@ export const QualityMetricVisualizations = () => {
                 activeKey={tab}
                 onSelect={(t) => setTab(t)}
                 className="mb-3">
+                <Tab eventKey="sample-contamination" title="Sample Integrity">
+                    <SampleContamination qcData={qcData} />
+                </Tab>
                 <Tab eventKey="key-metrics" title="Key Metrics">
                     <KeyMetrics qcData={qcData} />
                 </Tab>
@@ -52,12 +65,8 @@ export const QualityMetricVisualizations = () => {
                     <ScatterlotWithFacets qcData={qcData} />
                 </Tab>
                 <Tab eventKey="metrics-by-file" title="Metrics by file">
-                    <MetricsByFile qcData={qcData} />
+                    <MetricsByFile qcData={qcData} preselectedFile={selectedFile}/>
                 </Tab>
-                <Tab eventKey="sample-contamination" title="Sample Identity">
-                    <SampleContamination qcData={qcData} />
-                </Tab>
-                
             </Tabs>
         </>
     ) : (

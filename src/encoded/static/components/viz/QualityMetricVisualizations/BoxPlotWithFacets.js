@@ -49,6 +49,9 @@ export const BoxPlotWithFacets = ({
     const [selectedStudy, setSelectedStudy] = useState(
         defaultSettings.study || null
     );
+    const [customExtent, setCustomExtent] = useState(
+        defaultSettings.customExtent || null
+    );
     const [rerenderNumber, setRerenderNumber] = useState(0);
 
     const [thresholdMarks, setThresholdMarks] = useState(null);
@@ -276,11 +279,13 @@ export const BoxPlotWithFacets = ({
             customFilter={(d) => customFilter(d)}
             customFormat={(d) => formatLargeInteger(d)}
             qcCategory={selectedGrouping}
+            customExtent={customExtent}
             xAxisLabel={getGroupLabel(selectedGrouping)}
             updateHighlightedBam={updateHighlightedBam}
             thresholdMarks={thresholdMarks}
             rerenderNumber={rerenderNumber}
             handleShowModal={handleShowModal}
+            featuredBam={defaultSettings.featuredBam}
         />
     );
 

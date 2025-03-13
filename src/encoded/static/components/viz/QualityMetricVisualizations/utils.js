@@ -11,14 +11,20 @@ export const getBoxPlot = (
     assay,
     sampleSource,
     sequencer,
-    study
+    study,
+    customExtent = null,
+    featuredBam = null,
 ) => {
+
     const titleDiv = title ? <div className="qc-boxplot-title p-2">{title}</div> : null;
+    // Makes sure the component is re-rendered when the settings change
+    const key = `${metric}-${assay}-${sampleSource}-${sequencer}-${study}-${featuredBam}`;
     return (
         <>
             {titleDiv}
             <div className="p-2">
                 <BoxPlotWithFacets
+                    key={key}
                     qcData={qcData}
                     showFacets={false}
                     showDataTable={false}
@@ -30,6 +36,8 @@ export const getBoxPlot = (
                         sampleSource: sampleSource,
                         sequencer: sequencer,
                         study: study,
+                        customExtent: customExtent,
+                        featuredBam: featuredBam,
                     }}
                 />
             </div>
@@ -77,10 +85,10 @@ export const addPaddingToExtend = (
     const [eMin, eMax] = extend;
     const range = eMax - eMin;
     let adjustedExtendMin = eMin - range * minAdjustment;
-    if (eMin > 0) {
-        // If the min was already positive, adjust ad most to 0
-        adjustedExtendMin = Math.max(0, adjustedExtendMin);
-    }
+    // If the min was already positive, adjust ad most to 0
+    // if (eMin > 0) {
+    //     adjustedExtendMin = Math.max(0, adjustedExtendMin);
+    // }
     const adjustedExtendMax = eMax + range * maxAdjustment;
     return [adjustedExtendMin, adjustedExtendMax];
 };

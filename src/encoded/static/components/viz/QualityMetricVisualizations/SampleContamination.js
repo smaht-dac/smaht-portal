@@ -48,7 +48,7 @@ export const SampleContamination = ({ qcData }) => {
             warnings.push(
                 <span>
                     <i className="icon icon-exclamation-triangle fas icon-fw" />{' '}
-                    The sample identity check failed for donor{' '}
+                    The sample integrity check failed for donor{' '}
                     <strong>{donor.label}</strong>.
                 </span>
             );
@@ -57,7 +57,7 @@ export const SampleContamination = ({ qcData }) => {
 
     warnings =
         warnings.length > 0 ? (
-            <div className="alert alert-warning">
+            <div className="alert alert-danger">
                 {warnings.map((w, index) => (
                     <div key={index}>{w}</div>
                 ))}

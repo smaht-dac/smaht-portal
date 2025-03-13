@@ -123,20 +123,28 @@ DEFAULT_GROUPING_SCATTERPLOT = SUBMISSION_CENTER
 DEFAULT_SAMPLE_SOURCE_SCATTERPLOT = TISSUES
 DEFAULT_SEQUENCER_SCATTERPLOT = ALL_ILLUMINA
 
-DEFAULT_SELECTED_QC_METRICSS_BY_FILE_WGS = [
+DEFAULT_SELECTED_QC_METRICS_BY_FILE_WGS_ILLUMINA = [
     "samtools_stats:raw_total_sequences",
     "samtools_stats_postprocessed:percentage_reads_mapped",
     "verifybamid:freemix_alpha",
     "samtools_stats_postprocessed:percentage_reads_duplicated",
 ]
 
-DEFAULT_SELECTED_QC_METRICSS_BY_FILE_RNA_SEQ= [
+DEFAULT_SELECTED_QC_METRICS_BY_FILE_WGS_LONG_READ = [
+    "samtools_stats:raw_total_sequences",
+    "samtools_stats_postprocessed:percentage_reads_mapped",
+    "verifybamid:freemix_alpha",
+    "picard_collect_alignment_summary_metrics:mean_read_length",
+]
+
+DEFAULT_SELECTED_QC_METRICS_BY_FILE_RNA_SEQ_ILLUMINA= [
     "rnaseqc:total_reads",
     "rnaseqc:mapping_rate",
     "rnaseqc:duplicate_rate_of_mapped",
     "rnaseqc:mean_3p_bias",
     "rnaseqc:exonic_intron_ratio",
     "rnaseqc:rrna_rate",
+    "rnaseqc:estimated_library_complexity"
 ]
 
 VISIBLE_FIELDS_IN_TOOLTIP = [
@@ -220,8 +228,9 @@ class FileStats:
                 },
                 "metrics_by_file": {
                     "default_metrics": {
-                        WGS: DEFAULT_SELECTED_QC_METRICSS_BY_FILE_WGS,
-                        RNA_SEQ: DEFAULT_SELECTED_QC_METRICSS_BY_FILE_RNA_SEQ,
+                        f"{WGS}_{ALL_ILLUMINA}": DEFAULT_SELECTED_QC_METRICS_BY_FILE_WGS_ILLUMINA,
+                        f"{WGS}_{ALL_LONG_READ}": DEFAULT_SELECTED_QC_METRICS_BY_FILE_WGS_LONG_READ,
+                        f"{RNA_SEQ}_{ALL_ILLUMINA}": DEFAULT_SELECTED_QC_METRICS_BY_FILE_RNA_SEQ_ILLUMINA,
                     }
                 }
             },

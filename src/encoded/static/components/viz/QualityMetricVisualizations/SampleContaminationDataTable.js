@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 import { getBadge, capitalize, removeToolName } from './utils';
+import ReactTooltip from 'react-tooltip';
 
 export const SampleContaminationDataTable = ({ data }) => {
 
     // We need a deep copy here, otherwise the sorting messes up the heatmap
     const filteredData = JSON.parse(JSON.stringify(data['results']));
     filteredData.sort((a, b) => a.relatedness - b.relatedness);
+    ReactTooltip.rebuild();
 
     const tableBodyData = filteredData.map((d) => {
         const result = {};
@@ -68,7 +70,7 @@ export const SampleContaminationDataTable = ({ data }) => {
                     <tbody>
                         {tableBodyData.map((row, rowIndex) => {
                             return (
-                                <tr>
+                                <tr key={rowIndex}>
                                     {tableHeaderValues.map((col) => (
                                         <td key={col}>{row[col]}</td>
                                     ))}

@@ -74,7 +74,8 @@ export const KeyMetrics = ({ qcData }) => {
                             assay,
                             sampleSource,
                             'all_long_read',
-                            study
+                            study,
+                            [91,101]
                         )}
                     </div>
                     <div className="col-lg-6">
@@ -85,7 +86,8 @@ export const KeyMetrics = ({ qcData }) => {
                             assay,
                             sampleSource,
                             'all_illumina',
-                            study
+                            study,
+                            [91,101]
                         )}
                     </div>
                 </div>
@@ -105,8 +107,9 @@ export const KeyMetrics = ({ qcData }) => {
                             'verifybamid:freemix_alpha',
                             assay,
                             sampleSource,
-                            'all_long_read',
-                            study
+                            'PacBio Revio',
+                            study,
+                            [-0.01,0.21]
                         )}
                     </div>
                     <div className="col-lg-6">
@@ -117,7 +120,8 @@ export const KeyMetrics = ({ qcData }) => {
                             assay,
                             sampleSource,
                             'all_illumina',
-                            study
+                            study,
+                            [-0.01,0.21]
                         )}
                     </div>
                 </div>
