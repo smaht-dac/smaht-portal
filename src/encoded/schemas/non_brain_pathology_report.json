@@ -1,5 +1,5 @@
 {
-    "title": "Non-Brain Pathology Report",
+    "title": "Non Brain Pathology Report",
     "description": "A pathology report for a non-brain tissue sample",
     "$id": "/profiles/non_brain_pathology_report.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",

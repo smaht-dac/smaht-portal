@@ -7,6 +7,76 @@ smaht-portal
 Change Log
 ----------
 
+0.145.0
+=======
+`PR 370: SN Add liquid category check <https://github.com/smaht-dac/smaht-portal/pull/370>`_
+
+* Add check to TissueSample ensuring that items with `external_id `values with protocol id for blood, buccal swab, or fibroblasts (3A, 3B, or 3AC) have category of "Liquid"
+
+
+0.144.0
+=======
+`PR 371: SN Add uberon_id check for tissue <https://github.com/smaht-dac/smaht-portal/pull/371>`_
+
+* Add property `valid_protocol_ids` to OntologyTerm that is a list of protocol IDs (e.g. 1D, 3A), the portion of `external_id` indicating tissue types
+* Add a check to Tissue ensuring that the protocol ID in `external_id` is among the `valid_protocol_ids` for the OntologyTerm linked with uberon_id
+* Add checks to Donor and Tissue ensuring that `external_id` matches expected format for Benchmarking and Production
+* Makes `external_id` a required property for Donor
+
+
+0.143.3
+=======
+`PR 377: Add not logged in alerts while navigating <https://github.com/smaht-dac/smaht-portal/pull/377>`_
+
+* Adds "Not Logged In" alert to /search and /qc-metrics pages when navigated from another page like home page notifications or documentation pages
+* Adds login popup link to logging in text in "Access was denied to this resource" alert
+
+
+0.143.2
+=======
+`PR 374: Cypress Test.04 - search view updates <https://github.com/smaht-dac/smaht-portal/pull/374>`_
+
+* Updates 04a_search_views_local.cy.js upon recent file search view and other search view changes
+
+
+0.143.1
+=======
+`PR 372: chore: update text in data retraction alert <https://github.com/smaht-dac/smaht-portal/pull/372>`_
+
+* Change "The" to "This"
+* Remove hyperlink on file
+
+
+0.143.0
+=======
+`PR 367: feat: COLO829BLT50 bam file retraction announcement <https://github.com/smaht-dac/smaht-portal/pull/367>`_
+
+* Implement default warning banner for retracted files
+* Add retraction announcement
+
+
+0.142.3
+=======
+`PR 369: fix: file size NaN bug <https://github.com/smaht-dac/smaht-portal/pull/369>`_
+
+* Prevent file size from rendering as NaN when undefined
+
+
+0.142.2
+=======
+`PR 368: fix: prevent version tag bug <https://github.com/smaht-dac/smaht-portal/pull/368>`_
+
+* style: keep version on one line
+* fix: don't append "v" to version if already present
+
+
+0.142.1
+=======
+`PR 359: feat: release tracker updates <https://github.com/smaht-dac/smaht-portal/pull/359>`_
+
+* Enable release tracker Links
+
+
 0.142.0
 =======
 `PR 309: SN validate external_id <https://github.com/smaht-dac/smaht-portal/pull/309>`_
@@ -91,14 +161,14 @@ Change Log
 
 0.137.3
 =======
-`PR 356: fix: correct existing data link <https://github.com/smaht-dac/smaht-portal/pull/356>`
+`PR 356: fix: correct existing data link <https://github.com/smaht-dac/smaht-portal/pull/356>`_
 
 * fix: update link in doc
 
 
 0.137.2
 =======
-`PR 353: fix: remove "DAC_DONOR_" from sample group title <https://github.com/smaht-dac/smaht-portal/pull/353>`
+`PR 353: fix: remove "DAC_DONOR_" from sample group title <https://github.com/smaht-dac/smaht-portal/pull/353>`_
 
 * Remove "DAC_DONOR_" from sample group title
 
