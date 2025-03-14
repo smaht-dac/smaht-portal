@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.145.0
+=======
+`PR 378: SN Move ONT validator <https://github.com/smaht-dac/smaht-portal/pull/378>`_
+
+* Move custom validator for basecalling software for ONT files to UnalignedReads from SubmittedFile, as this does not need to be applied to every file item type, just raw sequencing reads
+
+
 0.144.0
 =======
 `PR 371: SN Add uberon_id check for tissue <https://github.com/smaht-dac/smaht-portal/pull/371>`_
