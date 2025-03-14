@@ -28,6 +28,7 @@
         "submission_centers": [
             "smaht"
         ],
+        "external_id": "ALT1",
         "age": 89,
         "sex": "Male",
         "tpc_submitted": "False"
