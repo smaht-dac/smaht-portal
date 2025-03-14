@@ -145,9 +145,9 @@ def test_validate_basecalling_software_for_ont_on_edit(
 @pytest.mark.workbook
 @pytest.mark.parametrize(
     "patch_body,expected_status,index", [
-        ({"software": ["TEST_SOFTWARE_DORADO", "TEST_SOFTWARE_BWA-MEM_2.0.0"]}, 200, 1),
+        ({"software": ["TEST_SOFTWARE_DORADO", "TEST_SOFTWARE_BWA-MEM_2.0.0"]}, 201, 1),
         ({"software": ["TEST_SOFTWARE_BWA-MEM_2.0.0"]}, 422, 2),
-        ({"software": ["TEST_SOFTWARE_DORADO"]}, 200, 3),
+        ({"software": ["TEST_SOFTWARE_DORADO"]}, 201, 3),
     ]
 )
 def test_validate_basecalling_software_for_ont_on_add(
@@ -162,7 +162,8 @@ def test_validate_basecalling_software_for_ont_on_add(
     insert = get_item(es_testapp, "TEST_UNALIGNED-READS_HELA-HEK293-BAM", collection="UnalignedReads", status=301)
 
     identifying_post_body = {
-        "submitted_id": f"TEST_UNALIGNED-READS_TEST{index}",
+        **patch_body,
+        "submitted_id": f"TEST_UNALIGNED-READS_ONT-TEST{index}",
         "file_format": file_utils.get_file_format(insert),
         "file_sets": file_utils.get_file_sets(insert),
         "filename": "test_bam.bam",
