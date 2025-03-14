@@ -25,9 +25,11 @@ def includeme(config):
     config.scan(__name__)
 
 
-# For now, use enum code 0 for Files (this will expand greatly later to adapt support
-# for other types - Will 3 Jan 2023
+# Encode manifest file types
 FILE = 0
+CLINICAL = 1
+SAMPLE = 2
+EXPERIMENT = 3
 
 
 # This field is special because it is a transformation applied from other fields
@@ -144,8 +146,40 @@ TSV_MAPPING = {
         FILE_GROUP: TSVDescriptor(field_type=FILE,
                                   field_name=['file_sets.file_group'],
                                   use_base_metadata=False)   # omit this field on extra files
+    },
+    CLINICAL: {
+        'dummy': TSVDescriptor(field_type=CLINICAL,
+                               field_name=['dummy'],
+                               use_base_metadata=True)
+    },
+    SAMPLE: {
+        'dummy': TSVDescriptor(field_type=CLINICAL,
+                               field_name=['dummy'],
+                               use_base_metadata=True)
+    },
+    EXPERIMENT: {
+        'dummy': TSVDescriptor(field_type=CLINICAL,
+                               field_name=['dummy'],
+                               use_base_metadata=True)
     }
 }
+
+
+def generate_manifest_header(download_file_name: str, manifest_enum: int, cli=False):
+    """ Entrypoint for generating a header for manifest files """
+    if manifest_enum == FILE:
+        return generate_file_download_header(download_file_name, cli=cli)
+    return generate_other_manifest_header(manifest_enum)
+
+
+def generate_other_manifest_header(manifest_enum):
+    """ Helper that generates a header for non-file manifests """
+    header_length = len(list(TSV_MAPPING[manifest_enum].keys()))
+    header1 = ['###', 'Metadata TSV Download', 'Column Count', '18'] + ([''] * (header_length - 4))
+    header2 = ['###', 'Metadata sheet ONLY, download file manifest for file downloads', 'Column Count',
+               f'{header_length}'] + ([''] * (header_length - 4))
+    header3 = list(TSV_MAPPING[manifest_enum].keys())
+    return header1, header2, header3
 
 
 def generate_file_download_header(download_file_name: str, cli=False):
@@ -248,6 +282,7 @@ def handle_metadata_arguments(context, request):
     if request.content_type == 'application/json':
         try:
             post_params = request.json_body
+            manifest_enum = post_params.get('manifest_enum', FILE)
             accessions = post_params.get('accessions', [])
             type_param = post_params.get('type')
             sort_param = post_params.get('sort')
@@ -260,6 +295,7 @@ def handle_metadata_arguments(context, request):
     elif request.content_type == 'application/x-www-form-urlencoded':
         post_params = request.POST
         accessions = json.loads(post_params.get('accessions', ''))
+        manifest_enum = post_params.get('manifest_enum', FILE)
         type_param = post_params.get('type')
         sort_param = post_params.get('sort')
         status = post_params.get('status')
@@ -277,9 +313,8 @@ def handle_metadata_arguments(context, request):
         download_file_name = 'smaht_manifest_' + datetime.utcnow().strftime('%Y-%m-%d-%Hh-%Mm') + '.tsv'
 
     # Generate a header, resolve mapping
-    # Note that this will become more complex as we add additional header types
-    header = generate_file_download_header(download_file_name, cli=cli)
-    tsv_mapping = TSV_MAPPING[FILE]
+    header = generate_manifest_header(download_file_name, manifest_enum, cli=cli)
+    tsv_mapping = TSV_MAPPING[manifest_enum]
     return MetadataArgs(accessions, sort_param, type_param, status, include_extra_files, download_file_name, header,
                         tsv_mapping, cli)
 
@@ -317,36 +352,10 @@ def peek_metadata(context, request):
     return result['facets']
 
 
-@view_config(route_name='metadata', request_method=['GET', 'POST'])
-@debug_log
-def metadata_tsv(context, request):
+def generate_file_manifest(request, args, search_iter, cli):
+    """ Helper that executes the file manifest generation, factored out now to support
+        multiple manifest files
     """
-    In Fourfront, there is custom structure looking for what is referred to as 'accession_triples', which is essentially
-    a 3-tuple containing lists of accesions that are either experiment sets, experiments or files
-
-    In SMaHT, in order to preserve similar structure, we eliminate logic for the first two (ExpSet and Exp) presuming
-    we will want to use those slots later, and provide only the files slot for now.
-
-    Alternatively, can accept a GET request wherein all files from ExpSets matching search query params are included.
-    """
-    # get arguments from helper
-    args = handle_metadata_arguments(context, request)
-
-    # Generate search
-    search_param = {}
-    if not args.type_param:
-        search_param['type'] = 'File'
-    else:
-        search_param['type'] = args.type_param
-    if args.accessions:
-        search_param['accession'] = args.accessions
-    if args.sort_param:
-        search_param['sort'] = args.sort_param
-    if args.status:
-        search_param['status'] = args.status
-    cli = args.cli
-    search_iter = get_iterable_search_results(request, param_lists=search_param)
-
     # Process search iter
     data_lines = []
     for file in search_iter:
@@ -381,6 +390,39 @@ def metadata_tsv(context, request):
                     ef_line.append(field)
                 data_lines += [ef_line]
 
+    return data_lines
+
+
+@view_config(route_name='metadata', request_method=['GET', 'POST'])
+@debug_log
+def metadata_tsv(context, request):
+    """
+    In Fourfront, there is custom structure looking for what is referred to as 'accession_triples', which is essentially
+    a 3-tuple containing lists of accesions that are either experiment sets, experiments or files
+
+    In SMaHT, in order to preserve similar structure, we eliminate logic for the first two (ExpSet and Exp) presuming
+    we will want to use those slots later, and provide only the files slot for now.
+
+    Alternatively, can accept a GET request wherein all files from ExpSets matching search query params are included.
+    """
+    # get arguments from helper
+    args = handle_metadata_arguments(context, request)
+
+    # Generate search
+    search_param = {}
+    if not args.type_param:
+        search_param['type'] = 'File'
+    else:
+        search_param['type'] = args.type_param
+    if args.accessions:
+        search_param['accession'] = args.accessions
+    if args.sort_param:
+        search_param['sort'] = args.sort_param
+    if args.status:
+        search_param['status'] = args.status
+    cli = args.cli
+    search_iter = get_iterable_search_results(request, param_lists=search_param)
+    data_lines = generate_file_manifest(request, args, search_iter, cli)
     return Response(
         content_type='text/tsv',
         app_iter=generate_tsv(args.header, data_lines),
