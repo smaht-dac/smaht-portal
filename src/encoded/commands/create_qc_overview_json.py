@@ -349,6 +349,12 @@ class FileStats:
                 )
                 continue
 
+            if final_ouput_file[STATUS] not in ["uploaded", "released"]:
+                self.warnings.append(
+                    f"Warning: Fileset {fileset[ACCESSION]} has no uploaded or released output file. Status: {final_ouput_file[STATUS]}"
+                )
+                continue
+
             sample_source_codes_for_facets.append(sample_source_descriptions)
 
             result = {}
@@ -531,9 +537,7 @@ class FileStats:
             ):
                 file_uuid = workflow_run["output"][0]["file"][UUID]
                 file = get_item(file_uuid)
-                if file["output_status"] == "Final Output" and (
-                    file["status"] not in ["deleted", "retracted"]
-                ):
+                if file["output_status"] == "Final Output":
                     return file
 
     def get_all_tissues(self):
