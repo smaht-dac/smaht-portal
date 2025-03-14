@@ -134,7 +134,6 @@ def validate_basecalling_software_for_ont_on_add(context, request):
     data = request.json
     software = data['software'] if 'software' in data else None
     file_sets = data['file_sets'] if 'file_sets' in data else None
-    import pdb; pdb.set_trace()
     return check_basecalling_software_for_ont(request, data['submitted_id'], software, file_sets)
 
 
