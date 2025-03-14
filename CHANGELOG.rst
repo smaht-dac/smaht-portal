@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.144.0
+=======
+`PR 371: SN Add uberon_id check for tissue <https://github.com/smaht-dac/smaht-portal/pull/371>`_
+
+* Add property `valid_protocol_ids` to OntologyTerm that is a list of protocol IDs (e.g. 1D, 3A), the portion of `external_id` indicating tissue types
+* Add a check to Tissue ensuring that the protocol ID in `external_id` is among the `valid_protocol_ids` for the OntologyTerm linked with uberon_id
+* Add checks to Donor and Tissue ensuring that `external_id` matches expected format for Benchmarking and Production
+* Makes `external_id` a required property for Donor
+
+
 0.143.3
 =======
 `PR 377: Add not logged in alerts while navigating <https://github.com/smaht-dac/smaht-portal/pull/377>`_
