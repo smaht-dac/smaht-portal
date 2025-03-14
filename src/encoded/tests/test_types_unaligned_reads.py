@@ -8,6 +8,7 @@ from .utils import (
     post_item,
     patch_item,
     get_item,
+    delete_field,
 )
 
 from ..item_utils import (
@@ -117,3 +118,54 @@ def test_validate_read_pairs_on_post(
     if paired_with:
         identifying_post_body['paired_with'] = paired_with
     post_item(es_testapp, identifying_post_body, 'unaligned_reads',status=expected_status)
+
+
+@pytest.mark.workbook
+@pytest.mark.parametrize(
+    "patch_body,expected_status", [
+        ({"software": ["TEST_SOFTWARE_DORADO", "TEST_SOFTWARE_BWA-MEM_2.0.0"]}, 200),
+        ({"software": ["TEST_SOFTWARE_BWA-MEM_2.0.0"]}, 422),
+        ({"software": ["TEST_SOFTWARE_DORADO"]}, 200),
+    ]
+)
+def test_validate_basecalling_software_for_ont_on_edit(
+    request,
+    es_testapp: TestApp,
+    workbook: None,
+    patch_body: Dict[str, Any],
+    expected_status: int
+) -> None:
+    """Ensure software items contains Basecaller for ONT files on edit."""
+    uuid = item_utils.get_uuid(
+        get_item(es_testapp, "TEST_UNALIGNED-READS_HELA-HEK293-BAM", collection="UnalignedReads", status=301)
+    )
+    patch_item(es_testapp, patch_body, uuid, status=expected_status)
+
+
+@pytest.mark.workbook
+@pytest.mark.parametrize(
+    "patch_body,expected_status,index", [
+        ({"software": ["TEST_SOFTWARE_DORADO", "TEST_SOFTWARE_BWA-MEM_2.0.0"]}, 200, 1),
+        ({"software": ["TEST_SOFTWARE_BWA-MEM_2.0.0"]}, 422, 2),
+        ({"software": ["TEST_SOFTWARE_DORADO"]}, 200, 3),
+    ]
+)
+def test_validate_basecalling_software_for_ont_on_add(
+    request,
+    es_testapp: TestApp,
+    workbook: None,
+    patch_body: Dict[str, Any],
+    expected_status: int,
+    index: int
+) -> None:
+    """Ensure software items contains Basecaller for ONT files on edit."""
+    insert = get_item(es_testapp, "TEST_UNALIGNED-READS_HELA-HEK293-BAM", collection="UnalignedReads", status=301)
+
+    identifying_post_body = {
+        "submitted_id": f"TEST_UNALIGNED-READS_TEST{index}",
+        "file_format": file_utils.get_file_format(insert),
+        "file_sets": file_utils.get_file_sets(insert),
+        "filename": "test_bam.bam",
+        "submission_centers": item_utils.get_submission_centers(insert),
+    }
+    post_item(es_testapp, identifying_post_body,'unaligned_reads', status=expected_status)
