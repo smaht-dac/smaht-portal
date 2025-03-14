@@ -71,5 +71,21 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_PREPARATION-KIT_[A-Z0-9-_.]{4,}$"
         }
+    },
+    "columns": {
+        "submitted_id": {
+            "title": "Submitted ID"
+        },
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        }
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "vendor": {
+            "title": "Vendor"
+        }
     }
 }

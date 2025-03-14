@@ -173,5 +173,13 @@
         "code": {
             "title": "Code"
         }
+    },
+    "facets": {
+        "valid_molecules": {
+            "title": "Valid Molecules"
+        },
+        "category": {
+            "title": "Category"
+        }
     }
 }
