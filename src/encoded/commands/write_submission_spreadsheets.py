@@ -988,16 +988,18 @@ def get_nested_properties(item: str, property_name: str, property_schema: Dict[s
 def get_nested_property(item: str, property_name:str, property_schema: Dict[str, Any]) -> List[Property]:
     """Get property information for nested objects.
     
-    `count` value is arbitrarily set to 2 to show that multiple values can be accepted in the template
+    `count` value is arbitrarily set to 2 to show that multiple values can be accepted in the template.
+    For PathologyReport items, count is set to the number of enums in the type nested property to make it easier
+    for submitters to fill out.
     """
     object_properties = []
     count = 2
     if item in ["BrainPathologyReport", "NonBrainPathologyReport"]:
-        if 'non_target_tissue_subtype' in property_schema:
+        if property_name == 'non_target_tissue_subtype':
             count = len(property_schema['non_target_tissue_subtype']['enum'])
-        elif 'target_tissue_subtype' in property_schema:
+        elif property_name == 'target_tissue_subtype':
             count = len(property_schema['target_tissue_subtype']['enum'])
-        elif 'finding_type' in property_schema:
+        elif property_name == 'finding_type':
             count = len(property_schema['finding_type']['enum'])
     for index in range(0,count): 
         for key, value in property_schema.items():
