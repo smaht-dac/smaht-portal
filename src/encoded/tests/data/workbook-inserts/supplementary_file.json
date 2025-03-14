@@ -35,6 +35,9 @@
         ],
         "filename": "test_hela.fasta",
         "file_format": "FASTA",
+        "file_sets": [
+            "TEST_FILE-SET_HELA-HEK293-DNA"
+        ],
         "submission_centers": [
             "smaht"
         ],
