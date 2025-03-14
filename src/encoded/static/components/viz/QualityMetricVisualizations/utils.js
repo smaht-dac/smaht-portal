@@ -15,14 +15,14 @@ export const getBoxPlot = (
     customExtent = null,
     featuredBam = null,
 ) => {
-
     const titleDiv = title ? <div className="qc-boxplot-title p-2">{title}</div> : null;
+   
     // Makes sure the component is re-rendered when the settings change
     const key = `${metric}-${assay}-${sampleSource}-${sequencer}-${study}-${featuredBam}`;
     return (
         <>
             {titleDiv}
-            <div className="p-2">
+            <div className="py-2 px-4 position-relative">
                 <BoxPlotWithFacets
                     key={key}
                     qcData={qcData}

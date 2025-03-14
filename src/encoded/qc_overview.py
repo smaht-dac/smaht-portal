@@ -1,12 +1,9 @@
 from pyramid.view import view_config
 from snovault.util import debug_log
-from dcicutils.misc_utils import ignored
 from snovault.search.search import search
 from snovault.search.search_utils import make_search_subreq
-from .schema_formats import is_accession_for_server
 from urllib.parse import urlencode
 from boto3 import client as boto_client
-from .utils import get_item
 import json
 
 # This refers to the version of the JSON file that contains the QC overview data.
@@ -23,7 +20,6 @@ def includeme(config):
     config.scan(__name__)
 
 
-
 @view_config(route_name="get_qc_overview", request_method="POST")
 @debug_log
 def get_qc_overview(context, request):
@@ -34,7 +30,8 @@ def get_qc_overview(context, request):
         search_params["type"] = REFERENCE_FILE
         search_params["limit"] = 1
         search_params["sort"] = "-date_created"
-        search_params["tags"] = f"qc_overview_data_{JSON_VERSION}"
+        search_params["tags"] = "qc_metrics_data"
+        search_params["version"] = JSON_VERSION
 
         subreq = make_search_subreq(
             request, f"/search?{urlencode(search_params, True)}", inherit_user=True
@@ -48,7 +45,7 @@ def get_qc_overview(context, request):
         reference_file = search_res[0]
         reference_file_upload_key = reference_file["upload_key"]
 
-        # For local testing purposes
+        #For local testing purposes
         # reference_file_upload_key = (
         #     "25d09e18-2f77-4541-a32c-0f1d99defbd3/SMAFILZCEQ1X.json"
         # )

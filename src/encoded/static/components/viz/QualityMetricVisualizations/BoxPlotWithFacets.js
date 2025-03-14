@@ -188,16 +188,6 @@ export const BoxPlotWithFacets = ({
         return groupLabel;
     };
 
-    const thresholdInfo = thresholdMarks ? (
-        <div className="alert alert-warning mt-2">
-            <i className="icon icon-info-circle fas text-warning icon-fw mr-1"></i>
-            This metric has a PASS threshold of{' '}
-            <strong>{thresholdMarks.horizontal[0].value}</strong>.
-        </div>
-    ) : (
-        ''
-    );
-
     const facets = (
         <div className="qc-metrics-facets-container mb-2">
             <div className="row">
@@ -230,7 +220,6 @@ export const BoxPlotWithFacets = ({
                                 return getKeyLabelOption(q);
                             })}
                         </select>
-                        {thresholdInfo}
                     </div>
                 </div>
                 <div className="col-6">
@@ -270,6 +259,22 @@ export const BoxPlotWithFacets = ({
         </div>
     );
 
+    // Check of this metrics has a QC threshold
+    const thresholdKey = `${selectedSequencer}_${selectedAssay}`;
+    let thresholdWarning = null;
+    if (thresholdKey in qcData.viz_info.qc_thresholds) {
+        const thresholds = qcData.viz_info.qc_thresholds[thresholdKey];
+        if (selectedQcMetric in thresholds) {
+            const threshold =
+                qcData.viz_info.qc_thresholds[thresholdKey][selectedQcMetric];
+            thresholdWarning = (
+                <div className="qc-metrics-threshold-warning">
+                    Threshold to pass QC: {threshold}
+                </div>
+            );
+        }
+    }
+
     const boxplot = (
         <BoxPlot
             plotId={Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)}
@@ -306,11 +311,19 @@ export const BoxPlotWithFacets = ({
 
             {showDataTable ? (
                 <div className="row">
-                    <div className="col-lg-6">{boxplot}</div>
+                    <div className="col-lg-6">
+                        <div className="position-relative mt-1">
+                            {thresholdWarning}
+                            {boxplot}
+                        </div>
+                    </div>
                     <div className="col-lg-6">{datatable}</div>
                 </div>
             ) : (
-                <>{boxplot}</>
+                <div className="position-relative mt-1">
+                    {thresholdWarning}
+                    {boxplot}
+                </div>
             )}
 
             <Modal size="lg" show={showModal} onHide={handleCloseModal}>
