@@ -578,12 +578,10 @@ def get_eqm_template(
     keys: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Get the ExternalQualityMetric with tags `eqm` from custom_column_mappings defined in submitr."""
-    #result = custom_column_mappings['sheet_mappings'][EQM_TAB_NAMES[eqm]]
-    ### tmp
-    result = custom_column_mappings['column_mappings']['external_quality_metric']
-    if result:
-        value = EQM_TAB_NAMES[eqm]
-        return {'template': {value: result}}
+    value = EQM_TAB_NAMES[eqm]
+    result = custom_column_mappings['column_mappings']
+    if value in result:
+        return {'template': {value: result[value]}}
     else:
         log.error("No ExternalQualityMetric found for given `eqm` value. Exiting...")
         return
@@ -933,7 +931,7 @@ def get_eqm_properties(
     properties = schema_utils.get_properties(eqm_schema['schema'])
     primary_properties = {key: value for key, value in properties.items() if key != "qc_values"}
     secondary_properties = get_eqm_qc_values(item, mapping)
-    all_properties = {**primary_properties, **secondary_properties}
+    all_properties = {**primary_properties, **secondary_properties, **UNIVERSAL_PROPERTIES}
     property_list = []
     for key, value in all_properties.items():
         property_list.append(get_property(item, key, value))
@@ -1238,9 +1236,7 @@ def get_non_required_non_links(properties: List[Property]) -> List[Property]:
 
 def get_required_links(properties: List[Property]) -> List[Property]:
     """Get required link properties."""
-    return sort_properties_alphabetically(
-        [property_ for property_ in properties if property_.required and property_.link]
-    )
+    return [property_ for property_ in properties if property_.required and property_.link]
 
 
 def get_non_required_links(properties: List[Property]) -> List[Property]:
@@ -1586,6 +1582,8 @@ def main():
          parser.error("Currently cannot specify both eqm and example")
     if args.eqm and args.tpc:
         parser.error("Cannot specify both eqm and tpc")
+    if args.eqm:
+        log.info(f"Writing ExternalQualityMetric spreadsheet for type: {args.eqm}")
     if args.example:
         if args.google:
             log.info(f"Google Sheet ID: {args.google}")
