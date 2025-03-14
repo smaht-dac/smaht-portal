@@ -27,6 +27,7 @@ from ..commands.write_submission_spreadsheets import (
     is_link,
     write_all_spreadsheets,
     write_item_spreadsheets,
+    UNIVERSAL_PROPERTIES,
 )
 from ..item_utils.utils import RequestHandler
 
@@ -243,7 +244,7 @@ def assert_sheet_written(
     Not checking cell values here, just the structure.
     """
     expected_properties = schema_utils.get_properties(schema)
-    expected_property_names = set(expected_properties.keys())
+    expected_property_names = set(list(expected_properties.keys()) + list(UNIVERSAL_PROPERTIES.keys()))
     first_row_cells = [cell for cell in sheet[1]]
     second_row_cell_values = [cell.value for cell in sheet[2]]
     actual_property_names = set(cell.value for cell in first_row_cells)
@@ -287,7 +288,7 @@ def test_get_spreadsheet(submission_schema: Dict[str, Any]) -> None:
     assert spreadsheet.item == item
     assert len(spreadsheet.properties) == len(
         schema_utils.get_properties(submission_schema)
-    )
+    ) + len(UNIVERSAL_PROPERTIES)
     for property_ in spreadsheet.properties:
         assert isinstance(property_, Property)
 
@@ -530,8 +531,8 @@ def test_get_array_subtype(property_schema: Dict[str, Any], expected: str) -> No
                 Property("tiz", required=True),
                 Property("bar"),
                 Property("baa"),
-                Property("corge", link=True, required=True),
                 Property("quux", link=True, required=True),
+                Property("corge", link=True, required=True),
                 Property("baz", link=True),
                 Property("qux", link=True),
             ],
