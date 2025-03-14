@@ -3,6 +3,19 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 
 const announcements = [
     {
+        type: 'warning',
+        title: 'Data Retraction',
+        body: (
+            <span>
+                One WGS ONT PromethION 24 BAM from COLO829-BLT50,{' '}
+                <a href="/output-files/beca52fb-ad5b-4eaa-832a-2929c7bf7577/">
+                    SMAFIPHR8QOG
+                </a>
+                , has been retracted due to sample swap.
+            </span>
+        ),
+    },
+    {
         type: 'info',
         title: 'New Features',
         body: (
@@ -99,10 +112,11 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                             );
                         }
 
-                        if (sample_group?.additional_value) {
-                            sample_group_title += ` - ${
-                                sample_group.additional_value?.split(':')[0]
-                            }`;
+                        const sample_group_type =
+                            sample_group?.items?.[0]?.['additional_value'];
+
+                        if (sample_group_type) {
+                            sample_group_title += ` - ${sample_group_type}`;
                         }
 
                         return (
@@ -119,10 +133,11 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                                 </div>
                                 <ul>
                                     {sample_group.items.map((item, i) => {
+                                        const { value, count } = item;
                                         return (
                                             <li key={i}>
                                                 <div>
-                                                    {item.count} {item.value}
+                                                    {count} {value}
                                                 </div>
                                             </li>
                                         );

@@ -325,14 +325,16 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
             'sex': 'Female',
             'submission_centers': [test_submission_center['uuid']],
             'submitted_id': 'TEST_DONOR_ABCD',
-            "tpc_submitted": "False"
+            "tpc_submitted": "False",
+            "external_id": "ABCD"
         }, status=403)
         submission_center_user_app.post_json('/Donor', {  # cannot submit a donor under a diferrent center
             'age': 37,
             'sex': 'Female',
             'submission_centers': [test_second_submission_center['uuid']],
             'submitted_id': 'SECONDTEST_DONOR_ABCD',
-            "tpc_submitted": "False"
+            "tpc_submitted": "False",
+            "external_id": "ABCD"
         }, status=403)
         submission_center_user_app.post_json('/AccessKey', {  # can still create an access key
             'user': smaht_gcc_user['@id'],
@@ -348,14 +350,16 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
             'sex': 'Female',
             'submission_centers': [test_second_submission_center['uuid']],
             'submitted_id': 'SECONDTEST_DONOR_ABCD',
-            "tpc_submitted": "False"
+            "tpc_submitted": "False",
+            "external_id": "ABCD"
         }, status=403)
         submission_center2_user_app.post_json('/Donor', {  # cannot submit a donor on opposing center
             'age': 37,
             'sex': 'Female',
             'submission_centers': [test_submission_center['uuid']],
             'submitted_id': 'TEST_DONOR_ABCD',
-            "tpc_submitted": "False"
+            "tpc_submitted": "False",
+            "external_id": "ABCD"
         }, status=403)
 
     @staticmethod
@@ -746,6 +750,7 @@ def test_link_to_another_submission_center_item(
     submission_center_user_app: TestApp,
     testapp: TestApp,
     donor: Dict[str, Any],
+    test_ontology_term: Dict[str, Any],
     test_submission_center: Dict[str, Any],
     test_second_submission_center: Dict[str, Any],
 ) -> None:
@@ -768,7 +773,7 @@ def test_link_to_another_submission_center_item(
         "donor": donor["uuid"],
         "submitted_id": "TEST_TISSUE_WXYZ",
         "external_id": "ST-WXYZ",
-        "uberon_id": "UBERON:0001111",
+        "uberon_id": test_ontology_term["uuid"],
     }
     post_item(submission_center_user_app, tissue_properties, "Tissue", status=201)
 

@@ -6,6 +6,11 @@
         "title": "liver",
         "consortia": [
             "smaht"
+        ],
+        "preferred_name": "Liver",
+        "tags":[
+            "test_terms",
+            "test_top_terms-Liver"
         ]
     },
     {
@@ -15,7 +20,8 @@
         "title": "lung",
         "consortia": [
             "smaht"
-        ]
+        ],
+        "preferred_name": "Lung"
     },
     {
         "uuid": "8cb0c4e5-af9e-44c6-b625-ea489c715dc6",
@@ -27,7 +33,12 @@
         "grouping_term": "UBERON:0002048",
         "consortia": [
             "smaht"
-        ]
+        ],
+        "tags":[
+            "test_terms",
+            "test_top_terms-Lung"
+        ],
+        "valid_protocol_ids": ["3Q","3R","1D"]
     },
     {
         "uuid": "90118425-2a51-475a-b6ef-ecf1accd0304",
@@ -37,5 +48,15 @@
         "consortia": [
             "smaht"
         ]
+    },
+    {
+        "uuid": "0e6a892a-2740-42bb-9bf7-7c8d577d60fa",
+        "identifier": "UBERON:0000955",
+        "ontologies": ["UBERON"],
+        "title": "brain",
+        "consortia": [
+            "smaht"
+        ],
+        "valid_protocol_ids": ["3AJ"]
     }
 ]

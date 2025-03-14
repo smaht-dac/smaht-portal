@@ -4,7 +4,10 @@ from typing import Any, Dict, Union
 
 from . import constants, donor, item
 
-from ..item_utils import item as item_utils
+from ..item_utils import (
+    item as item_utils,
+    ontology_term as ot_utils,
+)
 
 from .utils import (
     get_property_value_from_identifier,
@@ -29,6 +32,17 @@ def get_location(properties: Dict[str, Any]) -> str:
 def get_uberon_id(properties: Dict[str, Any]) -> str:
     """Get uberon id associated with tissue"""
     return properties.get("uberon_id","")
+
+
+def get_top_grouping_term(properties: Dict[str, Any], request_handler: RequestHandler) -> str:
+    """Get top grouping term associated with tissue"""
+    return get_property_value_from_identifier(
+        request_handler,
+        get_uberon_id(properties),
+        functools.partial(
+            ot_utils.get_top_grouping_term, request_handler=request_handler
+        )
+    )
 
 
 def get_study(properties: Dict[str, Any]) -> str:
@@ -71,6 +85,11 @@ def is_production(properties: Dict[str, Any]) -> bool:
     """Check if tissue is from production study."""
     external_id = item.get_external_id(properties)
     return PRODUCTION_TISSUE_REGEX.match(external_id) is not None
+
+
+def is_valid_external_id(external_id: str) -> bool:
+    """Check if tissue external_id matches Benchmarking or Production."""
+    return PRODUCTION_TISSUE_REGEX.match(external_id) is not None or BENCHMARKING_TISSUE_REGEX.match(external_id) is not None
 
 
 def get_project_id(properties: Dict[str, Any]) -> str:
