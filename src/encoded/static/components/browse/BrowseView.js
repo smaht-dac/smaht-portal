@@ -424,11 +424,11 @@ export function createBrowseColumnExtensionMap({ selectedItems, onSelectItem, on
             },
         },
         // Released
-        date_created: {
+        'file_status_tracking.released_date': {
             colTitle: 'Released',
             widthMap: { lg: 115, md: 115, sm: 115 },
             render: function (result, parentProps) {
-                const value = result?.date_created;
+                const value = result?.file_status_tracking?.released;
                 if (!value) return null;
                 return (
                     <span className="value text-end">
@@ -451,6 +451,23 @@ export function createBrowseColumnExtensionMap({ selectedItems, onSelectItem, on
         // Software
         'software.display_title': {
             widthMap: { lg: 151, md: 151, sm: 151 },
+        },
+        // Date Created
+        'date_created': {
+            widthMap: { lg: 151, md: 151, sm: 151 },
+            default_hidden: true,
+            render: function (result, parentProps) {
+                const value = result?.date_created;
+                if (!value) return null;
+                return (
+                    <span className="value text-end">
+                        <LocalizedTime
+                            timestamp={value}
+                            formatType="date-file"
+                        />
+                    </span>
+                );
+            }
         },
     };
 
@@ -476,8 +493,7 @@ export function createBrowseColumnExtensionMap({ selectedItems, onSelectItem, on
         file_size: {
             title: 'File Size',
         },
-        date_created: {
-            // TODO: is this correct?
+        'file_status_tracking.released_date': {
             title: 'Release Date',
         },
         'file_sets.sequencing.sequencer.display_title': {
@@ -492,6 +508,9 @@ export function createBrowseColumnExtensionMap({ selectedItems, onSelectItem, on
         'software.display_title': {
             title: 'Software',
         },
+        date_created: {
+            title: 'Date Created'
+        }
     };
 
     const hideFacets = [
