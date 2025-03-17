@@ -1,9 +1,20 @@
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Union
 
-from .utils import RequestHandler, get_property_values_from_identifiers
+from ..item_utils.utils import RequestHandler,  get_property_values_from_identifiers
+from ..item_utils import (
+    sample as sample_utils,
+    item as item_utils
+)
+
+from .utils import (
+    RequestHandler,
+    get_property_values_from_identifiers,
+    get_property_value_from_identifier,
+)
 
 from . import (
+    constants,
     item as item_utils,
     sample as sample_utils,
     tissue as tissue_utils
@@ -66,21 +77,18 @@ def has_spatial_information(properties: Dict[str, Any]) -> bool:
     return is_specimen(properties) or is_core(properties)
 
 
-def is_core_external_id(properties: Dict[str, Any]) -> bool:
+def is_core_external_id(external_id: str) -> bool:
     """Check if external_id matches core sample regex from benchmarking or production."""
-    external_id = item_utils.get_external_id(properties)
     return BENCHMARKING_CORE_EXTERNAL_ID_REGEX.match(external_id) is not None or PRODUCTION_CORE_EXTERNAL_ID_REGEX.match(external_id) is not None
 
 
-def is_specimen_external_id(properties: Dict[str, Any]) -> bool:
+def is_specimen_external_id(external_id: str) -> bool:
     """Check if external_id matches specimen sample regex from benchmarking or production."""
-    external_id = item_utils.get_external_id(properties)
     return BENCHMARKING_SPECIMEN_EXTERNAL_ID_REGEX.match(external_id) is not None or PRODUCTION_SPECIMEN_EXTERNAL_ID_REGEX.match(external_id) is not None
 
 
-def is_homogenate_external_id(properties: Dict[str, Any]) -> bool:
+def is_homogenate_external_id(external_id: str) -> bool:
     """Check if external_id matches homogenate sample regex from benchmarking or production."""
-    external_id = item_utils.get_external_id(properties)
     return BENCHMARKING_HOMOGENATE_EXTERNAL_ID_REGEX.match(external_id) is not None or PRODUCTION_HOMOGENATE_EXTERNAL_ID_REGEX.match(external_id) is not None
 
 
@@ -104,3 +112,15 @@ def get_donor(request_handler: RequestHandler, properties: Dict[str, Any]) -> Li
             tissues,
             tissue_utils.get_donor
         )
+
+
+def get_tissue_kit_id(properties: Dict[str, Any]) -> str:
+    """Get tissue kit ID associated with tissue sample."""
+    external_id = item_utils.get_external_id(properties)
+    if is_production(properties) or is_benchmarking(properties):
+        return get_tissue_kit_id_from_external_id(external_id)
+    return ""
+
+def get_tissue_kit_id_from_external_id(external_id: str) -> str:
+    """Get tissue kit ID from external ID."""
+    return "-".join(external_id.split("-")[0:2])

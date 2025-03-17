@@ -110,5 +110,10 @@
             "description": "The assembly from which the coordinates are being converted (required for chain files)",
             "type": "string"
         }
+    },
+    "facets": {
+        "reference_genome.display_title": {
+            "title": "Reference Genome"
+        }
     }
 }

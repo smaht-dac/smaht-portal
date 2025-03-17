@@ -12,6 +12,7 @@ from . import (
     sample,
     sequencing,
     tissue,
+    ontology_term,
 )
 from .constants import file as file_constants
 from .utils import (
@@ -208,6 +209,17 @@ def get_tissues(
         for sample_source in sample_sources
         if isinstance(sample_source, dict) and tissue.is_tissue(sample_source)
     ]
+
+
+def get_uberon_ids(
+    properties: Dict[str, Any], request_handler: RequestHandler
+) -> List[Union[str, Dict[str, Any]]]:
+    """Get uberon_ids from tissues associated with file."""
+    return get_property_values_from_identifiers(
+        request_handler,
+        get_tissues(properties, request_handler),
+        tissue.get_uberon_id  
+    )
 
 
 def get_cell_culture_mixtures(
@@ -422,6 +434,21 @@ def get_override_group_coverage(file: Dict[str, Any]) -> str:
     return file.get("override_group_coverage","")
 
 
+def get_override_release_tracker_description(file: Dict[str, Any]) -> str:
+    """Get override release tracker description from properties."""
+    return file.get("override_release_tracker_description","")
+
+
+def get_override_release_tracker_title(file: Dict[str, Any]) -> str:
+    """Get override release tracker title from properties."""
+    return file.get("override_release_tracker_title","")
+
+
 def get_release_tracker_description(file: Dict[str, Any]) -> str:
     """Get release tracker description from properties."""
     return file.get("release_tracker_description","")
+
+
+def get_release_tracker_title(file: Dict[str, Any]) -> str:
+    """Get release tracker title from properties."""
+    return file.get("release_tracker_title","")

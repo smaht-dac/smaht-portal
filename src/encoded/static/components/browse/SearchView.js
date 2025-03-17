@@ -11,6 +11,7 @@ import {
     analytics,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
+import { AboveSearchViewTableControls } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/above-table-controls/AboveSearchViewTableControls';
 import { DetailPaneStateCache } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/DetailPaneStateCache';
 import { columnExtensionMap } from './columnExtensionMap';
 import { Schemas } from './../util';
@@ -22,134 +23,105 @@ import {
     EditingItemPageTitle,
 } from './../PageTitleSection';
 
+/**
+    * Function which is passed into a `.filter()` call to
+    * filter context.facets down, usually in response to frontend-state.
+    *
+    * Currently is meant to filter out type facet if we're in selection mode,
+    * as well as some fields from embedded 'experiment_set' which might
+    * give unexpected results.
+    *
+    * @todo Potentially get rid of this and do on backend.
+    *
+    * @param {{ field: string }} facet - Object representing a facet.
+    * @returns {boolean} Whether to keep or discard facet.
+    */
+export function filterFacet(facet, currentAction) {
+    // Set in backend or schema for facets which are under development or similar.
+    if (facet.hide_from_view) return false;
+
+    // Remove the @type facet while in selection mode.
+    if (facet.field === 'type' && currentAction === 'selection')
+        return false;
+
+    return true;
+}
+
+/** Filter the `@type` facet options down to abstract types only (if none selected) for Search. */
+export function transformedFacets(context, currentAction, schemas) {
+    // Clone/filter list of facets.
+    // We may filter out type facet completely at this step,
+    // in which case we can return out of func early.
+    const facets = context.facets.filter(function (facet) {
+        return filterFacet(facet, currentAction);
+    });
+
+    // Find facet for '@type'
+    const searchItemTypes =
+        schemaTransforms.getAllSchemaTypesFromSearchContext(context); // "Item" is excluded
+
+    if (searchItemTypes.length > 0) {
+        console.info(
+            "A (non-'Item') type filter is present. Will skip filtering Item types in Facet."
+        );
+        // Keep all terms/leaf-types - backend should already filter down to only valid sub-types through
+        // nature of search itself.
+
+        if (searchItemTypes.length > 1) {
+            const errMsg =
+                'More than one "type" filter is selected. This is intended to not occur, at least as a consequence of interacting with the UI. Perhaps have entered multiple types into URL.';
+            analytics.exception('SMaHT SearchView - ' + errMsg);
+            console.warn(errMsg);
+        }
+
+        return facets;
+    }
+
+    const typeFacetIndex = _.findIndex(facets, { field: 'type' });
+    if (typeFacetIndex === -1) {
+        console.error(
+            'Could not get type facet, though some filter for it is present.'
+        );
+        return facets; // Facet not present, return.
+    }
+
+    // Avoid modifying in place.
+    facets[typeFacetIndex] = _.clone(facets[typeFacetIndex]);
+
+    // Show only base types for when itemTypesInSearch.length === 0 (aka 'type=Item').
+    facets[typeFacetIndex].terms = _.filter(
+        facets[typeFacetIndex].terms,
+        function (itemType) {
+            const parentType = schemaTransforms.getAbstractTypeForType(
+                itemType.key,
+                schemas
+            );
+            return !parentType || parentType === itemType.key;
+        }
+    );
+
+    return facets;
+}
+
 export default function SearchView(props) {
     const {
         context: { '@type': searchPageType = ['ItemSearchResults'] },
     } = props;
-    const isCaseSearch = searchPageType[0] === 'CaseSearchResults';
-
-    if (isCaseSearch) {
-        return (
-            <DetailPaneStateCache>
-                <SearchViewBody {...props} {...{ isCaseSearch }} />
-            </DetailPaneStateCache>
-        );
-    }
 
     return <SearchViewBody {...props} />;
 }
 
 export class SearchViewBody extends React.PureComponent {
-    /**
-     * Function which is passed into a `.filter()` call to
-     * filter context.facets down, usually in response to frontend-state.
-     *
-     * Currently is meant to filter out type facet if we're in selection mode,
-     * as well as some fields from embedded 'experiment_set' which might
-     * give unexpected results.
-     *
-     * @todo Potentially get rid of this and do on backend.
-     *
-     * @param {{ field: string }} facet - Object representing a facet.
-     * @returns {boolean} Whether to keep or discard facet.
-     */
-    static filterFacet(facet, currentAction) {
-        // Set in backend or schema for facets which are under development or similar.
-        if (facet.hide_from_view) return false;
-
-        // Remove the @type facet while in selection mode.
-        if (facet.field === 'type' && currentAction === 'selection')
-            return false;
-
-        return true;
-    }
-
-    /** Filter the `@type` facet options down to abstract types only (if none selected) for Search. */
-    static transformedFacets(context, currentAction, schemas) {
-        // Clone/filter list of facets.
-        // We may filter out type facet completely at this step,
-        // in which case we can return out of func early.
-        const facets = context.facets.filter(function (facet) {
-            return SearchViewBody.filterFacet(facet, currentAction);
-        });
-
-        // Find facet for '@type'
-        const searchItemTypes =
-            schemaTransforms.getAllSchemaTypesFromSearchContext(context); // "Item" is excluded
-
-        if (searchItemTypes.length > 0) {
-            console.info(
-                "A (non-'Item') type filter is present. Will skip filtering Item types in Facet."
-            );
-            // Keep all terms/leaf-types - backend should already filter down to only valid sub-types through
-            // nature of search itself.
-
-            if (searchItemTypes.length > 1) {
-                const errMsg =
-                    'More than one "type" filter is selected. This is intended to not occur, at least as a consequence of interacting with the UI. Perhaps have entered multiple types into URL.';
-                analytics.exception('CGAP SearchView - ' + errMsg);
-                console.warn(errMsg);
-            }
-
-            return facets;
-        }
-
-        const typeFacetIndex = _.findIndex(facets, { field: 'type' });
-        if (typeFacetIndex === -1) {
-            console.error(
-                'Could not get type facet, though some filter for it is present.'
-            );
-            return facets; // Facet not present, return.
-        }
-
-        // Avoid modifying in place.
-        facets[typeFacetIndex] = _.clone(facets[typeFacetIndex]);
-
-        // Show only base types for when itemTypesInSearch.length === 0 (aka 'type=Item').
-        facets[typeFacetIndex].terms = _.filter(
-            facets[typeFacetIndex].terms,
-            function (itemType) {
-                const parentType = schemaTransforms.getAbstractTypeForType(
-                    itemType.key,
-                    schemas
-                );
-                return !parentType || parentType === itemType.key;
-            }
-        );
-
-        return facets;
-    }
-
-    /** Not currently used. */
-    static filteredFilters(filters) {
-        const typeFilterCount = filters.reduce(function (m, { field }) {
-            if (field === 'type') return m + 1;
-            return m;
-        }, 0);
-        return filters.filter(function ({ field, term }) {
-            if (field === 'type') {
-                if (term === 'Item') {
-                    return false;
-                }
-                if (typeFilterCount === 1) {
-                    return false;
-                }
-            }
-            return true;
-        });
-    }
-
+   
     constructor(props) {
         super(props);
         this.memoized = {
-            transformedFacets: memoize(SearchViewBody.transformedFacets),
-            filteredFilters: memoize(SearchViewBody.filteredFilters),
+            transformedFacets: memoize(transformedFacets)
         };
     }
 
     render() {
         const {
-            isCaseSearch = false,
             context,
             currentAction,
             schemas,
@@ -159,11 +131,9 @@ export class SearchViewBody extends React.PureComponent {
         const passProps = _.omit(
             this.props,
             'isFullscreen',
-            'toggleFullScreen',
-            'isCaseSearch'
+            'toggleFullScreen'
         );
 
-        //const filters = SearchView.filteredFilters(context.filters || []);
         const facets = this.memoized.transformedFacets(
             context,
             currentAction,
@@ -171,6 +141,9 @@ export class SearchViewBody extends React.PureComponent {
         );
         const tableColumnClassName = 'results-column col';
         const facetColumnClassName = 'facets-column col-auto';
+        const aboveTableComponent = (
+            <AboveSearchViewTableControls customizationButtonClassName='btn btn-sm btn-outline-secondary mt-05' />
+        );
 
         return (
             <div
@@ -184,11 +157,13 @@ export class SearchViewBody extends React.PureComponent {
                         facetColumnClassName,
                         facets,
                     }}
+                    aboveTableComponent={aboveTableComponent}
                     renderDetailPane={null}
                     termTransformFxn={Schemas.Term.toName}
                     separateSingleTermFacets={false}
                     rowHeight={31}
                     openRowHeight={40}
+                    defaultColAlignment="text-start"
                 />
             </div>
         );
@@ -228,10 +203,31 @@ const SearchViewPageTitle = React.memo(function SearchViewPageTitle(props) {
     ) : null;
 
     return (
-        <PageTitleContainer alerts={alerts} className="container-wide">
-            <TitleAndSubtitleBeside subtitle={subtitle}>
-                Search
-            </TitleAndSubtitleBeside>
+        <PageTitleContainer
+            alerts={alerts}
+            className="container-wide pb-2 mb-2"
+            alertsBelowTitleContainer
+            alertsContainerClassName="container-wide">
+            <div className="container-wide m-auto p-xl-0">
+                {/* Using static breadcrumbs here, but will likely need its own component in future */}
+                <div className="static-page-breadcrumbs clearfix mx-0 px-0">
+                    <div className="static-breadcrumb" data-name="Home" key="/">
+                        <a href="/" className="link-underline-hover">
+                            Home
+                        </a>
+                        <i className="icon icon-fw icon-angle-right fas" />
+                    </div>
+                    <div
+                        className="static-breadcrumb nonclickable"
+                        data-name="Search"
+                        key="/search">
+                        <span>Search</span>
+                    </div>
+                </div>
+                <TitleAndSubtitleBeside subtitle={subtitle}>
+                    Search
+                </TitleAndSubtitleBeside>
+            </div>
         </PageTitleContainer>
     );
 });

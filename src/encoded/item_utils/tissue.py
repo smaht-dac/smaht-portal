@@ -4,7 +4,10 @@ from typing import Any, Dict, Union
 
 from . import constants, donor, item
 
-from ..item_utils import item as item_utils
+from ..item_utils import (
+    item as item_utils,
+    ontology_term as ot_utils,
+)
 
 from .utils import (
     get_property_value_from_identifier,
@@ -31,6 +34,17 @@ def get_uberon_id(properties: Dict[str, Any]) -> str:
     return properties.get("uberon_id","")
 
 
+def get_top_grouping_term(properties: Dict[str, Any], request_handler: RequestHandler) -> str:
+    """Get top grouping term associated with tissue"""
+    return get_property_value_from_identifier(
+        request_handler,
+        get_uberon_id(properties),
+        functools.partial(
+            ot_utils.get_top_grouping_term, request_handler=request_handler
+        )
+    )
+
+
 def get_study(properties: Dict[str, Any]) -> str:
     """Get study associated with tissue.
 
@@ -49,12 +63,16 @@ def get_study(properties: Dict[str, Any]) -> str:
 TPC_ID_COMMON_PATTERN = donor.TPC_ID_COMMON_PATTERN + r"-[0-9][A-Z]{1,2}"
 BENCHMARKING_ID_REGEX = rf"{constants.BENCHMARKING_PREFIX}{TPC_ID_COMMON_PATTERN}"
 PRODUCTION_ID_REGEX = rf"{constants.PRODUCTION_PREFIX}{TPC_ID_COMMON_PATTERN}"
+TPC_ALT_ID_REGEX = rf"{constants.TPC_ALT_DONOR_PREFIX}{TPC_ID_COMMON_PATTERN}"
 
 BENCHMARKING_TISSUE_REGEX = re.compile(
     rf"{BENCHMARKING_ID_REGEX}$"
 )
 PRODUCTION_TISSUE_REGEX = re.compile(
     rf"{PRODUCTION_ID_REGEX}$"
+)
+TPC_ALT_TISSUE_REGEX = re.compile(
+    rf"{TPC_ALT_ID_REGEX}$"
 )
 
 def is_benchmarking(properties: Dict[str, Any]) -> bool:
@@ -67,6 +85,11 @@ def is_production(properties: Dict[str, Any]) -> bool:
     """Check if tissue is from production study."""
     external_id = item.get_external_id(properties)
     return PRODUCTION_TISSUE_REGEX.match(external_id) is not None
+
+
+def is_valid_external_id(external_id: str) -> bool:
+    """Check if tissue external_id matches Benchmarking or Production."""
+    return PRODUCTION_TISSUE_REGEX.match(external_id) is not None or BENCHMARKING_TISSUE_REGEX.match(external_id) is not None
 
 
 def get_project_id(properties: Dict[str, Any]) -> str:
@@ -91,6 +114,11 @@ def get_donor_kit_id_from_external_id(external_id: str) -> str:
     if BENCHMARKING_TISSUE_REGEX.match(external_id):
         return external_id.split("-")[0].strip(constants.BENCHMARKING_PREFIX)
     return ""
+
+
+def get_donor_id_from_external_id(external_id: str) -> str:
+    """Get donor ID from external ID."""
+    return external_id.split("-")[0]
 
 
 def get_protocol_id(properties: Dict[str, Any]) -> str:

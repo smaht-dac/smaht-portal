@@ -3,6 +3,19 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 
 const announcements = [
     {
+        type: 'warning',
+        title: 'Data Retraction',
+        body: (
+            <span>
+                One WGS ONT PromethION 24 BAM from COLO829-BLT50,{' '}
+                <a href="/output-files/beca52fb-ad5b-4eaa-832a-2929c7bf7577/">
+                    SMAFIPHR8QOG
+                </a>
+                , has been retracted due to sample swap.
+            </span>
+        ),
+    },
+    {
         type: 'info',
         title: 'New Features',
         body: (
@@ -77,33 +90,38 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                                 isExpanded ? 'minus' : 'plus'
                             }`}></i>
                     </button>
-                    <a className="header-link" href={query}>
-                        {releaseItemIndex === 0 ? (
-                            <span>LATEST</span>
-                        ) : (
-                            <span>
-                                {month} {year}
-                            </span>
-                        )}
+                    <div className="header-link">
+                        <span>
+                            {releaseItemIndex === 0 ? 'Latest: ' : ''}
+                            {month} {year}
+                        </span>
                         <span className="count">
                             {count} {count > 1 ? 'Files' : 'File'}
-                            <i className="icon icon-arrow-right"></i>
+                            {/* <i className="icon icon-arrow-right"></i> */}
                         </span>
-                    </a>
+                    </div>
                 </div>
                 <div className="body">
                     {sample_groups.map((sample_group, i) => {
                         let sample_group_title = sample_group.value;
 
-                        if (sample_group?.additional_value) {
-                            sample_group_title += ` - ${
-                                sample_group.additional_value?.split(':')[0]
-                            }`;
+                        if (sample_group_title?.includes('DAC_DONOR_')) {
+                            sample_group_title = sample_group_title.replace(
+                                'DAC_DONOR_',
+                                ''
+                            );
+                        }
+
+                        const sample_group_type =
+                            sample_group?.items?.[0]?.['additional_value'];
+
+                        if (sample_group_type) {
+                            sample_group_title += ` - ${sample_group_type}`;
                         }
 
                         return (
                             <div className="release-item" key={i}>
-                                <a className="title" href={sample_group.query}>
+                                <div className="title">
                                     {sample_group_title}
                                     <svg
                                         width="22"
@@ -112,14 +130,15 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                                         xmlns="http://www.w3.org/2000/svg">
                                         <path d="M1 7C0.447715 7 0 7.44772 0 8C0 8.55228 0.447715 9 1 9V7ZM21.7071 8.70711C22.0976 8.31658 22.0976 7.68342 21.7071 7.29289L15.3431 0.928932C14.9526 0.538408 14.3195 0.538408 13.9289 0.928932C13.5384 1.31946 13.5384 1.95262 13.9289 2.34315L19.5858 8L13.9289 13.6569C13.5384 14.0474 13.5384 14.6805 13.9289 15.0711C14.3195 15.4616 14.9526 15.4616 15.3431 15.0711L21.7071 8.70711ZM1 9H21V7H1V9Z" />
                                     </svg>
-                                </a>
+                                </div>
                                 <ul>
                                     {sample_group.items.map((item, i) => {
+                                        const { value, count } = item;
                                         return (
                                             <li key={i}>
-                                                <a href={item.query}>
-                                                    {item.count} {item.value}
-                                                </a>
+                                                <div>
+                                                    {count} {value}
+                                                </div>
                                             </li>
                                         );
                                     })}

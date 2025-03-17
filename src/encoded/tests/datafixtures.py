@@ -441,12 +441,46 @@ def donor_properties(test_second_submission_center: Dict[str, Any]) -> Dict[str,
         "submitted_id": f"{TEST_SECOND_CENTER_SUBMITTED_ID_CODE}_DONOR_1234",
         "age": 35,
         "sex": "Male",
+        "tpc_submitted": "False",
+        "external_id": "1234"
     }
 
 
 @pytest.fixture
 def donor(testapp: TestApp, donor_properties: Dict[str, Any]) -> Dict[str, Any]:
     return post_item(testapp, donor_properties, "Donor")
+
+
+@pytest.fixture
+def test_ontology(
+    testapp,
+    test_consortium
+):
+    item = {
+        "identifier": "UBERON",
+        "title": "Uberon",
+        "consortia": [
+            test_consortium["uuid"]
+        ]
+    }
+    return post_item_and_return_location(testapp, item, 'ontology')
+
+
+@pytest.fixture
+def test_ontology_term(
+    testapp,
+    test_consortium,
+    test_ontology
+):
+    item = {
+        "identifier": "UBERON:0008952",
+        "ontologies": [test_ontology["uuid"]],
+        "title": "upper lobe of left lung",
+        "consortia": [
+           test_consortium["uuid"]
+        ]
+    }
+    return post_item_and_return_location(testapp, item, 'ontology_term')
 
 
 @pytest.fixture

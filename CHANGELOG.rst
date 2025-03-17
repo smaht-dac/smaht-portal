@@ -7,10 +7,291 @@ smaht-portal
 Change Log
 ----------
 
-0.134.0
+0.145.0
 =======
 
 * Support multiple manifest files
+
+
+0.144.0
+=======
+`PR 371: SN Add uberon_id check for tissue <https://github.com/smaht-dac/smaht-portal/pull/371>`_
+
+* Add property `valid_protocol_ids` to OntologyTerm that is a list of protocol IDs (e.g. 1D, 3A), the portion of `external_id` indicating tissue types
+* Add a check to Tissue ensuring that the protocol ID in `external_id` is among the `valid_protocol_ids` for the OntologyTerm linked with uberon_id
+* Add checks to Donor and Tissue ensuring that `external_id` matches expected format for Benchmarking and Production
+* Makes `external_id` a required property for Donor
+
+
+0.143.3
+=======
+`PR 377: Add not logged in alerts while navigating <https://github.com/smaht-dac/smaht-portal/pull/377>`_
+
+* Adds "Not Logged In" alert to /search and /qc-metrics pages when navigated from another page like home page notifications or documentation pages
+* Adds login popup link to logging in text in "Access was denied to this resource" alert
+
+
+0.143.2
+=======
+`PR 374: Cypress Test.04 - search view updates <https://github.com/smaht-dac/smaht-portal/pull/374>`_
+
+* Updates 04a_search_views_local.cy.js upon recent file search view and other search view changes
+
+
+0.143.1
+=======
+`PR 372: chore: update text in data retraction alert <https://github.com/smaht-dac/smaht-portal/pull/372>`_
+
+* Change "The" to "This"
+* Remove hyperlink on file
+
+
+0.143.0
+=======
+`PR 367: feat: COLO829BLT50 bam file retraction announcement <https://github.com/smaht-dac/smaht-portal/pull/367>`_
+
+* Implement default warning banner for retracted files
+* Add retraction announcement
+
+
+0.142.3
+=======
+`PR 369: fix: file size NaN bug <https://github.com/smaht-dac/smaht-portal/pull/369>`_
+
+* Prevent file size from rendering as NaN when undefined
+
+
+0.142.2
+=======
+`PR 368: fix: prevent version tag bug <https://github.com/smaht-dac/smaht-portal/pull/368>`_
+
+* style: keep version on one line
+* fix: don't append "v" to version if already present
+
+
+0.142.1
+=======
+`PR 359: feat: release tracker updates <https://github.com/smaht-dac/smaht-portal/pull/359>`_
+
+* Enable release tracker Links
+
+
+0.142.0
+=======
+`PR 309: SN validate external_id <https://github.com/smaht-dac/smaht-portal/pull/309>`_
+
+*  Add a custom validator to TissueSample that ensures the `external_id` for items from benchmarking and production Donors matches the pattern expected for category (currently only applied to TPC submitted items)
+* Make `tpc_submitted` a required property for Donor
+
+
+0.141.2
+=======
+`PR 366: SN reference genome facet <https://github.com/smaht-dac/smaht-portal/pull/366>`_
+
+* Add `reference_genome.display_title` facet to all file types with a `reference_genome` property (AlignedReads, OutputFile, SupplementaryFile, and VariantCalls) so that the facet shows up in File Search view
+
+
+0.141.1
+=======
+`PR 365: SN relatives enums <https://github.com/smaht-dac/smaht-portal/pull/365>`_
+
+* Add enums to `relatives` in FamilyHistory
+
+
+0.141.0
+=======
+`PR 349: SN OntologyTerm update <https://github.com/smaht-dac/smaht-portal/pull/349>`_
+
+* Change `uberon_id`` in Tissue from a string to a linkTo to OntologyTerm
+* Add upgrader for tissue
+* Update File `sample_summary` to include tissue information from OntologyTerm
+
+
+0.140.2
+=======
+`PR 362: page title and search table style updates <https://github.com/smaht-dac/smaht-portal/pull/362>`_
+
+* Adds background and breadcrumb to Search View, My Profile, and Impersonate a User page titles
+* Left aligns all search result table column's content unless it is explicitly defined (e.g. Benchmarking, Browse View, and File Search Views)
+* Fixes missing File Search View registration with SubmittedFile
+* Fixes LoadMoreAsYouScroll bug
+
+
+0.140.1
+=======
+`PR 364: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/364>`_
+* Add "Consensus Reads" to `data_category` enums for File
+
+
+0.140.0
+=======
+`PR 354: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/354>`_
+* 2025-02-21 / dmichaels
+  - Branch: dmichaels-20250221-release-tracker-api-title | PR-355
+    - Derived from branch: sn_release_tracker_title (commit: d202c1c55b69389d031070ada85ce180b1ed603d)
+  - Changes to the release tracker API (i.e. /recent_files_summary) to use the new (calculated)
+    property release_tracker_title (created by Sarah in branch: sn_release_tracker_title);
+    old way of doing it can be accessed using the legacy=true URL query argument.
+* Add calcprop to File, `release_tracker_title`, which displays in order of priority `override_release_tracker_title`, `CellCultureMixture.code`, `CellLine.code`, or `Tissue.display_title` for use as a header in the Release Tracker on the home page
+
+0.139.0
+=======
+`PR 360: fix: add resources to hard-coded disabled breadcrumbs <https://github.com/smaht-dac/smaht-portal/pull/360>`_
+
+* Disable breadcrumbs for resources pages
+
+
+0.138.0
+=======
+`PR 351: FileSearchView for type=File search <https://github.com/smaht-dac/smaht-portal/pull/351>`
+
+* New FileSearchView component to handle type=File searches
+* Refactoring and improvements to BrowseView
+
+
+0.137.4
+=======
+`PR 358: Cypress homepage and benchmarking facets test updates <https://github.com/smaht-dac/smaht-portal/pull/358>`
+
+* Homepage: Test for timeline items and below-figure button clicks were improved
+* Benchmarking: Bug fix for Exclude Properties test
+* Browse view: Quick Info Bar test is skipped until data is available
+
+
+0.137.3
+=======
+`PR 356: fix: correct existing data link <https://github.com/smaht-dac/smaht-portal/pull/356>`_
+
+* fix: update link in doc
+
+
+0.137.2
+=======
+`PR 353: fix: remove "DAC_DONOR_" from sample group title <https://github.com/smaht-dac/smaht-portal/pull/353>`_
+
+* Remove "DAC_DONOR_" from sample group title
+
+
+0.137.1
+=======
+`PR 352: SN Fix release date facet <https://github.com/smaht-dac/smaht-portal/pull/352>`_
+
+* Fix facet for `file.json` so Release Date shows `file_status_tracking.released_date`
+
+
+0.137.0
+=======
+`PR 350: SN Release tracker description <https://github.com/smaht-dac/smaht-portal/pull/350>`_
+
+* Add property `override_release_tracker_description` to file.json that can set the calcprop `release_tracker_description` to desired value
+* In `release-file.py`, require that a file has `release_tracker_description` set prior to release
+* Make reference_genome `code` non-unique
+
+
+0.136.0
+=======
+`PR 308 SN Pathology report <https://github.com/smaht-dac/smaht-portal/pull/308>`
+
+* Add items PathologyReport, NonBrainPathologyReport, BrainPathologyReport, and HistologyImage
+
+
+0.135.2
+=======
+`PR 343: feat: iPSC alert <https://github.com/smaht-dac/smaht-portal/pull/343>`_
+
+* Add alert banner for iPSC
+
+
+0.135.1
+=======
+`PR 347 feat: remove release tracker links <https://github.com/smaht-dac/smaht-portal/pull/347>`
+
+* Remove links from release tracker
+
+
+0.135.0
+=======
+* 2025-02-05 / dmichaels
+  - Branch: dmichaels-20250130-release-tracker-api-add-submitted-file | PR-337
+    - Derived from branch: main (commit: 8616c891bb93001d756f5a7eb6cbe0910d74780c)
+    - With merged in branch: sn_dsa_embed -> NEVERMIND -> BACKED OUT THIS MERGE FOR THIS BRANCH
+  - Added support for additional SubmittedFile type to release tracker API i.e. /recent_released_files.
+    This requires that the new File.override_release_tracker_description property be populated for affected types;
+    the calculated property release_tracker_description will depend on this (TODO: how is that populated).
+  - Added support for qc_values "psuedo-columns" for smaht-submitr; and also for multiple sheets of same type.
+    This is by virtue of using dcicutils.submitr.custom_excel.CustomExcel in ingestion_processor.py.
+  - In ingestion/submission_folio.py no longer assume consortia comes through from submitr;
+    this was causing problems for non-admin users; but actually changed it back to let it come through;
+    went back/forth on this; in the end removed restricted_fields designation for consortia in mixins.json.
+  - In ingestion/load_extensions.py use  noset_last_modified=True for loadxl call;
+    this was causing problems for non-admin users; requires dcicsnovault 11.24.0+.
+  - Updated the smaht-submitr spreadsheet template version;
+    see SUBMITR_METADATA_TEMPLATE_SHEET_ID and METADATA_TEMPLATE_VERSION_SHEET in metadata_template.py
+
+
+0.134.1
+=======
+`PR 329 SN Add Kinnex enums <https://github.com/smaht-dac/smaht-portal/pull/329>`
+
+* Add enums to `data_category` and `data_type` in File schema for Kinnex file types
+
+
+0.134.0
+=======
+`PR227: feat: VCF comparator and software information  <https://github.com/smaht-dac/smaht-portal/pull/227>`_
+
+* Provide comparator information for VCFs in the file overview page
+
+
+0.133.8
+=======
+`PR 312: BM submission doc fix<https://github.com/smaht-dac/smaht-portal/pull/312>`_
+
+* Swap the "Validation" and "Submission" sections
+* Slight text edit for first line in Validation section to remove reference to Submission paragraph
+
+
+0.133.7
+=======
+`PR 338: Browse view 2 <https://github.com/smaht-dac/smaht-portal/pull/338>`_
+
+* Add link to browse view from production data arrow
+* Enlarge size of file data modal image
+* Rework statistics data components to use new search method; pull more accurate data
+
+
+0.133.6
+=======
+`PR 327: chore: add month back to latest header <https://github.com/smaht-dac/smaht-portal/pull/327>`_
+
+* Update the notifications panel latest release item header to show month and year
+
+
+0.133.5
+=======
+`PR 341 feat: add title row to top of detail page <https://github.com/smaht-dac/smaht-portal/pull/341>`_
+
+- Remove title from excluded keys
+- Add title row to top of details
+
+
+0.133.4
+=======
+`PR 339 Embedd Metaworflow name into file <https://github.com/smaht-dac/smaht-portal/pull/339>`_
+
+* Minor changes to the script that creates the input for the QC overview page
+* Embedd Metaworflow name into file, so that we can query if a file has been the input to a specific MWF
+
+
+0.133.3
+=======
+`PR 336 Cypress test updates <https://github.com/smaht-dac/smaht-portal/pull/336>`_
+
+* Home page: added new tests for Data Release Tracker and Announcements feeds
+* Home page: updated benchmarking/broduction expand/collapse panels
+* Benchmarking: updated traversing tabs, sidebar navigation
+* Benchmarking: added COLO829 SNV/Indel Detection Challenge tests
+* Browse View: added new tests for results table and quick info bar
 
 
 0.133.2
@@ -22,7 +303,7 @@ Change Log
 
 0.133.1
 =======
-`PR 330 chore: update PI information for UW <https://github.com/smaht-dac/smaht-portal/pull/330>`
+`PR 330 chore: update PI information for UW <https://github.com/smaht-dac/smaht-portal/pull/330>`_
 
 * Update PI information in awardees page
 
@@ -36,14 +317,14 @@ Change Log
 
 0.132.2
 =======
-`PR 332 feat: add animation to sidebar <https://github.com/smaht-dac/smaht-portal/pull/332>`
+`PR 332 feat: add animation to sidebar <https://github.com/smaht-dac/smaht-portal/pull/332>`_
 
 * Add animation to sliding sidebar
 
 
 0.132.1
 =======
-`PR 328 fix: update broken link in error page <https://github.com/smaht-dac/smaht-portal/pull/328>`
+`PR 328 fix: update broken link in error page <https://github.com/smaht-dac/smaht-portal/pull/328>`_
 
 * Correct broken link to account creation doc
 
