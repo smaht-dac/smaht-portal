@@ -119,7 +119,7 @@ def validate_external_id_on_edit(context, request):
 
 def assert_external_id_category_match(external_id: str, category: str):
     """Check that external_id pattern matches for category."""
-    if category in ["Homogenate", "Liquid"]:
+    if category in ["Homogenate", "Liquid", "Cells"]:
         return tissue_sample_utils.is_homogenate_external_id(external_id)
     elif category == "Specimen":
         return tissue_sample_utils.is_specimen_external_id(external_id)
