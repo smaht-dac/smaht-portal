@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.146.0
+=======
+`PR 378: SN Move ONT validator <https://github.com/smaht-dac/smaht-portal/pull/378>`_
+
+* Move custom validator for basecalling software for ONT files to UnalignedReads from SubmittedFile, as this does not need to be applied to every file item type, just raw sequencing reads
+
 0.145.0
 =======
 `PR 373: SN Add property replaced_by <https://github.com/smaht-dac/smaht-portal/pull/373>`_
