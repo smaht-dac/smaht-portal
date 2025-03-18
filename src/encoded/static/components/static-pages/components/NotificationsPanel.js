@@ -11,7 +11,7 @@ const announcements = [
                 <a href="/output-files/beca52fb-ad5b-4eaa-832a-2929c7bf7577/">
                     SMAFIPHR8QOG
                 </a>
-                , has been retracted.
+                , has been retracted due to sample swap.
             </span>
         ),
     },
