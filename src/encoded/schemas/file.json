@@ -238,6 +238,13 @@
             "minimum": 0,
             "permission": "restricted_fields"
         },
+        "replaced_by": {
+            "title": "Replaced By",
+            "desciption": "Link to a file that was submitted as a replacement - for files that are retracted or obsolete",
+            "type": "string",
+            "linkTo": "File",
+            "permission": "restricted_fields"
+        },
         "version": {
             "type": "string",
             "permission": "restricted_fields"

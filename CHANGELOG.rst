@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.145.0
+=======
+`PR 373: SN Add property replaced_by <https://github.com/smaht-dac/smaht-portal/pull/373>`_
+
+* Add property `replaced_by` to File to link to replacement files for files that are retracted or obsolete
+
+
 0.144.0
 =======
 `PR 371: SN Add uberon_id check for tissue <https://github.com/smaht-dac/smaht-portal/pull/371>`_
