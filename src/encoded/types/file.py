@@ -547,6 +547,7 @@ class File(Item, CoreFile):
                     "format": "date-time"
                 },
                 "released": {
+                    "title": "Release Date",
                     "type": "string",
                     "format": "date-time"
                 },
