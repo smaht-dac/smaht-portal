@@ -7,11 +7,24 @@ smaht-portal
 Change Log
 ----------
 
-0.145.0
+0.147.0
 =======
 `PR 370: SN Add liquid category check <https://github.com/smaht-dac/smaht-portal/pull/370>`_
 
-* Add check to TissueSample ensuring that items with `external_id `values with protocol id for blood, buccal swab, or fibroblasts (3A, 3B, or 3AC) have category of "Liquid"
+* Add check to TissueSample ensuring that items with `external_id `values with protocol id for blood or buccal swab (3A or 3B) have category of "Liquid" and fibroblasts (3AC) have category of "Cells"
+
+
+0.146.0
+=======
+`PR 378: SN Move ONT validator <https://github.com/smaht-dac/smaht-portal/pull/378>`_
+
+* Move custom validator for basecalling software for ONT files to UnalignedReads from SubmittedFile, as this does not need to be applied to every file item type, just raw sequencing reads
+
+0.145.0
+=======
+`PR 373: SN Add property replaced_by <https://github.com/smaht-dac/smaht-portal/pull/373>`_
+
+* Add property `replaced_by` to File to link to replacement files for files that are retracted or obsolete
 
 
 0.144.0

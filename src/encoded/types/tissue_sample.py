@@ -131,14 +131,17 @@ def assert_external_id_category_match(external_id: str, category: str):
 
 def assert_tissue_category_match(category: str, external_id: str):
     """
-    Check that category is Liquid if protocol id of external_id is among certain types.
+    Check that category is Liquid or Cells if protocol id of external_id is among certain types.
     
-    Current types are blood, buccal swab, and fibroblast cell culture.
+    Current types are blood, buccal swab (both Liquid), and fibroblast cell culture (Cells).
     """
-    protocol_ids = ["3AC", "3A", "3B"]
+    liquid_protocol_ids = ["3A", "3B"]
+    cells_protocol_ids = ["3AC"]
     protocol_id = tissue_sample_utils.get_protocol_id_from_external_id(external_id)
-    if protocol_id in protocol_ids:
+    if protocol_id in liquid_protocol_ids:
         return category == "Liquid"
+    elif protocol_id in cells_protocol_ids:
+        return category == "Cells"
     return True
 
 
