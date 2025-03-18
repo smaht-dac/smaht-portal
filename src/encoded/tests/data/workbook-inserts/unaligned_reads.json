@@ -45,6 +45,28 @@
 
     },
     {
+        "uuid": "73ccfd8f-3dbc-4d29-9f6c-9ff686d84d17",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_UNALIGNED-READS_HELA-HEK293-BAM",
+
+        "data_category": [
+            "Sequencing Reads"
+        ],
+        "data_type": [
+            "Unaligned Reads"
+        ],
+        "file_format": "BAM",
+        "filename": "some_unaligned_bam.bam",
+        "file_sets": [
+            "TEST_FILE-SET_HELA-HEK293-DNA"
+        ],
+        "software": [
+            "TEST_SOFTWARE_DORADO"
+        ]
+    },
+    {
         "uuid": "d26e0166-742b-4a32-a30d-9b265e1f2938",
         "accession": "SMAURV9YIJWF",
         "submission_centers": [
