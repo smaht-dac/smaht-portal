@@ -24,7 +24,7 @@ from encoded.item_utils import (
     sample_source as sample_source_utils,
     submitted_file as submitted_file_utils,
     tissue as tissue_utils,
-    supplementary_file as supp_file_utils
+    supplementary_file as supp_file_utils,
 )
 from encoded.item_utils.constants import (
     file as file_constants,
@@ -64,10 +64,10 @@ class AnnotatedFilenameInfo:
 
 # dataset is required but comes in through input args for now
 REQUIRED_FILE_PROPS = [file_constants.SEQUENCING_CENTER]
-SECONDARY_REQUIRED_FILE_PROPS = [
-    "release_tracker_description",
-    "release_tracker_title"
-]
+SECONDARY_REQUIRED_FILE_PROPS = ["release_tracker_description", "release_tracker_title"]
+# This lists the MWFs that need to have run in addition to the regular Alignment and QC run
+REQUIRED_ADDITIONAL_QC_RUNS = ["sample_identity_check"]
+
 
 class FileRelease:
 
@@ -76,8 +76,10 @@ class FileRelease:
     def __init__(self, auth_key: dict, file_identifier: str):
         self.key = auth_key
         self.request_handler = self.get_request_handler()
-        self.file = self.get_metadata(file_identifier)
+        self.request_handler_embedded = self.get_request_handler_embedded()
+        self.file = self.get_metadata_embedded(file_identifier)
         self.file_accession = item_utils.get_accession(self.file)
+        self.output_meta_workflow_run = self.get_output_meta_workflow_run()
         self.patch_infos = []
         self.patch_dicts = []
         self.warnings = []
@@ -172,8 +174,14 @@ class FileRelease:
     def get_request_handler(self) -> RequestHandler:
         return RequestHandler(auth_key=self.key, frame="object", datastore="database")
 
+    def get_request_handler_embedded(self) -> RequestHandler:
+        return RequestHandler(auth_key=self.key, frame="embedded", datastore="database")
+
     def get_metadata(self, identifier: str) -> dict:
         return self.request_handler.get_item(identifier)
+
+    def get_metadata_embedded(self, identifier: str) -> dict:
+        return self.request_handler_embedded.get_item(identifier)
 
     def get_items(self, identifiers: List[str]) -> List[dict]:
         """Get metadata for a list of identifiers."""
@@ -193,16 +201,21 @@ class FileRelease:
                 result.extend(links)
         return result
 
-    def get_file_sets_from_file(self) -> List[dict]:
-        if file_sets := file_utils.get_file_sets(self.file):
-            return [self.get_metadata(file_set) for file_set in file_sets]
+    def get_output_meta_workflow_run(self) -> dict:
+        """Get the MetaWorkflowRun that generated the file to release
+
+        Returns:
+            dict: MetaWorkflowRun
+        """
         search_filter = (
             f"/search/?type=MetaWorkflowRun&workflow_runs.output.file.uuid="
             f"{item_utils.get_uuid(self.file)}"
         )
         mwfrs = ff_utils.search_metadata(search_filter, key=self.key)
         if len(mwfrs) != 1:
-            if not supp_file_utils.is_genome_assembly(self.file) and not supp_file_utils.is_reference_conversion(self.file):
+            if not supp_file_utils.is_genome_assembly(
+                self.file
+            ) and not supp_file_utils.is_reference_conversion(self.file):
                 self.print_error_and_exit(
                     (
                         f"Expected exactly one associated MetaWorkflowRun, got"
@@ -210,8 +223,33 @@ class FileRelease:
                     )
                 )
             else:
-                return []
-        mwfr = mwfrs[0]
+                return None
+        return mwfrs[0]
+
+    def get_all_output_files_from_mwfr(self, additional_filter) -> List[dict]:
+        """Get all the output files from the MetaWorkflowRun that generated the file to release
+
+        Returns:
+            List[dict]: List of output files
+        """
+        if not self.output_meta_workflow_run:
+            return []
+
+        search_filter = (
+            f"/search/?type=File&meta_workflow_run_outputs.uuid="
+            f"{item_utils.get_uuid(self.output_meta_workflow_run)}"
+        )
+        if additional_filter:
+            search_filter += f"&{additional_filter}"
+        return ff_utils.search_metadata(search_filter, key=self.key)
+
+    def get_file_sets_from_file(self) -> List[dict]:
+        if file_sets := file_utils.get_file_sets(self.file):
+            return [self.get_metadata(file_set) for file_set in file_sets]
+
+        mwfr = self.output_meta_workflow_run
+        if not mwfr:
+            return []
         file_sets = meta_workflow_run_utils.get_file_sets(mwfr)
         # Might need to be more general in the future
         if len(file_sets) != 1:
@@ -240,8 +278,9 @@ class FileRelease:
         self, dataset: str, obsolete_file_identifier: str = None, **kwargs: Any
     ) -> None:
         self.validate_file()
-        self.add_file_patchdict(dataset)
-        self.add_release_file_patchdict(dataset)
+        self.add_release_file_patchdict(self.file, dataset)
+        for file in self.get_associated_files():
+            self.add_release_file_patchdict(file, dataset)
 
         self.add_release_items_to_patchdict(self.quality_metrics, "QualityMetric")
         self.add_release_items_to_patchdict(
@@ -282,14 +321,14 @@ class FileRelease:
             print(str(e))
             self.print_error_and_exit("Validation failed.")
 
-        print("Validation done. Patchin file metadata...")
+        print("Validation done. Patching file metadata...")
         try:
             self.patch_metadata(self.patch_dicts[0])
             print(f"Patching of File {self.file_accession} completed.")
         except Exception as e:
             print(str(e))
             self.print_error_and_exit("Patching failed.")
-        
+
         to_print = f"Patching of File {self.file_accession} completed."
         print(ok_green_text(to_print))
 
@@ -311,7 +350,7 @@ class FileRelease:
         except Exception as e:
             print(str(e))
             self.print_error_and_exit("Patching failed.")
-        
+
         to_print = f"Release of File {self.file_accession} completed."
         print(ok_green_text(to_print))
 
@@ -367,6 +406,28 @@ class FileRelease:
             return identifier
         return item_utils.get_accession(item)
 
+    def get_associated_files(self) -> List[dict]:
+        """Get other Final output files of the alignment MWFR that need to be released. This function
+        needs to be adjust for specific Metaworkflows as the files to release can vary.
+        """
+        if not self.output_meta_workflow_run:
+            return []
+
+        associated_files = []
+        # For RNA-Seq data, collect all of the Final Output files from the MWFR (without the file to release)
+        if (
+            self.output_meta_workflow_run["meta_workflow"]["name"]
+            == "RNA-seq_bulk_short_reads_GRCh38"
+        ):
+            additional_filter = (
+                f"output_status=Final Output&accession!={self.file_accession}"
+            )
+            final_output_files = self.get_all_output_files_from_mwfr(additional_filter)
+            for f in final_output_files:
+                associated_files.append(f)
+
+        return associated_files
+
     def add_release_items_to_patchdict(self, items: list, item_desc: str) -> None:
         """Sets the status to released in all items in the list and
         adds the corresponding patch dict
@@ -378,15 +439,16 @@ class FileRelease:
         for item in items:
             self.add_release_item_to_patchdict(item, item_desc)
 
-    def add_file_patchdict(self, dataset: str) -> None:
+    def add_release_file_patchdict(self, file: dict, dataset: str) -> None:
         access_status = self.get_access_status(dataset)
         file_set_accessions = [
             item_utils.get_accession(file_set) for file_set in self.file_sets
         ]
-        annotated_filename_info = self.get_annotated_filename_info()
+        file_accession = item_utils.get_accession(file)
+        annotated_filename_info = self.get_annotated_filename_info(file)
         # Add file to file set and set status to released
         patch_body = {
-            item_constants.UUID: item_utils.get_uuid(self.file),
+            item_constants.UUID: item_utils.get_uuid(file),
             item_constants.STATUS: item_constants.STATUS_RELEASED,
             file_constants.DATASET: dataset,
             file_constants.ACCESS_STATUS: access_status,
@@ -405,7 +467,7 @@ class FileRelease:
 
         self.patch_infos.extend(
             [
-                f"\nFile ({self.file_accession}):",
+                f"\nFile ({file_accession}):",
                 self.get_okay_message(
                     item_constants.STATUS, item_constants.STATUS_RELEASED
                 ),
@@ -421,33 +483,18 @@ class FileRelease:
         )
         self.patch_dicts.append(patch_body)
 
-    def add_release_file_patchdict(self, dataset: str) -> None:
-        patch_body = {
-            item_constants.UUID: item_utils.get_uuid(self.file),
-            item_constants.STATUS: item_constants.STATUS_RELEASED,
-        }
-        self.patch_infos.extend(
-            [
-                f"\nFile ({self.file_accession}):",
-                self.get_okay_message(
-                    item_constants.STATUS, item_constants.STATUS_RELEASED
-                ),
-            ]
-        )
-        self.patch_dicts.append(patch_body)
-
-    def get_annotated_filename_info(self) -> AnnotatedFilenameInfo:
-        annotated_filename = file_utils.get_annotated_filename(self.file)
+    def get_annotated_filename_info(self, file) -> AnnotatedFilenameInfo:
+        annotated_filename = file_utils.get_annotated_filename(file)
         if annotated_filename:
             return AnnotatedFilenameInfo(annotated_filename, {})
 
         annotated_filename = caf.get_annotated_filename(
-            self.file, self.request_handler, file_sets=self.file_sets
+            file, self.request_handler, file_sets=self.file_sets
         )
         if caf.has_errors(annotated_filename):
             errors = "; ".join(annotated_filename.errors)
             self.print_error_and_exit(
-                f"Could not get annotated filename for {self.file_accession}: {errors}"
+                f"Could not get annotated filename for {item_utils.get_accession(file)}: {errors}"
             )
         patch_body = caf.get_patch_body(annotated_filename, self.key)
         return AnnotatedFilenameInfo(str(annotated_filename), patch_body)
@@ -506,7 +553,7 @@ class FileRelease:
                 ),
                 file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
                     file_constants.ACCESS_STATUS_OPEN
-                )
+                ),
             },
             IPSC: {
                 file_constants.DATA_CATEGORY_SEQUENCING_READS: (
@@ -526,7 +573,7 @@ class FileRelease:
                 ),
                 file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
                     file_constants.ACCESS_STATUS_OPEN
-                )
+                ),
             },
             self.TISSUE: {
                 file_constants.DATA_CATEGORY_SEQUENCING_READS: (
@@ -546,7 +593,7 @@ class FileRelease:
                 ),
                 file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
                     file_constants.ACCESS_STATUS_OPEN
-                )
+                ),
             },
         }
         if dataset in [
@@ -619,6 +666,7 @@ class FileRelease:
 
     def validate_file(self) -> None:
         self.validate_required_file_props()
+        self.validate_required_qc_runs()
         self.validate_existing_file_sets()
         self.validate_file_output_status()
         self.validate_file_status()
@@ -632,6 +680,21 @@ class FileRelease:
                 self.print_error_and_exit(
                     f"File {self.file_accession} does not have the required property"
                     f" `{prop}`."
+                )
+
+    def validate_required_qc_runs(self) -> None:
+        """Check if the file has been input to other MWFRs. It must have been input to all required QC runs."""
+        additional_runs = []
+        if output_file_utils.is_output_file(
+            self.file
+        ) and output_file_utils.is_final_output_bam(self.file):
+            mwfr_inputs = self.file.get("meta_workflow_run_inputs", [])
+            for mwfr_input in mwfr_inputs:
+                additional_runs.append(mwfr_input["meta_workflow"]["name"])
+        for mwf_name in REQUIRED_ADDITIONAL_QC_RUNS:
+            if mwf_name not in additional_runs:
+                self.print_error_and_exit(
+                    f"File {self.file_accession} is missing the required additional QC run {mwf_name}."
                 )
 
     def validate_secondary_required_file_props(self) -> None:
@@ -814,13 +877,13 @@ def main() -> None:
         if resp in ["y", "yes"]:
             file_release.execute_initial()
             resp = input(
-            f"\nDo you want to proceed with release and execute all patches above? "
-            f"Data will be patched on {warning_text(server)}."
-            f"\nYou have the following options: "
-            f"\ny - Proceed with release"
-            f"\np - Show patch dictionaries "
-            f"\nn - Abort "
-            f"\n(y,p,n): "
+                f"\nDo you want to proceed with release and execute all patches above? "
+                f"Data will be patched on {warning_text(server)}."
+                f"\nYou have the following options: "
+                f"\ny - Proceed with release"
+                f"\np - Show patch dictionaries "
+                f"\nn - Abort "
+                f"\n(y,p,n): "
             )
 
             if resp in ["y", "yes"]:
