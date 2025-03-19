@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 
 const announcements = [
     {
         type: 'warning',
         title: 'Data Retraction',
+        date: '2025-03-10',
         body: (
             <span>
                 One WGS ONT PromethION 24 BAM from COLO829-BLT50,{' '}
@@ -18,6 +20,7 @@ const announcements = [
     {
         type: 'info',
         title: 'New Features',
+        date: '2025-01-25',
         body: (
             <span>
                 Explore the <a href="/qc-metrics">Interactive QC Assessment</a>{' '}
@@ -54,10 +57,10 @@ const announcements = [
     },
 ];
 
-const AnnouncementCard = ({ title = '', body = '', type = 'info' }) => {
+const AnnouncementCard = ({ title = '', body = '', type = 'info', date = null }) => {
     return (
         <div className={`announcement-container ${type}`}>
-            <h5 className="header">{title}</h5>
+            <h5 className="header">{title}{date ? <span className='text-muted'><LocalizedTime timestamp={new Date(date)} formatType='date-sm' /></span> : null}</h5>
             <div className="body">{body}</div>
         </div>
     );
@@ -205,6 +208,7 @@ export const NotificationsPanel = () => {
                                     title={announcement.title}
                                     body={announcement.body}
                                     type={announcement.type}
+                                    date={announcement.date}
                                 />
                             );
                         })}

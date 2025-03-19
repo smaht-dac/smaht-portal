@@ -1085,6 +1085,13 @@ body[data-path="/"]>#application>#layout {
 									margin-top: 0px;
 									margin-bottom: 5px;
 									text-transform: uppercase;
+
+									.localized-date-time {
+										text-transform: none;
+										font-weight: 500;
+										margin-left: 8px;
+										// font-size: 90%;
+									}
 								}
 								.body {
 									font-size: 0.75rem;

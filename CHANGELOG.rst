@@ -87,7 +87,7 @@ Change Log
 =======
 `PR 309: SN validate external_id <https://github.com/smaht-dac/smaht-portal/pull/309>`_
 
-*  Add a custom validator to TissueSample that ensures the `external_id` for items from benchmarking and production Donors matches the pattern expected for category (currently only applied to TPC submitted items)
+* Add a custom validator to TissueSample that ensures the `external_id` for items from benchmarking and production Donors matches the pattern expected for category (currently only applied to TPC submitted items)
 * Make `tpc_submitted` a required property for Donor
 
 
