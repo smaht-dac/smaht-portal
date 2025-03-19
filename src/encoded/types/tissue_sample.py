@@ -66,6 +66,8 @@ def validate_external_id_on_add(context, request):
     Check is consistent with `category` nomenclature if the sample_source.donor is a Benchmarking or Production tissue on add (TPC-submitted items only for now).
     Check that `external_id` matches linked tissue `external_id` if Benchmarking or Production tissue sample on add.
     """
+    if 'force_pass' in request.query_string:
+        return
     data = request.json
     external_id = data['external_id']
     sample_sources = data["sample_sources"]
@@ -95,6 +97,8 @@ def validate_external_id_on_edit(context, request):
     Check that `external_id` is consistent with `category` nomenclature if the sample_source is a Benchmarking or Production tissue on edit (TPC-submitted items only for now).
     Check that `external_id` matches linked tissue `external_id` if Benchmarking or Production tissue sample on edit.
     """
+    if 'force_pass' in request.query_string:
+        return
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
     sample_sources = get_property_for_validation('sample_sources',existing_properties,properties_to_update)
