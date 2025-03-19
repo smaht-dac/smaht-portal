@@ -23,6 +23,15 @@ def patch_get_request_handler(testapp: TestApp) -> mock.MagicMock:
         yield mock_get_request_handler
 
 
+@contextmanager
+def patch_get_request_handler_embedded(testapp: TestApp) -> mock.MagicMock:
+    with mock.patch(
+        "encoded.commands.release_file.FileRelease.get_request_handler_embedded",
+        return_value=RequestHandler(test_app=testapp, frame="embedded"),
+    ) as mock_get_request_handler_embedded:
+        yield mock_get_request_handler_embedded
+
+
 @pytest.mark.workbook
 def test_file_release(es_testapp: TestApp, workbook: None) -> None:
     """Test file release process for select files.
@@ -33,7 +42,7 @@ def test_file_release(es_testapp: TestApp, workbook: None) -> None:
     query = "?type=File&annotated_filename!=No+value"  # Since already set up
     files_to_release = get_search(es_testapp, query)
     assert files_to_release, "No files to release found."
-    with patch_get_request_handler(es_testapp):
+    with patch_get_request_handler(es_testapp), patch_get_request_handler_embedded(es_testapp):
         for file in files_to_release:
             dataset = file_utils.get_dataset(file) or FileRelease.TISSUE
             identifier = item_utils.get_uuid(file)
