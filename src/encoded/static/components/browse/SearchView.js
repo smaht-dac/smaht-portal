@@ -170,7 +170,7 @@ export class SearchViewBody extends React.PureComponent {
     }
 }
 
-const SearchViewPageTitle = React.memo(function SearchViewPageTitle(props) {
+export const SearchViewPageTitle = React.memo(function SearchViewPageTitle(props) {
     const { context, schemas, currentAction, alerts } = props;
 
     if (currentAction === 'add') {
