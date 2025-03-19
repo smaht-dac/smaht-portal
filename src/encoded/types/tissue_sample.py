@@ -159,12 +159,16 @@ def validate_tissue_sample_metadata_on_edit(context, request):
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
     external_id = get_property_for_validation('external_id', existing_properties, properties_to_update)
+    submission_centers = get_property_for_validation('submission_centers', existing_properties, properties_to_update)
+    is_tpc_submitted = "ndri_tpc" in [ item_utils.get_identifier(get_item_or_none(request, submission_center, 'submission-centers')) for submission_center in submission_centers ]
     check_properties = [
         "category",
         "preservation_type",
         "core_size"
     ]
     if 'force_pass' in request.query_string:
+        return
+    if is_tpc_submitted:
         return
     search_url = f"/search/?type=TissueSample&submission_centers.display_title=NDRI+TPC&external_id={external_id}"
     if ELASTIC_SEARCH in request.registry:
@@ -200,12 +204,16 @@ def validate_tissue_sample_metadata_on_add(context, request):
     """
     data = request.json
     external_id = data['external_id']
+    submission_centers = data['submission_centers']
+    is_tpc_submitted = "ndri_tpc" in [ item_utils.get_identifier(get_item_or_none(request, submission_center, 'submission-centers')) for submission_center in submission_centers ]
     check_properties = [
         "category",
         "preservation_type",
         "core_size"
     ]
     if 'force_pass' in request.query_string:
+        return
+    if is_tpc_submitted:
         return
     search_url = f"/search/?type=TissueSample&submission_centers.display_title=NDRI+TPC&external_id={external_id}"
     if ELASTIC_SEARCH in request.registry:
