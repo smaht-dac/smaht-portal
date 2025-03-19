@@ -282,7 +282,9 @@ class FileRelease:
         self.add_release_file_patchdict(self.file, dataset, patch_status=False)
 
         # From here the patches will be executed in the second round of patching
-        self.add_release_items_to_patchdict(self.file, "File") # Here the status of the file be set to released.
+        self.add_release_item_to_patchdict(
+            self.file, "File"
+        )  # Here the status of the file be set to released.
         for file in self.get_associated_files():
             self.add_release_file_patchdict(file, dataset)
 
@@ -460,11 +462,36 @@ class FileRelease:
             file_constants.ACCESS_STATUS: access_status,
             file_constants.ANNOTATED_FILENAME: annotated_filename_info.filename,
         }
+        self.patch_infos.extend(
+            [
+                f"\nFile ({file_accession}):",
+                self.get_okay_message(file_constants.DATASET, dataset),
+                self.get_okay_message(file_constants.ACCESS_STATUS, access_status),
+                self.get_okay_message(
+                    file_constants.ANNOTATED_FILENAME, annotated_filename_info.filename
+                ),
+            ]
+        )
+
         if patch_status:
-            patch_body[file_constants.STATUS] = item_constants.STATUS_RELEASED
+            patch_body[item_constants.STATUS] = item_constants.STATUS_RELEASED
+            self.patch_infos.extend(
+                [
+                    self.get_okay_message(
+                        item_constants.STATUS, item_constants.STATUS_RELEASED
+                    ),
+                ]
+            )
 
         if file_set_accessions:
             patch_body[file_constants.FILE_SETS] = file_set_accessions
+            self.patch_infos.extend(
+                [
+                    self.get_okay_message(
+                        file_constants.FILE_SETS, ",".join(file_set_accessions)
+                    ),
+                ]
+            )
         # Take the extra files from the annotated filename object if available.
         # They will have the correct filenames
         if annotated_filename_info.patch_dict:
@@ -474,22 +501,6 @@ class FileRelease:
             if extra_files:
                 patch_body[file_constants.EXTRA_FILES] = extra_files
 
-        self.patch_infos.extend(
-            [
-                f"\nFile ({file_accession}):",
-                self.get_okay_message(
-                    item_constants.STATUS, item_constants.STATUS_RELEASED
-                ),
-                self.get_okay_message(file_constants.DATASET, dataset),
-                self.get_okay_message(
-                    file_constants.FILE_SETS, ",".join(file_set_accessions)
-                ),
-                self.get_okay_message(file_constants.ACCESS_STATUS, access_status),
-                self.get_okay_message(
-                    file_constants.ANNOTATED_FILENAME, annotated_filename_info.filename
-                ),
-            ]
-        )
         self.patch_dicts.append(patch_body)
 
     def get_annotated_filename_info(self, file) -> AnnotatedFilenameInfo:
