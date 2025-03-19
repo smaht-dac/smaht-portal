@@ -278,7 +278,11 @@ class FileRelease:
         self, dataset: str, obsolete_file_identifier: str = None, **kwargs: Any
     ) -> None:
         self.validate_file()
-        self.add_release_file_patchdict(self.file, dataset)
+        # The main file needs to be the first patchdict. See execute_initial()
+        self.add_release_file_patchdict(self.file, dataset, patch_status=False)
+
+        # From here the patches will be executed in the second round of patching
+        self.add_release_items_to_patchdict(self.file, "File") # Here the status of the file be set to released.
         for file in self.get_associated_files():
             self.add_release_file_patchdict(file, dataset)
 
@@ -315,16 +319,17 @@ class FileRelease:
 
     def execute_initial(self) -> None:
         print("Validating file patch dictionary...")
+        initial_file_patch_dict = self.patch_dicts[0]
         try:
-            self.validate_patch(self.patch_dicts[0])
+            self.validate_patch(initial_file_patch_dict)
         except Exception as e:
             print(str(e))
             self.print_error_and_exit("Validation failed.")
 
         print("Validation done. Patching file metadata...")
         try:
-            self.patch_metadata(self.patch_dicts[0])
-            print(f"Patching of File {self.file_accession} completed.")
+            self.patch_metadata(initial_file_patch_dict)
+            print(f"Initial patching of File {self.file_accession} completed.")
         except Exception as e:
             print(str(e))
             self.print_error_and_exit("Patching failed.")
@@ -439,7 +444,9 @@ class FileRelease:
         for item in items:
             self.add_release_item_to_patchdict(item, item_desc)
 
-    def add_release_file_patchdict(self, file: dict, dataset: str) -> None:
+    def add_release_file_patchdict(
+        self, file: dict, dataset: str, patch_status: bool = True
+    ) -> None:
         access_status = self.get_access_status(dataset)
         file_set_accessions = [
             item_utils.get_accession(file_set) for file_set in self.file_sets
@@ -449,11 +456,13 @@ class FileRelease:
         # Add file to file set and set status to released
         patch_body = {
             item_constants.UUID: item_utils.get_uuid(file),
-            item_constants.STATUS: item_constants.STATUS_RELEASED,
             file_constants.DATASET: dataset,
             file_constants.ACCESS_STATUS: access_status,
             file_constants.ANNOTATED_FILENAME: annotated_filename_info.filename,
         }
+        if patch_status:
+            patch_body[file_constants.STATUS] = item_constants.STATUS_RELEASED
+
         if file_set_accessions:
             patch_body[file_constants.FILE_SETS] = file_set_accessions
         # Take the extra files from the annotated filename object if available.
@@ -865,11 +874,12 @@ def main() -> None:
 
     while True:
         resp = input(
-            f"\nDo you want to proceed with file patching above? "
+            f"\nThe release will be carried out in two steps."
+            f"\nDo you want to proceed with patching the main file above (inital patch)? "
             f"Data will be patched on {warning_text(server)}."
             f"\nYou have the following options: "
             f"\ny - Proceed with release"
-            f"\np - Show patch dictionaries "
+            f"\np - Show patch dictionaries (only the first dictionary will be patched) "
             f"\nn - Abort "
             f"\n(y,p,n): "
         )
