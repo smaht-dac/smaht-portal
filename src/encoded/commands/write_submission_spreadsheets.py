@@ -144,29 +144,6 @@ MULTI_TYPE_ITEMS = [
     'CellCultureMixture'
 ]
 
-UNIVERSAL_PROPERTIES = {
-    "submission_centers": {
-        "title": "Submission Centers",
-        "description": "Submission Centers that created this item",
-        "type": "array",
-        "items": {
-            "linkTo": "Submission Center",
-            "type": "string"
-        },
-        "is_required": "True"
-    },
-    "consortia": {
-        "title": "Consortia",
-        "description": "Consortia associated with this item",
-        "type": "array",
-        "items": {
-            "linkTo": "Consortium",
-            "type": "string"
-        },
-        "is_required": "True"
-    }
-}
-
 PSEUDO_PROPERTIES = {
     "FileSet": {
         "expected_file_count": {
@@ -906,10 +883,9 @@ def get_nested_links(spreadsheet: Spreadsheet) -> List[Property]:
 def get_properties(item: str, submission_schema: Dict[str, Any]) -> List[Property]:
     """Get property information from the submission schema.
      
-     Add submission_centers and consortia from universal properties and add any special pseudo-properties that are item-specific.
+     Add any special pseudo-properties that are item-specific.
     """
     properties = schema_utils.get_properties(submission_schema)
-    properties = {**properties, **UNIVERSAL_PROPERTIES}
     if item in PSEUDO_PROPERTIES.keys():
         properties = {**properties,**PSEUDO_PROPERTIES[item]}
     property_list = []
@@ -931,7 +907,7 @@ def get_eqm_properties(
     properties = schema_utils.get_properties(eqm_schema['schema'])
     primary_properties = {key: value for key, value in properties.items() if key != "qc_values"}
     secondary_properties = get_eqm_qc_values(item, mapping)
-    all_properties = {**primary_properties, **secondary_properties, **UNIVERSAL_PROPERTIES}
+    all_properties = {**primary_properties, **secondary_properties}
     property_list = []
     for key, value in all_properties.items():
         property_list.append(get_property(item, key, value))
