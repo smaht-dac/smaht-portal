@@ -4,14 +4,14 @@
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
             "url": "/bar_plot_aggregations?type=SubmittedFile&limit=all",
-            "url_fields": ["file_sets.libraries.assay.display_title", "donors.display_title"]
+            "url_fields": ["donors.display_title", "file_sets.libraries.assay.display_title"]
         }}
         fieldChangeMap={{
             "donor": "donors.display_title",
             "assay": "file_sets.libraries.assay.display_title"
         }}
-        groupingProperties={["donor"]}
-        columnGrouping="assay"
+        groupingProperties={["assay"]}
+        columnGrouping="donor"
         headerFor={<h3 className="mt-2 mb-0 text-300">SMaHT</h3>}
         baseColorOverride="#6f2da8"
     />
