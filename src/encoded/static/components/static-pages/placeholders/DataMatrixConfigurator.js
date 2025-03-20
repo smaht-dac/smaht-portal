@@ -121,11 +121,11 @@ const DataMatrixConfigurator = ({
     };
 
     function stringToArray(input) {
-        return (input.length > 0) ? input.split(",").map(item => item.trim().replace(/^"(.*)"$/, "$1")) : [];
+        return (input && input.length > 0) ? input.split(",").map(item => item.trim().replace(/^"(.*)"$/, "$1")) : [];
     }
 
     function validateString(input) {
-        if (input.length === 0) return true;
+        if (!input || input.length === 0) return true;
         // Regex explanation:
         // ^                    -> Indicates the start of the string.
         // (\s*".*?"\s*)        -> Matches the first element: optional spaces, a pair of double quotes containing any characters (non-greedy), and optional spaces.
