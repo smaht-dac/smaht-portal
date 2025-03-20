@@ -130,6 +130,11 @@
             ]
         }
     },
+    "columns": {
+        "submitted_id": {
+            "title": "Submitted ID"
+        }
+    },
     "facets": {
         "submission_centers.display_title": {
             "title": "Submitted By"
