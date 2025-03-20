@@ -5,6 +5,8 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import { Button, Form, Popover } from 'react-bootstrap';
 import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import Badge from 'react-bootstrap/Badge';
+import CloseButton from 'react-bootstrap/CloseButton';
 
 const DataMatrixConfigurator = ({
     searchUrl: propSearchUrl,
@@ -21,7 +23,7 @@ const DataMatrixConfigurator = ({
     const [selectedColumn, setSelectedColumn] = useState(selectedColumnValue);
     const [selectedRow1, setSelectedRow1] = useState(selectedRow1Value);
     const [selectedRow2, setSelectedRow2] = useState(selectedRow2Value);
-    const [headerColumnsOrder, setHeaderColumnsOrder] = useState(() => Array.isArray(headerColumnsOrderValue) && headerColumnsOrderValue.length > 0 ? '"' + headerColumnsOrderValue.join('", "') + '"' : null )
+    const [headerColumnsOrder, setHeaderColumnsOrder] = useState(() => Array.isArray(headerColumnsOrderValue) ? headerColumnsOrderValue : [])
     const [ranges, setRanges] = useState(colorRanges.length > 0 ? colorRanges : [{ min: 0, max: '', color: '' }]);
     const [showPopover, setShowPopover] = useState(false);
     const [errors, setErrors] = useState({});
@@ -120,21 +122,6 @@ const DataMatrixConfigurator = ({
         setRanges(newRanges);
     };
 
-    function stringToArray(input) {
-        return (input && input.length > 0) ? input.split(",").map(item => item.trim().replace(/^"(.*)"$/, "$1")) : [];
-    }
-
-    function validateString(input) {
-        if (!input || input.length === 0) return true;
-        // Regex explanation:
-        // ^                    -> Indicates the start of the string.
-        // (\s*".*?"\s*)        -> Matches the first element: optional spaces, a pair of double quotes containing any characters (non-greedy), and optional spaces.
-        // (,\s*".*?"\s*)*      -> Matches zero or more occurrences of: a comma, optional spaces, a double-quoted string, and optional spaces.
-        // $                    -> Indicates the end of the string.
-        const regex = /^(\s*".*?"\s*)(,\s*".*?"\s*)*$/;
-        return regex.test(input);
-      }
-
     const handleApply = () => {
         // All ranges except the last one must have max defined
         const filledMax = ranges.slice(0, -1).every((r) => r.max !== '');
@@ -149,14 +136,11 @@ const DataMatrixConfigurator = ({
             return;
         }
 
-        if(!validateString(headerColumnsOrder)){
-            alert('Columns Order format is incorrect. (e.g. "Col1", "Col3", "Col2")');
-            return;
-        }
-
-        onApply(searchUrl, selectedColumn, selectedRow1, selectedRow2, stringToArray(headerColumnsOrder), ranges);
+        onApply(searchUrl, selectedColumn, selectedRow1, selectedRow2, headerColumnsOrder, ranges);
         setShowPopover(false);
     };
+
+    const labelStyle = { width: '110px' };
 
     return (
         <div>
@@ -178,19 +162,19 @@ const DataMatrixConfigurator = ({
 
             {/* Popover content */}
             {showPopover && (
-                <Popover id="config-popover" ref={popoverRef} style={{ maxWidth: '450px', width: '100%', zIndex: 1050, position: 'absolute' }}>
+                <Popover id="config-popover" ref={popoverRef} style={{ maxWidth: '600px', width: '100%', zIndex: 1050, position: 'absolute' }}>
                     <Popover.Body>
                         <div className="d-flex flex-column">
                             <h5 className='mt-0 mb-1'>Data Matrix Configurator</h5>
                             {/* Search Url */}
                             <Form.Group className="d-flex align-items-center mb-05">
-                                <Form.Label className="me-2" style={{ width: '150px' }}>Search URL</Form.Label>
+                                <Form.Label className="me-2" style={labelStyle}>Search URL</Form.Label>
                                 <Form.Control type="text" value={searchUrl} onChange={(e) => setSearchUrl(e.target.value)} />
                             </Form.Group>
 
                             {/* Column Dimension */}
                             <Form.Group className="d-flex align-items-center mb-05">
-                                <Form.Label className="me-2" style={{ width: '150px' }}>Column Field</Form.Label>
+                                <Form.Label className="me-2" style={labelStyle}>Column Field</Form.Label>
                                 <Form.Control as="select" value={selectedColumn} onChange={(e) => setSelectedColumn(e.target.value)}>
                                     <option key={0} value={null}>{'-- Select --'}</option>
                                     {columnDimensions.map((dim, idx) => (
@@ -201,7 +185,7 @@ const DataMatrixConfigurator = ({
 
                             {/* Row Dimension 1 */}
                             <Form.Group className="d-flex align-items-center mb-05">
-                                <Form.Label className="me-2" style={{ width: '150px' }}>Row Field 1</Form.Label>
+                                <Form.Label className="me-2" style={labelStyle}>Row Field 1</Form.Label>
                                 <Form.Control as="select" value={selectedRow1} onChange={(e) => setSelectedRow1(e.target.value)}>
                                     <option key={0} value={null}>{'-- Select --'}</option>
                                     {rowDimensions.map((dim, idx) => (
@@ -212,7 +196,7 @@ const DataMatrixConfigurator = ({
 
                             {/* Row Dimension 2 */}
                             <Form.Group className="d-flex align-items-center mb-05">
-                                <Form.Label className="me-2" style={{ width: '150px' }}>Row Field 2</Form.Label>
+                                <Form.Label className="me-2" style={labelStyle}>Row Field 2</Form.Label>
                                 <Form.Control as="select" value={selectedRow2} onChange={(e) => setSelectedRow2(e.target.value)} disabled>
                                     <option key={0} value={null}>{'-- Select --'}</option>
                                     {rowDimensions.map((dim, idx) => (
@@ -223,8 +207,8 @@ const DataMatrixConfigurator = ({
 
                             {/* Header Columns Order */}
                             <Form.Group className="d-flex align-items-center mb-05">
-                                <Form.Label className="me-2" style={{ width: '150px' }}>Columns Order</Form.Label>
-                                <Form.Control type="text" value={headerColumnsOrder} onChange={(e) => setHeaderColumnsOrder(e.target.value)} />
+                                <Form.Label className="me-2" style={labelStyle}>Col. Order</Form.Label>
+                                <ChipsContainer chips={headerColumnsOrder} onChange={(chips) => setHeaderColumnsOrder(chips)} />
                             </Form.Group>
 
                             {/* Ranges */}
@@ -232,7 +216,7 @@ const DataMatrixConfigurator = ({
                                 const errorMsg = errors[index] || '';
                                 return (
                                     <Form.Group key={index} className="d-flex align-items-center mb-05">
-                                        <Form.Label className="me-2" style={{ width: '100px' }}>Range {index + 1}</Form.Label>
+                                        <Form.Label className="me-2" style={labelStyle}>Range {index + 1}</Form.Label>
                                         <Form.Control type="number" value={range.min} disabled className="me-2" style={{ width: '80px' }} />
                                         <Form.Control
                                             type="number" placeholder="Max" value={range.max}
@@ -357,23 +341,61 @@ const updateColorRanges = function (colorRanges, newBaseColor, darkestShift = -1
     return clonedColorRanges;
 }
   
-// ---- Example usage ----
-//   const colorRanges = [
-//     { min: 0, max: 20, color: '#ff0000' },
-//     { min: 20, max: 50, color: '#00ff00' },
-//     { min: 50, color: '#0000ff' }
-//   ];
-  
-// Suppose we want to change the first color to cyan (#00ffff)
-// and have the last color be 100 units darker.
-// updateColorRanges(colorRanges, '#00ffff', -100);
-  
-// console.log(colorRanges);
-// [
-//   { min: 0, max: 20, color: '#00ffff' }, // base
-//   { min: 20, max: 50, color: '...' },    // slightly darker
-//   { min: 50, color: '...' }             // darkest among them
-// ]
-  
+const Chip = ({ label, onDelete, variant = 'primary' }) => (
+    <Badge bg={variant} pill className='d-inline-flex align-items-center me-05 mb-05' style={{ padding: '0.5em 0.75em' }}>
+        {label}
+        {onDelete && <CloseButton onClick={onDelete} variant="white" style={{ marginLeft: '5px' }} aria-label="Close" />}
+    </Badge>
+);
+
+const ChipsContainer = ({ chips: propChips, onChange }) => {
+    const [chips, setChips] = useState(propChips || []);
+    const [chipInput, setChipInput] = useState('');
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' || e.key === 'Tab') {
+            e.preventDefault(); // prevent focus-out
+            const newChip = chipInput.trim();
+            if (newChip && !chips.includes(newChip)) {
+                const updatedChips = [...chips, newChip];
+                setChips(updatedChips);
+                setChipInput('');
+                onChange(updatedChips);
+            }
+        }
+    };
+
+    const handleDelete = (chipToDelete) => {
+        const updatedChips = chips.filter(chip => chip !== chipToDelete);
+        setChips(updatedChips);
+        onChange(updatedChips);
+    };
+
+    return (
+        <div
+            className='d-flex flex-grow-1'
+            style={{
+                flexWrap: 'wrap',
+                alignItems: 'center'
+            }}
+        >
+            {chips.map((chip, index) => (
+                <Chip
+                    key={index}
+                    label={chip}
+                    onDelete={() => handleDelete(chip)}
+                    variant="secondary"
+                />
+            ))}
+            <Form.Control
+                type="text"
+                value={chipInput}
+                onChange={(e) => setChipInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Type and add..."
+            />
+        </div>
+    );
+};
 
 export { DataMatrixConfigurator, updateColorRanges };
