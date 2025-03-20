@@ -60,7 +60,10 @@ const announcements = [
 const AnnouncementCard = ({ title = '', body = '', type = 'info', date = null }) => {
     return (
         <div className={`announcement-container ${type}`}>
-            <h5 className="header">{title}{date ? <span className='text-muted'><LocalizedTime timestamp={new Date(date)} formatType='date-sm' /></span> : null}</h5>
+            <h5 className="header">
+                {title}
+                {date ? <LocalizedTime timestamp={new Date(date)} formatType='date-sm-compact' /> : null}
+            </h5>
             <div className="body">{body}</div>
         </div>
     );
