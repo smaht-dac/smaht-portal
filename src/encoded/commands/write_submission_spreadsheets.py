@@ -971,11 +971,11 @@ def get_nested_property(item: str, property_name:str, property_schema: Dict[str,
     object_properties = []
     count = 2
     if item in ["BrainPathologyReport", "NonBrainPathologyReport"]:
-        if property_name == 'non_target_tissue_subtype':
+        if property_name == 'non_target_tissues':
             count = len(property_schema['non_target_tissue_subtype']['enum'])
-        elif property_name == 'target_tissue_subtype':
+        elif property_name == 'target_tissues':
             count = len(property_schema['target_tissue_subtype']['enum'])
-        elif property_name == 'finding_type':
+        elif property_name == 'pathologic_findings':
             count = len(property_schema['finding_type']['enum'])
     for index in range(0,count): 
         for key, value in property_schema.items():
