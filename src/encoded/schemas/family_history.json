@@ -71,17 +71,22 @@
                 "enum": [
                     "Aunt",
                     "Brother",
+                    "Child",
                     "Cousin",
                     "Daughter",
                     "Father",
                     "Grandfather",
                     "Grandmother",
+                    "Grandparent",
                     "Mother",
                     "Nephew",
                     "Niece",
+                    "Parent",
                     "Son",
+                    "Sibling",
                     "Sister",
-                    "Uncle"
+                    "Uncle",
+                    "Unspecified"
                 ]
             }
         },

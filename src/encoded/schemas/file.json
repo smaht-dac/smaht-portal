@@ -126,6 +126,7 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "Consensus Reads",
                     "Genome Annotation",
                     "Genome Region",
                     "Germline Variant Calls",
@@ -235,6 +236,13 @@
             "desciption": "An override value for release tracker title that is used in the File Release Tracker on the home page if present, particularly for supplementary files",
             "type": "string",
             "minimum": 0,
+            "permission": "restricted_fields"
+        },
+        "replaced_by": {
+            "title": "Replaced By",
+            "desciption": "Link to a file that was submitted as a replacement - for files that are retracted or obsolete",
+            "type": "string",
+            "linkTo": "File",
             "permission": "restricted_fields"
         },
         "version": {

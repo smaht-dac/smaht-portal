@@ -7,6 +7,129 @@ smaht-portal
 Change Log
 ----------
 
+0.146.0
+=======
+`PR 378: SN Move ONT validator <https://github.com/smaht-dac/smaht-portal/pull/378>`_
+
+* Move custom validator for basecalling software for ONT files to UnalignedReads from SubmittedFile, as this does not need to be applied to every file item type, just raw sequencing reads
+
+0.145.0
+=======
+`PR 373: SN Add property replaced_by <https://github.com/smaht-dac/smaht-portal/pull/373>`_
+
+* Add property `replaced_by` to File to link to replacement files for files that are retracted or obsolete
+
+
+0.144.0
+=======
+`PR 371: SN Add uberon_id check for tissue <https://github.com/smaht-dac/smaht-portal/pull/371>`_
+
+* Add property `valid_protocol_ids` to OntologyTerm that is a list of protocol IDs (e.g. 1D, 3A), the portion of `external_id` indicating tissue types
+* Add a check to Tissue ensuring that the protocol ID in `external_id` is among the `valid_protocol_ids` for the OntologyTerm linked with uberon_id
+* Add checks to Donor and Tissue ensuring that `external_id` matches expected format for Benchmarking and Production
+* Makes `external_id` a required property for Donor
+
+
+0.143.3
+=======
+`PR 377: Add not logged in alerts while navigating <https://github.com/smaht-dac/smaht-portal/pull/377>`_
+
+* Adds "Not Logged In" alert to /search and /qc-metrics pages when navigated from another page like home page notifications or documentation pages
+* Adds login popup link to logging in text in "Access was denied to this resource" alert
+
+
+0.143.2
+=======
+`PR 374: Cypress Test.04 - search view updates <https://github.com/smaht-dac/smaht-portal/pull/374>`_
+
+* Updates 04a_search_views_local.cy.js upon recent file search view and other search view changes
+
+
+0.143.1
+=======
+`PR 372: chore: update text in data retraction alert <https://github.com/smaht-dac/smaht-portal/pull/372>`_
+
+* Change "The" to "This"
+* Remove hyperlink on file
+
+
+0.143.0
+=======
+`PR 367: feat: COLO829BLT50 bam file retraction announcement <https://github.com/smaht-dac/smaht-portal/pull/367>`_
+
+* Implement default warning banner for retracted files
+* Add retraction announcement
+
+
+0.142.3
+=======
+`PR 369: fix: file size NaN bug <https://github.com/smaht-dac/smaht-portal/pull/369>`_
+
+* Prevent file size from rendering as NaN when undefined
+
+
+0.142.2
+=======
+`PR 368: fix: prevent version tag bug <https://github.com/smaht-dac/smaht-portal/pull/368>`_
+
+* style: keep version on one line
+* fix: don't append "v" to version if already present
+
+
+0.142.1
+=======
+`PR 359: feat: release tracker updates <https://github.com/smaht-dac/smaht-portal/pull/359>`_
+
+* Enable release tracker Links
+
+
+0.142.0
+=======
+`PR 309: SN validate external_id <https://github.com/smaht-dac/smaht-portal/pull/309>`_
+
+*  Add a custom validator to TissueSample that ensures the `external_id` for items from benchmarking and production Donors matches the pattern expected for category (currently only applied to TPC submitted items)
+* Make `tpc_submitted` a required property for Donor
+
+
+0.141.2
+=======
+`PR 366: SN reference genome facet <https://github.com/smaht-dac/smaht-portal/pull/366>`_
+
+* Add `reference_genome.display_title` facet to all file types with a `reference_genome` property (AlignedReads, OutputFile, SupplementaryFile, and VariantCalls) so that the facet shows up in File Search view
+
+
+0.141.1
+=======
+`PR 365: SN relatives enums <https://github.com/smaht-dac/smaht-portal/pull/365>`_
+
+* Add enums to `relatives` in FamilyHistory
+
+
+0.141.0
+=======
+`PR 349: SN OntologyTerm update <https://github.com/smaht-dac/smaht-portal/pull/349>`_
+
+* Change `uberon_id`` in Tissue from a string to a linkTo to OntologyTerm
+* Add upgrader for tissue
+* Update File `sample_summary` to include tissue information from OntologyTerm
+
+
+0.140.2
+=======
+`PR 362: page title and search table style updates <https://github.com/smaht-dac/smaht-portal/pull/362>`_
+
+* Adds background and breadcrumb to Search View, My Profile, and Impersonate a User page titles
+* Left aligns all search result table column's content unless it is explicitly defined (e.g. Benchmarking, Browse View, and File Search Views)
+* Fixes missing File Search View registration with SubmittedFile
+* Fixes LoadMoreAsYouScroll bug
+
+
+0.140.1
+=======
+`PR 364: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/364>`_
+* Add "Consensus Reads" to `data_category` enums for File
+
+
 0.140.0
 =======
 `PR 354: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/354>`_
@@ -44,14 +167,14 @@ Change Log
 
 0.137.3
 =======
-`PR 356: fix: correct existing data link <https://github.com/smaht-dac/smaht-portal/pull/356>`
+`PR 356: fix: correct existing data link <https://github.com/smaht-dac/smaht-portal/pull/356>`_
 
 * fix: update link in doc
 
 
 0.137.2
 =======
-`PR 353: fix: remove "DAC_DONOR_" from sample group title <https://github.com/smaht-dac/smaht-portal/pull/353>`
+`PR 353: fix: remove "DAC_DONOR_" from sample group title <https://github.com/smaht-dac/smaht-portal/pull/353>`_
 
 * Remove "DAC_DONOR_" from sample group title
 
