@@ -7,6 +7,20 @@ smaht-portal
 Change Log
 ----------
 
+0.147.0
+=======
+`PR 370: SN Add liquid category check <https://github.com/smaht-dac/smaht-portal/pull/370>`_
+
+* Add check to TissueSample ensuring that items with `external_id `values with protocol id for blood or buccal swab (3A or 3B) have category of "Liquid" and fibroblasts (3AC) have category of "Cells"
+
+
+0.146.1
+=======
+`PR 376: SN search columns facets <https://github.com/smaht-dac/smaht-portal/pull/376>`_
+
+* Add columns and facets to items frequently used for searching during submission
+
+
 0.146.0
 =======
 `PR 378: SN Move ONT validator <https://github.com/smaht-dac/smaht-portal/pull/378>`_
