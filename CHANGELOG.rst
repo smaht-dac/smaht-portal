@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.148.0
+=======
+* Update to dcicutils 8.18.3 for fix for smaht-submitr (to respect the custom column mappings
+  even when using, for example, XYZY_ExternalQualityMetric style sheet names.
+
+
 0.147.0
 =======
 `PR 370: SN Add liquid category check <https://github.com/smaht-dac/smaht-portal/pull/370>`_
