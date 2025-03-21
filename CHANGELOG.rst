@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.149.0
+=======
+`PR 379: feat: implement QC Overview Tab <https://github.com/smaht-dac/smaht-portal/pull/384>`_
+
+* Populate quality metrics table in QC overview tab
+
+
 0.148.0
 =======
 * Update to dcicutils 8.18.3 for fix for smaht-submitr (to respect the custom column mappings
