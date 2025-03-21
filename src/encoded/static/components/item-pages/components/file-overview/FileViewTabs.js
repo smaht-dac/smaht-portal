@@ -9,6 +9,7 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 
 import { FileOverviewTableController } from './FileOverviewTable';
 import { VcfAnalysisOverview } from './VcfAnalysisOverview';
+import { QcOverviewTabContent } from './QcOverviewTabContent';
 import ReactTooltip from 'react-tooltip';
 
 /**
@@ -95,7 +96,9 @@ const AnalysisInformationTab = (props) => {
 
 // DotRouterTab content for displaying QC information for the current file.
 const QCOverviewTab = ({ context }) => {
-    return (
+    return context?.quality_metrics?.length > 0 ? (
+        <QcOverviewTabContent context={context} />
+    ) : (
         <div className="no-results">
             <div className="no-results-content">
                 <i className="icon icon-chart-area fas"></i>
@@ -164,7 +167,7 @@ export const FileViewTabs = (props) => {
                     dotPath=".qc-overview"
                     tabTitle="QC Overview"
                     arrowTabs={false}>
-                    <QCOverviewTab />
+                    <QCOverviewTab {...props} />
                 </DotRouterTab>
                 <DotRouterTab
                     dotPath=".associated-files"
