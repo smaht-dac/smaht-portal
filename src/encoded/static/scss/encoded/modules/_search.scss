@@ -260,6 +260,25 @@ $facetlist-excluding: #450000;
 					font-weight: 600;
 				}
 			}
+
+			&.range-facet {
+				.facet-list .range-drop {
+					flex-direction: column;
+					align-items: start !important;
+
+					label {
+						text-align-last: left !important;
+						font-size: 0.75rem;
+						font-weight: 450;
+						padding-bottom: 4px;
+						margin-left: 0px !important;
+					}
+
+					.rcol.dropdown {
+						min-width: 90%;
+					}
+				}
+			}
 		}
 	}
 }
