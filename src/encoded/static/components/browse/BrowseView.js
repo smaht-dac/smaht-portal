@@ -428,14 +428,11 @@ export function createBrowseColumnExtensionMap({ selectedItems, onSelectItem, on
             colTitle: 'Released',
             widthMap: { lg: 115, md: 115, sm: 115 },
             render: function (result, parentProps) {
-                const value = result?.file_status_tracking?.released;
+                const value = result?.file_status_tracking?.released_date;
                 if (!value) return null;
                 return (
                     <span className="value text-end">
-                        <LocalizedTime
-                            timestamp={value}
-                            formatType="date-file"
-                        />
+                    {value}
                     </span>
                 );
             },
