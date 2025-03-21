@@ -112,9 +112,6 @@
         "title": {
             "title": "Title"
         },
-        "submitted_id": {
-            "title": "Submitted ID"
-        },
         "submission_centers.display_title": {
             "title": "Submitted By"
         }

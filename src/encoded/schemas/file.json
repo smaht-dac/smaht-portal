@@ -317,9 +317,6 @@
         "software.display_title": {
             "title": "Analysis Method"
         },
-        "status": {
-            "title": "Release Status"
-        },
         "version": {
             "title": "Release Version"
         }

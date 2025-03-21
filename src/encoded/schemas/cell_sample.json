@@ -96,18 +96,5 @@
             "pattern": "^CL:[0-9]{7}$",
             "url": "https://cell-ontology.github.io/"
         }
-    },
-    "columns": {
-        "submitted_id": {
-            "title": "Submitted ID"
-        },
-        "submission_centers.display_title": {
-            "title": "Submitted By"
-        }
-    },
-    "facets": {
-        "submission_centers.display_title": {
-            "title": "Submitted By"
-        }
     }
 }
