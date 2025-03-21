@@ -6,7 +6,6 @@ import memoize from 'memoize-one';
 import _ from 'underscore';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 import { SelectedItemsController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
-import { SelectedItemsController } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { navigate, Schemas } from './../util';
 import { columnExtensionMap as originalColExtMap } from './columnExtensionMap';
@@ -40,7 +39,6 @@ function FileTableWithSelectedFilesCheckboxes(props){
         columnExtensionMap: propColumnExtensionMap = originalColExtMap,
         currentAction
     } = props;
- 
  
     const facets = useMemo(function(){
         return transformedFacets(context, currentAction, schemas);
