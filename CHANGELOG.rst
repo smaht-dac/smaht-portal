@@ -7,6 +7,34 @@ smaht-portal
 Change Log
 ----------
 
+0.148.1
+=======
+`PR 380: File release: Check required QC runs and support RNA-Seq <https://github.com/smaht-dac/smaht-portal/pull/380>`_
+
+* Prevent files (BAMs) from being released if certain QC metaworkflows have not been run on them
+* Search for associated final output files and releases them together with the targeted file. Currently implemented for RNA-Seq datasets.
+
+
+0.148.0
+=======
+* Update to dcicutils 8.18.3 for fix for smaht-submitr (to respect the custom column mappings
+  even when using, for example, XYZY_ExternalQualityMetric style sheet names.
+
+
+0.147.0
+=======
+`PR 370: SN Add liquid category check <https://github.com/smaht-dac/smaht-portal/pull/370>`_
+
+* Add check to TissueSample ensuring that items with `external_id `values with protocol id for blood or buccal swab (3A or 3B) have category of "Liquid" and fibroblasts (3AC) have category of "Cells"
+
+
+0.146.1
+=======
+`PR 376: SN search columns facets <https://github.com/smaht-dac/smaht-portal/pull/376>`_
+
+* Add columns and facets to items frequently used for searching during submission
+
+
 0.146.0
 =======
 `PR 378: SN Move ONT validator <https://github.com/smaht-dac/smaht-portal/pull/378>`_

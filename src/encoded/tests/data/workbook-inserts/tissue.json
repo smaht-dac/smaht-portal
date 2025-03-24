@@ -32,6 +32,16 @@
         "preservation_type": "Snap Frozen"
     },
     {
+        "uuid": "ec2b7218-c931-453e-b79c-33edd24ef190",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE_BLOOD",
+        "external_id": "SMHT001-3A",
+        "uberon_id": "UBERON:0000178",
+        "donor": "TEST_DONOR_FEMALE"
+    },
+    {
         "uuid": "6facfca7-ac0e-4577-963a-496435aa0bcd",
         "submission_centers": [
             "smaht"
