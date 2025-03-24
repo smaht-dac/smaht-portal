@@ -41,6 +41,15 @@ def patch_get_output_meta_workflow_run() -> mock.MagicMock:
         yield mock_get_output_meta_workflow_run
 
 
+@contextmanager
+def patch_validate_required_qc_runs() -> mock.MagicMock:
+    with mock.patch(
+        "encoded.commands.release_file.FileRelease.validate_required_qc_runs",
+        return_value=None,
+    ) as mock_validate_required_qc_runs:
+        yield mock_validate_required_qc_runs
+
+
 @pytest.mark.workbook
 def test_file_release(es_testapp: TestApp, workbook: None) -> None:
     """Test file release process for select files.
@@ -53,7 +62,7 @@ def test_file_release(es_testapp: TestApp, workbook: None) -> None:
     assert files_to_release, "No files to release found."
     with patch_get_request_handler(es_testapp), patch_get_request_handler_embedded(
         es_testapp
-    ), patch_get_output_meta_workflow_run():
+    ), patch_get_output_meta_workflow_run(), patch_validate_required_qc_runs():
         for file in files_to_release:
             dataset = file_utils.get_dataset(file) or FileRelease.TISSUE
             identifier = item_utils.get_uuid(file)

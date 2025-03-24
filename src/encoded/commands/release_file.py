@@ -703,19 +703,20 @@ class FileRelease:
                 )
 
     def validate_required_qc_runs(self) -> None:
-        """Check if the file has been input to other MWFRs. It must have been input to all required QC runs."""
-        additional_runs = []
+        """Check if the file has been input to other MWFRs. It must have been input to all required QC runs if it's a BAM."""
         if output_file_utils.is_output_file(
             self.file
         ) and output_file_utils.is_final_output_bam(self.file):
+            additional_runs = []
             mwfr_inputs = self.file.get("meta_workflow_run_inputs", [])
             for mwfr_input in mwfr_inputs:
                 additional_runs.append(mwfr_input["meta_workflow"]["name"])
-        for mwf_name in REQUIRED_ADDITIONAL_QC_RUNS:
-            if mwf_name not in additional_runs:
-                self.print_error_and_exit(
-                    f"File {self.file_accession} is missing the required additional QC run {mwf_name}."
-                )
+
+            for mwf_name in REQUIRED_ADDITIONAL_QC_RUNS:
+                if mwf_name not in additional_runs:
+                    self.print_error_and_exit(
+                        f"File {self.file_accession} is missing the required additional QC run {mwf_name}."
+                    )
 
     def validate_secondary_required_file_props(self) -> None:
         for prop in SECONDARY_REQUIRED_FILE_PROPS:
