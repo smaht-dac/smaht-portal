@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.148.1
+=======
+`PR 380: File release: Check required QC runs and support RNA-Seq <https://github.com/smaht-dac/smaht-portal/pull/380>`_
+
+* Prevent files (BAMs) from being released if certain QC metaworkflows have not been run on them
+* Search for associated final output files and releases them together with the targeted file. Currently implemented for RNA-Seq datasets.
+
+
 0.148.0
 =======
 * Update to dcicutils 8.18.3 for fix for smaht-submitr (to respect the custom column mappings
