@@ -89,6 +89,18 @@
         "preservation_type": "Snap Frozen"
     },
     {
+        "uuid": "3542c710-a4cf-4b32-8ac3-3bacd691a9a0",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE-SAMPLE_BLOOD",
+        "external_id": "SMHT001-3A-001X",
+        "category": "Liquid",
+        "sample_sources": [
+            "TEST_TISSUE_BLOOD"
+        ]
+    },
+    {
         "uuid": "3550c0a6-b8ca-436a-b563-737a7ce68c3c",
         "submission_centers": [
             "smaht"
