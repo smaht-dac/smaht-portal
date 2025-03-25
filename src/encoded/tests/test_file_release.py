@@ -9,7 +9,7 @@ from ..commands.release_file import FileRelease
 from ..item_utils import (
     file as file_utils,
     item as item_utils,
-    supplementary_file as supp_file_utils
+    supplementary_file as supp_file_utils,
 )
 from ..item_utils.utils import RequestHandler
 
@@ -23,6 +23,33 @@ def patch_get_request_handler(testapp: TestApp) -> mock.MagicMock:
         yield mock_get_request_handler
 
 
+@contextmanager
+def patch_get_request_handler_embedded(testapp: TestApp) -> mock.MagicMock:
+    with mock.patch(
+        "encoded.commands.release_file.FileRelease.get_request_handler_embedded",
+        return_value=RequestHandler(test_app=testapp, frame="embedded"),
+    ) as mock_get_request_handler_embedded:
+        yield mock_get_request_handler_embedded
+
+
+@contextmanager
+def patch_get_output_meta_workflow_run() -> mock.MagicMock:
+    with mock.patch(
+        "encoded.commands.release_file.FileRelease.get_output_meta_workflow_run",
+        return_value=None,
+    ) as mock_get_output_meta_workflow_run:
+        yield mock_get_output_meta_workflow_run
+
+
+@contextmanager
+def patch_validate_required_qc_runs() -> mock.MagicMock:
+    with mock.patch(
+        "encoded.commands.release_file.FileRelease.validate_required_qc_runs",
+        return_value=None,
+    ) as mock_validate_required_qc_runs:
+        yield mock_validate_required_qc_runs
+
+
 @pytest.mark.workbook
 def test_file_release(es_testapp: TestApp, workbook: None) -> None:
     """Test file release process for select files.
@@ -33,13 +60,17 @@ def test_file_release(es_testapp: TestApp, workbook: None) -> None:
     query = "?type=File&annotated_filename!=No+value"  # Since already set up
     files_to_release = get_search(es_testapp, query)
     assert files_to_release, "No files to release found."
-    with patch_get_request_handler(es_testapp):
+    with patch_get_request_handler(es_testapp), patch_get_request_handler_embedded(
+        es_testapp
+    ), patch_get_output_meta_workflow_run(), patch_validate_required_qc_runs():
         for file in files_to_release:
             dataset = file_utils.get_dataset(file) or FileRelease.TISSUE
             identifier = item_utils.get_uuid(file)
             file_release = FileRelease({}, identifier)
             file_release.prepare(dataset)
-            if not supp_file_utils.is_reference_conversion(file) and not supp_file_utils.is_genome_assembly(file):
+            if not supp_file_utils.is_reference_conversion(
+                file
+            ) and not supp_file_utils.is_genome_assembly(file):
                 assert file_release.file_sets
             assert file_release.libraries
             assert file_release.assays
