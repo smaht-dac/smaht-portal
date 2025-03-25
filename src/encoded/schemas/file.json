@@ -289,8 +289,9 @@
         },
         "file_sets.libraries.assay.display_title": {
             "title": "Experimental Assay",
-            "search_type": "sayt",
-            "sayt_item_type": "Donor"
+            "search_type": "basic",
+            "sayt_item_type": "Assay",
+            "group_by_field": "file_sets.libraries.assay.category"
         },
         "file_sets.sequencing.sequencer.display_title": {
             "title": "Sequencing Platform"
@@ -304,7 +305,7 @@
         "data_type": {
             "title": "Data Type"
         },
-        "file_status_tracking.released_date": {
+        "file_status_tracking.released": {
             "title" : "Release Date",
             "aggregation_type" : "stats"
         },
