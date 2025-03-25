@@ -62,7 +62,7 @@ export const Alluvial = () => {
         if (graph && containerRef.current && isDrawn.current === false) {
             const container = containerRef.current;
 
-            const margin = { top: 200, right: 200, bottom: 50, left: 100 },
+            const margin = { top: 240, right: 200, bottom: 50, left: 100 },
                 width = 1200 - margin.left - margin.right,
                 height = 800 - margin.top - margin.bottom;
 
@@ -129,6 +129,9 @@ export const Alluvial = () => {
                 paddingTop = 0,
                 offset = 0
             ) => {
+                const squareHeight = 12;
+                const horizontalGap = 10 + squareHeight;
+
                 const row = legend
                     .append('g')
                     .attr('transform', 'translate(' + offset + ',' + 50 + ')');
@@ -139,19 +142,23 @@ export const Alluvial = () => {
                     .style('text-anchor', 'end')
                     .attr(
                         'transform',
-                        'translate(' + 150 + ',' + (paddingTop + 15) + ')'
+                        'translate(' +
+                            150 +
+                            ',' +
+                            (paddingTop + squareHeight) +
+                            ')'
                     );
 
                 color_array.forEach((color, i) => {
                     row.append('rect')
-                        .attr('width', 15)
-                        .attr('height', 15)
+                        .attr('width', squareHeight)
+                        .attr('height', squareHeight)
                         .attr('fill', color)
                         .attr('stroke', d3.rgb(color).darker(1))
                         .attr(
                             'transform',
                             'translate(' +
-                                (160 + 20 * i) +
+                                (160 + horizontalGap * i) +
                                 ',' +
                                 paddingTop +
                                 ')'
@@ -161,7 +168,7 @@ export const Alluvial = () => {
 
             // Legend rows for GCC/TTD Column
             legend_row('GCC', [color_schemes.data_generator('GCC')], 0, -60);
-            legend_row('TTD', [color_schemes.data_generator('TTD')], 30, -60);
+            legend_row('TTD', [color_schemes.data_generator('TTD')], 20, -60);
 
             // Legend rows for Assay Groups
             legend_row(
@@ -174,15 +181,34 @@ export const Alluvial = () => {
                 0,
                 523
             );
-            legend_row('NT-Seq', [graph.colors.assay_group['2-1']], 30, 523);
-            legend_row('Hi-C', [graph.colors.assay_group['3-1']], 60, 523);
+            legend_row('NT-Seq', [graph.colors.assay_group['2-1']], 20, 523);
+            legend_row('Hi-C', [graph.colors.assay_group['3-1']], 40, 523);
             legend_row(
-                'Whole Transcriptome',
+                'Transcriptome',
                 [
                     graph.colors.assay_group['4-1'],
                     graph.colors.assay_group['4-2'],
                 ],
-                90,
+                60,
+                523
+            );
+            legend_row(
+                'Duplex-Seq',
+                [graph.colors.assay_group['5-1']],
+                80,
+                523
+            );
+            legend_row('Other', [graph.colors.assay_group['6-1']], 140, 523);
+            legend_row(
+                'Targeted Sequencing',
+                [graph.colors.assay_group['7-1']],
+                100,
+                523
+            );
+            legend_row(
+                'Whole genome: Single-cell',
+                [graph.colors.assay_group['8-1']],
+                120,
                 523
             );
 
@@ -196,13 +222,13 @@ export const Alluvial = () => {
             legend_row(
                 'Epigenetic',
                 graph.colors.epigenetic,
-                30,
+                20,
                 width - margin.right + 125
             );
             legend_row(
                 'Transcriptomic',
                 graph.colors.transcriptomic,
-                60,
+                40,
                 width - margin.right + 125
             );
 
@@ -276,6 +302,14 @@ export const Alluvial = () => {
                 .on('mouseover', (e, d) => {})
                 .on('mouseleave', (e, d) => {});
 
+            /**
+             * Highlights the links corresponding to the node that is hovered over.
+             * @param {*} e the event object
+             * @param {*} d the data associated with the node
+             *
+             * Note: relies on the graph.platforms object. The object key must match
+             * the node name in order to highlight the corresponding links.
+             */
             const highlight = (e, d) => {
                 if (d.type === 'data_generator') {
                     // highlight the links with source=platform and target=assay_type
