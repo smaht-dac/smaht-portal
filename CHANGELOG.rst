@@ -14,6 +14,21 @@ Change Log
 * Populate quality metrics table in QC overview tab
 
 
+0.148.2
+=======
+`PR 382: Add file_status_tracking.retracted <https://github.com/smaht-dac/smaht-portal/pull/382>`_
+
+* Adds `file_status_tracking.retracted` and `file_status_tracking.retracted_date`` into File item
+
+
+0.148.1
+=======
+`PR 380: File release: Check required QC runs and support RNA-Seq <https://github.com/smaht-dac/smaht-portal/pull/380>`_
+
+* Prevent files (BAMs) from being released if certain QC metaworkflows have not been run on them
+* Search for associated final output files and releases them together with the targeted file. Currently implemented for RNA-Seq datasets.
+
+
 0.148.0
 =======
 * Update to dcicutils 8.18.3 for fix for smaht-submitr (to respect the custom column mappings
@@ -154,6 +169,7 @@ Change Log
 0.140.1
 =======
 `PR 364: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/364>`_
+
 * Add "Consensus Reads" to `data_category` enums for File
 
 
