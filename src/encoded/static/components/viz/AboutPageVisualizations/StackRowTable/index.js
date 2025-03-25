@@ -8,25 +8,6 @@ import {
 import tableData from '../Alluvial/data/stackrow_data.json';
 import graph from '../Alluvial/data/alluvial_data.json';
 
-const stackRowTableData = tableData;
-
-const getStackRowTableData = () => {
-    const data_generator_nodes = graph.nodes.reduce((acc, d) => {
-        if (d.type === 'data_generator') {
-            return { ...acc, [d.name]: { ...d, ...graph.platforms[d.name] } };
-        } else {
-            return acc;
-        }
-    }, []);
-
-    console.log(
-        'StackRowTableData',
-        data_generator_nodes,
-        Object.keys(graph.platforms)
-    );
-    // return stackRowTableData;
-};
-
 // Legend rendered below the table
 const StackRowItemLegend = ({ text }) => {
     return (
@@ -169,7 +150,7 @@ const StackRow = ({ node, data }) => {
                 data-row-category={data_generator_category}
                 data-row-title={display_name}>
                 <div className="label">
-                    <span className="">{display_name}</span>
+                    <span>{display_name}</span>
                 </div>
             </th>
             {data.map((d, j) => {
@@ -193,7 +174,6 @@ const StackRow = ({ node, data }) => {
  * and vertical headers representing Assay Types and GCC's, respectively.
  */
 export const StackRowTable = ({ data = tableData }) => {
-    getStackRowTableData();
     return (
         <div className="stackrow-table-container">
             <p className="visualization-warning d-block d-sm-none">

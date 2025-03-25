@@ -343,7 +343,6 @@ export function sankeyFunc() {
         }
 
         function alphabetical(a, b) {
-            console.log(a, b);
             if (a?.data_generator_category === b?.data_generator_category) {
                 return a.name.localeCompare(b.name);
             }
