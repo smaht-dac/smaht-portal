@@ -54,6 +54,11 @@ def get_study(properties: Dict[str, Any]) -> str:
     return ""
 
 
+def is_valid_external_id(external_id: str) -> bool:
+    """Check if donor external_id matches TPC Donor nomenclature."""
+    return PRODUCTION_DONOR_REGEX.match(external_id) is not None or BENCHMARKING_DONOR_REGEX.match(external_id) is not None or TPC_ALT_DONOR_REGEX.match(external_id) is not None
+
+
 def is_benchmarking(properties: Dict[str, Any]) -> bool:
     """Check if donor is from benchmarking study."""
     external_id = item.get_external_id(properties)
