@@ -57,6 +57,18 @@
         "consortia": [
             "smaht"
         ],
+        "preferred_name": "Brain",
         "valid_protocol_ids": ["3AJ"]
+    },
+    {
+        "uuid": "5e29be07-5cd0-4194-b614-87cdc48e8f1f",
+        "identifier": "UBERON:0000178",
+        "ontologies": ["UBERON"],
+        "title": "blood",
+        "consortia": [
+            "smaht"
+        ],
+        "preferred_name": "Blood",
+         "valid_protocol_ids": ["3A"]
     }
 ]

@@ -144,6 +144,13 @@ function AboveFacetList({ context, currentAction }){
     );
 }
 
+// Helper function to parse a "YYYY-MM-DD" date string into a Date object in UTC.
+function parseDateUTC(dateString) {
+    const [year, month, day] = dateString.split('-').map(Number);
+    // Note: Month in Date.UTC is 0-indexed.
+    return new Date(Date.UTC(year, month - 1, day));
+}
+
 /**
  * Generates a dynamic title based on an array of filter objects.
  *
@@ -163,7 +170,7 @@ function AboveFacetList({ context, currentAction }){
  * Otherwise, it returns a fallback title.
  *
  * @param {Array} filters - An array of filter objects, each containing a 'field', 'term', and 'remove' property.
- * @returns {string} The generated title or the fallback title if validations fail.
+ * @returns The generated title or the fallback title if validations fail.
  */
 const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(props) {
     const { context, alerts } = props;
@@ -190,7 +197,7 @@ const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(prop
         { statuses: [], from: null, to: null }
     );
 
-    // Check that there is at least one status and that all status values are "released".
+    // Check that there is at least one "status" filter and that all status values are "released".
     if (statuses.length === 0 || statuses.some(term => term !== 'released')) {
         return fallbackTitle;
     }
@@ -200,26 +207,32 @@ const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(prop
         return fallbackTitle;
     }
 
-    const fromDate = new Date(from);
-    const toDate = new Date(to);
+    // Convert the date strings to Date objects using UTC conversion.
+    const fromDate = parseDateUTC(from);
+    const toDate = parseDateUTC(to);
 
-    // Check if the fromDate is the first day of the month.
-    if (fromDate.getDate() !== 1) {
+    // Check if the fromDate is the first day of the month (using UTC).
+    if (fromDate.getUTCDate() !== 1) {
         return fallbackTitle;
     }
 
-    // Calculate the last day of the month for fromDate.
-    const lastDayOfMonth = new Date(fromDate.getFullYear(), fromDate.getMonth() + 1, 0).getDate();
+    // Calculate the last day of the month for fromDate using UTC.
+    const lastDayOfMonth = new Date(Date.UTC(fromDate.getUTCFullYear(), fromDate.getUTCMonth() + 1, 0)).getUTCDate();
 
-    // Validate that toDate is the last day of the same month and year.
-    if (toDate.getDate() !== lastDayOfMonth || fromDate.getFullYear() !== toDate.getFullYear() || fromDate.getMonth() !== toDate.getMonth()) {
+    // Validate that toDate is the last day of the same month and year (using UTC).
+    if (
+        toDate.getUTCDate() !== lastDayOfMonth ||
+        fromDate.getUTCFullYear() !== toDate.getUTCFullYear() ||
+        fromDate.getUTCMonth() !== toDate.getUTCMonth()
+    ) {
         return fallbackTitle;
     }
 
-    const monthName = fromDate.toLocaleString('default', { month: 'short' });
+    // Get the month name in short format using UTC.
+    const monthName = fromDate.toLocaleString('default', { month: 'short', timeZone: 'UTC' });
     const subtitle = (
         <span>
-            <small className="text-300">in</small> {`${monthName} ${fromDate.getFullYear()}`}
+            <small className="text-300">in</small> {`${monthName} ${fromDate.getUTCFullYear()}`}
         </span>
     );
 
@@ -238,10 +251,7 @@ const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(prop
                         </a>
                         <i className="icon icon-fw icon-angle-right fas" />
                     </div>
-                    <div
-                        className="static-breadcrumb nonclickable"
-                        data-name="Search"
-                        key="/search">
+                    <div className="static-breadcrumb nonclickable" data-name="Search" key="/search">
                         <span>Search</span>
                     </div>
                 </div>
@@ -252,6 +262,10 @@ const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(prop
         </PageTitleContainer>
     );
 });
+FileSearchViewPageTitle.propTypes = {
+    'context': PropTypes.object.isRequired,
+    'alerts': PropTypes.array
+};
 
 pageTitleViews.register(FileSearchViewPageTitle, 'FileSearchResults');
 pageTitleViews.register(FileSearchViewPageTitle, 'SubmittedFileSearchResults');
