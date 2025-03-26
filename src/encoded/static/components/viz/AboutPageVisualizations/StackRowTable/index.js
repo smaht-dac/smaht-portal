@@ -6,7 +6,7 @@ import {
     PopoverHeader,
 } from 'react-bootstrap';
 import tableData from '../Alluvial/data/stackrow_data.json';
-import graph from '../Alluvial/data/alluvial_data.json';
+import alluvial_data from '../Alluvial/data/alluvial_data.json';
 
 // Legend rendered below the table
 const StackRowItemLegend = ({ text }) => {
@@ -150,11 +150,12 @@ const StackRow = ({ node, data }) => {
                 data-row-category={data_generator_category}
                 data-row-title={display_name}>
                 <div className="label">
-                    <span>{display_name}</span>
+                    <span>{display_name.split(' ')[0]}</span>
                 </div>
             </th>
             {data.map((d, j) => {
-                const platformList = graph.platforms[name][d.name] ?? [];
+                const platformList =
+                    alluvial_data.platforms[name][d.name] ?? [];
 
                 return (
                     <StackRowItem
@@ -194,7 +195,7 @@ export const StackRowTable = ({ data = tableData }) => {
                     </thead>
                     {/* Render the left labels and body of the table */}
                     <tbody className="stackrow-table-body">
-                        {graph.nodes.map((node, i) => {
+                        {alluvial_data.nodes.map((node, i) => {
                             if (node.type === 'data_generator') {
                                 return (
                                     <StackRow key={i} node={node} data={data} />

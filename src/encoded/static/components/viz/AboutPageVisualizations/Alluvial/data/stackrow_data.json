@@ -1,6 +1,6 @@
 [
     {
-        "name": "WGS",
+        "name": "Bulk WGS",
         "display_name": "Bulk WGS",
         "description": "Bulk whole genome sequencing (WGS) using short-read or long-read platforms."
     },
@@ -63,7 +63,7 @@
         "link": "https://pubmed.ncbi.nlm.nih.gov/19815776/"
     },
     {
-        "name": "Targeted RNA-Seq",
+        "name": "10X Genomics Xenium",
         "display_name": "10X Genomics Xenium",
         "description": "Targeted spatial RNA-Sequencing."
     },
@@ -91,9 +91,9 @@
         "link": "https://www.protocols.io/view/compduplex-accurate-detection-of-somatic-mutations-kxygx3x4og8j/v1"
     },
     {
-        "name": "WGS MALBAC-amplifed",
-        "display_name": "MALBAC-amplifed WGS",
-        "description": "Click below to learn more about the MALBAC-amplifed WGS",
+        "name": "MALBAC-amplified WGS",
+        "display_name": "MALBAC-amplified WGS",
+        "description": "Click below to learn more about the MALBAC-amplified WGS",
         "link":"https://pubmed.ncbi.nlm.nih.gov/23258894/"
     },
     {
@@ -101,12 +101,6 @@
         "display_name": "TEnCATS",
         "description": "Cas9-targeted enrichment for L1 mobile elements",
         "link":"https://www.nature.com/articles/s41467-021-23918-y"
-    },
-    {
-        "name": "TN5-duplex-seq",
-        "display_name": "TN5-duplex-seq",
-        "description": "Click below to learn more about the TN5-duplex-seq protocol",
-        "link":"https://www.protocols.io/view/tn5-duplex-sequencing-tn5-duplex-seq-for-low-input-6qpvr3nbzvmk/v1"
     },
     {
         "name": "Ultra-deep ATAC-seq",
