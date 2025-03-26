@@ -39,6 +39,7 @@ FILE_GROUP = 'FileGroup'
 class MetadataArgs(NamedTuple):
     """ NamedTuple that holds all the args passed to the /metadata and /peek-metadata endpoints """
     accessions: List[str]
+    manifest_enum: int
     sort_param: str
     type_param: str
     status: str
@@ -97,6 +98,8 @@ class DummyFileInterfaceImplementation(object):
 #   --> d1.arr --> d1.array.dict --> d1.array.dict.value
 # TODO: move to another file or write in JSON
 TSV_MAPPING = {
+
+    # Standard file manifest
     FILE: {
         'FileDownloadURL': TSVDescriptor(field_type=FILE,
                                          field_name=['href']),
@@ -147,15 +150,152 @@ TSV_MAPPING = {
                                   field_name=['file_sets.file_group'],
                                   use_base_metadata=False)   # omit this field on extra files
     },
+
+    # Clinical (Donor) manifest - method TBD, this will be complex as it cannot all be resolved from
+    # one search but rather several types that do not have direct link
     CLINICAL: {
         'dummy': TSVDescriptor(field_type=CLINICAL,
                                field_name=['dummy'],
                                use_base_metadata=True)
     },
+
+    # Sample manifest
+    # Method - traverse files selected extracting sample ID, search for sample IDs, generate manifest
+    # from that search
     SAMPLE: {
-        'dummy': TSVDescriptor(field_type=CLINICAL,
-                               field_name=['dummy'],
-                               use_base_metadata=True)
+        'SampleAccession': TSVDescriptor(field_type=SAMPLE,
+                                         field_name=['accession'],
+                                         use_base_metadata=True),
+        'DonorAccession': TSVDescriptor(field_type=SAMPLE,
+                                        field_name=['sample_sources.donor.accession'],
+                                        use_base_metadata=True),
+        'SampleType': TSVDescriptor(field_type=SAMPLE,
+                                    field_name=['@type'],
+                                    use_base_metadata=True),
+        'SampleSourceType': TSVDescriptor(field_type=SAMPLE,
+                                          field_name=['sample_sources.@type'],
+                                          use_base_metadata=True),
+        'SampleExternalID': TSVDescriptor(field_type=SAMPLE,
+                                          field_name=['external_id'],
+                                          use_base_metadata=True),
+        'SampleCategory': TSVDescriptor(field_type=SAMPLE,
+                                        field_name=['category'],
+                                        use_base_metadata=True),
+        'SampleCoreSize': TSVDescriptor(field_type=SAMPLE,
+                                        field_name=['core_size'],
+                                        use_base_metadata=True),
+        'SampleDescription': TSVDescriptor(field_type=SAMPLE,
+                                           field_name=['description'],
+                                           use_base_metadata=True),
+        'SamplePreservationMedium': TSVDescriptor(field_type=SAMPLE,
+                                                  field_name=['preservation_medium'],
+                                                  use_base_metadata=True),
+        'SamplePreservationType': TSVDescriptor(field_type=SAMPLE,
+                                                field_name=['preservation_type'],
+                                                use_base_metadata=True),
+        'SampleProcessingDate': TSVDescriptor(field_type=SAMPLE,
+                                              field_name=['processing_date'],
+                                              use_base_metadata=True),
+        'SampleProcessingNotes': TSVDescriptor(field_type=SAMPLE,
+                                               field_name=['processing_notes'],
+                                               use_base_metadata=True),
+        'SampleWeight': TSVDescriptor(field_type=SAMPLE,
+                                      field_name=['weight'],
+                                      use_base_metadata=True),
+        'SampleCellCount': TSVDescriptor(field_type=SAMPLE,
+                                         field_name=['cell_count'],
+                                         use_base_metadata=True),
+        'SampleCellDensity': TSVDescriptor(field_type=SAMPLE,
+                                           field_name=['cell_density'],
+                                           use_base_metadata=True),
+        'SampleVolume': TSVDescriptor(field_type=SAMPLE,
+                                      field_name=['volume'],
+                                      use_base_metadata=True),
+        'SampleCellOntologyId': TSVDescriptor(field_type=SAMPLE,
+                                              field_name=['cell_ontology_id'],
+                                              use_base_metadata=True),
+        'SampleSourceDescription': TSVDescriptor(field_type=SAMPLE,
+                                                 field_name=['sample_sources.description'],
+                                                 use_base_metadata=True),
+        'SampleSourceExternalId': TSVDescriptor(field_type=SAMPLE,
+                                                field_name=['sample_sources.external_id'],
+                                                use_base_metadata=True),
+        'SampleSourceSampleCount': TSVDescriptor(field_type=SAMPLE,
+                                                 field_name=['sample_sources.sample_count'],
+                                                 use_base_metadata=True),
+
+        # Tissue specific fields
+        'TissueAnatomicalLocation': TSVDescriptor(field_type=SAMPLE,
+                                                  field_name=['sample_sources.anatomical_location'],
+                                                  use_base_metadata=True),
+        'TissueIschemicTime': TSVDescriptor(field_type=SAMPLE,
+                                            field_name=['sample_sources.ischemic_time'],
+                                            use_base_metadata=True),
+        'TissuePathologyNotes': TSVDescriptor(field_type=SAMPLE,
+                                              field_name=['sample_sources.pathology_notes'],
+                                              use_base_metadata=True),
+        'TissuePH': TSVDescriptor(field_type=SAMPLE,
+                                  field_name=['sample_sources.ph'],
+                                  use_base_metadata=True),
+        'TissuePreservationMedium': TSVDescriptor(field_type=SAMPLE,
+                                                  field_name=['sample_sources.preservation_medium'],
+                                                  use_base_metadata=True),
+        'TissuePreservationType': TSVDescriptor(field_type=SAMPLE,
+                                                field_name=['sample_sources.preservation_type'],
+                                                use_base_metadata=True),
+        'TissueProsecutorNotes': TSVDescriptor(field_type=SAMPLE,
+                                               field_name=['sample_sources.prosecutor_notes'],
+                                               use_base_metadata=True),
+        'TissueRecoveryDatetime': TSVDescriptor(field_type=SAMPLE,
+                                                field_name=['sample_sources.recovery_datetime'],
+                                                use_base_metadata=True),
+        'TissueSize': TSVDescriptor(field_type=SAMPLE,
+                                    field_name=['sample_sources.size'],
+                                    use_base_metadata=True),
+        'TissueSizeUnit': TSVDescriptor(field_type=SAMPLE,
+                                        field_name=['sample_sources.size_unit'],
+                                        use_base_metadata=True),
+        'TissueUberonId': TSVDescriptor(field_type=SAMPLE,
+                                        field_name=['sample_sources.uberon_id'],
+                                        use_base_metadata=True),
+        'TissueVolume': TSVDescriptor(field_type=SAMPLE,
+                                      field_name=['sample_sources.volume'],
+                                      use_base_metadata=True),
+        'TissueWeight': TSVDescriptor(field_type=SAMPLE,
+                                      field_name=['sample_sources.weight'],
+                                      use_base_metadata=True),
+
+        # Cell Culture Fields
+        'CellCultureCultureDuration': TSVDescriptor(field_type=SAMPLE,
+                                                    field_name=['sample_sources.culture_duration'],
+                                                    use_base_metadata=True),
+        'CellCultureHarvestDate': TSVDescriptor(field_type=SAMPLE,
+                                                field_name=['sample_sources.culture_harvest_date'],
+                                                use_base_metadata=True),
+        'CellCultureStartDate': TSVDescriptor(field_type=SAMPLE,
+                                              field_name=['sample_sources.culture_start_date'],
+                                              use_base_metadata=True),
+        'CellCultureGrowthMedium': TSVDescriptor(field_type=SAMPLE,
+                                                 field_name=['sample_sources.growth_medium'],
+                                                 use_base_metadata=True),
+        'CellCultureKaryotype': TSVDescriptor(field_type=SAMPLE,
+                                              field_name=['sample_sources.karyotype'],
+                                              use_base_metadata=True),
+
+        # Cell line fields
+        'CellLineCode': TSVDescriptor(field_type=SAMPLE,
+                                      field_name=['sample_sources.code'],
+                                      use_base_metadata=True),
+        'CellLineParentCellLines': TSVDescriptor(field_type=SAMPLE,
+                                                 field_name=['sample_sources.parent_cell_lines'],
+                                                 use_base_metadata=True),
+        'CellLineSource': TSVDescriptor(field_type=SAMPLE,
+                                        field_name=['sample_sources.source'],
+                                        use_base_metadata=True),
+        'CellLineUrl': TSVDescriptor(field_type=SAMPLE,
+                                     field_name=['sample_sources.url'],
+                                     use_base_metadata=True),
+
     },
     EXPERIMENT: {
         'dummy': TSVDescriptor(field_type=CLINICAL,
@@ -315,8 +455,8 @@ def handle_metadata_arguments(context, request):
     # Generate a header, resolve mapping
     header = generate_manifest_header(download_file_name, manifest_enum, cli=cli)
     tsv_mapping = TSV_MAPPING[manifest_enum]
-    return MetadataArgs(accessions, sort_param, type_param, status, include_extra_files, download_file_name, header,
-                        tsv_mapping, cli)
+    return MetadataArgs(accessions, manifest_enum, sort_param, type_param, status, include_extra_files,
+                        download_file_name, header, tsv_mapping, cli)
 
 
 @view_config(route_name='peek_metadata', request_method=['GET', 'POST'])
@@ -393,6 +533,35 @@ def generate_file_manifest(request, args, search_iter, cli):
     return data_lines
 
 
+def generate_sample_manifest(request, args, search_iter):
+    """ For the sample manifest, we first traverse the original search_iter for sample IDs, then
+        execute another search to retrieve all those samples and write the manifest from
+        that search
+    """
+    # Extract sample IDs
+    samples = []
+    for f in search_iter:
+        sample = f.get('samples')[0]['uuid']
+        if sample:
+            samples.append(sample)
+
+    # Generate, execute iter for sample search
+    search_param = {
+        'type': 'Sample',
+        'uuid': samples
+    }
+    sample_search_iter = get_iterable_search_results(request, param_lists=search_param)
+    data_lines = []
+    for sample in sample_search_iter:
+        line = []
+        for field_name, tsv_descriptor in args.tsv_mapping.items():
+            traversal_path = tsv_descriptor.field_name()
+            field = descend_field(request, sample, traversal_path) or ''
+            line.append(field)
+        data_lines += [line]
+    return data_lines
+
+
 @view_config(route_name='metadata', request_method=['GET', 'POST'])
 @debug_log
 def metadata_tsv(context, request):
@@ -422,7 +591,14 @@ def metadata_tsv(context, request):
         search_param['status'] = args.status
     cli = args.cli
     search_iter = get_iterable_search_results(request, param_lists=search_param)
-    data_lines = generate_file_manifest(request, args, search_iter, cli)
+    if args.manifest_enum == SAMPLE:
+        data_lines = generate_sample_manifest(request, args, search_iter)
+    elif args.manifest_enum == FILE:
+        data_lines = generate_file_manifest(request, args, search_iter, cli)
+    elif args.manifest_enum in [CLINICAL, EXPERIMENT]:
+        raise Exception('Clinical/Experiment manifests not supported at this time')
+    else:
+        raise Exception('Invalid manifest enum provided')
     return Response(
         content_type='text/tsv',
         app_iter=generate_tsv(args.header, data_lines),

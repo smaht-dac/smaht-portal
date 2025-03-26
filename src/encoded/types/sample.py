@@ -15,4 +15,7 @@ class Sample(SubmittedItem):
     item_type = "sample"
     base_types = ["Sample"] + SubmittedItem.base_types
     schema = load_schema("encoded:schemas/sample.json")
-    embedded_list = []
+    embedded_list = [
+        "sample_sources.*",  # this will capture everything of note for the manifest file
+        "sample_sources.donor.accession"
+    ]
