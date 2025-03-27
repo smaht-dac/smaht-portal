@@ -28,7 +28,7 @@ from ..item_utils import (
 )
 
 SEQUENCER_DEPENDENT = {
-    "ONT": ["gpu", "model", "modification_tags"]
+    "ONT": ["gpu_architecture", "model", "modification_tags"]
 }
 
 @collection(
