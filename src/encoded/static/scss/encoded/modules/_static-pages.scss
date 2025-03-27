@@ -1108,6 +1108,19 @@ body[data-path="/"]>#application>#layout {
 										}
 									}
 								}
+								.footer {
+									margin-top: 10px;
+									border-top: 1px solid #b4c1f733;
+									a {
+										color: #485983;
+										font-size: 0.75rem;
+										font-weight: 500;
+										// text-transform: uppercase;
+										&:hover {
+											color: #3C71F9;
+										}
+									}
+								}
 
 								&.warning {
 									.header {
@@ -2882,6 +2895,16 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 
 		>.inner>.toggle-detail-button-container {
 			display: none;
+		}
+	}
+}
+
+/** Retracted Files Table styyles **/
+.retracted-files-table {
+	.search-result-row >.columns >.search-result-column-block {
+
+		&[data-first-visible-column=true] {
+			padding-left: 0px !important;
 		}
 	}
 }

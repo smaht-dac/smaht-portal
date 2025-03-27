@@ -16,6 +16,11 @@ const announcements = [
                 , has been retracted due to sample swap.
             </span>
         ),
+        footer: (
+            <span>
+                <a href="/resources/retracted-files">See Full List</a>
+            </span>
+        )
     },
     {
         type: 'info',
@@ -57,7 +62,7 @@ const announcements = [
     },
 ];
 
-const AnnouncementCard = ({ title = '', body = '', type = 'info', date = null }) => {
+const AnnouncementCard = ({ title = '', body = '', footer = null, type = 'info', date = null }) => {
     return (
         <div className={`announcement-container ${type}`}>
             <h5 className="header">
@@ -65,6 +70,7 @@ const AnnouncementCard = ({ title = '', body = '', type = 'info', date = null })
                 {date ? <LocalizedTime timestamp={new Date(date)} formatType='date-sm-compact' /> : null}
             </h5>
             <div className="body">{body}</div>
+            {footer ? <div className="footer">{footer}</div> : null}
         </div>
     );
 };
@@ -210,6 +216,7 @@ export const NotificationsPanel = () => {
                                     key={i}
                                     title={announcement.title}
                                     body={announcement.body}
+                                    footer={announcement.footer}
                                     type={announcement.type}
                                     date={announcement.date}
                                 />
