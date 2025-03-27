@@ -105,5 +105,10 @@
                 "Final Output"
             ]
         }
+    },
+    "facets": {
+        "reference_genome.display_title": {
+            "title": "Reference Genome"
+        }
     }
 }

@@ -263,6 +263,8 @@ class CalcPropConstants:
     }
     SAMPLE_SUMMARY_DONOR_IDS = "donor_ids"
     SAMPLE_SUMMARY_TISSUES = "tissues"
+    SAMPLE_SUMMARY_TISSUE_SUBTYPES = "tissue_subtypes"
+    SAMPLE_SUMMARY_TISSUE_DETAILS = "tissue_details"
     SAMPLE_SUMMARY_SAMPLE_NAMES = "sample_names"
     SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS = "sample_descriptions"
     SAMPLE_SUMMARY_ANALYTES = "analytes"
@@ -280,6 +282,20 @@ class CalcPropConstants:
             },
             SAMPLE_SUMMARY_TISSUES: {
                 "title": "Tissue",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_TISSUE_SUBTYPES: {
+                "title": "Tissue Subtype",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_TISSUE_DETAILS: {
+                "title": "Tissue Details",
                 "type": "array",
                 "items": {
                     "type": "string",
@@ -413,10 +429,15 @@ class File(Item, CoreFile):
     STATUS_TO_CHECK_REVISIONS = [
         'uploading',
         'uploaded',
+        'retracted',
         'in review',
         'released',
         'restricted',
         'public'
+    ]
+    STATUS_TO_REVISION_DATE_CONVERSION = [
+        'retracted',
+        'released'
     ]
 
     Item.SUBMISSION_CENTER_STATUS_ACL.update({
@@ -526,11 +547,16 @@ class File(Item, CoreFile):
                     "type": "string",
                     "format": "date-time"
                 },
+                "retracted": {
+                    "type": "string",
+                    "format": "date-time"
+                },
                 "in review": {
                     "type": "string",
                     "format": "date-time"
                 },
                 "released": {
+                    "title": "Release Date",
                     "type": "string",
                     "format": "date-time"
                 },
@@ -589,10 +615,12 @@ class File(Item, CoreFile):
                         last_modified = revision.get('last_modified')
                         if last_modified:
                             result[status] = last_modified['date_modified']
-            if "released" in result:
-                result["released_date"] = self.get_date_from_datetime(
-                    result["released"]
-                )
+
+            # add date converted values for selected status
+            for status in self.STATUS_TO_REVISION_DATE_CONVERSION:
+                if status in result:
+                    result[status + "_date"] = self.get_date_from_datetime(result[status])
+
             return result
 
     @staticmethod
@@ -957,6 +985,18 @@ class File(Item, CoreFile):
                 item_utils.get_external_id,
             ),
             constants.SAMPLE_SUMMARY_TISSUES: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_tissues(file_properties, request_handler),
+                functools.partial(
+                    tissue_utils.get_top_grouping_term, request_handler=request_handler
+                ),
+            ),
+            constants.SAMPLE_SUMMARY_TISSUE_SUBTYPES: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_uberon_ids(file_properties, request_handler),
+                item_utils.get_display_title,
+            ),
+            constants.SAMPLE_SUMMARY_TISSUE_DETAILS: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_tissues(file_properties, request_handler),
                 tissue_utils.get_location,
