@@ -2790,6 +2790,9 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 
 /** Retracted Files Table styyles **/
 .retracted-files-table {
+	.search-headers-row {
+		background-color: #fff1f1 !important;
+	}
 	.search-result-row >.columns >.search-result-column-block {
 
 		&[data-first-visible-column=true] {

@@ -52,7 +52,7 @@ export default function RetractedFilesTable(props) {
             }
         },
         "annotated_filename": {
-            "widthMap": { lg: 400, md: 120, sm: 120 },
+            "widthMap": { lg: 350, md: 200, sm: 200 },
             render: function (result, props) {
                 const { '@id': atId, annotated_filename } = result || {};
 
