@@ -1089,7 +1089,7 @@ class File(Item, CoreFile):
             elif (tissue_title := request_handler.get_items(
                 file_utils.get_tissues(file_properties, request_handler)
             )):
-                to_include - None if len(tissue_title) > 1 else item_utils.get_display_title(tissue_title[0]) 
+                to_include = None if len(tissue_title) > 1 else item_utils.get_display_title(tissue_title[0])
         if "override_release_tracker_title" in file_properties:
             to_include = file_utils.get_override_release_tracker_title(file_properties)
         return to_include
