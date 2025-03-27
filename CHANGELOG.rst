@@ -7,6 +7,66 @@ smaht-portal
 Change Log
 ----------
 
+0.149.0
+=======
+`PR 381: Home and Search Page Updates <https://github.com/smaht-dac/smaht-portal/pull/381>`_
+
+* Enables the previously disabled data release tracker links on the home page
+* Adds date for announcements on the home page when applicable
+* Fixes overflow/overlapping issues in the facet date range
+* Replaces erroneously displayed date_created under the Released column with file_tracking_status.released_date in file tables
+* Updates data retraction notice in the COLO829 benchmarking page
+* Makes the released files title in file search view more prominent
+
+
+0.148.2
+=======
+`PR 382: Add file_status_tracking.retracted <https://github.com/smaht-dac/smaht-portal/pull/382>`_
+
+* Adds `file_status_tracking.retracted` and `file_status_tracking.retracted_date`` into File item
+
+
+0.148.1
+=======
+`PR 380: File release: Check required QC runs and support RNA-Seq <https://github.com/smaht-dac/smaht-portal/pull/380>`_
+
+* Prevent files (BAMs) from being released if certain QC metaworkflows have not been run on them
+* Search for associated final output files and releases them together with the targeted file. Currently implemented for RNA-Seq datasets.
+
+
+0.148.0
+=======
+* Update to dcicutils 8.18.3 for fix for smaht-submitr (to respect the custom column mappings
+  even when using, for example, XYZY_ExternalQualityMetric style sheet names.
+
+
+0.147.0
+=======
+`PR 370: SN Add liquid category check <https://github.com/smaht-dac/smaht-portal/pull/370>`_
+
+* Add check to TissueSample ensuring that items with `external_id `values with protocol id for blood or buccal swab (3A or 3B) have category of "Liquid" and fibroblasts (3AC) have category of "Cells"
+
+
+0.146.1
+=======
+`PR 376: SN search columns facets <https://github.com/smaht-dac/smaht-portal/pull/376>`_
+
+* Add columns and facets to items frequently used for searching during submission
+
+
+0.146.0
+=======
+`PR 378: SN Move ONT validator <https://github.com/smaht-dac/smaht-portal/pull/378>`_
+
+* Move custom validator for basecalling software for ONT files to UnalignedReads from SubmittedFile, as this does not need to be applied to every file item type, just raw sequencing reads
+
+0.145.0
+=======
+`PR 373: SN Add property replaced_by <https://github.com/smaht-dac/smaht-portal/pull/373>`_
+
+* Add property `replaced_by` to File to link to replacement files for files that are retracted or obsolete
+
+
 0.144.0
 =======
 `PR 371: SN Add uberon_id check for tissue <https://github.com/smaht-dac/smaht-portal/pull/371>`_
@@ -74,7 +134,7 @@ Change Log
 =======
 `PR 309: SN validate external_id <https://github.com/smaht-dac/smaht-portal/pull/309>`_
 
-*  Add a custom validator to TissueSample that ensures the `external_id` for items from benchmarking and production Donors matches the pattern expected for category (currently only applied to TPC submitted items)
+* Add a custom validator to TissueSample that ensures the `external_id` for items from benchmarking and production Donors matches the pattern expected for category (currently only applied to TPC submitted items)
 * Make `tpc_submitted` a required property for Donor
 
 
@@ -114,6 +174,7 @@ Change Log
 0.140.1
 =======
 `PR 364: SN Release Tracker title <https://github.com/smaht-dac/smaht-portal/pull/364>`_
+
 * Add "Consensus Reads" to `data_category` enums for File
 
 
