@@ -8,7 +8,9 @@ import memoize from 'memoize-one';
 import { EmbeddedItemSearchTable } from '../../item-pages/components/EmbeddedItemSearchTable';
 
 export default function RetractedFilesTable(props) {
-    const { schemas, session } = props;
+    const { schemas, session, searchHref: propSearchHref } = props;
+    const searchHref = 
+        propSearchHref || "/search/?type=File&status=retracted&file_status_tracking.released_date!=No+value&sort=-file_status_tracking.retracted_date";
 
     const columnExtensionMap = {
         "access_status": {
@@ -36,7 +38,7 @@ export default function RetractedFilesTable(props) {
             "widthMap": { lg: 140, md: 90, sm: 90 }
         },
         "accession": {
-            "widthMap": { lg: 150, md: 120, sm: 120 },
+            "widthMap": { lg: 145, md: 120, sm: 120 },
             render: function (result, props) {
                 const { '@id': atId, accession } = result || {};
 
@@ -92,6 +94,7 @@ export default function RetractedFilesTable(props) {
             "widthMap": { lg: 110, md: 90, sm: 90 }
         }
     };
+
     const columns = {
         "access_status": {
             "title": "Access",
@@ -125,7 +128,7 @@ export default function RetractedFilesTable(props) {
     return (
         <div className='retracted-files-table'>
             <EmbeddedItemSearchTable
-                searchHref="/search/?type=File&status=retracted&file_status_tracking.released_date!=No+value&sort=-file_status_tracking.retracted_date"
+                searchHref={searchHref}
                 schemas={schemas}
                 session={session}
                 facets={null}
