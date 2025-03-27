@@ -27,7 +27,8 @@ import {
 } from '../components/benchmarking';
 import { DownloadAllFilesFromSearchHrefButton } from '../components/challenges/DownloadAllFilesFromSearchHrefButton';
 import { ChallengeTableWrapper } from '../components/challenges/ChallengeTables';
-import { DataMatrix } from './DataMatrix';
+import DataMatrix from '../components/matrix/DataMatrix';
+import RetractedFilesTable from '../components/RetractedFilesTable';
 
 /**
  * Any placeholder(s) used in a StaticSection _must_ get imported here
@@ -53,6 +54,7 @@ const placeholders = {
     DownloadAllFilesFromSearchHrefButton,
     ChallengeTableWrapper,
     DataMatrix,
+    RetractedFilesTable
 };
 
 export const replaceString = memoize(
