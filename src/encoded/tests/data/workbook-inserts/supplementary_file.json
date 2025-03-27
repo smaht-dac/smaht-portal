@@ -10,6 +10,10 @@
         ],
         "filename": "test_DSA_to_GRCh38.chain.gz",
         "file_format": "CHAIN",
+        "file_sets": [
+            "TEST_FILE-SET_HELA-HEK293-DNA",
+            "TEST_FILE-SET_HELA_ONLY-RNA"
+        ],
         "submission_centers": [
             "smaht"
         ],
@@ -36,7 +40,8 @@
         "filename": "test_hela.fasta",
         "file_format": "FASTA",
         "file_sets": [
-            "TEST_FILE-SET_HELA-HEK293-DNA"
+            "TEST_FILE-SET_HELA-HEK293-DNA",
+            "TEST_FILE-SET_HELA_ONLY-RNA"
         ],
         "submission_centers": [
             "smaht"

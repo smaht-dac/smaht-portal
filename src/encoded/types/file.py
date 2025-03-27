@@ -946,7 +946,7 @@ class File(Item, CoreFile):
         return {
             key: value for key, value in to_include.items() if value
         }
-    
+
     def _get_group_coverage(
         self, request_handler: Request, file_properties: Optional[List[str]] = None
     ) -> Union[List[str], None]:
@@ -1067,7 +1067,7 @@ class File(Item, CoreFile):
             ),
         }
         return {key: value for key, value in to_include.items() if value}
-    
+
     def _get_release_tracker_title(
             self,
             request_handler: RequestHandler,
@@ -1081,26 +1081,19 @@ class File(Item, CoreFile):
                     file_utils.get_cell_culture_mixtures(file_properties, request_handler)),
                     item_utils.get_code,
             )):
-                if len(cell_culture_mixture_title) > 1:
-                    return None
-                to_include = cell_culture_mixture_title[0]
+                to_include = None if len(cell_culture_mixture_title) > 1 else cell_culture_mixture_title[0]
             elif (cell_line_title := request_handler.get_items(
                 file_utils.get_cell_lines(file_properties, request_handler)
             )):
-                if len(cell_culture_mixture_title) > 1:
-                    return None
-                to_include = item_utils.get_code(cell_line_title[0])
+                to_include = None if len(cell_line_title) > 1 else item_utils.get_code(cell_line_title[0])
             elif (tissue_title := request_handler.get_items(
                 file_utils.get_tissues(file_properties, request_handler)
             )):
-                if len(tissue_title) > 1:
-                    return None
-                to_include = item_utils.get_display_title(tissue_title[0])   
+                to_include - None if len(tissue_title) > 1 else item_utils.get_display_title(tissue_title[0]) 
         if "override_release_tracker_title" in file_properties:
             to_include = file_utils.get_override_release_tracker_title(file_properties)
-        if to_include:
-            return to_include
-    
+        return to_include
+
     def _get_release_tracker_description(
             self,
             request_handler: RequestHandler,
@@ -1113,6 +1106,12 @@ class File(Item, CoreFile):
             file_utils.get_file_format(file_properties),
             item_utils.get_display_title,
         )
+        if "override_release_tracker_description" in file_properties:
+            to_include = [
+                file_utils.get_override_release_tracker_description(file_properties),
+                file_format_title
+            ]
+            return " ".join(to_include)
         if "file_sets" in file_properties:
             assay_title= get_unique_values(
                 request_handler.get_items(file_utils.get_assays(file_properties, request_handler)),
@@ -1132,11 +1131,6 @@ class File(Item, CoreFile):
             to_include = [
                 assay_title[0],
                 sequencer_title[0],
-                file_format_title
-            ]
-        if "override_release_tracker_description" in file_properties:
-            to_include = [
-                file_utils.get_override_release_tracker_description(file_properties),
                 file_format_title
             ]
         if to_include:
