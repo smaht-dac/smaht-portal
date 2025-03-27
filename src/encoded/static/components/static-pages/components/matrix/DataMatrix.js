@@ -5,11 +5,11 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReactTooltip from 'react-tooltip';
 import { console, object, ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { VisualBody } from '../components';
+import { VisualBody } from '../';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
 
 
-export class DataMatrix extends React.PureComponent {
+export default class DataMatrix extends React.PureComponent {
 
     static defaultProps = {
         "queries": {
