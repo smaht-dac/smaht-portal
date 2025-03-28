@@ -37,7 +37,7 @@ import { Schemas, SEO, typedefs, navigate } from './util';
 import { responsiveGridState, DeferMount } from './util/layout';
 import { requestAnimationFrame as raf } from '@hms-dbmi-bgm/shared-portal-components/es/components/viz/utilities';
 
-import { PageTitleSection } from './PageTitleSection';
+import { PageTitleSection, toRegistryLookupContext } from './PageTitleSection';
 
 // import './encoded/static/scss/style.css'; // @TODO: currently not resolving; need to fix
 // import './encoded/static/scss/print.css';
@@ -1669,16 +1669,7 @@ const ContentRenderer = React.memo(function ContentRenderer(props) {
         // error catching
         content = <ErrorPage currRoute={routeLeaf} status={status} />;
     } else if (context) {
-        // Hack for associating the /browse/ searches with BrowseView.
-        // Otherwise it will use FileSearchView since Registry.lookup checks for first matching view 
-        let lookupContext = context;
-        const browseIdx = context?.['@type']?.indexOf('Browse') || -1;
-        if (browseIdx > -1) {
-            const cloned = context['@type'].slice();
-            cloned.splice(browseIdx, 1);
-            cloned.unshift('Browse');
-            lookupContext = { '@type': cloned };
-        }
+        const lookupContext =  toRegistryLookupContext(context);
         // What should occur (success)
         const ContentView = (contentViews || globalContentViews).lookup(
             lookupContext,
