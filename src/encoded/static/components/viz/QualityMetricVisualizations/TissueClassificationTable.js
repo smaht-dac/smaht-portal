@@ -71,13 +71,17 @@ export const TissueClassificationTable = ({
 
         if (isCellLine) {
             // We expect that Blood or Skin is in the predicted tissues
-            result['hasMatch'] =
-                pt1 === 'Blood' ||
-                pt2 === 'Blood' ||
-                pt3 === 'Blood' ||
-                pt1 === 'Skin' ||
-                pt2 === 'Skin' ||
-                pt3 === 'Skin';
+            const cellLineBlood = ['HAPMAP6', 'COLO829BLT50'];
+            const cellLineSkin = ['LBLA2'];
+            if (cellLineBlood.includes(submittedTissue)) {
+                result['hasMatch'] =
+                    pt1 === 'Blood' || pt2 === 'Blood' || pt3 === 'Blood';
+            } else if (cellLineSkin.includes(submittedTissue)) {
+                result['hasMatch'] =
+                    pt1 === 'Skin' || pt2 === 'Skin' || pt3 === 'Skin';
+            } else {
+                result['hasMatch'] = null;
+            }
         } else {
             result['hasMatch'] =
                 pt1 === submittedTissue ||
@@ -85,9 +89,12 @@ export const TissueClassificationTable = ({
                 pt3 === submittedTissue;
         }
 
-        const yesBadge = <div className='text-center'>{getBadge('Yes')}</div>;
-        const noBadge = <div className='text-center'>{getBadge('No')}</div>;
+        const yesBadge = <div className="text-center">{getBadge('Yes')}</div>;
+        const noBadge = <div className="text-center">{getBadge('No')}</div>;
         result['hasMatchBadge'] = result['hasMatch'] ? yesBadge : noBadge;
+        if (result['hasMatch'] === null) {
+            result['hasMatchBadge'] = '';
+        }
 
         result['Submitted tissue'] = isCellLine
             ? submittedTissue
@@ -106,12 +113,16 @@ export const TissueClassificationTable = ({
     tableBodyData.sort((a, b) => a.hasMatch - b.hasMatch);
 
     const tableHeaderValues =
-        tableBodyData.length > 0 ? Object.keys(tableBodyData[0]).filter(t => t !== "hasMatch") : [];
+        tableBodyData.length > 0
+            ? Object.keys(tableBodyData[0]).filter((t) => t !== 'hasMatch')
+            : [];
 
     const tableHeader = [
         <th key="File">File</th>,
         <th key="Submission Center">Submission Center</th>,
-        <th key="Match" className='text-center'>Match</th>,
+        <th key="Match" className="text-center">
+            Match
+        </th>,
         <th key="Submitted tissue">
             {isCellLine
                 ? 'Submitted sample label'
@@ -140,11 +151,8 @@ export const TissueClassificationTable = ({
                     </thead>
                     <tbody>
                         {tableBodyData.map((row, rowIndex) => {
-                            const rowClass = row['hasMatch']
-                                ? ''
-                                : 'table-danger';
                             return (
-                                <tr key={rowIndex} className={rowClass}>
+                                <tr key={rowIndex}>
                                     {tableHeaderValues.map((col) => (
                                         <td key={col}>{row[col]}</td>
                                     ))}
