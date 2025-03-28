@@ -111,7 +111,7 @@ const FileViewHeader = (props) => {
             `${context?.file_format?.display_title} file`;
         const note = context?.notes_to_tsv?.[0]
             ? `was ${context?.notes_to_tsv?.[0]}`
-            : 'was retracted';
+            : 'was retracted. ';
         const replacement = context?.replaced_by ? (
             <>
                 The replacement BAM with proper tags is made{' '}
