@@ -238,6 +238,20 @@
             "minimum": 0,
             "permission": "restricted_fields"
         },
+        "retraction_reason": {
+            "title": "Retraction Reason",
+            "desciption": "Reason for retraction of the file - for files that are retracted",
+            "type": "string",
+            "suggested_enum": [
+                "Failed Quality Control",
+                "Incorrect File Format",
+                "Sample Mislabel",
+                "Sample Swap",
+                "Human Contamination"
+            ],
+            "minimum": 0,
+            "permission": "restricted_fields"
+        },
         "replaced_by": {
             "title": "Replaced By",
             "desciption": "Link to a file that was submitted as a replacement - for files that are retracted or obsolete",
