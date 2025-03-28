@@ -36,8 +36,10 @@ export const pageTitleViews = new Registry();
 export const PageTitleSection = React.memo(function PageTitle(props) {
     const { context, currentAction, schemas, alerts, session, href } = props;
 
+    const lookupContext = toRegistryLookupContext(context);
+
     // See if any views register their own custom-er title view.
-    const FoundTitleView = pageTitleViews.lookup(context, currentAction);
+    const FoundTitleView = pageTitleViews.lookup(lookupContext, currentAction);
     if (typeof FoundTitleView !== 'undefined') {
         // `null` considered as conscious lack of title
         return <FoundTitleView {...props} />;
@@ -539,3 +541,18 @@ export class StaticPageBreadcrumbs extends React.Component {
         );
     }
 }
+
+/**
+ * Hack for associating the /browse/ searches with BrowseView.
+ * Otherwise it will use FileSearchView since Registry.lookup checks for first matching view 
+ */
+export const toRegistryLookupContext = memoize(function (context) {
+    const browseIdx = context?.['@type']?.indexOf('Browse') || -1;
+    if (browseIdx > -1) {
+        const cloned = context['@type'].slice();
+        cloned.splice(browseIdx, 1);
+        cloned.unshift('Browse');
+        return { '@type': cloned };
+    }
+    return context;
+});
