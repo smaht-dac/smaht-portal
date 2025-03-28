@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.150.0
+=======
+`PR 375: SN gpu upgrade <https://github.com/smaht-dac/smaht-portal/pull/375>`_
+
+* Change the property `gpu` to `gpu_architecture` in Software
+* Include upgrader with test
+
+
 0.149.0
 =======
 `PR 381: Home and Search Page Updates <https://github.com/smaht-dac/smaht-portal/pull/381>`_
