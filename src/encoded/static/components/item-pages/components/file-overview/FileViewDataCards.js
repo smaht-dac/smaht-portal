@@ -190,6 +190,16 @@ const default_sample_information = [
         getProp: (context = {}) => context?.sample_summary?.tissues?.join(', '),
     },
     {
+        title: 'Tissue Details',
+        getProp: (context = {}) =>
+            context?.sample_summary?.tissues_details?.join(', '),
+    },
+    {
+        title: 'Tissue Subtype',
+        getProp: (context = {}) =>
+            context?.sample_summary?.tissues_subtypes?.join(', '),
+    },
+    {
         title: 'Analyte',
         getProp: (context = {}) =>
             context?.sample_summary?.analytes?.join(', '),

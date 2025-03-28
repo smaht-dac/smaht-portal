@@ -98,7 +98,7 @@ const FileViewHeader = (props) => {
     const selectedFile = new Map([[context['@id'], context]]);
 
     // Accessions of files whose alert banners are rendered differently
-    const accessionsOfInterest = ['SMAFI557D2E7', 'SMAFIB6EQLZM'];
+    const accessionsOfInterest = ['SMAFIB6EQLZM'];
 
     // Prepare a message string for the retracted warning banner
     let retractedWarningMessage = '';
@@ -112,11 +112,25 @@ const FileViewHeader = (props) => {
         const note = context?.notes_to_tsv?.[0]
             ? `was ${context?.notes_to_tsv?.[0]}`
             : 'was retracted';
+        const replacement = context?.replaced_by ? (
+            <>
+                The replacement BAM with proper tags is made{' '}
+                <a
+                    href={context?.replaced_by['@id']}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="link-underline-hover">
+                    available here.
+                </a>
+            </>
+        ) : (
+            ''
+        );
 
         retractedWarningMessage = (
             <>
                 This {description}
-                {title} {note}.
+                {title} {note} {replacement}
             </>
         );
     }
