@@ -109,7 +109,7 @@ export default function RetractedFilesTable(props) {
             "title": "File",
         },
         "notes_to_tsv": {
-            "title": "Reason",
+            "title": "Reason of Retraction",
         },
         "replaced_by.display_title": {
             "title": "Replaced By",
