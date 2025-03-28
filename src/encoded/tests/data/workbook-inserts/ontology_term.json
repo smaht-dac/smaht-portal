@@ -41,15 +41,6 @@
         "valid_protocol_ids": ["3Q","3R","1D"]
     },
     {
-        "uuid": "90118425-2a51-475a-b6ef-ecf1accd0304",
-        "identifier": "CHEBI:17790",
-        "ontologies": ["CHEBI"],
-        "title": "methanol",
-        "consortia": [
-            "smaht"
-        ]
-    },
-    {
         "uuid": "0e6a892a-2740-42bb-9bf7-7c8d577d60fa",
         "identifier": "UBERON:0000955",
         "ontologies": ["UBERON"],
