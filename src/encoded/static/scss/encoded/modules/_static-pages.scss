@@ -2899,7 +2899,7 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 	}
 }
 
-/** Retracted Files Table styyles **/
+/** Retracted Files Table styles **/
 .retracted-files-table {
 	.search-headers-row {
 		background-color: #fff1f1 !important;
@@ -2910,6 +2910,9 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 			padding-left: 0px !important;
 		}
 	}
+}
+div#retracted_files h2.section-title {
+	font-size: 1.5rem !important;
 }
 
 /** Utilities for static page tables **/
