@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.150.1
+=======
+`PR 386: Fix page title registry for /browse <https://github.com/smaht-dac/smaht-portal/pull/386>`_
+
+* Fix broken page title in Browse View
+
+
 0.150.0
 =======
 `PR 375: SN gpu upgrade <https://github.com/smaht-dac/smaht-portal/pull/375>`_
