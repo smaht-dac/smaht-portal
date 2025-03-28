@@ -11,7 +11,8 @@
         "submitted_id",
         "software",
         "data_type",
-        "data_category"
+        "data_category",
+        "file_sets"
     ],
     "identifyingProperties": [
         "accession",

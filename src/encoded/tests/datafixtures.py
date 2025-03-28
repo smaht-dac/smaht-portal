@@ -757,6 +757,7 @@ def test_chain_file(
     testapp,
     test_submission_center,
     file_formats,
+    test_fileset,
     test_software,
     donor_specific_assembly
 ):
@@ -770,6 +771,9 @@ def test_chain_file(
         ],
         "filename": "test_DSA_to_GRCh38.chain.gz",
         "file_format": file_formats.get("CHAIN", {}).get("uuid", ""),
+        "file_sets": [
+            test_fileset["uuid"]
+        ],
         "submission_centers": [
             test_submission_center["uuid"]
         ],
@@ -790,6 +794,7 @@ def test_sequence_file(
     testapp,
     test_submission_center,
     file_formats,
+    test_fileset,
     test_software,
     donor_specific_assembly
 ):
@@ -803,6 +808,9 @@ def test_sequence_file(
         ],
         "filename": "test_hela.fasta",
         "file_format": file_formats.get("FASTA", {}).get("uuid", ""),
+        "file_sets": [
+            test_fileset["uuid"]
+        ],
          "submission_centers": [
             test_submission_center["uuid"]
         ],

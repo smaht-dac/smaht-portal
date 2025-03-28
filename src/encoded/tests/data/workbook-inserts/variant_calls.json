@@ -20,7 +20,12 @@
         "reference_genome": "GRCh38",
         "file_size": 100000,
         "status": "public",
-        "dataset": "colo829t"
+        "dataset": "colo829t",
+        "tags": [
+            "test_release_tracker",
+            "release_tracker_title-SMHT001-1A",
+            "release_tracker_description-BulkWGSIlluminaNovaSeqXvcf"
+        ]
     },
     {
         "uuid": "2288de14-3d59-40fc-8181-afeb5adac694",
@@ -51,6 +56,11 @@
         "status": "uploaded",
         "annotated_filename": "SMHTHELAHEK293-X-X-NN-D099-test-SMAVCFO3516G-dorado_0.1.0_GRCh38.vcf",
         "dataset": "colo829t",
-        "software": ["TEST_SOFTWARE_DORADO"]
+        "software": ["TEST_SOFTWARE_DORADO"],
+        "tags": [
+            "test_release_tracker",
+            "release_tracker_title-HELAHEK293",
+            "release_tracker_description-BulkWGSONTPromethION24vcf"
+        ]
     }
 ]
