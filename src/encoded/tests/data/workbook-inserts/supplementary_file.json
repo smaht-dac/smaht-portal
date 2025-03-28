@@ -26,7 +26,12 @@
         "target_assembly": "Hela_DSA",
         "source_assembly": "GRCh38",
         "override_release_tracker_description": "DSA",
-        "override_release_tracker_title": "HELA"
+        "override_release_tracker_title": "HELA",
+        "tags": [
+            "test_release_tracker",
+            "release_tracker_title-HELA",
+            "release_tracker_description-DSAchain"
+        ]
     },
     {
         "uuid": "f1074e68-5c24-462b-909d-472356e5a15f",
@@ -54,6 +59,11 @@
         "md5sum": "00000000000000000000000000000001",
         "donor_specific_assembly": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
         "override_release_tracker_description": "DSA",
-        "override_release_tracker_title": "HELA"
+        "override_release_tracker_title": "HELA",
+        "tags": [
+            "test_release_tracker",
+            "release_tracker_title-HELA",
+            "release_tracker_description-DSAfa"
+        ]
     }
 ]
