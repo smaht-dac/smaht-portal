@@ -99,12 +99,12 @@ export const capitalize = (str) => {
 };
 
 export const getBadge = (flag, returnDefaultBadge = false) => {
-    if (flag === 'Pass') {
-        return <span className="badge text-white bg-success">Pass</span>;
+    if (flag === 'Pass' || flag === 'Yes') {
+        return <span className="badge text-white bg-success">{flag}</span>;
     } else if (flag === 'Warn') {
-        return <span className="badge text-white bg-warning">Warn</span>;
-    } else if (flag === 'Fail') {
-        return <span className="badge text-white bg-danger">Fail</span>;
+        return <span className="badge text-white bg-warning">{flag}</span>;
+    } else if (flag === 'Fail' || flag === 'No') {
+        return <span className="badge text-white bg-danger">{flag}</span>;
     } 
     if (returnDefaultBadge) {
         return <span className="badge text-white bg-secondary">NA</span>;

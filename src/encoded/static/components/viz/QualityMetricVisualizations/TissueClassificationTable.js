@@ -27,10 +27,23 @@ export const TissueClassificationTable = ({
     const key_prob_pt2 = 'tissue_classifier:probability_predicted_tissue_2';
     const key_prob_pt3 = 'tissue_classifier:probability_predicted_tissue_3';
 
+    const isCellLine = sampleSourceGroup === 'cell_line';
+
     const tableBodyData = filteredData.map((d) => {
         const result = {};
 
-        const submittedTissue = d['sample_source_display'];
+        const file_link = '/' + d.file_accession;
+        result['File'] = (
+            <>
+                <a href={file_link} target="_blank">
+                    {d.file_accession}
+                </a>
+            </>
+        );
+
+        result['Submission Center'] = d.submission_center;
+
+        const submittedTissue = d.sample_source_display;
         const qc_values = d['quality_metrics']['qc_values'];
         const pt1 = qc_values[key_pt1]['value'];
         const pt1_prob = qc_values[key_prob_pt1]['value'];
@@ -39,7 +52,7 @@ export const TissueClassificationTable = ({
                 {pt1} ({formatPercent(pt1_prob)})
             </span>
         );
-        
+
         const pt2 = qc_values[key_pt2]['value'];
         const pt2_prob = qc_values[key_prob_pt2]['value'];
         const pt2_display = (
@@ -56,7 +69,7 @@ export const TissueClassificationTable = ({
             </span>
         );
 
-        if (sampleSourceGroup === 'cell_line') {
+        if (isCellLine) {
             // We expect that Blood or Skin is in the predicted tissues
             result['hasMatch'] =
                 pt1 === 'Blood' ||
@@ -72,22 +85,13 @@ export const TissueClassificationTable = ({
                 pt3 === submittedTissue;
         }
 
-        const file_link = '/' + d['file_accession'];
-        const exclamationMark = (
-            <i className="icon fas icon-exclamation-triangle icon-fw text-danger" />
-        );
-        result['File'] = (
-            <>
-                <a href={file_link} target="_blank">
-                    {d['file_accession']}
-                </a>{' '}
-                {result['hasMatch'] ? '' : exclamationMark}
-            </>
-        );
+        const yesBadge = <div className='text-center'>{getBadge('Yes')}</div>;
+        const noBadge = <div className='text-center'>{getBadge('No')}</div>;
+        result['hasMatchBadge'] = result['hasMatch'] ? yesBadge : noBadge;
 
-        result['Submission Center'] = d['submission_center'];
-        result['Submitted tissue'] =
-            submittedTissue + ' (' + d['sample_source'] + ')';
+        result['Submitted tissue'] = isCellLine
+            ? submittedTissue
+            : submittedTissue + ' (' + d.sample_source + ')';
 
         result['Predicted tissue'] = (
             <>
@@ -102,16 +106,19 @@ export const TissueClassificationTable = ({
     tableBodyData.sort((a, b) => a.hasMatch - b.hasMatch);
 
     const tableHeaderValues =
-        tableBodyData.length > 0
-            ? Object.keys(tableBodyData[0]).filter((v) => v !== 'hasMatch')
-            : [];
+        tableBodyData.length > 0 ? Object.keys(tableBodyData[0]).filter(t => t !== "hasMatch") : [];
 
     const tableHeader = [
         <th key="File">File</th>,
         <th key="Submission Center">Submission Center</th>,
-        <th key="Submitted tissue">Submitted tissue (Sample)</th>,
+        <th key="Match" className='text-center'>Match</th>,
+        <th key="Submitted tissue">
+            {isCellLine
+                ? 'Submitted sample label'
+                : 'Submitted tissue label (Sample)'}
+        </th>,
         <th key="Predicted tissue">
-            Predicted tissues from data (with probabilities)
+            Predicted tissue labels from data (with probabilities)
         </th>,
     ];
 

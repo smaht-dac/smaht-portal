@@ -11,22 +11,26 @@ export const SampleContaminationDataTable = ({ data }) => {
 
     const tableBodyData = filteredData.map((d) => {
         const result = {};
-        const sample_a_link = '/' + d['sample_a'];
+        const highlightedSampleAClass =
+            d.sample_a_status === 'retracted' ? 'text-danger fw-bold' : '';
+        const highlightedSampleBClass =
+            d.sample_b_status === 'retracted' ? 'text-danger fw-bold' : '';
+        const sample_a_link = '/' + d.sample_a;
         result['Sample A'] = (
             <>
                 <a href={sample_a_link} target="_blank">
-                    {d['sample_a']}
+                    {d.sample_a}
                 </a>{' '}
-                (Status: {d['sample_a_status']})
+                (Status: <span className={highlightedSampleAClass}>{d.sample_a_status}</span>)
             </>
         );
-        const sample_b_link = '/' + d['sample_b'];
+        const sample_b_link = '/' + d.sample_b;
         result['Sample B'] = (
             <>
                 <a href={sample_b_link} target="_blank">
-                    {d['sample_b']}
+                    {d.sample_b}
                 </a>{' '}
-                (Status: {d['sample_b_status']})
+                (Status: <span className={highlightedSampleBClass}>{d.sample_b_status}</span>)
             </>
         );
 

@@ -22,15 +22,19 @@ export const SampleContaminationHeatmap = ({
     };
 
     const getMouseOverHtml = (d) => {
+        const highlightedSampleAClass =
+            d.sample_a_status === 'retracted' ? 'text-danger fw-bold' : '';
+        const highlightedSampleBClass =
+            d.sample_b_status === 'retracted' ? 'text-danger fw-bold' : '';
         const html = `
             <table>
                 <tr>
                     <td class='text-left text-600'>Sample A:</td>
-                    <td class='text-left'>${d.sample_a} (${d.sample_a_status})</td>
+                    <td class='text-left'>${d.sample_a} (<span class='${highlightedSampleAClass}'>${d.sample_a_status}</span>)</td>
                 </tr>
                 <tr>
                     <td class='text-left text-600'>Sample B:</td>
-                    <td class='text-left'>${d.sample_b} (${d.sample_b_status})</td>
+                    <td class='text-left'>${d.sample_b} (<span class='${highlightedSampleBClass}'>${d.sample_b_status}</span>)</td>
                 </tr>
                 <tr>
                     <td class='text-left text-600'>Relatedness:</td>
@@ -66,7 +70,7 @@ export const SampleContaminationHeatmap = ({
             // Labels of row and columns -> unique identifier of the column called 'group' and 'variable'
             const myGroups = Array.from(new Set(data.map((d) => d.sample_a)));
             const myVars = Array.from(new Set(data.map((d) => d.sample_b)));
-            if (myVars.length > 50){
+            if (myVars.length > 50) {
                 margins.left = 130;
                 margins.bottom = 90;
             }
@@ -100,8 +104,6 @@ export const SampleContaminationHeatmap = ({
                 .attr('transform', 'rotate(-90)')
                 .attr('x', -(chartHeight - margins.bottom) / 2)
                 .attr('y', 20);
-
-            
 
             // Build X scales and axis:
             const x = d3
