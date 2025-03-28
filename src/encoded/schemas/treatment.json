@@ -81,10 +81,7 @@
                 "M",
                 "percent",
                 "units",
-                "U/mL",
-                "MOI",
-                "PFU",
-                "lux"
+                "units/mL"
             ]
         },
         "duration": {
