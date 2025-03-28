@@ -7,6 +7,32 @@ smaht-portal
 Change Log
 ----------
 
+0.150.1
+=======
+`PR 386: Fix page title registry for /browse <https://github.com/smaht-dac/smaht-portal/pull/386>`_
+
+* Fix broken page title in Browse View
+
+
+0.150.0
+=======
+`PR 375: SN gpu upgrade <https://github.com/smaht-dac/smaht-portal/pull/375>`_
+
+* Change the property `gpu` to `gpu_architecture` in Software
+* Include upgrader with test
+
+
+0.149.0
+=======
+`PR 381: Home and Search Page Updates <https://github.com/smaht-dac/smaht-portal/pull/381>`_
+
+* Enables the previously disabled data release tracker links on the home page
+* Adds date for announcements on the home page when applicable
+* Fixes overflow/overlapping issues in the facet date range
+* Replaces erroneously displayed date_created under the Released column with file_tracking_status.released_date in file tables
+* Updates data retraction notice in the COLO829 benchmarking page
+* Makes the released files title in file search view more prominent
+
 
 0.148.2
 =======
@@ -123,7 +149,7 @@ Change Log
 =======
 `PR 309: SN validate external_id <https://github.com/smaht-dac/smaht-portal/pull/309>`_
 
-*  Add a custom validator to TissueSample that ensures the `external_id` for items from benchmarking and production Donors matches the pattern expected for category (currently only applied to TPC submitted items)
+* Add a custom validator to TissueSample that ensures the `external_id` for items from benchmarking and production Donors matches the pattern expected for category (currently only applied to TPC submitted items)
 * Make `tpc_submitted` a required property for Donor
 
 
