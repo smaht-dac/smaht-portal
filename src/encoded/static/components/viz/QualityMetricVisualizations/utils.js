@@ -305,9 +305,8 @@ export const getFileModalContent = (file, qcInfo) => {
                 </thead>
                 <tbody>
                     {Object.keys(qcValues).map((qcField, i) => {
-                        const metric = qcValues[qcField].value;
-                        const flag = qcValues[qcField].flag;
-                        const metricFormatted = formatQcValue(metric);
+                        const { flag = "NA", value } = qcValues[qcField];
+                        const metricFormatted = formatQcValue(value);
                         return (
                             <tr key={i}>
                                 <td>{qcInfo[qcField]['key']}</td>

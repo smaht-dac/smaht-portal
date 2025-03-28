@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 
 import { getBoxPlot } from './utils';
 
+import { TissueClassificationTable } from './TissueClassificationTable';
+
 const wgs = 'WGS';
 const rnaSeq = 'RNA-seq';
 
@@ -75,7 +77,7 @@ export const KeyMetrics = ({ qcData }) => {
                             sampleSource,
                             'all_long_read',
                             study,
-                            [91,101]
+                            [91, 101]
                         )}
                     </div>
                     <div className="col-lg-6">
@@ -87,7 +89,7 @@ export const KeyMetrics = ({ qcData }) => {
                             sampleSource,
                             'all_illumina',
                             study,
-                            [91,101]
+                            [91, 101]
                         )}
                     </div>
                 </div>
@@ -109,7 +111,7 @@ export const KeyMetrics = ({ qcData }) => {
                             sampleSource,
                             'PacBio Revio',
                             study,
-                            [-0.01,0.21]
+                            [-0.01, 0.21]
                         )}
                     </div>
                     <div className="col-lg-6">
@@ -121,7 +123,7 @@ export const KeyMetrics = ({ qcData }) => {
                             sampleSource,
                             'all_illumina',
                             study,
-                            [-0.01,0.21]
+                            [-0.01, 0.21]
                         )}
                     </div>
                 </div>
@@ -321,6 +323,13 @@ export const KeyMetrics = ({ qcData }) => {
         selectedSampleSource === benchmarkingCellLines &&
         selectedAssay === rnaSeq ? (
             <>
+                <div className="p-2 qc-key-metrics-header darkblue my-1">
+                    Tissue Integrity
+                </div>
+                <TissueClassificationTable
+                    data={qcData}
+                    study="Benchmarking"
+                    sampleSourceGroup="cell_line"></TissueClassificationTable>
                 {getRnaSeqMetricsPlots(
                     'cell_line',
                     'Benchmarking Cell Lines',
@@ -335,6 +344,13 @@ export const KeyMetrics = ({ qcData }) => {
         selectedSampleSource === benchmarkingTissues &&
         selectedAssay === rnaSeq ? (
             <>
+                <div className="p-2 qc-key-metrics-header darkblue my-1">
+                    Tissue Integrity
+                </div>
+                <TissueClassificationTable
+                    data={qcData}
+                    study="Benchmarking"
+                    sampleSourceGroup="tissue"></TissueClassificationTable>
                 {getRnaSeqMetricsPlots(
                     'tissue',
                     'Tissue Homogenates',
@@ -349,6 +365,13 @@ export const KeyMetrics = ({ qcData }) => {
         selectedSampleSource === productionTissues &&
         selectedAssay === rnaSeq ? (
             <>
+                <div className="p-2 qc-key-metrics-header darkblue my-1">
+                    Tissue Integrity
+                </div>
+                <TissueClassificationTable
+                    data={qcData}
+                    study="Production"
+                    sampleSourceGroup="tissue"></TissueClassificationTable>
                 {getRnaSeqMetricsPlots(
                     'tissue',
                     'Production Tissues',

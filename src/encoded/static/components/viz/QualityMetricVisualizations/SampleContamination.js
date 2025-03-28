@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
-import { ScatterPlot } from './ScatterPlot';
 import { SampleContaminationDataTable } from './SampleContaminationDataTable';
 import { SampleContaminationHeatmap } from './SampleContaminationHeatmap';
 import {
@@ -40,19 +38,16 @@ export const SampleContamination = ({ qcData }) => {
     // Gather Warnings
     let warnings = [];
     Object.keys(somalierResults).forEach((donorAccession) => {
-        const qc_result =
-            somalierResults[donorAccession]['info']['overall_quality_status'];
-        if (qc_result.toLowerCase() === 'fail') {
-            let donor = donorsForFacets.find((d) => d.value === donorAccession);
+        const donorWarnings = somalierResults[donorAccession]['warnings'];
 
+        donorWarnings.forEach((warning) => {
             warnings.push(
                 <span>
                     <i className="icon icon-exclamation-triangle fas icon-fw" />{' '}
-                    The sample integrity check failed for donor{' '}
-                    <strong>{donor.label}</strong>.
+                    {warning}
                 </span>
             );
-        }
+        });
     });
 
     warnings =
@@ -68,21 +63,17 @@ export const SampleContamination = ({ qcData }) => {
 
     const facets = (
         <div className="qc-metrics-facets-container mb-2">
-            <div className="row">
-                <div className="col-2">
-                    <div className="p-3">
-                        <div className="fw-bold">Selected donor</div>
-                    </div>
+            <div className="d-flex flex-row">
+                <div className="p-3">
+                    <div className="fw-bold">Selected donor</div>
                 </div>
-                <div className="col-5">
-                    <div className="p-3">
-                        <Select
-                            value={selectedDonor}
-                            onChange={handleSelectedDonorChange}
-                            styles={customReactSelectStyle}
-                            options={donorsForFacets}
-                        />
-                    </div>
+                <div className="p-3 flex-grow-1">
+                    <Select
+                        value={selectedDonor}
+                        onChange={handleSelectedDonorChange}
+                        styles={customReactSelectStyle}
+                        options={donorsForFacets}
+                    />
                 </div>
             </div>
         </div>
@@ -97,8 +88,8 @@ export const SampleContamination = ({ qcData }) => {
                     <h4>Pairwise sample relatedness</h4>
                     <p>
                         The pairwise relatedness was calculated using somalier.
-                        Samples of the same donor are expected to have a
-                        high degree of relatedness.{' '}
+                        Samples of the same donor are expected to have a high
+                        degree of relatedness.{' '}
                     </p>
                     <SampleContaminationHeatmap
                         plotId={1}

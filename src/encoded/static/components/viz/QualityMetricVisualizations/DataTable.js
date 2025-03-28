@@ -100,10 +100,9 @@ export const DataTable = ({
         result['Released'] = d['file_status'] == 'released' ? 'Yes' : 'No';
         result['Overall QC status'] = d.quality_metrics?.overall_quality_status;
         qcFields.forEach((qcField, i) => {
-            const metric = d.quality_metrics?.qc_values[qcField]['value'];
-            const flag = d.quality_metrics?.qc_values[qcField]['flag'];
+            const { flag = "NA", value } = d.quality_metrics?.qc_values[qcField];
             const metric_key = removeToolName(qc_info[qcField]['key']);
-            result[metric_key] = metric;
+            result[metric_key] = value;
             result[metric_key + '_flag'] = flag;
         });
         additionalColumns?.forEach((c) => {

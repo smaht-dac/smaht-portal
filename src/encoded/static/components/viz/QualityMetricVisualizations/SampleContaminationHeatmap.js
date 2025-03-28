@@ -26,11 +26,11 @@ export const SampleContaminationHeatmap = ({
             <table>
                 <tr>
                     <td class='text-left text-600'>Sample A:</td>
-                    <td class='text-left'>${d.sample_a}</td>
+                    <td class='text-left'>${d.sample_a} (${d.sample_a_status})</td>
                 </tr>
                 <tr>
                     <td class='text-left text-600'>Sample B:</td>
-                    <td class='text-left'>${d.sample_b}</td>
+                    <td class='text-left'>${d.sample_b} (${d.sample_b_status})</td>
                 </tr>
                 <tr>
                     <td class='text-left text-600'>Relatedness:</td>
@@ -158,7 +158,7 @@ export const SampleContaminationHeatmap = ({
                 .style('border-radius', '2px')
                 .style('padding', '5px');
 
-            // Three function that change the tooltip when user hover / move / leave a cell
+            // Three functions that change the tooltip when user hover / move / leave a cell
             let tooltip_x = 0;
             let tooltip_y = 0;
 

@@ -4,7 +4,6 @@ import { getBadge, capitalize, removeToolName } from './utils';
 import ReactTooltip from 'react-tooltip';
 
 export const SampleContaminationDataTable = ({ data }) => {
-
     // We need a deep copy here, otherwise the sorting messes up the heatmap
     const filteredData = JSON.parse(JSON.stringify(data['results']));
     filteredData.sort((a, b) => a.relatedness - b.relatedness);
@@ -14,15 +13,21 @@ export const SampleContaminationDataTable = ({ data }) => {
         const result = {};
         const sample_a_link = '/' + d['sample_a'];
         result['Sample A'] = (
-            <a href={sample_a_link} target="_blank">
-                {d['sample_a']}
-            </a>
+            <>
+                <a href={sample_a_link} target="_blank">
+                    {d['sample_a']}
+                </a>{' '}
+                (Status: {d['sample_a_status']})
+            </>
         );
         const sample_b_link = '/' + d['sample_b'];
         result['Sample B'] = (
-            <a href={sample_b_link} target="_blank">
-                {d['sample_b']}
-            </a>
+            <>
+                <a href={sample_b_link} target="_blank">
+                    {d['sample_b']}
+                </a>{' '}
+                (Status: {d['sample_b_status']})
+            </>
         );
 
         result['Relatedness'] = d['relatedness'];

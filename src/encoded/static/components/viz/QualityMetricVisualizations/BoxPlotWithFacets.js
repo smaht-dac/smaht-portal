@@ -65,6 +65,9 @@ export const BoxPlotWithFacets = ({
     };
     const handleShowModal = (d) => {
         if (d) {
+            // Remove focus from active element. This prevent the browser scolling 
+            // to the top of the page when closing the modal
+            document.activeElement.blur();
             setSelectedFile(d);
             setShowModal(true);
             return;

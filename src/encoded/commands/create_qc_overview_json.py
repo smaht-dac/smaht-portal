@@ -22,8 +22,8 @@ SEARCH_QUERY_QC = (
     "&field=uuid"
     "&type=FileSet"
     "&limit=10000"
-    #"&limit=5&from=100"  # for testing
-    # "&accession=SMAFSADRYKW2"
+    # "&limit=5&from=200"  # for testing
+    #"&accession=SMAFSZNMU83N"
 )
 
 
@@ -40,6 +40,7 @@ SEQUENCER = "sequencer"
 STATUS = "status"
 DISPLAY_TITLE = "display_title"
 DELETED = "deleted"
+RETRACTED = "retracted"
 COMPLETED = "completed"
 EXTERNAL_ID = "external_id"
 
@@ -137,14 +138,14 @@ DEFAULT_SELECTED_QC_METRICS_BY_FILE_WGS_LONG_READ = [
     "picard_collect_alignment_summary_metrics:mean_read_length",
 ]
 
-DEFAULT_SELECTED_QC_METRICS_BY_FILE_RNA_SEQ_ILLUMINA= [
+DEFAULT_SELECTED_QC_METRICS_BY_FILE_RNA_SEQ_ILLUMINA = [
     "rnaseqc:total_reads",
     "rnaseqc:mapping_rate",
     "rnaseqc:duplicate_rate_of_mapped",
     "rnaseqc:mean_3p_bias",
     "rnaseqc:exonic_intron_ratio",
     "rnaseqc:rrna_rate",
-    "rnaseqc:estimated_library_complexity"
+    "rnaseqc:estimated_library_complexity",
 ]
 
 VISIBLE_FIELDS_IN_TOOLTIP = [
@@ -192,7 +193,7 @@ class FileStats:
         self.warnings = []
         self.output_path = output
         self.all_tissues = self.get_all_tissues()
-        #self.all_donors = self.get_all_donors()
+        # self.all_donors = self.get_all_donors()
         self.stats = []
         self.somalier_results = {}
         self.qc_info = {}
@@ -232,7 +233,7 @@ class FileStats:
                         f"{WGS}_{ALL_LONG_READ}": DEFAULT_SELECTED_QC_METRICS_BY_FILE_WGS_LONG_READ,
                         f"{RNA_SEQ}_{ALL_ILLUMINA}": DEFAULT_SELECTED_QC_METRICS_BY_FILE_RNA_SEQ_ILLUMINA,
                     }
-                }
+                },
             },
             "qc_thresholds": QC_THRESHOLDS,
         }
@@ -267,7 +268,7 @@ class FileStats:
 
             if not assay:
                 self.warnings.append(
-                    f"Warning: Fileset {fileset[ACCESSION]} has no supported assay"
+                    f"Warning: Fileset {fileset[ACCESSION]} has no supported assay: {','.join(assays)}"
                 )
                 continue
 
@@ -330,14 +331,16 @@ class FileStats:
             sample_source_codes = list(set(sample_source_codes))
             sample_source_codes.sort()
             sample_source_descriptions = list(set(sample_source_descriptions))
-            sample_source_descriptions.sort()   
+            sample_source_descriptions.sort()
 
             sample_source_codes = ", ".join(sample_source_codes)
             sample_source_descriptions = ", ".join(sample_source_descriptions)
+            sample_source_display = sample_source_descriptions
             sample_source_descriptions = f"{sample_source_descriptions} - {study}"
 
             # Get the alignment MWFR to process the fastp outputs and get the final BAM
             mwfr = self.get_alignment_mwfr(fileset)
+            #print("mwfr", mwfr)
             if not mwfr:
                 continue
 
@@ -363,7 +366,7 @@ class FileStats:
             result["file_status"] = final_ouput_file[STATUS]
             result["file_display_title"] = final_ouput_file[DISPLAY_TITLE]
             result[SUBMISSION_CENTER] = submission_centers
-            result["tags"] = tags
+            #result["tags"] = tags
             result[ASSAY] = assay
             result["assay_label"] = ",".join(assays)
             result[SEQUENCER] = sequencer
@@ -372,6 +375,7 @@ class FileStats:
             elif sequencer in LONG_READ_SEQS:
                 result["sequencer_group"] = ALL_LONG_READ
             result[SAMPLE_SOURCE] = sample_source_codes
+            result["sample_source_display"] = sample_source_display
             result["sample_source_subgroup"] = sample_source_descriptions
             result[SAMPLE_SOURCE_GROUP] = tissue_or_cell_line
             result["study"] = study
@@ -387,23 +391,27 @@ class FileStats:
             for qc_value in qc_values:
                 derived_from = qc_value["derived_from"]
                 value = qc_value["value"]
-                flag = qc_value.get("flag", "NA")
                 result["quality_metrics"]["qc_values"][derived_from] = {
                     "value": value,
-                    "flag": flag,
                 }
+                flag = qc_value.get("flag")
+                if flag:
+                    result["quality_metrics"]["qc_values"][derived_from]["flag"] = flag
                 if derived_from not in self.qc_info:
                     self.qc_info[derived_from] = {
                         "derived_from": derived_from,
                         "tooltip": qc_value.get("tooltip", ""),
                         "key": qc_value.get("key", ""),
                     }
-                    if assay in self.viz_info["facets"]["qc_metrics"]:
-                        self.viz_info["facets"]["qc_metrics"][assay].append(
-                            self.qc_info[derived_from]
-                        )
-                    else:
-                        self.viz_info["facets"]["qc_metrics"][assay] = []
+                    if not isinstance(value, str):
+                        if assay in self.viz_info["facets"]["qc_metrics"]:
+                            self.viz_info["facets"]["qc_metrics"][assay].append(
+                                self.qc_info[derived_from]
+                            )
+                        else:
+                            self.viz_info["facets"]["qc_metrics"][assay] = [
+                                self.qc_info[derived_from]
+                            ]
 
             self.viz_info["facets"]["qc_metrics"][assay].sort(
                 key=lambda x: x["derived_from"]
@@ -427,6 +435,10 @@ class FileStats:
             self.viz_info["facets"]["sample_source"].append(
                 {"key": ssc, "label": ssc},
             )
+
+        self.get_somalier_results()
+
+    def get_somalier_results(self):
 
         # GET SAMPLE IDENTITY CHECK RESULTS
         print("\n\nWorking on sample identity results")
@@ -462,13 +474,29 @@ class FileStats:
                 )
             self.somalier_results[donor_accession] = {
                 "info": {"overall_quality_status": overall_quality_status},
+                "warnings": [],
                 "results": [],
             }
+            tsv_content_list = []
             for line in tsv_content.splitlines():
                 # file header: #sample_a	sample_b	relatedness	ibs0	ibs2	hom_concordance	hets_a	hets_b	hets_ab	shared_hets	hom_alts_a	hom_alts_b	shared_hom_alts	n	x_ibs0	x_ibs2	expected_relatedness
                 if line.startswith("#"):
                     continue
                 line_ = line.split("\t")
+                tsv_content_list.append(line_)
+
+            # Collect metadata first from all involved files
+            all_file_accessions = []
+            for line_ in tsv_content_list:
+                all_file_accessions.append(line_[0])
+                all_file_accessions.append(line_[1])
+            all_file_accessions = list(set(all_file_accessions))
+            all_file_infos = get_items_bulk(
+                "File", [ACCESSION, "status"], all_file_accessions
+            )
+            all_file_infos = {f[ACCESSION]: f for f in all_file_infos}
+
+            for line_ in tsv_content_list:
                 sample_a = line_[0]
                 sample_b = line_[1]
                 ibs0 = float(line_[3])
@@ -478,7 +506,9 @@ class FileStats:
                 # We need to bring this into this format so that it's compatible with the scatter plot (same format as QC results)
                 somalier_result = {
                     "sample_a": sample_a,
+                    "sample_a_status": all_file_infos[sample_a]["status"],
                     "sample_b": sample_b,
+                    "sample_b_status": all_file_infos[sample_b]["status"],
                     "relatedness": relatedness,
                     "ibs0": ibs0,
                     "ibs2": ibs2,
@@ -487,6 +517,42 @@ class FileStats:
                 self.somalier_results[donor_accession]["results"].append(
                     somalier_result
                 )
+
+            self.generate_somalier_warnings(
+                donor_accession, donor[DISPLAY_TITLE], all_file_infos
+            )
+
+    def generate_somalier_warnings(self, donor_accession, donor_label, all_file_infos):
+
+        # Color829 is a special case (tumor samples). Lower the threshold
+        threshold = 0.55 if donor_accession == "SMADOLCPQL1J" else 0.9
+
+        results = self.somalier_results[donor_accession]["results"]
+        problematic_files = {}
+        for result in results:
+            if result["relatedness"] < threshold:
+                sample_a = result["sample_a"]
+                sample_b = result["sample_b"]
+                # Don't count the results if the file is deleted or retracted
+                if all_file_infos[sample_a]["status"] in [DELETED, RETRACTED]:
+                    continue
+                if all_file_infos[sample_b]["status"] in [DELETED, RETRACTED]:
+                    continue
+
+                for sample in ["sample_a", "sample_b"]:
+                    if result[sample] not in problematic_files:
+                        problematic_files[result[sample]] = 1
+                    else:
+                        problematic_files[result[sample]] += 1
+
+        # Get the files accessions that violated the treshold more than twice
+        problematic_files = [
+            key for key, value in problematic_files.items() if value > 2
+        ]
+        for f in problematic_files:
+            self.somalier_results[donor_accession]["warnings"].append(
+                f"File {f} failed the sample integrity check for donor {donor_label}"
+            )
 
     def write_json(self):
         if len(self.stats) == 0:
@@ -593,6 +659,26 @@ def get_item(uuid, add_on=""):
 
 def search(query):
     return ff_utils.search_metadata(query, key=SMAHT_KEY)
+
+
+def get_items_bulk(type, fields, accessions):
+    all_results = []
+
+    fields_param = "&".join([f"field={f}" for f in fields])
+    accessions_chunks = chunk_list(accessions, 100)
+
+    for accessions_chunk in accessions_chunks:
+        accessions_param = "&".join([f"accession={a}" for a in accessions_chunk])
+        query = f"search/?type={type}" f"&{fields_param}&{accessions_param}"
+
+        results = search(query)
+        for result in results:
+            all_results.append(result)
+    return all_results
+
+
+def chunk_list(lst, chunk_size=100):
+    return [lst[i : i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 
 # def download_file_from_portal(file_uuid, output_path):
