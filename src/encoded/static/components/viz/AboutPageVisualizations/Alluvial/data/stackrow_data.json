@@ -33,25 +33,25 @@
         "link": "https://pubmed.ncbi.nlm.nih.gov/37106072/"
     },
     {
-        "name": "WGS Duplex sequencing",
-        "display_name": "Duplex sequencing",
-        "description": "Sequencing each of the two strands of a DNA duplex.",
-        "link": "https://pubmed.ncbi.nlm.nih.gov/22853953/"
-    },
-    {
         "name": "WGS DLP+",
         "display_name": "DLP+",
         "description": "Low-depth, high-throughput single-cell WGS using microfluidic devices and individual cell image capture.",
         "link": "https://pubmed.ncbi.nlm.nih.gov/31730858/"
     },
     {
-        "name": "Fiber-Seq",
-        "display_name": "Fiber-Seq",
+        "name": "ppm-Seq",
+        "display_name": "ppm-Seq",
+        "description": "Paired plus minus sequencing (ppm-Seq); Duplex sequencing strategy.",
+        "link": "https://www.ultimagenomics.com/ppmseq-for-rare-event-detection/"
+    },
+    {
+        "name": "Fiber-seq",
+        "display_name": "Fiber-seq",
         "description": "Genomewide profiling of chromatin accessibility at the single-molecule level.",
         "link": "https://pubmed.ncbi.nlm.nih.gov/32587015/"
     },
     {
-        "name": "MAS-Seq",
+        "name": "MAS-ISO-Seq",
         "display_name": "MAS-ISO-Seq",
         "description": "Multiplexed Arrays Sequencing of transcript isoforms; high-throughput sequencing of mRNA isoforms using long-read platforms.",
         "link": "https://www.biorxiv.org/content/10.1101/2021.10.01.462818v1.abstract"
@@ -79,15 +79,9 @@
         "description": "Single-cell full-length RNA-Seq using long-read platforms."
     },
     {
-        "name": "WGS CompDuplex-Seq",
-        "display_name": "CompDuplex-Seq",
+        "name": "CompDuplex-seq",
+        "display_name": "CompDuplex-seq",
         "description": "Accurate detection of somatic mutations by duplex-seq with comprehensive genome coverage",
-        "link": "https://www.protocols.io/view/compduplex-accurate-detection-of-somatic-mutations-kxygx3x4og8j/v1"
-    },
-    {
-        "name": "WGS scCompDuplex-Seq",
-        "display_name": "scCompDuplex-Seq",
-        "description": "Click below to learn more about the scCompDuplex-Seq protocol",
         "link": "https://www.protocols.io/view/compduplex-accurate-detection-of-somatic-mutations-kxygx3x4og8j/v1"
     },
     {
@@ -103,46 +97,22 @@
         "link":"https://www.nature.com/articles/s41467-021-23918-y"
     },
     {
-        "name": "Ultra-deep ATAC-seq",
-        "display_name": "Ultra-deep ATAC-seq",
+        "name": "ATAC-seq",
+        "display_name": "ATAC-seq",
         "description": "Click below to learn more about the Ultra-deep ATAC-seq protocol",
         "link":"https://www.protocols.io/view/ultra-deep-atac-seq-for-sorted-neurons-eq2lyw35rvx9/v1"
-    },
-    {
-        "name": "HiDEF seq",
-        "display_name": "HiDEF seq",
-        "description": "Click below to learn more about the HiDEF seq protocol",
-        "link":"https://www.protocols.io/view/hidef-seq-kxygxy9mwl8j/v1"
-    },
-    {
-        "name": "Slide-tags snRNA-seq",
-        "display_name": "Slide-tags snRNA-seq",
-        "description": "Click below to learn more about the Slide-tags snRNA-seq protocol",
-        "link":"https://www.protocols.io/view/slide-tags-snrna-seq-protocol-v-1-2-tags-ewov196wylr2/v1"
-    },
-    {
-        "name": "GoT-ChA",
-        "display_name": "GoT-ChA",
-        "description": "Click below to learn more about the GoT-ChA protocol",
-        "link":"https://www.protocols.io/view/got-cha-genotyping-of-targeted-loci-with-single-ce-ewov19pn2lr2/v1"
-    },
-    {
-        "name": "varCUT&Tag",
-        "display_name": "varCUT&Tag",
-        "description": "Identification and characterization of sequence variants in regulatory elements and genes.",
-        "link":"https://github.com/k8newcomer/VarCUTandTag"
-    },
-    {
-        "name": "ppm-Seq",
-        "display_name": "ppm-Seq",
-        "description": "Paired plus minus sequencing (ppm-Seq); Duplex sequencing strategy.",
-        "link": "https://www.ultimagenomics.com/ppmseq-for-rare-event-detection/"
     },
     {
         "name": "ATAC-seq",
         "display_name": "ATAC-seq",
         "description": "Assay for Transposase-Accessible Chromatin using sequencing (ATAC-Seq); genome wide profiling of chromatin accessibility.",
         "link": "https://doi.org/10.1038/nmeth.2688"
+    },
+    {
+        "name": "HiDEF-seq",
+        "display_name": "HiDEF-seq",
+        "description": "Hairpin Duplex Enhanced Fidelity Sequencing (HiDEF-seq) Duplex-sequencing strategy.",
+        "link": "https://doi.org/10.1038/s41586-024-07532-8"
     },
     {
         "name": "VISTA-seq",
@@ -175,15 +145,27 @@
         "link": "https://doi.org/10.1073/pnas.2024176118"
     },
     {
-        "name": "HiDEF-seq",
-        "display_name": "HiDEF-seq",
-        "description": "Hairpin Duplex Enhanced Fidelity Sequencing (HiDEF-seq) Duplex-sequencing strategy.",
-        "link": "https://doi.org/10.1038/s41586-024-07532-8"
-    },
-    {
         "name": "Strand-seq",
         "display_name": "Strand-seq",
         "description": "Single-cell template strand sequencing.",
         "link": "https://doi.org/10.1038/nprot.2017.029"
+    },
+    {
+        "name": "varCUT&Tag",
+        "display_name": "varCUT&Tag",
+        "description": "Identification and characterization of sequence variants in regulatory elements and genes.",
+        "link":"https://github.com/k8newcomer/VarCUTandTag"
+    },
+    {
+        "name": "Slide-tags snRNA-seq",
+        "display_name": "Slide-tags snRNA-seq",
+        "description": "Click below to learn more about the Slide-tags snRNA-seq protocol",
+        "link":"https://www.protocols.io/view/slide-tags-snrna-seq-protocol-v-1-2-tags-ewov196wylr2/v1"
+    },
+    {
+        "name": "GoT-ChA",
+        "display_name": "GoT-ChA",
+        "description": "Click below to learn more about the GoT-ChA protocol",
+        "link":"https://www.protocols.io/view/got-cha-genotyping-of-targeted-loci-with-single-ce-ewov19pn2lr2/v1"
     }
 ]
