@@ -80,7 +80,7 @@ const QCOverviewTable = ({ qcItems }) => {
             <table className="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th className="text-left w-[300px]">Quality Metric</th>
+                        <th className="text-left w-[300px]">Key QC Metric</th>
                         {data.headers.map(
                             ({ accession, overall_quality_status }, i) => {
                                 return (
@@ -89,7 +89,7 @@ const QCOverviewTable = ({ qcItems }) => {
                                         key={i}>
                                         <div className="d-flex flex-column">
                                             <span className="d-flex align-items-center lh-base">
-                                                Run #{i + 1} (
+                                                BAM #{i + 1} (
                                                 <a href={`/${accession}`}>
                                                     {accession}
                                                 </a>
@@ -118,11 +118,11 @@ const QCOverviewTable = ({ qcItems }) => {
                                 <tr key={i}>
                                     {/* Title of the Quality Metric row */}
                                     <td className="text-left">
-                                        {key}
                                         <i
-                                            className="icon icon-info-circle fas ms-1 text-secondary"
+                                            className="icon icon-info-circle fas me-1 text-secondary"
                                             data-tip={tooltip}
                                         />
+                                        {key}
                                     </td>
 
                                     {/* Value for each column (i.e. qcItem labelled by [accession]) */}
