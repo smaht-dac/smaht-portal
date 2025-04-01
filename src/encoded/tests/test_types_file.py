@@ -1236,9 +1236,19 @@ def test_release_tracker_description(es_testapp: TestApp, workbook: None) -> Non
 
 def assert_release_tracker_description_matches_expected(file: Dict[str, Any], es_testapp: TestApp):
     """Assert release_tracker_description calcprop matches expected."""
-    release_tracker_description = file_utils.get_release_tracker_title(file)
+    release_tracker_description = file_utils.get_release_tracker_description(file)
     description_from_tags = get_expected_release_tracker_description(file)
-    assert release_tracker_description.strip() == description_from_tags[0]
+    assert release_tracker_description.replace(" ", "") == description_from_tags
+
+
+def get_expected_release_tracker_description(sample: Dict[str, Any]) -> List[str]:
+    """Get expected release_tracker_description from the file from tags."""
+    expected_release_tracker_description_tag_start = "release_tracker_description-"
+    tags = item_utils.get_tags(sample)
+    expected_description_tags = [
+        tag for tag in tags if tag.startswith(expected_release_tracker_description_tag_start)
+    ]
+    return expected_description_tags[0].split(expected_release_tracker_description_tag_start)[1]
 
 
 @pytest.mark.workbook
@@ -1250,44 +1260,26 @@ def test_release_tracker_title(es_testapp: TestApp, workbook: None) -> None:
     """
     
     search = "tags=test_release_tracker"
-    files_with_release_tracker_description = get_search(es_testapp, search)
-    for file in files_with_release_tracker_description:
-        assert_release_tracker_description_matches_expected(file, es_testapp)
+    files_with_release_tracker_title = get_search(es_testapp, search)
+    for file in files_with_release_tracker_title:
+        assert_release_tracker_title_matches_expected(file, es_testapp)
 
 
 def assert_release_tracker_title_matches_expected(file: Dict[str, Any], request_handler: RequestHandler):
     """Assert release_tracker_title calcprop matches expected."""
     release_tracker_title = file_utils.get_release_tracker_title(file)
     title_from_tags = get_expected_release_tracker_title(file)
-    assert release_tracker_title.strip() == title_from_tags[0]
+    assert release_tracker_title.replace(" ", "") == title_from_tags
 
 
 def get_expected_release_tracker_title(file: Dict[str, Any]) -> List[str]:
     """Get expected release_tracker_title from the file from tags."""
     expected_release_tracker_title_tag_start = "release_tracker_title-"
     tags = item_utils.get_tags(file)
-    expected_sample_name_tags = [
+    expected_title_tags = [
         tag for tag in tags if tag.startswith(expected_release_tracker_title_tag_start)
     ]
-    return [
-        value
-        for tag in expected_sample_name_tags
-        for value in tag.split(expected_release_tracker_title_tag_start)[1]
-    ]
-
-
-def get_expected_release_tracker_description(sample: Dict[str, Any]) -> List[str]:
-    """Get expected release_tracker_description from the file from tags."""
-    expected_release_tracker_description_tag_start = "release_tracker_title-"
-    tags = item_utils.get_tags(sample)
-    expected_sample_name_tags = [
-        tag for tag in tags if tag.startswith(expected_release_tracker_description_tag_start)
-    ]
-    return [
-        value
-        for tag in expected_sample_name_tags
-        for value in tag.split(expected_release_tracker_description_tag_start)[1]
-    ]
+    return expected_title_tags[0].split(expected_release_tracker_title_tag_start)[1]
 
 
 @pytest.mark.workbook

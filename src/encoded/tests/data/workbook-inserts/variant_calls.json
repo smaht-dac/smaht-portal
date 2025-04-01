@@ -24,7 +24,7 @@
         "tags": [
             "test_release_tracker",
             "release_tracker_title-SMHT001-1A",
-            "release_tracker_description-BulkWGSIlluminaNovaSeqXvcf"
+            "release_tracker_description-BulkWGSIlluminaNovaSeqXVCF"
         ]
     },
     {
@@ -60,7 +60,7 @@
         "tags": [
             "test_release_tracker",
             "release_tracker_title-HELAHEK293",
-            "release_tracker_description-BulkWGSONTPromethION24vcf"
+            "release_tracker_description-Cas9TargetedNanoporeSequencingONTPromethION24VCF"
         ]
     }
 ]
