@@ -172,6 +172,18 @@
         },
         "code": {
             "title": "Code"
+        },
+        "category": {
+            "title": "Category",
+            "default_hidden": true
+        }
+    },
+    "facets": {
+        "valid_molecules": {
+            "title": "Valid Molecules"
+        },
+        "category": {
+            "title": "Category"
         }
     }
 }

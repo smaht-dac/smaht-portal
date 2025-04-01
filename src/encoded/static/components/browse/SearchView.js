@@ -170,7 +170,7 @@ export class SearchViewBody extends React.PureComponent {
     }
 }
 
-const SearchViewPageTitle = React.memo(function SearchViewPageTitle(props) {
+export const SearchViewPageTitle = React.memo(function SearchViewPageTitle(props) {
     const { context, schemas, currentAction, alerts } = props;
 
     if (currentAction === 'add') {
@@ -204,9 +204,10 @@ const SearchViewPageTitle = React.memo(function SearchViewPageTitle(props) {
 
     return (
         <PageTitleContainer
-            alerts={[]}
+            alerts={alerts}
             className="container-wide pb-2 mb-2"
-            alertsBelowTitleContainer>
+            alertsBelowTitleContainer
+            alertsContainerClassName="container-wide">
             <div className="container-wide m-auto p-xl-0">
                 {/* Using static breadcrumbs here, but will likely need its own component in future */}
                 <div className="static-page-breadcrumbs clearfix mx-0 px-0">

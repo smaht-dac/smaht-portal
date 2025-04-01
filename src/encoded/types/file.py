@@ -429,10 +429,15 @@ class File(Item, CoreFile):
     STATUS_TO_CHECK_REVISIONS = [
         'uploading',
         'uploaded',
+        'retracted',
         'in review',
         'released',
         'restricted',
         'public'
+    ]
+    STATUS_TO_REVISION_DATE_CONVERSION = [
+        'retracted',
+        'released'
     ]
 
     Item.SUBMISSION_CENTER_STATUS_ACL.update({
@@ -542,11 +547,16 @@ class File(Item, CoreFile):
                     "type": "string",
                     "format": "date-time"
                 },
+                "retracted": {
+                    "type": "string",
+                    "format": "date-time"
+                },
                 "in review": {
                     "type": "string",
                     "format": "date-time"
                 },
                 "released": {
+                    "title": "Release Date",
                     "type": "string",
                     "format": "date-time"
                 },
@@ -605,10 +615,12 @@ class File(Item, CoreFile):
                         last_modified = revision.get('last_modified')
                         if last_modified:
                             result[status] = last_modified['date_modified']
-            if "released" in result:
-                result["released_date"] = self.get_date_from_datetime(
-                    result["released"]
-                )
+
+            # add date converted values for selected status
+            for status in self.STATUS_TO_REVISION_DATE_CONVERSION:
+                if status in result:
+                    result[status + "_date"] = self.get_date_from_datetime(result[status])
+
             return result
 
     @staticmethod

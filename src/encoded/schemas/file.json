@@ -238,6 +238,27 @@
             "minimum": 0,
             "permission": "restricted_fields"
         },
+        "retraction_reason": {
+            "title": "Retraction Reason",
+            "desciption": "Reason for retraction of the file - for files that are retracted",
+            "type": "string",
+            "suggested_enum": [
+                "Failed Quality Control",
+                "Incorrect File Format",
+                "Sample Mislabel",
+                "Sample Swap",
+                "Human Contamination"
+            ],
+            "minimum": 0,
+            "permission": "restricted_fields"
+        },
+        "replaced_by": {
+            "title": "Replaced By",
+            "desciption": "Link to a file that was submitted as a replacement - for files that are retracted or obsolete",
+            "type": "string",
+            "linkTo": "File",
+            "permission": "restricted_fields"
+        },
         "version": {
             "type": "string",
             "permission": "restricted_fields"
@@ -282,8 +303,9 @@
         },
         "file_sets.libraries.assay.display_title": {
             "title": "Experimental Assay",
-            "search_type": "sayt",
-            "sayt_item_type": "Donor"
+            "search_type": "basic",
+            "sayt_item_type": "Assay",
+            "group_by_field": "file_sets.libraries.assay.category"
         },
         "file_sets.sequencing.sequencer.display_title": {
             "title": "Sequencing Platform"
@@ -297,7 +319,7 @@
         "data_type": {
             "title": "Data Type"
         },
-        "file_status_tracking.released_date": {
+        "file_status_tracking.released": {
             "title" : "Release Date",
             "aggregation_type" : "stats"
         },
@@ -309,6 +331,9 @@
         },
         "software.display_title": {
             "title": "Analysis Method"
+        },
+        "status": {
+            "title": "Release Status"
         },
         "version": {
             "title": "Release Version"
