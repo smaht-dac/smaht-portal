@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.151.1
+=======
+`PR 391: SN Fix pathology report <https://github.com/smaht-dac/smaht-portal/pull/391>`_
+
+* Fix enum typo for percentage in PathologyReport
+* Reformat and reorder properties in BrainPathologyReport and NonBrainPathologyReport
+
+
 0.151.0
 =======
 `PR 388: SN Add retraction_reason <https://github.com/smaht-dac/smaht-portal/pull/388>`_
