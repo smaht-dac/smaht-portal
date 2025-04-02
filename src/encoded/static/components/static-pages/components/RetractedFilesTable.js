@@ -108,7 +108,7 @@ export default function RetractedFilesTable(props) {
         "annotated_filename": {
             "title": "File",
         },
-        "notes_to_tsv": {
+        "retraction_reason": {
             "title": "Reason of Retraction",
         },
         "replaced_by.display_title": {
