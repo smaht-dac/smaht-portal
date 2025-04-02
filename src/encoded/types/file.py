@@ -392,6 +392,7 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.file_group.*",
 
         "meta_workflow_run_inputs.meta_workflow.name",
+        "meta_workflow_run_outputs.file_sets.uuid",
 
         # Analysis summary
         "software.code",
