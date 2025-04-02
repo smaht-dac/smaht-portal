@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+
+0.152.0
+=======
+`PR 387: SN Add retraction_reason <https://github.com/smaht-dac/smaht-portal/pull/387>`_
+
+* Redesign of the Key metrics tab
+* Added Tissue classification table for RNA-Seq data under Key metrics tab
+* Add "Metrics by file" tab, that can be linked from the file overview page
+* Alerts on the sample contamination heatmap are now determined on a file (and not donor) level. Retracted files do not generate a warning.
+
+
 0.151.0
 =======
 `PR 388: SN Add retraction_reason <https://github.com/smaht-dac/smaht-portal/pull/388>`_
