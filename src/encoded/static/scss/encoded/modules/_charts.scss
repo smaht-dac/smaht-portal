@@ -1654,7 +1654,7 @@ body[data-path="/statistics"] {
     padding-bottom: 20px;
 
     .header-for-viz {
-        display: flex;
+
         .column-group-header {
             //flex-grow: 1;
             text-align: center;
@@ -1666,6 +1666,14 @@ body[data-path="/statistics"] {
                 width: 20px;
                 font-weight: 450;
                 color: #111;
+            }
+        }
+        .header-group-text {
+            .column-group-header {
+                >.inner {
+                    transform: none !important;
+                    color: unset !important;
+                }
             }
         }
         

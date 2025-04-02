@@ -30,7 +30,8 @@ export default class DataMatrix extends React.PureComponent {
         /** Which state to set/prioritize if multiple files per group */
         "statePrioritizationForGroups" : [],
         "headerPadding"             : 200,
-        "headerColumnsOrder"        : [],
+        "headerColumnsOrder"        : [], // soon to be deprecated, use columnGroups instead
+        "columnGroups": null,
         "titleMap"                  : {},
         "columnSubGroupingOrder": [],
         "colorRanges": [
@@ -67,7 +68,11 @@ export default class DataMatrix extends React.PureComponent {
         'headerColumnsOrder': PropTypes.arrayOf(PropTypes.string),
         'titleMap': PropTypes.object,
         'columnSubGroupingOrder': PropTypes.arrayOf(PropTypes.string),
-        'disableConfigurator': PropTypes.bool
+        'colorRanges': PropTypes.arrayOf(PropTypes.object),
+        'baseColorOverride': PropTypes.string,
+        'allowedFields': PropTypes.arrayOf(PropTypes.string),
+        'disableConfigurator': PropTypes.bool,
+        'columnGroups': PropTypes.object,
     };
 
     static convertResult(result, fieldChangeMap, valueChangeMap, statusStateTitleMap, fallbackNameForBlankField){
@@ -209,7 +214,7 @@ export default class DataMatrix extends React.PureComponent {
                 updatedState[resultKey] = result["@graph"] || [];
                 updatedState[resultKey] = _.map(updatedState[resultKey], (r) => this.standardizeResult(r));
             } else {
-                updatedState[resultKey] = DataMatrix.transformData(result, this.state.fieldChangeMap);
+                updatedState[resultKey] = DataMatrix.transformData(TEST_DATA/*result*/, this.state.fieldChangeMap);
             }
 
             this.setState(updatedState, () => ReactTooltip.rebuild());
@@ -265,7 +270,7 @@ export default class DataMatrix extends React.PureComponent {
     }
 
     render() {
-        const { headerFor, sectionStyle, valueChangeMap, allowedFields, disableConfigurator = false } = this.props;
+        const { headerFor, sectionStyle, valueChangeMap, allowedFields, columnGroups, disableConfigurator = false } = this.props;
         const { queries, fieldChangeMap, columnGrouping, groupingProperties, headerColumnsOrder, colorRanges } = this.state;
 
         const isLoading = 
@@ -287,7 +292,7 @@ export default class DataMatrix extends React.PureComponent {
         const listingClassName = sectionStyle['listingClassName'] || "col-10";
         const bodyProps = {
             groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, headerColumnsOrder,
-            listingClassName, labelClassName, colorRanges
+            listingClassName, labelClassName, colorRanges, columnGroups
         };
         
         const configurator = !disableConfigurator && (
@@ -331,3 +336,702 @@ export default class DataMatrix extends React.PureComponent {
         );
     }
 }
+
+const TEST_DATA = {
+    "field": "donors.display_title",
+    "terms":
+    {
+        "ISLET1":
+        {
+            "term": "ISLET1",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 2790
+            },
+            "terms":
+            {
+                "scDip-C":
+                {
+                    "files": 2790
+                }
+            },
+            "other_doc_count": 0
+        },
+        "DONOR_LB":
+        {
+            "term": "DONOR_LB",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 238
+            },
+            "terms":
+            {
+                "WGS":
+                {
+                    "files": 233
+                },
+                "HAT-seq":
+                {
+                    "files": 3
+                },
+                "RNA-seq":
+                {
+                    "files": 2
+                }
+            },
+            "other_doc_count": 0
+        },
+        "COLO829":
+        {
+            "term": "COLO829",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 228
+            },
+            "terms":
+            {
+                "WGS":
+                {
+                    "files": 193
+                },
+                "Fiber-seq":
+                {
+                    "files": 12
+                },
+                "NanoSeq":
+                {
+                    "files": 8
+                },
+                "Ultra-Long WGS":
+                {
+                    "files": 8
+                },
+                "HiDEF-seq":
+                {
+                    "files": 4
+                },
+                "RNA-seq":
+                {
+                    "files": 4
+                },
+                "HAT-seq":
+                {
+                    "files": 2
+                },
+                "varCUT&Tag":
+                {
+                    "files": 2
+                },
+                "ATAC-seq":
+                {
+                    "files": 1
+                }
+            },
+            "other_doc_count": 0
+        },
+        "LIBD75":
+        {
+            "term": "LIBD75",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 220
+            },
+            "terms":
+            {
+                "Single-cell MALBAC WGS":
+                {
+                    "files": 215
+                },
+                "TEnCATS":
+                {
+                    "files": 3
+                },
+                "WGS":
+                {
+                    "files": 2
+                }
+            },
+            "other_doc_count": 0
+        },
+        "NC0":
+        {
+            "term": "NC0",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 200
+            },
+            "terms":
+            {
+                "scStrand-seq":
+                {
+                    "files": 182
+                },
+                "Single-cell PTA WGS":
+                {
+                    "files": 9
+                },
+                "WGS":
+                {
+                    "files": 9
+                }
+            },
+            "other_doc_count": 0
+        },
+        "ST002":
+        {
+            "term": "ST002",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 81
+            },
+            "terms":
+            {
+                "WGS":
+                {
+                    "files": 56
+                },
+                "NanoSeq":
+                {
+                    "files": 18
+                },
+                "RNA-seq":
+                {
+                    "files": 5
+                },
+                "Kinnex":
+                {
+                    "files": 2
+                }
+            },
+            "other_doc_count": 0
+        },
+        "ST001":
+        {
+            "term": "ST001",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 78
+            },
+            "terms":
+            {
+                "WGS":
+                {
+                    "files": 52
+                },
+                "NanoSeq":
+                {
+                    "files": 17
+                },
+                "RNA-seq":
+                {
+                    "files": 6
+                },
+                "Kinnex":
+                {
+                    "files": 2
+                },
+                "Fiber-seq":
+                {
+                    "files": 1
+                }
+            },
+            "other_doc_count": 0
+        },
+        "936_49F":
+        {
+            "term": "936_49F",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 36
+            },
+            "terms":
+            {
+                "scVISTA-seq":
+                {
+                    "files": 30
+                },
+                "Microbulk VISTA-seq":
+                {
+                    "files": 3
+                },
+                "VISTA-seq":
+                {
+                    "files": 3
+                }
+            },
+            "other_doc_count": 0
+        },
+        "ST003":
+        {
+            "term": "ST003",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 30
+            },
+            "terms":
+            {
+                "WGS":
+                {
+                    "files": 19
+                },
+                "NanoSeq":
+                {
+                    "files": 9
+                },
+                "Kinnex":
+                {
+                    "files": 1
+                },
+                "RNA-seq":
+                {
+                    "files": 1
+                }
+            },
+            "other_doc_count": 0
+        },
+        "ST004":
+        {
+            "term": "ST004",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 28
+            },
+            "terms":
+            {
+                "WGS":
+                {
+                    "files": 17
+                },
+                "NanoSeq":
+                {
+                    "files": 8
+                },
+                "RNA-seq":
+                {
+                    "files": 2
+                },
+                "Fiber-seq":
+                {
+                    "files": 1
+                }
+            },
+            "other_doc_count": 0
+        },
+        "P5246":
+        {
+            "term": "P5246",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 23
+            },
+            "terms":
+            {
+                "CompDuplex-seq":
+                {
+                    "files": 21
+                },
+                "PCR WGS":
+                {
+                    "files": 2
+                }
+            },
+            "other_doc_count": 0
+        },
+        "CB0":
+        {
+            "term": "CB0",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 22
+            },
+            "terms":
+            {
+                "CompDuplex-seq":
+                {
+                    "files": 20
+                },
+                "PCR WGS":
+                {
+                    "files": 2
+                }
+            },
+            "other_doc_count": 0
+        },
+        "P5844":
+        {
+            "term": "P5844",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 20
+            },
+            "terms":
+            {
+                "CompDuplex-seq":
+                {
+                    "files": 18
+                },
+                "PCR WGS":
+                {
+                    "files": 2
+                }
+            },
+            "other_doc_count": 0
+        },
+        "P5818":
+        {
+            "term": "P5818",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 17
+            },
+            "terms":
+            {
+                "CompDuplex-seq":
+                {
+                    "files": 15
+                },
+                "PCR WGS":
+                {
+                    "files": 2
+                }
+            },
+            "other_doc_count": 0
+        },
+        "SMHT008":
+        {
+            "term": "SMHT008",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 16
+            },
+            "terms":
+            {
+                "WGS":
+                {
+                    "files": 15
+                },
+                "RNA-seq":
+                {
+                    "files": 1
+                }
+            },
+            "other_doc_count": 0
+        },
+        "P1740":
+        {
+            "term": "P1740",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 15
+            },
+            "terms":
+            {
+                "CompDuplex-seq":
+                {
+                    "files": 13
+                },
+                "PCR WGS":
+                {
+                    "files": 2
+                }
+            },
+            "other_doc_count": 0
+        },
+        "P4643":
+        {
+            "term": "P4643",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 15
+            },
+            "terms":
+            {
+                "CompDuplex-seq":
+                {
+                    "files": 13
+                },
+                "PCR WGS":
+                {
+                    "files": 2
+                }
+            },
+            "other_doc_count": 0
+        },
+        "P5182":
+        {
+            "term": "P5182",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 15
+            },
+            "terms":
+            {
+                "CompDuplex-seq":
+                {
+                    "files": 13
+                },
+                "PCR WGS":
+                {
+                    "files": 2
+                }
+            },
+            "other_doc_count": 0
+        },
+        "P4546":
+        {
+            "term": "P4546",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 14
+            },
+            "terms":
+            {
+                "CompDuplex-seq":
+                {
+                    "files": 12
+                },
+                "PCR WGS":
+                {
+                    "files": 2
+                }
+            },
+            "other_doc_count": 0
+        },
+        "P4925":
+        {
+            "term": "P4925",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 11
+            },
+            "terms":
+            {
+                "CompDuplex-seq":
+                {
+                    "files": 9
+                },
+                "PCR WGS":
+                {
+                    "files": 2
+                }
+            },
+            "other_doc_count": 0
+        },
+        "P5554":
+        {
+            "term": "P5554",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 11
+            },
+            "terms":
+            {
+                "CompDuplex-seq":
+                {
+                    "files": 9
+                },
+                "PCR WGS":
+                {
+                    "files": 2
+                }
+            },
+            "other_doc_count": 0
+        },
+        "SMHT004":
+        {
+            "term": "SMHT004",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 10
+            },
+            "terms":
+            {
+                "WGS":
+                {
+                    "files": 10
+                }
+            },
+            "other_doc_count": 0
+        },
+        "UMB1465":
+        {
+            "term": "UMB1465",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 7
+            },
+            "terms":
+            {
+                "ATAC-seq":
+                {
+                    "files": 4
+                },
+                "CODEC":
+                {
+                    "files": 2
+                },
+                "PCR WGS":
+                {
+                    "files": 1
+                }
+            },
+            "other_doc_count": 0
+        },
+        "UMB5278":
+        {
+            "term": "UMB5278",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 4
+            },
+            "terms":
+            {
+                "CODEC":
+                {
+                    "files": 2
+                },
+                "ATAC-seq":
+                {
+                    "files": 1
+                },
+                "PCR WGS":
+                {
+                    "files": 1
+                }
+            },
+            "other_doc_count": 0
+        },
+        "SN001":
+        {
+            "term": "SN001",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 2
+            },
+            "terms":
+            {
+                "varCUT&Tag":
+                {
+                    "files": 2
+                }
+            },
+            "other_doc_count": 0
+        },
+        "SN002":
+        {
+            "term": "SN002",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 2
+            },
+            "terms":
+            {
+                "varCUT&Tag":
+                {
+                    "files": 2
+                }
+            },
+            "other_doc_count": 0
+        },
+        "SN003":
+        {
+            "term": "SN003",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 2
+            },
+            "terms":
+            {
+                "varCUT&Tag":
+                {
+                    "files": 2
+                }
+            },
+            "other_doc_count": 0
+        },
+        "UMB1864":
+        {
+            "term": "UMB1864",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 1
+            },
+            "terms":
+            {
+                "ATAC-seq":
+                {
+                    "files": 1
+                }
+            },
+            "other_doc_count": 0
+        },
+        "UMB4428":
+        {
+            "term": "UMB4428",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 1
+            },
+            "terms":
+            {
+                "ATAC-seq":
+                {
+                    "files": 1
+                }
+            },
+            "other_doc_count": 0
+        },
+        "UMB4638":
+        {
+            "term": "UMB4638",
+            "field": "file_sets.libraries.assay.display_title",
+            "total":
+            {
+                "files": 1
+            },
+            "terms":
+            {
+                "ATAC-seq":
+                {
+                    "files": 1
+                }
+            },
+            "other_doc_count": 0
+        }
+    },
+    "total":
+    {
+        "files": 4140
+    },
+    "other_doc_count": 2,
+    "time_generated": "2025-03-27 12:38:40.553343"
+};
