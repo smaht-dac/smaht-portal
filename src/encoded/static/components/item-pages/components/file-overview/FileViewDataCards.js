@@ -198,7 +198,8 @@ const default_sample_information = [
             const tissue_details =
                 context?.sample_summary?.tissue_details?.join(', ');
 
-            return tissue_details && tissue_type !== tissue_details
+            return tissue_details &&
+                tissue_type?.toLowerCase() !== tissue_details?.toLowerCase()
                 ? tissue_details
                 : null;
         },
@@ -207,11 +208,15 @@ const default_sample_information = [
         title: 'Tissue Subtype',
         getProp: (context = {}) => {
             // Show if different from tissue type AND tissue details
-            const tissue_type = context?.sample_summary?.tissues?.join(', ');
-            const tissue_details =
-                context?.sample_summary?.tissue_details?.join(', ');
-            const tissue_subtype =
-                context?.sample_summary?.tissue_subtypes?.join(', ');
+            const tissue_type = context?.sample_summary?.tissues
+                ?.join(', ')
+                ?.toLowerCase();
+            const tissue_details = context?.sample_summary?.tissue_details
+                ?.join(', ')
+                ?.toLowerCase();
+            const tissue_subtype = context?.sample_summary?.tissue_subtypes
+                ?.join(', ')
+                .toLowerCase();
 
             return tissue_subtype &&
                 tissue_type !== tissue_subtype &&
