@@ -76,7 +76,38 @@ const QCOverviewTable = ({ qcItems }) => {
     }, []);
 
     return data ? (
-        <div className="qc-overview-tab-table">
+        <div className="content qc-overview-tab-table">
+            <div className="mt-2 mb-4">
+                <h2 className="header mb-2">Critical QC</h2>
+                <div className="data-group">
+                    <div className="datum">
+                        <span className="datum-title">
+                            <strong>
+                                Somalier sample duplicate check result (and the
+                                QC status)
+                            </strong>
+                        </span>
+                        <span className="datum-value text-gray">N/A</span>
+                    </div>
+                    <div className="datum">
+                        <span className="datum-title">
+                            <strong>
+                                VerifyBamID2 human contamination check result
+                                (and the QC status)
+                            </strong>
+                        </span>
+                        <span className="datum-value text-gray">N/A</span>
+                    </div>
+                    <div className="datum">
+                        <span className="datum-title">
+                            <strong>Tissue prediction check</strong>
+                        </span>
+                        <span className="datum-value text-gray">N/A</span>
+                    </div>
+                </div>
+            </div>
+
+            <h2 className="header mb-2">General QC</h2>
             <table className="table table-bordered table-striped">
                 <thead>
                     <tr>
