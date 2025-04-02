@@ -69,7 +69,7 @@ export default function RetractedFilesTable(props) {
                 );
             }
         },
-        "notes_to_tsv": {
+        "retraction_reason": {
             "widthMap": { lg: 250, md: 120, sm: 120 }
         },
         "replaced_by.display_title": {
