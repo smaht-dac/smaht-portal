@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.151.0
+=======
+`PR 390: feat: add tissue details and tissue subtype to File Overview page <https://github.com/smaht-dac/smaht-portal/pull/390>`_
+
+* Add tissue details and tissue subtype to File Overview page
+
+
 0.150.1
 =======
 `PR 386: Fix page title registry for /browse <https://github.com/smaht-dac/smaht-portal/pull/386>`_
