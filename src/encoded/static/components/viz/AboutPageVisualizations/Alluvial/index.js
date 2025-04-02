@@ -223,7 +223,7 @@ export const Alluvial = () => {
 
             // Legend rows for Assay Groups
             legend_row(
-                'Whole Genome',
+                'Bulk WGS',
                 [
                     graph.colors.assay_group['1-1'],
                     graph.colors.assay_group['1-2'],
@@ -232,36 +232,40 @@ export const Alluvial = () => {
                 0,
                 523
             );
-            legend_row('NT-Seq', [graph.colors.assay_group['2-1']], 20, 523);
-            legend_row('Hi-C', [graph.colors.assay_group['3-1']], 40, 523);
             legend_row(
-                'Transcriptome',
+                'Single-nuclear transcriptome',
+                [graph.colors.assay_group['2-1']],
+                20,
+                523
+            );
+            legend_row(
+                'Bulk Whole Transcriptome',
                 [
                     graph.colors.assay_group['4-1'],
                     graph.colors.assay_group['4-2'],
                 ],
-                60,
+                40,
                 523
             );
             legend_row(
                 'Duplex-Seq',
                 [graph.colors.assay_group['5-1']],
-                80,
+                60,
                 523
             );
-            legend_row('Other', [graph.colors.assay_group['6-1']], 140, 523);
             legend_row(
                 'Targeted Sequencing',
                 [graph.colors.assay_group['7-1']],
-                100,
+                80,
                 523
             );
             legend_row(
-                'Whole genome: Single-cell',
+                'Single-cell WGS',
                 [graph.colors.assay_group['8-1']],
-                120,
+                100,
                 523
             );
+            legend_row('Other', [graph.colors.assay_group['6-1']], 120, 523);
 
             // Legend rows for Molecular Features
             legend_row(
