@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
-import { getBadge, capitalize, removeToolName } from './utils';
-import { head } from 'underscore';
+import { getBadge, removeToolName } from './utils';
+
+import {
+    capitalize,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
 export const DataTable = ({
     data,

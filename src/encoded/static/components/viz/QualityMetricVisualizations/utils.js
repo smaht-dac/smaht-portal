@@ -85,17 +85,8 @@ export const addPaddingToExtend = (
     const [eMin, eMax] = extend;
     const range = eMax - eMin;
     let adjustedExtendMin = eMin - range * minAdjustment;
-    // If the min was already positive, adjust ad most to 0
-    // if (eMin > 0) {
-    //     adjustedExtendMin = Math.max(0, adjustedExtendMin);
-    // }
     const adjustedExtendMax = eMax + range * maxAdjustment;
     return [adjustedExtendMin, adjustedExtendMax];
-};
-
-export const capitalize = (str) => {
-    if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
 export const getBadge = (flag, returnDefaultBadge = false) => {

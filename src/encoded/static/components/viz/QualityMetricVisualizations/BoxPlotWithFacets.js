@@ -262,7 +262,7 @@ export const BoxPlotWithFacets = ({
         </div>
     );
 
-    // Check of this metrics has a QC threshold
+    // Check if this metrics has a QC threshold
     const thresholdKey = `${selectedSequencer}_${selectedAssay}`;
     let thresholdWarning = null;
     if (thresholdKey in qcData.viz_info.qc_thresholds) {

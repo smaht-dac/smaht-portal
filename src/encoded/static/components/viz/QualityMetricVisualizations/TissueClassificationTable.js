@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
-import { getBadge, capitalize, removeToolName } from './utils';
+import { getBadge } from './utils';
 
 export const TissueClassificationTable = ({
     data,

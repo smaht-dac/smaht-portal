@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-import { getBadge, capitalize, removeToolName } from './utils';
 import ReactTooltip from 'react-tooltip';
 
 export const SampleContaminationDataTable = ({ data }) => {
