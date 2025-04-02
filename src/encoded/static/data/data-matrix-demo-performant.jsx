@@ -12,6 +12,18 @@
         }}
         groupingProperties={["assay"]}
         columnGrouping="donor"
+        columnGroups={{
+            "Tier 1": {
+                "values": ['ISLET1','DONOR_LB','COLO829','LIBD75','NC0'],
+                "backgroundColor": "#FFB5C2",
+                "textColor": "#ffffff"
+            },
+            "Tier 2": {
+                "values": ['ST002','ST001','936_49F','ST003','ST004','P5246','CB0','P5844','P5818','SMHT008','P1740','P4643','P5182','P4546','P4925','P5554','SMHT004','UMB1465','UMB5278','SN001','SN002','SN003','UMB1864','UMB4428','UMB4638'],
+                "backgroundColor": "#FF99AC",
+                "textColor": "#ffffff"
+            },
+        }}
         headerFor={<h3 className="mt-2 mb-0 text-300">SMaHT</h3>}
         baseColorOverride="#6f2da8"
     />
