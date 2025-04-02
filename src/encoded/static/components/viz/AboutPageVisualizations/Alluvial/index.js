@@ -6,14 +6,15 @@ import { sankeyFunc } from './sankey';
 import alluvial_data from './data/alluvial_data.json';
 
 /**
- * Formats a list of nodes and links into a format that can be used by the d3
- * sankey function. Prevents the need for manual numbering of nodes and links,
- * and instead uses the index of the node in the list as its number.
+ * `formatData` organizes a list of nodes and links into a format that can be
+ * used by the d3 sankey function. Prevents the need for manual numbering of
+ * nodes and links, and instead uses the index of the node in the list as
+ * its node index.
  * @param {Array} node_list A list of un-numbered nodes
  * @param {Array} link_list A list of links between nodes
- * @returns an object with numbered [nodes] and [links] objects as properties
+ * @returns an object containing (`nodes`) and (`links`) objects
  */
-const format_data = (node_list, link_list) => {
+const formatData = (node_list, link_list) => {
     // Number nodes and links
     const numbered_node_list = node_list.map((node, i) => {
         return {
@@ -52,7 +53,7 @@ const format_data = (node_list, link_list) => {
 export const Alluvial = () => {
     const isDrawn = useRef(false);
 
-    const { nodes: numbered_nodes, links: numbered_links } = format_data(
+    const { nodes: numbered_nodes, links: numbered_links } = formatData(
         alluvial_data.nodes,
         alluvial_data.links
     );
