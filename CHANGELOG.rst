@@ -7,11 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.151.0
+0.152.0
 =======
 `PR 390: feat: add tissue details and tissue subtype to File Overview page <https://github.com/smaht-dac/smaht-portal/pull/390>`_
 
 * Add tissue details and tissue subtype to File Overview page
+
+
+0.151.0
+=======
+`PR 388: SN Add retraction_reason <https://github.com/smaht-dac/smaht-portal/pull/388>`_
+
+* Add property `retraction_reason` to File for display in the Data Retraction page and File Manifest
 
 
 0.150.1
