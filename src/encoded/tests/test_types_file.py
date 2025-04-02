@@ -1221,9 +1221,9 @@ def assert_analysis_software_matches_expected(
 
 
 @pytest.mark.workbook
-def test_release_tracker_description(es_testapp: TestApp, workbook: None) -> None:
+def test_release_tracker(es_testapp: TestApp, workbook: None) -> None:
     """
-    Ensure 'release_tracker_description' calcprop fields correct for inserts.
+    Ensure  `release_tracker_title` and 'release_tracker_description' calcprops field correct for inserts.
 
     Checks fields present on inserts match values expected by parsing tags.
     """
@@ -1231,7 +1231,9 @@ def test_release_tracker_description(es_testapp: TestApp, workbook: None) -> Non
     search = "tags=test_release_tracker"
     files_with_release_tracker_description = get_search(es_testapp, search)
     for file in files_with_release_tracker_description:
+        assert_release_tracker_title_matches_expected(file, es_testapp)
         assert_release_tracker_description_matches_expected(file, es_testapp)
+
 
 
 def assert_release_tracker_description_matches_expected(file: Dict[str, Any], es_testapp: TestApp):
@@ -1249,20 +1251,6 @@ def get_expected_release_tracker_description(sample: Dict[str, Any]) -> List[str
         tag for tag in tags if tag.startswith(expected_release_tracker_description_tag_start)
     ]
     return expected_description_tags[0].split(expected_release_tracker_description_tag_start)[1]
-
-
-@pytest.mark.workbook
-def test_release_tracker_title(es_testapp: TestApp, workbook: None) -> None:
-    """
-    Ensure 'release_tracker_title' calcprop fields correct for inserts.
-
-    Checks fields present on inserts match values expected by parsing tags.
-    """
-    
-    search = "tags=test_release_tracker"
-    files_with_release_tracker_title = get_search(es_testapp, search)
-    for file in files_with_release_tracker_title:
-        assert_release_tracker_title_matches_expected(file, es_testapp)
 
 
 def assert_release_tracker_title_matches_expected(file: Dict[str, Any], request_handler: RequestHandler):
