@@ -2916,6 +2916,11 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 			color: #aa5c5c !important;
 		}
 	}
+	.search-headers-column-block > .width-adjuster {
+		&:after {
+			border-color: #d7baba !important;
+		}
+	}
 }
 div#retracted_files h2.section-title {
 	font-size: 1.5rem !important;
