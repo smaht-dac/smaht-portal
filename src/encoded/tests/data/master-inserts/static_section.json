@@ -546,7 +546,7 @@
     },
     {
         "identifier": "retracted_files",
-        "title": "Data Retraction Table",
+        "title": "List of Retracted Files",
         "file": "/docs/public/retracted_files.jsx",
         "status": "public",
         "options": {
