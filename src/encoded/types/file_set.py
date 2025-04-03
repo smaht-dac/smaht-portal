@@ -290,6 +290,8 @@ class FileSet(SubmittedItem):
 @link_related_validator
 def validate_compatible_assay_and_sequencer_on_add(context, request):
     """Check filesets to make sure they are linked to compatible library.assay and sequencing items on add."""
+    if 'force_pass' in request.query_string:
+        return
     data = request.json
     libraries = data['libraries']
     sequencing = data['sequencing']
@@ -299,6 +301,8 @@ def validate_compatible_assay_and_sequencer_on_add(context, request):
 @link_related_validator
 def validate_compatible_assay_and_sequencer_on_edit(context, request):
     """Check filesets to make sure they are linked to compatible library.assay and sequencing items on edit."""
+    if 'force_pass' in request.query_string:
+        return
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
     libraries = get_property_for_validation('libraries', existing_properties, properties_to_update)
@@ -339,6 +343,8 @@ def check_compatible_assay_and_sequencer(request, libraries: List[str], sequenci
 @link_related_validator
 def validate_molecule_sequencing_properties_on_add(context, request):
     """Check that sequencing properties are molecule-appropriate on add."""
+    if 'force_pass' in request.query_string:
+        return
     data = request.json
     libraries = data['libraries']
     sequencing = data['sequencing']
@@ -348,6 +354,8 @@ def validate_molecule_sequencing_properties_on_add(context, request):
 @link_related_validator
 def validate_molecule_sequencing_properties_on_edit(context, request):
     """Check that sequencing properties are molecule-appropriate on edit."""
+    if 'force_pass' in request.query_string:
+        return
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
     libraries = get_property_for_validation('libraries', existing_properties, properties_to_update)
