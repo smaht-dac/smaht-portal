@@ -3,6 +3,7 @@
 import React from 'react';
 import {
     bytesToLargerUnit,
+    capitalize,
     capitalizeSentence,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
@@ -188,6 +189,43 @@ const default_sample_information = [
     {
         title: 'Tissue Type',
         getProp: (context = {}) => context?.sample_summary?.tissues?.join(', '),
+    },
+    {
+        title: 'Tissue Subtype',
+        getProp: (context = {}) => {
+            // Show if different from tissue type
+            const tissue_type = context?.sample_summary?.tissues
+                ?.join(', ')
+                ?.toLowerCase();
+            const tissue_subtype = context?.sample_summary?.tissue_subtypes
+                ?.join(', ')
+                ?.toLowerCase();
+
+            return tissue_subtype && tissue_subtype !== tissue_type
+                ? capitalize(tissue_subtype)
+                : null;
+        },
+    },
+    {
+        title: 'Tissue Details',
+        getProp: (context = {}) => {
+            // Show if different from tissue type AND tissue details
+            const tissue_type = context?.sample_summary?.tissues
+                ?.join(', ')
+                ?.toLowerCase();
+            const tissue_subtype = context?.sample_summary?.tissue_subtypes
+                ?.join(', ')
+                .toLowerCase();
+            const tissue_details = context?.sample_summary?.tissue_details
+                ?.join(', ')
+                ?.toLowerCase();
+
+            return tissue_details &&
+                tissue_details !== tissue_type &&
+                tissue_details !== tissue_subtype
+                ? capitalize(tissue_details)
+                : null;
+        },
     },
     {
         title: 'Analyte',
