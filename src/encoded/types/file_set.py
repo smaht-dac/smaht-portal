@@ -299,8 +299,8 @@ class FileSet(SubmittedItem):
             "type": "string"
         }
     )
-    def tissue_type(self, request):
-        """"Get top ontology term from tissue."""
+    def tissue_types(self, request):
+        """"Get top ontology term tissue type from tissue."""
         request_handler = RequestHandler(request=request)
         return get_property_values_from_identifiers(
             request_handler,
