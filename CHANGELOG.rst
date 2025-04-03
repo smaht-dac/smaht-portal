@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.152.1
+=======
+`PR 393: chore: update footer text <https://github.com/smaht-dac/smaht-portal/pull/393>`_
+
+* Update text in footer
+
 
 0.152.0
 =======
