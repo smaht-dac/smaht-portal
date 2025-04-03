@@ -14,7 +14,7 @@ export const Footer = React.memo(function Footer() {
         <footer id="page-footer">
             <div className="page-footer container-full">
                 <div className="row">
-                    <div className="col-12 col-md-6 px-sm-4">
+                    <div className="col-12 px-sm-4">
                         <div className="footer-section copy-notice d-flex align-items-center justify-content-center justify-content-sm-start">
                             <div>
                                 SMaHT is funded by the{' '}
@@ -25,7 +25,11 @@ export const Footer = React.memo(function Footer() {
                                     rel="noopener noreferrer">
                                     NIH Common Fund
                                 </a>
+                                . This repository is under review for potential
+                                modification in compliance with Administration
+                                directives.
                             </div>
+                            <span></span>
                         </div>
                     </div>
                     {/* <div className="col-sm-6">
