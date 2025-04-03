@@ -2,7 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
 import { Popover, PopoverHeader, PopoverBody, Overlay } from 'react-bootstrap';
-import { PlotPopoverContent, addPaddingToExtend, removeToolName } from './utils';
+import {
+    PlotPopoverContent,
+    addPaddingToExtend,
+} from './utils';
 
 export const ScatterPlot = ({
     plotId,
@@ -21,10 +24,13 @@ export const ScatterPlot = ({
     updateHighlightedBam,
     rerenderNumber = 0,
     handleShowModal,
+    groupBy,
+    showLegend = true,
+    tooltipFields,
+    dataPointIndexField = "file_accession"
 }) => {
     const [showOverlay, setShowOverlay] = useState(false);
     const overlayTarget = useRef(null);
-    const { viz_info, qc_info, qc_results } = data;
     const isDrawn = useRef(false);
     const oldRerenderNumber = useRef(rerenderNumber);
 
@@ -100,7 +106,7 @@ export const ScatterPlot = ({
                 )
                 .attr('text-anchor', 'middle')
                 .attr('style', 'font-family: Inter; font-size: 1.5rem')
-                .text(yAxisLabel ?? removeToolName(qc_info[yAxisField].key));
+                .text(yAxisLabel);
 
             svgContainer
                 .append('text')
@@ -115,7 +121,7 @@ export const ScatterPlot = ({
                 )
                 .attr('text-anchor', 'middle')
                 .attr('style', 'font-family: Inter; font-size: 1.5rem')
-                .text(xAxisLabel ?? removeToolName(qc_info[xAxisField].key));
+                .text(xAxisLabel);
 
             // Create the SVG group for the chart
             const svg = svgContainer.append('g').attr('class', 'chartBody');
@@ -153,15 +159,15 @@ export const ScatterPlot = ({
                 );
 
             // Filter data by specific quality metric and map to the values
-            const filteredData = qc_results.filter((d) => {
+            const filteredData = data.filter((d) => {
                 // Use custom filter if provided
                 if (customFilter) {
                     return customFilter(d);
                 }
-
+              
                 return !!(
-                    d?.quality_metrics.qc_values[yAxisField]['value'] &&
-                    d?.quality_metrics.qc_values[xAxisField]['value']
+                    d?.quality_metrics?.qc_values[yAxisField] &&
+                    d?.quality_metrics?.qc_values[xAxisField]
                 );
             });
 
@@ -271,15 +277,22 @@ export const ScatterPlot = ({
                     'translate(' + margins.left + ', ' + 0 + ')'
                 );
 
-            const submission_centers = new Set(
-                filteredData
-                    .map((d) => d.submission_center.replace(' GCC', ''))
-                    .sort()
-            );
+            let groupCategories = new Set(['default']);
+            if (groupBy) {
+                groupCategories = new Set(
+                    filteredData
+                        .map((d) => {
+                            const group = d[groupBy];
+                            return group.replace(' GCC', '');
+                        })
+                        .sort()
+                );
+            }
+
             // Create color scale for the data points
             const pointColor = d3
                 .scaleOrdinal()
-                .domain(submission_centers)
+                .domain(groupCategories)
                 .range(d3.schemeCategory10);
 
             // Add horizontal threshold marker lines
@@ -318,8 +331,8 @@ export const ScatterPlot = ({
                     return 'data-point';
                 })
                 .attr('data-point-index', (d, i) => {
-                    d['data-point-index'] = d['file_accession'];
-                    return d['file_accession'];
+                    d['data-point-index'] = d[dataPointIndexField];
+                    return d[dataPointIndexField];
                 })
                 .attr('cy', (d) => {
                     return y(d.quality_metrics.qc_values[yAxisField]['value']);
@@ -329,74 +342,81 @@ export const ScatterPlot = ({
                 })
                 .attr('r', 8)
                 .attr('fill', (d) => {
-                    return pointColor(d.submission_center.replace(' GCC', ''));
+                    const group = groupBy ? d[groupBy] : "default";
+                    return pointColor(group.replace(' GCC', ''));
                 })
                 .attr('stroke', 'darkgray')
-                // .attr('stroke', (d) => {
-                //     return pointColor(d.submission_center);
-                // })
                 .on('click', function (e, d) {
-                    handleShowModal(d);
+                    if(handleShowModal){
+                        handleShowModal(d);
+                    }
                 })
                 .on('mouseover', function (e, d) {
                     // Trigger overlay on hover
                     handleShowOverlay(e, d);
-                    updateHighlightedBam(d['file_accession']);
+                    if(updateHighlightedBam){
+                        updateHighlightedBam(d[dataPointIndexField]);
+                    }
+                    
                 })
                 .on('mouseout', function () {
                     setShowOverlay(false);
-                    updateHighlightedBam(null);
+                    if(updateHighlightedBam){
+                        updateHighlightedBam(null);
+                    }
                 });
 
             // Add a legend
-            const legendWidth = 120;
-            const legendHeight = submission_centers.size * 30 + 20;
-            const gLegend = svgContainer
-                .append('g')
-                .attr('class', 'legend')
-                .attr(
-                    'transform',
-                    'translate(' +
-                        (chartWidth - margins.right - legendWidth) +
-                        ', ' +
-                        margins.top +
-                        ')'
-                );
+            if (showLegend) {
+                const legendWidth = 120;
+                const legendHeight = groupCategories.size * 30 + 20;
+                const gLegend = svgContainer
+                    .append('g')
+                    .attr('class', 'legend')
+                    .attr(
+                        'transform',
+                        'translate(' +
+                            (chartWidth - margins.right - legendWidth) +
+                            ', ' +
+                            margins.top +
+                            ')'
+                    );
 
-            gLegend
-                .append('rect')
-                .attr('width', legendWidth)
-                .attr('height', legendHeight)
-                .attr('fill', 'white')
-                .attr('stroke', 'lightgray');
+                gLegend
+                    .append('rect')
+                    .attr('width', legendWidth)
+                    .attr('height', legendHeight)
+                    .attr('fill', 'white')
+                    .attr('stroke', 'lightgray');
 
-            const legendKey = gLegend
-                .selectAll('.legend-key')
-                .data(submission_centers)
-                .enter()
-                .append('g')
-                .attr('class', 'legend-item')
-                .attr(
-                    'transform',
-                    (d, i) => 'translate(' + 10 + ',' + (15 + i * 30) + ')'
-                );
+                const legendKey = gLegend
+                    .selectAll('.legend-key')
+                    .data(groupCategories)
+                    .enter()
+                    .append('g')
+                    .attr('class', 'legend-item')
+                    .attr(
+                        'transform',
+                        (d, i) => 'translate(' + 10 + ',' + (15 + i * 30) + ')'
+                    );
 
-            legendKey
-                .append('rect')
-                .attr('class', 'legend-color')
-                .attr('width', 15)
-                .attr('height', 15)
-                .attr('fill', (d) => pointColor(d));
+                legendKey
+                    .append('rect')
+                    .attr('class', 'legend-color')
+                    .attr('width', 15)
+                    .attr('height', 15)
+                    .attr('fill', (d) => pointColor(d));
 
-            legendKey
-                .append('text')
-                .attr('class', 'legend-text')
-                .text((d) => d)
-                .attr('x', 25)
-                .attr('y', 10)
-                .attr('style', 'font-family: Inter; font-size: 1.2rem')
-                .attr('text-anchor', 'start')
-                .attr('alignment-baseline', 'middle');
+                legendKey
+                    .append('text')
+                    .attr('class', 'legend-text')
+                    .text((d) => d)
+                    .attr('x', 25)
+                    .attr('y', 10)
+                    .attr('style', 'font-family: Inter; font-size: 1.2rem')
+                    .attr('text-anchor', 'start')
+                    .attr('alignment-baseline', 'middle');
+            }
 
             // Zoom and panning behavior
             const zoom = d3
@@ -454,7 +474,7 @@ export const ScatterPlot = ({
 
                 gY.call(yAxis.ticks(5 * t.k));
 
-                d3.select('#popover-scatterplot').attr(
+                d3.select('#popover-scatterplot' + '-' + plotId).attr(
                     'transform',
                     'translate(' + t.x + ', ' + t.y + ')'
                 );
@@ -486,31 +506,21 @@ export const ScatterPlot = ({
 
     return (
         <div className="scatterplot-canvas" ref={containerRef}>
-            <Overlay
+            {tooltipFields ? <Overlay
                 target={overlayTarget?.current?.node}
                 show={showOverlay}
                 placement="bottom"
                 flip={true}>
-                <Popover id="popover-scatterplot" className="popover-d3-plot">
-                    {/* <PopoverHeader>
-                        {xAxisLabel ?? qc_info[xAxisField].key}:{' '}
-                        {new Intl.NumberFormat().format(
-                            overlayTarget.current?.data?.quality_metrics.qc_values[xAxisField]['value']
-                        )}
-                        <br />
-                        {yAxisLabel ?? qc_info[yAxisField].key}:{' '}
-                        {new Intl.NumberFormat().format(
-                            overlayTarget.current?.data?.quality_metrics.qc_values[yAxisField]['value']
-                        )}
-                    </PopoverHeader> */}
+                <Popover id={"popover-scatterplot" + '-' + plotId} className="popover-d3-plot">
                     <PopoverBody>
                         <PlotPopoverContent
-                            vizInfo={viz_info}
+                            tooltipFields={tooltipFields}
                             data={overlayTarget?.current?.data}
                         />
                     </PopoverBody>
                 </Popover>
-            </Overlay>
+            </Overlay> : ""}
+            
         </div>
     );
 };

@@ -2,9 +2,50 @@
 
 import React from 'react';
 import * as d3 from 'd3';
+import { BoxPlotWithFacets } from './BoxPlotWithFacets';
 
-export const PlotPopoverContent = ({ vizInfo, data = null }) => {
-    const tooltipFields = vizInfo.default_settings.boxplot.tooltipFields;
+export const getBoxPlot = (
+    qcData,
+    title,
+    metric,
+    assay,
+    sampleSource,
+    sequencer,
+    study,
+    customExtent = null,
+    featuredBam = null,
+) => {
+    const titleDiv = title ? <div className="qc-boxplot-title p-2">{title}</div> : null;
+   
+    // Makes sure the component is re-rendered when the settings change
+    const key = `${metric}-${assay}-${sampleSource}-${sequencer}-${study}-${featuredBam}`;
+    return (
+        <>
+            {titleDiv}
+            <div className="py-2 px-4 position-relative">
+                <BoxPlotWithFacets
+                    key={key}
+                    qcData={qcData}
+                    showFacets={false}
+                    showDataTable={false}
+                    boxPlotTitle={''}
+                    settings={{
+                        selectedQcMetric: metric,
+                        assay: assay,
+                        grouping: 'submission_center',
+                        sampleSource: sampleSource,
+                        sequencer: sequencer,
+                        study: study,
+                        customExtent: customExtent,
+                        featuredBam: featuredBam,
+                    }}
+                />
+            </div>
+        </>
+    );
+};
+
+export const PlotPopoverContent = ({ tooltipFields, data = null }) => {
 
     return data ? (
         <div className="d3-popover-content">
@@ -35,6 +76,7 @@ export const formatLargeInteger = (num) => {
     return num.toString();
 };
 
+
 export const addPaddingToExtend = (
     extend,
     minAdjustment = 0.05,
@@ -43,26 +85,17 @@ export const addPaddingToExtend = (
     const [eMin, eMax] = extend;
     const range = eMax - eMin;
     let adjustedExtendMin = eMin - range * minAdjustment;
-    if (eMin > 0) {
-        // If the min was already positive, adjust ad most to 0
-        adjustedExtendMin = Math.max(0, adjustedExtendMin);
-    }
     const adjustedExtendMax = eMax + range * maxAdjustment;
     return [adjustedExtendMin, adjustedExtendMax];
 };
 
-export const capitalize = (str) => {
-    if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-};
-
 export const getBadge = (flag, returnDefaultBadge = false) => {
-    if (flag === 'Pass') {
-        return <span className="badge text-white bg-success">Pass</span>;
+    if (flag === 'Pass' || flag === 'Yes') {
+        return <span className="badge text-white bg-success">{flag}</span>;
     } else if (flag === 'Warn') {
-        return <span className="badge text-white bg-warning">Warn</span>;
-    } else if (flag === 'Fail') {
-        return <span className="badge text-white bg-danger">Fail</span>;
+        return <span className="badge text-white bg-warning">{flag}</span>;
+    } else if (flag === 'Fail' || flag === 'No') {
+        return <span className="badge text-white bg-danger">{flag}</span>;
     } 
     if (returnDefaultBadge) {
         return <span className="badge text-white bg-secondary">NA</span>;
@@ -128,6 +161,49 @@ export const customReactSelectStyle = {
     menuList: (provided) => ({
         ...provided,
         padding: '0', // Remove extra padding around the list
+    }),
+    option: (provided, state) => ({
+        ...provided,
+        fontSize: '0.875rem', // Adjust font size
+        padding: '4px 10px', // Adjust padding to make options smaller
+    }),
+};
+
+export const customReactSelectStyleMulti = {
+    control: (provided, state) => ({
+        ...provided,
+        fontSize: '0.875rem', // Adjust font size
+        borderColor: state.isFocused ? 'blue' : '#dee2e6',
+        boxShadow: state.isFocused ? '0 0 0 1px blue' : 'none',
+    }),
+    valueContainer: (provided) => ({
+        ...provided,
+        padding: '0 6px',
+    }),
+    input: (provided) => ({
+        ...provided,
+        margin: '0', // Remove extra margin
+        padding: '0',
+    }),
+    indicatorsContainer: (provided) => ({
+        ...provided,
+    }),
+    menu: (provided) => ({
+        ...provided,
+        marginTop: '0px', // Optional: adjust spacing between control and dropdown
+    }),
+    menuList: (provided) => ({
+        ...provided,
+        padding: '0', // Remove extra padding around the list
+    }),
+    multiValueLabel: (provided) => ({
+        ...provided,
+        padding: '0px 0px',
+    }),
+    multiValue: (provided) => ({
+        ...provided,
+        padding: '0px 0px',
+        backgroundColor: '#f2f2f2',
     }),
     option: (provided, state) => ({
         ...provided,
@@ -220,9 +296,8 @@ export const getFileModalContent = (file, qcInfo) => {
                 </thead>
                 <tbody>
                     {Object.keys(qcValues).map((qcField, i) => {
-                        const metric = qcValues[qcField].value;
-                        const flag = qcValues[qcField].flag;
-                        const metricFormatted = formatQcValue(metric);
+                        const { flag = "NA", value } = qcValues[qcField];
+                        const metricFormatted = formatQcValue(value);
                         return (
                             <tr key={i}>
                                 <td>{qcInfo[qcField]['key']}</td>
