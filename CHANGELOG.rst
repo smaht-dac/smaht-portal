@@ -7,16 +7,24 @@ smaht-portal
 Change Log
 ----------
 
-0.152.1
+0.153.1
 =======
 `PR 393: chore: update footer text <https://github.com/smaht-dac/smaht-portal/pull/393>`_
 
 * Update text in footer
 
 
+0.153.0
+=======
+`PR 385: SN Fix release tracker calcprop <https://github.com/smaht-dac/smaht-portal/pull/385>`_
+
+* Fix the `release_tracker_title` and `release_tracker_description` calcprops to have the override property function in the case of having multiple values from `file_sets`
+* Make `file_sets` a required property for SupplementaryFile, as it is for all other SubmittedFile types, so that the File Overview display and Manifest File generation work properly
+
+
 0.152.0
 =======
-`PR 387: SN Add retraction_reason <https://github.com/smaht-dac/smaht-portal/pull/387>`_
+`PR 387: QC metrics page improvements <https://github.com/smaht-dac/smaht-portal/pull/387>`_
 
 * Redesign of the Key metrics tab
 * Added Tissue classification table for RNA-Seq data under Key metrics tab
