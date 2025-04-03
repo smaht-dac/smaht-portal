@@ -14,6 +14,13 @@ Change Log
 * Add tissue details and tissue subtype to File Overview page
 
 
+0.153.2
+=======
+`PR 393: chore: update footer text <https://github.com/smaht-dac/smaht-portal/pull/393>`_
+
+* Update text in footer
+
+
 0.153.1
 =======
 `PR 391: SN Fix pathology report <https://github.com/smaht-dac/smaht-portal/pull/391>`_
