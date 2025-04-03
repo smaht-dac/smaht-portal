@@ -2052,8 +2052,6 @@ body[data-path="/statistics"] {
         }
           
         .label-container.active-row {
-            opacity: 1 !important;
-
             .inner:before {
                 font-family: "Font Awesome 6 Free";
                 content: "\f0da";
@@ -2062,10 +2060,6 @@ body[data-path="/statistics"] {
                 font-weight: 900;
             }
         }
-    }
-      
-    .active-row.active-column {
-        opacity: 1 !important;
     }
 }
 

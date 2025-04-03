@@ -619,8 +619,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         return null;
     }
 
-    static hexToRgba = memoize(function (hex, opacity) {
-        if (!hex) return null;
+    static getLighterHex = memoize(function (hex, factor) {
         // Remove the '#' character if present
         hex = hex.replace('#', '');
 
@@ -629,13 +628,23 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             hex = hex.split('').map(ch => ch + ch).join('');
         }
 
-        // Parse the R, G, B values from hex to decimal
-        const r = parseInt(hex.substring(0, 2), 16);
-        const g = parseInt(hex.substring(2, 4), 16);
-        const b = parseInt(hex.substring(4, 6), 16);
+        // Parse the red, green, and blue components
+        let r = parseInt(hex.substring(0, 2), 16);
+        let g = parseInt(hex.substring(2, 4), 16);
+        let b = parseInt(hex.substring(4, 6), 16);
 
-        // Return the RGBA color string
-        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+        // Increase each component towards 255 by the given factor
+        r = Math.round(r + (255 - r) * factor);
+        g = Math.round(g + (255 - g) * factor);
+        b = Math.round(b + (255 - b) * factor);
+
+        // Convert the new RGB values back to a hex string and return it
+        const newHex = "#" +
+            r.toString(16).padStart(2, '0') +
+            g.toString(16).padStart(2, '0') +
+            b.toString(16).padStart(2, '0');
+
+        return newHex;
     });
 
     /** @todo Convert to functional memoized React component */
@@ -669,7 +678,13 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             'paddingRight'  : props.blockHorizontalSpacing,
             'paddingTop'    : props.blockVerticalSpacing
         };
-        const containerGroupActiveStyle = _.extend({}, containerGroupStyle, { backgroundColor: StackedBlockGroupedRow.hexToRgba(props.colorRanges[0]?.color, 0.2) });
+        const newColor = StackedBlockGroupedRow.getLighterHex(props.colorRanges[0]?.color, 0.8);
+        const containerGroupActiveStyle = _.extend({}, containerGroupStyle, { 
+            backgroundColor: newColor, 
+            borderLeft: '1px solid ' + newColor, 
+            marginTop: '-1px', 
+            borderTop: '1px solid ' + newColor,
+         });
         const groupedDataIndicesPairs = (props.groupedDataIndices && _.pairs(props.groupedDataIndices)) || [];
         let inner = null;
         let blocksByColumnGroup;
@@ -794,7 +809,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const {
             groupingProperties, depth, titleMap, group, blockHeight, blockVerticalSpacing, blockHorizontalSpacing, headerColumnsOrder,
             data, groupedDataIndices, index, duplicateHeaders, showGroupingPropertyTitles, checkCollapsibility, headerPadding, labelClassName, listingClassName,
-            onSorterClick, sorting, sortField, activeRow, activeColumn, columnGroups } = this.props;
+            onSorterClick, sorting, sortField, activeRow, activeColumn, columnGroups, colorRanges } = this.props;
         const { open } = this.state;
 
         let groupingPropertyTitle = null;
@@ -820,6 +835,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         if (depth === 0 && groupedDataIndices && ((open && duplicateHeaders) || index === 0)){
             const columnWidth = (blockHeight + (blockHorizontalSpacing * 2)) + 1;
             const headerItemStyle = { 'width' : columnWidth, 'minWidth' : columnWidth };
+            const sorterActiveStyle = _.extend({}, headerItemStyle, { backgroundColor: StackedBlockGroupedRow.getLighterHex(colorRanges[0]?.color, 0.8) });
+
             let columnKeys = _.keys(groupedDataIndices);
             if (Array.isArray(headerColumnsOrder)){
                 columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, headerColumnsOrder);
@@ -860,14 +877,14 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                         return null;
                                     }
                                     const groupColumnWidth = colCount * columnWidth;
-                                    const groupedHeaderItemStyle = {
+                                    const groupHeaderItemStyle = {
                                         width: groupColumnWidth,
                                         minWidth: groupColumnWidth
                                     }; // EXPERIMENTAL                                
-                                    groupedHeaderItemStyle.backgroundColor = columnGroups[groupKey].backgroundColor; // EXPERIMENTAL
-                                    groupedHeaderItemStyle.color = columnGroups[groupKey].textColor; // EXPERIMENTAL
+                                    groupHeaderItemStyle.backgroundColor = columnGroups[groupKey].backgroundColor; // EXPERIMENTAL
+                                    groupHeaderItemStyle.color = columnGroups[groupKey].textColor; // EXPERIMENTAL
                                     return (
-                                        <div key={'col-' + groupKey} className={'column-group-header'} style={groupedHeaderItemStyle}>
+                                        <div key={'col-' + groupKey} className={'column-group-header'} style={groupHeaderItemStyle}>
                                             <div className="inner">
                                                 <span>{groupKey}</span>
                                             </div>
@@ -890,9 +907,10 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                             }
 
                             const countSortIconClassName = 'column-sort-icon' + (['asc', 'desc'].indexOf(sorting) > -1 && columnKey === sortField ? ' active' : '');
-
+                            const extraClassName = (activeColumn === colIndex ? ' active-column' : '');
+                            const style = (activeColumn === colIndex) ? sorterActiveStyle : headerItemStyle;
                             return (
-                                <div key={'col-' + columnKey} className={'column-group-header' + (activeColumn === colIndex ? ' active-column' : '')} style={headerItemStyle}>
+                                <div key={'col-' + columnKey} className={'column-group-header' + extraClassName} style={style}>
                                     <div data-index={columnKey} onClick={onSorterClick}>
                                         <span className={countSortIconClassName}>{countSortIcon}</span>
                                     </div>
