@@ -29,7 +29,6 @@ export const Footer = React.memo(function Footer() {
                                 modification in compliance with Administration
                                 directives.
                             </div>
-                            <span></span>
                         </div>
                     </div>
                     {/* <div className="col-sm-6">
