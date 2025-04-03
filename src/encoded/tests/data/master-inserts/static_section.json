@@ -526,7 +526,7 @@
         ]
     },
     {
-        "identifier": "data-matrix",
+        "identifier": "data_matrix",
         "title": "Data Matrix",
         "file": "/src/encoded/static/data/data-matrix-demo-performant.jsx",
         "status": "draft",
@@ -545,7 +545,7 @@
         ]
     },
     {
-        "identifier": "data.retraction.table",
+        "identifier": "retracted_files",
         "title": "Data Retraction Table",
         "file": "/docs/public/retracted_files.jsx",
         "status": "public",
