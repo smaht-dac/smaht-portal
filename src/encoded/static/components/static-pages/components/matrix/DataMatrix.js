@@ -214,7 +214,7 @@ export default class DataMatrix extends React.PureComponent {
                 updatedState[resultKey] = result["@graph"] || [];
                 updatedState[resultKey] = _.map(updatedState[resultKey], (r) => this.standardizeResult(r));
             } else {
-                updatedState[resultKey] = DataMatrix.transformData(TEST_DATA/*result*/, this.state.fieldChangeMap);
+                updatedState[resultKey] = DataMatrix.transformData(result, this.state.fieldChangeMap);
             }
 
             this.setState(updatedState, () => ReactTooltip.rebuild());
@@ -304,6 +304,7 @@ export default class DataMatrix extends React.PureComponent {
                 selectedRow1Value={queries.url_fields[1]}
                 selectedRow2Value={queries.url_fields.length > 2 ? queries.url_fields[2] : null}
                 headerColumnsOrderValue={headerColumnsOrder}
+                initialColumnGroups={columnGroups}
                 colorRanges={colorRanges}
                 onApply={this.onApplyConfiguration}
             />

@@ -619,6 +619,25 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         return null;
     }
 
+    static hexToRgba = memoize(function (hex, opacity) {
+        if (!hex) return null;
+        // Remove the '#' character if present
+        hex = hex.replace('#', '');
+
+        // If using shorthand (3 digits), convert to full 6 digits
+        if (hex.length === 3) {
+            hex = hex.split('').map(ch => ch + ch).join('');
+        }
+
+        // Parse the R, G, B values from hex to decimal
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+
+        // Return the RGBA color string
+        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    });
+
     /** @todo Convert to functional memoized React component */
     static collapsedChildBlocks = memoize(function(data, props){
 
@@ -650,6 +669,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             'paddingRight'  : props.blockHorizontalSpacing,
             'paddingTop'    : props.blockVerticalSpacing
         };
+        const containerGroupActiveStyle = _.extend({}, containerGroupStyle, { backgroundColor: StackedBlockGroupedRow.hexToRgba(props.colorRanges[0]?.color, 0.2) });
         const groupedDataIndicesPairs = (props.groupedDataIndices && _.pairs(props.groupedDataIndices)) || [];
         let inner = null;
         let blocksByColumnGroup;
@@ -683,7 +703,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, props.headerColumnsOrder);
                 }
 
-                inner = _.map(columnKeys, function(k){
+                inner = _.map(columnKeys, function(k, colIdx){
                     return (
                         <div className="block-container-group" style={containerGroupStyle}
                             key={k} data-group-key={k}>
@@ -726,8 +746,13 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         }
                     }
 
+                    const style = (
+                        (props.activeRow === props.index && colIdx <= props.activeColumn) ||
+                        (props.activeColumn === colIdx && props.index <= props.activeRow)
+                    ) ? containerGroupActiveStyle : containerGroupStyle;
+
                     return (
-                        <div className="block-container-group" style={containerGroupStyle}
+                        <div className="block-container-group" style={style}
                             key={k} data-block-count={blocksForGroup.length} data-group-key={k}>
                             { _.map(blocksForGroup, function(blockData, i){
                                 var parentGrouping = (props.titleMap && props.titleMap[props.groupingProperties[props.depth - 1]]) || null;
