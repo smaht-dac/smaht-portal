@@ -359,7 +359,6 @@ def check_molecule_sequencing_properties(request, libraries: List[str], sequenci
     """Check at the FileSet level if Sequencing molecule-specific properties are present.
 
     If 'RNA' is in libraries.analytes.molecule, sequencing.target_read_count is present.
-    If 'DNA' is in libraries.analytes.molecule, sequencing.target_coverage is present
     """
     molecules = []
     for library in libraries:
@@ -370,22 +369,12 @@ def check_molecule_sequencing_properties(request, libraries: List[str], sequenci
             molecules += analyte_utils.get_molecule(
                 get_item_or_none(request, analyte, 'analytes')
             )
-    target_coverage = sequencing_utils.get_target_coverage(
-        get_item_or_none(request, sequencing, 'sequencing')
-    )
-    on_target_rate = sequencing_utils.get_on_target_rate(
-        get_item_or_none(request, sequencing, 'sequencing')
-    )
     target_read_count = sequencing_utils.get_target_read_count(
         get_item_or_none(request, sequencing, 'sequencing')
     )
     if "RNA" in molecules:
         if not target_read_count:
-            msg = "property `target_read_counts` is required for sequencing of RNA libraries"
-            return request.errors.add('body', 'Sequencing: invalid property', msg)
-    if "DNA" in molecules:
-        if not target_coverage and not on_target_rate:
-            msg = "either `on_target_rate` or `target_coverage` are required for sequencing of DNA libraries"
+            msg = "property `target_read_count` is required for sequencing of RNA libraries"
             return request.errors.add('body', 'Sequencing: invalid property', msg)
     return request.validated.update({})
 
