@@ -191,37 +191,39 @@ const default_sample_information = [
         getProp: (context = {}) => context?.sample_summary?.tissues?.join(', '),
     },
     {
-        title: 'Tissue Details',
+        title: 'Tissue Subtype',
         getProp: (context = {}) => {
-            // Show tissue details if different from tissue type
-            const tissue_type = context?.sample_summary?.tissues?.join(', ');
-            const tissue_details =
-                context?.sample_summary?.tissue_details?.join(', ');
+            // Show if different from tissue type
+            const tissue_type = context?.sample_summary?.tissues
+                ?.join(', ')
+                ?.toLowerCase();
+            const tissue_subtype = context?.sample_summary?.tissue_subtypes
+                ?.join(', ')
+                ?.toLowerCase();
 
-            return tissue_details &&
-                tissue_type?.toLowerCase() !== tissue_details?.toLowerCase()
-                ? tissue_details
+            return tissue_subtype && tissue_subtype !== tissue_type
+                ? capitalize(tissue_subtype)
                 : null;
         },
     },
     {
-        title: 'Tissue Subtype',
+        title: 'Tissue Details',
         getProp: (context = {}) => {
             // Show if different from tissue type AND tissue details
             const tissue_type = context?.sample_summary?.tissues
                 ?.join(', ')
                 ?.toLowerCase();
-            const tissue_details = context?.sample_summary?.tissue_details
-                ?.join(', ')
-                ?.toLowerCase();
             const tissue_subtype = context?.sample_summary?.tissue_subtypes
                 ?.join(', ')
                 .toLowerCase();
+            const tissue_details = context?.sample_summary?.tissue_details
+                ?.join(', ')
+                ?.toLowerCase();
 
-            return tissue_subtype &&
-                tissue_type !== tissue_subtype &&
+            return tissue_details &&
+                tissue_details !== tissue_type &&
                 tissue_details !== tissue_subtype
-                ? capitalize(tissue_subtype)
+                ? capitalize(tissue_details)
                 : null;
         },
     },
