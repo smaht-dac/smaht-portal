@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.154.0
+=======
+`PR 389: SN Update treatment <https://github.com/smaht-dac/smaht-portal/pull/389>`_
+
+* Update the Treatment item so that `agent` is a string, rather than a linkTo to OntologyTerm, and add enum values to `concentration_unit`
+
+
 0.153.2
 =======
 `PR 393: chore: update footer text <https://github.com/smaht-dac/smaht-portal/pull/393>`_
