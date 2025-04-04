@@ -656,7 +656,16 @@ class File(Item, CoreFile):
     def meta_workflow_run_outputs(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "meta_workflow_run_outputs")
         if result:
-            return result
+            request_handler = RequestHandler(request = request)
+            mwfrs=[ 
+                mwfr for mwfr in result
+                if get_property_value_from_identifier(
+                    request_handler,
+                    mwfr,
+                    item_utils.get_status
+                ) != "deleted"
+            ]
+            return mwfrs if mwfrs else None
         return
 
     @calculated_property(schema=CalcPropConstants.LIBRARIES_SCHEMA)
