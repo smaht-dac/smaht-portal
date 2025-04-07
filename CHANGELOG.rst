@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.151.1
+0.154.1
 =======
 `PR 361: fix: comment out unused Submissions page <https://github.com/smaht-dac/smaht-portal/pull/361>`_
 
