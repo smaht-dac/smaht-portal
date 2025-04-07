@@ -1,5 +1,7 @@
 import * as d3 from 'd3';
 
+import graph from './data/alluvial_data.json';
+
 /**
  * @description High level function that returns a sankey object with
  * many methods. Added to the global d3 object.
@@ -362,12 +364,15 @@ export function sankeyFunc() {
         }
 
         function descendingDepthCategorical(a, b) {
-            if (b.dy - a.dy === 0 && b.type === 'assay_type') {
-            }
-            let a_group = a.assay_group.split('-');
-            let b_group = b.assay_group.split('-');
+            const legendKeys = Object.keys(graph.colors.assay_group);
+            let a_color_index = legendKeys.indexOf(a.assay_group);
+            let b_color_index = legendKeys.indexOf(b.assay_group);
 
-            return a_group[0] - b_group[0] || a_group[1] - b_group[1];
+            return a_color_index - b_color_index;
+            // let a_group = a.assay_group;
+            // let b_group = b.assay_group;
+
+            // return a_group.localeCompare(b_group);
         }
     }
 

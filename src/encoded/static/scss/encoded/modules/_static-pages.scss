@@ -1742,6 +1742,48 @@ div#popover-consortium-map {
 // Alluvial
 .alluvial-container {
     font-family: Inter;
+
+	.alluvial-header {
+        background-color: #fcfdff;
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+
+		.header-items {
+			padding: 16px 11% 16px 6%;
+			margin: 0px;
+            font-family: Inter;
+            font-weight: 400;
+            font-size: 0.5rem;
+			border-bottom: 1px solid #dee2e6;
+		}
+		.show-hide-information-toggle {
+			padding: 5px 11% 5px 6%;
+			display: flex;
+			flex-direction: column-reverse;
+			
+			.toggle-information-container {
+				&.collapsed {
+					height: 0px;
+				}
+			}
+			.toggle-information-text-button {
+				display: flex;
+				align-items: center;
+				color: #5D5E63;
+				width: 100%;
+				font-size: 0.5rem;
+
+				i {
+					margin-left: 5px;
+				}
+
+				&:hover {
+					cursor: pointer;
+					background-color: #eff1f5;
+				}
+			}
+		}
+	}
     
     nav {
         font-weight: 400;
@@ -1770,12 +1812,6 @@ div#popover-consortium-map {
 		height: 100%;
 		width: 100%;
 		animation: 150ms ease-out fadeIn;
-
-        .header {
-            font-family: Inter;
-            font-weight: 400;
-            font-size: 1.1rem;
-        }
     }
     
     .node {
@@ -1819,8 +1855,58 @@ div#popover-consortium-map {
         }
     }
 	
-    @media screen and (max-width: 576px) {
+    @include media-breakpoint-up(sm) {
 		margin-top: 40px;
+		.alluvial-header {
+			// margin-left: 6%;
+			// margin-right: 11%;
+			.header-items {
+				font-size: 0.75rem;
+			}
+		}
+	}
+    @include media-breakpoint-up(md) {
+		margin-top: 40px;
+		.alluvial-header {
+			.header-items {
+				font-size: 0.75rem;
+			}
+
+			.show-hide-information-toggle {
+				.toggle-information-text-button {
+					font-size: 0.875rem;
+				}
+			}
+			
+		}
+	}
+    @include media-breakpoint-up(lg) {
+		.alluvial-header {
+			.header-items {
+				font-size: 1rem;
+			}
+		}
+	}
+    @include media-breakpoint-up(xl) {
+		.alluvial-header {
+			.header-items {
+				font-size: 1.25rem;
+			}
+		}
+	}
+    @include media-breakpoint-up(xxl) {
+		.alluvial-header {
+			.header-items {
+				font-size: 1.25rem;
+			}
+		}
+	}
+    @include media-breakpoint-up(xxxl) {
+		.alluvial-header {
+			.header-items {
+				font-size: 1.25rem;
+			}
+		}
 	}
 }
 
