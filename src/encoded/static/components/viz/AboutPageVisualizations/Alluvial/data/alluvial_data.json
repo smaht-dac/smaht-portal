@@ -334,12 +334,12 @@
             "transcriptomic":["#f9c1db"],
             "assay_group":{
                 "Bulk WGS":"#e04141",
-                "Bulk whole transcriptome":"#800080",
+                "Bulk whole transcriptome":"#AD48AD",
                 "Duplex-Seq":"#2B4792",
                 "Single-cell WGS":"#BDDB39",
                 "Targeted Sequencing":"#FFF175",
                 "Single-nuclear transcriptome":"#E2C290",
-                "Single-cell transcriptome":"#2D7DD2",
+                "Single-cell transcriptome":"#8DAADE",
                 "Other":"#76CBBE"
             }
     }
