@@ -1779,7 +1779,15 @@ div#popover-consortium-map {
 
 				&:hover {
 					cursor: pointer;
-					background-color: #eff1f5;
+					background-color: #F0F3F8;
+				}
+				&:focus-visible {
+					cursor: pointer;
+					background-color: #F0F3F8;
+					outline: 2px solid #E8EDF2;
+				}
+				&:active {
+					background-color: #ebeef3;
 				}
 			}
 		}
