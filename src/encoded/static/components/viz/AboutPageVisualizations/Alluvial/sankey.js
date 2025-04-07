@@ -369,10 +369,6 @@ export function sankeyFunc() {
             let b_color_index = legendKeys.indexOf(b.assay_group);
 
             return a_color_index - b_color_index;
-            // let a_group = a.assay_group;
-            // let b_group = b.assay_group;
-
-            // return a_group.localeCompare(b_group);
         }
     }
 
