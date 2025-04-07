@@ -100,12 +100,15 @@ const QCOverviewTable = ({ qcItems }) => {
                 <div className="data-group">
                     <div className="datum">
                         <span className="datum-title">
-                            <strong>
-                                Somalier sample duplicate check result (and the
-                                QC status)
-                            </strong>
+                            <strong>Somalier sample duplicate check</strong>
                         </span>
-                        <span className="datum-value text-gray">N/A</span>
+                        {'/qc-metrics' ? (
+                            <a href="/qc-metrics" className="">
+                                Link to Sample Relatedness Page
+                            </a>
+                        ) : (
+                            <span className="datum-value text-gray">N/A</span>
+                        )}
                     </div>
                     <div className="datum">
                         <span className="datum-title">
