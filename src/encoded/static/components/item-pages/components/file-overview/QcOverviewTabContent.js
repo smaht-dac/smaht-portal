@@ -8,6 +8,8 @@ import * as d3 from 'd3';
 // Formats the response data into a format that can be used in the table
 const formatRawData = (data) => {
     let headers = [];
+
+    let verifyBamId = null;
     const tableData = data.reduce((acc, qcItem) => {
         // Get the accession of the qcItem
         const accession = qcItem.accession;
@@ -24,6 +26,19 @@ const formatRawData = (data) => {
                 flag = null,
                 visible = false,
             } = qcValue;
+
+            // Check for the first VerifyBamID qc value
+            if (
+                verifyBamId === null &&
+                qcValue?.derived_from === 'verifybamid:freemix_alpha'
+            ) {
+                console.log('Found verifyBamID2 qc value');
+                verifyBamId = {
+                    tooltip,
+                    value,
+                    flag,
+                };
+            }
 
             // Add information from the visible qc_value
             if (visible) {
@@ -54,12 +69,15 @@ const formatRawData = (data) => {
     return {
         headers,
         tableData,
+        verifyBamId,
     };
 };
 
 // Render a QC Overview table with given quality_metrics items [qcItems]
 const QCOverviewTable = ({ qcItems }) => {
     const [data, setData] = useState(null);
+
+    console.log('data: ', data);
 
     useEffect(() => {
         const searchUrl = `/search/?${qcItems
@@ -92,11 +110,17 @@ const QCOverviewTable = ({ qcItems }) => {
                     <div className="datum">
                         <span className="datum-title">
                             <strong>
-                                VerifyBamID2 human contamination check result
-                                (and the QC status)
+                                VerifyBamID2 Human Contamination Check
                             </strong>
                         </span>
-                        <span className="datum-value text-gray">N/A</span>
+                        {data?.verifyBamId ? (
+                            <span className="datum-value lh-1">
+                                {data?.verifyBamId?.value}{' '}
+                                {getBadge(data?.verifyBamId?.flag)}
+                            </span>
+                        ) : (
+                            <span className="datum-value text-gray">N/A</span>
+                        )}
                     </div>
                     <div className="datum">
                         <span className="datum-title">
