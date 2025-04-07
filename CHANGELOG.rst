@@ -7,11 +7,92 @@ smaht-portal
 Change Log
 ----------
 
-0.149.0
+0.155.0
 =======
 `PR 379: feat: implement QC Overview Tab <https://github.com/smaht-dac/smaht-portal/pull/384>`_
 
 * Populate quality metrics table in QC overview tab
+
+
+0.154.1
+=======
+`PR 361: fix: comment out unused Submissions page <https://github.com/smaht-dac/smaht-portal/pull/361>`_
+
+* Comment out the submissions page calculated property
+
+
+0.154.0
+=======
+`PR 389: SN Update treatment <https://github.com/smaht-dac/smaht-portal/pull/389>`_
+
+* Update the Treatment item so that `agent` is a string, rather than a linkTo to OntologyTerm, and add enum values to `concentration_unit`
+
+
+0.153.2
+=======
+`PR 393: chore: update footer text <https://github.com/smaht-dac/smaht-portal/pull/393>`_
+
+* Update text in footer
+
+
+0.153.1
+=======
+`PR 391: SN Fix pathology report <https://github.com/smaht-dac/smaht-portal/pull/391>`_
+
+* Fix enum typo for percentage in PathologyReport
+* Reformat and reorder properties in BrainPathologyReport and NonBrainPathologyReport
+
+
+0.153.0
+=======
+`PR 385: SN Fix release tracker calcprop <https://github.com/smaht-dac/smaht-portal/pull/385>`_
+
+* Fix the `release_tracker_title` and `release_tracker_description` calcprops to have the override property function in the case of having multiple values from `file_sets`
+* Make `file_sets` a required property for SupplementaryFile, as it is for all other SubmittedFile types, so that the File Overview display and Manifest File generation work properly
+
+
+0.152.0
+=======
+`PR 387: QC metrics page improvements <https://github.com/smaht-dac/smaht-portal/pull/387>`_
+
+* Redesign of the Key metrics tab
+* Added Tissue classification table for RNA-Seq data under Key metrics tab
+* Add "Metrics by file" tab, that can be linked from the file overview page
+* Alerts on the sample contamination heatmap are now determined on a file (and not donor) level. Retracted files do not generate a warning.
+
+
+0.151.0
+=======
+`PR 388: SN Add retraction_reason <https://github.com/smaht-dac/smaht-portal/pull/388>`_
+
+* Add property `retraction_reason` to File for display in the Data Retraction page and File Manifest
+
+
+0.150.1
+=======
+`PR 386: Fix page title registry for /browse <https://github.com/smaht-dac/smaht-portal/pull/386>`_
+
+* Fix broken page title in Browse View
+
+
+0.150.0
+=======
+`PR 375: SN gpu upgrade <https://github.com/smaht-dac/smaht-portal/pull/375>`_
+
+* Change the property `gpu` to `gpu_architecture` in Software
+* Include upgrader with test
+
+
+0.149.0
+=======
+`PR 381: Home and Search Page Updates <https://github.com/smaht-dac/smaht-portal/pull/381>`_
+
+* Enables the previously disabled data release tracker links on the home page
+* Adds date for announcements on the home page when applicable
+* Fixes overflow/overlapping issues in the facet date range
+* Replaces erroneously displayed date_created under the Released column with file_tracking_status.released_date in file tables
+* Updates data retraction notice in the COLO829 benchmarking page
+* Makes the released files title in file search view more prominent
 
 
 0.148.2
@@ -129,7 +210,7 @@ Change Log
 =======
 `PR 309: SN validate external_id <https://github.com/smaht-dac/smaht-portal/pull/309>`_
 
-*  Add a custom validator to TissueSample that ensures the `external_id` for items from benchmarking and production Donors matches the pattern expected for category (currently only applied to TPC submitted items)
+* Add a custom validator to TissueSample that ensures the `external_id` for items from benchmarking and production Donors matches the pattern expected for category (currently only applied to TPC submitted items)
 * Make `tpc_submitted` a required property for Donor
 
 
