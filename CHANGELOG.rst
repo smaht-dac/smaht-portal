@@ -7,11 +7,52 @@ smaht-portal
 Change Log
 ----------
 
-0.152.0
+0.155.0
 =======
 `PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`
 
 * Update the About page Alluvial plot and data matrix
+* Refactor showHideInformationToggle component for additional customization
+
+
+0.154.0
+=======
+`PR 389: SN Update treatment <https://github.com/smaht-dac/smaht-portal/pull/389>`_
+
+* Update the Treatment item so that `agent` is a string, rather than a linkTo to OntologyTerm, and add enum values to `concentration_unit`
+
+
+0.153.2
+=======
+`PR 393: chore: update footer text <https://github.com/smaht-dac/smaht-portal/pull/393>`_
+
+* Update text in footer
+
+
+0.153.1
+=======
+`PR 391: SN Fix pathology report <https://github.com/smaht-dac/smaht-portal/pull/391>`_
+
+* Fix enum typo for percentage in PathologyReport
+* Reformat and reorder properties in BrainPathologyReport and NonBrainPathologyReport
+
+
+0.153.0
+=======
+`PR 385: SN Fix release tracker calcprop <https://github.com/smaht-dac/smaht-portal/pull/385>`_
+
+* Fix the `release_tracker_title` and `release_tracker_description` calcprops to have the override property function in the case of having multiple values from `file_sets`
+* Make `file_sets` a required property for SupplementaryFile, as it is for all other SubmittedFile types, so that the File Overview display and Manifest File generation work properly
+
+
+0.152.0
+=======
+`PR 387: QC metrics page improvements <https://github.com/smaht-dac/smaht-portal/pull/387>`_
+
+* Redesign of the Key metrics tab
+* Added Tissue classification table for RNA-Seq data under Key metrics tab
+* Add "Metrics by file" tab, that can be linked from the file overview page
+* Alerts on the sample contamination heatmap are now determined on a file (and not donor) level. Retracted files do not generate a warning.
 
 
 0.151.0
