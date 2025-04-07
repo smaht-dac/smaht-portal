@@ -89,7 +89,12 @@
         "status": "released",
         "sequencing_center": "smaht",
         "annotated_filename": "SMHTHELA-X-X-F65-B102-test-SMAURV9YIJWF-X.fastq.gz",
-        "dataset": "colo829t"
+        "dataset": "colo829t",
+        "tags": [
+            "test_release_tracker",
+            "release_tracker_title-HELA",
+            "release_tracker_description-MAS-ISO-SeqPacBioRevioFASTQ"
+        ]
     },
     {
         "uuid": "621e0ea9-0365-4e65-9790-05aa43c52261",
@@ -109,7 +114,12 @@
             "TEST_FILE-SET_HELA_ONLY-RNA"
         ],
         "read_pair_number": "R2",
-        "paired_with": "TEST_UNALIGNED-READS_HELA-FASTQ-R1"
+        "paired_with": "TEST_UNALIGNED-READS_HELA-FASTQ-R1",
+        "tags": [
+            "test_release_tracker",
+            "release_tracker_title-HELA",
+            "release_tracker_description-MAS-ISO-SeqPacBioRevioFASTQ"
+        ]
     },
     {
         "uuid": "92e8371b-bcdf-44de-ad49-3a5f108e91eb",
