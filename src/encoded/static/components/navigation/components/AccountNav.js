@@ -71,7 +71,7 @@ export const AccountNav = React.memo(function AccountNav(props) {
         // Render login button
         return (
             <div className="navbar-nav navbar-acct">
-                <DataRetractionButton />
+                {/* <DataRetractionButton /> */}
                 <HelpdeskButton />
                 <LoginController {...{ updateAppSessionState, auth0Options, auth0PopupText }}>
                     <LoginNavItem
