@@ -13,23 +13,31 @@ When and how do I "Link To" another object?
 -------------------------------------------
 In the submission spreadsheet (See `Getting Started with Submissions </docs/submission/getting-started-with-submissions>`_), columns with *italicized* names indicate LinkTo fields. For example, Library items require links to Analyte and Assay items, as shown in the image below.
 
+
 .. image:: /static/img/docs/submission_spreadsheet_example_library.jpg
   :alt: Submission spreadsheet Library screenshot
 
 
+
+
 To link two items together, simply grab the identifier for the item you are linking to and copy it into the corresponding cell in the spreadsheet. In the example below, the Library item is linking to an Analyte item in the same workbook using its ``submitted_id`` and is linking to an assay on the data portal using its ``identifier``.
+
 
 .. image:: /static/img/docs/link_to_example_diagram.jpg
   :alt: Linking example diagram
+
+
 
 
 Finding the correct IDs to submit
 ---------------------------------
 LinkTo property values must uniquely identify an object, either through a ``submitted_id`` value from another row and/or sheet in the submission workbook or an identifying property for an existing object on the portal (which could also be a ``submitted_id``).
 
+
 For objects or rows in your workbook
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 When linking items that are already on your submission workbook in another row and/or sheet, please use the ``submitted_id`` value as the unique identifier for that item. Refer to the image above with the link from Library to Analyte to see an example of this.
+
 
 For objects already on the data portal
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -49,6 +57,7 @@ The links to the different reference tables can also be found right from the sub
 
 Links to data tables to find identifiers on the portal
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. raw:: html
 
     <hr />
