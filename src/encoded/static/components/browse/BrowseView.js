@@ -148,13 +148,24 @@ export const DonorMetadataDownloadButton = ({ session }) => {
         <a
             href={downloadLink}
             download="test.tsv"
+            data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
             className="btn btn-outline-secondary me-1">
-            <span data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies.">
+            <span>
                 <i className="icon icon-fw icon-users fas me-1" />
                 Donor Metadata
             </span>
         </a>
-    ) : null;
+    ) : (
+        <button
+            data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
+            className="btn btn-outline-secondary me-1"
+            disbaled>
+            <span>
+                <i className="icon icon-fw icon-users fas me-1" />
+                Donor Metadata
+            </span>
+        </button>
+    );
 };
 
 export const BrowseViewSearchTable = (props) => {
@@ -185,7 +196,7 @@ export const BrowseViewSearchTable = (props) => {
             topLeftChildren={
                 <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
             }>
-            <DonorMetadataDownloadButton session={session} />
+            {session && <DonorMetadataDownloadButton session={session} />}
             <SelectedItemsDownloadButton
                 id="download_tsv_multiselect"
                 disabled={selectedItems.size === 0}
