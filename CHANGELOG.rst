@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.156.0
+=======
+`PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`
+
+* Update the About page Alluvial plot and data matrix
+* Refactor showHideInformationToggle component for additional customization
+
+
 0.155.0
 =======
 `PR 395: SN Update MWFR outputs calcprop <https://github.com/smaht-dac/smaht-portal/pull/395>`_
