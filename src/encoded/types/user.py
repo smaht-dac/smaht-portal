@@ -119,11 +119,11 @@ def profile(context, request):
     }
 
 
-@calculated_property(context=User, category='user_action')
-def submissions(request):
-    """smth."""
-    return {
-        'id': 'submissions',
-        'title': 'Submissions',
-        'href': '/submissions',
-    }
+# @calculated_property(context=User, category='user_action')
+# def submissions(request):
+#     """smth."""
+#     return {
+#         'id': 'submissions',
+#         'title': 'Submissions',
+#         'href': '/submissions',
+#     }
