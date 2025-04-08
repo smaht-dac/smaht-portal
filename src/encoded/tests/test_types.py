@@ -33,7 +33,7 @@ def test_expected_unique_keys(testapp: TestApp) -> None:
         "filter_set": None,
         "image": None,
         "ingestion_submission": None,
-        "metadata_file": None,
+        "resource_file": None,
         "meta_workflow": None,
         "meta_workflow_run": None,
         "output_file": None,
