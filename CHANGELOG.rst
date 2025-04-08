@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.154.3
+=======
+`PR 396: SN Fix donor sex facet <https://github.com/smaht-dac/smaht-portal/pull/396>`_
+
+* Fix facet for "Donor Sex" in File
+
+
 0.154.2
 =======
 `PR 390: feat: add tissue details and tissue subtype to File Overview page <https://github.com/smaht-dac/smaht-portal/pull/390>`_
