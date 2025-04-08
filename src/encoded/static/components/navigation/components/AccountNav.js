@@ -126,7 +126,7 @@ export const AccountNav = React.memo(function AccountNav(props) {
     // `navItemProps` contains: href, windowHeight, windowWidth, isFullscreen, testWarning, mounted, overlaysContainer
     return (
         <div className="navbar-nav navbar-acct">
-            <DataRetractionButton />
+            {/* <DataRetractionButton /> */}
             <HelpdeskButton />
             <BigDropdownNavItem
                 {...passProps}
