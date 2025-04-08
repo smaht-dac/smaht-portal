@@ -82,9 +82,9 @@
                 "enum": [
                     "AlignedReads",
                     "HistologyImage",
-                    "MetadataFile",
                     "OutputFile",
                     "ReferenceFile",
+                    "ResourceFile",
                     "SupplementaryFile",
                     "UnalignedReads",
                     "VariantCalls"

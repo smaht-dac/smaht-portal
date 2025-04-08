@@ -111,7 +111,7 @@
         "identifier": "TSV",
         "standard_file_extension": "tsv",
         "valid_item_types": [
-            "MetadataFile"
+            "ResourceFile"
         ]
     }
 ]
