@@ -13,19 +13,23 @@ When and how do I "Link To" another object?
 -------------------------------------------
 In the submission spreadsheet (See `Getting Started with Submissions </docs/submission/getting-started-with-submissions>`_), columns with *italicized* names indicate LinkTo fields. For example, Library items require links to Analyte and Assay items, as shown in the image below.
 
+|
 
 .. image:: /static/img/docs/submission_spreadsheet_example_library.jpg
   :alt: Submission spreadsheet Library screenshot
 
+|
 
 
 
 To link two items together, simply grab the identifier for the item you are linking to and copy it into the corresponding cell in the spreadsheet. In the example below, the Library item is linking to an Analyte item in the same workbook using its ``submitted_id`` and is linking to an assay on the data portal using its ``identifier``.
 
+|
 
 .. image:: /static/img/docs/link_to_example_diagram.jpg
   :alt: Linking example diagram
 
+|
 
 
 
@@ -45,19 +49,21 @@ To find an existing identifier on the portal, please use the links provided belo
 
 The links to the different reference tables can also be found right from the submission spreadsheet itself:
 
+|
 
 .. image:: /static/img/docs/submitr_spreadsheet_item_dropdown_example.jpg
   :alt: Linking example diagram
 
+|
 
 .. NOTE::
   You need to be logged in to the SMaHT data portal in order to see the data at the provided links.
 
+|
 
 
 Links to data tables to find identifiers on the portal
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 .. raw:: html
 
     <hr />
@@ -73,31 +79,31 @@ Links to data tables to find identifiers on the portal
                 <tr class="">
                     <td class="px-2 d-flex flex-column">
                         <a href="/search/?type=Donor">
-                            Donors
+                            <b>Donors</b>
                         </a>
                         <a href="/search/?type=Tissue">
-                            Tissues
+                            <b>Tissues</b>
                         </a>
                         <a href="/search/?type=CellCulture">
-                            CellCultures
+                            <b>CellCultures</b>
                         </a>
                         <a href="/search/?type=PreparationKit">
-                            PreparationKit
+                            <b>PreparationKit</b>
                         </a>
                         <a href="/search/?type=Treatment">
-                            Treatment
+                            <b>Treatment</b>
                         </a>
                         <a href="/search/?type=LibraryPreparation">
-                           LibraryPreparation
+                            <b>LibraryPreparation</b>
                         </a>
                         <a href="/search/?type=AnalytePreparation">
-                           AnalytePreparation
+                            <b>AnalytePreparation</b>
                         </a>
                         <a href="/search/?type=DonorSpecificAssembly">
-                           DonorSpecificAssembly
+                            <b>DonorSpecificAssembly</b>
                         </a>
                         <a href="/search/?type=Software">
-                           Software
+                            <b>Software</b>
                         </a>
                     </td>
                     <td class="px-2">
@@ -107,15 +113,15 @@ Links to data tables to find identifiers on the portal
                 <tr class="">
                     <td class="px-2 d-flex flex-column">
                         <a href="https://data.smaht.org/search/?type=Sequencer">
-                           Sequencers
+                           <b>Sequencers</b>
                         </a>
                         <a href="https://data.smaht.org/search/?type=Assay">
-                           Assays
+                           <b>Assays</b>
                         </a>
                         <a href="https://data.smaht.org/search/?type=ReferenceGenome">
-                           ReferenceGenomes
+                           <b>ReferenceGenomes</b>
                         </a>
-                        FileFormats
+                        <b>FileFormats</b>
                         <ul class="mt-0">
                            <li>For <a href="https://data.smaht.org/search/?type=FileFormat&valid_item_types=UnalignedReads">UnalignedReads</a></li>
                            <li>For <a href="https://data.smaht.org/search/?type=FileFormat&valid_item_types=AlignedReads">AlignedReads</a></li>
@@ -140,6 +146,8 @@ Links to data tables to find identifiers on the portal
 Overview of the data model
 --------------------------
 As mentioned previously, metadata in the portal is connected by linking objects of a variety of item types together. A simplified version of the data model is shown below, with items linking together to indicate how files were derived from experiments, samples, and donors. This structure allows for clear interpretation of the origin of sequence data.
+
+|
 
 .. image:: /static/img/docs/data_model.png
   :alt: Data Model
