@@ -1769,6 +1769,56 @@ div#popover-consortium-map {
 // Alluvial
 .alluvial-container {
     font-family: Inter;
+
+	.alluvial-header {
+        background-color: #fcfdff;
+        border-radius: 10px;
+        border: 1px solid #E8EDF2;
+
+		.header-items {
+			padding: 16px 11% 16px 6%;
+			margin: 0px;
+            font-family: Inter;
+            font-weight: 400;
+            font-size: 0.5rem;
+			border-bottom: 1px solid #E8EDF2;
+		}
+		.show-hide-information-toggle {
+			padding: 5px 11% 5px 6%;
+			display: flex;
+			flex-direction: column-reverse;
+			
+			.toggle-information-container {
+				&.collapsed {
+					height: 0px;
+				}
+			}
+			.toggle-information-text-button {
+				display: flex;
+				align-items: center;
+				color: #5D5E63;
+				width: 100%;
+				font-size: 0.5rem;
+
+				i {
+					margin-left: 5px;
+				}
+
+				&:hover {
+					cursor: pointer;
+					background-color: #F0F3F8;
+				}
+				&:focus-visible {
+					cursor: pointer;
+					background-color: #F0F3F8;
+					outline: 2px solid #E8EDF2;
+				}
+				&:active {
+					background-color: #ebeef3;
+				}
+			}
+		}
+	}
     
     nav {
         font-weight: 400;
@@ -1778,6 +1828,8 @@ div#popover-consortium-map {
         color: gray;
         font-size: .9rem;
         font-style: italic;
+		margin-top: 20px;
+		
 		@media screen and (min-width: 768px) and (max-width: 992px) {
 			font-size: .8rem;
 		}
@@ -1794,12 +1846,7 @@ div#popover-consortium-map {
 		max-width: 100%;
 		height: 100%;
 		width: 100%;
-
-        .header {
-            font-family: Inter;
-            font-weight: 400;
-            font-size: 1.1rem;
-        }
+		animation: 150ms ease-out fadeIn;
     }
     
     .node {
@@ -1843,8 +1890,58 @@ div#popover-consortium-map {
         }
     }
 	
-    @media screen and (max-width: 576px) {
+    @include media-breakpoint-up(sm) {
 		margin-top: 40px;
+		.alluvial-header {
+			// margin-left: 6%;
+			// margin-right: 11%;
+			.header-items {
+				font-size: 0.75rem;
+			}
+		}
+	}
+    @include media-breakpoint-up(md) {
+		margin-top: 40px;
+		.alluvial-header {
+			.header-items {
+				font-size: 0.75rem;
+			}
+
+			.show-hide-information-toggle {
+				.toggle-information-text-button {
+					font-size: 0.875rem;
+				}
+			}
+			
+		}
+	}
+    @include media-breakpoint-up(lg) {
+		.alluvial-header {
+			.header-items {
+				font-size: 1rem;
+			}
+		}
+	}
+    @include media-breakpoint-up(xl) {
+		.alluvial-header {
+			.header-items {
+				font-size: 1.25rem;
+			}
+		}
+	}
+    @include media-breakpoint-up(xxl) {
+		.alluvial-header {
+			.header-items {
+				font-size: 1.25rem;
+			}
+		}
+	}
+    @include media-breakpoint-up(xxxl) {
+		.alluvial-header {
+			.header-items {
+				font-size: 1.25rem;
+			}
+		}
 	}
 }
 
@@ -1853,29 +1950,53 @@ $gcc-color: rgba(255, 128, 0, 0.6);
 $ttd-color: rgba(77, 175, 74, 0.8);
 
 .stackrow-table-container {
-	width: 100%;
+    overflow-x: hidden;
 	height: auto;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
+	
+	.table-container {
+		overflow-x: auto;
+		overflow-y: hidden;
+		&::-webkit-scrollbar {
+			height: 8px;
+			background-color: white;
+		}
+		&::-webkit-scrollbar-thumb {
+			border-radius: 5px;
+			background-color: gray;
+		}
+	}
 
 	.stackrow {
 		&-table {
 			width: max-content;
 			margin: auto;
 
+			&:before {
+				content: "";
+				display: block;
+				height: 200px;
+				width: 130px;
+				background-color: white;
+				overflow: hidden;
+				position: absolute;
+				z-index: 2;
+			}
+
 			&-top-labels {
 				background-color: transparent;
 				display:flex;
 				justify-content: end;
-				height: 100px;
-				margin-top: 100px;
+				height: min-content;
 				padding-right: 30px;
 
 				& > tr { 
 					width: 100%;
-					display:flex;
+					display: flex;
 					justify-content: end;
+					height: 200px;
 				}
 
 				.label {
@@ -1894,7 +2015,8 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 						font-weight: normal;
 						
 						&:hover {
-							cursor: pointer
+							cursor: pointer;
+							font-weight: 500;
 						}
 						&:focus-visible {
 							outline-width: 2px;
@@ -1929,53 +2051,41 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 			&-body {
 				display: flex;
 				flex-direction: column;
-				padding-right: 30px;
+				padding: 0px 30px 10px 0px;
 
 				& > .stackrow-row {
 					display: flex;
 					margin-right: auto;
+					background-color: white;
 
 					&:nth-child(odd) {
 						background-color: #F8F8F8;
+
+						& > .stackrow-left-label {
+							background-color: #F8F8F8;
+						}
 					}
 
 					& > .stackrow-left-label {
+						position: sticky;
+						left: 0px;
+						z-index: 2;
 						display: flex;
 						height: 50px;
-						width: 120px;
+						width: 130px;
 						padding-left: 20px;
+						background-color: white;
 						border-left: 10px solid;
 						border-style: none none none solid;
-	
-						&[data-row-title="BCM-GCC"] {
-							border-color: $gcc-color;
-							background-color: #F8F8F8;
-						}
-						&[data-row-title="Broad"] {
-							border-color: $gcc-color;
-							background-color: white;
-						}
-						&[data-row-title="NYGC"] {
-							border-color: $gcc-color;
-							background-color: #F8F8F8;
-						}
-						&[data-row-title="UW"] {
-							border-color: $gcc-color;
-							background-color: white;
-						}
-						&[data-row-title="WashU"] {
-							border-color: $gcc-color;
-							background-color: #F8F8F8;
-						}
-						&[data-row-title="BCM-TTD"] {
-							border-color: $ttd-color;
-							background-color: white;
-						}
-						&[data-row-title="UMich"] {
-							border-color: $ttd-color;
-							background-color: #F8F8F8;
-						}
+						border-right: 4px solid rgba(238, 238, 238, 0.8);
 
+						&[data-row-category="GCC"] {
+							border-left-color: $gcc-color;
+						}
+						&[data-row-category="TTD"] {
+							border-left-color: $ttd-color;
+						}
+	
 						.label {
 							display: flex;
 							justify-content: center;
@@ -2034,6 +2144,7 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 				margin: 20px auto auto auto;
 				color: gray;
 				font-size: 1rem;
+				text-align: center;
 			}
 		}
 	}

@@ -1,6 +1,6 @@
 [
     {
-        "name": "WGS",
+        "name": "Bulk WGS",
         "display_name": "Bulk WGS",
         "description": "Bulk whole genome sequencing (WGS) using short-read or long-read platforms."
     },
@@ -10,10 +10,10 @@
         "description": "Bulk whole transcriptome sequencing using short-read platforms."
     },
     {
-        "name": "WGS Nanoseq",
+        "name": "WGS NanoSeq",
         "display_name": "NanoSeq",
-        "description": "Nanorate sequencing; a variation of duplex sequencing.",
-        "link": "https://pubmed.ncbi.nlm.nih.gov/33911282/"
+        "description": "Nanorate sequencing, Duplex sequencing strategy.",
+        "link": "https://doi.org/10.1038/s41586-021-03477-4"
     },
     {
         "name": "NT-Seq",
@@ -27,16 +27,10 @@
         "description": "Single-nucleus RNA-Seq."
     },
     {
-        "name": "WGS CODEC",
+        "name": "CODEC",
         "display_name": "CODEC",
-        "description": "Concatenating Original Duplex for Error Correction (CODEC); a variation of duplex sequencing.",
-        "link": "https://pubmed.ncbi.nlm.nih.gov/37106072/"
-    },
-    {
-        "name": "WGS Duplex sequencing",
-        "display_name": "Duplex sequencing",
-        "description": "Sequencing each of the two strands of a DNA duplex.",
-        "link": "https://pubmed.ncbi.nlm.nih.gov/22853953/"
+        "description": "Concatenating Original Duplex for Error Correction (CODEC) Duplex-Sequencing strategy.",
+        "link": "https://www.nature.com/articles/s41588-023-01376-0"
     },
     {
         "name": "WGS DLP+",
@@ -45,16 +39,16 @@
         "link": "https://pubmed.ncbi.nlm.nih.gov/31730858/"
     },
     {
-        "name": "Fiber-Seq",
-        "display_name": "Fiber-Seq",
-        "description": "Genomewide profiling of chromatin accessibility at the single-molecule level.",
-        "link": "https://pubmed.ncbi.nlm.nih.gov/32587015/"
+        "name": "ppmSeq",
+        "display_name": "ppmSeq",
+        "description": "Paired plus minus sequencing (ppmSeq); Duplex sequencing strategy.",
+        "link": "https://www.ultimagenomics.com/ppmseq-for-rare-event-detection/"
     },
     {
-        "name": "MAS-Seq",
-        "display_name": "MAS-ISO-Seq",
-        "description": "Multiplexed Arrays Sequencing of transcript isoforms; high-throughput sequencing of mRNA isoforms using long-read platforms.",
-        "link": "https://www.biorxiv.org/content/10.1101/2021.10.01.462818v1.abstract"
+        "name": "Fiber-Seq",
+        "display_name": "Fiber-Seq",
+        "description": "Profiles of chromatin fiber structures using nonspecific DNA N6-adenine methyltransferases.",
+        "link": "https://www.science.org/doi/10.1126/science.aaz1646"
     },
     {
         "name": "Hi-C",
@@ -63,14 +57,20 @@
         "link": "https://pubmed.ncbi.nlm.nih.gov/19815776/"
     },
     {
-        "name": "Targeted RNA-Seq",
+        "name": "Kinnex",
+        "display_name": "Kinnex",
+        "description": "Multiplexed Arrays Sequencing of transcript isoforms; high-throughput sequencing of mRNA isoforms using long-read platforms.",
+        "link": "https://www.biorxiv.org/content/10.1101/2021.10.01.462818v1.abstract"
+    },
+    {
+        "name": "10X Genomics Xenium",
         "display_name": "10X Genomics Xenium",
         "description": "Targeted spatial RNA-Sequencing."
     },
     {
         "name": "STORM-Seq",
         "display_name": "STORM-Seq",
-        "description": "Single-cell Total RNA Miniaturized sequencing; a single-cell full-length ribo-reduced total RNA sequencing using short-read platforms.",
+        "description": "Single-cell total RNA Miniaturized sequencing; a single-cell full-length ribo-reduced total RNA sequencing using short-read platforms.",
         "link": "https://www.biorxiv.org/content/10.1101/2022.03.14.484332v1"
     },
     {
@@ -79,27 +79,92 @@
         "description": "Single-cell full-length RNA-Seq using long-read platforms."
     },
     {
-        "name": "WGS CompDuplex-Seq",
+        "name": "CompDuplex-Seq",
         "display_name": "CompDuplex-Seq",
-        "description": "Accurate detection of somatic mutations by duplex-seq with comprehensive genome coverage",
-        "link": "https://www.protocols.io/view/compduplex-accurate-detection-of-somatic-mutations-c7rkzm4w"
+        "description": "Duplex-Sequencing strategy at a single-cell or bulk tissue resolution.",
+        "link": "https://www.protocols.io/view/compduplex-accurate-detection-of-somatic-mutations-kxygx3x4og8j/v1"
     },
     {
-        "name": "WGS scCompDuplex-Seq",
-        "display_name": "scCompDuplex-Seq",
-        "description": "Click below to learn more about the scCompDuplex-Seq protocol",
-        "link": "https://www.protocols.io/view/compduplex-accurate-detection-of-somatic-mutations-c7rkzm4w"
-    },
-    {
-        "name": "WGS MALBAC-amplifed",
-        "display_name": "MALBAC-amplifed WGS",
-        "description": "Click below to learn more about the MALBAC-amplifed WGS",
-        "link":"https://pubmed.ncbi.nlm.nih.gov/23258894/"
+        "name": "MALBAC-amplified WGS",
+        "display_name": "MALBAC-amplified WGS",
+        "description": "Single-cell whole genome amplification method.",
+        "link": "https://doi.org/10.1126/science.1229164"
     },
     {
         "name": "TEnCATS",
         "display_name": "TEnCATS",
         "description": "Cas9-targeted enrichment for L1 mobile elements",
-        "link":"https://www.nature.com/articles/s41467-021-23918-y"
+        "link": "https://www.nature.com/articles/s41467-021-23918-y"
+    },
+    {
+        "name": "ATAC-Seq",
+        "display_name": "ATAC-Seq",
+        "description": "Assay for Transposase-Accessible Chromatin using sequencing (ATAC-Seq); genome wide profiling of chromatin accessibility.",
+        "link": "https://doi.org/10.1038/nmeth.2688"
+    },
+    {
+        "name": "ATAC-Seq",
+        "display_name": "ATAC-Seq",
+        "description": "Assay for Transposase-Accessible Chromatin using sequencing (ATAC-Seq); genome wide profiling of chromatin accessibility.",
+        "link": "https://doi.org/10.1038/nmeth.2688"
+    },
+    {
+        "name": "HiDEF-Seq",
+        "display_name": "HiDEF-Seq",
+        "description": "Hairpin Duplex Enhanced Fidelity Sequencing (HiDEF-Seq) Duplex-sequencing strategy.",
+        "link": "https://doi.org/10.1038/s41586-024-07532-8"
+    },
+    {
+        "name": "VISTA-Seq",
+        "display_name": "VISTA-Seq",
+        "description": "Tn5 transposase-based Duplex-sequencing strategy at a single-cell, microbulk (10 to 100s of cells), or bulk tissue resolution.",
+        "link": "https://www.protocols.io/view/tn5-duplex-sequencing-tn5-duplex-seq-for-low-input-6qpvr3nbzvmk/v1"
+    },
+    {
+        "name": "scDip-C",
+        "display_name": "scDip-C",
+        "description": "Diploid chromatin conformation capture (Dip-C); single-cell genomewide profiling of chromatin interactions.",
+        "link": "https://doi.org/10.1016/j.xpro.2021.100622"
+    },
+    {
+        "name": "HAT-Seq",
+        "display_name": "HAT-Seq",
+        "description": "Human Active Transposon sequencing (HAT-Seq); a PCR-based targeted bulk sequencing method for identifiying L1Hs insertions at a single-cell, microbulk (10 to 100s of cells), or bulk tissue resolution.",
+        "link": "https://doi.org/10.1371/journal.pgen.1008043"
+    },
+    {
+        "name": "L1-ONT",
+        "display_name": "L1-ONT",
+        "description": "Enrichment for L1 mobile elements followed by ONT sequencing.",
+        "link": "https://doi.org/10.1371/journal.pgen.1008043"
+    },
+    {
+        "name": "PTA-amplified WGS",
+        "display_name": "PTA-amplified WGS",
+        "description": "Primary template-directed amplification-based single-cell whole genome amplification.",
+        "link": "https://doi.org/10.1073/pnas.2024176118"
+    },
+    {
+        "name": "Strand-Seq",
+        "display_name": "Strand-Seq",
+        "description": "Single-cell template strand sequencing.",
+        "link": "https://doi.org/10.1038/nprot.2017.029"
+    },
+    {
+        "name": "varCUT&Tag",
+        "display_name": "varCUT&Tag",
+        "description": "Identification and characterization of sequence variants in regulatory elements and genes."
+    },
+    {
+        "name": "Slide-tags snRNA-Seq",
+        "display_name": "Slide-tags snRNA-Seq",
+        "description": "High-resolution spatial genomics assay for single-nucleus RNA sequencing.",
+        "link": "https://www.protocols.io/view/slide-tags-snrna-seq-protocol-v-1-2-tags-ewov196wylr2/v1"
+    },
+    {
+        "name": "GoT-ChA",
+        "display_name": "GoT-ChA",
+        "description": "Genotyping of Targeted loci with single-cell Chromatin Accessibility (GoT-ChA); single-cell multi-omic assay for linking mutations to chromatin accessibility profiles.",
+        "link": "http://dx.doi.org/10.17504/protocols.io.ewov19pn2lr2/v1"
     }
 ]
