@@ -9,7 +9,7 @@ Change Log
 
 0.156.2
 =======
-`PR 396: Submission Status page improvement <https://github.com/smaht-dac/smaht-portal/pull/396>`_
+`PR 401: Submission Status page improvement <https://github.com/smaht-dac/smaht-portal/pull/401>`_
 
 * Add copy button for MetaworkflowRuns on Submission Status page
 * Add submission status page to master inserts
