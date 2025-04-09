@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.156.1
+=======
+`PR 396: SN Fix donor sex facet <https://github.com/smaht-dac/smaht-portal/pull/396>`_
+
+* Fix facet for "Donor Sex" in File
+
 0.156.0
 =======
 `PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`
