@@ -295,7 +295,7 @@
                 }
             ]
         },
-        "file_sets.libraries.analytes.samples.sample_sources.donor.sex": {
+        "donors.sex": {
             "title": "Donor Sex"
         },
         "sample_summary.tissues": {
