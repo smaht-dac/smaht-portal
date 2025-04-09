@@ -1,6 +1,6 @@
-=========================
-Linking to Existing Data
-=========================
+==================================
+Linking Metadata During Submission
+==================================
 
 The SMaHT metadata model is composed of database objects that can be linked to each other to represent relationships.
 
@@ -9,8 +9,8 @@ These links are **extremely important**; without them, we would not be able to d
 The metadata model allows us to link a tissue to the donor it was taken from or indicate that an aligned BAM was ``derived_from`` an unaligned FASTQ file. This linking is accomplished via “LinkTo” properties that allow objects to refer to other objects.
 
 
-When and how do I "Link To" another object?
--------------------------------------------
+When and how do I "LinkTo" another object?
+------------------------------------------
 In the submission spreadsheet (See `Getting Started with Submissions </docs/submission/getting-started-with-submissions>`_), columns with *italicized* names indicate LinkTo fields. For example, Library items require links to Analyte and Assay items, as shown in the image below.
 
 |
