@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.156.2
+=======
+`PR 400: feat: add tissue codes to benchmarking page titles <https://github.com/smaht-dac/smaht-portal/pull/400>`_
+
+* Add tissue code to the benchmarking page titles
+
+
 0.156.1
 =======
 `PR 396: SN Fix donor sex facet <https://github.com/smaht-dac/smaht-portal/pull/396>`_
