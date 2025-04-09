@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.156.1
+=======
+`PR 400: feat: add tissue codes to benchmarking page titles <https://github.com/smaht-dac/smaht-portal/pull/400>`_
+
+* Add tissue code to the benchmarking page titles
+
+
 0.156.0
 =======
 `PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`
