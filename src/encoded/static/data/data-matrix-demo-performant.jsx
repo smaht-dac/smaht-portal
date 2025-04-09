@@ -3,15 +3,15 @@
         key="data-matrix-demo-1"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
-            "url": "/bar_plot_aggregations?type=SubmittedFile&limit=all",
-            "url_fields": ["donors.display_title", "file_sets.libraries.assay.display_title"]
+            "url": "/data_matrix_aggregations?type=SubmittedFile&limit=all",
+            "agg_fields": ["donors.display_title", "data_generation_summary.assays"]
         }}
         fieldChangeMap={{
             "donor": "donors.display_title",
-            "assay": "file_sets.libraries.assay.display_title"
+            "assay": "data_generation_summary.assays"
         }}
-        groupingProperties={["assay"]}
-        columnGrouping="donor"
+        groupingProperties={["donor"]}
+        columnGrouping="assay"
         columnGroups={{
             "Tier 1": {
                 "values": ['ISLET1','DONOR_LB','COLO829','LIBD75','NC0'],
@@ -31,8 +31,8 @@
         key="data-matrix-demo-2"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
-            "url": "/bar_plot_aggregations?type=SubmittedFile&limit=all",
-            "url_fields": ["file_sets.libraries.assay.display_title", "sample_summary.tissues"]
+            "url": "/data_matrix_aggregations?type=SubmittedFile&limit=all",
+            "agg_fields": ["file_sets.libraries.assay.display_title", "sample_summary.tissues"]
         }}
         fieldChangeMap={{
             "assay": "file_sets.libraries.assay.display_title",
@@ -47,8 +47,8 @@
         key="data-matrix-demo-3"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
-            "url": "/bar_plot_aggregations?type=SubmittedFile&limit=all",
-            "url_fields": ["sample_summary.tissues", "donors.display_title"]
+            "url": "/data_matrix_aggregations?type=SubmittedFile&limit=all",
+            "agg_fields": ["sample_summary.tissues", "donors.display_title"]
         }}
         fieldChangeMap={{
             "donor": "donors.display_title",
@@ -63,8 +63,8 @@
         key="data-matrix-demo-4"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
-            "url": "/bar_plot_aggregations?type=SubmittedFile&limit=all",
-            "url_fields": ["file_sets.libraries.assay.display_title", "file_sets.sequencing.sequencer.display_title"]
+            "url": "/data_matrix_aggregations?type=SubmittedFile&limit=all",
+            "agg_fields": ["file_sets.libraries.assay.display_title", "file_sets.sequencing.sequencer.display_title"]
         }}
         fieldChangeMap={{
             "assay": "file_sets.libraries.assay.display_title",
@@ -79,8 +79,8 @@
         key="data-matrix-demo-5"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         queries={{
-            "url": "/bar_plot_aggregations?type=SubmittedFile&limit=all",
-            "url_fields": ["data_type", "data_category"]
+            "url": "/data_matrix_aggregations?type=SubmittedFile&limit=all",
+            "agg_fields": ["data_type", "data_category"]
         }}
         fieldChangeMap={{
             "data_category": "data_category",

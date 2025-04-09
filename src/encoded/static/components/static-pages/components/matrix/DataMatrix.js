@@ -12,9 +12,11 @@ import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigura
 export default class DataMatrix extends React.PureComponent {
 
     static defaultProps = {
-        "queries": {
+        "query": {
             "url": "/search/?type=SubmittedFile&limit=all",
-            "url_fields": []
+            "agg_fields": [],
+            "column_agg_fields": [],
+            "row_agg_fields": []
         },
         "valueChangeMap": {},
         "fieldChangeMap": {},
@@ -44,7 +46,7 @@ export default class DataMatrix extends React.PureComponent {
         "allowedFields": [
             "donors.display_title", 
             "sequencing.sequencer.display_title",
-            "file_sets.libraries.assay.display_title",
+            "data_generation_summary.assays",
             "sample_summary.tissues",
             "data_type",
             "file_format.display_title",
@@ -55,7 +57,7 @@ export default class DataMatrix extends React.PureComponent {
     };
 
     static propTypes = {
-        'queries': PropTypes.object.isRequired,
+        'query': PropTypes.object.isRequired,
         'valueChangeMap': PropTypes.object,
         'fieldChangeMap': PropTypes.object,
         'groupingProperties': PropTypes.arrayOf(PropTypes.string),
@@ -168,7 +170,7 @@ export default class DataMatrix extends React.PureComponent {
         this.state = {
             "mounted"  : false,
             "_results" : null,
-            "queries"  : props.queries,
+            "query"  : props.query,
             "fieldChangeMap": props.fieldChangeMap,
             "columnGrouping": props.columnGrouping,
             "groupingProperties": props.groupingProperties,
@@ -195,9 +197,9 @@ export default class DataMatrix extends React.PureComponent {
 
     componentDidUpdate(pastProps, pastState){
         const { session } = this.props;
-        const { queries, fieldChangeMap, columnGrouping, groupingProperties } = this.state;
+        const { query, fieldChangeMap, columnGrouping, groupingProperties } = this.state;
         if (session !== pastProps.session ||
-            !_.isEqual(queries, pastState.queries) ||
+            !_.isEqual(query, pastState.query) ||
             !_.isEqual(fieldChangeMap, pastState.fieldChangeMap) ||
             columnGrouping !== pastState.columnGrouping ||
             !_.isEqual(groupingProperties, pastState.groupingProperties)) {
@@ -227,14 +229,14 @@ export default class DataMatrix extends React.PureComponent {
             this.setState(updatedState);
         };
 
-        const { queries } = this.state;
+        const { query } = this.state;
         this.setState(
             { "_results": null }, // (Re)Set all result states to 'null'
             () => {
                     // eslint-disable-next-line react/destructuring-assignment
-                    let requestUrl = queries.url;
+                    let requestUrl = query.url;
                     // eslint-disable-next-line react/destructuring-assignment
-                    const requestUrlFields = JSON.parse(JSON.stringify(queries.url_fields));
+                    const requestUrlFields = JSON.parse(JSON.stringify(query.agg_fields));
 
                     if (typeof requestUrl !== 'string' || !requestUrl) return;
 
@@ -253,10 +255,10 @@ export default class DataMatrix extends React.PureComponent {
     onApplyConfiguration(searchUrl, column, row1, row2, headerColumnsOrder, ranges) {
         console.log(searchUrl, column, row1, row2, headerColumnsOrder, ranges);
         this.setState({
-            queries: {
-                ...this.state.queries,
+            query: {
+                ...this.state.query,
                 url: searchUrl,
-                url_fields: row2 ? [column, row1, row2] : [column, row1]
+                agg_fields: row2 ? [column, row1, row2] : [column, row1]
             },
             fieldChangeMap: {
                 [DataMatrixConfigurator.getNestedFieldName(column)]: column,
@@ -271,11 +273,11 @@ export default class DataMatrix extends React.PureComponent {
 
     render() {
         const { headerFor, sectionStyle, valueChangeMap, allowedFields, columnGroups, disableConfigurator = false } = this.props;
-        const { queries, fieldChangeMap, columnGrouping, groupingProperties, headerColumnsOrder, colorRanges } = this.state;
+        const { query, fieldChangeMap, columnGrouping, groupingProperties, headerColumnsOrder, colorRanges } = this.state;
 
         const isLoading = 
                 // eslint-disable-next-line react/destructuring-assignment
-                this.state['_results'] === null && queries && queries.url !== null && typeof queries.url !== 'undefined';
+                this.state['_results'] === null && query && query.url !== null && typeof query.url !== 'undefined';
 
         if (isLoading){
             return (
@@ -286,7 +288,7 @@ export default class DataMatrix extends React.PureComponent {
         }
 
         const resultKey = "_results";
-        const url = queries.url;
+        const url = query.url;
         const sectionClassName = sectionStyle['sectionClassName'] || "col-12";
         const labelClassName = sectionStyle['labelClassName'] || "col-2";
         const listingClassName = sectionStyle['listingClassName'] || "col-10";
@@ -299,10 +301,10 @@ export default class DataMatrix extends React.PureComponent {
             <DataMatrixConfigurator
                 columnDimensions={allowedFields}
                 rowDimensions={allowedFields}
-                searchUrl={queries.url}
-                selectedColumnValue={queries.url_fields[0]}
-                selectedRow1Value={queries.url_fields[1]}
-                selectedRow2Value={queries.url_fields.length > 2 ? queries.url_fields[2] : null}
+                searchUrl={query.url}
+                selectedColumnValue={query.agg_fields[0]}
+                selectedRow1Value={query.agg_fields[1]}
+                selectedRow2Value={query.agg_fields.length > 2 ? query.agg_fields[2] : null}
                 headerColumnsOrderValue={headerColumnsOrder}
                 initialColumnGroups={columnGroups}
                 colorRanges={colorRanges}
