@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.156.3
+=======
+`PR 402 feat: about page visualization updates <https://github.com/smaht-dac/smaht-portal/pull/402>`_
+
+* Update copy for About page
+* Fix assay table descriptions
+
+
 0.156.2
 =======
 `PR 401: Submission Status page improvement <https://github.com/smaht-dac/smaht-portal/pull/401>`_
@@ -23,7 +31,7 @@ Change Log
 
 0.156.0
 =======
-`PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`
+`PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`_
 
 * Update the About page Alluvial plot and data matrix
 * Refactor showHideInformationToggle component for additional customization
