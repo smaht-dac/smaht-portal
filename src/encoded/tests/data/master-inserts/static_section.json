@@ -343,7 +343,7 @@
         "section_type": "Page Section",
         "status": "public",
         "options": {
-            "filetype":"rst",
+            "filetype": "rst",
             "initial_header_level": 2
         },
         "consortia": [
@@ -440,9 +440,9 @@
         ]
     },
     {
-        "identifier" : "smaht_nomenclature",
-        "uuid" : "e88a8a3d-cee8-430e-bfed-5c056bc384ea",
-        "file" : "/docs/public/smaht_nomenclature.rst",
+        "identifier": "smaht_nomenclature",
+        "uuid": "e88a8a3d-cee8-430e-bfed-5c056bc384ea",
+        "file": "/docs/public/smaht_nomenclature.rst",
         "section_type": "Page Section",
         "status": "public",
         "options": {
@@ -524,5 +524,24 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "body": "<SubmissionStatus />",
+        "title": "Submission Status",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "submission-status.0",
+        "section_type": "Page Section",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "uuid": "7550cf0e-367b-4b38-85e3-54cd0c12c6bd"
     }
 ]

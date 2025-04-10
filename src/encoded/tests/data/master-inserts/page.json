@@ -341,7 +341,7 @@
         "table-of-contents": {
             "enabled": true
         },
-         "consortia": [
+        "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "submission_centers": [
@@ -1021,5 +1021,20 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "title": "Submission Status",
+        "status": "in review",
+        "content": [
+            "7550cf0e-367b-4b38-85e3-54cd0c12c6bd"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "submission-status",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "uuid": "1c4da032-cadf-4461-adef-6d4238ee08d9"
     }
 ]
