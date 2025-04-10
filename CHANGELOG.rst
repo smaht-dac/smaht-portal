@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.157.0
+=======
+`PR 403: Retracted files page <https://github.com/smaht-dac/smaht-portal/pull/403>`_
+
+* Add `/retracted-files` path and master-inserts for listing the retracted data
+* Add footer to home page announcements
+* Export SVG arrow icon component to reuse in timeline item, data release tracker, and announcement item footer in home page
+
+
 0.156.2
 =======
 `PR 401: Submission Status page improvement <https://github.com/smaht-dac/smaht-portal/pull/401>`_
@@ -20,6 +29,7 @@ Change Log
 `PR 396: SN Fix donor sex facet <https://github.com/smaht-dac/smaht-portal/pull/396>`_
 
 * Fix facet for "Donor Sex" in File
+
 
 0.156.0
 =======
