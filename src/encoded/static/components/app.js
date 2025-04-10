@@ -37,7 +37,7 @@ import { Schemas, SEO, typedefs, navigate } from './util';
 import { responsiveGridState, DeferMount } from './util/layout';
 import { requestAnimationFrame as raf } from '@hms-dbmi-bgm/shared-portal-components/es/components/viz/utilities';
 
-import { PageTitleSection } from './PageTitleSection';
+import { PageTitleSection, toRegistryLookupContext } from './PageTitleSection';
 
 // import './encoded/static/scss/style.css'; // @TODO: currently not resolving; need to fix
 // import './encoded/static/scss/print.css';
@@ -441,6 +441,17 @@ export default class App extends React.PureComponent {
             // We need to rebuild tooltips after navigation to a different page.
             // Add a debounce so it runs again after a delay, so other components get a chance to mount.
             App.debouncedOnNavigationTooltipRebuild();
+
+            if (!session && href && typeof href === 'string') {
+                // show not logged in alert for pages that are public but require session to display the results
+                // (mostly) redirects from notification pane in home page
+                if (
+                    href.indexOf('/qc-metrics') > -1 ||
+                    href.indexOf('/search/') > -1
+                ) {
+                    Alerts.queue(NotLoggedInAlert);
+                }
+            }
         }
 
         // We can skip doing this unless debugging on localhost-
@@ -1385,12 +1396,13 @@ export default class App extends React.PureComponent {
             }
         } else if (context.code === 404) {
             status = 'not_found';
-        } else if (
-            routeLeaf == 'submissions' &&
-            !_.contains(_.pluck(userActions, 'id'), 'submissions')
-        ) {
-            status = 'forbidden'; // attempting to view submissions but it's not in users actions
         }
+        // else if (
+        //     routeLeaf == 'submissions' &&
+        //     !_.contains(_.pluck(userActions, 'id'), 'submissions')
+        // ) {
+        //     status = 'forbidden'; // attempting to view submissions but it's not in users actions
+        // }
 
         const isLoading =
             contextRequest &&
@@ -1661,9 +1673,10 @@ const ContentRenderer = React.memo(function ContentRenderer(props) {
         // error catching
         content = <ErrorPage currRoute={routeLeaf} status={status} />;
     } else if (context) {
+        const lookupContext = toRegistryLookupContext(context);
         // What should occur (success)
         const ContentView = (contentViews || globalContentViews).lookup(
-            context,
+            lookupContext,
             currentAction
         );
 

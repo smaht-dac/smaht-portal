@@ -1,5 +1,7 @@
 import * as d3 from 'd3';
 
+import graph from './data/alluvial_data.json';
+
 /**
  * @description High level function that returns a sankey object with
  * many methods. Added to the global d3 object.
@@ -89,7 +91,7 @@ export function sankeyFunc() {
     };
 
     sankey.link = function () {
-        var curvature = 0.5;
+        var curvature = 0.4;
 
         function link(d) {
             var x0 = d.source.x + d.source.dx,
@@ -343,12 +345,18 @@ export function sankeyFunc() {
         }
 
         function alphabetical(a, b) {
-            return a.name.localeCompare(b.name);
+            if (a?.data_generator_category === b?.data_generator_category) {
+                return a.name.localeCompare(b.name);
+            }
+            if (b?.data_generator_category === 'GCC') return 1;
+            return a?.name?.localeCompare(b?.name);
         }
 
         function categorical(a, b) {
-            if (b.category === 'genetic') return 1; // force genetic as top
-            return a.category.localeCompare(b.category);
+            if (a?.category && b?.category && a.type === b.type) {
+                if (b.category === 'genetic') return 1; // force genetic as top
+                return a.category.localeCompare(b.category);
+            }
         }
 
         function descendingDepth(a, b) {
@@ -356,12 +364,11 @@ export function sankeyFunc() {
         }
 
         function descendingDepthCategorical(a, b) {
-            if (b.dy - a.dy === 0 && b.type === 'assay_type') {
-            }
-            let a_group = a.assay_group.split('-');
-            let b_group = b.assay_group.split('-');
+            const legendKeys = Object.keys(graph.colors.assay_group);
+            let a_color_index = legendKeys.indexOf(a.assay_group);
+            let b_color_index = legendKeys.indexOf(b.assay_group);
 
-            return a_group[0] - b_group[0] || a_group[1] - b_group[1];
+            return a_color_index - b_color_index;
         }
     }
 
@@ -375,7 +382,7 @@ export function sankeyFunc() {
                 ty = 0;
             node.sourceLinks.forEach(function (link) {
                 link.sy = sy;
-                sy += link.dy;
+                sy += link.dy / 2;
             });
             node.targetLinks.forEach(function (link) {
                 link.ty = ty;

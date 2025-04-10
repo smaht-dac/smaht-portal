@@ -102,7 +102,9 @@
                 "Hi-C",
                 "Dip-C",
                 "Repeat Element Targeted Sequencing",
-                "ATAC-seq"
+                "ATAC-seq",
+                "NT-seq",
+                "Strand-seq"
             ]
         },
         "cell_isolation_method": {
@@ -170,6 +172,18 @@
         },
         "code": {
             "title": "Code"
+        },
+        "category": {
+            "title": "Category",
+            "default_hidden": true
+        }
+    },
+    "facets": {
+        "valid_molecules": {
+            "title": "Valid Molecules"
+        },
+        "category": {
+            "title": "Category"
         }
     }
 }

@@ -1,6 +1,7 @@
 'use strict';
 
 import React from 'react';
+import { onAlertLoginClick } from '../navigation/components/LoginNavItem';
 
 /**
  * Render a simple static error page with a link to return to the homepage.
@@ -101,7 +102,7 @@ const HTTPForbiddenView = React.memo(function HTTPForbiddenView(props) {
                 Access was denied to this resource.
             </h4>
             <p className="mb-0 mt-0">
-                If you have an account, please try logging in or return to the{' '}
+                If you have an account, please try <a onClick={onAlertLoginClick} href="#loginbtn" className="link-underline-hover">logging in</a> or return to the{' '}
                 <a href="/" className="link-underline-hover">
                     homepage
                 </a>

@@ -260,6 +260,25 @@ $facetlist-excluding: #450000;
 					font-weight: 600;
 				}
 			}
+
+			&.range-facet {
+				.facet-list .range-drop {
+					flex-direction: column;
+					align-items: start !important;
+
+					label {
+						text-align-last: left !important;
+						font-size: 0.75rem;
+						font-weight: 450;
+						padding-bottom: 4px;
+						margin-left: 0px !important;
+					}
+
+					.rcol.dropdown {
+						min-width: 90%;
+					}
+				}
+			}
 		}
 	}
 }
@@ -361,6 +380,13 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 	
 			.inner > .column-sort-icon {
 				color: $search-header-icon-color;
+			}
+
+			&[data-field="annotated_filename"] .filename-popover-color {
+				color: #657B95;
+				&:hover {
+					color: darken(#657B95, 15%);
+				}
 			}
 		}
 	}
@@ -787,6 +813,15 @@ h2.browse-summary-header {
 
 		.popover-body > img {
 			width: 350px;
+		}
+	}
+	
+	@include media-breakpoint-up(xl) {
+		min-width: 775px;
+		width: 775px;
+
+		.popover-body > img {
+			width: 750px;
 		}
 	}
 }

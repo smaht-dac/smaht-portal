@@ -176,8 +176,7 @@
             "items": {
                 "type": "string",
                 "linkTo": "Consortium"
-            },
-            "permission": "restricted_fields"
+            }
         }
     },
     "category": {
@@ -997,7 +996,7 @@
                 "description": "A tag for the item.",
                 "type": "string",
                 "minLength": 1,
-                "maxLength": 50,
+                "maxLength": 100,
                 "pattern": "^[a-zA-Z0-9|_-]+$"
             }
         }

@@ -441,12 +441,46 @@ def donor_properties(test_second_submission_center: Dict[str, Any]) -> Dict[str,
         "submitted_id": f"{TEST_SECOND_CENTER_SUBMITTED_ID_CODE}_DONOR_1234",
         "age": 35,
         "sex": "Male",
+        "tpc_submitted": "False",
+        "external_id": "1234"
     }
 
 
 @pytest.fixture
 def donor(testapp: TestApp, donor_properties: Dict[str, Any]) -> Dict[str, Any]:
     return post_item(testapp, donor_properties, "Donor")
+
+
+@pytest.fixture
+def test_ontology(
+    testapp,
+    test_consortium
+):
+    item = {
+        "identifier": "UBERON",
+        "title": "Uberon",
+        "consortia": [
+            test_consortium["uuid"]
+        ]
+    }
+    return post_item_and_return_location(testapp, item, 'ontology')
+
+
+@pytest.fixture
+def test_ontology_term(
+    testapp,
+    test_consortium,
+    test_ontology
+):
+    item = {
+        "identifier": "UBERON:0008952",
+        "ontologies": [test_ontology["uuid"]],
+        "title": "upper lobe of left lung",
+        "consortia": [
+           test_consortium["uuid"]
+        ]
+    }
+    return post_item_and_return_location(testapp, item, 'ontology_term')
 
 
 @pytest.fixture
@@ -723,6 +757,7 @@ def test_chain_file(
     testapp,
     test_submission_center,
     file_formats,
+    test_fileset,
     test_software,
     donor_specific_assembly
 ):
@@ -736,6 +771,9 @@ def test_chain_file(
         ],
         "filename": "test_DSA_to_GRCh38.chain.gz",
         "file_format": file_formats.get("CHAIN", {}).get("uuid", ""),
+        "file_sets": [
+            test_fileset["uuid"]
+        ],
         "submission_centers": [
             test_submission_center["uuid"]
         ],
@@ -756,6 +794,7 @@ def test_sequence_file(
     testapp,
     test_submission_center,
     file_formats,
+    test_fileset,
     test_software,
     donor_specific_assembly
 ):
@@ -769,6 +808,9 @@ def test_sequence_file(
         ],
         "filename": "test_hela.fasta",
         "file_format": file_formats.get("FASTA", {}).get("uuid", ""),
+        "file_sets": [
+            test_fileset["uuid"]
+        ],
          "submission_centers": [
             test_submission_center["uuid"]
         ],

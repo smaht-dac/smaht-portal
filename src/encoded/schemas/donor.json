@@ -5,10 +5,12 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
+        "external_id",
         "age",
         "sex",
         "submission_centers",
-        "submitted_id"
+        "submitted_id",
+        "tpc_submitted"
     ],
     "identifyingProperties": [
         "accession",
@@ -53,7 +55,8 @@
             "accessionType": "DO"
         },
         "external_id": {
-            "submissionComment": "For donors from the TPC, this should be the TPC donor ID. Otherwise, the submitter's internal identifier can be used."
+            "submissionComment": "For donors from the TPC, this should be the TPC donor ID. Otherwise, the submitter's internal identifier can be used.",
+            "pattern": "^[A-Za-z0-9-_]{2,}$"
         },
         "schema_version": {
             "default": "1"
@@ -118,6 +121,9 @@
         }
     },
     "columns": {
+        "submitted_id": {
+            "title": "Submitted ID"
+        },
         "sex": {
             "title": "Sex"
         },

@@ -57,8 +57,7 @@
         "agent": {
             "title": "Agent",
             "description": "Agent in the treatment",
-            "type": "string",
-            "linkTo": "OntologyTerm"
+            "type": "string"
         },
         "concentration": {
             "title": "Concentration",
@@ -71,7 +70,18 @@
             "description": "Units for the concentration of the treatment",
             "type": "string",
             "enum": [
-                "mg/mL"
+                "ng/uL",
+                "mg/mL",
+                "units/uL",
+                "pM",
+                "nM",
+                "μM",
+                "μg/mL",
+                "mM",
+                "M",
+                "percent",
+                "units",
+                "units/mL"
             ]
         },
         "duration": {
@@ -84,6 +94,16 @@
             "title": "Temperature",
             "description": "Temperature of the treatment (Celsius)",
             "type": "number"
+        }
+    },
+    "columns": {
+        "submitted_id": {
+            "title": "Submitted ID"
+        }
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
         }
     }
 }

@@ -53,22 +53,47 @@ describe('Home Page', function () {
     });
 
     it(`Figure's tier buttons are working correctly.`, () => {
-        cy.get('.selector-buttons button').each(($button) => {
-            if (!$button.hasClass('active')) {
+        cy.get('.selector-buttons button').then(($buttons) => {
+            Cypress._.forEachRight($buttons, ($button, index) => {
+                cy.log('index:', index, 'button:', $button);
                 cy.wrap($button).click();
 
                 cy.wrap($button)
                     .find('span')
                     .invoke('text')
                     .then((text) => {
-                        const className = text.toLowerCase().replace(/\s+/g, '-');
+                        const buttonText = text.toLowerCase().replace(/\s+/g, '-');
 
+                        if (index === 0) {
+                            expect(buttonText).to.equal('benchmarking');
+                            cy.get('#timeline .timeline-item.tier-active')
+                                .invoke('text')
+                                .then((text) => {
+                                    expect(text).to.contain('Benchmarking');
+                                });
+                        } else if (index === 1) {
+                            expect(buttonText).to.equal('production');
+                            cy.get('#timeline .timeline-item.tier-active')
+                                .invoke('text')
+                                .then((text) => {
+                                    expect(text).to.contain('Production');
+                                });
+                        }
+
+                        const className = `tier-${index}`;
                         cy.get('.card.assays').should('have.class', className);
                     });
-            }
+            });
         });
     });
 
+    it('Has Data Release Tracker feed w. 3+ items', function() {
+        cy.get('.notifications-panel .data-release-tracker .data-release-item-container').should('have.length.of.at.least', 3);
+    });
+
+    it('Has Announcements feed w. 2+ items', function() {
+        cy.get('.notifications-panel .announcements .announcement-container').should('have.length.of.at.least', 2);
+    });
 
     it('Navbar dropdowns work as expected when logged in', () => {
         /* ==== Generated with Cypress Studio ==== */

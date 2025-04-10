@@ -57,7 +57,7 @@ from ..item_utils import (
     sample as sample_utils,
     software as software_utils,
     tissue as tissue_utils,
-    sequencing as sequencing_utils
+    sequencing as sequencing_utils,
 )
 from ..item_utils.utils import (
     get_property_value_from_identifier,
@@ -257,8 +257,14 @@ class CalcPropConstants:
         "title": "Release Tracker Description",
         "type": "string",
     }
+    RELEASE_TRACKER_TITLE = {
+        "title": "Release Tracker Title",
+        "type": "string",
+    }
     SAMPLE_SUMMARY_DONOR_IDS = "donor_ids"
     SAMPLE_SUMMARY_TISSUES = "tissues"
+    SAMPLE_SUMMARY_TISSUE_SUBTYPES = "tissue_subtypes"
+    SAMPLE_SUMMARY_TISSUE_DETAILS = "tissue_details"
     SAMPLE_SUMMARY_SAMPLE_NAMES = "sample_names"
     SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS = "sample_descriptions"
     SAMPLE_SUMMARY_ANALYTES = "analytes"
@@ -276,6 +282,20 @@ class CalcPropConstants:
             },
             SAMPLE_SUMMARY_TISSUES: {
                 "title": "Tissue",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_TISSUE_SUBTYPES: {
+                "title": "Tissue Subtype",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_TISSUE_DETAILS: {
+                "title": "Tissue Details",
                 "type": "array",
                 "items": {
                     "type": "string",
@@ -371,6 +391,8 @@ def _build_file_embedded_list() -> List[str]:
         # Include file groups tags
         "file_sets.file_group.*",
 
+        "meta_workflow_run_inputs.meta_workflow.name",
+
         # Analysis summary
         "software.code",
         "software.title",
@@ -407,10 +429,15 @@ class File(Item, CoreFile):
     STATUS_TO_CHECK_REVISIONS = [
         'uploading',
         'uploaded',
+        'retracted',
         'in review',
         'released',
         'restricted',
         'public'
+    ]
+    STATUS_TO_REVISION_DATE_CONVERSION = [
+        'retracted',
+        'released'
     ]
 
     Item.SUBMISSION_CENTER_STATUS_ACL.update({
@@ -520,11 +547,16 @@ class File(Item, CoreFile):
                     "type": "string",
                     "format": "date-time"
                 },
+                "retracted": {
+                    "type": "string",
+                    "format": "date-time"
+                },
                 "in review": {
                     "type": "string",
                     "format": "date-time"
                 },
                 "released": {
+                    "title": "Release Date",
                     "type": "string",
                     "format": "date-time"
                 },
@@ -583,10 +615,12 @@ class File(Item, CoreFile):
                         last_modified = revision.get('last_modified')
                         if last_modified:
                             result[status] = last_modified['date_modified']
-            if "released" in result:
-                result["released_date"] = self.get_date_from_datetime(
-                    result["released"]
-                )
+
+            # add date converted values for selected status
+            for status in self.STATUS_TO_REVISION_DATE_CONVERSION:
+                if status in result:
+                    result[status + "_date"] = self.get_date_from_datetime(result[status])
+
             return result
 
     @staticmethod
@@ -622,7 +656,16 @@ class File(Item, CoreFile):
     def meta_workflow_run_outputs(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "meta_workflow_run_outputs")
         if result:
-            return result
+            request_handler = RequestHandler(request = request)
+            mwfrs=[ 
+                mwfr for mwfr in result
+                if get_property_value_from_identifier(
+                    request_handler,
+                    mwfr,
+                    item_utils.get_status
+                ) != "deleted"
+            ]
+            return mwfrs if mwfrs else None
         return
 
     @calculated_property(schema=CalcPropConstants.LIBRARIES_SCHEMA)
@@ -716,13 +759,25 @@ class File(Item, CoreFile):
         file_sets: Optional[List[str]] = None
     ) -> Union[str, None]:
         """Get file release tracker description for display on home page."""
-        result = None
-        if file_sets:
-            request_handler = RequestHandler(request=request)
-            result = self._get_release_tracker_description(
-                request_handler,
-                file_properties=self.properties
-            )
+        request_handler = RequestHandler(request=request)
+        result = self._get_release_tracker_description(
+            request_handler,
+            file_properties=self.properties
+        )
+        return result
+
+    @calculated_property(schema=CalcPropConstants.RELEASE_TRACKER_TITLE)
+    def release_tracker_title(
+        self,
+        request: Request,
+        file_sets: Optional[List[str]] = None
+    ) -> Union[str, None]:
+        """Get file release tracker title for display on home page."""
+        request_handler = RequestHandler(request=request)
+        result = self._get_release_tracker_title(
+            request_handler,
+            file_properties=self.properties
+        )
         return result     
 
     def _get_libraries(
@@ -900,7 +955,7 @@ class File(Item, CoreFile):
         return {
             key: value for key, value in to_include.items() if value
         }
-    
+
     def _get_group_coverage(
         self, request_handler: Request, file_properties: Optional[List[str]] = None
     ) -> Union[List[str], None]:
@@ -939,6 +994,18 @@ class File(Item, CoreFile):
                 item_utils.get_external_id,
             ),
             constants.SAMPLE_SUMMARY_TISSUES: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_tissues(file_properties, request_handler),
+                functools.partial(
+                    tissue_utils.get_top_grouping_term, request_handler=request_handler
+                ),
+            ),
+            constants.SAMPLE_SUMMARY_TISSUE_SUBTYPES: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_uberon_ids(file_properties, request_handler),
+                item_utils.get_display_title,
+            ),
+            constants.SAMPLE_SUMMARY_TISSUE_DETAILS: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_tissues(file_properties, request_handler),
                 tissue_utils.get_location,
@@ -1009,39 +1076,74 @@ class File(Item, CoreFile):
             ),
         }
         return {key: value for key, value in to_include.items() if value}
-    
+
+    def _get_release_tracker_title(
+            self,
+            request_handler: RequestHandler,
+            file_properties: Dict[str, Any],
+        ) -> Union[str, None]:
+        """Get release tracker title for display on the home page."""
+        to_include = None
+        if "file_sets" in file_properties:    
+            if (cell_culture_mixture_title := get_unique_values(
+                request_handler.get_items(
+                    file_utils.get_cell_culture_mixtures(file_properties, request_handler)),
+                    item_utils.get_code,
+            )):
+                to_include = None if len(cell_culture_mixture_title) > 1 else cell_culture_mixture_title[0]
+            elif (cell_line_title := request_handler.get_items(
+                file_utils.get_cell_lines(file_properties, request_handler)
+            )):
+                to_include = None if len(cell_line_title) > 1 else item_utils.get_code(cell_line_title[0])
+            elif (tissue_title := request_handler.get_items(
+                file_utils.get_tissues(file_properties, request_handler)
+            )):
+                to_include = None if len(tissue_title) > 1 else item_utils.get_display_title(tissue_title[0])
+        if "override_release_tracker_title" in file_properties:
+            to_include = file_utils.get_override_release_tracker_title(file_properties)
+        return to_include
+
     def _get_release_tracker_description(
             self,
             request_handler: RequestHandler,
             file_properties: Dict[str, Any],
         ) -> Union[str, None]:
         """Get release tracker description for display on the home page."""
-        assay_title= get_unique_values(
-            request_handler.get_items(file_utils.get_assays(file_properties, request_handler)),
-            item_utils.get_display_title,
-            )
-        sequencer_title = get_unique_values(
-            request_handler.get_items(
-            file_utils.get_sequencers(file_properties, request_handler)),
-            item_utils.get_display_title,
-            )
+        to_include = None
         file_format_title = get_property_value_from_identifier(
-                request_handler,
-                file_utils.get_file_format(file_properties),
+            request_handler,
+            file_utils.get_file_format(file_properties),
+            item_utils.get_display_title,
+        )
+        if "override_release_tracker_description" in file_properties:
+            to_include = [
+                file_utils.get_override_release_tracker_description(file_properties),
+                file_format_title
+            ]
+            return " ".join(to_include)
+        if "file_sets" in file_properties:
+            assay_title= get_unique_values(
+                request_handler.get_items(file_utils.get_assays(file_properties, request_handler)),
                 item_utils.get_display_title,
-            )
-        if len(assay_title) > 1 or len(sequencer_title) > 1:
-            # More than one unique assay or sequencer
-            return ""
-        elif len(assay_title) == 0 or len(sequencer_title) == 0:
-            # No assay or sequencer
-            return ""
-        to_include = [
-            assay_title[0],
-            sequencer_title[0],
-            file_format_title
-        ]
-        return " ".join(to_include)
+                )
+            sequencer_title = get_unique_values(
+                request_handler.get_items(
+                file_utils.get_sequencers(file_properties, request_handler)),
+                item_utils.get_display_title,
+                )
+            if len(assay_title) > 1 or len(sequencer_title) > 1:
+                # More than one unique assay or sequencer
+                return None
+            elif len(assay_title) == 0 or len(sequencer_title) == 0:
+                # No assay or sequencer
+                return None
+            to_include = [
+                assay_title[0],
+                sequencer_title[0],
+                file_format_title
+            ]
+        if to_include:
+            return " ".join(to_include)
 
 
 @view_config(name='drs', context=File, request_method='GET',

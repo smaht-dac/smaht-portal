@@ -1,10 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 
 const announcements = [
     {
+        type: 'warning',
+        title: 'Data Retraction',
+        date: '2025-03-10',
+        body: (
+            <span>
+                One WGS ONT PromethION 24 BAM from COLO829-BLT50,{' '}
+                <a href="/output-files/beca52fb-ad5b-4eaa-832a-2929c7bf7577/">
+                    SMAFIPHR8QOG
+                </a>
+                , has been retracted due to sample swap.
+            </span>
+        ),
+    },
+    {
         type: 'info',
         title: 'New Features',
+        date: '2025-01-25',
         body: (
             <span>
                 Explore the <a href="/qc-metrics">Interactive QC Assessment</a>{' '}
@@ -41,10 +57,13 @@ const announcements = [
     },
 ];
 
-const AnnouncementCard = ({ title = '', body = '', type = 'info' }) => {
+const AnnouncementCard = ({ title = '', body = '', type = 'info', date = null }) => {
     return (
         <div className={`announcement-container ${type}`}>
-            <h5 className="header">{title}</h5>
+            <h5 className="header">
+                {title}
+                {date ? <LocalizedTime timestamp={new Date(date)} formatType='date-sm-compact' /> : null}
+            </h5>
             <div className="body">{body}</div>
         </div>
     );
@@ -78,13 +97,10 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                             }`}></i>
                     </button>
                     <a className="header-link" href={query}>
-                        {releaseItemIndex === 0 ? (
-                            <span>LATEST</span>
-                        ) : (
-                            <span>
-                                {month} {year}
-                            </span>
-                        )}
+                        <span>
+                            {releaseItemIndex === 0 ? 'Latest: ' : ''}
+                            {month} {year}
+                        </span>
                         <span className="count">
                             {count} {count > 1 ? 'Files' : 'File'}
                             <i className="icon icon-arrow-right"></i>
@@ -95,10 +111,18 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                     {sample_groups.map((sample_group, i) => {
                         let sample_group_title = sample_group.value;
 
-                        if (sample_group?.additional_value) {
-                            sample_group_title += ` - ${
-                                sample_group.additional_value?.split(':')[0]
-                            }`;
+                        if (sample_group_title?.includes('DAC_DONOR_')) {
+                            sample_group_title = sample_group_title.replace(
+                                'DAC_DONOR_',
+                                ''
+                            );
+                        }
+
+                        const sample_group_type =
+                            sample_group?.items?.[0]?.['additional_value'];
+
+                        if (sample_group_type) {
+                            sample_group_title += ` - ${sample_group_type}`;
                         }
 
                         return (
@@ -115,10 +139,11 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                                 </a>
                                 <ul>
                                     {sample_group.items.map((item, i) => {
+                                        const { value, count, query } = item;
                                         return (
                                             <li key={i}>
-                                                <a href={item.query}>
-                                                    {item.count} {item.value}
+                                                <a href={query}>
+                                                    {count} {value}
                                                 </a>
                                             </li>
                                         );
@@ -186,6 +211,7 @@ export const NotificationsPanel = () => {
                                     title={announcement.title}
                                     body={announcement.body}
                                     type={announcement.type}
+                                    date={announcement.date}
                                 />
                             );
                         })}

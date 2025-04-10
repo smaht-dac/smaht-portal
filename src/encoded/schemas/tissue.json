@@ -80,7 +80,7 @@
             ]
         },
         "schema_version": {
-            "default": "4"
+            "default": "5"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_TISSUE_[A-Z0-9-_.]{4,}$"
@@ -138,8 +138,7 @@
             "title": "Uberon Id",
             "description": "Uberon Ontology identifier for the tissue.",
             "type": "string",
-            "pattern": "^UBERON:[0-9]{7}$",
-            "url": "https://www.ebi.ac.uk/ols4/ontologies/uberon"
+            "linkTo": "OntologyTerm"
         },
         "volume": {
             "title": "Volume",
@@ -163,9 +162,18 @@
     "facets": {
         "submission_centers.display_title": {
             "title": "Submitted By"
+        },
+        "donor.display_title": {
+            "title": "Donor"
+        },
+        "status": {
+            "title": "Status"
         }
     },
     "columns": {
+        "submitted_id": {
+            "title": "Submitted ID"
+        },
         "donor.display_title": {
             "title": "Donor"
         },

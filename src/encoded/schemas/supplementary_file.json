@@ -11,7 +11,8 @@
         "submitted_id",
         "software",
         "data_type",
-        "data_category"
+        "data_category",
+        "file_sets"
     ],
     "identifyingProperties": [
         "accession",
@@ -109,6 +110,11 @@
             "title": "Source Assembly",
             "description": "The assembly from which the coordinates are being converted (required for chain files)",
             "type": "string"
+        }
+    },
+    "facets": {
+        "reference_genome.display_title": {
+            "title": "Reference Genome"
         }
     }
 }

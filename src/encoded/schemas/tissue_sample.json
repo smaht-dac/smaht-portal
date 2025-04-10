@@ -146,6 +146,9 @@
         }
     },
     "columns": {
+        "submitted_id": {
+            "title": "Submitted ID"
+        },
         "category": {
             "title": "Sample Type"
         },

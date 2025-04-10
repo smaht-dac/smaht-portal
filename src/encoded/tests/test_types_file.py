@@ -1092,6 +1092,18 @@ def assert_sample_summary_matches_expected(
     )
     expected_tissues = get_unique_values(
         [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
+        functools.partial(
+            tissue_utils.get_top_grouping_term, request_handler=request_handler
+        ),
+    )
+    expected_tissue_subtypes = get_unique_values(
+        [tissue_utils.get_uberon_id(
+            get_item(es_testapp, item_utils.get_uuid(tissue)))
+                      for tissue in tissues],
+        item_utils.get_display_title
+    )
+    expected_tissue_details = get_unique_values(
+        [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
         tissue_utils.get_location,
     )
     expected_donor_ids = get_unique_values(
@@ -1124,6 +1136,12 @@ def assert_sample_summary_matches_expected(
     )
     assert_values_match_if_present(
         sample_summary, "tissues", expected_tissues
+    )
+    assert_values_match_if_present(
+        sample_summary, "tissue_subtypes", expected_tissue_subtypes
+    )
+    assert_values_match_if_present(
+        sample_summary, "tissue_details", expected_tissue_details
     )
     assert_values_match_if_present(
         sample_summary, "donor_ids", expected_donor_ids
@@ -1203,48 +1221,53 @@ def assert_analysis_software_matches_expected(
 
 
 @pytest.mark.workbook
-def test_release_tracker_description(es_testapp: TestApp, workbook: None) -> None:
-    """Ensure 'release_tracker_description' calcprop fields correct for inserts.
+def test_release_tracker(es_testapp: TestApp, workbook: None) -> None:
+    """
+    Ensure  `release_tracker_title` and 'release_tracker_description' calcprops field correct for inserts.
 
-    Checks fields present on inserts and as expected by parsing
-    properties/embeds."""
+    Checks fields present on inserts match values expected by parsing tags.
+    """
     
-    search_key = "release_tracker_description"
-    file_without_release_tracker_description = search_type_for_key(
-        es_testapp, "File", search_key, exists=False
-    )
-    assert file_without_release_tracker_description  # Not expected for Reference Files
-
-    files_with_release_tracker_description = search_type_for_key(
-        es_testapp, "File", search_key
-    )
+    search = "tags=test_release_tracker"
+    files_with_release_tracker_description = get_search(es_testapp, search)
     for file in files_with_release_tracker_description:
+        assert_release_tracker_title_matches_expected(file, es_testapp)
         assert_release_tracker_description_matches_expected(file, es_testapp)
+
 
 
 def assert_release_tracker_description_matches_expected(file: Dict[str, Any], es_testapp: TestApp):
     """Assert release_tracker_description calcprop matches expected."""
+    release_tracker_description = file_utils.get_release_tracker_description(file)
+    description_from_tags = get_expected_release_tracker_description(file)
+    assert release_tracker_description.replace(" ", "") == description_from_tags
 
-    release_tracker_description = file_utils. get_release_tracker_description(file)
 
-    assay_from_calcprop = item_utils.get_display_title(
-        file_utils.get_assays(file)[0]
-    )
-    sequencer_from_calcprop = item_utils.get_display_title(
-        sequencing_utils.get_sequencer(
-            file_utils.get_sequencings(file)[0]
-        )
-    )
-    file_format = item_utils.get_display_title(
-        file_utils.get_file_format(file)
-    )                          
-    description_from_calcprops=f"{assay_from_calcprop} {sequencer_from_calcprop} {file_format}"
-    assert release_tracker_description == description_from_calcprops
-   
-    
+def get_expected_release_tracker_description(sample: Dict[str, Any]) -> List[str]:
+    """Get expected release_tracker_description from the file from tags."""
+    expected_release_tracker_description_tag_start = "release_tracker_description-"
+    tags = item_utils.get_tags(sample)
+    expected_description_tags = [
+        tag for tag in tags if tag.startswith(expected_release_tracker_description_tag_start)
+    ]
+    return expected_description_tags[0].split(expected_release_tracker_description_tag_start)[1]
 
-    
 
+def assert_release_tracker_title_matches_expected(file: Dict[str, Any], request_handler: RequestHandler):
+    """Assert release_tracker_title calcprop matches expected."""
+    release_tracker_title = file_utils.get_release_tracker_title(file)
+    title_from_tags = get_expected_release_tracker_title(file)
+    assert release_tracker_title.replace(" ", "") == title_from_tags
+
+
+def get_expected_release_tracker_title(file: Dict[str, Any]) -> List[str]:
+    """Get expected release_tracker_title from the file from tags."""
+    expected_release_tracker_title_tag_start = "release_tracker_title-"
+    tags = item_utils.get_tags(file)
+    expected_title_tags = [
+        tag for tag in tags if tag.startswith(expected_release_tracker_title_tag_start)
+    ]
+    return expected_title_tags[0].split(expected_release_tracker_title_tag_start)[1]
 
 
 @pytest.mark.workbook
