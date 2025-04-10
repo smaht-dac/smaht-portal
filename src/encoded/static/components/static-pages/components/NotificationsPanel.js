@@ -19,7 +19,7 @@ const announcements = [
         ),
         footer: (
             <span>
-                <a href="/resources/retracted-files">
+                <a href="/retracted-files">
                     See Full List
                     <RightArrowIcon />
                 </a>
