@@ -105,7 +105,7 @@ describe('Deployment/CI Search View Tests', function () {
         });
 
         it('Should redirect to detail view and check if the title matches data-tip', function () {
-            cy.visit('/search/?type=File&status=released&data_generation_summary.assays!=No+value', { headers: cypressVisitHeaders });
+            cy.visit('/search/?type=File&status=released', { headers: cypressVisitHeaders });
 
             cy.get('.results-column .result-table-row div.search-result-column-block[data-field="annotated_filename"] .value a')
                 .first()

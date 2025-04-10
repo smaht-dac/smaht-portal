@@ -1036,23 +1036,5 @@
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ],
         "uuid": "1c4da032-cadf-4461-adef-6d4238ee08d9"
-    },
-    {
-        "identifier": "retracted-files",
-        "uuid": "c39ea4df-22c5-4d81-a495-6694c3360447",
-        "status": "in review",
-        "content": [
-            "16b9b89b-f90d-467c-9a78-829a67743313"
-        ],
-        "table-of-contents": {
-            "enabled": false
-        },
-        "title": "Data Retraction",
-        "consortia": [
-            "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ]
     }
 ]

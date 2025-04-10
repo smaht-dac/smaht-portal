@@ -7,20 +7,11 @@ smaht-portal
 Change Log
 ----------
 
-0.158.0
+0.157.0
 =======
 `PR 399: feat: update links to existing data doc <https://github.com/smaht-dac/smaht-portal/pull/399>`_
 
 * Update Links to Existing Data doc
-
-
-0.157.0
-=======
-`PR 403: Retracted files page <https://github.com/smaht-dac/smaht-portal/pull/403>`_
-
-* Add `/retracted-files` path and master-inserts for listing the retracted data
-* Add footer to home page announcements
-* Export SVG arrow icon component to reuse in timeline item, data release tracker, and announcement item footer in home page
 
 
 0.156.2

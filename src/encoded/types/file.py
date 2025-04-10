@@ -548,14 +548,8 @@ class File(Item, CoreFile):
                     "format": "date-time"
                 },
                 "retracted": {
-                    "title": "Retracted Date",
                     "type": "string",
                     "format": "date-time"
-                },
-                "retracted_date": {
-                    "title": "Retracted Date",
-                    "type": "string",
-                    "format": "date"
                 },
                 "in review": {
                     "type": "string",
@@ -567,7 +561,6 @@ class File(Item, CoreFile):
                     "format": "date-time"
                 },
                 "released_date": {
-                    "title": "Release Date",
                     "type": "string",
                     "format": "date",
                 },
