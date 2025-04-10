@@ -20,17 +20,21 @@ const DataCard = ({ header = '', data = [] }) => {
                 <span className="header-text">{header}</span>
             </div>
             <div className="body">
-                {data.map(({ title, value = null }, i) => {
+                {data.map(({ title, value = null, tooltips = null }, i) => {
                     return (
                         <div className="datum" key={i}>
-                            <span className="datum-title">{title}</span>
-                            <span
+                            <div className="datum-title">
+                                <span>{title}</span>
+                            </div>
+                            <div
                                 className={
                                     'datum-value' +
                                     (value === null ? ' coming-soon' : '')
                                 }>
-                                {value ?? 'N/A'}
-                            </span>
+                                <span data-tip={tooltips?.[value] ?? ''}>
+                                    {value ?? 'N/A'}
+                                </span>
+                            </div>
                         </div>
                     );
                 })}
@@ -176,6 +180,14 @@ const default_sample_information = [
         title: 'Description',
         getProp: (context = {}) =>
             context?.sample_summary?.sample_descriptions?.join(', '),
+        tooltips: {
+            Aliquot: 'A sample of solid tissue',
+            Cells: 'A sample of cells taken from tissue (e.g. fibroblasts)',
+            Core: 'A core sample taken from intact solid issue',
+            Homogenate: 'A sample of homogenized tissue',
+            Specimen: 'A sample of intact solid tissue',
+            Liquid: 'A sample of a liquid tissue (e.g. blood or buccal swab)',
+        },
     },
     {
         title: 'Study',
@@ -259,8 +271,12 @@ export const FileViewDataCards = ({ context = {} }) => {
             />
             <DataCard
                 header={'Sample Information'}
-                data={sample_information.map(({ title, getProp }) => {
-                    return { title, value: getProp(context) };
+                data={sample_information.map(({ title, getProp, tooltips }) => {
+                    return {
+                        title,
+                        value: getProp(context),
+                        tooltips,
+                    };
                 })}
             />
         </div>
