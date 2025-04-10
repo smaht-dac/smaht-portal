@@ -1108,6 +1108,33 @@ body[data-path="/"]>#application>#layout {
 										}
 									}
 								}
+								.footer {
+									margin-top: 10px;
+									padding-top: 10px;
+									border-top: 1px solid #b4c1f733;
+									a {
+										display: flex;
+										color: #485983;
+										font-size: 0.75rem;
+										font-weight: 500;
+										
+										svg {
+											display: none;
+										}
+
+										&:hover {
+											cursor: pointer;
+											color: #3C71F9;
+
+											svg {
+												display: flex;
+												fill: #3C71F9;
+												width: 12px;
+												margin-left: 4px;
+											}
+										}
+									}
+								}
 
 								&.warning {
 									.header {
@@ -2884,6 +2911,33 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 			display: none;
 		}
 	}
+}
+
+/** Retracted Files Table styles **/
+.retracted-files-table {
+	.search-headers-row {
+		background-color: #fff1f1 !important;
+	}
+	.search-result-row >.columns >.search-result-column-block {
+
+		&[data-first-visible-column=true] {
+			padding-left: 0px !important;
+		}
+	}
+	.search-headers-column-block .column-sort-icon {
+		color: #d7baba !important;
+		&.active {
+			color: #aa5c5c !important;
+		}
+	}
+	.search-headers-column-block > .width-adjuster {
+		&:after {
+			border-color: #d7baba !important;
+		}
+	}
+}
+div#retracted_files h2.section-title {
+	font-size: 1.5rem !important;
 }
 
 /** Utilities for static page tables **/
