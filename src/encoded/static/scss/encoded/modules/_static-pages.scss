@@ -1762,6 +1762,9 @@ div#popover-consortium-map {
 			flex-direction: column-reverse;
 			
 			.toggle-information-container {
+				max-height: none;
+				overflow-x: hidden;
+				overflow-y: auto;
 				&.collapsed {
 					height: 0px;
 				}
