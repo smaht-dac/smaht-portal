@@ -112,21 +112,21 @@ Links to data tables to find identifiers on the portal
                 </tr>
                 <tr class="">
                     <td class="px-2 d-flex flex-column">
-                        <a href="https://data.smaht.org/search/?type=Sequencer">
+                        <a href="/search/?type=Sequencer">
                            <b>Sequencers</b>
                         </a>
-                        <a href="https://data.smaht.org/search/?type=Assay">
+                        <a href="/search/?type=Assay">
                            <b>Assays</b>
                         </a>
-                        <a href="https://data.smaht.org/search/?type=ReferenceGenome">
+                        <a href="/search/?type=ReferenceGenome">
                            <b>ReferenceGenomes</b>
                         </a>
                         <b>FileFormats</b>
                         <ul class="mt-0">
-                           <li>For <a href="https://data.smaht.org/search/?type=FileFormat&valid_item_types=UnalignedReads">UnalignedReads</a></li>
-                           <li>For <a href="https://data.smaht.org/search/?type=FileFormat&valid_item_types=AlignedReads">AlignedReads</a></li>
-                           <li>For <a href="https://data.smaht.org/search/?type=FileFormat&valid_item_types=VariantCalls">VariantCalls</a></li>
-                           <li>For <a href="https://data.smaht.org/search/?type=FileFormat&valid_item_types=SupplementaryFile">SupplementaryFile</a></li>
+                           <li>For <a href="/search/?type=FileFormat&valid_item_types=UnalignedReads">UnalignedReads</a></li>
+                           <li>For <a href="/search/?type=FileFormat&valid_item_types=AlignedReads">AlignedReads</a></li>
+                           <li>For <a href="/search/?type=FileFormat&valid_item_types=VariantCalls">VariantCalls</a></li>
+                           <li>For <a href="/search/?type=FileFormat&valid_item_types=SupplementaryFile">SupplementaryFile</a></li>
                         </ul>
                     </td>
                     <td class="px-2">
