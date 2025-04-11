@@ -41,8 +41,8 @@
     {
         "name": "ppmSeq",
         "display_name": "ppmSeq",
-        "description": "Paired plus minus sequencing (ppmSeq).",
-        "link": "Duplex-Sequencing strategy. https://www.ultimagenomics.com/ppmseq-for-rare-event-detection/"
+        "description": "Paired plus minus sequencing (ppmSeq); Duplex-Sequencing strategy.",
+        "link": "https://www.ultimagenomics.com/ppmseq-for-rare-event-detection/"
     },
     {
         "name": "Fiber-Seq",
