@@ -1,0 +1,12 @@
+[
+    {
+        "identifier": "foo_config",
+        "body": {
+            "foo": "bar"
+        },
+        "version": "1.0",
+        "consortia": [
+            "smaht"
+        ]
+    }
+]
