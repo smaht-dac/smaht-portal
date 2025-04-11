@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.159.0
+=======
+`PR 379: feat: implement QC Overview Tab <https://github.com/smaht-dac/smaht-portal/pull/384>`_
+
+* Populate quality metrics table in QC overview tab
+
+
 0.158.0
 =======
 `PR 398: SN Create resource file <https://github.com/smaht-dac/smaht-portal/pull/398>`_
