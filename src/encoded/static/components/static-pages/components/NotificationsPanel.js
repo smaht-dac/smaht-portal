@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
+import { RightArrowIcon } from '../../util/icon';
 
 const announcements = [
     {
@@ -16,6 +17,14 @@ const announcements = [
                 , has been retracted due to sample swap.
             </span>
         ),
+        footer: (
+            <span>
+                <a href="/retracted-files">
+                    See Full List
+                    <RightArrowIcon />
+                </a>
+            </span>
+        )
     },
     {
         type: 'info',
@@ -57,7 +66,7 @@ const announcements = [
     },
 ];
 
-const AnnouncementCard = ({ title = '', body = '', type = 'info', date = null }) => {
+const AnnouncementCard = ({ title = '', body = '', footer = null, type = 'info', date = null }) => {
     return (
         <div className={`announcement-container ${type}`}>
             <h5 className="header">
@@ -65,6 +74,7 @@ const AnnouncementCard = ({ title = '', body = '', type = 'info', date = null })
                 {date ? <LocalizedTime timestamp={new Date(date)} formatType='date-sm-compact' /> : null}
             </h5>
             <div className="body">{body}</div>
+            {footer ? <div className="footer">{footer}</div> : null}
         </div>
     );
 };
@@ -129,13 +139,7 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                             <div className="release-item" key={i}>
                                 <a className="title" href={sample_group.query}>
                                     {sample_group_title}
-                                    <svg
-                                        width="22"
-                                        height="16"
-                                        viewBox="0 0 22 16"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M1 7C0.447715 7 0 7.44772 0 8C0 8.55228 0.447715 9 1 9V7ZM21.7071 8.70711C22.0976 8.31658 22.0976 7.68342 21.7071 7.29289L15.3431 0.928932C14.9526 0.538408 14.3195 0.538408 13.9289 0.928932C13.5384 1.31946 13.5384 1.95262 13.9289 2.34315L19.5858 8L13.9289 13.6569C13.5384 14.0474 13.5384 14.6805 13.9289 15.0711C14.3195 15.4616 14.9526 15.4616 15.3431 15.0711L21.7071 8.70711ZM1 9H21V7H1V9Z" />
-                                    </svg>
+                                    <RightArrowIcon />
                                 </a>
                                 <ul>
                                     {sample_group.items.map((item, i) => {
@@ -210,6 +214,7 @@ export const NotificationsPanel = () => {
                                     key={i}
                                     title={announcement.title}
                                     body={announcement.body}
+                                    footer={announcement.footer}
                                     type={announcement.type}
                                     date={announcement.date}
                                 />

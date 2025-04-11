@@ -7,6 +7,59 @@ smaht-portal
 Change Log
 ----------
 
+0.158.0
+=======
+`PR 398: SN Create resource file <https://github.com/smaht-dac/smaht-portal/pull/398>`_
+
+* Create new file item type, ResourceFile, for DAC-generated files not used in analysis pipelines
+
+
+0.157.0
+=======
+`PR 403: Retracted files page <https://github.com/smaht-dac/smaht-portal/pull/403>`_
+
+* Add `/retracted-files` path and master-inserts for listing the retracted data
+* Add footer to home page announcements
+* Export SVG arrow icon component to reuse in timeline item, data release tracker, and announcement item footer in home page
+
+
+0.156.2
+=======
+`PR 401: Submission Status page improvement <https://github.com/smaht-dac/smaht-portal/pull/401>`_
+
+* Add copy button for MetaworkflowRuns on Submission Status page
+* Add submission status page to master inserts
+
+
+0.156.1
+=======
+`PR 396: SN Fix donor sex facet <https://github.com/smaht-dac/smaht-portal/pull/396>`_
+
+* Fix facet for "Donor Sex" in File
+
+
+0.156.0
+=======
+`PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`
+
+* Update the About page Alluvial plot and data matrix
+* Refactor showHideInformationToggle component for additional customization
+
+
+0.155.0
+=======
+`PR 395: SN Update MWFR outputs calcprop <https://github.com/smaht-dac/smaht-portal/pull/395>`_
+
+* In the revlink calcprop `meta_workflow_run_outputs`, filter out MetaWorkflowRun items with `status` "deleted"
+
+
+0.154.2
+=======
+`PR 390: feat: add tissue details and tissue subtype to File Overview page <https://github.com/smaht-dac/smaht-portal/pull/390>`_
+
+* Add tissue details and tissue subtype to File Overview page
+
+
 0.154.1
 =======
 `PR 361: fix: comment out unused Submissions page <https://github.com/smaht-dac/smaht-portal/pull/361>`_

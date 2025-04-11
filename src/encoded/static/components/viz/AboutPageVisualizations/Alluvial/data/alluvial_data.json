@@ -1,157 +1,346 @@
-    {
+{
     "nodes":[
-        {"display_name":"BCM-GCC","data_generator_category":"GCC","name":"BCM-GCC","type":"data_generator","node":0,"data_generator":"BCM-GCC"},
-        {"display_name":"Broad","data_generator_category":"GCC","name":"Broad","type":"data_generator","node":1,"data_generator":"Broad"},
-        {"display_name":"NYGC","data_generator_category":"GCC","name":"NYGC","type":"data_generator","node":2,"data_generator":"NYGC"},
-        {"display_name":"UW","data_generator_category":"GCC","name":"UW","type":"data_generator","node":3,"data_generator":"UW"},
-        {"display_name":"WashU","data_generator_category":"GCC","name":"WashU","type":"data_generator","node":4,"data_generator":"WashU"},
-        {"display_name":"BCM-TTD","data_generator_category":"TTD","name":"BCM-TTD","type":"data_generator","node":5,"data_generator":"BCM-TTD"},
-        {"display_name":"UMich","data_generator_category":"TTD","name":"UMich","type":"data_generator","node":6,"data_generator":"UMich"},
+        {"type":"data_generator","display_name":"BCM GCC","data_generator_category":"GCC","name":"BCM GCC","data_generator":"BCM GCC"},
+        {"type":"data_generator","display_name":"BROAD GCC","data_generator_category":"GCC","name":"BROAD GCC","data_generator":"BROAD GCC"},
+        {"type":"data_generator","display_name":"NYGC GCC","data_generator_category":"GCC","name":"NYGC GCC","data_generator":"NYGC GCC"},
+        {"type":"data_generator","display_name":"UWSC GCC","data_generator_category":"GCC","name":"UWSC GCC","data_generator":"UWSC GCC"},
+        {"type":"data_generator","display_name":"WASHU GCC","data_generator_category":"GCC","name":"WASHU GCC","data_generator":"WASHU GCC"},
+        {"type":"data_generator","display_name":"BCM1 TTD","data_generator_category":"TTD","name":"BCM1 TTD","data_generator":"BCM1 TTD"},
+        {"type":"data_generator","display_name":"UMICH TTD","data_generator_category":"TTD","name":"UMICH TTD","data_generator":"UMICH TTD"},
         
-        {"display_name":"Illumina NovaSeq","name":"Illumina NovaSeq","type":"sequencing_platform","node":7,"sequencing_platform":"Illumina NovaSeq"},
-        {"display_name":"PacBio","name":"PacBio","type":"sequencing_platform","node":8,"sequencing_platform":"PacBio"},
-        {"display_name":"ONT","name":"ONT","type":"sequencing_platform","node":9,"sequencing_platform":"ONT"},
-        {"display_name":"Ultima Genomics","name":"Ultima Genomics","type":"sequencing_platform","node":10,"sequencing_platform":"Ultima Genomics"},
-        {"display_name":"ONT-Ultra-Long","name":"ONT-Ultra-Long","type":"sequencing_platform","node":11,"sequencing_platform":"ONT-Ultra-Long"},
-        {"display_name":"10X Genomics Xenium","name":"10X Genomics Xenium","type":"sequencing_platform","node":12,"sequencing_platform":"10X Genomics Xenium"},
+        {"type":"sequencing_platform","display_name":"Illumina","name":"Illumina","sequencing_platform":"Illumina"},
+        {"type":"sequencing_platform","display_name":"PacBio","name":"PacBio","sequencing_platform":"PacBio"},
+        {"type":"sequencing_platform","display_name":"ONT","name":"ONT","sequencing_platform":"ONT"},
+        {"type":"sequencing_platform","display_name":"Ultima Genomics","name":"Ultima Genomics","sequencing_platform":"Ultima Genomics"},
+        {"type":"sequencing_platform","display_name":"ONT-Ultra-Long","name":"ONT-Ultra-Long","sequencing_platform":"ONT-Ultra-Long"},
+        {"type":"sequencing_platform","display_name":"10X Genomics Xenium","name":"10X Genomics Xenium Platform","sequencing_platform":"10X Genomics Xenium Platform"},
         
-        {"type":"assay_type","name":"WGS","display_name":"Bulk WGS","description":"Bulk whole genome sequencing (WGS) using short-read or long-read platforms.","node":13,"assay_type":"WGS", "assay_group": "1-1"},
-        {"type":"assay_type","name":"RNA-Seq","display_name":"Bulk RNA-Seq","description":"Bulk whole transcriptome sequencing using short-read platforms.","node":14,"assay_type":"RNA-Seq", "assay_group": "4-1"},
-        {"type":"assay_type","name":"WGS Nanoseq","display_name":"NanoSeq","description":"Nanorate sequencing; a variation of duplex sequencing.","link":"https://pubmed.ncbi.nlm.nih.gov/33911282/","node":15,"assay_type":"WGS Nanoseq", "assay_group": "1-3"},
-        {"type":"assay_type","name":"NT-Seq","display_name":"NT-Seq","description":"Comprehensive DNA methylation sequencing to profile 6mA, 4mC and 5mC sites.","link":"https://pubmed.ncbi.nlm.nih.gov/35637459/","node":16,"assay_type":"NT-Seq", "assay_group": "2-1"},
-        {"type":"assay_type","name":"snRNA-Seq","display_name":"snRNA-Seq","description":"Single-nucleus RNA-Seq.","node":17,"assay_type":"snRNA-Seq", "assay_group": "4-2"},
-        {"type":"assay_type","name":"WGS CODEC","display_name":"CODEC","description":"Concatenating Original Duplex for Error Correction (CODEC); a variation of duplex sequencing.","link":"https://pubmed.ncbi.nlm.nih.gov/37106072/","node":18,"assay_type":"WGS CODEC", "assay_group": "1-3"},
-        {"type":"assay_type","name":"WGS Duplex sequencing","display_name":"Duplex sequencing","description":"Sequencing each of the two strands of a DNA duplex.","link":"https://pubmed.ncbi.nlm.nih.gov/22853953/","node":19,"assay_type":"WGS Duplex sequencing", "assay_group": "1-3"},
-        {"type":"assay_type","name":"WGS DLP+","description":"Low-depth, high-throughput single-cell WGS using microfluidic devices and individual cell image capture.","link":"https://pubmed.ncbi.nlm.nih.gov/31730858/","node":20,"assay_type":"WGS DLP+", "assay_group": "1-3"},
-        {"type":"assay_type","name":"Fiber-Seq","display_name":"Fiber-Seq","description":"Genomewide profiling of chromatin accessibility at the single-molecule level.","link":"https://pubmed.ncbi.nlm.nih.gov/32587015/","node":21,"assay_type":"Fiber-Seq", "assay_group": "1-1"},
-        {"type":"assay_type","name":"MAS-Seq","display_name":"MAS-ISO-Seq","description":"Multiplexed Arrays Sequencing of transcript isoforms; high-throughput sequencing of mRNA isoforms using long-read platforms.","link":"https://www.biorxiv.org/content/10.1101/2021.10.01.462818v1.abstract","node":22,"assay_type":"MAS-Seq", "assay_group": "4-1"},
-        {"type":"assay_type","name":"Hi-C","display_name":"Hi-C","description":"Genomewide profiling of chromatin interactions.","link":"https://pubmed.ncbi.nlm.nih.gov/19815776/","node":23,"assay_type":"Hi-C", "assay_group": "3-1"},
-        {"type":"assay_type","name":"Targeted RNA-Seq","display_name":"10X Genomics Xenium","description":"Targeted spatial RNA-Sequencing.","node":24,"assay_type":"Targeted RNA-Seq", "assay_group": "4-2"},
-        {"type":"assay_type","name":"STORM-Seq","display_name":"STORM-Seq","description":"Single-cell TOtal RNA Miniaturized sequencing; a single-cell full-length ribo-reduced total RNA sequencing using short-read platforms.","link":"https://www.biorxiv.org/content/10.1101/2022.03.14.484332v1","node":25,"assay_type":"STORM-Seq", "assay_group": "4-2"},
-        {"type":"assay_type","name":"Tranquil-Seq","display_name":"Tranquil-Seq","description":"Single-cell full-length RNA-Seq using long-read platforms.","node":26,"assay_type":"Tranquil-Seq", "assay_group": "4-2"},
-        {"type":"assay_type","name":"WGS CompDuplex-Seq","node":27,"assay_type":"WGS CompDuplex-Seq", "display_name": "CompDuplex-Seq", "assay_group": "1-3"},
-        {"type":"assay_type","name":"WGS scCompDuplex-Seq","node":28,"assay_type":"WGS scCompDuplex-Seq", "display_name":"scCompDuplex-Seq", "assay_group": "1-3"},
-        {"type":"assay_type","name":"WGS MALBAC-amplifed","node":29,"display_name":"MALBAC-amplifed WGS", "assay_type":"WGS MALBAC-amplifed", "assay_group": "1-2"},
+        {"type":"assay_type","name":"Bulk WGS","display_name":"Bulk WGS","description":"Bulk whole genome sequencing (WGS) using short-read or long-read platforms.","assay_type":"WGS", "assay_group":"Bulk WGS"},
+        {"type":"assay_type","name":"RNA-Seq","display_name":"Bulk RNA-Seq","description":"Bulk whole transcriptome sequencing using short-read platforms.","assay_type":"RNA-Seq", "assay_group":"Bulk whole transcriptome"},
+        {"type":"assay_type","name":"WGS NanoSeq","display_name":"NanoSeq","description":"Nanorate sequencing; a variation of duplex sequencing.","link":"https://pubmed.ncbi.nlm.nih.gov/33911282/","assay_type":"WGS NanoSeq", "assay_group":"Duplex-Seq"},
+        {"type":"assay_type","name":"NT-Seq","display_name":"NT-Seq","description":"Comprehensive DNA methylation sequencing to profile 6mA, 4mC and 5mC sites.","link":"https://pubmed.ncbi.nlm.nih.gov/35637459/","assay_type":"NT-Seq", "assay_group":"Other"},
+        {"type":"assay_type","name":"snRNA-Seq","display_name":"snRNA-Seq","description":"Single-nucleus RNA-Seq.","assay_type":"snRNA-Seq", "assay_group":"Single-nuclear transcriptome"},
+        {"type":"assay_type","name":"CODEC","display_name":"CODEC","description":"Concatenating Original Duplex for Error Correction (CODEC); a variation of duplex sequencing.","link":"https://pubmed.ncbi.nlm.nih.gov/37106072/","assay_type":"CODEC", "assay_group":"Duplex-Seq"},
+        {"type":"assay_type","name":"WGS DLP+","description":"Low-depth, high-throughput single-cell WGS using microfluidic devices and individual cell image capture.","link":"https://pubmed.ncbi.nlm.nih.gov/31730858/","assay_type":"WGS DLP+", "assay_group":"Single-cell WGS"},
+        {"type":"assay_type","name":"Fiber-Seq","display_name":"Fiber-Seq","description":"Genomewide profiling of chromatin accessibility at the single-molecule level.","link":"https://pubmed.ncbi.nlm.nih.gov/32587015/","assay_type":"Fiber-Seq", "assay_group":"Bulk WGS"},
+        {"type":"assay_type","name":"Hi-C","display_name":"Hi-C","description":"Genomewide profiling of chromatin interactions.","link":"https://pubmed.ncbi.nlm.nih.gov/19815776/","assay_type":"Hi-C", "assay_group":"Other"},
+        {"type":"assay_type","name":"10X Genomics Xenium","display_name":"10X Genomics Xenium","description":"Targeted spatial RNA-Sequencing.","assay_type":"10X Genomics Xenium", "assay_group":"Single-cell transcriptome"},
+        {"type":"assay_type","name":"STORM-Seq","display_name":"STORM-Seq","description":"Single-cell Total RNA Miniaturized sequencing; a single-cell full-length ribo-reduced total RNA sequencing using short-read platforms.","link":"https://www.biorxiv.org/content/10.1101/2022.03.14.484332v1","assay_type":"STORM-Seq", "assay_group":"Single-cell transcriptome"},
+        {"type":"assay_type","name":"Tranquil-Seq","display_name":"Tranquil-Seq","description":"Single-cell full-length RNA-Seq using long-read platforms.","assay_type":"Tranquil-Seq", "assay_group":"Single-cell transcriptome"},
+        {"type":"assay_type","name":"CompDuplex-Seq","assay_type":"CompDuplex-Seq", "display_name":"CompDuplex-Seq", "assay_group":"Duplex-Seq"},
+        {"type":"assay_type","name":"MALBAC-amplified WGS","display_name":"MALBAC-amplified WGS", "assay_type":"MALBAC-amplified WGS", "assay_group":"Single-cell WGS"},
+        {"type":"assay_type","name":"HiDEF-Seq","display_name":"HiDEF-Seq", "assay_type":"HiDEF-Seq", "assay_group":"Duplex-Seq"},
+        {"type":"assay_type","name":"GoT-ChA","display_name":"GoT-ChA", "assay_type":"GoT-ChA", "assay_group":"Other"},
+        {"type":"assay_type","name":"varCUT&Tag","display_name":"varCUT&Tag", "assay_type":"varCUT&Tag", "assay_group":"Other"},
+        {"type":"assay_type","name":"Kinnex","display_name":"Kinnex", "assay_type":"Kinnex", "assay_group":"Bulk whole transcriptome"},
         
-        {"type":"molecular_feature","category":"genetic","name":"SNV","desc":"Single nucleotide variants (SNV)","node":30,"molecular_feature":"SNV"},
-        {"type":"molecular_feature","category":"genetic","name":"InDel","desc":"Small insertions and deletions (InDel)","node":31,"molecular_feature":"InDel"},
-        {"type":"molecular_feature","category":"genetic","name":"CNV","desc":"Copy number variants (CNV)","node":32,"molecular_feature":"CNV"},
-        {"type":"molecular_feature","category":"genetic","name":"Repeat elements","node":33,"molecular_feature":"Repeat elements"},
-        {"type":"molecular_feature","category":"genetic","name":"SV","node":34,"molecular_feature":"SV"},
-        {"type":"molecular_feature","category":"genetic","name":"Genome assembly","node":35,"molecular_feature":"Genome assembly"},
-        {"type":"molecular_feature","category":"epigenetic","name":"DNA methylation","node":36,"molecular_feature":"DNA methylation"},
-        {"type":"molecular_feature","category":"transcriptomic","name":"Gene expression","node":37,"molecular_feature":"Gene expression"},
-        {"type":"molecular_feature","category":"epigenetic","name":"Chromatin accessibility","node":38,"molecular_feature":"Chromatin accessibility"},
-        {"type":"molecular_feature","category":"transcriptomic","name":"Transcript isoform","node":39,"molecular_feature":"Transcript isoform"},
-        {"type":"molecular_feature","category":"transcriptomic","name":"Gene expression - Spatial","node":40,"molecular_feature":"Gene expression - Spatial"}
+        {"type":"molecular_feature","category":"genetic","name":"SNV","desc":"Single nucleotide variants (SNV)","molecular_feature":"SNV"},
+        {"type":"molecular_feature","category":"genetic","name":"InDel","desc":"Small insertions and deletions (InDel)","molecular_feature":"InDel"},
+        {"type":"molecular_feature","category":"genetic","name":"CNV","desc":"Copy number variants (CNV)","molecular_feature":"CNV"},
+        {"type":"molecular_feature","category":"genetic","name":"Repeat elements","molecular_feature":"Repeat elements"},
+        {"type":"molecular_feature","category":"genetic","name":"SV","molecular_feature":"SV"},
+        {"type":"molecular_feature","category":"genetic","name":"Genome assembly","molecular_feature":"Genome assembly"},
+        {"type":"molecular_feature","category":"epigenetic","name":"DNA methylation","molecular_feature":"DNA methylation"},
+        {"type":"molecular_feature","category":"transcriptomic","name":"Gene expression","molecular_feature":"Gene expression"},
+        {"type":"molecular_feature","category":"epigenetic","name":"Chromatin accessibility","molecular_feature":"Chromatin accessibility"},
+        {"type":"molecular_feature","category":"transcriptomic","name":"Transcript isoform","molecular_feature":"Transcript isoform"},
+        {"type":"molecular_feature","category":"transcriptomic","name":"Gene expression - Spatial","molecular_feature":"Gene expression - Spatial"},
 
-    ],    
-    "map":{
-        "BCM-GCC":0,"Broad":1,"NYGC":2,"UW":3,"WashU":4,"BCM-TTD":5,"UMich":6,"Illumina NovaSeq":7,"PacBio":8,"ONT":9,"Ultima Genomics":10,"ONT-Ultra-Long":11,"10X Genomics Xenium":12,"WGS":13,"RNA-Seq":14,"WGS Nanoseq":15,"NT-Seq":16,"snRNA-Seq":17,"WGS CODEC":18,"WGS Duplex sequencing":19,"WGS DLP+":20,"Fiber-Seq":21,"MAS-Seq":22,"Hi-C":23,"Targeted RNA-Seq":24,"STORM-Seq":25,"Tranquil-Seq":26,"WGS CompDuplex-Seq":27,"WGS scCompDuplex-Seq":28,"WGS MALBAC-amplifed":29,"SNV":30,"InDel":31,"CNV":32,"Repeat elements":33,"SV":34,"Genome assembly":35,"DNA methylation":36,"Gene expression":37,"Chromatin accessibility":38,"Transcript isoform":39,"Gene expression - Spatial":40
-    },
+        {"type":"data_generator","display_name":"BCH1 TTD","data_generator_category":"TTD","name":"BCH1 TTD","data_generator":"BCH1 TTD"},
+        
+        {"type":"data_generator","display_name":"NYU TTD","data_generator_category":"TTD","name":"NYU TTD","data_generator":"NYU TTD"},
+        
+        {"type":"data_generator","display_name":"BCH2 TTD","data_generator_category":"TTD", "name":"BCH2 TTD","data_generator":"BCH2 TTD"},
+        {"type":"data_generator","display_name":"CWRU TTD","data_generator_category":"TTD", "name":"CWRU TTD","data_generator":"CWRU TTD"},
+        {"type":"data_generator","display_name":"DFCI TTD","data_generator_category":"TTD", "name":"DFCI TTD","data_generator":"DFCI TTD"},
+        {"type":"data_generator","display_name":"MAYO TTD","data_generator_category":"TTD", "name":"MAYO TTD","data_generator":"MAYO TTD"},
+        {"type":"data_generator","display_name":"STFD TTD","data_generator_category":"TTD", "name":"STFD TTD","data_generator":"STFD TTD"},
+        {"type":"data_generator","display_name":"UMASS TTD","data_generator_category":"TTD", "name":"UMASS TTD","data_generator":"UMASS TTD"},
+        
+        {"type":"sequencing_platform","display_name":"Element AVITI","name":"Element AVITI","sequencing_platform":"Element AVITI"},
+        {"type":"sequencing_platform","display_name":"BGI DNBSEQ","name":"BGI DNBSEQ","sequencing_platform":"BGI DNBSEQ"},
+        {"type":"assay_type","name":"PTA-amplified WGS","display_name":"PTA-amplified WGS", "assay_type":"PTA-amplified WGS", "assay_group":"Single-cell WGS"},
+        {"type":"assay_type","name":"ppmSeq","display_name":"ppmSeq", "assay_type":"ppmSeq", "assay_group":"Duplex-Seq"},
+        {"type":"assay_type","name":"ATAC-Seq","display_name":"ATAC-Seq", "assay_type":"ATAC-Seq", "assay_group":"Other"},
+        {"type":"molecular_feature","category":"transcriptomic","name":"Regulatory elements","molecular_feature":"Regulatory elements"},
+        {"type":"assay_type","name":"VISTA-Seq","display_name":"VISTA-Seq", "assay_type":"VISTA-Seq", "assay_group":"Duplex-Seq"},
+        {"type":"assay_type","name":"scDip-C","display_name":"scDip-C", "assay_type":"scDip-C", "assay_group":"Other"},
+        {"type":"assay_type","name":"L1-ONT","display_name":"L1-ONT", "assay_type":"L1-ONT", "assay_group":"Targeted Sequencing"},
+        {"type":"assay_type","name":"HAT-Seq","display_name":"HAT-Seq", "assay_type":"HAT-Seq", "assay_group":"Targeted Sequencing"},
+        {"type":"assay_type","name":"Strand-Seq","display_name":"Strand-Seq", "assay_type":"Strand-Seq", "assay_group":"Other"},
+        {"type":"assay_type","name":"TEnCATS","display_name":"TEnCATS", "assay_type":"TEnCATS", "assay_group":"Targeted Sequencing"},
+        
+        {"type":"data_generator","display_name":"BROAD1 TTD","data_generator_category":"TTD", "name":"BROAD1 TTD","data_generator":"BROAD1 TTD"},
+        {"type":"data_generator","display_name":"WCNYGC TTD","data_generator_category":"TTD", "name":"WCNYGC TTD","data_generator":"WCNYGC TTD"},
+        {"type":"assay_type","name":"Slide-tags snRNA-Seq","display_name":"Slide-tags snRNA-Seq", "assay_type":"Slide-tags snRNA-Seq", "assay_group":"Single-nuclear transcriptome"}
+    ],
     "platforms":{
-        "BCM-GCC":{
-            "WGS":["Illumina NovaSeq","PacBio","ONT"],"RNA-Seq":["Illumina NovaSeq"],"WGS Nanoseq":["Illumina NovaSeq"],"NT-Seq":["Illumina NovaSeq"],"snRNA-Seq":["PacBio"]},
-        "Broad":{
-            "WGS":["Illumina NovaSeq","PacBio"],"RNA-Seq":["Illumina NovaSeq"],"WGS CODEC":["Illumina NovaSeq"]},
-        "NYGC":{
-            "WGS Duplex sequencing":["Ultima Genomics"],"WGS":["ONT"],"RNA-Seq":["Illumina NovaSeq"],"WGS DLP+":["Illumina NovaSeq"]},
-        "UW":{
-            "WGS":["Illumina NovaSeq","PacBio","ONT","ONT-Ultra-Long"],"Fiber-Seq":["PacBio"],"MAS-Seq":["PacBio"],"Hi-C":["Illumina NovaSeq"]},
-        "WashU":{
-            "WGS":["Illumina NovaSeq","PacBio","ONT"],"Targeted RNA-Seq":["10X Genomics Xenium"],"RNA-Seq":["Illumina NovaSeq"],"STORM-Seq":["Illumina NovaSeq"],"Tranquil-Seq":["PacBio"]},
-        "BCM-TTD":{
-            "WGS CompDuplex-Seq":["Illumina NovaSeq"],"WGS scCompDuplex-Seq":["Illumina NovaSeq"]},
-        "UMich":{
-            "WGS MALBAC-amplifed":["Illumina NovaSeq","ONT"], "TEnCATS":["ONT"]}
-
+        "BCM GCC":{
+            "Bulk WGS":["Illumina","PacBio","ONT"],
+            "RNA-Seq":["Illumina"],
+            "WGS NanoSeq":["Illumina"],
+            "NT-Seq":["Illumina"],
+            "snRNA-Seq":["PacBio"]
+        },
+        "BROAD GCC":{
+            "Bulk WGS":["Illumina","PacBio"],
+            "RNA-Seq":["Illumina"],
+            "CODEC":["Illumina"]
+        },
+        "NYGC GCC":{
+            "Bulk WGS":["ONT", "Illumina"],
+            "RNA-Seq":["Illumina"],
+            "WGS DLP+":["Illumina"],
+            "ppmSeq":["Ultima Genomics"]
+        },
+        "UWSC GCC":{
+            "Bulk WGS":["Illumina","PacBio","ONT","ONT-Ultra-Long"],
+            "Fiber-Seq":["PacBio"],
+            "Hi-C":["Illumina"],
+            "Kinnex":["PacBio"]
+        },
+        "WASHU GCC":{
+            "Bulk WGS":["Illumina","PacBio"],
+            "RNA-Seq":["Illumina"],
+            "10X Genomics Xenium":["10X Genomics Xenium Platform"],
+            "STORM-Seq":["Illumina"],
+            "Tranquil-Seq":["PacBio"]
+        },
+        "BCH1 TTD":{
+            "ATAC-Seq":["Illumina"],
+            "CODEC":["Illumina"],
+            "Bulk WGS":["Illumina"]
+        },
+        "BCH2 TTD":{
+            "VISTA-Seq":["Illumina"]
+        },
+        "BCM1 TTD":{
+            "Bulk WGS":["Illumina"],
+            "CompDuplex-Seq":["Illumina"]
+        },
+        "CWRU TTD":{
+            "scDip-C":["Illumina"]
+        },
+        "DFCI TTD":{
+            "L1-ONT":["ONT"],
+            "HAT-Seq":["Illumina"]
+        },
+        "MAYO TTD":{
+            "Bulk WGS":["Illumina", "Element AVITI", "BGI DNBSEQ"],
+            "PTA-amplified WGS":["Illumina"]
+        },
+        "NYU TTD":{
+            "HiDEF-Seq":["PacBio"]
+        },
+        "STFD TTD":{
+            "Bulk WGS":["Illumina", "PacBio"],
+            "PTA-amplified WGS":["Illumina"],
+            "Strand-Seq":["Illumina"]
+        },
+        "UMASS TTD":{
+            "varCUT&Tag":["Illumina"]
+        },
+        "UMICH TTD":{
+            "Bulk WGS":["ONT"],
+            "MALBAC-amplified WGS":["Illumina", "ONT"],
+            "TEnCATS":["ONT"]
+        },
+        "BROAD1 TTD":{
+            "Slide-tags snRNA-Seq":["Illumina"]
+        },
+        "WCNYGC TTD":{
+            "GoT-ChA":["Illumina"]
+        }
     },
     "links":[
-        {"source":0,"target":7,"value":1},
-        {"source":0,"target":8,"value":1},
-        {"source":0,"target":9,"value":1},
-        {"source":1,"target":7,"value":1},
-        {"source":1,"target":8,"value":1},
-        {"source":2,"target":10,"value":1},
-        {"source":2,"target":9,"value":1},
-        {"source":2,"target":7,"value":1},
-        {"source":3,"target":7,"value":1},
-        {"source":3,"target":8,"value":1},
-        {"source":3,"target":9,"value":1},
-        {"source":3,"target":11,"value":1},
-        {"source":4,"target":7,"value":1},
-        {"source":4,"target":8,"value":1},
-        {"source":4,"target":9,"value":1},
-        {"source":4,"target":12,"value":1},
-        {"source":5,"target":7,"value":1},
-        {"source":6,"target":7,"value":1},
-        {"source":6,"target":9,"value":1},
-        {"source":7,"target":13,"value":1},
-        {"source":7,"target":14,"value":1},
-        {"source":7,"target":15,"value":1},
-        {"source":7,"target":16,"value":1},
-        {"source":7,"target":18,"value":1},
-        {"source":7,"target":20,"value":1},
-        {"source":7,"target":23,"value":1},
-        {"source":7,"target":25,"value":1},
-        {"source":7,"target":27,"value":1},
-        {"source":7,"target":28,"value":1},
-        {"source":7,"target":29,"value":1},
-        {"source":8,"target":13,"value":1},
-        {"source":8,"target":17,"value":1},
-        {"source":8,"target":21,"value":1},
-        {"source":8,"target":22,"value":1},
-        {"source":8,"target":26,"value":1},
-        {"source":9,"target":13,"value":1},
-        {"source":9,"target":29,"value":1},
-        {"source":10,"target":19,"value":1},
-        {"source":11,"target":13,"value":1},
-        {"source":12,"target":24,"value":1},
-        {"source":13,"target":30,"value":1},
-        {"source":13,"target":31,"value":1},
-        {"source":13,"target":32,"value":1},
-        {"source":13,"target":33,"value":1},
-        {"source":13,"target":34,"value":1},
-        {"source":13,"target":35,"value":1},
-        {"source":13,"target":36,"value":1},
-        {"source":14,"target":37,"value":1},
-        {"source":15,"target":30,"value":1},
-        {"source":15,"target":31,"value":1},
-        {"source":16,"target":36,"value":1},
-        {"source":17,"target":37,"value":1},
-        {"source":18,"target":30,"value":1},
-        {"source":18,"target":31,"value":1},
-        {"source":19,"target":30,"value":1},
-        {"source":19,"target":31,"value":1},
-        {"source":20,"target":30,"value":1},
-        {"source":20,"target":31,"value":1},
-        {"source":20,"target":32,"value":1},
-        {"source":21,"target":38,"value":1},
-        {"source":22,"target":39,"value":1},
-        {"source":23,"target":35,"value":1},
-        {"source":24,"target":40,"value":1},
-        {"source":25,"target":37,"value":1},
-        {"source":26,"target":37,"value":1},
-        {"source":27,"target":30,"value":1},
-        {"source":27,"target":31,"value":1},
-        {"source":28,"target":30,"value":1},
-        {"source":28,"target":31,"value":1},
-        {"source":29,"target":30,"value":1},
-        {"source":29,"target":31,"value":1}
+        {"source":"BCM GCC","target":"Illumina","value":1},
+        {"source":"BCM GCC","target":"PacBio","value":1},
+        {"source":"BCM GCC","target":"ONT","value":1},
+
+        {"source":"BROAD GCC","target":"Illumina","value":1},
+        {"source":"BROAD GCC","target":"PacBio","value":1},
+
+        {"source":"NYGC GCC","target":"Ultima Genomics","value":1},
+        {"source":"NYGC GCC","target":"ONT","value":1},
+        {"source":"NYGC GCC","target":"Illumina","value":1},
+
+        {"source":"UWSC GCC","target":"Illumina","value":1},
+        {"source":"UWSC GCC","target":"PacBio","value":1},
+        {"source":"UWSC GCC","target":"ONT","value":1},
+        {"source":"UWSC GCC","target":"ONT-Ultra-Long","value":1},
+
+        {"source":"WASHU GCC","target":"Illumina","value":1},
+        {"source":"WASHU GCC","target":"PacBio","value":1},
+        {"source":"WASHU GCC","target":"10X Genomics Xenium Platform","value":1},
+
+        {"source":"BCM1 TTD","target":"Illumina","value":1},
+
+        {"source":"UMICH TTD","target":"Illumina","value":1},
+        {"source":"UMICH TTD","target":"ONT","value":1},
+
+        {"source":"Illumina","target":"Bulk WGS","value":1},
+        {"source":"Illumina","target":"RNA-Seq","value":1},
+        {"source":"Illumina","target":"WGS NanoSeq","value":1},
+        {"source":"Illumina","target":"NT-Seq","value":1},
+        {"source":"Illumina","target":"CODEC","value":1},
+        {"source":"Illumina","target":"WGS DLP+","value":1},
+        {"source":"Illumina","target":"Hi-C","value":1},
+        {"source":"Illumina","target":"STORM-Seq","value":1},
+        {"source":"Illumina","target":"CompDuplex-Seq","value":1},
+        {"source":"Illumina","target":"MALBAC-amplified WGS","value":1},
+        {"source":"Illumina","target":"GoT-ChA","value":1},
+        {"source":"Illumina","target":"varCUT&Tag","value":1},
+        {"source":"Illumina","target":"PTA-amplified WGS","value":1},
+        {"source":"Illumina","target":"ATAC-Seq","value":1},
+        {"source":"Illumina","target":"VISTA-Seq","value":1},
+        {"source":"Illumina","target":"HAT-Seq","value":1},
+        {"source":"Illumina","target":"Strand-Seq","value":1},
+        {"source":"Illumina","target":"Slide-tags snRNA-Seq","value":1},
+        {"source":"Illumina","target":"scDip-C","value":1},
+
+        {"source":"PacBio","target":"Bulk WGS","value":1},
+        {"source":"PacBio","target":"snRNA-Seq","value":1},
+        {"source":"PacBio","target":"Fiber-Seq","value":1},
+        {"source":"PacBio","target":"Tranquil-Seq","value":1},
+        {"source":"PacBio","target":"HiDEF-Seq","value":1},
+        {"source":"PacBio","target":"Kinnex","value":1},
+
+        {"source":"ONT","target":"Bulk WGS","value":1},
+        {"source":"ONT","target":"MALBAC-amplified WGS","value":1},
+        {"source":"ONT","target":"L1-ONT","value":1},
+        {"source":"ONT","target":"TEnCATS","value":1},
+
+        {"source":"Ultima Genomics","target":"ppmSeq","value":1},
+
+        {"source":"ONT-Ultra-Long","target":"Bulk WGS","value":1},
+
+        {"source":"Bulk WGS","target":"SNV","value":1},
+        {"source":"Bulk WGS","target":"InDel","value":1},
+        {"source":"Bulk WGS","target":"CNV","value":1},
+        {"source":"Bulk WGS","target":"Repeat elements","value":1},
+        {"source":"Bulk WGS","target":"SV","value":1},
+        {"source":"Bulk WGS","target":"Genome assembly","value":1},
+        {"source":"Bulk WGS","target":"DNA methylation","value":1},
+
+        {"source":"RNA-Seq","target":"Gene expression","value":1},
+
+        {"source":"WGS NanoSeq","target":"SNV","value":1},
+        {"source":"WGS NanoSeq","target":"InDel","value":1},
+
+        {"source":"NT-Seq","target":"DNA methylation","value":1},
+
+        {"source":"snRNA-Seq","target":"Gene expression","value":1},
+
+        {"source":"CODEC","target":"SNV","value":1},
+        {"source":"CODEC","target":"InDel","value":1},
+
+        {"source":"WGS DLP+","target":"SNV","value":1},
+        {"source":"WGS DLP+","target":"InDel","value":1},
+        {"source":"WGS DLP+","target":"CNV","value":1},
+
+        {"source":"Fiber-Seq","target":"Chromatin accessibility","value":1},
+        {"source":"Fiber-Seq","target":"DNA methylation","value":1},
+        {"source":"Fiber-Seq","target":"Regulatory elements","value":1},
+
+        {"source":"Hi-C","target":"Genome assembly","value":1},
+
+        {"source":"STORM-Seq","target":"Gene expression","value":1},
+
+        {"source":"Tranquil-Seq","target":"Gene expression","value":1},
+
+        {"source":"CompDuplex-Seq","target":"SNV","value":1},
+        {"source":"CompDuplex-Seq","target":"InDel","value":1},
+
+        {"source":"MALBAC-amplified WGS","target":"SNV","value":1},
+        {"source":"MALBAC-amplified WGS","target":"InDel","value":1},
+
+        {"source":"BCH1 TTD","target":"Illumina","value":1},
+
+        {"source":"NYU TTD","target":"PacBio","value":1},
+        
+        {"source":"HiDEF-Seq","target":"SNV","value":1},
+        {"source":"HiDEF-Seq","target":"InDel","value":1},
+
+        {"source":"GoT-ChA","target":"SNV","value":1},
+        {"source":"GoT-ChA","target":"Chromatin accessibility","value":1},
+        {"source":"GoT-ChA","target":"Regulatory elements","value":1},
+
+        {"source":"varCUT&Tag","target":"Regulatory elements","value":1},
+
+        {"source":"BCH2 TTD","target":"Illumina","value":1},
+
+        {"source":"CWRU TTD","target":"Illumina","value":1},
+
+        {"source":"scDip-C","target":"Regulatory elements","value":1},
+
+        {"source":"DFCI TTD","target":"Illumina","value":1},
+        {"source":"DFCI TTD","target":"ONT","value":1},
+
+        {"source":"MAYO TTD","target":"Illumina","value":1},
+        {"source":"MAYO TTD","target":"Element AVITI","value":1},
+        {"source":"MAYO TTD","target":"BGI DNBSEQ","value":1},
+
+        {"source":"STFD TTD","target":"Illumina","value":1},
+        {"source":"STFD TTD","target":"PacBio","value":1},
+
+        {"source":"UMASS TTD","target":"Illumina","value":1},
+
+        {"source":"Element AVITI","target":"Bulk WGS","value":1},
+
+        {"source":"BGI DNBSEQ","target":"Bulk WGS","value":1},
+
+        {"source":"PTA-amplified WGS","target":"SNV","value":1},
+        {"source":"PTA-amplified WGS","target":"InDel","value":1},
+
+        {"source":"ppmSeq","target":"SNV","value":1},
+        {"source":"ppmSeq","target":"InDel","value":1},
+
+        {"source":"ATAC-Seq","target":"Chromatin accessibility","value":1},
+        {"source":"ATAC-Seq","target":"Regulatory elements","value":1},
+
+        {"source":"VISTA-Seq","target":"SNV","value":1},
+        {"source":"VISTA-Seq","target":"InDel","value":1},
+
+        {"source":"L1-ONT","target":"Repeat elements","value":1},
+
+        {"source":"HAT-Seq","target":"Repeat elements","value":1},
+
+        {"source":"Strand-Seq","target":"SNV","value":1},
+        {"source":"Strand-Seq","target":"InDel","value":1},
+        {"source":"Strand-Seq","target":"CNV","value":1},
+        {"source":"Strand-Seq","target":"SV","value":1},
+        {"source":"Strand-Seq","target":"Genome assembly","value":1},
+
+        {"source":"TEnCATS","target":"Repeat elements","value":1},
+
+        {"source":"BROAD1 TTD","target":"Illumina","value":1},
+
+        {"source":"WCNYGC TTD","target":"Illumina","value":1},
+
+        {"source":"Slide-tags snRNA-Seq","target":"Gene expression - Spatial","value":1},
+
+        {"source":"10X Genomics Xenium Platform","target":"10X Genomics Xenium","value":1},
+        {"source":"10X Genomics Xenium","target":"Gene expression - Spatial","value":1},
+
+        {"source":"Kinnex","target":"Transcript isoform","value":1},
+        {"source":"Kinnex","target":"Gene expression","value":1}
     ],
-    "colors": 
-    {
-        "data_generator":["rgba(77, 175, 74, 0.8)","rgba(255, 128, 0, 0.6)"],
-        "sequencing_platform":["#9467BD","#D62728","#C3CEDF","#E78026","#1F77B4","#E377C2"],
-        "assay_type":["#39A2AC","#BCBD22","#7F7F7F","#DE7154","#8C564B","#96897B","#8CBBD9","#A87F38","#4DCE46","#E2E050","#DEB487","#C464C3","#3D348B","#FFD766","#134074","#698996","#DAD6D6","#CEB3AB","#CF995F","#E87D91"],
-        "genetic":["#AFA8F5"],
-        "epigenetic":["#AD4A66"],
-        "transcriptomic":["#F694C1"],
-        "assay_group": {
-            "1-1": "#BDDB39", "1-2": "#039863", "1-3": "#2F7F33",
-            "2-1": "#E2C290",
-            "3-1": "#2D7DD2",
-            "4-1": "#FFF175", "4-2": "#F2D13A"
-        }
+    "colors": {
+            "data_generator":["#4daf4acc","#ff800099"],
+            "sequencing_platform":["#A1CDF4","#9467BD","#ff9393","#1fb470","#befbad", "#E377C2","#D62728", "#0e74d2"],
+            "assay_type":["#39A2AC","#BCBD22","#7F7F7F","#DE7154","#8C564B","#96897B","#8CBBD9","#A87F38","#4DCE46","#E2E050","#DEB487","#C464C3","#3D348B","#FFD766","#134074","#698996","#DAD6D6","#CEB3AB","#CF995F","#E87D91"],
+            "genetic":["#AFA8F5"],
+            "epigenetic":["#AD4A66"],
+            "transcriptomic":["#f9c1db"],
+            "assay_group":{
+                "Bulk WGS":"#e04141",
+                "Bulk whole transcriptome":"#AD48AD",
+                "Duplex-Seq":"#2B4792",
+                "Single-cell WGS":"#BDDB39",
+                "Targeted Sequencing":"#FFF175",
+                "Single-nuclear transcriptome":"#E2C290",
+                "Single-cell transcriptome":"#8DAADE",
+                "Other":"#76CBBE"
+            }
     }
 }
