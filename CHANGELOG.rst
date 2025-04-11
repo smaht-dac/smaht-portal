@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.159.0
+=======
+`PR 394: SN Update RNA fileset validator <https://github.com/smaht-dac/smaht-portal/pull/394>`_
+
+* Update the Sequencing validator on FileSet so that it only enforces for RNA and not DNA
+* Add a skip validation option, `force_pass` for custom validators
+* Minor changes: remove "Not Applicable" as an enum for `strand` and embed assay `category` on File
+
+
 0.158.0
 =======
 `PR 398: SN Create resource file <https://github.com/smaht-dac/smaht-portal/pull/398>`_
