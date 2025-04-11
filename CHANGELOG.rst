@@ -7,12 +7,44 @@ smaht-portal
 Change Log
 ----------
 
-0.156.3
+0.160.1
 =======
 `PR 402 feat: about page visualization updates <https://github.com/smaht-dac/smaht-portal/pull/402>`_
 
 * Update copy for About page
 * Fix assay table descriptions
+
+
+0.160.0
+=======
+`PR 394: SN Update RNA fileset validator <https://github.com/smaht-dac/smaht-portal/pull/394>`_
+
+* Update the Sequencing validator on FileSet so that it only enforces for RNA and not DNA
+* Add a skip validation option, `force_pass` for custom validators
+* Minor changes: remove "Not Applicable" as an enum for `strand` and embed assay `category` on File
+
+
+0.159.0
+=======
+`PR 399: feat: update links to existing data doc <https://github.com/smaht-dac/smaht-portal/pull/399>`_
+
+* Update Links to Existing Data doc
+
+
+0.158.0
+=======
+`PR 398: SN Create resource file <https://github.com/smaht-dac/smaht-portal/pull/398>`_
+
+* Create new file item type, ResourceFile, for DAC-generated files not used in analysis pipelines
+
+
+0.157.0
+=======
+`PR 403: Retracted files page <https://github.com/smaht-dac/smaht-portal/pull/403>`_
+
+* Add `/retracted-files` path and master-inserts for listing the retracted data
+* Add footer to home page announcements
+* Export SVG arrow icon component to reuse in timeline item, data release tracker, and announcement item footer in home page
 
 
 0.156.2
@@ -28,6 +60,7 @@ Change Log
 `PR 396: SN Fix donor sex facet <https://github.com/smaht-dac/smaht-portal/pull/396>`_
 
 * Fix facet for "Donor Sex" in File
+
 
 0.156.0
 =======

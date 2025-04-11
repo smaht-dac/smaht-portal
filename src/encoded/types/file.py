@@ -368,6 +368,7 @@ def _build_file_embedded_list() -> List[str]:
     return [
         # Facets + Data generation summary + Link calcprops
         "file_sets.libraries.assay",
+        "file_sets.libraries.assay.category",
         "file_sets.sequencing.sequencer",
         "file_sets.sequencing.target_coverage",
         "file_sets.sequencing.target_read_count",
@@ -548,8 +549,14 @@ class File(Item, CoreFile):
                     "format": "date-time"
                 },
                 "retracted": {
+                    "title": "Retracted Date",
                     "type": "string",
                     "format": "date-time"
+                },
+                "retracted_date": {
+                    "title": "Retracted Date",
+                    "type": "string",
+                    "format": "date"
                 },
                 "in review": {
                     "type": "string",
@@ -561,6 +568,7 @@ class File(Item, CoreFile):
                     "format": "date-time"
                 },
                 "released_date": {
+                    "title": "Release Date",
                     "type": "string",
                     "format": "date",
                 },
