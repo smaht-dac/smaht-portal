@@ -108,6 +108,14 @@ export class BrowseViewBody extends React.PureComponent {
     }
 }
 
+/**
+ * Button to download the bulk donor metadata for all SMaHT donors.
+ * @param {Object} props - The component props.
+ * @param {Object} props.session - The session object.
+ * @returns {JSX.Element} The download button.
+ *
+ * Note: this component only renders for logged-in users.
+ */
 export const DonorMetadataDownloadButton = ({ session }) => {
     const [downloadLink, setDownloadLink] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -149,7 +157,7 @@ export const DonorMetadataDownloadButton = ({ session }) => {
             href={downloadLink}
             download="test.tsv"
             data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
-            className="btn btn-outline-secondary me-1">
+            className="btn btn-sm btn-outline-secondary me-1">
             <span>
                 <i className="icon icon-fw icon-users fas me-1" />
                 Donor Metadata
@@ -158,8 +166,8 @@ export const DonorMetadataDownloadButton = ({ session }) => {
     ) : (
         <button
             data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
-            className="btn btn-outline-secondary me-1"
-            disbaled>
+            className="btn btn-sm btn-outline-secondary me-1"
+            disabled>
             <span>
                 <i className="icon icon-fw icon-users fas me-1" />
                 Donor Metadata
