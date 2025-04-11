@@ -99,7 +99,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
     };
 
     getEstimatedCoverage = (processedFiles) => {
-        const coverage_metric = 'bamstats:estimate_average_coverage';
+        const coverage_metric = 'mosdepth:total';
         const filesSeen = [];
         let estimated_coverage = 0;
         if (processedFiles.length === 0) {

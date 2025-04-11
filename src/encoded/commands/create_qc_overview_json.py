@@ -340,7 +340,6 @@ class FileStats:
 
             # Get the alignment MWFR to process the fastp outputs and get the final BAM
             mwfr = self.get_alignment_mwfr(fileset)
-            #print("mwfr", mwfr)
             if not mwfr:
                 continue
 
@@ -366,7 +365,6 @@ class FileStats:
             result["file_status"] = final_ouput_file[STATUS]
             result["file_display_title"] = final_ouput_file[DISPLAY_TITLE]
             result[SUBMISSION_CENTER] = submission_centers
-            #result["tags"] = tags
             result[ASSAY] = assay
             result["assay_label"] = ",".join(assays)
             result[SEQUENCER] = sequencer
@@ -473,7 +471,11 @@ class FileStats:
                     f"Could not get TSV content for somalier run {latest_run[ACCESSION]}"
                 )
             self.somalier_results[donor_accession] = {
-                "info": {"overall_quality_status": overall_quality_status},
+                "info": {
+                    "overall_quality_status": overall_quality_status,
+                    "problematic_files": [],
+                    "files_included": [],
+                },
                 "warnings": [],
                 "results": [],
             }
@@ -491,6 +493,7 @@ class FileStats:
                 all_file_accessions.append(line_[0])
                 all_file_accessions.append(line_[1])
             all_file_accessions = list(set(all_file_accessions))
+            self.somalier_results[donor_accession]["info"]["files_included"] = all_file_accessions
             all_file_infos = get_items_bulk(
                 "File", [ACCESSION, "status"], all_file_accessions
             )
@@ -531,14 +534,6 @@ class FileStats:
         problematic_files = {}
         for result in results:
             if result["relatedness"] < threshold:
-                sample_a = result["sample_a"]
-                sample_b = result["sample_b"]
-                # Don't count the results if the file is deleted or retracted
-                if all_file_infos[sample_a]["status"] in [DELETED, RETRACTED]:
-                    continue
-                if all_file_infos[sample_b]["status"] in [DELETED, RETRACTED]:
-                    continue
-
                 for sample in ["sample_a", "sample_b"]:
                     if result[sample] not in problematic_files:
                         problematic_files[result[sample]] = 1
@@ -549,7 +544,12 @@ class FileStats:
         problematic_files = [
             key for key, value in problematic_files.items() if value > 2
         ]
+        self.somalier_results[donor_accession]["info"]["problematic_files"] = problematic_files
         for f in problematic_files:
+            # Don't generate warnings if the file is deleted or retracted
+            if all_file_infos[f]["status"] in [DELETED, RETRACTED]:
+                continue
+            
             self.somalier_results[donor_accession]["warnings"].append(
                 f"File {f} failed the sample integrity check for donor {donor_label}"
             )

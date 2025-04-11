@@ -1,59 +1,109 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 import { SampleContaminationDataTable } from './SampleContaminationDataTable';
 import { SampleContaminationHeatmap } from './SampleContaminationHeatmap';
-import {
-    formatLargeInteger,
-    getFileModalContent,
-    customReactSelectStyle,
-} from './utils';
-import { Modal } from 'react-bootstrap';
+import { customReactSelectStyle } from './utils';
+
 import Select from 'react-select';
 
-export const SampleContamination = ({ qcData }) => {
+export const SampleContamination = ({ qcData, preselectedFile }) => {
     const vizInfo = qcData.viz_info;
     const donorsForFacets = vizInfo.facets.sample_identity_donors;
     const somalierResults = qcData.somalier_results;
 
-    //const defaultSettings = settings || vizInfo.default_settings.boxplot;
+    const preSelectionInfos = useMemo(() => {
+        const result = {
+            preselectedDonor: donorsForFacets[0],
+            warnings: [],
+            successMessages: [],
+        };
+        const donorAccessions = Object.keys(somalierResults);
+        donorAccessions.forEach((donorAccession) => {
+            const donorWarnings = somalierResults[donorAccession]['warnings'];
+            donorWarnings.forEach((warning) => {
+                result.warnings.push(
+                    <span>
+                        <i className="icon icon-exclamation-triangle fas icon-fw" />{' '}
+                        {warning}
+                    </span>
+                );
+            });
+        });
 
-    const [highlightedBam, sethighlightedBam] = useState(null);
-    const [selectedDonor, setSelectedDonor] = useState(donorsForFacets[0]);
+        if (!preselectedFile) {
+            return result;
+        }
+
+        let fileFound = false;
+        for (let i = 0; i < donorAccessions.length; i++) {
+            const donorAccession = donorAccessions[i];
+            const filesIncluded =
+                somalierResults[donorAccession]['info']['files_included'];
+            const problematicFiles =
+                somalierResults[donorAccession]['info']['problematic_files'];
+            if (filesIncluded.includes(preselectedFile)) {
+                fileFound = true;
+                if(!problematicFiles.includes(preselectedFile)){
+                    result.successMessages.push(
+                        <span>
+                            <i className="icon icon-info-circle fas icon-fw" />{' '}
+                            File <strong>{preselectedFile}</strong> passed the sample integrity check.
+                        </span>
+                    );
+                }
+                const donor = donorsForFacets.find(
+                    (d) => d.value === donorAccession
+                );
+                if (donor) {
+                    result.preselectedDonor = donor;
+                    break;
+                }
+            }
+        }
+        if (!fileFound) {
+            result.warnings.push(
+                <span>
+                    <i className="icon icon-exclamation-triangle fas icon-fw" />{' '}
+                    Sample integrity results were not found for the selected
+                    file.
+                </span>
+            );
+        }
+        return result;
+    }, [preselectedFile]); // Only recompute when `preselectedFile` changes
+
+    const [selectedDonor, setSelectedDonor] = useState(
+        preSelectionInfos.preselectedDonor
+    );
 
     const [rerenderNumber, setRerenderNumber] = useState(0);
+
+    const [warnings, setWarnings] = useState(preSelectionInfos.warnings);
+    const [successMessages, setSuccessMessages] = useState(preSelectionInfos.successMessages);
 
     const handleSelectedDonorChange = (selection) => {
         setSelectedDonor(selection);
     };
 
     useEffect(() => {
-        //loadContaminationData(selectedDonor.value);
         setRerenderNumber(rerenderNumber + 1);
     }, [selectedDonor]);
 
-    const updateHighlightedBam = (bam) => {
-        sethighlightedBam(bam);
-    };
-
-    // Gather Warnings
-    let warnings = [];
-    Object.keys(somalierResults).forEach((donorAccession) => {
-        const donorWarnings = somalierResults[donorAccession]['warnings'];
-
-        donorWarnings.forEach((warning) => {
-            warnings.push(
-                <span>
-                    <i className="icon icon-exclamation-triangle fas icon-fw" />{' '}
-                    {warning}
-                </span>
-            );
-        });
-    });
-
-    warnings =
+    const warningsDisplay =
         warnings.length > 0 ? (
             <div className="alert alert-danger">
                 {warnings.map((w, index) => (
+                    <div key={index}>{w}</div>
+                ))}
+            </div>
+        ) : (
+            ''
+        );
+
+    const successMessagesDisplay =
+        successMessages.length > 0 ? (
+            <div className="alert alert-success">
+                {successMessages.map((w, index) => (
                     <div key={index}>{w}</div>
                 ))}
             </div>
@@ -81,7 +131,8 @@ export const SampleContamination = ({ qcData }) => {
 
     return (
         <>
-            {warnings}
+            {warningsDisplay}
+            {successMessagesDisplay}
             {facets}
             <div className="row">
                 <div className="col-12">
