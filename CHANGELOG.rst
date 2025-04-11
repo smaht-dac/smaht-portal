@@ -7,11 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.158.0
+0.159.0
 =======
 `PR 399: feat: update links to existing data doc <https://github.com/smaht-dac/smaht-portal/pull/399>`_
 
 * Update Links to Existing Data doc
+
+
+0.158.0
+=======
+`PR 398: SN Create resource file <https://github.com/smaht-dac/smaht-portal/pull/398>`_
+
+* Create new file item type, ResourceFile, for DAC-generated files not used in analysis pipelines
 
 
 0.157.0
