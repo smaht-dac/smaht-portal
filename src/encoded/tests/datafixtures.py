@@ -452,6 +452,55 @@ def donor(testapp: TestApp, donor_properties: Dict[str, Any]) -> Dict[str, Any]:
 
 
 @pytest.fixture
+def test_tpc_donor(
+    testapp: TestApp,
+    test_second_submission_center: Dict[str, Any],
+) -> Dict[str, Any]:
+    item = {
+        "submission_centers": [test_second_submission_center["uuid"]],
+        "submitted_id": f"{TEST_SECOND_CENTER_SUBMITTED_ID_CODE}_DONOR_SMHT001",
+        "age": 35,
+        "sex": "Male",
+        "tpc_submitted": "True",
+        "external_id": "SMHT001"
+    }
+    return post_item(testapp, item, "Donor")
+
+
+@pytest.fixture
+def test_tissue(
+    testapp: TestApp,
+    test_second_submission_center: Dict[str, Any],
+    test_tpc_donor: Dict[str, Any],
+    test_ontology_term: Dict[str, Any],
+) -> Dict[str, Any]:
+    item = {
+        "submission_centers": [test_second_submission_center["uuid"]],
+        "submitted_id": f"{TEST_SECOND_CENTER_SUBMITTED_ID_CODE}_TISSUE_SMHT001-3Q",
+        "donor": test_tpc_donor["uuid"],
+        "external_id": "SMHT001-3Q",
+        "uberon_id": test_ontology_term["uuid"]
+    }
+    return post_item(testapp, item, "Tissue")
+    
+
+@pytest.fixture
+def test_tissue_sample(
+    testapp: TestApp,
+    test_second_submission_center: Dict[str, Any],
+    test_tissue: Dict[str, Any],
+) -> Dict[str, Any]:
+    item = {
+        "submission_centers": [test_second_submission_center["uuid"]],
+        "submitted_id": f"{TEST_SECOND_CENTER_SUBMITTED_ID_CODE}_TISSUE-SAMPLE_SMHT001-3Q-001A1",
+        "sample_sources": [test_tissue["uuid"]],
+        "external_id": "SMHT001-3Q-001A1",
+        "category": "Core"
+    }
+    return post_item(testapp, item, "TissueSample")
+
+
+@pytest.fixture
 def test_ontology(
     testapp,
     test_consortium
@@ -557,6 +606,20 @@ def test_assay(
         }
     return post_item_and_return_location(testapp, item, 'assay')
 
+
+@pytest.fixture
+def test_rna_assay(
+    testapp,
+    test_submission_center
+):
+    item = {
+        "identifier": "bulk_rna_seq",
+        "title": "Bulk RNA-Seq",
+        "code": "100",
+        "submission_centers": [test_submission_center["uuid"]],
+        "valid_molecules": ["RNA"]
+    }
+    return post_item_and_return_location(testapp, item, 'assay')
 
 
 @pytest.fixture

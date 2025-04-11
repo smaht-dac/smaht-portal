@@ -257,3 +257,13 @@ def test_validate_tissue_category_on_add(
         'submission_centers': item_utils.get_submission_centers(insert)
     }
     post_item(es_testapp, post_body, 'tissue_sample', status=expected_status)
+
+
+def test_tissue_sample_force_pass(
+        testapp: TestApp,
+        test_tissue_sample: Dict[str, Any]
+    ) -> None:
+    """ Tests that we can skip validation check by passing ?force_pass to patch invalid metadata to tissue sample."""
+    atid = test_tissue_sample['@id']
+    testapp.patch_json(f'/{atid}', {'external_id': 'SMHT001-3A-001X'}, status=422)  # fails without force_pass
+    testapp.patch_json(f'/{atid}?force_pass', {'external_id': 'SMHT001-3A-001X'}, status=200)

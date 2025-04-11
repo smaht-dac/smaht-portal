@@ -145,7 +145,7 @@
         },
         "rna_seq_protocol": {
             "title": "RNA-seq Protocol",
-            "description": "Protocol used for RNA-seq assays",
+            "description": "Protocol used for RNA-seq assays. Required for RNA libraries",
             "type": "string",
             "enum": [
                 "Watchmaker",
@@ -169,13 +169,12 @@
         },
         "strand": {
             "title": "Strand",
-            "description": "Library stranded-ness",
+            "description": "Library stranded-ness of RNA-seq library prep. Required for RNA libraries",
             "type": "string",
             "enum": [
                 "Unstranded",
                 "First Stranded",
-                "Second Stranded",
-                "Not Applicable"
+                "Second Stranded"
             ]
         },
         "trim_adapter_sequence": {

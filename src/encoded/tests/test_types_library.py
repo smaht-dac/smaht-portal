@@ -130,3 +130,13 @@ def test_validate_dna_library_properties_on_post(
     }
     post_item(es_testapp, identifying_post_body, 'library', status=expected_status)
 
+
+def test_library_force_pass(
+        testapp: TestApp,
+        test_library: Dict[str, Any],
+        test_rna_assay: Dict[str, Any]
+    ) -> None:
+    """ Tests that we can skip validation check by passing ?force_pass to patch invalid metadata to library."""
+    atid = test_library['@id']
+    testapp.patch_json(f'/{atid}', {'assay': 'bulk_rna_seq'}, status=422)  # fails without force_pass
+    testapp.patch_json(f'/{atid}?force_pass', {'assay': 'bulk_rna_seq'}, status=200)

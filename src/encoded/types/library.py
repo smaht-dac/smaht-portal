@@ -57,6 +57,8 @@ class Library(SubmittedItem):
 @link_related_validator
 def validate_molecule_specific_assay_on_add(context, request):
     """Check that analyte.molecule includes the correct molecule for molecule-specific assays."""
+    if 'force_pass' in request.query_string:
+        return
     data = request.json
     return check_molecule_specific_assay(request, data['analytes'], data['assay'])
     
@@ -64,6 +66,8 @@ def validate_molecule_specific_assay_on_add(context, request):
 @link_related_validator
 def validate_molecule_specific_assay_on_edit(context, request):
     """Check that analyte.molecule includes the correct molecule for molecule-specific assays."""
+    if 'force_pass' in request.query_string:
+        return
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
     analytes = get_property_for_validation('analytes', existing_properties, properties_to_update)
@@ -94,6 +98,8 @@ def check_molecule_specific_assay(request, analytes: List[str], assay: str):
 
 def validate_assay_specific_properties_on_add(context, request):
     """Check that assay is appropriate for assay-specific properties on add."""
+    if 'force_pass' in request.query_string:
+        return
     data = request.json
     all_property_keys = [key for key in data.keys()]
     assay = data["assay"]
@@ -102,6 +108,8 @@ def validate_assay_specific_properties_on_add(context, request):
     
 def validate_assay_specific_properties_on_edit(context, request):
     """Check that assay is appropriate for assay-specific properties on edit."""
+    if 'force_pass' in request.query_string:
+        return
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
     all_property_keys = list(set().union(existing_properties.keys(), properties_to_update.keys()))
