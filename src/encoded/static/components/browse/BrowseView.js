@@ -1,14 +1,17 @@
 'use strict';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import memoize from 'memoize-one';
 import _ from 'underscore';
 import { OverlayTrigger, Popover } from 'react-bootstrap';
+
+import ReactTooltip from 'react-tooltip';
 
 import {
     schemaTransforms,
     analytics,
     valueTransforms,
+    ajax,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 
@@ -43,7 +46,6 @@ export default function BrowseView(props) {
 }
 
 export class BrowseViewBody extends React.PureComponent {
-    
     constructor(props) {
         super(props);
         this.memoized = {
@@ -106,6 +108,74 @@ export class BrowseViewBody extends React.PureComponent {
     }
 }
 
+/**
+ * Button to download the bulk donor metadata for all SMaHT donors.
+ * @param {Object} props - The component props.
+ * @param {Object} props.session - The session object.
+ * @returns {JSX.Element} The download button.
+ *
+ * Note: this component only renders for logged-in users.
+ */
+export const DonorMetadataDownloadButton = ({ session }) => {
+    const [downloadLink, setDownloadLink] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const searchURL =
+            '/reference-files/6b724cc4-9cb4-4e27-9935-d62523d90879';
+
+        if (session) {
+            ajax.load(
+                searchURL,
+                (resp) => {
+                    console.log('resp: ', resp);
+                    if (resp.error) {
+                        console.error('ERROR', resp.error);
+                        return;
+                    }
+                    if (resp?.href) {
+                        console.log('Download link: ', resp.href);
+                        setDownloadLink(resp?.href);
+
+                        // Rebuild the tooltip after the component mounts
+                        ReactTooltip.rebuild();
+                    } else {
+                        isLoading(false);
+                    }
+                },
+                'GET',
+                () => {
+                    console.log('Error loading donor metadata');
+                    setIsLoading(false);
+                }
+            );
+        }
+    }, [session]);
+
+    return downloadLink ? (
+        <a
+            href={downloadLink}
+            download="test.tsv"
+            data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
+            className="btn btn-sm btn-outline-secondary me-1">
+            <span>
+                <i className="icon icon-fw icon-users fas me-1" />
+                Donor Metadata
+            </span>
+        </a>
+    ) : (
+        <button
+            data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
+            className="btn btn-sm btn-outline-secondary me-1"
+            disabled>
+            <span>
+                <i className="icon icon-fw icon-users fas me-1" />
+                Donor Metadata
+            </span>
+        </button>
+    );
+};
+
 export const BrowseViewSearchTable = (props) => {
     const {
         session,
@@ -116,11 +186,7 @@ export const BrowseViewSearchTable = (props) => {
         onSelectItem,
         onResetSelectedItems,
     } = props;
-    const facets = transformedFacets(
-        context,
-        currentAction,
-        schemas
-    );
+    const facets = transformedFacets(context, currentAction, schemas);
     const tableColumnClassName = 'results-column col';
     const facetColumnClassName = 'facets-column col-auto';
 
@@ -130,11 +196,7 @@ export const BrowseViewSearchTable = (props) => {
         onResetSelectedItems, // From SelectedItemsController
     };
 
-    const passProps = _.omit(
-        props,
-        'isFullscreen',
-        'toggleFullScreen'
-    );
+    const passProps = _.omit(props, 'isFullscreen', 'toggleFullScreen');
 
     const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
     const aboveTableComponent = (
@@ -142,6 +204,7 @@ export const BrowseViewSearchTable = (props) => {
             topLeftChildren={
                 <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
             }>
+            {session && <DonorMetadataDownloadButton session={session} />}
             <SelectedItemsDownloadButton
                 id="download_tsv_multiselect"
                 disabled={selectedItems.size === 0}
@@ -154,7 +217,8 @@ export const BrowseViewSearchTable = (props) => {
         </BrowseViewAboveSearchTableControls>
     );
 
-    const { columnExtensionMap, columns, hideFacets } = createBrowseColumnExtensionMap(selectedFileProps);
+    const { columnExtensionMap, columns, hideFacets } =
+        createBrowseColumnExtensionMap(selectedFileProps);
 
     return (
         <CommonSearchView
@@ -167,7 +231,7 @@ export const BrowseViewSearchTable = (props) => {
                 aboveFacetListComponent,
                 aboveTableComponent,
                 columns,
-                hideFacets
+                hideFacets,
             }}
             useCustomSelectionController
             hideStickyFooter
@@ -284,18 +348,25 @@ const TypeColumnTitlePopover = function (props) {
 /**
  *  A column extension map specifically for browse view file tables.
  */
-export function createBrowseColumnExtensionMap({ selectedItems, onSelectItem, onResetSelectedItems }) {
+export function createBrowseColumnExtensionMap({
+    selectedItems,
+    onSelectItem,
+    onResetSelectedItems,
+}) {
     const columnExtensionMap = {
         ...originalColExtMap, // Pull in defaults for all tables
         // Then overwrite or add onto the ones that already are there:
-        'display_title': {
-            default_hidden: true
+        display_title: {
+            default_hidden: true,
         },
         // Select all button
         '@type': {
             colTitle: (
                 // Context now passed in from HeadersRowColumn (for file count)
-                <SelectAllFilesButton {...{ selectedItems, onSelectItem, onResetSelectedItems }} type="checkbox" />
+                <SelectAllFilesButton
+                    {...{ selectedItems, onSelectItem, onResetSelectedItems }}
+                    type="checkbox"
+                />
             ),
             hideTooltip: true,
             noSort: true,
@@ -430,11 +501,7 @@ export function createBrowseColumnExtensionMap({ selectedItems, onSelectItem, on
             render: function (result, parentProps) {
                 const value = result?.file_status_tracking?.released_date;
                 if (!value) return null;
-                return (
-                    <span className="value text-end">
-                    {value}
-                    </span>
-                );
+                return <span className="value text-end">{value}</span>;
             },
         },
         // Platform
@@ -450,7 +517,7 @@ export function createBrowseColumnExtensionMap({ selectedItems, onSelectItem, on
             widthMap: { lg: 151, md: 151, sm: 151 },
         },
         // Date Created
-        'date_created': {
+        date_created: {
             widthMap: { lg: 151, md: 151, sm: 151 },
             default_hidden: true,
             render: function (result, parentProps) {
@@ -464,7 +531,7 @@ export function createBrowseColumnExtensionMap({ selectedItems, onSelectItem, on
                         />
                     </span>
                 );
-            }
+            },
         },
     };
 
@@ -506,8 +573,8 @@ export function createBrowseColumnExtensionMap({ selectedItems, onSelectItem, on
             title: 'Software',
         },
         date_created: {
-            title: 'Date Created'
-        }
+            title: 'Date Created',
+        },
     };
 
     const hideFacets = [
