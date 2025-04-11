@@ -74,10 +74,8 @@ const formatRawData = (data) => {
 };
 
 // Render a QC Overview table with given quality_metrics items [qcItems]
-const QCOverviewTable = ({ qcItems }) => {
+const QCOverviewTable = ({ qcItems, accession }) => {
     const [data, setData] = useState(null);
-
-    console.log('data: ', data);
 
     useEffect(() => {
         const searchUrl = `/search/?${qcItems
@@ -103,8 +101,10 @@ const QCOverviewTable = ({ qcItems }) => {
                             <strong>Somalier sample duplicate check</strong>
                         </span>
                         {'/qc-metrics' ? (
-                            <a href="/qc-metrics" className="">
-                                Link to Sample Relatedness Page
+                            <a
+                                href={`/qc-metrics?tab=sample-integrity&file=${accession}`}
+                                className="">
+                                Sample Relatedness Page
                             </a>
                         ) : (
                             <span className="datum-value text-gray">N/A</span>
@@ -117,7 +117,7 @@ const QCOverviewTable = ({ qcItems }) => {
                             </strong>
                         </span>
                         {data?.verifyBamId ? (
-                            <span className="datum-value lh-1">
+                            <span className="d-flex align-items-center gap-1 datum-value">
                                 {data?.verifyBamId?.value}{' '}
                                 {getBadge(data?.verifyBamId?.flag)}
                             </span>
@@ -147,13 +147,13 @@ const QCOverviewTable = ({ qcItems }) => {
                                         key={i}>
                                         <div className="d-flex flex-column">
                                             <span className="d-flex align-items-center lh-base">
-                                                BAM #{i + 1} (
+                                                QC Run #{i + 1} (
                                                 <a href={`/${accession}`}>
                                                     {accession}
                                                 </a>
                                                 )
                                             </span>
-                                            <span className="lh-1">
+                                            <span className="fw-medium d-flex align-items-center gap-1">
                                                 Overall Quality Status:{' '}
                                                 {getBadge(
                                                     overall_quality_status
@@ -192,12 +192,10 @@ const QCOverviewTable = ({ qcItems }) => {
                                             <td className="text-left" key={i}>
                                                 {cellValue !== null ? (
                                                     <div className="d-flex">
-                                                        <span className="me-1 d-flex align-items-center lh-1">
+                                                        <span className="d-flex align-items-center gap-1">
                                                             {d3.format('.3f')(
                                                                 cellValue?.value
-                                                            )}{' '}
-                                                        </span>
-                                                        <span className="lh-1">
+                                                            )}
                                                             {getBadge(
                                                                 cellValue?.flag
                                                             )}
@@ -236,6 +234,10 @@ const QCOverviewTable = ({ qcItems }) => {
 
 // Top level component for QC Overview tab content
 export const QcOverviewTabContent = ({ context }) => {
-    console.log('context: ', context);
-    return <QCOverviewTable qcItems={context.quality_metrics} />;
+    return (
+        <QCOverviewTable
+            qcItems={context.quality_metrics}
+            accession={context.accession}
+        />
+    );
 };
