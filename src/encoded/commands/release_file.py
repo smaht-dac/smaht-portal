@@ -213,9 +213,7 @@ class FileRelease:
         )
         mwfrs = ff_utils.search_metadata(search_filter, key=self.key)
         if len(mwfrs) != 1:
-            if not supp_file_utils.is_genome_assembly(
-                self.file
-            ) and not supp_file_utils.is_reference_conversion(self.file):
+            if item_utils.get_type(self.file) == "OutputFile":
                 self.print_error_and_exit(
                     (
                         f"Expected exactly one associated MetaWorkflowRun, got"
