@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.160.1
+=======
+`PR 405: SN Update release MWFR check <https://github.com/smaht-dac/smaht-portal/pull/405>`_
+
+* In `commands/release_file.py` , adjust `get_output_meta_workflow_run` to only throw an error if the file type is OutputFile, as submitted files won't be the output of a MWFR
+
+
 0.160.0
 =======
 `PR 394: SN Update RNA fileset validator <https://github.com/smaht-dac/smaht-portal/pull/394>`_
