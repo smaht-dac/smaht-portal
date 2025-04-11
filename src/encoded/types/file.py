@@ -368,6 +368,7 @@ def _build_file_embedded_list() -> List[str]:
     return [
         # Facets + Data generation summary + Link calcprops
         "file_sets.libraries.assay",
+        "file_sets.libraries.assay.category",
         "file_sets.sequencing.sequencer",
         "file_sets.sequencing.target_coverage",
         "file_sets.sequencing.target_read_count",
