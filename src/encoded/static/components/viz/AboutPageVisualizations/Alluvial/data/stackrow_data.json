@@ -12,7 +12,7 @@
     {
         "name": "WGS NanoSeq",
         "display_name": "NanoSeq",
-        "description": "Nanorate sequencing, Duplex sequencing strategy.",
+        "description": "Nanorate sequencing (NanoSeq); Duplex-Sequencing strategy.",
         "link": "https://doi.org/10.1038/s41586-021-03477-4"
     },
     {
@@ -29,7 +29,7 @@
     {
         "name": "CODEC",
         "display_name": "CODEC",
-        "description": "Concatenating Original Duplex for Error Correction (CODEC) Duplex-Sequencing strategy.",
+        "description": "Concatenating Original Duplex for Error Correction (CODEC); Duplex-Sequencing strategy.",
         "link": "https://www.nature.com/articles/s41588-023-01376-0"
     },
     {
@@ -41,7 +41,7 @@
     {
         "name": "ppmSeq",
         "display_name": "ppmSeq",
-        "description": "Paired plus minus sequencing (ppmSeq); Duplex sequencing strategy.",
+        "description": "Paired plus minus sequencing (ppmSeq); Duplex-Sequencing strategy.",
         "link": "https://www.ultimagenomics.com/ppmseq-for-rare-event-detection/"
     },
     {
@@ -70,7 +70,7 @@
     {
         "name": "STORM-Seq",
         "display_name": "STORM-Seq",
-        "description": "Single-cell total RNA Miniaturized sequencing; a single-cell full-length ribo-reduced total RNA sequencing using short-read platforms.",
+        "description": "Single-cell TOtal RNA Miniaturized sequencing (STORM-Seq); a single-cell full-length ribo-reduced total RNA sequencing using short-read platforms.",
         "link": "https://www.biorxiv.org/content/10.1101/2022.03.14.484332v1"
     },
     {
@@ -103,15 +103,9 @@
         "link": "https://doi.org/10.1038/nmeth.2688"
     },
     {
-        "name": "ATAC-Seq",
-        "display_name": "ATAC-Seq",
-        "description": "Assay for Transposase-Accessible Chromatin using sequencing (ATAC-Seq); genome wide profiling of chromatin accessibility.",
-        "link": "https://doi.org/10.1038/nmeth.2688"
-    },
-    {
         "name": "HiDEF-Seq",
         "display_name": "HiDEF-Seq",
-        "description": "Hairpin Duplex Enhanced Fidelity Sequencing (HiDEF-Seq) Duplex-sequencing strategy.",
+        "description": "Hairpin Duplex Enhanced Fidelity Sequencing (HiDEF-Seq); Duplex-Sequencing strategy.",
         "link": "https://doi.org/10.1038/s41586-024-07532-8"
     },
     {
