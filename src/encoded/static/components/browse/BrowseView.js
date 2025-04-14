@@ -154,10 +154,10 @@ export const DonorMetadataDownloadButton = ({ session }) => {
 
     return downloadLink ? (
         <a
-            href={downloadLink}
-            download="test.tsv"
             data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
-            className="btn btn-sm btn-outline-secondary me-1">
+            className="btn btn-sm btn-outline-secondary me-1"
+            href={downloadLink}
+            download>
             <span>
                 <i className="icon icon-fw icon-users fas me-1" />
                 Donor Metadata
