@@ -1,0 +1,243 @@
+import React, { useState, useEffect } from 'react';
+
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { getBadge } from '../../../viz/QualityMetricVisualizations/utils';
+
+import * as d3 from 'd3';
+
+// Formats the response data into a format that can be used in the table
+const formatRawData = (data) => {
+    let headers = [];
+
+    let verifyBamId = null;
+    const tableData = data.reduce((acc, qcItem) => {
+        // Get the accession of the qcItem
+        const accession = qcItem.accession;
+        const overall_quality_status = qcItem.overall_quality_status;
+
+        headers = [...headers, { accession, overall_quality_status }];
+
+        // Loop through the qc_values of each item and save them under the item's accession
+        qcItem.qc_values.forEach((qcValue) => {
+            const {
+                key,
+                tooltip,
+                value,
+                flag = null,
+                visible = false,
+            } = qcValue;
+
+            // Check for the first VerifyBamID qc value
+            if (
+                verifyBamId === null &&
+                qcValue?.derived_from === 'verifybamid:freemix_alpha'
+            ) {
+                console.log('Found verifyBamID2 qc value');
+                verifyBamId = {
+                    tooltip,
+                    value,
+                    flag,
+                };
+            }
+
+            // Add information from the visible qc_value
+            if (visible) {
+                if (!acc[key]) {
+                    // Add new key to acc
+                    acc[key] = {
+                        tooltip,
+                        values: {
+                            [accession]: {
+                                value,
+                                flag,
+                            },
+                        },
+                    };
+                } else {
+                    // Key exists, just add new value to it
+                    acc[key].values[accession] = {
+                        value,
+                        flag,
+                    };
+                }
+            }
+        });
+
+        return acc;
+    }, {});
+
+    return {
+        headers,
+        tableData,
+        verifyBamId,
+    };
+};
+
+// Render a QC Overview table with given quality_metrics items [qcItems]
+const QCOverviewTable = ({ qcItems, accession }) => {
+    const [data, setData] = useState(null);
+
+    useEffect(() => {
+        const searchUrl = `/search/?${qcItems
+            .map((item) => `uuid=${item.uuid}`)
+            .join('&')}`;
+
+        ajax.load(
+            searchUrl,
+            (resp) => {
+                setData(formatRawData(resp['@graph']));
+            },
+            'GET'
+        );
+    }, []);
+
+    return data ? (
+        <div className="content qc-overview-tab-table">
+            <div className="mt-2 mb-4">
+                <h2 className="header mb-2">Critical QC</h2>
+                <div className="data-group">
+                    <div className="datum">
+                        <span className="datum-title">
+                            <strong>Somalier sample duplicate check</strong>
+                        </span>
+                        {'/qc-metrics' ? (
+                            <a
+                                href={`/qc-metrics?tab=sample-integrity&file=${accession}`}
+                                className="">
+                                Sample Relatedness Page
+                            </a>
+                        ) : (
+                            <span className="datum-value text-gray">N/A</span>
+                        )}
+                    </div>
+                    <div className="datum">
+                        <span className="datum-title">
+                            <strong>
+                                VerifyBamID2 Human Contamination Check
+                            </strong>
+                        </span>
+                        {data?.verifyBamId ? (
+                            <span className="d-flex align-items-center gap-1 datum-value">
+                                {data?.verifyBamId?.value}{' '}
+                                {getBadge(data?.verifyBamId?.flag)}
+                            </span>
+                        ) : (
+                            <span className="datum-value text-gray">N/A</span>
+                        )}
+                    </div>
+                    <div className="datum">
+                        <span className="datum-title">
+                            <strong>Tissue prediction check</strong>
+                        </span>
+                        <span className="datum-value text-gray">N/A</span>
+                    </div>
+                </div>
+            </div>
+
+            <h2 className="header mb-2">General QC</h2>
+            <table className="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th className="text-left w-[300px]">Key QC Metric</th>
+                        {data.headers.map(
+                            ({ accession, overall_quality_status }, i) => {
+                                return (
+                                    <th
+                                        className="text-left fw-semibold"
+                                        key={i}>
+                                        <div className="d-flex flex-column">
+                                            <span className="d-flex align-items-center lh-base">
+                                                QC Run #{i + 1} (
+                                                <a href={`/${accession}`}>
+                                                    {accession}
+                                                </a>
+                                                )
+                                            </span>
+                                            <span className="fw-medium d-flex align-items-center gap-1">
+                                                Overall Quality Status:{' '}
+                                                {getBadge(
+                                                    overall_quality_status
+                                                )}
+                                            </span>
+                                        </div>
+                                    </th>
+                                );
+                            }
+                        )}
+                    </tr>
+                </thead>
+                <tbody>
+                    {Object.keys(data.tableData).length > 0 ? (
+                        Object.keys(data.tableData).map((key, i) => {
+                            const { tooltip, values: rowValues = {} } =
+                                data.tableData[key];
+
+                            return (
+                                <tr key={i}>
+                                    {/* Title of the Quality Metric row */}
+                                    <td className="text-left">
+                                        <i
+                                            className="icon icon-info-circle fas me-1 text-secondary"
+                                            data-tip={tooltip}
+                                        />
+                                        {key}
+                                    </td>
+
+                                    {/* Value for each column (i.e. qcItem labelled by [accession]) */}
+                                    {data.headers.map(({ accession }, i) => {
+                                        const cellValue =
+                                            rowValues[accession] ?? null;
+
+                                        return (
+                                            <td className="text-left" key={i}>
+                                                {cellValue !== null ? (
+                                                    <div className="d-flex">
+                                                        <span className="d-flex align-items-center gap-1">
+                                                            {d3.format('.3f')(
+                                                                cellValue?.value
+                                                            )}
+                                                            {getBadge(
+                                                                cellValue?.flag
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-secondary">
+                                                        -
+                                                    </span>
+                                                )}
+                                            </td>
+                                        );
+                                    })}
+                                </tr>
+                            );
+                        })
+                    ) : (
+                        <tr>
+                            <td
+                                className="text-left text-secondary"
+                                colSpan={qcItems.length + 1}>
+                                No Quality Metrics Values visible.
+                            </td>
+                        </tr>
+                    )}
+                </tbody>
+            </table>
+        </div>
+    ) : (
+        <>
+            <i className="icon icon-spin icon-spinner fas me-1"></i>
+            Loading
+        </>
+    );
+};
+
+// Top level component for QC Overview tab content
+export const QcOverviewTabContent = ({ context }) => {
+    return (
+        <QCOverviewTable
+            qcItems={context.quality_metrics}
+            accession={context.accession}
+        />
+    );
+};

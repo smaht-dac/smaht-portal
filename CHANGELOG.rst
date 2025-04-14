@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.160.2
+=======
+`PR 379: feat: implement QC Overview Tab <https://github.com/smaht-dac/smaht-portal/pull/384>`_
+
+* Populate quality metrics table in QC overview tab
+
+
 0.160.1
 =======
 `PR 404: QC metrics: Support preselected files in Sample Integrity tab <https://github.com/smaht-dac/smaht-portal/pull/404>`_
