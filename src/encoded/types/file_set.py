@@ -291,6 +291,8 @@ class FileSet(SubmittedItem):
 @link_related_validator
 def validate_compatible_assay_and_sequencer_on_add(context, request):
     """Check filesets to make sure they are linked to compatible library.assay and sequencing items on add."""
+    if 'force_pass' in request.query_string:
+        return
     data = request.json
     libraries = data['libraries']
     sequencing = data['sequencing']
@@ -300,6 +302,8 @@ def validate_compatible_assay_and_sequencer_on_add(context, request):
 @link_related_validator
 def validate_compatible_assay_and_sequencer_on_edit(context, request):
     """Check filesets to make sure they are linked to compatible library.assay and sequencing items on edit."""
+    if 'force_pass' in request.query_string:
+        return
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
     libraries = get_property_for_validation('libraries', existing_properties, properties_to_update)
@@ -340,6 +344,8 @@ def check_compatible_assay_and_sequencer(request, libraries: List[str], sequenci
 @link_related_validator
 def validate_molecule_sequencing_properties_on_add(context, request):
     """Check that sequencing properties are molecule-appropriate on add."""
+    if 'force_pass' in request.query_string:
+        return
     data = request.json
     libraries = data['libraries']
     sequencing = data['sequencing']
@@ -349,6 +355,8 @@ def validate_molecule_sequencing_properties_on_add(context, request):
 @link_related_validator
 def validate_molecule_sequencing_properties_on_edit(context, request):
     """Check that sequencing properties are molecule-appropriate on edit."""
+    if 'force_pass' in request.query_string:
+        return
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
     libraries = get_property_for_validation('libraries', existing_properties, properties_to_update)
@@ -360,7 +368,6 @@ def check_molecule_sequencing_properties(request, libraries: List[str], sequenci
     """Check at the FileSet level if Sequencing molecule-specific properties are present.
 
     If 'RNA' is in libraries.analytes.molecule, sequencing.target_read_count is present.
-    If 'DNA' is in libraries.analytes.molecule, sequencing.target_coverage is present
     """
     molecules = []
     for library in libraries:
@@ -371,22 +378,12 @@ def check_molecule_sequencing_properties(request, libraries: List[str], sequenci
             molecules += analyte_utils.get_molecule(
                 get_item_or_none(request, analyte, 'analytes')
             )
-    target_coverage = sequencing_utils.get_target_coverage(
-        get_item_or_none(request, sequencing, 'sequencing')
-    )
-    on_target_rate = sequencing_utils.get_on_target_rate(
-        get_item_or_none(request, sequencing, 'sequencing')
-    )
     target_read_count = sequencing_utils.get_target_read_count(
         get_item_or_none(request, sequencing, 'sequencing')
     )
     if "RNA" in molecules:
         if not target_read_count:
-            msg = "property `target_read_counts` is required for sequencing of RNA libraries"
-            return request.errors.add('body', 'Sequencing: invalid property', msg)
-    if "DNA" in molecules:
-        if not target_coverage and not on_target_rate:
-            msg = "either `on_target_rate` or `target_coverage` are required for sequencing of DNA libraries"
+            msg = "property `target_read_count` is required for sequencing of RNA libraries"
             return request.errors.add('body', 'Sequencing: invalid property', msg)
     return request.validated.update({})
 

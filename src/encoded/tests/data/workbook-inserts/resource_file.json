@@ -1,0 +1,21 @@
+[
+    {
+        "uuid": "6156e8a7-54b7-48c4-a6a2-2b84c07e9572",
+        "aliases": [
+            "smaht:clinical_metadata"
+        ],
+        "submission_centers": [
+            "smaht"
+        ],
+        "file_format": "TSV",
+        "data_category": [
+            "Metadata"
+        ],
+        "data_type": [
+            "Clinical Information"
+        ],
+        "access_status": "Protected",
+        "status": "restricted",
+        "filename": "metadata.tsv"
+    }
+]
