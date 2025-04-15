@@ -118,35 +118,26 @@ export class BrowseViewBody extends React.PureComponent {
  */
 export const DonorMetadataDownloadButton = ({ session }) => {
     const [downloadLink, setDownloadLink] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const searchURL =
-            '/reference-files/6b724cc4-9cb4-4e27-9935-d62523d90879';
+            '/resource-files/479cd00c-31d3-44c0-9aca-d5185ae4932a';
 
         if (session) {
             ajax.load(
                 searchURL,
                 (resp) => {
-                    console.log('resp: ', resp);
-                    if (resp.error) {
-                        console.error('ERROR', resp.error);
-                        return;
-                    }
                     if (resp?.href) {
-                        console.log('Download link: ', resp.href);
+                        // Update the download link
                         setDownloadLink(resp?.href);
 
                         // Rebuild the tooltip after the component mounts
                         ReactTooltip.rebuild();
-                    } else {
-                        isLoading(false);
                     }
                 },
                 'GET',
                 () => {
-                    console.log('Error loading donor metadata');
-                    setIsLoading(false);
+                    console.log('Error loading Bulk Donor Metadata button');
                 }
             );
         }
@@ -155,7 +146,7 @@ export const DonorMetadataDownloadButton = ({ session }) => {
     return downloadLink ? (
         <a
             data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
-            className="btn btn-sm btn-outline-secondary me-1"
+            className="btn btn-sm btn-outline-secondary"
             href={downloadLink}
             download>
             <span>
@@ -166,7 +157,7 @@ export const DonorMetadataDownloadButton = ({ session }) => {
     ) : (
         <button
             data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
-            className="btn btn-sm btn-outline-secondary me-1"
+            className="btn btn-sm btn-outline-secondary"
             disabled>
             <span>
                 <i className="icon icon-fw icon-users fas me-1" />
