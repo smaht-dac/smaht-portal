@@ -93,12 +93,24 @@ const QCOverviewTable = ({ qcItems, accession }) => {
 
     return data ? (
         <div className="content qc-overview-tab-table">
+            <div className="mt-2">
+                <h2 className="header mb-2">
+                    <div className="d-flex justify-content-between align-items-center">
+                        <span>Overall Quality Status</span>
+                        <a
+                            href={`/qc-metrics?tab=metrics-by-file&file=${accession}`}
+                            className="btn btn-sm btn-secondary">
+                            View File Quality Metrics
+                        </a>
+                    </div>
+                </h2>
+            </div>
             <div className="mt-2 mb-4">
                 <h2 className="header mb-2">Critical QC</h2>
                 <div className="data-group">
                     <div className="datum">
                         <span className="datum-title">
-                            <strong>Somalier sample duplicate check</strong>
+                            <strong>Sample Related Check [Somalier]</strong>
                         </span>
                         {'/qc-metrics' ? (
                             <a
@@ -113,7 +125,7 @@ const QCOverviewTable = ({ qcItems, accession }) => {
                     <div className="datum">
                         <span className="datum-title">
                             <strong>
-                                VerifyBamID2 Human Contamination Check
+                                Human Contamination Check [VerifyBamID2]
                             </strong>
                         </span>
                         {data?.verifyBamId ? (
@@ -125,12 +137,19 @@ const QCOverviewTable = ({ qcItems, accession }) => {
                             <span className="datum-value text-gray">N/A</span>
                         )}
                     </div>
-                    <div className="datum">
-                        <span className="datum-title">
-                            <strong>Tissue prediction check</strong>
-                        </span>
-                        <span className="datum-value text-gray">N/A</span>
-                    </div>
+                    {isRNASeq ? (
+                        <div className="datum">
+                            <span className="datum-title">
+                                <strong>
+                                    Tissue Agreement Check [DAC Tissue
+                                    Classifier]
+                                </strong>
+                            </span>
+                            <span className="datum-value text-gray">
+                                Coming soon
+                            </span>
+                        </div>
+                    ) : null}
                 </div>
             </div>
 
@@ -238,6 +257,9 @@ export const QcOverviewTabContent = ({ context }) => {
         <QCOverviewTable
             qcItems={context.quality_metrics}
             accession={context.accession}
+            isRNASeq={context?.assays?.some(
+                (assay) => assay?.display_title === 'RNA-seq'
+            )}
         />
     );
 };
