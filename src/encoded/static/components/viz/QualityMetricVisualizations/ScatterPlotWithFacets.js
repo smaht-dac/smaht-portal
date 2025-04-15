@@ -19,7 +19,7 @@ const ALL_LONG_READ = 'all_long_read';
 const CELL_LINE = 'cell_line';
 const TISSUE = 'tissue';
 
-export const ScatterlotWithFacets = ({
+export const ScatterPlotWithFacets = ({
     qcData,
     showFacets = true,
     settings = null,

@@ -7,6 +7,37 @@ smaht-portal
 Change Log
 ----------
 
+0.160.2
+=======
+`PR 402 feat: about page visualization updates <https://github.com/smaht-dac/smaht-portal/pull/402>`_
+
+* Update copy for About page
+* Fix assay table descriptions
+
+
+0.160.1
+=======
+`PR 404: QC metrics: Support preselected files in Sample Integrity tab <https://github.com/smaht-dac/smaht-portal/pull/404>`_
+
+* Support preselected files in the Sample Integrity and Metrics by File tab
+
+
+0.160.0
+=======
+`PR 394: SN Update RNA fileset validator <https://github.com/smaht-dac/smaht-portal/pull/394>`_
+
+* Update the Sequencing validator on FileSet so that it only enforces for RNA and not DNA
+* Add a skip validation option, `force_pass` for custom validators
+* Minor changes: remove "Not Applicable" as an enum for `strand` and embed assay `category` on File
+
+
+0.159.0
+=======
+`PR 399: feat: update links to existing data doc <https://github.com/smaht-dac/smaht-portal/pull/399>`_
+
+* Update Links to Existing Data doc
+
+
 0.158.0
 =======
 `PR 398: SN Create resource file <https://github.com/smaht-dac/smaht-portal/pull/398>`_
@@ -40,7 +71,7 @@ Change Log
 
 0.156.0
 =======
-`PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`
+`PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`_
 
 * Update the About page Alluvial plot and data matrix
 * Refactor showHideInformationToggle component for additional customization
