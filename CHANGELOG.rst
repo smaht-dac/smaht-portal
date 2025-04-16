@@ -7,6 +7,28 @@ smaht-portal
 Change Log
 ----------
 
+0.160.3
+=======
+`PR 405: SN Update release MWFR check <https://github.com/smaht-dac/smaht-portal/pull/405>`_
+
+* In `commands/release_file.py` , adjust `get_output_meta_workflow_run` to only throw an error if the file type is OutputFile, as submitted files won't be the output of a MWFR
+
+
+0.160.2
+=======
+`PR 402 feat: about page visualization updates <https://github.com/smaht-dac/smaht-portal/pull/402>`_
+
+* Update copy for About page
+* Fix assay table descriptions
+
+
+0.160.1
+=======
+`PR 404: QC metrics: Support preselected files in Sample Integrity tab <https://github.com/smaht-dac/smaht-portal/pull/404>`_
+
+* Support preselected files in the Sample Integrity and Metrics by File tab
+
+
 0.160.0
 =======
 `PR 394: SN Update RNA fileset validator <https://github.com/smaht-dac/smaht-portal/pull/394>`_
@@ -56,7 +78,7 @@ Change Log
 
 0.156.0
 =======
-`PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`
+`PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`_
 
 * Update the About page Alluvial plot and data matrix
 * Refactor showHideInformationToggle component for additional customization
