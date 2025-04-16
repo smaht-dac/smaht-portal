@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.161.0
+=======
+`PR 397 feat: implement bulk donor metadata download button <https://github.com/smaht-dac/smaht-portal/pull/397>`_
+
+* Implement bulk donor metadata download button
+* Update bootstrap button style overrides
+
+
 0.160.3
 =======
 `PR 405: SN Update release MWFR check <https://github.com/smaht-dac/smaht-portal/pull/405>`_
