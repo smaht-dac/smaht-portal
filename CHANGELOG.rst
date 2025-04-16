@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.162.0
+=======
+`PR 406: SN Add AlignedReads enum <https://github.com/smaht-dac/smaht-portal/pull/406>`_
+
+* Add "Consensus Reads" enum to data_category for AlignedReads
+* Fix loadxl order for `external_quality_metric`
+
+
 0.161.0
 =======
 `PR 397 feat: implement bulk donor metadata download button <https://github.com/smaht-dac/smaht-portal/pull/397>`_
