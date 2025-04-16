@@ -15,6 +15,13 @@ Change Log
 * Update bootstrap button style overrides
 
 
+0.160.3
+=======
+`PR 405: SN Update release MWFR check <https://github.com/smaht-dac/smaht-portal/pull/405>`_
+
+* In `commands/release_file.py` , adjust `get_output_meta_workflow_run` to only throw an error if the file type is OutputFile, as submitted files won't be the output of a MWFR
+
+
 0.160.2
 =======
 `PR 402 feat: about page visualization updates <https://github.com/smaht-dac/smaht-portal/pull/402>`_
