@@ -7,10 +7,153 @@ smaht-portal
 Change Log
 ----------
 
+0.162.0
+=======
+`PR 406: SN Add AlignedReads enum <https://github.com/smaht-dac/smaht-portal/pull/406>`_
+
+* Add "Consensus Reads" enum to data_category for AlignedReads
+* Fix loadxl order for `external_quality_metric`
+
+
+0.161.0
+=======
+`PR 397 feat: implement bulk donor metadata download button <https://github.com/smaht-dac/smaht-portal/pull/397>`_
+
+* Implement bulk donor metadata download button
+* Update bootstrap button style overrides
+
+
+0.160.3
+=======
+`PR 405: SN Update release MWFR check <https://github.com/smaht-dac/smaht-portal/pull/405>`_
+
+* In `commands/release_file.py` , adjust `get_output_meta_workflow_run` to only throw an error if the file type is OutputFile, as submitted files won't be the output of a MWFR
+
+
+0.160.2
+=======
+`PR 402 feat: about page visualization updates <https://github.com/smaht-dac/smaht-portal/pull/402>`_
+
+* Update copy for About page
+* Fix assay table descriptions
+
+
+0.160.1
+=======
+`PR 404: QC metrics: Support preselected files in Sample Integrity tab <https://github.com/smaht-dac/smaht-portal/pull/404>`_
+
+* Support preselected files in the Sample Integrity and Metrics by File tab
+
+
+0.160.0
+=======
+`PR 394: SN Update RNA fileset validator <https://github.com/smaht-dac/smaht-portal/pull/394>`_
+
+* Update the Sequencing validator on FileSet so that it only enforces for RNA and not DNA
+* Add a skip validation option, `force_pass` for custom validators
+* Minor changes: remove "Not Applicable" as an enum for `strand` and embed assay `category` on File
+
+
+0.159.0
+=======
+`PR 399: feat: update links to existing data doc <https://github.com/smaht-dac/smaht-portal/pull/399>`_
+
+* Update Links to Existing Data doc
+
+
+0.158.0
+=======
+`PR 398: SN Create resource file <https://github.com/smaht-dac/smaht-portal/pull/398>`_
+
+* Create new file item type, ResourceFile, for DAC-generated files not used in analysis pipelines
+
+
+0.157.0
+=======
+`PR 403: Retracted files page <https://github.com/smaht-dac/smaht-portal/pull/403>`_
+
+* Add `/retracted-files` path and master-inserts for listing the retracted data
+* Add footer to home page announcements
+* Export SVG arrow icon component to reuse in timeline item, data release tracker, and announcement item footer in home page
+
+
+0.156.2
+=======
+`PR 401: Submission Status page improvement <https://github.com/smaht-dac/smaht-portal/pull/401>`_
+
+* Add copy button for MetaworkflowRuns on Submission Status page
+* Add submission status page to master inserts
+
+
+0.156.1
+=======
+`PR 396: SN Fix donor sex facet <https://github.com/smaht-dac/smaht-portal/pull/396>`_
+
+* Fix facet for "Donor Sex" in File
+
+
+0.156.0
+=======
+`PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`_
+
+* Update the About page Alluvial plot and data matrix
+* Refactor showHideInformationToggle component for additional customization
+
+
+0.155.0
+=======
+`PR 395: SN Update MWFR outputs calcprop <https://github.com/smaht-dac/smaht-portal/pull/395>`_
+
+* In the revlink calcprop `meta_workflow_run_outputs`, filter out MetaWorkflowRun items with `status` "deleted"
+
+
+0.154.2
+=======
+`PR 390: feat: add tissue details and tissue subtype to File Overview page <https://github.com/smaht-dac/smaht-portal/pull/390>`_
+
+* Add tissue details and tissue subtype to File Overview page
+
+
+0.154.1
+=======
+`PR 361: fix: comment out unused Submissions page <https://github.com/smaht-dac/smaht-portal/pull/361>`_
+
+* Comment out the submissions page calculated property
+
+
+0.154.0
+=======
+`PR 389: SN Update treatment <https://github.com/smaht-dac/smaht-portal/pull/389>`_
+
+* Update the Treatment item so that `agent` is a string, rather than a linkTo to OntologyTerm, and add enum values to `concentration_unit`
+
+
+0.153.2
+=======
+`PR 393: chore: update footer text <https://github.com/smaht-dac/smaht-portal/pull/393>`_
+
+* Update text in footer
+
+
+0.153.1
+=======
+`PR 391: SN Fix pathology report <https://github.com/smaht-dac/smaht-portal/pull/391>`_
+
+* Fix enum typo for percentage in PathologyReport
+* Reformat and reorder properties in BrainPathologyReport and NonBrainPathologyReport
+
+
+0.153.0
+=======
+`PR 385: SN Fix release tracker calcprop <https://github.com/smaht-dac/smaht-portal/pull/385>`_
+
+* Fix the `release_tracker_title` and `release_tracker_description` calcprops to have the override property function in the case of having multiple values from `file_sets`
+* Make `file_sets` a required property for SupplementaryFile, as it is for all other SubmittedFile types, so that the File Overview display and Manifest File generation work properly
+
 
 0.152.0
 =======
-`PR 387: SN Add retraction_reason <https://github.com/smaht-dac/smaht-portal/pull/387>`_
+`PR 387: QC metrics page improvements <https://github.com/smaht-dac/smaht-portal/pull/387>`_
 
 * Redesign of the Key metrics tab
 * Added Tissue classification table for RNA-Seq data under Key metrics tab

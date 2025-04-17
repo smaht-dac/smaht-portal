@@ -1,5 +1,5 @@
 import pytest
-from typing import List
+from typing import List, Dict, Any
 from webtest.app import TestApp
 
 from .utils import (
@@ -69,7 +69,7 @@ def test_file_set_tissue_types(
         ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 200), #bulk_wgs and Illumina NovaSeqX
         ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_NOVASEQ-500X-RNA", 200), # RNA with target_read_count
         ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 422), # RNA with target_coverage
-        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-RNA", 422), # DNA with target_read_count
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-RNA", 200), # DNA with target_read_count
         ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 200), # DNA with target_coverage
     ],
 )
@@ -118,7 +118,7 @@ def test_validate_compatible_library_and_sequencer_on_patch(
         ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 201, 5), #bulk_wgs and Illumina NovaSeqX
         ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_NOVASEQ-500X-RNA", 201, 6), # RNA with target_read_count
         ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 422, 7), # RNA with target_coverage
-        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-RNA", 422, 8), # DNA with target_read_count
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-RNA", 201, 8), # DNA with target_read_count
         ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 201, 9), # DNA with target_coverage
     ],
 )
