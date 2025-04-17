@@ -263,6 +263,7 @@ def add_submission_status_search_filters(
         - exlucde_tags,
         - cell_culture_mixture,
         - cell_line,
+        - donor,
         - fileset_created_from,
         - fileset_created_to
         - fileSetSearchId (str): Either submitted_id or accession or a fileset.
@@ -299,6 +300,8 @@ def add_submission_status_search_filters(
         search_params["libraries.assay.display_title"] = filter["assay"]
     if "sequencer" in filter and filter["sequencer"] != "all":
         search_params["sequencing.sequencer.display_title"] = filter["sequencer"]
+    if "donor" in filter and filter["donor"] != "all":
+        search_params["libraries.analytes.samples.sample_sources.donor.display_title"] = filter["donor"]
     if "cell_line" in filter and filter["cell_line"] != "all":
         search_params["libraries.analytes.samples.sample_sources.cell_line.code"] = (
             filter["cell_line"]

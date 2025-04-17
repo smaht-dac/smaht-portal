@@ -28,14 +28,15 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
             filter: DEFAULT_FILTER,
             assays: [],
             sequencers: [],
+            donors: [],
             cell_culture_mixtures_and_tissues: [],
             cell_lines: [],
         };
     }
 
-    getItemsFromPortal = (type, state_variable) => {
+    getItemsFromPortal = (type, state_variable, filter = '') => {
         ajax.load(
-            `/search/?type=${type}&limit=100`,
+            `/search/?type=${type}${filter}&limit=100`,
             (resp) => {
                 const res = resp['@graph'];
                 const items = res.map((item) => {
@@ -80,7 +81,15 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         this.getItemsFromPortal('SubmissionCenter', 'submission_centers');
         this.getItemsFromPortal('Assay', 'assays');
         this.getItemsFromPortal('Sequencer', 'sequencers');
-        this.getSampleSourceCodes('SampleSource', 'cell_culture_mixtures_and_tissues');
+        this.getItemsFromPortal(
+            'Donor',
+            'donors',
+            '&submission_centers.display_title=NDRI+TPC'
+        );
+        this.getSampleSourceCodes(
+            'SampleSource',
+            'cell_culture_mixtures_and_tissues'
+        );
         this.getSampleSourceCodes('CellLine', 'cell_lines');
     }
 
@@ -109,26 +118,25 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
     };
 
     getSubmissionCenterSelect = () => {
-        
-        const options = [ 
+        const options = [
             <option value="all">All</option>,
-            <option value="all_gcc">All GCCs</option>
+            <option value="all_gcc">All GCCs</option>,
         ];
         const options_gcc = [];
-        const options_other = []
+        const options_other = [];
 
         this.state.submission_centers.forEach((sc) => {
             const op = <option value={sc.title}>{sc.title}</option>;
-            if(sc.title.includes("GCC")){
+            if (sc.title.includes('GCC')) {
                 options_gcc.push(op);
-            }else{
+            } else {
                 options_other.push(op);
             }
         });
-        if(options_gcc.length > 0){
+        if (options_gcc.length > 0) {
             options.push(<optgroup label="GCCs">{options_gcc}</optgroup>);
         }
-        if(options_other.length > 0){
+        if (options_other.length > 0) {
             options.push(<optgroup label="Other">{options_other}</optgroup>);
         }
         const defaultValue = 'all_gcc';
@@ -172,6 +180,20 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         });
         const defaultValue = 'all';
         const filterName = 'sequencer';
+        return this.getSelect(options, defaultValue, filterName);
+    }
+
+    getDonorSelect() {
+        if (this.state.donors == 0) {
+            return DEFAULT_SELECT;
+        }
+
+        const options = [<option value="all">All</option>];
+        this.state.donors.forEach((d) => {
+            options.push(<option value={d.title}>{d.title}</option>);
+        });
+        const defaultValue = 'all';
+        const filterName = 'donor';
         return this.getSelect(options, defaultValue, filterName);
     }
 
@@ -272,21 +294,28 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
                                 Cell Line: {this.getCellLineSelect()}
                             </div>
                             <div className="p-2">
-                                Cell Culture Mixture / Tissue:{this.getCellCultureMixtureAndTissueSelect()}
+                                Cell Culture Mixture / Tissue:
+                                {this.getCellCultureMixtureAndTissueSelect()}
                             </div>
                         </div>
                         <div className="col-lg-3">
                             <div className="p-2">
-                                Metadata submitted - From:{' '}
-                                {this.getFilesetCreationInput(
-                                    'fileset_created_from'
-                                )}
+                                Donor: {this.getDonorSelect()}
                             </div>
                             <div className="p-2">
-                                Metadata submitted - To:{' '}
-                                {this.getFilesetCreationInput(
-                                    'fileset_created_to'
-                                )}
+                                Metadata submitted - From/To:{' '}
+                                <div className="d-flex flex-row">
+                                    <div className="w-50">
+                                        {this.getFilesetCreationInput(
+                                            'fileset_created_from'
+                                        )}
+                                    </div>
+                                    <div className="w-50">
+                                        {this.getFilesetCreationInput(
+                                            'fileset_created_to'
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div className="col-md-6">
