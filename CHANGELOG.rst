@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+
+0.162.1
+=======
+`PR 392: Add tissue type calc prop to filesets <https://github.com/smaht-dac/smaht-portal/pull/392>`_
+
+* Adds a calculated property to filesets that contains the higher level tissue type.
+
+
 0.162.0
 =======
 `PR 406: SN Add AlignedReads enum <https://github.com/smaht-dac/smaht-portal/pull/406>`_
