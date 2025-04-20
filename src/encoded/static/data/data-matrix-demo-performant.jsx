@@ -2,35 +2,108 @@
     <DataMatrix
         key="data-matrix-demo-1"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
-        queries={{
+        query={{
             "url": "/data_matrix_aggregations?type=SubmittedFile&limit=all",
-            "agg_fields": ["donors.display_title", "data_generation_summary.assays"]
+            "agg_fields": ["donors.display_title", "data_generation_summary.assays"],
+            "column_agg_fields": ["data_generation_summary.assays", "sequencing.sequencer.platform"], //composite column
+            "row_agg_fields": ["donors.display_title", "sample_summary.tissues"], //multiple column
         }}
         fieldChangeMap={{
+            "assay": "data_generation_summary.assays",
             "donor": "donors.display_title",
-            "assay": "data_generation_summary.assays"
+            "tissue": "sample_summary.tissues"
         }}
-        groupingProperties={["donor"]}
+        groupingProperties={["donor", "tissue"]}
         columnGrouping="assay"
         columnGroups={{
-            "Tier 1": {
-                "values": ['ISLET1','DONOR_LB','COLO829','LIBD75','NC0'],
-                "backgroundColor": "#FFB5C2",
+            "Bulk WGS": {
+                "values": ['WGS - Illumina','WGS - PacBio','Fiber-Seq','WGS - Standard ONT','WGS - UltraLong ONT'],
+                "backgroundColor": "#e04141",
                 "textColor": "#ffffff"
             },
-            "Tier 2": {
-                "values": ['ST002','ST001','936_49F','ST003','ST004','P5246','CB0','P5844','P5818','SMHT008','P1740','P4643','P5182','P4546','P4925','P5554','SMHT004','UMB1465','UMB5278','SN001','SN002','SN003','UMB1864','UMB4428','UMB4638'],
-                "backgroundColor": "#FF99AC",
+            "RNA-seq": {
+                "values": ['RNA-Seq - Illumina', 'Kinnex'],
+                "backgroundColor": "#ad48ad",
                 "textColor": "#ffffff"
             },
+            "Duplex-seq": {
+                "values": ['NanoSeq','CODEC','ppmSeq','VISTA-Seq','CompDuplex-Seq','HiDEF-Seq'],
+                "backgroundColor": "#2b4792",
+                "textColor": "#ffffff"
+            },
+            "Single-cell WGS": {
+                "values": ['PTA-amplified WGS','MALBAC-amplified WGS','WGS DLP+'],
+                "backgroundColor": "#aac536",
+                "textColor": "#ffffff"
+            },
+            "Targeted Seq": {
+                "values": ['HAT-Seq','L1-ONT','TEnCATS'],
+                "backgroundColor": "#e1d567",
+                "textColor": "#ffffff"
+            },
+            "SNT": {
+                "values": ['snRNA-Seq','Slide-tags snRNA-Seq'],
+                "backgroundColor": "#d0b284",
+                "textColor": "#ffffff"
+            },
+            "SCT": {
+                "values": ['STORM-Seq','Tranquil-Seq','10X Genomics Xenium'],
+                "backgroundColor": "#8daade",
+                "textColor": "#ffffff"
+            },
+            "Other": {
+                "values": ['Hi-C','scDip-C','Strand-Seq','ATAC-Seq','NT-Seq','varCUT&Tag','GoT-ChA'],
+                "backgroundColor": "#76cbbe",
+                "textColor": "#ffffff"
+            }
+        }}
+        columnGroupsExtended={{
+            "Core Assays": {
+                "values": ['Bulk WGS', 'RNA-seq', 'Duplex-seq'],
+                "backgroundColor": "#a786c2",
+                "textColor": "#ffffff"
+            },
+            "Extended Assay": {
+                "values": ['Single-cell WGS', 'Targeted Seq', 'SNT', 'SCT', 'Other'],
+                "backgroundColor": "#d2bde3",
+                "textColor": "#ffffff"
+            }
+        }}
+        rowGroups={null} //not implemented yet
+        rowGroupsExtended={{
+            "Ectoderm": {
+                "values": ['Brain - Cerebellum','Brain - Frontal lobe','Brain - Hippocampus','Brain - Temporal lobe','Skin - Abdomen (non-exposed)','Skin - Calf (sun-exposed)'],
+                "backgroundColor": "#367151",
+                "textColor": "#ffffff"
+            },
+            "Mesoderm": {
+                "values": ['Aorta','Fibroblast','Heart','Muscle'],
+                "backgroundColor": "#30975e",
+                "textColor": "#ffffff"
+            },
+            "Endoderm": {
+                "values": ['Colon - Ascending','Colon - Descending','Esophagus','Liver','Lung'],
+                "backgroundColor": "#53b27e",
+                "textColor": "#ffffff"
+            },
+            "Germ cells": {
+                "values": ['Ovary','Testis'],
+                "backgroundColor": "#80c4a0",
+                "textColor": "#ffffff"
+            },
+            "Clinically accessible": {
+                "values": ['Blood','Buccal swab'],
+                "backgroundColor": "#70a588",
+                "textColor": "#ffffff"
+            }
         }}
         headerFor={<h3 className="mt-2 mb-0 text-300">SMaHT</h3>}
         baseColorOverride="#6f2da8"
     />
-    <DataMatrix
+    {/* <DataMatrix
         key="data-matrix-demo-2"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
-        queries={{
+        query={{
             "url": "/data_matrix_aggregations?type=SubmittedFile&limit=all",
             "agg_fields": ["file_sets.libraries.assay.display_title", "sample_summary.tissues"]
         }}
@@ -46,7 +119,7 @@
     <DataMatrix
         key="data-matrix-demo-3"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
-        queries={{
+        query={{
             "url": "/data_matrix_aggregations?type=SubmittedFile&limit=all",
             "agg_fields": ["sample_summary.tissues", "donors.display_title"]
         }}
@@ -62,7 +135,7 @@
     <DataMatrix
         key="data-matrix-demo-4"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
-        queries={{
+        query={{
             "url": "/data_matrix_aggregations?type=SubmittedFile&limit=all",
             "agg_fields": ["file_sets.libraries.assay.display_title", "file_sets.sequencing.sequencer.display_title"]
         }}
@@ -90,5 +163,5 @@
         columnGrouping="data_type"
         headerFor={<h3 className="mt-2 mb-0 text-300">SMaHT</h3>}
         baseColorOverride="#e0475b"
-    />
+    /> */}
 </div>

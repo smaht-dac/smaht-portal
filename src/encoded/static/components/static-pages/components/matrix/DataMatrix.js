@@ -13,10 +13,10 @@ export default class DataMatrix extends React.PureComponent {
 
     static defaultProps = {
         "query": {
-            "url": "/search/?type=SubmittedFile&limit=all",
+            "url": "/data_matrix_aggregations/?type=SubmittedFile&limit=all",
             "agg_fields": [],
-            "column_agg_fields": [],
-            "row_agg_fields": []
+            "column_agg_fields": "",
+            "row_agg_fields": [""]
         },
         "valueChangeMap": {},
         "fieldChangeMap": {},
@@ -25,15 +25,17 @@ export default class DataMatrix extends React.PureComponent {
         "headerFor": <h3 className="mt-2 mb-0 text-300">SMaHT</h3>,
         "sectionStyle": {
             "sectionClassName": "col-12",
-            "labelClassName": "col-2",
+            "labelClassName": "col-2x",
             "listingClassName": "col-10"
         },
         "fallbackNameForBlankField" : "None",
         /** Which state to set/prioritize if multiple files per group */
         "statePrioritizationForGroups" : [],
         "headerPadding"             : 200,
-        "headerColumnsOrder"        : [], // soon to be deprecated, use columnGroups instead
-        "columnGroups": null,
+        "columnGroups"              : null,
+        "columnGroupsExtended"      : null,
+        "rowGroups"                 : null,
+        "rowGroupsExtended"         : null,
         "titleMap"                  : {},
         "columnSubGroupingOrder": [],
         "colorRanges": [
@@ -57,7 +59,12 @@ export default class DataMatrix extends React.PureComponent {
     };
 
     static propTypes = {
-        'query': PropTypes.object.isRequired,
+        'query': PropTypes.shape({
+            'url': PropTypes.string,
+            'agg_fields': PropTypes.arrayOf(PropTypes.string),
+            'column_agg_fields': PropTypes.oneOfType(PropTypes.string, PropTypes.arrayOf(PropTypes.string)).isRequired, // can be a single string or composite value
+            'row_agg_fields': PropTypes.arrayOf(PropTypes.oneOfType(PropTypes.string, PropTypes.arrayOf(PropTypes.string))).isRequired // array element can be a single string or composite value
+        }),
         'valueChangeMap': PropTypes.object,
         'fieldChangeMap': PropTypes.object,
         'groupingProperties': PropTypes.arrayOf(PropTypes.string),
@@ -67,7 +74,6 @@ export default class DataMatrix extends React.PureComponent {
         'fallbackNameForBlankField': PropTypes.string,
         'statePrioritizationForGroups': PropTypes.arrayOf(PropTypes.string),
         'headerPadding': PropTypes.number,
-        'headerColumnsOrder': PropTypes.arrayOf(PropTypes.string),
         'titleMap': PropTypes.object,
         'columnSubGroupingOrder': PropTypes.arrayOf(PropTypes.string),
         'colorRanges': PropTypes.arrayOf(PropTypes.object),
@@ -75,6 +81,9 @@ export default class DataMatrix extends React.PureComponent {
         'allowedFields': PropTypes.arrayOf(PropTypes.string),
         'disableConfigurator': PropTypes.bool,
         'columnGroups': PropTypes.object,
+        'columnGroupsExtended': PropTypes.object,
+        'rowGroups': PropTypes.object,
+        'rowGroupsExtended': PropTypes.object
     };
 
     static convertResult(result, fieldChangeMap, valueChangeMap, statusStateTitleMap, fallbackNameForBlankField){
@@ -154,8 +163,43 @@ export default class DataMatrix extends React.PureComponent {
 
         return result;
     }
-      
 
+    static parseQuery(queryString) {
+        const params = queryString.split('&');
+        const result = {};
+
+        params.forEach(param => {
+            let key, value;
+
+            // If the parameter contains '!=', split on that operator
+            if (param.includes('!=')) {
+                // Split by '!=' and then append the operator back to the key
+                [key, value] = param.split('!=');
+                key = decodeURIComponent(key) + '!=';
+                value = decodeURIComponent(value);
+            } else {
+                // Otherwise split on '=' as usual
+                [key, value] = param.split('=');
+                key = decodeURIComponent(key);
+                value = decodeURIComponent(value);
+            }
+
+            // If the same key already exists, convert or append to an array
+            if (result.hasOwnProperty(key)) {
+                if (Array.isArray(result[key])) {
+                    result[key].push(value);
+                } else {
+                    result[key] = [result[key], value];
+                }
+            } else {
+                // Otherwise just set the value
+                result[key] = value;
+            }
+        });
+
+        return result;
+    }
+      
     constructor(props) {
         super(props);
         this.standardizeResult = this.standardizeResult.bind(this);
@@ -174,7 +218,6 @@ export default class DataMatrix extends React.PureComponent {
             "fieldChangeMap": props.fieldChangeMap,
             "columnGrouping": props.columnGrouping,
             "groupingProperties": props.groupingProperties,
-            "headerColumnsOrder": props.headerColumnsOrder || [],
             "colorRanges": colorRangesOverriden || props.colorRanges || []
         };
     }
@@ -218,6 +261,8 @@ export default class DataMatrix extends React.PureComponent {
             } else {
                 updatedState[resultKey] = DataMatrix.transformData(result, this.state.fieldChangeMap);
             }
+            // temp. override
+            updatedState[resultKey] = TEST_DATA;
 
             this.setState(updatedState, () => ReactTooltip.rebuild());
         };
@@ -233,27 +278,48 @@ export default class DataMatrix extends React.PureComponent {
         this.setState(
             { "_results": null }, // (Re)Set all result states to 'null'
             () => {
-                    // eslint-disable-next-line react/destructuring-assignment
-                    let requestUrl = query.url;
-                    // eslint-disable-next-line react/destructuring-assignment
-                    const requestUrlFields = JSON.parse(JSON.stringify(query.agg_fields));
+                let requestUrl = query.url;
+                const [url, strQueryParams] = requestUrl.split('?');
+                const queryParamsByUrl = DataMatrix.parseQuery(strQueryParams);
 
-                    if (typeof requestUrl !== 'string' || !requestUrl) return;
+                // const requestUrlFields = JSON.parse(JSON.stringify(query.agg_fields)); //clone
+                const colAggFields = typeof query.column_agg_fields === 'string' ? [query.column_agg_fields] : query.column_agg_fields;
+                const rowAggFields = typeof query.row_agg_fields === 'string' ? [query.row_agg_fields] : query.row_agg_fields;
 
-                    if (Array.isArray(requestUrlFields) && requestUrlFields.length > 0) {
-                        _.forEach(requestUrlFields, function (f) {
-                            requestUrl += '&field=' + encodeURIComponent(f) + '&' + f + '!=No+value';
+                if (typeof requestUrl !== 'string' || !requestUrl) return;
+
+                const searchQueryParams = { field: [], type: 'SubmittedFile', limit: 'all' };
+                if (rowAggFields.length > 0 || colAggFields.length > 0) {
+                    _.forEach(rowAggFields, function (f) {
+                        searchQueryParams.field.push(f);
+                        searchQueryParams[f + '!'] = "No value";
+                    });
+                    if (colAggFields.length > 0) {
+                        _.forEach(colAggFields, function (f, idx) {
+                            searchQueryParams.field.push(f);
+                            if (idx === 0) {
+                                searchQueryParams[f + '!'] = "No value";
+                            }
                         });
                     }
-                    // Exclude 'Authorization' header for requests to different domains (not allowed).
-                    const excludedHeaders = (requestUrl.slice(0, 4) === 'http') ? ['Authorization', 'Content-Type'] : null;
-                    ajax.load(requestUrl, (r) => commonCallback(r), 'GET', (r) => commonFallback(r), null, {}, excludedHeaders);
+                }
+
+                const requestBody = {
+                    "search_query_params": _.extend({}, queryParamsByUrl, searchQueryParams),
+                    "column_agg_fields": query.column_agg_fields,
+                    "row_agg_fields": query.row_agg_fields,
+                    "flatten_values": true
+                };
+
+                // Exclude 'Authorization' header for requests to different domains (not allowed).
+                const excludedHeaders = (requestUrl.slice(0, 4) === 'http') ? ['Authorization', 'Content-Type'] : null;
+                ajax.load(url, (r) => commonCallback(r), 'POST', (r) => commonFallback(r), JSON.stringify(requestBody), {}, excludedHeaders);
             }
         );
     }
 
-    onApplyConfiguration(searchUrl, column, row1, row2, headerColumnsOrder, ranges) {
-        console.log(searchUrl, column, row1, row2, headerColumnsOrder, ranges);
+    onApplyConfiguration(searchUrl, column, row1, row2, ranges) {
+        console.log(searchUrl, column, row1, row2, ranges);
         this.setState({
             query: {
                 ...this.state.query,
@@ -266,14 +332,13 @@ export default class DataMatrix extends React.PureComponent {
             },
             columnGrouping: DataMatrixConfigurator.getNestedFieldName(column),
             groupingProperties: [DataMatrixConfigurator.getNestedFieldName(row1)],
-            headerColumnsOrder: headerColumnsOrder || [],
             colorRanges: ranges
         });
     }
 
     render() {
-        const { headerFor, sectionStyle, valueChangeMap, allowedFields, columnGroups, disableConfigurator = false } = this.props;
-        const { query, fieldChangeMap, columnGrouping, groupingProperties, headerColumnsOrder, colorRanges } = this.state;
+        const { headerFor, sectionStyle, valueChangeMap, allowedFields, columnGroups, columnGroupsExtended, rowGroups, rowGroupsExtended, disableConfigurator = false } = this.props;
+        const { query, fieldChangeMap, columnGrouping, groupingProperties, colorRanges } = this.state;
 
         const isLoading = 
                 // eslint-disable-next-line react/destructuring-assignment
@@ -293,8 +358,8 @@ export default class DataMatrix extends React.PureComponent {
         const labelClassName = sectionStyle['labelClassName'] || "col-2";
         const listingClassName = sectionStyle['listingClassName'] || "col-10";
         const bodyProps = {
-            groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, headerColumnsOrder,
-            listingClassName, labelClassName, colorRanges, columnGroups
+            groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping,
+            listingClassName, labelClassName, colorRanges, columnGroups, columnGroupsExtended, rowGroups, rowGroupsExtended
         };
         
         const configurator = !disableConfigurator && (
@@ -305,8 +370,10 @@ export default class DataMatrix extends React.PureComponent {
                 selectedColumnValue={query.agg_fields[0]}
                 selectedRow1Value={query.agg_fields[1]}
                 selectedRow2Value={query.agg_fields.length > 2 ? query.agg_fields[2] : null}
-                headerColumnsOrderValue={headerColumnsOrder}
                 initialColumnGroups={columnGroups}
+                initialColumnGroupsExtended={columnGroupsExtended} //not implemented yet
+                initialRowGroups={rowGroups} //not implemented yet
+                initialRowGroupsExtended={rowGroupsExtended} //not implemented yet
                 colorRanges={colorRanges}
                 onApply={this.onApplyConfiguration}
             />
@@ -340,701 +407,306 @@ export default class DataMatrix extends React.PureComponent {
     }
 }
 
-const TEST_DATA = {
-    "field": "donors.display_title",
-    "terms":
+const TEST_DATA = [
     {
-        "ISLET1":
-        {
-            "term": "ISLET1",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 2790
-            },
-            "terms":
-            {
-                "scDip-C":
-                {
-                    "files": 2790
-                }
-            },
-            "other_doc_count": 0
-        },
-        "DONOR_LB":
-        {
-            "term": "DONOR_LB",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 238
-            },
-            "terms":
-            {
-                "WGS":
-                {
-                    "files": 233
-                },
-                "HAT-seq":
-                {
-                    "files": 3
-                },
-                "RNA-seq":
-                {
-                    "files": 2
-                }
-            },
-            "other_doc_count": 0
-        },
-        "COLO829":
-        {
-            "term": "COLO829",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 228
-            },
-            "terms":
-            {
-                "WGS":
-                {
-                    "files": 193
-                },
-                "Fiber-seq":
-                {
-                    "files": 12
-                },
-                "NanoSeq":
-                {
-                    "files": 8
-                },
-                "Ultra-Long WGS":
-                {
-                    "files": 8
-                },
-                "HiDEF-seq":
-                {
-                    "files": 4
-                },
-                "RNA-seq":
-                {
-                    "files": 4
-                },
-                "HAT-seq":
-                {
-                    "files": 2
-                },
-                "varCUT&Tag":
-                {
-                    "files": 2
-                },
-                "ATAC-seq":
-                {
-                    "files": 1
-                }
-            },
-            "other_doc_count": 0
-        },
-        "LIBD75":
-        {
-            "term": "LIBD75",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 220
-            },
-            "terms":
-            {
-                "Single-cell MALBAC WGS":
-                {
-                    "files": 215
-                },
-                "TEnCATS":
-                {
-                    "files": 3
-                },
-                "WGS":
-                {
-                    "files": 2
-                }
-            },
-            "other_doc_count": 0
-        },
-        "NC0":
-        {
-            "term": "NC0",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 200
-            },
-            "terms":
-            {
-                "scStrand-seq":
-                {
-                    "files": 182
-                },
-                "Single-cell PTA WGS":
-                {
-                    "files": 9
-                },
-                "WGS":
-                {
-                    "files": 9
-                }
-            },
-            "other_doc_count": 0
-        },
-        "ST002":
-        {
-            "term": "ST002",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 81
-            },
-            "terms":
-            {
-                "WGS":
-                {
-                    "files": 56
-                },
-                "NanoSeq":
-                {
-                    "files": 18
-                },
-                "RNA-seq":
-                {
-                    "files": 5
-                },
-                "Kinnex":
-                {
-                    "files": 2
-                }
-            },
-            "other_doc_count": 0
-        },
-        "ST001":
-        {
-            "term": "ST001",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 78
-            },
-            "terms":
-            {
-                "WGS":
-                {
-                    "files": 52
-                },
-                "NanoSeq":
-                {
-                    "files": 17
-                },
-                "RNA-seq":
-                {
-                    "files": 6
-                },
-                "Kinnex":
-                {
-                    "files": 2
-                },
-                "Fiber-seq":
-                {
-                    "files": 1
-                }
-            },
-            "other_doc_count": 0
-        },
-        "936_49F":
-        {
-            "term": "936_49F",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 36
-            },
-            "terms":
-            {
-                "scVISTA-seq":
-                {
-                    "files": 30
-                },
-                "Microbulk VISTA-seq":
-                {
-                    "files": 3
-                },
-                "VISTA-seq":
-                {
-                    "files": 3
-                }
-            },
-            "other_doc_count": 0
-        },
-        "ST003":
-        {
-            "term": "ST003",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 30
-            },
-            "terms":
-            {
-                "WGS":
-                {
-                    "files": 19
-                },
-                "NanoSeq":
-                {
-                    "files": 9
-                },
-                "Kinnex":
-                {
-                    "files": 1
-                },
-                "RNA-seq":
-                {
-                    "files": 1
-                }
-            },
-            "other_doc_count": 0
-        },
-        "ST004":
-        {
-            "term": "ST004",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 28
-            },
-            "terms":
-            {
-                "WGS":
-                {
-                    "files": 17
-                },
-                "NanoSeq":
-                {
-                    "files": 8
-                },
-                "RNA-seq":
-                {
-                    "files": 2
-                },
-                "Fiber-seq":
-                {
-                    "files": 1
-                }
-            },
-            "other_doc_count": 0
-        },
-        "P5246":
-        {
-            "term": "P5246",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 23
-            },
-            "terms":
-            {
-                "CompDuplex-seq":
-                {
-                    "files": 21
-                },
-                "PCR WGS":
-                {
-                    "files": 2
-                }
-            },
-            "other_doc_count": 0
-        },
-        "CB0":
-        {
-            "term": "CB0",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 22
-            },
-            "terms":
-            {
-                "CompDuplex-seq":
-                {
-                    "files": 20
-                },
-                "PCR WGS":
-                {
-                    "files": 2
-                }
-            },
-            "other_doc_count": 0
-        },
-        "P5844":
-        {
-            "term": "P5844",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 20
-            },
-            "terms":
-            {
-                "CompDuplex-seq":
-                {
-                    "files": 18
-                },
-                "PCR WGS":
-                {
-                    "files": 2
-                }
-            },
-            "other_doc_count": 0
-        },
-        "P5818":
-        {
-            "term": "P5818",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 17
-            },
-            "terms":
-            {
-                "CompDuplex-seq":
-                {
-                    "files": 15
-                },
-                "PCR WGS":
-                {
-                    "files": 2
-                }
-            },
-            "other_doc_count": 0
-        },
-        "SMHT008":
-        {
-            "term": "SMHT008",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 16
-            },
-            "terms":
-            {
-                "WGS":
-                {
-                    "files": 15
-                },
-                "RNA-seq":
-                {
-                    "files": 1
-                }
-            },
-            "other_doc_count": 0
-        },
-        "P1740":
-        {
-            "term": "P1740",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 15
-            },
-            "terms":
-            {
-                "CompDuplex-seq":
-                {
-                    "files": 13
-                },
-                "PCR WGS":
-                {
-                    "files": 2
-                }
-            },
-            "other_doc_count": 0
-        },
-        "P4643":
-        {
-            "term": "P4643",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 15
-            },
-            "terms":
-            {
-                "CompDuplex-seq":
-                {
-                    "files": 13
-                },
-                "PCR WGS":
-                {
-                    "files": 2
-                }
-            },
-            "other_doc_count": 0
-        },
-        "P5182":
-        {
-            "term": "P5182",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 15
-            },
-            "terms":
-            {
-                "CompDuplex-seq":
-                {
-                    "files": 13
-                },
-                "PCR WGS":
-                {
-                    "files": 2
-                }
-            },
-            "other_doc_count": 0
-        },
-        "P4546":
-        {
-            "term": "P4546",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 14
-            },
-            "terms":
-            {
-                "CompDuplex-seq":
-                {
-                    "files": 12
-                },
-                "PCR WGS":
-                {
-                    "files": 2
-                }
-            },
-            "other_doc_count": 0
-        },
-        "P4925":
-        {
-            "term": "P4925",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 11
-            },
-            "terms":
-            {
-                "CompDuplex-seq":
-                {
-                    "files": 9
-                },
-                "PCR WGS":
-                {
-                    "files": 2
-                }
-            },
-            "other_doc_count": 0
-        },
-        "P5554":
-        {
-            "term": "P5554",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 11
-            },
-            "terms":
-            {
-                "CompDuplex-seq":
-                {
-                    "files": 9
-                },
-                "PCR WGS":
-                {
-                    "files": 2
-                }
-            },
-            "other_doc_count": 0
-        },
-        "SMHT004":
-        {
-            "term": "SMHT004",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 10
-            },
-            "terms":
-            {
-                "WGS":
-                {
-                    "files": 10
-                }
-            },
-            "other_doc_count": 0
-        },
-        "UMB1465":
-        {
-            "term": "UMB1465",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 7
-            },
-            "terms":
-            {
-                "ATAC-seq":
-                {
-                    "files": 4
-                },
-                "CODEC":
-                {
-                    "files": 2
-                },
-                "PCR WGS":
-                {
-                    "files": 1
-                }
-            },
-            "other_doc_count": 0
-        },
-        "UMB5278":
-        {
-            "term": "UMB5278",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 4
-            },
-            "terms":
-            {
-                "CODEC":
-                {
-                    "files": 2
-                },
-                "ATAC-seq":
-                {
-                    "files": 1
-                },
-                "PCR WGS":
-                {
-                    "files": 1
-                }
-            },
-            "other_doc_count": 0
-        },
-        "SN001":
-        {
-            "term": "SN001",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 2
-            },
-            "terms":
-            {
-                "varCUT&Tag":
-                {
-                    "files": 2
-                }
-            },
-            "other_doc_count": 0
-        },
-        "SN002":
-        {
-            "term": "SN002",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 2
-            },
-            "terms":
-            {
-                "varCUT&Tag":
-                {
-                    "files": 2
-                }
-            },
-            "other_doc_count": 0
-        },
-        "SN003":
-        {
-            "term": "SN003",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 2
-            },
-            "terms":
-            {
-                "varCUT&Tag":
-                {
-                    "files": 2
-                }
-            },
-            "other_doc_count": 0
-        },
-        "UMB1864":
-        {
-            "term": "UMB1864",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 1
-            },
-            "terms":
-            {
-                "ATAC-seq":
-                {
-                    "files": 1
-                }
-            },
-            "other_doc_count": 0
-        },
-        "UMB4428":
-        {
-            "term": "UMB4428",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 1
-            },
-            "terms":
-            {
-                "ATAC-seq":
-                {
-                    "files": 1
-                }
-            },
-            "other_doc_count": 0
-        },
-        "UMB4638":
-        {
-            "term": "UMB4638",
-            "field": "file_sets.libraries.assay.display_title",
-            "total":
-            {
-                "files": 1
-            },
-            "terms":
-            {
-                "ATAC-seq":
-                {
-                    "files": 1
-                }
-            },
-            "other_doc_count": 0
-        }
+        "assay": "ppmSeq",
+        "donor": "ST001",
+        "tissue": "Blood"
     },
-    "total":
     {
-        "files": 4140
+        "assay": "ATAC-Seq",
+        "donor": "ST002",
+        "tissue": "Lung"
     },
-    "other_doc_count": 2,
-    "time_generated": "2025-03-27 12:38:40.553343"
-};
+    {
+        "assay": "Slide-tags snRNA-Seq",
+        "donor": "SMHT001",
+        "tissue": "Brain - Cerebellum"
+    },
+    {
+        "assay": "WGS - Standard ONT",
+        "donor": "SMHT001",
+        "tissue": "Brain - Frontal lobe"
+    },
+    {
+        "assay": "WGS - Illumina",
+        "donor": "SMHT001",
+        "tissue": "Brain - Hippocampus"
+    },
+    {
+        "assay": "10X Genomics Xenium",
+        "donor": "SMHT001",
+        "tissue": "Brain - Temporal lobe"
+    },
+    {
+        "assay": "CODEC",
+        "donor": "SMHT001",
+        "tissue": "Skin - Abdomen (non-exposed)"
+    },
+    {
+        "assay": "NanoSeq",
+        "donor": "SMHT001",
+        "tissue": "Skin - Calf (sun-exposed)"
+    },
+    {
+        "assay": "NanoSeq",
+        "donor": "SMHT001",
+        "tissue": "Aorta"
+    },
+    {
+        "assay": "WGS - UltraLong ONT",
+        "donor": "SMHT001",
+        "tissue": "Fibroblast"
+    },
+    {
+        "assay": "10X Genomics Xenium",
+        "donor": "SMHT001",
+        "tissue": "Heart"
+    },
+    {
+        "assay": "WGS - Standard ONT",
+        "donor": "SMHT001",
+        "tissue": "Muscle"
+    },
+    {
+        "assay": "STORM-Seq",
+        "donor": "SMHT001",
+        "tissue": "Colon - Ascending"
+    },
+    {
+        "assay": "10X Genomics Xenium",
+        "donor": "SMHT001",
+        "tissue": "Colon - Descending"
+    },
+    {
+        "assay": "NT-Seq",
+        "donor": "SMHT001",
+        "tissue": "Esophagus"
+    },
+    {
+        "assay": "L1-ONT",
+        "donor": "SMHT001",
+        "tissue": "Liver"
+    },
+    {
+        "assay": "Fiber-Seq",
+        "donor": "SMHT001",
+        "tissue": "Lung"
+    },
+    {
+        "assay": "TEnCATS",
+        "donor": "SMHT001",
+        "tissue": "Ovary"
+    },
+    {
+        "assay": "PTA-amplified WGS",
+        "donor": "SMHT001",
+        "tissue": "Testis"
+    },
+    {
+        "assay": "WGS - PacBio",
+        "donor": "SMHT001",
+        "tissue": "Blood"
+    },
+    {
+        "assay": "WGS - Illumina",
+        "donor": "SMHT001",
+        "tissue": "Buccal swab"
+    },
+    {
+        "assay": "RNA-Seq - Illumina",
+        "donor": "ST003",
+        "tissue": "Aorta"
+    },
+    {
+        "assay": "Kinnex",
+        "donor": "SMHT006",
+        "tissue": "Testis"
+    },
+    {
+        "assay": "VISTA-Seq",
+        "donor": "SMHT005",
+        "tissue": "Blood"
+    },
+    {
+        "assay": "CompDuplex-Seq",
+        "donor": "SMHT020",
+        "tissue": "Fibroblast"
+    },
+    {
+        "assay": "HiDEF-Seq",
+        "donor": "SMHT022",
+        "tissue": "Buccal swab"
+    },
+    {
+        "assay": "MALBAC-amplified WGS",
+        "donor": "SMHT007",
+        "tissue": "Brain - Cerebellum"
+    },
+    {
+        "assay": "WGS DLP+",
+        "donor": "SMHT004",
+        "tissue": "Liver"
+    },
+    {
+        "assay": "HAT-Seq",
+        "donor": "SMHT009",
+        "tissue": "Heart"
+    },
+    {
+        "assay": "snRNA-Seq",
+        "donor": "SMHT001",
+        "tissue": "Aorta"
+    },
+    {
+        "assay": "Tranquil-Seq",
+        "donor": "SMHT009",
+        "tissue": "Brain - Temporal lobe"
+    },
+    {
+        "assay": "Hi-C",
+        "donor": "ST003",
+        "tissue": "Esophagus"
+    },
+    {
+        "assay": "scDip-C",
+        "donor": "ST004",
+        "tissue": "Colon - Descending"
+    },
+    {
+        "assay": "Strand-Seq",
+        "donor": "SMHT012",
+        "tissue": "Heart"
+    },
+    {
+        "assay": "varCUT&Tag",
+        "donor": "SMHT027",
+        "tissue": "Brain - Temporal lobe"
+    },
+    {
+        "assay": "GoT-ChA",
+        "donor": "SMHT015",
+        "tissue": "Brain - Hippocampus"
+    },
+    {
+        "assay": "L1-ONT",
+        "donor": "SMHT008",
+        "tissue": "Muscle"
+    },
+    {
+        "assay": "Strand-Seq",
+        "donor": "SMHT023",
+        "tissue": "Colon - Descending"
+    },
+    {
+        "assay": "TEnCATS",
+        "donor": "SMHT024",
+        "tissue": "Aorta"
+    },
+    {
+        "assay": "Tranquil-Seq",
+        "donor": "SMHT029",
+        "tissue": "Brain - Hippocampus"
+    },
+    {
+        "assay": "WGS - PacBio",
+        "donor": "SMHT006",
+        "tissue": "Muscle"
+    },
+    {
+        "assay": "Fiber-Seq",
+        "donor": "SMHT006",
+        "tissue": "Brain - Temporal lobe"
+    },
+    {
+        "assay": "HiDEF-Seq",
+        "donor": "SMHT007",
+        "tissue": "Lung"
+    },
+    {
+        "assay": "Slide-tags snRNA-Seq",
+        "donor": "SMHT012",
+        "tissue": "Skin - Calf (sun-exposed)"
+    },
+    {
+        "assay": "CompDuplex-Seq",
+        "donor": "SMHT012",
+        "tissue": "Aorta"
+    },
+    {
+        "assay": "STORM-Seq",
+        "donor": "SMHT007",
+        "tissue": "Brain - Hippocampus"
+    },
+    {
+        "assay": "snRNA-Seq",
+        "donor": "SMHT004",
+        "tissue": "Blood"
+    },
+    {
+        "assay": "10X Genomics Xenium",
+        "donor": "SMHT006",
+        "tissue": "Skin - Calf (sun-exposed)"
+    },
+    {
+        "assay": "MALBAC-amplified WGS",
+        "donor": "SMHT015",
+        "tissue": "Heart"
+    },
+    {
+        "assay": "varCUT&Tag",
+        "donor": "SMHT027",
+        "tissue": "Fibroblast"
+    },
+    {
+        "assay": "STORM-Seq",
+        "donor": "SMHT009",
+        "tissue": "Brain - Frontal lobe"
+    },
+    {
+        "assay": "NanoSeq",
+        "donor": "ST002",
+        "tissue": "Colon - Ascending"
+    },
+    {
+        "assay": "HiDEF-Seq",
+        "donor": "SMHT007",
+        "tissue": "Brain - Hippocampus"
+    },
+    {
+        "assay": "Kinnex",
+        "donor": "SMHT029",
+        "tissue": "Colon - Ascending"
+    },
+    {
+        "assay": "Kinnex",
+        "donor": "SMHT023",
+        "tissue": "Esophagus"
+    },
+    {
+        "assay": "NT-Seq",
+        "donor": "SMHT022",
+        "tissue": "Skin - Abdomen (non-exposed)"
+    },
+    {
+        "assay": "CODEC",
+        "donor": "SMHT001",
+        "tissue": "Fibroblast"
+    },
+    {
+        "assay": "10X Genomics Xenium",
+        "donor": "SMHT027",
+        "tissue": "Blood"
+    },
+    {
+        "assay": "CODEC",
+        "donor": "SMHT029",
+        "tissue": "Liver"
+    },
+    {
+        "assay": "NT-Seq",
+        "donor": "SMHT029",
+        "tissue": "Esophagus"
+    }
+];  
+  
