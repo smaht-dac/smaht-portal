@@ -311,7 +311,7 @@ def bar_plot_chart(context, request):
     return ret_result
 
 
-@view_config(route_name='data_matrix_aggregations', request_method=['GET', 'POST'])
+@view_config(route_name='data_matrix_aggregations', request_method=['POST'])
 @debug_log
 def data_matrix_aggregations(context, request):
 
@@ -322,18 +322,34 @@ def data_matrix_aggregations(context, request):
     try:
         json_body = request.json_body
         search_param_lists = json_body.get('search_query_params', deepcopy(DEFAULT_BROWSE_PARAM_LISTS))
-        fields_to_aggregate_for = json_body.get('fields_to_aggregate_for', request.params.getall('field'))
+        # fields_to_aggregate_for = json_body.get('fields_to_aggregate_for', request.params.getall('field'))
+        column_agg_fields = json_body.get('column_agg_fields')
+        if isinstance(column_agg_fields, str):
+            column_agg_fields = [column_agg_fields]
+        row_agg_fields = json_body.get('row_agg_fields')
+        flatten_values = json_body.get('flatten_values', False)
     except json.decoder.JSONDecodeError:
-        search_param_lists = request.GET.dict_of_lists()
-        fields_to_aggregate_for = request.params.getall('field')
-
-    if len(fields_to_aggregate_for) == 0:
         raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
+
+    if column_agg_fields is None or len(column_agg_fields) == 0 or row_agg_fields is None or len(row_agg_fields) == 0:
+        raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
+
+    def get_es_key(field_or_field_list):
+        return "script" if isinstance(field_or_field_list, list) and len(field_or_field_list) > 1 else "field"
+
+    def get_es_key_value(field_or_field_list):
+        if isinstance(field_or_field_list, list) and len(field_or_field_list) > 1:
+            return {
+                "source": " + ' ' + ".join(["doc['embedded." + field + ".raw'].value" for field in field_or_field_list]),
+                "lang": "painless"
+            }
+        else:
+            return "embedded." + (field_or_field_list[0] if isinstance(field_or_field_list, list) else field_or_field_list) + '.raw'
 
     primary_agg = {
         "field_0": {
             "terms": {
-                "field": "embedded." + fields_to_aggregate_for[0] + '.raw',
+                get_es_key(column_agg_fields): get_es_key_value(column_agg_fields),
                 "missing": TERM_NAME_FOR_NO_VALUE,
                 "size": MAX_BUCKET_COUNT
             },
@@ -345,18 +361,16 @@ def data_matrix_aggregations(context, request):
 
     # Nest in additional fields, if any
     curr_field_aggs = primary_agg['field_0']['aggs']
-    for field_index, field in enumerate(fields_to_aggregate_for):
-        if field_index == 0:
-            continue
-        curr_field_aggs["field_" + str(field_index)] = {
+    for field_index, field in enumerate(row_agg_fields):
+        curr_field_aggs["field_" + str(field_index + 1)] = {
             "terms": {
-                "field": "embedded." + field + '.raw',
+                get_es_key(field): get_es_key_value(field),
                 "missing": TERM_NAME_FOR_NO_VALUE,
                 "size": MAX_BUCKET_COUNT
             },
             "aggs": deepcopy(SUM_FILES_EXPS_AGGREGATION_DEFINITION)
         }
-        curr_field_aggs = curr_field_aggs['field_' + str(field_index)]['aggs']
+        curr_field_aggs = curr_field_aggs['field_' + str(field_index + 1)]['aggs']
 
     search_param_lists['limit'] = search_param_lists['from'] = [0]
     subreq = make_search_subreq(request, '{}?{}'.format('/search/', urlencode(search_param_lists, True)))
@@ -368,7 +382,7 @@ def data_matrix_aggregations(context, request):
         del search_result[field_to_delete]
 
     ret_result = {  # We will fill up the "terms" here from our search_result buckets and then return this dictionary.
-        "field": fields_to_aggregate_for[0],
+        "field": column_agg_fields[0] if isinstance(column_agg_fields, list) else column_agg_fields,
         "terms": {},
         "total": {
             "files": search_result['total'],
@@ -384,8 +398,8 @@ def data_matrix_aggregations(context, request):
         }
 
         next_field_name = None
-        if len(fields_to_aggregate_for) > curr_field_depth + 1:  # More fields agg results to add
-            next_field_name = fields_to_aggregate_for[curr_field_depth + 1]
+        if len(row_agg_fields) > curr_field_depth:  # More fields agg results to add
+            next_field_name = row_agg_fields[curr_field_depth]
             returned_buckets[bucket_result['key']] = {
                 "term": bucket_result['key'],
                 "field": next_field_name,
@@ -403,4 +417,24 @@ def data_matrix_aggregations(context, request):
     for bucket in search_result['aggregations']['field_0']['buckets']:
         format_bucket_result(bucket, ret_result['terms'], 0)
 
-    return ret_result
+    def flatten_es_terms_aggregation(es_response):
+        result = []
+
+        def recurse_terms(level, path, data):
+            if "terms" in data:
+                # Get the field name at the current level (or fallback to a generic name)
+                field_name = data.get("field", f"level_{level}")
+                for term_value, term_data in data["terms"].items():
+                    # Recursively process the next level, appending current field and value to the path
+                    recurse_terms(level + 1, path + [(field_name, term_value)], term_data)
+            elif "files" in data:
+                # When the deepest level is reached, build a flat record from the path
+                flat_record = {field: value for field, value in path}
+                flat_record["files"] = data["files"]
+                result.append(flat_record)
+
+        # Start recursion from the root
+        recurse_terms(0, [], es_response)
+        return result
+
+    return flatten_es_terms_aggregation(ret_result) if flatten_values else ret_result
