@@ -16,7 +16,6 @@ const DataMatrixConfigurator = ({
     selectedColumnValue,
     selectedRow1Value,
     selectedRow2Value,
-    headerColumnsOrderValue,
     initialColumnGroups,
     onApply
 }) => {
@@ -24,7 +23,6 @@ const DataMatrixConfigurator = ({
     const [selectedColumn, setSelectedColumn] = useState(selectedColumnValue);
     const [selectedRow1, setSelectedRow1] = useState(selectedRow1Value);
     const [selectedRow2, setSelectedRow2] = useState(selectedRow2Value);
-    const [headerColumnsOrder, setHeaderColumnsOrder] = useState(() => Array.isArray(headerColumnsOrderValue) ? headerColumnsOrderValue : [])
     const [ranges, setRanges] = useState(colorRanges.length > 0 ? colorRanges : [{ min: 0, max: '', color: '' }]);
     const [showPopover, setShowPopover] = useState(false);
     const [errors, setErrors] = useState({});
@@ -137,7 +135,7 @@ const DataMatrixConfigurator = ({
             return;
         }
 
-        onApply(searchUrl, selectedColumn, selectedRow1, selectedRow2, headerColumnsOrder, ranges);
+        onApply(searchUrl, selectedColumn, selectedRow1, selectedRow2, ranges);
         setShowPopover(false);
     };
 
@@ -207,12 +205,6 @@ const DataMatrixConfigurator = ({
                                                 <option key={idx + 1} value={dim}>{dim}</option>
                                             ))}
                                         </Form.Control>
-                                    </Form.Group>
-
-                                    {/* Header Columns Order */}
-                                    <Form.Group className="d-flex align-items-center mb-05">
-                                        <Form.Label className="me-2" style={labelStyle}>Col. Order</Form.Label>
-                                        <ChipsContainer chips={headerColumnsOrder} onChange={(chips) => setHeaderColumnsOrder(chips)} />
                                     </Form.Group>
 
                                     {/* Ranges */}
