@@ -7,11 +7,49 @@ smaht-portal
 Change Log
 ----------
 
-0.160.2
+0.163.0
 =======
 `PR 379: feat: implement QC Overview Tab <https://github.com/smaht-dac/smaht-portal/pull/384>`_
 
-* Populate quality metrics table in QC overview tab
+* Populate quality metrics tab in QC overview tab
+
+
+0.162.1
+=======
+`PR 392: Add tissue type calc prop to filesets <https://github.com/smaht-dac/smaht-portal/pull/392>`_
+
+* Adds a calculated property to filesets that contains the higher level tissue type.
+
+
+0.162.0
+=======
+`PR 406: SN Add AlignedReads enum <https://github.com/smaht-dac/smaht-portal/pull/406>`_
+
+* Add "Consensus Reads" enum to data_category for AlignedReads
+* Fix loadxl order for `external_quality_metric`
+
+
+0.161.0
+=======
+`PR 397 feat: implement bulk donor metadata download button <https://github.com/smaht-dac/smaht-portal/pull/397>`_
+
+* Implement bulk donor metadata download button
+* Update bootstrap button style overrides
+
+
+0.160.3
+=======
+`PR 405: SN Update release MWFR check <https://github.com/smaht-dac/smaht-portal/pull/405>`_
+
+* In `commands/release_file.py` , adjust `get_output_meta_workflow_run` to only throw an error if the file type is OutputFile, as submitted files won't be the output of a MWFR
+
+
+0.160.2
+=======
+`PR 402 feat: about page visualization updates <https://github.com/smaht-dac/smaht-portal/pull/402>`_
+
+* Update copy for About page
+* Fix assay table descriptions
 
 
 0.160.1
@@ -70,7 +108,7 @@ Change Log
 
 0.156.0
 =======
-`PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`
+`PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`_
 
 * Update the About page Alluvial plot and data matrix
 * Refactor showHideInformationToggle component for additional customization

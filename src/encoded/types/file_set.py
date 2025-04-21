@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Union
+import functools
 
 from pyramid.view import view_config
 from pyramid.request import Request
@@ -21,11 +22,14 @@ from ..item_utils import (
     sequencing as sequencing_utils,
     analyte as analyte_utils,
     sample as sample_utils,
-    tissue_sample as tissue_sample_utils
+    tissue_sample as tissue_sample_utils,
+    tissue as tissue_utils,
 )
 from ..item_utils.utils import (
     RequestHandler,
     get_property_value_from_identifier,
+    get_property_values_from_identifiers,
+
 )
 from ..utils import load_extended_descriptions_in_schemas
 
@@ -60,7 +64,9 @@ def _build_file_set_embedded_list():
         "libraries.analytes.samples.display_title",
         "libraries.analytes.samples.sample_sources.submitted_id",
         "libraries.analytes.samples.sample_sources.code",
+        "libraries.analytes.samples.sample_sources.uberon_id",
         "libraries.analytes.samples.sample_sources.cell_line.code",
+
 
         # Sequencing/Sequencer LinkTo - used in file_merge_group
         "sequencing.submitted_id",
@@ -285,6 +291,24 @@ class FileSet(SubmittedItem):
             'sequencing': sequencing_part,
             'assay': assay_part
         }
+
+    @calculated_property(
+        schema={
+            "title": "Tissue Type",
+            "description": "Higher level tissue type of file set",
+            "type": "string"
+        }
+    )
+    def tissue_types(self, request):
+        """"Get top ontology term tissue type from tissue."""
+        request_handler = RequestHandler(request=request)
+        return get_property_values_from_identifiers(
+            request_handler,
+            file_set_utils.get_tissues(self.properties, request_handler),
+            functools.partial(
+                tissue_utils.get_top_grouping_term, request_handler=request_handler
+            )
+        )
 
 
 @link_related_validator
