@@ -815,6 +815,18 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         </div>
                     );
                 });
+                // add total column block
+                let totalBlock = null;
+                const totalRowCount = _.reduce(_.map(blocksByColumnGroup, function(b){ return b.length; }), function(m, n){ return m + n; }, 0);
+                if (totalRowCount > 0){
+                    totalBlock = (
+                        <div className="block-container-group" style={containerGroupStyle}
+                            key={'total'} data-block-count={totalRowCount} data-group-key={'total'}>
+                            <Block {...commonProps} data={allChildBlocks} indexInGroup={0} rowIndex={props.index} colIndex={-1} />
+                        </div>
+                    );
+                }
+                inner.push(totalBlock);
 
             }
         } else {

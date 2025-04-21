@@ -1743,6 +1743,13 @@ body[data-path="/statistics"] {
             &:not(:first-child){
                 border-left-color: #eee;
             }
+
+            &[data-group-key="total"] {
+                .stacked-block {
+                    background-color: #D91818 !important;
+                    margin-left: 50px;
+                }
+            }
         }
     }
 
