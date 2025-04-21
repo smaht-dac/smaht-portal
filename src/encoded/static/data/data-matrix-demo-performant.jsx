@@ -30,6 +30,9 @@
                 "Single-cell MALBAC WGS ONT": "MALBAC-amplified WGS",
                 "Single-cell MALBAC WGS Illumina": "MALBAC-amplified WGS",
                 "TEnCATS ONT": "TEnCATS",
+            },
+            "tissue": {
+                "endocrine pancreas": "Endocrine pancreas",
             }
         }}
         groupingProperties={["donor", "tissue"]}
@@ -109,6 +112,11 @@
                 "values": ['Blood','Buccal swab'],
                 "backgroundColor": "#70a588",
                 "textColor": "#ffffff"
+            },
+            "N/A": {
+                "values": ['Brain', 'Endocrine pancreas'],
+                "backgroundColor": "#ffffff",
+                "textColor": "#000000"
             }
         }}
         headerFor={<h3 className="mt-2 mb-0 text-300">SMaHT</h3>}
