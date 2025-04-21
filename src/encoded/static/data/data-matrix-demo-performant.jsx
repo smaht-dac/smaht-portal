@@ -91,27 +91,32 @@
             "Ectoderm": {
                 "values": ['Brain - Cerebellum','Brain - Frontal lobe','Brain - Hippocampus','Brain - Temporal lobe','Skin - Abdomen (non-exposed)','Skin - Calf (sun-exposed)'],
                 "backgroundColor": "#367151",
-                "textColor": "#ffffff"
+                "textColor": "#ffffff",
+                "shortName": "Ecto"
             },
             "Mesoderm": {
                 "values": ['Aorta','Fibroblast','Heart','Muscle'],
                 "backgroundColor": "#30975e",
-                "textColor": "#ffffff"
+                "textColor": "#ffffff",
+                "shortName": "Meso"
             },
             "Endoderm": {
                 "values": ['Colon - Ascending','Colon - Descending','Esophagus','Liver','Lung'],
                 "backgroundColor": "#53b27e",
-                "textColor": "#ffffff"
+                "textColor": "#ffffff",
+                "shortName": "Endo"
             },
             "Germ cells": {
                 "values": ['Ovary','Testis'],
                 "backgroundColor": "#80c4a0",
-                "textColor": "#ffffff"
+                "textColor": "#ffffff",
+                "shortName": "Germ"
             },
             "Clinically accessible": {
                 "values": ['Blood','Buccal swab'],
                 "backgroundColor": "#70a588",
-                "textColor": "#ffffff"
+                "textColor": "#ffffff",
+                "shortName": "Clin"
             },
             "N/A": {
                 "values": ['Brain', 'Endocrine pancreas'],
@@ -121,7 +126,7 @@
         }}
         headerFor={<h3 className="mt-2 mb-0 text-300">SMaHT</h3>}
         baseColorOverride="#6f2da8"
-        useTestData={false}
+        useTestData={true}
     />
     {/* <DataMatrix
         key="data-matrix-demo-2"   // Required to prevent re-instantiation of component upon window resize & similar.

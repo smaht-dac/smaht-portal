@@ -523,13 +523,27 @@ export class StackedBlockVisual extends React.PureComponent {
             } else {
                 // leftAxisKeys.sort();
                 leftAxisKeys = _.sortBy(leftAxisKeys, function (item) {
-                    // Elements starting with "ST" are group 0, others are group 1
-                    var group = item.indexOf("ST") === 0 ? 0 : (item.indexOf("SMHT") === 0 ? 1 : 2);
+                    let group;
+                    if (item.startsWith("ST")) {
+                        group = 0; // Group 0: items starting with "ST"
+                    } else if (item.startsWith("SMHT")) {
+                        group = 1; // Group 1: items starting with "SMHT"
+                    } else {
+                        group = 2; // Group 2: all other items
+                    }
 
-                    // Extract the numeric part at the end of the string
-                    var num = parseInt(item.match(/\d+/)[0], 10);
+                    let sortKey;
+                    if (group < 2) {
+                        // For groups 0 and 1, sort by the numeric part (e.g., ST001 -> 1)
+                        const match = item.match(/\d+/);
+                        const num = match ? parseInt(match[0], 10) : 0;
+                        sortKey = num;
+                    } else {
+                        // For group 2, sort alphabetically
+                        sortKey = item;
+                    }
 
-                    return [group, num];
+                    return [group, sortKey];
                 });
             }
             return _.map(leftAxisKeys, (k, idx) =>
@@ -1028,10 +1042,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                             const rowGroupChildRowsKeys = _.intersection(childRowsKeys, values);
                             const rowSpan = rowGroupChildRowsKeys.length;
                             if(rowSpan === 0) return null;
+                            const label = (rgKey.length > (rowSpan * 4)) && rowGroupsExtended[rgKey].shortName ? rowGroupsExtended[rgKey].shortName : rgKey;
                             return (
                                 <div class="vertical-container">
                                     <div class="vertical-container-label" style={{ backgroundColor, color: textColor, height: rowHeight * rowSpan }}>
-                                        <span>{rgKey}</span>
+                                        <span data-tip={rgKey !== label ? rgKey : null}>{label}</span>
                                     </div>
                                     <div class="vertical-container-rows">
                                         {
