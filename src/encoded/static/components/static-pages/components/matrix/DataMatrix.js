@@ -26,7 +26,7 @@ export default class DataMatrix extends React.PureComponent {
         "sectionStyle": {
             "sectionClassName": "col-12",
             "labelClassName": "col-2x",
-            "listingClassName": "col-10"
+            "listingClassName": "col-10x"
         },
         "fallbackNameForBlankField": "None",
         /** Which state to set/prioritize if multiple files per group */

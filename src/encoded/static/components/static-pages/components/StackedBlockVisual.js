@@ -1027,6 +1027,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                             const { values, backgroundColor, textColor } = rowGroupsExtended[rgKey];
                             const rowGroupChildRowsKeys = _.intersection(childRowsKeys, values);
                             const rowSpan = rowGroupChildRowsKeys.length;
+                            if(rowSpan === 0) return null;
                             return (
                                 <div class="vertical-container">
                                     <div class="vertical-container-label" style={{ backgroundColor, color: textColor, height: rowHeight * rowSpan }}>
