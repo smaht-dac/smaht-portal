@@ -28,7 +28,7 @@ export default class DataMatrix extends React.PureComponent {
             "labelClassName": "col-2x",
             "listingClassName": "col-10"
         },
-        "fallbackNameForBlankField" : "None",
+        "fallbackNameForBlankField": "None",
         /** Which state to set/prioritize if multiple files per group */
         "statePrioritizationForGroups" : [],
         "headerPadding"             : 200,
@@ -46,7 +46,7 @@ export default class DataMatrix extends React.PureComponent {
         ],
         "baseColorOverride": null, // color hex or rgba code (if set, will override colorRanges)
         "allowedFields": [
-            "donors.display_title", 
+            "donors.display_title",
             "sequencing.sequencer.display_title",
             "data_generation_summary.assays",
             "sample_summary.tissues",
@@ -55,7 +55,8 @@ export default class DataMatrix extends React.PureComponent {
             "data_category",
             "software.display_title"
         ],
-        "disableConfigurator": false
+        "disableConfigurator": false,
+        "useTestData": false
     };
 
     static propTypes = {
@@ -86,16 +87,16 @@ export default class DataMatrix extends React.PureComponent {
         'rowGroupsExtended': PropTypes.object
     };
 
-    static convertResult(result, fieldChangeMap, valueChangeMap, statusStateTitleMap, fallbackNameForBlankField){
+    static convertResult(result, fieldChangeMap, valueChangeMap, statusStateTitleMap, fallbackNameForBlankField) {
 
         const convertedResult = _.clone(result);
 
-        if (fieldChangeMap){
-            _.forEach(_.pairs(fieldChangeMap), function([ fieldToMapTo, fieldToMapFrom ]){
+        if (fieldChangeMap) {
+            _.forEach(_.pairs(fieldChangeMap), function ([fieldToMapTo, fieldToMapFrom]) {
                 let value = object.getNestedProperty(result, fieldToMapFrom, fieldToMapTo);
-                if (Array.isArray(value)){ // Only allow single vals.
+                if (Array.isArray(value)) { // Only allow single vals.
                     value = _.uniq(_.flatten(value));
-                    if (value.length > 1){
+                    if (value.length > 1) {
                         console.warn("We have 2+ of a grouping value", fieldToMapFrom, value, result);
                     }
                     value = value[0] || fallbackNameForBlankField;
@@ -105,9 +106,9 @@ export default class DataMatrix extends React.PureComponent {
         }
 
         // Change values (e.g. shorten some):
-        if (valueChangeMap){
-            _.forEach(_.pairs(valueChangeMap), function([field, changeMap]){
-                if (typeof convertedResult[field] === "string"){ // If present
+        if (valueChangeMap) {
+            _.forEach(_.pairs(valueChangeMap), function ([field, changeMap]) {
+                if (typeof convertedResult[field] === "string") { // If present
                     convertedResult[field] = changeMap[convertedResult[field]] || convertedResult[field];
                 }
             });
@@ -115,14 +116,14 @@ export default class DataMatrix extends React.PureComponent {
 
         // Standardized state from status
         // TODO Use similar by-data-source structure as fieldChangeMap & valueChangeMap
-        if (statusStateTitleMap){
-            const [ stateTitleToSave ] = _.find(_.pairs(statusStateTitleMap), function([titleToSave, validStatuses]){ return validStatuses.indexOf(result.status) > -1; });
+        if (statusStateTitleMap) {
+            const [stateTitleToSave] = _.find(_.pairs(statusStateTitleMap), function ([titleToSave, validStatuses]) { return validStatuses.indexOf(result.status) > -1; });
             convertedResult.state = stateTitleToSave || fallbackNameForBlankField;
         }
 
         return convertedResult;
     }
-      
+
     /**
      * specifically designed for the bar_plot_aggregations endpoint
      * transforms the data into a format that can be used by the DataMatrix component
@@ -199,7 +200,7 @@ export default class DataMatrix extends React.PureComponent {
 
         return result;
     }
-      
+
     constructor(props) {
         super(props);
         this.standardizeResult = this.standardizeResult.bind(this);
@@ -212,9 +213,9 @@ export default class DataMatrix extends React.PureComponent {
         }
 
         this.state = {
-            "mounted"  : false,
-            "_results" : null,
-            "query"  : props.query,
+            "mounted": false,
+            "_results": null,
+            "query": props.query,
             "fieldChangeMap": props.fieldChangeMap,
             "columnGrouping": props.columnGrouping,
             "groupingProperties": props.groupingProperties,
@@ -222,10 +223,10 @@ export default class DataMatrix extends React.PureComponent {
         };
     }
 
-    standardizeResult(result){
+    standardizeResult(result) {
         const { fallbackNameForBlankField, statusStateTitleMap, valueChangeMap } = this.props;
         const { fieldChangeMap } = this.state;
-        
+
         const fullResult = DataMatrix.convertResult(
             result, fieldChangeMap, valueChangeMap, statusStateTitleMap, fallbackNameForBlankField
         );
@@ -233,12 +234,12 @@ export default class DataMatrix extends React.PureComponent {
         return fullResult;
     }
 
-    componentDidMount(){
-        this.setState({ "mounted" : true });
+    componentDidMount() {
+        this.setState({ "mounted": true });
         this.loadSearchQueryResults();
     }
 
-    componentDidUpdate(pastProps, pastState){
+    componentDidUpdate(pastProps, pastState) {
         const { session } = this.props;
         const { query, fieldChangeMap, columnGrouping, groupingProperties } = this.state;
         if (session !== pastProps.session ||
@@ -250,19 +251,53 @@ export default class DataMatrix extends React.PureComponent {
         }
     }
 
-    loadSearchQueryResults(){
+    loadSearchQueryResults() {
 
         const commonCallback = (result) => {
+            const { valueChangeMap } = this.props;
+            const { fieldChangeMap } = this.state;
             const resultKey = "_results";
             const updatedState = {};
-            if (typeof result["other_doc_count"] === 'undefined') {
-                updatedState[resultKey] = result["@graph"] || [];
-                updatedState[resultKey] = _.map(updatedState[resultKey], (r) => this.standardizeResult(r));
-            } else {
-                updatedState[resultKey] = DataMatrix.transformData(result, this.state.fieldChangeMap);
-            }
-            // temp. override
-            updatedState[resultKey] = TEST_DATA;
+            // if (typeof result["other_doc_count"] === 'undefined') {
+            //     updatedState[resultKey] = result["@graph"] || [];
+            //     updatedState[resultKey] = _.map(updatedState[resultKey], (r) => this.standardizeResult(r));
+            // } else {
+            //     updatedState[resultKey] = DataMatrix.transformData(result, this.state.fieldChangeMap);
+            // }
+            updatedState[resultKey] = this.props.useTestData ? TEST_DATA_2 : result;
+            let transfermedData = [];
+            _.forEach(updatedState[resultKey], (r) => {
+                if (fieldChangeMap) {
+                    _.forEach(_.pairs(fieldChangeMap), function ([fieldToMapTo, fieldToMapFrom]) {
+                        if (typeof r[fieldToMapFrom] !== 'undefined') {
+                            r[fieldToMapTo] = r[fieldToMapFrom];
+                            delete r[fieldToMapFrom];
+                        }
+                    }, {});
+                }
+                if (r.files && r.files > 0) {
+                    transfermedData = transfermedData.concat(
+                        _.times(r.files, function () {
+                            const cloned = _.clone(r);
+                            delete cloned.files;
+
+                            // Change values (e.g. shorten some):
+                            if (valueChangeMap) {
+                                _.forEach(_.pairs(valueChangeMap), function ([field, changeMap]) {
+                                    if (typeof cloned[field] === "string") { // If present
+                                        cloned[field] = changeMap[cloned[field]] || cloned[field];
+                                    }
+                                });
+                            }    
+
+                            return cloned;
+                        }));
+                }
+            });
+            // TODO: re-implement query to remove hardcoded filtering
+            // transfermedData = _.filter(transfermedData, function (r) { return r.donor.indexOf('SMHT') > -1 || r.donor.indexOf('ST') > -1; });
+
+            updatedState[resultKey] = transfermedData;
 
             this.setState(updatedState, () => ReactTooltip.rebuild());
         };
@@ -340,14 +375,16 @@ export default class DataMatrix extends React.PureComponent {
         const { headerFor, sectionStyle, valueChangeMap, allowedFields, columnGroups, columnGroupsExtended, rowGroups, rowGroupsExtended, disableConfigurator = false } = this.props;
         const { query, fieldChangeMap, columnGrouping, groupingProperties, colorRanges } = this.state;
 
-        const isLoading = 
-                // eslint-disable-next-line react/destructuring-assignment
-                this.state['_results'] === null && query && query.url !== null && typeof query.url !== 'undefined';
+        const isLoading =
+            // eslint-disable-next-line react/destructuring-assignment
+            this.state['_results'] === null && query && query.url !== null && typeof query.url !== 'undefined';
 
-        if (isLoading){
+        if (isLoading) {
             return (
                 <div>
-                    <div className="text-center mt-5 mb-5" style={{ fontSize: '2rem', opacity: 0.5 }}><i className="mt-3 icon icon-spin icon-circle-notch fas"/></div>
+                    <div className="text-center mt-5 mb-5" style={{ fontSize: '2rem', opacity: 0.5 }}>
+                        <i className="mt-3 icon icon-spin icon-circle-notch fas" />
+                    </div>
                 </div>
             );
         }
@@ -361,7 +398,7 @@ export default class DataMatrix extends React.PureComponent {
             groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping,
             listingClassName, labelClassName, colorRanges, columnGroups, columnGroupsExtended, rowGroups, rowGroupsExtended
         };
-        
+
         const configurator = !disableConfigurator && (
             <DataMatrixConfigurator
                 columnDimensions={allowedFields}
@@ -378,7 +415,7 @@ export default class DataMatrix extends React.PureComponent {
                 onApply={this.onApplyConfiguration}
             />
         );
-        
+
         const body = (
             <div className={sectionClassName}>
                 {configurator}
@@ -391,8 +428,8 @@ export default class DataMatrix extends React.PureComponent {
                     columnSubGrouping="state"
                     // eslint-disable-next-line react/destructuring-assignment
                     results={this.state[resultKey]}
-                    //defaultDepthsOpen={[true, false, false]}
-                    //keysToInclude={[]}
+                //defaultDepthsOpen={[true, false, false]}
+                //keysToInclude={[]}
                 />
             </div>
         );
@@ -708,5 +745,763 @@ const TEST_DATA = [
         "donor": "SMHT029",
         "tissue": "Esophagus"
     }
-];  
-  
+];
+
+const TEST_DATA_2 = [
+    {
+        "data_generation_summary.assays": "scDip-C Illumina",
+        "donors.display_title": "ISLET1",
+        "sample_summary.tissues": "endocrine pancreas",
+        "files": 4904
+    },
+    {
+        "data_generation_summary.assays": "WGS Illumina",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Colon",
+        "files": 188
+    },
+    {
+        "data_generation_summary.assays": "WGS Illumina",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Lung",
+        "files": 126
+    },
+    {
+        "data_generation_summary.assays": "WGS Illumina",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Skin",
+        "files": 12
+    },
+    {
+        "data_generation_summary.assays": "WGS Illumina",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Lung",
+        "files": 174
+    },
+    {
+        "data_generation_summary.assays": "WGS Illumina",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Liver",
+        "files": 70
+    },
+    {
+        "data_generation_summary.assays": "WGS Illumina",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Skin",
+        "files": 12
+    },
+    {
+        "data_generation_summary.assays": "WGS Illumina",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Brain",
+        "files": 48
+    },
+    {
+        "data_generation_summary.assays": "WGS Illumina",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Skin",
+        "files": 24
+    },
+    {
+        "data_generation_summary.assays": "WGS Illumina",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Colon",
+        "files": 20
+    },
+    {
+        "data_generation_summary.assays": "WGS Illumina",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Muscle",
+        "files": 12
+    },
+    {
+        "data_generation_summary.assays": "WGS Illumina",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Blood",
+        "files": 10
+    },
+    {
+        "data_generation_summary.assays": "WGS Illumina",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Esophagus",
+        "files": 10
+    },
+    {
+        "data_generation_summary.assays": "WGS Illumina",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Heart",
+        "files": 10
+    },
+    {
+        "data_generation_summary.assays": "WGS Illumina",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Liver",
+        "files": 10
+    },
+    {
+        "data_generation_summary.assays": "WGS Illumina",
+        "donors.display_title": "ST003",
+        "sample_summary.tissues": "Brain",
+        "files": 136
+    },
+    {
+        "data_generation_summary.assays": "WGS Illumina",
+        "donors.display_title": "ST004",
+        "sample_summary.tissues": "Brain",
+        "files": 134
+    },
+    {
+        "data_generation_summary.assays": "CompDuplex-seq Illumina",
+        "donors.display_title": "CB0",
+        "sample_summary.tissues": "Blood",
+        "files": 30
+    },
+    {
+        "data_generation_summary.assays": "CompDuplex-seq Illumina",
+        "donors.display_title": "P5246",
+        "sample_summary.tissues": "Brain",
+        "files": 30
+    },
+    {
+        "data_generation_summary.assays": "CompDuplex-seq Illumina",
+        "donors.display_title": "P5844",
+        "sample_summary.tissues": "Brain",
+        "files": 25
+    },
+    {
+        "data_generation_summary.assays": "CompDuplex-seq Illumina",
+        "donors.display_title": "P1740",
+        "sample_summary.tissues": "Brain",
+        "files": 20
+    },
+    {
+        "data_generation_summary.assays": "CompDuplex-seq Illumina",
+        "donors.display_title": "P4546",
+        "sample_summary.tissues": "Brain",
+        "files": 20
+    },
+    {
+        "data_generation_summary.assays": "CompDuplex-seq Illumina",
+        "donors.display_title": "P4643",
+        "sample_summary.tissues": "Brain",
+        "files": 20
+    },
+    {
+        "data_generation_summary.assays": "CompDuplex-seq Illumina",
+        "donors.display_title": "P5182",
+        "sample_summary.tissues": "Brain",
+        "files": 20
+    },
+    {
+        "data_generation_summary.assays": "CompDuplex-seq Illumina",
+        "donors.display_title": "P5818",
+        "sample_summary.tissues": "Brain",
+        "files": 20
+    },
+    {
+        "data_generation_summary.assays": "CompDuplex-seq Illumina",
+        "donors.display_title": "P4925",
+        "sample_summary.tissues": "Brain",
+        "files": 15
+    },
+    {
+        "data_generation_summary.assays": "CompDuplex-seq Illumina",
+        "donors.display_title": "P5554",
+        "sample_summary.tissues": "Brain",
+        "files": 15
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Colon",
+        "files": 8
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Skin",
+        "files": 8
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Aorta",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Blood",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Esophagus",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Heart",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Liver",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Lung",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Muscle",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Testis",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Liver",
+        "files": 14
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Lung",
+        "files": 12
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Blood",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Colon",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Esophagus",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Heart",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Liver",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Muscle",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Colon",
+        "files": 10
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Lung",
+        "files": 10
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "ST003",
+        "sample_summary.tissues": "Brain",
+        "files": 12
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "ST004",
+        "sample_summary.tissues": "Brain",
+        "files": 10
+    },
+    {
+        "data_generation_summary.assays": "WGS ONT",
+        "donors.display_title": "LIBD75",
+        "sample_summary.tissues": "Brain",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "Single-cell MALBAC WGS ONT",
+        "donors.display_title": "LIBD75",
+        "sample_summary.tissues": "Brain",
+        "files": 121
+    },
+    {
+        "data_generation_summary.assays": "Single-cell MALBAC WGS Illumina",
+        "donors.display_title": "LIBD75",
+        "sample_summary.tissues": "Brain",
+        "files": 94
+    },
+    {
+        "data_generation_summary.assays": "RNA-seq Illumina",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Liver",
+        "files": 17
+    },
+    {
+        "data_generation_summary.assays": "RNA-seq Illumina",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Lung",
+        "files": 11
+    },
+    {
+        "data_generation_summary.assays": "RNA-seq Illumina",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Colon",
+        "files": 13
+    },
+    {
+        "data_generation_summary.assays": "RNA-seq Illumina",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Lung",
+        "files": 11
+    },
+    {
+        "data_generation_summary.assays": "RNA-seq Illumina",
+        "donors.display_title": "ST004",
+        "sample_summary.tissues": "Brain",
+        "files": 11
+    },
+    {
+        "data_generation_summary.assays": "RNA-seq Illumina",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Blood",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "RNA-seq Illumina",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Colon",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "RNA-seq Illumina",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Esophagus",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "RNA-seq Illumina",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Lung",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "RNA-seq Illumina",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Muscle",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "RNA-seq Illumina",
+        "donors.display_title": "ST003",
+        "sample_summary.tissues": "Brain",
+        "files": 9
+    },
+    {
+        "data_generation_summary.assays": "RNA-seq Illumina",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Heart",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "RNA-seq Illumina",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Muscle",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "NanoSeq Illumina",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Liver",
+        "files": 12
+    },
+    {
+        "data_generation_summary.assays": "NanoSeq Illumina",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Lung",
+        "files": 12
+    },
+    {
+        "data_generation_summary.assays": "NanoSeq Illumina",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Colon",
+        "files": 12
+    },
+    {
+        "data_generation_summary.assays": "NanoSeq Illumina",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Lung",
+        "files": 12
+    },
+    {
+        "data_generation_summary.assays": "NanoSeq Illumina",
+        "donors.display_title": "ST003",
+        "sample_summary.tissues": "Brain",
+        "files": 12
+    },
+    {
+        "data_generation_summary.assays": "NanoSeq Illumina",
+        "donors.display_title": "ST004",
+        "sample_summary.tissues": "Brain",
+        "files": 12
+    },
+    {
+        "data_generation_summary.assays": "WGS PacBio",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Liver",
+        "files": 11
+    },
+    {
+        "data_generation_summary.assays": "WGS PacBio",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Lung",
+        "files": 10
+    },
+    {
+        "data_generation_summary.assays": "WGS PacBio",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Lung",
+        "files": 10
+    },
+    {
+        "data_generation_summary.assays": "WGS PacBio",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Colon",
+        "files": 8
+    },
+    {
+        "data_generation_summary.assays": "WGS PacBio",
+        "donors.display_title": "ST003",
+        "sample_summary.tissues": "Brain",
+        "files": 7
+    },
+    {
+        "data_generation_summary.assays": "WGS PacBio",
+        "donors.display_title": "ST004",
+        "sample_summary.tissues": "Brain",
+        "files": 7
+    },
+    {
+        "data_generation_summary.assays": "scVISTA-seq Illumina",
+        "donors.display_title": "936_49F",
+        "sample_summary.tissues": "Brain",
+        "files": 10
+    },
+    {
+        "data_generation_summary.assays": "scVISTA-seq Illumina",
+        "donors.display_title": "936_49F",
+        "sample_summary.tissues": "Heart",
+        "files": 10
+    },
+    {
+        "data_generation_summary.assays": "scVISTA-seq Illumina",
+        "donors.display_title": "936_49F",
+        "sample_summary.tissues": "Liver",
+        "files": 10
+    },
+    {
+        "data_generation_summary.assays": "Fiber-seq PacBio",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Lung",
+        "files": 8
+    },
+    {
+        "data_generation_summary.assays": "Fiber-seq PacBio",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Colon",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "Fiber-seq PacBio",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Lung",
+        "files": 6
+    },
+    {
+        "data_generation_summary.assays": "Fiber-seq PacBio",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Liver",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "Fiber-seq PacBio",
+        "donors.display_title": "ST003",
+        "sample_summary.tissues": "Brain",
+        "files": 5
+    },
+    {
+        "data_generation_summary.assays": "Fiber-seq PacBio",
+        "donors.display_title": "ST004",
+        "sample_summary.tissues": "Brain",
+        "files": 5
+    },
+    {
+        "data_generation_summary.assays": "PCR WGS Illumina",
+        "donors.display_title": "CB0",
+        "sample_summary.tissues": "Blood",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "PCR WGS Illumina",
+        "donors.display_title": "P1740",
+        "sample_summary.tissues": "Brain",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "PCR WGS Illumina",
+        "donors.display_title": "P4546",
+        "sample_summary.tissues": "Brain",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "PCR WGS Illumina",
+        "donors.display_title": "P4643",
+        "sample_summary.tissues": "Brain",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "PCR WGS Illumina",
+        "donors.display_title": "P4925",
+        "sample_summary.tissues": "Brain",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "PCR WGS Illumina",
+        "donors.display_title": "P5182",
+        "sample_summary.tissues": "Brain",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "PCR WGS Illumina",
+        "donors.display_title": "P5246",
+        "sample_summary.tissues": "Brain",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "PCR WGS Illumina",
+        "donors.display_title": "P5554",
+        "sample_summary.tissues": "Brain",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "PCR WGS Illumina",
+        "donors.display_title": "P5818",
+        "sample_summary.tissues": "Brain",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "PCR WGS Illumina",
+        "donors.display_title": "P5844",
+        "sample_summary.tissues": "Brain",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "PCR WGS Illumina",
+        "donors.display_title": "UMB1465",
+        "sample_summary.tissues": "Brain",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "PCR WGS Illumina",
+        "donors.display_title": "UMB5278",
+        "sample_summary.tissues": "Brain",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "Kinnex PacBio",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Colon",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "Kinnex PacBio",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Lung",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "Kinnex PacBio",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Lung",
+        "files": 4
+    },
+    {
+        "data_generation_summary.assays": "Kinnex PacBio",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Liver",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "Kinnex PacBio",
+        "donors.display_title": "ST003",
+        "sample_summary.tissues": "Brain",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "Kinnex PacBio",
+        "donors.display_title": "ST004",
+        "sample_summary.tissues": "Brain",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "ATAC-seq Illumina",
+        "donors.display_title": "UMB1465",
+        "sample_summary.tissues": "Aorta",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "ATAC-seq Illumina",
+        "donors.display_title": "UMB1465",
+        "sample_summary.tissues": "Brain",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "ATAC-seq Illumina",
+        "donors.display_title": "UMB1465",
+        "sample_summary.tissues": "Heart",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "ATAC-seq Illumina",
+        "donors.display_title": "UMB1465",
+        "sample_summary.tissues": "Lung",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "ATAC-seq Illumina",
+        "donors.display_title": "UMB1864",
+        "sample_summary.tissues": "Heart",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "ATAC-seq Illumina",
+        "donors.display_title": "UMB4428",
+        "sample_summary.tissues": "Heart",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "ATAC-seq Illumina",
+        "donors.display_title": "UMB4638",
+        "sample_summary.tissues": "Heart",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "ATAC-seq Illumina",
+        "donors.display_title": "UMB5278",
+        "sample_summary.tissues": "Brain",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "ATAC-seq Illumina",
+        "donors.display_title": "UMB6032",
+        "sample_summary.tissues": "Heart",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "ATAC-seq Illumina",
+        "donors.display_title": "UMB936",
+        "sample_summary.tissues": "Heart",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "varCUT&Tag Illumina",
+        "donors.display_title": "SN001",
+        "sample_summary.tissues": "Skin",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "varCUT&Tag Illumina",
+        "donors.display_title": "SN002",
+        "sample_summary.tissues": "Skin",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "varCUT&Tag Illumina",
+        "donors.display_title": "SN003",
+        "sample_summary.tissues": "Kidney",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "CODEC Illumina",
+        "donors.display_title": "UMB1465",
+        "sample_summary.tissues": "Brain",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "CODEC Illumina",
+        "donors.display_title": "UMB5278",
+        "sample_summary.tissues": "Brain",
+        "files": 2
+    },
+    {
+        "data_generation_summary.assays": "Microbulk VISTA-seq Illumina",
+        "donors.display_title": "936_49F",
+        "sample_summary.tissues": "Brain",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "Microbulk VISTA-seq Illumina",
+        "donors.display_title": "936_49F",
+        "sample_summary.tissues": "Heart",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "Microbulk VISTA-seq Illumina",
+        "donors.display_title": "936_49F",
+        "sample_summary.tissues": "Liver",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "TEnCATS ONT",
+        "donors.display_title": "LIBD75",
+        "sample_summary.tissues": "Brain",
+        "files": 3
+    },
+    {
+        "data_generation_summary.assays": "VISTA-seq Illumina",
+        "donors.display_title": "936_49F",
+        "sample_summary.tissues": "Brain",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "VISTA-seq Illumina",
+        "donors.display_title": "936_49F",
+        "sample_summary.tissues": "Heart",
+        "files": 1
+    },
+    {
+        "data_generation_summary.assays": "VISTA-seq Illumina",
+        "donors.display_title": "936_49F",
+        "sample_summary.tissues": "Liver",
+        "files": 1
+    }
+];

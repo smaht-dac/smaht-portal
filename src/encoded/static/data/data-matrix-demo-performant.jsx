@@ -13,6 +13,25 @@
             "donor": "donors.display_title",
             "tissue": "sample_summary.tissues"
         }}
+        valueChangeMap={{
+            "assay": {
+                "WGS Illumina": "WGS - Illumina",
+                "WGS PacBio": "WGS - PacBio",
+                "scDip-C Illumina": "scDip-C",
+                "CompDuplex-seq Illumina": "CompDuplex-Seq",
+                "Kinnex PacBio": "Kinnex",
+                "Fiber-seq PacBio": "Fiber-Seq",
+                "RNA-seq Illumina": "RNA-Seq - Illumina",
+                "NanoSeq Illumina": "NanoSeq",
+                "ATAC-seq Illumina": "ATAC-Seq",
+                "varCUT&Tag Illumina": "varCUT&Tag",
+                "VISTA-seq Illumina": "VISTA-Seq",
+                "CODEC Illumina": "CODEC",
+                "Single-cell MALBAC WGS ONT": "MALBAC-amplified WGS",
+                "Single-cell MALBAC WGS Illumina": "MALBAC-amplified WGS",
+                "TEnCATS ONT": "TEnCATS",
+            }
+        }}
         groupingProperties={["donor", "tissue"]}
         columnGrouping="assay"
         columnGroups={{
@@ -41,14 +60,9 @@
                 "backgroundColor": "#e1d567",
                 "textColor": "#ffffff"
             },
-            "SNT": {
-                "values": ['snRNA-Seq','Slide-tags snRNA-Seq'],
+            "Single-cell RNA-Seq": {
+                "values": ['snRNA-Seq','Slide-tags snRNA-Seq','STORM-Seq','Tranquil-Seq','10X Genomics Xenium'],
                 "backgroundColor": "#d0b284",
-                "textColor": "#ffffff"
-            },
-            "SCT": {
-                "values": ['STORM-Seq','Tranquil-Seq','10X Genomics Xenium'],
-                "backgroundColor": "#8daade",
                 "textColor": "#ffffff"
             },
             "Other": {
@@ -99,6 +113,7 @@
         }}
         headerFor={<h3 className="mt-2 mb-0 text-300">SMaHT</h3>}
         baseColorOverride="#6f2da8"
+        useTestData={false}
     />
     {/* <DataMatrix
         key="data-matrix-demo-2"   // Required to prevent re-instantiation of component upon window resize & similar.

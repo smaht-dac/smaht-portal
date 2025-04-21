@@ -524,7 +524,7 @@ export class StackedBlockVisual extends React.PureComponent {
                 // leftAxisKeys.sort();
                 leftAxisKeys = _.sortBy(leftAxisKeys, function (item) {
                     // Elements starting with "ST" are group 0, others are group 1
-                    var group = item.indexOf("ST") === 0 ? 0 : 1;
+                    var group = item.indexOf("ST") === 0 ? 0 : (item.indexOf("SMHT") === 0 ? 1 : 2);
 
                     // Extract the numeric part at the end of the string
                     var num = parseInt(item.match(/\d+/)[0], 10);
