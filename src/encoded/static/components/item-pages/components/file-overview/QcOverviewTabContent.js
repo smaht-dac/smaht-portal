@@ -8,14 +8,26 @@ import * as d3 from 'd3';
 // Formats the response data into a format that can be used in the table
 const formatRawData = (data) => {
     let headers = [];
-
     let verifyBamId = null;
+
+    // Set the default overall_file_quality_status to 'Pass'
+    let overall_file_quality_status = 'Pass';
+
     const tableData = data.reduce((acc, qcItem) => {
         // Get the accession of the qcItem
-        const accession = qcItem.accession;
-        const overall_quality_status = qcItem.overall_quality_status;
-
+        const accession = qcItem?.accession;
+        const overall_quality_status = qcItem?.overall_quality_status;
         headers = [...headers, { accession, overall_quality_status }];
+
+        // Update the overall_file_quality_status
+        if (overall_quality_status === 'Fail') {
+            overall_file_quality_status = 'Fail';
+        } else if (
+            overall_quality_status === 'Warn' &&
+            overall_file_quality_status !== 'Fail'
+        ) {
+            overall_file_quality_status = 'Warn';
+        }
 
         // Loop through the qc_values of each item and save them under the item's accession
         qcItem.qc_values.forEach((qcValue) => {
@@ -32,7 +44,6 @@ const formatRawData = (data) => {
                 verifyBamId === null &&
                 qcValue?.derived_from === 'verifybamid:freemix_alpha'
             ) {
-                console.log('Found verifyBamID2 qc value');
                 verifyBamId = {
                     tooltip,
                     value,
@@ -70,11 +81,12 @@ const formatRawData = (data) => {
         headers,
         tableData,
         verifyBamId,
+        overall_file_quality_status,
     };
 };
 
 // Render a QC Overview table with given quality_metrics items [qcItems]
-const QCOverviewTable = ({ qcItems, accession }) => {
+const QCOverviewTable = ({ qcItems, accession, isRNASeq = false }) => {
     const [data, setData] = useState(null);
 
     useEffect(() => {
@@ -92,14 +104,24 @@ const QCOverviewTable = ({ qcItems, accession }) => {
     }, []);
 
     return data ? (
-        <div className="content qc-overview-tab-table">
+        <div className="content qc-overview-tab">
             <div className="mt-2">
-                <h2 className="header mb-2">
+                <h2 className="header top mb-2">
                     <div className="d-flex justify-content-between align-items-center">
-                        <span>Overall Quality Status</span>
+                        {data.overall_file_quality_status && (
+                            <span className="d-flex align-items-center gap-1">
+                                QC Overview Status:{' '}
+                                {getBadge(
+                                    data?.overall_file_quality_status,
+                                    false,
+                                    true
+                                )}
+                            </span>
+                        )}
                         <a
                             href={`/qc-metrics?tab=metrics-by-file&file=${accession}`}
-                            className="btn btn-sm btn-secondary">
+                            className="btn btn-sm btn-outline-secondary">
+                            <i className="icon icon-chart-area fas me-1"></i>
                             View File Quality Metrics
                         </a>
                     </div>
@@ -110,13 +132,15 @@ const QCOverviewTable = ({ qcItems, accession }) => {
                 <div className="data-group">
                     <div className="datum">
                         <span className="datum-title">
-                            <strong>Sample Related Check [Somalier]</strong>
+                            <strong>Sample Related Check </strong>
+                            <span className="text-gray">[Somalier]</span>
                         </span>
                         {'/qc-metrics' ? (
                             <a
                                 href={`/qc-metrics?tab=sample-integrity&file=${accession}`}
-                                className="">
-                                Sample Relatedness Page
+                                className="btn btn-sm btn-outline-secondary">
+                                <i className="icon icon-chart-area fas me-1"></i>
+                                View Relatedness Chart
                             </a>
                         ) : (
                             <span className="datum-value text-gray">N/A</span>
@@ -124,9 +148,8 @@ const QCOverviewTable = ({ qcItems, accession }) => {
                     </div>
                     <div className="datum">
                         <span className="datum-title">
-                            <strong>
-                                Human Contamination Check [VerifyBamID2]
-                            </strong>
+                            <strong>Human Contamination Check </strong>
+                            <span className="text-gray">[VerifyBamID2]</span>
                         </span>
                         {data?.verifyBamId ? (
                             <span className="d-flex align-items-center gap-1 datum-value">
@@ -154,7 +177,7 @@ const QCOverviewTable = ({ qcItems, accession }) => {
             </div>
 
             <h2 className="header mb-2">General QC</h2>
-            <table className="table table-bordered table-striped">
+            <table className="table table-bordered table-striped qc-overview-tab-table">
                 <thead>
                     <tr>
                         <th className="text-left w-[300px]">Key QC Metric</th>
@@ -173,7 +196,7 @@ const QCOverviewTable = ({ qcItems, accession }) => {
                                                 )
                                             </span>
                                             <span className="fw-medium d-flex align-items-center gap-1">
-                                                Overall Quality Status:{' '}
+                                                Overall QC Status:{' '}
                                                 {getBadge(
                                                     overall_quality_status
                                                 )}

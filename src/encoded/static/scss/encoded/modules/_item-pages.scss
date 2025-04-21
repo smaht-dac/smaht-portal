@@ -1737,6 +1737,39 @@ File Overview Styles
 					.vcf-analysis-overview {
 						padding: 15px 10px 20px 10px;
 					}
+					.qc-overview-tab {
+						.data-group {
+							.datum {
+								&-title {
+									color: #989696;
+									strong {
+										color: $carbon-gray;
+									}
+								}
+							}
+						}
+						.header {
+							&.top {
+								font-size: 1.05rem;
+							}
+							.badge {
+								font-size: 1.05rem;
+								
+								i {
+									margin-right: 0.5rem;
+									font-size: 1rem;
+								}
+							}
+						}
+						&-table {
+							thead {
+								border-bottom: 1px solid #9BA5B7;
+							}
+							tr {
+								background-color: #f8f8f8;
+							}
+						}
+					}
 					.data-group {
 						display: flex;
 						flex-wrap: wrap;
@@ -1821,6 +1854,7 @@ File Overview Styles
 						}
 
 					}
+
 				}
 			}
 		
