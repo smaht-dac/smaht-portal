@@ -915,21 +915,23 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         <div className="d-flex header-group-text">
                             {
                                 _.keys(columnGroups).map(function (groupKey) {
-                                    const colCount = _.intersection(columnKeys, columnGroups[groupKey]?.values || []).length;
-                                    if (colCount === 0) {
+                                    const colSpan = _.intersection(columnKeys, columnGroups[groupKey]?.values || []).length;
+                                    if (colSpan === 0) {
                                         return null;
                                     }
-                                    const groupColumnWidth = colCount * columnWidth;
+                                    const groupColumnWidth = colSpan * columnWidth;
                                     const groupHeaderItemStyle = {
                                         width: groupColumnWidth,
                                         minWidth: groupColumnWidth
                                     };                              
                                     groupHeaderItemStyle.backgroundColor = columnGroups[groupKey].backgroundColor;
                                     groupHeaderItemStyle.color = columnGroups[groupKey].textColor;
+                                    const label = (groupKey.length > (colSpan * 4)) && columnGroups[groupKey].shortName ? columnGroups[groupKey].shortName : groupKey;
+
                                     return (
                                         <div key={'col-' + groupKey} className={'column-group-header'} style={groupHeaderItemStyle}>
                                             <div className="inner">
-                                                <span>{groupKey}</span>
+                                                <span data-tip={groupKey !== label ? groupKey : null}>{label}</span>
                                             </div>
                                         </div>
                                     );

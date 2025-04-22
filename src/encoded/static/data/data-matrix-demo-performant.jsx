@@ -42,32 +42,38 @@
             "Bulk WGS": {
                 "values": ['WGS - Illumina','WGS - PacBio','Fiber-Seq','WGS - Standard ONT','WGS - UltraLong ONT'],
                 "backgroundColor": "#e04141",
-                "textColor": "#ffffff"
+                "textColor": "#ffffff",
+                "shortName": "WGS"
             },
             "RNA-seq": {
                 "values": ['RNA-Seq - Illumina', 'Kinnex'],
                 "backgroundColor": "#ad48ad",
-                "textColor": "#ffffff"
+                "textColor": "#ffffff",
+                "shortName": "RNA"
             },
             "Duplex-seq": {
                 "values": ['NanoSeq','CODEC','ppmSeq','VISTA-Seq','CompDuplex-Seq','HiDEF-Seq'],
                 "backgroundColor": "#2b4792",
-                "textColor": "#ffffff"
+                "textColor": "#ffffff",
+                "shortName": "Dupl"
             },
             "Single-cell WGS": {
                 "values": ['PTA-amplified WGS','MALBAC-amplified WGS','WGS DLP+'],
                 "backgroundColor": "#aac536",
-                "textColor": "#ffffff"
+                "textColor": "#ffffff",
+                "shortName": "scWGS"
             },
             "Targeted Seq": {
                 "values": ['HAT-Seq','L1-ONT','TEnCATS'],
                 "backgroundColor": "#e1d567",
-                "textColor": "#ffffff"
+                "textColor": "#ffffff",
+                "shortName": "Tgtd"
             },
             "Single-cell RNA-Seq": {
                 "values": ['snRNA-Seq','Slide-tags snRNA-Seq','STORM-Seq','Tranquil-Seq','10X Genomics Xenium'],
                 "backgroundColor": "#d0b284",
-                "textColor": "#ffffff"
+                "textColor": "#ffffff",
+                "shortName": "scRNA"
             },
             "Other": {
                 "values": ['Hi-C','scDip-C','Strand-Seq','ATAC-Seq','NT-Seq','varCUT&Tag','GoT-ChA'],
@@ -127,7 +133,7 @@
         }}
         headerFor={<h3 className="mt-2 mb-0 text-300">SMaHT</h3>}
         baseColorOverride="#6f2da8"
-        useTestData={false}
+        useTestData={true}
     />
     {/* <DataMatrix
         key="data-matrix-demo-2"   // Required to prevent re-instantiation of component upon window resize & similar.
