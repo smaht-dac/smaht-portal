@@ -90,37 +90,37 @@
         rowGroups={null} //not implemented yet
         rowGroupsExtended={{
             "Ectoderm": {
-                "values": ['Brain - Cerebellum','Brain - Frontal lobe','Brain - Hippocampus','Brain - Temporal lobe','Skin - Abdomen (non-exposed)','Skin - Calf (sun-exposed)'],
+                "values": ['Brain', 'Brain - Cerebellum', 'Brain - Frontal lobe', 'Brain - Hippocampus', 'Brain - Temporal lobe', 'Skin - Abdomen (non-exposed)', 'Skin - Calf (sun-exposed)'],
                 "backgroundColor": "#367151",
                 "textColor": "#ffffff",
                 "shortName": "Ecto"
             },
             "Mesoderm": {
-                "values": ['Aorta','Fibroblast','Heart','Muscle'],
+                "values": ['Aorta', 'Fibroblast', 'Heart', 'Muscle'],
                 "backgroundColor": "#30975e",
                 "textColor": "#ffffff",
                 "shortName": "Meso"
             },
             "Endoderm": {
-                "values": ['Colon - Ascending','Colon - Descending','Esophagus','Liver','Lung'],
+                "values": ['Colon - Ascending', 'Colon - Descending', 'Esophagus', 'Liver', 'Lung'],
                 "backgroundColor": "#53b27e",
                 "textColor": "#ffffff",
                 "shortName": "Endo"
             },
             "Germ cells": {
-                "values": ['Ovary','Testis'],
+                "values": ['Ovary', 'Testis'],
                 "backgroundColor": "#80c4a0",
                 "textColor": "#ffffff",
                 "shortName": "Germ"
             },
             "Clinically accessible": {
-                "values": ['Blood','Buccal swab'],
+                "values": ['Blood', 'Buccal swab'],
                 "backgroundColor": "#70a588",
                 "textColor": "#ffffff",
                 "shortName": "Clin"
             },
             "N/A": {
-                "values": ['Brain', 'Endocrine pancreas'],
+                "values": ['Endocrine pancreas'],
                 "backgroundColor": "#ffffff",
                 "textColor": "#000000"
             }
