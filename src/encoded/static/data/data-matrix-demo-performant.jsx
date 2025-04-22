@@ -3,7 +3,7 @@
         key="data-matrix-demo-1"   // Required to prevent re-instantiation of component upon window resize & similar.
         session={session}        // Required - hooks in 'session' (boolean) from App.
         query={{
-            "url": "/data_matrix_aggregations?type=SubmittedFile&limit=all",
+            "url": "/data_matrix_aggregations?type=File&sample_summary.studies!=No+value&limit=all",
             "agg_fields": ["donors.display_title", "data_generation_summary.assays"],
             "column_agg_fields": ["data_generation_summary.assays", "sequencing.sequencer.platform"], //composite column
             "row_agg_fields": ["donors.display_title", "sample_summary.tissues"], //multiple column
