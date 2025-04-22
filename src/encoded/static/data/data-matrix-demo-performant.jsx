@@ -15,22 +15,22 @@
         }}
         valueChangeMap={{
             "assay": {
-                "PCR WGS Illumina": "WGS - Illumina",
-                "scDip-C Illumina": "scDip-C",
-                "CompDuplex-seq Illumina": "CompDuplex-Seq",
-                "Kinnex PacBio": "Kinnex",
-                "Fiber-seq PacBio": "Fiber-Seq",
-                "RNA-seq Illumina": "RNA-Seq - Illumina",
-                "NanoSeq Illumina": "NanoSeq",
-                "ATAC-seq Illumina": "ATAC-Seq",
-                "varCUT&Tag Illumina": "varCUT&Tag",
-                "VISTA-seq Illumina": "VISTA-Seq",
-                "scVISTA-seq Illumina": "VISTA-Seq",
-                "Microbulk VISTA-seq Illumina": "VISTA-Seq",
-                "CODEC Illumina": "CODEC",
-                "Single-cell MALBAC WGS ONT": "MALBAC-amplified WGS",
-                "Single-cell MALBAC WGS Illumina": "MALBAC-amplified WGS",
-                "TEnCATS ONT": "TEnCATS",
+                "PCR WGS - Illumina": "WGS - Illumina",
+                "scDip-C - Illumina": "scDip-C",
+                "CompDuplex-seq - Illumina": "CompDuplex-Seq",
+                "Kinnex - PacBio": "Kinnex",
+                "Fiber-seq - PacBio": "Fiber-Seq",
+                "RNA-seq - Illumina": "RNA-Seq - Illumina",
+                "NanoSeq - Illumina": "NanoSeq",
+                "ATAC-seq - Illumina": "ATAC-Seq",
+                "varCUT&Tag - Illumina": "varCUT&Tag",
+                "VISTA-seq - Illumina": "VISTA-Seq",
+                "scVISTA-seq - Illumina": "VISTA-Seq",
+                "Microbulk VISTA-seq - Illumina": "VISTA-Seq",
+                "CODEC - Illumina": "CODEC",
+                "Single-cell MALBAC WGS - ONT": "MALBAC-amplified WGS",
+                "Single-cell MALBAC WGS - Illumina": "MALBAC-amplified WGS",
+                "TEnCATS - ONT": "TEnCATS",
             },
             "tissue": {
                 "endocrine pancreas": "Endocrine pancreas",
@@ -88,7 +88,7 @@
                 "textColor": "#ffffff"
             },
             "Extended Assay": {
-                "values": ['Single-cell WGS', 'Targeted Seq', 'SNT', 'SCT', 'Other'],
+                "values": ['Single-cell WGS', 'Targeted Seq', 'Single-cell RNA-Seq', 'Other'],
                 "backgroundColor": "#d2bde3",
                 "textColor": "#ffffff"
             }
