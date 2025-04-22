@@ -27,40 +27,31 @@ const DataCard = ({ header = '', data = [] }) => {
                 <span className="header-text">{header}</span>
             </div>
             <div className="body">
-                {data.map(
-                    (
-                        {
-                            title,
-                            value = null,
-                            tooltips = null,
-                            info_popover = null,
-                        },
-                        i
-                    ) => {
-                        return (
-                            <div className="datum" key={i}>
-                                <div className="datum-title">
-                                    <span>{title}</span>
-                                    {info_popover && (
-                                        <OverlayTrigger
-                                            trigger={['click', 'focus']}
-                                            overlay={info_popover}
-                                            placement="top">
-                                            <i className="icon icon-info-circle fas ms-1"></i>
-                                        </OverlayTrigger>
-                                    )}
-                                </div>
-                                <div
-                                    className={
-                                        'datum-value' +
-                                        (value === null ? ' coming-soon' : '')
-                                    }>
-                                    <span data-tip={''}>{value ?? 'N/A'}</span>
-                                </div>
+                {data.map(({ title, value = null, info_popover = null }, i) => {
+                    return (
+                        <div className="datum" key={i}>
+                            <div className="datum-title">
+                                <span>{title}</span>
+                                {info_popover && (
+                                    <OverlayTrigger
+                                        trigger={['hover', 'focus']}
+                                        overlay={info_popover}
+                                        placement="left"
+                                        flip="auto">
+                                        <i className="icon icon-info-circle fas ms-1"></i>
+                                    </OverlayTrigger>
+                                )}
                             </div>
-                        );
-                    }
-                )}
+                            <div
+                                className={
+                                    'datum-value' +
+                                    (value === null ? ' coming-soon' : '')
+                                }>
+                                <span data-tip={''}>{value ?? 'N/A'}</span>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
@@ -203,47 +194,79 @@ const default_sample_information = [
         title: 'Description',
         getProp: (context = {}) =>
             context?.sample_summary?.sample_descriptions?.join(', '),
-        tooltips: {
-            Aliquot: 'A sample of solid tissue',
-            Cells: 'A sample of cells taken from tissue (e.g. fibroblasts)',
-            Core: 'A core sample taken from intact solid issue',
-            Homogenate: 'A sample of homogenized tissue',
-            Specimen: 'A sample of intact solid tissue',
-            Liquid: 'A sample of a liquid tissue (e.g. blood or buccal swab)',
-        },
         info_popover: (
             <Popover id="description-definitions-popover">
-                <PopoverHeader as="h3" className="mt-0">
-                    Description Definitions
-                </PopoverHeader>
-                <PopoverBody>
-                    <p>
-                        <b>Aliquot:</b> A sample of a sectioned solid tissue
-                        with a pre-defined size, that is used for the downstream
-                        sampling technique such as coring.
-                    </p>
-                    <p>
-                        <b>Specimen:</b> A sample of a solid tissue without a
-                        pre-defined size, that is neither a core nor homogenate.
-                    </p>
-                    <p>
-                        <b>Core:</b> A core sample taken from the sectioned
-                        solid tissue aliquot. Contains spatial information
-                        within the tissue sample.
-                    </p>
-                    <p>
-                        <b>Homogenate:</b> A sample of mechanically homogenized
-                        tissue that can be divided into vials for distribution.
-                        Applicable only to Benchmarking tissues.
-                    </p>
-                    <p>
-                        <b>Liquid:</b> A sample of a liquid tissue (e.g. blood
-                        or buccal swab)
-                    </p>
-                    <p>
-                        <b>Cells:</b> A sample of cells derived from tissue
-                        (i.e. Fibroblasts from skin)
-                    </p>
+                <PopoverBody className="p-0">
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th className="text-left">Term</th>
+                                <th className="text-left">Definition</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td className="align-top text-left fw-bold">
+                                    Aliquot
+                                </td>
+                                <td className="text-left">
+                                    A sample of a sectioned solid tissue with a
+                                    pre-defined size, that is used for the
+                                    downstream sampling technique such as
+                                    coring.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="align-top text-left fw-bold">
+                                    Specimen
+                                </td>
+                                <td className="text-left">
+                                    A sample of a solid tissue without a
+                                    pre-defined size, that is neither a core nor
+                                    homogenate.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="align-top text-left fw-bold">
+                                    Core
+                                </td>
+                                <td className="text-left">
+                                    A core sample taken from the sectioned solid
+                                    tissue aliquot. Contains spatial information
+                                    within the tissue sample.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="align-top text-left fw-bold">
+                                    Homogenate
+                                </td>
+                                <td className="text-left">
+                                    A sample of mechanically homogenized tissue
+                                    that can be divided into vials for
+                                    distribution. Applicable only to
+                                    Benchmarking tissues.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="align-top text-left fw-bold">
+                                    Liquid
+                                </td>
+                                <td className="text-left">
+                                    A sample of a liquid tissue (e.g. blood or
+                                    buccal swab).
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="align-top text-left fw-bold border-0">
+                                    Cells
+                                </td>
+                                <td className="text-left border-0">
+                                    A sample of cells derived from tissue (i.e.
+                                    Fibroblasts from skin).
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </PopoverBody>
             </Popover>
         ),
@@ -331,11 +354,10 @@ export const FileViewDataCards = ({ context = {} }) => {
             <DataCard
                 header={'Sample Information'}
                 data={sample_information.map(
-                    ({ title, getProp, tooltips, info_popover }) => {
+                    ({ title, getProp, info_popover }) => {
                         return {
                             title,
                             value: getProp(context),
-                            tooltips,
                             info_popover,
                         };
                     }
