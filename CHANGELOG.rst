@@ -7,11 +7,96 @@ smaht-portal
 Change Log
 ----------
 
-0.156.2
+0.162.2
 =======
 `PR 400: feat: add tissue codes to benchmarking page titles <https://github.com/smaht-dac/smaht-portal/pull/400>`_
 
 * Add tissue code to the benchmarking page titles
+
+
+0.162.1
+=======
+`PR 392: Add tissue type calc prop to filesets <https://github.com/smaht-dac/smaht-portal/pull/392>`_
+
+* Adds a calculated property to filesets that contains the higher level tissue type.
+
+
+0.162.0
+=======
+`PR 406: SN Add AlignedReads enum <https://github.com/smaht-dac/smaht-portal/pull/406>`_
+
+* Add "Consensus Reads" enum to data_category for AlignedReads
+* Fix loadxl order for `external_quality_metric`
+
+
+0.161.0
+=======
+`PR 397 feat: implement bulk donor metadata download button <https://github.com/smaht-dac/smaht-portal/pull/397>`_
+
+* Implement bulk donor metadata download button
+* Update bootstrap button style overrides
+
+
+0.160.3
+=======
+`PR 405: SN Update release MWFR check <https://github.com/smaht-dac/smaht-portal/pull/405>`_
+
+* In `commands/release_file.py` , adjust `get_output_meta_workflow_run` to only throw an error if the file type is OutputFile, as submitted files won't be the output of a MWFR
+
+
+0.160.2
+=======
+`PR 402 feat: about page visualization updates <https://github.com/smaht-dac/smaht-portal/pull/402>`_
+
+* Update copy for About page
+* Fix assay table descriptions
+
+
+0.160.1
+=======
+`PR 404: QC metrics: Support preselected files in Sample Integrity tab <https://github.com/smaht-dac/smaht-portal/pull/404>`_
+
+* Support preselected files in the Sample Integrity and Metrics by File tab
+
+
+0.160.0
+=======
+`PR 394: SN Update RNA fileset validator <https://github.com/smaht-dac/smaht-portal/pull/394>`_
+
+* Update the Sequencing validator on FileSet so that it only enforces for RNA and not DNA
+* Add a skip validation option, `force_pass` for custom validators
+* Minor changes: remove "Not Applicable" as an enum for `strand` and embed assay `category` on File
+
+
+0.159.0
+=======
+`PR 399: feat: update links to existing data doc <https://github.com/smaht-dac/smaht-portal/pull/399>`_
+
+* Update Links to Existing Data doc
+
+
+0.158.0
+=======
+`PR 398: SN Create resource file <https://github.com/smaht-dac/smaht-portal/pull/398>`_
+
+* Create new file item type, ResourceFile, for DAC-generated files not used in analysis pipelines
+
+
+0.157.0
+=======
+`PR 403: Retracted files page <https://github.com/smaht-dac/smaht-portal/pull/403>`_
+
+* Add `/retracted-files` path and master-inserts for listing the retracted data
+* Add footer to home page announcements
+* Export SVG arrow icon component to reuse in timeline item, data release tracker, and announcement item footer in home page
+
+
+0.156.2
+=======
+`PR 401: Submission Status page improvement <https://github.com/smaht-dac/smaht-portal/pull/401>`_
+
+* Add copy button for MetaworkflowRuns on Submission Status page
+* Add submission status page to master inserts
 
 
 0.156.1
@@ -20,9 +105,10 @@ Change Log
 
 * Fix facet for "Donor Sex" in File
 
+
 0.156.0
 =======
-`PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`
+`PR 314 feat: about page updates <https://github.com/smaht-dac/smaht-portal/pull/314>`_
 
 * Update the About page Alluvial plot and data matrix
 * Refactor showHideInformationToggle component for additional customization

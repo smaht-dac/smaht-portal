@@ -102,5 +102,16 @@
         "valid_item_types": [
             "HistologyImage"
         ]
+    },
+    {
+        "uuid": "3a26eb10-31d7-4dd9-93ba-665dc8be28c2",
+        "submission_centers": [
+            "smaht"
+        ],
+        "identifier": "TSV",
+        "standard_file_extension": "tsv",
+        "valid_item_types": [
+            "ResourceFile"
+        ]
     }
 ]
