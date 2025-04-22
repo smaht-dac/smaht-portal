@@ -15,8 +15,7 @@
         }}
         valueChangeMap={{
             "assay": {
-                "WGS Illumina": "WGS - Illumina",
-                "WGS PacBio": "WGS - PacBio",
+                "PCR WGS Illumina": "WGS - Illumina",
                 "scDip-C Illumina": "scDip-C",
                 "CompDuplex-seq Illumina": "CompDuplex-Seq",
                 "Kinnex PacBio": "Kinnex",
@@ -26,6 +25,8 @@
                 "ATAC-seq Illumina": "ATAC-Seq",
                 "varCUT&Tag Illumina": "varCUT&Tag",
                 "VISTA-seq Illumina": "VISTA-Seq",
+                "scVISTA-seq Illumina": "VISTA-Seq",
+                "Microbulk VISTA-seq Illumina": "VISTA-Seq",
                 "CODEC Illumina": "CODEC",
                 "Single-cell MALBAC WGS ONT": "MALBAC-amplified WGS",
                 "Single-cell MALBAC WGS Illumina": "MALBAC-amplified WGS",
