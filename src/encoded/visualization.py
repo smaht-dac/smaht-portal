@@ -340,7 +340,7 @@ def data_matrix_aggregations(context, request):
     def get_es_key_value(field_or_field_list):
         if isinstance(field_or_field_list, list) and len(field_or_field_list) > 1:
             return {
-                "source": " + ' ' + ".join(["doc['embedded." + field + ".raw'].value" for field in field_or_field_list]),
+                "source": " + ' - ' + ".join(["doc['embedded." + field + ".raw'].value" for field in field_or_field_list]),
                 "lang": "painless"
             }
         else:
