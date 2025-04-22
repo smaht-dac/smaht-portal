@@ -1,5 +1,5 @@
 import pytest
-from typing import Dict, Any
+from typing import List, Dict, Any
 from webtest.app import TestApp
 
 from .utils import (
@@ -7,7 +7,7 @@ from .utils import (
     get_insert_identifier_for_item_type,
     patch_item,
     post_item,
-    get_item
+    get_item,
 )
 
 from ..item_utils import (
@@ -31,6 +31,29 @@ def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
     assert file_merge_group['sample_source'] == 'TEST_TISSUE-SAMPLE_LIVER'
     assert file_merge_group['sequencing'] == 'illumina_novaseqx-Paired-end-150-R9'
     assert file_merge_group['assay'] == 'bulk_wgs'
+
+
+@pytest.mark.workbook
+@pytest.mark.parametrize(
+    "submitted_id,expected",
+    [
+        ("TEST_FILE-SET_LUNG-HOMOGENATE-DNA",["Lung"]),
+        ("TEST_FILE-SET_LIVER-DNA",["Liver"])
+    ]
+)
+def test_file_set_tissue_types(
+    es_testapp: TestApp,
+    submitted_id: str,
+    expected: List[str],
+    workbook: None
+) -> None:
+    """Ensure the tissue_types calcprop works."""
+    fileset=get_item(
+        es_testapp,
+        submitted_id,
+        collection='FileSet',
+    )
+    assert fileset.get("tissue_types",[]) == expected
 
 
 @pytest.mark.workbook
