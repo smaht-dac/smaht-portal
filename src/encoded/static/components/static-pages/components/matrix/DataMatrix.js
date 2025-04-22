@@ -169,6 +169,10 @@ export default class DataMatrix extends React.PureComponent {
         const params = queryString.split('&');
         const result = {};
 
+        const decodeQueryParam = function (p) {
+            return decodeURIComponent(p.replace(/\+/g, " "));
+        }
+
         params.forEach(param => {
             let key, value;
 
@@ -176,13 +180,13 @@ export default class DataMatrix extends React.PureComponent {
             if (param.includes('!=')) {
                 // Split by '!=' and then append the operator back to the key
                 [key, value] = param.split('!=');
-                key = decodeURIComponent(key) + '!=';
-                value = decodeURIComponent(value);
+                key = decodeQueryParam(key) + '!';
+                value = decodeQueryParam(value);
             } else {
                 // Otherwise split on '=' as usual
                 [key, value] = param.split('=');
-                key = decodeURIComponent(key);
-                value = decodeURIComponent(value);
+                key = decodeQueryParam(key);
+                value = decodeQueryParam(value);
             }
 
             // If the same key already exists, convert or append to an array
@@ -340,7 +344,7 @@ export default class DataMatrix extends React.PureComponent {
                 }
 
                 const requestBody = {
-                    "search_query_params": _.extend({}, queryParamsByUrl, searchQueryParams),
+                    "search_query_params": _.extend({}, searchQueryParams, queryParamsByUrl),
                     "column_agg_fields": query.column_agg_fields,
                     "row_agg_fields": query.row_agg_fields,
                     "flatten_values": true
