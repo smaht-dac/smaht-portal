@@ -24,10 +24,10 @@ const primaryTissuePageDescription = (
             benchmarking donors:
         </p>
         <ul>
-            <li>Donor ST001: Liver - 1A and Lung - 1D</li>
-            <li>Donor ST002: Colon - 1G and Lung - 1D</li>
-            <li>Donor ST003: Brain - 1Q</li>
-            <li>Donor ST004: Brain - 1Q</li>
+            <li>Donor ST001: Liver 1A and Lung 1D</li>
+            <li>Donor ST002: Colon 1G and Lung 1D</li>
+            <li>Donor ST003: Brain 1Q</li>
+            <li>Donor ST004: Brain 1Q</li>
         </ul>
     </>
 );
@@ -312,13 +312,13 @@ export const BenchmarkingDataMap = {
         tabMapArray: [
             {
                 eventKey: '#liver',
-                title: 'Liver - 1A',
+                title: 'Liver 1A',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A',
             },
             {
                 eventKey: '#lung',
-                title: 'Lung - 1D',
+                title: 'Lung 1D',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D',
             },
@@ -333,13 +333,13 @@ export const BenchmarkingDataMap = {
         tabMapArray: [
             {
                 eventKey: '#colon',
-                title: 'Colon - 1G',
+                title: 'Colon 1G',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G',
             },
             {
                 eventKey: '#lung',
-                title: 'Lung - 1D',
+                title: 'Lung 1D',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D',
             },
@@ -354,7 +354,7 @@ export const BenchmarkingDataMap = {
         tabMapArray: [
             {
                 eventKey: '#brain',
-                title: 'Brain - 1Q',
+                title: 'Brain 1Q',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q',
             },
@@ -369,7 +369,7 @@ export const BenchmarkingDataMap = {
         tabMapArray: [
             {
                 eventKey: '#brain',
-                title: 'Brain - 1Q',
+                title: 'Brain 1Q',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q',
             },
