@@ -8,6 +8,13 @@ import {
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 
+import {
+    OverlayTrigger,
+    Popover,
+    PopoverHeader,
+    PopoverBody,
+} from 'react-bootstrap';
+
 /**
  * Renders a card titled [header] and rows corresponding with entries in [data].
  * @param {string} header title for the group of data contained in the card
@@ -20,24 +27,40 @@ const DataCard = ({ header = '', data = [] }) => {
                 <span className="header-text">{header}</span>
             </div>
             <div className="body">
-                {data.map(({ title, value = null, tooltips = null }, i) => {
-                    return (
-                        <div className="datum" key={i}>
-                            <div className="datum-title">
-                                <span>{title}</span>
+                {data.map(
+                    (
+                        {
+                            title,
+                            value = null,
+                            tooltips = null,
+                            info_popover = null,
+                        },
+                        i
+                    ) => {
+                        return (
+                            <div className="datum" key={i}>
+                                <div className="datum-title">
+                                    <span>{title}</span>
+                                    {info_popover && (
+                                        <OverlayTrigger
+                                            trigger={['click', 'focus']}
+                                            overlay={info_popover}
+                                            placement="top">
+                                            <i className="icon icon-info-circle fas ms-1"></i>
+                                        </OverlayTrigger>
+                                    )}
+                                </div>
+                                <div
+                                    className={
+                                        'datum-value' +
+                                        (value === null ? ' coming-soon' : '')
+                                    }>
+                                    <span data-tip={''}>{value ?? 'N/A'}</span>
+                                </div>
                             </div>
-                            <div
-                                className={
-                                    'datum-value' +
-                                    (value === null ? ' coming-soon' : '')
-                                }>
-                                <span data-tip={tooltips?.[value] ?? ''}>
-                                    {value ?? 'N/A'}
-                                </span>
-                            </div>
-                        </div>
-                    );
-                })}
+                        );
+                    }
+                )}
             </div>
         </div>
     );
@@ -188,6 +211,42 @@ const default_sample_information = [
             Specimen: 'A sample of intact solid tissue',
             Liquid: 'A sample of a liquid tissue (e.g. blood or buccal swab)',
         },
+        info_popover: (
+            <Popover id="description-definitions-popover">
+                <PopoverHeader as="h3" className="mt-0">
+                    Description Definitions
+                </PopoverHeader>
+                <PopoverBody>
+                    <p>
+                        <b>Aliquot:</b> A sample of a sectioned solid tissue
+                        with a pre-defined size, that is used for the downstream
+                        sampling technique such as coring.
+                    </p>
+                    <p>
+                        <b>Specimen:</b> A sample of a solid tissue without a
+                        pre-defined size, that is neither a core nor homogenate.
+                    </p>
+                    <p>
+                        <b>Core:</b> A core sample taken from the sectioned
+                        solid tissue aliquot. Contains spatial information
+                        within the tissue sample.
+                    </p>
+                    <p>
+                        <b>Homogenate:</b> A sample of mechanically homogenized
+                        tissue that can be divided into vials for distribution.
+                        Applicable only to Benchmarking tissues.
+                    </p>
+                    <p>
+                        <b>Liquid:</b> A sample of a liquid tissue (e.g. blood
+                        or buccal swab)
+                    </p>
+                    <p>
+                        <b>Cells:</b> A sample of cells derived from tissue
+                        (i.e. Fibroblasts from skin)
+                    </p>
+                </PopoverBody>
+            </Popover>
+        ),
     },
     {
         title: 'Study',
@@ -271,13 +330,16 @@ export const FileViewDataCards = ({ context = {} }) => {
             />
             <DataCard
                 header={'Sample Information'}
-                data={sample_information.map(({ title, getProp, tooltips }) => {
-                    return {
-                        title,
-                        value: getProp(context),
-                        tooltips,
-                    };
-                })}
+                data={sample_information.map(
+                    ({ title, getProp, tooltips, info_popover }) => {
+                        return {
+                            title,
+                            value: getProp(context),
+                            tooltips,
+                            info_popover,
+                        };
+                    }
+                )}
             />
         </div>
     );

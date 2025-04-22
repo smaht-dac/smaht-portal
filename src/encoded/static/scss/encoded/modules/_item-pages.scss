@@ -1987,3 +1987,11 @@ File Overview Styles
 		}
 	}
 }
+
+
+#description-definitions-popover {
+	&.popover {
+		width: 600px;
+		max-width: 600px;
+	}
+}
