@@ -11,7 +11,7 @@ Change Log
 =======
 `PR 334 feat: tooltip for sample information definitions <https://github.com/smaht-dac/smaht-portal/pull/334>`
 
-* Adds tooltips for specific values in sample summary
+* Adds popover for sample description definitions
 
 
 0.162.2
