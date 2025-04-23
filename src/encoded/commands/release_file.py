@@ -207,23 +207,20 @@ class FileRelease:
         Returns:
             dict: MetaWorkflowRun
         """
+        if item_utils.get_type(self.file) != "OutputFile":
+            return None
         search_filter = (
             f"/search/?type=MetaWorkflowRun&workflow_runs.output.file.uuid="
             f"{item_utils.get_uuid(self.file)}"
         )
         mwfrs = ff_utils.search_metadata(search_filter, key=self.key)
-        if len(mwfrs) != 1:
-            if not supp_file_utils.is_genome_assembly(
-                self.file
-            ) and not supp_file_utils.is_reference_conversion(self.file):
-                self.print_error_and_exit(
-                    (
-                        f"Expected exactly one associated MetaWorkflowRun, got"
-                        f" {len(mwfrs)}: {search_filter}"
-                    )
+        if len(mwfrs) != 1:    
+            self.print_error_and_exit(
+                (
+                    f"Expected exactly one associated MetaWorkflowRun, got"
+                    f" {len(mwfrs)}: {search_filter}"
                 )
-            else:
-                return None
+            )
         return mwfrs[0]
 
     def get_all_output_files_from_mwfr(self, additional_filter) -> List[dict]:

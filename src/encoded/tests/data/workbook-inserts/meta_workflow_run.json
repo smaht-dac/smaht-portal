@@ -9,6 +9,9 @@
         "failed_jobs": [
             "ABCDE123"
         ],
+        "file_sets": [
+            "TEST_FILE-SET_LUNG-HOMOGENATE-DNA"
+        ],
         "cost": 13.4167,
         "workflow_runs": [
             {

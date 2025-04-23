@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import { BoxPlotWithFacets } from './BoxPlotWithFacets';
-import { ScatterlotWithFacets } from './ScatterPlotWithFacets';
+import { ScatterPlotWithFacets } from './ScatterPlotWithFacets';
 import { SampleContamination } from './SampleContamination';
 import { KeyMetrics } from './KeyMetrics';
 import { MetricsByFile } from './MetricsByFile';
@@ -12,10 +12,16 @@ import Tabs from 'react-bootstrap/Tabs';
 
 export const QualityMetricVisualizations = () => {
     const [qcData, setQcData] = useState(null);
-    const [tab, setTab] = useState('sample-contamination');
+    const [tab, setTab] = useState('sample-integrity');
     const [selectedFile, setSelectedFile] = useState(null);
 
-    
+    const validTabs = [
+        'sample-integrity',
+        'key-metrics',
+        'all-metrics',
+        'metrics-v-metric',
+        'metrics-by-file'
+    ];
     
     useEffect(() => {
         ajax.load(
@@ -30,9 +36,10 @@ export const QualityMetricVisualizations = () => {
                 // If the file parameter is provided, we want to show the "Metrics by file" tab by default
                 const urlParams = new URLSearchParams(window.location.search);
                 const file = urlParams.get("file");
-                if(file){
+                const tab = urlParams.get("tab");
+                if(validTabs.includes(tab) && file){
                     setSelectedFile(file);
-                    setTab('metrics-by-file');
+                    setTab(tab);
                 }
             },
             'POST',
@@ -50,8 +57,8 @@ export const QualityMetricVisualizations = () => {
                 activeKey={tab}
                 onSelect={(t) => setTab(t)}
                 className="mb-3">
-                <Tab eventKey="sample-contamination" title="Sample Integrity">
-                    <SampleContamination qcData={qcData} />
+                <Tab eventKey="sample-integrity" title="Sample Integrity">
+                    <SampleContamination qcData={qcData} preselectedFile={selectedFile} />
                 </Tab>
                 <Tab eventKey="key-metrics" title="Key Metrics">
                     <KeyMetrics qcData={qcData} />
@@ -62,7 +69,7 @@ export const QualityMetricVisualizations = () => {
                 <Tab
                     eventKey="metrics-v-metric"
                     title="Metric vs. Metric - All">
-                    <ScatterlotWithFacets qcData={qcData} />
+                    <ScatterPlotWithFacets qcData={qcData} />
                 </Tab>
                 <Tab eventKey="metrics-by-file" title="Metrics by file">
                     <MetricsByFile qcData={qcData} preselectedFile={selectedFile}/>
