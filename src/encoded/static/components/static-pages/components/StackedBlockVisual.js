@@ -817,7 +817,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                 if (totalRowCount > 0){
                     totalBlock = (
                         <div className="block-container-group" style={containerGroupStyle}
-                            key={'total'} data-block-count={totalRowCount} data-group-key={'total'}>
+                            key={'total'} data-block-count={totalRowCount} data-group-key={'row-total'}>
                             <Block {...commonProps} data={allChildBlocks} rowIndex={props.index} />
                         </div>
                     );
@@ -856,7 +856,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const {
             groupingProperties, depth, titleMap, group, blockHeight, blockVerticalSpacing, blockHorizontalSpacing, blockHorizontalExtend,
             data, groupedDataIndices, index, showGroupingPropertyTitles, checkCollapsibility, headerPadding,
-            onSorterClick, sorting, sortField, activeRow, activeColumn, colorRanges,
+            onSorterClick, sorting, sortField, activeRow, activeColumn, colorRanges, blockRenderedContents,
             columnGroups, columnGroupsExtended, rowGroups, rowGroupsExtended } = this.props;
         const { open } = this.state;
 
@@ -908,7 +908,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                 columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, StackedBlockGroupedRow.mergeValues(columnGroups))
             }
             // TODO: check whether columnGroupsExtended.values and columnGroups are matching
-
+            console.log('xxx data:', data);
             header = (
                 <div className="grouping">
                     <div className="row grouping-row">
@@ -986,6 +986,27 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     }
                                 </div>
                             }
+                            <div className="d-flex header-totals">
+                                {columnKeys.map(function (columnKey, colIndex) {
+                                    const columnTotal = groupedDataIndices[columnKey]?.length || 0;
+                                    const style = {
+                                        'width': columnWidth, // Width for each column
+                                        'minWidth': columnWidth,
+                                        'minHeight': this.props.blockHeight + this.props.blockVerticalSpacing,               // Height for each row
+                                        'paddingLeft': this.props.blockHorizontalSpacing,
+                                        'paddingRight': this.props.blockHorizontalSpacing,
+                                        'paddingTop': this.props.blockVerticalSpacing
+                                    };
+                                    return (
+                                        <div key={'col-totals-' + columnKey} className={'column-group-header'} style={headerItemStyle}>
+                                            <div className="block-container-group" style={style}
+                                                key={'total'} data-block-count={columnTotal} data-group-key={'column-total'}>
+                                                <Block {...this.props} data={groupedDataIndices[columnKey]} />
+                                            </div>
+                                        </div>
+                                    );
+                                }, this)}
+                            </div>
                             <div className="d-flex header-sorting">
                                 {columnKeys.map(function (columnKey, colIndex) {
                                     //sort order icons
@@ -1123,11 +1144,13 @@ const Block = React.memo(function Block(props){
     }
 
     const getColor = function (value) {
-        const range = colorRanges.find(r => 
-          value >= r.min && (r.max === undefined || value < r.max)
+        if (!colorRanges) return null;
+
+        const range = colorRanges.find(r =>
+            value >= r.min && (r.max === undefined || value < r.max)
         );
         return range ? range.color : null;
-      }
+    }
       
 
     const dataLength = data?.length || 0;
