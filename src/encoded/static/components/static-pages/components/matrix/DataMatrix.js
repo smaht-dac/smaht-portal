@@ -23,11 +23,6 @@ export default class DataMatrix extends React.PureComponent {
         "groupingProperties": [],
         "columnGrouping": "",
         "headerFor": <h3 className="mt-2 mb-0 text-300">SMaHT</h3>,
-        "sectionStyle": {
-            "sectionClassName": "col-12",
-            "labelClassName": "col-2x",
-            "listingClassName": "col-10x"
-        },
         "fallbackNameForBlankField": "None",
         /** Which state to set/prioritize if multiple files per group */
         "statePrioritizationForGroups" : [],
@@ -56,7 +51,7 @@ export default class DataMatrix extends React.PureComponent {
             "software.display_title"
         ],
         "disableConfigurator": false,
-        "useTestData": false
+        "useTestData": false // to be removed
     };
 
     static propTypes = {
@@ -395,12 +390,9 @@ export default class DataMatrix extends React.PureComponent {
 
         const resultKey = "_results";
         const url = query.url;
-        const sectionClassName = sectionStyle['sectionClassName'] || "col-12";
-        const labelClassName = sectionStyle['labelClassName'] || "col-2";
-        const listingClassName = sectionStyle['listingClassName'] || "col-10";
         const bodyProps = {
             groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping,
-            listingClassName, labelClassName, colorRanges, columnGroups, columnGroupsExtended, rowGroups, rowGroupsExtended
+            colorRanges, columnGroups, columnGroupsExtended, rowGroups, rowGroupsExtended
         };
 
         const configurator = !disableConfigurator && (
@@ -421,7 +413,7 @@ export default class DataMatrix extends React.PureComponent {
         );
 
         const body = (
-            <div className={sectionClassName}>
+            <div>
                 {configurator}
                 {/* { (headerFor && headerFor) || {null} } */}
                 <VisualBody

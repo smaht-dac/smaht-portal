@@ -240,7 +240,7 @@ export class VisualBody extends React.PureComponent {
                 {..._.pick(this.props, 
                     'groupingProperties', 'columnGrouping', 'titleMap', 'headerPadding',
                     'columnSubGrouping', 'defaultDepthsOpen', 'duplicateHeaders',
-                    'columnSubGroupingOrder', 'labelClassName', 'listingClassName', 'colorRanges',
+                    'columnSubGroupingOrder', 'colorRanges',
                     'columnGroups', 'columnGroupsExtended', 'rowGroups', 'rowGroupsExtended',)}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
@@ -859,7 +859,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
     render(){
         const {
             groupingProperties, depth, titleMap, group, blockHeight, blockVerticalSpacing, blockHorizontalSpacing, blockHorizontalExtend,
-            data, groupedDataIndices, index, duplicateHeaders, showGroupingPropertyTitles, checkCollapsibility, headerPadding, labelClassName, listingClassName,
+            data, groupedDataIndices, index, duplicateHeaders, showGroupingPropertyTitles, checkCollapsibility, headerPadding,
             onSorterClick, sorting, sortField, activeRow, activeColumn, colorRanges,
             columnGroups, columnGroupsExtended, rowGroups, rowGroupsExtended } = this.props;
         const { open } = this.state;
@@ -1024,7 +1024,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         return (
             <div className={className} data-max-blocks-vertical={maxBlocksInRow}>
                 <div className="row grouping-row">
-                    <div className={"colx label-section " + labelClassName} style={labelSectionStyle}>
+                    <div className="label-section" style={labelSectionStyle}>
                         {(index === 0 && depth === 0) ? (
                             <div className="text-end" onClick={onSorterClick}>
                                 <span className={labelSortIconClassName}>{labelSortIcon}</span>
@@ -1041,7 +1041,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         </div>
                         {/* this.childLabels() */}
                     </div>
-                    <div className={"col list-section " + listingClassName + (header ? ' has-header header-for-viz' : '')} style={listSectionStyle}>
+                    <div className={"col list-section " + (header ? ' has-header header-for-viz' : '')} style={listSectionStyle}>
                         {header}
                         {childBlocks}
                     </div>
