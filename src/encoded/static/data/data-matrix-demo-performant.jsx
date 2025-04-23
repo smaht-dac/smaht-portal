@@ -95,7 +95,7 @@
         rowGroups={null} //not implemented yet
         rowGroupsExtended={{
             "Ectoderm": {
-                "values": ['Brain', 'Brain - Cerebellum', 'Brain - Frontal lobe', 'Brain - Hippocampus', 'Brain - Temporal lobe', 'Skin - Abdomen (non-exposed)', 'Skin - Calf (sun-exposed)'],
+                "values": ['Brain', 'Brain - Cerebellum', 'Brain - Frontal lobe', 'Brain - Hippocampus', 'Brain - Temporal lobe', 'Skin', 'Skin - Abdomen (non-exposed)', 'Skin - Calf (sun-exposed)'],
                 "backgroundColor": "#367151",
                 "textColor": "#ffffff",
                 "shortName": "Ecto"
@@ -107,7 +107,7 @@
                 "shortName": "Meso"
             },
             "Endoderm": {
-                "values": ['Colon - Ascending', 'Colon - Descending', 'Esophagus', 'Liver', 'Lung'],
+                "values": ['Colon', 'Colon - Ascending', 'Colon - Descending', 'Esophagus', 'Liver', 'Lung'],
                 "backgroundColor": "#53b27e",
                 "textColor": "#ffffff",
                 "shortName": "Endo"
