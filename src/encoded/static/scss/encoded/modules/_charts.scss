@@ -1937,19 +1937,6 @@ body[data-path="/statistics"] {
                 padding-top: 80px;
             }
 
-            &.row-index-0:not(.with-duplicated-headers),
-            &.row-index-0.with-duplicated-headers,
-            &.with-duplicated-headers.open {
-                > .row > .label-section {
-                    padding-top: 100px;
-                }
-                &.open {
-                    > .row > .label-section {
-                        padding-top: 60px;
-                    }
-                }
-            }
-
             &.open + :not(.open):not(.no-grouping-property-titles),
             &.open + :not(.with-duplicated-headers):not(.no-grouping-property-titles) {
                 margin-top: 15px;
