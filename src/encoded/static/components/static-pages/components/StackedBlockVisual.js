@@ -239,7 +239,7 @@ export class VisualBody extends React.PureComponent {
             <StackedBlockVisual data={results} checkCollapsibility
                 {..._.pick(this.props, 
                     'groupingProperties', 'columnGrouping', 'titleMap', 'headerPadding',
-                    'columnSubGrouping', 'defaultDepthsOpen', 'duplicateHeaders',
+                    'columnSubGrouping', 'defaultDepthsOpen',
                     'columnSubGroupingOrder', 'colorRanges',
                     'columnGroups', 'columnGroupsExtended', 'rowGroups', 'rowGroupsExtended',)}
                 blockPopover={this.blockPopover}
@@ -258,7 +258,6 @@ export class StackedBlockVisual extends React.PureComponent {
         'blockVerticalSpacing' : 2,
         'blockHorizontalSpacing' : 2,
         'blockHorizontalExtend' : 5,
-        'duplicateHeaders' : true,
         'collapseToMatrix' : false,
         // @param data may be either Array (if multiple grouped into 1) or object.
         'showGroupingPropertyTitles' : false,
@@ -569,9 +568,6 @@ export class StackedBlockVisual extends React.PureComponent {
 
     render() {
         let className = "stacked-block-viz-container";
-        if (this.props.duplicateHeaders) {
-            className += ' with-duplicated-headers';
-        }
         if (this.state.activeColumn !== null || this.state.activeRow !== null) {
             className += ' has-active-block';
         }
@@ -859,7 +855,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
     render(){
         const {
             groupingProperties, depth, titleMap, group, blockHeight, blockVerticalSpacing, blockHorizontalSpacing, blockHorizontalExtend,
-            data, groupedDataIndices, index, duplicateHeaders, showGroupingPropertyTitles, checkCollapsibility, headerPadding,
+            data, groupedDataIndices, index, showGroupingPropertyTitles, checkCollapsibility, headerPadding,
             onSorterClick, sorting, sortField, activeRow, activeColumn, colorRanges,
             columnGroups, columnGroupsExtended, rowGroups, rowGroupsExtended } = this.props;
         const { open } = this.state;
@@ -869,7 +865,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             groupingPropertyTitle = titleMap[groupingProperties[depth]] || groupingProperties[depth];
         }
 
-        let className = "grouping depth-" + depth + (open ? ' open' : '') + (duplicateHeaders && depth === 0 ? ' with-duplicated-headers' : '') + (' row-index-' + index) + (!showGroupingPropertyTitles ? ' no-grouping-property-titles' : '');
+        let className = "grouping depth-" + depth + (open ? ' open' : '') + (' row-index-' + index) + (!showGroupingPropertyTitles ? ' no-grouping-property-titles' : '');
         let toggleIcon = null;
 
         const childRowsKeys = !Array.isArray(data) ? _.keys(data)/*.sort()*/ : null;
@@ -887,7 +883,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const hasRowGroupsExtended = rowGroupsExtended && _.keys(rowGroupsExtended).length > 0;
 
         let header = null;
-        if (depth === 0 && groupedDataIndices && ((open && duplicateHeaders) || index === 0)){
+        if (depth === 0 && groupedDataIndices && index === 0){
             const columnWidth = (blockHeight + (blockHorizontalSpacing * 2)) + blockHorizontalExtend;
             const headerItemStyle = { 'width' : columnWidth, 'minWidth' : columnWidth };
             const sorterActiveStyle = _.extend({}, headerItemStyle, { /*backgroundColor: StackedBlockGroupedRow.getLighterHex(colorRanges[0]?.color, 0.8)*/ });

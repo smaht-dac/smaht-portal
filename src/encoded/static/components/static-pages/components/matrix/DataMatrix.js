@@ -420,12 +420,11 @@ export default class DataMatrix extends React.PureComponent {
                     {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
                     queryUrl={url}
                     {...bodyProps}
-                    duplicateHeaders={false}
                     columnSubGrouping="state"
                     // eslint-disable-next-line react/destructuring-assignment
                     results={this.state[resultKey]}
-                //defaultDepthsOpen={[true, false, false]}
-                //keysToInclude={[]}
+                    // defaultDepthsOpen={[true, false, false]}
+                    // keysToInclude={[]}
                 />
             </div>
         );
