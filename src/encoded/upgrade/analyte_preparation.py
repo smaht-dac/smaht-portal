@@ -3,8 +3,8 @@ from typing import Any, Dict
 from snovault import upgrade_step
 
 
-@upgrade_step("library_preparation", "1", "2")
-def upgrade_library_preparation_1_2(
+@upgrade_step("analyte_preparation", "1", "2")
+def upgrade_analyte_preparation_1_2(
     value: Dict[str, Any], system: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Change `cell_sorting_method' property to `cell_selection_method`."""

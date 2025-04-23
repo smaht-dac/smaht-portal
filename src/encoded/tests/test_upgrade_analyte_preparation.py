@@ -7,7 +7,7 @@ from .utils import get_upgrader
 
 
 @pytest.mark.parametrize(
-    "library_preparation,expected",
+    "analyte_preparation,expected",
     [
         ({"schema_version": "1"}, {"schema_version": "2"}),
         (
@@ -16,12 +16,12 @@ from .utils import get_upgrader
         ),
     ],
 )
-def test_upgrade_library_preparation_1_2(
-    library_preparation: Dict[str, Any], expected: Dict[str, Any], app: Router
+def test_upgrade_analyte_preparation_1_2(
+    analyte_preparation: Dict[str, Any], expected: Dict[str, Any], app: Router
 ) -> None:
-    """Test library_preparation upgrader from version 1 to 2."""
+    """Test analyte_preparation upgrader from version 1 to 2."""
     upgrader = get_upgrader(app)
     assert (
-        upgrader.upgrade("library_preparation", library_preparation, current_version="1", target_version="2")
+        upgrader.upgrade("analyte_preparation", analyte_preparation, current_version="1", target_version="2")
         == expected
     )
