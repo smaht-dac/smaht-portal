@@ -14,7 +14,6 @@ export default class DataMatrix extends React.PureComponent {
     static defaultProps = {
         "query": {
             "url": "/data_matrix_aggregations/?type=SubmittedFile&limit=all",
-            "agg_fields": [],
             "column_agg_fields": "",
             "row_agg_fields": [""]
         },
@@ -57,7 +56,6 @@ export default class DataMatrix extends React.PureComponent {
     static propTypes = {
         'query': PropTypes.shape({
             'url': PropTypes.string,
-            'agg_fields': PropTypes.arrayOf(PropTypes.string),
             'column_agg_fields': PropTypes.oneOfType(PropTypes.string, PropTypes.arrayOf(PropTypes.string)).isRequired, // can be a single string or composite value
             'row_agg_fields': PropTypes.arrayOf(PropTypes.oneOfType(PropTypes.string, PropTypes.arrayOf(PropTypes.string))).isRequired // array element can be a single string or composite value
         }),
