@@ -818,7 +818,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     totalBlock = (
                         <div className="block-container-group" style={containerGroupStyle}
                             key={'total'} data-block-count={totalRowCount} data-group-key={'total'}>
-                            <Block {...commonProps} data={allChildBlocks} indexInGroup={0} rowIndex={props.index} colIndex={-1} />
+                            <Block {...commonProps} data={allChildBlocks} rowIndex={props.index} />
                         </div>
                     );
                 }
@@ -1051,7 +1051,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 const { values, backgroundColor, textColor } = rowGroupsExtended[rgKey];
                                 const rowGroupChildRowsKeys = _.intersection(childRowsKeys, values);
                                 const rowSpan = rowGroupChildRowsKeys.length;
+                                
                                 if (rowSpan === 0) return null;
+
                                 const label = (rgKey.length > (rowSpan * 4)) && rowGroupsExtended[rgKey].shortName ? rowGroupsExtended[rgKey].shortName : rgKey;
                                 return (
                                     <div class="vertical-container">

@@ -314,7 +314,6 @@ export default class DataMatrix extends React.PureComponent {
                 const [url, strQueryParams] = requestUrl.split('?');
                 const queryParamsByUrl = DataMatrix.parseQuery(strQueryParams);
 
-                // const requestUrlFields = JSON.parse(JSON.stringify(query.agg_fields)); //clone
                 const colAggFields = typeof query.column_agg_fields === 'string' ? [query.column_agg_fields] : query.column_agg_fields;
                 const rowAggFields = typeof query.row_agg_fields === 'string' ? [query.row_agg_fields] : query.row_agg_fields;
 
@@ -398,9 +397,9 @@ export default class DataMatrix extends React.PureComponent {
                 columnDimensions={allowedFields}
                 rowDimensions={allowedFields}
                 searchUrl={query.url}
-                selectedColumnValue={query.agg_fields[0]}
-                selectedRow1Value={query.agg_fields[1]}
-                selectedRow2Value={query.agg_fields.length > 2 ? query.agg_fields[2] : null}
+                selectedColumnValue={query.column_agg_fields[0]}
+                selectedRow1Value={query.row_agg_fields[0]}
+                selectedRow2Value={query.row_agg_fields.length > 2 ? query.row_agg_fields[1] : null}
                 initialColumnGroups={columnGroups}
                 initialColumnGroupsExtended={columnGroupsExtended} //not implemented yet
                 initialRowGroups={rowGroups} //not implemented yet
