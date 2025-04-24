@@ -132,6 +132,7 @@
                     "Germline Variant Calls",
                     "Quality Control",
                     "Genome Assembly",
+                    "Metadata",
                     "Reference Genome",
                     "Reference Conversion",
                     "Reference Transcriptome",
@@ -169,7 +170,10 @@
                     "SNV",
                     "SV",
                     "Transcript Sequence",
-                    "Transcript Model"
+                    "Transcript Model",
+                    "Cell Barcodes",
+                    "Strand Barcodes",
+                    "UMIs"
                 ]
             }
         },

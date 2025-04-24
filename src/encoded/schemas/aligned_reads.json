@@ -89,7 +89,8 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "Sequencing Reads"
+                    "Sequencing Reads",
+                    "Consensus Reads"
                 ]
             },
             "default": [

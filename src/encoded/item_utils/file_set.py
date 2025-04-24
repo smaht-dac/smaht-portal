@@ -6,6 +6,7 @@ from . import (
     library as library_utils,
     sample as sample_utils,
     sequencing as sequencing_utils,
+    tissue as tissue_utils,
     file as file_utils,
 )
 from .utils import (
@@ -72,3 +73,34 @@ def get_sequencer(
         get_sequencing(file_set),
         sequencing_utils.get_sequencer,
     )
+
+
+def get_sample_sources(
+    properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
+) -> List[Union[str, Dict[str, Any]]]:
+    """Get sample sources associated with file set."""
+    if request_handler:
+        return get_property_values_from_identifiers(
+            request_handler,
+            get_samples(properties, request_handler),
+            sample_utils.get_sample_sources,
+        )
+    return properties.get("sample_sources", [])
+
+
+def get_tissues(
+    properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
+) -> List[Union[str, Dict[str, Any]]]:
+    """Get tissues associated with file set."""
+    sample_sources = get_sample_sources(properties, request_handler=request_handler)
+    if request_handler:
+        return [
+            sample_source
+            for sample_source in sample_sources
+            if tissue_utils.is_tissue(request_handler.get_item(sample_source))
+        ]
+    return [
+        sample_source
+        for sample_source in sample_sources
+        if isinstance(sample_source, dict) and tissue_utils.is_tissue(sample_source)
+    ]
