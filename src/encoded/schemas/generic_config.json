@@ -59,9 +59,6 @@
         "body": {
             "additionalProperties": true,
             "description": "The config JSON",
-            "exclude_from": [
-                "FFedit-create"
-            ],
             "formInput": "code",
             "title": "JSON Configuration",
             "type": "object"
