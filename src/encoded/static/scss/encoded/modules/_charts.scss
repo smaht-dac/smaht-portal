@@ -2088,6 +2088,50 @@ body[data-path="/statistics"] {
         //     }
         // }
     }
+
+    .axis-container {
+        position: relative;
+        width: 300px;
+        height: 300px;
+
+        .x-axis {
+            position: absolute;
+            top: 10px;
+            left: 50px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            text-transform: uppercase;
+            gap: 5px;
+          }
+      
+          .x-axis::after {
+            content: '→';
+            font-size: 16px;
+          }
+      
+          .y-axis {
+            position: absolute;
+            top: 60px;
+            left: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+      
+          .y-label {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+          }
+      
+          .y-arrow {
+            font-size: 16px;
+            margin-top: 5px;
+          }
+      }
 }
 
 // The popover for matrix is rendered outside of viz container -- 

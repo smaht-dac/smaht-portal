@@ -241,7 +241,8 @@ export class VisualBody extends React.PureComponent {
                     'groupingProperties', 'columnGrouping', 'titleMap', 'headerPadding',
                     'columnSubGrouping', 'defaultDepthsOpen',
                     'columnSubGroupingOrder', 'colorRanges',
-                    'columnGroups', 'columnGroupsExtended', 'rowGroups', 'rowGroupsExtended',)}
+                    'columnGroups', 'columnGroupsExtended', 'rowGroups', 'rowGroupsExtended',
+                    'xAxisLabel', 'yAxisLabel')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
             />
@@ -857,7 +858,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             groupingProperties, depth, titleMap, group, blockHeight, blockVerticalSpacing, blockHorizontalSpacing, blockHorizontalExtend,
             data, groupedDataIndices, index, showGroupingPropertyTitles, checkCollapsibility, headerPadding,
             onSorterClick, sorting, sortField, activeRow, activeColumn, colorRanges, blockRenderedContents,
-            columnGroups, columnGroupsExtended, rowGroups, rowGroupsExtended } = this.props;
+            columnGroups, columnGroupsExtended, rowGroups, rowGroupsExtended, xAxisLabel, yAxisLabel } = this.props;
         const { open } = this.state;
 
         let groupingPropertyTitle = null;
@@ -912,6 +913,14 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                 <div className="grouping">
                     <div className="row grouping-row">
                         <div className="label-section" style={labelSectionStyle}>
+                            <div className="axis-container">
+                                <div className="x-axis">{xAxisLabel || 'X'}</div>
+                                <div className="y-axis">
+                                    <div className="y-label">{yAxisLabel || 'Y'}</div>
+                                    <div className="y-arrow">↓</div>
+                                </div>
+
+                            </div>
                             <div className="text-end" onClick={onSorterClick}>
                                 <span className={labelSortIconClassName}>{labelSortIcon}</span>
                             </div>

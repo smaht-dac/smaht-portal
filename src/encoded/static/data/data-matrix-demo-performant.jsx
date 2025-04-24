@@ -132,6 +132,8 @@
         }}
         headerFor={<h3 className="mt-2 mb-0 text-300">SMaHT</h3>}
         baseColorOverride="#6f2da8"
+        xAxisLabel="Assay"
+        yAxisLabel="Donor"
         useTestData={false}
     />
 </div>

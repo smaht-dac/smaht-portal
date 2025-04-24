@@ -33,10 +33,10 @@ export default class DataMatrix extends React.PureComponent {
         "titleMap"                  : {},
         "columnSubGroupingOrder": [],
         "colorRanges": [
-                { min: 0, max: 25, color: '#ff0000' },
-                { min: 25, max: 50, color: '#00ff00' },
-                { min: 50, max: 100, color: '#0000ff' },
-                { min: 100 }
+            { min: 0, max: 25, color: '#ff0000' },
+            { min: 25, max: 50, color: '#00ff00' },
+            { min: 50, max: 100, color: '#0000ff' },
+            { min: 100 }
         ],
         "baseColorOverride": null, // color hex or rgba code (if set, will override colorRanges)
         "allowedFields": [
@@ -164,9 +164,9 @@ export default class DataMatrix extends React.PureComponent {
 
         const decodeQueryParam = function (p) {
             return decodeURIComponent(p.replace(/\+/g, " "));
-        }
+        };
 
-        params.forEach(param => {
+        params.forEach((param) => {
             let key, value;
 
             // If the parameter contains '!=', split on that operator
@@ -310,7 +310,7 @@ export default class DataMatrix extends React.PureComponent {
         this.setState(
             { "_results": null }, // (Re)Set all result states to 'null'
             () => {
-                let requestUrl = query.url;
+                const requestUrl = query.url;
                 const [url, strQueryParams] = requestUrl.split('?');
                 const queryParamsByUrl = DataMatrix.parseQuery(strQueryParams);
 
@@ -368,7 +368,10 @@ export default class DataMatrix extends React.PureComponent {
     }
 
     render() {
-        const { headerFor, sectionStyle, valueChangeMap, allowedFields, columnGroups, columnGroupsExtended, rowGroups, rowGroupsExtended, disableConfigurator = false } = this.props;
+        const {
+            headerFor, sectionStyle, valueChangeMap, allowedFields, columnGroups, columnGroupsExtended,
+            rowGroups, rowGroupsExtended, disableConfigurator = false, xAxisLabel, yAxisLabel
+        } = this.props;
         const { query, fieldChangeMap, columnGrouping, groupingProperties, colorRanges } = this.state;
 
         const isLoading =
@@ -389,14 +392,15 @@ export default class DataMatrix extends React.PureComponent {
         const url = query.url;
         const bodyProps = {
             groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping,
-            colorRanges, columnGroups, columnGroupsExtended, rowGroups, rowGroupsExtended
+            colorRanges, columnGroups, columnGroupsExtended, rowGroups, rowGroupsExtended,
+            xAxisLabel, yAxisLabel,
         };
 
         const configurator = !disableConfigurator && (
             <DataMatrixConfigurator
                 columnDimensions={allowedFields}
                 rowDimensions={allowedFields}
-                searchUrl={query.url}
+                searchUrl={url}
                 selectedColumnValue={query.column_agg_fields[0]}
                 selectedRow1Value={query.row_agg_fields[0]}
                 selectedRow2Value={query.row_agg_fields.length > 2 ? query.row_agg_fields[1] : null}
