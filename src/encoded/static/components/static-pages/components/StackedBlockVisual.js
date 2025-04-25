@@ -89,59 +89,29 @@ export class VisualBody extends React.PureComponent {
         const isGroup = (Array.isArray(data) && data.length > 1) || false;
         let aggrData;
 
-        const additionalItems = _.filter(data, function (item) { return item.is_additional_data === true; });
-
         if (!isGroup && Array.isArray(data)){
             data = data[0];
         }
 
         if (isGroup){
-            const keysToInclude = _.uniq(_.keys(titleMap).concat(['sub_cat', 'sub_cat_title', columnGrouping]).concat(groupingProperties));
+            const keysToInclude = _.uniq(_.keys(titleMap).concat([columnGrouping]).concat(groupingProperties));
             aggrData = StackedBlockVisual.aggregateObjectFromList(
-                data, keysToInclude, ['sub_cat_title'] // We use this property as an object key (string) so skip parsing to React JSX list;
+                data, keysToInclude, [] // We use this property as an object key (string) so skip parsing to React JSX list;
             );
-
-            // Custom parsing down into string -- remove 'Default' from list and ensure is saved as string.
-            if (Array.isArray(aggrData.sub_cat_title)){
-                aggrData.sub_cat_title = _.without(_.uniq(aggrData.sub_cat_title), 'Default');
-                if (aggrData.sub_cat_title.length !== 1){ // If multiple or if none.
-                    aggrData.sub_cat_title = 'Assay Details';
-                } else {
-                    aggrData.sub_cat_title = aggrData.sub_cat_title[0];
-                }
-            }
         } else {
             aggrData = data;
-            if (aggrData.sub_cat_title && aggrData.sub_cat_title === "Default"){ // Or maybe remove entirely? <- handled in standardize4DNResult()
-                aggrData.sub_cat_title = 'Assay Details';
-            }
         }
 
-        const groupingPropertyCurrent = groupingProperties[depth] || null;
-        const groupingPropertyCurrentTitle = (
-            groupingPropertyCurrent === 'sub_cat' ? aggrData['sub_cat_title'] // <- Special case
-                : (groupingPropertyCurrent && titleMap[groupingPropertyCurrent]) || groupingPropertyCurrent || null
-        );
-        const groupingPropertyCurrentValue = aggrData[groupingPropertyCurrent];
+        const primaryGroupingProperty = groupingProperties[0] || null;
+        const primaryGroupingPropertyTitle = (primaryGroupingProperty && titleMap[primaryGroupingProperty]) || primaryGroupingProperty || null;
+        const primaryGroupingPropertyValue = aggrData[primaryGroupingProperty];
+        const secondaryGroupingProperty = groupingProperties[1] || null;
+        const secondaryGroupingPropertyTitle = (secondaryGroupingProperty && titleMap[secondaryGroupingProperty]) || secondaryGroupingProperty || null;
+        const secondaryGroupingPropertyValue = aggrData[secondaryGroupingProperty];
 
         // Generate title area which shows current grouping vals.
         const yAxisGroupingTitle = (columnGrouping && titleMap[columnGrouping]) || columnGrouping || null;
         const yAxisGroupingValue = (isGroup ? data[0][columnGrouping] : data[columnGrouping]) || null;
-        const popoverTitle = (
-            <div className="clearfix matrix-popover-title">
-                <div className="x-axis-title">
-                    <div className="text-300">{groupingPropertyCurrentTitle}</div>
-                    <div className="text-400">{groupingPropertyCurrentValue}</div>
-                </div>
-                <div className="mid-icon">
-                    <i className="icon icon-times fas"/>
-                </div>
-                <div className="y-axis-title">
-                    <div className="text-300">{yAxisGroupingTitle}</div>
-                    <div className="text-400">{yAxisGroupingValue}</div>
-                </div>
-            </div>
-        );
 
         function makeSearchButton(disabled=false){
             const currentFilteringProperties = groupingProperties.slice(0, depth + 1).concat([columnGrouping]);
@@ -169,7 +139,7 @@ export class VisualBody extends React.PureComponent {
             const linkHref = url.format(hrefParts);
 
             return (
-                <Button disabled={disabled} href={linkHref} target="_blank" bsStyle="primary" className="w-100 mt-1">View Files</Button>
+                <Button disabled={disabled} href={linkHref} target="_blank" bsStyle="primary" className="w-100 mt-1">Browse Files</Button>
             );
         }
 
@@ -188,46 +158,50 @@ export class VisualBody extends React.PureComponent {
         const keysToShow = _.without(_.keys(titleMap), columnGrouping, ...groupingProperties);
         const keyValsToShow = _.pick(aggrData, ...keysToShow);
 
-        // 'sub_cat' and 'sub_cat_title' are special case where we want sub_cat_title as key and sub_cat as value.
-        if (
-            (typeof titleMap.sub_cat !== 'undefined' || typeof titleMap.sub_cat_title !== 'undefined') &&
-            (aggrData.sub_cat && aggrData.sub_cat !== 'No value' && aggrData.sub_cat_title)
-        ){
-            keyValsToShow[aggrData.sub_cat_title] = aggrData.sub_cat;
-            delete keyValsToShow.sub_cat;
-            delete keyValsToShow.sub_cat_title;
-        }
-
-        // format title by experiment set counts
-        let title;
-        const dataLength = Array.isArray(data) ? data.length : 1;
-        const onlyNonAdditionalItemsCount = dataLength - additionalItems.length;
-        if (onlyNonAdditionalItemsCount > 0 && additionalItems.length > 0) {
-            title = `${dataLength} Experiment Set(s) (${additionalItems.length} - Planned)`;
-        } else if (onlyNonAdditionalItemsCount > 0 && additionalItems.length === 0) {
-            title = `${dataLength} File(s)`;
-        } else if (onlyNonAdditionalItemsCount === 0 && additionalItems.length > 0) {
-            title = `${additionalItems.length} - Planned Experiment Set(s)`;
-        }
-
-        const viewButtonDisabled = (onlyNonAdditionalItemsCount === 0 && additionalItems.length > 0) || false;
+        const viewButtonDisabled = false; // (onlyNonAdditionalItemsCount === 0 && additionalItems.length > 0) || false;
         return (
-            <Popover id="jap-popover" title={popoverTitle} style={{ maxWidth : 540, width: '100%' }}>
-                { isGroup ?
-                    <div className="inner">
-                        <h5 className="text-400 mt-08 mb-15 text-center"><b>{ title }</b></h5>
-                        <hr className="mt-0 mb-1"/>
-                        { StackedBlockVisual.generatePopoverRowsFromJSON(keyValsToShow, this.props) }
-                        { makeSearchButton(viewButtonDisabled) }
-                    </div>
-                    :
-                    <div className="inner">
-                        <h5 className="text-400 mt-08 mb-15 text-center"><b>{title}</b></h5>
-                        <hr className="mt-0 mb-1" />
-                        {StackedBlockVisual.generatePopoverRowsFromJSON(keyValsToShow, this.props)}
-                        { makeSearchButton(viewButtonDisabled)/* makeSingleItemButton(viewButtonDisabled) */}
-                    </div>
-                }
+            <Popover id="jap-popover" style={{ maxWidth: 400, width: '100%' }}>
+                <Popover.Body>
+                    {isGroup ?
+                        <div className="inner">
+                            <div className="row pb-1 pt-1" style={{ borderBottom: '1px dashed #dedede', fontSize: '1rem' }}>
+                                <div className="col-4">
+                                    <span className="text-400 me-05">{primaryGroupingPropertyTitle}:</span>
+                                    <span className="text-500">{primaryGroupingPropertyValue}</span>
+                                </div>
+                                <div className="col-8 text-end">
+                                    <span className="text-400 me-05">{yAxisGroupingTitle}:</span>
+                                    <span className="text-500">{yAxisGroupingValue}</span>
+                                </div>
+                            </div>
+                            <div className="row pb-1 mt-1" style={{ borderBottom: '1px solid #dedede' }}>
+                                <div className="col-4">
+                                    {depth > 0 ? (
+                                        <React.Fragment>
+                                            <div className="text-400" style={{ fontSize: '1rem' }}>{secondaryGroupingPropertyTitle}:</div>
+                                            <div className="text-500" style={{ fontSize: '1.2rem' }}><span className="text-success me-05">●</span>{secondaryGroupingPropertyValue}</div>
+                                        </React.Fragment>
+                                    ) : null}
+                                </div>
+                                <div className="col-8 text-end">
+                                    <div className="text-400" style={{ fontSize: '1rem' }}>Total Files</div>
+                                    <div className="text-600" style={{ fontSize: '1.2rem' }}>{data.length}</div>
+                                </div>
+                            </div>
+                            {/* <h5 className="text-400 mt-08 mb-15 text-center"><b>{title}</b></h5>
+                            <hr className="mt-0 mb-1" /> */}
+                            {StackedBlockVisual.generatePopoverRowsFromJSON(keyValsToShow, this.props)}
+                            {makeSearchButton(viewButtonDisabled)}
+                        </div>
+                        :
+                        <div className="inner">
+                            <h5 className="text-400 mt-08 mb-15 text-center"><b>{"title"}</b></h5>
+                            <hr className="mt-0 mb-1" />
+                            {StackedBlockVisual.generatePopoverRowsFromJSON(keyValsToShow, this.props)}
+                            {makeSearchButton(viewButtonDisabled)/* makeSingleItemButton(viewButtonDisabled) */}
+                        </div>
+                    }
+                </Popover.Body>
             </Popover>
         );
 
