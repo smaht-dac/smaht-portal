@@ -1989,9 +1989,11 @@ File Overview Styles
 }
 
 
-#description-definitions-popover {
-	&.popover {
-		width: 600px;
+/****************************
+Popover Styles for Item Pages
+*****************************/
+.popover {
+	&#description-definitions-popover {
 		max-width: 600px;
 	}
 }

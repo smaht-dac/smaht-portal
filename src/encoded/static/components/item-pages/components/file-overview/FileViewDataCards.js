@@ -38,7 +38,22 @@ const DataCard = ({ header = '', data = [] }) => {
                                             trigger={['hover', 'focus']}
                                             overlay={title_popover}
                                             placement="left"
-                                            flip="auto">
+                                            flip={true}
+                                            popperConfig={{
+                                                modifiers: [
+                                                    {
+                                                        name: 'flip',
+                                                        options: {
+                                                            fallbackPlacements:
+                                                                [
+                                                                    'right',
+                                                                    'bottom',
+                                                                    'top',
+                                                                ],
+                                                        },
+                                                    },
+                                                ],
+                                            }}>
                                             <i className="icon icon-info-circle fas ms-1"></i>
                                         </OverlayTrigger>
                                     )}
@@ -265,7 +280,7 @@ const default_sample_information = [
         getProp: (context = {}) =>
             context?.sample_summary?.sample_descriptions?.join(', '),
         title_popover: (
-            <Popover id="description-definitions-popover">
+            <Popover id="description-definitions-popover" className="w-auto">
                 <PopoverBody className="p-0">
                     <DescriptionPopover />
                 </PopoverBody>
