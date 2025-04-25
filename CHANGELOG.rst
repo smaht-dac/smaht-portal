@@ -7,6 +7,20 @@ smaht-portal
 Change Log
 ----------
 
+0.163.0
+=======
+`PR 407: SN upgradeAnalytePrep <https://github.com/smaht-dac/smaht-portal/pull/407>`_
+
+* Add upgrader changing property `cell_sorting_method` to `cell_selection_method` in AnalytePreparation and update enums
+* Add enums to File data_category and data_type for STORM-Seq metadata files
+
+
+0.162.2
+=======
+`PR 400: feat: add tissue codes to benchmarking page titles <https://github.com/smaht-dac/smaht-portal/pull/400>`_
+
+* Add tissue code to the benchmarking page titles
+
 
 0.162.1
 =======
