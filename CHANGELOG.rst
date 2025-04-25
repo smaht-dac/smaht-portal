@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.164.1
+=======
+`PR 409: fix: update browse view tissue statistic <https://github.com/smaht-dac/smaht-portal/pull/409>`_
+
+* Update Browse View statistics to correct tissue count
+
+
 0.164.0
 =======
 `PR 408: SN Add additional_notes <https://github.com/smaht-dac/smaht-portal/pull/408>`_
