@@ -7,11 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.164.0
+0.164.1
 =======
 `PR 334 feat: tooltip for sample information definitions <https://github.com/smaht-dac/smaht-portal/pull/334>`
 
 * Adds popover for sample description definitions
+
+
+0.164.0
+=======
+`PR 408: SN Add additional_notes <https://github.com/smaht-dac/smaht-portal/pull/408>`_
+
+* Add property `additional_notes` to Sequencing
 
 
 0.163.0

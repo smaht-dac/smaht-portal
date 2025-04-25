@@ -76,6 +76,11 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_SEQUENCING_[A-Z0-9-_.]{4,}$"
         },
+        "additional_notes": {
+            "title": "Additional Notes",
+            "description": "Additional notes related to the sequencing",
+            "type": "string"
+        },
         "flow_cell": {
             "title": "Flow Cell",
             "description": "Flow cell used for sequencing",
