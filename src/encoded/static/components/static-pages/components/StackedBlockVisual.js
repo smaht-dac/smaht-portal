@@ -160,11 +160,11 @@ export class VisualBody extends React.PureComponent {
 
         const viewButtonDisabled = false; // (onlyNonAdditionalItemsCount === 0 && additionalItems.length > 0) || false;
         return (
-            <Popover id="jap-popover" style={{ maxWidth: 400, width: '100%' }}>
+            <Popover id="jap-popover">
                 <Popover.Body>
                     {isGroup ?
                         <div className="inner">
-                            <div className="row pb-1 pt-1" style={{ borderBottom: '1px dashed #dedede', fontSize: '1rem' }}>
+                            <div className="row primary-row pb-1 pt-1">
                                 <div className="col-4">
                                     <span className="text-400 me-05">{primaryGroupingPropertyTitle}:</span>
                                     <span className="text-500">{primaryGroupingPropertyValue}</span>
@@ -174,22 +174,20 @@ export class VisualBody extends React.PureComponent {
                                     <span className="text-500">{yAxisGroupingValue}</span>
                                 </div>
                             </div>
-                            <div className="row pb-1 mt-1" style={{ borderBottom: '1px solid #dedede' }}>
+                            <div className="row secondary-row pb-1 mt-1">
                                 <div className="col-4">
                                     {depth > 0 ? (
                                         <React.Fragment>
-                                            <div className="text-400" style={{ fontSize: '1rem' }}>{secondaryGroupingPropertyTitle}:</div>
-                                            <div className="text-500" style={{ fontSize: '1.2rem' }}><span className="text-success me-05">●</span>{secondaryGroupingPropertyValue}</div>
+                                            <div className="label text-400">{secondaryGroupingPropertyTitle}:</div>
+                                            <div className="value text-500"><span className="text-success me-05">●</span>{secondaryGroupingPropertyValue}</div>
                                         </React.Fragment>
                                     ) : null}
                                 </div>
                                 <div className="col-8 text-end">
-                                    <div className="text-400" style={{ fontSize: '1rem' }}>Total Files</div>
-                                    <div className="text-600" style={{ fontSize: '1.2rem' }}>{data.length}</div>
+                                    <div className="label text-400">Total Files</div>
+                                    <div className="value text-600">{data.length}</div>
                                 </div>
                             </div>
-                            {/* <h5 className="text-400 mt-08 mb-15 text-center"><b>{title}</b></h5>
-                            <hr className="mt-0 mb-1" /> */}
                             {StackedBlockVisual.generatePopoverRowsFromJSON(keyValsToShow, this.props)}
                             {makeSearchButton(viewButtonDisabled)}
                         </div>
@@ -883,7 +881,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
             let columnKeys = _.keys(groupedDataIndices);
             if (hasColumnGroups){
-                columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, StackedBlockGroupedRow.mergeValues(columnGroups))
+                columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, StackedBlockGroupedRow.mergeValues(columnGroups));
             }
             // TODO: check whether columnGroupsExtended.values and columnGroups are matching
             header = (
@@ -1131,7 +1129,7 @@ const Block = React.memo(function Block(props){
     const getColor = function (value) {
         if (!colorRanges) return null;
 
-        const range = colorRanges.find(r =>
+        const range = colorRanges.find((r) =>
             value >= r.min && (r.max === undefined || value < r.max)
         );
         return range ? range.color : null;
@@ -1166,7 +1164,7 @@ function FaIcon(props) {
     const { icon, iconClass } = props;
     const className = `fas icon ${icon} ${iconClass}`;
     return (
-        <i className={className} align="right" />
+        <i className={className} style={{ textAlign: 'right' }} />
     );
 }
 function SortIconDesc(props) {

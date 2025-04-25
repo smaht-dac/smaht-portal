@@ -2137,39 +2137,22 @@ body[data-path="/statistics"] {
 // The popover for matrix is rendered outside of viz container -- 
 
 #jap-popover {
-    .popover-header {
-        div.matrix-popover-title {
-            font-size: 1.075rem;
-            display: flex;
-            .x-axis-title {
-                flex: 0 0 40%;
-                text-align: right;
-            }
-            .mid-icon {
-                flex: 0 0 20%;
-                text-align: center;
-                padding-top: 8px;
-                font-size: 1.5rem;
-                opacity: 0.33;
-            }
-            .y-axis-title {
-                flex: 0 0 40%;
-                text-align: left;
-                //padding-left: 10px;
-            }
-        }
+    max-width: 420px;
+    width: 100%;
+
+    .primary-row {
+        border-bottom: 1px dashed #dedede;
+        font-size: 1rem
     }
-    div.popover-content {
-        .popover-entry {
-            ol {
-                padding-left: 25px;
-                margin-bottom: 0;
-            }
-            .more-items-count {
-                font-style: italic;
-                margin-top: 4px;
-                margin-left: 25px;
-            }
+
+    .secondary-row {
+        border-bottom: 1px solid #dedede;
+
+        .label {
+            font-size: 1rem;
+        }
+        .value {
+            font-size: 1.2rem;
         }
     }
 }
