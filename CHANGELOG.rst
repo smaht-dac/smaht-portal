@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.162.3
+0.164.0
 =======
 `PR 334 feat: tooltip for sample information definitions <https://github.com/smaht-dac/smaht-portal/pull/334>`
 
