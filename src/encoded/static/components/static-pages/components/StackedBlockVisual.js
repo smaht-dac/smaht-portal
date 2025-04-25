@@ -123,6 +123,12 @@ export class VisualBody extends React.PureComponent {
                         const reversedValChangeMapForCurrSource = VisualBody.invert(valueChangeMap[property]);
                         facetTerm = reversedValChangeMapForCurrSource[facetTerm] || facetTerm;
                     }
+
+                    //TODO: handle composite values in a smart way, this workaround is too primitive
+                    if (facetTerm && typeof facetTerm === 'string' && facetTerm.indexOf(' - ') > -1) {
+                        [facetTerm] = facetTerm.split(' - ');
+                    }
+
                     return [ facetField, facetTerm ];
                 })
             );
