@@ -241,7 +241,8 @@ export class VisualBody extends React.PureComponent {
                     'groupingProperties', 'columnGrouping', 'titleMap', 'headerPadding',
                     'columnSubGrouping', 'defaultDepthsOpen',
                     'columnSubGroupingOrder', 'colorRanges',
-                    'columnGroups', 'columnGroupsExtended', 'rowGroups', 'rowGroupsExtended',
+                    'columnGroups', 'columnGroupsExtended', 'showColumnGroupsExtended',
+                    'rowGroups', 'rowGroupsExtended', 'showRowGroupsExtended',
                     'xAxisLabel', 'yAxisLabel')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
@@ -858,7 +859,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             groupingProperties, depth, titleMap, group, blockHeight, blockVerticalSpacing, blockHorizontalSpacing, blockHorizontalExtend,
             data, groupedDataIndices, index, showGroupingPropertyTitles, checkCollapsibility, headerPadding,
             onSorterClick, sorting, sortField, activeRow, activeColumn, colorRanges, blockRenderedContents,
-            columnGroups, columnGroupsExtended, rowGroups, rowGroupsExtended, xAxisLabel, yAxisLabel } = this.props;
+            columnGroups, columnGroupsExtended, showColumnGroupsExtended,
+            rowGroups, rowGroupsExtended, showRowGroupsExtended,
+            xAxisLabel, yAxisLabel } = this.props;
         const { open } = this.state;
 
         let groupingPropertyTitle = null;
@@ -879,9 +882,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             toggleIcon = <i className="icon icon-fw" />;
         }
         const hasColumnGroups = columnGroups && _.keys(columnGroups).length > 0;
-        const hasColumnGroupsExtended = columnGroupsExtended && _.keys(columnGroupsExtended).length > 0;
+        const hasColumnGroupsExtended = showColumnGroupsExtended && columnGroupsExtended && _.keys(columnGroupsExtended).length > 0;
         const hasRowGroups = rowGroups && _.keys(rowGroups).length > 0;
-        const hasRowGroupsExtended = rowGroupsExtended && _.keys(rowGroupsExtended).length > 0;
+        const hasRowGroupsExtended = showRowGroupsExtended && rowGroupsExtended && _.keys(rowGroupsExtended).length > 0;
 
         let header = null;
         if (groupedDataIndices && depth === 0 && index === 0){

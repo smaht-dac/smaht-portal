@@ -30,6 +30,7 @@
                 "Single-cell MALBAC WGS - ONT": "MALBAC-amplified WGS",
                 "Single-cell MALBAC WGS - Illumina": "MALBAC-amplified WGS",
                 "TEnCATS - ONT": "TEnCATS",
+                "WGS - ONT": "WGS - Standard ONT",
             },
             "tissue": {
                 "endocrine pancreas": "Endocrine pancreas",
@@ -92,6 +93,7 @@
                 "textColor": "#ffffff"
             }
         }}
+        showColumnGroupsExtended={false}
         rowGroups={null} //not implemented yet
         rowGroupsExtended={{
             "Ectoderm": {
@@ -130,6 +132,7 @@
                 "textColor": "#000000"
             }
         }}
+        showRowGroupsExtended={true}
         headerFor={<h3 className="mt-2 mb-0 text-300">SMaHT</h3>}
         baseColorOverride="#6f2da8"
         xAxisLabel="Assay"

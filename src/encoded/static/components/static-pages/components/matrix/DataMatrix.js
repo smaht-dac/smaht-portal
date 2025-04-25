@@ -28,8 +28,10 @@ export default class DataMatrix extends React.PureComponent {
         "headerPadding"             : 200,
         "columnGroups"              : null,
         "columnGroupsExtended"      : null,
+        "showColumnGroupsExtended"  : true,
         "rowGroups"                 : null,
         "rowGroupsExtended"         : null,
+        "showRowGroupsExtended"     : true,
         "titleMap"                  : {},
         "columnSubGroupingOrder": [],
         "colorRanges": [
@@ -76,8 +78,12 @@ export default class DataMatrix extends React.PureComponent {
         'disableConfigurator': PropTypes.bool,
         'columnGroups': PropTypes.object,
         'columnGroupsExtended': PropTypes.object,
+        'showColumnGroupsExtended': PropTypes.bool,
         'rowGroups': PropTypes.object,
-        'rowGroupsExtended': PropTypes.object
+        'rowGroupsExtended': PropTypes.object,
+        'showRowGroupsExtended': PropTypes.bool,
+        'xAxisLabel': PropTypes.string,
+        'yAxisLabel': PropTypes.string,
     };
 
     static convertResult(result, fieldChangeMap, valueChangeMap, statusStateTitleMap, fallbackNameForBlankField) {
@@ -285,7 +291,7 @@ export default class DataMatrix extends React.PureComponent {
                                         cloned[field] = changeMap[cloned[field]] || cloned[field];
                                     }
                                 });
-                            }    
+                            }
 
                             return cloned;
                         }));
@@ -369,8 +375,10 @@ export default class DataMatrix extends React.PureComponent {
 
     render() {
         const {
-            headerFor, sectionStyle, valueChangeMap, allowedFields, columnGroups, columnGroupsExtended,
-            rowGroups, rowGroupsExtended, disableConfigurator = false, xAxisLabel, yAxisLabel
+            headerFor, sectionStyle, valueChangeMap, allowedFields,
+            columnGroups, columnGroupsExtended, showColumnGroupsExtended,
+            rowGroups, rowGroupsExtended, showRowGroupsExtended,
+            xAxisLabel, yAxisLabel, disableConfigurator = false
         } = this.props;
         const { query, fieldChangeMap, columnGrouping, groupingProperties, colorRanges } = this.state;
 
@@ -391,9 +399,10 @@ export default class DataMatrix extends React.PureComponent {
         const resultKey = "_results";
         const url = query.url;
         const bodyProps = {
-            groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping,
-            colorRanges, columnGroups, columnGroupsExtended, rowGroups, rowGroupsExtended,
-            xAxisLabel, yAxisLabel,
+            groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
+            columnGroups, columnGroupsExtended, showColumnGroupsExtended,
+            rowGroups, rowGroupsExtended, showRowGroupsExtended,
+            xAxisLabel, yAxisLabel
         };
 
         const configurator = !disableConfigurator && (
