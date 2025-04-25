@@ -208,84 +208,95 @@ const default_data_information = [
 ];
 
 /**
- * Table element for the description field in the sample information data card.
- * Contains a table with definitions for the terms used in the description
- * field.
- * @returns {JSX.Element} table component with term definitions
+ * Bootstrap Popover element for the description field in the sample information
+ * data card. Contains a table with definitions for the terms used in the
+ * description field.
+ * @returns {JSX.Element} Popover component with term definitions
+ *
+ * Note: Use regular function here, as Bootstrap relies on `this`.
  */
-const DescriptionPopover = () => {
+function renderDescriptionPopover() {
     return (
-        <table className="table">
-            <thead>
-                <tr>
-                    <th className="text-left">Term</th>
-                    <th className="text-left">Definition</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td className="align-top text-left fw-bold">Aliquot</td>
-                    <td className="text-left">
-                        A sample of a sectioned solid tissue with a pre-defined
-                        size, that is used for the downstream sampling technique
-                        such as coring.
-                    </td>
-                </tr>
-                <tr>
-                    <td className="align-top text-left fw-bold">Specimen</td>
-                    <td className="text-left">
-                        A sample of a solid tissue without a pre-defined size,
-                        that is neither a core nor homogenate.
-                    </td>
-                </tr>
-                <tr>
-                    <td className="align-top text-left fw-bold">Core</td>
-                    <td className="text-left">
-                        A core sample taken from the sectioned solid tissue
-                        aliquot. Contains spatial information within the tissue
-                        sample.
-                    </td>
-                </tr>
-                <tr>
-                    <td className="align-top text-left fw-bold">Homogenate</td>
-                    <td className="text-left">
-                        A sample of mechanically homogenized tissue that can be
-                        divided into vials for distribution. Applicable only to
-                        Benchmarking tissues.
-                    </td>
-                </tr>
-                <tr>
-                    <td className="align-top text-left fw-bold">Liquid</td>
-                    <td className="text-left">
-                        A sample of a liquid tissue (e.g. blood or buccal swab).
-                    </td>
-                </tr>
-                <tr>
-                    <td className="align-top text-left fw-bold border-0">
-                        Cells
-                    </td>
-                    <td className="text-left border-0">
-                        A sample of cells derived from tissue (i.e. Fibroblasts
-                        from skin).
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <Popover id="description-definitions-popover" className="w-auto">
+            <PopoverBody className="p-0">
+                <table className="table">
+                    <thead>
+                        <tr>
+                            <th className="text-left">Term</th>
+                            <th className="text-left">Definition</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="align-top text-left fw-bold">
+                                Aliquot
+                            </td>
+                            <td className="text-left">
+                                A sample of a sectioned solid tissue with a
+                                pre-defined size, that is used for the
+                                downstream sampling technique such as coring.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="align-top text-left fw-bold">
+                                Specimen
+                            </td>
+                            <td className="text-left">
+                                A sample of a solid tissue without a pre-defined
+                                size, that is neither a core nor homogenate.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="align-top text-left fw-bold">
+                                Core
+                            </td>
+                            <td className="text-left">
+                                A core sample taken from the sectioned solid
+                                tissue aliquot. Contains spatial information
+                                within the tissue sample.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="align-top text-left fw-bold">
+                                Homogenate
+                            </td>
+                            <td className="text-left">
+                                A sample of mechanically homogenized tissue that
+                                can be divided into vials for distribution.
+                                Applicable only to Benchmarking tissues.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="align-top text-left fw-bold">
+                                Liquid
+                            </td>
+                            <td className="text-left">
+                                A sample of a liquid tissue (e.g. blood or
+                                buccal swab).
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="align-top text-left fw-bold border-0">
+                                Cells
+                            </td>
+                            <td className="text-left border-0">
+                                A sample of cells derived from tissue (i.e.
+                                Fibroblasts from skin).
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </PopoverBody>
+        </Popover>
     );
-};
+}
 
 const default_sample_information = [
     {
         title: 'Description',
         getProp: (context = {}) =>
             context?.sample_summary?.sample_descriptions?.join(', '),
-        title_popover: (
-            <Popover id="description-definitions-popover" className="w-auto">
-                <PopoverBody className="p-0">
-                    <DescriptionPopover />
-                </PopoverBody>
-            </Popover>
-        ),
+        title_popover: renderDescriptionPopover(),
     },
     {
         title: 'Study',
