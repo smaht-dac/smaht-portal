@@ -123,47 +123,6 @@ export default class DataMatrix extends React.PureComponent {
         return convertedResult;
     }
 
-    /**
-     * specifically designed for the bar_plot_aggregations endpoint
-     * transforms the data into a format that can be used by the DataMatrix component
-     * TODO: repeating records is not ideal, but it is necessary to display the data in the matrix
-     * @param {*} aggregatorJson 
-     * @param {*} fieldMap 
-     * @returns 
-     */
-    static transformData(aggregatorJson, fieldMap) {
-        const result = [];
-
-        // 1) Find which key (e.g., "assay" or "donor") corresponds to the top-level field,
-        //    such as "file_sets.libraries.assay.display_title".
-        const topLevelKey = Object.keys(fieldMap).find(
-            (k) => fieldMap[k] === aggregatorJson.field
-        );
-
-        // 2) Iterate over top-level "terms"
-        for (const [topTermValue, topTermObj] of Object.entries(aggregatorJson.terms)) {
-            // 3) Find which key corresponds to the sub-level field,
-            //    e.g., "donors.display_title".
-            const subLevelKey = Object.keys(fieldMap).find(
-                (k) => fieldMap[k] === topTermObj.field
-            );
-
-            // 4) Iterate over the sub-level terms
-            for (const [subTermValue, subTermObj] of Object.entries(topTermObj.terms)) {
-                const repeatCount = subTermObj.files || 0;
-                // 5) Repeat the record as many times as the subTermObj.files value
-                for (let i = 0; i < repeatCount; i++) {
-                    const item = {};
-                    item[topLevelKey] = topTermValue; // e.g. { assay: "Fiber-seq" }
-                    item[subLevelKey] = subTermValue; // e.g. { donor: "TEST_DONOR_MALE" }
-                    result.push(item);
-                }
-            }
-        }
-
-        return result;
-    }
-
     static parseQuery(queryString) {
         const params = queryString.split('&');
         const result = {};
@@ -261,12 +220,7 @@ export default class DataMatrix extends React.PureComponent {
             const { fieldChangeMap } = this.state;
             const resultKey = "_results";
             const updatedState = {};
-            // if (typeof result["other_doc_count"] === 'undefined') {
-            //     updatedState[resultKey] = result["@graph"] || [];
-            //     updatedState[resultKey] = _.map(updatedState[resultKey], (r) => this.standardizeResult(r));
-            // } else {
-            //     updatedState[resultKey] = DataMatrix.transformData(result, this.state.fieldChangeMap);
-            // }
+
             updatedState[resultKey] = this.props.useTestData ? TEST_DATA_2 : result;
             let transfermedData = [];
             _.forEach(updatedState[resultKey], (r) => {
