@@ -14,7 +14,6 @@
         }}
         valueChangeMap={{
             "assay": {
-                "PCR WGS - Illumina": "WGS - Illumina",
                 "scDip-C - Illumina": "scDip-C",
                 "CompDuplex-seq - Illumina": "CompDuplex-Seq",
                 "Kinnex - PacBio": "Kinnex",
