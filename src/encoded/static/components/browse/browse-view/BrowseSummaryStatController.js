@@ -42,10 +42,7 @@ export const BrowseSummaryStatController = (props) => {
             setValue(total);
         } else if (type === 'Tissue') {
             facets.forEach((facet) => {
-                if (
-                    facet.field ===
-                    'file_sets.libraries.analytes.samples.sample_sources.uberon_id'
-                ) {
+                if (facet.field === 'sample_summary.tissues') {
                     setValue(facet.terms.length);
                 }
             });

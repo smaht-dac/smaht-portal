@@ -7,6 +7,28 @@ smaht-portal
 Change Log
 ----------
 
+0.164.1
+=======
+`PR 409: fix: update browse view tissue statistic <https://github.com/smaht-dac/smaht-portal/pull/409>`_
+
+* Update Browse View statistics to correct tissue count
+
+
+0.164.0
+=======
+`PR 408: SN Add additional_notes <https://github.com/smaht-dac/smaht-portal/pull/408>`_
+
+* Add property `additional_notes` to Sequencing
+
+
+0.163.0
+=======
+`PR 407: SN upgradeAnalytePrep <https://github.com/smaht-dac/smaht-portal/pull/407>`_
+
+* Add upgrader changing property `cell_sorting_method` to `cell_selection_method` in AnalytePreparation and update enums
+* Add enums to File data_category and data_type for STORM-Seq metadata files
+
+
 0.162.2
 =======
 `PR 400: feat: add tissue codes to benchmarking page titles <https://github.com/smaht-dac/smaht-portal/pull/400>`_
