@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.165.1
+=======
+`PR 410 fix: use retraction_reason in file view alert <https://github.com/smaht-dac/smaht-portal/pull/410>`
+
+* Use retraction_reason property to create file overview alert string instead of notes_to_tsv
+
+
 0.165.0
 =======
 `PR 334 feat: tooltip for sample information definitions <https://github.com/smaht-dac/smaht-portal/pull/334>`
