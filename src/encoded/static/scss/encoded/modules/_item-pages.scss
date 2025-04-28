@@ -1516,6 +1516,7 @@ File Overview Styles
 							&-title {
 								color: $carbon-gray;
 								width: 120px;
+								word-break: break-word;
 							}
 							&-value {
 								flex: 1;
@@ -1984,5 +1985,15 @@ File Overview Styles
 				}
 			}
 		}
+	}
+}
+
+
+/****************************
+Popover Styles for Item Pages
+*****************************/
+.popover {
+	&#description-definitions-popover {
+		max-width: 600px;
 	}
 }
