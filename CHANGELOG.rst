@@ -7,11 +7,47 @@ smaht-portal
 Change Log
 ----------
 
-0.163.0
+0.166.0
 =======
 `PR 379: feat: implement QC Overview Tab <https://github.com/smaht-dac/smaht-portal/pull/384>`_
 
 * Populate quality metrics tab in QC overview tab
+
+
+0.165.0
+=======
+`PR 334 feat: tooltip for sample information definitions <https://github.com/smaht-dac/smaht-portal/pull/334>`
+
+* Adds popover for sample description definitions
+
+
+0.164.1
+=======
+`PR 409: fix: update browse view tissue statistic <https://github.com/smaht-dac/smaht-portal/pull/409>`_
+
+* Update Browse View statistics to correct tissue count
+
+
+0.164.0
+=======
+`PR 408: SN Add additional_notes <https://github.com/smaht-dac/smaht-portal/pull/408>`_
+
+* Add property `additional_notes` to Sequencing
+
+
+0.163.0
+=======
+`PR 407: SN upgradeAnalytePrep <https://github.com/smaht-dac/smaht-portal/pull/407>`_
+
+* Add upgrader changing property `cell_sorting_method` to `cell_selection_method` in AnalytePreparation and update enums
+* Add enums to File data_category and data_type for STORM-Seq metadata files
+
+
+0.162.2
+=======
+`PR 400: feat: add tissue codes to benchmarking page titles <https://github.com/smaht-dac/smaht-portal/pull/400>`_
+
+* Add tissue code to the benchmarking page titles
 
 
 0.162.1
