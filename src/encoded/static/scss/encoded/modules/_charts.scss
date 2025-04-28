@@ -1647,6 +1647,9 @@ body[data-path="/statistics"] {
 
 
 /************* Stacked Block Matrixy-Viz ************/
+.data-matrix.static-section > .row, .data-matrix.static-section .row.grouping-row {
+    flex-wrap: nowrap !important;
+}
 
 .stacked-block-viz-container {
 
