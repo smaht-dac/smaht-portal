@@ -84,7 +84,7 @@ export class VisualBody extends React.PureComponent {
      * @param {Object} props Props passed in from the StackedBlockVisual Component instance.
      */
     blockPopover(data, blockProps, parentGrouping){
-        const { queryUrl, fieldChangeMap, valueChangeMap, titleMap, groupingProperties, columnGrouping } = this.props;
+        const { query: { url: queryUrl, column_agg_fields, row_agg_fields }, fieldChangeMap, valueChangeMap, titleMap, groupingProperties, columnGrouping } = this.props;
         const { depth } = blockProps;
         const isGroup = (Array.isArray(data) && data.length > 1) || false;
         let aggrData;
@@ -115,23 +115,49 @@ export class VisualBody extends React.PureComponent {
 
         function makeSearchButton(disabled=false){
             const currentFilteringProperties = groupingProperties.slice(0, depth + 1).concat([columnGrouping]);
-            const currentFilteringPropertiesVals = _.object(
-                _.map(currentFilteringProperties, function(property){
-                    const facetField = fieldChangeMap[property];
-                    let facetTerm = aggrData[property];
-                    if (valueChangeMap && valueChangeMap[property]){
-                        const reversedValChangeMapForCurrSource = VisualBody.invert(valueChangeMap[property]);
-                        facetTerm = reversedValChangeMapForCurrSource[facetTerm] || facetTerm;
-                    }
+            const currentFilteringPropertiesPairs = _.map(currentFilteringProperties, function (property) {
+                const facetField = fieldChangeMap[property];
+                let facetTerm = aggrData[property];
+                if (valueChangeMap && valueChangeMap[property]) {
+                    const reversedValChangeMapForCurrSource = VisualBody.invert(valueChangeMap[property]);
+                    facetTerm = reversedValChangeMapForCurrSource[facetTerm] || facetTerm;
+                }
 
-                    //TODO: handle composite values in a smart way, this workaround is too primitive
-                    if (facetTerm && typeof facetTerm === 'string' && facetTerm.indexOf(' - ') > -1) {
-                        [facetTerm] = facetTerm.split(' - ');
-                    }
+                //TODO: handle composite values in a smart way, this workaround is too hacky
+                if (facetTerm && typeof facetTerm === 'string' && facetTerm.indexOf(' - ') > -1) {
+                    let extendedFacetTerm;
+                    [facetTerm, extendedFacetTerm] = facetTerm.split(' - ');
+                    return [[facetField, facetTerm], ['sequencing.sequencer.platform', extendedFacetTerm]];
+                }
 
-                    return [ facetField, facetTerm ];
-                })
-            );
+                return [facetField, facetTerm];
+            });
+
+            const convertPairsToObject = (pairs) => {
+                const result = {};
+
+                pairs.forEach((pair) => {
+                    // If the item itself is an array of [key, value] pairs
+                    if (Array.isArray(pair) && Array.isArray(pair[0]) && pair[0].length === 2) {
+                        // Loop through each sub-pair
+                        pair.forEach((subPair) => {
+                            const [key, value] = subPair;
+                            result[key] = value;
+                        });
+                    } else if (Array.isArray(pair) && pair.length === 2) {
+                        // It's a normal [key, value] pair
+                        const [key, value] = pair;
+                        result[key] = value;
+                    } else {
+                        // Unexpected structure
+                        throw new Error("Invalid input structure.");
+                    }
+                });
+
+                return result;
+            };
+
+            const currentFilteringPropertiesVals = convertPairsToObject(currentFilteringPropertiesPairs);//_.object(currentFilteringPropertiesPairs);
 
             const initialHref = queryUrl;
             const hrefParts = url.parse(initialHref, true);
@@ -149,17 +175,6 @@ export class VisualBody extends React.PureComponent {
             );
         }
 
-        function makeSingleItemButton(disabled=false) {
-            let path = object.itemUtil.atId(data);
-            const hrefParts = url.parse(queryUrl, true);
-            if (hrefParts && hrefParts.hostname && hrefParts.protocol) {
-                path = hrefParts.protocol + "//" + hrefParts.hostname + path;
-            }// else will be abs path relative to current domain.
-            return (
-                <Button disabled={disabled} href={path} target="_blank" bsStyle="primary" className="w-100 mt-1">View File</Button>
-            );
-        }
-
         // We will render only values shown in titleMap _minus_ groupingProperties & columnGrouping
         const keysToShow = _.without(_.keys(titleMap), columnGrouping, ...groupingProperties);
         const keyValsToShow = _.pick(aggrData, ...keysToShow);
@@ -171,17 +186,17 @@ export class VisualBody extends React.PureComponent {
                     {isGroup ?
                         <div className="inner">
                             <div className="row primary-row pb-1 pt-1">
-                                <div className="col-4">
+                                <div className="col-5">
                                     <span className="text-400 me-05">{primaryGroupingPropertyTitle}:</span>
                                     <span className="text-500">{primaryGroupingPropertyValue}</span>
                                 </div>
-                                <div className="col-8 text-end">
+                                <div className="col-7 text-end">
                                     <span className="text-400 me-05">{yAxisGroupingTitle}:</span>
                                     <span className="text-500">{yAxisGroupingValue}</span>
                                 </div>
                             </div>
                             <div className="row secondary-row pb-1 mt-1">
-                                <div className="col-4">
+                                <div className="col-5">
                                     {depth > 0 ? (
                                         <React.Fragment>
                                             <div className="label text-400">{secondaryGroupingPropertyTitle}:</div>
@@ -189,7 +204,7 @@ export class VisualBody extends React.PureComponent {
                                         </React.Fragment>
                                     ) : null}
                                 </div>
-                                <div className="col-8 text-end">
+                                <div className="col-7 text-end">
                                     <div className="label text-400">Total Files</div>
                                     <div className="value text-600">{data.length}</div>
                                 </div>
@@ -656,6 +671,22 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         return merged;
     });
 
+    static intersectionIgnoreCase = memoize(function (arr1, arr2) {
+        if (!Array.isArray(arr1) || !Array.isArray(arr2)) return [];
+
+        const lowerSet2 = new Set(arr2.map((x) => x.toLowerCase()));
+
+        return arr1.filter((item) => lowerSet2.has(item.toLowerCase()));
+    });
+
+    static differenceIgnoreCase = memoize(function (arr1, arr2) {
+        if (!Array.isArray(arr1) || !Array.isArray(arr2)) return [];
+
+        const lowerSet2 = new Set(arr2.map((x) => x.toLowerCase()));
+
+        return arr1.filter((item) => !lowerSet2.has(item.toLowerCase()));
+    });
+
     /** @todo Convert to functional memoized React component */
     static collapsedChildBlocks = memoize(function(data, props){
 
@@ -922,7 +953,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 <div className="d-flex header-group-text">
                                     {
                                         _.keys(columnGroups).map(function (groupKey) {
-                                            const colSpan = _.intersection(columnKeys, columnGroups[groupKey]?.values || []).length;
+                                            const colSpan = StackedBlockGroupedRow.intersectionIgnoreCase(columnKeys, columnGroups[groupKey]?.values || []).length;
                                             if (colSpan === 0) {
                                                 return null;
                                             }
@@ -951,7 +982,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     {
                                         _.keys(columnGroupsExtended).map(function (groupExtendedKey) {
                                             const colCount = _.reduce(columnGroupsExtended[groupExtendedKey].values, function (memo, groupKey) {
-                                                const count = _.intersection(columnKeys, columnGroups[groupKey]?.values || []).length;
+                                                const count = StackedBlockGroupedRow.intersectionIgnoreCase(columnKeys, columnGroups[groupKey]?.values || []).length;
                                                 return memo + count;
                                             }, 0);
                                             if (colCount === 0) {
@@ -981,7 +1012,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     const style = {
                                         'width': columnWidth, // Width for each column
                                         'minWidth': columnWidth,
-                                        'minHeight': this.props.blockHeight + this.props.blockVerticalSpacing,               // Height for each row
+                                        'minHeight': this.props.blockHeight + this.props.blockVerticalSpacing, // Height for each row
                                         'paddingLeft': this.props.blockHorizontalSpacing,
                                         'paddingRight': this.props.blockHorizontalSpacing,
                                         'paddingTop': this.props.blockVerticalSpacing
@@ -1026,6 +1057,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             );
         }
 
+        const rowGroupsExtendedKeys = hasRowGroupsExtended ? [..._.keys(rowGroupsExtended), 'N/A'] : null;
+
         const rowHeight = blockHeight + (blockVerticalSpacing * 2) + 1;
         const childBlocks = !open ? StackedBlockGroupedRow.collapsedChildBlocks(data, this.props) : (
             <div className="open-empty-placeholder" style={{ 'height' : rowHeight, 'marginLeft' : blockHorizontalSpacing }}/>
@@ -1057,9 +1090,17 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
                     <div className="child-blocks">
                         {open && childRowsKeys && hasRowGroupsExtended &&
-                            _.map(_.keys(rowGroupsExtended), function (rgKey) {
-                                const { values, backgroundColor, textColor } = rowGroupsExtended[rgKey];
-                                const rowGroupChildRowsKeys = _.intersection(childRowsKeys, values);
+                            _.map(rowGroupsExtendedKeys, function (rgKey, idx) {
+                                const { values, backgroundColor, textColor } = rowGroupsExtended[rgKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
+
+                                let rowGroupChildRowsKeys;
+                                if (rgKey === 'N/A') { //special case for N/A
+                                    const allValues = StackedBlockGroupedRow.mergeValues(rowGroupsExtended);
+                                    // not intersecting childRowsKeys and allValues
+                                    rowGroupChildRowsKeys = StackedBlockGroupedRow.differenceIgnoreCase(childRowsKeys, allValues);
+                                } else {
+                                    rowGroupChildRowsKeys = StackedBlockGroupedRow.intersectionIgnoreCase(childRowsKeys, values);
+                                }
                                 const rowSpan = rowGroupChildRowsKeys.length;
 
                                 if (rowSpan === 0) return null;

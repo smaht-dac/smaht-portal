@@ -124,11 +124,6 @@
                 "backgroundColor": "#70a588",
                 "textColor": "#ffffff",
                 "shortName": "Clin"
-            },
-            "N/A": {
-                "values": ['Endocrine pancreas'],
-                "backgroundColor": "#ffffff",
-                "textColor": "#000000"
             }
         }}
         showRowGroupsExtended={true}
@@ -136,6 +131,6 @@
         baseColorOverride="#6f2da8"
         xAxisLabel="Assay"
         yAxisLabel="Donor"
-        useTestData={false}
+        useTestData={false} //use test data for development
     />
 </div>

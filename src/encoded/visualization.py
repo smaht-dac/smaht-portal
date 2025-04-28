@@ -10,7 +10,7 @@ from pyramid.view import view_config
 # from snovault import CONNECTION
 from snovault.util import debug_log
 from snovault.search.search import (
-    search as perform_search_request, 
+    search as perform_search_request,
     make_search_subreq
 )
 from urllib.parse import urlencode
@@ -59,9 +59,9 @@ def date_histogram_aggregations(context, request):
     # Defaults - may be overriden in URI params
     date_histogram_fields = ['file_status_tracking.uploading', 'file_status_tracking.uploaded', 'file_status_tracking.released']
     group_by_fields = [
-        'data_generation_summary.submission_centers', 'data_generation_summary.sequencing_center', 
+        'data_generation_summary.submission_centers', 'data_generation_summary.sequencing_center',
         'data_generation_summary.data_type', 'data_generation_summary.data_category', 'file_format.display_title',
-        'data_generation_summary.assays', 
+        'data_generation_summary.assays',
         'data_generation_summary.sequencing_platforms', 'dataset', 'software.display_title'
         ]
     date_histogram_intervals = ['weekly']
@@ -198,7 +198,7 @@ DATE_RANGE_PRESETS = {
 def convert_date_range(date_range_str):
     data_range_split = date_range_str.split('|')
     preset = data_range_split[0]
-    
+
     if preset not in DATE_RANGE_PRESETS and preset != 'custom':
         raise IndexError(f'"{preset}" is not one of {", ".join(DATE_RANGE_PRESETS.keys())} or custom.')
 

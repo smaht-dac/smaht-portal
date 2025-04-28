@@ -66,7 +66,6 @@ export default class DataMatrix extends React.PureComponent {
         'groupingProperties': PropTypes.arrayOf(PropTypes.string),
         'columnGrouping': PropTypes.string,
         'headerFor': PropTypes.oneOfType([PropTypes.element, PropTypes.string]),
-        'sectionStyle': PropTypes.object,
         'fallbackNameForBlankField': PropTypes.string,
         'statePrioritizationForGroups': PropTypes.arrayOf(PropTypes.string),
         'headerPadding': PropTypes.number,
@@ -329,7 +328,7 @@ export default class DataMatrix extends React.PureComponent {
 
     render() {
         const {
-            headerFor, sectionStyle, valueChangeMap, allowedFields,
+            headerFor, valueChangeMap, allowedFields,
             columnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, rowGroupsExtended, showRowGroupsExtended,
             xAxisLabel, yAxisLabel, disableConfigurator = false
@@ -351,9 +350,8 @@ export default class DataMatrix extends React.PureComponent {
         }
 
         const resultKey = "_results";
-        const url = query.url;
         const bodyProps = {
-            groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
+            query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
             columnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, rowGroupsExtended, showRowGroupsExtended,
             xAxisLabel, yAxisLabel
@@ -363,7 +361,7 @@ export default class DataMatrix extends React.PureComponent {
             <DataMatrixConfigurator
                 columnDimensions={allowedFields}
                 rowDimensions={allowedFields}
-                searchUrl={url}
+                searchUrl={query.url}
                 selectedColumnValue={query.column_agg_fields[0]}
                 selectedRow1Value={query.row_agg_fields[0]}
                 selectedRow2Value={query.row_agg_fields.length > 2 ? query.row_agg_fields[1] : null}
@@ -382,7 +380,6 @@ export default class DataMatrix extends React.PureComponent {
                 {/* { (headerFor && headerFor) || {null} } */}
                 <VisualBody
                     {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
-                    queryUrl={url}
                     {...bodyProps}
                     columnSubGrouping="state"
                     // eslint-disable-next-line react/destructuring-assignment
