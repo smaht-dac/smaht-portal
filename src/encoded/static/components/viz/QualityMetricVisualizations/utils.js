@@ -111,7 +111,7 @@ export const getBadge = (
     } else if (flag === 'Fail' || flag === 'No') {
         return (
             <span className="badge text-white bg-danger">
-                {withIcon && <i className="icon icon-ban fas"></i>}
+                {withIcon && <i className="icon icon-exclamation fas"></i>}
                 {flag}
             </span>
         );
