@@ -51,6 +51,8 @@ export default class DataMatrix extends React.PureComponent {
             "data_category",
             "software.display_title"
         ],
+        "xAxisLabel": "X",
+        "yAxisLabel": "Y",
         "disableConfigurator": false,
         "useTestData": false // to be removed
     };
@@ -74,7 +76,6 @@ export default class DataMatrix extends React.PureComponent {
         'colorRanges': PropTypes.arrayOf(PropTypes.object),
         'baseColorOverride': PropTypes.string,
         'allowedFields': PropTypes.arrayOf(PropTypes.string),
-        'disableConfigurator': PropTypes.bool,
         'columnGroups': PropTypes.object,
         'columnGroupsExtended': PropTypes.object,
         'showColumnGroupsExtended': PropTypes.bool,
@@ -83,6 +84,7 @@ export default class DataMatrix extends React.PureComponent {
         'showRowGroupsExtended': PropTypes.bool,
         'xAxisLabel': PropTypes.string,
         'yAxisLabel': PropTypes.string,
+        'disableConfigurator': PropTypes.bool,
     };
 
     static convertResult(result, fieldChangeMap, valueChangeMap, statusStateTitleMap, fallbackNameForBlankField) {
@@ -180,7 +182,10 @@ export default class DataMatrix extends React.PureComponent {
             "fieldChangeMap": props.fieldChangeMap,
             "columnGrouping": props.columnGrouping,
             "groupingProperties": props.groupingProperties,
-            "colorRanges": colorRangesOverriden || props.colorRanges || []
+            "colorRanges": colorRangesOverriden || props.colorRanges || [],
+            "columnGroups": props.columnGroups,
+            "xAxisLabel": props.xAxisLabel,
+            "yAxisLabel": props.yAxisLabel,
         };
     }
 
@@ -250,8 +255,6 @@ export default class DataMatrix extends React.PureComponent {
                         }));
                 }
             });
-            // TODO: re-implement query to remove hardcoded filtering
-            // transfermedData = _.filter(transfermedData, function (r) { return r.donor.indexOf('SMHT') > -1 || r.donor.indexOf('ST') > -1; });
 
             updatedState[resultKey] = transfermedData;
 
@@ -308,32 +311,38 @@ export default class DataMatrix extends React.PureComponent {
         );
     }
 
-    onApplyConfiguration(searchUrl, column, row1, row2, ranges) {
-        console.log(searchUrl, column, row1, row2, ranges);
+    onApplyConfiguration(searchUrl, column, row1, row2, ranges, columnGroups, xAxisLabel, yAxisLabel) {
+        console.log(searchUrl, column, row1, row2, ranges, columnGroups, xAxisLabel, yAxisLabel);
         this.setState({
+            ...this.state,
             query: {
                 ...this.state.query,
                 url: searchUrl,
-                agg_fields: row2 ? [column, row1, row2] : [column, row1]
+                //agg_fields: row2 ? [column, row1, row2] : [column, row1]
             },
-            fieldChangeMap: {
-                [DataMatrixConfigurator.getNestedFieldName(column)]: column,
-                [DataMatrixConfigurator.getNestedFieldName(row1)]: row1
-            },
-            columnGrouping: DataMatrixConfigurator.getNestedFieldName(column),
-            groupingProperties: [DataMatrixConfigurator.getNestedFieldName(row1)],
-            colorRanges: ranges
+            // fieldChangeMap: {
+            //     [DataMatrixConfigurator.getNestedFieldName(column)]: column,
+            //     [DataMatrixConfigurator.getNestedFieldName(row1)]: row1
+            // },
+            // columnGrouping: DataMatrixConfigurator.getNestedFieldName(column),
+            // groupingProperties: [DataMatrixConfigurator.getNestedFieldName(row1)],
+            colorRanges: ranges,
+            columnGroups: columnGroups,
+            xAxisLabel: xAxisLabel,
+            yAxisLabel: yAxisLabel
         });
     }
 
     render() {
         const {
             headerFor, valueChangeMap, allowedFields,
-            columnGroups, columnGroupsExtended, showColumnGroupsExtended,
+            columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, rowGroupsExtended, showRowGroupsExtended,
-            xAxisLabel, yAxisLabel, disableConfigurator = false
+            disableConfigurator = false
         } = this.props;
-        const { query, fieldChangeMap, columnGrouping, groupingProperties, colorRanges } = this.state;
+        const { query, fieldChangeMap, columnGrouping, groupingProperties,
+            columnGroups,
+            colorRanges, xAxisLabel, yAxisLabel } = this.state;
 
         const isLoading =
             // eslint-disable-next-line react/destructuring-assignment
@@ -370,6 +379,8 @@ export default class DataMatrix extends React.PureComponent {
                 initialRowGroups={rowGroups} //not implemented yet
                 initialRowGroupsExtended={rowGroupsExtended} //not implemented yet
                 colorRanges={colorRanges}
+                initialXAxisLabel={xAxisLabel}
+                initialYAxisLabel={yAxisLabel}
                 onApply={this.onApplyConfiguration}
             />
         );
@@ -377,7 +388,7 @@ export default class DataMatrix extends React.PureComponent {
         const body = (
             <div>
                 {configurator}
-                {/* { (headerFor && headerFor) || {null} } */}
+                { headerFor || null }
                 <VisualBody
                     {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
                     {...bodyProps}

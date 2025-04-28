@@ -17,6 +17,8 @@ const DataMatrixConfigurator = ({
     selectedRow1Value,
     selectedRow2Value,
     initialColumnGroups,
+    initialXAxisLabel,
+    initialYAxisLabel,
     onApply
 }) => {
     const [searchUrl, setSearchUrl] = useState(propSearchUrl);
@@ -24,6 +26,9 @@ const DataMatrixConfigurator = ({
     const [selectedRow1, setSelectedRow1] = useState(selectedRow1Value);
     const [selectedRow2, setSelectedRow2] = useState(selectedRow2Value);
     const [ranges, setRanges] = useState(colorRanges.length > 0 ? colorRanges : [{ min: 0, max: '', color: '' }]);
+    const [columnGroups, setColumnGroups] = useState(initialColumnGroups);
+    const [xAxisLabel, setXAxisLabel] = useState(initialXAxisLabel);
+    const [yAxisLabel, setYAxisLabel] = useState(initialYAxisLabel);
     const [showPopover, setShowPopover] = useState(false);
     const [errors, setErrors] = useState({});
     const popoverRef = useRef();
@@ -135,7 +140,7 @@ const DataMatrixConfigurator = ({
             return;
         }
 
-        onApply(searchUrl, selectedColumn, selectedRow1, selectedRow2, ranges);
+        onApply(searchUrl, selectedColumn, selectedRow1, selectedRow2, ranges, columnGroups, xAxisLabel, yAxisLabel);
         setShowPopover(false);
     };
 
@@ -156,7 +161,7 @@ const DataMatrixConfigurator = ({
 
             {/* Button to toggle popover */}
             <Button variant="link" id="config-btn" className="p-0" onClick={() => setShowPopover(!showPopover)}>
-                <i className="icon icon-fw icon-gear fas" /> <span className='text-muted small'>{DataMatrixConfigurator.getNestedFieldName(selectedRow1Value) + ' x ' + DataMatrixConfigurator.getNestedFieldName(selectedColumnValue)}</span>
+                <i className="icon icon-fw icon-gear fas" /> <span className="text-muted small">{DataMatrixConfigurator.getNestedFieldName(selectedRow1Value) + ' x ' + DataMatrixConfigurator.getNestedFieldName(selectedColumnValue)}</span>
             </Button>
 
             {/* Popover content */}
@@ -164,7 +169,7 @@ const DataMatrixConfigurator = ({
                 <Popover id="config-popover" ref={popoverRef} style={{ maxWidth: '600px', width: '100%', zIndex: 1050, position: 'absolute' }}>
                     <Popover.Body>
                         <div className="d-flex flex-column">
-                            <h5 className='mt-0 mb-1'>Data Matrix Configurator</h5>
+                            <h5 className="mt-0 mb-1">Data Matrix Configurator</h5>
 
                             <Tabs defaultActiveKey="home" id="uncontrolled-tab-example" className="mb-3">
                                 <Tab eventKey="home" title="Home">
@@ -172,6 +177,18 @@ const DataMatrixConfigurator = ({
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Search URL</Form.Label>
                                         <Form.Control type="text" value={searchUrl} onChange={(e) => setSearchUrl(e.target.value)} />
+                                    </Form.Group>
+
+                                    {/* X Axis Label */}
+                                    <Form.Group className="d-flex align-items-center mb-05">
+                                        <Form.Label className="me-2" style={labelStyle}>X-Axis Label</Form.Label>
+                                        <Form.Control type="text" value={xAxisLabel} onChange={(e) => setXAxisLabel(e.target.value)} />
+                                    </Form.Group>
+
+                                    {/* Y Axis Label */}
+                                    <Form.Group className="d-flex align-items-center mb-05">
+                                        <Form.Label className="me-2" style={labelStyle}>Y-Axis Label</Form.Label>
+                                        <Form.Control type="text" value={yAxisLabel} onChange={(e) => setYAxisLabel(e.target.value)} />
                                     </Form.Group>
 
                                     {/* Column Dimension */}
@@ -233,7 +250,7 @@ const DataMatrixConfigurator = ({
                                     })}
                                 </Tab>
                                 <Tab eventKey="columnGrouping" title="Column Grouping">
-                                    <TierWizard initialData={initialColumnGroups} />
+                                    <TierWizard initialData={columnGroups} onComplete={(value) => setColumnGroups(value)} />
                                 </Tab>
                             </Tabs>
 
@@ -270,7 +287,7 @@ function shadeColor(color, amount) {
 
     // If it's a 3-character hex, expand it (e.g., "#f00" => "#ff0000")
     if (col.length === 3) {
-      col = col[0] + col[0] + col[1] + col[1] + col[2] + col[2];
+        col = col[0] + col[0] + col[1] + col[1] + col[2] + col[2];
     }
 
     // Convert R, G, B from hex to integer
@@ -340,7 +357,7 @@ const updateColorRanges = function (colorRanges, newBaseColor, darkestShift = -1
     });
 
     return clonedColorRanges;
-}
+};
 
 const Chip = ({ label, onDelete, onDragStart, onDragOver, onDrop }) => (
     <div
@@ -523,12 +540,19 @@ const TierForm = ({ tier, onTierChange, onRemove, suggestions }) => {
                     />
                 </Form.Group>
                 <Form.Group className="mb-3">
+                    <Form.Label>Short Name</Form.Label>
+                    <Form.Control
+                        type="text"
+                        name="shortName"
+                        value={tier.shortName}
+                        onChange={handleChange}
+                    />
+                </Form.Group>
+                <Form.Group className="mb-3">
                     <Form.Label>Values</Form.Label>
                     <ChipsContainer
                         chips={tier.values}
-                        onChange={(newValues) =>
-                            onTierChange({ ...tier, values: newValues })
-                        }
+                        onChange={(newValues) => onTierChange({ ...tier, values: newValues })}
                         suggestions={suggestions}
                     />
                 </Form.Group>
@@ -543,7 +567,6 @@ const TierForm = ({ tier, onTierChange, onRemove, suggestions }) => {
 };
 
 const TierWizard = ({ initialData, suggestions = [], onComplete }) => {
-    // initialData obje formatında geliyor, örneğin:
     // {
     //   "Tier 1": {
     //       "values": [...],
@@ -552,72 +575,73 @@ const TierWizard = ({ initialData, suggestions = [], onComplete }) => {
     //   },
     //   "Tier 2": { ... }
     // }
-    // Bu objeyi array yapısına dönüştürüyoruz.
     const initialTiers = () => Object.keys(initialData).map((tierName) => ({
-      name: tierName,
-      ...initialData[tierName],
+        name: tierName,
+        ...initialData[tierName],
     }));
-  
+
     const [tiers, setTiers] = useState(initialTiers);
-  
+
     const handleTierChange = (index, updatedTier) => {
-      const newTiers = tiers.map((tier, idx) =>
-        idx === index ? updatedTier : tier
-      );
-      setTiers(newTiers);
+        const newTiers = tiers.map((tier, idx) =>
+            idx === index ? updatedTier : tier
+        );
+        setTiers(newTiers);
     };
-  
+
     const addTier = () => {
-      const newTierNumber = tiers.length + 1;
-      const newTier = {
-        name: `Tier ${newTierNumber}`,
-        backgroundColor: '#ffffff',
-        textColor: '#000000',
-        values: [],
-      };
-      setTiers([...tiers, newTier]);
-    };
-  
-    const removeTier = (index) => {
-      const newTiers = tiers.filter((_, idx) => idx !== index);
-      setTiers(newTiers);
-    };
-  
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      // Wizard verisini istenen object formatına dönüştürüyoruz.
-      const wizardData = tiers.reduce((acc, tier) => {
-        acc[tier.name] = {
-          values: tier.values,
-          backgroundColor: tier.backgroundColor,
-          textColor: tier.textColor,
+        const newTierNumber = tiers.length + 1;
+        const newTier = {
+            name: `Tier ${newTierNumber}`,
+            backgroundColor: '#ffffff',
+            textColor: '#000000',
+            shortName: null,
+            values: [],
         };
-        return acc;
-      }, {});
-      console.log(wizardData);
-      // wizardData'yı API'ye gönderebilir veya başka işlemlerde kullanabilirsiniz.
-      onComplete(wizardData);
+        setTiers([...tiers, newTier]);
     };
-  
+
+    const removeTier = (index) => {
+        const newTiers = tiers.filter((_, idx) => idx !== index);
+        setTiers(newTiers);
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        const wizardData = tiers.reduce((acc, tier) => {
+            acc[tier.name] = {
+                values: tier.values,
+                backgroundColor: tier.backgroundColor,
+                textColor: tier.textColor,
+                shortName: tier.shortName
+            };
+            return acc;
+        }, {});
+        console.log(wizardData);
+        // Call the onComplete function with the wizard data
+        onComplete(wizardData);
+    };
+
     return (
-      <Form onSubmit={handleSubmit}>
-        {tiers.map((tier, index) => (
-          <TierForm
-            key={index}
-            tier={tier}
-            onTierChange={(updatedTier) => handleTierChange(index, updatedTier)}
-            onRemove={() => removeTier(index)}
-            suggestions={suggestions}
-          />
-        ))}
-        <Button variant="primary" onClick={addTier}>
-          Add Tier
-        </Button>
-        <Button variant="success" type="submit" className="ms-2">
-          Submit
-        </Button>
-      </Form>
+        <Form onSubmit={handleSubmit}>
+            {tiers.map((tier, index) => (
+                <TierForm
+                    key={index}
+                    tier={tier}
+                    onTierChange={(updatedTier) => handleTierChange(index, updatedTier)}
+                    onRemove={() => removeTier(index)}
+                    suggestions={suggestions}
+                />
+            ))}
+            <Button variant="primary" onClick={addTier}>
+                Add Tier
+            </Button>
+            <Button variant="success" className="ms-2" onClick={handleSubmit}>
+                Submit
+            </Button>
+        </Form>
     );
-  };
+};
 
 export { DataMatrixConfigurator, updateColorRanges };

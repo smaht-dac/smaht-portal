@@ -179,7 +179,7 @@ export class VisualBody extends React.PureComponent {
         const keysToShow = _.without(_.keys(titleMap), columnGrouping, ...groupingProperties);
         const keyValsToShow = _.pick(aggrData, ...keysToShow);
 
-        const viewButtonDisabled = false; // (onlyNonAdditionalItemsCount === 0 && additionalItems.length > 0) || false;
+        const viewButtonDisabled = false;
         return (
             <Popover id="jap-popover">
                 <Popover.Body>
@@ -606,7 +606,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
     /**
      * returns {groupingKey, count}. count is sorted fields column group length.
      */
-    static sortBlock (data, groupedDataIndices, groupingKey, sortField) {
+    static sortBlock(data, groupedDataIndices, groupingKey, sortField) {
 
         let allChildBlocks = null;
         if (Array.isArray(data)) {
