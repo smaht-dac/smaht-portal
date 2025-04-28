@@ -27,48 +27,45 @@ const DataCard = ({ header = '', data = [] }) => {
                 <span className="header-text">{header}</span>
             </div>
             <div className="body">
-                {data.map(
-                    ({ title, value = null, title_popover = null }, i) => {
-                        return (
-                            <div className="datum" key={i}>
-                                <div className="datum-title">
-                                    <span>{title}</span>
-                                    {title_popover && (
-                                        <OverlayTrigger
-                                            trigger={['hover', 'focus']}
-                                            overlay={title_popover}
-                                            placement="left"
-                                            flip={true}
-                                            popperConfig={{
-                                                modifiers: [
-                                                    {
-                                                        name: 'flip',
-                                                        options: {
-                                                            fallbackPlacements:
-                                                                [
-                                                                    'right',
-                                                                    'bottom',
-                                                                    'top',
-                                                                ],
-                                                        },
+                {data.map(({ title, value = null, titlePopover = null }, i) => {
+                    return (
+                        <div className="datum" key={i}>
+                            <div className="datum-title">
+                                <span>{title}</span>
+                                {titlePopover && (
+                                    <OverlayTrigger
+                                        trigger={['hover', 'focus']}
+                                        overlay={titlePopover}
+                                        placement="left"
+                                        flip={true}
+                                        popperConfig={{
+                                            modifiers: [
+                                                {
+                                                    name: 'flip',
+                                                    options: {
+                                                        fallbackPlacements: [
+                                                            'right',
+                                                            'bottom',
+                                                            'top',
+                                                        ],
                                                     },
-                                                ],
-                                            }}>
-                                            <i className="icon icon-info-circle fas ms-1"></i>
-                                        </OverlayTrigger>
-                                    )}
-                                </div>
-                                <div
-                                    className={
-                                        'datum-value' +
-                                        (value === null ? ' coming-soon' : '')
-                                    }>
-                                    {value ?? 'N/A'}
-                                </div>
+                                                },
+                                            ],
+                                        }}>
+                                        <i className="icon icon-info-circle fas ms-1"></i>
+                                    </OverlayTrigger>
+                                )}
                             </div>
-                        );
-                    }
-                )}
+                            <div
+                                className={
+                                    'datum-value' +
+                                    (value === null ? ' coming-soon' : '')
+                                }>
+                                {value ?? 'N/A'}
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
@@ -296,7 +293,7 @@ const default_sample_information = [
         title: 'Description',
         getProp: (context = {}) =>
             context?.sample_summary?.sample_descriptions?.join(', '),
-        title_popover: renderDescriptionPopover(),
+        titlePopover: renderDescriptionPopover(),
     },
     {
         title: 'Study',
@@ -381,11 +378,11 @@ export const FileViewDataCards = ({ context = {} }) => {
             <DataCard
                 header={'Sample Information'}
                 data={sample_information.map(
-                    ({ title, getProp, title_popover }) => {
+                    ({ title, getProp, titlePopover }) => {
                         return {
                             title,
                             value: getProp(context),
-                            title_popover,
+                            titlePopover,
                         };
                     }
                 )}
