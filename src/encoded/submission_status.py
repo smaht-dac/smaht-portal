@@ -36,6 +36,11 @@ UWSC_GCC = "UWSC GCC"
 
 MAX_FILESETS = 30
 
+CELL_CULTURE_MIXTURES = [
+    'HAPMAP6',
+    'COLO829BLT50',
+]
+
 
 def includeme(config):
     config.add_route("get_submission_status", "/get_submission_status/")
@@ -313,9 +318,13 @@ def add_submission_status_search_filters(
         "cell_culture_mixtures_and_tissues" in filter
         and filter["cell_culture_mixtures_and_tissues"] != "all"
     ):
-        search_params["libraries.analytes.samples.sample_sources.code"] = filter[
+        filter_value = filter[
             "cell_culture_mixtures_and_tissues"
         ]
+        if filter_value in CELL_CULTURE_MIXTURES:
+            search_params["libraries.analytes.samples.sample_sources.code"] = filter_value
+        else:
+            search_params["tissue_types"] = filter_value
     if filter.get("include_tags"):
         search_params["tags"] = filter["include_tags"]
     if filter.get("exclude_tags"):

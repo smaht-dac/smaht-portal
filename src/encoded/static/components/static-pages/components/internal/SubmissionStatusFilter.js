@@ -2,13 +2,14 @@
 
 import React from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { object } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import { fallbackCallback } from './submissionStatusUtils';
 
 import {
     SUBMISSION_STATUS_TAGS,
     DEFAULT_FILTER,
+    PRIMARY_PRODUCTION_TISSUES,
+    CELL_CULTURE_MIXTURES,
 } from './submissionStatusConfig';
 
 const DEFAULT_SELECT = (
@@ -77,6 +78,23 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         );
     };
 
+    getTissuesAndMixtures = () => {
+        const items = [];
+        const tissuesAndMixtures = [
+            ...PRIMARY_PRODUCTION_TISSUES,
+            ...CELL_CULTURE_MIXTURES,
+        ];
+        tissuesAndMixtures.forEach((tissue) => {
+            items.push({
+                title: tissue,
+                code: tissue,
+            });
+        });
+        this.setState({
+            cell_culture_mixtures_and_tissues: items,
+        });
+    };
+
     componentDidMount() {
         this.getItemsFromPortal('SubmissionCenter', 'submission_centers');
         this.getItemsFromPortal('Assay', 'assays');
@@ -86,10 +104,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
             'donors',
             '&submission_centers.display_title=NDRI+TPC'
         );
-        this.getSampleSourceCodes(
-            'SampleSource',
-            'cell_culture_mixtures_and_tissues'
-        );
+        this.getTissuesAndMixtures();
         this.getSampleSourceCodes('CellLine', 'cell_lines');
     }
 
