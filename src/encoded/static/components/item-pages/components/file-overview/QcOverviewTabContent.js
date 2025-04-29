@@ -10,8 +10,10 @@ const formatRawData = (data) => {
     let headers = [];
     let verifyBamId = null;
 
-    // Set the default overall_file_quality_status to 'Pass'
-    let overall_file_quality_status = 'Pass';
+    console.log('formatRawData', data);
+
+    // Set the default overall_file_quality_status to null
+    let overall_file_quality_status = null;
 
     const tableData = data.reduce((acc, qcItem) => {
         // Get the accession of the qcItem
@@ -27,6 +29,11 @@ const formatRawData = (data) => {
             overall_file_quality_status !== 'Fail'
         ) {
             overall_file_quality_status = 'Warn';
+        } else if (
+            overall_quality_status == 'Pass' &&
+            overall_file_quality_status === null // Not "Warn" or "Fail"
+        ) {
+            overall_file_quality_status = 'Pass';
         }
 
         // Loop through the qc_values of each item and save them under the item's accession
@@ -88,6 +95,7 @@ const formatRawData = (data) => {
 // Render a QC Overview table with given quality_metrics items [qcItems]
 const QCOverviewTable = ({ qcItems, accession, isRNASeq = false }) => {
     const [data, setData] = useState(null);
+    console.log('qcItems', data);
 
     useEffect(() => {
         const searchUrl = `/search/?${qcItems
@@ -108,21 +116,25 @@ const QCOverviewTable = ({ qcItems, accession, isRNASeq = false }) => {
             <div className="mt-2">
                 <h2 className="header top mb-2">
                     <div className="d-flex justify-content-between align-items-center">
-                        {data.overall_file_quality_status && (
-                            <span className="d-flex align-items-center gap-1">
-                                QC Overview Status:{' '}
-                                {getBadge(
+                        <span className="d-flex align-items-center gap-1">
+                            QC Overview Status:{' '}
+                            {data?.overall_file_quality_status ? (
+                                getBadge(
                                     data?.overall_file_quality_status,
                                     false,
                                     true
-                                )}
-                            </span>
-                        )}
+                                )
+                            ) : (
+                                <span className="text-muted fw-normal">
+                                    N/A
+                                </span>
+                            )}
+                        </span>
                         <a
                             href={`/qc-metrics?tab=metrics-by-file&file=${accession}`}
                             className="btn btn-sm btn-outline-secondary">
                             <i className="icon icon-chart-area fas me-1"></i>
-                            View File Quality Metrics
+                            Visualize Quality Metrics
                         </a>
                     </div>
                 </h2>
@@ -193,8 +205,14 @@ const QCOverviewTable = ({ qcItems, accession, isRNASeq = false }) => {
                                             </span>
                                             <span className="fw-medium d-flex align-items-center gap-1">
                                                 Overall QC Status:{' '}
-                                                {getBadge(
-                                                    overall_quality_status
+                                                {overall_quality_status ? (
+                                                    getBadge(
+                                                        overall_quality_status
+                                                    )
+                                                ) : (
+                                                    <span className="text-muted fw-normal">
+                                                        N/A
+                                                    </span>
                                                 )}
                                             </span>
                                         </div>
@@ -255,7 +273,7 @@ const QCOverviewTable = ({ qcItems, accession, isRNASeq = false }) => {
                             <td
                                 className="text-left text-secondary"
                                 colSpan={qcItems.length + 1}>
-                                No Quality Metrics Values visible.
+                                No Quality Metrics available.
                             </td>
                         </tr>
                     )}
