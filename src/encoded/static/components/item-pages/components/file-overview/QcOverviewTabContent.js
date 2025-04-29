@@ -10,8 +10,6 @@ const formatRawData = (data) => {
     let headers = [];
     let verifyBamId = null;
 
-    console.log('formatRawData', data);
-
     // Set the default overall_file_quality_status to null
     let overall_file_quality_status = null;
 
@@ -95,7 +93,6 @@ const formatRawData = (data) => {
 // Render a QC Overview table with given quality_metrics items [qcItems]
 const QCOverviewTable = ({ qcItems, accession, isRNASeq = false }) => {
     const [data, setData] = useState(null);
-    console.log('qcItems', data);
 
     useEffect(() => {
         const searchUrl = `/search/?${qcItems
