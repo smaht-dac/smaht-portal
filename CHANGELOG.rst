@@ -7,11 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.166.0
+0.167.0
 =======
 `PR 379: feat: implement QC Overview Tab <https://github.com/smaht-dac/smaht-portal/pull/384>`_
 
 * Populate quality metrics tab in QC overview tab
+
+
+0.166.0
+=======
+`PR 411 SN Diagnosis age maximum <https://github.com/smaht-dac/smaht-portal/pull/411>`
+
+* Set maximum to 89 for `age_at_diagnosis` and `age_at_resolution` to protect donor privacy
 
 
 0.165.0
