@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.166.0
+=======
+`PR 411 SN Diagnosis age maximum <https://github.com/smaht-dac/smaht-portal/pull/411>`
+
+* Set maximum to 89 for `age_at_diagnosis` and `age_at_resolution` to protect donor privacy
+
+
 0.165.0
 =======
 `PR 334 feat: tooltip for sample information definitions <https://github.com/smaht-dac/smaht-portal/pull/334>`
