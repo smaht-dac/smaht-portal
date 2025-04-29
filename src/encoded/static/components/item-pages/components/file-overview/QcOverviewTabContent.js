@@ -135,16 +135,12 @@ const QCOverviewTable = ({ qcItems, accession, isRNASeq = false }) => {
                             <strong>Sample Related Check </strong>
                             <span className="text-gray">[Somalier]</span>
                         </span>
-                        {'/qc-metrics' ? (
-                            <a
-                                href={`/qc-metrics?tab=sample-integrity&file=${accession}`}
-                                className="btn btn-sm btn-outline-secondary">
-                                <i className="icon icon-chart-area fas me-1"></i>
-                                View Relatedness Chart
-                            </a>
-                        ) : (
-                            <span className="datum-value text-gray">N/A</span>
-                        )}
+                        <a
+                            href={`/qc-metrics?tab=sample-integrity&file=${accession}`}
+                            className="btn btn-sm btn-outline-secondary">
+                            <i className="icon icon-chart-area fas me-1"></i>
+                            View Relatedness Chart
+                        </a>
                     </div>
                     <div className="datum">
                         <span className="datum-title">
