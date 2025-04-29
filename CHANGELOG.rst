@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.167.0
+=======
+`PR 412 Submission Status page: Add Donor and Tissue select fields <https://github.com/smaht-dac/smaht-portal/pull/412>`
+
+* Replace the Sample Source select field with a Tissue select field
+* Add Donor select field
+* Embed donor display title into `file_set`
+
+
 0.166.0
 =======
 `PR 411 SN Diagnosis age maximum <https://github.com/smaht-dac/smaht-portal/pull/411>`
