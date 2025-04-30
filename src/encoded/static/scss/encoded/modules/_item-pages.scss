@@ -553,11 +553,11 @@ h3.submission-subtitle {
 		background-color: #B90F05;
 	}
 
-	// Purple
-	&[data-status="to be uplodaded by workflow"]:before,	// Applicable to File.status
+	// Light Gray
+	&[data-status="to be uploaded by workflow"]:before,     // Applicable to File.status
+	&[data-status="archived"]:before,
 	&[data-status="other"]:before {							// Applicable to ClinVar Clinical Significance
-		color: #fff;
-		background-color: #47419a;
+		background-color: #8E8E8E;
 	}
 
 	// Gray
@@ -1385,11 +1385,6 @@ File Overview Styles
 								&:before {
 									width: 10px;
 									height: 10px;
-								}
-
-								&[data-status="to be uploaded by workflow"]:before,
-								&[data-status="archived"]:before {
-									background-color: #8E8E8E;
 								}
 							}
 						}
