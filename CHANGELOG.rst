@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.168.0
+=======
+`PR 413 SN Generic Config item <https://github.com/smaht-dac/smaht-portal/pull/413>`
+
+* Add new item, GenericConfig, that can be used to hold JSON objects
+
+
 0.167.0
 =======
 `PR 412 Submission Status page: Add Donor and Tissue select fields <https://github.com/smaht-dac/smaht-portal/pull/412>`
