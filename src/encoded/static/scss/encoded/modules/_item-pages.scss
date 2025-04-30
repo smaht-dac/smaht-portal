@@ -1750,8 +1750,11 @@ File Overview Styles
 							}
 						}
 						.header {
+							padding: 10px 10px;
+							border-bottom: 1px solid $gray-20;
 							&.top {
 								font-size: 1.05rem;
+								background-color: #f1f9ff;
 							}
 							.badge {
 								font-size: 1.05rem;

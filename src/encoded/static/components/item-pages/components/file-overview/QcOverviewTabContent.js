@@ -110,8 +110,8 @@ const QCOverviewTable = ({ qcItems, accession, isRNASeq = false }) => {
 
     return data ? (
         <div className="content qc-overview-tab">
-            <div className="mt-2">
-                <h2 className="header top mb-2">
+            <div>
+                <h2 className="header top">
                     <div className="d-flex justify-content-between align-items-center">
                         <span className="d-flex align-items-center gap-1">
                             QC Overview Status:{' '}
