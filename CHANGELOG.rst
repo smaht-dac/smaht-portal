@@ -7,11 +7,27 @@ smaht-portal
 Change Log
 ----------
 
-0.165.1
+0.167.1
 =======
 `PR 410 fix: use retraction_reason in file view alert <https://github.com/smaht-dac/smaht-portal/pull/410>`
 
 * Use retraction_reason property to create file overview alert string instead of notes_to_tsv
+
+
+0.167.0
+=======
+`PR 412 Submission Status page: Add Donor and Tissue select fields <https://github.com/smaht-dac/smaht-portal/pull/412>`
+
+* Replace the Sample Source select field with a Tissue select field
+* Add Donor select field
+* Embed donor display title into `file_set`
+
+
+0.166.0
+=======
+`PR 411 SN Diagnosis age maximum <https://github.com/smaht-dac/smaht-portal/pull/411>`
+
+* Set maximum to 89 for `age_at_diagnosis` and `age_at_resolution` to protect donor privacy
 
 
 0.165.0
