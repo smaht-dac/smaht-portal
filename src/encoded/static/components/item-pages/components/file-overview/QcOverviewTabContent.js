@@ -91,7 +91,12 @@ const formatRawData = (data) => {
 };
 
 // Render a QC Overview table with given quality_metrics items [qcItems]
-const QCOverviewTable = ({ qcItems, accession, isRNASeq = false }) => {
+const QCOverviewTable = ({
+    qcItems,
+    accession,
+    isRNASeq = false,
+    isOutputFile = false,
+}) => {
     const [data, setData] = useState(null);
 
     useEffect(() => {
@@ -111,7 +116,7 @@ const QCOverviewTable = ({ qcItems, accession, isRNASeq = false }) => {
     return data ? (
         <div className="content qc-overview-tab">
             <div>
-                <h2 className="header top">
+                <h2 className="header top mb-2 p-2">
                     <div className="d-flex justify-content-between align-items-center">
                         <span className="d-flex align-items-center gap-1">
                             QC Overview Status:{' '}
@@ -136,146 +141,163 @@ const QCOverviewTable = ({ qcItems, accession, isRNASeq = false }) => {
                     </div>
                 </h2>
             </div>
-            <div className="mt-2 mb-4">
-                <h2 className="header mb-2">Critical QC</h2>
-                <div className="data-group">
-                    <div className="datum">
-                        <span className="datum-title">
-                            <strong>Sample Related Check </strong>
-                            <span className="text-gray">[Somalier]</span>
-                        </span>
-                        <a
-                            href={`/qc-metrics?tab=sample-integrity&file=${accession}`}
-                            className="btn btn-sm btn-outline-secondary">
-                            <i className="icon icon-chart-area fas me-1"></i>
-                            View Relatedness Chart
-                        </a>
-                    </div>
-                    <div className="datum">
-                        <span className="datum-title">
-                            <strong>Human Contamination Check </strong>
-                            <span className="text-gray">[VerifyBamID2]</span>
-                        </span>
-                        {data?.verifyBamId ? (
-                            <span className="d-flex align-items-center gap-1 datum-value">
-                                {data?.verifyBamId?.value}{' '}
-                                {getBadge(data?.verifyBamId?.flag)}
-                            </span>
-                        ) : (
-                            <span className="datum-value text-gray">N/A</span>
-                        )}
-                    </div>
-                    {isRNASeq ? (
+            {isOutputFile ? (
+                <div className="mb-4 px-2">
+                    <h2 className="header mb-2">Critical QC</h2>
+                    <div className="data-group">
                         <div className="datum">
                             <span className="datum-title">
-                                <strong>
-                                    Tissue Agreement Check [DAC Tissue
-                                    Classifier]
-                                </strong>
+                                <strong>Sample Related Check </strong>
+                                <span className="text-gray">[Somalier]</span>
                             </span>
-                            <span className="datum-value text-gray">
-                                Coming soon
-                            </span>
+                            <a
+                                href={`/qc-metrics?tab=sample-integrity&file=${accession}`}
+                                className="btn btn-sm btn-outline-secondary">
+                                <i className="icon icon-chart-area fas me-1"></i>
+                                View Relatedness Chart
+                            </a>
                         </div>
-                    ) : null}
+                        <div className="datum">
+                            <span className="datum-title">
+                                <strong>Human Contamination Check </strong>
+                                <span className="text-gray">
+                                    [VerifyBamID2]
+                                </span>
+                            </span>
+                            {data?.verifyBamId ? (
+                                <span className="d-flex align-items-center gap-1 datum-value">
+                                    {data?.verifyBamId?.value}{' '}
+                                    {getBadge(data?.verifyBamId?.flag)}
+                                </span>
+                            ) : (
+                                <span className="datum-value text-gray">
+                                    N/A
+                                </span>
+                            )}
+                        </div>
+                        {isRNASeq ? (
+                            <div className="datum">
+                                <span className="datum-title">
+                                    <strong>
+                                        Tissue Agreement Check [DAC Tissue
+                                        Classifier]
+                                    </strong>
+                                </span>
+                                <span className="datum-value text-gray">
+                                    Coming soon
+                                </span>
+                            </div>
+                        ) : null}
+                    </div>
                 </div>
-            </div>
+            ) : null}
 
-            <h2 className="header mb-2">General QC</h2>
-            <table className="table table-bordered table-striped qc-overview-tab-table">
-                <thead>
-                    <tr>
-                        <th className="text-left w-[300px]">Key QC Metric</th>
-                        {data.headers.map(
-                            ({ accession, overall_quality_status }, i) => {
-                                return (
-                                    <th
-                                        className="text-left fw-semibold"
-                                        key={i}>
-                                        <div className="d-flex flex-column">
-                                            <span className="d-flex align-items-center lh-base">
-                                                QC Run #{i + 1} (
-                                                <a href={`/${accession}`}>
-                                                    {accession}
-                                                </a>
-                                                )
-                                            </span>
-                                            <span className="fw-medium d-flex align-items-center gap-1">
-                                                Overall QC Status:{' '}
-                                                {overall_quality_status ? (
-                                                    getBadge(
-                                                        overall_quality_status
-                                                    )
-                                                ) : (
-                                                    <span className="text-muted fw-normal">
-                                                        N/A
-                                                    </span>
-                                                )}
-                                            </span>
-                                        </div>
-                                    </th>
-                                );
-                            }
-                        )}
-                    </tr>
-                </thead>
-                <tbody>
-                    {Object.keys(data.tableData).length > 0 ? (
-                        Object.keys(data.tableData).map((key, i) => {
-                            const { tooltip, values: rowValues = {} } =
-                                data.tableData[key];
-
-                            return (
-                                <tr key={i}>
-                                    {/* Title of the Quality Metric row */}
-                                    <td className="text-left">
-                                        <i
-                                            className="icon icon-info-circle fas me-1 text-secondary"
-                                            data-tip={tooltip}
-                                        />
-                                        {key}
-                                    </td>
-
-                                    {/* Value for each column (i.e. qcItem labelled by [accession]) */}
-                                    {data.headers.map(({ accession }, i) => {
-                                        const cellValue =
-                                            rowValues[accession] ?? null;
-
-                                        return (
-                                            <td className="text-left" key={i}>
-                                                {cellValue !== null ? (
-                                                    <div className="d-flex">
-                                                        <span className="d-flex align-items-center gap-1">
-                                                            {d3.format('.3f')(
-                                                                cellValue?.value
-                                                            )}
-                                                            {getBadge(
-                                                                cellValue?.flag
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-secondary">
-                                                        -
-                                                    </span>
-                                                )}
-                                            </td>
-                                        );
-                                    })}
-                                </tr>
-                            );
-                        })
-                    ) : (
+            <div className="px-2">
+                <h2 className="header mb-2">General QC</h2>
+                <table className="table table-bordered table-striped qc-overview-tab-table">
+                    <thead>
                         <tr>
-                            <td
-                                className="text-left text-secondary"
-                                colSpan={qcItems.length + 1}>
-                                No Quality Metrics available.
-                            </td>
+                            <th className="text-left w-[300px]">
+                                Key QC Metric
+                            </th>
+                            {data.headers.map(
+                                ({ accession, overall_quality_status }, i) => {
+                                    return (
+                                        <th
+                                            className="text-left fw-semibold"
+                                            key={i}>
+                                            <div className="d-flex flex-column">
+                                                <span className="d-flex align-items-center lh-base">
+                                                    QC Run #{i + 1} (
+                                                    <a href={`/${accession}`}>
+                                                        {accession}
+                                                    </a>
+                                                    )
+                                                </span>
+                                                <span className="fw-medium d-flex align-items-center gap-1">
+                                                    Overall QC Status:{' '}
+                                                    {overall_quality_status ? (
+                                                        getBadge(
+                                                            overall_quality_status
+                                                        )
+                                                    ) : (
+                                                        <span className="text-muted fw-normal">
+                                                            N/A
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </th>
+                                    );
+                                }
+                            )}
                         </tr>
-                    )}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {Object.keys(data.tableData).length > 0 ? (
+                            Object.keys(data.tableData).map((key, i) => {
+                                const { tooltip, values: rowValues = {} } =
+                                    data.tableData[key];
+
+                                return (
+                                    <tr key={i}>
+                                        {/* Title of the Quality Metric row */}
+                                        <td className="text-left">
+                                            <i
+                                                className="icon icon-info-circle fas me-1 text-secondary"
+                                                data-tip={tooltip}
+                                            />
+                                            {key}
+                                        </td>
+
+                                        {/* Value for each column (i.e. qcItem labelled by [accession]) */}
+                                        {data.headers.map(
+                                            ({ accession }, i) => {
+                                                const cellValue =
+                                                    rowValues[accession] ??
+                                                    null;
+
+                                                return (
+                                                    <td
+                                                        className="text-left"
+                                                        key={i}>
+                                                        {cellValue !== null ? (
+                                                            <div className="d-flex">
+                                                                <span className="d-flex align-items-center gap-1">
+                                                                    {d3.format(
+                                                                        '.3f'
+                                                                    )(
+                                                                        cellValue?.value
+                                                                    )}
+                                                                    {getBadge(
+                                                                        cellValue?.flag
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-secondary">
+                                                                -
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                );
+                                            }
+                                        )}
+                                    </tr>
+                                );
+                            })
+                        ) : (
+                            <tr>
+                                <td
+                                    className="text-left text-secondary"
+                                    colSpan={qcItems.length + 1}>
+                                    No Quality Metrics available.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     ) : (
         <>
@@ -294,6 +316,7 @@ export const QcOverviewTabContent = ({ context }) => {
             isRNASeq={context?.assays?.some(
                 (assay) => assay?.display_title === 'RNA-seq'
             )}
+            isOutputFile={context?.['@type'].includes('OutputFile')}
         />
     );
 };
