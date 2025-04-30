@@ -101,8 +101,6 @@ const FileViewHeader = (props) => {
     // Accessions of files whose alert banners are rendered differently
     const accessionsOfInterest = ['SMAFIB6EQLZM'];
 
-    console.log('context', context);
-
     // Prepare a message string for the retracted warning banner
     let retractedWarningMessage = '';
     if (!accessionsOfInterest.includes(accession) && status === 'retracted') {
