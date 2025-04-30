@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.167.1
+=======
+`PR 414 fix: adjust status icon in file overview page <https://github.com/smaht-dac/smaht-portal/pull/414>`
+
+* Capitalize status title in file overview page
+* Organize status icon colors for item pages
+
+
 0.167.0
 =======
 `PR 412 Submission Status page: Add Donor and Tissue select fields <https://github.com/smaht-dac/smaht-portal/pull/412>`
