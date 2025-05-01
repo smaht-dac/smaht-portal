@@ -11,7 +11,7 @@ Change Log
 =======
 `PR 415 SN Fix validator error message <https://github.com/smaht-dac/smaht-portal/pull/415>`
 
-* Fix the TissueSample custom validator for valid combination of `external_id` and `category` to print out the expected `category` value
+* Fix the TissueSample custom validator for valid combination of `external_id` and `category` to print out the expected `category` value in the error message 
 * Add `link_related_validator` decorator to the custom validator for fastq read pairs being linked to the same FileSet
 
 
