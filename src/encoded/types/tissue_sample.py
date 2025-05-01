@@ -38,6 +38,7 @@ def _build_tissue_sample_embedded_list() -> List[str]:
         # Columns/facets for search
         "sample_sources.external_id",
         "sample_sources.donor.external_id",
+        "sample_sources.donor.accession",
     ]
 
 
@@ -62,7 +63,7 @@ class TissueSample(Sample):
 def validate_external_id_on_add(context, request):
     """
     Check that `external_id` is valid.
-    
+
     Check is consistent with `category` nomenclature if the sample_source.donor is a Benchmarking or Production tissue on add (TPC-submitted items only for now).
     Check that `external_id` matches linked tissue `external_id` if Benchmarking or Production tissue sample on add.
     """
@@ -81,7 +82,7 @@ def validate_external_id_on_add(context, request):
             msg = f"external_id {external_id} does not match Tissue external_id {item_utils.get_external_id(tissue)}."
             return request.errors.add('body', 'TissueSample: invalid link', msg)
         else:
-            return request.validated.update({}) 
+            return request.validated.update({})
 
 
 @link_related_validator
@@ -109,7 +110,7 @@ def validate_external_id_on_edit(context, request):
             return request.errors.add('body', 'TissueSample: invalid link', msg)
         else:
             return request.validated.update({})
-    """Check that `external_id` matches linked tissue `external_id` if Benchmarking or Production tissue sample on edit.""" 
+    """Check that `external_id` matches linked tissue `external_id` if Benchmarking or Production tissue sample on edit."""
 
 
 def assert_external_id_category_match(external_id: str, category: str):
@@ -165,13 +166,13 @@ def validate_tissue_sample_metadata_on_edit(context, request):
                             request.errors.add('body', f"TissueSample: metadata mismatch, {check_property}{gcc_property} does not match TPC Tissue Sample {found}")
             sample_source_ids = get_property_for_validation('sample_sources', existing_properties, properties_to_update)
             sample_source_res = search_resp.json_body['@graph'][0]['sample_sources'][0]['uuid']
-            gcc_uuid = item_utils.get_uuid(get_item_or_none(request, sample_source_ids[0], 'sample-sources'))        
+            gcc_uuid = item_utils.get_uuid(get_item_or_none(request, sample_source_ids[0], 'sample-sources'))
             if sample_source_res != gcc_uuid:
                 # property does not match
                 found = res['accession']
                 request.errors.add('body', f"TissueSample: metadata mismatch, sample_sources {gcc_uuid} does not match TPC Tissue Sample {found}sample_sources {sample_source_res}")
             return request.validated.update({})
-        
+
 
 @link_related_validator
 def validate_tissue_sample_metadata_on_add(context, request):
@@ -206,12 +207,12 @@ def validate_tissue_sample_metadata_on_add(context, request):
                             request.errors.add('body', f"TissueSample: metadata mismatch, {check_property} {gcc_property} does not match TPC Tissue Sample {found}")
             sample_source_ids = data['sample_sources']
             sample_source_res = search_resp.json_body['@graph'][0]['sample_sources'][0]['uuid']
-            gcc_uuid = item_utils.get_uuid(get_item_or_none(request, sample_source_ids[0], 'sample-sources'))        
+            gcc_uuid = item_utils.get_uuid(get_item_or_none(request, sample_source_ids[0], 'sample-sources'))
             if sample_source_res != gcc_uuid:
                 # property does not match
                 found = res['accession']
                 request.errors.add('body', f"TissueSample: metadata mismatch, sample_sources {gcc_uuid} does not match TPC Tissue Sample {found} sample_sources {sample_source_res}")
-            return request.validated.update({})  
+            return request.validated.update({})
 
 
 
