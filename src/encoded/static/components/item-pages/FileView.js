@@ -10,6 +10,7 @@ import DefaultItemView from './DefaultItemView';
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SelectedItemsDownloadButton } from '../static-pages/components/SelectAllAboveTableComponent';
 import { ShowHideInformationToggle } from './components/file-overview/ShowHideInformationToggle';
+import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
 // Page containing the details of Items of type File
 export default class FileOverview extends DefaultItemView {
@@ -203,11 +204,12 @@ const FileViewHeader = (props) => {
                     </span>
                 </div>
                 <div className="datum right-group">
-                    <div className="status-group" data-status={status}>
-                        <i className="icon icon-circle fas"></i>
+                    <div className="status-group">
+                        <i
+                            className="status-indicator-dot"
+                            data-status={status}></i>
                         <span className="status">
-                            {status?.charAt(0)?.toUpperCase() +
-                                status?.substring(1)}
+                            {capitalizeSentence(status)}
                         </span>
                     </div>
                     <span className="vertical-divider">|</span>
