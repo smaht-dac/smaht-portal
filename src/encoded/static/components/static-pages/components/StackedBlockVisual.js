@@ -583,7 +583,14 @@ export class StackedBlockVisual extends React.PureComponent {
     };
 
     handleClick = (column, row, group) => {
-        this.setState({ openedBlock: (column !== null || row !== null) ? { column, row, group } : null });
+        const openedBlock = (column !== null || row !== null) ? { column, row, group } : null;
+        if (openedBlock) {
+            setTimeout(() => {
+                this.setState({ openedBlock: openedBlock });
+            }, 100);
+        } else {
+            this.setState({ openedBlock: null });
+        }
     };
 
     render() {
@@ -1239,7 +1246,9 @@ const Block = React.memo(function Block(props){
 
     const blockElem = (
         <div className={className} style={style} tabIndex={1} data-place="bottom" data-block-value={dataLength}
-            onMouseEnter={() => handleMouseEnter(colIndex, rowIndex, group)} onMouseLeave={handleMouseLeave} onClick={()=> handleClick(colIndex, rowIndex, group)}>
+            onMouseEnter={() => handleMouseEnter(colIndex, rowIndex, group)}
+            onMouseLeave={handleMouseLeave}
+            onClick={()=> handleClick(colIndex, rowIndex, group)}>
             {contents}
         </div>
     );
