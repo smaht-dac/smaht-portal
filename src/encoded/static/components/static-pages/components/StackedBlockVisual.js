@@ -13,6 +13,7 @@ import { console, object, logger } from '@hms-dbmi-bgm/shared-portal-components/
 import { roundLargeNumber } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 import { isPrimitive } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/misc';
 
+const FALLBACK_GROUP_NAME = 'N/A';
 
 export function groupByMultiple(objList, propertiesList){
     var maxDepth = (propertiesList || []).length - 1;
@@ -171,6 +172,13 @@ export class VisualBody extends React.PureComponent {
             };
 
             const currentFilteringPropertiesVals = convertPairsToObject(currentFilteringPropertiesPairs);//_.object(currentFilteringPropertiesPairs);
+            if (isTotal) {
+                (column_agg_fields || []).concat(row_agg_fields || []).forEach((field) => {
+                    if (!_.has(currentFilteringPropertiesVals, field)) {
+                        currentFilteringPropertiesVals[field + '!'] = 'No value';
+                    }
+                });
+            }
 
             const initialHref = queryUrl;
             const hrefParts = url.parse(initialHref, true);
@@ -907,7 +915,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         }
         const hasColumnGroups = columnGroups && _.keys(columnGroups).length > 0;
         const hasColumnGroupsExtended = showColumnGroupsExtended && columnGroupsExtended && _.keys(columnGroupsExtended).length > 0;
-        const hasRowGroups = rowGroups && _.keys(rowGroups).length > 0;
+        // const hasRowGroups = rowGroups && _.keys(rowGroups).length > 0; // currently not used
         const hasRowGroupsExtended = showRowGroupsExtended && rowGroupsExtended && _.keys(rowGroupsExtended).length > 0;
 
         let header = null;
@@ -1007,9 +1015,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                             const groupHeaderItemStyle = {
                                                 width: groupColumnWidth,
                                                 minWidth: groupColumnWidth
-                                            }; // EXPERIMENTAL
-                                            groupHeaderItemStyle.backgroundColor = columnGroupsExtended[groupExtendedKey].backgroundColor; // EXPERIMENTAL
-                                            groupHeaderItemStyle.color = columnGroupsExtended[groupExtendedKey].textColor; // EXPERIMENTAL
+                                            };
+                                            groupHeaderItemStyle.backgroundColor = columnGroupsExtended[groupExtendedKey].backgroundColor;
+                                            groupHeaderItemStyle.color = columnGroupsExtended[groupExtendedKey].textColor;
                                             return (
                                                 <div key={'col-' + groupExtendedKey} className={'column-group-header'} style={groupHeaderItemStyle}>
                                                     <div className="inner">
@@ -1089,7 +1097,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             );
         }
 
-        const rowGroupsExtendedKeys = hasRowGroupsExtended ? [..._.keys(rowGroupsExtended), 'N/A'] : null;
+        const rowGroupsExtendedKeys = hasRowGroupsExtended ? [..._.keys(rowGroupsExtended), FALLBACK_GROUP_NAME] : null;
 
         const rowHeight = blockHeight + (blockVerticalSpacing * 2) + 1;
         const childBlocks = !open ? StackedBlockGroupedRow.collapsedChildBlocks(data, this.props) : (
@@ -1126,7 +1134,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 const { values, backgroundColor, textColor } = rowGroupsExtended[rgKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
 
                                 let rowGroupChildRowsKeys;
-                                if (rgKey === 'N/A') { //special case for N/A
+                                if (rgKey === FALLBACK_GROUP_NAME) { //special case for N/A
                                     const allValues = StackedBlockGroupedRow.mergeValues(rowGroupsExtended);
                                     // not intersecting childRowsKeys and allValues
                                     rowGroupChildRowsKeys = StackedBlockGroupedRow.differenceIgnoreCase(childRowsKeys, allValues);
