@@ -1653,6 +1653,7 @@ body[data-path="/statistics"] {
 
 .stacked-block-viz-container {
 
+    display: inline-block;
     overflow-x: auto; // Allow to scroll on small widths.
     padding-bottom: 20px;
 
@@ -1736,7 +1737,7 @@ body[data-path="/statistics"] {
             &[data-group-key="row-total"] {
                 .stacked-block {
                     background-color: #D91818 !important;
-                    margin-left: 50px;
+                    // margin-left: 25px;
                 }
             }
         }
@@ -1772,9 +1773,17 @@ body[data-path="/statistics"] {
                 }
 
                 &:not(:first-child) {
-                    .row > .list-section > .blocks-container {
+                    .row > .list-section > .blocks-container, .row > .label-section > .label-container {
                         border-top: 1px solid #eee;
                     }
+                }
+                &:not(:first-child) .vertical-container-rows .grouping:first-child .label-section > .label-container,
+                &:not(:first-child) .vertical-container-label {
+                    border-top: 2px solid #eee !important;
+                }
+
+                .grouping-row {
+                    background-color: #f8f8f8;
                 }
             }
 
@@ -1801,7 +1810,7 @@ body[data-path="/statistics"] {
 
         &.open {
             > .row.grouping-row {
-                background-color: #f7f7f7;
+                background-color: #ebe8ec;
             }
         }
 
@@ -1835,7 +1844,7 @@ body[data-path="/statistics"] {
             .list-section {
                 padding-right: 0px;
                 > .open-empty-placeholder {
-                    background-color: #f7f7f7;
+                    background-color: #ebe8ec;
                     border-radius: 0 10px 0 0;
                     // border-top: 3px solid #eee;
                     // @include gradient-y($start-color: #f7f7f7, $end-color: #fff);
@@ -1957,7 +1966,7 @@ body[data-path="/statistics"] {
                 > .label-container {
                     > h4 {
                         font-size: 1rem;
-                        font-weight: 400;
+                        font-weight: 500;
                         i.icon.icon-fw {
                             min-width: 20px;
                         }
@@ -2069,27 +2078,27 @@ body[data-path="/statistics"] {
             // opacity: 0.3;
             // transition: opacity 0.3s;
         }
-        // .column-group-header.active-column {
-        //     opacity: 1 !important;
+        .column-group-header.active-column {
+            opacity: 1 !important;
 
-        //     .inner:after {
-        //         font-family: "Font Awesome 6 Free";
-        //         content: "\f0d9";
-        //         display: inline-block;
-        //         padding-left: 10px;
-        //         font-weight: 600;
-        //     }
-        // }
+            .inner:after {
+                font-family: "Font Awesome 6 Free";
+                content: "\f0d9";
+                display: inline-block;
+                padding-left: 10px;
+                font-weight: 600;
+            }
+        }
           
-        // .label-container.active-row {
-        //     .inner:before {
-        //         font-family: "Font Awesome 6 Free";
-        //         content: "\f0da";
-        //         display: inline-block;
-        //         padding-right: 10px;
-        //         font-weight: 900;
-        //     }
-        // }
+        .label-container.active-row {
+            .inner:before {
+                font-family: "Font Awesome 6 Free";
+                content: "\f0da";
+                display: inline-block;
+                padding-right: 10px;
+                font-weight: 900;
+            }
+        }
     }
 
     .axis-container {
