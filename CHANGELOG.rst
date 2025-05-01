@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.168.0
+=======
+`PR 379: feat: implement QC Overview Tab <https://github.com/smaht-dac/smaht-portal/pull/384>`_
+
+* Populate quality metrics tab in QC overview tab
+
+
 0.167.0
 =======
 `PR 412 Submission Status page: Add Donor and Tissue select fields <https://github.com/smaht-dac/smaht-portal/pull/412>`
