@@ -7,12 +7,19 @@ smaht-portal
 Change Log
 ----------
 
-0.167.1
+0.168.1
 =======
 `PR 414 fix: adjust status icon in file overview page <https://github.com/smaht-dac/smaht-portal/pull/414>`
 
 * Capitalize status title in file overview page
 * Organize status icon colors for item pages
+
+
+0.168.0
+=======
+`PR 379: feat: implement QC Overview Tab <https://github.com/smaht-dac/smaht-portal/pull/384>`_
+
+* Populate quality metrics tab in QC overview tab
 
 
 0.167.0
