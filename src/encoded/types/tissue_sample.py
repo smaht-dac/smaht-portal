@@ -136,7 +136,7 @@ def assert_external_id_category_match(external_id: str, category: str):
 
 
 def assert_tissue_category_match(category: str, external_id: str):
-    """git s
+    """
     Check that category is Liquid or Cells if protocol id of external_id is among certain types.
     
     Current types are blood, buccal swab (both Liquid), and fibroblast cell culture (Cells).
