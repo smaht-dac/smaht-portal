@@ -1688,8 +1688,8 @@ body[data-path="/statistics"] {
             .block-container-group {
                 &[data-group-key="column-total"] {
                     .stacked-block {
-                        background-color: #D91818 !important;
-                        color: #fff !important;
+                        // background-color: #D91818 !important;
+                        color: #fff;
                     }
                 }
             }
@@ -1736,7 +1736,7 @@ body[data-path="/statistics"] {
 
             &[data-group-key="row-total"] {
                 .stacked-block {
-                    background-color: #D91818 !important;
+                    // background-color: #D91818 !important;
                     // margin-left: 25px;
                 }
             }
