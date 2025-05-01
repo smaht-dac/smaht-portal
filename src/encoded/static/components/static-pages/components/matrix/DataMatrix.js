@@ -392,7 +392,7 @@ export default class DataMatrix extends React.PureComponent {
                 <VisualBody
                     {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
                     {...bodyProps}
-                    columnSubGrouping="state"
+                    columnSubGrouping=""//"state"
                     // eslint-disable-next-line react/destructuring-assignment
                     results={this.state[resultKey]}
                     // defaultDepthsOpen={[true, false, false]}
