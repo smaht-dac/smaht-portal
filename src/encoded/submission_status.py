@@ -36,6 +36,11 @@ UWSC_GCC = "UWSC GCC"
 
 MAX_FILESETS = 30
 
+CELL_CULTURE_MIXTURES = [
+    'HAPMAP6',
+    'COLO829BLT50',
+]
+
 
 def includeme(config):
     config.add_route("get_submission_status", "/get_submission_status/")
@@ -263,6 +268,7 @@ def add_submission_status_search_filters(
         - exlucde_tags,
         - cell_culture_mixture,
         - cell_line,
+        - donor,
         - fileset_created_from,
         - fileset_created_to
         - fileSetSearchId (str): Either submitted_id or accession or a fileset.
@@ -299,6 +305,8 @@ def add_submission_status_search_filters(
         search_params["libraries.assay.display_title"] = filter["assay"]
     if "sequencer" in filter and filter["sequencer"] != "all":
         search_params["sequencing.sequencer.display_title"] = filter["sequencer"]
+    if "donor" in filter and filter["donor"] != "all":
+        search_params["libraries.analytes.samples.sample_sources.donor.display_title"] = filter["donor"]
     if "cell_line" in filter and filter["cell_line"] != "all":
         search_params["libraries.analytes.samples.sample_sources.cell_line.code"] = (
             filter["cell_line"]
@@ -310,9 +318,13 @@ def add_submission_status_search_filters(
         "cell_culture_mixtures_and_tissues" in filter
         and filter["cell_culture_mixtures_and_tissues"] != "all"
     ):
-        search_params["libraries.analytes.samples.sample_sources.code"] = filter[
+        filter_value = filter[
             "cell_culture_mixtures_and_tissues"
         ]
+        if filter_value in CELL_CULTURE_MIXTURES:
+            search_params["libraries.analytes.samples.sample_sources.code"] = filter_value
+        else:
+            search_params["tissue_types"] = filter_value
     if filter.get("include_tags"):
         search_params["tags"] = filter["include_tags"]
     if filter.get("exclude_tags"):

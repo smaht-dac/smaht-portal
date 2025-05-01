@@ -91,6 +91,9 @@
         "sample_sources.display_title": {
             "title": "Sample Source"
         },
+        "submitted_id": {
+            "title": "Submitted ID"
+        },
         "submission_centers.display_title": {
             "title": "Submitted By"
         }

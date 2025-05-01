@@ -297,6 +297,7 @@ def home(context, request):
                 "categories": [
                     {
                         "title": "Primary Tissues",
+                        "link": "/browse",
                         "figures": [
                             { "value": search_results[10], "unit": "Donors" },
                             { "value": search_results[12], "unit": "Tissue Types" },

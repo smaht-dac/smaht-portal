@@ -81,8 +81,10 @@
                 "type": "string",
                 "enum": [
                     "AlignedReads",
+                    "HistologyImage",
                     "OutputFile",
                     "ReferenceFile",
+                    "ResourceFile",
                     "SupplementaryFile",
                     "UnalignedReads",
                     "VariantCalls"

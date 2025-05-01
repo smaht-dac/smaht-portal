@@ -126,17 +126,20 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "Consensus Reads",
                     "Genome Annotation",
                     "Genome Region",
                     "Germline Variant Calls",
                     "Quality Control",
                     "Genome Assembly",
+                    "Metadata",
                     "Reference Genome",
                     "Reference Conversion",
                     "Reference Transcriptome",
                     "RNA Quantification",
                     "Sequencing Reads",
-                    "Somatic Variant Calls"
+                    "Somatic Variant Calls",
+                    "Transcriptome Annotation"
                 ]
             }
         },
@@ -165,7 +168,12 @@
                     "Indel",
                     "MEI",
                     "SNV",
-                    "SV"
+                    "SV",
+                    "Transcript Sequence",
+                    "Transcript Model",
+                    "Cell Barcodes",
+                    "Strand Barcodes",
+                    "UMIs"
                 ]
             }
         },
@@ -217,7 +225,43 @@
             "title": "Group Coverage Override",
             "desciption": "An override count for expected group coverage from sequencing that is used in the File Overview page if present, particularly for downsampled files",
             "type": "number",
-            "minimum": 0
+            "minimum": 0,
+            "permission": "restricted_fields"
+        },
+        "override_release_tracker_description": {
+            "title": "Release Tracker Description Override",
+            "desciption": "An override value for release tracker description that is used in the File Release Tracker on the home page if present, particularly for supplementary files",
+            "type": "string",
+            "minimum": 0,
+            "permission": "restricted_fields"
+        },
+        "override_release_tracker_title": {
+            "title": "Release Tracker Title Override",
+            "desciption": "An override value for release tracker title that is used in the File Release Tracker on the home page if present, particularly for supplementary files",
+            "type": "string",
+            "minimum": 0,
+            "permission": "restricted_fields"
+        },
+        "retraction_reason": {
+            "title": "Retraction Reason",
+            "desciption": "Reason for retraction of the file - for files that are retracted",
+            "type": "string",
+            "suggested_enum": [
+                "Failed Quality Control",
+                "Incorrect File Format",
+                "Sample Mislabel",
+                "Sample Swap",
+                "Human Contamination"
+            ],
+            "minimum": 0,
+            "permission": "restricted_fields"
+        },
+        "replaced_by": {
+            "title": "Replaced By",
+            "desciption": "Link to a file that was submitted as a replacement - for files that are retracted or obsolete",
+            "type": "string",
+            "linkTo": "File",
+            "permission": "restricted_fields"
         },
         "version": {
             "type": "string",
@@ -255,7 +299,7 @@
                 }
             ]
         },
-        "file_sets.libraries.analytes.samples.sample_sources.donor.sex": {
+        "donors.sex": {
             "title": "Donor Sex"
         },
         "sample_summary.tissues": {
@@ -279,7 +323,7 @@
         "data_type": {
             "title": "Data Type"
         },
-        "date_created": {
+        "file_status_tracking.released": {
             "title" : "Release Date",
             "aggregation_type" : "stats"
         },
@@ -291,6 +335,9 @@
         },
         "software.display_title": {
             "title": "Analysis Method"
+        },
+        "status": {
+            "title": "Release Status"
         },
         "version": {
             "title": "Release Version"

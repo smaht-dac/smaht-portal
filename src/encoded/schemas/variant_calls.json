@@ -156,5 +156,10 @@
                 "comparator_description"
             ]
         }
-  ]
+  ],
+  "facets": {
+        "reference_genome.display_title": {
+            "title": "Reference Genome"
+        }
+    }
 }

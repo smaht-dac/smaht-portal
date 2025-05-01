@@ -2,10 +2,10 @@
 
 import React from 'react';
 import JsxParser from 'react-jsx-parser';
-import { ConsortiumMap } from '../../viz/AboutPageVisualizations/ConsortiumMap/ConsortiumMap';
+import { ConsortiumMap } from '../../viz/AboutPageVisualizations/ConsortiumMap';
 import { SubmissionStatus } from '../components/internal/SubmissionStatus';
-import { Alluvial } from '../../viz/AboutPageVisualizations/Alluvial/Alluvial';
-import { StackRowTable } from '../../viz/AboutPageVisualizations/Alluvial/StackRowTable';
+import { Alluvial } from '../../viz/AboutPageVisualizations/Alluvial';
+import { StackRowTable } from '../../viz/AboutPageVisualizations/StackRowTable';
 import { QualityMetricVisualizations } from '../../viz/QualityMetricVisualizations';
 import memoize from 'memoize-one';
 import _ from 'underscore';
@@ -27,6 +27,7 @@ import {
 } from '../components/benchmarking';
 import { DownloadAllFilesFromSearchHrefButton } from '../components/challenges/DownloadAllFilesFromSearchHrefButton';
 import { ChallengeTableWrapper } from '../components/challenges/ChallengeTables';
+import RetractedFilesTable from '../components/RetractedFilesTable';
 
 /**
  * Any placeholder(s) used in a StaticSection _must_ get imported here
@@ -51,6 +52,7 @@ const placeholders = {
     Donor4Data,
     DownloadAllFilesFromSearchHrefButton,
     ChallengeTableWrapper,
+    RetractedFilesTable
 };
 
 export const replaceString = memoize(

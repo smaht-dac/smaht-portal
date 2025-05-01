@@ -490,6 +490,12 @@ h3.submission-subtitle {
 
 @mixin statusColorStyles {
 
+	// Default color for status indicator
+	&[data-status]:before {
+		color: #fff;
+		background-color: #8E8E8E;
+	}
+
 	// Green
 	&[data-status="current"]:before,						// Applicable to Item.status
 	&[data-status="shared"]:before,							// Applicable to Item.status
@@ -547,11 +553,11 @@ h3.submission-subtitle {
 		background-color: #B90F05;
 	}
 
-	// Purple
-	&[data-status="to be uplodaded by workflow"]:before,	// Applicable to File.status
+	// Light Gray
+	&[data-status="to be uploaded by workflow"]:before,     // Applicable to File.status
+	&[data-status="archived"]:before,
 	&[data-status="other"]:before {							// Applicable to ClinVar Clinical Significance
-		color: #fff;
-		background-color: #47419a;
+		background-color: #8E8E8E;
 	}
 
 	// Gray
@@ -913,13 +919,21 @@ i.status-indicator-dot {
 			font-weight: 600;
 		}
 	}
+	&.success {
+		background-color: #F9FFFB;
+		border: 1px solid #A8DBAE;
+		border-left: 4px solid #0E6B0E;
+
+		.flag {
+			color: #0E6B0E;
+		}
+	}
 	&.warning {
 		background-color: #FFF9F9;
 		border: 1px solid #F6D6D6;
 		border-left: 4px solid #BB3F3F;
 
 		.flag {
-			font-weight: 600;
 			color: #BB3F3F;
 		}
 	}
@@ -1365,71 +1379,16 @@ File Overview Styles
 						font-size: 0.875rem;
 						
 						.status-group {
-							.icon-circle {
-								color: transparent;
-							}
-							.status {
-								margin-left: 5px;
-							}
+							.status-indicator-dot {
+								margin-right: 5px;
 
-							&[data-status="to be uploaded by workflow"] {
-								.icon-circle {
-									color: #8E8E8E;
-								}
-							}
-							&[data-status="archived"] {
-								.icon-circle {
-									color: #8E8E8E;
-								}
-							}
-							&[data-status="released"] {
-								.icon-circle {
-									color: #299902;
-								}
-							}
-							&[data-status="public"] {
-								.icon-circle {
-									color: #299902;
-								}
-							}
-							&[data-status="uploading"] {
-								.icon-circle {
-									color: #F6D62D;
-								}
-							}
-							&[data-status="uploaded"] {
-								.icon-circle {
-									color: #F6D62D;;
-								}
-							}
-							&[data-status="in review"] {
-								.icon-circle {
-									color: #F6D62D;
-								}
-							}
-							&[data-status="upload failed"] {
-								.icon-circle {
-									color: #B90F05;
-								}
-							}
-							&[data-status="obsolete"] {
-								.icon-circle {
-									color: #B90F05;
-								}
-							}
-							&[data-status="retracted"] {
-								.icon-circle {
-									color: #B90F05;
-								}
-							}
-							&[data-status="deleted"] {
-								.icon-circle {
-									color: #B90F05;
+								&:before {
+									width: 10px;
+									height: 10px;
 								}
 							}
 						}
 
-						
 						.view-json {
 							i {
 								margin-right: 5px;
@@ -1495,7 +1454,7 @@ File Overview Styles
 					
 					.body {
 						flex: 1;
-						padding: 10px 12px;
+						padding: 10px 15px;
 						border: 1px solid $mercury;
 						border-top: 1px solid $gray-30;
 		
@@ -1508,6 +1467,7 @@ File Overview Styles
 							&-title {
 								color: $carbon-gray;
 								width: 120px;
+								word-break: break-word;
 							}
 							&-value {
 								flex: 1;
@@ -1516,7 +1476,7 @@ File Overview Styles
 								padding-bottom: 5px;
 								padding-right: 5px;
 								margin-left: 20px;
-								word-break: break-all;
+								word-break: break-word;
 								align-content: center;
 
 								&.coming-soon {
@@ -1725,6 +1685,130 @@ File Overview Styles
 							}
 						}
 					}
+
+					.vcf-analysis-overview {
+						padding: 15px 10px 20px 10px;
+					}
+					.qc-overview-tab {
+						.data-group {
+							.datum {
+								&-title {
+									color: #989696;
+									strong {
+										color: $carbon-gray;
+									}
+								}
+							}
+						}
+						.header {
+							border-bottom: 1px solid $gray-20;
+							&.top {
+								font-size: 1.05rem;
+								background-color: #f1f9ff;
+							}
+							.badge {
+								font-size: 1.05rem;
+								
+								i {
+									margin-right: 0.5rem;
+									font-size: 1rem;
+								}
+							}
+						}
+						&-table {
+							thead {
+								border-bottom: 1px solid #9BA5B7;
+							}
+							tr {
+								background-color: #f8f8f8;
+							}
+						}
+					}
+					.data-group {
+						display: flex;
+						flex-wrap: wrap;
+						gap: 60px;
+
+						.datum {
+							display: flex;
+							flex-direction: column;
+							gap: 16px;
+
+							&-title {
+								color: $carbon-gray;
+								font-size: 0.875rem;
+								font-weight: 500;
+								width: max-content;
+
+								span {
+									font-weight: 400;
+								}
+							}
+							&-value {
+								color: $body-color;
+								font-weight: 400;
+
+								&.text-gray {
+									color: #D8D8D8;
+								}
+							}
+							&.software {
+								.datum-value {
+									display: flex;
+									flex-wrap: wrap;
+									gap: 12px;
+									
+									.software-group {
+										display: flex;
+										align-items: center;
+										border: 1px solid $mercury;
+										border-radius: 12px;
+										background-color: $gray-10;
+										color: $body-color;
+										width: min-content;
+										margin-top: -5px;
+										
+										.title {
+											padding: 4px 12px;
+											font-weight: 400;
+											width: max-content;
+										}
+										.version {
+											height: 100%;
+											background-color: $mercury;
+											font-weight: 500;
+											padding: 4px 12px;
+											border-radius: 0px 11px 11px 0px;
+											width: max-content;
+										}
+									}
+								}
+							}
+						}
+						
+
+						&.notes {
+							flex-direction: column;
+							margin-top: 25px;
+							padding-top: 25px;
+							border-top: 1px solid $mercury;
+							
+							.datum {
+								width: 90%;
+								&-value {
+									p {
+										margin: 0px 0px 5px 0px;
+										
+										b {
+											font-weight: 500;
+										}
+									}
+								}
+							}
+						}
+
+					}
+
 				}
 			}
 		
@@ -1888,5 +1972,15 @@ File Overview Styles
 				}
 			}
 		}
+	}
+}
+
+
+/****************************
+Popover Styles for Item Pages
+*****************************/
+.popover {
+	&#description-definitions-popover {
+		max-width: 600px;
 	}
 }

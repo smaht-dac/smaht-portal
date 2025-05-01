@@ -1,4 +1,5 @@
 import json, sys, subprocess, pprint, time, csv, datetime
+import requests
 import click
 from pathlib import Path
 from collections import OrderedDict
@@ -12,7 +13,7 @@ from dcicutils.creds_utils import SMaHTKeyManager
 ENV = "data"
 SMAHT_KEY = SMaHTKeyManager().get_keydict_for_env(ENV)
 
-SEARCH_QUERY = (
+SEARCH_QUERY_QC = (
     "search/?submission_centers.display_title=UWSC+GCC"
     "&submission_centers.display_title=WASHU+GCC"
     "&submission_centers.display_title=BROAD+GCC"
@@ -21,8 +22,8 @@ SEARCH_QUERY = (
     "&field=uuid"
     "&type=FileSet"
     "&limit=10000"
-    #"&limit=30&from=100"  # for testing
-    # "&accession=SMAFSADRYKW2"
+    # "&limit=5&from=200"  # for testing
+    #"&accession=SMAFSZNMU83N"
 )
 
 
@@ -39,7 +40,9 @@ SEQUENCER = "sequencer"
 STATUS = "status"
 DISPLAY_TITLE = "display_title"
 DELETED = "deleted"
+RETRACTED = "retracted"
 COMPLETED = "completed"
+EXTERNAL_ID = "external_id"
 
 SAMPLE_SOURCE = "sample_source"
 SAMPLE_SOURCE_GROUP = "sample_source_group"
@@ -68,16 +71,20 @@ LONG_READ_SEQS = [SEQ_ONT, SEQ_PACBIO]
 SHORT_READ_SEQS = [SEQ_ILL_NX, SEQ_ILL_NXP, SEQ_ILL_N6000]
 SUPPORTED_SEQUENCERS = LONG_READ_SEQS + SHORT_READ_SEQS
 
+# Studies
+BENCHMARKING = "Benchmarking"
+PRODUCTION = "Production"
+
 # Sample source groups
 CELL_LINE = "cell_line"
 TISSUES = "tissue"
 
 DEFAULT_FACET_GROUPING = [
     {"key": SUBMISSION_CENTER, "label": "Submission Center"},
-    #{"key": ASSAY, "label": "Assay"},
+    # {"key": ASSAY, "label": "Assay"},
     {"key": SAMPLE_SOURCE, "label": "Sample source"},
-    #{"key": SAMPLE_SOURCE_GROUP, "label": "Tissue / Cell line"},
-    #{"key": READ_LENGTH, "label": "Read length (short / long)"},
+    # {"key": SAMPLE_SOURCE_GROUP, "label": "Tissue / Cell line"},
+    # {"key": READ_LENGTH, "label": "Read length (short / long)"},
 ]
 
 DEFAULT_FACET_SAMPLE_SOURCE = [
@@ -117,6 +124,30 @@ DEFAULT_GROUPING_SCATTERPLOT = SUBMISSION_CENTER
 DEFAULT_SAMPLE_SOURCE_SCATTERPLOT = TISSUES
 DEFAULT_SEQUENCER_SCATTERPLOT = ALL_ILLUMINA
 
+DEFAULT_SELECTED_QC_METRICS_BY_FILE_WGS_ILLUMINA = [
+    "samtools_stats:raw_total_sequences",
+    "samtools_stats_postprocessed:percentage_reads_mapped",
+    "verifybamid:freemix_alpha",
+    "samtools_stats_postprocessed:percentage_reads_duplicated",
+]
+
+DEFAULT_SELECTED_QC_METRICS_BY_FILE_WGS_LONG_READ = [
+    "samtools_stats:raw_total_sequences",
+    "samtools_stats_postprocessed:percentage_reads_mapped",
+    "verifybamid:freemix_alpha",
+    "picard_collect_alignment_summary_metrics:mean_read_length",
+]
+
+DEFAULT_SELECTED_QC_METRICS_BY_FILE_RNA_SEQ_ILLUMINA = [
+    "rnaseqc:total_reads",
+    "rnaseqc:mapping_rate",
+    "rnaseqc:duplicate_rate_of_mapped",
+    "rnaseqc:mean_3p_bias",
+    "rnaseqc:exonic_intron_ratio",
+    "rnaseqc:rrna_rate",
+    "rnaseqc:estimated_library_complexity",
+]
+
 VISIBLE_FIELDS_IN_TOOLTIP = [
     {"key": "file_display_title", "label": "File"},
     {"key": "file_status", "label": "Status"},
@@ -127,7 +158,15 @@ VISIBLE_FIELDS_IN_TOOLTIP = [
     {"key": "sample_source", "label": "Sample source"},
 ]
 
-# This is hardcoded for now, but it should be extracted from the MWF in the future 
+VISIBLE_FIELDS_IN_TOOLTIP_SAMPLE_IDENTITY = [
+    {"key": "sample_a", "label": "Sample A"},
+    {"key": "sample_b", "label": "Sample B"},
+    {"key": "relatedness", "label": "Relatedness"},
+    {"key": "ibs0", "label": "IBS0"},
+    {"key": "ibs2", "label": "IBS2"},
+]
+
+# This is hardcoded for now, but it should be extracted from the MWF in the future
 QC_THRESHOLDS = {
     f"{ALL_ILLUMINA}_{WGS}": {
         "verifybamid:freemix_alpha": 0.01,
@@ -145,8 +184,6 @@ QC_THRESHOLDS = {
         "samtools_stats_postprocessed:percentage_reads_mapped": 98.0,
         "picard_collect_alignment_summary_metrics:pf_mismatch_rate": 0.003,
     },
-    
-
 }
 
 
@@ -155,7 +192,10 @@ class FileStats:
         self.errors = []
         self.warnings = []
         self.output_path = output
+        self.all_tissues = self.get_all_tissues()
+        # self.all_donors = self.get_all_donors()
         self.stats = []
+        self.somalier_results = {}
         self.qc_info = {}
         self.viz_info = {
             "facets": {
@@ -164,6 +204,7 @@ class FileStats:
                 "assay": DEFAULT_FACET_ASSAY,
                 "sample_source": DEFAULT_FACET_SAMPLE_SOURCE,
                 "sequencer": DEFAULT_FACET_SEQUENCER,
+                "sample_identity_donors": [],
             },
             "default_settings": {
                 "boxplot": {
@@ -183,6 +224,16 @@ class FileStats:
                     "sequencer": DEFAULT_SEQUENCER_SCATTERPLOT,
                     "tooltipFields": VISIBLE_FIELDS_IN_TOOLTIP,
                 },
+                "heatmap_sample_identity": {
+                    "tooltipFields": VISIBLE_FIELDS_IN_TOOLTIP_SAMPLE_IDENTITY,
+                },
+                "metrics_by_file": {
+                    "default_metrics": {
+                        f"{WGS}_{ALL_ILLUMINA}": DEFAULT_SELECTED_QC_METRICS_BY_FILE_WGS_ILLUMINA,
+                        f"{WGS}_{ALL_LONG_READ}": DEFAULT_SELECTED_QC_METRICS_BY_FILE_WGS_LONG_READ,
+                        f"{RNA_SEQ}_{ALL_ILLUMINA}": DEFAULT_SELECTED_QC_METRICS_BY_FILE_RNA_SEQ_ILLUMINA,
+                    }
+                },
             },
             "qc_thresholds": QC_THRESHOLDS,
         }
@@ -192,7 +243,7 @@ class FileStats:
 
         sample_source_codes_for_facets = []
 
-        filesets = search(SEARCH_QUERY)
+        filesets = search(SEARCH_QUERY_QC)
         print(f"Number of filesets considered: {len(filesets)}")
         for fileset_from_search in progressbar(filesets, "Processing filesets "):
             fileset = get_item(fileset_from_search[UUID])
@@ -217,7 +268,7 @@ class FileStats:
 
             if not assay:
                 self.warnings.append(
-                    f"Warning: Fileset {fileset[ACCESSION]} has no supported assay"
+                    f"Warning: Fileset {fileset[ACCESSION]} has no supported assay: {','.join(assays)}"
                 )
                 continue
 
@@ -228,13 +279,30 @@ class FileStats:
                 )
                 continue
 
+            study = ""
             sample_source_codes = []
+            sample_source_descriptions = []
+            tissue_or_cell_line = None
             for sample_source in self.get_sample_sources_from_fileset(fileset):
                 code = sample_source.get("code")
                 if "Tissue" in sample_source["@type"]:
-                    if not code:
-                        break
-                    sample_source_codes.append(f"{code}")
+                    tissue_or_cell_line = TISSUES
+
+                    tissue_uuid = sample_source[UUID]
+                    tissue = self.all_tissues.get(tissue_uuid)
+                    tissue_display_title = tissue[DISPLAY_TITLE]
+                    tissue_external_id = tissue["external_id"]
+                    if tissue_external_id.startswith("ST"):
+                        study = BENCHMARKING
+                    elif tissue_external_id.startswith("SMHT"):
+                        study = PRODUCTION
+                    else:
+                        raise Exception(
+                            f"Could not determine study for tissue {tissue_external_id}"
+                        )
+                    location = tissue_external_id_to_word(tissue_external_id)
+                    sample_source_codes.append(f"{tissue_display_title}")
+                    sample_source_descriptions.append(f"{location}")
                 else:
                     if not code:
                         cell_line = sample_source.get("cell_line", {})
@@ -242,12 +310,18 @@ class FileStats:
                             for cl in cell_line:
                                 code = cl.get("code", "")
                                 sample_source_codes.append(f"{code}")
+                                sample_source_descriptions.append(f"{code}")
                         else:
                             code = sample_source.get("cell_line", {}).get("code", None)
                             if code:
                                 sample_source_codes.append(f"{code}")
+                                sample_source_descriptions.append(f"{code}")
                     else:
                         sample_source_codes.append(f"{code}")
+                        sample_source_descriptions.append(f"{code}")
+
+                    tissue_or_cell_line = CELL_LINE
+                    study = BENCHMARKING
 
             if not sample_source_codes:
                 self.warnings.append(
@@ -256,14 +330,13 @@ class FileStats:
                 continue
             sample_source_codes = list(set(sample_source_codes))
             sample_source_codes.sort()
-
-            tissues = []
-            for ssc in sample_source_codes:
-                tissues.append(tissue_code_to_word(ssc) or "?")
+            sample_source_descriptions = list(set(sample_source_descriptions))
+            sample_source_descriptions.sort()
 
             sample_source_codes = ", ".join(sample_source_codes)
-            tissues = ", ".join(tissues)
-            
+            sample_source_descriptions = ", ".join(sample_source_descriptions)
+            sample_source_display = sample_source_descriptions
+            sample_source_descriptions = f"{sample_source_descriptions} - {study}"
 
             # Get the alignment MWFR to process the fastp outputs and get the final BAM
             mwfr = self.get_alignment_mwfr(fileset)
@@ -278,7 +351,13 @@ class FileStats:
                 )
                 continue
 
-            sample_source_codes_for_facets.append(tissues if ("?" not in tissues) else sample_source_codes)
+            if final_ouput_file[STATUS] not in ["uploaded", "released"]:
+                self.warnings.append(
+                    f"Warning: Fileset {fileset[ACCESSION]} has no uploaded or released output file. Status: {final_ouput_file[STATUS]}"
+                )
+                continue
+
+            sample_source_codes_for_facets.append(sample_source_descriptions)
 
             result = {}
             result["fileset"] = fileset_accession
@@ -286,7 +365,6 @@ class FileStats:
             result["file_status"] = final_ouput_file[STATUS]
             result["file_display_title"] = final_ouput_file[DISPLAY_TITLE]
             result[SUBMISSION_CENTER] = submission_centers
-            result["tags"] = tags
             result[ASSAY] = assay
             result["assay_label"] = ",".join(assays)
             result[SEQUENCER] = sequencer
@@ -295,40 +373,43 @@ class FileStats:
             elif sequencer in LONG_READ_SEQS:
                 result["sequencer_group"] = ALL_LONG_READ
             result[SAMPLE_SOURCE] = sample_source_codes
-            if tissues != "?":
-                result["tissue"] = tissues
-                result["sample_source_subgroup"] = tissues
-                result[SAMPLE_SOURCE_GROUP] = TISSUES
-            else:
-                result["sample_source_subgroup"] = sample_source_codes
-                result[SAMPLE_SOURCE_GROUP] = CELL_LINE
+            result["sample_source_display"] = sample_source_display
+            result["sample_source_subgroup"] = sample_source_descriptions
+            result[SAMPLE_SOURCE_GROUP] = tissue_or_cell_line
+            result["study"] = study
             result["read_length"] = "long" if sequencer in LONG_READ_SEQS else "short"
             result["quality_metrics"] = {}
 
             qm = self.get_quality_metrics(final_ouput_file)
             qc_values = qm["qc_values"]
-            result["quality_metrics"]["overall_quality_status"] = qm.get("overall_quality_status", "NA")
+            result["quality_metrics"]["overall_quality_status"] = qm.get(
+                "overall_quality_status", "NA"
+            )
             result["quality_metrics"]["qc_values"] = {}
             for qc_value in qc_values:
                 derived_from = qc_value["derived_from"]
                 value = qc_value["value"]
-                flag = qc_value.get("flag", "NA")
                 result["quality_metrics"]["qc_values"][derived_from] = {
                     "value": value,
-                    "flag": flag,
                 }
+                flag = qc_value.get("flag")
+                if flag:
+                    result["quality_metrics"]["qc_values"][derived_from]["flag"] = flag
                 if derived_from not in self.qc_info:
                     self.qc_info[derived_from] = {
                         "derived_from": derived_from,
                         "tooltip": qc_value.get("tooltip", ""),
                         "key": qc_value.get("key", ""),
                     }
-                    if assay in self.viz_info["facets"]["qc_metrics"]:
-                        self.viz_info["facets"]["qc_metrics"][assay].append(
-                            self.qc_info[derived_from]
-                        )
-                    else:
-                        self.viz_info["facets"]["qc_metrics"][assay] = []
+                    if not isinstance(value, str):
+                        if assay in self.viz_info["facets"]["qc_metrics"]:
+                            self.viz_info["facets"]["qc_metrics"][assay].append(
+                                self.qc_info[derived_from]
+                            )
+                        else:
+                            self.viz_info["facets"]["qc_metrics"][assay] = [
+                                self.qc_info[derived_from]
+                            ]
 
             self.viz_info["facets"]["qc_metrics"][assay].sort(
                 key=lambda x: x["derived_from"]
@@ -353,6 +434,126 @@ class FileStats:
                 {"key": ssc, "label": ssc},
             )
 
+        self.get_somalier_results()
+
+    def get_somalier_results(self):
+
+        # GET SAMPLE IDENTITY CHECK RESULTS
+        print("\n\nWorking on sample identity results")
+        print("Retrieving donors")
+
+        search_query_donors = "search/?type=Donor" "&limit=10000"
+        donors = search(search_query_donors)
+        # Hapmap does not have a single donor, so we need to add it manually
+        donors.append({ACCESSION: "HAPMAP", DISPLAY_TITLE: "HAPMAP"})
+        donors = sorted(donors, key=lambda x: x[DISPLAY_TITLE])
+        for donor in progressbar(donors, "Processing donors "):
+            donor_accession = donor[ACCESSION]
+
+            latest_run = get_latest_somalier_run_for_donor(donor_accession)
+            if not latest_run:
+                continue
+
+            latest_run = latest_run[0]
+            # print(f"Latest run: {latest_run[ACCESSION]}")
+
+            self.viz_info["facets"]["sample_identity_donors"].append(
+                {"value": donor_accession, "label": donor[DISPLAY_TITLE]},
+            )
+
+            somalier_relate_wfr = get_somalier_relate_worklfow(latest_run)
+            overall_quality_status = somalier_relate_wfr["output"][0]["file"][
+                "quality_metrics"
+            ][0]["overall_quality_status"]
+            tsv_content = get_somalier_relate_output(latest_run)
+            if not tsv_content:
+                raise Exception(
+                    f"Could not get TSV content for somalier run {latest_run[ACCESSION]}"
+                )
+            self.somalier_results[donor_accession] = {
+                "info": {
+                    "overall_quality_status": overall_quality_status,
+                    "problematic_files": [],
+                    "files_included": [],
+                },
+                "warnings": [],
+                "results": [],
+            }
+            tsv_content_list = []
+            for line in tsv_content.splitlines():
+                # file header: #sample_a	sample_b	relatedness	ibs0	ibs2	hom_concordance	hets_a	hets_b	hets_ab	shared_hets	hom_alts_a	hom_alts_b	shared_hom_alts	n	x_ibs0	x_ibs2	expected_relatedness
+                if line.startswith("#"):
+                    continue
+                line_ = line.split("\t")
+                tsv_content_list.append(line_)
+
+            # Collect metadata first from all involved files
+            all_file_accessions = []
+            for line_ in tsv_content_list:
+                all_file_accessions.append(line_[0])
+                all_file_accessions.append(line_[1])
+            all_file_accessions = list(set(all_file_accessions))
+            self.somalier_results[donor_accession]["info"]["files_included"] = all_file_accessions
+            all_file_infos = get_items_bulk(
+                "File", [ACCESSION, "status"], all_file_accessions
+            )
+            all_file_infos = {f[ACCESSION]: f for f in all_file_infos}
+
+            for line_ in tsv_content_list:
+                sample_a = line_[0]
+                sample_b = line_[1]
+                ibs0 = float(line_[3])
+                ibs2 = float(line_[4])
+                relatedness = float(line_[2])
+
+                # We need to bring this into this format so that it's compatible with the scatter plot (same format as QC results)
+                somalier_result = {
+                    "sample_a": sample_a,
+                    "sample_a_status": all_file_infos[sample_a]["status"],
+                    "sample_b": sample_b,
+                    "sample_b_status": all_file_infos[sample_b]["status"],
+                    "relatedness": relatedness,
+                    "ibs0": ibs0,
+                    "ibs2": ibs2,
+                }
+
+                self.somalier_results[donor_accession]["results"].append(
+                    somalier_result
+                )
+
+            self.generate_somalier_warnings(
+                donor_accession, donor[DISPLAY_TITLE], all_file_infos
+            )
+
+    def generate_somalier_warnings(self, donor_accession, donor_label, all_file_infos):
+
+        # Color829 is a special case (tumor samples). Lower the threshold
+        threshold = 0.55 if donor_accession == "SMADOLCPQL1J" else 0.9
+
+        results = self.somalier_results[donor_accession]["results"]
+        problematic_files = {}
+        for result in results:
+            if result["relatedness"] < threshold:
+                for sample in ["sample_a", "sample_b"]:
+                    if result[sample] not in problematic_files:
+                        problematic_files[result[sample]] = 1
+                    else:
+                        problematic_files[result[sample]] += 1
+
+        # Get the files accessions that violated the treshold more than twice
+        problematic_files = [
+            key for key, value in problematic_files.items() if value > 2
+        ]
+        self.somalier_results[donor_accession]["info"]["problematic_files"] = problematic_files
+        for f in problematic_files:
+            # Don't generate warnings if the file is deleted or retracted
+            if all_file_infos[f]["status"] in [DELETED, RETRACTED]:
+                continue
+            
+            self.somalier_results[donor_accession]["warnings"].append(
+                f"File {f} failed the sample integrity check for donor {donor_label}"
+            )
+
     def write_json(self):
         if len(self.stats) == 0:
             print("No results found.")
@@ -367,6 +568,7 @@ class FileStats:
             "viz_info": self.viz_info,
             "qc_info": self.qc_info,
             "qc_results": self.stats,
+            "somalier_results": self.somalier_results,
         }
 
         with open(self.output_path, "w") as file:
@@ -401,10 +603,31 @@ class FileStats:
             ):
                 file_uuid = workflow_run["output"][0]["file"][UUID]
                 file = get_item(file_uuid)
-                if file["output_status"] == "Final Output" and (
-                    file["status"] not in ["deleted", "retracted"]
-                ):
+                if file["output_status"] == "Final Output":
                     return file
+
+    def get_all_tissues(self):
+        query = (
+            "search/?type=Tissue"
+            "&field=uuid&field=code&field=external_id&field=display_title&field=anatomical_location"
+            "&submission_centers.display_title=NDRI+TPC"
+        )
+        tissues_from_search = search(query)
+        tissues = {}
+        for tissue in tissues_from_search:
+            tissues[tissue[UUID]] = tissue
+        return tissues
+
+    def get_all_donors(self):
+        query = (
+            "search/?type=Donor"
+            "&submission_centers.display_title=NDRI+TPC&submission_centers.display_title=HMS+DAC"
+        )
+        donors_from_search = search(query)
+        donors = {}
+        for donor in donors_from_search:
+            donors[donor[UUID]] = donor
+        return donors
 
     def get_quality_metrics(self, file):
         qms = file.get(QUALITY_METRICS, [])
@@ -438,24 +661,131 @@ def search(query):
     return ff_utils.search_metadata(query, key=SMAHT_KEY)
 
 
-def download_file_from_portal(file_uuid, output_path):
+def get_items_bulk(type, fields, accessions):
+    all_results = []
+
+    fields_param = "&".join([f"field={f}" for f in fields])
+    accessions_chunks = chunk_list(accessions, 100)
+
+    for accessions_chunk in accessions_chunks:
+        accessions_param = "&".join([f"accession={a}" for a in accessions_chunk])
+        query = f"search/?type={type}" f"&{fields_param}&{accessions_param}"
+
+        results = search(query)
+        for result in results:
+            all_results.append(result)
+    return all_results
+
+
+def chunk_list(lst, chunk_size=100):
+    return [lst[i : i + chunk_size] for i in range(0, len(lst), chunk_size)]
+
+
+# def download_file_from_portal(file_uuid, output_path):
+#     file = get_item(file_uuid)
+#     href = file["href"]
+#     cmd = f"curl -sL --user {SMAHT_KEY['key']}:{SMAHT_KEY['secret']} {SMAHT_KEY['server']}{href} --output {output_path}"
+#     subprocess.Popen(cmd, shell=True).wait()
+
+
+def get_file_content_from_portal_file(file_uuid):
     file = get_item(file_uuid)
     href = file["href"]
-    cmd = f"curl -sL --user {SMAHT_KEY['key']}:{SMAHT_KEY['secret']} {SMAHT_KEY['server']}{href} --output {output_path}"
-    subprocess.Popen(cmd, shell=True).wait()
+    url = f"{SMAHT_KEY['server']}{href}"
+    response = requests.get(
+        url, auth=(SMAHT_KEY["key"], SMAHT_KEY["secret"]), allow_redirects=True
+    )
+
+    if response.status_code == 200:
+        return response.text
+    else:
+        print(f"Error: {response.status_code}")
 
 
-def tissue_code_to_word(code):
-    if "-1A" in code:
-        return "Liver"
-    elif "-1D" in code:
-        return "Lung"
-    elif "-1G" in code:
-        return "Colon"
-    elif "-1Q" in code:
-        return "Brain"
-    elif "-1K" in code:
-        return "Skin"
+# The QC visualization assume that sample identity MWFRs are tagged as follows:
+def get_tag_for_sample_identity_check(donor_accession):
+    return f"sample_identity_check_for_donor_{donor_accession}"
+
+
+def tissue_external_id_to_word(external_id):
+    code = external_id.split("-")[1]
+
+    mapping = {
+        "1A": "Liver",
+        "1D": "Lung",
+        "1G": "Colon",
+        "1Q": "Brain",
+        "1K": "Skin",
+        "3A": "Blood",
+        "3AC": "Skin",
+        "3AD": "Skin",
+        "3AE": "Skin",
+        "3AF": "Skin",
+        "3AG": "Skin",
+        "3AH": "Muscle",
+        "3AI": "Muscle",
+        "3AJ": "Brain",
+        "3AK": "Brain",
+        "3AL": "Brain",
+        "3AM": "Brain",
+        "3AN": "Brain",
+        "3AO": "Brain",
+        "3B": "Buccal Swap",
+        "3C": "Esophagus",
+        "3D": "Esophagus",
+        "3E": "Colon",
+        "3F": "Colon",
+        "3G": "Colon",
+        "3H": "Colon",
+        "3I": "Liver",
+        "3J": "Liver",
+        "3K": "Adrenal Gland",
+        "3L": "Adrenal Gland",
+        "3M": "Adrenal Gland",
+        "3N": "Adrenal Gland",
+        "3O": "Aorta",
+        "3P": "Aorta",
+        "3R": "Lung",
+        "3Q": "Lung",
+        "3S": "Heart",
+        "3T": "Heart",
+        "3U": "Testis",
+        "3V": "Testis",
+        "3W": "Testis",
+        "3X": "Testis",
+    }
+    if code not in mapping:
+        raise Exception(f"Unknown tissue code {external_id}")
+    return mapping[code]
+
+
+def get_latest_somalier_run_for_donor(donor_accession):
+    search_filter = (
+        "?type=MetaWorkflowRun"
+        f"&meta_workflow.name=sample_identity_check"
+        f"&tags={get_tag_for_sample_identity_check(donor_accession)}"
+        "&final_status=completed"
+        "&sort=-date_created"
+        "&limit=1"
+    )
+    return search(f"/search/{search_filter}")
+
+
+def get_somalier_relate_worklfow(mwfr):
+    workflow_run = next(
+        (item for item in mwfr["workflow_runs"] if item["name"] == "somalier_relate"),
+        None,
+    )
+    if not workflow_run:
+        raise Exception(f"No somalier_relate workflow run found")
+
+    return workflow_run
+
+
+def get_somalier_relate_output(mwfr):
+    workflow_run = get_somalier_relate_worklfow(mwfr)
+    tsv_uuid = workflow_run["output"][0]["file"][UUID]
+    return get_file_content_from_portal_file(tsv_uuid)
 
 
 def progressbar(it, prefix="", size=60, out=sys.stdout):

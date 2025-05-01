@@ -24,6 +24,32 @@
         ]
     },
     {
+        "uuid": "92b37a58-3abc-48aa-bde2-c839f3b67dd3",
+        "submission_centers": [
+            "ndri_tpc"
+        ],
+        "submitted_id": "NDRITEST_TISSUE-SAMPLE_LUNG-HOMOGENATE-X",
+        "external_id": "ST001-1D-020X",
+        "category": "Homogenate",
+        "preservation_type": "Snap Frozen",
+        "sample_sources": [
+            "TEST_TISSUE_LUNG"
+        ]
+    },
+    {
+        "uuid": "61850d04-9207-43ab-aab9-1a62821febc3",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE-SAMPLE_BRAIN",
+        "sample_sources": [
+            "TEST_TISSUE_BRAIN"
+        ],
+        "category": "Specimen",
+        "external_id": "SMHT001-3AJ-001S1",
+        "preservation_type": "Fresh"
+    },
+    {
         "uuid": "b59d424d-85a4-43f2-ac1c-ed81d41dd6b4",
         "submission_centers": [
             "smaht"
@@ -61,6 +87,18 @@
         "external_id": "SMHT001-1A-001S8",
         "category": "Specimen",
         "preservation_type": "Snap Frozen"
+    },
+    {
+        "uuid": "3542c710-a4cf-4b32-8ac3-3bacd691a9a0",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE-SAMPLE_BLOOD",
+        "external_id": "SMHT001-3A-001X",
+        "category": "Liquid",
+        "sample_sources": [
+            "TEST_TISSUE_BLOOD"
+        ]
     },
     {
         "uuid": "3550c0a6-b8ca-436a-b563-737a7ce68c3c",

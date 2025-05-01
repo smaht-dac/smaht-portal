@@ -1,4 +1,5 @@
 import pytest
+from typing import List, Dict, Any
 from webtest.app import TestApp
 
 from .utils import (
@@ -6,7 +7,7 @@ from .utils import (
     get_insert_identifier_for_item_type,
     patch_item,
     post_item,
-    get_item
+    get_item,
 )
 
 from ..item_utils import (
@@ -34,6 +35,29 @@ def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
 
 @pytest.mark.workbook
 @pytest.mark.parametrize(
+    "submitted_id,expected",
+    [
+        ("TEST_FILE-SET_LUNG-HOMOGENATE-DNA",["Lung"]),
+        ("TEST_FILE-SET_LIVER-DNA",["Liver"])
+    ]
+)
+def test_file_set_tissue_types(
+    es_testapp: TestApp,
+    submitted_id: str,
+    expected: List[str],
+    workbook: None
+) -> None:
+    """Ensure the tissue_types calcprop works."""
+    fileset=get_item(
+        es_testapp,
+        submitted_id,
+        collection='FileSet',
+    )
+    assert fileset.get("tissue_types",[]) == expected
+
+
+@pytest.mark.workbook
+@pytest.mark.parametrize(
     "library,sequencing,expected_status",
     [
         ("TEST_LIBRARY_LUNG-HOMOGENATE-DNA","TEST_SEQUENCING_PACBIO_30X-30H-DNA", 200), # FiberSeq and PacBio
@@ -45,7 +69,7 @@ def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
         ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 200), #bulk_wgs and Illumina NovaSeqX
         ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_NOVASEQ-500X-RNA", 200), # RNA with target_read_count
         ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 422), # RNA with target_coverage
-        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-RNA", 422), # DNA with target_read_count
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-RNA", 200), # DNA with target_read_count
         ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 200), # DNA with target_coverage
     ],
 )
@@ -94,7 +118,7 @@ def test_validate_compatible_library_and_sequencer_on_patch(
         ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 201, 5), #bulk_wgs and Illumina NovaSeqX
         ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_NOVASEQ-500X-RNA", 201, 6), # RNA with target_read_count
         ("TEST_LIBRARY_HELA-RNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 422, 7), # RNA with target_coverage
-        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-RNA", 422, 8), # DNA with target_read_count
+        ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-RNA", 201, 8), # DNA with target_read_count
         ("TEST_LIBRARY_LIVER-DNA","TEST_SEQUENCING_NOVASEQ-500X-DNA", 201, 9), # DNA with target_coverage
     ],
 )

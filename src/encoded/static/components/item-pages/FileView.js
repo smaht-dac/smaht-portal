@@ -10,6 +10,7 @@ import DefaultItemView from './DefaultItemView';
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SelectedItemsDownloadButton } from '../static-pages/components/SelectAllAboveTableComponent';
 import { ShowHideInformationToggle } from './components/file-overview/ShowHideInformationToggle';
+import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
 // Page containing the details of Items of type File
 export default class FileOverview extends DefaultItemView {
@@ -87,10 +88,59 @@ const FileViewTitle = (props) => {
 // Header component containing high-level information for the file item
 const FileViewHeader = (props) => {
     const { context = {}, session } = props;
-    const { accession, status, description, notes_to_tsv } = context;
+    const {
+        accession,
+        status,
+        description,
+        notes_to_tsv,
+        retraction_reason = '',
+        release_tracker_description = '',
+        release_tracker_title = '',
+    } = context;
     const selectedFile = new Map([[context['@id'], context]]);
 
-    const accessionsOfInterest = ['SMAFI557D2E7', 'SMAFIB6EQLZM'];
+    // Accessions of files whose alert banners are rendered differently
+    const accessionsOfInterest = ['SMAFIB6EQLZM'];
+
+    // Prepare a message string for the retracted warning banner
+    let retractedWarningMessage = '';
+    if (!accessionsOfInterest.includes(accession) && status === 'retracted') {
+        const title = release_tracker_title
+            ? ' ' + `from ${release_tracker_title}`
+            : '';
+        const description =
+            release_tracker_description ||
+            `${context?.file_format?.display_title} file`;
+
+        const retraction = retraction_reason
+            ? `was retracted due to ${retraction_reason
+                  .substring(0, 1)
+                  .toLowerCase()}${retraction_reason.substring(1)}`
+            : `was retracted`;
+
+        const replacement = context?.replaced_by ? (
+            <>
+                The replacement is made {''}
+                <a
+                    href={context?.replaced_by?.['@id']}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="link-underline-hover">
+                    available here
+                </a>
+                .
+            </>
+        ) : (
+            ''
+        );
+
+        retractedWarningMessage = (
+            <>
+                This {description}
+                {title} {retraction}. {replacement}
+            </>
+        );
+    }
 
     return (
         <div className="file-view-header">
@@ -107,6 +157,17 @@ const FileViewHeader = (props) => {
                     Download File
                 </SelectedItemsDownloadButton>
             </div>
+
+            {!accessionsOfInterest.includes(accession) &&
+            status === 'retracted' ? (
+                <div className="callout warning mt-2 mb-1">
+                    <p className="callout-text">
+                        <span className="flag">Attention: </span>
+                        {retractedWarningMessage}
+                    </p>
+                </div>
+            ) : null}
+
             {accessionsOfInterest.includes(accession) ? (
                 <div className="callout warning mt-2 mb-1">
                     <p className="callout-text">
@@ -133,6 +194,7 @@ const FileViewHeader = (props) => {
                     </p>
                 </div>
             ) : null}
+
             <div className="data-group data-row">
                 <div className="datum">
                     <span className="datum-title">File Accession </span>
@@ -142,11 +204,12 @@ const FileViewHeader = (props) => {
                     </span>
                 </div>
                 <div className="datum right-group">
-                    <div className="status-group" data-status={status}>
-                        <i className="icon icon-circle fas"></i>
+                    <div className="status-group">
+                        <i
+                            className="status-indicator-dot"
+                            data-status={status}></i>
                         <span className="status">
-                            {status?.charAt(0)?.toUpperCase() +
-                                status?.substring(1)}
+                            {capitalizeSentence(status)}
                         </span>
                     </div>
                     <span className="vertical-divider">|</span>
@@ -189,7 +252,8 @@ const FileViewHeader = (props) => {
                                             'datum-value-notes-to-tsv text-gray ' +
                                             (i > 0 ? 'mt-1' : '')
                                         }>
-                                        {note}
+                                        {note.substring(0, 1).toUpperCase() +
+                                            note.substring(1)}
                                     </li>
                                 ))}
                             </ul>

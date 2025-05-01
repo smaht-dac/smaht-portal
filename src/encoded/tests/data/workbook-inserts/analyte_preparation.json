@@ -15,8 +15,8 @@
             "smaht"
         ],
         "submitted_id": "TEST_ANALYTE-PREPARATION_LIVER-CELL",
-        "cell_sorting_method": [
-            "Magnetic-activated"
+        "cell_selection_method": [
+            "Magnetic-activated Cell Sorting"
         ],
         "cell_lysis_method": [
             "Chemical"

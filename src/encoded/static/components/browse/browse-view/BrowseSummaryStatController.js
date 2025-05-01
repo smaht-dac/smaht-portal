@@ -8,57 +8,58 @@ import {
 import { BrowseLinkIcon } from './BrowseLinkIcon';
 
 export const BrowseSummaryStatController = (props) => {
-    const { type, useSearch = false, additionalSearchQueries = '' } = props;
+    const { type, additionalSearchQueries = '' } = props;
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const [value, setValue] = useState('');
     const [units, setUnits] = useState('');
 
-    const postData = {
-        type: type !== 'File Size' ? type : 'File',
-        status: 'released',
-    };
-
     const callbackFxn = useCallback((resp) => {
-        if (!useSearch) {
-            resp.forEach((facet) => {
-                if (facet.field == 'status') {
-                    facet.terms.forEach((term) => {
-                        if (term.key == 'released') {
-                            setValue(term.doc_count);
-                        }
-                    });
+        const { facets = [], total } = resp;
+        if (type === 'File Size') {
+            facets.forEach((facet) => {
+                if (facet.field === 'file_size') {
+                    setValue(
+                        valueTransforms.bytesToLargerUnit(
+                            facet.sum,
+                            0,
+                            false,
+                            true
+                        )
+                    );
+                    setUnits(
+                        valueTransforms.bytesToLargerUnit(
+                            facet.sum,
+                            0,
+                            true,
+                            false
+                        )
+                    );
                 }
             });
-        } else {
-            // Use search for File count total and File Size total
-            const { facets = [], total } = resp;
-            if (type === 'File Size') {
-                facets.forEach((facet) => {
-                    if (facet.field === 'file_size') {
-                        setValue(
-                            valueTransforms.bytesToLargerUnit(
-                                facet.sum,
-                                0,
-                                false,
-                                true
-                            )
-                        );
-                        setUnits(
-                            valueTransforms.bytesToLargerUnit(
-                                facet.sum,
-                                0,
-                                true,
-                                false
-                            )
-                        );
-                    }
-                });
-            } else if (type === 'File') {
-                setValue(total);
-            }
+        } else if (type === 'File') {
+            setValue(total);
+        } else if (type === 'Tissue') {
+            facets.forEach((facet) => {
+                if (facet.field === 'sample_summary.tissues') {
+                    setValue(facet.terms.length);
+                }
+            });
+        } else if (type === 'Donor') {
+            facets.forEach((facet) => {
+                if (facet.field === 'donors.display_title') {
+                    setValue(facet.terms.length);
+                }
+            });
+        } else if (type === 'Assay') {
+            facets.forEach((facet) => {
+                if (facet.field === 'file_sets.libraries.assay.display_title') {
+                    setValue(facet.terms.length);
+                }
+            });
         }
+
         setLoading(false);
         setError(false);
     });
@@ -73,24 +74,13 @@ export const BrowseSummaryStatController = (props) => {
         if (!loading) setLoading(true);
         if (error) setError(false);
 
-        if (!useSearch) {
-            // Using peek-metadata for basic item counts
-            ajax.load(
-                `/peek-metadata/`,
-                callbackFxn,
-                'POST',
-                fallbackFxn,
-                JSON.stringify(postData)
-            );
-        } else {
-            // Use search for more complicated query-based metrics
-            ajax.load(
-                `/search/?type=${postData.type}&format=json&status=released&limit=&additional_facet=file_size${additionalSearchQueries}`,
-                callbackFxn,
-                'GET',
-                fallbackFxn
-            );
-        }
+        // Use search for query-based metrics
+        ajax.load(
+            `/search/?type=File&sample_summary.studies=Production&format=json&status=released${additionalSearchQueries}`,
+            callbackFxn,
+            'GET',
+            fallbackFxn
+        );
     }, [callbackFxn, fallbackFxn]);
 
     // On mount, get statistics
@@ -142,7 +132,7 @@ const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
                     <>
                         <div className="browse-summary-stat-value">
                             {!value && value !== 0 ? '-' : value}
-                            {units && <span>{units}</span>}
+                            {units && <span>&nbsp;{units}</span>}
                         </div>
                     </>
                 )}

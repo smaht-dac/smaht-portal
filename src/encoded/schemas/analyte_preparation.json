@@ -54,7 +54,7 @@
             "accessionType": "AP"
         },
         "schema_version": {
-            "default": "1"
+            "default": "2"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_ANALYTE-PREPARATION_[A-Z0-9-_.]{4,}$"
@@ -75,24 +75,25 @@
                 ]
             }
         },
-        "cell_sorting_method": {
-            "title": "Cell Sorting Method",
-            "description": "Cell sorting method for analyte extraction, if applicable. Relevant for extraction for single-cell assays",
+        "cell_selection_method": {
+            "title": "Cell Selection Method",
+            "description": "Cell selection method for analyte extraction, if applicable. Relevant for extraction for single-cell assays",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
             "items": {
                 "type": "string",
                 "enum": [
-                    "Fluoresence-activated",
-                    "Magnetic-activated",
+                    "Fluoresence-activated Cell Sorting",
+                    "Magnetic-activated Cell Sorting",
                     "Selective Media",
                     "Laser Capture Microdissection",
                     "Micromanipulation",
                     "Isopycnic Sedimentation",
                     "Velocity Sedimentation",
                     "Centrifugation",
-                    "Filtering",
+                    "Cell Raft",
+                    "Size Selection",
                     "Microfluidics"
                 ]
             }
@@ -128,6 +129,16 @@
                 "Whole Cell",
                 "Nucleus"
             ]
+        }
+    },
+    "columns": {
+        "submitted_id": {
+            "title": "Submitted ID"
+        }
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
         }
     }
 }

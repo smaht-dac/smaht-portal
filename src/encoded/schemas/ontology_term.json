@@ -95,6 +95,11 @@
                 "linkTo": "Ontology"
             }
         },
+        "preferred_name": {
+          "title": "Display name",
+          "description": "A preferred name (possibly shortened or simpler version) for the ontology term - can be used for submission or retrieval.",
+          "type": "string"
+        },
         "url": {
             "description": "The url that uniquely identifies term - often purl."
         },
@@ -103,6 +108,19 @@
             "description": "Ontology term that this term is grouped under - less specific term used in search",
             "type": "string",
             "linkTo": "OntologyTerm"
+        },
+        "valid_protocol_ids":{
+            "title": "Valid Protocol IDs",
+            "description": "Tissue protocol IDs that are valid for the ontology term - used to check that Uberon IDs are correctly linked to tissue items.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        }
+    },
+    "columns": {
+        "identifier": {
+            "title": "Identifier"
         }
     }
 }
