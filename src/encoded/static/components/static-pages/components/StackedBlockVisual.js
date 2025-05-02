@@ -134,10 +134,10 @@ export class VisualBody extends React.PureComponent {
                 }
 
                 //TODO: handle composite values in a smart way, this workaround is too hacky
-                if (facetTerm && typeof facetTerm === 'string' && facetTerm.indexOf(' - ') > -1) {
+                if (Array.isArray(column_agg_fields) && column_agg_fields.length >= 2 && facetTerm && typeof facetTerm === 'string' && facetTerm.indexOf(' - ') > -1) {
                     let extendedFacetTerm;
                     [facetTerm, extendedFacetTerm] = facetTerm.split(' - ');
-                    return [[facetField, facetTerm], ['sequencing.sequencer.platform', extendedFacetTerm]];
+                    return [[facetField, facetTerm], [column_agg_fields[1], extendedFacetTerm]];
                 }
 
                 return [facetField, facetTerm];
