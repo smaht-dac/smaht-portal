@@ -64,6 +64,7 @@ WORKDIR /home/nginx/smaht-portal
 # Do the back-end dependency install
 COPY pyproject.toml .
 COPY poetry.lock .
+RUN pip install setuptools==71.1.0
 RUN poetry install --no-root --no-dev
 
 # Do the front-end dependency install
@@ -76,6 +77,7 @@ COPY . .
 
 # Build remaining back-end
 RUN poetry install --no-dev -vvv && \
+    pip install --upgrade setuptools && \
     python setup_eb.py develop && \
     make fix-dist-info
 
