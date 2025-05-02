@@ -44,7 +44,7 @@ export default class DataMatrix extends React.PureComponent {
         "allowedFields": [
             "donors.display_title",
             "sequencing.sequencer.display_title",
-            "data_generation_summary.assays",
+            "file_sets.libraries.assay.display_title",
             "sample_summary.tissues",
             "data_type",
             "file_format.display_title",
@@ -54,7 +54,6 @@ export default class DataMatrix extends React.PureComponent {
         "xAxisLabel": "X",
         "yAxisLabel": "Y",
         "disableConfigurator": false,
-        "useTestData": false // to be removed
     };
 
     static propTypes = {
@@ -225,7 +224,7 @@ export default class DataMatrix extends React.PureComponent {
             const resultKey = "_results";
             const updatedState = {};
 
-            updatedState[resultKey] = this.props.useTestData ? TEST_DATA_2 : result;
+            updatedState[resultKey] = location.hostname.indexOf('localhost') >= 0 ? TEST_DATA_2 : result;
             let transfermedData = [];
             _.forEach(updatedState[resultKey], (r) => {
                 if (fieldChangeMap) {
@@ -716,451 +715,451 @@ const TEST_DATA = [
 
 const TEST_DATA_2 = [
     {
-        "data_generation_summary.assays": "WGS - Illumina",
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Colon",
         "files": 203
     },
     {
-        "data_generation_summary.assays": "WGS - Illumina",
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Lung",
         "files": 142
     },
     {
-        "data_generation_summary.assays": "WGS - Illumina",
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Skin",
         "files": 12
     },
     {
-        "data_generation_summary.assays": "WGS - Illumina",
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Lung",
         "files": 190
     },
     {
-        "data_generation_summary.assays": "WGS - Illumina",
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Liver",
         "files": 83
     },
     {
-        "data_generation_summary.assays": "WGS - Illumina",
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Skin",
         "files": 12
     },
     {
-        "data_generation_summary.assays": "WGS - Illumina",
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "ST003",
         "sample_summary.tissues": "Brain",
         "files": 147
     },
     {
-        "data_generation_summary.assays": "WGS - Illumina",
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "ST004",
         "sample_summary.tissues": "Brain",
         "files": 147
     },
     {
-        "data_generation_summary.assays": "WGS - Illumina",
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Brain",
         "files": 48
     },
     {
-        "data_generation_summary.assays": "WGS - Illumina",
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Skin",
         "files": 25
     },
     {
-        "data_generation_summary.assays": "WGS - Illumina",
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Colon",
         "files": 20
     },
     {
-        "data_generation_summary.assays": "WGS - Illumina",
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Muscle",
         "files": 12
     },
     {
-        "data_generation_summary.assays": "WGS - Illumina",
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Blood",
         "files": 10
     },
     {
-        "data_generation_summary.assays": "WGS - Illumina",
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Esophagus",
         "files": 10
     },
     {
-        "data_generation_summary.assays": "WGS - Illumina",
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Heart",
         "files": 10
     },
     {
-        "data_generation_summary.assays": "WGS - Illumina",
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Liver",
         "files": 10
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT004",
         "sample_summary.tissues": "Colon",
         "files": 8
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT004",
         "sample_summary.tissues": "Skin",
         "files": 8
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT004",
         "sample_summary.tissues": "Aorta",
         "files": 4
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT004",
         "sample_summary.tissues": "Blood",
         "files": 4
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT004",
         "sample_summary.tissues": "Esophagus",
         "files": 4
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT004",
         "sample_summary.tissues": "Heart",
         "files": 4
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT004",
         "sample_summary.tissues": "Liver",
         "files": 4
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT004",
         "sample_summary.tissues": "Lung",
         "files": 4
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT004",
         "sample_summary.tissues": "Muscle",
         "files": 4
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT004",
         "sample_summary.tissues": "Testis",
         "files": 4
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Liver",
         "files": 18
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Lung",
         "files": 15
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Blood",
         "files": 5
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Heart",
         "files": 5
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Colon",
         "files": 4
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Esophagus",
         "files": 4
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Liver",
         "files": 4
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Muscle",
         "files": 4
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Colon",
         "files": 13
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Lung",
         "files": 13
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "ST003",
         "sample_summary.tissues": "Brain",
         "files": 12
     },
     {
-        "data_generation_summary.assays": "WGS - ONT",
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "ST004",
         "sample_summary.tissues": "Brain",
         "files": 10
     },
     {
-        "data_generation_summary.assays": "RNA-seq - Illumina",
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Liver",
         "files": 19
     },
     {
-        "data_generation_summary.assays": "RNA-seq - Illumina",
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Lung",
         "files": 13
     },
     {
-        "data_generation_summary.assays": "RNA-seq - Illumina",
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Colon",
         "files": 15
     },
     {
-        "data_generation_summary.assays": "RNA-seq - Illumina",
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Lung",
         "files": 13
     },
     {
-        "data_generation_summary.assays": "RNA-seq - Illumina",
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
         "donors.display_title": "SMHT004",
         "sample_summary.tissues": "Lung",
         "files": 5
     },
     {
-        "data_generation_summary.assays": "RNA-seq - Illumina",
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
         "donors.display_title": "SMHT004",
         "sample_summary.tissues": "Blood",
         "files": 2
     },
     {
-        "data_generation_summary.assays": "RNA-seq - Illumina",
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
         "donors.display_title": "SMHT004",
         "sample_summary.tissues": "Colon",
         "files": 2
     },
     {
-        "data_generation_summary.assays": "RNA-seq - Illumina",
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
         "donors.display_title": "SMHT004",
         "sample_summary.tissues": "Esophagus",
         "files": 2
     },
     {
-        "data_generation_summary.assays": "RNA-seq - Illumina",
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
         "donors.display_title": "SMHT004",
         "sample_summary.tissues": "Muscle",
         "files": 2
     },
     {
-        "data_generation_summary.assays": "RNA-seq - Illumina",
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
         "donors.display_title": "ST004",
         "sample_summary.tissues": "Brain",
         "files": 13
     },
     {
-        "data_generation_summary.assays": "RNA-seq - Illumina",
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
         "donors.display_title": "ST003",
         "sample_summary.tissues": "Brain",
         "files": 11
     },
     {
-        "data_generation_summary.assays": "RNA-seq - Illumina",
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Heart",
         "files": 2
     },
     {
-        "data_generation_summary.assays": "RNA-seq - Illumina",
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Muscle",
         "files": 2
     },
     {
-        "data_generation_summary.assays": "NanoSeq - Illumina",
+        "file_sets.libraries.assay.display_title": "NanoSeq - Illumina",
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Liver",
         "files": 12
     },
     {
-        "data_generation_summary.assays": "NanoSeq - Illumina",
+        "file_sets.libraries.assay.display_title": "NanoSeq - Illumina",
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Lung",
         "files": 12
     },
     {
-        "data_generation_summary.assays": "NanoSeq - Illumina",
+        "file_sets.libraries.assay.display_title": "NanoSeq - Illumina",
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Colon",
         "files": 12
     },
     {
-        "data_generation_summary.assays": "NanoSeq - Illumina",
+        "file_sets.libraries.assay.display_title": "NanoSeq - Illumina",
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Lung",
         "files": 12
     },
     {
-        "data_generation_summary.assays": "NanoSeq - Illumina",
+        "file_sets.libraries.assay.display_title": "NanoSeq - Illumina",
         "donors.display_title": "ST003",
         "sample_summary.tissues": "Brain",
         "files": 12
     },
     {
-        "data_generation_summary.assays": "NanoSeq - Illumina",
+        "file_sets.libraries.assay.display_title": "NanoSeq - Illumina",
         "donors.display_title": "ST004",
         "sample_summary.tissues": "Brain",
         "files": 12
     },
     {
-        "data_generation_summary.assays": "WGS - PacBio",
+        "file_sets.libraries.assay.display_title": "WGS - PacBio",
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Liver",
         "files": 16
     },
     {
-        "data_generation_summary.assays": "WGS - PacBio",
+        "file_sets.libraries.assay.display_title": "WGS - PacBio",
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Lung",
         "files": 14
     },
     {
-        "data_generation_summary.assays": "WGS - PacBio",
+        "file_sets.libraries.assay.display_title": "WGS - PacBio",
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Lung",
         "files": 14
     },
     {
-        "data_generation_summary.assays": "WGS - PacBio",
+        "file_sets.libraries.assay.display_title": "WGS - PacBio",
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Colon",
         "files": 8
     },
     {
-        "data_generation_summary.assays": "WGS - PacBio",
+        "file_sets.libraries.assay.display_title": "WGS - PacBio",
         "donors.display_title": "ST003",
         "sample_summary.tissues": "Brain",
         "files": 7
     },
     {
-        "data_generation_summary.assays": "WGS - PacBio",
+        "file_sets.libraries.assay.display_title": "WGS - PacBio",
         "donors.display_title": "ST004",
         "sample_summary.tissues": "Brain",
         "files": 7
     },
     {
-        "data_generation_summary.assays": "Fiber-seq - PacBio",
+        "file_sets.libraries.assay.display_title": "Fiber-seq - PacBio",
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Lung",
         "files": 8
     },
     {
-        "data_generation_summary.assays": "Fiber-seq - PacBio",
+        "file_sets.libraries.assay.display_title": "Fiber-seq - PacBio",
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Colon",
         "files": 2
     },
     {
-        "data_generation_summary.assays": "Fiber-seq - PacBio",
+        "file_sets.libraries.assay.display_title": "Fiber-seq - PacBio",
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Lung",
         "files": 6
     },
     {
-        "data_generation_summary.assays": "Fiber-seq - PacBio",
+        "file_sets.libraries.assay.display_title": "Fiber-seq - PacBio",
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Liver",
         "files": 3
     },
     {
-        "data_generation_summary.assays": "Fiber-seq - PacBio",
+        "file_sets.libraries.assay.display_title": "Fiber-seq - PacBio",
         "donors.display_title": "ST003",
         "sample_summary.tissues": "Brain",
         "files": 6
     },
     {
-        "data_generation_summary.assays": "Fiber-seq - PacBio",
+        "file_sets.libraries.assay.display_title": "Fiber-seq - PacBio",
         "donors.display_title": "ST004",
         "sample_summary.tissues": "Brain",
         "files": 6
     },
     {
-        "data_generation_summary.assays": "Kinnex - PacBio",
+        "file_sets.libraries.assay.display_title": "Kinnex - PacBio",
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Colon",
         "files": 4
     },
     {
-        "data_generation_summary.assays": "Kinnex - PacBio",
+        "file_sets.libraries.assay.display_title": "Kinnex - PacBio",
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Lung",
         "files": 4
     },
     {
-        "data_generation_summary.assays": "Kinnex - PacBio",
+        "file_sets.libraries.assay.display_title": "Kinnex - PacBio",
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Lung",
         "files": 4
     },
     {
-        "data_generation_summary.assays": "Kinnex - PacBio",
+        "file_sets.libraries.assay.display_title": "Kinnex - PacBio",
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Liver",
         "files": 2
     },
     {
-        "data_generation_summary.assays": "Kinnex - PacBio",
+        "file_sets.libraries.assay.display_title": "Kinnex - PacBio",
         "donors.display_title": "ST003",
         "sample_summary.tissues": "Brain",
         "files": 2
     },
     {
-        "data_generation_summary.assays": "Kinnex - PacBio",
+        "file_sets.libraries.assay.display_title": "Kinnex - PacBio",
         "donors.display_title": "ST004",
         "sample_summary.tissues": "Brain",
         "files": 2

@@ -47,10 +47,10 @@ export class VisualBody extends React.PureComponent {
         }
         if (count >= 1000){
             const decimal = count >= 10000 ? 0 : 1;
-            return <span style={{ 'fontSize' : '0.70rem', 'position' : 'relative', 'top' : -1 }} data-tip={count}>{ roundLargeNumber(count, decimal) }</span>;
+            return <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }} data-tip={count}>{ roundLargeNumber(count, decimal) }</span>;
         }
         else if (count >= 100){
-            return <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }}>{ count }</span>;
+            return <span style={{ 'fontSize' : '0.90rem', 'position' : 'relative', 'top' : -1 }}>{ count }</span>;
         }
         return <span>{ count }</span>;
     }
@@ -271,6 +271,7 @@ export class StackedBlockVisual extends React.PureComponent {
         'groupingProperties' : ['grant_type', 'center_name',  'lab_name'],
         'columnGrouping' : null,
         'blockHeight' : 28,
+        'blockWidth': 35,
         'blockVerticalSpacing' : 2,
         'blockHorizontalSpacing' : 2,
         'blockHorizontalExtend' : 5,
@@ -742,11 +743,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             });
         }
 
-        const commonProps = _.pick(props, 'blockHeight', 'blockHorizontalSpacing', 'blockVerticalSpacing',
+        const commonProps = _.pick(props, 'blockHeight', 'blockWidth', 'blockHorizontalSpacing', 'blockVerticalSpacing',
             'groupingProperties', 'depth', 'titleMap', 'blockClassName', 'blockRenderedContents',
             'groupedDataIndices', 'columnGrouping', 'blockPopover', 'colorRanges',
             'activeBlock', 'openBlock', 'handleBlockMouseEnter', 'handleBlockMouseLeave', 'handleBlockClick', 'group');
-        const width = (props.blockHeight + (props.blockHorizontalSpacing * 2)) + props.blockHorizontalExtend;
+        const width = (props.blockWidth + (props.blockHorizontalSpacing * 2)) + props.blockHorizontalExtend;
         const containerGroupStyle = {
             'width'         : width, // Width for each column
             'minWidth'      : width,
@@ -903,7 +904,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
     render(){
         const {
-            groupingProperties, depth, titleMap, group, columnGrouping, blockHeight, blockVerticalSpacing, blockHorizontalSpacing, blockHorizontalExtend,
+            groupingProperties, depth, titleMap, group, columnGrouping, blockHeight, blockWidth, blockVerticalSpacing, blockHorizontalSpacing, blockHorizontalExtend,
             data, groupedDataIndices, index, showGroupingPropertyTitles, checkCollapsibility, headerPadding,
             onSorterClick, sorting, sortField, activeBlock, openBlock, colorRanges, blockRenderedContents,
             columnGroups, columnGroupsExtended, showColumnGroupsExtended,
@@ -935,7 +936,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
         let header = null;
         if (groupedDataIndices && depth === 0 && index === 0){
-            const columnWidth = (blockHeight + (blockHorizontalSpacing * 2)) + blockHorizontalExtend;
+            const columnWidth = (blockWidth + (blockHorizontalSpacing * 2)) + blockHorizontalExtend;
             const headerItemStyle = { 'width' : columnWidth, 'minWidth' : columnWidth };
             const sorterActiveStyle = _.extend({}, headerItemStyle, { /*backgroundColor: StackedBlockGroupedRow.getLighterHex(colorRanges[0]?.color, 0.8)*/ });
 
@@ -1047,6 +1048,30 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     }
                                 </div>
                             }
+                            <div className="d-flex header-sorting">
+                                {columnKeys.map(function (columnKey, colIndex) {
+                                    //sort order icons
+                                    let countSortIcon;
+                                    if ((sorting === 'desc') && (columnKey === sortField)) {
+                                        countSortIcon = <SortIconDesc />;
+                                    } else if ((sorting === 'asc') && (columnKey === sortField)) {
+                                        countSortIcon = <SortIconAsc />;
+                                    } else {
+                                        countSortIcon = <SortIconBoth />;
+                                    }
+
+                                    const countSortIconClassName = 'column-sort-icon' + (['asc', 'desc'].indexOf(sorting) > -1 && columnKey === sortField ? ' active' : '');
+                                    const extraClassName = (activeBlock?.column === colIndex ? ' active-block-column' : '');
+                                    const style = (activeBlock?.column === colIndex) ? sorterActiveStyle : headerItemStyle;
+                                    return (
+                                        <div key={'col-' + columnKey} className={'column-group-header' + extraClassName} style={style}>
+                                            <div data-index={columnKey} onClick={onSorterClick}>
+                                                <span className={countSortIconClassName}>{countSortIcon}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                             <div className="d-flex header-totals">
                                 {columnKeys.map(function (columnKey, colIndex) {
                                     const columnTotal = groupedDataIndices[columnKey]?.length || 0;
@@ -1087,30 +1112,6 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                         </div>
                                     );
                                 }, this)}
-                            </div>
-                            <div className="d-flex header-sorting">
-                                {columnKeys.map(function (columnKey, colIndex) {
-                                    //sort order icons
-                                    let countSortIcon;
-                                    if ((sorting === 'desc') && (columnKey === sortField)) {
-                                        countSortIcon = <SortIconDesc />;
-                                    } else if ((sorting === 'asc') && (columnKey === sortField)) {
-                                        countSortIcon = <SortIconAsc />;
-                                    } else {
-                                        countSortIcon = <SortIconBoth />;
-                                    }
-
-                                    const countSortIconClassName = 'column-sort-icon' + (['asc', 'desc'].indexOf(sorting) > -1 && columnKey === sortField ? ' active' : '');
-                                    const extraClassName = (activeBlock?.column === colIndex ? ' active-block-column' : '');
-                                    const style = (activeBlock?.column === colIndex) ? sorterActiveStyle : headerItemStyle;
-                                    return (
-                                        <div key={'col-' + columnKey} className={'column-group-header' + extraClassName} style={style}>
-                                            <div data-index={columnKey} onClick={onSorterClick}>
-                                                <span className={countSortIconClassName}>{countSortIcon}</span>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
                             </div>
                         </div>
                     </div>
@@ -1203,7 +1204,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
 const Block = React.memo(function Block(props){
     const {
-        blockHeight, blockVerticalSpacing, data, parentGrouping, group,
+        blockHeight, blockWidth, blockVerticalSpacing, data, parentGrouping, group,
         blockClassName, blockRenderedContents, blockPopover, indexInGroup, colorRanges,
         handleBlockMouseEnter, handleBlockMouseLeave, handleBlockClick, rowIndex, colIndex, openBlock,
         isTotal
@@ -1211,7 +1212,7 @@ const Block = React.memo(function Block(props){
 
     const style = {
         'height' : blockHeight,
-        'width' : '100%',
+        'width' : '100%', //blockWidth,
         //'lineHeight' : blockHeight + 'px',
         'marginBottom' : blockVerticalSpacing,
         'marginTop' : indexInGroup && indexInGroup > 0 ? blockVerticalSpacing + 1 : 0

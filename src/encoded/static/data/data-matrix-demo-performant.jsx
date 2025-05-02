@@ -131,6 +131,5 @@
         baseColorOverride="#6f2da8"
         xAxisLabel="Assay"
         yAxisLabel="Donor"
-        useTestData={false} //use test data for development
     />
 </div>
