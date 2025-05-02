@@ -444,7 +444,7 @@ export class StackedBlockVisual extends React.PureComponent {
             'sortField': null,
             'mounted' : true,
             'activeBlock': null,
-            'openedBlock': null,
+            'openBlock': null,
         };
         this.memoized = {
             sortBlock: memoize(StackedBlockGroupedRow.sortBlock)
@@ -489,7 +489,7 @@ export class StackedBlockVisual extends React.PureComponent {
 
     renderContents(){
         const { data : propData, groupingProperties, columnGrouping } = this.props;
-        const { mounted, sorting, sortField, activeBlock, openedBlock } = this.state;
+        const { mounted, sorting, sortField, activeBlock, openBlock } = this.state;
         if (!mounted) return null;
         const tempData = [].concat(propData);
 
@@ -565,8 +565,8 @@ export class StackedBlockVisual extends React.PureComponent {
                 <StackedBlockGroupedRow {...this.props} groupedDataIndices={columnGroups} parentState={this.state} data={nestedData[k]}
                     key={k} group={k} depth={0} index={idx} toggleGroupingOpen={this.toggleGroupingOpen}
                     onSorterClick={this.handleSorterClick} sorting={sorting} sortField={sortField}
-                    handleMouseEnter={this.handleMouseEnter} handleMouseLeave={this.handleMouseLeave} handleClick={this.handleClick}
-                    activeBlock={activeBlock} openedBlock={openedBlock} />
+                    handleBlockMouseEnter={this.handleBlockMouseEnter} handleBlockMouseLeave={this.handleBlockMouseLeave} handleBlockClick={this.handleBlockClick}
+                    activeBlock={activeBlock} openBlock={openBlock} />
             );
         } else {
             // TODO: Render ... plain blocks w/o left column?
@@ -574,22 +574,24 @@ export class StackedBlockVisual extends React.PureComponent {
 
     }
 
-    handleMouseEnter = (column, row, group) => {
+    handleBlockMouseEnter = (column, row, group) => {
+        const { openBlock } = this.state;
+        if (openBlock) return;
         this.setState({ activeBlock: (column !== null || row !== null) ? { column, row, group } : null });
     };
 
-    handleMouseLeave = () => {
+    handleBlockMouseLeave = () => {
         this.setState({ activeBlock: null });
     };
 
-    handleClick = (column, row, group) => {
-        const openedBlock = (column !== null || row !== null) ? { column, row, group } : null;
-        if (openedBlock) {
+    handleBlockClick = (column, row, group) => {
+        const openBlock = (column !== null || row !== null) ? { column, row, group } : null;
+        if (openBlock) {
             setTimeout(() => {
-                this.setState({ openedBlock: openedBlock });
+                this.setState({ openBlock: openBlock });
             }, 100);
         } else {
-            this.setState({ openedBlock: null });
+            this.setState({ openBlock: null });
         }
     };
 
@@ -597,6 +599,9 @@ export class StackedBlockVisual extends React.PureComponent {
         let className = "stacked-block-viz-container";
         if (this.state.activeBlock) {
             className += ' has-active-block';
+        }
+        if (this.state.openBlock) {
+            className += ' has-open-block';
         }
         return (
             <div className={className}>
@@ -740,7 +745,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const commonProps = _.pick(props, 'blockHeight', 'blockHorizontalSpacing', 'blockVerticalSpacing',
             'groupingProperties', 'depth', 'titleMap', 'blockClassName', 'blockRenderedContents',
             'groupedDataIndices', 'columnGrouping', 'blockPopover', 'colorRanges',
-            'activeBlock', 'openedBlock', 'handleMouseEnter', 'handleMouseLeave', 'handleClick', 'group');
+            'activeBlock', 'openBlock', 'handleBlockMouseEnter', 'handleBlockMouseLeave', 'handleBlockClick', 'group');
         const width = (props.blockHeight + (props.blockHorizontalSpacing * 2)) + props.blockHorizontalExtend;
         const containerGroupStyle = {
             'width'         : width, // Width for each column
@@ -885,14 +890,14 @@ export class StackedBlockGroupedRow extends React.PureComponent {
     }
 
     toggleOpen(evt){
+        const { handleBlockClick } = this.props;
         evt.stopPropagation();
-        this.setState(function({ open }){
-            if (!open) {
-                setTimeout(function () {
-                    ReactTooltip.rebuild();
-                }, 500);
-            }
-            return { "open" : !open };
+        this.setState(function ({ open }) {
+            setTimeout(function () {
+                !open && ReactTooltip.rebuild();
+                typeof handleBlockClick === 'function' && handleBlockClick(null, null, null);
+            }, 100);
+            return { "open": !open };
         });
     }
 
@@ -900,7 +905,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const {
             groupingProperties, depth, titleMap, group, columnGrouping, blockHeight, blockVerticalSpacing, blockHorizontalSpacing, blockHorizontalExtend,
             data, groupedDataIndices, index, showGroupingPropertyTitles, checkCollapsibility, headerPadding,
-            onSorterClick, sorting, sortField, activeBlock, openedBlock, colorRanges, blockRenderedContents,
+            onSorterClick, sorting, sortField, activeBlock, openBlock, colorRanges, blockRenderedContents,
             columnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, rowGroupsExtended, showRowGroupsExtended,
             xAxisLabel, yAxisLabel } = this.props;
@@ -973,8 +978,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         <div className="col list-section has-header header-for-viz" style={listSectionStyle}>
                             <div className="d-flex header-col-text">
                                 {columnKeys.map(function (columnKey, colIndex) {
+                                    const hasOpenBlock = openBlock?.column === colIndex;
+                                    const hasActiveBlock = activeBlock?.column === colIndex;
+                                    const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
                                     return (
-                                        <div key={'col-' + columnKey} className={'column-group-header' + (activeBlock?.column === colIndex ? ' active-column' : '')} style={headerItemStyle}>
+                                        <div key={'col-' + columnKey} className={className} style={headerItemStyle}>
                                             <div className="inner">
                                                 <span>{columnKey}</span>
                                             </div>
@@ -1067,8 +1075,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                         return result;
                                     };
                                     const columnTotalsData = toColumnTotalsData(_.pick(groupedDataIndices, columnKey), columnGrouping);
+                                    const hasOpenBlock = openBlock?.column === colIndex;
+                                    const hasActiveBlock = activeBlock?.column === colIndex;
+                                    const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
                                     return (
-                                        <div key={'col-totals-' + columnKey} className={'column-group-header'} style={headerItemStyle}>
+                                        <div key={'col-totals-' + columnKey} className={className} style={headerItemStyle}>
                                             <div className="block-container-group" style={style}
                                                 key={'total'} data-block-count={columnTotal} data-group-key={'column-total'}>
                                                 <Block {..._.omit(this.props, 'group')} data={columnTotalsData} colIndex={colIndex} isTotal />
@@ -1090,7 +1101,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     }
 
                                     const countSortIconClassName = 'column-sort-icon' + (['asc', 'desc'].indexOf(sorting) > -1 && columnKey === sortField ? ' active' : '');
-                                    const extraClassName = (activeBlock?.column === colIndex ? ' active-column' : '');
+                                    const extraClassName = (activeBlock?.column === colIndex ? ' active-block-column' : '');
                                     const style = (activeBlock?.column === colIndex) ? sorterActiveStyle : headerItemStyle;
                                     return (
                                         <div key={'col-' + columnKey} className={'column-group-header' + extraClassName} style={style}>
@@ -1114,14 +1125,16 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             <div className="open-empty-placeholder" style={{ 'height' : rowHeight, 'marginLeft' : blockHorizontalSpacing }}/>
         );
         const maxBlocksInRow  = childBlocks && Math.max.apply(Math.max, _.pluck(_.pluck((childBlocks && childBlocks.props && childBlocks.props.children) || [], 'props'), 'data-block-count'));
-        const isActiveRow = activeBlock?.row === index && activeBlock?.group == group; //(activeRow === index && activeGroup === group);
+        const hasOpenBlock = openBlock?.row === index && openBlock?.group == group;
+        const hasActiveBlock = activeBlock?.row === index && activeBlock?.group == group;
+        const labelContainerClassName = 'label-container' + (hasOpenBlock ? ' open-block-row' : '') + (hasActiveBlock ? ' active-block-row' : '');
         return (
             <React.Fragment>
                 {header}
                 <div className={className} data-max-blocks-vertical={maxBlocksInRow}>
                     <div className="row grouping-row">
                         <div className="label-section">
-                            <div className={"label-container" + (isActiveRow ? " active-row" : "")} style={{ 'minHeight': rowHeight }}>
+                            <div className={labelContainerClassName} style={{ 'minHeight': rowHeight }}>
                                 {groupingPropertyTitle && showGroupingPropertyTitles ?
                                     <small className="text-400 mb-0 mt-0">{groupingPropertyTitle}</small>
                                     : null}
@@ -1192,7 +1205,7 @@ const Block = React.memo(function Block(props){
     const {
         blockHeight, blockVerticalSpacing, data, parentGrouping, group,
         blockClassName, blockRenderedContents, blockPopover, indexInGroup, colorRanges,
-        handleMouseEnter, handleMouseLeave, handleClick, rowIndex, colIndex, openedBlock,
+        handleBlockMouseEnter, handleBlockMouseLeave, handleBlockClick, rowIndex, colIndex, openBlock,
         isTotal
     } = props;
 
@@ -1235,20 +1248,20 @@ const Block = React.memo(function Block(props){
     };
 
     const dataLength = data?.length || 0;
-    if (openedBlock?.row === rowIndex && openedBlock?.column === colIndex && openedBlock?.group === group) {
-        style['backgroundColor'] = '#ffffff';
-        style['color'] = getColor(dataLength, isTotal);
-        style['fontWeight'] = '600';
-        style['border'] = '2px solid ' + getColor(dataLength, isTotal);
+    const color = getColor(dataLength, isTotal);
+    if (openBlock?.row === rowIndex && openBlock?.column === colIndex && openBlock?.group === group) {
+        style['color'] = color;
+        style['borderColor'] = color;
+        className += ' is-open-block';
     } else {
-        style['backgroundColor'] = getColor(dataLength, isTotal);
+        style['backgroundColor'] = color;
     }
 
     const blockElem = (
         <div className={className} style={style} tabIndex={1} data-place="bottom" data-block-value={dataLength}
-            onMouseEnter={() => handleMouseEnter(colIndex, rowIndex, group)}
-            onMouseLeave={handleMouseLeave}
-            onClick={()=> handleClick(colIndex, rowIndex, group)}>
+            onMouseEnter={() => handleBlockMouseEnter(colIndex, rowIndex, group)}
+            onMouseLeave={handleBlockMouseLeave}
+            onClick={()=> handleBlockClick(colIndex, rowIndex, group)}>
             {contents}
         </div>
     );
@@ -1260,7 +1273,7 @@ const Block = React.memo(function Block(props){
                 placement="bottom"
                 overlay={popover}
                 rootClose
-                onToggle={(nextShow) => { if (!nextShow) handleClick(null, null, null);}}
+                onToggle={(nextShow) => { if (!nextShow) handleBlockClick(null, null, null);}}
             >
                 {blockElem}
             </OverlayTrigger>

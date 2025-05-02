@@ -2073,31 +2073,50 @@ body[data-path="/statistics"] {
 
     }
 
-    &.has-active-block {
-        .stacked-block, .label-container, .column-group-header {
-            // opacity: 0.3;
-            // transition: opacity 0.3s;
-        }
-        .column-group-header.active-column {
-            opacity: 1 !important;
+    &.has-active-block, &.has-open-block {
 
-            .inner:after {
-                font-family: "Font Awesome 6 Free";
-                content: "\f0d9";
-                display: inline-block;
-                padding-left: 10px;
-                font-weight: 600;
+        .column-group-header {
+            &.active-block-column, &.open-block-column {
+                opacity: 1 !important;
+    
+                .inner:after {
+                    font-family: "Font Awesome 6 Free";
+                    content: "\f0d9";
+                    display: inline-block;
+                    padding-left: 10px;
+                    font-weight: 600;
+                }
             }
         }
           
-        .label-container.active-row {
-            .inner:before {
-                font-family: "Font Awesome 6 Free";
-                content: "\f0da";
-                display: inline-block;
-                padding-right: 10px;
-                font-weight: 900;
+        .label-container {
+            &.active-block-row, &.open-block-row {
+                opacity: 1 !important;
+                
+                .inner:before {
+                    font-family: "Font Awesome 6 Free";
+                    content: "\f0da";
+                    display: inline-block;
+                    padding-right: 10px;
+                    font-weight: 900;
+                }
             }
+        }
+    }
+    &.has-open-block {
+        .stacked-block, .label-container, .column-group-header, .vertical-container-label {
+            opacity: 0.3;
+            transition: opacity 0.3s;
+        }
+        .stacked-block.is-open-block{
+            opacity: 1 !important;
+            background-color: #fff !important;
+            font-weight: 600 !important;
+            border-width: 2px !important;
+            border-style: solid !important;
+        }
+        .label-container.open-block-row, .vertical-container-label.open-block-row, .column-group-header.open-block-column {
+            opacity: 1 !important;
         }
     }
 
