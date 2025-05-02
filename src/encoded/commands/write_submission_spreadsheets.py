@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from __future__ import annotations
 
 import argparse
@@ -124,6 +126,7 @@ GCC_SUBMISSION_ITEMS = [
     "UnalignedReads",
     "AlignedReads",
     "VariantCalls",
+    "SupplementaryFile",
     "Software"
 ]
 
