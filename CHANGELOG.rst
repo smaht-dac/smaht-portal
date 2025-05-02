@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.168.3
+=======
+`PR 416: Add file set accession copy button to Submission Status page <https://github.com/smaht-dac/smaht-portal/pull/416>`
+
+* Add file set accession copy button to Submission Status page
+
+
 0.168.2
 =======
 `PR 410 fix: use retraction_reason in file view alert <https://github.com/smaht-dac/smaht-portal/pull/410>`
