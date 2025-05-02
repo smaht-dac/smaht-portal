@@ -4,11 +4,11 @@
         session={session}        // Required - hooks in 'session' (boolean) from App.
         query={{
             "url": "/data_matrix_aggregations?type=File&sample_summary.studies!=No+value&limit=all",
-            "column_agg_fields": ["data_generation_summary.assays", "sequencing.sequencer.platform"], //composite column
+            "column_agg_fields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
             "row_agg_fields": ["donors.display_title", "sample_summary.tissues"], //multiple column
         }}
         fieldChangeMap={{
-            "assay": "data_generation_summary.assays",
+            "assay": "file_sets.libraries.assay.display_title",
             "donor": "donors.display_title",
             "tissue": "sample_summary.tissues"
         }}
