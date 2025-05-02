@@ -9,7 +9,7 @@ def test_extract_desired_facet():
          'terms': [{'key': 'File', 'doc_count': 7}, {'key': 'Item', 'doc_count': 7}]}
     ]
     assert extract_desired_facet_from_search(example_facets, 'type') is not {}
-    assert extract_desired_facet_from_search(example_facets, 'not-found') is {}
+    assert not extract_desired_facet_from_search(example_facets, 'not-found')
 
 
 @pytest.mark.workbook
