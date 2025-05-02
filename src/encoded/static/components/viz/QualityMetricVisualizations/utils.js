@@ -13,10 +13,12 @@ export const getBoxPlot = (
     sequencer,
     study,
     customExtent = null,
-    featuredBam = null,
+    featuredBam = null
 ) => {
-    const titleDiv = title ? <div className="qc-boxplot-title p-2">{title}</div> : null;
-   
+    const titleDiv = title ? (
+        <div className="qc-boxplot-title p-2">{title}</div>
+    ) : null;
+
     // Makes sure the component is re-rendered when the settings change
     const key = `${metric}-${assay}-${sampleSource}-${sequencer}-${study}-${featuredBam}`;
     return (
@@ -46,7 +48,6 @@ export const getBoxPlot = (
 };
 
 export const PlotPopoverContent = ({ tooltipFields, data = null }) => {
-
     return data ? (
         <div className="d3-popover-content">
             <table className="table table-sm">
@@ -76,7 +77,6 @@ export const formatLargeInteger = (num) => {
     return num.toString();
 };
 
-
 export const addPaddingToExtend = (
     extend,
     minAdjustment = 0.05,
@@ -89,16 +89,39 @@ export const addPaddingToExtend = (
     return [adjustedExtendMin, adjustedExtendMax];
 };
 
-export const getBadge = (flag, returnDefaultBadge = false) => {
+export const getBadge = (
+    flag,
+    returnDefaultBadge = false,
+    withIcon = false
+) => {
     if (flag === 'Pass' || flag === 'Yes') {
-        return <span className="badge text-white bg-success">{flag}</span>;
+        return (
+            <span className="badge text-white bg-success">
+                {withIcon && <i className="icon icon-check fas"></i>}
+                {flag}
+            </span>
+        );
     } else if (flag === 'Warn') {
-        return <span className="badge text-white bg-warning">{flag}</span>;
+        return (
+            <span className="badge text-white bg-warning">
+                {withIcon && <i className="icon icon-warning fas"></i>}
+                {flag}
+            </span>
+        );
     } else if (flag === 'Fail' || flag === 'No') {
-        return <span className="badge text-white bg-danger">{flag}</span>;
-    } 
+        return (
+            <span className="badge text-white bg-danger">
+                {withIcon && <i className="icon icon-exclamation fas"></i>}
+                {flag}
+            </span>
+        );
+    }
     if (returnDefaultBadge) {
-        return <span className="badge text-white bg-secondary">NA</span>;
+        return (
+            <>
+                <span className="badge text-white bg-secondary">NA</span>
+            </>
+        );
     }
     return '';
 };
@@ -227,8 +250,9 @@ export const getFileModalContent = (file, qcInfo) => {
     const filesetLink = '/' + fileset;
 
     const qcValues = file.quality_metrics.qc_values;
-    const overallQualityStatus = file.quality_metrics.overall_quality_status || "NA";
-    
+    const overallQualityStatus =
+        file.quality_metrics.overall_quality_status || 'NA';
+
     return (
         <div className="qc-modal-content">
             <table className="table table-sm overview table-borderless">
@@ -296,7 +320,7 @@ export const getFileModalContent = (file, qcInfo) => {
                 </thead>
                 <tbody>
                     {Object.keys(qcValues).map((qcField, i) => {
-                        const { flag = "NA", value } = qcValues[qcField];
+                        const { flag = 'NA', value } = qcValues[qcField];
                         const metricFormatted = formatQcValue(value);
                         return (
                             <tr key={i}>
