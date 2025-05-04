@@ -12,21 +12,31 @@ const DataMatrixConfigurator = ({
     searchUrl: propSearchUrl,
     columnDimensions,
     rowDimensions,
-    colorRanges = [],
-    selectedColumnValue,
-    selectedRow1Value,
-    selectedRow2Value,
+    initialColumnAggField,
+    initialRowAggField1,
+    initialRowAggField2,
     initialColumnGroups,
+    initialShowColumnGroups,
+    initialColumnGroupsExtended,
+    initialShowColumnGroupsExtended,
+    initialRowGroupsExtended,
+    initialShowRowGroupsExtended,
+    initialTotalBackgroundColor,
     initialXAxisLabel,
     initialYAxisLabel,
     onApply
 }) => {
     const [searchUrl, setSearchUrl] = useState(propSearchUrl);
-    const [selectedColumn, setSelectedColumn] = useState(selectedColumnValue);
-    const [selectedRow1, setSelectedRow1] = useState(selectedRow1Value);
-    const [selectedRow2, setSelectedRow2] = useState(selectedRow2Value);
-    const [ranges, setRanges] = useState(colorRanges.length > 0 ? colorRanges : [{ min: 0, max: '', color: '' }]);
+    const [columnAggField, setColumnAggField] = useState(initialColumnAggField);
+    const [rowAggField1, setRowAggField1] = useState(initialRowAggField1);
+    const [rowAggField2, setRowAggField2] = useState(initialRowAggField2);
     const [columnGroups, setColumnGroups] = useState(initialColumnGroups);
+    const [showColumnGroups, setShowColumnGroups] = useState(initialShowColumnGroups);
+    const [columnGroupsExtended, setColumnGroupsExtended] = useState(initialColumnGroupsExtended);
+    const [showColumnGroupsExtended, setShowColumnGroupsExtended] = useState(initialShowColumnGroupsExtended);
+    const [rowGroupsExtended, setRowGroupsExtended] = useState(initialRowGroupsExtended);
+    const [showRowGroupsExtended, setShowRowGroupsExtended] = useState(initialShowRowGroupsExtended);
+    const [totalBackgroundColor, setTotalBackgroundColor] = useState(initialTotalBackgroundColor);
     const [xAxisLabel, setXAxisLabel] = useState(initialXAxisLabel);
     const [yAxisLabel, setYAxisLabel] = useState(initialYAxisLabel);
     const [showPopover, setShowPopover] = useState(false);
@@ -47,104 +57,22 @@ const DataMatrixConfigurator = ({
         };
     }, []);
 
-    useEffect(() => {
-        // Ensure at least one range row exists
-        if (ranges.length === 0) {
-            setRanges([{ min: 0, max: '', color: '' }]);
-        }
-    }, [ranges]);
-
-    // Update max in state as user types
-    const handleMaxChange = (index, maxValue) => {
-        const newRanges = [...ranges];
-        newRanges[index].max = maxValue;
-        // Continuity: if not the last range, update the next row's min
-        if (index < newRanges.length - 1) {
-            newRanges[index + 1].min = maxValue;
-        }
-        setRanges(newRanges);
-    };
-
-    // Validate max once user finishes editing (onBlur)
-    const validateMaxValue = (index) => {
-        const newRanges = [...ranges];
-        const minValue = parseFloat(newRanges[index].min);
-        const maxValue = parseFloat(newRanges[index].max);
-
-        // If max <= min, error
-        if (!isNaN(maxValue) && maxValue <= minValue) {
-            setErrors((prevErrors) => ({
-                ...prevErrors,
-                [index]: 'Max value must be greater than Min value',
-            }));
-            return;
-        }
-
-        // If no error, remove from errors
-        setErrors((prevErrors) => {
-            const newErrors = { ...prevErrors };
-            delete newErrors[index];
-            return newErrors;
-        });
-
-        // Continuity: Update the next row's min
-        if (index < newRanges.length - 1) {
-            newRanges[index + 1].min = newRanges[index].max;
-        }
-
-        // If this is the last row and user entered a max, auto-add a new row
-        if (newRanges[index].max !== '' && index === newRanges.length - 1) {
-            newRanges.push({ min: newRanges[index].max, max: '', color: null });
-        }
-
-        setRanges(newRanges);
-    };
-
-    const handleColorChange = (index, color) => {
-        let newRanges = [...ranges];
-        if (index === 0) {
-            newRanges = updateColorRanges(newRanges, color, -100);
-        } else {
-            newRanges[index].color = color;
-        }
-        setRanges(newRanges);
-    };
-
-    const removeRange = (index) => {
-        // Don't remove if it's the only row
-        if (ranges.length === 1) return;
-
-        const newRanges = ranges.filter((_, i) => i !== index);
-
-        // After removing, fix continuity
-        // If we removed row i, then row i in the new array was row i+1 in the old array
-        // So newRanges[i].min should match newRanges[i-1].max (if i>0)
-        if (index > 0 && index < newRanges.length) {
-            newRanges[index].min = newRanges[index - 1].max;
-        }
-
-        setRanges(newRanges);
-    };
-
     const handleApply = () => {
-        // All ranges except the last one must have max defined
-        const filledMax = ranges.slice(0, -1).every((r) => r.max !== '');
-        if (!filledMax) {
-            alert('All ranges except the last one must have a max value.');
-            return;
-        }
-
         // Also check if any errors remain
         if (Object.keys(errors).length > 0) {
             alert('Please fix errors before applying.');
             return;
         }
 
-        onApply(searchUrl, selectedColumn, selectedRow1, selectedRow2, ranges, columnGroups, xAxisLabel, yAxisLabel);
+        onApply({
+            searchUrl, columnAggField, rowAggField1, rowAggField2,
+            columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
+            totalBackgroundColor, xAxisLabel, yAxisLabel
+        });
         setShowPopover(false);
     };
 
-    const labelStyle = { width: '110px' };
+    const labelStyle = { width: '150px' };
 
     return (
         <div>
@@ -161,12 +89,12 @@ const DataMatrixConfigurator = ({
 
             {/* Button to toggle popover */}
             <Button variant="link" id="config-btn" className="p-0" onClick={() => setShowPopover(!showPopover)}>
-                <i className="icon icon-fw icon-gear fas" /> <span className="text-muted small">{DataMatrixConfigurator.getNestedFieldName(selectedRow1Value) + ' x ' + DataMatrixConfigurator.getNestedFieldName(selectedColumnValue)}</span>
+                <i className="icon icon-fw icon-gear fas" /> <span className="text-muted small">{yAxisLabel + ' x ' + xAxisLabel}</span>
             </Button>
 
             {/* Popover content */}
             {showPopover && (
-                <Popover id="config-popover" ref={popoverRef} style={{ maxWidth: '600px', width: '100%', zIndex: 1050, position: 'absolute' }}>
+                <Popover id="config-popover" ref={popoverRef} style={{ maxWidth: '800px', width: '100%', zIndex: 1050, position: 'absolute' }}>
                     <Popover.Body>
                         <div className="d-flex flex-column">
                             <h5 className="mt-0 mb-1">Data Matrix Configurator</h5>
@@ -193,8 +121,8 @@ const DataMatrixConfigurator = ({
 
                                     {/* Column Dimension */}
                                     <Form.Group className="d-flex align-items-center mb-05">
-                                        <Form.Label className="me-2" style={labelStyle}>Column Field</Form.Label>
-                                        <Form.Control as="select" value={selectedColumn} onChange={(e) => setSelectedColumn(e.target.value)}>
+                                        <Form.Label className="me-2" style={labelStyle}>Column Agg Field</Form.Label>
+                                        <Form.Control as="select" value={columnAggField || ''} onChange={(e) => setColumnAggField(e.target.value)}>
                                             <option key={0} value={null}>{'-- Select --'}</option>
                                             {columnDimensions.map((dim, idx) => (
                                                 <option key={idx + 1} value={dim}>{DataMatrixConfigurator.getNestedFieldName(dim)}</option>
@@ -204,8 +132,8 @@ const DataMatrixConfigurator = ({
 
                                     {/* Row Dimension 1 */}
                                     <Form.Group className="d-flex align-items-center mb-05">
-                                        <Form.Label className="me-2" style={labelStyle}>Row Field 1</Form.Label>
-                                        <Form.Control as="select" value={selectedRow1} onChange={(e) => setSelectedRow1(e.target.value)}>
+                                        <Form.Label className="me-2" style={labelStyle}>Row Agg Field 1</Form.Label>
+                                        <Form.Control as="select" value={rowAggField1 || ''} onChange={(e) => setRowAggField1(e.target.value)}>
                                             <option key={0} value={null}>{'-- Select --'}</option>
                                             {rowDimensions.map((dim, idx) => (
                                                 <option key={idx + 1} value={dim}>{DataMatrixConfigurator.getNestedFieldName(dim)}</option>
@@ -215,42 +143,36 @@ const DataMatrixConfigurator = ({
 
                                     {/* Row Dimension 2 */}
                                     <Form.Group className="d-flex align-items-center mb-05">
-                                        <Form.Label className="me-2" style={labelStyle}>Row Field 2</Form.Label>
-                                        <Form.Control as="select" value={selectedRow2} onChange={(e) => setSelectedRow2(e.target.value)} disabled>
+                                        <Form.Label className="me-2" style={labelStyle}>Row Agg Field 2</Form.Label>
+                                        <Form.Control as="select" value={rowAggField2 || ''} onChange={(e) => setRowAggField2(e.target.value)}>
                                             <option key={0} value={null}>{'-- Select --'}</option>
                                             {rowDimensions.map((dim, idx) => (
-                                                <option key={idx + 1} value={dim}>{dim}</option>
+                                                <option key={idx + 1} value={dim}>{DataMatrixConfigurator.getNestedFieldName(dim)}</option>
                                             ))}
                                         </Form.Control>
                                     </Form.Group>
-
-                                    {/* Ranges */}
-                                    {ranges.map((range, index) => {
-                                        const errorMsg = errors[index] || '';
-                                        return (
-                                            <Form.Group key={index} className="d-flex align-items-center mb-05">
-                                                <Form.Label className="me-2" style={labelStyle}>Range {index + 1}</Form.Label>
-                                                <Form.Control type="number" value={range.min} disabled className="me-2" style={{ width: '80px' }} />
-                                                <Form.Control
-                                                    type="number" placeholder="Max" value={range.max}
-                                                    onChange={(e) => handleMaxChange(index, e.target.value)}
-                                                    onBlur={() => validateMaxValue(index)}
-                                                    className="me-2" style={{ width: '80px' }} isInvalid={!!errorMsg}
-                                                />
-                                                <Form.Control type="color" value={range.color}
-                                                    onChange={(e) => handleColorChange(index, e.target.value)} style={{ width: '40px' }} />
-                                                <Button variant="link" disabled={index === 0} onClick={() => removeRange(index)}>
-                                                    <i className="icon icon-fw icon-trash fas" />
-                                                </Button>
-                                                {errorMsg && (
-                                                    <Form.Control.Feedback type="invalid">{errorMsg}</Form.Control.Feedback>
-                                                )}
-                                            </Form.Group>
-                                        );
-                                    })}
+                                    <Form.Group className="d-flex align-items-center mb-05">
+                                        <Form.Label className="me-2" style={labelStyle}>Total BG Color</Form.Label>
+                                        <Form.Control type="color" name="totalBackgroundColor" value={totalBackgroundColor} onChange={(e) => setTotalBackgroundColor(e.target.value)} />
+                                    </Form.Group>
                                 </Tab>
-                                <Tab eventKey="columnGrouping" title="Column Grouping">
-                                    <TierWizard initialData={columnGroups} onComplete={(value) => setColumnGroups(value)} />
+                                <Tab eventKey="columnGroups" title={`Column Groups Primary (${Object.keys(columnGroups).length})`}>
+                                    <TierWizard
+                                        initialData={columnGroups}
+                                        onComplete={(data, show) => { setColumnGroups(data); setShowColumnGroups(show); }}
+                                        showData={showColumnGroups} />
+                                </Tab>
+                                <Tab eventKey="columnGroupsExtended" title={`Column Groups Secondary (${Object.keys(columnGroupsExtended).length})`}>
+                                    <TierWizard
+                                        initialData={columnGroupsExtended}
+                                        onComplete={(data, show) => { setColumnGroupsExtended(data); setShowColumnGroupsExtended(show); }}
+                                        showData={showColumnGroupsExtended} />
+                                </Tab>
+                                <Tab eventKey="rowGroupsExtended" title="Row Groups">
+                                    <TierWizard
+                                        initialData={rowGroupsExtended}
+                                        onComplete={(data, show) => { setRowGroupsExtended(data); setShowRowGroupsExtended(show); }}
+                                        showData={showRowGroupsExtended} />
                                 </Tab>
                             </Tabs>
 
@@ -508,48 +430,29 @@ const TierForm = ({ tier, onTierChange, onRemove, suggestions }) => {
         const { name, value } = e.target;
         onTierChange({ ...tier, [name]: value });
     };
+    const labelStyle = { width: '180px' };
 
     return (
         <Card className="mb-3">
             <Card.Body>
-                <Form.Group className="mb-3">
-                    <Form.Label>Tier Name</Form.Label>
-                    <Form.Control
-                        type="text"
-                        name="name"
-                        value={tier.name}
-                        onChange={handleChange}
-                    />
+                <Form.Group className="d-flex align-items-center mb-05">
+                    <Form.Label className="me-2" style={labelStyle}>Name</Form.Label>
+                    <Form.Control type="text" name="name" value={tier.name} onChange={handleChange} />
                 </Form.Group>
-                <Form.Group className="mb-3">
-                    <Form.Label>Background Color</Form.Label>
-                    <Form.Control
-                        type="color"
-                        name="backgroundColor"
-                        value={tier.backgroundColor}
-                        onChange={handleChange}
-                    />
+                <Form.Group className="d-flex align-items-center mb-05">
+                    <Form.Label className="me-2" style={labelStyle}>Background/Text Color</Form.Label>
+                    <Form.Control type="color" name="backgroundColor" value={tier.backgroundColor} onChange={handleChange} />
+                    <Form.Control type="color" name="textColor" value={tier.textColor} onChange={handleChange} style={{ marginLeft: '5px' }} />
                 </Form.Group>
-                <Form.Group className="mb-3">
-                    <Form.Label>Text Color</Form.Label>
-                    <Form.Control
-                        type="color"
-                        name="textColor"
-                        value={tier.textColor}
-                        onChange={handleChange}
-                    />
+                {/* <Form.Group className="d-flex align-items-center mb-05">
+                    <Form.Label className="me-2" style={labelStyle}>Text Color</Form.Label>
+                </Form.Group> */}
+                <Form.Group className="d-flex align-items-center mb-05">
+                    <Form.Label className="me-2" style={labelStyle}>Short Name</Form.Label>
+                    <Form.Control type="text" name="shortName" value={tier.shortName} onChange={handleChange} />
                 </Form.Group>
-                <Form.Group className="mb-3">
-                    <Form.Label>Short Name</Form.Label>
-                    <Form.Control
-                        type="text"
-                        name="shortName"
-                        value={tier.shortName}
-                        onChange={handleChange}
-                    />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                    <Form.Label>Values</Form.Label>
+                <Form.Group className="d-flex align-items-center mb-05">
+                    <Form.Label className="me-2" style={labelStyle}>Values</Form.Label>
                     <ChipsContainer
                         chips={tier.values}
                         onChange={(newValues) => onTierChange({ ...tier, values: newValues })}
@@ -558,7 +461,7 @@ const TierForm = ({ tier, onTierChange, onRemove, suggestions }) => {
                 </Form.Group>
                 {onRemove && (
                     <Button variant="danger" onClick={onRemove}>
-                        Remove Tier
+                        Remove
                     </Button>
                 )}
             </Card.Body>
@@ -566,7 +469,7 @@ const TierForm = ({ tier, onTierChange, onRemove, suggestions }) => {
     );
 };
 
-const TierWizard = ({ initialData, suggestions = [], onComplete }) => {
+const TierWizard = ({ initialData, showData, suggestions = [], onComplete }) => {
     // {
     //   "Tier 1": {
     //       "values": [...],
@@ -581,6 +484,7 @@ const TierWizard = ({ initialData, suggestions = [], onComplete }) => {
     }));
 
     const [tiers, setTiers] = useState(initialTiers);
+    const [show, setShow] = useState(showData);
 
     const handleTierChange = (index, updatedTier) => {
         const newTiers = tiers.map((tier, idx) =>
@@ -618,22 +522,28 @@ const TierWizard = ({ initialData, suggestions = [], onComplete }) => {
             };
             return acc;
         }, {});
-        console.log(wizardData);
+        console.log(wizardData, show);
         // Call the onComplete function with the wizard data
-        onComplete(wizardData);
+        onComplete(wizardData, show);
     };
 
     return (
         <Form onSubmit={handleSubmit}>
-            {tiers.map((tier, index) => (
-                <TierForm
-                    key={index}
-                    tier={tier}
-                    onTierChange={(updatedTier) => handleTierChange(index, updatedTier)}
-                    onRemove={() => removeTier(index)}
-                    suggestions={suggestions}
-                />
-            ))}
+            <Form.Group className="d-flex align-items-center mb-05">
+                <Form.Label className="me-2" style={{width: '150px'}}>Visible</Form.Label>
+                <Form.Check type="checkbox" checked={show} onChange={(e) => setShow(!show)} />
+            </Form.Group>
+            <div className="d-flex flex-column" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                {tiers.map((tier, index) => (
+                    <TierForm
+                        key={index}
+                        tier={tier}
+                        onTierChange={(updatedTier) => handleTierChange(index, updatedTier)}
+                        onRemove={() => removeTier(index)}
+                        suggestions={suggestions}
+                    />
+                ))}
+            </div>
             <Button variant="primary" onClick={addTier}>
                 Add Tier
             </Button>
