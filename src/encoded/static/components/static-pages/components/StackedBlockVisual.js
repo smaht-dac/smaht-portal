@@ -255,9 +255,9 @@ export class VisualBody extends React.PureComponent {
                     'groupingProperties', 'columnGrouping', 'titleMap', 'headerPadding',
                     'columnSubGrouping', 'defaultDepthsOpen',
                     'columnSubGroupingOrder', 'colorRanges',
-                    'columnGroups', 'columnGroupsExtended', 'showColumnGroupsExtended',
-                    'rowGroups', 'rowGroupsExtended', 'showRowGroupsExtended',
-                    'xAxisLabel', 'yAxisLabel')}
+                    'columnGroups', 'showColumnGroups', 'columnGroupsExtended', 'showColumnGroupsExtended',
+                    'rowGroupsExtended', 'showRowGroupsExtended',
+                    'totalBackgroundColor', 'xAxisLabel', 'yAxisLabel')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
             />
@@ -745,7 +745,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
         const commonProps = _.pick(props, 'blockHeight', 'blockWidth', 'blockHorizontalSpacing', 'blockVerticalSpacing',
             'groupingProperties', 'depth', 'titleMap', 'blockClassName', 'blockRenderedContents',
-            'groupedDataIndices', 'columnGrouping', 'blockPopover', 'colorRanges',
+            'groupedDataIndices', 'columnGrouping', 'blockPopover', 'colorRanges', 'totalBackgroundColor',
             'activeBlock', 'openBlock', 'handleBlockMouseEnter', 'handleBlockMouseLeave', 'handleBlockClick', 'group');
         const width = (props.blockWidth + (props.blockHorizontalSpacing * 2)) + props.blockHorizontalExtend;
         const containerGroupStyle = {
@@ -907,9 +907,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             groupingProperties, depth, titleMap, group, columnGrouping, blockHeight, blockWidth, blockVerticalSpacing, blockHorizontalSpacing, blockHorizontalExtend,
             data, groupedDataIndices, index, showGroupingPropertyTitles, checkCollapsibility, headerPadding,
             onSorterClick, sorting, sortField, activeBlock, openBlock, colorRanges, blockRenderedContents,
-            columnGroups, columnGroupsExtended, showColumnGroupsExtended,
-            rowGroups, rowGroupsExtended, showRowGroupsExtended,
-            xAxisLabel, yAxisLabel } = this.props;
+            columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
+            rowGroupsExtended, showRowGroupsExtended,
+            totalBackgroundColor, xAxisLabel, yAxisLabel } = this.props;
         const { open } = this.state;
 
         let groupingPropertyTitle = null;
@@ -929,7 +929,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         } else { // ?
             toggleIcon = <i className="icon icon-fw" />;
         }
-        const hasColumnGroups = columnGroups && _.keys(columnGroups).length > 0;
+        const hasColumnGroups = showColumnGroups && columnGroups && _.keys(columnGroups).length > 0;
         const hasColumnGroupsExtended = showColumnGroupsExtended && columnGroupsExtended && _.keys(columnGroupsExtended).length > 0;
         // const hasRowGroups = rowGroups && _.keys(rowGroups).length > 0; // currently not used
         const hasRowGroupsExtended = showRowGroupsExtended && rowGroupsExtended && _.keys(rowGroupsExtended).length > 0;
@@ -959,12 +959,21 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             if (hasColumnGroups){
                 columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, StackedBlockGroupedRow.mergeValues(columnGroups));
             }
+            const totalColumnHeader = (
+                <div
+                    key="col-total" className="column-group-header"
+                    style={{ width: columnWidth, minWidth: columnWidth, backgroundColor: totalBackgroundColor, color: '#fff' }}>
+                    <div className="inner">
+                        Total
+                    </div>
+                </div>
+            );
             // TODO: check whether columnGroupsExtended.values and columnGroups are matching
             header = (
                 <div className="grouping">
                     <div className="row grouping-row">
-                        <div className="label-section" style={labelSectionStyle}>
-                            <div className="axis-container">
+                        <div className="label-section d-flex flex-column" style={labelSectionStyle}>
+                            <div className="axis-container flex-grow-1">
                                 <div className="x-axis">{xAxisLabel || 'X'}</div>
                                 <div className="y-axis">
                                     <div className="y-label">{yAxisLabel || 'Y'}</div>
@@ -972,7 +981,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 </div>
 
                             </div>
-                            <div className="text-end" onClick={onSorterClick}>
+                            <div className="text-end pe-1" onClick={onSorterClick} style={{ backgroundColor: '#f4f4ff', height: '29px', marginBottom: '1px' }}>
+                                <span className="float-start text-500 ps-05">{yAxisLabel}</span>
                                 <span className={labelSortIconClassName}>{labelSortIcon}</span>
                             </div>
                         </div>
@@ -1017,6 +1027,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                             );
                                         })
                                     }
+                                    { totalColumnHeader }
                                 </div>
                             }
                             {hasColumnGroupsExtended &&
@@ -1205,7 +1216,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 const Block = React.memo(function Block(props){
     const {
         blockHeight, blockWidth, blockVerticalSpacing, data, parentGrouping, group,
-        blockClassName, blockRenderedContents, blockPopover, indexInGroup, colorRanges,
+        blockClassName, blockRenderedContents, blockPopover, indexInGroup, colorRanges, totalBackgroundColor,
         handleBlockMouseEnter, handleBlockMouseLeave, handleBlockClick, rowIndex, colIndex, openBlock,
         isTotal
     } = props;
@@ -1239,11 +1250,11 @@ const Block = React.memo(function Block(props){
     }
 
     const getColor = function (value, isTotal = false) {
-        if (isTotal) return '#D91818';
+        if (isTotal) return totalBackgroundColor || '#000000';
         if (!colorRanges) return null;
 
         const range = colorRanges.find((r) =>
-            value >= r.min && (r.max === undefined || value < r.max)
+            value >= r.min && (r.max === undefined || value <= r.max)
         );
         return range ? range.color : null;
     };

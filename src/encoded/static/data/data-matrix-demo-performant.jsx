@@ -92,6 +92,7 @@
                 "textColor": "#ffffff"
             }
         }}
+        showColumnGroups={true}
         showColumnGroupsExtended={false}
         rowGroups={null} //not implemented yet
         rowGroupsExtended={{
@@ -128,8 +129,9 @@
         }}
         showRowGroupsExtended={true}
         headerFor={null}
-        baseColorOverride="#6f2da8"
-        xAxisLabel="Assay"
-        yAxisLabel="Donor"
+        colorRangeBaseColor="#47adff"
+        totalBackgroundColor="#5d5fed"
+        xAxisLabel="Assays"
+        yAxisLabel="Donors"
     />
 </div>

@@ -7,6 +7,7 @@ import ReactTooltip from 'react-tooltip';
 import { console, object, ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { VisualBody } from '../';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
+import { get } from '../../../util/Schemas';
 
 
 export default class DataMatrix extends React.PureComponent {
@@ -27,6 +28,7 @@ export default class DataMatrix extends React.PureComponent {
         "statePrioritizationForGroups" : [],
         "headerPadding"             : 200,
         "columnGroups"              : null,
+        "showColumnGroups"          : true,
         "columnGroupsExtended"      : null,
         "showColumnGroupsExtended"  : true,
         "rowGroups"                 : null,
@@ -34,13 +36,10 @@ export default class DataMatrix extends React.PureComponent {
         "showRowGroupsExtended"     : true,
         "titleMap"                  : {},
         "columnSubGroupingOrder": [],
-        "colorRanges": [
-            { min: 0, max: 25, color: '#ff0000' },
-            { min: 25, max: 50, color: '#00ff00' },
-            { min: 50, max: 100, color: '#0000ff' },
-            { min: 100 }
-        ],
-        "baseColorOverride": null, // color hex or rgba code (if set, will override colorRanges)
+        "colorRangeBaseColor": null, // color hex or rgba code (if set, will override colorRanges)
+        "colorRangeSegments": 5, // split color ranges into 5 equal parts
+        "colorRangeSegmentStep": 20, // step size for each segment
+        "totalBackgroundColor": "#d91818",
         "allowedFields": [
             "donors.display_title",
             "sequencing.sequencer.display_title",
@@ -72,10 +71,13 @@ export default class DataMatrix extends React.PureComponent {
         'headerPadding': PropTypes.number,
         'titleMap': PropTypes.object,
         'columnSubGroupingOrder': PropTypes.arrayOf(PropTypes.string),
-        'colorRanges': PropTypes.arrayOf(PropTypes.object),
-        'baseColorOverride': PropTypes.string,
+        'colorRangeBaseColor': PropTypes.string,
+        'colorRangeSegments': PropTypes.number,
+        'colorRangeSegmentStep': PropTypes.number,
+        'totalBackgroundColor': PropTypes.string,
         'allowedFields': PropTypes.arrayOf(PropTypes.string),
         'columnGroups': PropTypes.object,
+        'showColumnGroups': PropTypes.bool,
         'columnGroupsExtended': PropTypes.object,
         'showColumnGroupsExtended': PropTypes.bool,
         'rowGroups': PropTypes.object,
@@ -85,43 +87,6 @@ export default class DataMatrix extends React.PureComponent {
         'yAxisLabel': PropTypes.string,
         'disableConfigurator': PropTypes.bool,
     };
-
-    static convertResult(result, fieldChangeMap, valueChangeMap, statusStateTitleMap, fallbackNameForBlankField) {
-
-        const convertedResult = _.clone(result);
-
-        if (fieldChangeMap) {
-            _.forEach(_.pairs(fieldChangeMap), function ([fieldToMapTo, fieldToMapFrom]) {
-                let value = object.getNestedProperty(result, fieldToMapFrom, fieldToMapTo);
-                if (Array.isArray(value)) { // Only allow single vals.
-                    value = _.uniq(_.flatten(value));
-                    if (value.length > 1) {
-                        console.warn("We have 2+ of a grouping value", fieldToMapFrom, value, result);
-                    }
-                    value = value[0] || fallbackNameForBlankField;
-                }
-                convertedResult[fieldToMapTo] = value;
-            }, {});
-        }
-
-        // Change values (e.g. shorten some):
-        if (valueChangeMap) {
-            _.forEach(_.pairs(valueChangeMap), function ([field, changeMap]) {
-                if (typeof convertedResult[field] === "string") { // If present
-                    convertedResult[field] = changeMap[convertedResult[field]] || convertedResult[field];
-                }
-            });
-        }
-
-        // Standardized state from status
-        // TODO Use similar by-data-source structure as fieldChangeMap & valueChangeMap
-        if (statusStateTitleMap) {
-            const [stateTitleToSave] = _.find(_.pairs(statusStateTitleMap), function ([titleToSave, validStatuses]) { return validStatuses.indexOf(result.status) > -1; });
-            convertedResult.state = stateTitleToSave || fallbackNameForBlankField;
-        }
-
-        return convertedResult;
-    }
 
     static parseQuery(queryString) {
         const params = queryString.split('&');
@@ -163,16 +128,23 @@ export default class DataMatrix extends React.PureComponent {
         return result;
     }
 
+    getColorRanges({ colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep }) {
+        let colorRanges = [];
+        for (let i = 0; i < colorRangeSegments; i++) {
+            const min = i * colorRangeSegmentStep + 1;
+            const max = (i < colorRangeSegments - 1) ? (i + 1) * colorRangeSegmentStep : undefined;
+            colorRanges.push({ min, max, color: colorRangeBaseColor });
+        }
+        colorRanges = updateColorRanges(colorRanges, colorRangeBaseColor, -100);
+        return colorRanges;
+    }
+
     constructor(props) {
         super(props);
-        this.standardizeResult = this.standardizeResult.bind(this);
         this.loadSearchQueryResults = this.loadSearchQueryResults.bind(this);
         this.onApplyConfiguration = this.onApplyConfiguration.bind(this);
 
-        let colorRangesOverriden = null;
-        if (props.colorRanges && props.baseColorOverride) {
-            colorRangesOverriden = updateColorRanges(props.colorRanges, props.baseColorOverride, -100);
-        }
+        const colorRanges = this.getColorRanges(props);
 
         this.state = {
             "mounted": false,
@@ -181,22 +153,20 @@ export default class DataMatrix extends React.PureComponent {
             "fieldChangeMap": props.fieldChangeMap,
             "columnGrouping": props.columnGrouping,
             "groupingProperties": props.groupingProperties,
-            "colorRanges": colorRangesOverriden || props.colorRanges || [],
+            "colorRanges": colorRanges,
             "columnGroups": props.columnGroups,
+            "showColumnGroups": props.showColumnGroups,
+            "columnGroupsExtended": props.columnGroupsExtended,
+            "showColumnGroupsExtended": props.showColumnGroupsExtended,
+            "rowGroupsExtended": props.rowGroupsExtended,
+            "showRowGroupsExtended": props.showRowGroupsExtended,
             "xAxisLabel": props.xAxisLabel,
             "yAxisLabel": props.yAxisLabel,
+            'colorRangeBaseColor': props.colorRangeBaseColor,
+            'colorRangeSegments': props.colorRangeSegments,
+            'colorRangeSegmentStep': props.colorRangeSegmentStep,
+            'totalBackgroundColor': props.totalBackgroundColor,
         };
-    }
-
-    standardizeResult(result) {
-        const { fallbackNameForBlankField, statusStateTitleMap, valueChangeMap } = this.props;
-        const { fieldChangeMap } = this.state;
-
-        const fullResult = DataMatrix.convertResult(
-            result, fieldChangeMap, valueChangeMap, statusStateTitleMap, fallbackNameForBlankField
-        );
-
-        return fullResult;
     }
 
     componentDidMount() {
@@ -310,8 +280,15 @@ export default class DataMatrix extends React.PureComponent {
         );
     }
 
-    onApplyConfiguration(searchUrl, column, row1, row2, ranges, columnGroups, xAxisLabel, yAxisLabel) {
-        console.log(searchUrl, column, row1, row2, ranges, columnGroups, xAxisLabel, yAxisLabel);
+    onApplyConfiguration({
+        searchUrl, column, row1, row2,
+        columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
+        totalBackgroundColor, xAxisLabel, yAxisLabel}) {
+        console.log(
+            searchUrl, column, row1, row2,
+            columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
+            totalBackgroundColor, xAxisLabel, yAxisLabel);
+
         this.setState({
             ...this.state,
             query: {
@@ -325,8 +302,13 @@ export default class DataMatrix extends React.PureComponent {
             // },
             // columnGrouping: DataMatrixConfigurator.getNestedFieldName(column),
             // groupingProperties: [DataMatrixConfigurator.getNestedFieldName(row1)],
-            colorRanges: ranges,
             columnGroups: columnGroups,
+            showColumnGroups: showColumnGroups,
+            columnGroupsExtended: columnGroupsExtended,
+            showColumnGroupsExtended: showColumnGroupsExtended,
+            rowGroupsExtended: rowGroupsExtended,
+            showRowGroupsExtended: showRowGroupsExtended,
+            totalBackgroundColor: totalBackgroundColor,
             xAxisLabel: xAxisLabel,
             yAxisLabel: yAxisLabel
         });
@@ -335,13 +317,13 @@ export default class DataMatrix extends React.PureComponent {
     render() {
         const {
             headerFor, valueChangeMap, allowedFields,
-            columnGroupsExtended, showColumnGroupsExtended,
-            rowGroups, rowGroupsExtended, showRowGroupsExtended,
             disableConfigurator = false
         } = this.props;
-        const { query, fieldChangeMap, columnGrouping, groupingProperties,
-            columnGroups,
-            colorRanges, xAxisLabel, yAxisLabel } = this.state;
+        const {
+            query, fieldChangeMap, columnGrouping, groupingProperties,
+            columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
+            colorRanges, totalBackgroundColor, xAxisLabel, yAxisLabel
+        } = this.state;
 
         const isLoading =
             // eslint-disable-next-line react/destructuring-assignment
@@ -360,9 +342,9 @@ export default class DataMatrix extends React.PureComponent {
         const resultKey = "_results";
         const bodyProps = {
             query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
-            columnGroups, columnGroupsExtended, showColumnGroupsExtended,
-            rowGroups, rowGroupsExtended, showRowGroupsExtended,
-            xAxisLabel, yAxisLabel
+            columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
+            rowGroupsExtended, showRowGroupsExtended,
+            totalBackgroundColor, xAxisLabel, yAxisLabel
         };
 
         const configurator = !disableConfigurator && (
@@ -370,14 +352,16 @@ export default class DataMatrix extends React.PureComponent {
                 columnDimensions={allowedFields}
                 rowDimensions={allowedFields}
                 searchUrl={query.url}
-                selectedColumnValue={query.column_agg_fields[0]}
-                selectedRow1Value={query.row_agg_fields[0]}
-                selectedRow2Value={query.row_agg_fields.length > 2 ? query.row_agg_fields[1] : null}
+                initialColumnAggField={query.column_agg_fields[0]}
+                initialRowAggField1={query.row_agg_fields[0]}
+                initialRowAggField2={query.row_agg_fields.length > 1 ? query.row_agg_fields[1] : null}
                 initialColumnGroups={columnGroups}
-                initialColumnGroupsExtended={columnGroupsExtended} //not implemented yet
-                initialRowGroups={rowGroups} //not implemented yet
-                initialRowGroupsExtended={rowGroupsExtended} //not implemented yet
-                colorRanges={colorRanges}
+                initialShowColumnGroups={showColumnGroups}
+                initialColumnGroupsExtended={columnGroupsExtended}
+                initialShowColumnGroupsExtended={showColumnGroupsExtended}
+                initialRowGroupsExtended={rowGroupsExtended}
+                initialShowRowGroupsExtended={showRowGroupsExtended}
+                initialTotalBackgroundColor={totalBackgroundColor}
                 initialXAxisLabel={xAxisLabel}
                 initialYAxisLabel={yAxisLabel}
                 onApply={this.onApplyConfiguration}

@@ -1672,7 +1672,7 @@ body[data-path="/statistics"] {
         .header-col-text .column-group-header {
             > .inner {
                 transform-origin: 0 0;
-                transform: rotate(-90deg);
+                transform: rotate(-60deg);
                 color: #111;
             }
         }
@@ -1770,6 +1770,13 @@ body[data-path="/statistics"] {
                 > .vertical-container-rows {
                     display: flex;
                     flex-direction: column;
+
+                    .label-section {
+                        width: 215px !important;
+                        .inner {
+                            font-size: 0.9rem;
+                        }
+                    }
                 }
 
                 &:not(:first-child) {
@@ -1784,13 +1791,6 @@ body[data-path="/statistics"] {
 
                 .grouping-row {
                     background-color: #f8f8f8;
-                }
-            }
-
-            .label-section {
-                width: 215px !important;
-                .inner {
-                    font-size: 0.9rem;
                 }
             }
         }
@@ -1820,7 +1820,7 @@ body[data-path="/statistics"] {
             margin-left: 0;
 
             .label-section {
-                padding-left: 0px;
+                padding-left: 5px;
                 width: 250px;
 
                 > .label-container {
@@ -2123,7 +2123,7 @@ body[data-path="/statistics"] {
     .axis-container {
         position: relative;
         width: 250px;
-        height: 287px;
+        // height: 287px;
 
         .x-axis {
             position: absolute;
