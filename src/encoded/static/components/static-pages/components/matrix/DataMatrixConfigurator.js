@@ -24,6 +24,7 @@ const DataMatrixConfigurator = ({
     initialTotalBackgroundColor,
     initialXAxisLabel,
     initialYAxisLabel,
+    initialShowAxisLabels,
     onApply
 }) => {
     const [searchUrl, setSearchUrl] = useState(propSearchUrl);
@@ -39,6 +40,7 @@ const DataMatrixConfigurator = ({
     const [totalBackgroundColor, setTotalBackgroundColor] = useState(initialTotalBackgroundColor);
     const [xAxisLabel, setXAxisLabel] = useState(initialXAxisLabel);
     const [yAxisLabel, setYAxisLabel] = useState(initialYAxisLabel);
+    const [showAxisLabels, setShowAxisLabels] = useState(initialShowAxisLabels);
     const [showPopover, setShowPopover] = useState(false);
     const [errors, setErrors] = useState({});
     const popoverRef = useRef();
@@ -67,7 +69,7 @@ const DataMatrixConfigurator = ({
         onApply({
             searchUrl, columnAggField, rowAggField1, rowAggField2,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
-            totalBackgroundColor, xAxisLabel, yAxisLabel
+            totalBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels
         });
         setShowPopover(false);
     };
@@ -119,6 +121,12 @@ const DataMatrixConfigurator = ({
                                         <Form.Control type="text" value={yAxisLabel} onChange={(e) => setYAxisLabel(e.target.value)} />
                                     </Form.Group>
 
+                                    {/* Show Axis Labels */}
+                                    <Form.Group className="d-flex align-items-center mb-05">
+                                        <Form.Label className="me-2" style={labelStyle}>Show Axis Labels</Form.Label>
+                                        <Form.Check type="checkbox" checked={showAxisLabels} onChange={(e) => setShowAxisLabels(!showAxisLabels)} />
+                                    </Form.Group>
+
                                     {/* Column Dimension */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Column Agg Field</Form.Label>
@@ -152,7 +160,7 @@ const DataMatrixConfigurator = ({
                                         </Form.Control>
                                     </Form.Group>
                                     <Form.Group className="d-flex align-items-center mb-05">
-                                        <Form.Label className="me-2" style={labelStyle}>Total BG Color</Form.Label>
+                                        <Form.Label className="me-2" style={labelStyle}>Summary BG Color</Form.Label>
                                         <Form.Control type="color" name="totalBackgroundColor" value={totalBackgroundColor} onChange={(e) => setTotalBackgroundColor(e.target.value)} />
                                     </Form.Group>
                                 </Tab>
