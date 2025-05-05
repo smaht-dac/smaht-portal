@@ -113,9 +113,7 @@ const FileViewHeader = (props) => {
             `${context?.file_format?.display_title} file`;
 
         const retraction = retraction_reason
-            ? `was retracted due to ${retraction_reason
-                  .substring(0, 1)
-                  .toLowerCase()}${retraction_reason.substring(1)}`
+            ? `was retracted due to ${retraction_reason}`
             : `was retracted`;
 
         const replacement = context?.replaced_by ? (
