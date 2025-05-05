@@ -1797,7 +1797,7 @@ body[data-path="/statistics"] {
 
         &:not(.open):not(:first-child):not(.depth-0),
         &:not(.open):not(:first-child):not(.depth-0) + &:not(.open):not(:first-child):not(.depth-0) {
-            > .row > .list-section > .blocks-container {
+            > .row > .list-section > .blocks-container:not(.header-totals) {
                 border-top: 1px solid #eee;
             }
         }

@@ -257,7 +257,7 @@ export class VisualBody extends React.PureComponent {
                     'columnSubGroupingOrder', 'colorRanges',
                     'columnGroups', 'showColumnGroups', 'columnGroupsExtended', 'showColumnGroupsExtended',
                     'rowGroupsExtended', 'showRowGroupsExtended',
-                    'totalBackgroundColor', 'xAxisLabel', 'yAxisLabel')}
+                    'totalBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels',)}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
             />
@@ -909,7 +909,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             onSorterClick, sorting, sortField, activeBlock, openBlock, colorRanges, blockRenderedContents,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroupsExtended, showRowGroupsExtended,
-            totalBackgroundColor, xAxisLabel, yAxisLabel } = this.props;
+            totalBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels } = this.props;
         const { open } = this.state;
 
         let groupingPropertyTitle = null;
@@ -970,163 +970,175 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             );
             // TODO: check whether columnGroupsExtended.values and columnGroups are matching
             header = (
-                <div className="grouping">
-                    <div className="row grouping-row">
-                        <div className="label-section d-flex flex-column" style={labelSectionStyle}>
-                            <div className="axis-container flex-grow-1">
-                                <div className="x-axis">{xAxisLabel || 'X'}</div>
-                                <div className="y-axis">
-                                    <div className="y-label">{yAxisLabel || 'Y'}</div>
-                                    <div className="y-arrow">↓</div>
-                                </div>
-
-                            </div>
-                            <div className="text-end pe-1" onClick={onSorterClick} style={{ backgroundColor: '#f4f4ff', height: '29px', marginBottom: '1px' }}>
-                                <span className="float-start text-500 ps-05">{yAxisLabel}</span>
-                                <span className={labelSortIconClassName}>{labelSortIcon}</span>
-                            </div>
-                        </div>
-                        <div className="col list-section has-header header-for-viz" style={listSectionStyle}>
-                            <div className="d-flex header-col-text">
-                                {columnKeys.map(function (columnKey, colIndex) {
-                                    const hasOpenBlock = openBlock?.column === colIndex;
-                                    const hasActiveBlock = activeBlock?.column === colIndex;
-                                    const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
-                                    return (
-                                        <div key={'col-' + columnKey} className={className} style={headerItemStyle}>
-                                            <div className="inner">
-                                                <span>{columnKey}</span>
-                                            </div>
+                <React.Fragment>
+                    <div className="grouping header-section-upper">
+                        <div className="row grouping-row">
+                            <div className="label-section d-flex flex-column" style={labelSectionStyle}>
+                                {showAxisLabels &&
+                                    <div className="axis-container flex-grow-1">
+                                        <div className="x-axis">{xAxisLabel || 'X'}</div>
+                                        <div className="y-axis">
+                                            <div className="y-label">{yAxisLabel || 'Y'}</div>
+                                            <div className="y-arrow">↓</div>
                                         </div>
-                                    );
-                                })}
+
+                                    </div>
+                                }
                             </div>
-                            {hasColumnGroups &&
-                                <div className="d-flex header-group-text">
-                                    {
-                                        _.keys(columnGroups).map(function (groupKey) {
-                                            const colSpan = StackedBlockGroupedRow.intersectionIgnoreCase(columnKeys, columnGroups[groupKey]?.values || []).length;
-                                            if (colSpan === 0) {
-                                                return null;
-                                            }
-                                            const groupColumnWidth = colSpan * columnWidth;
-                                            const groupHeaderItemStyle = {
-                                                width: groupColumnWidth,
-                                                minWidth: groupColumnWidth
-                                            };
-                                            groupHeaderItemStyle.backgroundColor = columnGroups[groupKey].backgroundColor;
-                                            groupHeaderItemStyle.color = columnGroups[groupKey].textColor;
-                                            const label = (groupKey.length > (colSpan * 4)) && columnGroups[groupKey].shortName ? columnGroups[groupKey].shortName : groupKey;
-
-                                            return (
-                                                <div key={'col-' + groupKey} className={'column-group-header'} style={groupHeaderItemStyle}>
-                                                    <div className="inner">
-                                                        <span data-tip={groupKey !== label ? groupKey : null}>{label}</span>
-                                                    </div>
+                            <div className="col list-section has-header header-for-viz" style={listSectionStyle}>
+                                <div className="d-flex header-col-text">
+                                    {columnKeys.map(function (columnKey, colIndex) {
+                                        const hasOpenBlock = openBlock?.column === colIndex;
+                                        const hasActiveBlock = activeBlock?.column === colIndex;
+                                        const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
+                                        return (
+                                            <div key={'col-' + columnKey} className={className} style={headerItemStyle}>
+                                                <div className="inner">
+                                                    <span>{columnKey}</span>
                                                 </div>
-                                            );
-                                        })
-                                    }
-                                    { totalColumnHeader }
-                                </div>
-                            }
-                            {hasColumnGroupsExtended &&
-                                <div className="d-flex header-group-text">
-                                    {
-                                        _.keys(columnGroupsExtended).map(function (groupExtendedKey) {
-                                            const colCount = _.reduce(columnGroupsExtended[groupExtendedKey].values, function (memo, groupKey) {
-                                                const count = StackedBlockGroupedRow.intersectionIgnoreCase(columnKeys, columnGroups[groupKey]?.values || []).length;
-                                                return memo + count;
-                                            }, 0);
-                                            if (colCount === 0) {
-                                                return null;
-                                            }
-                                            const groupColumnWidth = colCount * columnWidth;
-                                            const groupHeaderItemStyle = {
-                                                width: groupColumnWidth,
-                                                minWidth: groupColumnWidth
-                                            };
-                                            groupHeaderItemStyle.backgroundColor = columnGroupsExtended[groupExtendedKey].backgroundColor;
-                                            groupHeaderItemStyle.color = columnGroupsExtended[groupExtendedKey].textColor;
-                                            return (
-                                                <div key={'col-' + groupExtendedKey} className={'column-group-header'} style={groupHeaderItemStyle}>
-                                                    <div className="inner">
-                                                        <span>{groupExtendedKey}</span>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })
-                                    }
-                                </div>
-                            }
-                            <div className="d-flex header-sorting">
-                                {columnKeys.map(function (columnKey, colIndex) {
-                                    //sort order icons
-                                    let countSortIcon;
-                                    if ((sorting === 'desc') && (columnKey === sortField)) {
-                                        countSortIcon = <SortIconDesc />;
-                                    } else if ((sorting === 'asc') && (columnKey === sortField)) {
-                                        countSortIcon = <SortIconAsc />;
-                                    } else {
-                                        countSortIcon = <SortIconBoth />;
-                                    }
-
-                                    const countSortIconClassName = 'column-sort-icon' + (['asc', 'desc'].indexOf(sorting) > -1 && columnKey === sortField ? ' active' : '');
-                                    const extraClassName = (activeBlock?.column === colIndex ? ' active-block-column' : '');
-                                    const style = (activeBlock?.column === colIndex) ? sorterActiveStyle : headerItemStyle;
-                                    return (
-                                        <div key={'col-' + columnKey} className={'column-group-header' + extraClassName} style={style}>
-                                            <div data-index={columnKey} onClick={onSorterClick}>
-                                                <span className={countSortIconClassName}>{countSortIcon}</span>
                                             </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                            <div className="d-flex header-totals">
-                                {columnKeys.map(function (columnKey, colIndex) {
-                                    const columnTotal = groupedDataIndices[columnKey]?.length || 0;
-                                    const style = {
-                                        'width': columnWidth, // Width for each column
-                                        'minWidth': columnWidth,
-                                        'minHeight': this.props.blockHeight + this.props.blockVerticalSpacing, // Height for each row
-                                        'paddingLeft': this.props.blockHorizontalSpacing,
-                                        'paddingRight': this.props.blockHorizontalSpacing,
-                                        'paddingTop': this.props.blockVerticalSpacing
-                                    };
+                                        );
+                                    })}
+                                </div>
+                                {hasColumnGroups &&
+                                    <div className="d-flex header-group-text">
+                                        {
+                                            _.keys(columnGroups).map(function (groupKey) {
+                                                const colSpan = StackedBlockGroupedRow.intersectionIgnoreCase(columnKeys, columnGroups[groupKey]?.values || []).length;
+                                                if (colSpan === 0) {
+                                                    return null;
+                                                }
+                                                const groupColumnWidth = colSpan * columnWidth;
+                                                const groupHeaderItemStyle = {
+                                                    width: groupColumnWidth,
+                                                    minWidth: groupColumnWidth
+                                                };
+                                                groupHeaderItemStyle.backgroundColor = columnGroups[groupKey].backgroundColor;
+                                                groupHeaderItemStyle.color = columnGroups[groupKey].textColor;
+                                                const label = (groupKey.length > (colSpan * 4)) && columnGroups[groupKey].shortName ? columnGroups[groupKey].shortName : groupKey;
 
-                                    // converts {"Fiber-Seq": [1475, 1476], "Kinnex": [1506, 1507]} to [{ "Fiber-Seq": 1475 }, { "Fiber-Seq": 1476 }, { "Kinnex": 1506 }, { "Kinnex": 1507 }];
-                                    const toColumnTotalsData = (inputObj, keyField) => {
-                                        const result = [];
-
-                                        for (const [key, values] of Object.entries(inputObj)) {
-                                            values.forEach((val) => {
-                                                result.push({
-                                                    [keyField]: key,
-                                                    index: val
-                                                });
-                                            });
+                                                return (
+                                                    <div key={'col-' + groupKey} className={'column-group-header'} style={groupHeaderItemStyle}>
+                                                        <div className="inner">
+                                                            <span data-tip={groupKey !== label ? groupKey : null}>{label}</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
+                                        }
+                                        {totalColumnHeader}
+                                    </div>
+                                }
+                                {hasColumnGroupsExtended &&
+                                    <div className="d-flex header-group-text">
+                                        {
+                                            _.keys(columnGroupsExtended).map(function (groupExtendedKey) {
+                                                const colCount = _.reduce(columnGroupsExtended[groupExtendedKey].values, function (memo, groupKey) {
+                                                    const count = StackedBlockGroupedRow.intersectionIgnoreCase(columnKeys, columnGroups[groupKey]?.values || []).length;
+                                                    return memo + count;
+                                                }, 0);
+                                                if (colCount === 0) {
+                                                    return null;
+                                                }
+                                                const groupColumnWidth = colCount * columnWidth;
+                                                const groupHeaderItemStyle = {
+                                                    width: groupColumnWidth,
+                                                    minWidth: groupColumnWidth
+                                                };
+                                                groupHeaderItemStyle.backgroundColor = columnGroupsExtended[groupExtendedKey].backgroundColor;
+                                                groupHeaderItemStyle.color = columnGroupsExtended[groupExtendedKey].textColor;
+                                                return (
+                                                    <div key={'col-' + groupExtendedKey} className={'column-group-header'} style={groupHeaderItemStyle}>
+                                                        <div className="inner">
+                                                            <span>{groupExtendedKey}</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
+                                        }
+                                    </div>
+                                }
+                                <div className="d-flex header-sorting">
+                                    {columnKeys.map(function (columnKey, colIndex) {
+                                        //sort order icons
+                                        let countSortIcon;
+                                        if ((sorting === 'desc') && (columnKey === sortField)) {
+                                            countSortIcon = <SortIconDesc />;
+                                        } else if ((sorting === 'asc') && (columnKey === sortField)) {
+                                            countSortIcon = <SortIconAsc />;
+                                        } else {
+                                            countSortIcon = <SortIconBoth />;
                                         }
 
-                                        return result;
-                                    };
-                                    const columnTotalsData = toColumnTotalsData(_.pick(groupedDataIndices, columnKey), columnGrouping);
-                                    const hasOpenBlock = openBlock?.column === colIndex;
-                                    const hasActiveBlock = activeBlock?.column === colIndex;
-                                    const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
-                                    return (
-                                        <div key={'col-totals-' + columnKey} className={className} style={headerItemStyle}>
-                                            <div className="block-container-group" style={style}
-                                                key={'total'} data-block-count={columnTotal} data-group-key={'column-total'}>
-                                                <Block {..._.omit(this.props, 'group')} data={columnTotalsData} colIndex={colIndex} isTotal />
+                                        const countSortIconClassName = 'column-sort-icon' + (['asc', 'desc'].indexOf(sorting) > -1 && columnKey === sortField ? ' active' : '');
+                                        const extraClassName = (activeBlock?.column === colIndex ? ' active-block-column' : '');
+                                        const style = (activeBlock?.column === colIndex) ? sorterActiveStyle : headerItemStyle;
+                                        return (
+                                            <div key={'col-' + columnKey} className={'column-group-header' + extraClassName} style={style}>
+                                                <div data-index={columnKey} onClick={onSorterClick}>
+                                                    <span className={countSortIconClassName}>{countSortIcon}</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                }, this)}
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                    <div className="grouping header-section-lower">
+                        <div className="row grouping-row" style={{ backgroundColor: '#f4f4ff' }}>
+                            <div className="label-section" style={{ ...labelSectionStyle, paddingTop: blockVerticalSpacing }}>
+                                <div className="text-end" onClick={onSorterClick} style={{ height: '29px', marginBottom: '1px' }}>
+                                    <span className="float-start text-500 ps-05">{yAxisLabel}</span>
+                                    <span className={labelSortIconClassName}>{labelSortIcon}</span>
+                                </div>
+                            </div>
+                            <div className="col list-section has-header header-for-viz">
+                                <div className="blocks-container d-flex header-totals">
+                                    {columnKeys.map(function (columnKey, colIndex) {
+                                        const columnTotal = groupedDataIndices[columnKey]?.length || 0;
+                                        const style = {
+                                            'width': columnWidth, // Width for each column
+                                            'minWidth': columnWidth,
+                                            'minHeight': this.props.blockHeight + this.props.blockVerticalSpacing, // Height for each row
+                                            'paddingLeft': this.props.blockHorizontalSpacing,
+                                            'paddingRight': this.props.blockHorizontalSpacing,
+                                            'paddingTop': this.props.blockVerticalSpacing
+                                        };
+
+                                        // converts {"Fiber-Seq": [1475, 1476], "Kinnex": [1506, 1507]} to [{ "Fiber-Seq": 1475 }, { "Fiber-Seq": 1476 }, { "Kinnex": 1506 }, { "Kinnex": 1507 }];
+                                        const toColumnTotalsData = (inputObj, keyField) => {
+                                            const result = [];
+
+                                            for (const [key, values] of Object.entries(inputObj)) {
+                                                values.forEach((val) => {
+                                                    result.push({
+                                                        [keyField]: key,
+                                                        index: val
+                                                    });
+                                                });
+                                            }
+
+                                            return result;
+                                        };
+                                        const columnTotalsData = toColumnTotalsData(_.pick(groupedDataIndices, columnKey), columnGrouping);
+                                        const hasOpenBlock = openBlock?.column === colIndex;
+                                        const hasActiveBlock = activeBlock?.column === colIndex;
+                                        const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
+                                        return (
+                                            <div key={'col-totals-' + columnKey} className={className} style={headerItemStyle}>
+                                                <div className="block-container-group" style={style}
+                                                    key={'total'} data-block-count={columnTotal} data-group-key={'column-total'}>
+                                                    <Block {..._.omit(this.props, 'group')} data={columnTotalsData} colIndex={colIndex} isTotal />
+                                                </div>
+                                            </div>
+                                        );
+                                    }, this)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </React.Fragment>
             );
         }
 

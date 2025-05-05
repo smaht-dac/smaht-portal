@@ -133,5 +133,6 @@
         totalBackgroundColor="#5d5fed"
         xAxisLabel="Assays"
         yAxisLabel="Donors"
+        showAxisLabels={false}
     />
 </div>

@@ -52,6 +52,7 @@ export default class DataMatrix extends React.PureComponent {
         ],
         "xAxisLabel": "X",
         "yAxisLabel": "Y",
+        "showAxisLabels": true,
         "disableConfigurator": false,
     };
 
@@ -85,6 +86,7 @@ export default class DataMatrix extends React.PureComponent {
         'showRowGroupsExtended': PropTypes.bool,
         'xAxisLabel': PropTypes.string,
         'yAxisLabel': PropTypes.string,
+        'showAxisLabels': PropTypes.bool,
         'disableConfigurator': PropTypes.bool,
     };
 
@@ -162,6 +164,7 @@ export default class DataMatrix extends React.PureComponent {
             "showRowGroupsExtended": props.showRowGroupsExtended,
             "xAxisLabel": props.xAxisLabel,
             "yAxisLabel": props.yAxisLabel,
+            "showAxisLabels": props.showAxisLabels,
             'colorRangeBaseColor': props.colorRangeBaseColor,
             'colorRangeSegments': props.colorRangeSegments,
             'colorRangeSegmentStep': props.colorRangeSegmentStep,
@@ -283,11 +286,11 @@ export default class DataMatrix extends React.PureComponent {
     onApplyConfiguration({
         searchUrl, column, row1, row2,
         columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
-        totalBackgroundColor, xAxisLabel, yAxisLabel}) {
+        totalBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels }) {
         console.log(
             searchUrl, column, row1, row2,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
-            totalBackgroundColor, xAxisLabel, yAxisLabel);
+            totalBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels);
 
         this.setState({
             ...this.state,
@@ -310,7 +313,8 @@ export default class DataMatrix extends React.PureComponent {
             showRowGroupsExtended: showRowGroupsExtended,
             totalBackgroundColor: totalBackgroundColor,
             xAxisLabel: xAxisLabel,
-            yAxisLabel: yAxisLabel
+            yAxisLabel: yAxisLabel,
+            showAxisLabels: showAxisLabels
         });
     }
 
@@ -322,7 +326,7 @@ export default class DataMatrix extends React.PureComponent {
         const {
             query, fieldChangeMap, columnGrouping, groupingProperties,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
-            colorRanges, totalBackgroundColor, xAxisLabel, yAxisLabel
+            colorRanges, totalBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels
         } = this.state;
 
         const isLoading =
@@ -344,7 +348,7 @@ export default class DataMatrix extends React.PureComponent {
             query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroupsExtended, showRowGroupsExtended,
-            totalBackgroundColor, xAxisLabel, yAxisLabel
+            totalBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels,
         };
 
         const configurator = !disableConfigurator && (
@@ -364,6 +368,7 @@ export default class DataMatrix extends React.PureComponent {
                 initialTotalBackgroundColor={totalBackgroundColor}
                 initialXAxisLabel={xAxisLabel}
                 initialYAxisLabel={yAxisLabel}
+                initialShowAxisLabels={showAxisLabels}
                 onApply={this.onApplyConfiguration}
             />
         );
