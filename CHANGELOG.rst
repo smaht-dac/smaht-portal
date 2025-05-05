@@ -7,12 +7,19 @@ smaht-portal
 Change Log
 ----------
 
-0.168.3
+0.168.4
 =======
 `PR 415 SN Fix validator error message <https://github.com/smaht-dac/smaht-portal/pull/415>`
 
 * Fix the TissueSample custom validator for valid combination of `external_id` and `category` to print out the expected `category` value in the error message 
 * Add `link_related_validator` decorator to the custom validator for fastq read pairs being linked to the same FileSet
+
+
+0.168.3
+=======
+`PR 416: Add file set accession copy button to Submission Status page <https://github.com/smaht-dac/smaht-portal/pull/416>`
+
+* Add file set accession copy button to Submission Status page
 
 
 0.168.2
