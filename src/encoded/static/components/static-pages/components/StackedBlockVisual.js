@@ -1086,7 +1086,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         </div>
                     </div>
                     <div className="grouping header-section-lower">
-                        <div className="row grouping-row" style={{ backgroundColor: '#f4f4ff' }}>
+                        <div className="row grouping-row">
                             <div className="label-section" style={{ ...labelSectionStyle, paddingTop: blockVerticalSpacing }}>
                                 <div className="text-end" onClick={onSorterClick} style={{ height: '29px', marginBottom: '1px' }}>
                                     <span className="float-start text-500 ps-05">{yAxisLabel}</span>

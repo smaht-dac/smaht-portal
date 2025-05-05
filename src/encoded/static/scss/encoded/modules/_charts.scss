@@ -1814,6 +1814,11 @@ body[data-path="/statistics"] {
             }
         }
 
+        &.header-section-lower {
+            background-color: #f4f4ff;
+            border-top-left-radius: 10px;
+        }
+
         .grouping-row {
 
             margin-right: 0;
