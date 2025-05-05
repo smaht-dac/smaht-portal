@@ -112,9 +112,13 @@ const FileViewHeader = (props) => {
             release_tracker_description ||
             `${context?.file_format?.display_title} file`;
 
-        const retraction = retraction_reason
-            ? `was retracted due to ${retraction_reason}`
-            : `was retracted`;
+        const retraction = retraction_reason ? (
+            <>
+                was retracted due to <b>{retraction_reason}</b>
+            </>
+        ) : (
+            'was retracted'
+        );
 
         const replacement = context?.replaced_by ? (
             <>
