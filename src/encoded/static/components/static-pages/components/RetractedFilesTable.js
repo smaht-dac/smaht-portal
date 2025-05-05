@@ -6,15 +6,17 @@ import _ from 'underscore';
 import memoize from 'memoize-one';
 
 import { EmbeddedItemSearchTable } from '../../item-pages/components/EmbeddedItemSearchTable';
+import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
 export default function RetractedFilesTable(props) {
     const { schemas, session, searchHref: propSearchHref } = props;
-    const searchHref = 
-        propSearchHref || "/search/?type=File&status=retracted&file_status_tracking.released_date!=No+value&sort=-file_status_tracking.retracted_date";
+    const searchHref =
+        propSearchHref ||
+        '/search/?type=File&status=retracted&file_status_tracking.released_date!=No+value&sort=-file_status_tracking.retracted_date';
 
     const columnExtensionMap = {
-        "access_status": {
-            "widthMap": { lg: 70, md: 70, sm: 70 },
+        access_status: {
+            widthMap: { lg: 70, md: 70, sm: 70 },
             colTitle: <i className="icon icon-lock fas" data-tip="Access" />,
             render: function (result, parentProps) {
                 const { access_status } = result || {};
@@ -34,99 +36,129 @@ export default function RetractedFilesTable(props) {
                 );
             },
         },
-        "file_status_tracking.retracted_date": {
-            "widthMap": { lg: 140, md: 90, sm: 90 }
+        'file_status_tracking.retracted_date': {
+            widthMap: { lg: 140, md: 90, sm: 90 },
         },
-        "accession": {
-            "widthMap": { lg: 145, md: 120, sm: 120 },
+        accession: {
+            widthMap: { lg: 145, md: 120, sm: 120 },
             render: function (result, props) {
                 const { '@id': atId, accession } = result || {};
 
                 return (
                     <span className="value text-start">
-                        {
-                            accession ?
-                                <a href={atId} target="_blank" rel="noreferrer noopener">{accession}</a>
-                                : '-'
-                        }
+                        {accession ? (
+                            <a
+                                href={atId}
+                                target="_blank"
+                                rel="noreferrer noopener">
+                                {accession}
+                            </a>
+                        ) : (
+                            '-'
+                        )}
                     </span>
                 );
-            }
+            },
         },
-        "annotated_filename": {
-            "widthMap": { lg: 350, md: 200, sm: 200 },
+        annotated_filename: {
+            widthMap: { lg: 350, md: 200, sm: 200 },
             render: function (result, props) {
                 const { '@id': atId, annotated_filename } = result || {};
 
                 return (
                     <span className="value text-start">
-                        {
-                            annotated_filename ?
-                                <a href={atId} target="_blank" rel="noreferrer noopener">{annotated_filename}</a>
-                                : '-'
-                        }
+                        {annotated_filename ? (
+                            <a
+                                href={atId}
+                                target="_blank"
+                                rel="noreferrer noopener">
+                                {annotated_filename}
+                            </a>
+                        ) : (
+                            '-'
+                        )}
                     </span>
                 );
-            }
+            },
         },
-        "retraction_reason": {
-            "widthMap": { lg: 250, md: 120, sm: 120 }
-        },
-        "replaced_by.display_title": {
-            "widthMap": { lg: 170, md: 120, sm: 120 },
+        retraction_reason: {
+            widthMap: { lg: 250, md: 120, sm: 120 },
             render: function (result, props) {
-                const { replaced_by: { '@id': atId, annotated_filename, display_title } = {} } = result || {};
+                const { retraction_reason } = result || {};
+                if (!retraction_reason) return null;
+                return (
+                    <span className="value text-start">
+                        {capitalizeSentence(retraction_reason)}
+                    </span>
+                );
+            },
+        },
+        'replaced_by.display_title': {
+            widthMap: { lg: 170, md: 120, sm: 120 },
+            render: function (result, props) {
+                const {
+                    replaced_by: {
+                        '@id': atId,
+                        annotated_filename,
+                        display_title,
+                    } = {},
+                } = result || {};
                 if (!atId) return null;
                 return (
                     <span className="value text-start">
-                        <a href={atId} target="_blank" rel="noreferrer noopener">{annotated_filename || display_title}</a>
+                        <a
+                            href={atId}
+                            target="_blank"
+                            rel="noreferrer noopener">
+                            {annotated_filename || display_title}
+                        </a>
                     </span>
                 );
-            }
+            },
         },
-        "release_tracker_description": {
-            "widthMap": { lg: 150, md: 75, sm: 75 }
+        release_tracker_description: {
+            widthMap: { lg: 150, md: 75, sm: 75 },
         },
-        "sample_summary.sample_names": {
-            "widthMap": { lg: 160, md: 120, sm: 120 }
+        'sample_summary.sample_names': {
+            widthMap: { lg: 160, md: 120, sm: 120 },
         },
-        "data_generation_summary.sequencing_center": {
-            "widthMap": { lg: 110, md: 90, sm: 90 }
-        }
+        'data_generation_summary.sequencing_center': {
+            widthMap: { lg: 110, md: 90, sm: 90 },
+        },
     };
 
     const columns = {
-        "access_status": {
-            "title": "Access",
+        access_status: {
+            title: 'Access',
         },
-        "file_status_tracking.retracted_date": {
-            "title": "Retracted On",
+        'file_status_tracking.retracted_date': {
+            title: 'Retracted On',
         },
-        "accession": {
-            "title": "Accession",
+        accession: {
+            title: 'Accession',
         },
-        "annotated_filename": {
-            "title": "File",
+        annotated_filename: {
+            title: 'File',
         },
-        "retraction_reason": {
-            "title": "Reason of Retraction",
+        retraction_reason: {
+            title: 'Reason of Retraction',
         },
-        "replaced_by.display_title": {
-            "title": "Replaced By",
+        'replaced_by.display_title': {
+            title: 'Replaced By',
         },
-        "release_tracker_description": {
-            "title": "Assay",
+        release_tracker_description: {
+            title: 'Assay',
         },
-        "sample_summary.sample_names": {
-            "title": "Sample",
+        'sample_summary.sample_names': {
+            title: 'Sample',
         },
-        "data_generation_summary.sequencing_center": {
-            "title": "Center",
-        }
+        'data_generation_summary.sequencing_center': {
+            title: 'Center',
+        },
     };
 
     return (
-        <div className='retracted-files-table'>
+        <div className="retracted-files-table">
             <EmbeddedItemSearchTable
                 searchHref={searchHref}
                 schemas={schemas}
