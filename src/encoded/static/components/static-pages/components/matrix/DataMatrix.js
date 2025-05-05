@@ -39,7 +39,7 @@ export default class DataMatrix extends React.PureComponent {
         "colorRangeBaseColor": null, // color hex or rgba code (if set, will override colorRanges)
         "colorRangeSegments": 5, // split color ranges into 5 equal parts
         "colorRangeSegmentStep": 20, // step size for each segment
-        "totalBackgroundColor": "#d91818",
+        "summaryBackgroundColor": "#d91818",
         "allowedFields": [
             "donors.display_title",
             "sequencing.sequencer.display_title",
@@ -75,7 +75,7 @@ export default class DataMatrix extends React.PureComponent {
         'colorRangeBaseColor': PropTypes.string,
         'colorRangeSegments': PropTypes.number,
         'colorRangeSegmentStep': PropTypes.number,
-        'totalBackgroundColor': PropTypes.string,
+        'summaryBackgroundColor': PropTypes.string,
         'allowedFields': PropTypes.arrayOf(PropTypes.string),
         'columnGroups': PropTypes.object,
         'showColumnGroups': PropTypes.bool,
@@ -168,7 +168,7 @@ export default class DataMatrix extends React.PureComponent {
             'colorRangeBaseColor': props.colorRangeBaseColor,
             'colorRangeSegments': props.colorRangeSegments,
             'colorRangeSegmentStep': props.colorRangeSegmentStep,
-            'totalBackgroundColor': props.totalBackgroundColor,
+            'summaryBackgroundColor': props.summaryBackgroundColor,
         };
     }
 
@@ -286,11 +286,13 @@ export default class DataMatrix extends React.PureComponent {
     onApplyConfiguration({
         searchUrl, column, row1, row2,
         columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
-        totalBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels }) {
+        summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep }) {
         console.log(
             searchUrl, column, row1, row2,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
-            totalBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels);
+            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep);
+
+        const newColorRanges = this.getColorRanges({ colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep });
 
         this.setState({
             ...this.state,
@@ -311,10 +313,14 @@ export default class DataMatrix extends React.PureComponent {
             showColumnGroupsExtended: showColumnGroupsExtended,
             rowGroupsExtended: rowGroupsExtended,
             showRowGroupsExtended: showRowGroupsExtended,
-            totalBackgroundColor: totalBackgroundColor,
+            summaryBackgroundColor: summaryBackgroundColor,
             xAxisLabel: xAxisLabel,
             yAxisLabel: yAxisLabel,
-            showAxisLabels: showAxisLabels
+            showAxisLabels: showAxisLabels,
+            colorRanges: newColorRanges,
+            colorRangeBaseColor: colorRangeBaseColor,
+            colorRangeSegments: colorRangeSegments,
+            colorRangeSegmentStep: colorRangeSegmentStep,
         });
     }
 
@@ -326,7 +332,8 @@ export default class DataMatrix extends React.PureComponent {
         const {
             query, fieldChangeMap, columnGrouping, groupingProperties,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
-            colorRanges, totalBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels
+            colorRanges, summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels,
+            colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep
         } = this.state;
 
         const isLoading =
@@ -348,7 +355,7 @@ export default class DataMatrix extends React.PureComponent {
             query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroupsExtended, showRowGroupsExtended,
-            totalBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels,
+            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels
         };
 
         const configurator = !disableConfigurator && (
@@ -365,10 +372,13 @@ export default class DataMatrix extends React.PureComponent {
                 initialShowColumnGroupsExtended={showColumnGroupsExtended}
                 initialRowGroupsExtended={rowGroupsExtended}
                 initialShowRowGroupsExtended={showRowGroupsExtended}
-                initialTotalBackgroundColor={totalBackgroundColor}
+                initialSummaryBackgroundColor={summaryBackgroundColor}
                 initialXAxisLabel={xAxisLabel}
                 initialYAxisLabel={yAxisLabel}
                 initialShowAxisLabels={showAxisLabels}
+                initialColorRangeBaseColor={colorRangeBaseColor}
+                initialColorRangeSegments={colorRangeSegments}
+                initialColorRangeSegmentStep={colorRangeSegmentStep}
                 onApply={this.onApplyConfiguration}
             />
         );

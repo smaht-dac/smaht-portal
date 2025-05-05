@@ -21,10 +21,13 @@ const DataMatrixConfigurator = ({
     initialShowColumnGroupsExtended,
     initialRowGroupsExtended,
     initialShowRowGroupsExtended,
-    initialTotalBackgroundColor,
+    initialSummaryBackgroundColor,
     initialXAxisLabel,
     initialYAxisLabel,
     initialShowAxisLabels,
+    initialColorRangeBaseColor,
+    initialColorRangeSegments,
+    initialColorRangeSegmentStep,
     onApply
 }) => {
     const [searchUrl, setSearchUrl] = useState(propSearchUrl);
@@ -37,10 +40,13 @@ const DataMatrixConfigurator = ({
     const [showColumnGroupsExtended, setShowColumnGroupsExtended] = useState(initialShowColumnGroupsExtended);
     const [rowGroupsExtended, setRowGroupsExtended] = useState(initialRowGroupsExtended);
     const [showRowGroupsExtended, setShowRowGroupsExtended] = useState(initialShowRowGroupsExtended);
-    const [totalBackgroundColor, setTotalBackgroundColor] = useState(initialTotalBackgroundColor);
+    const [summaryBackgroundColor, setSummaryBackgroundColor] = useState(initialSummaryBackgroundColor);
     const [xAxisLabel, setXAxisLabel] = useState(initialXAxisLabel);
     const [yAxisLabel, setYAxisLabel] = useState(initialYAxisLabel);
     const [showAxisLabels, setShowAxisLabels] = useState(initialShowAxisLabels);
+    const [colorRangeBaseColor, setColorRangeBaseColor] = useState(initialColorRangeBaseColor);
+    const [colorRangeSegments, setColorRangeSegments] = useState(initialColorRangeSegments);
+    const [colorRangeSegmentStep, setColorRangeSegmentStep] = useState(initialColorRangeSegmentStep);
     const [showPopover, setShowPopover] = useState(false);
     const [errors, setErrors] = useState({});
     const popoverRef = useRef();
@@ -69,7 +75,8 @@ const DataMatrixConfigurator = ({
         onApply({
             searchUrl, columnAggField, rowAggField1, rowAggField2,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
-            totalBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels
+            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels,
+            colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep
         });
         setShowPopover(false);
     };
@@ -91,7 +98,7 @@ const DataMatrixConfigurator = ({
 
             {/* Button to toggle popover */}
             <Button variant="link" id="config-btn" className="p-0" onClick={() => setShowPopover(!showPopover)}>
-                <i className="icon icon-fw icon-gear fas" /> <span className="text-muted small">{yAxisLabel + ' x ' + xAxisLabel}</span>
+                <i className="icon icon-fw icon-gear fas" /> <span className="text-muted small">{`${yAxisLabel} x ${xAxisLabel} (admin-only)`}</span>
             </Button>
 
             {/* Popover content */}
@@ -107,24 +114,6 @@ const DataMatrixConfigurator = ({
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Search URL</Form.Label>
                                         <Form.Control type="text" value={searchUrl} onChange={(e) => setSearchUrl(e.target.value)} />
-                                    </Form.Group>
-
-                                    {/* X Axis Label */}
-                                    <Form.Group className="d-flex align-items-center mb-05">
-                                        <Form.Label className="me-2" style={labelStyle}>X-Axis Label</Form.Label>
-                                        <Form.Control type="text" value={xAxisLabel} onChange={(e) => setXAxisLabel(e.target.value)} />
-                                    </Form.Group>
-
-                                    {/* Y Axis Label */}
-                                    <Form.Group className="d-flex align-items-center mb-05">
-                                        <Form.Label className="me-2" style={labelStyle}>Y-Axis Label</Form.Label>
-                                        <Form.Control type="text" value={yAxisLabel} onChange={(e) => setYAxisLabel(e.target.value)} />
-                                    </Form.Group>
-
-                                    {/* Show Axis Labels */}
-                                    <Form.Group className="d-flex align-items-center mb-05">
-                                        <Form.Label className="me-2" style={labelStyle}>Show Axis Labels</Form.Label>
-                                        <Form.Check type="checkbox" checked={showAxisLabels} onChange={(e) => setShowAxisLabels(!showAxisLabels)} />
                                     </Form.Group>
 
                                     {/* Column Dimension */}
@@ -159,9 +148,45 @@ const DataMatrixConfigurator = ({
                                             ))}
                                         </Form.Control>
                                     </Form.Group>
+
+                                    {/* X Axis Label */}
+                                    <Form.Group className="d-flex align-items-center mb-05">
+                                        <Form.Label className="me-2" style={labelStyle}>X-Axis Label</Form.Label>
+                                        <Form.Control type="text" value={xAxisLabel} onChange={(e) => setXAxisLabel(e.target.value)} />
+                                    </Form.Group>
+
+                                    {/* Y Axis Label */}
+                                    <Form.Group className="d-flex align-items-center mb-05">
+                                        <Form.Label className="me-2" style={labelStyle}>Y-Axis Label</Form.Label>
+                                        <Form.Control type="text" value={yAxisLabel} onChange={(e) => setYAxisLabel(e.target.value)} />
+                                    </Form.Group>
+
+                                    {/* Show Axis Labels */}
+                                    <Form.Group className="d-flex align-items-center mb-05">
+                                        <Form.Label className="me-2" style={labelStyle}>Show Axis Labels</Form.Label>
+                                        <Form.Check type="checkbox" checked={showAxisLabels} onChange={(e) => setShowAxisLabels(!showAxisLabels)} />
+                                    </Form.Group>
+
+                                    {/* Summary Background Color */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Summary BG Color</Form.Label>
-                                        <Form.Control type="color" name="totalBackgroundColor" value={totalBackgroundColor} onChange={(e) => setTotalBackgroundColor(e.target.value)} />
+                                        <Form.Control type="color" name="summaryBackgroundColor" value={summaryBackgroundColor} onChange={(e) => setSummaryBackgroundColor(e.target.value)} />
+                                    </Form.Group>
+
+                                    {/* Color Range Base Color */}
+                                    <Form.Group className="d-flex align-items-center mb-05">
+                                        <Form.Label className="me-2" style={labelStyle}>Colors Base</Form.Label>
+                                        <Form.Control type="color" name="colorRangeBaseColor" value={colorRangeBaseColor} onChange={(e) => setColorRangeBaseColor(e.target.value)} />
+                                    </Form.Group>
+                                    {/* Color Range Segments */}
+                                    <Form.Group className="d-flex align-items-center mb-05">
+                                        <Form.Label className="me-2" style={labelStyle}>Colors Step #</Form.Label>
+                                        <Form.Control type="number" name="colorRangeSegments" value={colorRangeSegments} onChange={(e) => setColorRangeSegments(e.target.value)} />
+                                    </Form.Group>
+                                    {/* Color Range Segment Step */}
+                                    <Form.Group className="d-flex align-items-center mb-05">
+                                        <Form.Label className="me-2" style={labelStyle}>Colors Step Size</Form.Label>
+                                        <Form.Control type="number" name="colorRangeSegmentStep" value={colorRangeSegmentStep} onChange={(e) => setColorRangeSegmentStep(e.target.value)} />
                                     </Form.Group>
                                 </Tab>
                                 <Tab eventKey="columnGroups" title={`Column Groups Primary (${Object.keys(columnGroups).length})`}>

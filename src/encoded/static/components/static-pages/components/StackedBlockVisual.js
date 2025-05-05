@@ -257,7 +257,7 @@ export class VisualBody extends React.PureComponent {
                     'columnSubGroupingOrder', 'colorRanges',
                     'columnGroups', 'showColumnGroups', 'columnGroupsExtended', 'showColumnGroupsExtended',
                     'rowGroupsExtended', 'showRowGroupsExtended',
-                    'totalBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels',)}
+                    'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels',)}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
             />
@@ -745,7 +745,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
         const commonProps = _.pick(props, 'blockHeight', 'blockWidth', 'blockHorizontalSpacing', 'blockVerticalSpacing',
             'groupingProperties', 'depth', 'titleMap', 'blockClassName', 'blockRenderedContents',
-            'groupedDataIndices', 'columnGrouping', 'blockPopover', 'colorRanges', 'totalBackgroundColor',
+            'groupedDataIndices', 'columnGrouping', 'blockPopover', 'colorRanges', 'summaryBackgroundColor',
             'activeBlock', 'openBlock', 'handleBlockMouseEnter', 'handleBlockMouseLeave', 'handleBlockClick', 'group');
         const width = (props.blockWidth + (props.blockHorizontalSpacing * 2)) + props.blockHorizontalExtend;
         const containerGroupStyle = {
@@ -909,7 +909,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             onSorterClick, sorting, sortField, activeBlock, openBlock, colorRanges, blockRenderedContents,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroupsExtended, showRowGroupsExtended,
-            totalBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels } = this.props;
+            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels } = this.props;
         const { open } = this.state;
 
         let groupingPropertyTitle = null;
@@ -962,7 +962,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             const totalColumnHeader = (
                 <div
                     key="col-total" className="column-group-header"
-                    style={{ width: columnWidth, minWidth: columnWidth, backgroundColor: totalBackgroundColor, color: '#fff' }}>
+                    style={{ width: columnWidth, minWidth: columnWidth, backgroundColor: summaryBackgroundColor, color: '#fff' }}>
                     <div className="inner">
                         Total
                     </div>
@@ -1228,7 +1228,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 const Block = React.memo(function Block(props){
     const {
         blockHeight, blockWidth, blockVerticalSpacing, data, parentGrouping, group,
-        blockClassName, blockRenderedContents, blockPopover, indexInGroup, colorRanges, totalBackgroundColor,
+        blockClassName, blockRenderedContents, blockPopover, indexInGroup, colorRanges, summaryBackgroundColor,
         handleBlockMouseEnter, handleBlockMouseLeave, handleBlockClick, rowIndex, colIndex, openBlock,
         isTotal
     } = props;
@@ -1262,7 +1262,7 @@ const Block = React.memo(function Block(props){
     }
 
     const getColor = function (value, isTotal = false) {
-        if (isTotal) return totalBackgroundColor || '#000000';
+        if (isTotal) return summaryBackgroundColor || '#000000';
         if (!colorRanges) return null;
 
         const range = colorRanges.find((r) =>

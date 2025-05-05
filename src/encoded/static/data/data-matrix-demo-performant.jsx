@@ -130,7 +130,7 @@
         showRowGroupsExtended={true}
         headerFor={null}
         colorRangeBaseColor="#47adff"
-        totalBackgroundColor="#5d5fed"
+        summaryBackgroundColor="#5d5fed"
         xAxisLabel="Assays"
         yAxisLabel="Donors"
         showAxisLabels={false}
