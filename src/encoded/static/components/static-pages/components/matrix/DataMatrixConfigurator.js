@@ -3,10 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import { Button, Form, Popover, Tabs, Tab, Card } from 'react-bootstrap';
+import { Button, Form, Popover, Tabs, Tab, Card, Row, Col, Badge, CloseButton, Collapse } from 'react-bootstrap';
 import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import Badge from 'react-bootstrap/Badge';
-import CloseButton from 'react-bootstrap/CloseButton';
 
 const DataMatrixConfigurator = ({
     searchUrl: propSearchUrl,
@@ -81,7 +79,7 @@ const DataMatrixConfigurator = ({
         setShowPopover(false);
     };
 
-    const labelStyle = { width: '150px' };
+    const labelStyle = { minWidth: '150px', width: '150px' };
 
     return (
         <div>
@@ -113,13 +111,13 @@ const DataMatrixConfigurator = ({
                                     {/* Search Url */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Search URL</Form.Label>
-                                        <Form.Control type="text" value={searchUrl} onChange={(e) => setSearchUrl(e.target.value)} />
+                                        <Form.Control type="text" value={searchUrl} onChange={(e) => setSearchUrl(e.target.value)} size="sm" />
                                     </Form.Group>
 
                                     {/* Column Dimension */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Column Agg Field</Form.Label>
-                                        <Form.Control as="select" value={columnAggField || ''} onChange={(e) => setColumnAggField(e.target.value)}>
+                                        <Form.Control as="select" value={columnAggField || ''} onChange={(e) => setColumnAggField(e.target.value)} size="sm">
                                             <option key={0} value={null}>{'-- Select --'}</option>
                                             {columnDimensions.map((dim, idx) => (
                                                 <option key={idx + 1} value={dim}>{DataMatrixConfigurator.getNestedFieldName(dim)}</option>
@@ -130,7 +128,7 @@ const DataMatrixConfigurator = ({
                                     {/* Row Dimension 1 */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Row Agg Field 1</Form.Label>
-                                        <Form.Control as="select" value={rowAggField1 || ''} onChange={(e) => setRowAggField1(e.target.value)}>
+                                        <Form.Control as="select" value={rowAggField1 || ''} onChange={(e) => setRowAggField1(e.target.value)} size="sm">
                                             <option key={0} value={null}>{'-- Select --'}</option>
                                             {rowDimensions.map((dim, idx) => (
                                                 <option key={idx + 1} value={dim}>{DataMatrixConfigurator.getNestedFieldName(dim)}</option>
@@ -141,7 +139,7 @@ const DataMatrixConfigurator = ({
                                     {/* Row Dimension 2 */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Row Agg Field 2</Form.Label>
-                                        <Form.Control as="select" value={rowAggField2 || ''} onChange={(e) => setRowAggField2(e.target.value)}>
+                                        <Form.Control as="select" value={rowAggField2 || ''} onChange={(e) => setRowAggField2(e.target.value)} size="sm">
                                             <option key={0} value={null}>{'-- Select --'}</option>
                                             {rowDimensions.map((dim, idx) => (
                                                 <option key={idx + 1} value={dim}>{DataMatrixConfigurator.getNestedFieldName(dim)}</option>
@@ -152,13 +150,13 @@ const DataMatrixConfigurator = ({
                                     {/* X Axis Label */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>X-Axis Label</Form.Label>
-                                        <Form.Control type="text" value={xAxisLabel} onChange={(e) => setXAxisLabel(e.target.value)} />
+                                        <Form.Control type="text" value={xAxisLabel} onChange={(e) => setXAxisLabel(e.target.value)} size="sm" />
                                     </Form.Group>
 
                                     {/* Y Axis Label */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Y-Axis Label</Form.Label>
-                                        <Form.Control type="text" value={yAxisLabel} onChange={(e) => setYAxisLabel(e.target.value)} />
+                                        <Form.Control type="text" value={yAxisLabel} onChange={(e) => setYAxisLabel(e.target.value)} size="sm" />
                                     </Form.Group>
 
                                     {/* Show Axis Labels */}
@@ -170,23 +168,23 @@ const DataMatrixConfigurator = ({
                                     {/* Summary Background Color */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Summary BG Color</Form.Label>
-                                        <Form.Control type="color" name="summaryBackgroundColor" value={summaryBackgroundColor} onChange={(e) => setSummaryBackgroundColor(e.target.value)} />
+                                        <Form.Control type="color" name="summaryBackgroundColor" value={summaryBackgroundColor} onChange={(e) => setSummaryBackgroundColor(e.target.value)} size="sm" />
                                     </Form.Group>
 
                                     {/* Color Range Base Color */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Colors Base</Form.Label>
-                                        <Form.Control type="color" name="colorRangeBaseColor" value={colorRangeBaseColor} onChange={(e) => setColorRangeBaseColor(e.target.value)} />
+                                        <Form.Control type="color" name="colorRangeBaseColor" value={colorRangeBaseColor} onChange={(e) => setColorRangeBaseColor(e.target.value)} size="sm" />
                                     </Form.Group>
                                     {/* Color Range Segments */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Colors Step #</Form.Label>
-                                        <Form.Control type="number" name="colorRangeSegments" value={colorRangeSegments} onChange={(e) => setColorRangeSegments(e.target.value)} />
+                                        <Form.Control type="number" name="colorRangeSegments" value={colorRangeSegments} onChange={(e) => setColorRangeSegments(e.target.value)} size="sm" />
                                     </Form.Group>
                                     {/* Color Range Segment Step */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Colors Step Size</Form.Label>
-                                        <Form.Control type="number" name="colorRangeSegmentStep" value={colorRangeSegmentStep} onChange={(e) => setColorRangeSegmentStep(e.target.value)} />
+                                        <Form.Control type="number" name="colorRangeSegmentStep" value={colorRangeSegmentStep} onChange={(e) => setColorRangeSegmentStep(e.target.value)} size="sm" />
                                     </Form.Group>
                                 </Tab>
                                 <Tab eventKey="columnGroups" title={`Column Groups Primary (${Object.keys(columnGroups).length})`}>
@@ -463,42 +461,41 @@ const TierForm = ({ tier, onTierChange, onRemove, suggestions }) => {
         const { name, value } = e.target;
         onTierChange({ ...tier, [name]: value });
     };
-    const labelStyle = { width: '180px' };
+    const labelStyle = { minWidth: '150px', width: '150px' };
 
     return (
-        <Card className="mb-3">
-            <Card.Body>
-                <Form.Group className="d-flex align-items-center mb-05">
-                    <Form.Label className="me-2" style={labelStyle}>Name</Form.Label>
-                    <Form.Control type="text" name="name" value={tier.name} onChange={handleChange} />
-                </Form.Group>
-                <Form.Group className="d-flex align-items-center mb-05">
-                    <Form.Label className="me-2" style={labelStyle}>Background/Text Color</Form.Label>
-                    <Form.Control type="color" name="backgroundColor" value={tier.backgroundColor} onChange={handleChange} />
-                    <Form.Control type="color" name="textColor" value={tier.textColor} onChange={handleChange} style={{ marginLeft: '5px' }} />
-                </Form.Group>
-                {/* <Form.Group className="d-flex align-items-center mb-05">
-                    <Form.Label className="me-2" style={labelStyle}>Text Color</Form.Label>
-                </Form.Group> */}
-                <Form.Group className="d-flex align-items-center mb-05">
-                    <Form.Label className="me-2" style={labelStyle}>Short Name</Form.Label>
-                    <Form.Control type="text" name="shortName" value={tier.shortName} onChange={handleChange} />
-                </Form.Group>
-                <Form.Group className="d-flex align-items-center mb-05">
-                    <Form.Label className="me-2" style={labelStyle}>Values</Form.Label>
-                    <ChipsContainer
-                        chips={tier.values}
-                        onChange={(newValues) => onTierChange({ ...tier, values: newValues })}
-                        suggestions={suggestions}
-                    />
-                </Form.Group>
-                {onRemove && (
-                    <Button variant="danger" onClick={onRemove}>
-                        Remove
-                    </Button>
-                )}
-            </Card.Body>
-        </Card>
+        <DismissibleCard onClose={onRemove} showLabel={tier.name}>
+            <Form.Group className="d-flex align-items-center mb-05">
+                <Form.Label className="me-2" style={labelStyle}>Name</Form.Label>
+                <Form.Control type="text" name="name" value={tier.name} onChange={handleChange} />
+            </Form.Group>
+            <Row>
+                <Col>
+                    <Form.Group className="d-flex align-items-center mb-05">
+                        <Form.Label className="me-2" style={labelStyle}>Background</Form.Label>
+                        <Form.Control type="color" name="backgroundColor" value={tier.backgroundColor} onChange={handleChange} size="sm" />
+                    </Form.Group>
+                </Col>
+                <Col>
+                    <Form.Group className="d-flex align-items-center mb-05">
+                        <Form.Label className="me-2" style={labelStyle}>Text</Form.Label>
+                        <Form.Control type="color" name="textColor" value={tier.textColor} onChange={handleChange} style={{ marginLeft: '5px' }} size="sm" />
+                    </Form.Group>
+                </Col>
+            </Row>
+            <Form.Group className="d-flex align-items-center mb-05">
+                <Form.Label className="me-2" style={labelStyle}>Short Name</Form.Label>
+                <Form.Control type="text" name="shortName" value={tier.shortName} onChange={handleChange} size="sm" />
+            </Form.Group>
+            <Form.Group className="d-flex align-items-center mb-05">
+                <Form.Label className="me-2" style={labelStyle}>Values</Form.Label>
+                <ChipsContainer
+                    chips={tier.values}
+                    onChange={(newValues) => onTierChange({ ...tier, values: newValues })}
+                    suggestions={suggestions}
+                />
+            </Form.Group>
+        </DismissibleCard>
     );
 };
 
@@ -566,7 +563,7 @@ const TierWizard = ({ initialData, showData, suggestions = [], onComplete }) => 
                 <Form.Label className="me-2" style={{width: '150px'}}>Visible</Form.Label>
                 <Form.Check type="checkbox" checked={show} onChange={(e) => setShow(!show)} />
             </Form.Group>
-            <div className="d-flex flex-column" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+            <div className="d-flex flex-column" style={{ maxHeight: '400px', overflowY: 'auto', padding: '15px' }}>
                 {tiers.map((tier, index) => (
                     <TierForm
                         key={index}
@@ -584,6 +581,47 @@ const TierWizard = ({ initialData, showData, suggestions = [], onComplete }) => 
                 Submit
             </Button>
         </Form>
+    );
+};
+
+const DismissibleCard = ({ onClose, showLabel, defaultCollapsed = true, children }) => {
+    const [collapsed, setCollapsed] = useState(defaultCollapsed);
+
+    return (
+        <Card style={{ position: 'relative', overflow: 'visible', marginBottom: '20px' }}>
+            {/* Close button: removes the card */}
+            <CloseButton
+                onClick={() => confirm('Are you sure you want to remove this card?') && onClose()}
+                style={{
+                    position: 'absolute',
+                    top: '-10px',
+                    right: '-10px',
+                    zIndex: 2,
+                    backgroundColor: 'white',
+                    border: '1px solid #ccc',
+                    borderRadius: '50%',
+                    boxShadow: '0 0 3px rgba(0,0,0,0.2)',
+                }}
+            />
+            {/* Collapsible content */}
+            <Collapse in={!collapsed}>
+                <div>
+                    <Card.Body>{children}</Card.Body>
+                </div>
+            </Collapse>
+            {/* Toggle button to collapse/expand content */}
+            <Card.Footer size="sm">
+                <Button
+                    variant="link"
+                    size="sm"
+                    onClick={() => setCollapsed(!collapsed)}
+                    aria-expanded={!collapsed}
+                >
+                    {collapsed ? showLabel : 'Hide Details'}
+                </Button>
+            </Card.Footer>
+
+        </Card>
     );
 };
 
