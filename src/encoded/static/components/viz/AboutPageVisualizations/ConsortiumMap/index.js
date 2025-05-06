@@ -64,6 +64,12 @@ const ConsortiumTable = () => {
                     <td className="align-middle border-end">{pis}</td>
                     <td className="align-middle border-end">
                         {c?.table_institution_name ?? c['institution']}
+                        {c?.abbreviation ? (
+                            <span className="text-secondary text-nowrap">
+                                {' '}
+                                [{c.abbreviation}]
+                            </span>
+                        ) : null}
                     </td>
                     <td className="align-middle">
                         {c['project']} <br />
