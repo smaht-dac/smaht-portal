@@ -7,11 +7,19 @@ smaht-portal
 Change Log
 ----------
 
-0.169.0
+0.170.0
 =======
 `PR 420: SN Add spreadsheet dropdowns <https://github.com/smaht-dac/smaht-portal/pull/420>`_
 
 * Add script `commands/update_spreadsheet_dropdowns.py` which takes the GCC submission spreadsheet and adds data validation to columns linking to other items in the spreadsheet so that dropdowns display submitted_id values of valid items (warning only)
+
+
+0.169.0
+=======
+`PR 419: Update MWFR inputs calcprop <https://github.com/smaht-dac/smaht-portal/pull/419>`_
+
+* Only show MWFRs that are not deleted on the file
+* Adjust the QC metrics page JSON script to use the new tissue_types property on Fileset
 
 
 0.168.5
