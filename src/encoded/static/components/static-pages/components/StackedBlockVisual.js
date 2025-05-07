@@ -1013,7 +1013,6 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                                     const allValues = StackedBlockGroupedRow.mergeValues(columnGroups);
                                                     // not intersecting childRowsKeys and allValues
                                                     columnGroupChilColumnKeys = StackedBlockGroupedRow.differenceIgnoreCase(columnKeys, allValues);
-                                                    console.log('xxx columnGroupChilColumnKeys', columnGroupChilColumnKeys);
                                                 } else {
                                                     columnGroupChilColumnKeys = StackedBlockGroupedRow.intersectionIgnoreCase(columnKeys, values || []);
                                                 }
