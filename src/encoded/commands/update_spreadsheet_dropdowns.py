@@ -45,19 +45,19 @@ GCC_SUBMISSION_LINKS = {
     ],
     "CellCultureSample": [
         {
-            "linked_sheet": "SampleSources",
+            "linked_sheet": "(SampleSources)",
             "link_property": "sample_sources"
         },
     ],
     "CellSample": [
         {
-            "linked_sheet": "SampleSources",
+            "linked_sheet": "(SampleSources)",
             "link_property": "sample_sources"
         },
     ],
     "Analyte": [
         {
-            "linked_sheet": "Samples",
+            "linked_sheet": "(Samples)",
             "link_property": "samples"
         },
         {
@@ -155,8 +155,8 @@ Script expects a Google spreadsheet ID for a GCC submission spreadsheet as input
 The current spreadsheet is 1LEaS5QTwm86iZjjKt3tKRe_P31sE9-aJZ7tMINxw3ZM
 
 It creates two hidden spreadsheets: 
-    -   Samples, which gathers all submitted_ids across the TissueSample, CellCultureSample, and CellSample tabs
-    -   SampleSources, which gathers all submitted_ids across the Tissue, CellCulture, and CellCultureMixture tabs
+    -   (Samples), which gathers all submitted_ids across the TissueSample, CellCultureSample, and CellSample tabs
+    -   (SampleSources), which gathers all submitted_ids across the Tissue, CellCulture, and CellCultureMixture tabs
 
 These are used to create dropdowns for certain columns that are links to a parent type that normally doesn't have its own tab in the spreadsheet (e.g. analytes in the Analyte tab links to a Sample type)
 
@@ -204,13 +204,13 @@ def update_google_sheets(sheets_client: SheetsClient) -> None:
     sheets_client.get_sheet_id_dict()
     log.info("Creating hidden link sheets.")
     try:
-        add_hidden_sheet("Samples", sheets_client)
+        add_hidden_sheet("(Samples)", sheets_client)
     except Exception:
         log.info("Samples sheet already exists. Continuing with update.")
         pass
     populate_samples_sheet(sheets_client)
     try:
-        add_hidden_sheet("SampleSources", sheets_client)
+        add_hidden_sheet("(SampleSources)", sheets_client)
     except Exception:
         log.info("SampleSources sheet already exists. Continuing with update.")
         pass
@@ -237,7 +237,7 @@ def add_hidden_sheet(
 def populate_samples_sheet(sheets_client: SheetsClient):
     """Add columns and values to Samples spreadsheet."""
     requests = []
-    sheet_id = get_sheet_id("Samples", sheets_client)
+    sheet_id = get_sheet_id("(Samples)", sheets_client)
     column_names = ["TissueSample","CellCultureSample","CellSample"]
     requests.append(get_update_columns_request(sheet_id, get_values(column_names), 0, 0))
     for idx, name in enumerate(column_names):
@@ -252,9 +252,9 @@ def get_sheet_id(sheet_name: str, sheets_client: SheetsClient):
     sheet_id = 0
     if sheet_name in sheets_client.sheet_id_dict:
         sheet_id = sheets_client.sheet_id_dict[sheet_name]
-    elif sheet_name == "Samples":
+    elif sheet_name == "(Samples)":
         sheet_id = get_max_sheet_id(sheets_client)+1
-    elif sheet_name == "SampleSources":
+    elif sheet_name == "(SampleSources)":
         sheet_id = get_max_sheet_id(sheets_client)+1
     return sheet_id
 
@@ -271,7 +271,7 @@ def get_max_sheet_id(sheets_client: SheetsClient):
 def populate_sample_sources_sheet(sheets_client: SheetsClient):
     """Add columns and values to SampleSources spreadsheet."""
     requests = []
-    sheet_id = get_sheet_id("SampleSources", sheets_client)
+    sheet_id = get_sheet_id("(SampleSources)", sheets_client)
     column_names = ["Tissue","CellCulture","CellCultureMixture"]
     requests.append(get_update_columns_request(sheet_id, get_values(column_names), 0, 0))
     for idx, name in enumerate(column_names):
@@ -352,8 +352,8 @@ def add_dropdowns(sheets_client: SheetsClient):
 def get_data_validation_request(sheet_id: int, column_index: int, linked_sheet: str) -> Dict[str, Any]:
     """Get request to update columns with a data validation dropdown using range from linked sheet."""
     range_name = f"={linked_sheet}!A2:A1000"
-    if linked_sheet in ["Samples", "SampleSources"]:
-        range_name = f"={linked_sheet}!A2:C1000"
+    if linked_sheet in ["(Samples)", "(SampleSources)"]:
+        range_name = f"='{linked_sheet}'!A2:C1000"
     return {
         "setDataValidation": {
             "range": {
