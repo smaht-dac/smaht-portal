@@ -187,6 +187,8 @@ prepare-local-dev = "encoded.commands.prepare_template:prepare_local_dev_main"
 release-file = "encoded.commands.release_file:main"
 show-schema= "encoded.commands.show_schema:main"  # For dev/testing only
 write-submission-spreadsheets = "encoded.commands.write_submission_spreadsheets:main"
+update-spreadsheet-dropdowns = "encoded.commands.update_spreadsheet_dropdowns:main"
+
 
 [paste.app_factory]
 main = "encoded:main"

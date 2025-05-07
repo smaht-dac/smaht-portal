@@ -58,13 +58,13 @@ GCC_SUBMISSION_LINKS = {
     "CellCultureSample": [
         {
             "linked_sheet": "SampleSources",
-            "link_property": "cell_line"
+            "link_property": "sample_sources"
         },
     ],
     "CellSample": [
         {
             "linked_sheet": "SampleSources",
-            "link_property": "cell_line"
+            "link_property": "sample_sources"
         },
     ],
     "Analyte": [
@@ -159,20 +159,28 @@ GCC_SUBMISSION_LINKS = {
     ]
 }
 
+
 @dataclass(frozen=True)
 class SheetsClient(wss.SheetsClient):
     client: googleapiclient.discovery.Resource
     sheet_id: str
     link_dict: Dict[str, Any]
+    sheet_id_dict: Optional[Dict[str, Any]]
+
+    def get_sheet_id_dict(self) -> Dict[str, Any]:
+        """Build dictionary of sheetId indexes for individual sheets in the Google sheet."""
+        for sheet in self.get_worksheets():
+            sheet_name = get_worksheet_title(sheet)
+            self.sheet_id_dict[sheet_name]=get_worksheet_sheet_id(sheet)
 
     def get_link_column_indexes(self) -> List[Dict[str, Any]]:
         """Get the index of linked_columns from Google Sheets."""
         for sheet in self.get_worksheets():
-            sheet_name = sheet["properties"]["title"]
+            sheet_name = get_worksheet_title(sheet)
             if sheet_name in self.link_dict.keys():
                 column_names = self.get_sheet_column_names(sheet)
                 for linked_property in self.link_dict[sheet_name]:
-                    self.link_dict[sheet_name]['index'] = get_column_index(column_names, linked_property['link_property'])
+                    linked_property['index'] = get_column_index(column_names, linked_property['link_property'])
     
 
     def get_sheet_column_names(self, sheet) -> List[str]:
@@ -186,7 +194,7 @@ def get_google_sheet_client(sheet_id: str) -> SheetsClient:
     """Get Google Sheet to write/update."""
     credentials = wss.get_google_credentials()
     service = build("sheets", "v4", credentials=credentials)
-    return SheetsClient(service.spreadsheets(), sheet_id, GCC_SUBMISSION_LINKS)
+    return SheetsClient(client=service.spreadsheets(), sheet_id=sheet_id, link_dict=GCC_SUBMISSION_LINKS, sheet_id_dict={})
 
 
 def update_google_sheets(
@@ -199,57 +207,87 @@ def update_google_sheets(
     example: bool = False,
 ) -> None:
     """Update Google Sheets with the latest submission schemas."""
-    log.info("Updating Google sheets with tabs.")
+    sheets_client.get_sheet_id_dict()
+    log.info("Creating hidden link sheets.")
+    try:
+        add_hidden_sheet("Samples", sheets_client)
+    except Exception:
+        log.info("Samples sheet already exists. Continuing with update.")
+        pass
+    populate_samples_sheet(sheets_client)
+    try:
+        add_hidden_sheet("SampleSources", sheets_client)
+    except Exception:
+        log.info("SampleSources sheet already exists. Continuing with update.")
+        pass
+    populate_sample_sources_sheet(sheets_client)
     sheets_client.get_link_column_indexes()
-    import pdb; pdb.set_trace()
-    log.info("Creating hidden link shets.")
-    add_hidden_samples_sheet(sheets_client)
-    add_hidden_sample_sources_sheet(sheets_client)
-    import pdb; pdb.set_trace()
-    log.info("Writing properties to Google sheets.")
-    #write_values_to_sheets(sheets_client, spreadsheets)
+    log.info("Updating Google sheets with dropdowns.")
+    add_dropdowns(sheets_client)
     log.info("Google sheets updated.")
 
 
-def add_hidden_samples_sheet(
+def add_hidden_sheet(
+    sheet_name: str,
     sheets_client: SheetsClient
 ) -> None:
-    """Update or add spreadsheets to Google Sheets."""
-    sheet_name = "Samples"
-    sheet_id = 22
-    col = 3
-    column_names = ["TissueSample","CellCultureSample","CellSample"]
+    """Add hidden linking Samples spreadsheet to Google Sheets."""
+    sheet_id = get_sheet_id(sheet_name, sheets_client)
+    max_col = 15
     requests = []
-    requests.append(get_add_hidden_sheet_request(sheet_name, sheet_id, col))
-    requests.append(get_update_columns_request(sheet_id, column_names, 0, 0))
-    requests.append(get_update_columns_request(sheet_id, column_names, 0, 0))
-    for idx, name in enumerate(column_names):
-        for i in range(2,1001):
-            value = f"IF({name}!$A{i}='', '', {name}!$A{i})"
-            requests.append(get_update_columns_request(sheet_id, value, i, idx+1))
-    if requests:
-        sheets_client.submit_requests(requests)
-
-
-def add_hidden_sample_sources_sheet(
-    sheets_client: SheetsClient
-) -> None:
-    """Update or add spreadsheets to Google Sheets."""
-    requests = []
-    sheet_name = "SampleSources"
-    sheet_id = 23
-    col = 3
-    column_names = ["Tissue","CellCulture","CellCultureMixture"]
-    requests.append(get_add_hidden_sheet_request(sheet_name, sheet_id, col))
-    requests.append(get_update_columns_request(sheet_id, column_names, 0, 0))
-    for idx, name in enumerate(column_names):
-        for i in range(2,1001):
-            value = f"IF({name}!$A{i}='', '', {name}!$A{i})"
-            requests.append(get_update_columns_request(sheet_id, value, i, idx+1))
+    requests.append(get_add_sheet_request(sheet_name, sheet_id, max_col))
+    sheets_client.sheet_id_dict[sheet_name] = sheet_id
     sheets_client.submit_requests(requests)
 
 
-def get_add_hidden_sheet_request(sheet_name:str, sheet_id: int, col: int) -> Dict[str, Any]:
+def populate_samples_sheet(sheets_client: SheetsClient):
+    """Add columns and values to Samples spreadsheet."""
+    requests = []
+    sheet_id = get_sheet_id("Samples", sheets_client)
+    column_names = ["TissueSample","CellCultureSample","CellSample"]
+    requests.append(get_update_columns_request(sheet_id, get_values(column_names), 0, 0))
+    for idx, name in enumerate(column_names):
+        for i in range(2,1001):
+            value = [f'=IF({name}!$A{i}="", "", {name}!$A{i})']
+            requests.append(get_update_columns_request(sheet_id, get_values(value,func=True), row=i-1, col=idx))
+    sheets_client.submit_requests(requests)
+
+
+def get_sheet_id(sheet_name: str, sheets_client: SheetsClient):
+    """Get sheetId of sheet."""
+    sheet_id = 0
+    if sheet_name in sheets_client.sheet_id_dict:
+        sheet_id = sheets_client.sheet_id_dict[sheet_name]
+    elif sheet_name == "Samples":
+        sheet_id = get_max_sheet_id(sheets_client)+1
+    elif sheet_name == "SampleSources":
+        sheet_id = get_max_sheet_id(sheets_client)+1
+    return sheet_id
+
+
+def get_max_sheet_id(sheets_client: SheetsClient):
+    """Get maximum sheetId."""
+    max = 0
+    for key, value in sheets_client.sheet_id_dict.items():
+        if value > max:
+            max = value
+    return value
+
+
+def populate_sample_sources_sheet(sheets_client: SheetsClient):
+    """Add columns and values to SampleSources spreadsheet."""
+    requests = []
+    sheet_id = get_sheet_id("SampleSources", sheets_client)
+    column_names = ["Tissue","CellCulture","CellCultureMixture"]
+    requests.append(get_update_columns_request(sheet_id, get_values(column_names), 0, 0))
+    for idx, name in enumerate(column_names):
+        for i in range(2,1001):
+            value = [f'=IF({name}!$A{i}="", "", {name}!$A{i})']
+            requests.append(get_update_columns_request(sheet_id, get_values(value,func=True), row=i-1, col=idx))
+    sheets_client.submit_requests(requests)
+
+
+def get_add_sheet_request(sheet_name:str, sheet_id: int, max_col: int) -> Dict[str, Any]:
     """Get request to add a new sheet."""
     return {
         "addSheet": {
@@ -257,12 +295,31 @@ def get_add_hidden_sheet_request(sheet_name:str, sheet_id: int, col: int) -> Dic
                 "title": sheet_name,
                 "sheetId": sheet_id,
                 "gridProperties": {
-                    "columnCount": col
+                    "columnCount": max_col
                 },
-                "visible": "false"
+                "hidden": "true"
             },
         }
     }
+
+
+def get_values(values,func: Optional[bool]=False) -> List[Dict[str, Any]]:
+    """Get values for the spreadsheet."""
+    return [{"values": [get_cell_value(value,func) for value in values]}]
+
+
+def get_cell_value(value, func: Optional[bool]=False) -> Dict[str, Any]:
+    """Get the cell value."""
+    value_type="stringValue"
+    if func:
+        value_type="formulaValue"
+    return {
+        "userEnteredValue": {value_type: value},
+        "userEnteredFormat": {
+            "textFormat":  {"fontFamily": FONT, "fontSize": FONT_SIZE}
+        },
+    }
+
 
 def get_update_columns_request(sheet_id: int, values: List[str], row: int, col: int) -> Dict[str, Any]:
     """Get request to update cells with properties."""
@@ -280,33 +337,9 @@ def get_worksheet_title(sheet: Dict[str, Any]) -> int:
     return sheet["properties"]["title"]
 
 
-def get_data_validation_request(spreadsheet: wss.Spreadsheet, sheet_id: int) -> Dict[str, Any]:
-    """Get request to update columns with a data validation."""
-    column_index = 0
-    linked_sheet = None
-    range_name = f"{linked_sheet}!A2:A1000"
-    return {
-        "setDataValidation": {
-            "range": {
-            "sheetId": sheet_id,
-            "startRowIndex": 2,
-            "endRowIndex": 2,
-            "startColumnIndex": column_index,
-            "endColumnIndex": column_index+1
-            },
-            "rule": {
-            "condition": {
-                "type": 'ONE_OF_RANGE',
-                "values": [
-                    range_name
-                ],
-            },
-            "strict": False
-            }
-        }
-    }
-
-
+def get_worksheet_sheet_id(sheet: Dict[str, Any]) -> int:
+    """Get the worksheet sheetId."""
+    return sheet["properties"]["sheetId"]
 
 
 def get_column_index(columns: List[str], link_property:str ) -> int:
@@ -314,11 +347,47 @@ def get_column_index(columns: List[str], link_property:str ) -> int:
     return columns.index(link_property)
 
 
+def add_dropdowns(sheets_client: SheetsClient):
+    requests = []
+    for key, value in sheets_client.link_dict.items():
+        for linked_property in value:
+            requests.append(get_data_validation_request(sheets_client.sheet_id_dict[key], linked_property['index'], linked_property['linked_sheet']))
+    sheets_client.submit_requests(requests)
+
+
+def get_data_validation_request(sheet_id: int, column_index: int, linked_sheet: str) -> Dict[str, Any]:
+    """Get request to update columns with a data validation dropdown using range from linked sheet."""
+    range_name = f"={linked_sheet}!A2:A1000"
+    if linked_sheet in ["Samples", "SampleSources"]:
+        range_name = f"={linked_sheet}!A2:C1000"
+    return {
+        "setDataValidation": {
+            "range": {
+                "sheetId": sheet_id,
+                "startRowIndex": 1,
+                "endRowIndex": 1000,
+                "startColumnIndex": column_index,
+                "endColumnIndex": column_index+1
+            },
+            "rule": {
+                "condition": {
+                    "type": 'ONE_OF_RANGE',
+                    "values": [
+                        {
+                            "userEnteredValue": range_name
+                        }
+                    ],
+                },
+            "strict": False,
+            'showCustomUi': True
+            }
+        }
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description="Write submission spreadsheets")
     parser.add_argument("--env", help="Environment", default="data")
-    parser.add_argument("--gcc", help="GCC Submission items", action="store_true")
-    parser.add_argument("--all", help="All items", action="store_true")
     parser.add_argument(
         "--google",
         help=(
@@ -338,7 +407,7 @@ def main():
         log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
         spreadsheet_client = get_google_sheet_client(args.google)
         log.info("Writing GCC submission Google sheet")
-        update_google_sheets(spreadsheet_client, request_handler,gcc=True)
+        update_google_sheets(spreadsheet_client, request_handler)
     else:
         parser.error("No items specified to write or update Google spreadsheets for")
 
