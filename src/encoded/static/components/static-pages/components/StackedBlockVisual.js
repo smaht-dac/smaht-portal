@@ -934,6 +934,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         // const hasRowGroups = rowGroups && _.keys(rowGroups).length > 0; // currently not used
         const hasRowGroupsExtended = showRowGroupsExtended && rowGroupsExtended && _.keys(rowGroupsExtended).length > 0;
 
+        const columnGroupsKeys = hasColumnGroups ? [..._.keys(columnGroups), FALLBACK_GROUP_NAME] : null;
+
         let header = null;
         if (groupedDataIndices && depth === 0 && index === 0){
             const columnWidth = (blockWidth + (blockHorizontalSpacing * 2)) + blockHorizontalExtend;
@@ -1003,8 +1005,20 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 {hasColumnGroups &&
                                     <div className="d-flex header-group-text">
                                         {
-                                            _.keys(columnGroups).map(function (groupKey) {
-                                                const colSpan = StackedBlockGroupedRow.intersectionIgnoreCase(columnKeys, columnGroups[groupKey]?.values || []).length;
+                                            columnGroupsKeys.map(function (groupKey) {
+                                                const { values, backgroundColor, textColor } = columnGroups[groupKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
+
+                                                let columnGroupChilColumnKeys = [];
+                                                if (groupKey === FALLBACK_GROUP_NAME) { //special case for N/A
+                                                    const allValues = StackedBlockGroupedRow.mergeValues(columnGroups);
+                                                    // not intersecting childRowsKeys and allValues
+                                                    columnGroupChilColumnKeys = StackedBlockGroupedRow.differenceIgnoreCase(columnKeys, allValues);
+                                                    console.log('xxx columnGroupChilColumnKeys', columnGroupChilColumnKeys);
+                                                } else {
+                                                    columnGroupChilColumnKeys = StackedBlockGroupedRow.intersectionIgnoreCase(columnKeys, values || []);
+                                                }
+
+                                                const colSpan = columnGroupChilColumnKeys.length;
                                                 if (colSpan === 0) {
                                                     return null;
                                                 }
@@ -1013,8 +1027,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                                     width: groupColumnWidth,
                                                     minWidth: groupColumnWidth
                                                 };
-                                                groupHeaderItemStyle.backgroundColor = columnGroups[groupKey].backgroundColor;
-                                                groupHeaderItemStyle.color = columnGroups[groupKey].textColor;
+                                                groupHeaderItemStyle.backgroundColor = backgroundColor;
+                                                groupHeaderItemStyle.color = textColor;
                                                 const label = (groupKey.length > (colSpan * 4)) && columnGroups[groupKey].shortName ? columnGroups[groupKey].shortName : groupKey;
 
                                                 return (
