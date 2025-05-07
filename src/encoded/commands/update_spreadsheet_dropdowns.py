@@ -202,19 +202,77 @@ def update_google_sheets(
     log.info("Updating Google sheets with tabs.")
     sheets_client.get_link_column_indexes()
     import pdb; pdb.set_trace()
-    #update_or_add_spreadsheets(sheets_client, spreadsheets)
+    log.info("Creating hidden link shets.")
+    add_hidden_samples_sheet(sheets_client)
+    add_hidden_sample_sources_sheet(sheets_client)
+    import pdb; pdb.set_trace()
     log.info("Writing properties to Google sheets.")
     #write_values_to_sheets(sheets_client, spreadsheets)
     log.info("Google sheets updated.")
 
 
-def add_samples_sheet():
-    pass
+def add_hidden_samples_sheet(
+    sheets_client: SheetsClient
+) -> None:
+    """Update or add spreadsheets to Google Sheets."""
+    sheet_name = "Samples"
+    sheet_id = 22
+    col = 3
+    column_names = ["TissueSample","CellCultureSample","CellSample"]
+    requests = []
+    requests.append(get_add_hidden_sheet_request(sheet_name, sheet_id, col))
+    requests.append(get_update_columns_request(sheet_id, column_names, 0, 0))
+    requests.append(get_update_columns_request(sheet_id, column_names, 0, 0))
+    for idx, name in enumerate(column_names):
+        for i in range(2,1001):
+            value = f"IF({name}!$A{i}='', '', {name}!$A{i})"
+            requests.append(get_update_columns_request(sheet_id, value, i, idx+1))
+    if requests:
+        sheets_client.submit_requests(requests)
 
 
-def add_sample_sources_sheet():
-    pass
+def add_hidden_sample_sources_sheet(
+    sheets_client: SheetsClient
+) -> None:
+    """Update or add spreadsheets to Google Sheets."""
+    requests = []
+    sheet_name = "SampleSources"
+    sheet_id = 23
+    col = 3
+    column_names = ["Tissue","CellCulture","CellCultureMixture"]
+    requests.append(get_add_hidden_sheet_request(sheet_name, sheet_id, col))
+    requests.append(get_update_columns_request(sheet_id, column_names, 0, 0))
+    for idx, name in enumerate(column_names):
+        for i in range(2,1001):
+            value = f"IF({name}!$A{i}='', '', {name}!$A{i})"
+            requests.append(get_update_columns_request(sheet_id, value, i, idx+1))
+    sheets_client.submit_requests(requests)
 
+
+def get_add_hidden_sheet_request(sheet_name:str, sheet_id: int, col: int) -> Dict[str, Any]:
+    """Get request to add a new sheet."""
+    return {
+        "addSheet": {
+            "properties": {
+                "title": sheet_name,
+                "sheetId": sheet_id,
+                "gridProperties": {
+                    "columnCount": col
+                },
+                "visible": "false"
+            },
+        }
+    }
+
+def get_update_columns_request(sheet_id: int, values: List[str], row: int, col: int) -> Dict[str, Any]:
+    """Get request to update cells with properties."""
+    return {
+        "updateCells": {
+            "rows": values,
+            "fields": "*",
+            "start": {"sheetId": sheet_id, "rowIndex": row, "columnIndex": col},
+        }
+    }
 
 
 def get_worksheet_title(sheet: Dict[str, Any]) -> int:
