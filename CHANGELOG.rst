@@ -11,8 +11,8 @@ Change Log
 =======
 `PR 419: Update MWFR inputs calcprop <https://github.com/smaht-dac/smaht-portal/pull/419>`_
 
-* Adjust column widths
-* Update button colors
+* Only show MWFRs that are not deleted on the file
+* Adjust the QC metrics page JSON script to use the new tissue_types property on Fileset
 
 
 0.168.5
