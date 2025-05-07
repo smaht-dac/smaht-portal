@@ -684,7 +684,24 @@ class SubmissionStatusComponent extends React.PureComponent {
                                 className="text-start ss-fileset-column"
                                 colSpan={2}>
                                 <div className="d-flex flex-row flex-wrap justify-content-between">
-                                    <div className="flex-fill">File Set</div>
+                                    <div className="flex-fill">
+                                        File Set
+                                        <object.CopyWrapper
+                                            value={this.state.fileSets
+                                                .map((fs) => fs.accession)
+                                                .join(' -f ')}
+                                            className=""
+                                            data-tip={
+                                                'Copy file set accessions for use in magma'
+                                            }
+                                            wrapperElement="span"
+                                            iconProps={{
+                                                style: {
+                                                    fontSize: '0.875rem',
+                                                    marginLeft: 3,
+                                                },
+                                            }}></object.CopyWrapper>
+                                    </div>
                                     <div className="flex-fill">
                                         <input
                                             type="text"
