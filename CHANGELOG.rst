@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.169.0
+=======
+`PR 419: Update MWFR inputs calcprop <https://github.com/smaht-dac/smaht-portal/pull/419>`_
+
+* Adjust column widths
+* Update button colors
+
+
 0.168.5
 =======
 `PR 418: style: update QC tab <https://github.com/smaht-dac/smaht-portal/pull/418>`_
