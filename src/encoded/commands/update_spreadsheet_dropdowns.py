@@ -5,24 +5,12 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import googleapiclient
 import googleapiclient.discovery
-import openpyxl
 import structlog
-from dcicutils import ff_utils
-from dcicutils.creds_utils import SMaHTKeyManager
-from dcicutils.misc_utils import to_camel_case, to_snake_case
-from dcicutils import schema_utils
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from snovault.schema_views import SubmissionSchemaConstants
-
-from encoded.item_utils.constants import item as item_constants
-from encoded.item_utils.utils import RequestHandler
-from encoded.project.loadxl import ITEM_INDEX_ORDER
 
 from encoded.commands import write_submission_spreadsheets as wss
 
@@ -45,7 +33,7 @@ GCC_SUBMISSION_LINKS = {
     ],
     "TissueSample": [
         {
-            "linked_sheet": "Samples",
+            "linked_sheet": "Tissue",
             "link_property": "sample_sources"
         }
     ],
@@ -160,6 +148,21 @@ GCC_SUBMISSION_LINKS = {
 }
 
 
+"""
+See write_submission_spreadsheets.py for information on how to set up Google Sheets API.
+
+Script expects a Google spreadsheet ID for a GCC submission spreadsheet as input:
+The current spreadsheet is 1LEaS5QTwm86iZjjKt3tKRe_P31sE9-aJZ7tMINxw3ZM
+
+It creates two hidden spreadsheets: 
+    -   Samples, which gathers all submitted_ids across the TissueSample, CellCultureSample, and CellSample tabs
+    -   SampleSources, which gathers all submitted_ids across the Tissue, CellCulture, and CellCultureMixture tabs
+
+These are used to create dropdowns for certain columns that are links to a parent type that normally doesn't have its own tab in the spreadsheet (e.g. analytes in the Analyte tab links to a Sample type)
+
+Then it adds data validation for linked columns (specified in GCC_SUBMISSION_LINKS) so that a dropdown appears in the spreadsheet column listing submitted_id values present in the linked tab. These are warnings only ('strict': 'false'), as formatting multiple values can create errors even with valid submitted_ids and some values may be present in the portal but not in the spreadsheet.
+"""
+
 @dataclass(frozen=True)
 class SheetsClient(wss.SheetsClient):
     client: googleapiclient.discovery.Resource
@@ -181,7 +184,6 @@ class SheetsClient(wss.SheetsClient):
                 column_names = self.get_sheet_column_names(sheet)
                 for linked_property in self.link_dict[sheet_name]:
                     linked_property['index'] = get_column_index(column_names, linked_property['link_property'])
-    
 
     def get_sheet_column_names(self, sheet) -> List[str]:
         """Get request for column names in spreadsheet sheet."""
@@ -197,15 +199,7 @@ def get_google_sheet_client(sheet_id: str) -> SheetsClient:
     return SheetsClient(client=service.spreadsheets(), sheet_id=sheet_id, link_dict=GCC_SUBMISSION_LINKS, sheet_id_dict={})
 
 
-def update_google_sheets(
-    sheets_client: SheetsClient,
-    request_handler: RequestHandler,
-    gcc: bool = False,
-    tpc: bool = False,
-    items: List[str] = None,
-    eqm: Union[Dict[str, Any], None] = None,
-    example: bool = False,
-) -> None:
+def update_google_sheets(sheets_client: SheetsClient) -> None:
     """Update Google Sheets with the latest submission schemas."""
     sheets_client.get_sheet_id_dict()
     log.info("Creating hidden link sheets.")
@@ -394,22 +388,20 @@ def main():
             f"Google Sheets ID to write."
             f" Expects credentials in {GOOGLE_CREDENTIALS_PATH}."
             f" Token will be saved to {GOOGLE_TOKEN_PATH}."
-            f" For more information, see docstring within the script."
+            f" For more information, see docstring within the write_submission_spreadsheets script."
         ),
     ),
     args = parser.parse_args()
 
-    keys = SMaHTKeyManager().get_keydict_for_env(args.env)
     log.info(f"Found keys for {args.env}")
-    request_handler = RequestHandler(auth_key=keys)
     if args.google:
         log.info(f"Google Sheet ID: {args.google}")
         log.info(f"Google Token Path: {GOOGLE_TOKEN_PATH}")
         spreadsheet_client = get_google_sheet_client(args.google)
-        log.info("Writing GCC submission Google sheet")
-        update_google_sheets(spreadsheet_client, request_handler)
+        log.info("Updating GCC submission Google sheet with dropdowns")
+        update_google_sheets(spreadsheet_client)
     else:
-        parser.error("No items specified to write or update Google spreadsheets for")
+        parser.error("No google spreadsheet ID specified to update.")
 
 
 if __name__ == "__main__":
