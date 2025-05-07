@@ -22,7 +22,7 @@ SEARCH_QUERY_QC = (
     "&field=uuid"
     "&type=FileSet"
     "&limit=10000"
-    # "&limit=5&from=200"  # for testing
+    #"&limit=5&from=600"  # for testing
     #"&accession=SMAFSZNMU83N"
 )
 
@@ -176,6 +176,7 @@ QC_THRESHOLDS = {
         "picard_collect_alignment_summary_metrics:pf_mismatch_rate": 0.008,
     },
     f"{SEQ_ONT}_{WGS}": {
+        "verifybamid:freemix_alpha": 0.01,
         "samtools_stats_postprocessed:percentage_reads_mapped": 98.0,
         "picard_collect_alignment_summary_metrics:pf_mismatch_rate": 0.01,
     },
@@ -300,9 +301,10 @@ class FileStats:
                         raise Exception(
                             f"Could not determine study for tissue {tissue_external_id}"
                         )
-                    location = tissue_external_id_to_word(tissue_external_id)
+                    tissue_types = fileset.get("tissue_types", [])
+                    tissue_types_display = ", ".join(tissue_types)
                     sample_source_codes.append(f"{tissue_display_title}")
-                    sample_source_descriptions.append(f"{location}")
+                    sample_source_descriptions.append(f"{tissue_types_display}")
                 else:
                     if not code:
                         cell_line = sample_source.get("cell_line", {})
@@ -506,6 +508,10 @@ class FileStats:
                 ibs2 = float(line_[4])
                 relatedness = float(line_[2])
 
+                # Can happen if the file was deleted but is still in the somalier result
+                if (sample_a not in all_file_infos) or (sample_b not in all_file_infos):
+                    continue
+
                 # We need to bring this into this format so that it's compatible with the scatter plot (same format as QC results)
                 somalier_result = {
                     "sample_a": sample_a,
@@ -705,58 +711,6 @@ def get_file_content_from_portal_file(file_uuid):
 # The QC visualization assume that sample identity MWFRs are tagged as follows:
 def get_tag_for_sample_identity_check(donor_accession):
     return f"sample_identity_check_for_donor_{donor_accession}"
-
-
-def tissue_external_id_to_word(external_id):
-    code = external_id.split("-")[1]
-
-    mapping = {
-        "1A": "Liver",
-        "1D": "Lung",
-        "1G": "Colon",
-        "1Q": "Brain",
-        "1K": "Skin",
-        "3A": "Blood",
-        "3AC": "Skin",
-        "3AD": "Skin",
-        "3AE": "Skin",
-        "3AF": "Skin",
-        "3AG": "Skin",
-        "3AH": "Muscle",
-        "3AI": "Muscle",
-        "3AJ": "Brain",
-        "3AK": "Brain",
-        "3AL": "Brain",
-        "3AM": "Brain",
-        "3AN": "Brain",
-        "3AO": "Brain",
-        "3B": "Buccal Swap",
-        "3C": "Esophagus",
-        "3D": "Esophagus",
-        "3E": "Colon",
-        "3F": "Colon",
-        "3G": "Colon",
-        "3H": "Colon",
-        "3I": "Liver",
-        "3J": "Liver",
-        "3K": "Adrenal Gland",
-        "3L": "Adrenal Gland",
-        "3M": "Adrenal Gland",
-        "3N": "Adrenal Gland",
-        "3O": "Aorta",
-        "3P": "Aorta",
-        "3R": "Lung",
-        "3Q": "Lung",
-        "3S": "Heart",
-        "3T": "Heart",
-        "3U": "Testis",
-        "3V": "Testis",
-        "3W": "Testis",
-        "3X": "Testis",
-    }
-    if code not in mapping:
-        raise Exception(f"Unknown tissue code {external_id}")
-    return mapping[code]
 
 
 def get_latest_somalier_run_for_donor(donor_accession):
