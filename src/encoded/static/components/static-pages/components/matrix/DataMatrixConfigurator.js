@@ -117,8 +117,8 @@ const DataMatrixConfigurator = ({
                                     {/* Column Dimension */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Column Agg Field</Form.Label>
-                                        <Form.Control as="select" value={columnAggField || ''} onChange={(e) => setColumnAggField(e.target.value)} size="sm">
-                                            <option key={0} value={null}>{'-- Select --'}</option>
+                                        <Form.Control as="select" value={columnAggField || ''} onChange={(e) => setColumnAggField(e.target.value === '' ? null : e.target.value)} size="sm">
+                                            <option key={0} value="">{'-- Select --'}</option>
                                             {columnDimensions.map((dim, idx) => (
                                                 <option key={idx + 1} value={dim}>{DataMatrixConfigurator.getNestedFieldName(dim)}</option>
                                             ))}
@@ -128,8 +128,8 @@ const DataMatrixConfigurator = ({
                                     {/* Row Dimension 1 */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Row Agg Field 1</Form.Label>
-                                        <Form.Control as="select" value={rowAggField1 || ''} onChange={(e) => setRowAggField1(e.target.value)} size="sm">
-                                            <option key={0} value={null}>{'-- Select --'}</option>
+                                        <Form.Control as="select" value={rowAggField1 || ''} onChange={(e) => setRowAggField1(e.target.value === '' ? null : e.target.value)} size="sm">
+                                            <option key={0} value="">{'-- Select --'}</option>
                                             {rowDimensions.map((dim, idx) => (
                                                 <option key={idx + 1} value={dim}>{DataMatrixConfigurator.getNestedFieldName(dim)}</option>
                                             ))}
@@ -139,8 +139,8 @@ const DataMatrixConfigurator = ({
                                     {/* Row Dimension 2 */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Row Agg Field 2</Form.Label>
-                                        <Form.Control as="select" value={rowAggField2 || ''} onChange={(e) => setRowAggField2(e.target.value)} size="sm">
-                                            <option key={0} value={null}>{'-- Select --'}</option>
+                                        <Form.Control as="select" value={rowAggField2 || ''} onChange={(e) => setRowAggField2(e.target.value === '' ? null : e.target.value)} size="sm">
+                                            <option key={0} value="">{'-- Select --'}</option>
                                             {rowDimensions.map((dim, idx) => (
                                                 <option key={idx + 1} value={dim}>{DataMatrixConfigurator.getNestedFieldName(dim)}</option>
                                             ))}
@@ -199,7 +199,7 @@ const DataMatrixConfigurator = ({
                                         onComplete={(data, show) => { setColumnGroupsExtended(data); setShowColumnGroupsExtended(show); }}
                                         showData={showColumnGroupsExtended} />
                                 </Tab>
-                                <Tab eventKey="rowGroupsExtended" title="Row Groups">
+                                <Tab eventKey="rowGroupsExtended" title={`Row Groups (${Object.keys(rowGroupsExtended).length})`}>
                                     <TierWizard
                                         initialData={rowGroupsExtended}
                                         onComplete={(data, show) => { setRowGroupsExtended(data); setShowRowGroupsExtended(show); }}
@@ -208,7 +208,7 @@ const DataMatrixConfigurator = ({
                             </Tabs>
 
                             {/* Apply Button */}
-                            <Button variant="link" onClick={handleApply}>
+                            <Button variant="primary" onClick={handleApply} className="mt-2">
                                 Apply
                             </Button>
                         </div>
@@ -517,10 +517,12 @@ const TierWizard = ({ initialData, showData, suggestions = [], onComplete }) => 
     const [show, setShow] = useState(showData);
 
     const handleTierChange = (index, updatedTier) => {
-        const newTiers = tiers.map((tier, idx) =>
+        const updatedTiers = tiers.map((tier, idx) =>
             idx === index ? updatedTier : tier
         );
-        setTiers(newTiers);
+        setTiers(updatedTiers);
+
+        notifyChange(updatedTiers);
     };
 
     const addTier = () => {
@@ -532,18 +534,31 @@ const TierWizard = ({ initialData, showData, suggestions = [], onComplete }) => 
             shortName: null,
             values: [],
         };
-        setTiers([...tiers, newTier]);
+        const updatedTiers = [...tiers, newTier];
+        setTiers(updatedTiers);
+
+        notifyChange(updatedTiers);
     };
 
     const removeTier = (index) => {
-        const newTiers = tiers.filter((_, idx) => idx !== index);
-        setTiers(newTiers);
+        const updatedTiers = tiers.filter((_, idx) => idx !== index);
+        setTiers(updatedTiers);
+
+        notifyChange(updatedTiers);
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    const toggleShow = () => {
+        const newShow = !show;
+        setShow(newShow);
+        notifyChange(null, newShow);
+    };
 
-        const wizardData = tiers.reduce((acc, tier) => {
+    const notifyChange = (submittedTiers, submittedShow) => {
+        const notifyShow = typeof submittedShow !== 'undefined' ? submittedShow : show;
+        const notifyTiers = submittedTiers || tiers;
+        console.log('Tiers:', notifyTiers);
+
+        const wizardData = notifyTiers.reduce((acc, tier) => {
             acc[tier.name] = {
                 values: tier.values,
                 backgroundColor: tier.backgroundColor,
@@ -552,18 +567,21 @@ const TierWizard = ({ initialData, showData, suggestions = [], onComplete }) => 
             };
             return acc;
         }, {});
-        console.log(wizardData, show);
+        console.log(wizardData, notifyShow);
         // Call the onComplete function with the wizard data
-        onComplete(wizardData, show);
+        onComplete(wizardData, notifyShow);
     };
 
     return (
-        <Form onSubmit={handleSubmit}>
+        <React.Fragment>
             <Form.Group className="d-flex align-items-center mb-05">
-                <Form.Label className="me-2" style={{width: '150px'}}>Visible</Form.Label>
-                <Form.Check type="checkbox" checked={show} onChange={(e) => setShow(!show)} />
+                <Form.Label className="me-2" style={{ width: '150px' }}>Enable Grouping</Form.Label>
+                <Form.Check type="checkbox" checked={show} onChange={(e) => toggleShow()} />
             </Form.Group>
-            <div className="d-flex flex-column" style={{ maxHeight: '400px', overflowY: 'auto', padding: '15px' }}>
+            <Button variant="primary" onClick={addTier} size="sm" className="float-end mb-2">
+                Add Tier
+            </Button>
+            <div className="d-flex flex-column" style={{ clear: 'both', maxHeight: '600px', overflowY: 'auto', paddingRight: '15px', paddingTop: '15px' }}>
                 {tiers.map((tier, index) => (
                     <TierForm
                         key={index}
@@ -574,13 +592,7 @@ const TierWizard = ({ initialData, showData, suggestions = [], onComplete }) => 
                     />
                 ))}
             </div>
-            <Button variant="primary" onClick={addTier}>
-                Add Tier
-            </Button>
-            <Button variant="success" className="ms-2" onClick={handleSubmit}>
-                Submit
-            </Button>
-        </Form>
+        </React.Fragment>
     );
 };
 

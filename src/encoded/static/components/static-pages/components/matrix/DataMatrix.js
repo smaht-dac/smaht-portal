@@ -284,29 +284,32 @@ export default class DataMatrix extends React.PureComponent {
     }
 
     onApplyConfiguration({
-        searchUrl, column, row1, row2,
+        searchUrl, columnAggField, rowAggField1, rowAggField2,
         columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
         summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep }) {
         console.log(
-            searchUrl, column, row1, row2,
+            searchUrl, columnAggField, rowAggField1, rowAggField2,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
             summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep);
 
         const newColorRanges = this.getColorRanges({ colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep });
+        const invertedFieldChangeMap = _.invert(this.state.fieldChangeMap);
+        const newColumnGrouping = columnAggField ? invertedFieldChangeMap[columnAggField] : null;
+        const newGroupingProperties = rowAggField2 ? [invertedFieldChangeMap[rowAggField1], invertedFieldChangeMap[rowAggField2]] : [invertedFieldChangeMap[rowAggField1]];
 
         this.setState({
             ...this.state,
             query: {
                 ...this.state.query,
                 url: searchUrl,
-                //agg_fields: row2 ? [column, row1, row2] : [column, row1]
+                row_agg_fields: rowAggField2 ? [rowAggField1, rowAggField2] : [rowAggField1]
             },
             // fieldChangeMap: {
             //     [DataMatrixConfigurator.getNestedFieldName(column)]: column,
             //     [DataMatrixConfigurator.getNestedFieldName(row1)]: row1
             // },
-            // columnGrouping: DataMatrixConfigurator.getNestedFieldName(column),
-            // groupingProperties: [DataMatrixConfigurator.getNestedFieldName(row1)],
+            columnGrouping: newColumnGrouping,
+            groupingProperties: newGroupingProperties,
             columnGroups: columnGroups,
             showColumnGroups: showColumnGroups,
             columnGroupsExtended: columnGroupsExtended,
