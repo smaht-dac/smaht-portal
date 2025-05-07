@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.168.5
+=======
+`PR 418: style: update QC tab <https://github.com/smaht-dac/smaht-portal/pull/418>`_
+
+* Adjust column widths
+* Update button colors
+
+
 0.168.4
 =======
 `PR 415 SN Fix validator error message <https://github.com/smaht-dac/smaht-portal/pull/415>`

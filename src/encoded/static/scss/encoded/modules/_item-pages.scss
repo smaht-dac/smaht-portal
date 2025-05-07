@@ -1718,6 +1718,10 @@ File Overview Styles
 						&-table {
 							thead {
 								border-bottom: 1px solid #9BA5B7;
+								th {
+									width: 50%;
+									min-width: 200px;
+								}
 							}
 							tr {
 								background-color: #f8f8f8;
@@ -1740,7 +1744,9 @@ File Overview Styles
 								font-weight: 500;
 								width: max-content;
 
-								span {
+								i {
+
+									font-style: normal;
 									font-weight: 400;
 								}
 							}
