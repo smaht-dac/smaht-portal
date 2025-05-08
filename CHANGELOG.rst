@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.170.0
+=======
+`PR 413 SN Generic Config item <https://github.com/smaht-dac/smaht-portal/pull/413>`
+
+* Add new item, GenericConfig, that can be used to hold JSON objects
+
+
 0.169.0
 =======
 `PR 419: Update MWFR inputs calcprop <https://github.com/smaht-dac/smaht-portal/pull/419>`_
