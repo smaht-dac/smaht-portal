@@ -1,9 +1,9 @@
 # SMaHT-Portal (Production) Dockerfile
 
-# Bullseye with Python 3.11.5
-# 2023-09-28: Update docker image to a Python 3.11 version;
+# Bullseye with Python 3.11.12
+# 2025-05-08: Update docker image to a newer Python 3.11 version;
 # this was previously: FROM python:3.9.16-slim-buster
-FROM python:3.11.5-slim-bullseye
+FROM python:3.11.12-slim-bullseye
 
 MAINTAINER William Ronchetti "william_ronchetti@hms.harvard.edu"
 
@@ -38,7 +38,7 @@ RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends vim emacs net-tools ca-certificates build-essential \
     gcc zlib1g-dev postgresql-client libpq-dev git make curl libmagic-dev && \
     pip install --upgrade pip && \
-    pip install poetry==1.4.2 && \
+    pip install poetry==1.8.5 && \
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash && \
     . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION} && \
     nvm use v${NODE_VERSION} && \
@@ -64,7 +64,6 @@ WORKDIR /home/nginx/smaht-portal
 # Do the back-end dependency install
 COPY pyproject.toml .
 COPY poetry.lock .
-RUN pip install setuptools==71.1.0
 RUN poetry install --no-root --no-dev
 
 # Do the front-end dependency install
