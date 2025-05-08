@@ -50,7 +50,7 @@ configure:  # does any pre-requisite installs
 	@#pip install poetry==1.1.9  # this version is known to work. -kmp 11-Mar-2021
 	# Pin to version 1.1.15 for now to avoid this error:
 	#   Because encoded depends on wheel (>=0.29.0) which doesn't match any versions, version solving failed.
-	pip install poetry==1.4.2
+	pip install poetry==1.8.5
 	pip install setuptools==71.1.0
 	poetry config virtualenvs.create false --local # do not create a virtualenv - the user should have already done this -wrr 20-Sept-2021
 
