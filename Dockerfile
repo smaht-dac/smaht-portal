@@ -3,7 +3,7 @@
 # Bullseye with Python 3.11.12
 # 2025-05-08: Update docker image to a newer Python 3.11 version;
 # this was previously: FROM python:3.9.16-slim-buster
-FROM python:3.11.12-slim-bullseye
+FROM python:3.12.10-slim-bullseye
 
 MAINTAINER William Ronchetti "william_ronchetti@hms.harvard.edu"
 
