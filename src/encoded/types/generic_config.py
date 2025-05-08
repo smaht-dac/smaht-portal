@@ -1,10 +1,10 @@
-from snovault import collection, load_schema
+from snovault import abstract_collection, load_schema
 
 from .acl import ONLY_ADMIN_VIEW_ACL
 from .base import Item
 
 
-@collection(
+@abstract_collection(
     name='generic-configs',
     unique_key='generic_config:identifier',
     acl=ONLY_ADMIN_VIEW_ACL,

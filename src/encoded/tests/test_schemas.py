@@ -114,6 +114,7 @@ def test_load_schema(schema, master_mixins, registry, testapp):
 
     abstract = [
         'file.json',
+        'generic_config.json',
         'user_content.json',
         'preparation.json',
         'pathology_report.json',
