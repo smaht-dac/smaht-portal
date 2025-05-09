@@ -24,9 +24,6 @@
             "$ref": "mixins.json#/attribution"
         },
         {
-            "$ref": "mixins.json#/code"
-        },
-        {
             "$ref": "mixins.json#/description"
         },
         {
@@ -66,6 +63,13 @@
         },
         "version": {
             "description": "Version of the assembly"
+        },
+        "code": {
+            "title": "Code",
+            "description": "Code used in file naming scheme",
+            "type": "string",
+            "permission": "restricted_fields",
+            "pattern": "^[A-Za-z0-9_]{2,}$"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_DONOR-SPECIFIC-ASSEMBLY_[A-Z0-9-_.]{4,}$"
