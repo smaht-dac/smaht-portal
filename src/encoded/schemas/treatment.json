@@ -5,7 +5,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "agent",
+        "agents",
         "submission_centers",
         "submitted_id"
     ],
@@ -21,6 +21,9 @@
         },
         {
             "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
         },
         {
             "$ref": "mixins.json#/modified"
@@ -49,15 +52,20 @@
             "accessionType": "TX"
         },
         "schema_version": {
-            "default": "1"
+            "default": "2"
         },
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_TREATMENT_[A-Z0-9-_.]{4,}$"
         },
-        "agent": {
-            "title": "Agent",
-            "description": "Agent in the treatment",
-            "type": "string"
+        "agents": {
+            "title": "Agents",
+            "description": "Agents applied in the treatment",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 1,
+            "items": {
+                "type": "string"
+            }
         },
         "concentration": {
             "title": "Concentration",
@@ -83,6 +91,10 @@
                 "units",
                 "units/mL"
             ]
+        },
+        "description": {
+            "description": "Description of the treatment",
+            "type": "string"
         },
         "duration": {
             "title": "Duration",
