@@ -35,6 +35,20 @@ GCC_SUBMISSION_LINKS = {
         {
             "linked_sheet": "Tissue",
             "link_property": "sample_sources"
+        },
+        {
+            "linked_sheet": "TissueSample",
+            "link_property": "parent_samples"
+        }
+    ],
+    "CellLine": [
+        {
+            "linked_sheet": "CellLine",
+            "link_property": "parent_cell_lines"
+        },
+        {
+            "linked_sheet": "TissueSample",
+            "link_property": "tissue_samples"
         }
     ],
     "CellCulture": [
@@ -42,18 +56,30 @@ GCC_SUBMISSION_LINKS = {
             "linked_sheet": "CellLine",
             "link_property": "cell_line"
         },
+        {
+            "linked_sheet": "TissueSample",
+            "link_property": "tissue_samples"
+        }
     ],
     "CellCultureSample": [
         {
             "linked_sheet": "(SampleSources)",
             "link_property": "sample_sources"
         },
+        {
+            "linked_sheet": "(Samples)",
+            "link_property": "parent_samples"
+        }
     ],
     "CellSample": [
         {
             "linked_sheet": "(SampleSources)",
             "link_property": "sample_sources"
         },
+        {
+            "linked_sheet": "(Samples)",
+            "link_property": "parent_samples"
+        }
     ],
     "Analyte": [
         {
@@ -95,6 +121,12 @@ GCC_SUBMISSION_LINKS = {
             "link_property": "treatments"
         },
     ],
+    "Sequencing": [
+        {
+            "linked_sheet": "PreparationKit",
+            "link_property": "preparation_kits"
+        }
+    ],
     "FileSet": [
         {
             "linked_sheet": "Library",
@@ -103,6 +135,10 @@ GCC_SUBMISSION_LINKS = {
         {
             "linked_sheet": "Sequencing",
             "link_property": "sequencing"
+        },
+        {
+            "linked_sheet": "CellSample",
+            "link_property": "samples"
         },
     ],
     "UnalignedReads": [
