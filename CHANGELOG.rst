@@ -7,11 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.170.0
+0.171.0
 =======
 `PR 420: SN Add spreadsheet dropdowns <https://github.com/smaht-dac/smaht-portal/pull/420>`_
 
 * Add script `commands/update_spreadsheet_dropdowns.py` which takes the GCC submission spreadsheet and adds data validation to columns linking to other items in the spreadsheet so that dropdowns display submitted_id values of valid items (warning only)
+
+
+0.170.0
+=======
+`PR 413 SN Generic Config item <https://github.com/smaht-dac/smaht-portal/pull/413>`
+
+* Add new item, GenericConfig, that can be used to hold JSON objects
 
 
 0.169.0
