@@ -8,8 +8,8 @@ import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/ut
 
 const DataMatrixConfigurator = ({
     searchUrl: propSearchUrl,
-    columnDimensions,
-    rowDimensions,
+    dimensions,
+    fieldToNameMap,
     initialColumnAggField,
     initialRowAggField1,
     initialRowAggField2,
@@ -62,6 +62,61 @@ const DataMatrixConfigurator = ({
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
+
+    const humanize = function (input) {
+        const irregularPlurals = {
+            'analysis': 'Analyses',
+            'category': 'Categories',
+            // add more irregulars here as needed
+        };
+
+        // Replace hyphens and underscores with spaces
+        const phrase = input.replace(/[_-]/g, ' ').toLowerCase();
+
+        // Check if the full phrase matches an irregular plural
+        if (irregularPlurals[phrase]) {
+            return irregularPlurals[phrase];
+        }
+
+        // Capitalize each word
+        const words = phrase.split(' ').map((word) =>
+            word.charAt(0).toUpperCase() + word.slice(1)
+        );
+
+        // Naively pluralize the last word
+        const lastWord = words[words.length - 1];
+        let pluralLast;
+
+        if (lastWord.endsWith('y') && !/[aeiou]y$/i.test(lastWord)) {
+            pluralLast = lastWord.slice(0, -1) + 'ies';
+        } else if (lastWord.endsWith('s') || lastWord.endsWith('x') || lastWord.endsWith('z') || lastWord.endsWith('ch') || lastWord.endsWith('sh')) {
+            pluralLast = lastWord + 'es';
+        } else {
+            pluralLast = lastWord + 's';
+        }
+
+        words[words.length - 1] = pluralLast;
+
+        return words.join(' ');
+    };
+
+
+    const handleColumnChange = function (newValues) {
+        setColumnAggField(newValues);
+        if (newValues.length > 0) {
+            setXAxisLabel(humanize(fieldToNameMap[newValues[0]] || DataMatrixConfigurator.getNestedFieldName(newValues[0])));
+        } else {
+            setXAxisLabel('X');
+        }
+    };
+    const handleRow1Change = function (newValues) {
+        setRowAggField1(newValues);
+        if (newValues.length > 0) {
+            setYAxisLabel(humanize(fieldToNameMap[newValues[0]] || DataMatrixConfigurator.getNestedFieldName(newValues[0])));
+        } else {
+            setYAxisLabel('Y');
+        }
+    };
 
     const handleApply = () => {
         // Also check if any errors remain
@@ -117,34 +172,37 @@ const DataMatrixConfigurator = ({
                                     {/* Column Dimension */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Column Agg Field</Form.Label>
-                                        <Form.Control as="select" value={columnAggField || ''} onChange={(e) => setColumnAggField(e.target.value === '' ? null : e.target.value)} size="sm">
-                                            <option key={0} value="">{'-- Select --'}</option>
-                                            {columnDimensions.map((dim, idx) => (
-                                                <option key={idx + 1} value={dim}>{DataMatrixConfigurator.getNestedFieldName(dim)}</option>
-                                            ))}
-                                        </Form.Control>
+                                        <ChipsContainer
+                                            chips={columnAggField}
+                                            onChange={(newValues) => handleColumnChange(newValues)}
+                                            suggestions={dimensions}
+                                        />
                                     </Form.Group>
 
                                     {/* Row Dimension 1 */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Row Agg Field 1</Form.Label>
-                                        <Form.Control as="select" value={rowAggField1 || ''} onChange={(e) => setRowAggField1(e.target.value === '' ? null : e.target.value)} size="sm">
-                                            <option key={0} value="">{'-- Select --'}</option>
-                                            {rowDimensions.map((dim, idx) => (
-                                                <option key={idx + 1} value={dim}>{DataMatrixConfigurator.getNestedFieldName(dim)}</option>
-                                            ))}
-                                        </Form.Control>
+                                        <ChipsContainer
+                                            chips={rowAggField1}
+                                            onChange={(newValues) => handleRow1Change(newValues)}
+                                            suggestions={dimensions}
+                                        />
                                     </Form.Group>
 
                                     {/* Row Dimension 2 */}
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Row Agg Field 2</Form.Label>
-                                        <Form.Control as="select" value={rowAggField2 || ''} onChange={(e) => setRowAggField2(e.target.value === '' ? null : e.target.value)} size="sm">
-                                            <option key={0} value="">{'-- Select --'}</option>
-                                            {rowDimensions.map((dim, idx) => (
-                                                <option key={idx + 1} value={dim}>{DataMatrixConfigurator.getNestedFieldName(dim)}</option>
-                                            ))}
-                                        </Form.Control>
+                                        <ChipsContainer
+                                            chips={rowAggField2}
+                                            onChange={(newValues) => setRowAggField2(newValues)}
+                                            suggestions={dimensions}
+                                        />
+                                    </Form.Group>
+
+                                    {/* Show Axis Labels */}
+                                    <Form.Group className="d-flex align-items-center mb-05">
+                                        <Form.Label className="me-2" style={labelStyle}>Show Axis Labels</Form.Label>
+                                        <Form.Check type="checkbox" checked={showAxisLabels} onChange={(e) => setShowAxisLabels(!showAxisLabels)} />
                                     </Form.Group>
 
                                     {/* X Axis Label */}
@@ -158,12 +216,8 @@ const DataMatrixConfigurator = ({
                                         <Form.Label className="me-2" style={labelStyle}>Y-Axis Label</Form.Label>
                                         <Form.Control type="text" value={yAxisLabel} onChange={(e) => setYAxisLabel(e.target.value)} size="sm" />
                                     </Form.Group>
-
-                                    {/* Show Axis Labels */}
-                                    <Form.Group className="d-flex align-items-center mb-05">
-                                        <Form.Label className="me-2" style={labelStyle}>Show Axis Labels</Form.Label>
-                                        <Form.Check type="checkbox" checked={showAxisLabels} onChange={(e) => setShowAxisLabels(!showAxisLabels)} />
-                                    </Form.Group>
+                                </Tab>
+                                <Tab eventKey="style" title={"Style"}>
 
                                     {/* Summary Background Color */}
                                     <Form.Group className="d-flex align-items-center mb-05">
@@ -312,19 +366,20 @@ const updateColorRanges = function (colorRanges, newBaseColor, darkestShift = -1
     return clonedColorRanges;
 };
 
-const Chip = ({ label, onDelete, onDragStart, onDragOver, onDrop }) => (
+const Chip = ({ label, onDelete, onDragStart, onDragOver, onDrop, onClick, variant = 'secondary' }) => (
     <div
-        draggable
+        draggable = {onDragStart ? true : false}
         onDragStart={onDragStart}
         onDragOver={onDragOver}
         onDrop={onDrop}
+        onClick={onClick}
         style={{ display: 'inline-block' }}
     >
         <Badge
-            bg="secondary"
+            bg={variant}
             pill
             className="d-inline-flex align-items-center me-1 mb-1"
-            style={{ padding: '0.5em 0.75em', cursor: 'move' }}
+            style={{ padding: '0.5em 0.75em', cursor: onDragStart ? 'move' : 'pointer' }}
         >
             {label}
             {onDelete && (
@@ -343,6 +398,8 @@ const ChipsContainer = ({ chips: propChips, onChange, suggestions = [] }) => {
     const [chips, setChips] = useState(propChips || []);
     const [chipInput, setChipInput] = useState('');
     const [filteredSuggestions, setFilteredSuggestions] = useState([]);
+    const [showChipInput, setShowChipInput] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' || e.key === 'Tab') {
@@ -422,17 +479,27 @@ const ChipsContainer = ({ chips: propChips, onChange, suggestions = [] }) => {
                         onDrop={(e) => handleDrop(e, index)}
                     />
                 ))}
-                <Form.Control
-                    type="text"
-                    value={chipInput}
-                    onChange={handleChange}
-                    onKeyDown={handleKeyDown}
-                    onFocus={() => setFilteredSuggestions(suggestions)}
-                    placeholder="Type and add..."
-                    style={{ minWidth: '150px' }}
+                {!showChipInput && <Chip
+                    key={'add-chip'}
+                    label={'+ Add Value'}
+                    variant={'danger'}
+                    onClick={() => setShowChipInput(true)}
                 />
+                }
+                {showChipInput &&
+                    <Form.Control
+                        type="text"
+                        value={chipInput}
+                        onChange={handleChange}
+                        onKeyDown={handleKeyDown}
+                        onFocus={() => { setShowSuggestions(true); setFilteredSuggestions(suggestions); }}
+                        onBlur={() => setTimeout(function () { setShowSuggestions(false) }, 200)}
+                        placeholder="Type and add..."
+                        style={{ minWidth: '150px' }}
+                    />
+                }
             </div>
-            {filteredSuggestions.length > 0 && (
+            {showSuggestions && filteredSuggestions.length > 0 && (
                 <div
                     className="suggestions-list"
                     style={{
@@ -456,7 +523,7 @@ const ChipsContainer = ({ chips: propChips, onChange, suggestions = [] }) => {
     );
 };
 
-const TierForm = ({ tier, onTierChange, onRemove, suggestions }) => {
+const TierForm = ({ tier, onTierChange, onRemove, suggestions, defaultCollapsed=true }) => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         onTierChange({ ...tier, [name]: value });
@@ -464,7 +531,7 @@ const TierForm = ({ tier, onTierChange, onRemove, suggestions }) => {
     const labelStyle = { minWidth: '150px', width: '150px' };
 
     return (
-        <DismissibleCard onClose={onRemove} showLabel={tier.name}>
+        <DismissibleCard onClose={onRemove} showLabel={tier.name} defaultCollapsed={defaultCollapsed}>
             <Form.Group className="d-flex align-items-center mb-05">
                 <Form.Label className="me-2" style={labelStyle}>Name</Form.Label>
                 <Form.Control type="text" name="name" value={tier.name} onChange={handleChange} />
@@ -533,6 +600,7 @@ const TierWizard = ({ initialData, showData, suggestions = [], onComplete }) => 
             textColor: '#000000',
             shortName: null,
             values: [],
+            defaultCollapsed: false
         };
         const updatedTiers = [...tiers, newTier];
         setTiers(updatedTiers);
@@ -589,6 +657,7 @@ const TierWizard = ({ initialData, showData, suggestions = [], onComplete }) => 
                         onTierChange={(updatedTier) => handleTierChange(index, updatedTier)}
                         onRemove={() => removeTier(index)}
                         suggestions={suggestions}
+                        defaultCollapsed={tier.defaultCollapsed}
                     />
                 ))}
             </div>
