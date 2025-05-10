@@ -10,7 +10,13 @@
         fieldChangeMap={{
             "assay": "file_sets.libraries.assay.display_title",
             "donor": "donors.display_title",
-            "tissue": "sample_summary.tissues"
+            "tissue": "sample_summary.tissues",
+            "platform": "sequencing.sequencer.platform",
+            "data_type": "data_type",
+            "file_format": "file_format.display_title",
+            "data_category": "data_category",
+            "software": "software.display_title",
+            "study": "sample_summary.studies",
         }}
         valueChangeMap={{
             "assay": {
@@ -131,6 +137,18 @@
         headerFor={null}
         colorRangeBaseColor="#47adff"
         summaryBackgroundColor="#5d5fed"
+        allowedFields={[
+            "donors.display_title",
+            "sequencing.sequencer.display_title",
+            "file_sets.libraries.assay.display_title",
+            "sample_summary.tissues",
+            "data_type",
+            "file_format.display_title",
+            "data_category",
+            "software.display_title",
+            "sequencing.sequencer.platform",
+            "sample_summary.studies",
+        ]}
         xAxisLabel="Assays"
         yAxisLabel="Donors"
         showAxisLabels={false}
