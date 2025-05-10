@@ -75,7 +75,7 @@ RUN npm ci --no-fund --no-progress --no-optional --no-audit --python=/opt/venv/b
 COPY . .
 
 # Build remaining back-end
-RUN poetry install --no-dev --editable -vvv
+RUN poetry install --no-dev -vvv
 
 # Build front-end, remove node_modules when done
 ENV NODE_ENV=production
