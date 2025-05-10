@@ -40,16 +40,7 @@ export default class DataMatrix extends React.PureComponent {
         "colorRangeSegments": 5, // split color ranges into 5 equal parts
         "colorRangeSegmentStep": 20, // step size for each segment
         "summaryBackgroundColor": "#d91818",
-        "allowedFields": [
-            "donors.display_title",
-            "sequencing.sequencer.display_title",
-            "file_sets.libraries.assay.display_title",
-            "sample_summary.tissues",
-            "data_type",
-            "file_format.display_title",
-            "data_category",
-            "software.display_title"
-        ],
+        "allowedFields": [],
         "xAxisLabel": "X",
         "yAxisLabel": "Y",
         "showAxisLabels": true,
@@ -202,7 +193,7 @@ export default class DataMatrix extends React.PureComponent {
             _.forEach(updatedState[resultKey], (r) => {
                 if (fieldChangeMap) {
                     _.forEach(_.pairs(fieldChangeMap), function ([fieldToMapTo, fieldToMapFrom]) {
-                        if (typeof r[fieldToMapFrom] !== 'undefined') {
+                        if (typeof r[fieldToMapFrom] !== 'undefined' && fieldToMapTo !== fieldToMapFrom) { // If present
                             r[fieldToMapTo] = r[fieldToMapFrom];
                             delete r[fieldToMapFrom];
                         }
@@ -248,31 +239,45 @@ export default class DataMatrix extends React.PureComponent {
                 const [url, strQueryParams] = requestUrl.split('?');
                 const queryParamsByUrl = DataMatrix.parseQuery(strQueryParams);
 
-                const colAggFields = typeof query.column_agg_fields === 'string' ? [query.column_agg_fields] : query.column_agg_fields;
-                const rowAggFields = typeof query.row_agg_fields === 'string' ? [query.row_agg_fields] : query.row_agg_fields;
+                const colAggFields = Array.isArray(query.column_agg_fields) ? query.column_agg_fields: [query.column_agg_fields];
+                const rowAggFields = [];
+
+                if (Array.isArray(query.row_agg_fields)) {
+                    _.forEach(query.row_agg_fields, function (f) {
+                        if (typeof f === 'string' || (Array.isArray(f) && f.length == 1)) {
+                            rowAggFields.push(typeof f === 'string' ? f : f[0]);
+                        } else {
+                            rowAggFields.push(f);
+                        }
+                    });
+                } else {
+                    rowAggFields.push(query.row_agg_fields);
+                };
 
                 if (typeof requestUrl !== 'string' || !requestUrl) return;
 
                 const searchQueryParams = { field: [], type: 'SubmittedFile', limit: 'all' };
-                if (rowAggFields.length > 0 || colAggFields.length > 0) {
-                    _.forEach(rowAggFields, function (f) {
+
+                _.forEach(rowAggFields || [], function (f) {
+                    if (typeof f === 'string'){
                         searchQueryParams.field.push(f);
                         searchQueryParams[f + '!'] = "No value";
-                    });
-                    if (colAggFields.length > 0) {
-                        _.forEach(colAggFields, function (f, idx) {
-                            searchQueryParams.field.push(f);
-                            if (idx === 0) {
-                                searchQueryParams[f + '!'] = "No value";
-                            }
-                        });
+                    } else {
+                        searchQueryParams.field.push(...f);
+                        searchQueryParams[f[0] + '!'] = "No value";
                     }
-                }
+                });
+                _.forEach(colAggFields || [], function (f, idx) {
+                    searchQueryParams.field.push(f);
+                    if (idx === 0) {
+                        searchQueryParams[f + '!'] = "No value";
+                    }
+                });
 
                 const requestBody = {
                     "search_query_params": _.extend({}, searchQueryParams, queryParamsByUrl),
-                    "column_agg_fields": query.column_agg_fields,
-                    "row_agg_fields": query.row_agg_fields,
+                    "column_agg_fields": colAggFields,
+                    "row_agg_fields": rowAggFields,
                     "flatten_values": true
                 };
 
@@ -294,15 +299,16 @@ export default class DataMatrix extends React.PureComponent {
 
         const newColorRanges = this.getColorRanges({ colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep });
         const invertedFieldChangeMap = _.invert(this.state.fieldChangeMap);
-        const newColumnGrouping = columnAggField ? invertedFieldChangeMap[columnAggField] : null;
-        const newGroupingProperties = rowAggField2 ? [invertedFieldChangeMap[rowAggField1], invertedFieldChangeMap[rowAggField2]] : [invertedFieldChangeMap[rowAggField1]];
+        const newColumnGrouping = columnAggField ? invertedFieldChangeMap[columnAggField[0]] : null;
+        const newGroupingProperties = Array.isArray(rowAggField2) && rowAggField2.length > 0 ? [invertedFieldChangeMap[rowAggField1[0]], invertedFieldChangeMap[rowAggField2[0]]] : [invertedFieldChangeMap[rowAggField1[0]]];
 
         this.setState({
             ...this.state,
             query: {
                 ...this.state.query,
                 url: searchUrl,
-                row_agg_fields: rowAggField2 ? [rowAggField1, rowAggField2] : [rowAggField1]
+                column_agg_fields: columnAggField,
+                row_agg_fields: Array.isArray(rowAggField2) && rowAggField2.length > 0 ? [rowAggField1, rowAggField2] : [rowAggField1]
             },
             // fieldChangeMap: {
             //     [DataMatrixConfigurator.getNestedFieldName(column)]: column,
@@ -361,14 +367,20 @@ export default class DataMatrix extends React.PureComponent {
             summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels
         };
 
+        const colAgg = Array.isArray(query.column_agg_fields) ? query.column_agg_fields : [query.column_agg_fields];
+        const rowAgg1 = Array.isArray(query.row_agg_fields[0]) ? query.row_agg_fields[0] : [query.row_agg_fields[0]];
+        const rowAgg2 = query.row_agg_fields.length > 1 ? Array.isArray(query.row_agg_fields[1]) ? query.row_agg_fields[1] : [query.row_agg_fields[1]] : null;
+
+        const fieldToNameMap = _.invert(this.state.fieldChangeMap);
+
         const configurator = !disableConfigurator && (
             <DataMatrixConfigurator
-                columnDimensions={allowedFields}
-                rowDimensions={allowedFields}
+                dimensions={allowedFields}
+                fieldToNameMap={fieldToNameMap}
                 searchUrl={query.url}
-                initialColumnAggField={query.column_agg_fields[0]}
-                initialRowAggField1={query.row_agg_fields[0]}
-                initialRowAggField2={query.row_agg_fields.length > 1 ? query.row_agg_fields[1] : null}
+                initialColumnAggField={colAgg}
+                initialRowAggField1={rowAgg1}
+                initialRowAggField2={rowAgg2}
                 initialColumnGroups={columnGroups}
                 initialShowColumnGroups={showColumnGroups}
                 initialColumnGroupsExtended={columnGroupsExtended}
