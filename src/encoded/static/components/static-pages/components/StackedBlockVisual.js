@@ -88,7 +88,8 @@ export class VisualBody extends React.PureComponent {
     blockPopover(data, blockProps, parentGrouping){
         const { query: { url: queryUrl, column_agg_fields, row_agg_fields }, fieldChangeMap, valueChangeMap, titleMap, groupingProperties, columnGrouping } = this.props;
         const { depth, isTotal = false } = blockProps;
-        const isGroup = (Array.isArray(data) && data.length > 1) || false;
+        const isGroup = (Array.isArray(data) && data.length >= 1) || false;
+        // const isGroup = (Array.isArray(data) && data.length > 1) || false;
         let aggrData;
 
         if (!isGroup && Array.isArray(data)){
