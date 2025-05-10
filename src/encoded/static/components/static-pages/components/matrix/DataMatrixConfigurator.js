@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import { Button, Form, Popover, Tabs, Tab, Card, Row, Col, Badge, CloseButton, Collapse } from 'react-bootstrap';
-import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { Button, Form, Popover, Tabs, Tab, Card, Row, Col, Badge, CloseButton, Collapse, Modal } from 'react-bootstrap';
+import { console, object } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 const DataMatrixConfigurator = ({
     searchUrl: propSearchUrl,
@@ -26,7 +26,8 @@ const DataMatrixConfigurator = ({
     initialColorRangeBaseColor,
     initialColorRangeSegments,
     initialColorRangeSegmentStep,
-    onApply
+    onApply,
+    onJsxExport,
 }) => {
     const [searchUrl, setSearchUrl] = useState(propSearchUrl);
     const [columnAggField, setColumnAggField] = useState(initialColumnAggField);
@@ -46,6 +47,8 @@ const DataMatrixConfigurator = ({
     const [colorRangeSegments, setColorRangeSegments] = useState(initialColorRangeSegments);
     const [colorRangeSegmentStep, setColorRangeSegmentStep] = useState(initialColorRangeSegmentStep);
     const [showPopover, setShowPopover] = useState(false);
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [jsxExportString, setJsxExportString] = useState(null);
     const [errors, setErrors] = useState({});
     const popoverRef = useRef();
 
@@ -150,6 +153,17 @@ const DataMatrixConfigurator = ({
         setShowPopover(false);
     };
 
+    const handleOpenExportModal = () => {
+        const exportData = onJsxExport();
+        setJsxExportString(exportData);
+        setShowExportModal(true);
+    };
+
+    const handleCloseExportModal = () => {
+        setJsxExportString(null);
+        setShowExportModal(false);
+    };
+
     const labelStyle = { minWidth: '150px', width: '150px' };
 
     return (
@@ -168,6 +182,11 @@ const DataMatrixConfigurator = ({
             {/* Button to toggle popover */}
             <Button variant="link" id="config-btn" className="p-0" onClick={() => setShowPopover(!showPopover)}>
                 <i className="icon icon-fw icon-gear fas" /> <span className="text-muted small">{`${yAxisLabel} x ${xAxisLabel} (admin-only)`}</span>
+            </Button>
+
+            {/* Button to export JSX */}
+            <Button variant="link" id="export-btn" className="p-0 ms-2" onClick={handleOpenExportModal}>
+                <i className="icon icon-fw icon-download fas" /> <span className="text-muted small">Export JSX</span>
             </Button>
 
             {/* Popover content */}
@@ -285,6 +304,21 @@ const DataMatrixConfigurator = ({
                     </Popover.Body>
                 </Popover>
             )}
+
+            <Modal show={showExportModal} onHide={handleCloseExportModal} size="xl">
+                <Modal.Header closeButton>
+                    <Modal.Title>Exported JSX</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <object.CopyWrapper
+                        value={jsxExportString}
+                        className={"mt-2"}
+                        wrapperElement="pre"
+                        whitespace={false}>
+                        {jsxExportString}
+                    </object.CopyWrapper>
+                </Modal.Body>
+            </Modal>
         </div>
     );
 };

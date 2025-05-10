@@ -5,9 +5,9 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReactTooltip from 'react-tooltip';
 import { console, object, ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { Button } from 'react-bootstrap';
 import { VisualBody } from '../';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
-import { get } from '../../../util/Schemas';
 
 
 export default class DataMatrix extends React.PureComponent {
@@ -44,7 +44,7 @@ export default class DataMatrix extends React.PureComponent {
         "xAxisLabel": "X",
         "yAxisLabel": "Y",
         "showAxisLabels": true,
-        "disableConfigurator": false,
+        "disableConfigurator": true,
     };
 
     static propTypes = {
@@ -136,6 +136,7 @@ export default class DataMatrix extends React.PureComponent {
         super(props);
         this.loadSearchQueryResults = this.loadSearchQueryResults.bind(this);
         this.onApplyConfiguration = this.onApplyConfiguration.bind(this);
+        this.getJsxExport = this.getJsxExport.bind(this);
 
         const colorRanges = this.getColorRanges(props);
 
@@ -333,6 +334,34 @@ export default class DataMatrix extends React.PureComponent {
         });
     }
 
+    getAllowedPropKeys() {
+        return Object.keys(DataMatrix.propTypes);
+    }
+
+    getJsxExport() {
+        const allowedKeys = Object.keys(DataMatrix.propTypes);
+        const filteredProps = allowedKeys.reduce((acc, key) => {
+            if (this.props.hasOwnProperty(key)) {
+                acc[key] = this.state[key] || this.props[key];
+            }
+            return acc;
+        }, {});
+
+        const propLines = Object.entries(filteredProps).map(([key, value]) => {
+            if (typeof value === 'string') {
+                return `  ${key}="${value}"`;
+            } else {
+                return `  ${key}={${JSON.stringify(value)}}`;
+            }
+        });
+
+        // add fixed props
+        propLines.push(`  key="data-matrix-key"`);
+        propLines.push(`  session={session}`);
+
+        return `<DataMatrix\n${propLines.join('\n')}\n/>`;
+    }
+
     render() {
         const {
             headerFor, valueChangeMap, allowedFields,
@@ -395,6 +424,7 @@ export default class DataMatrix extends React.PureComponent {
                 initialColorRangeSegments={colorRangeSegments}
                 initialColorRangeSegmentStep={colorRangeSegmentStep}
                 onApply={this.onApplyConfiguration}
+                onJsxExport={this.getJsxExport}
             />
         );
 
@@ -413,7 +443,6 @@ export default class DataMatrix extends React.PureComponent {
                 />
             </div>
         );
-
         return (
             <div className="static-section data-matrix">
                 <div className="row">

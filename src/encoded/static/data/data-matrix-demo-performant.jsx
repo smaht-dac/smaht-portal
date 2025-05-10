@@ -152,5 +152,6 @@
         xAxisLabel="Assays"
         yAxisLabel="Donors"
         showAxisLabels={false}
+        disableConfigurator={false}
     />
 </div>
