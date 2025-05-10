@@ -125,6 +125,22 @@ const DataMatrixConfigurator = ({
             return;
         }
 
+        if(columnAggField.length === 0) {
+            alert('Please select at least one column aggregation field.');
+            return;
+        }
+        if(rowAggField1.length === 0) {
+            alert('Please select at least one row aggregation field.');
+            return;
+        }
+        // check if any duplicates exist in columnAggField and rowAggField1 and rowAggField2
+        const allFields = [...columnAggField, ...rowAggField1, ...rowAggField2];
+        const duplicates = allFields.filter((item, index) => allFields.indexOf(item) !== index);
+        if (duplicates.length > 0) {
+            alert(`Duplicate fields found: ${duplicates.join(', ')}`);
+            return;
+        }
+
         onApply({
             searchUrl, columnAggField, rowAggField1, rowAggField2,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
@@ -191,7 +207,7 @@ const DataMatrixConfigurator = ({
 
                                     {/* Row Dimension 2 */}
                                     <Form.Group className="d-flex align-items-center mb-05">
-                                        <Form.Label className="me-2" style={labelStyle}>Row Agg Field 2</Form.Label>
+                                        <Form.Label className="me-2" style={{ ...labelStyle, textDecoration: `${rowAggField1.length === 0 ? 'line-through' : 'unset'}` }}>Row Agg Field 2</Form.Label>
                                         <ChipsContainer
                                             chips={rowAggField2}
                                             onChange={(newValues) => setRowAggField2(newValues)}
