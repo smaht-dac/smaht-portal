@@ -402,7 +402,7 @@ def data_matrix_aggregations(context, request):
             next_field_name = row_agg_fields[curr_field_depth]
             returned_buckets[bucket_result['key']] = {
                 "term": bucket_result['key'],
-                "field": next_field_name,
+                "field": next_field_name[0] if isinstance(next_field_name, list) else next_field_name,
                 "total": curr_bucket_totals,
                 "terms": {},
                 "other_doc_count": bucket_result['field_' + str(curr_field_depth + 1)].get('sum_other_doc_count', 0),
