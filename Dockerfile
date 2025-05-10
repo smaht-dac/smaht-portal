@@ -71,8 +71,7 @@ COPY . .
 
 # Build remaining back-end
 RUN poetry install --no-dev -vvv && \
-    python setup_eb.py develop && \
-    make fix-dist-info
+    python setup_eb.py develop
 
 # Build front-end, remove node_modules when done
 ENV NODE_ENV=production
