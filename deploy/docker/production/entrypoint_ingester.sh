@@ -6,5 +6,7 @@ echo "Starting SMAHT Ingester"
 # secrets manager - this builds production.ini
 poetry run python -m assume_identity
 
+poetry run python -c "import encoded; print(encoded.__file__)"
+
 # will serve forever
 poetry run ingestion-listener production.ini --app-name app

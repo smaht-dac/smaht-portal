@@ -61,12 +61,7 @@ ENV PATH="/home/nginx/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 # Build application
 WORKDIR /home/nginx/smaht-portal
 
-# Do the back-end dependency install
-COPY pyproject.toml .
-COPY poetry.lock .
-RUN poetry install --no-root --no-dev
-
-# Do the front-end dependency install
+# Do the front-end dependency install first, since this is most intensive
 COPY package.json .
 COPY package-lock.json .
 RUN npm ci --no-fund --no-progress --no-optional --no-audit --python=/opt/venv/bin/python && npm cache clean --force
