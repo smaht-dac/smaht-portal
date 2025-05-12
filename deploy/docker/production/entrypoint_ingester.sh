@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "Starting SMAHT Ingester"
+echo "Starting SMAHT Ingester (test)"
 
 echo "🔍 DEBUG: Beginning container startup diagnostics..."
 
