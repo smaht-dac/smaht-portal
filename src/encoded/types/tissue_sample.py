@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Any
 
 import re
 from snovault import collection, load_schema
@@ -67,6 +67,8 @@ def validate_external_id_on_add(context, request):
     Check is consistent with `category` nomenclature if the sample_source.donor is a Benchmarking or Production tissue on add (TPC-submitted items only for now).
     Check that `external_id` matches linked tissue `external_id` if Benchmarking or Production tissue sample on add.
     """
+    if 'force_pass' in request.query_string:
+        return
     data = request.json
     external_id = data['external_id']
     sample_sources = data["sample_sources"]
@@ -75,8 +77,12 @@ def validate_external_id_on_add(context, request):
     submission_centers = data['submission_centers']
     is_tpc_submitted = "ndri_tpc" in [ item_utils.get_identifier(get_item_or_none(request, submission_center, 'submission-centers')) for submission_center in submission_centers ]
     if (study := tissue_utils.get_study(tissue)):
+        tissue_category_match =  assert_tissue_category_match(category, external_id)
         if is_tpc_submitted and not assert_external_id_category_match(external_id, category):
             msg = f"external_id {external_id} does not match {study} nomenclature for {category} samples."
+            return request.errors.add('body', 'TissueSample: invalid property', msg)
+        elif not tissue_category_match[0]:
+            msg = f"category {category} should be {tissue_category_match[1]} for TissueSample items with protocol ID: {tissue_sample_utils.get_protocol_id_from_external_id(external_id)}."
             return request.errors.add('body', 'TissueSample: invalid property', msg)
         elif not assert_external_id_tissue_match(external_id, tissue):
             msg = f"external_id {external_id} does not match Tissue external_id {item_utils.get_external_id(tissue)}."
@@ -93,6 +99,8 @@ def validate_external_id_on_edit(context, request):
     Check that `external_id` is consistent with `category` nomenclature if the sample_source is a Benchmarking or Production tissue on edit (TPC-submitted items only for now).
     Check that `external_id` matches linked tissue `external_id` if Benchmarking or Production tissue sample on edit.
     """
+    if 'force_pass' in request.query_string:
+        return
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
     sample_sources = get_property_for_validation('sample_sources',existing_properties,properties_to_update)
@@ -102,20 +110,23 @@ def validate_external_id_on_edit(context, request):
     submission_centers = get_property_for_validation('submission_centers', existing_properties, properties_to_update)
     is_tpc_submitted = "ndri_tpc" in [ item_utils.get_identifier(get_item_or_none(request, submission_center, 'submission-centers')) for submission_center in submission_centers ]
     if (study:=tissue_utils.get_study(tissue)):
+        tissue_category_match =  assert_tissue_category_match(category, external_id)
         if is_tpc_submitted and not assert_external_id_category_match(external_id, category):
             msg = f"external_id {external_id} does not match {study} nomenclature for {category} samples."
+            return request.errors.add('body', 'TissueSample: invalid property', msg)
+        elif not tissue_category_match[0]:
+            msg = f"category {category} should be {tissue_category_match[1]} for TissueSample items with protocol ID: {tissue_sample_utils.get_protocol_id_from_external_id(external_id)}."
             return request.errors.add('body', 'TissueSample: invalid property', msg)
         elif not assert_external_id_tissue_match(external_id, tissue):
             msg = f"external_id {external_id} does not match Tissue external_id {item_utils.get_external_id(tissue)}."
             return request.errors.add('body', 'TissueSample: invalid link', msg)
         else:
             return request.validated.update({})
-    """Check that `external_id` matches linked tissue `external_id` if Benchmarking or Production tissue sample on edit."""
 
 
 def assert_external_id_category_match(external_id: str, category: str):
     """Check that external_id pattern matches for category."""
-    if category in ["Homogenate", "Liquid"]:
+    if category in ["Homogenate", "Liquid", "Cells"]:
         return tissue_sample_utils.is_homogenate_external_id(external_id)
     elif category == "Specimen":
         return tissue_sample_utils.is_specimen_external_id(external_id)
@@ -125,7 +136,27 @@ def assert_external_id_category_match(external_id: str, category: str):
         return ""
 
 
-def assert_external_id_tissue_match(external_id, tissue):
+def assert_tissue_category_match(category: str, external_id: str):
+    """
+    Check that category is Liquid or Cells if protocol id of external_id is among certain types.
+
+    Current types are blood, buccal swab (both Liquid), and fibroblast cell culture (Cells).
+    """
+    liquid_protocol_ids = ["3A", "3B"]
+    cells_protocol_ids = ["3AC"]
+    match = True
+    correct_category = None
+    protocol_id = tissue_sample_utils.get_protocol_id_from_external_id(external_id)
+    if protocol_id in liquid_protocol_ids:
+        correct_category = "Liquid"
+        match = category == correct_category
+    elif protocol_id in cells_protocol_ids:
+        correct_category = "Cells"
+        match = category == correct_category
+    return match, correct_category
+
+
+def assert_external_id_tissue_match(external_id: str, tissue: Dict[str, Any]):
     """Check that start of tissue sample external_id matches tissue external_id."""
     tissue_id = item_utils.get_external_id(tissue)
     tissue_kit_id = tissue_sample_utils.get_tissue_kit_id_from_external_id(external_id)
@@ -139,12 +170,16 @@ def validate_tissue_sample_metadata_on_edit(context, request):
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
     external_id = get_property_for_validation('external_id', existing_properties, properties_to_update)
+    submission_centers = get_property_for_validation('submission_centers', existing_properties, properties_to_update)
+    is_tpc_submitted = "ndri_tpc" in [ item_utils.get_identifier(get_item_or_none(request, submission_center, 'submission-centers')) for submission_center in submission_centers ]
     check_properties = [
         "category",
         "preservation_type",
         "core_size"
     ]
     if 'force_pass' in request.query_string:
+        return
+    if is_tpc_submitted:
         return
     search_url = f"/search/?type=TissueSample&submission_centers.display_title=NDRI+TPC&external_id={external_id}"
     if ELASTIC_SEARCH in request.registry:
@@ -180,12 +215,16 @@ def validate_tissue_sample_metadata_on_add(context, request):
     """
     data = request.json
     external_id = data['external_id']
+    submission_centers = data['submission_centers']
+    is_tpc_submitted = "ndri_tpc" in [ item_utils.get_identifier(get_item_or_none(request, submission_center, 'submission-centers')) for submission_center in submission_centers ]
     check_properties = [
         "category",
         "preservation_type",
         "core_size"
     ]
     if 'force_pass' in request.query_string:
+        return
+    if is_tpc_submitted:
         return
     search_url = f"/search/?type=TissueSample&submission_centers.display_title=NDRI+TPC&external_id={external_id}"
     if ELASTIC_SEARCH in request.registry:

@@ -18,6 +18,7 @@ export const BoxPlot = ({
     updateHighlightedBam,
     rerenderNumber = 0,
     handleShowModal,
+    featuredBam, // Accession of BAM that will be permanently highlighted
 }) => {
     const [showOverlay, setShowOverlay] = useState(false);
     const overlayTarget = useRef(null);
@@ -541,8 +542,16 @@ export const BoxPlot = ({
                         Math.random() * jitterWidth -
                         jitterWidth / 2
                 )
-                .attr('r', 6)
+                .attr('r', (d) => {
+                    if(d.file_accession === featuredBam){
+                        return 9;
+                    }
+                    return 6;
+                })
                 .attr('fill', (d) => {
+                    if(d.file_accession == featuredBam){
+                        return 'rgb(255, 0, 0)';
+                    }
                     return 'rgba(199, 205, 255, 0.5)';
                 })
                 .attr('stroke', 'black')
@@ -654,7 +663,7 @@ export const BoxPlot = ({
                     </PopoverHeader>
                     <PopoverBody>
                         <PlotPopoverContent
-                            vizInfo={viz_info}
+                            tooltipFields={viz_info.default_settings.boxplot.tooltipFields}
                             data={overlayTarget?.current?.data}
                         />
                     </PopoverBody>

@@ -475,6 +475,14 @@ class SubmissionStatusComponent extends React.PureComponent {
                             mwfr.accession,
                             mwfr.meta_workflow?.display_title
                         )}
+                        <object.CopyWrapper
+                            value={mwfr.accession}
+                            className=""
+                            data-tip={'Click to copy accession'}
+                            wrapperElement="span"
+                            iconProps={{
+                                style: { fontSize: '0.875rem', marginLeft: 3 },
+                            }}></object.CopyWrapper>
                         <small className="d-block ss-line-height-140">
                             Created: {formatDate(mwfr.date_created)}. Status:{' '}
                             {mwfr_badge}
@@ -528,17 +536,26 @@ class SubmissionStatusComponent extends React.PureComponent {
             const outputFilesQc = getQcResults(fs.output_files.qc_infos, true);
 
             let unaligned_reads_badge = '';
-            const status_unaligned_reads = fs.submitted_files.overall_status_unaligned_reads;
+            const status_unaligned_reads =
+                fs.submitted_files.overall_status_unaligned_reads;
             if (status_unaligned_reads === 'archived') {
                 const tooltip =
                     fs.submitted_files.num_unaligned_reads_files +
                     ' submitted Unaligned Reads files have been archived';
-                unaligned_reads_badge = createBadge('warning', status_unaligned_reads, tooltip);
+                unaligned_reads_badge = createBadge(
+                    'warning',
+                    status_unaligned_reads,
+                    tooltip
+                );
             } else if (status_unaligned_reads === 'deleted') {
                 const tooltip =
                     fs.submitted_files.num_unaligned_reads_files +
                     ' submitted Unaligned Reads files have been deleted';
-                unaligned_reads_badge = createBadge('danger', status_unaligned_reads, tooltip);
+                unaligned_reads_badge = createBadge(
+                    'danger',
+                    status_unaligned_reads,
+                    tooltip
+                );
             }
 
             return (
@@ -667,7 +684,24 @@ class SubmissionStatusComponent extends React.PureComponent {
                                 className="text-start ss-fileset-column"
                                 colSpan={2}>
                                 <div className="d-flex flex-row flex-wrap justify-content-between">
-                                    <div className="flex-fill">File Set</div>
+                                    <div className="flex-fill">
+                                        File Set
+                                        <object.CopyWrapper
+                                            value={this.state.fileSets
+                                                .map((fs) => fs.accession)
+                                                .join(' -f ')}
+                                            className=""
+                                            data-tip={
+                                                'Copy file set accessions for use in magma'
+                                            }
+                                            wrapperElement="span"
+                                            iconProps={{
+                                                style: {
+                                                    fontSize: '0.875rem',
+                                                    marginLeft: 3,
+                                                },
+                                            }}></object.CopyWrapper>
+                                    </div>
                                     <div className="flex-fill">
                                         <input
                                             type="text"

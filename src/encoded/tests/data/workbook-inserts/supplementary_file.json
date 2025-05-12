@@ -10,6 +10,10 @@
         ],
         "filename": "test_DSA_to_GRCh38.chain.gz",
         "file_format": "CHAIN",
+        "file_sets": [
+            "TEST_FILE-SET_HELA-HEK293-DNA",
+            "TEST_FILE-SET_HELA_ONLY-RNA"
+        ],
         "submission_centers": [
             "smaht"
         ],
@@ -22,7 +26,12 @@
         "target_assembly": "Hela_DSA",
         "source_assembly": "GRCh38",
         "override_release_tracker_description": "DSA",
-        "override_release_tracker_title": "HELA"
+        "override_release_tracker_title": "HELA",
+        "tags": [
+            "test_release_tracker",
+            "release_tracker_title-HELA",
+            "release_tracker_description-DSACHAIN"
+        ]
     },
     {
         "uuid": "f1074e68-5c24-462b-909d-472356e5a15f",
@@ -35,6 +44,10 @@
         ],
         "filename": "test_hela.fasta",
         "file_format": "FASTA",
+        "file_sets": [
+            "TEST_FILE-SET_HELA-HEK293-DNA",
+            "TEST_FILE-SET_HELA_ONLY-RNA"
+        ],
         "submission_centers": [
             "smaht"
         ],
@@ -46,6 +59,11 @@
         "md5sum": "00000000000000000000000000000001",
         "donor_specific_assembly": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
         "override_release_tracker_description": "DSA",
-        "override_release_tracker_title": "HELA"
+        "override_release_tracker_title": "HELA",
+        "tags": [
+            "test_release_tracker",
+            "release_tracker_title-HELA",
+            "release_tracker_description-DSAFASTA"
+        ]
     }
 ]

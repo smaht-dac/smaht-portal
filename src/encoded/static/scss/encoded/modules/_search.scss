@@ -200,6 +200,11 @@ $facetlist-excluding: #450000;
 						& > .facet-item {
 							color: #727272;
 							font-size: 0.813rem;
+
+							&.facet-item-group-header {
+								color: #3B3A3A;
+								font-weight: 500;
+							}
 						}
 						& > .facet-count {
 							color: #727272;
@@ -258,6 +263,25 @@ $facetlist-excluding: #450000;
 				h5.facet-title {
 					border-bottom: 1px solid #EEEEEE;
 					font-weight: 600;
+				}
+			}
+
+			&.range-facet {
+				.facet-list .range-drop {
+					flex-direction: column;
+					align-items: start !important;
+
+					label {
+						text-align-last: left !important;
+						font-size: 0.75rem;
+						font-weight: 450;
+						padding-bottom: 4px;
+						margin-left: 0px !important;
+					}
+
+					.rcol.dropdown {
+						min-width: 90%;
+					}
 				}
 			}
 		}

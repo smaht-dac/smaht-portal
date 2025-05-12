@@ -151,6 +151,7 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 	background: #FCFDFF;
 	color: #343741;
 	text-decoration: none !important;
+	padding: 4px 8px;
 	&:hover {
 		background: #DEE2E6;
 	}
@@ -311,7 +312,8 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 // future. Or if we expect this to be a common problem delete the below code and revert to
 // bootstrap default permanently?
 
-// .popover {
+.popover {
+	box-shadow: 0 .25rem 1.5rem rgba($black, .1);
     
 //     > .popover-body {
 //         /* Limit height & make scrollable if necessary */
@@ -326,7 +328,7 @@ $margin-util-sizes-mini: 1, 2, 3, 4, 5, 6, 7, 8; 		// * 1px
 //             max-height: 35vh; /* Limit height further */
 //         }
 //     }
-// }
+}
 
 
 /**************************************
