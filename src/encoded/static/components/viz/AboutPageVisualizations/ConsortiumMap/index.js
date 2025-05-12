@@ -65,11 +65,13 @@ const ConsortiumTable = () => {
                     <td className="align-middle border-end">
                         {c?.table_institution_name ?? c['institution']}
                     </td>
-                    {c?.code ? (
-                        <td>
+                    <td>
+                        {c?.code ? (
                             <span className="text-nowrap">{c.code}</span>
-                        </td>
-                    ) : null}
+                        ) : (
+                            <span className="text-secondary">-</span>
+                        )}
+                    </td>
                     <td className="align-middle">
                         {c['project']} <br />
                         <small>
