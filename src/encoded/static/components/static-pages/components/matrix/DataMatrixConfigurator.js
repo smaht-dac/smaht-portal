@@ -17,6 +17,8 @@ const DataMatrixConfigurator = ({
     initialShowColumnGroups,
     initialColumnGroupsExtended,
     initialShowColumnGroupsExtended,
+    initialRowGroups,
+    initialShowRowGroups,
     initialRowGroupsExtended,
     initialShowRowGroupsExtended,
     initialSummaryBackgroundColor,
@@ -37,6 +39,8 @@ const DataMatrixConfigurator = ({
     const [showColumnGroups, setShowColumnGroups] = useState(initialShowColumnGroups);
     const [columnGroupsExtended, setColumnGroupsExtended] = useState(initialColumnGroupsExtended);
     const [showColumnGroupsExtended, setShowColumnGroupsExtended] = useState(initialShowColumnGroupsExtended);
+    const [rowGroups, setRowGroups] = useState(initialRowGroups);
+    const [showRowGroups, setShowRowGroups] = useState(initialShowRowGroups);
     const [rowGroupsExtended, setRowGroupsExtended] = useState(initialRowGroupsExtended);
     const [showRowGroupsExtended, setShowRowGroupsExtended] = useState(initialShowRowGroupsExtended);
     const [summaryBackgroundColor, setSummaryBackgroundColor] = useState(initialSummaryBackgroundColor);
@@ -146,7 +150,8 @@ const DataMatrixConfigurator = ({
 
         onApply({
             searchUrl, columnAggField, rowAggField1, rowAggField2,
-            columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
+            columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
+            rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
             summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels,
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep
         });

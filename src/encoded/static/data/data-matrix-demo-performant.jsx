@@ -100,7 +100,21 @@
         }}
         showColumnGroups={true}
         showColumnGroupsExtended={false}
-        rowGroups={null} //not implemented yet
+        rowGroups={{
+            "Benchmarking": {
+                "values": ['ST001', 'ST002', 'ST003', 'ST004'],
+                "backgroundColor": "#000000",
+                "textColor": "#ffffff",
+                "shortName": "Benchmarking"
+            },
+            "Production": {
+                "values": ['SMHT004', 'SMHT008'],
+                "backgroundColor": "#000000",
+                "textColor": "#ffffff",
+                "shortName": "Production"
+            }
+        }}
+        showRowGroups={true}
         rowGroupsExtended={{
             "Ectoderm": {
                 "values": ['Brain', 'Brain - Cerebellum', 'Brain - Frontal lobe', 'Brain - Hippocampus', 'Brain - Temporal lobe', 'Skin', 'Skin - Abdomen (non-exposed)', 'Skin - Calf (sun-exposed)'],

@@ -32,6 +32,7 @@ export default class DataMatrix extends React.PureComponent {
         "columnGroupsExtended"      : null,
         "showColumnGroupsExtended"  : true,
         "rowGroups"                 : null,
+        "showRowGroups"             : true,
         "rowGroupsExtended"         : null,
         "showRowGroupsExtended"     : true,
         "titleMap"                  : {},
@@ -73,6 +74,7 @@ export default class DataMatrix extends React.PureComponent {
         'columnGroupsExtended': PropTypes.object,
         'showColumnGroupsExtended': PropTypes.bool,
         'rowGroups': PropTypes.object,
+        'showRowGroups': PropTypes.bool,
         'rowGroupsExtended': PropTypes.object,
         'showRowGroupsExtended': PropTypes.bool,
         'xAxisLabel': PropTypes.string,
@@ -152,6 +154,8 @@ export default class DataMatrix extends React.PureComponent {
             "showColumnGroups": props.showColumnGroups,
             "columnGroupsExtended": props.columnGroupsExtended,
             "showColumnGroupsExtended": props.showColumnGroupsExtended,
+            "rowGroups": props.rowGroups,
+            "showRowGroups": props.showRowGroups,
             "rowGroupsExtended": props.rowGroupsExtended,
             "showRowGroupsExtended": props.showRowGroupsExtended,
             "xAxisLabel": props.xAxisLabel,
@@ -291,7 +295,8 @@ export default class DataMatrix extends React.PureComponent {
 
     onApplyConfiguration({
         searchUrl, columnAggField, rowAggField1, rowAggField2,
-        columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
+        columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
+        rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
         summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep }) {
         console.log(
             searchUrl, columnAggField, rowAggField1, rowAggField2,
@@ -321,6 +326,8 @@ export default class DataMatrix extends React.PureComponent {
             showColumnGroups: showColumnGroups,
             columnGroupsExtended: columnGroupsExtended,
             showColumnGroupsExtended: showColumnGroupsExtended,
+            rowGroups: rowGroups,
+            showRowGroups: showRowGroups,
             rowGroupsExtended: rowGroupsExtended,
             showRowGroupsExtended: showRowGroupsExtended,
             summaryBackgroundColor: summaryBackgroundColor,
@@ -369,7 +376,8 @@ export default class DataMatrix extends React.PureComponent {
         } = this.props;
         const {
             query, fieldChangeMap, columnGrouping, groupingProperties,
-            columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
+            columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
+            rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
             colorRanges, summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels,
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep
         } = this.state;
@@ -392,7 +400,7 @@ export default class DataMatrix extends React.PureComponent {
         const bodyProps = {
             query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
-            rowGroupsExtended, showRowGroupsExtended,
+            rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
             summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels
         };
 
@@ -414,6 +422,8 @@ export default class DataMatrix extends React.PureComponent {
                 initialShowColumnGroups={showColumnGroups}
                 initialColumnGroupsExtended={columnGroupsExtended}
                 initialShowColumnGroupsExtended={showColumnGroupsExtended}
+                initialRowGroups={rowGroups}
+                initialShowRowGroups={showRowGroups}
                 initialRowGroupsExtended={rowGroupsExtended}
                 initialShowRowGroupsExtended={showRowGroupsExtended}
                 initialSummaryBackgroundColor={summaryBackgroundColor}
