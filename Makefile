@@ -46,12 +46,11 @@ macpoetry-install:  # Same as 'poetry install' except that on OSX Catalina, an e
 
 configure:  # does any pre-requisite installs
 	@#pip install --upgrade pip==21.0.1
-	pip install --upgrade pip
+	pip install --upgrade pip==24.1.2
 	@#pip install poetry==1.1.9  # this version is known to work. -kmp 11-Mar-2021
 	# Pin to version 1.1.15 for now to avoid this error:
 	#   Because encoded depends on wheel (>=0.29.0) which doesn't match any versions, version solving failed.
-	pip install poetry==1.4.2
-	pip install setuptools
+	pip install poetry==1.8.5
 	poetry config virtualenvs.create false --local # do not create a virtualenv - the user should have already done this -wrr 20-Sept-2021
 
 check-awscli:
@@ -116,7 +115,6 @@ macbuild-full:  # rebuilds for Catalina, addressing zlib possibly being in an al
 	make macbuild
 
 build-after-poetry:  # continuation of build after poetry install
-	make moto-setup
 	poetry run python setup_eb.py develop
 	make fix-dist-info
 	poetry run prepare-local-dev
@@ -169,7 +167,7 @@ kibana-stop:
 opensearch-dashboard-start:
 	# New: 2024-08-13
 	# OpenSearch (rather than ElasticSearch) as we are using
-	# now seems to require OpenSearch Dashboard rather than Kibana. 
+	# now seems to require OpenSearch Dashboard rather than Kibana.
 	bash scripts/opensearch-dashboard-start.bash
 
 kill:  # kills back-end processes associated with the application. Use with care.
