@@ -150,7 +150,7 @@ const StackRow = ({ node, data }) => {
                 data-row-category={data_generator_category}
                 data-row-title={display_name}>
                 <div className="label">
-                    <span>{display_name.split(' ')[0]}</span>
+                    <span>{display_name}</span>
                 </div>
             </th>
             {data.map((d, j) => {

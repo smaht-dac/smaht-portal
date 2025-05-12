@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.170.2
+=======
+`PR 423: feat: update consortium table and data matrix <https://github.com/smaht-dac/smaht-portal/pull/423>`_
+
+* Add codes to the Consortium table
+* Adjust data matrix styles
+
+
 0.170.1
 =======
 `PR 417 fix: update capitalization for retraction_reason property <https://github.com/smaht-dac/smaht-portal/pull/417>`_
