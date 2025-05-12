@@ -239,11 +239,12 @@ class Item(SnovaultItem):
             unique keys will NOT work!
         """
         keys = super(Item, self).unique_keys(properties)
-        if 'accession' not in self.schema['properties']:
-            return keys
-        keys.setdefault('accession', []).extend(properties.get('alternate_accessions', []))
-        if properties.get('status') != 'replaced' and 'accession' in properties:
-            keys['accession'].append(properties['accession'])
+        # Propagated to snovault as 1 May 2025 - Will
+        # if 'accession' not in self.schema['properties']:
+        #     return keys
+        # keys.setdefault('accession', []).extend(properties.get('alternate_accessions', []))
+        # if properties.get('status') != 'replaced' and 'accession' in properties:
+        #     keys['accession'].append(properties['accession'])
         return keys
 
     @calculated_property(schema={"title": "Display Title", "type": "string"})

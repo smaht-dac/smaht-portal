@@ -674,7 +674,7 @@ class File(Item, CoreFile):
         result = self.rev_link_atids(request, "meta_workflow_run_outputs")
         if result:
             request_handler = RequestHandler(request = request)
-            mwfrs=[ 
+            mwfrs=[
                 mwfr for mwfr in result
                 if get_property_value_from_identifier(
                     request_handler,
@@ -795,7 +795,7 @@ class File(Item, CoreFile):
             request_handler,
             file_properties=self.properties
         )
-        return result     
+        return result
 
     def _get_libraries(
         self, request: Request, file_sets: Optional[List[str]] = None
@@ -977,7 +977,7 @@ class File(Item, CoreFile):
         self, request_handler: Request, file_properties: Optional[List[str]] = None
     ) -> Union[List[str], None]:
         """"Get group coverage for display on file overview page.
-        
+
         Use override_group_coverage if present, otherwise grab target_coverage from sequencing."""
         if (override_group_coverage := file_utils.get_override_group_coverage(file_properties)):
             return [override_group_coverage]
@@ -1101,7 +1101,7 @@ class File(Item, CoreFile):
         ) -> Union[str, None]:
         """Get release tracker title for display on the home page."""
         to_include = None
-        if "file_sets" in file_properties:    
+        if "file_sets" in file_properties:
             if (cell_culture_mixture_title := get_unique_values(
                 request_handler.get_items(
                     file_utils.get_cell_culture_mixtures(file_properties, request_handler)),
