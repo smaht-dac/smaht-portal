@@ -33,6 +33,7 @@ export default class DataMatrix extends React.PureComponent {
         "showColumnGroupsExtended"  : true,
         "rowGroups"                 : null,
         "showRowGroups"             : true,
+        "autoPopulateRowGroupsProperty" : null,
         "rowGroupsExtended"         : null,
         "showRowGroupsExtended"     : true,
         "titleMap"                  : {},
@@ -75,6 +76,7 @@ export default class DataMatrix extends React.PureComponent {
         'showColumnGroupsExtended': PropTypes.bool,
         'rowGroups': PropTypes.object,
         'showRowGroups': PropTypes.bool,
+        'autoPopulateRowGroupsProperty': PropTypes.string, 
         'rowGroupsExtended': PropTypes.object,
         'showRowGroupsExtended': PropTypes.bool,
         'xAxisLabel': PropTypes.string,
@@ -156,6 +158,7 @@ export default class DataMatrix extends React.PureComponent {
             "showColumnGroupsExtended": props.showColumnGroupsExtended,
             "rowGroups": props.rowGroups,
             "showRowGroups": props.showRowGroups,
+            "autoPopulateRowGroupsProperty": props.autoPopulateRowGroupsProperty,
             "rowGroupsExtended": props.rowGroupsExtended,
             "showRowGroupsExtended": props.showRowGroupsExtended,
             "xAxisLabel": props.xAxisLabel,
@@ -195,6 +198,7 @@ export default class DataMatrix extends React.PureComponent {
 
             updatedState[resultKey] = location.hostname.indexOf('localhost') >= 0 ? TEST_DATA : result;
             let transfermedData = [];
+            const populatedRowGroups =  {}; // not implemented yet
             _.forEach(updatedState[resultKey], (r) => {
                 if (fieldChangeMap) {
                     _.forEach(_.pairs(fieldChangeMap), function ([fieldToMapTo, fieldToMapFrom]) {
@@ -236,7 +240,7 @@ export default class DataMatrix extends React.PureComponent {
             this.setState(updatedState);
         };
 
-        const { query } = this.state;
+        const { query, fieldChangeMap, autoPopulateRowGroupsProperty } = this.state;
         this.setState(
             { "_results": null }, // (Re)Set all result states to 'null'
             () => {
@@ -278,6 +282,13 @@ export default class DataMatrix extends React.PureComponent {
                         searchQueryParams[f + '!'] = "No value";
                     }
                 });
+
+                //add additional field to populate row groups
+                if (autoPopulateRowGroupsProperty) {
+                    if (fieldChangeMap[autoPopulateRowGroupsProperty]) {
+                        rowAggFields.push(fieldChangeMap[autoPopulateRowGroupsProperty]);
+                    }
+                }
 
                 const requestBody = {
                     "search_query_params": _.extend({}, searchQueryParams, queryParamsByUrl),

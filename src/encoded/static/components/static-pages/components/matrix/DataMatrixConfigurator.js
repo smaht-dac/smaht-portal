@@ -281,19 +281,25 @@ const DataMatrixConfigurator = ({
                                         <Form.Control type="number" name="colorRangeSegmentStep" value={colorRangeSegmentStep} onChange={(e) => setColorRangeSegmentStep(e.target.value)} size="sm" />
                                     </Form.Group>
                                 </Tab>
-                                <Tab eventKey="columnGroups" title={`Column Groups Primary (${Object.keys(columnGroups).length})`}>
+                                <Tab eventKey="columnGroups" title={`Column Gr. Prim. (${Object.keys(columnGroups).length})`}>
                                     <TierWizard
                                         initialData={columnGroups}
                                         onComplete={(data, show) => { setColumnGroups(data); setShowColumnGroups(show); }}
                                         showData={showColumnGroups} />
                                 </Tab>
-                                <Tab eventKey="columnGroupsExtended" title={`Column Groups Secondary (${Object.keys(columnGroupsExtended).length})`}>
+                                <Tab eventKey="columnGroupsExtended" title={`Column Gr. 2ry (${Object.keys(columnGroupsExtended).length})`}>
                                     <TierWizard
                                         initialData={columnGroupsExtended}
                                         onComplete={(data, show) => { setColumnGroupsExtended(data); setShowColumnGroupsExtended(show); }}
                                         showData={showColumnGroupsExtended} />
                                 </Tab>
-                                <Tab eventKey="rowGroupsExtended" title={`Row Groups (${Object.keys(rowGroupsExtended).length})`}>
+                                <Tab eventKey="rowGroups" title={`Row Gr. Prim. (${Object.keys(rowGroups).length})`}>
+                                    <TierWizard
+                                        initialData={rowGroups}
+                                        onComplete={(data, show) => { setRowGroups(data); setShowRowGroups(show); }}
+                                        showData={showRowGroups} />
+                                </Tab>
+                                <Tab eventKey="rowGroupsExtended" title={`Row Gr. 2ry (${Object.keys(rowGroupsExtended).length})`}>
                                     <TierWizard
                                         initialData={rowGroupsExtended}
                                         onComplete={(data, show) => { setRowGroupsExtended(data); setShowRowGroupsExtended(show); }}
