@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.171.1
+=======
+`PR 424 style: update text in sample category popover <https://github.com/smaht-dac/smaht-portal/pull/424>`_
+
+* Updates category popover in File View
+
+
 0.171.0
 =======
 `PR 421 SN DSA code <https://github.com/smaht-dac/smaht-portal/pull/421>`_
