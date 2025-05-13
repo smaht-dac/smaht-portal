@@ -5,7 +5,7 @@
             "smaht"
         ],
         "submitted_id": "TEST_TREATMENT_CHEMICAL",
-        "agents": ["CHEBI:17790"],
+        "agent": "CHEBI:17790",
         "concentration": 15,
         "concentration_units": "mg/mL",
         "duration": 5,
