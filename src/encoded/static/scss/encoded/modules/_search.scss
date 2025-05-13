@@ -200,6 +200,11 @@ $facetlist-excluding: #450000;
 						& > .facet-item {
 							color: #727272;
 							font-size: 0.813rem;
+
+							&.facet-item-group-header {
+								color: #3B3A3A;
+								font-weight: 500;
+							}
 						}
 						& > .facet-count {
 							color: #727272;
