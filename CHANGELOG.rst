@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.171.0
+=======
+`PR 421 SN DSA code <https://github.com/smaht-dac/smaht-portal/pull/421>`_
+
+* Make `code` in DonorSpecificAssembly not a unique key. The expected value for these will now be "DSA"
+
+
 0.170.1
 =======
 `PR 417 fix: update capitalization for retraction_reason property <https://github.com/smaht-dac/smaht-portal/pull/417>`_
