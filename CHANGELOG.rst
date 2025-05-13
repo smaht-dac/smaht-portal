@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.172.0
+=======
+`PR 422 SN Upgrade treatment <https://github.com/smaht-dac/smaht-portal/pull/422>`_
+
+* Add description property to Treatment
+
+
 0.171.0
 =======
 `PR 421 SN DSA code <https://github.com/smaht-dac/smaht-portal/pull/421>`_
