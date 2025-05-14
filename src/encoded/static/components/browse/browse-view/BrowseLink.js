@@ -1,8 +1,9 @@
 import React from 'react';
 import { BrowseLinkIcon } from './BrowseLinkIcon';
 
-export const BrowseLink = React.memo(function BrowseLink(props) {
+export const BrowseLink = (props) => {
     const { type, disabled } = props;
+    console.log('BrowseLink', type, disabled);
 
     if (disabled) {
         return (
@@ -19,9 +20,11 @@ export const BrowseLink = React.memo(function BrowseLink(props) {
     }
 
     return (
-        <a href={`/browse/?type=${type}`} className="browse-link">
+        <a
+            href={`/browse/?type=${type}&sample_summary.studies=Production&status=released`}
+            className="browse-link">
             <BrowseLinkIcon {...{ type }} />
             {type}
         </a>
     );
-});
+};

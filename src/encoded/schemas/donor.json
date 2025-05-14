@@ -109,15 +109,25 @@
         }
     },
     "facets": {
-        "sex": {
-            "title": "Sex"
+        "external_id": {
+            "title": "Donor ID"
         },
         "age": {
-            "title": "Age",
+            "title": "Donor Age",
             "aggregation_type": "stats"
+        },
+        "sex": {
+            "title": "Donor Sex"
+        },
+        "tissue.display_title": {
+            "title": "Tissue"
         },
         "submission_centers.display_title": {
             "title": "Submitted By"
+        },
+        "hardy_scale": {
+            "title": "Hardy Scale",
+            "aggregation_type": "stats"
         }
     },
     "columns": {
