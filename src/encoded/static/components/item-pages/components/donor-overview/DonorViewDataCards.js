@@ -1,6 +1,6 @@
 'use strict';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     bytesToLargerUnit,
     capitalize,
@@ -14,62 +14,8 @@ import {
     PopoverHeader,
     PopoverBody,
 } from 'react-bootstrap';
-
-/**
- * Renders a card titled `header` and rows corresponding with entries in `data`.
- * @param {string} header title for the group of data contained in the card
- * @param {Array} data array of objects containing a field's title and value
- */
-export const DataCard = ({ header = '', data = [] }) => {
-    return (
-        <div className="data-card">
-            <div className="header">
-                <span className="header-text">{header}</span>
-            </div>
-            <div className="body">
-                {data.map(({ title, value = null, titlePopover = null }, i) => {
-                    return (
-                        <div className="datum" key={i}>
-                            <div className="datum-title">
-                                <span>{title}</span>
-                                {titlePopover && (
-                                    <OverlayTrigger
-                                        trigger={['hover', 'focus']}
-                                        overlay={titlePopover}
-                                        placement="left"
-                                        flip={true}
-                                        popperConfig={{
-                                            modifiers: [
-                                                {
-                                                    name: 'flip',
-                                                    options: {
-                                                        fallbackPlacements: [
-                                                            'right',
-                                                            'bottom',
-                                                            'top',
-                                                        ],
-                                                    },
-                                                },
-                                            ],
-                                        }}>
-                                        <i className="icon icon-info-circle fas ms-1"></i>
-                                    </OverlayTrigger>
-                                )}
-                            </div>
-                            <div
-                                className={
-                                    'datum-value' +
-                                    (value === null ? ' coming-soon' : '')
-                                }>
-                                {value ?? 'N/A'}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
-    );
-};
+import { DataCard } from '../file-overview/FileViewDataCards';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 /**
  * Below are arrays of file property objects with `title` and `getProp`, a
@@ -288,105 +234,191 @@ function renderDescriptionPopover() {
     );
 }
 
-const default_sample_information = [
-    {
-        title: 'Description',
-        getProp: (context = {}) =>
-            context?.sample_summary?.sample_descriptions?.join(', '),
-        titlePopover: renderDescriptionPopover(),
-    },
-    {
-        title: 'Study',
-        getProp: (context = {}) => context?.sample_summary?.studies?.join(', '),
-    },
+const default_donor_information = [
     {
         title: 'Donor ID',
-        getProp: (context = {}) =>
-            context?.sample_summary?.donor_ids?.join(', '),
+        getProp: (context = {}) => context?.external_id,
     },
     {
-        title: 'Tissue Type',
-        getProp: (context = {}) => context?.sample_summary?.tissues?.join(', '),
+        title: 'Age',
+        getProp: (context = {}) => context?.age,
     },
     {
-        title: 'Tissue Subtype',
-        getProp: (context = {}) => {
-            // Show if different from tissue type
-            const tissue_type = context?.sample_summary?.tissues
-                ?.join(', ')
-                ?.toLowerCase();
-            const tissue_subtype = context?.sample_summary?.tissue_subtypes
-                ?.join(', ')
-                ?.toLowerCase();
-
-            return tissue_subtype && tissue_subtype !== tissue_type
-                ? capitalize(tissue_subtype)
-                : null;
-        },
+        title: 'Sex',
+        getProp: (context = {}) => context?.sex,
     },
     {
-        title: 'Tissue Details',
-        getProp: (context = {}) => {
-            // Show if different from tissue type AND tissue details
-            const tissue_type = context?.sample_summary?.tissues
-                ?.join(', ')
-                ?.toLowerCase();
-            const tissue_subtype = context?.sample_summary?.tissue_subtypes
-                ?.join(', ')
-                .toLowerCase();
-            const tissue_details = context?.sample_summary?.tissue_details
-                ?.join(', ')
-                ?.toLowerCase();
-
-            return tissue_details &&
-                tissue_details !== tissue_type &&
-                tissue_details !== tissue_subtype
-                ? capitalize(tissue_details)
-                : null;
-        },
+        title: 'Hardy Scale',
+        getProp: (context = {}) => context?.hardy_scale,
     },
     {
-        title: 'Analyte',
-        getProp: (context = {}) =>
-            context?.sample_summary?.analytes?.join(', '),
+        title: 'Tier',
+        getProp: (context = {}) => {},
     },
 ];
+
+const default_data_summary = [
+    {
+        title: 'Donor ID',
+        getProp: (context = {}) => context?.external_id,
+    },
+];
+
+const DonorStatistics = ({ context, fileSearchURL = '' }) => {
+    const [statisticValues, setStatisticValues] = useState({
+        tissues: context?.tissues?.length,
+        assays: null,
+        files: null,
+    });
+
+    useEffect(() => {
+        // load value from searchUrl if not provided
+        ajax.load(
+            fileSearchURL,
+            (resp) => {
+                // console.log(
+                //     'Response for: ',
+                //     title,
+                //     resp?.facets
+                //         ?.find(
+                //             (facet) =>
+                //                 facet.field ===
+                //                 'file_sets.libraries.assay.display_title'
+                //         )
+                //         ?.original_terms.reduce((acc, t) => {
+                //             return acc + t.doc_count;
+                //         }, 0)
+                // );
+                setStatisticValues({
+                    ...statisticValues,
+                    assays: resp?.facets
+                        ?.find(
+                            (facet) =>
+                                facet.field ===
+                                'file_sets.libraries.assay.display_title'
+                        )
+                        ?.original_terms.reduce((acc, t) => {
+                            return acc + t.doc_count;
+                        }, 0),
+                    files: resp['@graph']?.length,
+                });
+            },
+            'GET'
+        );
+    }, []);
+
+    return (
+        <div className="data-summary d-flex flex-column gap-3">
+            <div className="d-flex gap-3">
+                <div className="donor-statistic tissues d-flex flex-column p-2 gap-2">
+                    <div className="donor-statistic-label text-center">
+                        <i className="icon icon-lungs fas"></i>Tissues
+                    </div>
+                    <div className="donor-statistic-value text-center">
+                        {statisticValues?.tissues ? (
+                            <span>{statisticValues.tissues}</span>
+                        ) : (
+                            <i className="icon icon-circle-notch icon-spin fas" />
+                        )}
+                    </div>
+                </div>
+                <div className="donor-statistic assays d-flex flex-column p-2 gap-2">
+                    <div className="donor-statistic-label text-center">
+                        <i className="icon icon-dna fas"></i>Assays
+                    </div>
+                    <div className="donor-statistic-value text-center">
+                        {statisticValues?.assays ? (
+                            <span>{statisticValues.assays}</span>
+                        ) : (
+                            <i className="icon icon-circle-notch icon-spin fas" />
+                        )}
+                    </div>
+                </div>
+                <div className="donor-statistic files d-flex flex-column p-2 gap-2">
+                    <div className="donor-statistic-label text-center">
+                        <i className="icon icon-file fas"></i>Files
+                    </div>
+                    <div className="donor-statistic-value text-center">
+                        {statisticValues?.files ? (
+                            <span>{statisticValues?.files}</span>
+                        ) : (
+                            <i className="icon icon-circle-notch icon-spin fas" />
+                        )}
+                    </div>
+                </div>
+            </div>
+            <div className="datum">
+                <div className="datum-title">
+                    <span>Bulk WGS Coverage</span>
+                </div>
+                <div className="datum-value">-</div>
+            </div>
+            <div className="datum">
+                <div className="datum-title">
+                    <span>DSA</span>
+                </div>
+                <div className="datum-value">-</div>
+            </div>
+        </div>
+    );
+};
 
 /**
  * Parent component for the data cards containing information on the file.
  * @param {object} context the context of the item being viewed
  */
-export const FileViewDataCards = ({ context = {} }) => {
-    let file_properties = default_file_properties;
-    let data_information = default_data_information;
-    let sample_information = default_sample_information;
+export const DonorViewDataCards = ({ context = {} }) => {
+    const [FileData, setFileData] = useState(null);
+    let donor_information = default_donor_information;
+    // let data_summary = default_data_summary;
+    // let lifestyle_information = default_lifestyle_information;
+    // let prior_diagnosis_information = default_prior_diagnosis_information;
 
     return (
-        <div className="data-cards-container">
-            <DataCard
-                header={'File Properties'}
-                data={file_properties.map(({ title, getProp }) => {
-                    return { title, value: getProp(context) };
-                })}
-            />
-            <DataCard
-                header={'Data Information'}
-                data={data_information.map(({ title, getProp }) => {
-                    return { title, value: getProp(context) };
-                })}
-            />
-            <DataCard
-                header={'Sample Information'}
-                data={sample_information.map(
-                    ({ title, getProp, titlePopover }) => {
-                        return {
-                            title,
-                            value: getProp(context),
-                            titlePopover,
-                        };
-                    }
-                )}
-            />
+        <div className="data-cards-container d-flex">
+            <div className="cards-left d-flex flex-column gap-4">
+                <DataCard
+                    header={'Donor Information'}
+                    data={donor_information.map(({ title, getProp }) => {
+                        return { title, value: getProp(context) };
+                    })}
+                />
+                <div className="data-card">
+                    <div className="header">
+                        <span className="header-text">Data Summary</span>
+                    </div>
+                    <div className="body">
+                        <DonorStatistics
+                            context={context}
+                            fileSearchURL={`/search/?type=File&donors.display_title=${context?.display_title}`}
+                        />
+                    </div>
+                </div>
+                <div className="d-flex gap-2">
+                    <div className="data-card">
+                        <div className="header">
+                            <div className="header-text">
+                                Exposure: Tobacco & Alcohol
+                            </div>
+                        </div>
+                        <div className="body"></div>
+                    </div>
+                    <div className="data-card">
+                        <div className="header">
+                            <div className="header-text">Prior Diagnosis</div>
+                        </div>
+                        <div className="body"></div>
+                    </div>
+                </div>
+            </div>
+            <div className="cards-right d-flex flex-grow-1">
+                <DataCard
+                    header={'Tissue x Assay Data Matrix'}
+                    // data={default_file_properties.map(({ title, getProp }) => {
+                    //     return { title, value: getProp(context) };
+                    // })}
+                />
+            </div>
         </div>
     );
 };
