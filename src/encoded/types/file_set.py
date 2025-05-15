@@ -66,8 +66,8 @@ def _build_file_set_embedded_list():
         "libraries.analytes.samples.sample_sources.code",
         "libraries.analytes.samples.sample_sources.uberon_id",
         "libraries.analytes.samples.sample_sources.cell_line.code",
+        "libraries.analytes.samples.sample_sources.uberon_id",
         "libraries.analytes.samples.sample_sources.donor.display_title",
-
 
         # Sequencing/Sequencer LinkTo - used in file_merge_group
         "sequencing.submitted_id",
@@ -84,7 +84,7 @@ def _build_file_set_embedded_list():
         "files.file_format.display_title",
         "files.file_status_tracking",
         "files.quality_metrics.overall_quality_status",
-        
+
         "meta_workflow_runs.meta_workflow.display_title",
         "meta_workflow_runs.meta_workflow.category",
         "meta_workflow_runs.accession",
@@ -337,8 +337,8 @@ def validate_compatible_assay_and_sequencer_on_edit(context, request):
 
 def check_compatible_assay_and_sequencer(request, libraries: List[str], sequencing: str):
     """Checks that if library.assay has a valid_sequencer property, that sequencing.sequencer is among them.
-    
-    The assays with `valid_sequencers` property may need to be updated as new techologies come out 
+
+    The assays with `valid_sequencers` property may need to be updated as new techologies come out
     or are added to the portal.
     """
     assays = []

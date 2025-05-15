@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "Starting SMAHT Ingester"
+echo "Starting SMAHT Ingester (test)"
 
 # Run assume_identity.py to access the desired deployment configuration from
 # secrets manager - this builds production.ini
