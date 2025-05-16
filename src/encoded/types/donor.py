@@ -25,6 +25,23 @@ from ..item_utils import (
     donor as donor_utils
 )
 
+def _build_donor_embedded_list():
+    """Embeds for search on libraries."""
+    return [
+        "medical_history.exposures.category",
+        "medical_history.exposures.cessation",
+        "medical_history.exposures.cessation_duration",
+        "medical_history.exposures.duration",
+        "medical_history.exposures.frequency_category"
+        "medical_history.exposures.quanitity",
+        "medical_history.exposures.quanitity_unit"
+        "medical_history.cancer_history",
+        "medical_history.cancer_type",
+        "medical_history.family_ovarian_pancreatic_prostate_cancer",
+        "medical_history.alcohol_use",
+        "medical_history.tobacco_use"
+    ]
+
 
 @collection(
     name="donors",
@@ -36,13 +53,14 @@ from ..item_utils import (
 class Donor(SubmittedItem):
     item_type = "donor"
     schema = load_schema("encoded:schemas/donor.json")
-    embedded_list = []
+    embedded_list = _build_donor_embedded_list()
 
     class Collection(Item.Collection):
         pass
 
     rev = {
         "tissues": ("Tissue", "donor"),
+        "medical_history": ("MedicalHistory", "donor"),
     }
 
     @calculated_property(
@@ -57,6 +75,18 @@ class Donor(SubmittedItem):
     )
     def tissues(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "tissues")
+        if result:
+            return result
+        return
+
+    @calculated_property(
+        schema={
+            "title": "Medical History",
+            "type": "string"
+        },
+    )
+    def medical_history(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "medical_history")
         if result:
             return result
         return
