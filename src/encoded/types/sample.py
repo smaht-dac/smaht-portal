@@ -37,9 +37,6 @@ class Sample(SubmittedItem):
         "sample_sources.uberon_id.identifier",
         "sample_sources.volume",
         "sample_sources.weight",
-
-        #from Cell Sample
-        "parent_samples.accession", # do we want this?
  
         # from CellCulture
         "sample_sources.culture_duration",
