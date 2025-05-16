@@ -9,7 +9,8 @@
         "age": 65,
         "sex": "Female",
         "hardy_scale": 3,
-        "tpc_submitted": "True"
+        "tpc_submitted": "True",
+        "status": "released"
     },
     {
         "uuid": "637232c9-4008-462c-9b2f-bfc376db641e",
