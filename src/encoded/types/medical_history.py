@@ -13,15 +13,7 @@ from ..item_utils import exposure as exposure_utils
 
 def _build_medical_history_embedded_list():
     """Embeds for search on libraries."""
-    return [
-        # "exposure.category",
-        # "exposure.cessation",
-        # "exposure.cessation_duration",
-        # "exposure.duration",
-        # "exposure.frequency_category"
-        # "exposure.quanitity",
-        # "exposure.quanitity_unit"
-    ]
+    return []
 
 
 @collection(

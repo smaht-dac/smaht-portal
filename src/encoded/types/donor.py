@@ -32,14 +32,14 @@ def _build_donor_embedded_list():
         "medical_history.exposures.cessation",
         "medical_history.exposures.cessation_duration",
         "medical_history.exposures.duration",
-        "medical_history.exposures.frequency_category"
-        "medical_history.exposures.quanitity",
-        "medical_history.exposures.quanitity_unit"
+        "medical_history.exposures.frequency_category",
+        "medical_history.exposures.quantity",
+        "medical_history.exposures.quantity_unit",
         "medical_history.cancer_history",
         "medical_history.cancer_type",
         "medical_history.family_ovarian_pancreatic_prostate_cancer",
         "medical_history.alcohol_use",
-        "medical_history.tobacco_use"
+        "medical_history.tobacco_use",
     ]
 
 
@@ -82,7 +82,11 @@ class Donor(SubmittedItem):
     @calculated_property(
         schema={
             "title": "Medical History",
-            "type": "string"
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "MedicalHistory",
+            },
         },
     )
     def medical_history(self, request: Request) -> Union[List[str], None]:
