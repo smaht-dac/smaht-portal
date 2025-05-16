@@ -66,7 +66,7 @@
             "pattern": "^[A-Z0-9]{3,}_TREATMENT_[A-Z0-9-_.]{4,}$"
         },
         "agent": {
-            "title": "Agents",
+            "title": "Agent",
             "description": "Agent applied in the treatment",
             "type": "string"
         },
