@@ -108,7 +108,7 @@ export const MetricsByFile = ({ qcData, settings, preselectedFile }) => {
 
     const warning =
         preselectedFile && !Object.keys(files).includes(preselectedFile) ? (
-            <div className="alert alert-warning qc-metrics-alert-warning">
+            <div className="alert alert-danger qc-metrics-alert-danger">
                 <i className="icon icon-exclamation-triangle fas icon-fw" />{" "}
                 Visualizations for this file are not yet available.
             </div>
