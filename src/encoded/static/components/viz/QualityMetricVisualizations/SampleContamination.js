@@ -46,7 +46,7 @@ export const SampleContamination = ({ qcData, preselectedFile }) => {
                 if(!problematicFiles.includes(preselectedFile)){
                     result.successMessages.push(
                         <span>
-                            <i className="icon icon-info-circle fas icon-fw" />{' '}
+                            <i className="icon icon-check fas icon-fw" />{' '}
                             File <strong>{preselectedFile}</strong> passed the sample integrity check.
                         </span>
                     );
@@ -64,7 +64,7 @@ export const SampleContamination = ({ qcData, preselectedFile }) => {
             result.warnings.push(
                 <span>
                     <i className="icon icon-exclamation-triangle fas icon-fw" />{' '}
-                    Sample integrity results were not found for the selected
+                    Sample integrity results are not yet available for the selected
                     file.
                 </span>
             );
@@ -91,7 +91,7 @@ export const SampleContamination = ({ qcData, preselectedFile }) => {
 
     const warningsDisplay =
         warnings.length > 0 ? (
-            <div className="alert alert-danger">
+            <div className="alert alert-danger qc-metrics-alert-danger">
                 {warnings.map((w, index) => (
                     <div key={index}>{w}</div>
                 ))}
@@ -102,7 +102,7 @@ export const SampleContamination = ({ qcData, preselectedFile }) => {
 
     const successMessagesDisplay =
         successMessages.length > 0 ? (
-            <div className="alert alert-success">
+            <div className="alert alert-success qc-metrics-alert-success">
                 {successMessages.map((w, index) => (
                     <div key={index}>{w}</div>
                 ))}

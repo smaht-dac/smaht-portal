@@ -1051,6 +1051,20 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
     }
 }
 
+.qc-metrics-alert-success{
+    background-color: #F0FBF0;
+    border-color: #BCDCBC;
+
+}
+.qc-metrics-alert-warning{
+    background-color: #FFF8D0;
+    border-color: #E7D890;
+    color: #723E02;
+}
+.qc-metrics-alert-danger{
+    background-color: #FFE7E2;
+}
+
 .boxplot-canvas,
 .scatterplot-canvas {
     .boxplot-svg,
