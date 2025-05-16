@@ -51,10 +51,18 @@ SINGLE_CELL_ASSAY_CODES = [
     '016', '012', '014', '105', '104', '103', '013', '011', '010'
 ]
 
+
 def _build_file_set_embedded_list():
     """Embeds for search on file sets."""
     return [
         "submission_centers.identifier",
+
+        # * embeds to be replaced later for the experimental manifest
+        "libraries.*",
+        "libraries.library_preparation.*",
+        "libraries.analytes.*",
+        "libraries.analytes.analyte_preparation.*",
+
 
         # Assay LinkTo - used in file_merge_group
         "libraries.assay.code",
