@@ -15,4 +15,6 @@ class SampleSource(SubmittedItem):
     item_type = "sample_source"
     base_types = ["SampleSource"] + SubmittedItem.base_types
     schema = load_schema("encoded:schemas/sample_source.json")
-    embedded_list = []
+    embedded_list = [
+        'donor.accession'
+    ]
