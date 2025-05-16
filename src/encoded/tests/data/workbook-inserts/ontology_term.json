@@ -4,13 +4,15 @@
         "identifier": "UBERON:0002107",
         "ontologies": ["UBERON"],
         "title": "liver",
+        "grouping_term": "UBERON:0000925",
         "consortia": [
             "smaht"
         ],
         "preferred_name": "Liver",
         "tags":[
             "test_terms",
-            "test_top_terms-Liver"
+            "test_top_terms-Liver",
+            "tissue_type"
         ]
     },
     {
@@ -18,10 +20,14 @@
         "identifier": "UBERON:0002048",
         "ontologies": ["UBERON"],
         "title": "lung",
+        "grouping_term": "UBERON:0000925",
         "consortia": [
             "smaht"
         ],
-        "preferred_name": "Lung"
+        "preferred_name": "Lung",
+        "tags": [
+            "tissue_type"
+        ]
     },
     {
         "uuid": "8cb0c4e5-af9e-44c6-b625-ea489c715dc6",
@@ -36,7 +42,8 @@
         ],
         "tags":[
             "test_terms",
-            "test_top_terms-Lung"
+            "test_top_terms-Lung",
+            "tissue_subtype"
         ],
         "valid_protocol_ids": ["3Q","3R","1D"]
     },
@@ -49,17 +56,50 @@
             "smaht"
         ],
         "preferred_name": "Brain",
-        "valid_protocol_ids": ["3AJ"]
+        "valid_protocol_ids": ["3AJ"],
+        "tags": [
+            "tissue_type"
+        ]
     },
     {
         "uuid": "5e29be07-5cd0-4194-b614-87cdc48e8f1f",
         "identifier": "UBERON:0000178",
         "ontologies": ["UBERON"],
         "title": "blood",
+        "grouping_term": "UBERON:0000926",   
         "consortia": [
             "smaht"
         ],
         "preferred_name": "Blood",
-         "valid_protocol_ids": ["3A"]
+        "valid_protocol_ids": ["3A"],
+        "tags": [
+            "tissue_type"
+        ]
+    },
+    {
+        "uuid": "b20b2257-1d5b-4015-8182-cce79e4f6235",
+        "identifier": "UBERON:0000925",
+        "ontologies": ["UBERON"],
+        "title": "endoderm",
+        "consortia": [
+            "smaht"
+        ],
+        "preferred_name": "Endoderm",
+        "tags": [
+            "germ_layer"
+        ]
+    },
+    {
+        "uuid": "b20b2257-1d5b-4015-8182-cce79e4f6235",
+        "identifier": "UBERON:0000926",
+        "ontologies": ["UBERON"],
+        "title": "mesoderm",
+        "consortia": [
+            "smaht"
+        ],
+        "preferred_name": "mesoderm",
+        "tags": [
+            "germ_layer"
+        ]
     }
 ]
