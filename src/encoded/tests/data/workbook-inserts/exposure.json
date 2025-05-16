@@ -11,8 +11,8 @@
         "cessation": "No",
         "duration": 30,
         "frequency_category": "Social",
-        "quanity": 1,
-        "quanity_unit": "Drink Per Day"
+        "quantity": 1,
+        "quantity_unit": "Drink Per Day"
     },
     {
         "uuid": "da8aac95-64fe-4eda-96b8-ad80e62d2e29",
