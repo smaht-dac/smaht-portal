@@ -14,6 +14,14 @@
         "submitted_id",
         "uuid"
     ],
+    "dependentRequired": {
+        "concentration": [
+            "concentration_units"
+        ],
+        "concentration_units": [
+            "concentration"
+        ]
+    },
     "additionalProperties": false,
     "mixinProperties": [
         {
@@ -21,6 +29,9 @@
         },
         {
             "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/description"
         },
         {
             "$ref": "mixins.json#/modified"
@@ -56,7 +67,7 @@
         },
         "agent": {
             "title": "Agent",
-            "description": "Agent in the treatment",
+            "description": "Agent applied in the treatment",
             "type": "string"
         },
         "concentration": {
@@ -83,6 +94,10 @@
                 "units",
                 "units/mL"
             ]
+        },
+        "description": {
+            "description": "Description of the treatment",
+            "type": "string"
         },
         "duration": {
             "title": "Duration",
