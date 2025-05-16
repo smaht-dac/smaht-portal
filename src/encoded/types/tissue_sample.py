@@ -36,9 +36,7 @@ from ..item_utils import (
 def _build_tissue_sample_embedded_list() -> List[str]:
     return [
         # Columns/facets for search
-        "sample_sources.external_id",
-        "sample_sources.donor.external_id",
-        "sample_sources.donor.accession",
+        "sample_sources.donor.external_id"
     ]
 
 

@@ -18,7 +18,8 @@ class Sample(SubmittedItem):
     embedded_list = [
         #"sample_sources.*",  # this will capture everything of note for the manifest file
         #"sample_sources.donor.*"
-        # Specific embeds
+
+        # Specific embeds for sample manifest
         "sample_sources.donor.accession",
         "sample_sources.description",
         "sample_sources.external_id",
@@ -29,7 +30,7 @@ class Sample(SubmittedItem):
         "sample_sources.ph",
         "sample_sources.preservation_medium",
         "sample_sources.preservation_type",
-        "sample_sources.prosecutor_notes",
+        "sample_sources.prosector_notes",
         "sample_sources.sample_count",
         "sample_sources.size",
         "sample_sources.size_unit",
@@ -37,6 +38,9 @@ class Sample(SubmittedItem):
         "sample_sources.volume",
         "sample_sources.weight",
 
+        #from Cell Sample
+        "parent_samples.accession", # do we want this?
+ 
         # from CellCulture
         "sample_sources.culture_duration",
         "sample_sources.culture_harvest_date",
