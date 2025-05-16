@@ -14,4 +14,4 @@ from .sample import Sample
 class CellSample(Sample):
     item_type = "cell_sample"
     schema = load_schema("encoded:schemas/cell_sample.json")
-    embedded_list = []
+    embedded_list = embedded_list = Sample.embedded_list

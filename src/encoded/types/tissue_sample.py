@@ -53,7 +53,7 @@ def _build_tissue_sample_embedded_list() -> List[str]:
 class TissueSample(Sample):
     item_type = "tissue_sample"
     schema = load_schema("encoded:schemas/tissue_sample.json")
-    embedded_list = _build_tissue_sample_embedded_list()
+    embedded_list = Sample.embedded_list + _build_tissue_sample_embedded_list()
 
     class Collection(Item.Collection):
         pass
