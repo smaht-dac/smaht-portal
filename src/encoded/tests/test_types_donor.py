@@ -11,7 +11,18 @@ from .utils import (
     get_item,
     patch_item,
     post_item,
+    get_search
 )
+
+@pytest.mark.workbook
+def test_medical_history_rev_link(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure medical_history rev link works."""
+    donor_search = get_search(
+        es_testapp,
+        "?type=Donor&medical_history!=No+value"
+    )
+    assert donor_search
+
 
 @pytest.mark.workbook
 @pytest.mark.parametrize(
