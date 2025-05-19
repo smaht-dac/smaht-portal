@@ -192,7 +192,7 @@ export default class DataMatrix extends React.PureComponent {
 
         const commonCallback = (result) => {
             const { valueChangeMap } = this.props;
-            const { fieldChangeMap } = this.state;
+            const { fieldChangeMap, groupingProperties, autoPopulateRowGroupsProperty } = this.state;
             const resultKey = "_results";
             const updatedState = {};
 
@@ -225,6 +225,13 @@ export default class DataMatrix extends React.PureComponent {
 
                             return cloned;
                         }));
+                }
+                if (autoPopulateRowGroupsProperty && r[autoPopulateRowGroupsProperty]) {
+                    const rowGroupKey = r[autoPopulateRowGroupsProperty];
+                    if (!populatedRowGroups[rowGroupKey]) {
+                        populatedRowGroups[rowGroupKey] = [];
+                    }
+                    populatedRowGroups[rowGroupKey].push(r[groupingProperties[0]]);
                 }
             });
 
