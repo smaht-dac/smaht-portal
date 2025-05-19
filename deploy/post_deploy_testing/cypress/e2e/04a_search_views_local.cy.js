@@ -160,11 +160,11 @@ describe('Deployment/CI Search View Tests', function () {
                 .click({ force: true }).should('have.class', 'active').end()
                 .get('.tabs-bar-outer > .tabs-bar > a.tab-item[data-tab-for="file-overview"]')
                 .click({ force: true }).should('have.class', 'active').end();
-        })
+        });
 
         it('Verifies that the data-status of the status indicator dot and status group are equal', function () {
             cy.get('.status-indicator-dot').invoke('data', 'status').then((indicatorStatus) => {
-                cy.get('.status-group').invoke('data', 'status').then((groupStatus) => {
+                cy.get('.status-group i.status-indicator-dot').invoke('data', 'status').then((groupStatus) => {
                     expect(indicatorStatus).to.equal(groupStatus);
                 });
             });
@@ -178,7 +178,7 @@ describe('Deployment/CI Search View Tests', function () {
             cy.document().then((doc) => {
                 const iconExists = doc.querySelectorAll('.tab-router .dot-tab-nav-list i.icon-exclamation-triangle').length > 0;
 
-                let dataExists = false
+                let dataExists = false;
                 const resultCountElem = doc.querySelector('#results-count');
                 if (resultCountElem && parseInt(resultCountElem.textContent) > 0) {
                     dataExists = true;
