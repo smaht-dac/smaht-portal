@@ -274,10 +274,14 @@ export default class DataMatrix extends React.PureComponent {
 
                 const searchQueryParams = { field: [], type: 'SubmittedFile', limit: 'all' };
 
+                console.log('xxx rowAggFields:', rowAggFields);
+                console.log('xxx queryParamsByUrl:', queryParamsByUrl);
                 _.forEach(rowAggFields || [], function (f) {
                     if (typeof f === 'string'){
                         searchQueryParams.field.push(f);
-                        searchQueryParams[f + '!'] = "No value";
+                        if (!searchQueryParams[f]) {
+                            searchQueryParams[f + '!'] = "No value";
+                        }
                     } else {
                         searchQueryParams.field.push(...f);
                         searchQueryParams[f[0] + '!'] = "No value";
@@ -285,7 +289,7 @@ export default class DataMatrix extends React.PureComponent {
                 });
                 _.forEach(colAggFields || [], function (f, idx) {
                     searchQueryParams.field.push(f);
-                    if (idx === 0) {
+                    if (idx === 0 && !searchQueryParams[f]) {
                         searchQueryParams[f + '!'] = "No value";
                     }
                 });
