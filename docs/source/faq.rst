@@ -73,7 +73,7 @@ When trying to upload files to the data portal using smaht-submitr, I get the fo
 
 There are a couple of things to check:
 
-1. Confirm that the ``submission_uuid`` you are using is correct. It is very easy to truncate your UUID by a couple of characters when copying and pasting it.
+1. Confirm that the ``submission_uuid`` you are using is correct. When copying and pasting, it is very easy to truncate your UUID by a couple of characters when copying and pasting it.
 2. Ensure that your credentials are up-to-date. Credentials expire every 30 days, so if you have not submitted metadata recently, it is likely that your credentials expired, resulting in that error.
 
 
