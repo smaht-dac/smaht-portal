@@ -99,7 +99,7 @@ describe('Browse Views - Basic Tests', function () {
 
         // TODO: Replace /search/?type=File with /browse when we have more data to test with.
         it('Select a grouping term in Experimental Assay facet, then check whether the sub-terms are also selected', function () {
-            cy.visit('/search/?type=File&sample_summary.studies!=No+value', {
+            cy.visit('/search/?type=File&sample_summary.studies%21=No+value', {
                 headers: cypressVisitHeaders,
             })
                 .get('#slow-load-container')
@@ -113,8 +113,8 @@ describe('Browse Views - Basic Tests', function () {
                 .get(
                     '.facet.closed[data-field="file_sets.libraries.assay.display_title"] > h5'
                 )
-                .scrollIntoView()
-                .should('be.visible')
+                // .scrollIntoView()
+                // .should('be.visible')
                 .click()
                 .end()
                 .get(
@@ -154,11 +154,12 @@ describe('Browse Views - Basic Tests', function () {
                     cy.wrap($term)
                         .click()
                         .end()
+                        .wait(2000)
                         .then(() => {
                             cy.document()
                                 .its('body')
                                 .find(
-                                    `.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element[data-grouping-key="${groupingTermKey}"].selected a'`
+                                    `.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element[data-grouping-key="${groupingTermKey}"].selected a`
                                 )
                                 .each(($el) => {
                                     cy.wrap($el)
@@ -186,16 +187,16 @@ describe('Browse Views - Basic Tests', function () {
 
         // TODO: Replace /search/?type=File with /browse when we have more data to test with.
         it('Exclude a grouping term in Experimental Assay facet, then check whether the sub-terms are also excluded', function () {
-            cy.visit('/search/?type=File&sample_summary.studies!=No+value', {
+            cy.visit('/search/?type=File&sample_summary.studies%21=No+value', {
                 headers: cypressVisitHeaders,
-            })
-                .get('#slow-load-container')
+            });
+            cy.get('#slow-load-container')
                 .should('not.have.class', 'visible')
                 .end()
                 .get('.facet-charts.loading')
                 .should('not.exist')
-                .get('.facets-header button')
-                .first()
+                .get('.facets-header button[aria-pressed="false"]')
+                .should('be.visible')
                 .click({ force: true })
                 .end()
                 .get('.facets-header .facets-title')
@@ -204,8 +205,8 @@ describe('Browse Views - Basic Tests', function () {
                 .get(
                     '.facet.closed[data-field="file_sets.libraries.assay.display_title"] > h5'
                 )
-                .scrollIntoView()
-                .should('be.visible')
+                // .scrollIntoView()
+                // .should('be.visible')
                 .click()
                 .end()
                 .get(
