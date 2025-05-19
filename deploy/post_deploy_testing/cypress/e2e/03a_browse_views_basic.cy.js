@@ -195,9 +195,10 @@ describe('Browse Views - Basic Tests', function () {
                 .end()
                 .get('.facet-charts.loading')
                 .should('not.exist')
-                .get('.facets-header button[aria-pressed="false"]')
+                .get('.facets-header button')
+                .eq(1)
                 .should('be.visible')
-                .click({ force: true })
+                .click()
                 .end()
                 .get('.facets-header .facets-title')
                 .should('have.text', 'Excluded Properties')
@@ -212,7 +213,7 @@ describe('Browse Views - Basic Tests', function () {
                 .get(
                     '.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element[data-is-grouping="true"] a'
                 )
-                .eq(1)
+                .eq(0)
                 .within(($term) => {
                     const subTerms = [];
                     const subTermsSelected = [];
