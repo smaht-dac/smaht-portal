@@ -196,7 +196,7 @@ export default class DataMatrix extends React.PureComponent {
             const resultKey = "_results";
             const updatedState = {};
 
-            updatedState[resultKey] = location.hostname.indexOf('localhost') >= 0 ? TEST_DATA : result;
+            updatedState[resultKey] = location.hostname.indexOf('localhostx') >= 0 ? TEST_DATA : result;
             let transfermedData = [];
             const populatedRowGroups =  {}; // not implemented yet
             _.forEach(updatedState[resultKey], (r) => {
@@ -274,22 +274,22 @@ export default class DataMatrix extends React.PureComponent {
 
                 const searchQueryParams = { field: [], type: 'SubmittedFile', limit: 'all' };
 
-                console.log('xxx rowAggFields:', rowAggFields);
-                console.log('xxx queryParamsByUrl:', queryParamsByUrl);
                 _.forEach(rowAggFields || [], function (f) {
                     if (typeof f === 'string'){
                         searchQueryParams.field.push(f);
-                        if (!searchQueryParams[f]) {
+                        if (!queryParamsByUrl[f]) {
                             searchQueryParams[f + '!'] = "No value";
                         }
                     } else {
                         searchQueryParams.field.push(...f);
-                        searchQueryParams[f[0] + '!'] = "No value";
+                        if (!queryParamsByUrl[f[0]]) {
+                            searchQueryParams[f[0] + '!'] = "No value";
+                        }
                     }
                 });
                 _.forEach(colAggFields || [], function (f, idx) {
                     searchQueryParams.field.push(f);
-                    if (idx === 0 && !searchQueryParams[f]) {
+                    if (idx === 0 && !queryParamsByUrl[f]) {
                         searchQueryParams[f + '!'] = "No value";
                     }
                 });
