@@ -96,5 +96,183 @@ describe('Browse Views - Basic Tests', function () {
         // TODO: Add facet filtering test when we have more data to test with.
 
         // TODO: Add file download test when we have more data to test with.
+
+        // TODO: Replace /search/?type=File with /browse when we have more data to test with.
+        it('Select a grouping term in Experimental Assay facet, then check whether the sub-terms are also selected', function () {
+            cy.visit('/search/?type=File&sample_summary.studies!=No+value', {
+                headers: cypressVisitHeaders,
+            })
+                .get('#slow-load-container')
+                .should('not.have.class', 'visible')
+                .end()
+                .get('.facet-charts.loading')
+                .should('not.exist')
+                .get('.facets-header .facets-title')
+                .should('have.text', 'Included Properties')
+                .end()
+                .get(
+                    '.facet.closed[data-field="file_sets.libraries.assay.display_title"] > h5'
+                )
+                .scrollIntoView()
+                .should('be.visible')
+                .click()
+                .end()
+                .get(
+                    '.facet.open[data-field="file_sets.libraries.assay.display_title"] .facet-list-element[data-is-grouping="true"] a'
+                )
+                .first()
+                .within(($term) => {
+                    const subTerms = [];
+                    const subTermsSelected = [];
+                    let groupingTermKey;
+                    cy.get('span.facet-item.facet-item-group-header')
+                        .then(function (termKey) {
+                            groupingTermKey = termKey.text();
+                            expect(groupingTermKey).to.not.be.empty;
+                            cy.root()
+                                .closest(
+                                    '.facet[data-field="file_sets.libraries.assay.display_title"]'
+                                )
+                                .find(
+                                    `.facet-list-element[data-grouping-key="${groupingTermKey}"] a`
+                                )
+                                .each(($el) => {
+                                    cy.wrap($el)
+                                        .find('span.facet-item')
+                                        .then(function (termKey) {
+                                            const subTermKey = termKey.text();
+                                            subTerms.push(subTermKey);
+                                            expect(subTermKey).to.not.be.empty;
+                                        })
+                                        .end();
+                                })
+                                .then(() => {
+                                    expect(subTerms.length).to.be.greaterThan(0);
+                                });
+                        })
+                        .end();
+                    cy.wrap($term)
+                        .click()
+                        .end()
+                        .then(() => {
+                            cy.document()
+                                .its('body')
+                                .find(
+                                    `.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element[data-grouping-key="${groupingTermKey}"].selected a'`
+                                )
+                                .each(($el) => {
+                                    cy.wrap($el)
+                                        .find('span.facet-item')
+                                        .then(function (termKey) {
+                                            const subTermKey = termKey.text();
+                                            subTermsSelected.push(subTermKey);
+                                            expect(subTermKey).to.not.be.empty;
+                                        })
+                                        .end();
+                                })
+                                .then(() => {
+                                    expect(subTerms.length).to.equal(
+                                        subTermsSelected.length
+                                    );
+                                    cy.wrap(subTerms).should(
+                                        'deep.equal',
+                                        subTermsSelected
+                                    );
+                                });
+                        });
+                })
+                .end();
+        });
+
+        // TODO: Replace /search/?type=File with /browse when we have more data to test with.
+        it('Exclude a grouping term in Experimental Assay facet, then check whether the sub-terms are also excluded', function () {
+            cy.visit('/search/?type=File&sample_summary.studies!=No+value', {
+                headers: cypressVisitHeaders,
+            })
+                .get('#slow-load-container')
+                .should('not.have.class', 'visible')
+                .end()
+                .get('.facet-charts.loading')
+                .should('not.exist')
+                .get('.facets-header button')
+                .first()
+                .click({ force: true })
+                .end()
+                .get('.facets-header .facets-title')
+                .should('have.text', 'Excluded Properties')
+                .end()
+                .get(
+                    '.facet.closed[data-field="file_sets.libraries.assay.display_title"] > h5'
+                )
+                .scrollIntoView()
+                .should('be.visible')
+                .click()
+                .end()
+                .get(
+                    '.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element[data-is-grouping="true"] a'
+                )
+                .eq(1)
+                .within(($term) => {
+                    const subTerms = [];
+                    const subTermsSelected = [];
+                    let groupingTermKey;
+                    cy.get('span.facet-item.facet-item-group-header')
+                        .then(function (termKey) {
+                            groupingTermKey = termKey.text();
+                            expect(groupingTermKey).to.not.be.empty;
+                            cy.root()
+                                .closest(
+                                    '.facet[data-field="file_sets.libraries.assay.display_title"]'
+                                )
+                                .find(
+                                    `.facet-list-element[data-grouping-key="${groupingTermKey}"] a`
+                                )
+                                .each(($el) => {
+                                    cy.wrap($el)
+                                        .find('span.facet-item')
+                                        .then(function (termKey) {
+                                            const subTermKey = termKey.text();
+                                            subTerms.push(subTermKey);
+                                            expect(subTermKey).to.not.be.empty;
+                                        })
+                                        .end();
+                                })
+                                .then(() => {
+                                    expect(subTerms.length).to.be.greaterThan(0);
+                                });
+                        })
+                        .end();
+                    cy.wrap($term)
+                        .click()
+                        .end()
+                        .then(() => {
+                            cy.document()
+                                .its('body')
+                                .find(
+                                    `.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element[data-grouping-key="${groupingTermKey}"].omitted a`
+                                )
+                                .each(($el) => {
+                                    cy.wrap($el)
+                                        .find('span.facet-item')
+                                        .then(function (termKey) {
+                                            const subTermKey = termKey.text();
+                                            subTermsSelected.push(subTermKey);
+                                            expect(subTermKey).to.not.be.empty;
+                                        })
+                                        .end();
+                                })
+                                .then(() => {
+                                    expect(subTerms.length).to.equal(
+                                        subTermsSelected.length
+                                    );
+                                    cy.wrap(subTerms).should(
+                                        'deep.equal',
+                                        subTermsSelected
+                                    );
+                                });
+                        });
+                })
+                .end();
+        });
     });
 });
