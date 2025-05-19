@@ -276,7 +276,7 @@ describe('Benchmarking Layout Test', function () {
                 .get(".facets-header button").first().click({ force: true }).end()
                 .get(".facets-header .facets-title").should('have.text', 'Excluded Properties').end()
                 .get('.facet.closed[data-field="file_sets.libraries.assay.display_title"] > h5').scrollIntoView().should('be.visible').click().end()
-                .get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element a').first().within(($term) => {
+                .get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element:not([data-is-grouping="true"]) a').first().within(($term) => {
                     cy.get('span.facet-count').then((assayCount) => {
                         externalDataCount = parseInt(assayCount.text());
                         expect(externalDataCount).to.be.greaterThan(0);
