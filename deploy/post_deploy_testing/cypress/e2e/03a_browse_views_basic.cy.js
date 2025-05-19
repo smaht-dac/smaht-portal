@@ -154,7 +154,6 @@ describe('Browse Views - Basic Tests', function () {
                     cy.wrap($term)
                         .click()
                         .end()
-                        .wait(2000)
                         .then(() => {
                             cy.document()
                                 .its('body')
