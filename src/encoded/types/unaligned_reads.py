@@ -95,6 +95,7 @@ def check_read_pairs_paired_with(request, submitted_id: str, paired_with: Union[
         return request.validated.update({})
 
 
+@link_related_validator
 def validate_read_pairs_in_file_sets_on_add(context, request):
     """Check that the R1 and R2 files are linked to the same FileSet on add."""
     data = request.json
@@ -103,6 +104,7 @@ def validate_read_pairs_in_file_sets_on_add(context, request):
     return check_read_pairs_in_file_sets(request, data['submitted_id'], paired_with, file_sets)
 
 
+@link_related_validator
 def validate_read_pairs_in_file_sets_on_edit(context, request):
     """Check that the R1 and R2 files are linked to the same FileSet on edit."""
     existing_properties = get_properties(context)

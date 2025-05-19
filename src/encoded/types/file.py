@@ -649,7 +649,16 @@ class File(Item, CoreFile):
     def meta_workflow_run_inputs(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "meta_workflow_run_inputs")
         if result:
-            return result
+            request_handler = RequestHandler(request = request)
+            mwfrs=[ 
+                mwfr for mwfr in result
+                if get_property_value_from_identifier(
+                    request_handler,
+                    mwfr,
+                    item_utils.get_status
+                ) != "deleted"
+            ]
+            return mwfrs if mwfrs else None
         return
 
     @calculated_property(
@@ -666,7 +675,7 @@ class File(Item, CoreFile):
         result = self.rev_link_atids(request, "meta_workflow_run_outputs")
         if result:
             request_handler = RequestHandler(request = request)
-            mwfrs=[ 
+            mwfrs=[
                 mwfr for mwfr in result
                 if get_property_value_from_identifier(
                     request_handler,
@@ -787,7 +796,7 @@ class File(Item, CoreFile):
             request_handler,
             file_properties=self.properties
         )
-        return result     
+        return result
 
     def _get_libraries(
         self, request: Request, file_sets: Optional[List[str]] = None
@@ -1093,7 +1102,7 @@ class File(Item, CoreFile):
         ) -> Union[str, None]:
         """Get release tracker title for display on the home page."""
         to_include = None
-        if "file_sets" in file_properties:    
+        if "file_sets" in file_properties:
             if (cell_culture_mixture_title := get_unique_values(
                 request_handler.get_items(
                     file_utils.get_cell_culture_mixtures(file_properties, request_handler)),

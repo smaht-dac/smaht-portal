@@ -225,8 +225,8 @@ function renderDescriptionPopover() {
                     </thead>
                     <tbody>
                         <tr>
-                            <td className="align-top text-left fw-bold">
-                                Aliquot
+                            <td className="align-top text-left fw-bold text-nowrap">
+                                Tissue Aliquot
                             </td>
                             <td className="text-left">
                                 A sample of a sectioned solid tissue with a

@@ -76,15 +76,16 @@ def validate_external_id_on_add(context, request):
     submission_centers = data['submission_centers']
     is_tpc_submitted = "ndri_tpc" in [ item_utils.get_identifier(get_item_or_none(request, submission_center, 'submission-centers')) for submission_center in submission_centers ]
     if (study := tissue_utils.get_study(tissue)):
+        tissue_category_match =  assert_tissue_category_match(category, external_id)
         if is_tpc_submitted and not assert_external_id_category_match(external_id, category):
             msg = f"external_id {external_id} does not match {study} nomenclature for {category} samples."
+            return request.errors.add('body', 'TissueSample: invalid property', msg)
+        elif not tissue_category_match[0]:
+            msg = f"category {category} should be {tissue_category_match[1]} for TissueSample items with protocol ID: {tissue_sample_utils.get_protocol_id_from_external_id(external_id)}."
             return request.errors.add('body', 'TissueSample: invalid property', msg)
         elif not assert_external_id_tissue_match(external_id, tissue):
             msg = f"external_id {external_id} does not match Tissue external_id {item_utils.get_external_id(tissue)}."
             return request.errors.add('body', 'TissueSample: invalid link', msg)
-        elif not assert_tissue_category_match(category, external_id):
-            msg = f"category {category} should be Liquid for TissueSample items with external_id {tissue_sample_utils.get_protocol_id_from_external_id(external_id)}."
-            return request.errors.add('body', 'TissueSample: invalid property', msg)
         else:
             return request.validated.update({}) 
 
@@ -108,15 +109,16 @@ def validate_external_id_on_edit(context, request):
     submission_centers = get_property_for_validation('submission_centers', existing_properties, properties_to_update)
     is_tpc_submitted = "ndri_tpc" in [ item_utils.get_identifier(get_item_or_none(request, submission_center, 'submission-centers')) for submission_center in submission_centers ]
     if (study:=tissue_utils.get_study(tissue)):
+        tissue_category_match =  assert_tissue_category_match(category, external_id)
         if is_tpc_submitted and not assert_external_id_category_match(external_id, category):
             msg = f"external_id {external_id} does not match {study} nomenclature for {category} samples."
+            return request.errors.add('body', 'TissueSample: invalid property', msg)
+        elif not tissue_category_match[0]:
+            msg = f"category {category} should be {tissue_category_match[1]} for TissueSample items with protocol ID: {tissue_sample_utils.get_protocol_id_from_external_id(external_id)}."
             return request.errors.add('body', 'TissueSample: invalid property', msg)
         elif not assert_external_id_tissue_match(external_id, tissue):
             msg = f"external_id {external_id} does not match Tissue external_id {item_utils.get_external_id(tissue)}."
             return request.errors.add('body', 'TissueSample: invalid link', msg)
-        elif not assert_tissue_category_match(category, external_id):
-            msg = f"category {category} should be Liquid for TissueSample items with external_id {tissue_sample_utils.get_protocol_id_from_external_id(external_id)}."
-            return request.errors.add('body', 'TissueSample: invalid property', msg)
         else:
             return request.validated.update({})
 
@@ -141,12 +143,16 @@ def assert_tissue_category_match(category: str, external_id: str):
     """
     liquid_protocol_ids = ["3A", "3B"]
     cells_protocol_ids = ["3AC"]
+    match = True
+    correct_category = None
     protocol_id = tissue_sample_utils.get_protocol_id_from_external_id(external_id)
     if protocol_id in liquid_protocol_ids:
-        return category == "Liquid"
+        correct_category = "Liquid"
+        match = category == correct_category
     elif protocol_id in cells_protocol_ids:
-        return category == "Cells"
-    return True
+        correct_category = "Cells"
+        match = category == correct_category
+    return match, correct_category
 
 
 def assert_external_id_tissue_match(external_id: str, tissue: Dict[str, Any]):

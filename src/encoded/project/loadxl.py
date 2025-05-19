@@ -18,6 +18,7 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
         "static_section",
         "page",
         "filter_set",
+        "generic_qc_config",
         "higlass_view_config",
         "ingestion_submission",
         "ontology",

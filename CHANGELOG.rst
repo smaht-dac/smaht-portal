@@ -7,16 +7,86 @@ smaht-portal
 Change Log
 ----------
 
+0.172.0
+=======
+`PR 425 SN Update schema properties <https://github.com/smaht-dac/smaht-portal/pull/425>`_
+
+* In TissueSample, change the `enum` in `category` from "Aliquot" to "Tissue Aliquot"
+* In File, add "Sequencing Supplement" to `data_category` and "Sequencing Information" to `data_type` and remove barcode values
+* In File, add property `qc_comments` to be included in the file manifest
+* In ResourceFile, add the `enum` "Donor Supplement" to `data_category` and "Donor Information" to `data_typ`e for the downloadable donor manifest file
+
+
+0.171.1
+=======
+`PR 424 style: update text in sample category popover <https://github.com/smaht-dac/smaht-portal/pull/424>`_
+
+* Updates category popover in File View
+
+
+0.171.0
+=======
+`PR 421 SN DSA code <https://github.com/smaht-dac/smaht-portal/pull/421>`_
+
+* Make `code` in DonorSpecificAssembly not a unique key. The expected value for these will now be "DSA"
+
+
+0.170.1
+=======
+`PR 417 fix: update capitalization for retraction_reason property <https://github.com/smaht-dac/smaht-portal/pull/417>`_
+
+* Update retraction table to capitalize reason
+* Update alert banner on file overview page to not lowercase
+
+
+0.170.0
+=======
+`PR 413 SN Generic Config item <https://github.com/smaht-dac/smaht-portal/pull/413>`
+
+* Add new item, GenericConfig, that can be used to hold JSON objects
+
+
+0.169.0
+=======
+`PR 419: Update MWFR inputs calcprop <https://github.com/smaht-dac/smaht-portal/pull/419>`_
+
+* Only show MWFRs that are not deleted on the file
+* Adjust the QC metrics page JSON script to use the new tissue_types property on Fileset
+
+
+0.168.5
+=======
+`PR 418: style: update QC tab <https://github.com/smaht-dac/smaht-portal/pull/418>`_
+
+* Adjust column widths
+* Update button colors
+
+
+0.168.4
+=======
+`PR 415 SN Fix validator error message <https://github.com/smaht-dac/smaht-portal/pull/415>`
+
+* Fix the TissueSample custom validator for valid combination of `external_id` and `category` to print out the expected `category` value in the error message 
+* Add `link_related_validator` decorator to the custom validator for fastq read pairs being linked to the same FileSet
+
+
+0.168.3
+=======
+`PR 416: Add file set accession copy button to Submission Status page <https://github.com/smaht-dac/smaht-portal/pull/416>`_
+
+* Add file set accession copy button to Submission Status page
+
+
 0.168.2
 =======
-`PR 410 fix: use retraction_reason in file view alert <https://github.com/smaht-dac/smaht-portal/pull/410>`
+`PR 410 fix: use retraction_reason in file view alert <https://github.com/smaht-dac/smaht-portal/pull/410>`_
 
 * Use retraction_reason property to create file overview alert string instead of notes_to_tsv
 
 
 0.168.1
 =======
-`PR 414 fix: adjust status icon in file overview page <https://github.com/smaht-dac/smaht-portal/pull/414>`
+`PR 414 fix: adjust status icon in file overview page <https://github.com/smaht-dac/smaht-portal/pull/414>`_
 
 * Capitalize status title in file overview page
 * Organize status icon colors for item pages
