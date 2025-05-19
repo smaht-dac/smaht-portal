@@ -299,7 +299,7 @@ describe('Benchmarking Layout Test', function () {
                 .get(".facets-header .facets-title").should('have.text', 'Included Properties').end();
 
             // Re-include the first term
-            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .persistent .facet-list-element:first-child a').within(($term) => {
+            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .persistent .facet-list-element:not([data-is-grouping="true"]) a').first().within(($term) => {
                 cy.wrap($term).click({ force: true }).end();
             }).end();
 
@@ -310,7 +310,7 @@ describe('Benchmarking Layout Test', function () {
                 }).end();
 
             // Exclude the term again and verify external count
-            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element a').first().within(($term) => {
+            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element:not([data-is-grouping="true"]) a').first().within(($term) => {
                 cy.wrap($term).click({ force: true }).end();
             }).end();
 
