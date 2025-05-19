@@ -11,7 +11,7 @@ The latest version of the submission template can be found on our portal `here <
 
 What metadata properties are required for each item type?
 =========================================================
-On the metadata spreadsheet, properties indicated in bold are required for all items of that type. 
+On the metadata spreadsheet, properties indicated in **bold** are required for all items of that type. 
 
 Other properties may also be required depending on the specific assay or sequencer. For example, ``rna_integrity_number`` is required for RNA-sequencing assays, but not for DNA sequencing assays. Read the tooltips for each property for additional details on what properties are required.
 
@@ -43,7 +43,14 @@ To troubleshoot, we would recommend running the command with each argument indiv
 I am getting validation errors for my submitted_ids, but it looks correct. What am I doing wrong?
 =====================================================================================================
 
-submitted_ids are important unique identifiers for each submitted item in the data portal. These identifiers must be in the format ``[CENTER]_[ITEM-TYPE]_[UNIQUE-ID]``, must be _entirely_ uppercase, and must be _unique_. Each bracketed portion of the IDs is separated by underscores. The ``[ITEM-TYPE]`` portion of the ID is delimited using dashes. The ``submitted_ids`` are also only allowed to include alphanumeric characters, periods (.), dashes (-), and underscores (_). No other additional characters are allowed in your identifiers, such as spaces or backslashes. Double-check that your ``submitted_id`` follows all of the requirements listed above.
+submitted_ids are important unique identifiers for each submitted item in the data portal. These identifiers must be in the format ``[CENTER]_[ITEM-TYPE]_[UNIQUE-ID]``, must be _entirely_ uppercase, and must be _unique_. Each bracketed portion of the IDs is separated by underscores. The ``[ITEM-TYPE]`` portion of the ID is delimited using dashes. The ``submitted_ids`` must only include the following: 
+
+* Alphanumeric characters (A-Z, 0-9)
+* Periods (.)
+* Dashes (-)
+* Underscores (_)
+
+No other additional characters are allowed in your identifiers, such as spaces or backslashes. Double-check that your ``submitted_id`` follows all of the requirements listed above.
 
 
 
@@ -66,15 +73,15 @@ When trying to upload files to the data portal using smaht-submitr, I get the fo
 
 There are a couple of things to check:
 
-Double-check that the ``submission_uuid`` you are using is correct. It is very easy to truncate your UUID by a couple of characters when copying and pasting it.
-Ensure that your credentials are up-to-date. Credentials expire every 30 days, so if you have not submitted metadata recently, it is likely that your credentials expired, resulting in that error.
+1. Confirm that the ``submission_uuid`` you are using is correct. It is very easy to truncate your UUID by a couple of characters when copying and pasting it.
+2. Ensure that your credentials are up-to-date. Credentials expire every 30 days, so if you have not submitted metadata recently, it is likely that your credentials expired, resulting in that error.
 
 
 
 I am looking to submit a new assay type or data type to the DAC, and the metadata spreadsheet is currently missing some metadata fields that would be important to capture. What should I do?
 =============================================================================================================================================================================================
 
-If you are looking to submit data for a new assay type or sequencer to the DAC, please reach out to us! We would be happy to schedule a meeting with you to discuss what metadata is important to capture for your assay.
+If you are looking to submit data for a new assay type or sequencer to the DAC, please reach out to us (see the question below)! We would be happy to schedule a meeting with you to discuss what metadata is important to capture for your assay.
 
 
 
