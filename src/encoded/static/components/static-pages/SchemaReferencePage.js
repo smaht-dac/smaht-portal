@@ -106,7 +106,7 @@ export const SchemaReferencePage = () => {
         <div className="schema-reference-page">
             <Select
                 value={selectedSchema}
-                // styles={customReactSelectStyleMulti}
+                placeholder="Select a Schema..."
                 onChange={(selectedItem) => {
                     setSelectedSchema(selectedItem);
                 }}
@@ -115,11 +115,15 @@ export const SchemaReferencePage = () => {
             <div
                 className={`selected-schema schema-item ${selectedSchema?.value} mb-5`}>
                 <h2>{selectedSchema?.value}</h2>
-                <SchemaPropertiesTable
-                    data={schemaData[selectedSchema?.value]?.properties}
-                />
+                {selectedSchema?.value && (
+                    <>
+                        <SchemaPropertiesTable
+                            data={schemaData[selectedSchema?.value]?.properties}
+                        />
+                        <hr className="my-5"></hr>
+                    </>
+                )}
             </div>
-            <hr className="my-5"></hr>
             <div className="schemas-container">
                 {Object.keys(schemaData).map((schemaKey, i) => {
                     return (
