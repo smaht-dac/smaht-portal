@@ -7,12 +7,36 @@ smaht-portal
 Change Log
 ----------
 
-0.170.2
+0.172.1
 =======
 `PR 423: feat: update consortium table and data matrix <https://github.com/smaht-dac/smaht-portal/pull/423>`_
 
 * Add codes to the Consortium table
 * Adjust data matrix styles
+
+
+0.172.0
+=======
+`PR 425 SN Update schema properties <https://github.com/smaht-dac/smaht-portal/pull/425>`_
+
+* In TissueSample, change the `enum` in `category` from "Aliquot" to "Tissue Aliquot"
+* In File, add "Sequencing Supplement" to `data_category` and "Sequencing Information" to `data_type` and remove barcode values
+* In File, add property `qc_comments` to be included in the file manifest
+* In ResourceFile, add the `enum` "Donor Supplement" to `data_category` and "Donor Information" to `data_typ`e for the downloadable donor manifest file
+
+
+0.171.1
+=======
+`PR 424 style: update text in sample category popover <https://github.com/smaht-dac/smaht-portal/pull/424>`_
+
+* Updates category popover in File View
+
+
+0.171.0
+=======
+`PR 421 SN DSA code <https://github.com/smaht-dac/smaht-portal/pull/421>`_
+
+* Make `code` in DonorSpecificAssembly not a unique key. The expected value for these will now be "DSA"
 
 
 0.170.1

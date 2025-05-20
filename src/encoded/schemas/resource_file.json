@@ -90,7 +90,8 @@
                 ]
             },
             "default": [
-                "Metadata"
+                "Metadata",
+                "Donor Supplement"
             ]
         },
         "data_type": {
@@ -98,6 +99,7 @@
                 "type": "string",
                 "enum": [
                     "Clinical Information",
+                    "Donor Information",
                     "Protocol",
                     "Sample Information",
                     "Experimental Information"
