@@ -6,7 +6,8 @@
                 key="data-matrix-demo-1"   // Required to prevent re-instantiation of component upon window resize & similar.
                 session={session}        // Required - hooks in 'session' (boolean) from App.
                 query={{
-                    "url": "/data_matrix_aggregations?type=File&dataset!=No+value&status=public&status=released&status=restricted&limit=all",
+                    // "url": "/data_matrix_aggregations?type=File&dataset!=No+value&sample_summary.studies=Benchmarking&status=public&status=released&status=restricted&limit=all",
+                    "url": "/data_matrix_aggregations?type=File&limit=all",
                     "column_agg_fields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
                     "row_agg_fields": ["donors.display_title", "sample_summary.tissues"], //multiple column
                 }}
@@ -42,9 +43,12 @@
                     },
                     "tissue": {
                         "endocrine pancreas": "Endocrine pancreas",
+                    },
+                    "study": {
+                        "Benchmarking": "Donors"
                     }
                 }}
-                groupingProperties={["donor"]}
+                groupingProperties={["donor", "tissue"]}
                 columnGrouping="assay"
                 columnGroups={{
                     "Bulk WGS": {
@@ -104,20 +108,20 @@
                 showColumnGroups={true}
                 showColumnGroupsExtended={false}
                 rowGroups={{
-                    "Benchmarking": {
-                        "values": ['ST001', 'ST002', 'ST003', 'ST004'],
-                        "backgroundColor": "#ffd478",
-                        "textColor": "#000000",
-                        "shortName": "Benchmarking"
-                    },
-                    "Production": {
-                        "values": ['SMHT004', 'SMHT008'],
+                    "Cell Lines": {
+                        "values": ['COLO829T', 'COLO829BL', 'COLO829BLT50', 'In silico BLT50', 'HapMap mixture', /*temp*/'ALT1'],
                         "backgroundColor": "#f9d5f0",
                         "textColor": "#000000",
-                        "shortName": "Production"
+                        "shortName": "Cell Lines"
+                    },
+                    "Donors": {
+                        "values": ['ST001', 'ST002', 'ST003', 'ST004', /*temp*/'SMHT001'],
+                        "backgroundColor": "#ffd478",
+                        "textColor": "#000000",
+                        "shortName": "Donors"
                     }
                 }}
-                showRowGroups={false}
+                showRowGroups={true}
                 autoPopulateRowGroupsProperty="study"
                 rowGroupsExtended={{
                     "Ectoderm": {
@@ -168,7 +172,7 @@
                     "sample_summary.studies",
                 ]}
                 xAxisLabel="Assays"
-                yAxisLabel="Donors"
+                yAxisLabel="Cell Lines + Benchmarking"
                 showAxisLabels={false}
                 disableConfigurator={false}
             />

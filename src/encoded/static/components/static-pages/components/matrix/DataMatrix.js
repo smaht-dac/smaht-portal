@@ -46,6 +46,7 @@ export default class DataMatrix extends React.PureComponent {
         "xAxisLabel": "X",
         "yAxisLabel": "Y",
         "showAxisLabels": true,
+        "showColumnSummary": true,
         "disableConfigurator": true,
     };
 
@@ -76,12 +77,13 @@ export default class DataMatrix extends React.PureComponent {
         'showColumnGroupsExtended': PropTypes.bool,
         'rowGroups': PropTypes.object,
         'showRowGroups': PropTypes.bool,
-        'autoPopulateRowGroupsProperty': PropTypes.string, 
+        'autoPopulateRowGroupsProperty': PropTypes.string,
         'rowGroupsExtended': PropTypes.object,
         'showRowGroupsExtended': PropTypes.bool,
         'xAxisLabel': PropTypes.string,
         'yAxisLabel': PropTypes.string,
         'showAxisLabels': PropTypes.bool,
+        'showColumnSummary': PropTypes.bool,
         'disableConfigurator': PropTypes.bool,
     };
 
@@ -164,10 +166,11 @@ export default class DataMatrix extends React.PureComponent {
             "xAxisLabel": props.xAxisLabel,
             "yAxisLabel": props.yAxisLabel,
             "showAxisLabels": props.showAxisLabels,
-            'colorRangeBaseColor': props.colorRangeBaseColor,
-            'colorRangeSegments': props.colorRangeSegments,
-            'colorRangeSegmentStep': props.colorRangeSegmentStep,
-            'summaryBackgroundColor': props.summaryBackgroundColor,
+            "showColumnSummary": props.showColumnSummary,
+            "colorRangeBaseColor": props.colorRangeBaseColor,
+            "colorRangeSegments": props.colorRangeSegments,
+            "colorRangeSegmentStep": props.colorRangeSegmentStep,
+            "summaryBackgroundColor": props.summaryBackgroundColor,
         };
     }
 
@@ -196,7 +199,7 @@ export default class DataMatrix extends React.PureComponent {
             const resultKey = "_results";
             const updatedState = {};
 
-            updatedState[resultKey] = location.hostname.indexOf('localhostx') >= 0 ? TEST_DATA : result;
+            updatedState[resultKey] = location.hostname.indexOf('localhostx') >= 0 ? (this.state.query.url.indexOf('dataset') === -1 ? TEST_DATA : TEST_DATA_2) : result;
             let transfermedData = [];
             const populatedRowGroups =  {}; // not implemented yet
             _.forEach(updatedState[resultKey], (r) => {
@@ -274,15 +277,15 @@ export default class DataMatrix extends React.PureComponent {
 
                 const searchQueryParams = { field: [], type: 'SubmittedFile', limit: 'all' };
 
-                _.forEach(rowAggFields || [], function (f) {
+                _.forEach(rowAggFields || [], function (f, idx) {
                     if (typeof f === 'string'){
                         searchQueryParams.field.push(f);
-                        if (!queryParamsByUrl[f]) {
+                        if (idx === 0 && !queryParamsByUrl[f]) {
                             searchQueryParams[f + '!'] = "No value";
                         }
                     } else {
                         searchQueryParams.field.push(...f);
-                        if (!queryParamsByUrl[f[0]]) {
+                        if (idx === 0 && !queryParamsByUrl[f[0]]) {
                             searchQueryParams[f[0] + '!'] = "No value";
                         }
                     }
@@ -319,11 +322,13 @@ export default class DataMatrix extends React.PureComponent {
         searchUrl, columnAggField, rowAggField1, rowAggField2,
         columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
         rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
-        summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep }) {
+        xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
+        colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor }) {
         console.log(
             searchUrl, columnAggField, rowAggField1, rowAggField2,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
-            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep);
+            xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
+            colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor);
 
         const newColorRanges = this.getColorRanges({ colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep });
         const invertedFieldChangeMap = _.invert(this.state.fieldChangeMap);
@@ -356,6 +361,7 @@ export default class DataMatrix extends React.PureComponent {
             xAxisLabel: xAxisLabel,
             yAxisLabel: yAxisLabel,
             showAxisLabels: showAxisLabels,
+            showColumnSummary: showColumnSummary,
             colorRanges: newColorRanges,
             colorRangeBaseColor: colorRangeBaseColor,
             colorRangeSegments: colorRangeSegments,
@@ -400,8 +406,8 @@ export default class DataMatrix extends React.PureComponent {
             query, fieldChangeMap, columnGrouping, groupingProperties,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
-            colorRanges, summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels,
-            colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep
+            colorRanges, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
+            colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor
         } = this.state;
 
         const isLoading =
@@ -423,7 +429,7 @@ export default class DataMatrix extends React.PureComponent {
             query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
-            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels
+            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary
         };
 
         const colAgg = Array.isArray(query.column_agg_fields) ? query.column_agg_fields : [query.column_agg_fields];
@@ -452,6 +458,7 @@ export default class DataMatrix extends React.PureComponent {
                 initialXAxisLabel={xAxisLabel}
                 initialYAxisLabel={yAxisLabel}
                 initialShowAxisLabels={showAxisLabels}
+                initialShowColumnSummary={showColumnSummary}
                 initialColorRangeBaseColor={colorRangeBaseColor}
                 initialColorRangeSegments={colorRangeSegments}
                 initialColorRangeSegmentStep={colorRangeSegmentStep}
@@ -486,62 +493,6 @@ export default class DataMatrix extends React.PureComponent {
 }
 
 const TEST_DATA = [
-    {
-        "file_sets.libraries.assay.display_title": "WGS - Illumina",
-        "donors.display_title": "ST002",
-        "sample_summary.tissues": "Colon",
-        "sample_summary.studies": "Benchmarking",
-        "files": 203
-    },
-    {
-        "file_sets.libraries.assay.display_title": "WGS - Illumina",
-        "donors.display_title": "ST002",
-        "sample_summary.tissues": "Lung",
-        "sample_summary.studies": "Benchmarking",
-        "files": 142
-    },
-    {
-        "file_sets.libraries.assay.display_title": "WGS - Illumina",
-        "donors.display_title": "ST002",
-        "sample_summary.tissues": "Skin",
-        "sample_summary.studies": "Benchmarking",
-        "files": 12
-    },
-    {
-        "file_sets.libraries.assay.display_title": "WGS - Illumina",
-        "donors.display_title": "ST001",
-        "sample_summary.tissues": "Lung",
-        "sample_summary.studies": "Benchmarking",
-        "files": 190
-    },
-    {
-        "file_sets.libraries.assay.display_title": "WGS - Illumina",
-        "donors.display_title": "ST001",
-        "sample_summary.tissues": "Liver",
-        "sample_summary.studies": "Benchmarking",
-        "files": 83
-    },
-    {
-        "file_sets.libraries.assay.display_title": "WGS - Illumina",
-        "donors.display_title": "ST001",
-        "sample_summary.tissues": "Skin",
-        "sample_summary.studies": "Benchmarking",
-        "files": 12
-    },
-    {
-        "file_sets.libraries.assay.display_title": "WGS - Illumina",
-        "donors.display_title": "ST003",
-        "sample_summary.tissues": "Brain",
-        "sample_summary.studies": "Benchmarking",
-        "files": 147
-    },
-    {
-        "file_sets.libraries.assay.display_title": "WGS - Illumina",
-        "donors.display_title": "ST004",
-        "sample_summary.tissues": "Brain",
-        "sample_summary.studies": "Benchmarking",
-        "files": 147
-    },
     {
         "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "SMHT008",
@@ -670,20 +621,6 @@ const TEST_DATA = [
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - ONT",
-        "donors.display_title": "ST001",
-        "sample_summary.tissues": "Liver",
-        "sample_summary.studies": "Benchmarking",
-        "files": 18
-    },
-    {
-        "file_sets.libraries.assay.display_title": "WGS - ONT",
-        "donors.display_title": "ST001",
-        "sample_summary.tissues": "Lung",
-        "sample_summary.studies": "Benchmarking",
-        "files": 15
-    },
-    {
-        "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Blood",
         "sample_summary.studies": "Production",
@@ -722,6 +659,296 @@ const TEST_DATA = [
         "donors.display_title": "SMHT008",
         "sample_summary.tissues": "Muscle",
         "sample_summary.studies": "Production",
+        "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Lung",
+        "sample_summary.studies": "Production",
+        "files": 5
+    },
+    {
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Blood",
+        "sample_summary.studies": "Production",
+        "files": 2
+    },
+    {
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Colon",
+        "sample_summary.studies": "Production",
+        "files": 2
+    },
+    {
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Esophagus",
+        "sample_summary.studies": "Production",
+        "files": 2
+    },
+    {
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
+        "donors.display_title": "SMHT004",
+        "sample_summary.tissues": "Muscle",
+        "sample_summary.studies": "Production",
+        "files": 2
+    },
+    {
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Heart",
+        "sample_summary.studies": "Production",
+        "files": 2
+    },
+    {
+        "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
+        "donors.display_title": "SMHT008",
+        "sample_summary.tissues": "Muscle",
+        "sample_summary.studies": "Production",
+        "files": 2
+    }
+];
+
+const TEST_DATA_2 = [
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Colon",
+        "sample_summary.studies": "Benchmarking",
+        "files": 203
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Lung",
+        "sample_summary.studies": "Benchmarking",
+        "files": 142
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Skin",
+        "sample_summary.studies": "Benchmarking",
+        "files": 12
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Lung",
+        "sample_summary.studies": "Benchmarking",
+        "files": 190
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Liver",
+        "sample_summary.studies": "Benchmarking",
+        "files": 83
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Skin",
+        "sample_summary.studies": "Benchmarking",
+        "files": 12
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "ST003",
+        "sample_summary.tissues": "Brain",
+        "sample_summary.studies": "Benchmarking",
+        "files": 147
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "ST004",
+        "sample_summary.tissues": "Brain",
+        "sample_summary.studies": "Benchmarking",
+        "files": 147
+    },
+    {
+        "file_sets.libraries.assay.display_title": "Fiber-seq - PacBio",
+        "donors.display_title": "COLO829T",
+        "sample_summary.tissues": "Brain",
+        "sample_summary.studies": "Cell Lines",
+        "files": 48
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "HapMap mixture",
+        "sample_summary.tissues": "Skin",
+        "sample_summary.studies": "Cell Lines",
+        "files": 25
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "COLO829BL",
+        "sample_summary.tissues": "Colon",
+        "sample_summary.studies": "Cell Lines",
+        "files": 20
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "COLO829BL",
+        "sample_summary.tissues": "Muscle",
+        "sample_summary.studies": "Cell Lines",
+        "files": 12
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "COLO829BL",
+        "sample_summary.tissues": "Blood",
+        "sample_summary.studies": "Cell Lines",
+        "files": 10
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "COLO829BL",
+        "sample_summary.tissues": "Esophagus",
+        "sample_summary.studies": "Cell Lines",
+        "files": 10
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Heart",
+        "sample_summary.studies": "Cell Lines",
+        "files": 10
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Liver",
+        "sample_summary.studies": "Cell Lines",
+        "files": 10
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Colon",
+        "sample_summary.studies": "Cell Lines",
+        "files": 8
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Skin",
+        "sample_summary.studies": "Cell Lines",
+        "files": 8
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Aorta",
+        "sample_summary.studies": "Cell Lines",
+        "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Blood",
+        "sample_summary.studies": "Cell Lines",
+        "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Esophagus",
+        "sample_summary.studies": "Cell Lines",
+        "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Heart",
+        "sample_summary.studies": "Cell Lines",
+        "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Liver",
+        "sample_summary.studies": "Cell Lines",
+        "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Lung",
+        "sample_summary.studies": "Cell Lines",
+        "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Muscle",
+        "sample_summary.studies": "Cell Lines",
+        "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Testis",
+        "sample_summary.studies": "Cell Lines",
+        "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Liver",
+        "sample_summary.studies": "Benchmarking",
+        "files": 18
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Lung",
+        "sample_summary.studies": "Benchmarking",
+        "files": 15
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Blood",
+        "sample_summary.studies": "Cell Lines",
+        "files": 5
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Heart",
+        "sample_summary.studies": "Cell Lines",
+        "files": 5
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Colon",
+        "sample_summary.studies": "Cell Lines",
+        "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Esophagus",
+        "sample_summary.studies": "Cell Lines",
+        "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "COLO829BLT50",
+        "sample_summary.tissues": "Liver",
+        "sample_summary.studies": "Cell Lines",
+        "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "In silico BLT50",
+        "sample_summary.tissues": "Muscle",
+        "sample_summary.studies": "Cell Lines",
         "files": 4
     },
     {
@@ -782,37 +1009,37 @@ const TEST_DATA = [
     },
     {
         "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
-        "donors.display_title": "SMHT004",
+        "donors.display_title": "In silico BLT50",
         "sample_summary.tissues": "Lung",
-        "sample_summary.studies": "Production",
+        "sample_summary.studies": "Cell Lines",
         "files": 5
     },
     {
         "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
-        "donors.display_title": "SMHT004",
+        "donors.display_title": "In silico BLT50",
         "sample_summary.tissues": "Blood",
-        "sample_summary.studies": "Production",
+        "sample_summary.studies": "Cell Lines",
         "files": 2
     },
     {
         "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
-        "donors.display_title": "SMHT004",
+        "donors.display_title": "In silico BLT50",
         "sample_summary.tissues": "Colon",
-        "sample_summary.studies": "Production",
+        "sample_summary.studies": "Cell Lines",
         "files": 2
     },
     {
         "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
-        "donors.display_title": "SMHT004",
+        "donors.display_title": "In silico BLT50",
         "sample_summary.tissues": "Esophagus",
-        "sample_summary.studies": "Production",
+        "sample_summary.studies": "Cell Lines",
         "files": 2
     },
     {
         "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
-        "donors.display_title": "SMHT004",
+        "donors.display_title": "In silico BLT50",
         "sample_summary.tissues": "Muscle",
-        "sample_summary.studies": "Production",
+        "sample_summary.studies": "Cell Lines",
         "files": 2
     },
     {
@@ -831,16 +1058,16 @@ const TEST_DATA = [
     },
     {
         "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
-        "donors.display_title": "SMHT008",
+        "donors.display_title": "In silico BLT50",
         "sample_summary.tissues": "Heart",
-        "sample_summary.studies": "Production",
+        "sample_summary.studies": "Cell Lines",
         "files": 2
     },
     {
         "file_sets.libraries.assay.display_title": "RNA-seq - Illumina",
-        "donors.display_title": "SMHT008",
+        "donors.display_title": "In silico BLT50",
         "sample_summary.tissues": "Muscle",
-        "sample_summary.studies": "Production",
+        "sample_summary.studies": "Cell Lines",
         "files": 2
     },
     {

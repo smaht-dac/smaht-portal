@@ -25,6 +25,7 @@ const DataMatrixConfigurator = ({
     initialXAxisLabel,
     initialYAxisLabel,
     initialShowAxisLabels,
+    initialShowColumnSummary,
     initialColorRangeBaseColor,
     initialColorRangeSegments,
     initialColorRangeSegmentStep,
@@ -47,6 +48,7 @@ const DataMatrixConfigurator = ({
     const [xAxisLabel, setXAxisLabel] = useState(initialXAxisLabel);
     const [yAxisLabel, setYAxisLabel] = useState(initialYAxisLabel);
     const [showAxisLabels, setShowAxisLabels] = useState(initialShowAxisLabels);
+    const [showColumnSummary, setShowColumnSummary] = useState(initialShowColumnSummary);
     const [colorRangeBaseColor, setColorRangeBaseColor] = useState(initialColorRangeBaseColor);
     const [colorRangeSegments, setColorRangeSegments] = useState(initialColorRangeSegments);
     const [colorRangeSegmentStep, setColorRangeSegmentStep] = useState(initialColorRangeSegmentStep);
@@ -255,6 +257,12 @@ const DataMatrixConfigurator = ({
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Y-Axis Label</Form.Label>
                                         <Form.Control type="text" value={yAxisLabel} onChange={(e) => setYAxisLabel(e.target.value)} size="sm" />
+                                    </Form.Group>
+
+                                    {/* Show Column Summary */}
+                                    <Form.Group className="d-flex align-items-center mb-05">
+                                        <Form.Label className="me-2" style={labelStyle}>Show Column Summary</Form.Label>
+                                        <Form.Check type="checkbox" checked={showColumnSummary} onChange={(e) => setShowColumnSummary(!showColumnSummary)} />
                                     </Form.Group>
                                 </Tab>
                                 <Tab eventKey="style" title={"Style"}>

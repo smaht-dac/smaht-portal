@@ -262,7 +262,7 @@ export class VisualBody extends React.PureComponent {
                     'columnSubGroupingOrder', 'colorRanges',
                     'columnGroups', 'showColumnGroups', 'columnGroupsExtended', 'showColumnGroupsExtended',
                     'rowGroups', 'showRowGroups', 'rowGroupsExtended', 'showRowGroupsExtended',
-                    'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels',)}
+                    'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels', 'showColumnSummary')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
             />
@@ -970,7 +970,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             blockWidth, blockHeight, blockHorizontalSpacing, blockVerticalSpacing, blockHorizontalExtend, headerPadding,
             columnGrouping, sorting, sortField, onSorterClick, groupedDataIndices, openBlock, activeBlock,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
-            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels
+            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary
         } = props;
 
         const hasColumnGroups = showColumnGroups && columnGroups && _.keys(columnGroups).length > 0;
@@ -1139,7 +1139,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         </div>
                     </div>
                 </div>
-                {StackedBlockGroupedRow.rowGroupsSummary(props, yAxisLabel, labelSectionStyle, labelSortIconClassName, labelSortIcon, columnKeys, columnWidth, headerItemStyle, groupedDataIndices, columnGrouping)}
+                {showColumnSummary && StackedBlockGroupedRow.rowGroupsSummary(props, yAxisLabel, labelSectionStyle, labelSortIconClassName, labelSortIcon, columnKeys, columnWidth, headerItemStyle, groupedDataIndices, columnGrouping)}
             </React.Fragment>
         );
     }
