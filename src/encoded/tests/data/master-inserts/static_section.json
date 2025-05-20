@@ -562,5 +562,24 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "identifier": "submission_schemas",
+        "title": "Submission Schemas",
+        "file": "/docs/public/submission_schemas.jsx",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "4aeffcf9-f3bb-40e8-a4de-ac7d1bf4fac4",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]
