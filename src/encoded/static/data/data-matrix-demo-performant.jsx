@@ -6,8 +6,8 @@
                 key="data-matrix-demo-1"   // Required to prevent re-instantiation of component upon window resize & similar.
                 session={session}        // Required - hooks in 'session' (boolean) from App.
                 query={{
-                    // "url": "/data_matrix_aggregations?type=File&dataset!=No+value&sample_summary.studies=Benchmarking&status=public&status=released&status=restricted&limit=all",
-                    "url": "/data_matrix_aggregations?type=File&limit=all",
+                    "url": "/data_matrix_aggregations?type=File&dataset!=No+value&sample_summary.studies=Benchmarking&status=public&status=released&status=restricted&limit=all",
+                    // "url": "/data_matrix_aggregations?type=File&limit=all",
                     "column_agg_fields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
                     "row_agg_fields": ["donors.display_title", "sample_summary.tissues"], //multiple column
                 }}
@@ -170,6 +170,7 @@
                     "software.display_title",
                     "sequencing.sequencer.platform",
                     "sample_summary.studies",
+                    "dataset"
                 ]}
                 xAxisLabel="Assays"
                 yAxisLabel="Cell Lines + Benchmarking"
