@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.173.0
+=======
+`PR 427: SN Add donor revlinks <https://github.com/smaht-dac/smaht-portal/pull/427>`_
+
+* Add revlinks to MedicalHistory from Donor and to Exposure (for alcohol and tobacco exposure only) in MedicalHistory
+* Add necessary embeds to Donor for generation of Donor Overview page
+
+
 0.172.2
 =======
 `PR 430: Cypress tests for experimental assay terms grouping <https://github.com/smaht-dac/smaht-portal/pull/430>`_
