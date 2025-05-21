@@ -13,4 +13,4 @@ def test_exposures_rev_link(es_testapp: TestApp, workbook: None) -> None:
         es_testapp,
         "?type=MedicalHistory&exposures!=No+value"
     )
-    assert mh_search
+    assert len(mh_search) == 1
