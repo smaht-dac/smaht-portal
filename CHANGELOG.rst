@@ -15,6 +15,13 @@ Change Log
 * Add necessary embeds to Donor for generation of Donor Overview page
 
 
+0.172.3
+=======
+`PR 433: fix: update status of pages <https://github.com/smaht-dac/smaht-portal/pull/433>`_
+
+* Update status of pages
+
+
 0.172.2
 =======
 `PR 430: Cypress tests for experimental assay terms grouping <https://github.com/smaht-dac/smaht-portal/pull/430>`_
