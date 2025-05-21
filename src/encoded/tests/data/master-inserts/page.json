@@ -863,7 +863,7 @@
     {
         "identifier": "data/analysis",
         "title": "Benchmarking Analysis",
-        "status": "public",
+        "status": "released",
         "children": [
             "b4b2da6b-d5be-4cd3-81da-691ecc1f9308"
         ],
@@ -884,7 +884,7 @@
     {
         "identifier": "data/analysis/colo829-snv-indel-detection",
         "title": "COLO829 SNV/Indel Detection Challenge",
-        "status": "public",
+        "status": "released",
         "content": [
             "6843c6e7-7b47-457d-96c3-387af3c07207"
         ],
@@ -920,7 +920,7 @@
     {
         "identifier": "resources/genome-related",
         "title": "Genome Related",
-        "status": "public",
+        "status": "released",
         "children": [
             "192a220e-64c8-4ec3-93d9-4e4218f0a7fe"
         ],
@@ -935,7 +935,7 @@
     {
         "identifier": "resources/genome-related/genome-reference-and-related-data",
         "title": "Genome Reference and Related Data",
-        "status": "public",
+        "status": "released",
         "content": [
             "edf6c0f5-e051-4c4e-8e22-99dfde0b8501"
         ],
