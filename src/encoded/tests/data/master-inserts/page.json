@@ -396,7 +396,7 @@
         "table-of-contents": {
             "enabled": true
         },
-        "status": "public",
+        "status": "in review",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -449,7 +449,7 @@
     {
         "identifier": "docs/how-to-upload",
         "title": "How to Upload Data (incomplete)",
-        "status": "deleted",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
