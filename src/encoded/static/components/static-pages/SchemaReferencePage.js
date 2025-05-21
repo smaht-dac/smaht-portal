@@ -48,7 +48,9 @@ const SchemaPropertiesTable = ({ data = {} }) => {
                             )}
                             {/* Type */}
                             {item?.type ? (
-                                <td className="text-left">{item.type}</td>
+                                <td className="text-left">
+                                    <code>{item.type}</code>
+                                </td>
                             ) : (
                                 <td className="text-left text-secondary">-</td>
                             )}
@@ -106,7 +108,7 @@ export const SchemaReferencePage = () => {
         <div className="schema-reference-page">
             <Select
                 value={selectedSchema}
-                placeholder="Select a Schema..."
+                placeholder="Select an Item..."
                 onChange={(selectedItem) => {
                     setSelectedSchema(selectedItem);
                 }}
