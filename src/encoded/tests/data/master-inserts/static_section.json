@@ -341,7 +341,7 @@
         "uuid": "edf6c0f5-e051-4c4e-8e22-99dfde0b8501",
         "file": "/docs/source/genome_reference_and_related_data.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "released",
         "options": {
             "filetype": "rst",
             "initial_header_level": 2
