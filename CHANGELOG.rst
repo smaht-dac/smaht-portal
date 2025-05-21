@@ -14,6 +14,29 @@ Change Log
 * Add page for submission schema reference
 
 
+0.172.3
+=======
+`PR 433: fix: update status of pages <https://github.com/smaht-dac/smaht-portal/pull/433>`_
+
+* Update status of pages
+
+
+0.172.2
+=======
+`PR 430: Cypress tests for experimental assay terms grouping <https://github.com/smaht-dac/smaht-portal/pull/430>`_
+
+* Updates for 06_benchmarking and 04a_search_views_local upon updates in facet terms grouping
+* Add new steps into 03a_browse_view_basic for facet terms grouping for the Experimental Assay facet for both Include Properties and Exclude Properties
+
+
+0.172.1
+=======
+`PR 423: feat: update consortium table and data matrix <https://github.com/smaht-dac/smaht-portal/pull/423>`_
+
+* Add codes to the Consortium table
+* Adjust data matrix styles
+
+
 0.172.0
 =======
 `PR 425 SN Update schema properties <https://github.com/smaht-dac/smaht-portal/pull/425>`_

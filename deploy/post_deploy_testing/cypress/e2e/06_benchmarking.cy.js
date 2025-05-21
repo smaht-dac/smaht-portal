@@ -111,6 +111,7 @@ describe('Benchmarking Layout Test', function () {
                                                 // Now check the results count after the spinner is gone
                                                 cy.get('.tab-pane.active.show #results-count')
                                                     .invoke('text')
+                                                    .should('not.contain', '-')
                                                     .then((originalFileText) => {
                                                         cy.wrap($button)
                                                             .find('.badge')
@@ -276,7 +277,7 @@ describe('Benchmarking Layout Test', function () {
                 .get(".facets-header button").first().click({ force: true }).end()
                 .get(".facets-header .facets-title").should('have.text', 'Excluded Properties').end()
                 .get('.facet.closed[data-field="file_sets.libraries.assay.display_title"] > h5').scrollIntoView().should('be.visible').click().end()
-                .get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element a').first().within(($term) => {
+                .get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element:not([data-is-grouping="true"]) a').first().within(($term) => {
                     cy.get('span.facet-count').then((assayCount) => {
                         externalDataCount = parseInt(assayCount.text());
                         expect(externalDataCount).to.be.greaterThan(0);
@@ -299,7 +300,7 @@ describe('Benchmarking Layout Test', function () {
                 .get(".facets-header .facets-title").should('have.text', 'Included Properties').end();
 
             // Re-include the first term
-            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .persistent .facet-list-element:first-child a').within(($term) => {
+            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .persistent .facet-list-element:not([data-is-grouping="true"]) a').first().within(($term) => {
                 cy.wrap($term).click({ force: true }).end();
             }).end();
 
@@ -310,7 +311,7 @@ describe('Benchmarking Layout Test', function () {
                 }).end();
 
             // Exclude the term again and verify external count
-            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element a').first().within(($term) => {
+            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element:not([data-is-grouping="true"]) a').first().within(($term) => {
                 cy.wrap($term).click({ force: true }).end();
             }).end();
 
