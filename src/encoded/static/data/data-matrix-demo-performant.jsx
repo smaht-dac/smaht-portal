@@ -9,7 +9,7 @@
                     "url": "/data_matrix_aggregations?type=File&dataset!=No+value&sample_summary.studies=Benchmarking&status=public&status=released&status=restricted&limit=all",
                     // "url": "/data_matrix_aggregations?type=File&limit=all",
                     "column_agg_fields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
-                    "row_agg_fields": ["donors.display_title", "sample_summary.tissues"], //multiple column
+                    "row_agg_fields": ["donors.display_title", "sample_summary.tissues", "dataset", "release_tracker_title"], //multiple column
                 }}
                 fieldChangeMap={{
                     "assay": "file_sets.libraries.assay.display_title",
@@ -21,6 +21,7 @@
                     "data_category": "data_category",
                     "software": "software.display_title",
                     "study": "sample_summary.studies",
+                    "cell_line": "release_tracker_title"
                 }}
                 valueChangeMap={{
                     "assay": {
@@ -40,6 +41,7 @@
                         "Single-cell MALBAC WGS - Illumina": "MALBAC-amplified WGS",
                         "TEnCATS - ONT": "TEnCATS",
                         "WGS - ONT": "WGS - Standard ONT",
+                        "Ultra-Long WGS - ONT": "WGS - UltraLong ONT"
                     },
                     "tissue": {
                         "endocrine pancreas": "Endocrine pancreas",
@@ -170,7 +172,8 @@
                     "software.display_title",
                     "sequencing.sequencer.platform",
                     "sample_summary.studies",
-                    "dataset"
+                    "dataset",
+                    "release_tracker_title"
                 ]}
                 xAxisLabel="Assays"
                 yAxisLabel="Cell Lines + Benchmarking"
@@ -217,6 +220,7 @@
                         "Single-cell MALBAC WGS - Illumina": "MALBAC-amplified WGS",
                         "TEnCATS - ONT": "TEnCATS",
                         "WGS - ONT": "WGS - Standard ONT",
+                        "Ultra-Long WGS - ONT": "WGS - UltraLong ONT",
                     },
                     "tissue": {
                         "endocrine pancreas": "Endocrine pancreas",
