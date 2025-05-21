@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.173.0
+=======
+`PR 432 feat: Submission Schema Reference Page <https://github.com/smaht-dac/smaht-portal/pull/432>`_
+
+* Add page for submission schema reference
+
+
 0.172.0
 =======
 `PR 425 SN Update schema properties <https://github.com/smaht-dac/smaht-portal/pull/425>`_
