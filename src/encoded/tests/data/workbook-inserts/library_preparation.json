@@ -14,6 +14,9 @@
         "fragmentation_method": [
             "Sonication"
         ],
-        "strand": "First Stranded"
+        "strand": "First Stranded",
+        "preparation_kits": [
+            "TEST_PREPARATION-KIT_ILLUMINA-DNA"
+        ]
     }
 ]

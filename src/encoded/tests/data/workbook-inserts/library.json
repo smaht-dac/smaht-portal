@@ -8,7 +8,14 @@
         "analytes": [
             "TEST_ANALYTE_LIVER-DNA"
         ],
+        "comments": "Liver WGS DNA",
+        "external_id": "P31566",
         "a260_a280_ratio": 3.2,
+        "adapter_name": "bcM0002",
+        "adapter_sequence": "GTCACC",
+        "barcode_sequences": [
+            "CTACACGACGCTCTTC"
+        ],
         "amplification_cycles": 10,
         "analyte_weight": 5.4,
         "fragment_mean_length": 150.7,
@@ -40,6 +47,8 @@
         "analytes": [
             "TEST_ANALYTE_HELA_ONLY-RNA"
         ],
+        "concatenated_reads": "Yes",
+        "target_monomer_size": 2000,
         "assay": "bulk_mas_iso_seq"
     },
     {
@@ -84,6 +93,13 @@
         "analytes": [
             "TEST_ANALYTE_IPSC_FIBROBLAST-DNA"
         ],
-        "assay": "bulk_wgs"
+        "assay": "bulk_wgs",
+        "antibody": [
+            "Pol-II"
+        ],
+        "guide_sequence": [
+            "CCAGGCTGGAGTGCAGTGGC",
+            "CGCCACTGCAGTCCGCAGTC"
+        ]
     }
 ]
