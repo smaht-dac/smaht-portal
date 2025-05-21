@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.172.1
+=======
+`PR 423: feat: update consortium table and data matrix <https://github.com/smaht-dac/smaht-portal/pull/423>`_
+
+* Add codes to the Consortium table
+* Adjust data matrix styles
+
+
 0.172.0
 =======
 `PR 425 SN Update schema properties <https://github.com/smaht-dac/smaht-portal/pull/425>`_
