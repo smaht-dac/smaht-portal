@@ -19,7 +19,7 @@ import './commands';
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 
-Cypress.on("uncaught:exception", (err) => {
+Cypress.on('uncaught:exception', (err) => {
     // TODO: Investigate hydration errors occurring during SSR in Cypress tests.
     // It appears that Cypress injects a prop into the div on the client side, which doesn't exist on the server side, leading to hydration issues.
     // This suppression is temporary and should be removed once the issue is resolved.
@@ -28,7 +28,7 @@ Cypress.on("uncaught:exception", (err) => {
         /hydrat/i.test(err.message) ||
         /Minified React error #418/.test(err.message) ||
         /Minified React error #423/.test(err.message) ||
-        err.message.includes("Did not get back a search response")
+        err.message.includes('Did not get back a search response')
     ) {
         return false;
     }
