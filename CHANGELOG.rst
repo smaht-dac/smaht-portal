@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.173.0
+=======
+`PR 434: SN Reference genome preferred_name <https://github.com/smaht-dac/smaht-portal/pull/434>`_
+
+* Add `preferred_name` property to ReferenceGenome to override title in the display_title if present
+* Add `submitter_comments` property to FileSet
+
+
 0.172.3
 =======
 `PR 433: fix: update status of pages <https://github.com/smaht-dac/smaht-portal/pull/433>`_
