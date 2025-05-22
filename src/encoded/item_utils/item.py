@@ -101,3 +101,8 @@ def get_version(properties: Dict[str, Any]) -> str:
 def is_released(properties: Dict[str, Any]) -> bool:
     """Check if item is released."""
     return get_status(properties) == item_constants.STATUS_RELEASED
+
+
+def get_preferred_name(properties: Dict[str, Any]) -> str:
+    """Get preferred name from properties."""
+    return properties.get("preferred_name", "")
