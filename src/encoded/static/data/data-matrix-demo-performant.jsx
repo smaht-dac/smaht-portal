@@ -9,7 +9,7 @@
                     "url": "/data_matrix_aggregations?type=File&dataset!=No+value&dataset!=colo829_snv_indel_challenge_data&sample_summary.studies=Benchmarking&status=public&status=released&status=restricted&limit=all",
                     // "url": "/data_matrix_aggregations?type=File&limit=all",
                     "column_agg_fields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
-                    "row_agg_fields": ["donors.display_title", "sample_summary.tissues", "dataset", "sample_summary.descriptions"], //multiple column
+                    "row_agg_fields": ["donors.display_title", "sample_summary.tissues", "dataset", "sample_summary.sample_descriptions"], //multiple column
                 }}
                 fieldChangeMap={{
                     "assay": "file_sets.libraries.assay.display_title",
@@ -21,7 +21,7 @@
                     "data_category": "data_category",
                     "software": "software.display_title",
                     "study": "sample_summary.studies",
-                    "cell_line": "sample_summary.descriptions"
+                    "cell_line": "sample_summary.sample_descriptions"
                 }}
                 valueChangeMap={{
                     "assay": {
@@ -175,7 +175,7 @@
                     "sequencing.sequencer.platform",
                     "sample_summary.studies",
                     "dataset",
-                    "sample_summary.descriptions"
+                    "sample_summary.sample_descriptions"
                 ]}
                 xAxisLabel="Assays"
                 yAxisLabel="Cell Lines + Benchmarking"
