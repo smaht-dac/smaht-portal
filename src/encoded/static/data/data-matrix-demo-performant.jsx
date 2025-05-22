@@ -6,7 +6,7 @@
                 key="data-matrix-demo-1"   // Required to prevent re-instantiation of component upon window resize & similar.
                 session={session}        // Required - hooks in 'session' (boolean) from App.
                 query={{
-                    "url": "/data_matrix_aggregations?type=File&dataset!=No+value&sample_summary.studies=Benchmarking&status=public&status=released&status=restricted&limit=all",
+                    "url": "/data_matrix_aggregations?type=File&dataset!=No+value&dataset!=colo829_snv_indel_challenge_data&sample_summary.studies=Benchmarking&status=public&status=released&status=restricted&limit=all",
                     // "url": "/data_matrix_aggregations?type=File&limit=all",
                     "column_agg_fields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
                     "row_agg_fields": ["donors.display_title", "sample_summary.tissues", "dataset", "release_tracker_title"], //multiple column
@@ -29,6 +29,7 @@
                         "CompDuplex-seq - Illumina": "CompDuplex-Seq",
                         "Kinnex - PacBio": "Kinnex",
                         "Fiber-seq - PacBio": "Fiber-Seq",
+                        "Fiber-seq - Illumina": "Fiber-Seq",
                         "RNA-seq - Illumina": "RNA-Seq - Illumina",
                         "NanoSeq - Illumina": "NanoSeq",
                         "ATAC-seq - Illumina": "ATAC-Seq",
@@ -41,7 +42,8 @@
                         "Single-cell MALBAC WGS - Illumina": "MALBAC-amplified WGS",
                         "TEnCATS - ONT": "TEnCATS",
                         "WGS - ONT": "WGS - Standard ONT",
-                        "Ultra-Long WGS - ONT": "WGS - UltraLong ONT"
+                        "Ultra-Long WGS - ONT": "WGS - UltraLong ONT",
+                        "Hi-C - Illumina": "Hi-C"
                     },
                     "tissue": {
                         "endocrine pancreas": "Endocrine pancreas",
@@ -178,6 +180,7 @@
                 xAxisLabel="Assays"
                 yAxisLabel="Cell Lines + Benchmarking"
                 showAxisLabels={false}
+                showColumnSummary={false}
                 disableConfigurator={false}
             />
         </div>
@@ -352,6 +355,7 @@
                 xAxisLabel="Assays"
                 yAxisLabel="Donors"
                 showAxisLabels={false}
+                showColumnSummary={true}
                 disableConfigurator={false}
             />
         </div>

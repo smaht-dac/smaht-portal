@@ -199,7 +199,7 @@ export default class DataMatrix extends React.PureComponent {
             const resultKey = "_results";
             const updatedState = {};
 
-            updatedState[resultKey] = location.hostname.indexOf('localhostx') >= 0 ? (this.state.query.url.indexOf('dataset') === -1 ? TEST_DATA : TEST_DATA_2) : result;
+            updatedState[resultKey] = location.hostname.indexOf('localhost') >= 0 ? (this.state.query.url.indexOf('dataset') === -1 ? TEST_DATA : TEST_DATA_2) : result;
             let transfermedData = [];
             const populatedRowGroups =  {}; // not implemented yet
             _.forEach(updatedState[resultKey], (r) => {
@@ -210,6 +210,10 @@ export default class DataMatrix extends React.PureComponent {
                             delete r[fieldToMapFrom];
                         }
                     }, {});
+                }
+                // workaround for the case when cell line is used as donor
+                if(r.dataset && r.cell_line && r.donor && r.dataset !== 'tissue' && groupingProperties[0] === 'donor'){
+                    r.donor = r.cell_line;
                 }
                 if (r.files && r.files > 0) {
                     transfermedData = transfermedData.concat(
@@ -716,196 +720,297 @@ const TEST_DATA_2 = [
     {
         "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
         "dataset": "colo829bl",
+        "release_tracker_title": "COLO829BL",
         "sample_summary.studies": "Benchmarking",
         "files": 24
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
         "dataset": "colo829blt_50to1",
+        "release_tracker_title": "COLO829BLT50",
         "sample_summary.studies": "Benchmarking",
         "files": 14
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
         "dataset": "colo829blt_in_silico",
+        "release_tracker_title": "No value",
         "sample_summary.studies": "Benchmarking",
         "files": 5
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
         "dataset": "colo829t",
+        "release_tracker_title": "COLO829T",
         "sample_summary.studies": "Benchmarking",
         "files": 4
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "ST002",
+        "sample_summary.tissues": "Lung",
         "dataset": "tissue",
+        "release_tracker_title": "ST002-1D",
         "sample_summary.studies": "Benchmarking",
-        "files": 23
+        "files": 12
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Colon",
+        "dataset": "tissue",
+        "release_tracker_title": "ST002-1G",
+        "sample_summary.studies": "Benchmarking",
+        "files": 11
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "ST001",
+        "sample_summary.tissues": "Lung",
         "dataset": "tissue",
+        "release_tracker_title": "ST001-1D",
         "sample_summary.studies": "Benchmarking",
-        "files": 21
+        "files": 12
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Liver",
+        "dataset": "tissue",
+        "release_tracker_title": "ST001-1A",
+        "sample_summary.studies": "Benchmarking",
+        "files": 9
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "ST004",
+        "sample_summary.tissues": "Brain",
         "dataset": "tissue",
+        "release_tracker_title": "ST004-1Q",
         "sample_summary.studies": "Benchmarking",
         "files": 9
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "ST003",
+        "sample_summary.tissues": "Brain",
         "dataset": "tissue",
+        "release_tracker_title": "ST003-1Q",
         "sample_summary.studies": "Benchmarking",
         "files": 7
     },
     {
         "file_sets.libraries.assay.display_title": "Fiber-seq - Illumina",
         "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
         "dataset": "colo829_snv_indel_challenge_data",
+        "release_tracker_title": "No value",
         "sample_summary.studies": "Benchmarking",
         "files": 13
     },
     {
         "file_sets.libraries.assay.display_title": "Fiber-seq - Illumina",
         "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
         "dataset": "colo829bl",
+        "release_tracker_title": "COLO829BL",
         "sample_summary.studies": "Benchmarking",
         "files": 9
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
         "dataset": "colo829blt_50to1",
+        "release_tracker_title": "COLO829BLT50",
         "sample_summary.studies": "Benchmarking",
         "files": 5
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
         "dataset": "colo829bl",
+        "release_tracker_title": "COLO829BL",
         "sample_summary.studies": "Benchmarking",
         "files": 2
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
         "dataset": "colo829t",
+        "release_tracker_title": "COLO829T",
         "sample_summary.studies": "Benchmarking",
         "files": 1
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "ST001",
+        "sample_summary.tissues": "Liver",
         "dataset": "tissue",
+        "release_tracker_title": "ST001-1A",
         "sample_summary.studies": "Benchmarking",
-        "files": 6
+        "files": 3
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Lung",
+        "dataset": "tissue",
+        "release_tracker_title": "ST001-1D",
+        "sample_summary.studies": "Benchmarking",
+        "files": 3
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "ST002",
+        "sample_summary.tissues": "Colon",
         "dataset": "tissue",
+        "release_tracker_title": "ST002-1G",
         "sample_summary.studies": "Benchmarking",
-        "files": 6
+        "files": 3
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "ST002",
+        "sample_summary.tissues": "Lung",
+        "dataset": "tissue",
+        "release_tracker_title": "ST002-1D",
+        "sample_summary.studies": "Benchmarking",
+        "files": 3
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - PacBio",
         "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
         "dataset": "colo829blt_50to1",
+        "release_tracker_title": "COLO829BLT50",
         "sample_summary.studies": "Benchmarking",
         "files": 8
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - PacBio",
         "donors.display_title": "ST001",
+        "sample_summary.tissues": "Liver",
         "dataset": "tissue",
+        "release_tracker_title": "ST001-1A",
         "sample_summary.studies": "Benchmarking",
-        "files": 8
+        "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - PacBio",
+        "donors.display_title": "ST001",
+        "sample_summary.tissues": "Lung",
+        "dataset": "tissue",
+        "release_tracker_title": "ST001-1D",
+        "sample_summary.studies": "Benchmarking",
+        "files": 4
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - PacBio",
         "donors.display_title": "ST002",
+        "sample_summary.tissues": "Lung",
         "dataset": "tissue",
+        "release_tracker_title": "ST002-1D",
         "sample_summary.studies": "Benchmarking",
         "files": 4
     },
     {
         "file_sets.libraries.assay.display_title": "Fiber-seq - PacBio",
         "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
         "dataset": "colo829t",
+        "release_tracker_title": "COLO829T",
         "sample_summary.studies": "Benchmarking",
         "files": 4
     },
     {
         "file_sets.libraries.assay.display_title": "Fiber-seq - PacBio",
         "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
         "dataset": "colo829bl",
+        "release_tracker_title": "COLO829BL",
         "sample_summary.studies": "Benchmarking",
         "files": 2
     },
     {
         "file_sets.libraries.assay.display_title": "Fiber-seq - PacBio",
         "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
         "dataset": "colo829blt_50to1",
+        "release_tracker_title": "COLO829BLT50",
         "sample_summary.studies": "Benchmarking",
         "files": 1
     },
     {
         "file_sets.libraries.assay.display_title": "Fiber-seq - PacBio",
         "donors.display_title": "ST001",
+        "sample_summary.tissues": "Liver",
         "dataset": "tissue",
+        "release_tracker_title": "ST001-1A",
         "sample_summary.studies": "Benchmarking",
         "files": 1
     },
     {
         "file_sets.libraries.assay.display_title": "Fiber-seq - PacBio",
         "donors.display_title": "ST002",
+        "sample_summary.tissues": "Colon",
         "dataset": "tissue",
+        "release_tracker_title": "ST002-1G",
         "sample_summary.studies": "Benchmarking",
         "files": 1
     },
     {
         "file_sets.libraries.assay.display_title": "Fiber-seq - PacBio",
         "donors.display_title": "ST003",
+        "sample_summary.tissues": "Brain",
         "dataset": "tissue",
+        "release_tracker_title": "ST003-1Q",
         "sample_summary.studies": "Benchmarking",
         "files": 1
     },
     {
         "file_sets.libraries.assay.display_title": "Fiber-seq - PacBio",
         "donors.display_title": "ST004",
+        "sample_summary.tissues": "Brain",
         "dataset": "tissue",
+        "release_tracker_title": "ST004-1Q",
         "sample_summary.studies": "Benchmarking",
         "files": 1
     },
     {
         "file_sets.libraries.assay.display_title": "Ultra-Long WGS - ONT",
         "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
         "dataset": "colo829bl",
+        "release_tracker_title": "COLO829BL",
         "sample_summary.studies": "Benchmarking",
         "files": 2
     },
     {
         "file_sets.libraries.assay.display_title": "Ultra-Long WGS - ONT",
         "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
         "dataset": "colo829t",
+        "release_tracker_title": "COLO829T",
         "sample_summary.studies": "Benchmarking",
         "files": 2
     },
     {
         "file_sets.libraries.assay.display_title": "Hi-C - Illumina",
         "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
         "dataset": "colo829bl",
+        "release_tracker_title": "COLO829BL",
         "sample_summary.studies": "Benchmarking",
         "files": 1
     }

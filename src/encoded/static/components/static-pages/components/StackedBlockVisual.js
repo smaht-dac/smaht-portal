@@ -494,7 +494,7 @@ export class StackedBlockVisual extends React.PureComponent {
     }
 
     renderContents(){
-        const { data : propData, groupingProperties, columnGrouping, columnGroups, showColumnGroups, rowGroups, showRowGroups } = this.props;
+        const { data : propData, groupingProperties, columnGrouping, columnGroups, showColumnGroups, rowGroups, showRowGroups, showColumnSummary } = this.props;
         const { mounted, sorting, sortField, activeBlock, openBlock } = this.state;
         if (!mounted) return null;
         const tempData = [].concat(propData);
@@ -543,7 +543,7 @@ export class StackedBlockVisual extends React.PureComponent {
                 }
             } else {
                 // leftAxisKeys.sort();
-                leftAxisKeys = StackedBlockGroupedRow.sortByArray(leftAxisKeys, StackedBlockGroupedRow.mergeValues(this.props.rowGroups))
+                leftAxisKeys = StackedBlockGroupedRow.sortByArray(leftAxisKeys, StackedBlockGroupedRow.mergeValues(rowGroups));
             }
             const hasRowGroups = showRowGroups && rowGroups && _.keys(rowGroups).length > 0;
             const rowGroupsKeys = hasRowGroups ? [..._.keys(rowGroups), FALLBACK_GROUP_NAME] : null;
@@ -554,7 +554,7 @@ export class StackedBlockVisual extends React.PureComponent {
                     <React.Fragment>
                         {StackedBlockGroupedRow.columnsAndHeader({ ...this.props, groupedDataIndices: groupedDataIndices })}
                         {
-                            _.map(rowGroupsKeys, (groupKey) => {
+                            _.map(rowGroupsKeys, (groupKey, groupKeyIdx) => {
                                 const { values, backgroundColor, textColor } = rowGroups[groupKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
 
                                 let rowKeys = [];
@@ -566,8 +566,10 @@ export class StackedBlockVisual extends React.PureComponent {
                                     rowKeys = StackedBlockGroupedRow.intersectionIgnoreCase(leftAxisKeys, values || []);
                                 }
 
-                                //
-                                const containerSectionStyle = { backgroundColor: backgroundColor, color: textColor, marginTop: 20 };
+                                const containerSectionStyle = { backgroundColor: backgroundColor, color: textColor };
+                                if (showColumnSummary || groupKeyIdx > 0) {
+                                    containerSectionStyle['marginTop'] = 20;
+                                }
                                 const labelSectionStyle = { };
                                 const labelSortIconClassName = "";
                                 const labelSortIcon = <SortIconBoth />;
