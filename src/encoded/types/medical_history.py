@@ -56,5 +56,5 @@ class MedicalHistory(SubmittedItem):
                 exposure_utils.get_category
             ) in categories
         ]
-        return valid_exposures if valid_exposures else None
+        return valid_exposures or None
 
