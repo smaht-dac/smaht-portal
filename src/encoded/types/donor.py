@@ -91,9 +91,7 @@ class Donor(SubmittedItem):
     )
     def medical_history(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "medical_history")
-        if result:
-            return result
-        return
+        return result or None
 
 
 def validate_external_id_on_add(context, request):
