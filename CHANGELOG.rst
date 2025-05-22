@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.173.0
+=======
+`PR 434: SN Reference genome preferred_name <https://github.com/smaht-dac/smaht-portal/pull/434>`_
+
+* * Update the `meta_workflow_run_inputs` calcprop in File to ignore ReferenceFile items
+Add the property `submitter_comments` to FileSet for display in Submission Status page
+
+
 0.172.3
 =======
 `PR 433: fix: update status of pages <https://github.com/smaht-dac/smaht-portal/pull/433>`_
