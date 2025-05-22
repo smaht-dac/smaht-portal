@@ -14,6 +14,16 @@
         "fragmentation_method": [
             "Sonication"
         ],
+        "insert_selection_method": [
+            "PolyT Enrichment"
+        ],
+        "enzymes": [
+            "Tn5"
+        ],
+        "rna_seq_protocol": "Watchmaker",
+        "size_selection_method": [
+            "Magnetic Beads"
+        ],
         "strand": "First Stranded",
         "preparation_kits": [
             "TEST_PREPARATION-KIT_ILLUMINA-DNA"

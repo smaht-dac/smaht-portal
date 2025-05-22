@@ -8,7 +8,9 @@
         "analytes": [
             "TEST_ANALYTE_LIVER-DNA"
         ],
-        "comments": "Liver WGS DNA",
+        "comments": [
+            "Liver WGS DNA"
+        ],
         "external_id": "P31566",
         "a260_a280_ratio": 3.2,
         "adapter_name": "bcM0002",
@@ -20,6 +22,9 @@
         "analyte_weight": 5.4,
         "fragment_mean_length": 150.7,
         "insert_mean_length": 150.2,
+        "insert_minimum_length": 148,
+        "insert_maximum_length": 152,
+        "insert_coefficient_of_variation": 0.5,
         "preparation_date": "2023-05-11",
         "assay": "bulk_wgs",
         "library_preparation": "TEST_LIBRARY-PREPARATION_LIVER"
@@ -35,6 +40,9 @@
         ],
         "a260_a280_ratio": 3.2,
         "fragment_mean_length": 150.7,
+        "target_fragment_size": 150,
+        "target_insert_maximum_length": 151,
+        "target_insert_minimum_length": 150,
         "insert_mean_length": 150.2,
         "assay": "bulk_rna_seq"
     },
@@ -48,7 +56,6 @@
             "TEST_ANALYTE_HELA_ONLY-RNA"
         ],
         "concatenated_reads": "Yes",
-        "target_monomer_size": 2000,
         "assay": "bulk_mas_iso_seq"
     },
     {
@@ -96,6 +103,9 @@
         "assay": "bulk_wgs",
         "antibody": [
             "Pol-II"
+        ],
+        "dna_target": [
+            "AluY8"
         ],
         "guide_sequence": [
             "CCAGGCTGGAGTGCAGTGGC",
