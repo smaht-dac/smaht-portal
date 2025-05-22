@@ -11,7 +11,7 @@ const SchemaPropertiesTable = ({ data = {} }) => {
 
     return sortedPropertyKeys.length > 0 ? (
         <table className="table table-bordered table-striped">
-            <thead>
+            <thead className="thead-smaht">
                 <tr>
                     <th className="text-left">Metadata Property</th>
                     <th className="text-left">Description</th>
@@ -116,7 +116,7 @@ export const SchemaReferencePage = () => {
             />
             <div
                 className={`selected-schema schema-item ${selectedSchema?.value} mb-5`}>
-                <h2>{selectedSchema?.value}</h2>
+                <h3 className="fs-4">{selectedSchema?.value}</h3>
                 {selectedSchema?.value && (
                     <>
                         <SchemaPropertiesTable
@@ -133,7 +133,7 @@ export const SchemaReferencePage = () => {
                             id={schemaKey}
                             className={`schema-item ${schemaKey} mb-5`}
                             key={i}>
-                            <h2>{schemaKey}</h2>
+                            <h3 className="fs-4">{schemaKey}</h3>
                             <SchemaPropertiesTable
                                 data={schemaData[schemaKey]?.properties}
                             />

@@ -567,7 +567,7 @@
         "identifier": "submission_schemas",
         "title": "Submission Schemas",
         "file": "/docs/public/submission_schemas.jsx",
-        "status": "in review",
+        "status": "released",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
