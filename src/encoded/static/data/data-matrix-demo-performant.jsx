@@ -6,10 +6,10 @@
                 key="data-matrix-demo-1"   // Required to prevent re-instantiation of component upon window resize & similar.
                 session={session}        // Required - hooks in 'session' (boolean) from App.
                 query={{
-                    "url": "/data_matrix_aggregations?type=File&dataset!=No+value&dataset!=colo829_snv_indel_challenge_data&sample_summary.studies=Benchmarking&status=public&status=released&status=restricted&limit=all",
+                    "url": "/data_matrix_aggregations?type=File&dataset!=No+value&sample_summary.studies=Benchmarking&status=public&status=released&status=restricted&limit=all",
                     // "url": "/data_matrix_aggregations?type=File&limit=all",
                     "column_agg_fields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
-                    "row_agg_fields": ["donors.display_title", "sample_summary.tissues", "dataset", "sample_summary.sample_descriptions"], //multiple column
+                    "row_agg_fields": ["donors.display_title", "sample_summary.tissues", "dataset"], //multiple column
                 }}
                 fieldChangeMap={{
                     "assay": "file_sets.libraries.assay.display_title",
@@ -21,7 +21,7 @@
                     "data_category": "data_category",
                     "software": "software.display_title",
                     "study": "sample_summary.studies",
-                    "cell_line": "sample_summary.sample_descriptions"
+                    "cell_line": "dataset",
                 }}
                 valueChangeMap={{
                     "assay": {
@@ -50,6 +50,22 @@
                     },
                     "study": {
                         "Benchmarking": "Donors"
+                    },
+                    "donor": {
+                        "colo829t": "COLO829T",
+                        "colo829bl": "COLO829BL",
+                        "colo829blt_50to1": "COLO829BLT50",
+                        "colo829blt_in_silico": "In silico BLT50",
+                        "colo829_snv_indel_challenge_data": "Truth Set",
+                        "hapmap": "HapMap Mixture",
+                        "mei_detection_challenge_data": "Downsampled",
+                        "lb_fibroblast": "LB-LA2 Fibroblast",
+                        "lb_ipsc_1": "LB-LA2 iPSC-1",
+                        "lb_ipsc_2": "LB-LA2 iPSC-2",
+                        "lb_ipsc_4": "LB-LA2 iPSC-4",
+                        "lb_ipsc_52": "LB-LA2 iPSC-52",
+                        "lb_ipsc_60": "LB-LA2 iPSC-60",
+                        "ipsc_snv_indel_challenge_data": "Truth Set",
                     }
                 }}
                 groupingProperties={["donor", "tissue"]}
@@ -113,7 +129,7 @@
                 showColumnGroupsExtended={false}
                 rowGroups={{
                     "Cell Lines": {
-                        "values": ['COLO829T', 'COLO829BL', 'COLO829BLT50', 'In silico BLT50', 'HapMap mixture', /*temp*/'ALT1'],
+                        "values": ['COLO829T', 'COLO829BL', 'COLO829BLT50', 'In silico BLT50', 'Truth Set', 'HapMap Mixture', 'Downsampled', 'LB-LA2 Fibroblast', 'LB-LA2 iPSC-1', 'LB-LA2 iPSC-2', 'LB-LA2 iPSC-4', 'LB-LA2 iPSC-52', 'LB-LA2 iPSC-60'],
                         "backgroundColor": "#f9d5f0",
                         "textColor": "#000000",
                         "shortName": "Cell Lines"
@@ -175,7 +191,6 @@
                     "sequencing.sequencer.platform",
                     "sample_summary.studies",
                     "dataset",
-                    "sample_summary.sample_descriptions"
                 ]}
                 xAxisLabel="Assays"
                 yAxisLabel="Cell Lines + Benchmarking"
@@ -351,6 +366,7 @@
                     "software.display_title",
                     "sequencing.sequencer.platform",
                     "sample_summary.studies",
+                    "dataset",
                 ]}
                 xAxisLabel="Assays"
                 yAxisLabel="Donors"
