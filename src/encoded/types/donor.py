@@ -26,7 +26,7 @@ from ..item_utils import (
 )
 
 def _build_donor_embedded_list():
-    """Embeds for search on libraries."""
+    """Embeds for search on donor."""
     return [
         "medical_history.exposures.category",
         "medical_history.exposures.cessation",

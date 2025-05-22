@@ -12,7 +12,7 @@ from ..item_utils import exposure as exposure_utils
 
 
 def _build_medical_history_embedded_list():
-    """Embeds for search on libraries."""
+    """Embeds for search on medical history."""
     return []
 
 
