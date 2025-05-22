@@ -7,11 +7,19 @@ smaht-portal
 Change Log
 ----------
 
-0.173.0
+0.174.0
 =======
 `PR 432 feat: Submission Schema Reference Page <https://github.com/smaht-dac/smaht-portal/pull/432>`_
 
 * Add page for submission schema reference
+
+
+0.173.0
+=======
+`PR 434: SN Reference genome preferred_name <https://github.com/smaht-dac/smaht-portal/pull/434>`_
+
+* Update the `meta_workflow_run_inputs` calcprop in File to ignore ReferenceFile items
+* Add the property `submitter_comments` to FileSet for display in Submission Status page
 
 
 0.172.3

@@ -648,6 +648,8 @@ class File(Item, CoreFile):
     def meta_workflow_run_inputs(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "meta_workflow_run_inputs")
         if result:
+            if self.type_info.name == "ReferenceFile":
+                return
             request_handler = RequestHandler(request = request)
             mwfrs=[ 
                 mwfr for mwfr in result
