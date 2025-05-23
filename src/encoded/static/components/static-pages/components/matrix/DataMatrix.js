@@ -47,6 +47,7 @@ export default class DataMatrix extends React.PureComponent {
         "yAxisLabel": "Y",
         "showAxisLabels": true,
         "showColumnSummary": true,
+        "defaultOpen": false,
         "disableConfigurator": true,
     };
 
@@ -84,6 +85,7 @@ export default class DataMatrix extends React.PureComponent {
         'yAxisLabel': PropTypes.string,
         'showAxisLabels': PropTypes.bool,
         'showColumnSummary': PropTypes.bool,
+        'defaultOpen': PropTypes.bool,
         'disableConfigurator': PropTypes.bool,
     };
 
@@ -171,6 +173,7 @@ export default class DataMatrix extends React.PureComponent {
             "colorRangeSegments": props.colorRangeSegments,
             "colorRangeSegmentStep": props.colorRangeSegmentStep,
             "summaryBackgroundColor": props.summaryBackgroundColor,
+            "defaultOpen": props.defaultOpen
         };
     }
 
@@ -328,12 +331,12 @@ export default class DataMatrix extends React.PureComponent {
         columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
         rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
         xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
-        colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor }) {
+        colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor, defaultOpen }) {
         console.log(
             searchUrl, columnAggField, rowAggField1, rowAggField2,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended, rowGroupsExtended, showRowGroupsExtended,
             xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
-            colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor);
+            colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor, defaultOpen);
 
         const newColorRanges = this.getColorRanges({ colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep });
         const invertedFieldChangeMap = _.invert(this.state.fieldChangeMap);
@@ -367,6 +370,7 @@ export default class DataMatrix extends React.PureComponent {
             yAxisLabel: yAxisLabel,
             showAxisLabels: showAxisLabels,
             showColumnSummary: showColumnSummary,
+            defaultOpen: defaultOpen,
             colorRanges: newColorRanges,
             colorRangeBaseColor: colorRangeBaseColor,
             colorRangeSegments: colorRangeSegments,
@@ -412,7 +416,8 @@ export default class DataMatrix extends React.PureComponent {
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
             colorRanges, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
-            colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor
+            colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor,
+            defaultOpen = false
         } = this.state;
 
         const isLoading =
@@ -464,6 +469,7 @@ export default class DataMatrix extends React.PureComponent {
                 initialYAxisLabel={yAxisLabel}
                 initialShowAxisLabels={showAxisLabels}
                 initialShowColumnSummary={showColumnSummary}
+                initialDefaultOpen={defaultOpen}
                 initialColorRangeBaseColor={colorRangeBaseColor}
                 initialColorRangeSegments={colorRangeSegments}
                 initialColorRangeSegmentStep={colorRangeSegmentStep}
@@ -482,7 +488,7 @@ export default class DataMatrix extends React.PureComponent {
                     columnSubGrouping=""//"state"
                     // eslint-disable-next-line react/destructuring-assignment
                     results={this.state[resultKey]}
-                    // defaultDepthsOpen={[true, false, false]}
+                    defaultDepthsOpen={[defaultOpen, false, false]}
                     // keysToInclude={[]}
                 />
             </div>
@@ -723,7 +729,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "COLO829",
         "sample_summary.tissues": "No value",
         "dataset": "colo829bl",
-        "sample_summary.sample_descriptions": "COLO829BL",
         "sample_summary.studies": "Benchmarking",
         "files": 24
     },
@@ -732,16 +737,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "COLO829",
         "sample_summary.tissues": "No value",
         "dataset": "colo829blt_50to1",
-        "sample_summary.sample_descriptions": "COLO829BL",
-        "sample_summary.studies": "Benchmarking",
-        "files": 14
-    },
-    {
-        "file_sets.libraries.assay.display_title": "WGS - Illumina",
-        "donors.display_title": "COLO829",
-        "sample_summary.tissues": "No value",
-        "dataset": "colo829blt_50to1",
-        "sample_summary.sample_descriptions": "COLO829T",
         "sample_summary.studies": "Benchmarking",
         "files": 14
     },
@@ -750,16 +745,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "COLO829",
         "sample_summary.tissues": "No value",
         "dataset": "colo829blt_in_silico",
-        "sample_summary.sample_descriptions": "COLO829BL",
-        "sample_summary.studies": "Benchmarking",
-        "files": 5
-    },
-    {
-        "file_sets.libraries.assay.display_title": "WGS - Illumina",
-        "donors.display_title": "COLO829",
-        "sample_summary.tissues": "No value",
-        "dataset": "colo829blt_in_silico",
-        "sample_summary.sample_descriptions": "COLO829T",
         "sample_summary.studies": "Benchmarking",
         "files": 5
     },
@@ -768,7 +753,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "COLO829",
         "sample_summary.tissues": "No value",
         "dataset": "colo829t",
-        "sample_summary.sample_descriptions": "COLO829T",
         "sample_summary.studies": "Benchmarking",
         "files": 4
     },
@@ -777,7 +761,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Lung",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Homogenate",
         "sample_summary.studies": "Benchmarking",
         "files": 12
     },
@@ -786,7 +769,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Colon",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Homogenate",
         "sample_summary.studies": "Benchmarking",
         "files": 11
     },
@@ -795,7 +777,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Lung",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Homogenate",
         "sample_summary.studies": "Benchmarking",
         "files": 12
     },
@@ -804,16 +785,30 @@ const TEST_DATA_2 = [
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Liver",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Homogenate",
         "sample_summary.studies": "Benchmarking",
         "files": 9
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "No value",
+        "sample_summary.tissues": "No value",
+        "dataset": "hapmap",
+        "sample_summary.studies": "Benchmarking",
+        "files": 9
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - Illumina",
+        "donors.display_title": "No value",
+        "sample_summary.tissues": "No value",
+        "dataset": "mei_detection_challenge_data",
+        "sample_summary.studies": "Benchmarking",
+        "files": 4
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - Illumina",
         "donors.display_title": "ST004",
         "sample_summary.tissues": "Brain",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Homogenate",
         "sample_summary.studies": "Benchmarking",
         "files": 9
     },
@@ -822,7 +817,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "ST003",
         "sample_summary.tissues": "Brain",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Homogenate",
         "sample_summary.studies": "Benchmarking",
         "files": 7
     },
@@ -831,16 +825,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "COLO829",
         "sample_summary.tissues": "No value",
         "dataset": "colo829blt_50to1",
-        "sample_summary.sample_descriptions": "COLO829BL",
-        "sample_summary.studies": "Benchmarking",
-        "files": 5
-    },
-    {
-        "file_sets.libraries.assay.display_title": "WGS - ONT",
-        "donors.display_title": "COLO829",
-        "sample_summary.tissues": "No value",
-        "dataset": "colo829blt_50to1",
-        "sample_summary.sample_descriptions": "COLO829T",
         "sample_summary.studies": "Benchmarking",
         "files": 5
     },
@@ -849,7 +833,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "COLO829",
         "sample_summary.tissues": "No value",
         "dataset": "colo829bl",
-        "sample_summary.sample_descriptions": "COLO829BL",
         "sample_summary.studies": "Benchmarking",
         "files": 2
     },
@@ -858,16 +841,30 @@ const TEST_DATA_2 = [
         "donors.display_title": "COLO829",
         "sample_summary.tissues": "No value",
         "dataset": "colo829t",
-        "sample_summary.sample_descriptions": "COLO829T",
         "sample_summary.studies": "Benchmarking",
         "files": 1
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "No value",
+        "sample_summary.tissues": "No value",
+        "dataset": "hapmap",
+        "sample_summary.studies": "Benchmarking",
+        "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - ONT",
+        "donors.display_title": "No value",
+        "sample_summary.tissues": "No value",
+        "dataset": "mei_detection_challenge_data",
+        "sample_summary.studies": "Benchmarking",
+        "files": 3
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - ONT",
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Liver",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Homogenate",
         "sample_summary.studies": "Benchmarking",
         "files": 3
     },
@@ -876,7 +873,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Lung",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Homogenate",
         "sample_summary.studies": "Benchmarking",
         "files": 3
     },
@@ -885,7 +881,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Colon",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Homogenate",
         "sample_summary.studies": "Benchmarking",
         "files": 3
     },
@@ -894,7 +889,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Lung",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Homogenate",
         "sample_summary.studies": "Benchmarking",
         "files": 3
     },
@@ -903,16 +897,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "COLO829",
         "sample_summary.tissues": "No value",
         "dataset": "colo829blt_50to1",
-        "sample_summary.sample_descriptions": "COLO829BL",
-        "sample_summary.studies": "Benchmarking",
-        "files": 8
-    },
-    {
-        "file_sets.libraries.assay.display_title": "WGS - PacBio",
-        "donors.display_title": "COLO829",
-        "sample_summary.tissues": "No value",
-        "dataset": "colo829blt_50to1",
-        "sample_summary.sample_descriptions": "COLO829T",
         "sample_summary.studies": "Benchmarking",
         "files": 8
     },
@@ -921,7 +905,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Liver",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Homogenate",
         "sample_summary.studies": "Benchmarking",
         "files": 4
     },
@@ -930,25 +913,54 @@ const TEST_DATA_2 = [
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Lung",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Homogenate",
         "sample_summary.studies": "Benchmarking",
         "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - PacBio",
+        "donors.display_title": "No value",
+        "sample_summary.tissues": "No value",
+        "dataset": "hapmap",
+        "sample_summary.studies": "Benchmarking",
+        "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "WGS - PacBio",
+        "donors.display_title": "No value",
+        "sample_summary.tissues": "No value",
+        "dataset": "mei_detection_challenge_data",
+        "sample_summary.studies": "Benchmarking",
+        "files": 3
     },
     {
         "file_sets.libraries.assay.display_title": "WGS - PacBio",
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Lung",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Homogenate",
         "sample_summary.studies": "Benchmarking",
         "files": 4
+    },
+    {
+        "file_sets.libraries.assay.display_title": "Fiber-seq - Illumina",
+        "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
+        "dataset": "colo829_snv_indel_challenge_data",
+        "sample_summary.studies": "Benchmarking",
+        "files": 13
+    },
+    {
+        "file_sets.libraries.assay.display_title": "Fiber-seq - Illumina",
+        "donors.display_title": "COLO829",
+        "sample_summary.tissues": "No value",
+        "dataset": "colo829bl",
+        "sample_summary.studies": "Benchmarking",
+        "files": 9
     },
     {
         "file_sets.libraries.assay.display_title": "Fiber-seq - PacBio",
         "donors.display_title": "COLO829",
         "sample_summary.tissues": "No value",
         "dataset": "colo829t",
-        "sample_summary.sample_descriptions": "COLO829T",
         "sample_summary.studies": "Benchmarking",
         "files": 4
     },
@@ -957,7 +969,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "COLO829",
         "sample_summary.tissues": "No value",
         "dataset": "colo829bl",
-        "sample_summary.sample_descriptions": "COLO829BL",
         "sample_summary.studies": "Benchmarking",
         "files": 2
     },
@@ -966,16 +977,14 @@ const TEST_DATA_2 = [
         "donors.display_title": "COLO829",
         "sample_summary.tissues": "No value",
         "dataset": "colo829blt_50to1",
-        "sample_summary.sample_descriptions": "COLO829BL",
         "sample_summary.studies": "Benchmarking",
         "files": 1
     },
     {
         "file_sets.libraries.assay.display_title": "Fiber-seq - PacBio",
-        "donors.display_title": "COLO829",
+        "donors.display_title": "No value",
         "sample_summary.tissues": "No value",
-        "dataset": "colo829blt_50to1",
-        "sample_summary.sample_descriptions": "COLO829T",
+        "dataset": "hapmap",
         "sample_summary.studies": "Benchmarking",
         "files": 1
     },
@@ -984,7 +993,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "ST001",
         "sample_summary.tissues": "Liver",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Specimen",
         "sample_summary.studies": "Benchmarking",
         "files": 1
     },
@@ -993,7 +1001,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "ST002",
         "sample_summary.tissues": "Colon",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Specimen",
         "sample_summary.studies": "Benchmarking",
         "files": 1
     },
@@ -1002,7 +1009,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "ST003",
         "sample_summary.tissues": "Brain",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Specimen",
         "sample_summary.studies": "Benchmarking",
         "files": 1
     },
@@ -1011,25 +1017,14 @@ const TEST_DATA_2 = [
         "donors.display_title": "ST004",
         "sample_summary.tissues": "Brain",
         "dataset": "tissue",
-        "sample_summary.sample_descriptions": "Specimen",
         "sample_summary.studies": "Benchmarking",
         "files": 1
-    },
-    {
-        "file_sets.libraries.assay.display_title": "Fiber-seq - Illumina",
-        "donors.display_title": "COLO829",
-        "sample_summary.tissues": "No value",
-        "dataset": "colo829bl",
-        "sample_summary.sample_descriptions": "COLO829BL",
-        "sample_summary.studies": "Benchmarking",
-        "files": 9
     },
     {
         "file_sets.libraries.assay.display_title": "Ultra-Long WGS - ONT",
         "donors.display_title": "COLO829",
         "sample_summary.tissues": "No value",
         "dataset": "colo829bl",
-        "sample_summary.sample_descriptions": "COLO829BL",
         "sample_summary.studies": "Benchmarking",
         "files": 2
     },
@@ -1038,7 +1033,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "COLO829",
         "sample_summary.tissues": "No value",
         "dataset": "colo829t",
-        "sample_summary.sample_descriptions": "COLO829T",
         "sample_summary.studies": "Benchmarking",
         "files": 2
     },
@@ -1047,7 +1041,6 @@ const TEST_DATA_2 = [
         "donors.display_title": "COLO829",
         "sample_summary.tissues": "No value",
         "dataset": "colo829bl",
-        "sample_summary.sample_descriptions": "COLO829BL",
         "sample_summary.studies": "Benchmarking",
         "files": 1
     }

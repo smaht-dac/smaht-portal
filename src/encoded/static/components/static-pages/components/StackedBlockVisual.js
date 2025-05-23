@@ -1210,18 +1210,23 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             data, index, showGroupingPropertyTitles, checkCollapsibility,
             activeBlock, openBlock,
             rowGroupsExtended, showRowGroupsExtended } = this.props;
-        const { open } = this.state;
+        const { open: stateOpen } = this.state;
 
         let groupingPropertyTitle = null;
         if (Array.isArray(groupingProperties) && groupingProperties[depth]){
             groupingPropertyTitle = titleMap[groupingProperties[depth]] || groupingProperties[depth];
         }
 
-        let className = "grouping depth-" + depth + (open ? ' open' : '') + (' row-index-' + index) + (!showGroupingPropertyTitles ? ' no-grouping-property-titles' : '');
-        let toggleIcon = null;
-
         const childRowsKeys = !Array.isArray(data) ? _.keys(data)/*.sort()*/ : null;
         const hasIdentifiableChildren = !checkCollapsibility ? true : (depth + 2 >= groupingProperties.length) && childRowsKeys && childRowsKeys.length > 0 && !(childRowsKeys.length === 1 && childRowsKeys[0] === 'No value');
+
+        let open = stateOpen;
+        if (open && !hasIdentifiableChildren) {
+            open = false;
+        }
+
+        let className = "grouping depth-" + depth + (open ? ' open' : '') + (' row-index-' + index) + (!showGroupingPropertyTitles ? ' no-grouping-property-titles' : '');
+        let toggleIcon = null;
 
         if (!Array.isArray(data) && data && hasIdentifiableChildren){
             toggleIcon = <i className={"clickable icon fas icon-fw icon-" + (open ? 'minus' : 'plus')} onClick={this.toggleOpen} />;

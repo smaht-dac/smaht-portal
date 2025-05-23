@@ -26,6 +26,7 @@ const DataMatrixConfigurator = ({
     initialYAxisLabel,
     initialShowAxisLabels,
     initialShowColumnSummary,
+    initialDefaultOpen,
     initialColorRangeBaseColor,
     initialColorRangeSegments,
     initialColorRangeSegmentStep,
@@ -49,6 +50,7 @@ const DataMatrixConfigurator = ({
     const [yAxisLabel, setYAxisLabel] = useState(initialYAxisLabel);
     const [showAxisLabels, setShowAxisLabels] = useState(initialShowAxisLabels);
     const [showColumnSummary, setShowColumnSummary] = useState(initialShowColumnSummary);
+    const [defaultOpen, setDefaultOpen] = useState(initialDefaultOpen);
     const [colorRangeBaseColor, setColorRangeBaseColor] = useState(initialColorRangeBaseColor);
     const [colorRangeSegments, setColorRangeSegments] = useState(initialColorRangeSegments);
     const [colorRangeSegmentStep, setColorRangeSegmentStep] = useState(initialColorRangeSegmentStep);
@@ -154,7 +156,7 @@ const DataMatrixConfigurator = ({
             searchUrl, columnAggField, rowAggField1, rowAggField2,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
-            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels,
+            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary, defaultOpen,
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep
         });
         setShowPopover(false);
@@ -263,6 +265,12 @@ const DataMatrixConfigurator = ({
                                     <Form.Group className="d-flex align-items-center mb-05">
                                         <Form.Label className="me-2" style={labelStyle}>Show Column Summary</Form.Label>
                                         <Form.Check type="checkbox" checked={showColumnSummary} onChange={(e) => setShowColumnSummary(!showColumnSummary)} />
+                                    </Form.Group>
+
+                                    {/* Default Open */}
+                                    <Form.Group className="d-flex align-items-center mb-05">
+                                        <Form.Label className="me-2" style={labelStyle}>Default Expanded</Form.Label>
+                                        <Form.Check type="checkbox" checked={defaultOpen} onChange={(e) => setDefaultOpen(!defaultOpen)} />
                                     </Form.Group>
                                 </Tab>
                                 <Tab eventKey="style" title={"Style"}>

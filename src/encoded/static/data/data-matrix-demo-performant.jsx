@@ -7,7 +7,6 @@
                 session={session}        // Required - hooks in 'session' (boolean) from App.
                 query={{
                     "url": "/data_matrix_aggregations?type=File&dataset!=No+value&sample_summary.studies=Benchmarking&status=public&status=released&status=restricted&limit=all",
-                    // "url": "/data_matrix_aggregations?type=File&limit=all",
                     "column_agg_fields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
                     "row_agg_fields": ["donors.display_title", "sample_summary.tissues", "dataset"], //multiple column
                 }}
@@ -135,7 +134,7 @@
                         "shortName": "Cell Lines"
                     },
                     "Donors": {
-                        "values": ['ST001', 'ST002', 'ST003', 'ST004', /*temp*/'SMHT001'],
+                        "values": ['ST001', 'ST002', 'ST003', 'ST004'],
                         "backgroundColor": "#ffd478",
                         "textColor": "#000000",
                         "shortName": "Donors"
@@ -193,9 +192,10 @@
                     "dataset",
                 ]}
                 xAxisLabel="Assays"
-                yAxisLabel="Cell Lines + Benchmarking"
+                yAxisLabel="Cell Lines + Donors"
                 showAxisLabels={false}
                 showColumnSummary={false}
+                defaultOpen={false}
                 disableConfigurator={false}
             />
         </div>
@@ -372,6 +372,7 @@
                 yAxisLabel="Donors"
                 showAxisLabels={false}
                 showColumnSummary={true}
+                defaultOpen={false}
                 disableConfigurator={false}
             />
         </div>
