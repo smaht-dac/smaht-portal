@@ -552,7 +552,7 @@ export class StackedBlockVisual extends React.PureComponent {
                 let outerIdx = -1;
                 return (
                     <React.Fragment>
-                        {StackedBlockGroupedRow.columnsAndHeader({ ...this.props, groupedDataIndices: groupedDataIndices })}
+                        {StackedBlockGroupedRow.columnsAndHeader({ ...this.props, groupedDataIndices, activeBlock, openBlock })}
                         {
                             _.map(rowGroupsKeys, (groupKey, groupKeyIdx) => {
                                 const { values, backgroundColor, textColor } = rowGroups[groupKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
@@ -621,7 +621,7 @@ export class StackedBlockVisual extends React.PureComponent {
             } else {
                 return (
                     <React.Fragment>
-                        {StackedBlockGroupedRow.columnsAndHeader({ ...this.props, groupedDataIndices: groupedDataIndices })}
+                        {StackedBlockGroupedRow.columnsAndHeader({ ...this.props, groupedDataIndices, activeBlock, openBlock })}
                         {
                             _.map(leftAxisKeys, (k, idx) =>
                                 <StackedBlockGroupedRow {...this.props} groupedDataIndices={groupedDataIndices} parentState={this.state} data={nestedData[k]}
@@ -1125,7 +1125,6 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     } else {
                                         countSortIcon = <SortIconBoth />;
                                     }
-
                                     const countSortIconClassName = 'column-sort-icon' + (['asc', 'desc'].indexOf(sorting) > -1 && columnKey === sortField ? ' active' : '');
                                     const extraClassName = (activeBlock?.column === colIndex ? ' active-block-column' : '');
                                     const style = (activeBlock?.column === colIndex) ? sorterActiveStyle : headerItemStyle;
@@ -1151,7 +1150,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             <div className="grouping header-section-lower" style={containerSectionStyle}>
                 <div className="row grouping-row">
                     <div className="label-section" style={{ ...labelSectionStyle, paddingTop: props.blockVerticalSpacing }}>
-                        <div className="text-end" onClick={props.onSorterClick} style={{ height: '29px', marginBottom: '1px' }}>
+                        <div className="label-container text-end" onClick={props.onSorterClick} style={{ height: '29px', marginBottom: '1px' }}>
                             <span className="float-start text-500 ps-05">{label}</span>
                             {/* <span className={labelSortIconClassName}>{labelSortIcon}</span> */}
                         </div>

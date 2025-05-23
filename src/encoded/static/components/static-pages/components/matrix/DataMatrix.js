@@ -184,12 +184,13 @@ export default class DataMatrix extends React.PureComponent {
 
     componentDidUpdate(pastProps, pastState) {
         const { session } = this.props;
-        const { query, fieldChangeMap, columnGrouping, groupingProperties } = this.state;
+        const { query, fieldChangeMap, columnGrouping, groupingProperties, defaultOpen } = this.state;
         if (session !== pastProps.session ||
             !_.isEqual(query, pastState.query) ||
             !_.isEqual(fieldChangeMap, pastState.fieldChangeMap) ||
             columnGrouping !== pastState.columnGrouping ||
-            !_.isEqual(groupingProperties, pastState.groupingProperties)) {
+            !_.isEqual(groupingProperties, pastState.groupingProperties) ||
+            defaultOpen !== pastState.defaultOpen) {
             this.loadSearchQueryResults();
         }
     }
@@ -216,7 +217,6 @@ export default class DataMatrix extends React.PureComponent {
                 }
                 // workaround for the case when cell line is used as donor
                 if(r.cell_line && r.donor && r.cell_line !== 'tissue' && groupingProperties[0] === 'donor'){
-                    console.log('xxx ' + r.cell_line);
                     r.donor = r.cell_line;
                 }
                 if (r.files && r.files > 0) {
