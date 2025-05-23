@@ -11,7 +11,6 @@ from .utils import (
     get_item,
     patch_item,
     post_item,
-    get_search,
 )
 
 @pytest.mark.workbook
