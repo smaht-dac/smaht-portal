@@ -285,14 +285,14 @@ export default class DataMatrix extends React.PureComponent {
                 _.forEach(rowAggFields || [], function (f, idx) {
                     if (typeof f === 'string'){
                         searchQueryParams.field.push(f);
-                        if (idx === 0 && !queryParamsByUrl[f]) {
-                            searchQueryParams[f + '!'] = "No value";
-                        }
+                        // if (idx === 0 && !queryParamsByUrl[f]) {
+                        //     searchQueryParams[f + '!'] = "No value";
+                        // }
                     } else {
                         searchQueryParams.field.push(...f);
-                        if (idx === 0 && !queryParamsByUrl[f[0]]) {
-                            searchQueryParams[f[0] + '!'] = "No value";
-                        }
+                        // if (idx === 0 && !queryParamsByUrl[f[0]]) {
+                        //     searchQueryParams[f[0] + '!'] = "No value";
+                        // }
                     }
                 });
                 _.forEach(colAggFields || [], function (f, idx) {
