@@ -184,12 +184,13 @@ export default class DataMatrix extends React.PureComponent {
 
     componentDidUpdate(pastProps, pastState) {
         const { session } = this.props;
-        const { query, fieldChangeMap, columnGrouping, groupingProperties, defaultOpen } = this.state;
+        const { query, fieldChangeMap, columnGrouping, groupingProperties, showColumnSummary, defaultOpen } = this.state;
         if (session !== pastProps.session ||
             !_.isEqual(query, pastState.query) ||
             !_.isEqual(fieldChangeMap, pastState.fieldChangeMap) ||
             columnGrouping !== pastState.columnGrouping ||
             !_.isEqual(groupingProperties, pastState.groupingProperties) ||
+            showColumnSummary !== pastState.showColumnSummary ||
             defaultOpen !== pastState.defaultOpen) {
             this.loadSearchQueryResults();
         }

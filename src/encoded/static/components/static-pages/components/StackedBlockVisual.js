@@ -212,26 +212,26 @@ export class VisualBody extends React.PureComponent {
                     {isGroup ?
                         <div className="inner">
                             <div className="row primary-row pb-1 pt-1">
-                                <div className="col-5">
-                                    <span className="text-400 me-05 text-capitalize">{primaryGroupingPropertyTitle}:</span>
-                                    <span className="text-500">{primaryGroupingPropertyValue || '-'}</span>
+                                <div className="col-6">
+                                    <div className="text-400 me-05 text-capitalize text-muted">{primaryGroupingPropertyTitle}</div>
+                                    <div className="text-500">{primaryGroupingPropertyValue || '-'}</div>
                                 </div>
-                                <div className="col-7 text-end">
-                                    <span className="text-400 me-05 text-capitalize">{yAxisGroupingTitle}:</span>
-                                    <span className="text-500">{yAxisGroupingValue || '-'}</span>
+                                <div className="col-6 text-end">
+                                    <div className="text-400 me-05 text-capitalize text-muted">{yAxisGroupingTitle}</div>
+                                    <div className="text-500">{yAxisGroupingValue || '-'}</div>
                                 </div>
                             </div>
                             <div className="row secondary-row pb-1 mt-1">
                                 <div className="col-5">
                                     {depth > 0 ? (
                                         <React.Fragment>
-                                            <div className="label text-400 text-capitalize">{secondaryGroupingPropertyTitle}:</div>
+                                            <div className="label text-400 text-capitalize text-muted">{secondaryGroupingPropertyTitle}:</div>
                                             <div className="value text-500"><span className="text-success me-05">●</span>{secondaryGroupingPropertyValue}</div>
                                         </React.Fragment>
                                     ) : null}
                                 </div>
                                 <div className="col-7 text-end">
-                                    <div className="label text-400">Total Files</div>
+                                    <div className="label text-400 text-muted">Total Files</div>
                                     <div className="value text-600">{data.length}</div>
                                 </div>
                             </div>
