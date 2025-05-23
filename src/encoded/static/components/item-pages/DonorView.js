@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import url from 'url';
 import _ from 'underscore';
 import queryString from 'query-string';
-import { FileViewDataCards } from './components/file-overview/FileViewDataCards';
+import { DonorViewDataCards } from './components/donor-overview/DonorViewDataCards';
 import { FileViewTabs } from './components/file-overview/FileViewTabs';
 import DefaultItemView from './DefaultItemView';
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
@@ -13,10 +13,10 @@ import { ShowHideInformationToggle } from './components/file-overview/ShowHideIn
 import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
 // Page containing the details of Items of type File
-export default class FileOverview extends DefaultItemView {
+export default class DonorOverview extends DefaultItemView {
     getTabViewContents() {
         const initTabs = [];
-        initTabs.push(FileView.getTabObject(this.props));
+        initTabs.push(DonorView.getTabObject(this.props));
         return initTabs.concat(this.getCommonTabs()); // Add remainder of common tabs (Details, Attribution)
     }
 }
@@ -46,8 +46,8 @@ function ViewJSONAction({ href = '', children }) {
     return React.cloneElement(children, { onClick });
 }
 
-// File Overview's header component containing breadcrumbs and filename
-const FileViewTitle = (props) => {
+// Donor Overview's header component containing breadcrumbs and filename
+const DonorViewTitle = (props) => {
     const { context } = props;
 
     const breadcrumbs = [
@@ -80,13 +80,13 @@ const FileViewTitle = (props) => {
                     })}
                 </ul>
             </nav>
-            <h1 className="view-title-text">{context?.display_title}</h1>
+            <h1 className="view-title-text">Donor Overview</h1>
         </div>
     );
 };
 
 // Header component containing high-level information for the file item
-const FileViewHeader = (props) => {
+const DonorViewHeader = (props) => {
     const { context = {}, session } = props;
     const {
         accession,
@@ -147,7 +147,12 @@ const FileViewHeader = (props) => {
     return (
         <div className="file-view-header">
             <div className="data-group data-row header">
-                <h1 className="header-text">File Overview</h1>
+                <h1 className="header-text fw-semibold">
+                    {context?.display_title}:{' '}
+                    <span className="fw-normal">{`${context?.sex ?? ''}${
+                        context?.age ? ', ' + context?.age : ''
+                    }`}</span>
+                </h1>
                 <SelectedItemsDownloadButton
                     id="download_tsv_multiselect"
                     className="btn btn-primary btn-sm me-05 align-items-center download-file-button"
@@ -155,8 +160,8 @@ const FileViewHeader = (props) => {
                     selectedItems={selectedFile}
                     disabled={false}
                     analyticsAddItemsToCart>
-                    <i className="icon icon-download fas me-07" />
-                    Download File
+                    <i className="icon icon-user fas me-07" />
+                    Download Donor Manifest
                 </SelectedItemsDownloadButton>
             </div>
 
@@ -228,13 +233,15 @@ const FileViewHeader = (props) => {
             </div>
             <div className="data-group data-row">
                 <div className="datum description">
-                    <span className="datum-title">Description </span>
+                    <span className="datum-title">Data Protection </span>
                     <span className="vertical-divider">|</span>
                     <span
                         className={
                             'datum-value' + (description ? '' : ' text-gray')
                         }>
-                        {description || 'Coming Soon'}
+                        For donor privacy, extended clinical data including
+                        medical history about this donor is available through
+                        the donor manifest.
                     </span>
                 </div>
             </div>
@@ -267,16 +274,16 @@ const FileViewHeader = (props) => {
     );
 };
 
-/** Top-level component for the File Overview Page */
-const FileView = React.memo(function FileView(props) {
+/** Top-level component for the Donor Overview Page */
+const DonorView = React.memo(function DonorView(props) {
     const { context, session, href } = props;
     return (
-        <div className="file-view">
-            <FileViewTitle context={context} session={session} href={href} />
+        <div className="donor-view">
+            <DonorViewTitle context={context} session={session} href={href} />
             <div className="view-content">
-                <FileViewHeader context={context} session={session} />
-                <FileViewDataCards context={context} />
-                <FileViewTabs {...props} />
+                <DonorViewHeader context={context} session={session} />
+                <DonorViewDataCards context={context} />
+                {/* <DonorViewTabs {...props} /> */}
             </div>
         </div>
     );
@@ -286,10 +293,10 @@ const FileView = React.memo(function FileView(props) {
  * Tab object for the FileView component, provides necessary information
  * to parent class, DefaultItemView
  */
-FileView.getTabObject = function (props) {
+DonorView.getTabObject = function (props) {
     return {
-        tab: <span>File Overview</span>,
-        key: 'file-overview',
-        content: <FileView {...props} />,
+        tab: <span>Donor Overview</span>,
+        key: 'donor-overview',
+        content: <DonorView {...props} />,
     };
 };
