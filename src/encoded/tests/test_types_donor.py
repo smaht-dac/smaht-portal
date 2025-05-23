@@ -11,7 +11,31 @@ from .utils import (
     get_item,
     patch_item,
     post_item,
+    get_search,
 )
+
+@pytest.mark.workbook
+@pytest.mark.parametrize(
+    "submitted_id,expected", [
+        ("TEST_DONOR_FEMALE", "Production"),
+        ("TEST_DONOR_MALE", "Benchmarking"),
+        ("TEST_DONOR_ALT1", "")
+    ]
+)
+def test_study_calc_prop(
+    es_testapp: TestApp,
+    workbook: None,
+    submitted_id: str,
+    expected: str
+): 
+    """Ensure 'study' calcprop is correct."""
+    donor =get_item(
+        es_testapp,
+        submitted_id,
+        collection="Donor"
+    )
+    assert donor.get("study","") == expected
+
 
 @pytest.mark.workbook
 @pytest.mark.parametrize(
