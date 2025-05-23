@@ -552,7 +552,7 @@ export class StackedBlockVisual extends React.PureComponent {
                 let outerIdx = -1;
                 return (
                     <React.Fragment>
-                        {StackedBlockGroupedRow.columnsAndHeader({ ...this.props, groupedDataIndices, activeBlock, openBlock })}
+                        {StackedBlockGroupedRow.columnsAndHeader({ ...this.props, groupedDataIndices, activeBlock, openBlock, handleBlockClick: this.handleBlockClick })}
                         {
                             _.map(rowGroupsKeys, (groupKey, groupKeyIdx) => {
                                 const { values, backgroundColor, textColor } = rowGroups[groupKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
@@ -605,7 +605,7 @@ export class StackedBlockVisual extends React.PureComponent {
                                     return (
                                         <React.Fragment>
                                             {/* {idx === 0 && <div className="grouping mt-2">{groupKey}</div>} */}
-                                            {filteredGroupedDataIndices && StackedBlockGroupedRow.rowGroupsSummary({ ...this.props, groupedDataIndices: filteredGroupedDataIndices }, groupKey, labelSectionStyle, labelSortIconClassName, labelSortIcon, columnKeys, columnWidth, headerItemStyle, containerSectionStyle)}
+                                            {filteredGroupedDataIndices && StackedBlockGroupedRow.rowGroupsSummary({ ...this.props, groupedDataIndices: filteredGroupedDataIndices, handleBlockClick: this.handleBlockClick, label: groupKey, labelSectionStyle, columnKeys, columnWidth, headerItemStyle, containerSectionStyle })}
                                             <StackedBlockGroupedRow {...this.props} groupedDataIndices={groupedDataIndices} parentState={this.state} data={nestedData[k]}
                                                 key={k} group={k} depth={0} index={outerIdx} toggleGroupingOpen={this.toggleGroupingOpen}
                                                 onSorterClick={this.handleSorterClick} sorting={sorting} sortField={sortField}
@@ -621,7 +621,7 @@ export class StackedBlockVisual extends React.PureComponent {
             } else {
                 return (
                     <React.Fragment>
-                        {StackedBlockGroupedRow.columnsAndHeader({ ...this.props, groupedDataIndices, activeBlock, openBlock })}
+                        {StackedBlockGroupedRow.columnsAndHeader({ ...this.props, groupedDataIndices, activeBlock, openBlock, handleBlockClick: this.handleBlockClick })}
                         {
                             _.map(leftAxisKeys, (k, idx) =>
                                 <StackedBlockGroupedRow {...this.props} groupedDataIndices={groupedDataIndices} parentState={this.state} data={nestedData[k]}
@@ -989,17 +989,6 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const labelSectionStyle = { 'paddingTop': Math.max(0, headerPadding + extPadding - rowHeight) };
         const listSectionStyle = { 'paddingTop': headerPadding };
 
-        //sort row label
-        let labelSortIcon;
-        if ((sorting === "desc") && !sortField) {
-            labelSortIcon = <SortIconDesc />;
-        } else if ((sorting === "asc") && !sortField) {
-            labelSortIcon = <SortIconAsc />;
-        } else {
-            labelSortIcon = <SortIconBoth />;
-        }
-        const labelSortIconClassName = 'column-sort-icon' + (['asc', 'desc'].indexOf(sorting) > -1 && !sortField ? ' active' : '');
-
         let columnKeys = _.keys(groupedDataIndices);
         if (hasColumnGroups) {
             columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, StackedBlockGroupedRow.mergeValues(columnGroups));
@@ -1140,12 +1129,12 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         </div>
                     </div>
                 </div>
-                {showColumnSummary && StackedBlockGroupedRow.rowGroupsSummary(props, yAxisLabel, labelSectionStyle, labelSortIconClassName, labelSortIcon, columnKeys, columnWidth, headerItemStyle, groupedDataIndices, columnGrouping)}
+                {showColumnSummary && StackedBlockGroupedRow.rowGroupsSummary({ ...props, label: yAxisLabel, labelSectionStyle, columnKeys, columnWidth, headerItemStyle, groupedDataIndices, columnGrouping })}
             </React.Fragment>
         );
     }
 
-    static rowGroupsSummary(props, label, labelSectionStyle, labelSortIconClassName, labelSortIcon, columnKeys, columnWidth, headerItemStyle, containerSectionStyle) {
+    static rowGroupsSummary({ label, labelSectionStyle, columnKeys, columnWidth, headerItemStyle, containerSectionStyle, ...props } ) {
         return (
             <div className="grouping header-section-lower" style={containerSectionStyle}>
                 <div className="row grouping-row">
