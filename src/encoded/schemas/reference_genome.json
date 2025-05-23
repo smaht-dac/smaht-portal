@@ -46,6 +46,9 @@
             "$ref": "mixins.json#/modified"
         },
         {
+            "$ref": "mixins.json#/preferred_name"
+        },
+        {
             "$ref": "mixins.json#/schema_version"
         },
         {
