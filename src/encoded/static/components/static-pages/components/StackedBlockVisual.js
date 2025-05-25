@@ -543,7 +543,7 @@ export class StackedBlockVisual extends React.PureComponent {
                 }
             } else {
                 // leftAxisKeys.sort();
-                leftAxisKeys = StackedBlockGroupedRow.sortByArray(leftAxisKeys, StackedBlockGroupedRow.mergeValues(rowGroups));
+                leftAxisKeys = rowGroups ? StackedBlockGroupedRow.sortByArray(leftAxisKeys, StackedBlockGroupedRow.mergeValues(rowGroups)) : leftAxisKeys.sort();
             }
             const hasRowGroups = showRowGroups && rowGroups && _.keys(rowGroups).length > 0;
             const rowGroupsKeys = hasRowGroups ? [..._.keys(rowGroups), FALLBACK_GROUP_NAME] : null;
@@ -1071,7 +1071,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                             );
                                         })
                                     }
-                                    {totalColumnHeader}
+                                    {/* {totalColumnHeader} */}
                                 </div>
                             }
                             {hasColumnGroupsExtended &&

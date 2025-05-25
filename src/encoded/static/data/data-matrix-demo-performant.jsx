@@ -129,13 +129,13 @@
                 rowGroups={{
                     "Cell Lines": {
                         "values": ['COLO829T', 'COLO829BL', 'COLO829BLT50', 'In silico BLT50', 'Truth Set', 'HapMap Mixture', 'Downsampled', 'LB-LA2 Fibroblast', 'LB-LA2 iPSC-1', 'LB-LA2 iPSC-2', 'LB-LA2 iPSC-4', 'LB-LA2 iPSC-52', 'LB-LA2 iPSC-60'],
-                        "backgroundColor": "#f9d5f0",
+                        "backgroundColor": "#f4f4ff",
                         "textColor": "#000000",
                         "shortName": "Cell Lines"
                     },
                     "Donors": {
                         "values": ['ST001', 'ST002', 'ST003', 'ST004'],
-                        "backgroundColor": "#ffd478",
+                        "backgroundColor": "#f4f4ff",
                         "textColor": "#000000",
                         "shortName": "Donors"
                     }
@@ -177,7 +177,7 @@
                 showRowGroupsExtended={true}
                 headerFor={null}
                 colorRangeBaseColor="#47adff"
-                summaryBackgroundColor="#5d5fed"
+                summaryBackgroundColor="#9ea0ff"
                 allowedFields={[
                     "donors.display_title",
                     "sequencing.sequencer.display_title",
@@ -303,22 +303,9 @@
                 }}
                 showColumnGroups={true}
                 showColumnGroupsExtended={false}
-                rowGroups={{
-                    "Benchmarking": {
-                        "values": ['ST001', 'ST002', 'ST003', 'ST004'],
-                        "backgroundColor": "#ffd478",
-                        "textColor": "#000000",
-                        "shortName": "Benchmarking"
-                    },
-                    "Production": {
-                        "values": ['SMHT004', 'SMHT008'],
-                        "backgroundColor": "#f9d5f0",
-                        "textColor": "#000000",
-                        "shortName": "Production"
-                    }
-                }}
+                rowGroups={null}
                 showRowGroups={false}
-                autoPopulateRowGroupsProperty="study"
+                autoPopulateRowGroupsProperty={null}
                 rowGroupsExtended={{
                     "Ectoderm": {
                         "values": ['Brain', 'Brain - Cerebellum', 'Brain - Frontal lobe', 'Brain - Hippocampus', 'Brain - Temporal lobe', 'Skin', 'Skin - Abdomen (non-exposed)', 'Skin - Calf (sun-exposed)'],
@@ -354,7 +341,7 @@
                 showRowGroupsExtended={true}
                 headerFor={null}
                 colorRangeBaseColor="#47adff"
-                summaryBackgroundColor="#5d5fed"
+                summaryBackgroundColor="#9ea0ff"
                 allowedFields={[
                     "donors.display_title",
                     "sequencing.sequencer.display_title",
