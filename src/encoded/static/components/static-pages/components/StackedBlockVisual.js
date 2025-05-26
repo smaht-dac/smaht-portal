@@ -144,10 +144,16 @@ export class VisualBody extends React.PureComponent {
                 }
 
                 //TODO: handle composite values in a smart way, this workaround is too hacky
-                if (Array.isArray(column_agg_fields) && column_agg_fields.length >= 2 && facetTerm && typeof facetTerm === 'string' && facetTerm.indexOf(' - ') > -1) {
-                    let extendedFacetTerm;
-                    [facetTerm, extendedFacetTerm] = facetTerm.split(' - ');
-                    return [[facetField, facetTerm], [column_agg_fields[1], extendedFacetTerm]];
+                if (Array.isArray(column_agg_fields) && column_agg_fields.length >= 2 && facetTerm) {
+                    // If column_agg_fields is an array, we assume the first element is the field and the second is the extended term.
+                    if (typeof facetTerm === 'string' && facetTerm.indexOf(' - ') > -1) {
+                        let extendedFacetTerm;
+                        [facetTerm, extendedFacetTerm] = facetTerm.split(' - ');
+                        return [[facetField, facetTerm], [column_agg_fields[1], extendedFacetTerm]];
+                    } else if (Array.isArray(facetTerm) && _.all(_.map(facetTerm, (term) => typeof term === 'string' && term.indexOf(' - ') > -1))) {
+                        // If facetTerm is an array, we assume all elements are strings with the same format.
+                        return [[facetField, (term) => term.split(' - ')[0]], [column_agg_fields[1], _.map(facetTerm, (term) => term.split(' - ')[1])]];
+                    }
                 }
 
                 return [facetField, facetTerm];
@@ -162,14 +168,14 @@ export class VisualBody extends React.PureComponent {
                         // Loop through each sub-pair
                         pair.forEach((subPair) => {
                             const [key, value] = subPair;
-                            if (isPrimitive(value)) {
+                            if (isPrimitive(value) || Array.isArray(value)) {
                                 result[key] = value;
                             }
                         });
                     } else if (Array.isArray(pair) && pair.length === 2) {
                         // It's a normal [key, value] pair
                         const [key, value] = pair;
-                        if (isPrimitive(value)) {
+                        if (isPrimitive(value) || Array.isArray(value)) {
                             result[key] = value;
                         }
                     } else {
