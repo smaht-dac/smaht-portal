@@ -113,7 +113,7 @@
                     }
                 }}
                 columnGroupsExtended={{
-                    "Core Assays": {
+                    "Core Assay": {
                         "values": ['Bulk WGS', 'RNA-seq', 'Duplex-seq'],
                         "backgroundColor": "#a786c2",
                         "textColor": "#ffffff"
@@ -127,13 +127,13 @@
                 showColumnGroups={true}
                 showColumnGroupsExtended={false}
                 rowGroups={{
-                    "Cell Lines": {
+                    "Cell Line": {
                         "values": ['COLO829T', 'COLO829BL', 'COLO829BLT50', 'In silico BLT50', 'Truth Set', 'HapMap Mixture', 'Downsampled', 'LB-LA2 Fibroblast', 'LB-LA2 iPSC-1', 'LB-LA2 iPSC-2', 'LB-LA2 iPSC-4', 'LB-LA2 iPSC-52', 'LB-LA2 iPSC-60'],
                         "backgroundColor": "#f4f4ff",
                         "textColor": "#000000",
                         "shortName": "Cell Lines"
                     },
-                    "Donors": {
+                    "Donor": {
                         "values": ['ST001', 'ST002', 'ST003', 'ST004'],
                         "backgroundColor": "#f4f4ff",
                         "textColor": "#000000",
@@ -290,7 +290,7 @@
                     }
                 }}
                 columnGroupsExtended={{
-                    "Core Assays": {
+                    "Core Assay": {
                         "values": ['Bulk WGS', 'RNA-seq', 'Duplex-seq'],
                         "backgroundColor": "#a786c2",
                         "textColor": "#ffffff"

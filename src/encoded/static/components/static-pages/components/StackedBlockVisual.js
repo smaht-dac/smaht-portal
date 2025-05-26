@@ -87,7 +87,7 @@ export class VisualBody extends React.PureComponent {
      */
     blockPopover(data, blockProps, parentGrouping){
         const { query: { url: queryUrl, column_agg_fields, row_agg_fields }, fieldChangeMap, valueChangeMap, titleMap, groupingProperties, columnGrouping } = this.props;
-        const { depth, isTotal = false } = blockProps;
+        const { depth, isTotal = false, popoverPrimaryTitle } = blockProps;
         const isGroup = (Array.isArray(data) && data.length >= 1) || false;
         // const isGroup = (Array.isArray(data) && data.length > 1) || false;
         let aggrData;
@@ -110,7 +110,7 @@ export class VisualBody extends React.PureComponent {
         }
 
         const primaryGroupingProperty = groupingProperties[0] || null;
-        const primaryGroupingPropertyTitle = (primaryGroupingProperty && titleMap[primaryGroupingProperty]) || primaryGroupingProperty || null;
+        const primaryGroupingPropertyTitle = popoverPrimaryTitle || (primaryGroupingProperty && titleMap[primaryGroupingProperty]) || primaryGroupingProperty || null;
         const primaryGroupingPropertyValue = aggrData[primaryGroupingProperty];
         const secondaryGroupingProperty = groupingProperties[1] || null;
         const secondaryGroupingPropertyTitle = (secondaryGroupingProperty && titleMap[secondaryGroupingProperty]) || secondaryGroupingProperty || null;
@@ -441,6 +441,16 @@ export class StackedBlockVisual extends React.PureComponent {
         return moreData;
     };
 
+    static pluralize = function(input){
+        if (input.endsWith('y') && !/[aeiou]y$/i.test(input)) {
+            return input.slice(0, -1) + 'ies';
+        } else if (input.endsWith('s') || input.endsWith('x') || input.endsWith('z') || input.endsWith('ch') || input.endsWith('sh')) {
+            return input + 'es';
+        } else {
+            return input + 's';
+        }
+    };
+
     constructor(props){
         super(props);
         this.renderContents = this.renderContents.bind(this);
@@ -571,8 +581,6 @@ export class StackedBlockVisual extends React.PureComponent {
                                     containerSectionStyle['marginTop'] = 20;
                                 }
                                 const labelSectionStyle = { };
-                                const labelSortIconClassName = "";
-                                const labelSortIcon = <SortIconBoth />;
                                 const hasColumnGroups = showColumnGroups && columnGroups && _.keys(columnGroups).length > 0;
                                 let columnKeys = _.keys(groupedDataIndices);
                                 if (hasColumnGroups) {
@@ -580,14 +588,10 @@ export class StackedBlockVisual extends React.PureComponent {
                                 }
                                 const columnWidth = 44;
                                 const headerItemStyle = {};
-                                {/* const groupedDataIndices = groupedDataIndices; */}
-                                {/* const columnGrouping; */}
 
                                 return _.map(rowKeys, (k, idx) => {
                                     let filteredGroupedDataIndices = null;
                                     if (idx === 0) {
-                                        {/* _.filter(nestedData, (n) => rowKeys.indexOf) */ }
-                                        {/* filteredGroupedDataIndices = _.flatten(_.flatten(_.map(_.values(_.pick(nestedData, (v, k) => rowKeys.indexOf(k) !== -1))), _.values)); */}
                                         const tmpData = _.flatten(_.flatten(_.map(_.pick(nestedData, (v, k) => rowKeys.indexOf(k) !== -1), _.values)));
                                         if (typeof columnGrouping === 'string') {
                                             filteredGroupedDataIndices = _.groupBy(tmpData, columnGrouping);
@@ -604,13 +608,12 @@ export class StackedBlockVisual extends React.PureComponent {
                                     outerIdx++;
                                     return (
                                         <React.Fragment>
-                                            {/* {idx === 0 && <div className="grouping mt-2">{groupKey}</div>} */}
-                                            {filteredGroupedDataIndices && StackedBlockGroupedRow.rowGroupsSummary({ ...this.props, groupedDataIndices: filteredGroupedDataIndices, handleBlockClick: this.handleBlockClick, label: groupKey, labelSectionStyle, columnKeys, columnWidth, headerItemStyle, containerSectionStyle })}
+                                            {filteredGroupedDataIndices && StackedBlockGroupedRow.rowGroupsSummary({ ...this.props, groupedDataIndices: filteredGroupedDataIndices, handleBlockClick: this.handleBlockClick, label: StackedBlockVisual.pluralize(groupKey), labelSectionStyle, columnKeys, columnWidth, headerItemStyle, containerSectionStyle })}
                                             <StackedBlockGroupedRow {...this.props} groupedDataIndices={groupedDataIndices} parentState={this.state} data={nestedData[k]}
                                                 key={k} group={k} depth={0} index={outerIdx} toggleGroupingOpen={this.toggleGroupingOpen}
                                                 onSorterClick={this.handleSorterClick} sorting={sorting} sortField={sortField}
                                                 handleBlockMouseEnter={this.handleBlockMouseEnter} handleBlockMouseLeave={this.handleBlockMouseLeave} handleBlockClick={this.handleBlockClick}
-                                                activeBlock={activeBlock} openBlock={openBlock} />
+                                                activeBlock={activeBlock} openBlock={openBlock} popoverPrimaryTitle={groupKey} />
                                         </React.Fragment>
                                     );
                                 });
@@ -811,7 +814,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const commonProps = _.pick(props, 'blockHeight', 'blockWidth', 'blockHorizontalSpacing', 'blockVerticalSpacing',
             'groupingProperties', 'depth', 'titleMap', 'blockClassName', 'blockRenderedContents',
             'groupedDataIndices', 'columnGrouping', 'blockPopover', 'colorRanges', 'summaryBackgroundColor',
-            'activeBlock', 'openBlock', 'handleBlockMouseEnter', 'handleBlockMouseLeave', 'handleBlockClick', 'group');
+            'activeBlock', 'openBlock', 'handleBlockMouseEnter', 'handleBlockMouseLeave', 'handleBlockClick', 'group', 'popoverPrimaryTitle');
         const width = (props.blockWidth + (props.blockHorizontalSpacing * 2)) + props.blockHorizontalExtend;
         const containerGroupStyle = {
             'width'         : width, // Width for each column
@@ -993,6 +996,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         if (hasColumnGroups) {
             columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, StackedBlockGroupedRow.mergeValues(columnGroups));
         }
+        //currently not in use
         const totalColumnHeader = (
             <div
                 key="col-total" className="column-group-header"
