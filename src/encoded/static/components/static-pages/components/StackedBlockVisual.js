@@ -193,6 +193,12 @@ export class VisualBody extends React.PureComponent {
             const initialHref = queryUrl;
             const hrefParts = url.parse(initialHref, true);
             const hrefQuery = _.clone(hrefParts.query);
+
+            _.forEach(currentFilteringPropertiesPairs, ([field]) => {
+                if (hrefQuery[field]) delete hrefQuery[field];
+                if (hrefQuery[field + '!']) delete hrefQuery[field + '!'];
+            });
+
             //override path
             hrefParts.pathname = '/search/';
             delete hrefQuery.limit;
