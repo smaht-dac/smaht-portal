@@ -216,9 +216,10 @@ export default class DataMatrix extends React.PureComponent {
                         }
                     }, {});
                 }
-                // workaround for the case when cell line is used as donor
-                if(r.cell_line && r.donor && r.cell_line !== 'tissue' && groupingProperties[0] === 'donor'){
-                    r.donor = r.cell_line;
+                // workaround for the case when dataset is used as cell_line
+                if(r.dataset && r.donor && r.dataset !== 'tissue' && groupingProperties[0] === 'donor'){
+                    r.donor = r.dataset;
+                    r.primary_field_override = "dataset";
                 }
                 if (r.files && r.files > 0) {
                     transfermedData = transfermedData.concat(

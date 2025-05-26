@@ -97,7 +97,7 @@ export class VisualBody extends React.PureComponent {
         }
 
         if (isGroup){
-            const keysToInclude = _.uniq(_.keys(titleMap).concat([columnGrouping]).concat(groupingProperties));
+            const keysToInclude = _.uniq(_.keys(titleMap).concat([columnGrouping]).concat(groupingProperties)).concat(['primary_field_override']);
             aggrData = StackedBlockVisual.aggregateObjectFromList(
                 data, keysToInclude, [] // We use this property as an object key (string) so skip parsing to React JSX list;
             );
@@ -131,11 +131,16 @@ export class VisualBody extends React.PureComponent {
         function makeSearchButton(disabled=false){
             const currentFilteringProperties = groupingProperties.slice(0, depth + 1).concat([columnGrouping]);
             const currentFilteringPropertiesPairs = _.map(currentFilteringProperties, function (property) {
-                const facetField = fieldChangeMap[property];
+                let facetField = fieldChangeMap[property] || property;
                 let facetTerm = aggrData[property];
                 if (valueChangeMap && valueChangeMap[property]) {
                     const reversedValChangeMapForCurrSource = VisualBody.invert(valueChangeMap[property]);
                     facetTerm = reversedValChangeMapForCurrSource[facetTerm] || facetTerm;
+                }
+
+                // workaround for the case when dataset is used as cell_line
+                if (aggrData.primary_field_override && property === groupingProperties[0]) {
+                    facetField = aggrData.primary_field_override;
                 }
 
                 //TODO: handle composite values in a smart way, this workaround is too hacky
@@ -180,7 +185,7 @@ export class VisualBody extends React.PureComponent {
             if (isTotal) {
                 (column_agg_fields || []).concat(row_agg_fields || []).forEach((field) => {
                     if (!_.has(currentFilteringPropertiesVals, field)) {
-                        currentFilteringPropertiesVals[field + '!'] = 'No value';
+                        // currentFilteringPropertiesVals[field + '!'] = 'No value';
                     }
                 });
             }

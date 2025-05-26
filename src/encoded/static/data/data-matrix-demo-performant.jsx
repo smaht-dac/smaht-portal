@@ -20,7 +20,7 @@
                     "data_category": "data_category",
                     "software": "software.display_title",
                     "study": "sample_summary.studies",
-                    "cell_line": "dataset",
+                    "dataset": "dataset",
                 }}
                 valueChangeMap={{
                     "assay": {
@@ -131,13 +131,13 @@
                         "values": ['COLO829T', 'COLO829BL', 'COLO829BLT50', 'In silico BLT50', 'Truth Set', 'HapMap Mixture', 'Downsampled', 'LB-LA2 Fibroblast', 'LB-LA2 iPSC-1', 'LB-LA2 iPSC-2', 'LB-LA2 iPSC-4', 'LB-LA2 iPSC-52', 'LB-LA2 iPSC-60'],
                         "backgroundColor": "#f4f4ff",
                         "textColor": "#000000",
-                        "shortName": "Cell Lines"
+                        "shortName": "Cell Line"
                     },
                     "Donor": {
                         "values": ['ST001', 'ST002', 'ST003', 'ST004'],
                         "backgroundColor": "#f4f4ff",
                         "textColor": "#000000",
-                        "shortName": "Donors"
+                        "shortName": "Donor"
                     }
                 }}
                 showRowGroups={true}
