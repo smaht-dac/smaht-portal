@@ -27,14 +27,16 @@ Refer to our documentation on “LinkTo” properties and linking metadata items
 
 I am getting the error Portal credentials do not seem to work: ~/.smaht-keys.json (data) when running smaht-submitr. How do I obtain or generate the correct portal credentials?
 ========================================================================================================================================================================================
-See our documentation `here <https://data.smaht.org/docs/access/access-key-generation>`__ on how to create your portal credentials. If you have already generated your credentials but they do not work, double-check that your credentials are up-to-date. Credentials expire every 30 days, so if you have not submitted metadata recently, it is likely that your credentials expired.
+See our documentation `here <https://data.smaht.org/docs/access/access-key-generation>`__ on how to create your portal credentials. 
+
+If you have already generated your credentials, but they do not work, double-check that your credentials are up-to-date. Credentials expire every 30 days, so it is possible that your credentials expired.
 
 
 
 When I try to run smaht-submitr, I keep getting the help text. Can you help me figure out what is going on?
 ===============================================================================================================
 
-There is likely an error in the command you are running. There are lots of possible causes for this error. For example, there might be an invalid character in the command or there might be spaces in the directory path that are not escaped property.
+There is likely an error in the command you are running. There are lots of possible causes for this error. For example, there might be an invalid character in the command or there might be spaces in the directory path that are not escaped properly.
 
 To troubleshoot, we would recommend running the command with each argument individually to determine which argument or flag is throwing the error. Additionally, we would recommend typing out the command manually – copying and pasting the command from a word document, for instance, can sometimes result in errors.
 
@@ -50,11 +52,11 @@ submitted_ids are important unique identifiers for each submitted item in the da
 * Dashes (-)
 * Underscores (_)
 
-No other additional characters are allowed in your identifiers, such as spaces or backslashes. Double-check that your ``submitted_id`` follows all of the requirements listed above.
+No other characters are allowed in your identifiers, such as spaces or backslashes. Double-check that your ``submitted_id`` follows all of the requirements listed above.
 
 
 
-I am getting the following error from smaht-submitr: - ERROR: Additional properties are not allowed, but I am using the submission template. How do I resolve this?
+I am getting the following error from smaht-submitr: - ERROR: Additional properties are not allowed, but I am using the submission template. What's going on?
 =======================================================================================================================================================================
 
 We are regularly updating and improving our data model, so there may be fields (and sometimes even entire item types) that are added and removed. In conjunction with this, we regularly create and release new versions of the submission template. Ensure that you are using the latest version of the submission template, which can be found on our portal `here <https://data.smaht.org/docs/submission/getting-started-with-submissions#templates>`__ (`at this URL <https://docs.google.com/spreadsheets/d/1LEaS5QTwm86iZjjKt3tKRe_P31sE9-aJZ7tMINxw3ZM/edit?gid=1958643317#gid=1958643317>`_).
@@ -73,19 +75,19 @@ When trying to upload files to the data portal using smaht-submitr, I get the fo
 
 There are a couple of things to check:
 
-1. Confirm that the ``submission_uuid`` you are using is correct. When copying and pasting, it is very easy to truncate your UUID by a couple of characters when copying and pasting it.
-2. Ensure that your credentials are up-to-date. Credentials expire every 30 days, so if you have not submitted metadata recently, it is likely that your credentials expired, resulting in that error.
+1. Confirm that the ``submission_uuid`` you are using is correct. When copying and pasting, it is very easy to truncate your UUID by a couple of characters.
+2. Ensure that your credentials are up-to-date. Credentials expire every 30 days, it is possible that your credentials expired, resulting in that error.
 
 
 
 I am looking to submit a new assay type or data type to the DAC, and the metadata spreadsheet is currently missing some metadata fields that would be important to capture. What should I do?
 =============================================================================================================================================================================================
 
-If you are looking to submit data for a new assay type or sequencer to the DAC, please reach out to us (see the question below)! We would be happy to schedule a meeting with you to discuss what metadata is important to capture for your assay.
+If you are looking to submit data for a new assay type or sequencer to the DAC, please reach out to us using any of the methods described in the response below! We would be happy to schedule a meeting with you to discuss what metadata is important to capture for your assay and changes we can make to our data model.
 
 
 
 Where or how can I reach out to the DAC if I have additional questions?
 =======================================================================
 
-Every Monday at 1pm EST, we hold DAC Open Hours on Zoom (at this `link <https://harvard.zoom.us/j/97300725687?pwd=cEJWRjc0dTVtSDJKTDhBTUI0YjVNQT09>`_) to answer any questions you may have regarding data submissions. You can also email us at our help desk (`smhelp@hms-dbmi.atlassian.net <smhelp@hms-dbmi.atlassian.net>`_) or message us directly over Slack!
+Every Monday at 1pm EST, we hold DAC Open Hours on Zoom (at this `link <https://harvard.zoom.us/j/97300725687?pwd=cEJWRjc0dTVtSDJKTDhBTUI0YjVNQT09>`_) to answer any questions you may have regarding data submissions. You can also email us at our help desk at (`smhelp@hms-dbmi.atlassian.net <smhelp@hms-dbmi.atlassian.net>`_) or message us directly over Slack!
