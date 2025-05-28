@@ -1,0 +1,114 @@
+{
+    "title": "Protected Donor",
+    "description": "Individuals who donated tissues with protected data",
+    "$id": "/profiles/protected_donor.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "external_id",
+        "age",
+        "sex",
+        "submission_centers",
+        "submitted_id",
+        "tpc_submitted",
+        "donor"
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/external_id"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "donor.json#/properties"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "DP"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_PROTECTED-DONOR_[A-Z0-9-_.]{4,}$"
+        },
+        "status": {
+            "title": "Status",
+            "type": "string",
+            "default": "in review",
+            "permission": "restricted_fields",
+            "enum": [
+                "draft",
+                "released",
+                "in review",
+                "obsolete",
+                "deleted",
+                "restricted"
+            ]
+        },
+        "donor": {
+            "title": "Donor",
+            "description": "Link to public donor",
+            "type": "string",
+            "linkTo": "Donor"
+        }
+    },
+    "facets": {
+        "sex": {
+            "title": "Sex"
+        },
+        "age": {
+            "title": "Age",
+            "aggregation_type": "stats"
+        },
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        }
+    },
+    "columns": {
+        "submitted_id": {
+            "title": "Submitted ID"
+        },
+        "sex": {
+            "title": "Sex"
+        },
+        "age": {
+            "title": "Age"
+        },
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        }
+    }
+}

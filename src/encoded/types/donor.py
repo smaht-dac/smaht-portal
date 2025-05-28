@@ -27,20 +27,7 @@ from ..item_utils import (
 
 def _build_donor_embedded_list():
     """Embeds for search on donor."""
-    return [
-        "medical_history.exposures.category",
-        "medical_history.exposures.cessation",
-        "medical_history.exposures.cessation_duration",
-        "medical_history.exposures.duration",
-        "medical_history.exposures.frequency_category",
-        "medical_history.exposures.quantity",
-        "medical_history.exposures.quantity_unit",
-        "medical_history.cancer_history",
-        "medical_history.cancer_type",
-        "medical_history.family_ovarian_pancreatic_prostate_cancer",
-        "medical_history.alcohol_use",
-        "medical_history.tobacco_use",
-    ]
+    return []
 
 
 @collection(
@@ -59,8 +46,7 @@ class Donor(SubmittedItem):
         pass
 
     rev = {
-        "tissues": ("Tissue", "donor"),
-        "medical_history": ("MedicalHistory", "donor"),
+        "tissues": ("Tissue", "donor")
     }
 
     @calculated_property(
@@ -78,21 +64,6 @@ class Donor(SubmittedItem):
         if result:
             return result
         return
-
-    @calculated_property(
-        schema={
-            "title": "Medical History",
-            "type": "array",
-            "items": {
-                "type": "string",
-                "linkTo": "MedicalHistory",
-            },
-        },
-    )
-    def medical_history(self, request: Request) -> Union[List[str], None]:
-        result = self.rev_link_atids(request, "medical_history")
-        return result or None
-
 
 def validate_external_id_on_add(context, request):
     """Check that external_id is valid if it is a TPC-submitted donor on add."""

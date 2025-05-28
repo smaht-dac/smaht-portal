@@ -5,7 +5,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "donor": "TEST_DONOR_FEMALE",
+        "donor": "TEST_PROTECTED-DONOR_FEMALE",
         "height": 3.2,
         "weight": 45,
         "body_mass_index": 21.5,
