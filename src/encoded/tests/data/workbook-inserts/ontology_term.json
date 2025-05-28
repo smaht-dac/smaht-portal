@@ -11,7 +11,9 @@
         "preferred_name": "Liver",
         "tags":[
             "test_terms",
-            "test_top_terms-Liver",
+            "test_top_terms-Endoderm",
+            "tissue_type_test_top_terms-Liver",
+            "germ_layer_test_top_terms-Endoderm",
             "tissue_type"
         ]
     },
@@ -42,7 +44,9 @@
         ],
         "tags":[
             "test_terms",
-            "test_top_terms-Lung",
+            "test_top_terms-Endoderm",
+            "tissue_type_test_top_terms-Lung",
+            "germ_layer_test_top_terms-Endoderm",
             "tissue_subtype"
         ],
         "valid_protocol_ids": ["3Q","3R","1D"]
@@ -59,6 +63,25 @@
         "valid_protocol_ids": ["3AJ"],
         "tags": [
             "tissue_type"
+        ]
+    },
+    {
+        "uuid": "29c6ee19-e4e7-46c5-90b6-95b102fda5c7",
+        "identifier": "UBERON:0013756",
+        "ontologies": ["UBERON"],
+        "title": "venous blood",
+        "grouping_term": "UBERON:0000178",   
+        "consortia": [
+            "smaht"
+        ],
+        "preferred_name": "Venous Blood",
+        "valid_protocol_ids": ["3A"],
+        "tags": [
+            "test_terms",
+            "test_top_terms-Mesoderm",
+            "tissue_type_test_top_terms-Blood",
+            "germ_layer_test_top_terms-Mesoderm",
+            "tissue_subtype"
         ]
     },
     {
@@ -90,7 +113,7 @@
         ]
     },
     {
-        "uuid": "b20b2257-1d5b-4015-8182-cce79e4f6235",
+        "uuid": "92606b58-a240-4797-a2f1-9dc6cef9be69",
         "identifier": "UBERON:0000926",
         "ontologies": ["UBERON"],
         "title": "mesoderm",

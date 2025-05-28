@@ -1,6 +1,6 @@
 import functools
 import re
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, Optional
 
 from . import constants, donor, item
 
@@ -34,13 +34,13 @@ def get_uberon_id(properties: Dict[str, Any]) -> str:
     return properties.get("uberon_id","")
 
 
-def get_top_grouping_term(properties: Dict[str, Any], request_handler: RequestHandler) -> str:
+def get_top_grouping_term(properties: Dict[str, Any], request_handler: RequestHandler, tag: Optional[str] = None) -> str:
     """Get top grouping term associated with tissue"""
     return get_property_value_from_identifier(
         request_handler,
         get_uberon_id(properties),
         functools.partial(
-            ot_utils.get_top_grouping_term, request_handler=request_handler
+            ot_utils.get_top_grouping_term, request_handler=request_handler, tag=tag
         )
     )
 

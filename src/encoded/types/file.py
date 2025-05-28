@@ -262,6 +262,7 @@ class CalcPropConstants:
         "type": "string",
     }
     SAMPLE_SUMMARY_DONOR_IDS = "donor_ids"
+    SAMPLE_SUMMARY_GERM_LAYER = "germ_layers"
     SAMPLE_SUMMARY_TISSUES = "tissues"
     SAMPLE_SUMMARY_TISSUE_SUBTYPES = "tissue_subtypes"
     SAMPLE_SUMMARY_TISSUE_DETAILS = "tissue_details"
@@ -275,6 +276,13 @@ class CalcPropConstants:
         "properties": {
             SAMPLE_SUMMARY_DONOR_IDS: {
                 "title": "Donor ID",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_GERM_LAYER: {
+                "title": "Germ Layer",
                 "type": "array",
                 "items": {
                     "type": "string",
@@ -1010,11 +1018,20 @@ class File(Item, CoreFile):
                 file_utils.get_donors(file_properties, request_handler),
                 item_utils.get_external_id,
             ),
+            constants.SAMPLE_SUMMARY_GERM_LAYER: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_tissues(file_properties, request_handler),
+                functools.partial(
+                    tissue_utils.get_top_grouping_term, request_handler=request_handler,
+                    tag="germ_layer"
+                ),
+            ),
             constants.SAMPLE_SUMMARY_TISSUES: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_tissues(file_properties, request_handler),
                 functools.partial(
-                    tissue_utils.get_top_grouping_term, request_handler=request_handler
+                    tissue_utils.get_top_grouping_term, request_handler=request_handler,
+                    tag="tissue_type"
                 ),
             ),
             constants.SAMPLE_SUMMARY_TISSUE_SUBTYPES: get_property_values_from_identifiers(

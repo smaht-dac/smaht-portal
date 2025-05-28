@@ -1090,10 +1090,16 @@ def assert_sample_summary_matches_expected(
         [get_item(es_testapp, item_utils.get_uuid(analyte)) for analyte in analytes],
         analyte_utils.get_molecule,
     )
+    expected_germ_layers = expected_tissues = get_unique_values(
+        [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
+        functools.partial(
+            tissue_utils.get_top_grouping_term, request_handler=request_handler, tag="germ_layer"
+        ),
+    )
     expected_tissues = get_unique_values(
         [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
         functools.partial(
-            tissue_utils.get_top_grouping_term, request_handler=request_handler
+            tissue_utils.get_top_grouping_term, request_handler=request_handler, tag="tissue_type"
         ),
     )
     expected_tissue_subtypes = get_unique_values(
@@ -1133,6 +1139,9 @@ def assert_sample_summary_matches_expected(
     )
     assert_values_match_if_present(
         sample_summary, "sample_names", expected_sample_names
+    )
+    assert_values_match_if_present(
+        sample_summary, "germ_layers", expected_germ_layers
     )
     assert_values_match_if_present(
         sample_summary, "tissues", expected_tissues
