@@ -20,6 +20,5 @@ def _build_cell_culture_embedded_list():
 )
 class CellCulture(SampleSource):
     item_type = "cell_culture"
-    base_types = ["CellCulture"] + SampleSource.base_types
     schema = load_schema("encoded:schemas/cell_culture.json")
     embedded_list = _build_cell_culture_embedded_list()

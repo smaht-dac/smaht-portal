@@ -45,7 +45,6 @@ def _build_tissue_embedded_list() -> List[str]:
 )
 class Tissue(SampleSource):
     item_type = "tissue"
-    base_types = ["Tissue"] + SampleSource.base_types
     schema = load_schema("encoded:schemas/tissue.json")
     embedded_list = _build_tissue_embedded_list()
 
