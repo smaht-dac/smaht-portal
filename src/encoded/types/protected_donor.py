@@ -4,8 +4,6 @@ from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
 
 from .abstract_donor import AbstractDonor
-from .base import Item
-
 
 
 def _build_protected_donor_embedded_list():
@@ -35,12 +33,8 @@ def _build_protected_donor_embedded_list():
     })
 class ProtectedDonor(AbstractDonor):
     item_type = "protected_donor"
-    base_types = ["ProtectedDonor"] + AbstractDonor.base_types
     schema = load_schema("encoded:schemas/protected_donor.json")
     embedded_list = _build_protected_donor_embedded_list()
-
-    class Collection(Item.Collection):
-        pass
 
     rev = {
         **AbstractDonor.rev,

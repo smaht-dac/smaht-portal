@@ -47,7 +47,7 @@
             "$ref": "mixins.json#/uuid"
         },
         {
-            "$ref": "donor.json#/properties"
+            "$ref": "abstract_donor.json#/properties"
         }
     ],
     "properties": {

@@ -107,7 +107,7 @@
             "title": "Donor",
             "description": "Donor associated with the cell line",
             "type": "string",
-            "linkTo": "AbstractDonor"
+            "linkTo": "Donor"
         }
     },
     "columns": {
