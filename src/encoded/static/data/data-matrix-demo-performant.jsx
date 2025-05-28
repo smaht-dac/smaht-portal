@@ -1,7 +1,7 @@
 <div key="someRandomKey" className="container">
     <div className="row">
         <div className="col-6">
-            <h4 className="text-500">Benchmarking Data Matrix</h4>
+            <h4 className="text-500">Benchmarking Data</h4>
             <DataMatrix
                 key="data-matrix-demo-1"   // Required to prevent re-instantiation of component upon window resize & similar.
                 session={session}        // Required - hooks in 'session' (boolean) from App.
@@ -200,7 +200,7 @@
             />
         </div>
         <div className="col-6">
-            <h4 className="text-500">Production Data Matrix</h4>
+            <h4 className="text-500">Production Data</h4>
             <DataMatrix
                 key="data-matrix-demo-2"   // Required to prevent re-instantiation of component upon window resize & similar.
                 session={session}        // Required - hooks in 'session' (boolean) from App.

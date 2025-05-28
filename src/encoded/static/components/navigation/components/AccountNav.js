@@ -72,7 +72,6 @@ export const AccountNav = React.memo(function AccountNav(props) {
         // Render login button
         return (
             <div className="navbar-nav navbar-acct">
-                {/* <DataRetractionButton /> */}
                 <HelpdeskButton />
                 <LoginController
                     {...{
@@ -126,7 +125,6 @@ export const AccountNav = React.memo(function AccountNav(props) {
     // `navItemProps` contains: href, windowHeight, windowWidth, isFullscreen, testWarning, mounted, overlaysContainer
     return (
         <div className="navbar-nav navbar-acct">
-            {/* <DataRetractionButton /> */}
             <HelpdeskButton />
             <BigDropdownNavItem
                 {...passProps}
@@ -285,15 +283,3 @@ const HelpdeskButton = React.memo(function HelpdeskButton(props) {
         </a>
     );
 });
-const DataRetractionButton = React.memo(function DataRetractionButton(props) {
-    return (
-        <a
-            role="button"
-            href="/resources/retracted-files/"
-            className="retracted-files nav-link">
-            <i className="icon icon-warning fas me-1 text-danger" />
-            Retracted Files
-        </a>
-    );
-}
-);
