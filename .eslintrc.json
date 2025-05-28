@@ -1,5 +1,5 @@
 {
-    "rules": {        
+    "rules": {
         "array-callback-return" : "error",
         "arrow-body-style" : ["error", "as-needed", { "requireReturnForObjectLiteral": true }],
         "arrow-parens" : ["error", "always"],
