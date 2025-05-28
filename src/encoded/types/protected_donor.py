@@ -3,7 +3,7 @@ from typing import List, Union
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
 
-from .donor import Donor
+from .abstract_donor import AbstractDonor
 from .base import Item
 
 
@@ -31,11 +31,11 @@ def _build_protected_donor_embedded_list():
     unique_key="submitted_id",
     properties={
         "title": "Protected Donors",
-        "description": "Individuals who donated tissues",
+        "description": "Individuals who donated tissues with protected data",
     })
-class ProtectedDonor(Donor):
+class ProtectedDonor(AbstractDonor):
     item_type = "protected_donor"
-    base_types = ["ProtectedDonor"] + Donor.base_types
+    base_types = ["ProtectedDonor"] + AbstractDonor.base_types
     schema = load_schema("encoded:schemas/protected_donor.json")
     embedded_list = _build_protected_donor_embedded_list()
 
@@ -43,6 +43,7 @@ class ProtectedDonor(Donor):
         pass
 
     rev = {
+        **AbstractDonor.rev,
         "medical_history": ("MedicalHistory", "donor"),
     }
 

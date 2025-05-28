@@ -10,7 +10,6 @@
         "sex": "Female",
         "hardy_scale": 3,
         "tpc_submitted": "True",
-        "donor": "TEST_DONOR_FEMALE",
         "status": "released"
     },
     {
@@ -23,7 +22,6 @@
         "age": 45,
         "sex": "Male",
         "tpc_submitted": "True",
-        "donor": "TEST_DONOR_MALE",
         "status": "released"
     }
 ]
