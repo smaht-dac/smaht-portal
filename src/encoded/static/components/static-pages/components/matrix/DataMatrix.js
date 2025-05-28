@@ -353,10 +353,6 @@ export default class DataMatrix extends React.PureComponent {
                 column_agg_fields: columnAggField,
                 row_agg_fields: Array.isArray(rowAggField2) && rowAggField2.length > 0 ? [rowAggField1, rowAggField2] : [rowAggField1]
             },
-            // fieldChangeMap: {
-            //     [DataMatrixConfigurator.getNestedFieldName(column)]: column,
-            //     [DataMatrixConfigurator.getNestedFieldName(row1)]: row1
-            // },
             columnGrouping: newColumnGrouping,
             groupingProperties: newGroupingProperties,
             columnGroups: columnGroups,

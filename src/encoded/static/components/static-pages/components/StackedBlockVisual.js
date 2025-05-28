@@ -38,7 +38,6 @@ export function extendListObjectsWithIndex(objList){
 export class VisualBody extends React.PureComponent {
 
     static blockRenderedContents(data, blockProps){
-        const { groupingProperties, columnGrouping } = blockProps;
         var count = 0;
         if (Array.isArray(data)) {
             count = data.length;
@@ -588,9 +587,9 @@ export class StackedBlockVisual extends React.PureComponent {
                                 if (groupKey === FALLBACK_GROUP_NAME) { //special case for N/A
                                     const allValues = StackedBlockGroupedRow.mergeValues(rowGroups);
                                     // not intersecting childRowsKeys and allValues
-                                    rowKeys = StackedBlockGroupedRow.differenceIgnoreCase(leftAxisKeys, allValues);
+                                    rowKeys = StackedBlockGroupedRow.difference(leftAxisKeys, allValues);
                                 } else {
-                                    rowKeys = StackedBlockGroupedRow.intersectionIgnoreCase(leftAxisKeys, values || []);
+                                    rowKeys = StackedBlockGroupedRow.intersection(leftAxisKeys, values || []);
                                 }
 
                                 const containerSectionStyle = { backgroundColor: backgroundColor, color: textColor };
@@ -682,11 +681,12 @@ export class StackedBlockVisual extends React.PureComponent {
     };
 
     render() {
+        const { openBlock, activeBlock } = this.state;
         let className = "stacked-block-viz-container";
-        if (this.state.activeBlock) {
+        if (activeBlock) {
             className += ' has-active-block';
         }
-        if (this.state.openBlock) {
+        if (openBlock) {
             className += ' has-open-block';
         }
         return (
@@ -758,34 +758,6 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         return null;
     }
 
-    static getLighterHex = memoize(function (hex, factor) {
-        // Remove the '#' character if present
-        hex = hex.replace('#', '');
-
-        // If using shorthand (3 digits), convert to full 6 digits
-        if (hex.length === 3) {
-            hex = hex.split('').map((ch) => ch + ch).join('');
-        }
-
-        // Parse the red, green, and blue components
-        let r = parseInt(hex.substring(0, 2), 16);
-        let g = parseInt(hex.substring(2, 4), 16);
-        let b = parseInt(hex.substring(4, 6), 16);
-
-        // Increase each component towards 255 by the given factor
-        r = Math.round(r + (255 - r) * factor);
-        g = Math.round(g + (255 - g) * factor);
-        b = Math.round(b + (255 - b) * factor);
-
-        // Convert the new RGB values back to a hex string and return it
-        const newHex = "#" +
-            r.toString(16).padStart(2, '0') +
-            g.toString(16).padStart(2, '0') +
-            b.toString(16).padStart(2, '0');
-
-        return newHex;
-    });
-
     static mergeValues = memoize(function (obj) {
         const merged = [];
         Object.keys(obj).forEach((tier) => {
@@ -794,7 +766,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         return merged;
     });
 
-    static intersectionIgnoreCase = memoize(function (arr1, arr2) {
+    // Returns an array of items that are present in both arr1 and arr2, ignoring case.
+    static intersection = memoize(function (arr1, arr2) {
         if (!Array.isArray(arr1) || !Array.isArray(arr2)) return [];
 
         const lowerSet2 = new Set(arr2.map((x) => x.toLowerCase()));
@@ -802,7 +775,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         return arr1.filter((item) => lowerSet2.has(item.toLowerCase()));
     });
 
-    static differenceIgnoreCase = memoize(function (arr1, arr2) {
+    // Returns an array of items that are present in arr1 but not in arr2, ignoring case.
+    static difference = memoize(function (arr1, arr2) {
         if (!Array.isArray(arr1) || !Array.isArray(arr2)) return [];
 
         const lowerSet2 = new Set(arr2.map((x) => x.toLowerCase()));
@@ -841,13 +815,6 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             'paddingRight'  : props.blockHorizontalSpacing,
             'paddingTop'    : props.blockVerticalSpacing
         };
-        // const newColor = StackedBlockGroupedRow.getLighterHex(props.colorRanges[0]?.color, 0.8);
-        // const containerGroupActiveStyle = _.extend({}, containerGroupStyle, {
-        //     backgroundColor: newColor,
-        //     borderLeft: '1px solid ' + newColor,
-        //     marginTop: '-1px',
-        //     borderTop: '1px solid ' + newColor,
-        // });
         const groupedDataIndicesPairs = (props.groupedDataIndices && _.pairs(props.groupedDataIndices)) || [];
         let inner = null;
         let blocksByColumnGroup;
@@ -925,14 +892,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         }
                     }
 
-                    // const style = (
-                    //     (props.activeRow === props.index && colIdx <= props.activeColumn) ||
-                    //     (props.activeColumn === colIdx && props.index <= props.activeRow)
-                    // ) ? containerGroupActiveStyle : containerGroupStyle;
-                    const style = containerGroupStyle;
-
                     return (
-                        <div className="block-container-group" style={style}
+                        <div className="block-container-group" style={containerGroupStyle}
                             key={k} data-block-count={blocksForGroup.length} data-group-key={k}>
                             { _.map(blocksForGroup, function(blockData, i){
                                 var parentGrouping = (props.titleMap && props.titleMap[props.groupingProperties[props.depth - 1]]) || null;
@@ -1003,7 +964,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const rowHeight = blockHeight + (blockVerticalSpacing * 2) + 1;
         const columnWidth = (blockWidth + (blockHorizontalSpacing * 2)) + blockHorizontalExtend;
         const headerItemStyle = { 'width': columnWidth, 'minWidth': columnWidth };
-        const sorterActiveStyle = _.extend({}, headerItemStyle, { /*backgroundColor: StackedBlockGroupedRow.getLighterHex(colorRanges[0]?.color, 0.8)*/ });
+        const sorterActiveStyle = _.extend({}, headerItemStyle);
 
         const extPadding = 60 + (hasColumnGroups ? 26 : 0) + (hasColumnGroupsExtended ? 30 : 0);
         const labelSectionStyle = { 'paddingTop': Math.max(0, headerPadding + extPadding - rowHeight) };
@@ -1065,9 +1026,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                             if (groupKey === FALLBACK_GROUP_NAME) { //special case for N/A
                                                 const allValues = StackedBlockGroupedRow.mergeValues(columnGroups);
                                                 // not intersecting childRowsKeys and allValues
-                                                columnGroupChilColumnKeys = StackedBlockGroupedRow.differenceIgnoreCase(columnKeys, allValues);
+                                                columnGroupChilColumnKeys = StackedBlockGroupedRow.difference(columnKeys, allValues);
                                             } else {
-                                                columnGroupChilColumnKeys = StackedBlockGroupedRow.intersectionIgnoreCase(columnKeys, values || []);
+                                                columnGroupChilColumnKeys = StackedBlockGroupedRow.intersection(columnKeys, values || []);
                                             }
 
                                             const colSpan = columnGroupChilColumnKeys.length;
@@ -1100,12 +1061,12 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     {
                                         _.keys(columnGroupsExtended).map(function (groupExtendedKey) {
                                             const colCount = _.reduce(columnGroupsExtended[groupExtendedKey].values, function (memo, groupKey) {
-                                                const count = StackedBlockGroupedRow.intersectionIgnoreCase(columnKeys, columnGroups[groupKey]?.values || []).length;
+                                                const count = StackedBlockGroupedRow.intersection(columnKeys, columnGroups[groupKey]?.values || []).length;
                                                 return memo + count;
                                             }, 0);
-                                            if (colCount === 0) {
-                                                return null;
-                                            }
+
+                                            if (colCount === 0) return null;
+
                                             const groupColumnWidth = colCount * columnWidth;
                                             const groupHeaderItemStyle = {
                                                 width: groupColumnWidth,
@@ -1113,6 +1074,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                             };
                                             groupHeaderItemStyle.backgroundColor = columnGroupsExtended[groupExtendedKey].backgroundColor;
                                             groupHeaderItemStyle.color = columnGroupsExtended[groupExtendedKey].textColor;
+
                                             return (
                                                 <div key={'col-' + groupExtendedKey} className={'column-group-header'} style={groupHeaderItemStyle}>
                                                     <div className="inner">
@@ -1150,7 +1112,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         </div>
                     </div>
                 </div>
-                {showColumnSummary && StackedBlockGroupedRow.rowGroupsSummary({ ...props, label: yAxisLabel, labelSectionStyle, columnKeys, columnWidth, headerItemStyle, groupedDataIndices, columnGrouping })}
+                {showColumnSummary &&
+                    StackedBlockGroupedRow.rowGroupsSummary(
+                        { ...props, label: yAxisLabel, labelSectionStyle, columnKeys, columnWidth, headerItemStyle, groupedDataIndices, columnGrouping })}
             </React.Fragment>
         );
     }
@@ -1285,9 +1249,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 if (rgKey === FALLBACK_GROUP_NAME) { //special case for N/A
                                     const allValues = StackedBlockGroupedRow.mergeValues(rowGroupsExtended);
                                     // not intersecting childRowsKeys and allValues
-                                    rowGroupChildRowsKeys = StackedBlockGroupedRow.differenceIgnoreCase(childRowsKeys, allValues);
+                                    rowGroupChildRowsKeys = StackedBlockGroupedRow.difference(childRowsKeys, allValues);
                                 } else {
-                                    rowGroupChildRowsKeys = StackedBlockGroupedRow.intersectionIgnoreCase(childRowsKeys, values);
+                                    rowGroupChildRowsKeys = StackedBlockGroupedRow.intersection(childRowsKeys, values);
                                 }
                                 const rowSpan = rowGroupChildRowsKeys.length;
 
