@@ -19,7 +19,7 @@ def test_get_grouping_term_from_tag(
     test_ontology_term: Dict[str, Any],
     tag: str,
 ) -> None:
-    """Test function to grab top grouping term from OntologyTerm."""
+    """Test function to grab grouping term with tag from OntologyTerm."""
     request_handler = RequestHandler(test_app=testapp)
     expected = get_expected_grouping_term(test_ontology_term, tag)
     result = get_grouping_term_from_tag(test_ontology_term, request_handler, tag)
@@ -27,13 +27,12 @@ def test_get_grouping_term_from_tag(
 
 
 def get_expected_grouping_term(term: Dict[str, Any], tag: str) -> List[str]:
-    """Get expected top grouping term from the ontology terms from tags.
+    """Get expected grouping term from the ontology terms from tags.
 
     A little cheeky, but simplifies testing to have expected values
     directly on the inserts.
     """
-    expected_ont_top_tag_start = "test_top_terms-"
-    expected_ont_top_tag_start = f"{tag}_"+expected_ont_top_tag_start
+    expected_ont_top_tag_start = f"{tag}_test_terms-"
     tags = get_tags(term)
     expected_ont_top_tags = [
         tag for tag in tags if tag.startswith(expected_ont_top_tag_start)

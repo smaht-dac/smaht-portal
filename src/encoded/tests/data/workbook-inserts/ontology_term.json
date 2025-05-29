@@ -10,9 +10,6 @@
         ],
         "preferred_name": "Liver",
         "tags":[
-            "test_terms",
-            "tissue_type_test_top_terms-Liver",
-            "germ_layer_test_top_terms-Endoderm",
             "tissue_type"
         ]
     },
@@ -42,9 +39,6 @@
             "smaht"
         ],
         "tags":[
-            "test_terms",
-            "tissue_type_test_top_terms-Lung",
-            "germ_layer_test_top_terms-Endoderm",
             "tissue_subtype"
         ],
         "valid_protocol_ids": ["3Q","3R","1D"]
@@ -76,9 +70,6 @@
         "preferred_name": "Venous Blood",
         "valid_protocol_ids": ["3A"],
         "tags": [
-            "test_terms",
-            "tissue_type_test_top_terms-Blood",
-            "germ_layer_test_top_terms-Mesoderm",
             "tissue_subtype"
         ]
     },

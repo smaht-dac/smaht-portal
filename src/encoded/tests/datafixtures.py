@@ -576,10 +576,8 @@ def test_ontology_term(
         "grouping_term": test_tissue_ontology_term["uuid"],
         "preferred_name": "Upper Lobe of Left Lung",
         "tags":[
-            "test_terms",
-            "test_top_terms-Endoderm",
-            "tissue_type_test_top_terms-Lung",
-            "germ_layer_test_top_terms-Endoderm",
+            "tissue_type_test_terms-Lung",
+            "germ_layer_test_terms-Endoderm",
             "tissue_subtype"
         ],
     }

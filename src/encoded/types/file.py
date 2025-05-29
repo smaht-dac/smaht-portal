@@ -1024,9 +1024,7 @@ class File(Item, CoreFile):
             constants.SAMPLE_SUMMARY_CATEGORY: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_tissues(file_properties, request_handler),
-                functools.partial(
-                    tissue_utils.get_category
-                ),
+                tissue_utils.get_category
             ),
             constants.SAMPLE_SUMMARY_TISSUES: get_property_values_from_identifiers(
                 request_handler,
