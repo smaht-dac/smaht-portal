@@ -221,6 +221,7 @@ def data_matrix_aggregations(context, request):
 
     MAX_BUCKET_COUNT = 30  # Max grouping in a data matrix.
     DEFAULT_SEARCH_PARAM_LISTS = {'type': ['File']}
+    DEFAULT_COMPOSITE_VALUE_SEPARATOR = ' '
 
     try:
         json_body = request.json_body
@@ -230,6 +231,7 @@ def data_matrix_aggregations(context, request):
             column_agg_fields = [column_agg_fields]
         row_agg_fields = json_body.get('row_agg_fields')
         flatten_values = json_body.get('flatten_values', False)
+        composite_value_separator = json_body.get('composite_value_separator', DEFAULT_COMPOSITE_VALUE_SEPARATOR)
     except json.decoder.JSONDecodeError:
         raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
 
@@ -241,8 +243,9 @@ def data_matrix_aggregations(context, request):
 
     def get_es_value(field_or_field_list):
         if isinstance(field_or_field_list, list) and len(field_or_field_list) > 1:
+            # If we have multiple fields, we will return a script that concatenates them.
             return {
-                "source": " + ' - ' + ".join(["doc['embedded." + field + ".raw'].value" for field in field_or_field_list]),
+                "source": f" + '{composite_value_separator}' + ".join(["doc['embedded." + field + ".raw'].value" for field in field_or_field_list]),
                 "lang": "painless"
             }
         else:

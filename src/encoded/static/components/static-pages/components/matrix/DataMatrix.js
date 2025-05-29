@@ -49,6 +49,7 @@ export default class DataMatrix extends React.PureComponent {
         "showAxisLabels": true,
         "showColumnSummary": true,
         "defaultOpen": false,
+        "compositeValueSeparator": " ",
         "disableConfigurator": true,
     };
 
@@ -88,6 +89,7 @@ export default class DataMatrix extends React.PureComponent {
         'showAxisLabels': PropTypes.bool,
         'showColumnSummary': PropTypes.bool,
         'defaultOpen': PropTypes.bool,
+        'compositeValueSeparator': PropTypes.string,
         'disableConfigurator': PropTypes.bool,
     };
 
@@ -264,6 +266,7 @@ export default class DataMatrix extends React.PureComponent {
         this.setState(
             { "_results": null }, // (Re)Set all result states to 'null'
             () => {
+                const { compositeValueSeparator = ' ' } = this.props;
                 const requestUrl = query.url;
                 const [url, strQueryParams] = requestUrl.split('?');
                 const queryParamsByUrl = DataMatrix.parseQuery(strQueryParams);
@@ -290,14 +293,8 @@ export default class DataMatrix extends React.PureComponent {
                 _.forEach(rowAggFields || [], function (f, idx) {
                     if (typeof f === 'string'){
                         searchQueryParams.field.push(f);
-                        // if (idx === 0 && !queryParamsByUrl[f]) {
-                        //     searchQueryParams[f + '!'] = "No value";
-                        // }
                     } else {
                         searchQueryParams.field.push(...f);
-                        // if (idx === 0 && !queryParamsByUrl[f[0]]) {
-                        //     searchQueryParams[f[0] + '!'] = "No value";
-                        // }
                     }
                 });
                 _.forEach(colAggFields || [], function (f, idx) {
@@ -320,7 +317,9 @@ export default class DataMatrix extends React.PureComponent {
                     "row_agg_fields": rowAggFields,
                     "flatten_values": true
                 };
-
+                if (compositeValueSeparator && typeof compositeValueSeparator === 'string') {
+                    requestBody['composite_value_separator'] = compositeValueSeparator;
+                }
                 // Exclude 'Authorization' header for requests to different domains (not allowed).
                 const excludedHeaders = (requestUrl.slice(0, 4) === 'http') ? ['Authorization', 'Content-Type'] : null;
                 ajax.load(url, (r) => commonCallback(r), 'POST', (r) => commonFallback(r), JSON.stringify(requestBody), {}, excludedHeaders);
@@ -406,7 +405,7 @@ export default class DataMatrix extends React.PureComponent {
 
     render() {
         const {
-            headerFor, valueChangeMap, allowedFields,
+            headerFor, valueChangeMap, allowedFields, compositeValueSeparator,
             disableConfigurator = false
         } = this.props;
         const {
@@ -437,7 +436,7 @@ export default class DataMatrix extends React.PureComponent {
             query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
-            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary
+            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary, compositeValueSeparator,
         };
 
         const colAgg = Array.isArray(query.column_agg_fields) ? query.column_agg_fields : [query.column_agg_fields];

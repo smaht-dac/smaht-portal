@@ -197,6 +197,7 @@
                 showAxisLabels={false}
                 showColumnSummary={false}
                 defaultOpen={false}
+                compositeValueSeparator=" - "
                 disableConfigurator={false}
             />
         </div>
@@ -362,6 +363,7 @@
                 showAxisLabels={false}
                 showColumnSummary={true}
                 defaultOpen={false}
+                compositeValueSeparator=" - "
                 disableConfigurator={false}
             />
         </div>
