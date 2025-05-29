@@ -9,9 +9,10 @@ Change Log
 
 0.175.0
 =======
-`PR 432 feat: Submission Schema Reference Page <https://github.com/smaht-dac/smaht-portal/pull/432>`_
+`PR 438 feat: static page updates <https://github.com/smaht-dac/smaht-portal/pull/438>`_
 
 * Add page for submission schema reference
+* Implement FAQ documentation page
 
 
 0.174.0
