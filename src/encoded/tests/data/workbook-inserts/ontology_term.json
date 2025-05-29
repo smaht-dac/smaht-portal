@@ -61,6 +61,7 @@
         ],
         "preferred_name": "Brain",
         "valid_protocol_ids": ["3AJ"],
+        "grouping_term":  "UBERON:0000924",
         "tags": [
             "tissue_type"
         ]
@@ -120,7 +121,20 @@
         "consortia": [
             "smaht"
         ],
-        "preferred_name": "mesoderm",
+        "preferred_name": "Mesoderm",
+        "tags": [
+            "germ_layer"
+        ]
+    },
+    {
+        "uuid": "253bf517-2603-480a-b750-5f7adb7b44fb",
+        "identifier": "UBERON:0000924",
+        "ontologies": ["UBERON"],
+        "title": "ectoderm",
+        "consortia": [
+            "smaht"
+        ],
+        "preferred_name": "Ectoderm",
         "tags": [
             "germ_layer"
         ]

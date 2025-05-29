@@ -1,8 +1,9 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
-from snovault import collection, load_schema
+from snovault import collection, load_schema, calculated_property
 from snovault.util import debug_log, get_item_or_none
 from pyramid.view import view_config
+from pyramid.request import Request
 from encoded.validator_decorators import link_related_validator
 
 from .base import (
@@ -25,6 +26,11 @@ from ..item_utils import (
     donor as donor_utils,
     item as item_utils,
     ontology_term as ot_utils,
+)
+
+from ..item_utils.utils import (
+    RequestHandler,
+    get_property_value_from_identifier
 )
 
 def _build_tissue_embedded_list() -> List[str]:
@@ -50,6 +56,31 @@ class Tissue(SampleSource):
 
     class Collection(Item.Collection):
         pass
+
+    @calculated_property(
+        schema={
+            "title": "Category",
+            "description": "Category of tissue type",
+            "type": "string"
+        }
+    )
+    def category(self, request: Request):
+        """Get category of tissue type (either germ layer from OntologyTerm, Germ Cells, or Clinically Accessible)."""
+        request_handler = RequestHandler(request = request)
+        import pdb; pdb.set_trace()
+        if get_property_value_from_identifier(
+            tissue_utils.get_uberon_id(self.properties),
+            request_handler,
+            item_utils.get_tags
+        ):
+            tissue_type = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="tissue_type")
+            if tissue_type in ["Testis", "Ovary"]:
+                return "Germ Cells"
+            elif tissue_type in ["Blood", "Buccal Swab"]:
+                return "Clinically Accessible"
+            else:
+                germ_layer = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="germ_layer")
+                return germ_layer or None
 
 
 @link_related_validator
