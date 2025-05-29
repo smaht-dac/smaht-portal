@@ -13,6 +13,7 @@ import Tabs from 'react-bootstrap/Tabs';
 export const QualityMetricVisualizations = () => {
     const [qcData, setQcData] = useState(null);
     const [tab, setTab] = useState('sample-integrity');
+    const [preselectedTab, setPreselectedTab] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
 
     const validTabs = [
@@ -20,9 +21,9 @@ export const QualityMetricVisualizations = () => {
         'key-metrics',
         'all-metrics',
         'metrics-v-metric',
-        'metrics-by-file'
+        'metrics-by-file',
     ];
-    
+
     useEffect(() => {
         ajax.load(
             '/get_qc_overview/',
@@ -35,10 +36,11 @@ export const QualityMetricVisualizations = () => {
 
                 // If the file parameter is provided, we want to show the "Metrics by file" tab by default
                 const urlParams = new URLSearchParams(window.location.search);
-                const file = urlParams.get("file");
-                const tab = urlParams.get("tab");
-                if(validTabs.includes(tab) && file){
+                const file = urlParams.get('file');
+                const tab = urlParams.get('tab');
+                if (validTabs.includes(tab) && file) {
                     setSelectedFile(file);
+                    setPreselectedTab(tab);
                     setTab(tab);
                 }
             },
@@ -49,7 +51,6 @@ export const QualityMetricVisualizations = () => {
         );
     }, []);
 
-    
     return qcData ? (
         <>
             <Tabs
@@ -58,7 +59,10 @@ export const QualityMetricVisualizations = () => {
                 onSelect={(t) => setTab(t)}
                 className="mb-3">
                 <Tab eventKey="sample-integrity" title="Sample Integrity">
-                    <SampleContamination qcData={qcData} preselectedFile={selectedFile} />
+                    <SampleContamination
+                        qcData={qcData}
+                        preselectedFile={selectedFile}
+                    />
                 </Tab>
                 <Tab eventKey="key-metrics" title="Key Metrics">
                     <KeyMetrics qcData={qcData} />
@@ -72,7 +76,18 @@ export const QualityMetricVisualizations = () => {
                     <ScatterPlotWithFacets qcData={qcData} />
                 </Tab>
                 <Tab eventKey="metrics-by-file" title="Metrics by file">
-                    <MetricsByFile qcData={qcData} preselectedFile={selectedFile}/>
+                    <MetricsByFile
+                        // We need to force a rerender when initial tab is not "metrics-by-file",
+                        // otherwise the metrics are not correctly displayed (root cause is currently unclear)
+                        key={
+                            preselectedTab !== 'metrics-by-file' &&
+                            tab === 'metrics-by-file'
+                                ? Date.now()
+                                : 'metrics-by-file'
+                        }
+                        qcData={qcData}
+                        preselectedFile={selectedFile}
+                    />
                 </Tab>
             </Tabs>
         </>

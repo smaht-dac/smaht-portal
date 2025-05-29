@@ -3,9 +3,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { getBoxPlot } from './utils';
 import makeAnimated from 'react-select/animated';
 
-import {
-    customReactSelectStyleMulti,
-} from './utils';
+import { customReactSelectStyleMulti } from './utils';
 
 import Select from 'react-select';
 
@@ -15,16 +13,19 @@ export const MetricsByFile = ({ qcData, settings, preselectedFile }) => {
     const defaultSettings =
         settings || vizInfo.default_settings.metrics_by_file;
     const defaultMetrics = {};
-    Object.keys(defaultSettings.default_metrics).forEach((assay_sequencer_group) => {
-        defaultMetrics[assay_sequencer_group] = defaultSettings.default_metrics[assay_sequencer_group].map(
-            (m) => {
-                return {
-                    value: m,
-                    label: qcInfo[m].key,
-                };
-            }
-        );
-    });
+    Object.keys(defaultSettings.default_metrics).forEach(
+        (assay_sequencer_group) => {
+            defaultMetrics[assay_sequencer_group] =
+                defaultSettings.default_metrics[assay_sequencer_group].map(
+                    (m) => {
+                        return {
+                            value: m,
+                            label: qcInfo[m].key,
+                        };
+                    }
+                );
+        }
+    );
 
     const [selectedFile, setSelectedFile] = useState(null);
     const [selectedQcMetrics, setSelectedQcMetrics] = useState({});
@@ -83,7 +84,8 @@ export const MetricsByFile = ({ qcData, settings, preselectedFile }) => {
                 JSON.stringify(selectedQcMetrics)
             );
             const key = assay + '_' + sg;
-            currentMetrics[selection.value] = key in defaultMetrics ? defaultMetrics[key] : [];
+            currentMetrics[selection.value] =
+                key in defaultMetrics ? defaultMetrics[key] : [];
             setSelectedQcMetrics(currentMetrics);
         }
         setSelectedFile(selection);
@@ -97,12 +99,20 @@ export const MetricsByFile = ({ qcData, settings, preselectedFile }) => {
 
     useEffect(() => {
         if (preselectedFile && Object.keys(files).includes(preselectedFile)) {
-            const selectedOption = fileSelectOptions.find(
-                (user) => user.value === preselectedFile
+            const selectedOptions = fileSelectOptions.find(
+                (option) => option.value === preselectedFile
             );
-            handleFileChange(selectedOption);
+            handleFileChange(selectedOptions);
         }
     }, []);
+
+    const warning =
+        preselectedFile && !Object.keys(files).includes(preselectedFile) ? (
+            <div className="alert alert-danger qc-metrics-alert-danger">
+                <i className="icon icon-exclamation-triangle fas icon-fw" />{" "}
+                Visualizations for this file are not yet available.
+            </div>
+        ) : null;
 
     const facets = (
         <div className="qc-metrics-facets-container mb-2">
@@ -144,7 +154,11 @@ export const MetricsByFile = ({ qcData, settings, preselectedFile }) => {
     );
 
     const plots = useMemo(() => {
-        if (!selectedFile || !selectedQcMetrics[selectedFile.value] || selectedQcMetrics[selectedFile.value].length === 0) {
+        if (
+            !selectedFile ||
+            !selectedQcMetrics[selectedFile.value] ||
+            selectedQcMetrics[selectedFile.value].length === 0
+        ) {
             return null;
         }
         return selectedQcMetrics[selectedFile.value].map((metric, i) => {
@@ -170,12 +184,11 @@ export const MetricsByFile = ({ qcData, settings, preselectedFile }) => {
         });
     }, [selectedFile, selectedQcMetrics, files]);
 
-
     return (
         <>
+            {warning}
             {facets}
             <div className="row mb-5 g-0">{plots}</div>
         </>
     );
 };
-
