@@ -16,7 +16,7 @@ def get_grouping_term(properties: Dict[str, Any]) -> str:
     return properties.get("grouping_term","")
 
 
-def get_top_grouping_term(
+def get_grouping_term_from_tag(
     properties: Dict[str, Any],
     request_handler: RequestHandler,
     tag: Optional[str] = None
@@ -44,17 +44,16 @@ def get_top_grouping_term(
             seen.add(uuid)
             top = uuid
             to_get.update(
-                get_property_value_from_identifier(
+                get_property_values_from_identifiers(
                     request_handler,
-                    get_grouping_term(request_handler.get_item(uuid)),
-                    item_utils.get_uuid,
+                    [get_grouping_term(request_handler.get_item(uuid))],
+                    item_utils.get_uuid
                 )
             )
             if tag:
                 tags = get_property_value_from_identifier(
                     request_handler, top, item_utils.get_tags
                 )
-                import pdb; pdb.set_trace()
                 if tag in tags:
                     return get_property_value_from_identifier(
                         request_handler,

@@ -1022,7 +1022,7 @@ class File(Item, CoreFile):
                 request_handler,
                 file_utils.get_tissues(file_properties, request_handler),
                 functools.partial(
-                    tissue_utils.get_top_grouping_term, request_handler=request_handler,
+                    tissue_utils.get_grouping_term_from_tag, request_handler=request_handler,
                     tag="germ_layer"
                 ),
             ),
@@ -1030,7 +1030,7 @@ class File(Item, CoreFile):
                 request_handler,
                 file_utils.get_tissues(file_properties, request_handler),
                 functools.partial(
-                    tissue_utils.get_top_grouping_term, request_handler=request_handler,
+                    tissue_utils.get_grouping_term_from_tag, request_handler=request_handler,
                     tag="tissue_type"
                 ),
             ),

@@ -1093,13 +1093,13 @@ def assert_sample_summary_matches_expected(
     expected_germ_layers = expected_tissues = get_unique_values(
         [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
         functools.partial(
-            tissue_utils.get_top_grouping_term, request_handler=request_handler, tag="germ_layer"
+            tissue_utils.get_grouping_term_from_tag, request_handler=request_handler, tag="germ_layer"
         ),
     )
     expected_tissues = get_unique_values(
         [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
         functools.partial(
-            tissue_utils.get_top_grouping_term, request_handler=request_handler, tag="tissue_type"
+            tissue_utils.get_grouping_term_from_tag, request_handler=request_handler, tag="tissue_type"
         ),
     )
     expected_tissue_subtypes = get_unique_values(
