@@ -6,7 +6,8 @@
     "required": [
         "identifier",
         "title",
-        "ontologies"
+        "ontologies",
+        "tags"
     ],
     "anyOf": [
         {
@@ -113,6 +114,17 @@
             "type": "array",
             "items": {
                 "type": "string"
+            }
+        },
+        "tags": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "suggested_enum": [
+                    "tissue_subtype",
+                    "tissue_type",
+                    "germ_layer"
+                ]
             }
         }
     },

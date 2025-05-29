@@ -516,10 +516,55 @@ def test_ontology(
 
 
 @pytest.fixture
-def test_ontology_term(
+def test_germ_layer_ontology_term(
     testapp,
     test_consortium,
     test_ontology
+):
+    item = {
+        "identifier": "UBERON:0000925",
+        "ontologies": [test_ontology["uuid"]],
+        "title": "endoderm",
+        "consortia": [
+           test_consortium["uuid"]
+        ],
+        "preferred_name": "Endoderm",
+        "tags": [
+            "germ_layer"
+        ]
+    }
+    return post_item_and_return_location(testapp, item, 'ontology_term')
+
+
+@pytest.fixture
+def test_tissue_ontology_term(
+    testapp,
+    test_consortium,
+    test_ontology,
+    test_germ_layer_ontology_term
+):
+    item = {
+        "identifier": "UBERON:0002048",
+        "ontologies": [test_ontology["uuid"]],
+        "title": "lung",
+        "consortia": [
+           test_consortium["uuid"]
+        ],
+        "grouping_term": test_germ_layer_ontology_term["uuid"],
+        "preferred_name": "Lung",
+         "tags": [
+            "tissue_type"
+        ]
+    }
+    return post_item_and_return_location(testapp, item, 'ontology_term')
+
+
+@pytest.fixture
+def test_ontology_term(
+    testapp,
+    test_consortium,
+    test_ontology,
+    test_tissue_ontology_term
 ):
     item = {
         "identifier": "UBERON:0008952",
@@ -527,9 +572,17 @@ def test_ontology_term(
         "title": "upper lobe of left lung",
         "consortia": [
            test_consortium["uuid"]
-        ]
+        ],
+        "grouping_term": test_tissue_ontology_term["uuid"],
+        "preferred_name": "Upper Lobe of Left Lung",
+        "tags":[
+            "tissue_type_test_terms-Lung",
+            "germ_layer_test_terms-Endoderm",
+            "tissue_subtype"
+        ],
     }
     return post_item_and_return_location(testapp, item, 'ontology_term')
+
 
 
 @pytest.fixture

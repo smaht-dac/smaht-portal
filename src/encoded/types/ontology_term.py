@@ -10,7 +10,6 @@ from pyramid.request import Request
 from .acl import ONLY_ADMIN_VIEW_ACL
 from .base import Item
 
-
 @collection(
     name="ontology-terms",
     unique_key="ontology_term:identifier",
