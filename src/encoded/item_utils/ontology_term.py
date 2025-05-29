@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Union
 
 
 from . import(
@@ -19,15 +19,17 @@ def get_grouping_term(properties: Dict[str, Any]) -> str:
 def get_grouping_term_from_tag(
     properties: Dict[str, Any],
     request_handler: RequestHandler,
-    tag: Optional[str] = None
-) -> List[str]:
+    tag: str
+) -> Union[str, None]:
     """
-    Get top grouping term associated with ontology term recursively.
-    
-    If grouping_term is not present, return display_title of item.
-    If `tag` is set, grab the first grouping term with the appropriate tag 
-    (e.g. germ_layer, tissue_type)
+    Get grouping term with specified tag from ontology term recursively.
+
+    Search through linked OntologyTerms to grab the first item with the appropriate tag 
+    (e.g. germ_layer, tissue_type). If it is not present, return None
     """
+    tags = item_utils.get_tags(properties)
+    if tag in tags:
+        return item_utils.get_display_title(properties)
     grouping_term = get_grouping_term(properties)
     if grouping_term:
         to_get = set(
@@ -50,28 +52,18 @@ def get_grouping_term_from_tag(
                     item_utils.get_uuid
                 )
             )
-            if tag:
-                tags = get_property_value_from_identifier(
-                    request_handler, top, item_utils.get_tags
-                )
-                if tag in tags:
-                    return get_property_value_from_identifier(
-                        request_handler,
-                        top,
-                        item_utils.get_display_title
-                    )
-        return get_property_value_from_identifier(
-            request_handler,
-            top,
-            item_utils.get_display_title
-        )
-    else:
-        if tag:
-            tags = item_utils.get_tags(properties)
+            tags = get_property_value_from_identifier(
+                request_handler, top, item_utils.get_tags
+            )
             if tag in tags:
-                return item_utils.get_display_title(properties)
-            return None
-        return item_utils.get_display_title(properties)
+                return get_property_value_from_identifier(
+                    request_handler,
+                    top,
+                    item_utils.get_display_title
+                )
+        return None
+    else:
+        return None
     
 
 def get_valid_protocol_ids(properties: Dict[str, Any]) -> str:

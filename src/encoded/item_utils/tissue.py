@@ -34,7 +34,12 @@ def get_uberon_id(properties: Dict[str, Any]) -> str:
     return properties.get("uberon_id","")
 
 
-def get_grouping_term_from_tag(properties: Dict[str, Any], request_handler: RequestHandler, tag: Optional[str] = None) -> str:
+def get_category(properties: Dict[str, Any]) -> str:
+    """Get category associated with tissue from calc prop"""
+    return properties.get("category","")
+
+
+def get_grouping_term_from_tag(properties: Dict[str, Any], request_handler: RequestHandler, tag: str) -> str:
     """Get top grouping term associated with tissue"""
     return get_property_value_from_identifier(
         request_handler,

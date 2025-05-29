@@ -383,6 +383,7 @@ def _build_file_embedded_list() -> List[str]:
 
         # Sample summary + Link calcprops
         "file_sets.libraries.analytes.molecule",
+        "file_sets.libraries.analytes.samples.sample_sources.category",
         "file_sets.libraries.analytes.samples.sample_sources.code",
         "file_sets.libraries.analytes.samples.sample_sources.uberon_id",
         "file_sets.libraries.analytes.samples.sample_sources.description",
@@ -1022,8 +1023,7 @@ class File(Item, CoreFile):
                 request_handler,
                 file_utils.get_tissues(file_properties, request_handler),
                 functools.partial(
-                    tissue_utils.get_grouping_term_from_tag, request_handler=request_handler,
-                    tag="germ_layer"
+                    tissue_utils.get_category
                 ),
             ),
             constants.SAMPLE_SUMMARY_TISSUES: get_property_values_from_identifiers(

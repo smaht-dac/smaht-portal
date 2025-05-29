@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import pytest
 from webtest import TestApp
@@ -12,7 +12,6 @@ from ..item_utils.item import get_tags
     [
         ("germ_layer"),
         ("tissue_type"),
-        (""),
     ],
 )
 def test_get_grouping_term_from_tag(
@@ -27,15 +26,14 @@ def test_get_grouping_term_from_tag(
     assert result == expected
 
 
-def get_expected_grouping_term(term: Dict[str, Any], tag: Optional[str] = None) -> List[str]:
+def get_expected_grouping_term(term: Dict[str, Any], tag: str) -> List[str]:
     """Get expected top grouping term from the ontology terms from tags.
 
     A little cheeky, but simplifies testing to have expected values
     directly on the inserts.
     """
     expected_ont_top_tag_start = "test_top_terms-"
-    if tag:
-        expected_ont_top_tag_start = f"{tag}_"+expected_ont_top_tag_start
+    expected_ont_top_tag_start = f"{tag}_"+expected_ont_top_tag_start
     tags = get_tags(term)
     expected_ont_top_tags = [
         tag for tag in tags if tag.startswith(expected_ont_top_tag_start)

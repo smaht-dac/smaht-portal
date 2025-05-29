@@ -67,13 +67,13 @@ class Tissue(SampleSource):
     def category(self, request: Request):
         """Get category of tissue type (either germ layer from OntologyTerm, Germ Cells, or Clinically Accessible)."""
         request_handler = RequestHandler(request = request)
-        import pdb; pdb.set_trace()
         if get_property_value_from_identifier(
-            tissue_utils.get_uberon_id(self.properties),
             request_handler,
+            tissue_utils.get_uberon_id(self.properties),
             item_utils.get_tags
         ):
             tissue_type = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="tissue_type")
+            import pdb; pdb.set_trace()
             if tissue_type in ["Testis", "Ovary"]:
                 return "Germ Cells"
             elif tissue_type in ["Blood", "Buccal Swab"]:
