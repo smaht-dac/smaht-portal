@@ -39,7 +39,6 @@ def test_file_set_group(
     """ Ensure we generate a reasonable looking group when file set data is present """
     res = es_testapp.get(file_set).json
     file_merge_group = res['file_group']
-    import pdb; pdb.set_trace()
     assert file_merge_group['sample_source'] == 'TEST_TISSUE-SAMPLE_LIVER'
     assert file_merge_group['sequencing'] == 'illumina_novaseqx-Paired-end-150-R9'
     assert file_merge_group['assay'] == 'bulk_wgs'
