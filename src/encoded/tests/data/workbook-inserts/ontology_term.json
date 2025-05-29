@@ -98,6 +98,32 @@
         ]
     },
     {
+        "uuid": "8e636f6c-96af-4cd2-b2b4-4b327b37c658",
+        "identifier": "UBERON:0004264",
+        "ontologies": ["UBERON"],
+        "title": "lower leg skin",
+        "grouping_term": "UBERON:0002097",
+        "consortia": [
+            "smaht"
+        ],
+        "tags": [
+            "tissue_subtype"
+        ]
+    },
+    {
+        "uuid": "b5d19f76-5d0c-4b19-b84c-2b64ea11522b",
+        "identifier": "UBERON:0002097",
+        "ontologies": ["UBERON"],
+        "title": "skin of body",
+        "grouping_term": "UBERON:0000924",
+        "consortia": [
+            "smaht"
+        ],
+        "tags": [
+            "tissue_type"
+        ]
+    },
+    {
         "uuid": "b20b2257-1d5b-4015-8182-cce79e4f6235",
         "identifier": "UBERON:0000925",
         "ontologies": ["UBERON"],

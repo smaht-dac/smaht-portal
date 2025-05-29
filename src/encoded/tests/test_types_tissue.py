@@ -83,7 +83,8 @@ def test_validate_external_id_on_add(
     "submitted_id,expected", [
         ("TEST_TISSUE_LUNG", "Endoderm"),
         ("TEST_TISSUE_BLOOD", "Clinically Accessible"),
-        ("TEST_TISSUE_BRAIN", "Ectoderm")
+        ("TEST_TISSUE_BRAIN", "Ectoderm"),
+        ("TEST_TISSUE_FIBROBLAST", "Mesoderm")
     ]
 )
 def test_category_calc_prop(
