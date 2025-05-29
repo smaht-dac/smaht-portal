@@ -64,8 +64,7 @@ export const SampleContamination = ({ qcData, preselectedFile }) => {
             result.warnings.push(
                 <span>
                     <i className="icon icon-exclamation-triangle fas icon-fw" />{' '}
-                    Sample integrity results are not yet available for the selected
-                    file.
+                    Sample integrity results are not yet available for file <strong>{preselectedFile}</strong>.
                 </span>
             );
         }
