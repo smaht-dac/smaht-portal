@@ -234,7 +234,7 @@ class FileSet(SubmittedItem):
                     "title": "Assay Tag",
                     "type": "string"
                 },
-                "flag": {
+                "group_tag": {
                     "title": "Group Tag",
                     "type": "string"
                 }
