@@ -76,7 +76,7 @@ An example of a filled out workbook ready for submission can be found |example_w
    <a href="https://docs.google.com/spreadsheets/d/1bnPIH6f3biLBL9R8mEgvBemLP3nbsyyCrJQuOstcm_I/edit?usp=sharing" target="_blank">here</a>
 
 .. TIP::
-   The submission template is in flux. Please double check with DAC about getting the most up-to-date template before starting metadata submission!
+   The submission template is in flux. Please double check with DAC about getting the most up-to-date template before starting metadata submission! Changes to the template by version can be found `here <https://docs.google.com/document/d/1wDrr1hhk8JP9Eii5Qti7URV6vBy00a4Rse6WAIeiUWA/edit?usp=sharing>`__.
 
 |
 

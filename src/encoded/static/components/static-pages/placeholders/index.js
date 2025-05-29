@@ -28,6 +28,7 @@ import {
 import { DownloadAllFilesFromSearchHrefButton } from '../components/challenges/DownloadAllFilesFromSearchHrefButton';
 import { ChallengeTableWrapper } from '../components/challenges/ChallengeTables';
 import RetractedFilesTable from '../components/RetractedFilesTable';
+import { SchemaReferencePage } from '../SchemaReferencePage';
 
 /**
  * Any placeholder(s) used in a StaticSection _must_ get imported here
@@ -52,7 +53,8 @@ const placeholders = {
     Donor4Data,
     DownloadAllFilesFromSearchHrefButton,
     ChallengeTableWrapper,
-    RetractedFilesTable
+    RetractedFilesTable,
+    SchemaReferencePage,
 };
 
 export const replaceString = memoize(
