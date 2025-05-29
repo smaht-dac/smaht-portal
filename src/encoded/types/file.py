@@ -262,7 +262,7 @@ class CalcPropConstants:
         "type": "string",
     }
     SAMPLE_SUMMARY_DONOR_IDS = "donor_ids"
-    SAMPLE_SUMMARY_GERM_LAYER = "germ_layers"
+    SAMPLE_SUMMARY_CATEGORY = "category"
     SAMPLE_SUMMARY_TISSUES = "tissues"
     SAMPLE_SUMMARY_TISSUE_SUBTYPES = "tissue_subtypes"
     SAMPLE_SUMMARY_TISSUE_DETAILS = "tissue_details"
@@ -281,8 +281,8 @@ class CalcPropConstants:
                     "type": "string",
                 },
             },
-            SAMPLE_SUMMARY_GERM_LAYER: {
-                "title": "Germ Layer",
+            SAMPLE_SUMMARY_CATEGORY: {
+                "title": "Tissue Category",
                 "type": "array",
                 "items": {
                     "type": "string",
@@ -1019,7 +1019,7 @@ class File(Item, CoreFile):
                 file_utils.get_donors(file_properties, request_handler),
                 item_utils.get_external_id,
             ),
-            constants.SAMPLE_SUMMARY_GERM_LAYER: get_property_values_from_identifiers(
+            constants.SAMPLE_SUMMARY_CATEGORY: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_tissues(file_properties, request_handler),
                 functools.partial(

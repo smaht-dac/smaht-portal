@@ -73,7 +73,6 @@ class Tissue(SampleSource):
             item_utils.get_tags
         ):
             tissue_type = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="tissue_type")
-            import pdb; pdb.set_trace()
             if tissue_type in ["Testis", "Ovary"]:
                 return "Germ Cells"
             elif tissue_type in ["Blood", "Buccal Swab"]:

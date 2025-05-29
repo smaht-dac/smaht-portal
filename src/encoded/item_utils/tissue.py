@@ -1,11 +1,10 @@
 import functools
 import re
-from typing import Any, Dict, Union, Optional
+from typing import Any, Dict, Union
 
 from . import constants, donor, item
 
 from ..item_utils import (
-    item as item_utils,
     ontology_term as ot_utils,
 )
 
