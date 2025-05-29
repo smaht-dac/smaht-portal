@@ -11,4 +11,3 @@ export {
     ExpandableStaticHeader,
 } from './BasicUserContentBody';
 export { UserContentBodyList } from './UserContentBodyList';
-export { VisualBody, StackedBlockVisual, StackedBlockGroupedRow, groupByMultiple } from './StackedBlockVisual';
