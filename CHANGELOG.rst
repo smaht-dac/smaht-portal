@@ -7,12 +7,27 @@ smaht-portal
 Change Log
 ----------
 
-0.173.0
+0.175.0
 =======
 `PR 427: SN Add donor revlinks <https://github.com/smaht-dac/smaht-portal/pull/427>`_
 
 * Add revlinks to MedicalHistory from Donor and to Exposure (for alcohol and tobacco exposure only) in MedicalHistory
 * Add necessary embeds to Donor for generation of Donor Overview page
+
+
+0.174.0
+=======
+`PR 436: SN Donor study calcprop <https://github.com/smaht-dac/smaht-portal/pull/436>`_
+
+* Add `study` calculated property to Donor which uses the pattern of `external_id` to determine if the donor is Benchmarking or Production
+
+
+0.173.0
+=======
+`PR 434: SN Reference genome preferred_name <https://github.com/smaht-dac/smaht-portal/pull/434>`_
+
+* * Update the `meta_workflow_run_inputs` calcprop in File to ignore ReferenceFile items
+Add the property `submitter_comments` to FileSet for display in Submission Status page
 
 
 0.172.3
