@@ -24,13 +24,26 @@ def test_files_rev_link(es_testapp: TestApp, workbook: None) -> None:
 
 
 @pytest.mark.workbook
-def test_file_set_group(es_testapp: TestApp, workbook: None) -> None:
+@pytest.mark.parametrize(
+    "file_set,group_tag", [
+        ('/file-sets/b98f9849-3b7f-4f2f-a58f-81100954e00d/', ''),
+        ('/file-sets/799ca2e9-f24a-4517-bb35-88945ed41047/', 'group1')
+    ]
+)
+def test_file_set_group(
+    es_testapp: TestApp,
+    workbook: None,
+    file_set: str,
+    group_tag: str
+) -> None:
     """ Ensure we generate a reasonable looking group when file set data is present """
-    res = es_testapp.get('/file-sets/b98f9849-3b7f-4f2f-a58f-81100954e00d/').json
+    res = es_testapp.get(file_set).json
     file_merge_group = res['file_group']
+    import pdb; pdb.set_trace()
     assert file_merge_group['sample_source'] == 'TEST_TISSUE-SAMPLE_LIVER'
     assert file_merge_group['sequencing'] == 'illumina_novaseqx-Paired-end-150-R9'
     assert file_merge_group['assay'] == 'bulk_wgs'
+    assert file_merge_group['group_tag'] == group_tag
 
 
 @pytest.mark.workbook

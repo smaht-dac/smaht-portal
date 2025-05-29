@@ -233,6 +233,10 @@ class FileSet(SubmittedItem):
                 "assay": {
                     "title": "Assay Tag",
                     "type": "string"
+                },
+                "flag": {
+                    "title": "Group Tag",
+                    "type": "string"
                 }
             }
         }
@@ -252,6 +256,8 @@ class FileSet(SubmittedItem):
                 * Various information on the sequencer: name, read type, target read length
                   and flow cell
                 * Assay identifier
+                * An optional flag to differentiate the group from ones that would otherwise be in the
+                same merge group, but should be kept separate for QC or other reasons
         """
         # NOTE: we assume the first library is representative if there are multiple
         # We also assume this will always be present, and if not we do not produce this property
@@ -285,12 +291,14 @@ class FileSet(SubmittedItem):
             item_utils.get_submission_centers(self.properties)[0],
             item_utils.get_identifier,
         )
+        group_tag_part = file_set_utils.get_group_tag(self.properties)
 
         return {
             'submission_center': sc_part,
             'sample_source': sample_source_part,
             'sequencing': sequencing_part,
-            'assay': assay_part
+            'assay': assay_part,
+            'group_tag': group_tag_part
         }
 
     @calculated_property(

@@ -14,6 +14,21 @@
         ]
     },
     {
+        "uuid": "799ca2e9-f24a-4517-bb35-88945ed41047",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_FILE-SET_LIVER-DNA_2",
+        "libraries": [
+            "TEST_LIBRARY_LIVER-DNA"
+        ],
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X-DNA",
+        "samples": [
+            "TEST_CELL-SAMPLE_LIVER-CELL"
+        ],
+        "group_tag": "group1"
+    },
+    {
         "uuid": "6b6531f3-7512-4ed4-8d88-b0807579f883",
         "submission_centers": [
             "smaht"
