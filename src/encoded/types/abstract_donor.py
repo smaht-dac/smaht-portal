@@ -88,7 +88,7 @@ def validate_external_id_on_add(context, request):
     if donor_utils.is_tpc_submitted(data):
         if not assert_valid_external_id(external_id):
             msg = f"external_id {external_id} does not match TPC donor nomenclature."
-            return request.errors.add('body', 'Donor: invalid property', msg)
+            return request.errors.add('body', f"{context.type_info.name}: invalid property", msg)
         else:
             return request.validated.update({})
 
@@ -102,7 +102,7 @@ def validate_external_id_on_edit(context, request):
     if tpc_submitted == "True":
         if not assert_valid_external_id(external_id):
             msg = f"external_id {external_id} does not match TPC donor nomenclature."
-            return request.errors.add('body', 'Donor: invalid property', msg)
+            return request.errors.add('body', f"{context.type_info.name}: invalid property", msg)
         else:
             return request.validated.update({}) 
 

@@ -9,10 +9,12 @@ Change Log
 
 0.175.0
 =======
-`PR 427: SN Add donor revlinks <https://github.com/smaht-dac/smaht-portal/pull/427>`_
+`PR 427: SN Add protected donor item <https://github.com/smaht-dac/smaht-portal/pull/427>`_
 
-* Add revlinks to MedicalHistory from Donor and to Exposure (for alcohol and tobacco exposure only) in MedicalHistory
-* Add necessary embeds to Donor for generation of Donor Overview page
+* Create new item type ProtectedDonor and new abstract item type AbstractDonor, with both Donor and ProtectedDonor as children
+* Adjust `linkTo` in schema of protected donor items (e.g. MedicalHistory, DeathCircumstances) to be for AbstractDonor temporarily. These will later be changed to `"linkTo": "ProtectedDonor"`` after item links have been patched.
+* Add revlinks to MedicalHistory from ProtectedDonor and to Exposure (for alcohol and tobacco exposure only) from MedicalHistory
+* Add necessary embeds to ProtectedDonor for generation of Donor Overview page
 
 
 0.174.0
