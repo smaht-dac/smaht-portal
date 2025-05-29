@@ -388,6 +388,7 @@ def _build_file_embedded_list() -> List[str]:
         "quality_metrics.overall_quality_status",
         # For manifest
         "sequencing.sequencer.display_title",
+        "sequencing.sequencer.platform",
 
         # Include file groups tags
         "file_sets.file_group.*",

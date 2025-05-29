@@ -5,9 +5,15 @@
         "submission_centers": [
             "smaht"
         ],
-        "donor": "TEST_DONOR_FEMALE",
+        "donor": "TEST_PROTECTED-DONOR_FEMALE",
         "height": 3.2,
         "weight": 45,
-        "body_mass_index": 21.5
+        "body_mass_index": 21.5,
+        "cancer_history": "Yes",
+        "cancer_type": ["Ovarian Cancer"],
+        "family_ovarian_pancreatic_prostate_cancer": "Yes",
+        "tobacco_use": "No",
+        "alcohol_use": "Yes",
+        "hiv_nat": "Reactive"
     }
 ]
