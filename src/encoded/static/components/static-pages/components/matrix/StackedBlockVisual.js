@@ -88,7 +88,6 @@ export class VisualBody extends React.PureComponent {
         const { query: { url: queryUrl, column_agg_fields, row_agg_fields }, fieldChangeMap, valueChangeMap, titleMap, groupingProperties, columnGrouping } = this.props;
         const { depth, isTotal = false, popoverPrimaryTitle } = blockProps;
         const isGroup = (Array.isArray(data) && data.length >= 1) || false;
-        // const isGroup = (Array.isArray(data) && data.length > 1) || false;
         let aggrData;
 
         if (!isGroup && Array.isArray(data)){
@@ -606,25 +605,34 @@ export class StackedBlockVisual extends React.PureComponent {
                                 const headerItemStyle = {};
 
                                 return _.map(rowKeys, (k, idx) => {
-                                    let filteredGroupedDataIndices = null;
+                                    let rowGroupSummaryProps = null;
                                     if (idx === 0) {
                                         const tmpData = _.flatten(_.flatten(_.map(_.pick(nestedData, (v, k) => rowKeys.indexOf(k) !== -1), _.values)));
-                                        if (typeof columnGrouping === 'string') {
-                                            filteredGroupedDataIndices = _.groupBy(tmpData, columnGrouping);
-                                            if (_.keys(filteredGroupedDataIndices) < 2) {
-                                                filteredGroupedDataIndices = null;
-                                            } else {
-                                                _.keys(filteredGroupedDataIndices).forEach(function (k) {
-                                                    filteredGroupedDataIndices[k] = _.pluck(filteredGroupedDataIndices[k], 'index');
-                                                });
-                                            }
+                                        let filteredGroupedDataIndices = _.groupBy(tmpData, columnGrouping);
+                                        if (_.keys(filteredGroupedDataIndices) < 2) {
+                                            filteredGroupedDataIndices = null;
+                                        } else {
+                                            _.keys(filteredGroupedDataIndices).forEach(function (k) {
+                                                filteredGroupedDataIndices[k] = _.pluck(filteredGroupedDataIndices[k], 'index');
+                                            });
                                         }
+                                        rowGroupSummaryProps = {
+                                            ...this.props,
+                                            groupedDataIndices: filteredGroupedDataIndices,
+                                            handleBlockClick: this.handleBlockClick,
+                                            label: groupKey !== FALLBACK_GROUP_NAME ? StackedBlockVisual.pluralize(groupKey) : groupKey,
+                                            labelSectionStyle,
+                                            columnKeys,
+                                            columnWidth,
+                                            headerItemStyle,
+                                            containerSectionStyle
+                                        };
                                     }
 
                                     outerIdx++;
                                     return (
                                         <React.Fragment>
-                                            {filteredGroupedDataIndices && StackedBlockGroupedRow.rowGroupsSummary({ ...this.props, groupedDataIndices: filteredGroupedDataIndices, handleBlockClick: this.handleBlockClick, label: StackedBlockVisual.pluralize(groupKey), labelSectionStyle, columnKeys, columnWidth, headerItemStyle, containerSectionStyle })}
+                                            {rowGroupSummaryProps && StackedBlockGroupedRow.rowGroupsSummary(rowGroupSummaryProps)}
                                             <StackedBlockGroupedRow {...this.props} groupedDataIndices={groupedDataIndices} parentState={this.state} data={nestedData[k]}
                                                 key={k} group={k} depth={0} index={outerIdx} toggleGroupingOpen={this.toggleGroupingOpen}
                                                 onSorterClick={this.handleSorterClick} sorting={sorting} sortField={sortField}

@@ -67,6 +67,7 @@
                         "ipsc_snv_indel_challenge_data": "Truth Set",
                     }
                 }}
+                resultPostProcessFuncKey="cellLinePostProcess"
                 groupingProperties={["donor", "tissue"]}
                 columnGrouping="assay"
                 columnGroups={{
@@ -244,6 +245,7 @@
                         "endocrine pancreas": "Endocrine pancreas",
                     }
                 }}
+                resultPostProcessFuncKey={null}
                 groupingProperties={["donor", "tissue"]}
                 columnGrouping="assay"
                 columnGroups={{

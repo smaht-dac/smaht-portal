@@ -6,7 +6,7 @@ import _ from 'underscore';
 import ReactTooltip from 'react-tooltip';
 import { console, object, ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { Button } from 'react-bootstrap';
-import { VisualBody } from '../';
+import { VisualBody } from './StackedBlockVisual';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
 
 
@@ -20,6 +20,7 @@ export default class DataMatrix extends React.PureComponent {
         },
         "valueChangeMap": {},
         "fieldChangeMap": {},
+        "resultPostProcessFuncKey": null, // function to process results after they are loaded
         "groupingProperties": [],
         "columnGrouping": "",
         "headerFor": <h3 className="mt-2 mb-0 text-300">SMaHT</h3>,
@@ -54,11 +55,12 @@ export default class DataMatrix extends React.PureComponent {
     static propTypes = {
         'query': PropTypes.shape({
             'url': PropTypes.string,
-            'column_agg_fields': PropTypes.oneOfType(PropTypes.string, PropTypes.arrayOf(PropTypes.string)).isRequired, // can be a single string or composite value
-            'row_agg_fields': PropTypes.arrayOf(PropTypes.oneOfType(PropTypes.string, PropTypes.arrayOf(PropTypes.string))).isRequired // array element can be a single string or composite value
+            'column_agg_fields': PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]).isRequired, // can be a single string or composite value
+            'row_agg_fields': PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)])).isRequired // array element can be a single string or composite value
         }),
         'valueChangeMap': PropTypes.object,
         'fieldChangeMap': PropTypes.object,
+        'resultPostProcessFuncKey': PropTypes.string, // function key to process results after they are loaded
         'groupingProperties': PropTypes.arrayOf(PropTypes.string),
         'columnGrouping': PropTypes.string,
         'headerFor': PropTypes.oneOfType([PropTypes.element, PropTypes.string]),
@@ -199,7 +201,7 @@ export default class DataMatrix extends React.PureComponent {
     loadSearchQueryResults() {
 
         const commonCallback = (result) => {
-            const { valueChangeMap } = this.props;
+            const { valueChangeMap, resultPostProcessFuncKey } = this.props;
             const { fieldChangeMap, groupingProperties, autoPopulateRowGroupsProperty } = this.state;
             const resultKey = "_results";
             const updatedState = {};
@@ -216,10 +218,8 @@ export default class DataMatrix extends React.PureComponent {
                         }
                     }, {});
                 }
-                // workaround for the case when dataset is used as cell_line
-                if(r.dataset && r.donor && r.dataset !== 'tissue' && groupingProperties[0] === 'donor'){
-                    r.donor = r.dataset;
-                    r.primary_field_override = "dataset";
+                if (resultPostProcessFuncKey && typeof DataMatrix.resultPostProcessFuncs[resultPostProcessFuncKey] === 'function') {
+                    r = DataMatrix.resultPostProcessFuncs[resultPostProcessFuncKey](r);
                 }
                 if (r.files && r.files > 0) {
                     transfermedData = transfermedData.concat(
@@ -500,3 +500,13 @@ export default class DataMatrix extends React.PureComponent {
         );
     }
 }
+// hack for overcoming the react-jsx-parser's function props
+DataMatrix.resultPostProcessFuncs = {
+    "cellLinePostProcess": function (result) {
+        if (result.dataset && result.donor && result.dataset !== 'tissue') {
+            result.donor = result.dataset;
+            result.primary_field_override = "dataset";
+        }
+        return result;
+    }
+};
