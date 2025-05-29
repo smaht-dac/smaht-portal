@@ -390,7 +390,6 @@ class FileStats:
             result[SAMPLE_SOURCE_GROUP] = tissue_or_cell_line
             result["donor"] = donor_display_title
             result["study"] = study
-            result["study"] = study
             result["read_length"] = "long" if sequencer in LONG_READ_SEQS else "short"
             result["quality_metrics"] = {}
 
