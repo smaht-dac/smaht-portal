@@ -65,6 +65,14 @@
             "description": "Additional comments on file set",
             "permission": "restricted_fields"
         },
+        "submitter_comments": {
+            "title": "Submitter Comments",
+            "description": "Submitter comments on data quality related to the file set",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
         "libraries": {
             "title": "Libraries",
             "description": "Link to associated libraries",
