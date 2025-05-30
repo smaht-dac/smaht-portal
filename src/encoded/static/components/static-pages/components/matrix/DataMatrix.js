@@ -4,8 +4,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReactTooltip from 'react-tooltip';
-import { console, object, ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { Button } from 'react-bootstrap';
+import { console, ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { VisualBody } from './StackedBlockVisual';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
 
@@ -210,7 +209,7 @@ export default class DataMatrix extends React.PureComponent {
 
             updatedState[resultKey] = result;
             let transfermedData = [];
-            const populatedRowGroups =  {}; // not implemented yet
+            const populatedRowGroups = {}; // not implemented yet
             _.forEach(updatedState[resultKey], (r) => {
                 if (fieldChangeMap) {
                     _.forEach(_.pairs(fieldChangeMap), function ([fieldToMapTo, fieldToMapFrom]) {
@@ -271,7 +270,7 @@ export default class DataMatrix extends React.PureComponent {
                 const [url, strQueryParams] = requestUrl.split('?');
                 const queryParamsByUrl = DataMatrix.parseQuery(strQueryParams);
 
-                const colAggFields = Array.isArray(query.column_agg_fields) ? query.column_agg_fields: [query.column_agg_fields];
+                const colAggFields = Array.isArray(query.column_agg_fields) ? query.column_agg_fields : [query.column_agg_fields];
                 const rowAggFields = [];
 
                 if (Array.isArray(query.row_agg_fields)) {
@@ -291,7 +290,7 @@ export default class DataMatrix extends React.PureComponent {
                 const searchQueryParams = { field: [], type: 'SubmittedFile', limit: 'all' };
 
                 _.forEach(rowAggFields || [], function (f, idx) {
-                    if (typeof f === 'string'){
+                    if (typeof f === 'string') {
                         searchQueryParams.field.push(f);
                     } else {
                         searchQueryParams.field.push(...f);
@@ -403,6 +402,11 @@ export default class DataMatrix extends React.PureComponent {
         return `<DataMatrix\n${propLines.join('\n')}\n/>`;
     }
 
+    isAdminUser() {
+        const userGroups = JWT.getUserGroups() || null;
+        return userGroups && userGroups.indexOf('admin') >= 0;
+    }
+
     render() {
         const {
             headerFor, valueChangeMap, allowedFields, compositeValueSeparator,
@@ -445,7 +449,7 @@ export default class DataMatrix extends React.PureComponent {
 
         const fieldToNameMap = _.invert(this.state.fieldChangeMap);
 
-        const configurator = !disableConfigurator && (
+        const configurator = !disableConfigurator && this.isAdminUser() && (
             <DataMatrixConfigurator
                 dimensions={allowedFields}
                 fieldToNameMap={fieldToNameMap}
@@ -478,7 +482,7 @@ export default class DataMatrix extends React.PureComponent {
         const body = (
             <div>
                 {configurator}
-                { headerFor || null }
+                {headerFor || null}
                 <VisualBody
                     {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
                     {...bodyProps}
