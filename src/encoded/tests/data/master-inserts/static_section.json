@@ -562,5 +562,24 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "identifier": "data_matrix",
+        "title": "Data Matrix",
+        "file": "/src/encoded/static/data/data-matrix-demo.jsx",
+        "status": "draft",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "ac15e912-543c-4ce5-a16a-1fcdf987181c",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]
