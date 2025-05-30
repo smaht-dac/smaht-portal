@@ -15,6 +15,29 @@ from .utils import (
 
 @pytest.mark.workbook
 @pytest.mark.parametrize(
+    "submitted_id,expected", [
+        ("TEST_DONOR_FEMALE", "Production"),
+        ("TEST_DONOR_MALE", "Benchmarking"),
+        ("TEST_DONOR_ALT1", "")
+    ]
+)
+def test_study_calc_prop(
+    es_testapp: TestApp,
+    workbook: None,
+    submitted_id: str,
+    expected: str
+): 
+    """Ensure 'study' calcprop is correct."""
+    donor =get_item(
+        es_testapp,
+        submitted_id,
+        collection="Donor"
+    )
+    assert donor.get("study","") == expected
+
+
+@pytest.mark.workbook
+@pytest.mark.parametrize(
     "patch_body,expected_status", [
         ({"external_id": "ST001","tpc_submitted": "True"}, 200),
         ({"external_id": "HG002","tpc_submitted": "True"}, 422),

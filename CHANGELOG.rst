@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.174.0
+=======
+`PR 436: SN Donor study calcprop <https://github.com/smaht-dac/smaht-portal/pull/436>`_
+
+* Add `study` calculated property to Donor which uses the pattern of `external_id` to determine if the donor is Benchmarking or Production
+
+
 0.173.0
 =======
 `PR 434: SN Reference genome preferred_name <https://github.com/smaht-dac/smaht-portal/pull/434>`_
