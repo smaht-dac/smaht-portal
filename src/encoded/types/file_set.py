@@ -44,13 +44,6 @@ from .utils import get_properties, get_property_for_validation
 log = structlog.getLogger(__name__)
 
 
-# These codes are used to generate the mergeable bam grouping calc prop
-# This obviously is not data drive, but in calc props we cannot rely on search
-# and would rather hard code this potentially expensive operation - Will 16 April 2024
-SINGLE_CELL_ASSAY_CODES = [
-    '016', '012', '014', '105', '104', '103', '013', '011', '010'
-]
-
 def _build_file_set_embedded_list():
     """Embeds for search on file sets."""
     return [
@@ -166,12 +159,11 @@ class FileSet(SubmittedItem):
         request_handler: RequestHandler, library: Dict[str, Any]
     ) -> Union[str, None]:
         """ The library of the merge_file_group contains information on the assay
-            This basically just checks the assay code isn't a single cell type and if
-            it isn't return the identifier
+            This basically just checks the cell isolation method is bulk (isn't a single cell  or microbulk) and if it isn't return the identifier
         """
         assay = request_handler.get_item(library_utils.get_assay(library))
-        assay_code = item_utils.get_code(assay)
-        if assay_code not in SINGLE_CELL_ASSAY_CODES:
+        cell_isolation_method = assay_utils.get_cell_isolation_method(assay)
+        if cell_isolation_method == "Bulk":
             return item_utils.get_identifier(assay)
 
     @staticmethod
@@ -191,6 +183,7 @@ class FileSet(SubmittedItem):
                     return None # this should give some kind of warning. Should not have multiple intact tissue samples
         if len(samples) == 1:
             sample = samples[0]
+            #if sample_utils.is_cell_culture_sample(sample):
             if 'tissue' in sample:
                 sample_meta = request_handler.get_item(sample)
                 if tissue_sample_utils.has_spatial_information(sample_meta):

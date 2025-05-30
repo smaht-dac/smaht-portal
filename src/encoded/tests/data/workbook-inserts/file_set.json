@@ -93,5 +93,16 @@
             "TEST_LIBRARY_IPSC_FIBROBLAST-DNA"
         ],
         "sequencing": "TEST_SEQUENCING_NOVASEQ-500X-DNA"
+    },
+    {
+        "uuid": "149773c9-3c1c-48fd-8ac8-6466ab1dbcc7",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_FILE-SET_LIVER-CELL-DNA",
+        "libraries": [
+            "TEST_LIBRARY_LIVER-CELL-DNA"
+        ],
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X-DNA"
     }
 ]
