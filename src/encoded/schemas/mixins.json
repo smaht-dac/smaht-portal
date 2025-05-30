@@ -740,6 +740,13 @@
             }
         }
     },
+    "preferred_name": {
+        "preferred_name": {
+            "title": "Display name",
+            "description": "A preferred name (possibly shortened or simpler version) for the item - can be used for submission or retrieval.",
+            "type": "string"
+        }
+    },
     "preservation_medium": {
         "preservation_medium": {
             "title": "Preservation Medium",

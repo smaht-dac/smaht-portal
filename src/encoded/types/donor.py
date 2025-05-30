@@ -61,6 +61,16 @@ class Donor(SubmittedItem):
             return result
         return
 
+    @calculated_property(
+        schema={
+            "title": "Study",
+            "type": "string",
+        },
+    )
+    def study(self, request: Request) -> Union[List[str], None]:
+        """Get whether the donor is a Benchmarking or Production donor."""
+        return donor_utils.get_study(self.properties) or None
+
 
 def validate_external_id_on_add(context, request):
     """Check that external_id is valid if it is a TPC-submitted donor on add."""
