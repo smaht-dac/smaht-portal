@@ -7,8 +7,8 @@
                 session={session}        // Required - hooks in 'session' (boolean) from App.
                 query={{
                     "url": "/data_matrix_aggregations?type=File&dataset!=No+value&sample_summary.studies=Benchmarking&status=public&status=released&status=restricted&limit=all",
-                    "column_agg_fields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
-                    "row_agg_fields": ["donors.display_title", "sample_summary.tissues", "dataset"], //multiple column
+                    "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
+                    "rowAggFields": ["donors.display_title", "sample_summary.tissues", "dataset"], //multiple column
                 }}
                 fieldChangeMap={{
                     "assay": "file_sets.libraries.assay.display_title",
@@ -208,8 +208,8 @@
                 session={session}        // Required - hooks in 'session' (boolean) from App.
                 query={{
                     "url": "/data_matrix_aggregations?type=File&status=released&sample_summary.studies=Production&limit=all",
-                    "column_agg_fields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
-                    "row_agg_fields": ["donors.display_title", "sample_summary.tissues"], //multiple column
+                    "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
+                    "rowAggFields": ["donors.display_title", "sample_summary.tissues"], //multiple column
                 }}
                 fieldChangeMap={{
                     "assay": "file_sets.libraries.assay.display_title",

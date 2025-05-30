@@ -86,7 +86,7 @@ export class VisualBody extends React.PureComponent {
      */
     blockPopover(data, blockProps, parentGrouping){
         const {
-            query: { url: queryUrl, column_agg_fields, row_agg_fields },
+            query: { url: queryUrl, columnAggFields, rowAggFields },
             fieldChangeMap, valueChangeMap, titleMap,
             groupingProperties, columnGrouping, compositeValueSeparator,
         } = this.props;
@@ -146,16 +146,16 @@ export class VisualBody extends React.PureComponent {
                 }
 
                 //TODO: handle composite values in a smart way, this workaround is too hacky
-                if (Array.isArray(column_agg_fields) && column_agg_fields.length >= 2 && facetTerm && 
+                if (Array.isArray(columnAggFields) && columnAggFields.length >= 2 && facetTerm && 
                     compositeValueSeparator && typeof compositeValueSeparator === 'string') {
-                    // If column_agg_fields is an array, we assume the first element is the field and the second is the extended term.
+                    // If columnAggFields is an array, we assume the first element is the field and the second is the extended term.
                     if (typeof facetTerm === 'string' && facetTerm.indexOf(compositeValueSeparator) > -1) {
                         let extendedFacetTerm;
                         [facetTerm, extendedFacetTerm] = facetTerm.split(compositeValueSeparator);
-                        return [[facetField, facetTerm], [column_agg_fields[1], extendedFacetTerm]];
+                        return [[facetField, facetTerm], [columnAggFields[1], extendedFacetTerm]];
                     } else if (Array.isArray(facetTerm) && _.all(_.map(facetTerm, (term) => typeof term === 'string' && term.indexOf(compositeValueSeparator) > -1))) {
                         // If facetTerm is an array, we assume all elements are strings with the same format.
-                        return [[facetField, facetTerm[0].split(compositeValueSeparator)[0]], [column_agg_fields[1], _.map(facetTerm, (term) => term.split(compositeValueSeparator)[1])]];
+                        return [[facetField, facetTerm[0].split(compositeValueSeparator)[0]], [columnAggFields[1], _.map(facetTerm, (term) => term.split(compositeValueSeparator)[1])]];
                     }
                 }
 
@@ -191,7 +191,7 @@ export class VisualBody extends React.PureComponent {
 
             const currentFilteringPropertiesVals = convertPairsToObject(currentFilteringPropertiesPairs);//_.object(currentFilteringPropertiesPairs);
             if (isTotal) {
-                (column_agg_fields || []).concat(row_agg_fields || []).forEach((field) => {
+                (columnAggFields || []).concat(rowAggFields || []).forEach((field) => {
                     if (!_.has(currentFilteringPropertiesVals, field)) {
                         // currentFilteringPropertiesVals[field + '!'] = 'No value';
                     }

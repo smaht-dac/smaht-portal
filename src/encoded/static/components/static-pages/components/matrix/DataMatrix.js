@@ -13,9 +13,9 @@ export default class DataMatrix extends React.PureComponent {
 
     static defaultProps = {
         "query": {
-            "url": "/data_matrix_aggregations/?type=SubmittedFile&limit=all",
-            "column_agg_fields": "",
-            "row_agg_fields": [""]
+            "url": "/data_matrix_aggregations/?type=File&limit=all",
+            "columnAggFields": "",
+            "rowAggFields": [""]
         },
         "valueChangeMap": {},
         "fieldChangeMap": {},
@@ -55,8 +55,8 @@ export default class DataMatrix extends React.PureComponent {
     static propTypes = {
         'query': PropTypes.shape({
             'url': PropTypes.string,
-            'column_agg_fields': PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]).isRequired, // can be a single string or composite value
-            'row_agg_fields': PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)])).isRequired // array element can be a single string or composite value
+            'columnAggFields': PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]).isRequired, // can be a single string or composite value
+            'rowAggFields': PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)])).isRequired // array element can be a single string or composite value
         }),
         'valueChangeMap': PropTypes.object,
         'fieldChangeMap': PropTypes.object,
@@ -261,20 +261,23 @@ export default class DataMatrix extends React.PureComponent {
             this.setState(updatedState);
         };
 
-        const { query, fieldChangeMap, autoPopulateRowGroupsProperty } = this.state;
+        const {
+            query: { url: requestUrl, columnAggFields: propColumnAggFields, rowAggFields: propRowAggFields },
+            fieldChangeMap,
+            autoPopulateRowGroupsProperty
+        } = this.state;
         this.setState(
             { "_results": null }, // (Re)Set all result states to 'null'
             () => {
                 const { compositeValueSeparator = ' ' } = this.props;
-                const requestUrl = query.url;
                 const [url, strQueryParams] = requestUrl.split('?');
                 const queryParamsByUrl = DataMatrix.parseQuery(strQueryParams);
 
-                const colAggFields = Array.isArray(query.column_agg_fields) ? query.column_agg_fields : [query.column_agg_fields];
+                const colAggFields = Array.isArray(propColumnAggFields) ? propColumnAggFields : [propColumnAggFields];
                 const rowAggFields = [];
 
-                if (Array.isArray(query.row_agg_fields)) {
-                    _.forEach(query.row_agg_fields, function (f) {
+                if (Array.isArray(propRowAggFields)) {
+                    _.forEach(propRowAggFields, function (f) {
                         if (typeof f === 'string' || (Array.isArray(f) && f.length == 1)) {
                             rowAggFields.push(typeof f === 'string' ? f : f[0]);
                         } else {
@@ -282,12 +285,12 @@ export default class DataMatrix extends React.PureComponent {
                         }
                     });
                 } else {
-                    rowAggFields.push(query.row_agg_fields);
+                    rowAggFields.push(propRowAggFields);
                 };
 
                 if (typeof requestUrl !== 'string' || !requestUrl) return;
 
-                const searchQueryParams = { field: [], type: 'SubmittedFile', limit: 'all' };
+                const searchQueryParams = { field: [], type: 'File', limit: 'all' };
 
                 _.forEach(rowAggFields || [], function (f, idx) {
                     if (typeof f === 'string') {
@@ -348,8 +351,8 @@ export default class DataMatrix extends React.PureComponent {
             query: {
                 ...this.state.query,
                 url: searchUrl,
-                column_agg_fields: columnAggField,
-                row_agg_fields: Array.isArray(rowAggField2) && rowAggField2.length > 0 ? [rowAggField1, rowAggField2] : [rowAggField1]
+                columnAggFields: columnAggField,
+                rowAggFields: Array.isArray(rowAggField2) && rowAggField2.length > 0 ? [rowAggField1, rowAggField2] : [rowAggField1]
             },
             columnGrouping: newColumnGrouping,
             groupingProperties: newGroupingProperties,
@@ -443,9 +446,9 @@ export default class DataMatrix extends React.PureComponent {
             summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary, compositeValueSeparator,
         };
 
-        const colAgg = Array.isArray(query.column_agg_fields) ? query.column_agg_fields : [query.column_agg_fields];
-        const rowAgg1 = Array.isArray(query.row_agg_fields[0]) ? query.row_agg_fields[0] : [query.row_agg_fields[0]];
-        const rowAgg2 = query.row_agg_fields.length > 1 ? Array.isArray(query.row_agg_fields[1]) ? query.row_agg_fields[1] : [query.row_agg_fields[1]] : null;
+        const colAgg = Array.isArray(query.columnAggFields) ? query.columnAggFields : [query.columnAggFields];
+        const rowAgg1 = Array.isArray(query.rowAggFields[0]) ? query.rowAggFields[0] : [query.rowAggFields[0]];
+        const rowAgg2 = query.rowAggFields.length > 1 ? Array.isArray(query.rowAggFields[1]) ? query.rowAggFields[1] : [query.rowAggFields[1]] : null;
 
         const fieldToNameMap = _.invert(this.state.fieldChangeMap);
 
