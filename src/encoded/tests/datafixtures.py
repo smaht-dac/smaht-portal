@@ -602,7 +602,8 @@ def test_assay(
         "title": "Bulk WGS",
         "code": "002",
         "submission_centers": [test_submission_center["uuid"]],
-        "valid_molecules": ["DNA"]
+        "valid_molecules": ["DNA"],
+        "cell_isolation_method": "Bulk"
         }
     return post_item_and_return_location(testapp, item, 'assay')
 
@@ -617,7 +618,8 @@ def test_rna_assay(
         "title": "Bulk RNA-Seq",
         "code": "100",
         "submission_centers": [test_submission_center["uuid"]],
-        "valid_molecules": ["RNA"]
+        "valid_molecules": ["RNA"],
+        "cell_isolation_method": "Bulk"
     }
     return post_item_and_return_location(testapp, item, 'assay')
 
