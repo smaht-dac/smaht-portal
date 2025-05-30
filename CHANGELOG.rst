@@ -9,8 +9,9 @@ Change Log
 
 0.175.0
 =======
+`PR 441: feat: support download for multiple manifest files <https://github.com/smaht-dac/smaht-portal/pull/441>`_
 
-* Support multiple manifest files
+* Support collection specific metadata download
 
 
 0.174.0
