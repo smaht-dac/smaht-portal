@@ -159,7 +159,7 @@ class FileSet(SubmittedItem):
         request_handler: RequestHandler, library: Dict[str, Any]
     ) -> Union[str, None]:
         """ The library of the merge_file_group contains information on the assay
-            This basically just checks the cell isolation method is bulk (isn't a single cell  or microbulk) and if it isn't return the identifier
+            This basically just checks the cell isolation method is bulk (isn't a single cell  or microbulk) and if it is, return the identifier
         """
         assay = request_handler.get_item(library_utils.get_assay(library))
         cell_isolation_method = assay_utils.get_cell_isolation_method(assay)
@@ -183,7 +183,6 @@ class FileSet(SubmittedItem):
                     return None # this should give some kind of warning. Should not have multiple intact tissue samples
         if len(samples) == 1:
             sample = samples[0]
-            #if sample_utils.is_cell_culture_sample(sample):
             if 'tissue' in sample:
                 sample_meta = request_handler.get_item(sample)
                 if tissue_sample_utils.has_spatial_information(sample_meta):
