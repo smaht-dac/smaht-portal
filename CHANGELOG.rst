@@ -12,6 +12,8 @@ Change Log
 `PR 440: SN file merge group tag <https://github.com/smaht-dac/smaht-portal/pull/440>`_
 
 * Add an optional part to the `file_group` calcprop in FileSet that is set by the property `group_tag`. If present, it is added to the `file_group` so that the FileSet is put in a different File Merge Group than other file sets.
+* Adjust `generate_assay_part` of `file_group` to only return a value for bulk assays using the property `cell_isolation_method`
+* Make `cell_isolation_method` in Assay required
 
 
 0.174.0
