@@ -44,13 +44,6 @@ from .utils import get_properties, get_property_for_validation
 log = structlog.getLogger(__name__)
 
 
-# These codes are used to generate the mergeable bam grouping calc prop
-# This obviously is not data drive, but in calc props we cannot rely on search
-# and would rather hard code this potentially expensive operation - Will 16 April 2024
-SINGLE_CELL_ASSAY_CODES = [
-    '016', '012', '014', '105', '104', '103', '013', '011', '010'
-]
-
 def _build_file_set_embedded_list():
     """Embeds for search on file sets."""
     return [
@@ -166,12 +159,11 @@ class FileSet(SubmittedItem):
         request_handler: RequestHandler, library: Dict[str, Any]
     ) -> Union[str, None]:
         """ The library of the merge_file_group contains information on the assay
-            This basically just checks the assay code isn't a single cell type and if
-            it isn't return the identifier
+            This basically just checks the cell isolation method is bulk (isn't a single cell  or microbulk) and if it is, return the identifier
         """
         assay = request_handler.get_item(library_utils.get_assay(library))
-        assay_code = item_utils.get_code(assay)
-        if assay_code not in SINGLE_CELL_ASSAY_CODES:
+        cell_isolation_method = assay_utils.get_cell_isolation_method(assay)
+        if cell_isolation_method == "Bulk":
             return item_utils.get_identifier(assay)
 
     @staticmethod
@@ -233,6 +225,10 @@ class FileSet(SubmittedItem):
                 "assay": {
                     "title": "Assay Tag",
                     "type": "string"
+                },
+                "group_tag": {
+                    "title": "Group Tag",
+                    "type": "string"
                 }
             }
         }
@@ -252,6 +248,8 @@ class FileSet(SubmittedItem):
                 * Various information on the sequencer: name, read type, target read length
                   and flow cell
                 * Assay identifier
+                * An optional flag to differentiate the group from ones that would otherwise be in the
+                same merge group, but should be kept separate for QC or other reasons
         """
         # NOTE: we assume the first library is representative if there are multiple
         # We also assume this will always be present, and if not we do not produce this property
@@ -285,12 +283,14 @@ class FileSet(SubmittedItem):
             item_utils.get_submission_centers(self.properties)[0],
             item_utils.get_identifier,
         )
+        group_tag_part = file_set_utils.get_group_tag(self.properties)
 
         return {
             'submission_center': sc_part,
             'sample_source': sample_source_part,
             'sequencing': sequencing_part,
-            'assay': assay_part
+            'assay': assay_part,
+            'group_tag': group_tag_part
         }
 
     @calculated_property(

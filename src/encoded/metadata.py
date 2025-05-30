@@ -220,7 +220,10 @@ def handle_file_group(field: dict) -> str:
         sample_source_part = field['sample_source']
         sequencing_part = field['sequencing']
         assay_part = field['assay']
-        return f'{sc_part}-{sample_source_part}-{sequencing_part}-{assay_part}'
+        group_str = f'{sc_part}-{sample_source_part}-{sequencing_part}-{assay_part}'
+        if (group_tag := field['group_tag']):
+            group_str = group_str+f"-{group_tag}"
+        return group_str
     return ''
 
 

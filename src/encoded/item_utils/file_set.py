@@ -104,3 +104,8 @@ def get_tissues(
         for sample_source in sample_sources
         if isinstance(sample_source, dict) and tissue_utils.is_tissue(sample_source)
     ]
+
+
+def get_group_tag(properties: Dict[str, Any]) -> str:
+    """Get group tag connected to file set."""
+    return properties.get("group_tag", "")
