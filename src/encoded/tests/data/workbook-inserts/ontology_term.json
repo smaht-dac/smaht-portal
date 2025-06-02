@@ -38,9 +38,6 @@
         "consortia": [
             "smaht"
         ],
-        "tags":[
-            "tissue_subtype"
-        ],
         "valid_protocol_ids": ["3Q","3R","1D"]
     },
     {
@@ -68,10 +65,7 @@
             "smaht"
         ],
         "preferred_name": "Venous Blood",
-        "valid_protocol_ids": ["3A"],
-        "tags": [
-            "tissue_subtype"
-        ]
+        "valid_protocol_ids": ["3A"]
     },
     {
         "uuid": "5e29be07-5cd0-4194-b614-87cdc48e8f1f",
@@ -96,9 +90,6 @@
         "grouping_term": "UBERON:0002097",
         "consortia": [
             "smaht"
-        ],
-        "tags": [
-            "tissue_subtype"
         ]
     },
     {

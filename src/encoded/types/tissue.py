@@ -70,21 +70,16 @@ class Tissue(SampleSource):
         Special case for Fibroblasts (3AC) as they are mostly Mesoderm but OntologyTerm links to Ectoderm for Skin.
         """
         request_handler = RequestHandler(request = request)
-        if get_property_value_from_identifier(
-            request_handler,
-            tissue_utils.get_uberon_id(self.properties),
-            item_utils.get_tags
-        ):
-            tissue_type = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="tissue_type")
-            if tissue_type in ["Testis", "Ovary"]:
-                return "Germ Cells"
-            elif tissue_type in ["Blood", "Buccal Swab"]:
-                return "Clinically Accessible"
-            elif tissue_utils.get_protocol_id(self.properties) == "3AC":
-                return "Mesoderm"
-            else:
-                germ_layer = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="germ_layer")
-                return germ_layer or None
+        tissue_type = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="tissue_type")
+        if tissue_type in ["Testis", "Ovary"]:
+            return "Germ Cells"
+        elif tissue_type in ["Blood", "Buccal Swab"]:
+            return "Clinically Accessible"
+        elif tissue_utils.get_protocol_id(self.properties) == "3AC":
+            return "Mesoderm"
+        else:
+            germ_layer = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="germ_layer")
+            return germ_layer or None
 
 
 @link_related_validator

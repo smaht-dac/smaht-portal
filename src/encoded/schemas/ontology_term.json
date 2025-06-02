@@ -6,8 +6,7 @@
     "required": [
         "identifier",
         "title",
-        "ontologies",
-        "tags"
+        "ontologies"
     ],
     "anyOf": [
         {
