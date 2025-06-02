@@ -339,11 +339,11 @@
     {
         "identifier": "faq",
         "uuid": "d78edbe6-9a42-4512-ac8d-b909bc287103",
-        "file": "/docs/source/faq.rst",
+        "file": "/docs/public/faq.jsx",
         "section_type": "Page Section",
         "status": "public",
         "options": {
-            "filetype": "rst",
+            "filetype": "jsx",
             "initial_header_level": 2
         },
         "consortia": [
