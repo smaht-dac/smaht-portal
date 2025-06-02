@@ -363,7 +363,9 @@ const SelectedItemsDownloadModal = function (props) {
             },
             {
                 items: Array.isArray(products) ? products : null,
-                list_name: `${extData.item_list_name} (${isAWSDownload ? 'AWS CLI' : 'cURL'})`,
+                list_name: `${extData.item_list_name} (${
+                    isAWSDownload ? 'AWS CLI' : 'cURL'
+                })`,
                 value: itemCountUnique || itemList.length || 0,
                 filters: analytics.getStringifiedCurrentFilters(
                     (context && context.filters) || null
@@ -411,6 +413,55 @@ const SelectedItemsDownloadModal = function (props) {
             return { accessionArray };
         },
         [selectedItems]
+    );
+
+    const { onClick } = useMemo(
+        function () {
+            /**
+             * We're going to consider download of metadata.tsv file to be akin to one step before the purchasing.
+             * Something they might download later...
+             */
+            function onClick(evt) {
+                setTimeout(function () {
+                    //analytics
+                    const itemList = Array.from(selectedItems.values());
+                    const extData = {
+                        item_list_name: analytics.hrefToListName(
+                            window && window.location.href
+                        ),
+                    };
+                    const products = analytics.transformItemsToProducts(
+                        itemList,
+                        extData
+                    );
+                    const productsLength = Array.isArray(products)
+                        ? products.length
+                        : 0;
+                    analytics.event(
+                        'add_payment_info',
+                        'SelectedFilesDownloadModal',
+                        'Download metadata.tsv Button Pressed',
+                        function () {
+                            console.info(
+                                `Will download metadata.tsv having ${productsLength} items in the cart.`
+                            );
+                        },
+                        {
+                            items: Array.isArray(products) ? products : null,
+                            payment_type: 'Metadata.tsv Download',
+                            list_name: `${extData.item_list_name} (${
+                                isAWSDownload ? 'AWS CLI' : 'cURL'
+                            })`,
+                            value: (products && products.length) || 0,
+                            // filters: analytics.getStringifiedCurrentFilters((context && context.filters) || null)
+                        }
+                    );
+                }, 0);
+            }
+
+            return { onClick };
+        },
+        [selectedItems, isAWSDownload]
     );
 
     return (
@@ -533,8 +584,124 @@ const SelectedItemsDownloadModal = function (props) {
                     <ModalCodeSnippets
                         filename={suggestedFilename}
                         session={session}
+                        isAWSDownload={isAWSDownload}
                         setIsAWSDownload={setIsAWSDownload}
                     />
+                </div>
+                <div className="col-auto mb-4">
+                    <h2 className="text-larger">
+                        Download Additional Metadata Files
+                    </h2>
+                    <hr className="my-2" />
+                    <div className="additonal-manifest-buttons d-flex gap-2 flex-wrap">
+                        {/* Biosample manifest download */}
+                        <form
+                            method="POST"
+                            action={action}
+                            className="d-inline-block d-block-xs-only">
+                            <input
+                                type="hidden"
+                                name="accessions"
+                                value={JSON.stringify(accessionArray)}
+                            />
+                            <input
+                                type="hidden"
+                                name="download_file_name"
+                                value={JSON.stringify(suggestedFilename)}
+                            />
+                            <input
+                                type="hidden"
+                                name="include_extra_files"
+                                value={JSON.stringify(false)}
+                            />
+                            <input
+                                type="hidden"
+                                name="manifest_enum"
+                                value={2}
+                            />
+                            <button
+                                type="submit"
+                                name="Download"
+                                onClick={onClick}
+                                className="btn btn-outline-secondary mt-0"
+                                data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
+                                <i className="icon icon-fw icon-download fas me-1" />
+                                Biosample
+                            </button>
+                        </form>
+
+                        {/* Analyte manifest download */}
+                        <form
+                            method="POST"
+                            action={action}
+                            className="d-inline-block d-block-xs-only">
+                            <input
+                                type="hidden"
+                                name="accessions"
+                                value={JSON.stringify(accessionArray)}
+                            />
+                            <input
+                                type="hidden"
+                                name="download_file_name"
+                                value={JSON.stringify(suggestedFilename)}
+                            />
+                            <input
+                                type="hidden"
+                                name="include_extra_files"
+                                value={JSON.stringify(false)}
+                            />
+                            <input
+                                type="hidden"
+                                name="manifest_enum"
+                                value={4}
+                            />
+                            <button
+                                type="submit"
+                                name="Download"
+                                onClick={onClick}
+                                className="btn btn-outline-secondary mt-0"
+                                data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
+                                <i className="icon icon-fw icon-download fas me-1" />
+                                Analyte
+                            </button>
+                        </form>
+
+                        {/* Sequencing manifest download */}
+                        <form
+                            method="POST"
+                            action={action}
+                            className="d-inline-block d-block-xs-only">
+                            <input
+                                type="hidden"
+                                name="accessions"
+                                value={JSON.stringify(accessionArray)}
+                            />
+                            <input
+                                type="hidden"
+                                name="download_file_name"
+                                value={JSON.stringify(suggestedFilename)}
+                            />
+                            <input
+                                type="hidden"
+                                name="include_extra_files"
+                                value={JSON.stringify(false)}
+                            />
+                            <input
+                                type="hidden"
+                                name="manifest_enum"
+                                value={5}
+                            />
+                            <button
+                                type="submit"
+                                name="Download"
+                                onClick={onClick}
+                                className="btn btn-outline-secondary mt-0"
+                                data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
+                                <i className="icon icon-fw icon-download fas me-1" />
+                                Sequencing
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </Modal.Body>
             <Modal.Footer>
@@ -551,6 +718,7 @@ const SelectedItemsDownloadModal = function (props) {
                         suggestedFilename,
                         action,
                         isAWSDownload,
+                        handleDownloadClick: onClick,
                     }}
                 />
             </Modal.Footer>
@@ -702,16 +870,8 @@ const DataDownloadOverviewStats = React.memo(function DataDownloadOverviewStats(
     );
 });
 
-const ModalCodeTabTitle = () => {
-    return (
-        <span className="nav-item-title">
-            AWS CLI <span className="badge">faster</span>
-        </span>
-    );
-};
-
 const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
-    const { filename, session, setIsAWSDownload } = props;
+    const { filename, session, setIsAWSDownload, isAWSDownload } = props;
 
     // Assign html and plain values for each command
     const aws_cli = {
@@ -786,7 +946,20 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
                 onSelect={(k) => {
                     setIsAWSDownload(k === 'aws');
                 }}>
-                <Tab eventKey="curl" title="cURL">
+                <Tab
+                    eventKey="curl"
+                    title={
+                        <div className="radio-button-group d-flex">
+                            <input
+                                type="radio"
+                                name="curl"
+                                id="curl"
+                                checked={!isAWSDownload}
+                                readOnly
+                            />
+                            <label className="ms-1">cURL</label>
+                        </div>
+                    }>
                     <object.CopyWrapper
                         value={curl.plainValue}
                         className="curl-command-wrapper"
@@ -796,7 +969,26 @@ const ModalCodeSnippets = React.memo(function ModalCodeSnippets(props) {
                         {curl.htmlValue}
                     </object.CopyWrapper>
                 </Tab>
-                <Tab eventKey="aws" title={<ModalCodeTabTitle />}>
+                <Tab
+                    eventKey="aws"
+                    title={
+                        <>
+                            <div className="radio-button-group d-flex">
+                                <input
+                                    type="radio"
+                                    name="aws_cli"
+                                    id="aws_cli"
+                                    checked={isAWSDownload}
+                                    onChange={() => setIsAWSDownload(true)}
+                                    readOnly
+                                />
+                                <label className="ms-1">
+                                    AWS CLI{' '}
+                                    <span className="badge">faster</span>
+                                </label>
+                            </div>
+                        </>
+                    }>
                     <object.CopyWrapper
                         value={aws_cli.plainValue}
                         className="curl-command-wrapper"
@@ -824,91 +1016,47 @@ const SelectedItemsDownloadStartButton = React.memo(
             accessionArray = [],
             action,
             isAWSDownload,
+            onClick,
         } = props;
 
-        const { onClick } = useMemo(
-            function () {
-                /**
-                 * We're going to consider download of metadata.tsv file to be akin to one step before the purchasing.
-                 * Something they might download later...
-                 */
-                function onClick(evt) {
-                    setTimeout(function () {
-                        //analytics
-                        const itemList = Array.from(selectedItems.values());
-                        const extData = {
-                            item_list_name: analytics.hrefToListName(
-                                window && window.location.href
-                            ),
-                        };
-                        const products = analytics.transformItemsToProducts(
-                            itemList,
-                            extData
-                        );
-                        const productsLength = Array.isArray(products)
-                            ? products.length
-                            : 0;
-                        analytics.event(
-                            'add_payment_info',
-                            'SelectedFilesDownloadModal',
-                            'Download metadata.tsv Button Pressed',
-                            function () {
-                                console.info(
-                                    `Will download metadata.tsv having ${productsLength} items in the cart.`
-                                );
-                            },
-                            {
-                                items: Array.isArray(products)
-                                    ? products
-                                    : null,
-                                payment_type: 'Metadata.tsv Download',
-                                list_name: `${extData.item_list_name} (${isAWSDownload ? 'AWS CLI' : 'cURL'})`,
-                                value: (products && products.length) || 0,
-                                // filters: analytics.getStringifiedCurrentFilters((context && context.filters) || null)
-                            }
-                        );
-                    }, 0);
-                }
-
-                return { onClick };
-            },
-            [selectedItems, isAWSDownload]
-        );
-
         return (
-            <form
-                method="POST"
-                action={action}
-                className="d-inline-block d-block-xs-only">
-                {isAWSDownload && (
-                    <input type="hidden" name="cli" value="True" />
-                )}
-                <input
-                    type="hidden"
-                    name="accessions"
-                    value={JSON.stringify(accessionArray)}
-                />
-                <input
-                    type="hidden"
-                    name="download_file_name"
-                    value={JSON.stringify(suggestedFilename)}
-                />
-                <input
-                    type="hidden"
-                    name="include_extra_files"
-                    value={JSON.stringify(true)}
-                />
-                <button
-                    type="submit"
-                    name="Download"
-                    onClick={onClick}
-                    className="btn btn-primary mt-0 me-1 btn-block-xs-only"
-                    data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
-                    <i className="icon icon-fw icon-download fas me-1" />
-                    Download <b>{isAWSDownload ? 'AWS CLI ' : 'cURL'}</b>{' '}
-                    Manifest
-                </button>
-            </form>
+            <>
+                <form
+                    method="POST"
+                    action={action}
+                    className="d-inline-block d-block-xs-only">
+                    {isAWSDownload && (
+                        <input type="hidden" name="cli" value="True" />
+                    )}
+                    <input
+                        type="hidden"
+                        name="accessions"
+                        value={JSON.stringify(accessionArray)}
+                    />
+                    <input
+                        type="hidden"
+                        name="download_file_name"
+                        value={JSON.stringify(suggestedFilename)}
+                    />
+                    <input
+                        type="hidden"
+                        name="include_extra_files"
+                        value={JSON.stringify(true)}
+                    />
+                    <button
+                        type="submit"
+                        name="Download"
+                        onClick={onClick}
+                        className="btn btn-primary mt-0 me-1 btn-block-xs-only"
+                        data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
+                        <i className="icon icon-fw icon-download fas me-1" />
+                        Download <b>
+                            {isAWSDownload ? 'AWS CLI ' : 'cURL'}
+                        </b>{' '}
+                        FILE Manifest
+                    </button>
+                </form>
+            </>
         );
     }
 );
