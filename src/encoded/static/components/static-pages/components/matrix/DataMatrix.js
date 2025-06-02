@@ -330,7 +330,7 @@ export default class DataMatrix extends React.PureComponent {
     }
 
     onApplyConfiguration({
-        searchUrl, columnAggField, rowAggField1, rowAggField2,
+        searchUrl, columnAggField, rowAggField1, rowAggField2, rowAggField3,
         columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
         rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
         xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
@@ -346,13 +346,14 @@ export default class DataMatrix extends React.PureComponent {
         const newColumnGrouping = columnAggField ? invertedFieldChangeMap[columnAggField[0]] : null;
         const newGroupingProperties = Array.isArray(rowAggField2) && rowAggField2.length > 0 ? [invertedFieldChangeMap[rowAggField1[0]], invertedFieldChangeMap[rowAggField2[0]]] : [invertedFieldChangeMap[rowAggField1[0]]];
 
+        const rowAggFields = [rowAggField1, rowAggField2, rowAggField3].filter((f) => f && f.length > 0).map((f) => Array.isArray(f) ? f : [f]);
         this.setState({
             ...this.state,
             query: {
                 ...this.state.query,
                 url: searchUrl,
                 columnAggFields: columnAggField,
-                rowAggFields: Array.isArray(rowAggField2) && rowAggField2.length > 0 ? [rowAggField1, rowAggField2] : [rowAggField1]
+                rowAggFields: rowAggFields
             },
             columnGrouping: newColumnGrouping,
             groupingProperties: newGroupingProperties,
@@ -449,6 +450,7 @@ export default class DataMatrix extends React.PureComponent {
         const colAgg = Array.isArray(query.columnAggFields) ? query.columnAggFields : [query.columnAggFields];
         const rowAgg1 = Array.isArray(query.rowAggFields[0]) ? query.rowAggFields[0] : [query.rowAggFields[0]];
         const rowAgg2 = query.rowAggFields.length > 1 ? Array.isArray(query.rowAggFields[1]) ? query.rowAggFields[1] : [query.rowAggFields[1]] : null;
+        const rowAgg3 = query.rowAggFields.length > 2 ? Array.isArray(query.rowAggFields[2]) ? query.rowAggFields[2] : [query.rowAggFields[2]] : null;
 
         const fieldToNameMap = _.invert(this.state.fieldChangeMap);
 
@@ -460,6 +462,7 @@ export default class DataMatrix extends React.PureComponent {
                 initialColumnAggField={colAgg}
                 initialRowAggField1={rowAgg1}
                 initialRowAggField2={rowAgg2}
+                initialRowAggField3={rowAgg3}
                 initialColumnGroups={columnGroups}
                 initialShowColumnGroups={showColumnGroups}
                 initialColumnGroupsExtended={columnGroupsExtended}

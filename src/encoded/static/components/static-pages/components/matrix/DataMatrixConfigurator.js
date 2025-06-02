@@ -13,6 +13,7 @@ const DataMatrixConfigurator = ({
     initialColumnAggField,
     initialRowAggField1,
     initialRowAggField2,
+    initialRowAggField3,
     initialColumnGroups,
     initialShowColumnGroups,
     initialColumnGroupsExtended,
@@ -37,6 +38,7 @@ const DataMatrixConfigurator = ({
     const [columnAggField, setColumnAggField] = useState(initialColumnAggField);
     const [rowAggField1, setRowAggField1] = useState(initialRowAggField1);
     const [rowAggField2, setRowAggField2] = useState(initialRowAggField2);
+    const [rowAggField3, setRowAggField3] = useState(initialRowAggField3);
     const [columnGroups, setColumnGroups] = useState(initialColumnGroups);
     const [showColumnGroups, setShowColumnGroups] = useState(initialShowColumnGroups);
     const [columnGroupsExtended, setColumnGroupsExtended] = useState(initialColumnGroupsExtended);
@@ -144,8 +146,12 @@ const DataMatrixConfigurator = ({
             alert('Please select at least one row aggregation field.');
             return;
         }
-        // check if any duplicates exist in columnAggField and rowAggField1 and rowAggField2
-        const allFields = [...columnAggField, ...rowAggField1, ...rowAggField2];
+        if(rowAggField2.length === 0 && rowAggField3.length > 0) {
+            alert('Please select at least one row aggregation field 2 before selecting row aggregation field 3.');
+            return;
+        }
+        // check if any duplicates exist in columnAggField and rowAggField1 and rowAggField2 and rowAggField3
+        const allFields = [...columnAggField, ...rowAggField1, ...rowAggField2, ...rowAggField3];
         const duplicates = allFields.filter((item, index) => allFields.indexOf(item) !== index);
         if (duplicates.length > 0) {
             alert(`Duplicate fields found: ${duplicates.join(', ')}`);
@@ -153,7 +159,7 @@ const DataMatrixConfigurator = ({
         }
 
         onApply({
-            searchUrl, columnAggField, rowAggField1, rowAggField2,
+            searchUrl, columnAggField, rowAggField1, rowAggField2, rowAggField3,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
             summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary, defaultOpen,
@@ -235,10 +241,20 @@ const DataMatrixConfigurator = ({
 
                                     {/* Row Dimension 2 */}
                                     <Form.Group className="d-flex align-items-center mb-05">
-                                        <Form.Label className="me-2" style={{ ...labelStyle, textDecoration: `${rowAggField1.length === 0 ? 'line-through' : 'unset'}` }}>Row Agg Field 2</Form.Label>
+                                        <Form.Label className="me-2" style={{ ...labelStyle, textDecoration: `${rowAggField2.length === 0 ? 'line-through' : 'unset'}` }}>Row Agg Field 2</Form.Label>
                                         <ChipsContainer
                                             chips={rowAggField2}
                                             onChange={(newValues) => setRowAggField2(newValues)}
+                                            suggestions={dimensions}
+                                        />
+                                    </Form.Group>
+
+                                    {/* Row Dimension 3 */}
+                                    <Form.Group className="d-flex align-items-center mb-05">
+                                        <Form.Label className="me-2" style={{ ...labelStyle, textDecoration: `${rowAggField3.length === 0 ? 'line-through' : 'unset'}` }}>Row Agg Field 3</Form.Label>
+                                        <ChipsContainer
+                                            chips={rowAggField3}
+                                            onChange={(newValues) => setRowAggField3(newValues)}
                                             suggestions={dimensions}
                                         />
                                     </Form.Group>
