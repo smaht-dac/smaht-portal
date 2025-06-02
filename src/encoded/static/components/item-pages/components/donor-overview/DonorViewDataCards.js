@@ -14,7 +14,7 @@ import {
     PopoverHeader,
     PopoverBody,
 } from 'react-bootstrap';
-import { DataCard } from '../file-overview/FileViewDataCards';
+import { DataCard, DataCardRow } from '../file-overview/FileViewDataCards';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 /**
@@ -150,90 +150,6 @@ const default_data_information = [
     },
 ];
 
-/**
- * Bootstrap Popover element for the description field in the sample information
- * data card. Contains a table with definitions for the terms used in the
- * description field.
- * @returns {JSX.Element} Popover component with term definitions
- *
- * Note: Use regular function here, as Bootstrap relies on `this`.
- */
-function renderDescriptionPopover() {
-    return (
-        <Popover id="description-definitions-popover" className="w-auto">
-            <PopoverBody className="p-0">
-                <table className="table">
-                    <thead>
-                        <tr>
-                            <th className="text-left">Term</th>
-                            <th className="text-left">Definition</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td className="align-top text-left fw-bold text-nowrap">
-                                Tissue Aliquot
-                            </td>
-                            <td className="text-left">
-                                A sample of a sectioned solid tissue with a
-                                pre-defined size, that is used for the
-                                downstream sampling technique such as coring.
-                            </td>
-                        </tr>
-                        <tr>
-                            <td className="align-top text-left fw-bold">
-                                Specimen
-                            </td>
-                            <td className="text-left">
-                                A sample of a solid tissue without a pre-defined
-                                size, that is neither a core nor homogenate.
-                            </td>
-                        </tr>
-                        <tr>
-                            <td className="align-top text-left fw-bold">
-                                Core
-                            </td>
-                            <td className="text-left">
-                                A core sample taken from the sectioned solid
-                                tissue aliquot. Contains spatial information
-                                within the tissue sample.
-                            </td>
-                        </tr>
-                        <tr>
-                            <td className="align-top text-left fw-bold">
-                                Homogenate
-                            </td>
-                            <td className="text-left">
-                                A sample of mechanically homogenized tissue that
-                                can be divided into vials for distribution.
-                                Applicable only to Benchmarking tissues.
-                            </td>
-                        </tr>
-                        <tr>
-                            <td className="align-top text-left fw-bold">
-                                Liquid
-                            </td>
-                            <td className="text-left">
-                                A sample of a liquid tissue (e.g. blood or
-                                buccal swab).
-                            </td>
-                        </tr>
-                        <tr>
-                            <td className="align-top text-left fw-bold border-0">
-                                Cells
-                            </td>
-                            <td className="text-left border-0">
-                                A sample of cells derived from tissue (i.e.
-                                Fibroblasts from skin).
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </PopoverBody>
-        </Popover>
-    );
-}
-
 const default_donor_information = [
     {
         title: 'Donor ID',
@@ -251,10 +167,6 @@ const default_donor_information = [
         title: 'Hardy Scale',
         getProp: (context = {}) => context?.hardy_scale,
     },
-    {
-        title: 'Tier',
-        getProp: (context = {}) => {},
-    },
 ];
 
 const default_data_summary = [
@@ -271,24 +183,13 @@ const DonorStatistics = ({ context, fileSearchURL = '' }) => {
         files: null,
     });
 
+    // Load the files from the search URL and calculate statistics
     useEffect(() => {
         // load value from searchUrl if not provided
         ajax.load(
             fileSearchURL,
             (resp) => {
-                // console.log(
-                //     'Response for: ',
-                //     title,
-                //     resp?.facets
-                //         ?.find(
-                //             (facet) =>
-                //                 facet.field ===
-                //                 'file_sets.libraries.assay.display_title'
-                //         )
-                //         ?.original_terms.reduce((acc, t) => {
-                //             return acc + t.doc_count;
-                //         }, 0)
-                // );
+                console.log('File Search Response:', resp);
                 setStatisticValues({
                     ...statisticValues,
                     assays: resp?.facets
@@ -347,18 +248,6 @@ const DonorStatistics = ({ context, fileSearchURL = '' }) => {
                     </div>
                 </div>
             </div>
-            <div className="datum">
-                <div className="datum-title">
-                    <span>Bulk WGS Coverage</span>
-                </div>
-                <div className="datum-value">-</div>
-            </div>
-            <div className="datum">
-                <div className="datum-title">
-                    <span>DSA</span>
-                </div>
-                <div className="datum-value">-</div>
-            </div>
         </div>
     );
 };
@@ -368,49 +257,173 @@ const DonorStatistics = ({ context, fileSearchURL = '' }) => {
  * @param {object} context the context of the item being viewed
  */
 export const DonorViewDataCards = ({ context = {} }) => {
-    const [FileData, setFileData] = useState(null);
     let donor_information = default_donor_information;
-    // let data_summary = default_data_summary;
-    // let lifestyle_information = default_lifestyle_information;
-    // let prior_diagnosis_information = default_prior_diagnosis_information;
+    console.log('DonorViewDataCards context:', context);
 
     return (
-        <div className="data-cards-container d-flex">
-            <div className="cards-left d-flex flex-column gap-4">
-                <DataCard
-                    header={'Donor Information'}
-                    data={donor_information.map(({ title, getProp }) => {
-                        return { title, value: getProp(context) };
-                    })}
-                />
+        <div className="data-cards-container d-flex flex-column">
+            <div className="cards-left d-flex gap-4 flex-wrap">
+                {/* Data Summary Card */}
                 <div className="data-card">
                     <div className="header">
                         <span className="header-text">Data Summary</span>
                     </div>
                     <div className="body">
+                        <div className="data-card-section">
+                            <span className="section-title">
+                                Donor Overview
+                            </span>
+                            <div className="section-body split d-flex mb-2">
+                                <div className="d-flex flex-column">
+                                    {donor_information.map(
+                                        ({ title, getProp }) => {
+                                            return (
+                                                <DataCardRow
+                                                    key={title}
+                                                    title={title}
+                                                    value={getProp(context)}
+                                                />
+                                            );
+                                        }
+                                    )}
+                                </div>
+                                <div className="d-flex flex-column">
+                                    <DataCardRow title={'Tier'} />
+                                    <DataCardRow title={'Bulk WGS Coverage'} />
+                                    <DataCardRow title={'DSA'} />
+                                </div>
+                            </div>
+                        </div>
                         <DonorStatistics
                             context={context}
                             fileSearchURL={`/search/?type=File&donors.display_title=${context?.display_title}`}
                         />
                     </div>
                 </div>
-                <div className="d-flex gap-2">
-                    <div className="data-card">
-                        <div className="header">
-                            <div className="header-text">
-                                Exposure: Tobacco & Alcohol
+
+                {/* Prior Diagnosis Card */}
+                <div className="data-card prior-diagnosis">
+                    <div className="header">
+                        <div className="header-text">Prior Diagnosis</div>
+                    </div>
+                    <div className="body d-flex flex-column gap-4">
+                        <div className="data-card-section">
+                            <span className="section-title">
+                                Cancer History
+                            </span>
+                            <div className="section-body">
+                                <span className="">Prostate Cancer</span>
                             </div>
                         </div>
-                        <div className="body"></div>
-                    </div>
-                    <div className="data-card">
-                        <div className="header">
-                            <div className="header-text">Prior Diagnosis</div>
+                        <div className="data-card-section">
+                            <span className="section-title">
+                                Family Cancer History
+                            </span>
+                            <div className="section-body">
+                                <span className="">Yes</span>
+                            </div>
                         </div>
-                        <div className="body"></div>
+                        <div className="data-card-section">
+                            <span className="section-title">
+                                Other Diagnosis
+                            </span>
+                            <div className="section-body">
+                                <span className="">
+                                    Protected -{' '}
+                                    <i className="fw-light">see manifest</i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Exposures Card */}
+                <div className="data-card exposure">
+                    <div className="header">
+                        <div className="header-text">Exposures</div>
+                    </div>
+                    <div className="body d-flex flex-column gap-4">
+                        <div className="exposure-card">
+                            <div className="exposure-card-header">
+                                <span className="title">Tobacco</span>
+                                <div className="datum">
+                                    <span className="datum-title">
+                                        Duration
+                                    </span>
+                                    <span className="datum-value">30 yrs</span>
+                                </div>
+                            </div>
+                            <div className="exposure-card-body">
+                                <div className="datum">
+                                    <span className="datum-title">
+                                        Frequency
+                                    </span>
+                                    <span className="datum-value">Daily</span>
+                                </div>
+                                <div className="datum">
+                                    <span className="datum-title">
+                                        Quantity
+                                    </span>
+                                    <span className="datum-value">
+                                        1 pack / day
+                                    </span>
+                                </div>
+                                <div className="datum">
+                                    <span className="datum-title">
+                                        Cessation
+                                    </span>
+                                    <span className="datum-value">10 yrs</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="exposure-card">
+                            <div className="exposure-card-header">
+                                <span className="title">Alcohol</span>
+                                <div className="datum">
+                                    <span className="datum-title">
+                                        Duration
+                                    </span>
+                                    <span className="datum-value">40 yrs</span>
+                                </div>
+                            </div>
+                            <div className="exposure-card-body">
+                                <div className="datum">
+                                    <span className="datum-title">
+                                        Frequency
+                                    </span>
+                                    <span className="datum-value">Social</span>
+                                </div>
+                                <div className="datum">
+                                    <span className="datum-title">
+                                        Quantity
+                                    </span>
+                                    <span className="datum-value">--</span>
+                                </div>
+                                <div className="datum">
+                                    <span className="datum-title">
+                                        Cessation
+                                    </span>
+                                    <span className="datum-value">10 yrs</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="data-card-section">
+                            <span className="section-title">
+                                Other Exposures
+                            </span>
+                            <div className="section-body">
+                                <span className="">
+                                    Protected -{' '}
+                                    <i className="fw-light">see manifest</i>
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+
             <div className="cards-right d-flex flex-grow-1">
                 <DataCard
                     header={'Tissue x Assay Data Matrix'}

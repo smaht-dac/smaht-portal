@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import url from 'url';
 import _ from 'underscore';
 import queryString from 'query-string';
@@ -10,7 +10,6 @@ import DefaultItemView from './DefaultItemView';
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SelectedItemsDownloadButton } from '../static-pages/components/SelectAllAboveTableComponent';
 import { ShowHideInformationToggle } from './components/file-overview/ShowHideInformationToggle';
-import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
 // Page containing the details of Items of type File
 export default class DonorOverview extends DefaultItemView {
@@ -53,7 +52,7 @@ const DonorViewTitle = (props) => {
     const breadcrumbs = [
         { display_title: 'Home', href: '/' },
         { display_title: 'Data' },
-        { display_title: 'Bechmarking Data' },
+        { display_title: 'Browse by Donor' },
         { display_title: context?.dataset?.toUpperCase() || '' },
     ];
 
@@ -87,162 +86,68 @@ const DonorViewTitle = (props) => {
 
 // Header component containing high-level information for the file item
 const DonorViewHeader = (props) => {
-    const { context = {}, session } = props;
-    const {
-        accession,
-        status,
-        description,
-        notes_to_tsv,
-        retraction_reason = '',
-        release_tracker_description = '',
-        release_tracker_title = '',
-    } = context;
+    const { context = {}, session, title = null } = props;
+    const { accession, status, description, notes_to_tsv } = context;
     const selectedFile = new Map([[context['@id'], context]]);
 
-    // Accessions of files whose alert banners are rendered differently
-    const accessionsOfInterest = ['SMAFIB6EQLZM'];
-
-    // Prepare a message string for the retracted warning banner
-    let retractedWarningMessage = '';
-    if (!accessionsOfInterest.includes(accession) && status === 'retracted') {
-        const title = release_tracker_title
-            ? ' ' + `from ${release_tracker_title}`
-            : '';
-        const description =
-            release_tracker_description ||
-            `${context?.file_format?.display_title} file`;
-
-        const retraction = retraction_reason ? (
-            <>
-                was retracted due to <b>{retraction_reason}</b>
-            </>
-        ) : (
-            'was retracted'
-        );
-
-        const replacement = context?.replaced_by ? (
-            <>
-                The replacement is made {''}
-                <a
-                    href={context?.replaced_by?.['@id']}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="link-underline-hover">
-                    available here
-                </a>
-                .
-            </>
-        ) : (
-            ''
-        );
-
-        retractedWarningMessage = (
-            <>
-                This {description}
-                {title} {retraction}. {replacement}
-            </>
-        );
-    }
-
     return (
-        <div className="file-view-header">
-            <div className="data-group data-row header">
-                <h1 className="header-text fw-semibold">
-                    {context?.display_title}:{' '}
-                    <span className="fw-normal">{`${context?.sex ?? ''}${
-                        context?.age ? ', ' + context?.age : ''
-                    }`}</span>
-                </h1>
-                <SelectedItemsDownloadButton
-                    id="download_tsv_multiselect"
-                    className="btn btn-primary btn-sm me-05 align-items-center download-file-button"
-                    session={session}
-                    selectedItems={selectedFile}
-                    disabled={false}
-                    analyticsAddItemsToCart>
-                    <i className="icon icon-user fas me-07" />
-                    Download Donor Manifest
-                </SelectedItemsDownloadButton>
-            </div>
-
-            {!accessionsOfInterest.includes(accession) &&
-            status === 'retracted' ? (
-                <div className="callout warning mt-2 mb-1">
-                    <p className="callout-text">
-                        <span className="flag">Attention: </span>
-                        {retractedWarningMessage}
-                    </p>
+        <div className="view-header">
+            <div className="d-flex flex-row align-items-center">
+                <div className="d-none d-md-flex">
+                    <img src="/static/img/misc-icons/donor_profile.svg" />
                 </div>
-            ) : null}
+                <div className="d-flex flex-column flex-grow-1 ms-2">
+                    <div className="data-group data-row header">
+                        {title}
+                        <SelectedItemsDownloadButton
+                            id="download_tsv_multiselect"
+                            className="btn btn-primary btn-sm me-05 align-items-center download-button px-3"
+                            session={session}
+                            selectedItems={selectedFile}
+                            disabled={false}
+                            analyticsAddItemsToCart>
+                            <i className="icon icon-user fas me-1" />
+                            Download Donor Manifest
+                        </SelectedItemsDownloadButton>
+                    </div>
 
-            {accessionsOfInterest.includes(accession) ? (
-                <div className="callout warning mt-2 mb-1">
-                    <p className="callout-text">
-                        <span className="flag">Attention: </span> The{' '}
-                        <a
-                            href="/SMAFI557D2E7"
-                            target="_blank"
-                            rel="noreferrer noopener"
-                            className="link-underline-hover">
-                            original BAM file
-                        </a>{' '}
-                        of COLO829-T standard ONT WGS data{' '}
-                        <strong>
-                            was retracted due to missing methylation tags
-                        </strong>
-                        . The replacement BAM with proper tags is made{' '}
-                        <a
-                            href="/SMAFIB6EQLZM"
-                            target="_blank"
-                            rel="noreferrer noopener"
-                            className="link-underline-hover">
-                            available here.
-                        </a>
-                    </p>
-                </div>
-            ) : null}
-
-            <div className="data-group data-row">
-                <div className="datum">
-                    <span className="datum-title">File Accession </span>
-                    <span className="vertical-divider">|</span>
-                    <span>
-                        <b className="accession">{accession}</b>
-                    </span>
-                </div>
-                <div className="datum right-group">
-                    <div className="status-group">
-                        <i
-                            className="status-indicator-dot"
-                            data-status={status}></i>
-                        <span className="status">
-                            {capitalizeSentence(status)}
+                    {/* <div className="data-group data-row">
+                        <div className="datum">
+                            <span className="datum-title">File Accession </span>
+                            <span className="vertical-divider">|</span>
+                            <span>
+                                <b className="accession">{accession}</b>
+                            </span>
+                        </div>
+                        <div className="datum right-group">
+                            <div className="status-group">
+                                <i
+                                    className="status-indicator-dot"
+                                    data-status={status}></i>
+                                <span className="status">
+                                    {capitalizeSentence(status)}
+                                </span>
+                            </div>
+                            <span className="vertical-divider">|</span>
+                            <ViewJSONAction href={context['@id']}>
+                                <a
+                                    className="view-json link-underline-hover"
+                                    aria-label="Open JSON code in new tab"
+                                    tabIndex="0">
+                                    <i className="icon icon-file-code far"></i>
+                                    <span>View JSON</span>
+                                </a>
+                            </ViewJSONAction>
+                        </div>
+                    </div> */}
+                    <div className="callout d-inline px-3 py-2 my-3">
+                        <i className="icon icon-file-shield fas"></i>{' '}
+                        <span>
+                            <b>Donor Privacy:</b> Only select info from the
+                            donor manifest will be shown on the data portal,
+                            download the manifest for complete donor metatadata
                         </span>
                     </div>
-                    <span className="vertical-divider">|</span>
-                    <ViewJSONAction href={context['@id']}>
-                        <a
-                            className="view-json link-underline-hover"
-                            aria-label="Open JSON code in new tab"
-                            tabIndex="0">
-                            <i className="icon icon-file-code far"></i>
-                            <span>View JSON</span>
-                        </a>
-                    </ViewJSONAction>
-                </div>
-            </div>
-            <div className="data-group data-row">
-                <div className="datum description">
-                    <span className="datum-title">Data Protection </span>
-                    <span className="vertical-divider">|</span>
-                    <span
-                        className={
-                            'datum-value' + (description ? '' : ' text-gray')
-                        }>
-                        For donor privacy, extended clinical data including
-                        medical history about this donor is available through
-                        the donor manifest.
-                    </span>
                 </div>
             </div>
             {notes_to_tsv && notes_to_tsv.length > 0 ? (
@@ -277,11 +182,31 @@ const DonorViewHeader = (props) => {
 /** Top-level component for the Donor Overview Page */
 const DonorView = React.memo(function DonorView(props) {
     const { context, session, href } = props;
+
+    const titleString = (
+        <h1 className="header-text fw-semibold">
+            Donor: {''}
+            {context?.study + ' ' + context?.display_title} -{' '}
+            {`${context?.sex ?? ''}${
+                context?.age ? ', ' + context?.age + ' yrs old' : ''
+            }`}
+        </h1>
+    );
+
     return (
         <div className="donor-view">
-            <DonorViewTitle context={context} session={session} href={href} />
+            <DonorViewTitle
+                context={context}
+                session={session}
+                href={href}
+                title={titleString}
+            />
             <div className="view-content">
-                <DonorViewHeader context={context} session={session} />
+                <DonorViewHeader
+                    context={context}
+                    session={session}
+                    title={titleString}
+                />
                 <DonorViewDataCards context={context} />
                 {/* <DonorViewTabs {...props} /> */}
             </div>
