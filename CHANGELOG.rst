@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.176.0
+=======
+`PR 429: QC metrics page improvements <https://github.com/smaht-dac/smaht-portal/pull/429>`_
+
+* Improved warnings
+* Adjusted colors for tags
+* Fixed bug were contents of "Metrics By File" tab contents would not be correctly displayed when preselected tab was not "Metrics By File"
+* Added grouping by donor
+
+
 0.175.0
 =======
 `PR 427: SN Add protected donor item <https://github.com/smaht-dac/smaht-portal/pull/427>`_
