@@ -1,3 +1,4 @@
+from typing import List, Dict, Any
 from pyramid.view import view_config
 from snovault import collection, load_schema, calculated_property
 from encoded_core.qc_views import download as qc_download
@@ -5,6 +6,7 @@ from encoded_core.qc_views import download as qc_download
 from .acl import ONLY_ADMIN_VIEW_ACL
 from .base import Item
 
+COVERAGE_DERIVED_FROM = "mosdepth:total"
 
 @collection(
     name='quality-metrics',
@@ -27,6 +29,19 @@ class QualityMetric(Item):
     )
     def href(self, request) -> str:
         return f"{request.resource_path(self)}@@download/{self.uuid}"
+
+    @calculated_property(
+        schema={
+            "title": "Coverage",
+            "type": "number",
+            "description": "Estimated average coverage from QC values",
+        }
+    )
+    def coverage(self, request, qc_values: List[Dict[str, Any]]) -> str:
+        for qc in qc_values:
+            if "derived_from" in qc:
+                if qc["derived_from"] == COVERAGE_DERIVED_FROM:
+                    return qc["value"]
 
 
 @view_config(name='download', context=QualityMetric, request_method='GET',
