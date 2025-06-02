@@ -2,7 +2,7 @@
     {
         "uuid": "f12948eb-588a-49d7-9355-a41ee02b8328",
         "submitted_id": "TEST_FAMILY-HISTORY_FEMALE",
-        "donor": "TEST_DONOR_FEMALE",
+        "donor": "TEST_PROTECTED-DONOR_FEMALE",
         "submission_centers": [
             "smaht"
         ],
