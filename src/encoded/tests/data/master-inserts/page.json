@@ -241,6 +241,7 @@
             "dad6eb69-bdd0-4409-898a-6e95ba420bc0",
             "1a2da742-acc2-44e2-b5d9-249fe3e837e1",
             "2a3b8679-16a7-44be-8676-e4c290bef36e",
+            "eb2b9abf-1838-4cf4-81f7-5b8b39c30edb",
             "0861c711-4728-4e10-9ff1-74b8b3f93676"
         ],
         "table-of-contents": {
@@ -389,7 +390,7 @@
     {
         "identifier": "docs/submission/faq",
         "uuid": "0861c711-4728-4e10-9ff1-74b8b3f93676",
-        "title": "FAQ",
+        "title": "Frequently Asked Questions",
         "content": [
             "d78edbe6-9a42-4512-ac8d-b909bc287103"
         ],
@@ -397,6 +398,24 @@
             "enabled": false
         },
         "status": "in review",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/submission/submission-data-dictionary",
+        "uuid": "eb2b9abf-1838-4cf4-81f7-5b8b39c30edb",
+        "status": "public",
+        "content": [
+            "4aeffcf9-f3bb-40e8-a4de-ac7d1bf4fac4"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Submission Data Dictionary",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -1048,24 +1067,6 @@
             "enabled": false
         },
         "title": "Data Retraction",
-        "consortia": [
-            "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ]
-    },
-    {
-        "identifier": "submission-schema-reference",
-        "uuid": "eb2b9abf-1838-4cf4-81f7-5b8b39c30edb",
-        "status": "public",
-        "content": [
-            "4aeffcf9-f3bb-40e8-a4de-ac7d1bf4fac4"
-        ],
-        "table-of-contents": {
-            "enabled": false
-        },
-        "title": "Submission Schema Reference",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

@@ -17,6 +17,8 @@ const SchemaPropertiesTable = ({ data = {} }) => {
                     <th className="text-left">Description</th>
                     <th className="text-left">Type</th>
                     <th className="text-left">Pattern</th>
+                    <th className="text-left">Also Requires</th>
+                    <th className="text-left">LinkTo</th>
                     <th className="text-left">Note</th>
                 </tr>
             </thead>
@@ -60,6 +62,22 @@ const SchemaPropertiesTable = ({ data = {} }) => {
                             ) : (
                                 <td className="text-left text-secondary">-</td>
                             )}
+                            {/* Also Requires */}
+                            {item?.also_requires ? (
+                                <td className="text-left">
+                                    {item.also_requires.join(', ')}
+                                </td>
+                            ) : (
+                                <td className="text-left text-secondary">-</td>
+                            )}
+                            {/* LinkTo */}
+                            {item?.items?.linkTo ? (
+                                <td className="text-left">
+                                    {item?.items?.linkTo}
+                                </td>
+                            ) : (
+                                <td className="text-left text-secondary">-</td>
+                            )}
                             {/* Note */}
                             {item?.submissionComment ? (
                                 <td className="text-left">
@@ -80,9 +98,11 @@ const SchemaPropertiesTable = ({ data = {} }) => {
 };
 
 // Requests the submission schemas JSON and redners as a list of tables
-export const SchemaReferencePage = () => {
+export const SubmissionDataDictionary = () => {
     const [schemaData, setSchemaData] = React.useState(null);
     const [selectedSchema, setSelectedSchema] = React.useState(null);
+
+    console.log(schemaData);
 
     useEffect(() => {
         ajax.load(
@@ -114,24 +134,35 @@ export const SchemaReferencePage = () => {
                 }}
                 options={options}
             />
-            <div
-                className={`selected-schema schema-item ${selectedSchema?.value} mb-5`}>
-                <h3 className="fs-4">{selectedSchema?.value}</h3>
-                {selectedSchema?.value && (
-                    <>
-                        <SchemaPropertiesTable
-                            data={schemaData[selectedSchema?.value]?.properties}
-                        />
-                        <hr className="my-5"></hr>
-                    </>
-                )}
+            <div className="callout mt-2">
+                <p>
+                    <b>Note:</b> Metadata Property names in{' '}
+                    <span className="text-danger fw-bold">RED</span> are
+                    required for all items of that item type.
+                </p>
             </div>
+            {selectedSchema?.value && (
+                <div
+                    className={`selected-schema schema-item ${selectedSchema.value} table-responsive`}>
+                    <h3 className="fs-4">{selectedSchema.value}</h3>
+                    {selectedSchema.value && (
+                        <>
+                            <SchemaPropertiesTable
+                                data={
+                                    schemaData[selectedSchema.value]?.properties
+                                }
+                            />
+                            <hr className="my-5"></hr>
+                        </>
+                    )}
+                </div>
+            )}
             <div className="schemas-container">
                 {Object.keys(schemaData).map((schemaKey, i) => {
                     return (
                         <div
                             id={schemaKey}
-                            className={`schema-item ${schemaKey} mb-5`}
+                            className={`schema-item ${schemaKey} mb-5 table-responsive`}
                             key={i}>
                             <h3 className="fs-4">{schemaKey}</h3>
                             <SchemaPropertiesTable

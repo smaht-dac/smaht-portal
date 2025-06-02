@@ -581,9 +581,9 @@
         ]
     },
     {
-        "identifier": "submission_schemas",
-        "title": "Submission Schemas",
-        "file": "/docs/public/submission_schemas.jsx",
+        "identifier": "submission_data_dictionary",
+        "title": "Submission Data Dictionary",
+        "file": "/docs/public/submission_data_dictionary.jsx",
         "status": "released",
         "options": {
             "filetype": "jsx",
