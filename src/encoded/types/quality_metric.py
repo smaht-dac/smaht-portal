@@ -39,9 +39,8 @@ class QualityMetric(Item):
     )
     def coverage(self, request, qc_values: List[Dict[str, Any]]) -> str:
         for qc in qc_values:
-            if "derived_from" in qc:
-                if qc["derived_from"] == COVERAGE_DERIVED_FROM:
-                    return qc["value"]
+            if qc.get("derived_from","") == COVERAGE_DERIVED_FROM:
+                return qc["value"]
 
 
 @view_config(name='download', context=QualityMetric, request_method='GET',
