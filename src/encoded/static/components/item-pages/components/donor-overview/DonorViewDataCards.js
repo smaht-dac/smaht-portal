@@ -423,15 +423,6 @@ export const DonorViewDataCards = ({ context = {} }) => {
                     </div>
                 </div>
             </div>
-
-            <div className="cards-right d-flex flex-grow-1">
-                <DataCard
-                    header={'Tissue x Assay Data Matrix'}
-                    // data={default_file_properties.map(({ title, getProp }) => {
-                    //     return { title, value: getProp(context) };
-                    // })}
-                />
-            </div>
         </div>
     );
 };

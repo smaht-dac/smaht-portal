@@ -20,31 +20,6 @@ export default class DonorOverview extends DefaultItemView {
     }
 }
 
-/**
- * Decomposes the current file item's [href] and provides an onClick function
- * to [children] for opening the file's raw JSON representation in a new page.
- * @param {string} href the href of the file item being viewed
- * @returns {JSX.Element}
- */
-function ViewJSONAction({ href = '', children }) {
-    const urlParts = _.clone(memoizedUrlParse(href));
-    urlParts.search =
-        '?' +
-        queryString.stringify(_.extend({}, urlParts.query, { format: 'json' }));
-    const viewUrl = url.format(urlParts);
-    const onClick = (e) => {
-        if (window && window.open) {
-            e.preventDefault();
-            window.open(
-                viewUrl,
-                'window',
-                'toolbar=no, menubar=no, resizable=yes, status=no, top=10, width=400'
-            );
-        }
-    };
-    return React.cloneElement(children, { onClick });
-}
-
 // Donor Overview's header component containing breadcrumbs and filename
 const DonorViewTitle = (props) => {
     const { context } = props;
@@ -185,8 +160,8 @@ const DonorView = React.memo(function DonorView(props) {
 
     const titleString = (
         <h1 className="header-text fw-semibold">
-            Donor: {''}
-            {context?.study + ' ' + context?.display_title} -{' '}
+            {context?.study ?? ''} Donor: {''}
+            {context?.display_title} -{' '}
             {`${context?.sex ?? ''}${
                 context?.age ? ', ' + context?.age + ' yrs old' : ''
             }`}
@@ -208,7 +183,24 @@ const DonorView = React.memo(function DonorView(props) {
                     title={titleString}
                 />
                 <DonorViewDataCards context={context} />
-                {/* <DonorViewTabs {...props} /> */}
+                <div className="tabs-container d-flex gap-4">
+                    <div className="matrix-tab tab-card">
+                        <div className="header">
+                            <span className="title">
+                                Assay x Tissue Data Matrix
+                            </span>
+                        </div>
+                        <div className="body"></div>
+                    </div>
+                    <div className="histology-tab tab-card">
+                        <div className="header">
+                            <span className="title">
+                                Tissue Histology Viewer
+                            </span>
+                        </div>
+                        <div className="body"></div>
+                    </div>
+                </div>
             </div>
         </div>
     );

@@ -2165,6 +2165,43 @@ File and Donor Overview Styles
 					}
 				}
 			}
+
+		}
+		.tab-card {
+			margin-top: 20px;
+			flex: 1;
+			overflow: hidden;
+
+			.header {
+				display: flex;
+				width: max-content;
+				border: 1px solid #E7F0F3;
+				border-top: 4px solid #E99415;
+				border-bottom: 1px solid white;
+				border-radius: 4px 4px 0px 0px;
+				color: #343741;
+				font-weight: 600;
+				background-color: white;
+				
+				.title {
+					padding: 10px 15px;
+					margin-bottom: -1px;
+					background-color: white;
+				}
+			}
+			.body {
+				display: flex;
+				flex: 1;
+				height: 400px;
+				border: 1px solid #E7F0F3;
+				background-color: #FDFDFD;
+			}
+
+			&.histology-tab {
+				.header {
+					border-top-color: #0F9655;
+				}
+			}
 		}
 	}
 }
