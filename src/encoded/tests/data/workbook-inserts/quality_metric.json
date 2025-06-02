@@ -35,6 +35,12 @@
                     true,
                     -3.5
                 ]
+            },
+            {
+                "key": "Estimated Average Coverage [mosdepth]",
+                "value": 26.32,
+                "tooltip": "Estimated average coverage",
+                "derived_from": "mosdepth:total"
             }
         ]
     }
