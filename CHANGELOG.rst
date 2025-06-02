@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.175.0
+=======
+`PR 442: SN Add coverage calc prop  <https://github.com/smaht-dac/smaht-portal/pull/442>`_
+
+* Add `coverage` calculated property to QualityMetric and embed it on File
+
+
 0.174.0
 =======
 `PR 436: SN Donor study calcprop <https://github.com/smaht-dac/smaht-portal/pull/436>`_
