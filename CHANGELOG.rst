@@ -7,12 +7,39 @@ smaht-portal
 Change Log
 ----------
 
-0.175.0
+0.178.0
 =======
 `PR 438 feat: static page updates <https://github.com/smaht-dac/smaht-portal/pull/438>`_
 
 * Add page for submission schema reference
 * Implement FAQ documentation page
+
+
+0.177.0
+=======
+`PR 442: SN Add coverage calc prop  <https://github.com/smaht-dac/smaht-portal/pull/442>`_
+
+* Add `coverage` calculated property to QualityMetric and embed it on File
+
+
+0.176.0
+=======
+`PR 429: QC metrics page improvements <https://github.com/smaht-dac/smaht-portal/pull/429>`_
+
+* Improved warnings
+* Adjusted colors for tags
+* Fixed bug were contents of "Metrics By File" tab contents would not be correctly displayed when preselected tab was not "Metrics By File"
+* Added grouping by donor
+
+
+0.175.0
+=======
+`PR 427: SN Add protected donor item <https://github.com/smaht-dac/smaht-portal/pull/427>`_
+
+* Create new item type ProtectedDonor and new abstract item type AbstractDonor, with both Donor and ProtectedDonor as children
+* Adjust `linkTo` in schema of protected donor items (e.g. MedicalHistory, DeathCircumstances) to be for AbstractDonor temporarily. These will later be changed to `"linkTo": "ProtectedDonor"`` after item links have been patched.
+* Add revlinks to MedicalHistory from ProtectedDonor and to Exposure (for alcohol and tobacco exposure only) from MedicalHistory
+* Add necessary embeds to ProtectedDonor for generation of Donor Overview page
 
 
 0.174.0

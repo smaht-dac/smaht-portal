@@ -24,6 +24,7 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
         "ontology",
         "ontology_term",
         "protocol",
+        "protected_donor",
         "donor",
         "demographic",
         "medical_history",
