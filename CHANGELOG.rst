@@ -7,13 +7,23 @@ smaht-portal
 Change Log
 ----------
 
-0.175.0
+0.176.0
 =======
 `PR 439: SN Ontology term germ layer <https://github.com/smaht-dac/smaht-portal/pull/439>`_
 
 * Change the ontology_term function `get_top_grouping_term` to `get_grouping_term_from_tag`, which will recursively search links of OntologyTerm items by `grouping_term` to find the item with tags that contain tag (`tissue_type`,`germ_layer`)
 * Add calculated property `category` to Tissue which uses OntologyTerm to classify tissue as a germ layer (Mesoderm, Ectoderm, Endoderm), Germ Cells, or Clinically Accessible
 * Add `category` to the `sample_summary` calculated property to be accessible from File
+
+
+0.175.0
+=======
+`PR 427: SN Add protected donor item <https://github.com/smaht-dac/smaht-portal/pull/427>`_
+
+* Create new item type ProtectedDonor and new abstract item type AbstractDonor, with both Donor and ProtectedDonor as children
+* Adjust `linkTo` in schema of protected donor items (e.g. MedicalHistory, DeathCircumstances) to be for AbstractDonor temporarily. These will later be changed to `"linkTo": "ProtectedDonor"`` after item links have been patched.
+* Add revlinks to MedicalHistory from ProtectedDonor and to Exposure (for alcohol and tobacco exposure only) from MedicalHistory
+* Add necessary embeds to ProtectedDonor for generation of Donor Overview page
 
 
 0.174.0
