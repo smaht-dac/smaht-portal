@@ -22,7 +22,7 @@ SEARCH_QUERY_QC = (
     "&field=uuid"
     "&type=FileSet"
     "&limit=10000"
-    #"&limit=5&from=600"  # for testing
+    #"&limit=50&from=600"  # for testing
     #"&accession=SMAFSZNMU83N"
 )
 
@@ -46,6 +46,7 @@ EXTERNAL_ID = "external_id"
 
 SAMPLE_SOURCE = "sample_source"
 SAMPLE_SOURCE_GROUP = "sample_source_group"
+DONOR = "donor"
 READ_LENGTH = "read_length"
 
 # Supported assays
@@ -78,11 +79,15 @@ PRODUCTION = "Production"
 # Sample source groups
 CELL_LINE = "cell_line"
 TISSUES = "tissue"
+BENCHMARKING_TISSUES = "benchmarking_tissues"
+PRODUCTION_TISSUES = "production_tissues"
 
 DEFAULT_FACET_GROUPING = [
+    {"key": DONOR, "label": "Donor"},
     {"key": SUBMISSION_CENTER, "label": "Submission Center"},
     # {"key": ASSAY, "label": "Assay"},
     {"key": SAMPLE_SOURCE, "label": "Sample source"},
+    
     # {"key": SAMPLE_SOURCE_GROUP, "label": "Tissue / Cell line"},
     # {"key": READ_LENGTH, "label": "Read length (short / long)"},
 ]
@@ -90,6 +95,8 @@ DEFAULT_FACET_GROUPING = [
 DEFAULT_FACET_SAMPLE_SOURCE = [
     {"key": CELL_LINE, "label": "All cell lines"},
     {"key": TISSUES, "label": "All tissues"},
+    {"key": BENCHMARKING_TISSUES, "label": "All benchmarking tissues"},
+    {"key": PRODUCTION_TISSUES, "label": "All production tissues"},
 ]
 
 DEFAULT_FACET_ASSAY = [
@@ -283,6 +290,7 @@ class FileStats:
             study = ""
             sample_source_codes = []
             sample_source_descriptions = []
+            donor_display_title = "NA"
             tissue_or_cell_line = None
             for sample_source in self.get_sample_sources_from_fileset(fileset):
                 code = sample_source.get("code")
@@ -301,6 +309,8 @@ class FileStats:
                         raise Exception(
                             f"Could not determine study for tissue {tissue_external_id}"
                         )
+                    donor = tissue.get("donor")
+                    donor_display_title = donor[DISPLAY_TITLE]
                     tissue_types = fileset.get("tissue_types", [])
                     tissue_types_display = ", ".join(tissue_types)
                     sample_source_codes.append(f"{tissue_display_title}")
@@ -378,6 +388,7 @@ class FileStats:
             result["sample_source_display"] = sample_source_display
             result["sample_source_subgroup"] = sample_source_descriptions
             result[SAMPLE_SOURCE_GROUP] = tissue_or_cell_line
+            result["donor"] = donor_display_title
             result["study"] = study
             result["read_length"] = "long" if sequencer in LONG_READ_SEQS else "short"
             result["quality_metrics"] = {}
@@ -615,7 +626,7 @@ class FileStats:
     def get_all_tissues(self):
         query = (
             "search/?type=Tissue"
-            "&field=uuid&field=code&field=external_id&field=display_title&field=anatomical_location"
+            "&field=uuid&field=code&field=external_id&field=donor&field=display_title&field=anatomical_location"
             "&submission_centers.display_title=NDRI+TPC"
         )
         tissues_from_search = search(query)
