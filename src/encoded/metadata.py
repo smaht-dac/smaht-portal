@@ -761,6 +761,10 @@ def generate_sample_manifest(request, args, search_iter):
             if sample['uuid'] not in samples:
                 samples.append(sample['uuid'])
 
+    # if no samples detected, manifest is empty
+    if not samples:
+        return []
+
     # Generate, execute iter for sample search
     search_param = {
         'type': 'Sample',
@@ -790,6 +794,10 @@ def generate_analyte_manifest(request, args, search_iter):
             if analyte['uuid'] not in analytes:
                 analytes.append(analyte['uuid'])
 
+    # if no analytes detected, manifest is empty
+    if not analytes:
+        return []
+
     # generate, execute iter for analyte search
     search_param = {
         'type': 'Analyte',
@@ -818,6 +826,10 @@ def generate_experimental_manifest(request, args, search_iter):
         fs = f.get('file_sets', [])
         if fs and fs[0]['uuid'] not in file_sets:
             file_sets.append(fs[0]['uuid'])
+
+    # If no file sets, manifest is empty
+    if not file_sets:
+        return []
 
     # Generate, execute iter for file set search
     search_param = {
