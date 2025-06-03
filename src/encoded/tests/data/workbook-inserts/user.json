@@ -25,6 +25,8 @@
         "last_name": "123",
         "status": "current",
         "time_zone": "US/Pacific",
-        "uuid": "986b362f-4eb6-4a9c-8173-3ab267307e4c"
+        "uuid": "986b362f-4eb6-4a9c-8173-3ab267307e4c",
+        "consortia": ["smaht"],
+        "submission_centers": ["smaht"]
     }
 ]
