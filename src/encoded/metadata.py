@@ -310,8 +310,7 @@ TSV_MAPPING = {
     },
     EXPERIMENT_ANALYTE: {
         # Top level fields
-        'FileSetAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['accession']),
-        'AnalyteAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['analytes.accession']),
+        'AnalyteAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['accession']),
         'SampleAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['samples.accession']),
         'DonorAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['donors.accession']),
 
