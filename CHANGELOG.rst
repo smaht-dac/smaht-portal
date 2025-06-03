@@ -21,6 +21,11 @@ Change Log
 * DataMatrix is a highly configurable React component for visualizing tabular data (like a matrix or heatmap), with support for grouping, aggregation, color ranges, and dynamic configuration.
 
 
+
+* Support multiple manifest files
+
+
+=======
 0.177.0
 =======
 `PR 442: SN Add coverage calc prop <https://github.com/smaht-dac/smaht-portal/pull/442>`_

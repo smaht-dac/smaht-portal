@@ -257,12 +257,9 @@ TSV_MAPPING = {
         'TissuePreservationType': TSVDescriptor(field_type=SAMPLE,
                                                 field_name=['sample_sources.preservation_type'],
                                                 use_base_metadata=True),
-        'TissueProsecutorNotes': TSVDescriptor(field_type=SAMPLE,
-                                               field_name=['sample_sources.prosecutor_notes'],
+        'TissueProsectorNotes': TSVDescriptor(field_type=SAMPLE,
+                                               field_name=['sample_sources.prosector_notes'],
                                                use_base_metadata=True),
-        'TissueRecoveryDatetime': TSVDescriptor(field_type=SAMPLE,
-                                                field_name=['sample_sources.recovery_datetime'],
-                                                use_base_metadata=True),
         'TissueSize': TSVDescriptor(field_type=SAMPLE,
                                     field_name=['sample_sources.size'],
                                     use_base_metadata=True),
@@ -270,7 +267,7 @@ TSV_MAPPING = {
                                         field_name=['sample_sources.size_unit'],
                                         use_base_metadata=True),
         'TissueUberonId': TSVDescriptor(field_type=SAMPLE,
-                                        field_name=['sample_sources.uberon_id'],
+                                        field_name=['sample_sources.uberon_id.identifier'],
                                         use_base_metadata=True),
         'TissueVolume (ml)': TSVDescriptor(field_type=SAMPLE,
                                            field_name=['sample_sources.volume'],
@@ -298,103 +295,104 @@ TSV_MAPPING = {
 
         # Cell line fields
         'CellLineCode': TSVDescriptor(field_type=SAMPLE,
-                                      field_name=['sample_sources.code'],
+                                      field_name=['sample_sources.cell_line.code'],
                                       use_base_metadata=True),
         'CellLineParentCellLines': TSVDescriptor(field_type=SAMPLE,
-                                                 field_name=['sample_sources.parent_cell_lines'],
+                                                 field_name=['sample_sources.cell_line.parent_cell_lines'],
                                                  use_base_metadata=True),
         'CellLineSource': TSVDescriptor(field_type=SAMPLE,
-                                        field_name=['sample_sources.source'],
+                                        field_name=['sample_sources.cell_line.source'],
                                         use_base_metadata=True),
         'CellLineUrl': TSVDescriptor(field_type=SAMPLE,
-                                     field_name=['sample_sources.url'],
+                                     field_name=['sample_sources.cell_line.url'],
                                      use_base_metadata=True),
 
     },
     EXPERIMENT_ANALYTE: {
         # Top level fields
-        'FileSetAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['accession']),
-        'SampleAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.samples.accession']),
+        'AnalyteAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['accession']),
+        'SampleAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['samples.accession']),
         'DonorAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['donors.accession']),
 
         # Analyte Fields
-        'AnalyteMolecule': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.molecule']),
-        'AnalyteMoleculeDetail': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.molecule_detail']),
-        'AnalyteA260A280Ratio': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.a260_a280_ratio']),
+        'AnalyteMolecule': TSVDescriptor(field_type=EXPERIMENT, field_name=['molecule']),
+        'AnalyteMoleculeDetail': TSVDescriptor(field_type=EXPERIMENT, field_name=['molecule_detail']),
+        'AnalyteA260A280Ratio': TSVDescriptor(field_type=EXPERIMENT, field_name=['a260_a280_ratio']),
         'AnalyteAverageFragmentSize': TSVDescriptor(field_type=EXPERIMENT,
-                                                    field_name=['libraries.analytes.average_fragment_size']),
-        'AnalyteConcentration': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.concentration']),
-        'AnalyteConcentrationUnit': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.concentration_unit']),
-        'AnalyteDescription': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.description']),
-        'AnalyteDnaIntegrityNumber': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.dna_integrity_number']),
+                                                    field_name=['average_fragment_size']),
+        'AnalyteConcentration': TSVDescriptor(field_type=EXPERIMENT, field_name=['concentration']),
+        'AnalyteConcentrationUnit': TSVDescriptor(field_type=EXPERIMENT, field_name=['concentration_unit']),
+        'AnalyteDescription': TSVDescriptor(field_type=EXPERIMENT, field_name=['description']),
+        'AnalyteDnaIntegrityNumber': TSVDescriptor(field_type=EXPERIMENT, field_name=['dna_integrity_number']),
         'AnalyteDnaIntegrityNumberInstrument': TSVDescriptor(field_type=EXPERIMENT,
-                                                             field_name=['libraries.analytes.dna_integrity_number_instrument']),
-        'AnalyteDnaQualityNumber': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.dna_quality_number']),
+                                                             field_name=['dna_integrity_number_instrument']),
+        'AnalyteDnaQualityNumber': TSVDescriptor(field_type=EXPERIMENT, field_name=['dna_quality_number']),
         'AnalyteDnaQualityNumberInstrument': TSVDescriptor(field_type=EXPERIMENT,
-                                                           field_name=['libraries.analytes.dna_quality_number_instrument']),
+                                                           field_name=['dna_quality_number_instrument']),
         'AnalyteDnaQualitySizeThreshold': TSVDescriptor(field_type=EXPERIMENT,
-                                                        field_name=['libraries.analytes.dna_quality_size_threshold']),
-        'AnalyteExternalId': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.external_id']),
+                                                        field_name=['dna_quality_size_threshold']),
+        'AnalyteExternalId': TSVDescriptor(field_type=EXPERIMENT, field_name=['external_id']),
         'AnalyteGenomicQualityNumber': TSVDescriptor(field_type=EXPERIMENT,
-                                                     field_name=['libraries.analytes.genomic_quality_number']),
+                                                     field_name=['genomic_quality_number']),
         'AnalyteGenomicQualityNumberInstrument': TSVDescriptor(field_type=EXPERIMENT,
-                                                               field_name=['libraries.analytes.genomic_quality_number_instrument']),
+                                                               field_name=['genomic_quality_number_instrument']),
         'AnalyteGenomicQualityNumberSizeThreshold': TSVDescriptor(field_type=EXPERIMENT,
-                                                                  field_name=['libraries.analytes.genomic_quality_number_size_threshold']),
-        'AnalyteQuantitationMethod': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.quantitation_method']),
-        'AnalyteRibosomalRnaRatio': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.ribosomal_rna_ratio']),
-        'AnalyteRnaIntegrityNumber': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.rna_integrity_number']),
+                                                                  field_name=['genomic_quality_size_threshold']),
+        'AnalyteQuantitationMethod': TSVDescriptor(field_type=EXPERIMENT, field_name=['quantitation_method']),
+        'AnalyteRibosomalRnaRatio': TSVDescriptor(field_type=EXPERIMENT, field_name=['ribosomal_rna_ratio']),
+        'AnalyteRnaIntegrityNumber': TSVDescriptor(field_type=EXPERIMENT, field_name=['rna_integrity_number']),
         'AnalyteRnaIntegrityNumberInstrument': TSVDescriptor(field_type=EXPERIMENT,
-                                                             field_name=['libraries.analytes.rna_integrity_number_instrument']),
+                                                             field_name=['rna_integrity_number_instrument']),
         'AnalyteSampleQuantity': TSVDescriptor(field_type=EXPERIMENT,
-                                               field_name=['libraries.analytes.sample_quantity']),
+                                               field_name=['sample_quantity']),
         'AnalyteSampleQuantityUnit': TSVDescriptor(field_type=EXPERIMENT,
-                                                   field_name=['libraries.analytes.sample_quantity_unit']),
+                                                   field_name=['sample_quantity_unit']),
         'AnalyteTotalYield': TSVDescriptor(field_type=EXPERIMENT,
-                                           field_name=['libraries.analytes.total_yield']),
+                                           field_name=['total_yield']),
         'AnalyteVolume': TSVDescriptor(field_type=EXPERIMENT,
-                                       field_name=['libraries.analytes.volume']),
+                                       field_name=['volume']),
         'AnalyteVolumeUnit': TSVDescriptor(field_type=EXPERIMENT,
-                                           field_name=['libraries.analytes.volume unit']),
+                                           field_name=['volume_unit']),
         'AnalyteYieldPerUnit': TSVDescriptor(field_type=EXPERIMENT,
-                                             field_name=['libraries.analytes.yield_per_unit']),
+                                             field_name=['yield_per_unit']),
         'AnalyteYieldUnit': TSVDescriptor(field_type=EXPERIMENT,
-                                          field_name=['libraries.analytes.yield_unit']),
+                                          field_name=['yield_unit']),
 
-        # Analyte preperation fields
+        # Analyte preparation fields
         'AnalytePreparationCellLysisMethod': TSVDescriptor(field_type=EXPERIMENT,
-                                                           field_name=['libraries.analytes.analyte_preparation.cell_lysis_method']),
+                                                           field_name=['analyte_preparation.cell_lysis_method']),
         'AnalytePreparationDescription': TSVDescriptor(field_type=EXPERIMENT,
-                                                       field_name=['libraries.analytes.analyte_preparation.description']),
+                                                       field_name=['analyte_preparation.description']),
         'AnalytePreparationExtractionMethod': TSVDescriptor(field_type=EXPERIMENT,
-                                                            field_name=['libraries.analytes.analyte_preparation.extraction_method']),
+                                                            field_name=['analyte_preparation.extraction_method']),
         'AnalytePreparationHomogenizationMethod': TSVDescriptor(field_type=EXPERIMENT,
-                                                                field_name=['libraries.analytes.analyte_preparation.homogenization_method']),
+                                                                field_name=['analyte_preparation.homogenization_method']),
         'AnalytePreparationSuspensionType': TSVDescriptor(field_type=EXPERIMENT,
-                                                          field_name=['libraries.analytes.analyte_preparation.suspension_type']),
+                                                          field_name=['analyte_preparation.suspension_type']),
         'AnalytePreparationTreatmentAgent': TSVDescriptor(field_type=EXPERIMENT,
-                                                          field_name=['libraries.analytes.analyte_preparation.treatment.agent']),
+                                                          field_name=['analyte_preparation.treatments.agent']),
         'AnalytePreparationTreatmentConcentration': TSVDescriptor(field_type=EXPERIMENT,
-                                                                  field_name=['libraries.analytes.analyte_preparation.treatment.concentration']),
+                                                                  field_name=['analyte_preparation.treatments.concentration']),
         'AnalytePreparationTreatmentConcentrationUnits': TSVDescriptor(field_type=EXPERIMENT,
-                                                                       field_name=['libraries.analytes.analyte_preparation.treatment.concentration_units']),
+                                                                       field_name=['analyte_preparation.treatments.concentration_units']),
         'AnalytePreparationTreatmentDuration (min)': TSVDescriptor(field_type=EXPERIMENT,
-                                                                   field_name=['libraries.analytes.analyte_preparation.treatment.duration']),
+                                                                   field_name=['analyte_preparation.treatments.duration']),
         'AnalytePreparationTreatmentTemperature (C)': TSVDescriptor(field_type=EXPERIMENT,
-                                                                    field_name=['libraries.analytes.analyte_preparation.treatment.temperature']),
+                                                                    field_name=['analyte_preparation.treatments.temperature']),
         'AnalytePreparationPreparationKitTitle': TSVDescriptor(field_type=EXPERIMENT,
-                                                               field_name=['libraries.analytes.analyte_preparation.preparation_kit.title']),
+                                                               field_name=['analyte_preparation.preparation_kits.title']),
         'AnalytePreparationPreparationKitCatalogNumber': TSVDescriptor(field_type=EXPERIMENT,
-                                                                       field_name=['libraries.analytes.analyte_preparation.preparation_kit.catalog_number']),
+                                                                       field_name=['analyte_preparation.preparation_kits.catalog_number']),
         'AnalytePreparationPreparationKitVendor': TSVDescriptor(field_type=EXPERIMENT,
-                                                                field_name=['libraries.analytes.analyte_preparation.preparation_kit.vendor']),
+                                                                field_name=['analyte_preparation.preparation_kits.vendor']),
         'AnalytePreparationPreparationKitVersion': TSVDescriptor(field_type=EXPERIMENT,
-                                                                 field_name=['libraries.analytes.analyte_preparation.preparation_kit.version'])
+                                                                 field_name=['analyte_preparation.preparation_kits.version'])
     },
     EXPERIMENT_LIBRARY: {
         # Top level fields
         'FileSetAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['accession']),
         'SampleAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.samples.accession']),
+        'AnalyteAccessions': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.accession']),
         'DonorAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['donors.accession']),
 
         # Library fields
@@ -449,27 +447,27 @@ TSV_MAPPING = {
         'LibraryPreparationTrimAdapterSequence': TSVDescriptor(field_type=EXPERIMENT,
                                                                field_name=['libraries.library_preparation.trim_adapter_sequence']),
         'LibraryPreparationTreatmentAgent': TSVDescriptor(field_type=EXPERIMENT,
-                                                          field_name=['libraries.library_preparation.treatment.agent']),
+                                                          field_name=['libraries.library_preparation.treatments.agent']),
         'LibraryTreatmentConcentration': TSVDescriptor(field_type=EXPERIMENT,
-                                                       field_name=['libraries.treatment.concentration']),
+                                                       field_name=['libraries.library_preparation.treatments.concentration']),
         'LibraryPreparationTreatmentConcentrationUnits': TSVDescriptor(field_type=EXPERIMENT,
-                                                                       field_name=['libraries.library_preparation.treatment.concentration_units']),
+                                                                       field_name=['libraries.library_preparation.treatments.concentration_units']),
         'LibraryPreparationTreatmentDuration (min)': TSVDescriptor(field_type=EXPERIMENT,
-                                                                   field_name=['libraries.library_preparation.treatment.duration']),
+                                                                   field_name=['libraries.library_preparation.treatments.duration']),
         'LibraryPreparationTreatmentTemperature (C)': TSVDescriptor(field_type=EXPERIMENT,
-                                                                    field_name=['libraries.library_preparation.treatment.temperature']),
+                                                                    field_name=['libraries.library_preparation.treatments.temperature']),
         'LibraryPreparationPreparationKitTitle': TSVDescriptor(field_type=EXPERIMENT,
-                                                               field_name=['libraries.library_preparation.preparation_kit.title']),
+                                                               field_name=['libraries.library_preparation.preparation_kits.title']),
         'LibraryPreparationPreparationKitCatalogNumber': TSVDescriptor(field_type=EXPERIMENT,
-                                                                       field_name=['libraries.library_preparation.preparation_kit.catalog_number']),
+                                                                       field_name=['libraries.library_preparation.preparation_kits.catalog_number']),
         'LibraryPreparationPreparationKitVendor': TSVDescriptor(field_type=EXPERIMENT,
-                                                                field_name=['libraries.library_preparation.preparation_kit.vendor']),
+                                                                field_name=['libraries.library_preparation.preparation_kits.vendor']),
         'LibraryPreparationPreparationKitVersion': TSVDescriptor(field_type=EXPERIMENT,
-                                                                 field_name=['libraries.library_preparation.preparation_kit.version']),
+                                                                 field_name=['libraries.library_preparation.preparation_kits.version']),
 
         # Sequencing fields
         'SequencingSequencer': TSVDescriptor(field_type=EXPERIMENT,
-                                             field_name=['sequencing.sequencer.name']),
+                                             field_name=['sequencing.sequencer.identifier']),
         'SequencingFlowCell': TSVDescriptor(field_type=EXPERIMENT,
                                             field_name=['sequencing.flow_cell']),
         'SequencingMovieLength': TSVDescriptor(field_type=EXPERIMENT, field_name=['sequencing.movie_length']),
@@ -483,13 +481,13 @@ TSV_MAPPING = {
         'SequencingTargetReadLength': TSVDescriptor(field_type=EXPERIMENT,
                                                     field_name=['sequencing.target_read_length']),
         'SequencingPreparationKitTitle': TSVDescriptor(field_type=EXPERIMENT,
-                                                       field_name=['sequencing.preparation_kit.title']),
+                                                       field_name=['sequencing.preparation_kits.title']),
         'SequencingPreparationKitCatalogNumber': TSVDescriptor(field_type=EXPERIMENT,
-                                                               field_name=['sequencing.preparation_kit.catalog_number']),
+                                                               field_name=['sequencing.preparation_kits.catalog_number']),
         'SequencingPreparationKitVendor': TSVDescriptor(field_type=EXPERIMENT,
-                                                        field_name=['sequencing.preparation_kit.vendor']),
+                                                        field_name=['sequencing.preparation_kits.vendor']),
         'SequencingPreparationKitVersion': TSVDescriptor(field_type=EXPERIMENT,
-                                                         field_name=['sequencing.preparation_kit.version'])
+                                                         field_name=['sequencing.preparation_kits.version'])
     }
 }
 
@@ -758,14 +756,44 @@ def generate_sample_manifest(request, args, search_iter):
     # Extract sample IDs
     samples = []
     for f in search_iter:
-        sample = f.get('samples', [])
-        if sample and sample[0]['uuid'] not in samples:
-            samples.append(sample[0]['uuid'])
+        sample_arr = f.get('samples', [])
+        for sample in sample_arr:
+            if sample['uuid'] not in samples:
+                samples.append(sample['uuid'])
 
     # Generate, execute iter for sample search
     search_param = {
         'type': 'Sample',
         'uuid': samples
+    }
+    sample_search_iter = get_iterable_search_results(request, param_lists=search_param)
+    data_lines = []
+    for sample in sample_search_iter:
+        line = []
+        for field_name, tsv_descriptor in args.tsv_mapping.items():
+            traversal_path = tsv_descriptor.field_name()
+            field = descend_field(request, sample, traversal_path) or ''
+            line.append(field)
+        data_lines += [line]
+    return data_lines
+
+
+def generate_analyte_manifest(request, args, search_iter):
+    """ For the experiment manifest (analyte), we can extract analytes from files to get
+        the various fields
+    """
+    # Extract analyte IDs
+    analytes = []
+    for f in search_iter:
+        analyte_array = f.get('analytes', [])
+        for analyte in analyte_array:
+            if analyte['uuid'] not in analytes:
+                analytes.append(analyte['uuid'])
+
+    # generate, execute iter for analyte search
+    search_param = {
+        'type': 'Analyte',
+        'uuid': analytes
     }
     sample_search_iter = get_iterable_search_results(request, param_lists=search_param)
     data_lines = []
@@ -841,8 +869,10 @@ def metadata_tsv(context, request):
         data_lines = generate_sample_manifest(request, args, search_iter)
     elif args.manifest_enum == FILE:
         data_lines = generate_file_manifest(request, args, search_iter, cli)
-    elif args.manifest_enum in [EXPERIMENT_ANALYTE, EXPERIMENT_LIBRARY]:
+    elif args.manifest_enum == EXPERIMENT_LIBRARY:
         data_lines = generate_experimental_manifest(request, args, search_iter)
+    elif args.manifest_enum == EXPERIMENT_ANALYTE:
+        data_lines = generate_analyte_manifest(request, args, search_iter)
     elif args.manifest_enum == CLINICAL:
         raise Exception('EXPERIMENT manifests not supported at this time')
     else:
