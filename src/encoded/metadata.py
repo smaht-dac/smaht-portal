@@ -755,9 +755,10 @@ def generate_sample_manifest(request, args, search_iter):
     # Extract sample IDs
     samples = []
     for f in search_iter:
-        sample = f.get('samples', [])
-        if sample and sample[0]['uuid'] not in samples:
-            samples.append(sample[0]['uuid'])
+        sample_arr = f.get('samples', [])
+        for sample in sample_arr:
+            if sample['uuid'] not in samples:
+                samples.append(sample['uuid'])
 
     # Generate, execute iter for sample search
     search_param = {
@@ -783,9 +784,10 @@ def generate_analyte_manifest(request, args, search_iter):
     # Extract analyte IDs
     analytes = []
     for f in search_iter:
-        analyte = f.get('analytes', [])
-        if analyte and analyte[0]['uuid'] not in analytes:
-            analytes.append(analyte[0]['uuid'])
+        analyte_array = f.get('analytes', [])
+        for analyte in analyte_array:
+            if analyte['uuid'] not in analytes:
+                analytes.append(analyte['uuid'])
 
     # generate, execute iter for analyte search
     search_param = {
