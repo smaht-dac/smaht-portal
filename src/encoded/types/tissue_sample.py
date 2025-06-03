@@ -28,16 +28,8 @@ from .utils import (
 from ..item_utils import (
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
-    donor as donor_utils,
     item as item_utils
 )
-
-
-def _build_tissue_sample_embedded_list() -> List[str]:
-    return [
-        # Columns/facets for search
-        "sample_sources.donor.external_id"
-    ]
 
 
 @collection(
@@ -51,7 +43,7 @@ def _build_tissue_sample_embedded_list() -> List[str]:
 class TissueSample(Sample):
     item_type = "tissue_sample"
     schema = load_schema("encoded:schemas/tissue_sample.json")
-    embedded_list = Sample.embedded_list + _build_tissue_sample_embedded_list()
+    embedded_list = Sample.embedded_list
 
     class Collection(Item.Collection):
         pass

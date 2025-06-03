@@ -16,11 +16,10 @@ class Sample(SubmittedItem):
     base_types = ["Sample"] + SubmittedItem.base_types
     schema = load_schema("encoded:schemas/sample.json")
     embedded_list = [
-        #"sample_sources.*",  # this will capture everything of note for the manifest file
-        #"sample_sources.donor.*"
 
         # Specific embeds for sample manifest
         "sample_sources.donor.accession",
+        "sample_sources.donor.external_id",
         "sample_sources.description",
         "sample_sources.external_id",
         "sample_sources.sample_count",
