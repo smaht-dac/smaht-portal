@@ -480,13 +480,13 @@ TSV_MAPPING = {
         'SequencingTargetReadLength': TSVDescriptor(field_type=EXPERIMENT,
                                                     field_name=['sequencing.target_read_length']),
         'SequencingPreparationKitTitle': TSVDescriptor(field_type=EXPERIMENT,
-                                                       field_name=['sequencing.preparation_kit.title']),
+                                                       field_name=['sequencing.preparation_kits.title']),
         'SequencingPreparationKitCatalogNumber': TSVDescriptor(field_type=EXPERIMENT,
-                                                               field_name=['sequencing.preparation_kit.catalog_number']),
+                                                               field_name=['sequencing.preparation_kits.catalog_number']),
         'SequencingPreparationKitVendor': TSVDescriptor(field_type=EXPERIMENT,
-                                                        field_name=['sequencing.preparation_kit.vendor']),
+                                                        field_name=['sequencing.preparation_kits.vendor']),
         'SequencingPreparationKitVersion': TSVDescriptor(field_type=EXPERIMENT,
-                                                         field_name=['sequencing.preparation_kit.version'])
+                                                         field_name=['sequencing.preparation_kits.version'])
     }
 }
 
