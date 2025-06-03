@@ -54,7 +54,7 @@ def include_encoded(config):
     config.include('encoded.ingestion.ingestion_status')
     config.include('encoded.ingestion.metadata_template')
     config.include('encoded.validators')
-    # config.include('encoded.visualization')
+    config.include('encoded.visualization')
     config.commit()
 
 
