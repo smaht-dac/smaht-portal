@@ -80,6 +80,9 @@
             "test_release_tracker",
             "release_tracker_title-ST001-1D",
             "release_tracker_description-Fiber-SeqPacBioRevioBAM"
+        ],
+        "quality_metrics": [
+            "a975fc4b-c149-449f-891a-496e24767e42"
         ]
     }
 ]
