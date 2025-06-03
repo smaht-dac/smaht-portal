@@ -7,9 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.178.0
+=======
+`PR 437: Data Matrix <https://github.com/smaht-dac/smaht-portal/pull/437>`_
+
+* DataMatrix is a highly configurable React component for visualizing tabular data (like a matrix or heatmap), with support for grouping, aggregation, color ranges, and dynamic configuration.
+
+
 0.177.0
 =======
-`PR 442: SN Add coverage calc prop  <https://github.com/smaht-dac/smaht-portal/pull/442>`_
+`PR 442: SN Add coverage calc prop <https://github.com/smaht-dac/smaht-portal/pull/442>`_
 
 * Add `coverage` calculated property to QualityMetric and embed it on File
 
