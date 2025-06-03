@@ -69,5 +69,16 @@
         "donor": "TEST_DONOR_ALT1",
         "uberon_id": "UBERON:0008952",
         "anatomical_location": "Lung: Left Lobe"
+    },
+    {
+        "uuid": "685657ef-3f71-45b3-9ad9-19eafaa26540",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE_FIBROBLAST",
+        "external_id": "ST001-3AC",
+        "donor": "TEST_DONOR_MALE",
+        "uberon_id": "UBERON:0004264",
+        "anatomical_location": "Fibroblast"
     }
 ]

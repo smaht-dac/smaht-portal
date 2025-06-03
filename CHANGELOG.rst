@@ -7,11 +7,20 @@ smaht-portal
 Change Log
 ----------
 
-0.179.0
+0.180.0
 =======
 `PR 441: feat: support download for multiple manifest files <https://github.com/smaht-dac/smaht-portal/pull/441>`_
 
 * Support collection specific metadata download
+
+
+0.179.0
+=======
+`PR 439: SN Ontology term germ layer <https://github.com/smaht-dac/smaht-portal/pull/439>`_
+
+* Change the ontology_term function `get_top_grouping_term` to `get_grouping_term_from_tag`, which will recursively search links of OntologyTerm items by `grouping_term` to find the item with tags that contain tag (`tissue_type`,`germ_layer`)
+* Add calculated property `category` to Tissue which uses OntologyTerm to classify tissue as a germ layer (Mesoderm, Ectoderm, Endoderm), Germ Cells, or Clinically Accessible
+* Add `category` to the `sample_summary` calculated property to be accessible from File
 
 
 0.178.0
