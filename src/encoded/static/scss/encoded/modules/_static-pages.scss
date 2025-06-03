@@ -3086,9 +3086,10 @@ FAQ page styles
 
 .faq-container {
 	.faq-header {
-		font-size: 2rem;
-		margin-bottom: 50px;
-    	font-weight: 500;
+		margin-bottom: 20px;
+    	font-weight: 400;
+		border-bottom: 1px solid #f4f4f4;
+		padding-bottom: 15px;
 	}
 
 	details {

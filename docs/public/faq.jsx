@@ -43,7 +43,7 @@
         </details>
         
         <details>
-            <summary><span>I am getting validation errors for my submitted_ids, but it looks correct. What am I doing wrong?</span><i className="icon icon-chevron-down fas"></i></summary>
+            <summary><span>I am getting validation errors for my submitted_ids, but they look correct. What am I doing wrong?</span><i className="icon icon-chevron-down fas"></i></summary>
             <div className="response">
                 <span>submitted_ids are important unique identifiers for each submitted item in the data portal. These identifiers must be in the format <code>[CENTER]_[ITEM-TYPE]_[UNIQUE-ID]</code>, must be <i>entirely</i> uppercase, and must be <i>unique</i>. Each bracketed portion of the IDs is separated by underscores. The <code>[ITEM-TYPE]</code> portion of the ID is delimited using dashes. The <code>submitted_ids</code> must only include the following:</span>
                 <ul>
@@ -65,19 +65,19 @@
         </details>
         
         <details>
-            <summary><span>I am trying to submit production data that links to tissue items from the TPC (NDRI). However, I keep getting an error like Submitted ID start (NDRI) does not match options for given submission centers: [DAC]. What does this mean?</span><i className="icon icon-chevron-down fas"></i></summary>
+            <summary><span>I am trying to submit production data that links to tissue items from the TPC (NDRI). However, I keep getting an error like <code>Submitted ID start (NDRI) does not match options for given submission centers: [DAC]</code>. What does this mean?</span><i className="icon icon-chevron-down fas"></i></summary>
             <div className="response">
                 <span>This error is thrown because users are not allowed to submit metadata items from other centers. For example, we wouldn't want a user from NYU-TTD to accidentally submit file items for WashU-GCC. Because the Donor and Tissue items are existing metadata items submitted by the TPC (given that their submitted_ids begin with “NDRI”) and you are associated with another center, <code>smaht-submitr</code> throws an error. To fix this, you can put parentheses around the names of tabs to tell <code>smaht-submitr</code> to ignore that tab e.g. changing the tab name from “Tissue” to “(Tissue)”.</span>
             </div>
         </details>
         
         <details>
-            <summary><span>When trying to upload files to the data portal using smaht-submitr, I get the following error: Cannot find the given submission type or file type or accession ID. How do I resolve this?</span><i className="icon icon-chevron-down fas"></i></summary>
+            <summary><span>When trying to upload files to the data portal using smaht-submitr, I get the following error: <code>Cannot find the given submission type or file type or accession ID</code>. How do I resolve this?</span><i className="icon icon-chevron-down fas"></i></summary>
             <div className="response">
                 <span>There are a couple of things to check:</span>
                 <ol>
                     <li>Confirm that the <code>submission_uuid</code> you are using is correct. When copying and pasting, it is very easy to truncate your UUID by a couple of characters.</li>
-                    <li>Ensure that your credentials are up-to-date. Credentials expire every 30 days, it is possible that your credentials expired, resulting in that error.</li>
+                    <li>Ensure that your credentials are up-to-date. Credentials expire every 30 days, so it is possible that your credentials expired, resulting in that error.</li>
                 </ol>
             </div>
         </details>
