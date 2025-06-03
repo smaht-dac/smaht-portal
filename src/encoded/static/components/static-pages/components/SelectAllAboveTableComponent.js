@@ -629,7 +629,6 @@ const SelectedItemsDownloadModal = function (props) {
                                 <button
                                     type="submit"
                                     name="Download"
-                                    onClick={onClick}
                                     className="btn btn-outline-secondary mt-0"
                                     data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
                                     <i className="icon icon-fw icon-download fas me-1" />
@@ -665,7 +664,6 @@ const SelectedItemsDownloadModal = function (props) {
                                 <button
                                     type="submit"
                                     name="Download"
-                                    onClick={onClick}
                                     className="btn btn-outline-secondary mt-0"
                                     data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
                                     <i className="icon icon-fw icon-download fas me-1" />
@@ -701,7 +699,6 @@ const SelectedItemsDownloadModal = function (props) {
                                 <button
                                     type="submit"
                                     name="Download"
-                                    onClick={onClick}
                                     className="btn btn-outline-secondary mt-0"
                                     data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
                                     <i className="icon icon-fw icon-download fas me-1" />
