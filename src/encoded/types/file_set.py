@@ -176,11 +176,11 @@ class FileSet(SubmittedItem):
         )
         if len(samples) == 0:
             return None
-        if len(samples) > 1:
-            samples_meta = request_handler.get_items(samples)
-            for sample_meta in samples_meta:
-                if sample_utils.is_tissue_sample(sample_meta) and tissue_sample_utils.has_spatial_information(sample_meta):
-                    return None # this should give some kind of warning. Should not have multiple intact tissue samples
+        # if len(samples) > 1:
+        #     samples_meta = request_handler.get_items(samples)
+        #     for sample_meta in samples_meta:
+        #         if sample_utils.is_tissue_sample(sample_meta) and tissue_sample_utils.has_spatial_information(sample_meta):
+        #             return None # this should give some kind of warning. Should not have multiple intact tissue samples
         if len(samples) == 1:
             sample = samples[0]
             if 'tissue' in sample:
@@ -189,10 +189,10 @@ class FileSet(SubmittedItem):
                     return get_property_value_from_identifier(
                         request_handler, sample, item_utils.get_submitted_id
                     )
-        # If we are a tissue sample, generate this based on the sample field, not the sample
+        # If we are a single tissue sample with spatial information, generate this based on the sample field, not the sample
         # sources field
 
-        # If we get here, we are a Homogenate tissue sample or cell line and should rely on sample sources
+        # If we get here, we are a Homogenate tissue sample, multiple merged tissue samples, or cell line and should rely on sample sources
         sample_sources = library_utils.get_sample_sources(
             library, request_handler=request_handler
         )
