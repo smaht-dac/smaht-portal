@@ -341,7 +341,7 @@
         "uuid": "d78edbe6-9a42-4512-ac8d-b909bc287103",
         "file": "/docs/public/faq.jsx",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "released",
         "options": {
             "filetype": "jsx",
             "initial_header_level": 2
