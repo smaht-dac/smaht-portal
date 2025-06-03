@@ -43,6 +43,9 @@
             "$ref": "mixins.json#/modified"
         },
         {
+            "$ref": "mixins.json#/preferred_name"
+        },
+        {
             "$ref": "mixins.json#/schema_version"
         },
         {
@@ -94,11 +97,6 @@
                 "type": "string",
                 "linkTo": "Ontology"
             }
-        },
-        "preferred_name": {
-          "title": "Display name",
-          "description": "A preferred name (possibly shortened or simpler version) for the ontology term - can be used for submission or retrieval.",
-          "type": "string"
         },
         "url": {
             "description": "The url that uniquely identifies term - often purl."

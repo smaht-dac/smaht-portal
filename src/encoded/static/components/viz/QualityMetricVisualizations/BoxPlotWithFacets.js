@@ -15,9 +15,14 @@ import Select from 'react-select';
 const ALL_ILLUMINA = 'all_illumina';
 const ALL_LONG_READ = 'all_long_read';
 
+const BENCHMARKING = 'Benchmarking';
+const PRODUCTION = 'Production';
+
 // Sample Source group
 const CELL_LINE = 'cell_line';
 const TISSUE = 'tissue';
+const BENCHMARKING_TISSUES = 'benchmarking_tissues';
+const PRODUCTION_TISSUES = 'production_tissues';
 
 export const BoxPlotWithFacets = ({
     qcData,
@@ -65,7 +70,7 @@ export const BoxPlotWithFacets = ({
     };
     const handleShowModal = (d) => {
         if (d) {
-            // Remove focus from active element. This prevent the browser scolling 
+            // Remove focus from active element. This prevent the browser scolling
             // to the top of the page when closing the modal
             document.activeElement.blur();
             setSelectedFile(d);
@@ -154,6 +159,12 @@ export const BoxPlotWithFacets = ({
         ) {
             sampleSourceFilter =
                 d?.sample_source_group === selectedSampleSource;
+        } else if (selectedSampleSource === BENCHMARKING_TISSUES) {
+            sampleSourceFilter =
+                d?.sample_source_group === TISSUE && d?.study === BENCHMARKING;
+        } else if (selectedSampleSource === PRODUCTION_TISSUES) {
+            sampleSourceFilter =
+                d?.sample_source_group === TISSUE && d?.study === PRODUCTION;
         } else {
             sampleSourceFilter =
                 d?.sample_source_subgroup === selectedSampleSource;

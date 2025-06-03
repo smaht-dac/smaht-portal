@@ -386,8 +386,10 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.samples.sample_sources.donor",
 
         "quality_metrics.overall_quality_status",
+        "quality_metrics.coverage",
         # For manifest
         "sequencing.sequencer.display_title",
+        "sequencing.sequencer.platform",
 
         # Include file groups tags
         "file_sets.file_group.*",
@@ -648,6 +650,8 @@ class File(Item, CoreFile):
     def meta_workflow_run_inputs(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "meta_workflow_run_inputs")
         if result:
+            if self.type_info.name == "ReferenceFile":
+                return
             request_handler = RequestHandler(request = request)
             mwfrs=[ 
                 mwfr for mwfr in result

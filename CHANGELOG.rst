@@ -7,6 +7,102 @@ smaht-portal
 Change Log
 ----------
 
+0.178.0
+=======
+`PR 437: Data Matrix <https://github.com/smaht-dac/smaht-portal/pull/437>`_
+
+* DataMatrix is a highly configurable React component for visualizing tabular data (like a matrix or heatmap), with support for grouping, aggregation, color ranges, and dynamic configuration.
+
+
+0.177.0
+=======
+`PR 442: SN Add coverage calc prop <https://github.com/smaht-dac/smaht-portal/pull/442>`_
+
+* Add `coverage` calculated property to QualityMetric and embed it on File
+
+
+0.176.0
+=======
+`PR 429: QC metrics page improvements <https://github.com/smaht-dac/smaht-portal/pull/429>`_
+
+* Improved warnings
+* Adjusted colors for tags
+* Fixed bug were contents of "Metrics By File" tab contents would not be correctly displayed when preselected tab was not "Metrics By File"
+* Added grouping by donor
+
+
+0.175.0
+=======
+`PR 427: SN Add protected donor item <https://github.com/smaht-dac/smaht-portal/pull/427>`_
+
+* Create new item type ProtectedDonor and new abstract item type AbstractDonor, with both Donor and ProtectedDonor as children
+* Adjust `linkTo` in schema of protected donor items (e.g. MedicalHistory, DeathCircumstances) to be for AbstractDonor temporarily. These will later be changed to `"linkTo": "ProtectedDonor"`` after item links have been patched.
+* Add revlinks to MedicalHistory from ProtectedDonor and to Exposure (for alcohol and tobacco exposure only) from MedicalHistory
+* Add necessary embeds to ProtectedDonor for generation of Donor Overview page
+
+
+0.174.0
+=======
+`PR 436: SN Donor study calcprop <https://github.com/smaht-dac/smaht-portal/pull/436>`_
+
+* Add `study` calculated property to Donor which uses the pattern of `external_id` to determine if the donor is Benchmarking or Production
+
+
+0.173.0
+=======
+`PR 434: SN Reference genome preferred_name <https://github.com/smaht-dac/smaht-portal/pull/434>`_
+
+* * Update the `meta_workflow_run_inputs` calcprop in File to ignore ReferenceFile items
+Add the property `submitter_comments` to FileSet for display in Submission Status page
+
+
+0.172.3
+=======
+`PR 433: fix: update status of pages <https://github.com/smaht-dac/smaht-portal/pull/433>`_
+
+* Update status of pages
+
+
+0.172.2
+=======
+`PR 430: Cypress tests for experimental assay terms grouping <https://github.com/smaht-dac/smaht-portal/pull/430>`_
+
+* Updates for 06_benchmarking and 04a_search_views_local upon updates in facet terms grouping
+* Add new steps into 03a_browse_view_basic for facet terms grouping for the Experimental Assay facet for both Include Properties and Exclude Properties
+
+
+0.172.1
+=======
+`PR 423: feat: update consortium table and data matrix <https://github.com/smaht-dac/smaht-portal/pull/423>`_
+
+* Add codes to the Consortium table
+* Adjust data matrix styles
+
+
+0.172.0
+=======
+`PR 425 SN Update schema properties <https://github.com/smaht-dac/smaht-portal/pull/425>`_
+
+* In TissueSample, change the `enum` in `category` from "Aliquot" to "Tissue Aliquot"
+* In File, add "Sequencing Supplement" to `data_category` and "Sequencing Information" to `data_type` and remove barcode values
+* In File, add property `qc_comments` to be included in the file manifest
+* In ResourceFile, add the `enum` "Donor Supplement" to `data_category` and "Donor Information" to `data_typ`e for the downloadable donor manifest file
+
+
+0.171.1
+=======
+`PR 424 style: update text in sample category popover <https://github.com/smaht-dac/smaht-portal/pull/424>`_
+
+* Updates category popover in File View
+
+
+0.171.0
+=======
+`PR 421 SN DSA code <https://github.com/smaht-dac/smaht-portal/pull/421>`_
+
+* Make `code` in DonorSpecificAssembly not a unique key. The expected value for these will now be "DSA"
+
+
 0.170.1
 =======
 `PR 417 fix: update capitalization for retraction_reason property <https://github.com/smaht-dac/smaht-portal/pull/417>`_

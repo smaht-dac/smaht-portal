@@ -1,7 +1,7 @@
 {
-    "title": "Donor",
-    "description": "Individuals who donated tissues",
-    "$id": "/profiles/donor.json",
+    "title": "Protected Donor",
+    "description": "Individuals who donated tissues with protected data",
+    "$id": "/profiles/protected_donor.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
@@ -52,41 +52,39 @@
     ],
     "properties": {
         "accession": {
-            "accessionType": "DO"
+            "accessionType": "PD"
         },
         "schema_version": {
             "default": "1"
         },
         "submitted_id": {
-            "pattern": "^[A-Z0-9]{3,}_DONOR_[A-Z0-9-_.]{4,}$"
+            "pattern": "^[A-Z0-9]{3,}_PROTECTED-DONOR_[A-Z0-9-_.]{4,}$"
         },
-        "protected_donor": {
-            "title": "Protected Donor",
-            "description": "Link to protected donor",
+        "status": {
+            "title": "Status",
             "type": "string",
-            "linkTo": "ProtectedDonor"
+            "default": "in review",
+            "permission": "restricted_fields",
+            "enum": [
+                "draft",
+                "released",
+                "in review",
+                "obsolete",
+                "deleted",
+                "restricted"
+            ]
         }
     },
     "facets": {
-        "external_id": {
-            "title": "Donor ID"
+        "sex": {
+            "title": "Sex"
         },
         "age": {
-            "title": "Donor Age",
+            "title": "Age",
             "aggregation_type": "stats"
-        },
-        "sex": {
-            "title": "Donor Sex"
-        },
-        "tissue.display_title": {
-            "title": "Tissue"
         },
         "submission_centers.display_title": {
             "title": "Submitted By"
-        },
-        "hardy_scale": {
-            "title": "Hardy Scale",
-            "aggregation_type": "stats"
         }
     },
     "columns": {
