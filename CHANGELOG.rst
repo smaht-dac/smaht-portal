@@ -7,13 +7,37 @@ smaht-portal
 Change Log
 ----------
 
-0.176.0
+0.179.0
 =======
 `PR 439: SN Ontology term germ layer <https://github.com/smaht-dac/smaht-portal/pull/439>`_
 
 * Change the ontology_term function `get_top_grouping_term` to `get_grouping_term_from_tag`, which will recursively search links of OntologyTerm items by `grouping_term` to find the item with tags that contain tag (`tissue_type`,`germ_layer`)
 * Add calculated property `category` to Tissue which uses OntologyTerm to classify tissue as a germ layer (Mesoderm, Ectoderm, Endoderm), Germ Cells, or Clinically Accessible
 * Add `category` to the `sample_summary` calculated property to be accessible from File
+
+
+0.178.0
+=======
+`PR 437: Data Matrix <https://github.com/smaht-dac/smaht-portal/pull/437>`_
+
+* DataMatrix is a highly configurable React component for visualizing tabular data (like a matrix or heatmap), with support for grouping, aggregation, color ranges, and dynamic configuration.
+
+
+0.177.0
+=======
+`PR 442: SN Add coverage calc prop <https://github.com/smaht-dac/smaht-portal/pull/442>`_
+
+* Add `coverage` calculated property to QualityMetric and embed it on File
+
+
+0.176.0
+=======
+`PR 429: QC metrics page improvements <https://github.com/smaht-dac/smaht-portal/pull/429>`_
+
+* Improved warnings
+* Adjusted colors for tags
+* Fixed bug were contents of "Metrics By File" tab contents would not be correctly displayed when preselected tab was not "Metrics By File"
+* Added grouping by donor
 
 
 0.175.0
