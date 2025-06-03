@@ -87,6 +87,7 @@ export class SelectAllFilesButton extends React.PureComponent {
         'file_format.*',
         'submission_centers.display_title',
         'consortia.display_title',
+        'file_sets',
     ];
 
     constructor(props) {
