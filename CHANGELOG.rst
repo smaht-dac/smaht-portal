@@ -7,10 +7,75 @@ smaht-portal
 Change Log
 ----------
 
+0.178.0
+=======
+* Support multiple manifest files
+
+
+=======
+0.177.0
+=======
+`PR 442: SN Add coverage calc prop  <https://github.com/smaht-dac/smaht-portal/pull/442>`_
+
+* Add `coverage` calculated property to QualityMetric and embed it on File
+
+
+0.176.0
+=======
+`PR 429: QC metrics page improvements <https://github.com/smaht-dac/smaht-portal/pull/429>`_
+
+* Improved warnings
+* Adjusted colors for tags
+* Fixed bug were contents of "Metrics By File" tab contents would not be correctly displayed when preselected tab was not "Metrics By File"
+* Added grouping by donor
+
+
+0.175.0
+=======
+`PR 427: SN Add protected donor item <https://github.com/smaht-dac/smaht-portal/pull/427>`_
+
+* Create new item type ProtectedDonor and new abstract item type AbstractDonor, with both Donor and ProtectedDonor as children
+* Adjust `linkTo` in schema of protected donor items (e.g. MedicalHistory, DeathCircumstances) to be for AbstractDonor temporarily. These will later be changed to `"linkTo": "ProtectedDonor"`` after item links have been patched.
+* Add revlinks to MedicalHistory from ProtectedDonor and to Exposure (for alcohol and tobacco exposure only) from MedicalHistory
+* Add necessary embeds to ProtectedDonor for generation of Donor Overview page
+
+
+0.174.0
+=======
+`PR 436: SN Donor study calcprop <https://github.com/smaht-dac/smaht-portal/pull/436>`_
+
+* Add `study` calculated property to Donor which uses the pattern of `external_id` to determine if the donor is Benchmarking or Production
+
+
 0.173.0
 =======
+`PR 434: SN Reference genome preferred_name <https://github.com/smaht-dac/smaht-portal/pull/434>`_
 
-* Support multiple manifest files
+* * Update the `meta_workflow_run_inputs` calcprop in File to ignore ReferenceFile items
+Add the property `submitter_comments` to FileSet for display in Submission Status page
+
+
+0.172.3
+=======
+`PR 433: fix: update status of pages <https://github.com/smaht-dac/smaht-portal/pull/433>`_
+
+* Update status of pages
+
+
+0.172.2
+=======
+`PR 430: Cypress tests for experimental assay terms grouping <https://github.com/smaht-dac/smaht-portal/pull/430>`_
+
+* Updates for 06_benchmarking and 04a_search_views_local upon updates in facet terms grouping
+* Add new steps into 03a_browse_view_basic for facet terms grouping for the Experimental Assay facet for both Include Properties and Exclude Properties
+
+
+0.172.1
+=======
+`PR 423: feat: update consortium table and data matrix <https://github.com/smaht-dac/smaht-portal/pull/423>`_
+
+* Add codes to the Consortium table
+* Adjust data matrix styles
 
 
 0.172.0
