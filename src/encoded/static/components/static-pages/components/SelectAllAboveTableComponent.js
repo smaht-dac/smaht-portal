@@ -327,6 +327,11 @@ const SelectedItemsDownloadModal = function (props) {
 
     const [isAWSDownload, setIsAWSDownload] = useState(false);
 
+    // If any of the selected items have file_sets, show additional manifest buttons
+    const showAdditionalManifestButtons = Array.from(
+        selectedItems.values()
+    ).some((item) => item?.file_sets?.length > 0);
+
     useEffect(() => {
         const {
             analyticsAddItemsToCart = false,
@@ -588,121 +593,123 @@ const SelectedItemsDownloadModal = function (props) {
                         setIsAWSDownload={setIsAWSDownload}
                     />
                 </div>
-                <div className="col-auto mb-4">
-                    <h2 className="text-larger">
-                        Download Additional Metadata Files
-                    </h2>
-                    <hr className="my-2" />
-                    <div className="additonal-manifest-buttons d-flex gap-2 flex-wrap">
-                        {/* Biosample manifest download */}
-                        <form
-                            method="POST"
-                            action={action}
-                            className="d-inline-block d-block-xs-only">
-                            <input
-                                type="hidden"
-                                name="accessions"
-                                value={JSON.stringify(accessionArray)}
-                            />
-                            <input
-                                type="hidden"
-                                name="download_file_name"
-                                value={JSON.stringify(suggestedFilename)}
-                            />
-                            <input
-                                type="hidden"
-                                name="include_extra_files"
-                                value={JSON.stringify(false)}
-                            />
-                            <input
-                                type="hidden"
-                                name="manifest_enum"
-                                value={2}
-                            />
-                            <button
-                                type="submit"
-                                name="Download"
-                                onClick={onClick}
-                                className="btn btn-outline-secondary mt-0"
-                                data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
-                                <i className="icon icon-fw icon-download fas me-1" />
-                                Biosample
-                            </button>
-                        </form>
+                {showAdditionalManifestButtons && (
+                    <div className="col-auto mb-4">
+                        <h2 className="text-larger">
+                            Download Additional Metadata Files
+                        </h2>
+                        <hr className="my-2" />
+                        <div className="additonal-manifest-buttons d-flex gap-2 flex-wrap">
+                            {/* Biosample manifest download */}
+                            <form
+                                method="POST"
+                                action={action}
+                                className="d-inline-block d-block-xs-only">
+                                <input
+                                    type="hidden"
+                                    name="accessions"
+                                    value={JSON.stringify(accessionArray)}
+                                />
+                                <input
+                                    type="hidden"
+                                    name="download_file_name"
+                                    value={JSON.stringify(suggestedFilename)}
+                                />
+                                <input
+                                    type="hidden"
+                                    name="include_extra_files"
+                                    value={JSON.stringify(false)}
+                                />
+                                <input
+                                    type="hidden"
+                                    name="manifest_enum"
+                                    value={2}
+                                />
+                                <button
+                                    type="submit"
+                                    name="Download"
+                                    onClick={onClick}
+                                    className="btn btn-outline-secondary mt-0"
+                                    data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
+                                    <i className="icon icon-fw icon-download fas me-1" />
+                                    Biosample
+                                </button>
+                            </form>
 
-                        {/* Analyte manifest download */}
-                        <form
-                            method="POST"
-                            action={action}
-                            className="d-inline-block d-block-xs-only">
-                            <input
-                                type="hidden"
-                                name="accessions"
-                                value={JSON.stringify(accessionArray)}
-                            />
-                            <input
-                                type="hidden"
-                                name="download_file_name"
-                                value={JSON.stringify(suggestedFilename)}
-                            />
-                            <input
-                                type="hidden"
-                                name="include_extra_files"
-                                value={JSON.stringify(false)}
-                            />
-                            <input
-                                type="hidden"
-                                name="manifest_enum"
-                                value={4}
-                            />
-                            <button
-                                type="submit"
-                                name="Download"
-                                onClick={onClick}
-                                className="btn btn-outline-secondary mt-0"
-                                data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
-                                <i className="icon icon-fw icon-download fas me-1" />
-                                Analyte
-                            </button>
-                        </form>
+                            {/* Analyte manifest download */}
+                            <form
+                                method="POST"
+                                action={action}
+                                className="d-inline-block d-block-xs-only">
+                                <input
+                                    type="hidden"
+                                    name="accessions"
+                                    value={JSON.stringify(accessionArray)}
+                                />
+                                <input
+                                    type="hidden"
+                                    name="download_file_name"
+                                    value={JSON.stringify(suggestedFilename)}
+                                />
+                                <input
+                                    type="hidden"
+                                    name="include_extra_files"
+                                    value={JSON.stringify(false)}
+                                />
+                                <input
+                                    type="hidden"
+                                    name="manifest_enum"
+                                    value={4}
+                                />
+                                <button
+                                    type="submit"
+                                    name="Download"
+                                    onClick={onClick}
+                                    className="btn btn-outline-secondary mt-0"
+                                    data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
+                                    <i className="icon icon-fw icon-download fas me-1" />
+                                    Analyte
+                                </button>
+                            </form>
 
-                        {/* Sequencing manifest download */}
-                        <form
-                            method="POST"
-                            action={action}
-                            className="d-inline-block d-block-xs-only">
-                            <input
-                                type="hidden"
-                                name="accessions"
-                                value={JSON.stringify(accessionArray)}
-                            />
-                            <input
-                                type="hidden"
-                                name="download_file_name"
-                                value={JSON.stringify(suggestedFilename)}
-                            />
-                            <input
-                                type="hidden"
-                                name="include_extra_files"
-                                value={JSON.stringify(false)}
-                            />
-                            <input
-                                type="hidden"
-                                name="manifest_enum"
-                                value={5}
-                            />
-                            <button
-                                type="submit"
-                                name="Download"
-                                onClick={onClick}
-                                className="btn btn-outline-secondary mt-0"
-                                data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
-                                <i className="icon icon-fw icon-download fas me-1" />
-                                Sequencing
-                            </button>
-                        </form>
+                            {/* Sequencing manifest download */}
+                            <form
+                                method="POST"
+                                action={action}
+                                className="d-inline-block d-block-xs-only">
+                                <input
+                                    type="hidden"
+                                    name="accessions"
+                                    value={JSON.stringify(accessionArray)}
+                                />
+                                <input
+                                    type="hidden"
+                                    name="download_file_name"
+                                    value={JSON.stringify(suggestedFilename)}
+                                />
+                                <input
+                                    type="hidden"
+                                    name="include_extra_files"
+                                    value={JSON.stringify(false)}
+                                />
+                                <input
+                                    type="hidden"
+                                    name="manifest_enum"
+                                    value={5}
+                                />
+                                <button
+                                    type="submit"
+                                    name="Download"
+                                    onClick={onClick}
+                                    className="btn btn-outline-secondary mt-0"
+                                    data-tip="Details for each individual selected file delivered via a TSV spreadsheet.">
+                                    <i className="icon icon-fw icon-download fas me-1" />
+                                    Sequencing
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                </div>
+                )}
             </Modal.Body>
             <Modal.Footer>
                 <button
