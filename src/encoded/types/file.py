@@ -397,6 +397,10 @@ def _build_file_embedded_list() -> List[str]:
         "quality_metrics.overall_quality_status",
         "quality_metrics.coverage",
         # For manifest
+        "file_sets.accession",
+        "file_sets.libraries.analytes.accession",
+        "file_sets.libraries.analytes.samples.accession",
+        "file_sets.libraries.analytes.samples.sample_sources.donor.accession",
         "sequencing.sequencer.display_title",
         "sequencing.sequencer.platform",
 
