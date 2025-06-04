@@ -666,7 +666,7 @@ def handle_metadata_arguments(context, request):
         return Response("Invalid parameters", status=400)
 
     if download_file_name is None:
-        download_file_name = 'smaht_manifest_' + datetime.utcnow().strftime('%Y-%m-%d-%Hh-%Mm') + '.tsv'
+        download_file_name = f'smaht_manifest_{manifest_enum}' + datetime.utcnow().strftime('%Y-%m-%d-%Hh-%Mm') + '.tsv'
 
     # Generate a header, resolve mapping
     header = generate_manifest_header(download_file_name, manifest_enum, cli=cli)
