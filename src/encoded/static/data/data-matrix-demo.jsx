@@ -1,6 +1,6 @@
 <div key="someRandomKey" className="container">
     <div className="row">
-        <div className="col-6">
+        <div className="col-12 col-xxl-7">
             <h4 className="text-500">Benchmarking Data</h4>
             <DataMatrix
                 key="data-matrix-demo-1"   // Required to prevent re-instantiation of component upon window resize & similar.
@@ -42,7 +42,10 @@
                         "TEnCATS - ONT": "TEnCATS",
                         "WGS - ONT": "WGS - Standard ONT",
                         "Ultra-Long WGS - ONT": "WGS - UltraLong ONT",
-                        "Hi-C - Illumina": "Hi-C"
+                        "HiDEF-seq - Illumina": "HiDEF-seq",
+                        "HiDEF-seq - PacBio": "HiDEF-seq",
+                        "Hi-C - Illumina": "Hi-C",
+                        "Hi-C - PacBio": "Hi-C",
                     },
                     "tissue": {
                         "endocrine pancreas": "Endocrine pancreas",
@@ -84,7 +87,7 @@
                         "shortName": "RNA"
                     },
                     "Duplex-seq": {
-                        "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-Seq'],
+                        "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-seq'],
                         "backgroundColor": "#2b4792",
                         "textColor": "#ffffff",
                         "shortName": "Dupl"
@@ -201,7 +204,7 @@
                 disableConfigurator={false}
             />
         </div>
-        <div className="col-6">
+        <div className="col-12 col-xxl-5">
             <h4 className="text-500">Production Data</h4>
             <DataMatrix
                 key="data-matrix-demo-2"   // Required to prevent re-instantiation of component upon window resize & similar.
@@ -241,6 +244,10 @@
                         "TEnCATS - ONT": "TEnCATS",
                         "WGS - ONT": "WGS - Standard ONT",
                         "Ultra-Long WGS - ONT": "WGS - UltraLong ONT",
+                        "HiDEF-seq - Illumina": "HiDEF-seq",
+                        "HiDEF-seq - PacBio": "HiDEF-seq",
+                        "Hi-C - Illumina": "Hi-C",
+                        "Hi-C - PacBio": "Hi-C",
                     },
                     "tissue": {
                         "endocrine pancreas": "Endocrine pancreas",
@@ -263,7 +270,7 @@
                         "shortName": "RNA"
                     },
                     "Duplex-seq": {
-                        "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-Seq'],
+                        "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-seq'],
                         "backgroundColor": "#2b4792",
                         "textColor": "#ffffff",
                         "shortName": "Dupl"
