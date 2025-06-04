@@ -18,6 +18,8 @@ def _build_protected_donor_embedded_list():
         "medical_history.exposures.quantity_unit",
         "medical_history.cancer_history",
         "medical_history.cancer_type",
+        "medical_history.family_breast_cancer",
+        "medical_history.family_cancer_under_50",
         "medical_history.family_ovarian_pancreatic_prostate_cancer",
         "medical_history.alcohol_use",
         "medical_history.tobacco_use",
@@ -37,7 +39,6 @@ class ProtectedDonor(AbstractDonor):
     embedded_list = _build_protected_donor_embedded_list()
 
     rev = {
-        **AbstractDonor.rev,
         "medical_history": ("MedicalHistory", "donor"),
     }
 
