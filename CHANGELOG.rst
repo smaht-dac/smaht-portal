@@ -13,7 +13,6 @@ Change Log
 
 * Embed `donors.protected_donor` on File
 * Move `tissues` revlink from AbstractDonor to Donor
-* Update schema `linkTos`for protected donor metadata items to only link to ProtectedDonor
 * Add embeds from MedicalHistory to ProtectedDonor
 
 
