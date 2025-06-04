@@ -9,7 +9,6 @@ from .abstract_donor import AbstractDonor
 def _build_protected_donor_embedded_list():
     """Embeds for search on protected donor."""
     return [
-        "donor.tissues",
         "medical_history.exposures.category",
         "medical_history.exposures.cessation",
         "medical_history.exposures.cessation_duration",
@@ -46,11 +45,11 @@ class ProtectedDonor(AbstractDonor):
 
     @calculated_property(
         schema={
-            "title": "Medical History",
+            "title": "Public Donor",
             "type": "array",
             "items": {
                 "type": "string",
-                "linkTo": "MedicalHistory",
+                "linkTo": "Donor",
             },
         },
     )
