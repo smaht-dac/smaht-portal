@@ -7,11 +7,20 @@ smaht-portal
 Change Log
 ----------
 
-0.181.1
+0.182.1
 =======
 `PR 444 feat: fix: update suggestedFilename for additional manifests <https://github.com/smaht-dac/smaht-portal/pull/444>`_
 
 * Replaces the suggestedFilename in the additional manifest download
+
+
+0.182.0
+=======
+`PR 443: SN Update protected donor <https://github.com/smaht-dac/smaht-portal/pull/443>`_
+
+* Embed `donors.protected_donor` on File
+* Move `tissues` revlink from AbstractDonor to Donor
+* Add embeds from MedicalHistory to ProtectedDonor
 
 
 0.181.0
