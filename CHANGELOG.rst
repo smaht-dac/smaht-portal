@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.182.1
+=======
+`PR 444 feat: fix: update suggestedFilename for additional manifests <https://github.com/smaht-dac/smaht-portal/pull/444>`_
+
+* Replaces the suggestedFilename in the additional manifest download
+
+
 0.182.0
 =======
 `PR 443: SN Update protected donor <https://github.com/smaht-dac/smaht-portal/pull/443>`_
