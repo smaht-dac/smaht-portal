@@ -75,6 +75,15 @@ export const SelectAllAboveTableComponent = React.memo(
 
 const SELECT_ALL_LIMIT = 8000;
 
+const manifest_enum_map = [
+    'file',
+    'clinical',
+    'biosample',
+    'experiment',
+    'analyte',
+    'sequencing',
+];
+
 export class SelectAllFilesButton extends React.PureComponent {
     /** These are fields included when "Select All" button is clicked to AJAX all files in */
     static fieldsToRequest = [
@@ -382,8 +391,8 @@ const SelectedItemsDownloadModal = function (props) {
 
     const suggestedFilename =
         filenamePrefix +
-        dateTimeDisplay(new Date(), 'date-time-file', '-', false) +
-        '.tsv';
+        dateTimeDisplay(new Date(), 'date-time-file', '-', false);
+    ('.tsv');
 
     if ('search' === analytics.hrefToListName(window && window.location.href)) {
         action = '/metadata/?type=File&sort=accession';
@@ -469,6 +478,19 @@ const SelectedItemsDownloadModal = function (props) {
         },
         [selectedItems, isAWSDownload]
     );
+
+    const createAdditionalManifestFilename = (
+        suggestedFilename = '',
+        manifest_enum = 0
+    ) => {
+        if (!suggestedFilename || !manifest_enum) {
+            return suggestedFilename;
+        }
+        return suggestedFilename.replace(
+            /\.tsv$/,
+            `_${manifest_enum_map[manifest_enum]}.tsv`
+        );
+    };
 
     return (
         <Modal
@@ -614,7 +636,9 @@ const SelectedItemsDownloadModal = function (props) {
                                 <input
                                     type="hidden"
                                     name="download_file_name"
-                                    value={JSON.stringify(suggestedFilename)}
+                                    value={JSON.stringify(
+                                        createAdditionalManifestFilename(2)
+                                    )}
                                 />
                                 <input
                                     type="hidden"
@@ -649,7 +673,9 @@ const SelectedItemsDownloadModal = function (props) {
                                 <input
                                     type="hidden"
                                     name="download_file_name"
-                                    value={JSON.stringify(suggestedFilename)}
+                                    value={JSON.stringify(
+                                        createAdditionalManifestFilename(4)
+                                    )}
                                 />
                                 <input
                                     type="hidden"
@@ -684,7 +710,9 @@ const SelectedItemsDownloadModal = function (props) {
                                 <input
                                     type="hidden"
                                     name="download_file_name"
-                                    value={JSON.stringify(suggestedFilename)}
+                                    value={JSON.stringify(
+                                        createAdditionalManifestFilename(5)
+                                    )}
                                 />
                                 <input
                                     type="hidden"
