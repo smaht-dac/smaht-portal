@@ -585,9 +585,9 @@ def descend_field(request, prop, field_names, cli=False):
         # file_sets.file_group: return first valid value
         if possible_field == 'file_sets.file_group':
             val = values[0]
-            if isinstance(val, Mapping):
+            if isinstance(val, Mapping) and 'file_group' in val:  # make resistent to further nesting
                 return val.get('file_group')
-            return val
+            return val  # should always be the case
 
         # If only one value and it's a primitive, return it as-is
         if len(values) == 1:
