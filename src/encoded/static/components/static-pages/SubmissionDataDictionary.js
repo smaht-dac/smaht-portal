@@ -126,7 +126,7 @@ export const SubmissionDataDictionary = () => {
         <div className="schema-reference-page">
             <Select
                 value={selectedSchema}
-                placeholder="Select an Item..."
+                placeholder="Select a tab/item type from the Submission Spreadsheet (e.g. AlignedReads or Analyte)..."
                 onChange={(selectedItem) => {
                     setSelectedSchema(selectedItem);
                 }}
