@@ -412,11 +412,13 @@ def _build_file_embedded_list() -> List[str]:
 
         # For browse search columns
         "donors.display_title",
+        "donors.protected_donor",
         "sample_summary.tissues",
 
         # For facets
         "donors.age",
-        "donors.sex"
+        "donors.sex",
+
     ]
 
 

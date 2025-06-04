@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.182.0
+=======
+`PR 443: SN Update protected donor <https://github.com/smaht-dac/smaht-portal/pull/443>`_
+
+* Embed `donors.protected_donor` on File
+* Move `tissues` revlink from AbstractDonor to Donor
+* Add embeds from MedicalHistory to ProtectedDonor
+
+
 0.181.0
 =======
 `PR 438 feat: static page updates <https://github.com/smaht-dac/smaht-portal/pull/438>`_
