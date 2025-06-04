@@ -9,7 +9,11 @@
         "flow_cell": "R9",
         "target_coverage": 500,
         "target_read_length": 150,
-        "sequencer": "illumina_novaseqx"
+        "additional_notes": "lot number 15351",
+        "sequencer": "illumina_novaseqx",
+        "preparation_kits": [
+            "TEST_PREPARATION-KIT_ILLUMINA-DNA"
+        ]
     },
     {
         "uuid": "bbbe4180-8f6b-4fa1-8f01-22451b0e3bd1",
@@ -33,6 +37,7 @@
         "target_read_length": 20000,
         "target_read_count": 50000000,
         "movie_length": 30,
+        "target_monomer_length":  2000,
         "sequencer": "pacbio_revio_hifi"
     },
     {

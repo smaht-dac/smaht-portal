@@ -15,4 +15,37 @@ class Sample(SubmittedItem):
     item_type = "sample"
     base_types = ["Sample"] + SubmittedItem.base_types
     schema = load_schema("encoded:schemas/sample.json")
-    embedded_list = []
+    embedded_list = [
+
+        # Specific embeds for sample manifest
+        "sample_sources.donor.accession",
+        "sample_sources.donor.external_id",
+        "sample_sources.description",
+        "sample_sources.external_id",
+        "sample_sources.sample_count",
+        "sample_sources.anatomical_location",
+        "sample_sources.ischemic_time",
+        "sample_sources.pathology_notes",
+        "sample_sources.ph",
+        "sample_sources.preservation_medium",
+        "sample_sources.preservation_type",
+        "sample_sources.prosector_notes",
+        "sample_sources.sample_count",
+        "sample_sources.size",
+        "sample_sources.size_unit",
+        "sample_sources.uberon_id.identifier",
+        "sample_sources.volume",
+        "sample_sources.weight",
+ 
+        # from CellCulture
+        "sample_sources.culture_duration",
+        "sample_sources.culture_harvest_date",
+        "sample_sources.culture_start_date",
+        "sample_sources.growth_medium",
+        "sample_sources.karyotype",
+        "sample_sources.cell_line.code",
+        "sample_sources.cell_line.parent_cell_lines.code", # do we need this?
+        "sample_sources.cell_line.source",
+        "sample_sources.cell_line.url"
+
+    ]
