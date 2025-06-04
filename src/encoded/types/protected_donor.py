@@ -9,6 +9,7 @@ from .abstract_donor import AbstractDonor
 def _build_protected_donor_embedded_list():
     """Embeds for search on protected donor."""
     return [
+        "donor.tissues",
         "medical_history.exposures.category",
         "medical_history.exposures.cessation",
         "medical_history.exposures.cessation_duration",
@@ -39,9 +40,23 @@ class ProtectedDonor(AbstractDonor):
     embedded_list = _build_protected_donor_embedded_list()
 
     rev = {
-        **AbstractDonor.rev,
+        "donor": ("Donor", "protected_donor"),
         "medical_history": ("MedicalHistory", "donor"),
     }
+
+    @calculated_property(
+        schema={
+            "title": "Medical History",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "MedicalHistory",
+            },
+        },
+    )
+    def donor(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "donor")
+        return result or None
 
     @calculated_property(
         schema={
