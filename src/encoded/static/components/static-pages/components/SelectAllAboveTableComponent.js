@@ -1058,7 +1058,7 @@ const SelectedItemsDownloadStartButton = React.memo(
                         Download <b>
                             {isAWSDownload ? 'AWS CLI ' : 'cURL'}
                         </b>{' '}
-                        FILE Manifest
+                        Donor Manifest
                     </button>
                 </form>
             </>

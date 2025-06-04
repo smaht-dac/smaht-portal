@@ -52,7 +52,7 @@ content_views.register(UserView, 'User');
 content_views.register(ImpersonateUserForm, 'User', 'impersonate-user');
 content_views.register(StaticSectionView, 'StaticSection');
 content_views.register(FileView, 'File');
-content_views.register(DonorView, 'Donor');
+content_views.register(DonorView, 'ProtectedDonor');
 
 content_views.register(SMaHTSubmissionView, 'Item', 'edit');
 content_views.register(SMaHTSubmissionView, 'Item', 'create');
