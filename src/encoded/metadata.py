@@ -393,7 +393,7 @@ TSV_MAPPING = {
         'FileSetAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['accession']),
         'SampleAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.samples.accession']),
         'AnalyteAccessions': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.accession']),
-        'DonorAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.samples.sample_sources.donor.accession']),
+        'DonorAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['donors.accession']),
 
         # Library fields
         'LibraryAssay': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.assay.identifier']),
@@ -637,7 +637,7 @@ def handle_metadata_arguments(context, request):
     if request.content_type == 'application/json':
         try:
             post_params = request.json_body
-            manifest_enum = post_params.get('manifest_enum', FILE)
+            manifest_enum = int(post_params.get('manifest_enum', FILE))
             accessions = post_params.get('accessions', [])
             type_param = post_params.get('type')
             sort_param = post_params.get('sort')
@@ -650,7 +650,7 @@ def handle_metadata_arguments(context, request):
     elif request.content_type == 'application/x-www-form-urlencoded':
         post_params = request.POST
         accessions = json.loads(post_params.get('accessions', ''))
-        manifest_enum = post_params.get('manifest_enum', FILE)
+        manifest_enum = int(post_params.get('manifest_enum', FILE))
         type_param = post_params.get('type')
         sort_param = post_params.get('sort')
         status = post_params.get('status')
