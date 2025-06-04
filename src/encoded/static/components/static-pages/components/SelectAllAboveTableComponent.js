@@ -479,19 +479,6 @@ const SelectedItemsDownloadModal = function (props) {
         [selectedItems, isAWSDownload]
     );
 
-    const createAdditionalManifestFilename = (
-        suggestedFilename = '',
-        manifest_enum = 0
-    ) => {
-        if (!suggestedFilename || !manifest_enum) {
-            return suggestedFilename;
-        }
-        return suggestedFilename.replace(
-            /\.tsv$/,
-            `_${manifest_enum_map[manifest_enum]}.tsv`
-        );
-    };
-
     return (
         <Modal
             show
@@ -637,7 +624,8 @@ const SelectedItemsDownloadModal = function (props) {
                                     type="hidden"
                                     name="download_file_name"
                                     value={JSON.stringify(
-                                        createAdditionalManifestFilename(2)
+                                        suggestedFilename.split('.tsv')[0] +
+                                            `_${manifest_enum_map[2]}.tsv`
                                     )}
                                 />
                                 <input
@@ -674,7 +662,8 @@ const SelectedItemsDownloadModal = function (props) {
                                     type="hidden"
                                     name="download_file_name"
                                     value={JSON.stringify(
-                                        createAdditionalManifestFilename(4)
+                                        suggestedFilename.split('.tsv')[0] +
+                                            `_${manifest_enum_map[4]}.tsv`
                                     )}
                                 />
                                 <input
@@ -711,7 +700,8 @@ const SelectedItemsDownloadModal = function (props) {
                                     type="hidden"
                                     name="download_file_name"
                                     value={JSON.stringify(
-                                        createAdditionalManifestFilename(5)
+                                        suggestedFilename.split('.tsv')[0] +
+                                            `_${manifest_enum_map[5]}.tsv`
                                     )}
                                 />
                                 <input
