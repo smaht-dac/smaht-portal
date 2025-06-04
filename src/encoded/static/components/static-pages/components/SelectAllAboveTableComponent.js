@@ -391,8 +391,8 @@ const SelectedItemsDownloadModal = function (props) {
 
     const suggestedFilename =
         filenamePrefix +
-        dateTimeDisplay(new Date(), 'date-time-file', '-', false);
-    ('.tsv');
+        dateTimeDisplay(new Date(), 'date-time-file', '-', false) +
+        '.tsv';
 
     if ('search' === analytics.hrefToListName(window && window.location.href)) {
         action = '/metadata/?type=File&sort=accession';
