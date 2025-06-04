@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+0.181.0
+=======
+`PR 443: SN Update protected donor <https://github.com/smaht-dac/smaht-portal/pull/443>`_
+
+* Embed `donors.protected_donor` on File
+* Move `tissues` revlink from AbstractDonor to Donor
+* Update schema `linkTos`for protected donor metadata items to only link to ProtectedDonor
+* Add embeds from MedicalHistory to ProtectedDonor
+
+
 0.180.0
 =======
 `PR 441: feat: support download for multiple manifest files <https://github.com/smaht-dac/smaht-portal/pull/441>`_
