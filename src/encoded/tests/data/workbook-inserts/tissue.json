@@ -13,6 +13,8 @@
         "ph": 6.7,
         "sample_count": 7,
         "weight": 3.4,
+        "pathology_notes": "Sclerosis",
+        "prosector_notes": "Some note",
         "preservation_type": "Fixed",
         "preservation_medium": "Formalin",
         "size": 2.3,
@@ -40,7 +42,8 @@
         "submitted_id": "TEST_TISSUE_BLOOD",
         "external_id": "SMHT001-3A",
         "uberon_id": "UBERON:0000178",
-        "donor": "TEST_DONOR_FEMALE"
+        "donor": "TEST_DONOR_FEMALE",
+        "volume": 20
     },
     {
         "uuid": "6facfca7-ac0e-4577-963a-496435aa0bcd",

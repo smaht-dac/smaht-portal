@@ -6,7 +6,7 @@ from ..metadata import descend_field
 
 class TestMetadataTSVHelper:
 
-    TSV_WIDTH = 18
+    TSV_WIDTH = 22
 
     @staticmethod
     def read_tsv_from_bytestream(bytestream):
@@ -68,7 +68,7 @@ class TestMetadataTSVWorkbook:
                     'dict': 1
                 }
             }
-        }, ['simple.simple2'], None),
+        }, ['simple.simple2'], {'dict': 1}),  # this behavior, while generally undesirable, is easily spotted
         ({
              'simple': {
                  'simple2': ['array']
@@ -78,7 +78,7 @@ class TestMetadataTSVWorkbook:
              'simple': {
                  'simple2': ['array1', 'array2']
              }
-         }, ['simple.simple2'], 'array1|array2'),
+         }, ['simple.simple2'], 'array1,array2'),
         ({
              'simple': {
                  'simple2': [{'key': 'val1'}]
@@ -88,21 +88,21 @@ class TestMetadataTSVWorkbook:
              'simple': {
                  'simple2': [{'key': 'val1'}, {'key': 'val2'}]
              }
-         }, ['simple.simple2.key'], 'val1|val2'),
+         }, ['simple.simple2.key'], 'val1,val2'),
         ({
              'simple': {
                  'simple2': {
                      'simple3': [{'key': 'val1'}, {'key': 'val2'}]
                  }
              }
-         }, ['simple.simple2.simple3.key'], 'val1|val2'),
+         }, ['simple.simple2.simple3.key'], 'val1,val2'),
     ])
     def test_descend_field(field_dict, list_of_names, expected):
         """ Helper that tests that we can retrieve fields in various expected scenarios """
         assert descend_field(DummyRequest, field_dict, list_of_names) == expected
 
     @pytest.mark.workbook
-    def test_metadata_tsv_workbook(self, workbook, es_testapp):
+    def test_metadata_tsv_workbook2(self, workbook, es_testapp):
         """ Tests we can process regular files in multiples in the workbook """
         es_testapp.post_json('/index', {})  # index the files
         res = es_testapp.post_json('/metadata/',
@@ -128,7 +128,6 @@ class TestMetadataTSVWorkbook:
         TestMetadataTSVHelper.check_type_length(es_testapp, 'SupplementaryFile', 2)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'HistologyImage', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'ResourceFile', 1)
-
 
         res = es_testapp.post_json('/metadata/', {'type': 'OutputFile', 'include_extra_files': True})
         tsv = res._app_iter[0]
@@ -170,6 +169,25 @@ class TestMetadataTSVWorkbook:
         parsed = TestMetadataTSVHelper.read_tsv_from_bytestream(tsv)
         header_command_part = 'jq -r ".download_credentials | {AccessKeyId'
         assert header_command_part in parsed[1][3]  # this is where suggested command is
+
+        # Manifest expansions
+        # These rely on the same mechanisms as the file manifest, but
+        # should probably still be tested more carefully...
+        es_testapp.post_json('/metadata/', {
+            'type': 'File',
+            'include_extra_files': False,
+            'manifest_enum': 2
+        })
+        es_testapp.post_json('/metadata/', {
+            'type': 'File',
+            'include_extra_files': False,
+            'manifest_enum': 4
+        })
+        es_testapp.post_json('/metadata/', {
+            'type': 'File',
+            'include_extra_files': False,
+            'manifest_enum': 5
+        })
 
     @pytest.mark.workbook
     def test_peak_metadata_workbook(self, workbook, es_testapp):
