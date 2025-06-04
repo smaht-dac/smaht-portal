@@ -154,7 +154,7 @@
                         "shortName": "Ecto"
                     },
                     "Mesoderm": {
-                        "values": ['Aorta', 'Fibroblast', 'Heart', 'Muscle'],
+                        "values": ['Aorta', 'Fibroblast', 'Heart', 'Muscle', 'Adrenal Gland'],
                         "backgroundColor": "#30975e",
                         "textColor": "#ffffff",
                         "shortName": "Meso"
@@ -324,7 +324,7 @@
                         "shortName": "Ecto"
                     },
                     "Mesoderm": {
-                        "values": ['Aorta', 'Fibroblast', 'Heart', 'Muscle'],
+                        "values": ['Aorta', 'Fibroblast', 'Heart', 'Muscle', 'Adrenal Gland'],
                         "backgroundColor": "#30975e",
                         "textColor": "#ffffff",
                         "shortName": "Meso"
