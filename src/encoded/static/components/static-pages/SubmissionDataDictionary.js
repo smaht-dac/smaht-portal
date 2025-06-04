@@ -102,8 +102,6 @@ export const SubmissionDataDictionary = () => {
     const [schemaData, setSchemaData] = React.useState(null);
     const [selectedSchema, setSelectedSchema] = React.useState(null);
 
-    console.log(schemaData);
-
     useEffect(() => {
         ajax.load(
             '/submission-schemas/?format=json',
