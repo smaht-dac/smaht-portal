@@ -39,23 +39,8 @@ class ProtectedDonor(AbstractDonor):
     embedded_list = _build_protected_donor_embedded_list()
 
     rev = {
-        "donor": ("Donor", "protected_donor"),
         "medical_history": ("MedicalHistory", "donor"),
     }
-
-    @calculated_property(
-        schema={
-            "title": "Public Donor",
-            "type": "array",
-            "items": {
-                "type": "string",
-                "linkTo": "Donor",
-            },
-        },
-    )
-    def donor(self, request: Request) -> Union[List[str], None]:
-        result = self.rev_link_atids(request, "donor")
-        return result or None
 
     @calculated_property(
         schema={

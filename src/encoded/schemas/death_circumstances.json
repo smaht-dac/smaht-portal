@@ -196,7 +196,7 @@
             "title": "Donor",
             "description": "Link to the associated donor",
             "type": "string",
-            "linkTo": "AbstractDonor"
+            "linkTo": "ProtectedDonor"
         }
     }
 }

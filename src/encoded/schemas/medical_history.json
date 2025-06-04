@@ -462,7 +462,7 @@
             "title": "Donor",
             "description": "The donor to which this medical history applies",
             "type": "string",
-            "linkTo": "AbstractDonor"
+            "linkTo": "ProtectedDonor"
         }
     }
 }
