@@ -27,6 +27,7 @@ import {
 } from '../components/benchmarking';
 import { DownloadAllFilesFromSearchHrefButton } from '../components/challenges/DownloadAllFilesFromSearchHrefButton';
 import { ChallengeTableWrapper } from '../components/challenges/ChallengeTables';
+import DataMatrix from '../components/matrix/DataMatrix';
 import RetractedFilesTable from '../components/RetractedFilesTable';
 import { SubmissionDataDictionary } from '../SubmissionDataDictionary';
 
@@ -54,6 +55,7 @@ const placeholders = {
     DownloadAllFilesFromSearchHrefButton,
     ChallengeTableWrapper,
     RetractedFilesTable,
+    DataMatrix,
     SubmissionDataDictionary,
 };
 

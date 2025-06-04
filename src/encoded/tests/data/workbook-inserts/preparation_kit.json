@@ -6,6 +6,8 @@
         ],
         "submitted_id": "TEST_PREPARATION-KIT_ILLUMINA-DNA",
         "title": "Illumina DNA Prep",
-        "vendor": "Illumina"
+        "vendor": "Illumina",
+        "catalog_number": "20025523",
+        "version": "1"
     }
 ]

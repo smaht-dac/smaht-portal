@@ -5,10 +5,16 @@
             "smaht"
         ],
         "submitted_id": "TEST_CELL-CULTURE_HELA",
+        "sample_count": 1,
+        "external_id": "Hela_1",
+        "description": "Hela cell culture",
         "cell_line": ["TEST_CELL-LINE_HELA"],
         "culture_duration": 15,
         "culture_start_date": "2023-12-25",
+        "culture_harvest_date": "2024-01-15",
         "growth_medium": "EMEM",
+        "karyotype": "92,XXYY[4]/46,XY[20]",
+        "lot_number": ["ATCC-70022927"],
         "passage_number": 14
     },
     {
