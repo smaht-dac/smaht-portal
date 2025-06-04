@@ -393,7 +393,7 @@ TSV_MAPPING = {
         'FileSetAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['accession']),
         'SampleAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.samples.accession']),
         'AnalyteAccessions': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.accession']),
-        'DonorAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['donors.accession']),
+        'DonorAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.samples.sample_sources.donor.accession']),
 
         # Library fields
         'LibraryAssay': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.assay.identifier']),
