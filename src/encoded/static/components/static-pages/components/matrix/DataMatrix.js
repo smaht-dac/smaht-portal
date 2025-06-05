@@ -148,6 +148,7 @@ export default class DataMatrix extends React.PureComponent {
         this.loadSearchQueryResults = this.loadSearchQueryResults.bind(this);
         this.onApplyConfiguration = this.onApplyConfiguration.bind(this);
         this.getJsxExport = this.getJsxExport.bind(this);
+        this.isProductionEnv = this.isProductionEnv.bind(this);
 
         const colorRanges = this.getColorRanges(props);
 
@@ -411,6 +412,13 @@ export default class DataMatrix extends React.PureComponent {
         return userGroups && userGroups.indexOf('admin') >= 0;
     }
 
+    isProductionEnv() {
+        if (window && window.location && window.location.href) {
+            return window.location.href.indexOf('data.smaht.org') >= 0 || window.location.href.indexOf('staging.smaht.org') >= 0;
+        }
+        return false;
+    }
+
     render() {
         const {
             headerFor, valueChangeMap, allowedFields, compositeValueSeparator,
@@ -454,7 +462,7 @@ export default class DataMatrix extends React.PureComponent {
 
         const fieldToNameMap = _.invert(this.state.fieldChangeMap);
 
-        const configurator = !disableConfigurator && this.isAdminUser() && (
+        const configurator = !disableConfigurator && this.isAdminUser() && !this.isProductionEnv() && (
             <DataMatrixConfigurator
                 dimensions={allowedFields}
                 fieldToNameMap={fieldToNameMap}
