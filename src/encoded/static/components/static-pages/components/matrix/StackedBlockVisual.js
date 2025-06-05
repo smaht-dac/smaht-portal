@@ -86,11 +86,11 @@ export class VisualBody extends React.PureComponent {
      */
     blockPopover(data, blockProps, parentGrouping){
         const {
-            query: { url: queryUrl, columnAggFields, rowAggFields },
+            query: { url: queryUrl, columnAggFields },
             fieldChangeMap, valueChangeMap, titleMap,
             groupingProperties, columnGrouping, compositeValueSeparator
         } = this.props;
-        const { depth, blockType = null, columnToRowsMapping, popoverPrimaryTitle } = blockProps;
+        const { depth, blockType = null, columnToRowsMapping, popoverPrimaryTitle, rowGroups, rowGroupKey } = blockProps;
         const isGroup = (Array.isArray(data) && data.length >= 1) || false;
         let aggrData;
 
@@ -123,15 +123,15 @@ export class VisualBody extends React.PureComponent {
         let yAxisGroupingValue = null;
         if(isGroup){
             yAxisGroupingValue = data[0][columnGrouping];
-            if (isSummaryBlock(blockType)) {
-                _.uniq(_.pluck(data, columnGrouping)).length > 1 ? yAxisGroupingValue = 'Multiple' : yAxisGroupingValue = data[0][columnGrouping];
+            if (blockType === 'row-summary') {
+                yAxisGroupingValue = _.uniq(_.pluck(data, columnGrouping)).length > 1 ? 'Multiple' : data[0][columnGrouping];
             }
         } else {
             yAxisGroupingValue = data[columnGrouping];
         }
 
         // for column summaries, find a way to assign value instead of '-' placeholder to supply more information
-        if (!primaryGroupingPropertyValue && yAxisGroupingValue && isSummaryBlock(blockType) && columnToRowsMapping && columnToRowsMapping[yAxisGroupingValue]?.length > 0) {
+        if (!primaryGroupingPropertyValue && yAxisGroupingValue && (blockType === 'col-summary') && columnToRowsMapping && columnToRowsMapping[yAxisGroupingValue]?.length > 0) {
             // If primaryGroupingPropertyValue is not set, we try to get it from columnToRowsMapping
             // which is a map of columnGrouping to groupingProperties.
             primaryGroupingPropertyValue = columnToRowsMapping[yAxisGroupingValue].length > 1 ? 'Multiple' : columnToRowsMapping[yAxisGroupingValue][0];
@@ -197,15 +197,14 @@ export class VisualBody extends React.PureComponent {
             };
 
             const currentFilteringPropertiesVals = convertPairsToObject(currentFilteringPropertiesPairs);//_.object(currentFilteringPropertiesPairs);
-            if (isSummaryBlock(blockType)) {
-                (columnAggFields || []).concat(rowAggFields || []).forEach((field) => {
-                    if (!_.has(currentFilteringPropertiesVals, field)) {
-                        // currentFilteringPropertiesVals[field + '!'] = 'No value';
-                    }
-                });
+
+            let initialHref = queryUrl;
+            if(rowGroups && rowGroupKey && rowGroups[rowGroupKey]?.customUrlParams && blockType === 'col-summary')
+            {
+                // If rowGroups is defined and rowGroupKey is set, we use customUrlParams from rowGroups
+                initialHref += '&' + rowGroups[rowGroupKey].customUrlParams;
             }
 
-            const initialHref = queryUrl;
             const hrefParts = url.parse(initialHref, true);
             const hrefQuery = _.clone(hrefParts.query);
 
