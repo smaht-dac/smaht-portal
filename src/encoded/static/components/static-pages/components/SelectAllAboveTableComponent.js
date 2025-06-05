@@ -75,6 +75,15 @@ export const SelectAllAboveTableComponent = React.memo(
 
 const SELECT_ALL_LIMIT = 8000;
 
+const manifest_enum_map = [
+    'file',
+    'clinical',
+    'biosample',
+    'experiment',
+    'analyte',
+    'sequencing',
+];
+
 export class SelectAllFilesButton extends React.PureComponent {
     /** These are fields included when "Select All" button is clicked to AJAX all files in */
     static fieldsToRequest = [
@@ -614,7 +623,10 @@ const SelectedItemsDownloadModal = function (props) {
                                 <input
                                     type="hidden"
                                     name="download_file_name"
-                                    value={JSON.stringify(suggestedFilename)}
+                                    value={JSON.stringify(
+                                        suggestedFilename.split('.tsv')[0] +
+                                            `_${manifest_enum_map[2]}.tsv`
+                                    )}
                                 />
                                 <input
                                     type="hidden"
@@ -649,7 +661,10 @@ const SelectedItemsDownloadModal = function (props) {
                                 <input
                                     type="hidden"
                                     name="download_file_name"
-                                    value={JSON.stringify(suggestedFilename)}
+                                    value={JSON.stringify(
+                                        suggestedFilename.split('.tsv')[0] +
+                                            `_${manifest_enum_map[4]}.tsv`
+                                    )}
                                 />
                                 <input
                                     type="hidden"
@@ -684,7 +699,10 @@ const SelectedItemsDownloadModal = function (props) {
                                 <input
                                     type="hidden"
                                     name="download_file_name"
-                                    value={JSON.stringify(suggestedFilename)}
+                                    value={JSON.stringify(
+                                        suggestedFilename.split('.tsv')[0] +
+                                            `_${manifest_enum_map[5]}.tsv`
+                                    )}
                                 />
                                 <input
                                     type="hidden"

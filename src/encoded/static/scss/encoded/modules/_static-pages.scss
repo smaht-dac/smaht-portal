@@ -3078,3 +3078,72 @@ Unique styling of Submission Status page
     color: #fff;
     background-color: #c1c1c1;
 }
+
+
+/*********
+FAQ page styles
+**********/
+
+.faq-container {
+	.faq-header {
+		margin-bottom: 20px;
+    	font-weight: 400;
+		border-bottom: 1px solid #f4f4f4;
+		padding-bottom: 15px;
+	}
+
+	details {
+		border-radius: 10px;
+		margin-bottom: 20px;
+		transition: background-color 50ms ease-in;
+		background-color: white;
+		
+		summary {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+			padding: 20px;
+			font-weight: 500;
+			font-size: 1.25rem;
+			gap: 20px;
+			line-height: 1.75rem;
+
+			i.icon-chevron-down {
+				transition: color 50ms ease-in, transform 300ms ease-out;
+				color: gray;
+			}
+		}
+
+		&[open] {
+			background-color: #f4f9fd;
+			transition: background-color 50ms ease-in;
+
+			summary {
+				i.icon-chevron-down {
+					color: #212529;
+					transform: rotate(180deg);
+				}
+			}
+		}
+
+		&:hover {
+			background-color: #f4f9fd;
+			transition: background-color 50ms ease-in;
+
+			summary {
+				i.icon-chevron-down {
+					color: #212529;
+					transition: color 50ms ease-in, transform 300ms ease-out;
+				}
+			}
+
+		}
+
+		.response {
+			padding: 0px 60px 20px 20px;
+			font-size: 1rem;
+		}
+	}
+}
+
+
