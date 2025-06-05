@@ -51,10 +51,65 @@ SINGLE_CELL_ASSAY_CODES = [
     '016', '012', '014', '105', '104', '103', '013', '011', '010'
 ]
 
+
 def _build_file_set_embedded_list():
     """Embeds for search on file sets."""
     return [
         "submission_centers.identifier",
+
+        # embeds for experimental library and sequencing manifest
+        "libraries.analytes.accession",
+        "libraries.analytes.samples.accession",
+        "libraries.analytes.samples.sample_sources.donor.accession",
+        "libraries.a260_a280_ratio",
+        "libraries.adapter_name",
+        "libraries.adapter_sequence",
+        "libraries.amplification_cycles",
+        "libraries.analyte_weight",
+        "libraries.antibody",
+        "libraries.barcode_sequences",
+        "libraries.comments",
+        "libraries.concatenated_reads",
+        "libraries.description",
+        "libraries.dna_target",
+        "libraries.external_id",
+        "libraries.fragment_mean_length",
+        "libraries.guide_sequence",
+        "libraries.insert_coefficient_of_variation",
+        "libraries.insert_maximum_length",
+        "libraries.insert_mean_length",
+        "libraries.insert_minimum_length",
+        "libraries.preparation_date",
+        "libraries.target_fragment_size",
+        "libraries.target_insert_maximum_length",
+        "libraries.target_insert_minimum_length",
+        "libraries.target_monomer_size",
+        "libraries.library_preparation.adapter_inclusion_method",
+        "libraries.library_preparation.amplification_method",
+        "libraries.library_preparation.description",
+        "libraries.library_preparation.enzymes",
+        "libraries.library_preparation.fragmentation_method",
+        "libraries.library_preparation.insert_selection_method",
+        "libraries.library_preparation.size_selection_method",
+        "libraries.library_preparation.strand",
+        "libraries.library_preparation.trim_adapter_sequence",
+        "libraries.library_preparation.treatments.agent",
+        "libraries.library_preparation.treatments.concentration",
+        "libraries.library_preparation.treatments.concentration_units",
+        "libraries.library_preparation.treatments.duration",
+        "libraries.library_preparation.treatments.temperature",
+        "libraries.library_preparation.preparation_kits.title",
+        "libraries.library_preparation.preparation_kits.catalog_number",
+        "libraries.library_preparation.preparation_kits.vendor",
+        "libraries.library_preparation.preparation_kits.version",
+
+        "sequencing.movie_length",
+        "sequencing.on_target_rate",
+        "sequencing.target_monomer_length",
+        "sequencing.preparation_kits.title",
+        "sequencing.preparation_kits.catalog_number",
+        "sequencing.preparation_kits.vendor",
+        "sequencing.preparation_kits.version",
 
         # Assay LinkTo - used in file_merge_group
         "libraries.assay.code",

@@ -7,6 +7,37 @@ smaht-portal
 Change Log
 ----------
 
+0.182.1
+=======
+`PR 444 feat: fix: update suggestedFilename for additional manifests <https://github.com/smaht-dac/smaht-portal/pull/444>`_
+
+* Replaces the suggestedFilename in the additional manifest download
+
+
+0.182.0
+=======
+`PR 443: SN Update protected donor <https://github.com/smaht-dac/smaht-portal/pull/443>`_
+
+* Embed `donors.protected_donor` on File
+* Move `tissues` revlink from AbstractDonor to Donor
+* Add embeds from MedicalHistory to ProtectedDonor
+
+
+0.181.0
+=======
+`PR 438 feat: static page updates <https://github.com/smaht-dac/smaht-portal/pull/438>`_
+
+* Add page for submission schema reference
+* Implement FAQ documentation page
+
+
+0.180.0
+=======
+`PR 441: feat: support download for multiple manifest files <https://github.com/smaht-dac/smaht-portal/pull/441>`_
+
+* Support collection specific metadata download
+
+
 0.179.0
 =======
 `PR 439: SN Ontology term germ layer <https://github.com/smaht-dac/smaht-portal/pull/439>`_
@@ -61,8 +92,8 @@ Change Log
 =======
 `PR 434: SN Reference genome preferred_name <https://github.com/smaht-dac/smaht-portal/pull/434>`_
 
-* * Update the `meta_workflow_run_inputs` calcprop in File to ignore ReferenceFile items
-Add the property `submitter_comments` to FileSet for display in Submission Status page
+* Update the `meta_workflow_run_inputs` calcprop in File to ignore ReferenceFile items
+* Add the property `submitter_comments` to FileSet for display in Submission Status page
 
 
 0.172.3
@@ -147,7 +178,7 @@ Add the property `submitter_comments` to FileSet for display in Submission Statu
 =======
 `PR 415 SN Fix validator error message <https://github.com/smaht-dac/smaht-portal/pull/415>`
 
-* Fix the TissueSample custom validator for valid combination of `external_id` and `category` to print out the expected `category` value in the error message 
+* Fix the TissueSample custom validator for valid combination of `external_id` and `category` to print out the expected `category` value in the error message
 * Add `link_related_validator` decorator to the custom validator for fastq read pairs being linked to the same FileSet
 
 
@@ -473,7 +504,6 @@ Add the property `submitter_comments` to FileSet for display in Submission Statu
 `PR 373: SN Add property replaced_by <https://github.com/smaht-dac/smaht-portal/pull/373>`_
 
 * Add property `replaced_by` to File to link to replacement files for files that are retracted or obsolete
-
 
 0.144.0
 =======
@@ -902,30 +932,30 @@ Hotfixes for browse view
   This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1184
 
 * New endpoint /recent_files_summary which, by default, returns info for files released
-  within the past three months grouped by release-date, cell-line or donor, and 
+  within the past three months grouped by release-date, cell-line or donor, and
   file-description. The specific fields used for these groupings are:
-  
+
   - release-date: file_status_tracking.released
   - cell-line: file_sets.libraries.analytes.samples.sample_sources.cell_line.code
   - donor: donors.display_title
   - file-dsecription: release_tracker_description
-  
+
   Note that release_tracker_description is a newer (2024-12) calcprop (PR-298/sn_file_release_tracker);
   and included in this branch are these files from the branch sn_file_release_tracker:
-  
+
   - src/encoded/item_utils/file.py
   - src/encoded/types/file.py
-  
+
   Added these new modules to support this new endpoint:
-  
+
   - src/encoded/endpoints/recent_files_summary/recent_files_summary.py
   - src/encoded/endpoints/recent_files_summary/recent_files_summary_fields.py
   - src/encoded/endpoints/recent_files_summary/recent_files_summary_troubleshooting.py (functionally unnecessary)
   - src/encoded/endpoints/elasticsearch_utils.py (maybe move to dcicutils eventually)
   - src/encoded/endpoints/endpoint_utils.py (maybe move to dcicutils eventually)
-  
+
   This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1192
-  
+
   - FYI commit before recent (2025-01-13) change for additional tissue info: bf7ed2bcb9df387721fd329e36e8c15b97a43681
 
 
@@ -1193,7 +1223,7 @@ Hotfixes for browse view
 `PR 235: Sn ExternalQualityMetric submission template <https://github.com/smaht-dac/smaht-portal/pull/235>`_
 
 * In `commands/write_submission_spreadsheets.py`:
-  
+
   * Add `--eqm [dsa duplexseq]` argument that grabs `tooltip`, `key`, and `derived_from` from the appropriate `ExternalQualityMetric` template and writes out to a new tab in the spreadsheet
 
 * Remove properties from DonorSpecificAssembly that are now on ExternalQualityMetric
