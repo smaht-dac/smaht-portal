@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.182.3
+=======
+`PR 445 Data matrix and top bar navigation updates <https://github.com/smaht-dac/smaht-portal/pull/445>`_
+
+* Fixed assay and tissue mappings
+* Fixed navigation URL in popover of benchmarking data rows summary
+* Add Data Overview section into Data menu in top bar
+
+
 0.182.2
 =======
 `PR 446 SN Fix tissue facet <https://github.com/smaht-dac/smaht-portal/pull/446>`_
