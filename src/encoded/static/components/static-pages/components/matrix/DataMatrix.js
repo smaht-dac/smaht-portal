@@ -414,7 +414,9 @@ export default class DataMatrix extends React.PureComponent {
 
     isProductionEnv() {
         if (window && window.location && window.location.href) {
-            return window.location.href.indexOf('data.smaht.org') >= 0 || window.location.href.indexOf('staging.smaht.org') >= 0;
+            return window.location.href.indexOf('data.smaht.org') >= 0 ||
+                window.location.href.indexOf('staging.smaht.org') >= 0 ||
+                window.location.href.indexOf('devtest.smaht.org') >= 0;
         }
         return false;
     }
