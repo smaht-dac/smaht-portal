@@ -177,8 +177,9 @@ const default_data_summary = [
 ];
 
 const DonorStatistics = ({ context, fileSearchURL = '' }) => {
+    const [isLoading, setIsLoading] = useState(true);
     const [statisticValues, setStatisticValues] = useState({
-        tissues: context?.tissues?.length,
+        tissues: context?.tissues?.length || '-',
         assays: null,
         files: null,
     });
@@ -186,25 +187,37 @@ const DonorStatistics = ({ context, fileSearchURL = '' }) => {
     // Load the files from the search URL and calculate statistics
     useEffect(() => {
         // load value from searchUrl if not provided
+        setIsLoading(true);
         ajax.load(
-            fileSearchURL,
+            `/search/?type=File&donors.display_title=${context?.display_title}`,
             (resp) => {
-                console.log('File Search Response:', resp);
+                // console.log('FILE RESP:', resp);
                 setStatisticValues({
-                    ...statisticValues,
-                    assays: resp?.facets
-                        ?.find(
-                            (facet) =>
-                                facet.field ===
-                                'file_sets.libraries.assay.display_title'
-                        )
-                        ?.original_terms.reduce((acc, t) => {
-                            return acc + t.doc_count;
-                        }, 0),
-                    files: resp['@graph']?.length,
+                    tissues: resp?.facets?.find(
+                        (facet) => facet.field === 'sample_summary.tissues'
+                    )?.original_terms?.length,
+                    assays: resp?.facets?.find(
+                        (facet) =>
+                            facet.field ===
+                            'file_sets.libraries.assay.display_title'
+                    )?.original_terms?.length,
+                    files: resp?.total,
                 });
+                setIsLoading(false);
             },
-            'GET'
+            'GET',
+            (error) => {
+                console.error('Error loading file search:', error);
+                if (error?.total === 0) {
+                    // If no files found, set assays and files to 0
+                    setStatisticValues({
+                        ...statisticValues,
+                        assays: 0,
+                        files: 0,
+                    });
+                    setIsLoading(false);
+                }
+            }
         );
     }, []);
 
@@ -216,7 +229,7 @@ const DonorStatistics = ({ context, fileSearchURL = '' }) => {
                         <i className="icon icon-lungs fas"></i>Tissues
                     </div>
                     <div className="donor-statistic-value text-center">
-                        {statisticValues?.tissues ? (
+                        {!isLoading ? (
                             <span>{statisticValues.tissues}</span>
                         ) : (
                             <i className="icon icon-circle-notch icon-spin fas" />
@@ -228,7 +241,7 @@ const DonorStatistics = ({ context, fileSearchURL = '' }) => {
                         <i className="icon icon-dna fas"></i>Assays
                     </div>
                     <div className="donor-statistic-value text-center">
-                        {statisticValues?.assays ? (
+                        {!isLoading ? (
                             <span>{statisticValues.assays}</span>
                         ) : (
                             <i className="icon icon-circle-notch icon-spin fas" />
@@ -240,7 +253,7 @@ const DonorStatistics = ({ context, fileSearchURL = '' }) => {
                         <i className="icon icon-file fas"></i>Files
                     </div>
                     <div className="donor-statistic-value text-center">
-                        {statisticValues?.files ? (
+                        {!isLoading ? (
                             <span>{statisticValues?.files}</span>
                         ) : (
                             <i className="icon icon-circle-notch icon-spin fas" />
@@ -252,13 +265,76 @@ const DonorStatistics = ({ context, fileSearchURL = '' }) => {
     );
 };
 
+const ExposureCard = ({ data, schemas }) => {
+    console.log('exposure', data, schemas);
+    const {
+        category,
+        duration,
+        frequency_category,
+        quantity,
+        quantity_unit,
+        cessation,
+        cessation_duration,
+    } = data || {};
+    return (
+        <>
+            <div className="exposure-card">
+                <div className="exposure-card-header">
+                    <span className="title">{category}</span>
+                    <div className="datum">
+                        <span className="datum-title">Duration</span>
+                        <span className="datum-value">{duration} yrs</span>
+                    </div>
+                </div>
+                <div className="exposure-card-body">
+                    <div className="datum">
+                        <span className="datum-title">Frequency</span>
+                        <span className="datum-value">
+                            {frequency_category}
+                        </span>
+                    </div>
+                    <div className="datum">
+                        <span className="datum-title">Quantity</span>
+                        <span className="datum-value">
+                            {quantity && quantity_unit
+                                ? quantity + ' ' + quantity_unit
+                                : '--'}
+                        </span>
+                    </div>
+                    <div className="datum">
+                        <span className="datum-title">Cessation</span>
+                        <span className="datum-value">
+                            {cessation && cessation_duration
+                                ? cessation_duration + ' yrs'
+                                : cessation}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+};
+
 /**
  * Parent component for the data cards containing information on the file.
  * @param {object} context the context of the item being viewed
  */
-export const DonorViewDataCards = ({ context = {} }) => {
+export const ProtectedDonorViewDataCards = ({
+    context = {},
+    medicalHistorySchemaProperties = {},
+    exposureHistorySchemaProperties = {},
+}) => {
+    console.log('ProtectedDonorViewDataCards context:', context);
     let donor_information = default_donor_information;
-    console.log('DonorViewDataCards context:', context);
+
+    const medical_history = context?.medical_history?.[0] || {};
+
+    // Check if there is family cancer history
+    const hasFamilyCancerHistory = Object.keys(medical_history)
+        ?.filter((key) => {
+            return key?.includes('family') && key?.includes('cancer');
+        })
+        .some((key) => medical_history[key] === 'Yes');
 
     return (
         <div className="data-cards-container d-flex flex-column">
@@ -312,15 +388,21 @@ export const DonorViewDataCards = ({ context = {} }) => {
                                 Cancer History
                             </span>
                             <div className="section-body">
-                                <span className="">Prostate Cancer</span>
+                                <span>
+                                    {medical_history?.cancer_type?.[0] ??
+                                        medical_history?.cancer_history}
+                                </span>
                             </div>
                         </div>
+                        {/* Family Medical History Items */}
                         <div className="data-card-section">
                             <span className="section-title">
                                 Family Cancer History
                             </span>
                             <div className="section-body">
-                                <span className="">Yes</span>
+                                <span className="">
+                                    {hasFamilyCancerHistory ? 'Yes' : 'No'}
+                                </span>
                             </div>
                         </div>
                         <div className="data-card-section">
@@ -343,83 +425,40 @@ export const DonorViewDataCards = ({ context = {} }) => {
                         <div className="header-text">Exposures</div>
                     </div>
                     <div className="body d-flex flex-column gap-4">
-                        <div className="exposure-card">
-                            <div className="exposure-card-header">
-                                <span className="title">Tobacco</span>
-                                <div className="datum">
-                                    <span className="datum-title">
-                                        Duration
+                        {medical_history?.exposures ? (
+                            <>
+                                {medical_history.exposures.map(
+                                    (exposure, i) => {
+                                        return (
+                                            <ExposureCard
+                                                data={exposure}
+                                                key={i}
+                                                schemas={
+                                                    exposureHistorySchemaProperties
+                                                }
+                                            />
+                                        );
+                                    }
+                                )}
+                                <div className="data-card-section">
+                                    <span className="section-title">
+                                        Other Exposures
                                     </span>
-                                    <span className="datum-value">30 yrs</span>
+                                    <div className="section-body">
+                                        <span className="">
+                                            Protected -{' '}
+                                            <i className="fw-light">
+                                                see manifest
+                                            </i>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="exposure-card-body">
-                                <div className="datum">
-                                    <span className="datum-title">
-                                        Frequency
-                                    </span>
-                                    <span className="datum-value">Daily</span>
-                                </div>
-                                <div className="datum">
-                                    <span className="datum-title">
-                                        Quantity
-                                    </span>
-                                    <span className="datum-value">
-                                        1 pack / day
-                                    </span>
-                                </div>
-                                <div className="datum">
-                                    <span className="datum-title">
-                                        Cessation
-                                    </span>
-                                    <span className="datum-value">10 yrs</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="exposure-card">
-                            <div className="exposure-card-header">
-                                <span className="title">Alcohol</span>
-                                <div className="datum">
-                                    <span className="datum-title">
-                                        Duration
-                                    </span>
-                                    <span className="datum-value">40 yrs</span>
-                                </div>
-                            </div>
-                            <div className="exposure-card-body">
-                                <div className="datum">
-                                    <span className="datum-title">
-                                        Frequency
-                                    </span>
-                                    <span className="datum-value">Social</span>
-                                </div>
-                                <div className="datum">
-                                    <span className="datum-title">
-                                        Quantity
-                                    </span>
-                                    <span className="datum-value">--</span>
-                                </div>
-                                <div className="datum">
-                                    <span className="datum-title">
-                                        Cessation
-                                    </span>
-                                    <span className="datum-value">10 yrs</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="data-card-section">
-                            <span className="section-title">
-                                Other Exposures
+                            </>
+                        ) : (
+                            <span className="text-secondary">
+                                No Exposures Available
                             </span>
-                            <div className="section-body">
-                                <span className="">
-                                    Protected -{' '}
-                                    <i className="fw-light">see manifest</i>
-                                </span>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>
