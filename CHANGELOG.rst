@@ -7,10 +7,16 @@ smaht-portal
 Change Log
 ----------
 
-=======
 0.183.0
 =======
 * Support multiple manifest files - analyte, sequencing, sample
+
+
+0.182.2
+=======
+`PR 446 SN Fix tissue facet <https://github.com/smaht-dac/smaht-portal/pull/446>`_
+
+* Remove outer grouping from tissue facet in File
 
 
 0.182.1
