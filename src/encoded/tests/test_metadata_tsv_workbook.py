@@ -6,7 +6,7 @@ from ..metadata import descend_field
 
 class TestMetadataTSVHelper:
 
-    TSV_WIDTH = 22
+    TSV_WIDTH = 26
 
     @staticmethod
     def read_tsv_from_bytestream(bytestream):
@@ -132,26 +132,26 @@ class TestMetadataTSVWorkbook:
         res = es_testapp.post_json('/metadata/', {'type': 'OutputFile', 'include_extra_files': True})
         tsv = res._app_iter[0]
         parsed = TestMetadataTSVHelper.read_tsv_from_bytestream(tsv)
-        last_extra_file_name = parsed[-1][2]  # filename in 3rd position in tsv
+        last_extra_file_name = parsed[-1][6]  # filename in 7th position in tsv
         assert last_extra_file_name == 'a_second_bam_bai.bai'
         # check an entire row that is mostly representative
         for row in parsed:
             if '303985cf-f1db-4dea-9782-2e68092d603d' in row[0]:  # this is the row
-                assert row[2] == 'SMHT-FOO-BAR-M45-B003-DAC_SMAURF3ETDQJ_bwamem0.1.2_GRCh38.aligned.sorted.bam'
-                assert row[3] == '1000'  # size
-                assert row[5] == 'Aligned Reads'  # category
-                assert row[6] == 'BAM'  # format
-                assert row[7] == 'SMHT-0001'  # sample
-                assert row[8] == 'Production'  # data set
-                assert row[9] == 'Liver: Left Lobe'  # tissue type
-                assert row[10] == 'SMHT001'  # sample
-                assert row[11] == 'Core'
-                assert row[12] == 'DNA'
-                assert row[13] == 'Illumina NovaSeq X'  # sequencing
-                assert row[14] == 'Bulk WGS'  # assay
-                assert row[15] == 'VEP (3.1.1)'  # software
-                assert row[16] == 'GRCh38'  # reference genome
-                assert row[17] == 'smaht-TEST_TISSUE_LIVER-illumina_novaseqx-Paired-end-150-R9-bulk_wgs'  # merge grp
+                assert row[6] == 'SMHT-FOO-BAR-M45-B003-DAC_SMAURF3ETDQJ_bwamem0.1.2_GRCh38.aligned.sorted.bam'
+                assert row[9] == '1000'  # size
+                assert row[11] == 'Aligned Reads'  # category
+                assert row[12] == 'BAM'  # format
+                assert row[13] == 'SMHT-0001'  # sample
+                assert row[14] == 'Production'  # data set
+                assert row[15] == 'Liver'  # tissue type
+                assert row[16] == 'SMHT001'  # sample
+                assert row[17] == 'Core'
+                assert row[18] == 'DNA'
+                assert row[19] == 'Illumina NovaSeq X'  # sequencing
+                assert row[20] == 'Bulk WGS'  # assay
+                assert row[21] == 'VEP (3.1.1)'  # software
+                assert row[22] == 'GRCh38'  # reference genome
+                assert row[25] == 'smaht-TEST_TISSUE_LIVER-illumina_novaseqx-Paired-end-150-R9-bulk_wgs'  # merge grp
                 break
 
         # check download links are now download_cli
