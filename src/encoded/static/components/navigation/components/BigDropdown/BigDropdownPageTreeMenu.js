@@ -230,7 +230,7 @@ function CustomStaticLinks({ pathName, href }) {
         case 'data':
             return (
                 <div className="custom-static-links row gx-0 mb-2">
-                    <div className="col gx-0">
+                    <div className="col-12 col-xl gx-0">
                         <h3 className="mt-2 text-400 text-larger">
                             Production Data
                         </h3>
@@ -281,7 +281,7 @@ function CustomStaticLinks({ pathName, href }) {
                             </h4>
                         </BigDropdownBigLink> */}
                     </div>
-                    <div className="col gx-0 mt-md-2 mt-lg-0">
+                    <div className="col-12 col-xl gx-0 mt-md-2 mt-lg-0">
                         <h3 className="mt-2 text-400 text-larger">
                             Benchmarking Data
                         </h3>
@@ -332,7 +332,7 @@ function CustomStaticLinks({ pathName, href }) {
                             </div>
                         </BigDropdownBigLink>
                     </div>
-                    <div className="col gx-0 mt-md-2 mt-lg-0">
+                    <div className="col-12 col-xl gx-0 mt-md-2 mt-lg-0">
                         <h3 className="mt-2 text-400 text-larger">
                             Data Overview
                         </h3>
