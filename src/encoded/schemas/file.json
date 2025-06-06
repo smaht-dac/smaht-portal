@@ -315,8 +315,7 @@
             "title": "Donor Sex"
         },
         "sample_summary.tissues": {
-            "title": "Tissue",
-            "group_by_field": "file_sets.libraries.analytes.samples.sample_sources.category"
+            "title": "Tissue"
         },
         "file_sets.libraries.assay.display_title": {
             "title": "Experimental Assay",
