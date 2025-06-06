@@ -36,6 +36,10 @@ EXPERIMENT_LIBRARY = 5
 
 # This field is special because it is a transformation applied from other fields
 FILE_GROUP = 'FileGroup'
+SAMPLE_TYPE = 'SampleType'
+SAMPLE_TYPE_LIST = ['TissueSample','CellSample','CellCultureSample']
+SAMPLE_SOURCE_TYPE = 'SampleSourceType'
+SAMPLE_SOURCE_TYPE_LIST = ['Tissue','CellCultureMixture','CellCulture']
 
 
 class MetadataArgs(NamedTuple):
@@ -619,6 +623,26 @@ def handle_file_group(field: dict) -> str:
     return ''
 
 
+def handle_sample_type(field: dict) -> str:
+    """Transforms the sample type to return most specific value."""
+    if field:
+        field_types = field.split(',')
+        for sample in SAMPLE_TYPE_LIST:
+            if sample in field_types:
+                return sample
+    return ''
+
+
+def handle_sample_source_type(field: dict) -> str:
+    """Transforms the sample source type to return most specific value."""
+    if field:
+        field_types = field.split(',')
+        for sample_source in SAMPLE_SOURCE_TYPE_LIST:
+            if sample_source in field_types:
+                return sample_source
+    return ''
+
+
 def generate_tsv(header: Tuple, data_lines: list):
     """ Helper function that actually generates the TSV """
     line = DummyFileInterfaceImplementation()
@@ -783,6 +807,14 @@ def generate_sample_manifest(request, args, search_iter):
         for field_name, tsv_descriptor in args.tsv_mapping.items():
             traversal_path = tsv_descriptor.field_name()
             field = descend_field(request, sample, traversal_path) or ''
+            if field_name == SAMPLE_TYPE:
+                if field:  # requires special care
+                    field = handle_sample_type(field)
+            elif field_name == SAMPLE_SOURCE_TYPE:
+                if field:
+                    field = handle_sample_source_type(field)
+            else:
+                field = descend_field(request, sample, traversal_path) or ''
             line.append(field)
         data_lines += [line]
     return data_lines
