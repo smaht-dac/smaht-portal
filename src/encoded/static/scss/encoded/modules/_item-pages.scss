@@ -2010,6 +2010,11 @@ File and Donor Overview Styles
 
 .item-page-container.type-ProtectedDonor {
 
+	.view-title {
+		background: url('/static/img/polygon-bg-header-donor.svg'), linear-gradient(175deg, rgba(240, 251, 255, 0.5), rgba(165, 158, 240, 0.25)), #F5F9FD;
+		background-size: cover;
+	}
+
 	.view-content {
 		.view-header {
 			.callout {
