@@ -1654,7 +1654,7 @@ body[data-path="/statistics"] {
 .stacked-block-viz-container {
 
     display: inline-block;
-    overflow-x: auto; // Allow to scroll on small widths.
+    overflow-x: hidden; // Allow to scroll on small widths.
     padding-bottom: 20px;
     padding-right: 40px;
 

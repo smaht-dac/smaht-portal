@@ -1,6 +1,6 @@
 <div key="someRandomKey" className="container">
     <div className="row">
-        <div className="col-12 col-xxl-7">
+        <div className="col-12 col-xxl-8">
             <h4 className="text-500">Benchmarking Data</h4>
             <DataMatrix
                 key="data-matrix-demo-1"   // Required to prevent re-instantiation of component upon window resize & similar.
@@ -29,6 +29,7 @@
                         "Kinnex - PacBio": "Kinnex",
                         "Fiber-seq - PacBio": "Fiber-Seq",
                         "Fiber-seq - Illumina": "Fiber-Seq",
+                        "Fiber-seq - ONT": "Fiber-Seq",
                         "RNA-seq - Illumina": "RNA-Seq - Illumina",
                         "NanoSeq - Illumina": "NanoSeq",
                         "ATAC-seq - Illumina": "ATAC-Seq",
@@ -46,6 +47,7 @@
                         "HiDEF-seq - PacBio": "HiDEF-seq",
                         "Hi-C - Illumina": "Hi-C",
                         "Hi-C - PacBio": "Hi-C",
+                        "Hi-C - ONT": "Hi-C",
                     },
                     "tissue": {
                         "endocrine pancreas": "Endocrine pancreas",
@@ -206,7 +208,7 @@
                 disableConfigurator={false}
             />
         </div>
-        <div className="col-12 col-xxl-5">
+        <div className="col-12 col-xxl-4">
             <h4 className="text-500">Production Data</h4>
             <DataMatrix
                 key="data-matrix-demo-2"   // Required to prevent re-instantiation of component upon window resize & similar.
@@ -232,7 +234,9 @@
                         "scDip-C - Illumina": "scDip-C",
                         "CompDuplex-seq - Illumina": "CompDuplex-Seq",
                         "Kinnex - PacBio": "Kinnex",
+                        "Fiber-seq - Illumina": "Fiber-Seq",
                         "Fiber-seq - PacBio": "Fiber-Seq",
+                        "Fiber-seq - ONT": "Fiber-Seq",
                         "RNA-seq - Illumina": "RNA-Seq - Illumina",
                         "NanoSeq - Illumina": "NanoSeq",
                         "ATAC-seq - Illumina": "ATAC-Seq",
@@ -250,6 +254,7 @@
                         "HiDEF-seq - PacBio": "HiDEF-seq",
                         "Hi-C - Illumina": "Hi-C",
                         "Hi-C - PacBio": "Hi-C",
+                        "Hi-C - ONT": "Hi-C",
                     },
                     "tissue": {
                         "endocrine pancreas": "Endocrine pancreas",
