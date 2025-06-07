@@ -329,7 +329,8 @@ const DataMatrixConfigurator = ({
                                     <TierWizard
                                         initialData={rowGroups}
                                         onComplete={(data, show) => { setRowGroups(data); setShowRowGroups(show); }}
-                                        showData={showRowGroups} />
+                                        showData={showRowGroups}
+                                        showCustomUrlParams />
                                 </Tab>
                                 <Tab eventKey="rowGroupsExtended" title={`Row Gr. 2ry (${Object.keys(rowGroupsExtended).length})`}>
                                     <TierWizard
@@ -616,7 +617,7 @@ const ChipsContainer = ({ chips: propChips, onChange, suggestions = [] }) => {
     );
 };
 
-const TierForm = ({ tier, onTierChange, onRemove, suggestions, defaultCollapsed=true }) => {
+const TierForm = ({ tier, onTierChange, onRemove, suggestions, defaultCollapsed=true, showCustomUrlParams=false }) => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         onTierChange({ ...tier, [name]: value });
@@ -647,6 +648,12 @@ const TierForm = ({ tier, onTierChange, onRemove, suggestions, defaultCollapsed=
                 <Form.Label className="me-2" style={labelStyle}>Short Name</Form.Label>
                 <Form.Control type="text" name="shortName" value={tier.shortName} onChange={handleChange} size="sm" />
             </Form.Group>
+            {showCustomUrlParams &&
+                <Form.Group className="d-flex align-items-center mb-05">
+                    <Form.Label className="me-2" style={labelStyle}>Browse URL Params</Form.Label>
+                    <Form.Control type="text" name="customUrlParams" value={tier.customUrlParams} onChange={handleChange} size="sm" />
+                </Form.Group>
+            }
             <Form.Group className="d-flex align-items-center mb-05">
                 <Form.Label className="me-2" style={labelStyle}>Values</Form.Label>
                 <ChipsContainer
@@ -659,7 +666,7 @@ const TierForm = ({ tier, onTierChange, onRemove, suggestions, defaultCollapsed=
     );
 };
 
-const TierWizard = ({ initialData, showData, suggestions = [], onComplete }) => {
+const TierWizard = ({ initialData, showData, suggestions = [], onComplete, showCustomUrlParams }) => {
     // {
     //   "Tier 1": {
     //       "values": [...],
@@ -693,6 +700,7 @@ const TierWizard = ({ initialData, showData, suggestions = [], onComplete }) => 
             textColor: '#000000',
             shortName: null,
             values: [],
+            customUrlParams: null,
             defaultCollapsed: false
         };
         const updatedTiers = [...tiers, newTier];
@@ -724,7 +732,8 @@ const TierWizard = ({ initialData, showData, suggestions = [], onComplete }) => 
                 values: tier.values,
                 backgroundColor: tier.backgroundColor,
                 textColor: tier.textColor,
-                shortName: tier.shortName
+                shortName: tier.shortName,
+                customUrlParams: tier.customUrlParams
             };
             return acc;
         }, {});
@@ -751,6 +760,7 @@ const TierWizard = ({ initialData, showData, suggestions = [], onComplete }) => 
                         onRemove={() => removeTier(index)}
                         suggestions={suggestions}
                         defaultCollapsed={tier.defaultCollapsed}
+                        showCustomUrlParams={showCustomUrlParams}
                     />
                 ))}
             </div>

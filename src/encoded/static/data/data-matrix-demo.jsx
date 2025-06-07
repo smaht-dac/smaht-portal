@@ -1,12 +1,12 @@
 <div key="someRandomKey" className="container">
     <div className="row">
-        <div className="col-6">
+        <div className="col-12 col-xxl-7">
             <h4 className="text-500">Benchmarking Data</h4>
             <DataMatrix
                 key="data-matrix-demo-1"   // Required to prevent re-instantiation of component upon window resize & similar.
                 session={session}        // Required - hooks in 'session' (boolean) from App.
                 query={{
-                    "url": "/data_matrix_aggregations?type=File&dataset!=No+value&sample_summary.studies=Benchmarking&status=public&status=released&status=restricted&limit=all",
+                    "url": "/data_matrix_aggregations?type=File&sample_summary.studies=Benchmarking&status=public&status=released&status=restricted&limit=all",
                     "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
                     "rowAggFields": ["donors.display_title", "sample_summary.tissues", "dataset"], //multiple column
                 }}
@@ -42,7 +42,10 @@
                         "TEnCATS - ONT": "TEnCATS",
                         "WGS - ONT": "WGS - Standard ONT",
                         "Ultra-Long WGS - ONT": "WGS - UltraLong ONT",
-                        "Hi-C - Illumina": "Hi-C"
+                        "HiDEF-seq - Illumina": "HiDEF-seq",
+                        "HiDEF-seq - PacBio": "HiDEF-seq",
+                        "Hi-C - Illumina": "Hi-C",
+                        "Hi-C - PacBio": "Hi-C",
                     },
                     "tissue": {
                         "endocrine pancreas": "Endocrine pancreas",
@@ -84,7 +87,7 @@
                         "shortName": "RNA"
                     },
                     "Duplex-seq": {
-                        "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-Seq'],
+                        "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-seq'],
                         "backgroundColor": "#2b4792",
                         "textColor": "#ffffff",
                         "shortName": "Dupl"
@@ -132,13 +135,15 @@
                         "values": ['COLO829T', 'COLO829BL', 'COLO829BLT50', 'In silico BLT50', 'Truth Set', 'HapMap Mixture', 'Downsampled', 'LB-LA2 Fibroblast', 'LB-LA2 iPSC-1', 'LB-LA2 iPSC-2', 'LB-LA2 iPSC-4', 'LB-LA2 iPSC-52', 'LB-LA2 iPSC-60'],
                         "backgroundColor": "#f4f4ff",
                         "textColor": "#000000",
-                        "shortName": "Cell Line"
+                        "shortName": "Cell Line",
+                        "customUrlParams": "dataset!=tissue"
                     },
                     "Donor": {
                         "values": ['ST001', 'ST002', 'ST003', 'ST004'],
                         "backgroundColor": "#f4f4ff",
                         "textColor": "#000000",
-                        "shortName": "Donor"
+                        "shortName": "Donor",
+                        "customUrlParams": "dataset=tissue"
                     }
                 }}
                 showRowGroups={true}
@@ -151,7 +156,7 @@
                         "shortName": "Ecto"
                     },
                     "Mesoderm": {
-                        "values": ['Aorta', 'Fibroblast', 'Heart', 'Muscle'],
+                        "values": ['Aorta', 'Fibroblast', 'Heart', 'Muscle', 'Adrenal Gland'],
                         "backgroundColor": "#30975e",
                         "textColor": "#ffffff",
                         "shortName": "Meso"
@@ -201,13 +206,13 @@
                 disableConfigurator={false}
             />
         </div>
-        <div className="col-6">
+        <div className="col-12 col-xxl-5">
             <h4 className="text-500">Production Data</h4>
             <DataMatrix
                 key="data-matrix-demo-2"   // Required to prevent re-instantiation of component upon window resize & similar.
                 session={session}        // Required - hooks in 'session' (boolean) from App.
                 query={{
-                    "url": "/data_matrix_aggregations?type=File&status=released&sample_summary.studies=Production&limit=all",
+                    "url": "/data_matrix_aggregations?type=File&sample_summary.studies=Production&status=released&limit=all",
                     "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
                     "rowAggFields": ["donors.display_title", "sample_summary.tissues"], //multiple column
                 }}
@@ -241,6 +246,10 @@
                         "TEnCATS - ONT": "TEnCATS",
                         "WGS - ONT": "WGS - Standard ONT",
                         "Ultra-Long WGS - ONT": "WGS - UltraLong ONT",
+                        "HiDEF-seq - Illumina": "HiDEF-seq",
+                        "HiDEF-seq - PacBio": "HiDEF-seq",
+                        "Hi-C - Illumina": "Hi-C",
+                        "Hi-C - PacBio": "Hi-C",
                     },
                     "tissue": {
                         "endocrine pancreas": "Endocrine pancreas",
@@ -263,7 +272,7 @@
                         "shortName": "RNA"
                     },
                     "Duplex-seq": {
-                        "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-Seq'],
+                        "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-seq'],
                         "backgroundColor": "#2b4792",
                         "textColor": "#ffffff",
                         "shortName": "Dupl"
@@ -317,7 +326,7 @@
                         "shortName": "Ecto"
                     },
                     "Mesoderm": {
-                        "values": ['Aorta', 'Fibroblast', 'Heart', 'Muscle'],
+                        "values": ['Aorta', 'Fibroblast', 'Heart', 'Muscle', 'Adrenal Gland'],
                         "backgroundColor": "#30975e",
                         "textColor": "#ffffff",
                         "shortName": "Meso"
