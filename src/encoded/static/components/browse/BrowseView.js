@@ -431,9 +431,23 @@ export function createBrowseColumnExtensionMap({
         donors: {
             widthMap: { lg: 102, md: 102, sm: 102 },
             render: function (result, parentProps) {
-                const { donors: { 0: { display_title } = {} } = [] } =
-                    result || {};
-                return display_title || null;
+                const {
+                    donors: {
+                        0: {
+                            ['@id']: donorLink,
+                            display_title,
+                            protected_donor,
+                        } = {},
+                    } = [],
+                } = result || {};
+
+                return donorLink ? (
+                    <a
+                        target="_blank"
+                        href={protected_donor?.['@id'] ?? donorLink}>
+                        {display_title}
+                    </a>
+                ) : null;
             },
         },
         // Assay
