@@ -172,10 +172,10 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                 Assay x Tissue Data Matrix
                             </span>
                         </div>
-                        <div className="body d-flex justify-content-center overflow-scroll p-5">
-                            {/* <DataMatrix
+                        <div className="body d-flex justify-content-center overflow-scroll">
+                            <DataMatrix
                                 query={{
-                                    url: `/data_matrix_aggregations?type=Tissue&status=released&sample_summary.studies=Production&limit=all&donors.display_title=${context.display_title}`,
+                                    url: `/data_matrix_aggregations?type=File&limit=all&donors.display_title=${context.display_title}`,
                                     columnAggFields: [
                                         'file_sets.libraries.assay.display_title',
                                         'sequencing.sequencer.platform',
@@ -418,12 +418,12 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                 yAxisLabel="Donors"
                                 showAxisLabels={false}
                                 showColumnSummary={true}
-                                defaultOpen={false}
+                                defaultOpen={true}
                                 compositeValueSeparator=" - "
-                                disableConfigurator={false}
+                                disableConfigurator={true}
                                 key="data-matrix-key"
                                 session={session}
-                            /> */}
+                            />
                         </div>
                     </div>
                     <div className="histology-tab tab-card">
