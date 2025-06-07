@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.183.0
+=======
+`PR 426 feat: Donor View page <https://github.com/smaht-dac/smaht-portal/pull/426>`_
+
+* Implement Donor View
+
+
 0.182.2
 =======
 `PR 446 SN Fix tissue facet <https://github.com/smaht-dac/smaht-portal/pull/446>`_
