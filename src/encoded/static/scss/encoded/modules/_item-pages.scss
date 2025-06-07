@@ -2148,12 +2148,20 @@ File and Donor Overview Styles
 						flex-direction: column;
 						min-width: max-content;
 						padding: 0px;
+						min-width: 50px;
 
 						&-title {
+							display: flex;
 							font-size: 0.625rem;
 							font-weight: 400;
 							color: #5B7595;
 							width: auto;
+							align-items: center;
+							gap: 0.25rem;;
+
+							i {
+								font-size: 0.45rem;
+							}
 						}
 						&-value {
 							color: #212529;

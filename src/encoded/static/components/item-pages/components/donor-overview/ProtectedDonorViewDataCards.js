@@ -265,8 +265,16 @@ const DonorStatistics = ({ context, fileSearchURL = '' }) => {
     );
 };
 
+const CessationValue = (cessation, cessation_duration) => {};
+
+/**
+ * A card component that displays exposure data for a donor. It shows the
+ * category, duration, frequency, quantity, and cessation information.
+ * @param {object} data the exposure data object containing information on the exposure
+ * @param {object} schemas the schemas for the exposure history
+ * @returns
+ */
 const ExposureCard = ({ data, schemas }) => {
-    console.log('exposure', data, schemas);
     const {
         category,
         duration,
@@ -276,42 +284,78 @@ const ExposureCard = ({ data, schemas }) => {
         cessation,
         cessation_duration,
     } = data || {};
+
+    // Determine the cessation value based on availability
+    let cessation_value = '--';
+    switch (cessation) {
+        case 'Yes':
+            cessation_value = cessation_duration
+                ? cessation_duration + ' yrs'
+                : 'Yes';
+            break;
+        case 'No':
+            cessation_value = 'No';
+            break;
+        case 'Unknown':
+            cessation_value = 'N/A';
+            break;
+        default:
+            break;
+    }
+
     return (
-        <>
-            <div className="exposure-card">
-                <div className="exposure-card-header">
-                    <span className="title">{category}</span>
-                    <div className="datum">
-                        <span className="datum-title">Duration</span>
-                        <span className="datum-value">{duration} yrs</span>
-                    </div>
-                </div>
-                <div className="exposure-card-body">
-                    <div className="datum">
-                        <span className="datum-title">Frequency</span>
-                        <span className="datum-value">
-                            {frequency_category}
-                        </span>
-                    </div>
-                    <div className="datum">
-                        <span className="datum-title">Quantity</span>
-                        <span className="datum-value">
-                            {quantity && quantity_unit
-                                ? quantity + ' ' + quantity_unit
-                                : '--'}
-                        </span>
-                    </div>
-                    <div className="datum">
-                        <span className="datum-title">Cessation</span>
-                        <span className="datum-value">
-                            {cessation && cessation_duration
-                                ? cessation_duration + ' yrs'
-                                : cessation}
-                        </span>
-                    </div>
+        <div className="exposure-card">
+            <div className="exposure-card-header">
+                <span className="title">{category}</span>
+                <div
+                    className="datum"
+                    data-tip={schemas?.duration?.description}>
+                    <span className="datum-title">
+                        Duration <i className="icon icon-info-circle fas"></i>
+                    </span>
+                    <span className="datum-value">
+                        {duration ? duration + ' yrs' : '--'}
+                    </span>
                 </div>
             </div>
-        </>
+            <div className="exposure-card-body">
+                <div
+                    className="datum"
+                    data-tip={schemas?.frequency_category?.description}>
+                    <span className="datum-title">
+                        Frequency <i className="icon icon-info-circle fas"></i>
+                    </span>
+                    <span className="datum-value">
+                        {frequency_category ?? '--'}
+                    </span>
+                </div>
+                <div
+                    className="datum"
+                    data-tip={schemas?.quantity?.description}>
+                    <span className="datum-title">
+                        Quantity <i className="icon icon-info-circle fas"></i>
+                    </span>
+                    <span className="datum-value">
+                        {quantity && quantity_unit
+                            ? quantity + ' ' + quantity_unit
+                            : '--'}
+                    </span>
+                </div>
+                <div
+                    className="datum"
+                    data-tip={schemas?.cessation?.description}>
+                    <span className="datum-title">
+                        Cessation <i className="icon icon-info-circle fas"></i>
+                    </span>
+                    <span
+                        className={`datum-value ${
+                            cessation_value === 'Uknown' ? 'text-secondary' : ''
+                        }`}>
+                        {cessation_value}
+                    </span>
+                </div>
+            </div>
+        </div>
     );
 };
 
@@ -324,9 +368,9 @@ export const ProtectedDonorViewDataCards = ({
     medicalHistorySchemaProperties = {},
     exposureHistorySchemaProperties = {},
 }) => {
-    console.log('ProtectedDonorViewDataCards context:', context);
     let donor_information = default_donor_information;
 
+    // Isolate medical history properties
     const medical_history = context?.medical_history?.[0] || {};
 
     // Check if there is family cancer history
@@ -335,6 +379,14 @@ export const ProtectedDonorViewDataCards = ({
             return key?.includes('family') && key?.includes('cancer');
         })
         .some((key) => medical_history[key] === 'Yes');
+
+    // Isolate Tobacco and Alcohol exposures
+    const tobaccoExposure = medical_history?.exposures?.find(
+        (exposure) => exposure.category === 'Tobacco'
+    );
+    const alcoholExposure = medical_history?.exposures?.find(
+        (exposure) => exposure.category === 'Alcohol'
+    );
 
     return (
         <div className="data-cards-container d-flex flex-column">
@@ -425,40 +477,25 @@ export const ProtectedDonorViewDataCards = ({
                         <div className="header-text">Exposures</div>
                     </div>
                     <div className="body d-flex flex-column gap-4">
-                        {medical_history?.exposures ? (
-                            <>
-                                {medical_history.exposures.map(
-                                    (exposure, i) => {
-                                        return (
-                                            <ExposureCard
-                                                data={exposure}
-                                                key={i}
-                                                schemas={
-                                                    exposureHistorySchemaProperties
-                                                }
-                                            />
-                                        );
-                                    }
-                                )}
-                                <div className="data-card-section">
-                                    <span className="section-title">
-                                        Other Exposures
-                                    </span>
-                                    <div className="section-body">
-                                        <span className="">
-                                            Protected -{' '}
-                                            <i className="fw-light">
-                                                see manifest
-                                            </i>
-                                        </span>
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <span className="text-secondary">
-                                No Exposures Available
+                        <ExposureCard
+                            data={tobaccoExposure ?? { category: 'Tobacco' }}
+                            schemas={exposureHistorySchemaProperties}
+                        />
+                        <ExposureCard
+                            data={alcoholExposure ?? { category: 'Alcohol' }}
+                            schemas={exposureHistorySchemaProperties}
+                        />
+                        <div className="data-card-section">
+                            <span className="section-title">
+                                Other Exposures
                             </span>
-                        )}
+                            <div className="section-body">
+                                <span className="">
+                                    Protected -{' '}
+                                    <i className="fw-light">see manifest</i>
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
