@@ -374,11 +374,12 @@ export const ProtectedDonorViewDataCards = ({
     const medical_history = context?.medical_history?.[0] || {};
 
     // Check if there is family cancer history
-    const hasFamilyCancerHistory = Object.keys(medical_history)
-        ?.filter((key) => {
-            return key?.includes('family') && key?.includes('cancer');
-        })
-        .some((key) => medical_history[key] === 'Yes');
+    const familyCancerHistory = Object.keys(medical_history)?.filter((key) => {
+        return key?.includes('family') && key?.includes('cancer');
+    });
+    const hasFamilyCancerHistory = familyCancerHistory.some(
+        (key) => medical_history[key] === 'Yes'
+    );
 
     // Isolate Tobacco and Alcohol exposures
     const tobaccoExposure = medical_history?.exposures?.find(
@@ -442,7 +443,11 @@ export const ProtectedDonorViewDataCards = ({
                             <div className="section-body">
                                 <span>
                                     {medical_history?.cancer_type?.[0] ??
-                                        medical_history?.cancer_history}
+                                        medical_history?.cancer_history ?? (
+                                            <span className="text-secondary">
+                                                N/A
+                                            </span>
+                                        )}
                                 </span>
                             </div>
                         </div>
@@ -453,7 +458,17 @@ export const ProtectedDonorViewDataCards = ({
                             </span>
                             <div className="section-body">
                                 <span className="">
-                                    {hasFamilyCancerHistory ? 'Yes' : 'No'}
+                                    {familyCancerHistory ? (
+                                        hasFamilyCancerHistory ? (
+                                            'Yes'
+                                        ) : (
+                                            'No'
+                                        )
+                                    ) : (
+                                        <span className="text-secondary">
+                                            N/A
+                                        </span>
+                                    )}
                                 </span>
                             </div>
                         </div>

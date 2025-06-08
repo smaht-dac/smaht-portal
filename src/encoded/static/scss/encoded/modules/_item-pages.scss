@@ -1346,7 +1346,7 @@ File and Donor Overview Styles
 				justify-content: space-between;
 				flex-wrap: wrap;
 				width: 100%;
-				padding: 12px 0px;
+				padding: 8px 0px;
 				border-bottom: 1px solid $mercury;
 		
 				&.header {
@@ -2022,6 +2022,7 @@ File and Donor Overview Styles
 				border-radius: 4px;
 				background-color: #F6FFFB;
 				border: 1px solid #BDE3D7;
+				font-size: 0.875rem;
 
 				span {
 					margin-left: 0.25rem;
@@ -2185,7 +2186,6 @@ File and Donor Overview Styles
 			margin-top: 40px;
 			
 			.tab-card {
-				flex: 1;
 				overflow: hidden;
 				min-width: 300px;
 	
@@ -2212,6 +2212,10 @@ File and Donor Overview Styles
 					flex: 1;
 					min-height: 600px;
 					border: 1px solid #E7F0F3;
+				}
+
+				&.matrix-tab {
+					flex: 1;
 				}
 	
 				&.histology-tab {

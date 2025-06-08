@@ -83,7 +83,7 @@ const ProtectedDonorViewHeader = (props) => {
                             </div>
                         </div>
                     </div>
-                    <div className="callout d-inline px-3 py-2 my-3">
+                    <div className="callout d-inline px-3 py-2 mt-1">
                         <i className="icon icon-file-shield fas"></i>{' '}
                         <span>
                             <b>Donor Privacy:</b> Only select info from the
@@ -459,7 +459,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
  */
 ProtectedDonorView.getTabObject = function (props) {
     return {
-        tab: <span>Protected Donor Overview</span>,
+        tab: <span>Donor Overview</span>,
         key: 'donor-overview',
         content: <ProtectedDonorView {...props} />,
     };
