@@ -1441,6 +1441,7 @@ const Block = React.memo(function Block(props){
                 placement="bottom"
                 overlay={popover}
                 rootClose
+                flip={true}
                 onToggle={(nextShow) => { if (!nextShow) handleBlockClick(null, null, null, null); }}>
                 {blockElem}
             </OverlayTrigger>
