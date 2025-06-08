@@ -525,6 +525,16 @@ DataMatrix.resultPostProcessFuncs = {
         if (result.dataset && result.donor && result.dataset !== 'tissue') {
             result.donor = result.dataset;
             result.primary_field_override = "dataset";
+
+            if (result.assay.indexOf('Hi-C - ') !== -1 && result.platform !== 'Illumina') {
+                result.files = 0;
+            }
+            if (result.assay.indexOf('Fiber-seq - ') !== -1 && result.platform !== 'PacBio') {
+                result.files = 0;
+            }
+            if (result.assay.indexOf('Ultra-Long WGS - ') !== -1 && result.platform !== 'ONT') {
+                result.files = 0;
+            }
         }
         return result;
     }
