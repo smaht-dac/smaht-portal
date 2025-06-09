@@ -113,7 +113,7 @@ export class BrowseViewBody extends React.PureComponent {
  *
  * Note: this component only renders for logged-in users.
  */
-export const DonorMetadataDownloadButton = ({ session }) => {
+export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
     const [downloadLink, setDownloadLink] = useState(null);
 
     useEffect(() => {
@@ -143,7 +143,7 @@ export const DonorMetadataDownloadButton = ({ session }) => {
     return downloadLink ? (
         <a
             data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
-            className="btn btn-sm btn-outline-secondary"
+            className={'btn btn-sm btn-outline-secondary ' + className}
             href={downloadLink}
             download>
             <span>
@@ -154,7 +154,7 @@ export const DonorMetadataDownloadButton = ({ session }) => {
     ) : (
         <button
             data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
-            className="btn btn-sm btn-outline-secondary"
+            className={'btn btn-sm btn-outline-secondary ' + className}
             disabled>
             <span>
                 <i className="icon icon-fw icon-users fas me-1" />

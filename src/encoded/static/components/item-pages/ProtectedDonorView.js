@@ -73,10 +73,15 @@ const ProtectedDonorViewHeader = (props) => {
                     <div className="data-group data-row header">
                         {title}
                         <div className="d-flex gap-2 flex-wrap mt-1 mt-xl-0">
-                            <DonorMetadataDownloadButton session={session} />
-                            <div data-tip="Donor Manifest Download is coming soon">
+                            <DonorMetadataDownloadButton
+                                session={session}
+                                className="col-md-auto col-12"
+                            />
+                            <div
+                                className="col-md-auto col-12"
+                                data-tip="Donor Manifest Download is coming soon">
                                 <button
-                                    className="btn btn-primary btn-sm me-05 align-items-center download-button px-3"
+                                    className="col-md-auto col-12 btn btn-primary btn-sm me-05 align-items-center download-button px-3"
                                     disabled>
                                     <i className="icon icon-user fas me-1" />
                                     Download Donor Manifest
