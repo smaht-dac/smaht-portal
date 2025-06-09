@@ -226,21 +226,40 @@ def data_matrix_aggregations(context, request):
     try:
         json_body = request.json_body
         search_param_lists = json_body.get('search_query_params', deepcopy(DEFAULT_SEARCH_PARAM_LISTS))
-        column_agg_fields = json_body.get('column_agg_fields')
-        if isinstance(column_agg_fields, str):
-            column_agg_fields = [column_agg_fields]
-        row_agg_fields = json_body.get('row_agg_fields')
+        column_agg_fields_orig = json_body.get('column_agg_fields')
+        if isinstance(column_agg_fields_orig, str):
+            column_agg_fields_orig = [column_agg_fields_orig]
+        row_agg_fields_orig = json_body.get('row_agg_fields')
         flatten_values = json_body.get('flatten_values', False)
         composite_value_separator = json_body.get('composite_value_separator', DEFAULT_COMPOSITE_VALUE_SEPARATOR)
     except json.decoder.JSONDecodeError:
         raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
 
-    if column_agg_fields is None or len(column_agg_fields) == 0 or row_agg_fields is None or len(row_agg_fields) == 0:
+    if column_agg_fields_orig is None or len(column_agg_fields_orig) == 0 or row_agg_fields_orig is None or len(row_agg_fields_orig) == 0:
         raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
 
+    def flatten(items):
+        for item in items:
+            if isinstance(item, str):
+                yield item
+            elif isinstance(item, list):
+                yield from flatten(item)
+
+    # 1. flatten if any composite keys exists: ["row1", ["row2-1", "row2-2"], "row3"] --> ["row1", "row2-1", "row2-2", "row3"]
+    row_agg_fields = list(flatten(row_agg_fields_orig))
+
+    # 2. get the first column_agg_fields and use it as the primary field for the aggregation
+    column_agg_fields = column_agg_fields_orig[:1]
+
+    # 3. insert the remaining column_agg_fields into the row_agg_fields
+    remaining_columns = column_agg_fields_orig[1:]
+    row_agg_fields = remaining_columns + row_agg_fields
+
+    # obsolete soon
     def get_es_key(field_or_field_list):
         return "script" if isinstance(field_or_field_list, list) and len(field_or_field_list) > 1 else "field"
 
+    # obsolete soon
     def get_es_value(field_or_field_list):
         if isinstance(field_or_field_list, list) and len(field_or_field_list) > 1:
             # If we have multiple fields, we will return a script that concatenates them.
@@ -342,4 +361,22 @@ def data_matrix_aggregations(context, request):
         recurse_terms(0, [], es_response)
         return result
 
-    return flatten_es_terms_aggregation(ret_result) if flatten_values else ret_result
+    if flatten_values:
+        # Flatten the nested terms aggregation into a list of dictionaries
+        # where each dictionary represents a unique combination of terms and their file counts.
+        ret_result = flatten_es_terms_aggregation(ret_result)
+
+        if len(column_agg_fields_orig) > 1:
+            for item in ret_result:
+                item[column_agg_fields_orig[0]] = composite_value_separator.join(
+                   [item[field] for field in column_agg_fields_orig]
+                )
+        for agg_field in row_agg_fields_orig:
+            if isinstance(agg_field, list):
+                item[agg_field[0]] = composite_value_separator.join(
+                   [item[field] for field in agg_field]
+                )
+            else:
+                continue
+
+    return ret_result
