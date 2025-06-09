@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.184.2
+=======
+`PR 448 feat: donor view updates <https://github.com/smaht-dac/smaht-portal/pull/448>`_
+
+* Update mappings
+
+
 0.184.1
 =======
 `PR 447 Add missing mappings into donor page's data matrix <https://github.com/smaht-dac/smaht-portal/pull/447>`_
