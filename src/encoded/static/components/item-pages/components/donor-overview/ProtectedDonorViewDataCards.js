@@ -14,7 +14,7 @@ import {
     PopoverHeader,
     PopoverBody,
 } from 'react-bootstrap';
-import { DataCard, DataCardRow } from '../file-overview/FileViewDataCards';
+import { DataCardRow } from '../file-overview/FileViewDataCards';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 /**
@@ -176,51 +176,7 @@ const default_data_summary = [
     },
 ];
 
-const DonorStatistics = ({ context, fileSearchURL = '' }) => {
-    const [isLoading, setIsLoading] = useState(true);
-    const [statisticValues, setStatisticValues] = useState({
-        tissues: context?.tissues?.length || '-',
-        assays: null,
-        files: null,
-    });
-
-    // Load the files from the search URL and calculate statistics
-    useEffect(() => {
-        // load value from searchUrl if not provided
-        setIsLoading(true);
-        ajax.load(
-            `/search/?type=File&donors.display_title=${context?.display_title}`,
-            (resp) => {
-                // console.log('FILE RESP:', resp);
-                setStatisticValues({
-                    tissues: resp?.facets?.find(
-                        (facet) => facet.field === 'sample_summary.tissues'
-                    )?.original_terms?.length,
-                    assays: resp?.facets?.find(
-                        (facet) =>
-                            facet.field ===
-                            'file_sets.libraries.assay.display_title'
-                    )?.original_terms?.length,
-                    files: resp?.total,
-                });
-                setIsLoading(false);
-            },
-            'GET',
-            (error) => {
-                console.error('Error loading file search:', error);
-                if (error?.total === 0) {
-                    // If no files found, set assays and files to 0
-                    setStatisticValues({
-                        ...statisticValues,
-                        assays: 0,
-                        files: 0,
-                    });
-                    setIsLoading(false);
-                }
-            }
-        );
-    }, []);
-
+const DonorStatistics = ({ data, isLoading }) => {
     return (
         <div className="data-summary d-flex flex-column gap-3">
             <div className="d-flex gap-3">
@@ -230,7 +186,7 @@ const DonorStatistics = ({ context, fileSearchURL = '' }) => {
                     </div>
                     <div className="donor-statistic-value text-center">
                         {!isLoading ? (
-                            <span>{statisticValues.tissues}</span>
+                            <span>{data.tissues}</span>
                         ) : (
                             <i className="icon icon-circle-notch icon-spin fas" />
                         )}
@@ -242,7 +198,7 @@ const DonorStatistics = ({ context, fileSearchURL = '' }) => {
                     </div>
                     <div className="donor-statistic-value text-center">
                         {!isLoading ? (
-                            <span>{statisticValues.assays}</span>
+                            <span>{data.assays}</span>
                         ) : (
                             <i className="icon icon-circle-notch icon-spin fas" />
                         )}
@@ -254,7 +210,7 @@ const DonorStatistics = ({ context, fileSearchURL = '' }) => {
                     </div>
                     <div className="donor-statistic-value text-center">
                         {!isLoading ? (
-                            <span>{statisticValues?.files}</span>
+                            <span>{data?.files}</span>
                         ) : (
                             <i className="icon icon-circle-notch icon-spin fas" />
                         )}
@@ -264,8 +220,6 @@ const DonorStatistics = ({ context, fileSearchURL = '' }) => {
         </div>
     );
 };
-
-const CessationValue = (cessation, cessation_duration) => {};
 
 /**
  * A card component that displays exposure data for a donor. It shows the
@@ -365,8 +319,9 @@ const ExposureCard = ({ data, schemas }) => {
  */
 export const ProtectedDonorViewDataCards = ({
     context = {},
-    medicalHistorySchemaProperties = {},
     exposureHistorySchemaProperties = {},
+    statisticValues = {},
+    isLoading = false,
 }) => {
     let donor_information = default_donor_information;
 
@@ -424,8 +379,8 @@ export const ProtectedDonorViewDataCards = ({
                             </div>
                         </div>
                         <DonorStatistics
-                            context={context}
-                            fileSearchURL={`/search/?type=File&donors.display_title=${context?.display_title}`}
+                            data={statisticValues}
+                            isLoading={isLoading}
                         />
                     </div>
                 </div>
