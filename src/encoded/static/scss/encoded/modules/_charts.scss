@@ -1671,10 +1671,13 @@ body[data-path="/statistics"] {
             }
         }
         .header-col-text .column-group-header {
-            > .inner {
+            display: flex;
+            justify-content: center;
+            &> .inner {
                 transform-origin: 0 0;
                 transform: rotate(-60deg);
                 color: #111;
+                display: flex;
             }
         }
         .header-group-text {
