@@ -60,8 +60,7 @@ const ProtectedDonorViewTitle = (props) => {
 // Header component containing high-level information for the file item
 const ProtectedDonorViewHeader = (props) => {
     const { context = {}, session, title = null } = props;
-    const { accession, status, description, notes_to_tsv } = context;
-    const selectedFile = new Map([[context['@id'], context]]);
+    const { notes_to_tsv } = context;
 
     return (
         <div className="view-header">
