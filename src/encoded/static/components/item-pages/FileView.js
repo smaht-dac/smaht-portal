@@ -58,8 +58,8 @@ const FileViewTitle = (props) => {
     ];
 
     return (
-        <div className="file-view-title container-wide">
-            <nav className="file-view-title-navigation">
+        <div className="view-title container-wide">
+            <nav className="view-title-navigation">
                 <ul className="breadcrumb-list">
                     {breadcrumbs.map(({ display_title, href }, i, arr) => {
                         return (
@@ -80,7 +80,7 @@ const FileViewTitle = (props) => {
                     })}
                 </ul>
             </nav>
-            <h1 className="file-view-title-text">{context?.display_title}</h1>
+            <h1 className="view-title-text">{context?.display_title}</h1>
         </div>
     );
 };
@@ -273,7 +273,7 @@ const FileView = React.memo(function FileView(props) {
     return (
         <div className="file-view">
             <FileViewTitle context={context} session={session} href={href} />
-            <div className="file-view-content">
+            <div className="view-content">
                 <FileViewHeader context={context} session={session} />
                 <FileViewDataCards context={context} />
                 <FileViewTabs {...props} />

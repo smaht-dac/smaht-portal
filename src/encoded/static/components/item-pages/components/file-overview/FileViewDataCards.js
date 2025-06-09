@@ -15,12 +15,55 @@ import {
     PopoverBody,
 } from 'react-bootstrap';
 
+export const DataCardRow = ({
+    title = '',
+    value = null,
+    titlePopover = null,
+}) => {
+    return (
+        <div className="datum">
+            <div className="datum-title">
+                <span>{title}</span>
+                {titlePopover && (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        overlay={titlePopover}
+                        placement="left"
+                        flip={true}
+                        popperConfig={{
+                            modifiers: [
+                                {
+                                    name: 'flip',
+                                    options: {
+                                        fallbackPlacements: [
+                                            'right',
+                                            'bottom',
+                                            'top',
+                                        ],
+                                    },
+                                },
+                            ],
+                        }}>
+                        <i className="icon icon-info-circle fas ms-1"></i>
+                    </OverlayTrigger>
+                )}
+            </div>
+            <div
+                className={
+                    'datum-value' + (value === null ? ' coming-soon' : '')
+                }>
+                {value ?? 'N/A'}
+            </div>
+        </div>
+    );
+};
+
 /**
  * Renders a card titled `header` and rows corresponding with entries in `data`.
  * @param {string} header title for the group of data contained in the card
  * @param {Array} data array of objects containing a field's title and value
  */
-const DataCard = ({ header = '', data = [] }) => {
+export const DataCard = ({ header = '', data = [] }) => {
     return (
         <div className="data-card">
             <div className="header">
@@ -29,41 +72,11 @@ const DataCard = ({ header = '', data = [] }) => {
             <div className="body">
                 {data.map(({ title, value = null, titlePopover = null }, i) => {
                     return (
-                        <div className="datum" key={i}>
-                            <div className="datum-title">
-                                <span>{title}</span>
-                                {titlePopover && (
-                                    <OverlayTrigger
-                                        trigger={['hover', 'focus']}
-                                        overlay={titlePopover}
-                                        placement="left"
-                                        flip={true}
-                                        popperConfig={{
-                                            modifiers: [
-                                                {
-                                                    name: 'flip',
-                                                    options: {
-                                                        fallbackPlacements: [
-                                                            'right',
-                                                            'bottom',
-                                                            'top',
-                                                        ],
-                                                    },
-                                                },
-                                            ],
-                                        }}>
-                                        <i className="icon icon-info-circle fas ms-1"></i>
-                                    </OverlayTrigger>
-                                )}
-                            </div>
-                            <div
-                                className={
-                                    'datum-value' +
-                                    (value === null ? ' coming-soon' : '')
-                                }>
-                                {value ?? 'N/A'}
-                            </div>
-                        </div>
+                        <DataCardRow
+                            title={title}
+                            value={value}
+                            titlePopover={titlePopover}
+                        />
                     );
                 })}
             </div>
