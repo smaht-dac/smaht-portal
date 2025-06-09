@@ -2107,17 +2107,15 @@ File and Donor Overview Styles
 					}
 				}
 
-				&.prior-diagnosis {
-					.body {
-						.data-card-section {
-							.section {
-								&-title {
-									font-weight: 500;
-								}
-								&-body {
-									font-weight: 500;
-									color: #212529;
-								}
+				.body {
+					.data-card-section {
+						.section {
+							&-title {
+								font-weight: 500;
+							}
+							&-body {
+								font-weight: 500;
+								color: #212529;
 							}
 						}
 					}
