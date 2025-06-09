@@ -9,7 +9,7 @@ Change Log
 
 0.184.4
 =======
-`PR 451 fix: update manifest download button text <https://github.com/smaht-dac/smaht-portal/pull/451>`_
+`PR 451 fix: update status for embedded data matrix <https://github.com/smaht-dac/smaht-portal/pull/451>`_
 
 * fix status for embedded data matrix
 
