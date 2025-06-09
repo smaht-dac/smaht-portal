@@ -69,10 +69,10 @@ const ProtectedDonorViewHeader = (props) => {
                 <div className="d-none d-md-flex">
                     <img src="/static/img/misc-icons/donor_profile.svg" />
                 </div>
-                <div className="d-flex flex-column flex-grow-1 ms-2">
+                <div className="d-flex flex-column flex-grow-1 ms-md-2">
                     <div className="data-group data-row header">
                         {title}
-                        <div className="d-flex gap-2 flex-wrap">
+                        <div className="d-flex gap-2 flex-wrap mt-1 mt-xl-0">
                             <DonorMetadataDownloadButton session={session} />
                             <div data-tip="Donor Manifest Download is coming soon">
                                 <button
