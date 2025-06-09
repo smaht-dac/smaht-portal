@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+0.184.0
+=======
+
+* Support multiple manifest files - analyte, sequencing, sample
+
 0.183.0
 =======
 `PR 426 feat: Donor View page <https://github.com/smaht-dac/smaht-portal/pull/426>`_

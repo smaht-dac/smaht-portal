@@ -36,6 +36,10 @@ EXPERIMENT_LIBRARY = 5
 
 # This field is special because it is a transformation applied from other fields
 FILE_GROUP = 'FileGroup'
+SAMPLE_TYPE = 'SampleType'
+SAMPLE_TYPE_LIST = ['TissueSample','CellSample','CellCultureSample']
+SAMPLE_SOURCE_TYPE = 'SampleSourceType'
+SAMPLE_SOURCE_TYPE_LIST = ['Tissue','CellCultureMixture','CellCulture']
 
 
 class MetadataArgs(NamedTuple):
@@ -107,6 +111,14 @@ TSV_MAPPING = {
                                          field_name=['href']),
         'FileAccession': TSVDescriptor(field_type=FILE,
                                        field_name=['accession']),
+        'FileSetAccession': TSVDescriptor(field_type=FILE,
+                                       field_name=['file_sets.accession']),
+        'AnalyteAccessions': TSVDescriptor(field_type=FILE,
+                                       field_name=['file_sets.libraries.analytes.accession']),
+        'SampleAccessions': TSVDescriptor(field_type=FILE,
+                                       field_name=['file_sets.libraries.analytes.samples.accession']),
+        'DonorAccession': TSVDescriptor(field_type=FILE,
+                                       field_name=['file_sets.libraries.analytes.samples.sample_sources.donor.accession']),
         'FileName': TSVDescriptor(field_type=FILE,
                                   field_name=['annotated_filename', 'filename', 'display_title']),
         'FileStatus': TSVDescriptor(field_type=FILE,
@@ -142,9 +154,6 @@ TSV_MAPPING = {
         'Analytes': TSVDescriptor(field_type=FILE,
                                   field_name=['sample_summary.analytes'],
                                   use_base_metadata=True),
-        'AnalyteAccessions': TSVDescriptor(field_type=FILE,
-                                           field_name=['analytes.accession'],
-                                           use_base_metadata=True),
         'Sequencer': TSVDescriptor(field_type=FILE,
                                    field_name=['sequencing.sequencer.display_title'],
                                    use_base_metadata=True),
@@ -159,6 +168,9 @@ TSV_MAPPING = {
                                          use_base_metadata=True),
         'FinalQCStatus': TSVDescriptor(field_type=FILE,
                                        field_name=['quality_metrics.overall_quality_status'],
+                                       use_base_metadata=True),
+        'QCComments': TSVDescriptor(field_type=FILE,
+                                       field_name=['qc_comments'],
                                        use_base_metadata=True),
         FILE_GROUP: TSVDescriptor(field_type=FILE,
                                   field_name=['file_sets.file_group'],
@@ -297,9 +309,6 @@ TSV_MAPPING = {
         'CellLineCode': TSVDescriptor(field_type=SAMPLE,
                                       field_name=['sample_sources.cell_line.code'],
                                       use_base_metadata=True),
-        'CellLineParentCellLines': TSVDescriptor(field_type=SAMPLE,
-                                                 field_name=['sample_sources.cell_line.parent_cell_lines'],
-                                                 use_base_metadata=True),
         'CellLineSource': TSVDescriptor(field_type=SAMPLE,
                                         field_name=['sample_sources.cell_line.source'],
                                         use_base_metadata=True),
@@ -312,7 +321,7 @@ TSV_MAPPING = {
         # Top level fields
         'AnalyteAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['accession']),
         'SampleAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['samples.accession']),
-        'DonorAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['donors.accession']),
+        'DonorAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['samples.sample_sources.donor.accession']),
 
         # Analyte Fields
         'AnalyteMolecule': TSVDescriptor(field_type=EXPERIMENT, field_name=['molecule']),
@@ -391,9 +400,10 @@ TSV_MAPPING = {
     EXPERIMENT_LIBRARY: {
         # Top level fields
         'FileSetAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['accession']),
-        'SampleAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.samples.accession']),
         'AnalyteAccessions': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.accession']),
-        'DonorAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['donors.accession']),
+        'SampleAccession': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.analytes.samples.accession']),
+        'DonorAccession': TSVDescriptor(field_type=EXPERIMENT,
+                                        field_name=['libraries.analytes.samples.sample_sources.donor.accession']),
 
         # Library fields
         'LibraryAssay': TSVDescriptor(field_type=EXPERIMENT, field_name=['libraries.assay.identifier']),
@@ -510,8 +520,8 @@ def generate_other_manifest_header(manifest_enum):
 
 
 def generate_file_download_header(download_file_name: str, cli=False):
-    """ Helper function that generates a suitable header for the File download, generating 22 columns"""
-    header1 = ['###', 'Metadata TSV Download', 'Column Count', '18'] + ([''] * 18)  # length 22
+    """ Helper function that generates a suitable header for the File download, generating 26 columns"""
+    header1 = ['###', 'Metadata TSV Download', 'Column Count', '18'] + ([''] * 22)  # length 26
     if cli:
         header2 = ['Suggested command to download: ', '', '',
                    (f'cut -f 1,3 ./{download_file_name} | tail -n +4 | grep -v ^# | '
@@ -522,12 +532,12 @@ def generate_file_download_header(download_file_name: str, cli=False):
                     f'&& export AWS_SECRET_ACCESS_KEY=$(echo $credentials | jq -r ".SecretAccessKey") '
                     f'&& export AWS_SESSION_TOKEN=$(echo $credentials | jq -r ".SessionToken") '
                     f'&& download_url=$(echo $credentials | jq -r ".download_url") '
-                    f'&& aws s3 cp "$download_url" "$1"')] + ([''] * 18)
+                    f'&& aws s3 cp "$download_url" "$1"')] + ([''] * 22)
     else:
         header2 = ['Suggested command to download: ', '', '',
                    "cut -f 1,3 ./{} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L "
                    "--user <access_key_id>:<access_key_secret> $0 --output $1'".format(download_file_name)] + (
-                              [''] * 18)
+                              [''] * 22)
     header3 = list(TSV_MAPPING[FILE].keys())
     return header1, header2, header3
 
@@ -584,9 +594,9 @@ def descend_field(request, prop, field_names, cli=False):
         # file_sets.file_group: return first valid value
         if possible_field == 'file_sets.file_group':
             val = values[0]
-            if isinstance(val, Mapping):
+            if isinstance(val, Mapping) and 'file_group' in val:  # make resistent to further nesting
                 return val.get('file_group')
-            return val
+            return val  # should always be the case
 
         # If only one value and it's a primitive, return it as-is
         if len(values) == 1:
@@ -610,6 +620,26 @@ def handle_file_group(field: dict) -> str:
         sequencing_part = field['sequencing']
         assay_part = field['assay']
         return f'{sc_part}-{sample_source_part}-{sequencing_part}-{assay_part}'
+    return ''
+
+
+def handle_sample_type(field: dict) -> str:
+    """Transforms the sample type to return most specific value."""
+    if field:
+        field_types = field.split(',')
+        for sample in SAMPLE_TYPE_LIST:
+            if sample in field_types:
+                return sample
+    return ''
+
+
+def handle_sample_source_type(field: dict) -> str:
+    """Transforms the sample source type to return most specific value."""
+    if field:
+        field_types = field.split(',')
+        for sample_source in SAMPLE_SOURCE_TYPE_LIST:
+            if sample_source in field_types:
+                return sample_source
     return ''
 
 
@@ -665,7 +695,7 @@ def handle_metadata_arguments(context, request):
         return Response("Invalid parameters", status=400)
 
     if download_file_name is None:
-        download_file_name = 'smaht_manifest_' + datetime.utcnow().strftime('%Y-%m-%d-%Hh-%Mm') + '.tsv'
+        download_file_name = f'smaht_manifest_{manifest_enum}' + datetime.utcnow().strftime('%Y-%m-%d-%Hh-%Mm') + '.tsv'
 
     # Generate a header, resolve mapping
     header = generate_manifest_header(download_file_name, manifest_enum, cli=cli)
@@ -777,6 +807,14 @@ def generate_sample_manifest(request, args, search_iter):
         for field_name, tsv_descriptor in args.tsv_mapping.items():
             traversal_path = tsv_descriptor.field_name()
             field = descend_field(request, sample, traversal_path) or ''
+            if field_name == SAMPLE_TYPE:
+                if field:  # requires special care
+                    field = handle_sample_type(field)
+            elif field_name == SAMPLE_SOURCE_TYPE:
+                if field:
+                    field = handle_sample_source_type(field)
+            else:
+                field = descend_field(request, sample, traversal_path) or ''
             line.append(field)
         data_lines += [line]
     return data_lines
