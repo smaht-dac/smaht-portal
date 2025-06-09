@@ -7,9 +7,25 @@ smaht-portal
 Change Log
 ----------
 
+0.184.0
+=======
+
+* Support multiple manifest files - analyte, sequencing, sample
+
 0.183.0
 =======
-* Support multiple manifest files - analyte, sequencing, sample
+`PR 426 feat: Donor View page <https://github.com/smaht-dac/smaht-portal/pull/426>`_
+
+* Implement Donor View
+
+
+0.182.3
+=======
+`PR 445 Data matrix and top bar navigation updates <https://github.com/smaht-dac/smaht-portal/pull/445>`_
+
+* Fixed assay and tissue mappings
+* Fixed navigation URL in popover of benchmarking data rows summary
+* Add Data Overview section into Data menu in top bar
 
 
 0.182.2
