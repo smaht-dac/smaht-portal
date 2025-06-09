@@ -2216,12 +2216,22 @@ File and Donor Overview Styles
 				}
 
 				&.matrix-tab {
-					flex: 1;
+					flex: 3;
+					
+					.body {
+						padding: 20px;
+
+						.stacked-block-viz-container {
+							padding-right: 60px;
+						}
+					}
+
 				}
 	
 				&.histology-tab {
 					position: relative;
 					display: flex;
+					flex: 2;
 					flex-direction: column;
 	
 					.header {
