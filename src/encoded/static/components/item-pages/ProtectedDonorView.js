@@ -238,7 +238,9 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                             'CompDuplex-seq - Illumina':
                                                 'CompDuplex-Seq',
                                             'Kinnex - PacBio': 'Kinnex',
+                                            'Fiber-seq - Illumina': 'Fiber-Seq',
                                             'Fiber-seq - PacBio': 'Fiber-Seq',
+                                            'Fiber-seq - ONT': 'Fiber-Seq',
                                             'RNA-seq - Illumina':
                                                 'RNA-Seq - Illumina',
                                             'NanoSeq - Illumina': 'NanoSeq',
@@ -259,6 +261,11 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                             'WGS - ONT': 'WGS - Standard ONT',
                                             'Ultra-Long WGS - ONT':
                                                 'WGS - UltraLong ONT',
+                                            'HiDEF-seq - Illumina': 'HiDEF-seq',
+                                            'HiDEF-seq - PacBio': 'HiDEF-seq',
+                                            'Hi-C - Illumina': 'Hi-C',
+                                            'Hi-C - PacBio': 'Hi-C',
+                                            'Hi-C - ONT': 'Hi-C',
                                         },
                                         tissue: {
                                             'endocrine pancreas':
@@ -433,6 +440,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                                 'Fibroblast',
                                                 'Heart',
                                                 'Muscle',
+                                                'Adrenal Gland',
                                             ],
                                             backgroundColor: '#30975e',
                                             textColor: '#ffffff',
