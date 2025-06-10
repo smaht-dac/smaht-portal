@@ -2240,13 +2240,14 @@ File and Donor Overview Styles
 	
 				}
 				.placeholder {
-					width: auto;
-					height: 90%;
+					width: 95%;
+					height: auto;
 					position: absolute;
 					background-color: transparent;
 					pointer-events: none;
-					transform: translate(-50%, 0);
+					transform: translate(-50%, -50%);
 					margin-left: 50%;
+					top: 50%;
 				}
 				
 				.callout {

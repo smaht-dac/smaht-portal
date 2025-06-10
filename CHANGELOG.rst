@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.184.5
+=======
+`PR 452 fix: filter files for statistics by released <https://github.com/smaht-dac/smaht-portal/pull/452>`_
+
+* fix donor view statistics counts
+
+
 0.184.4
 =======
 `PR 451 fix: update status for embedded data matrix <https://github.com/smaht-dac/smaht-portal/pull/451>`_

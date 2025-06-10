@@ -143,7 +143,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
         // load value from searchUrl if not provided
         setIsLoading(true);
         ajax.load(
-            `/search/?type=File&donors.display_title=${context?.display_title}`,
+            `/search/?type=File&status=released&donors.display_title=${context?.display_title}`,
             (resp) => {
                 setStatisticValues({
                     tissues: resp?.facets?.find(
