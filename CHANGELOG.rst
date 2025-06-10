@@ -7,18 +7,25 @@ smaht-portal
 Change Log
 ----------
 
+0.184.4
+=======
+`PR 451 fix: update status for embedded data matrix <https://github.com/smaht-dac/smaht-portal/pull/451>`_
+
+* fix status for embedded data matrix
+
+
 0.184.3
 =======
 `PR 449 feat: fix: update manifest download button text <https://github.com/smaht-dac/smaht-portal/pull/449>`_
 
-* Update mappings
+* update manifest download button text
 
 
 0.184.2
 =======
 `PR 448 feat: donor view updates <https://github.com/smaht-dac/smaht-portal/pull/448>`_
 
-* Update mappings
+* Update Donor View
 
 
 0.184.1

@@ -222,7 +222,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                             <div className="body d-flex justify-content-center overflow-scroll">
                                 <DataMatrix
                                     query={{
-                                        url: `/data_matrix_aggregations?type=File&limit=all&donors.display_title=${context.display_title}`,
+                                        url: `/data_matrix_aggregations?type=File&limit=all&status=released&donors.display_title=${context.display_title}`,
                                         columnAggFields: [
                                             'file_sets.libraries.assay.display_title',
                                             'sequencing.sequencer.platform',
