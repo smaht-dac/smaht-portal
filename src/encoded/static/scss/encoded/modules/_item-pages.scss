@@ -2209,6 +2209,8 @@ File and Donor Overview Styles
 					}
 				}
 				.body {
+					position: relative;
+					overflow: hidden;
 					display: flex;
 					flex: 1;
 					min-height: 600px;
@@ -2248,6 +2250,7 @@ File and Donor Overview Styles
 					transform: translate(-50%, -50%);
 					margin-left: 50%;
 					top: 50%;
+					max-width: 600px;
 				}
 				
 				.callout {

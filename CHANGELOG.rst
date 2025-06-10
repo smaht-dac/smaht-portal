@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.184.6
+=======
+`PR 453 fix: prevent tissue histology placeholder image overflow <https://github.com/smaht-dac/smaht-portal/pull/453>`_
+
+* Prevent tissue histology placeholder image overflow
+
+
 0.184.5
 =======
 `PR 452 fix: filter files for statistics by released <https://github.com/smaht-dac/smaht-portal/pull/452>`_
