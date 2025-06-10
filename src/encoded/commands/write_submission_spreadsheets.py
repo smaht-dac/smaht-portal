@@ -92,14 +92,15 @@ FONT_SIZE = 10
 
 TPC_SUBMISSION_ITEMS = [
     "Donor",
+    "ProtectedDonor",
     "Demographic",
+    "FamilyHistory",
+    "DeathCircumstances",
+    "TissueCollection",
     "MedicalHistory",
     "Diagnosis",
     "Exposure",
-    "FamilyHistory",
     "MedicalTreatment",
-    "DeathCircumstances",
-    "TissueCollection",
     "Tissue",
     "TissueSample"
 ]

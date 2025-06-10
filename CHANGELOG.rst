@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.185.0
+=======
+`PR 450 SN Update TPC items lis <https://github.com/smaht-dac/smaht-portal/pull/450>`_
+
+* Add ProtectedDonor to the list of item tabs in the TPC automated submission spreadsheet
+* Update `linkTo` for protected donor metadata items to only link to ProtectedDonor
+
+
 0.184.6
 =======
 `PR 453 fix: prevent tissue histology placeholder image overflow <https://github.com/smaht-dac/smaht-portal/pull/453>`_

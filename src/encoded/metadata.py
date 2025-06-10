@@ -520,8 +520,8 @@ def generate_other_manifest_header(manifest_enum):
 
 
 def generate_file_download_header(download_file_name: str, cli=False):
-    """ Helper function that generates a suitable header for the File download, generating 26 columns"""
-    header1 = ['###', 'Metadata TSV Download', 'Column Count', '18'] + ([''] * 22)  # length 26
+    """ Helper function that generates a suitable header for the File download, generating 22 columns"""
+    header1 = ['###', 'Metadata TSV Download', 'Column Count', '26'] + ([''] * 22)  # length 22
     if cli:
         header2 = ['Suggested command to download: ', '', '',
                    (f'cut -f 1,3 ./{download_file_name} | tail -n +4 | grep -v ^# | '
