@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.183.0
+=======
+`PR 450 SN Update TPC items lis <https://github.com/smaht-dac/smaht-portal/pull/450>`_
+
+* Add ProtectedDonor to the list of item tabs in the TPC automated submission spreadsheet
+
 0.182.2
 =======
 `PR 446 SN Fix tissue facet <https://github.com/smaht-dac/smaht-portal/pull/446>`_
