@@ -7,12 +7,76 @@ smaht-portal
 Change Log
 ----------
 
-0.183.0
+0.185.0
 =======
 `PR 450 SN Update TPC items lis <https://github.com/smaht-dac/smaht-portal/pull/450>`_
 
 * Add ProtectedDonor to the list of item tabs in the TPC automated submission spreadsheet
 * Update `linkTo` for protected donor metadata items to only link to ProtectedDonor
+
+
+0.184.6
+=======
+`PR 453 fix: prevent tissue histology placeholder image overflow <https://github.com/smaht-dac/smaht-portal/pull/453>`_
+
+* Prevent tissue histology placeholder image overflow
+
+
+0.184.5
+=======
+`PR 452 fix: filter files for statistics by released <https://github.com/smaht-dac/smaht-portal/pull/452>`_
+
+* fix donor view statistics counts
+
+
+0.184.4
+=======
+`PR 451 fix: update status for embedded data matrix <https://github.com/smaht-dac/smaht-portal/pull/451>`_
+
+* fix status for embedded data matrix
+
+
+0.184.3
+=======
+`PR 449 feat: fix: update manifest download button text <https://github.com/smaht-dac/smaht-portal/pull/449>`_
+
+* update manifest download button text
+
+
+0.184.2
+=======
+`PR 448 feat: donor view updates <https://github.com/smaht-dac/smaht-portal/pull/448>`_
+
+* Update Donor View
+
+
+0.184.1
+=======
+`PR 447 Add missing mappings into donor page's data matrix <https://github.com/smaht-dac/smaht-portal/pull/447>`_
+
+* Update mappings
+
+
+0.184.0
+=======
+
+* Support multiple manifest files - analyte, sequencing, sample
+
+
+0.183.0
+=======
+`PR 426 feat: Donor View page <https://github.com/smaht-dac/smaht-portal/pull/426>`_
+
+* Implement Donor View
+
+
+0.182.3
+=======
+`PR 445 Data matrix and top bar navigation updates <https://github.com/smaht-dac/smaht-portal/pull/445>`_
+
+* Fixed assay and tissue mappings
+* Fixed navigation URL in popover of benchmarking data rows summary
+* Add Data Overview section into Data menu in top bar
 
 
 0.182.2
