@@ -12,6 +12,8 @@ Change Log
 `PR 450 SN Update TPC items lis <https://github.com/smaht-dac/smaht-portal/pull/450>`_
 
 * Add ProtectedDonor to the list of item tabs in the TPC automated submission spreadsheet
+* Update `linkTo` for protected donor metadata items to only link to ProtectedDonor
+
 
 0.182.2
 =======
