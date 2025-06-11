@@ -137,7 +137,7 @@ class TestMetadataTSVWorkbook:
         # check an entire row that is mostly representative
         for row in parsed:
             if '303985cf-f1db-4dea-9782-2e68092d603d' in row[0]:  # this is the row
-                assert row[6] == 'SMHT-FOO-BAR-M45-B003-DAC_SMAURF3ETDQJ_bwamem0.1.2_GRCh38.aligned.sorted.bam'
+                assert row[2] == 'SMHT-FOO-BAR-M45-B003-DAC_SMAURF3ETDQJ_bwamem0.1.2_GRCh38.aligned.sorted.bam'
                 assert row[9] == '1000'  # size
                 assert row[11] == 'Aligned Reads'  # category
                 assert row[12] == 'BAM'  # format
