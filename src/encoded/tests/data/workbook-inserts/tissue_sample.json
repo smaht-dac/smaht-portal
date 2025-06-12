@@ -11,9 +11,12 @@
         "external_id": "SMHT001-1A-100A1",
         "category": "Core",
         "core_size": "1.5",
+        "description": "Left lobe of liver",
         "weight": 800,
         "preservation_type": "Fixed",
         "preservation_medium": "Formalin",
+        "processing_date": "2024-12-15",
+        "processing_notes": "Formalin fixed",
         "tags": [
             "test_sample_names",
             "sample_names-SMHT001-1A-100A1",

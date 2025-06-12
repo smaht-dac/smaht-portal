@@ -562,31 +562,61 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 						margin-left: 10px;
 
 						.nav-item > button {
+							position: relative;
 							color: #5D5E63;
 							font-size: 1rem;
 							font-weight: 400;
-							border-radius: 8px 8px 0px 0px;
-							padding: 2px 15px;
-							border-bottom: 2px transparent solid;
+							border: 2px transparent solid;
+							
+							display: flex;
+							margin-bottom: 0.5rem;
+							border: 1px solid transparent;
+							padding: 0.5rem;
+							border-radius: 5px;
+							background-color: transparent;
+							justify-content: center;
+							transition: background-color 50ms, border-color 50ms;
+							
 
-							.nav-item-title {
-								display: flex;
-								.badge {
-									color: #5d5e63;
-									background-color: #f2f2f2;
-									margin-left: 5px;
-									font-weight: 400;
-									margin: auto;
-									margin-left: 8px;
+							.radio-button-group {
+								input, label {
+									&:hover {
+										cursor: pointer;
+									}
 								}
 							}
+							
+							.badge {
+								color: #5d5e63;
+								background-color: #f2f2f2;
+								margin-left: 5px;
+								font-weight: 400;
+								margin: auto;
+								margin-left: 8px;
+							}
 
-
+							&::after {
+								content: ' ';
+								width: 100%;
+								height: 2px;
+								position: absolute;
+								background-color: transparent;
+								bottom: -9px;
+								transition: background-color 50ms;
+							}
+							
+							
 							&.active {
 								color: #343741;
 								font-weight: 600;
-								background-color: transparent;
-								border-color: black;
+								border-color: #4292E2;
+								background-color: #E5F4FF;
+								transition: background-color 50ms, border-color 50ms;
+
+								&::after {
+									background-color: black;
+									transition: background-color 50ms;
+								}
 							}
 						}
 					}
@@ -630,6 +660,45 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 				>div {
 					padding-left: 10px;
 					padding-right: 10px;
+				}
+
+				.manifest-selection {
+					label {
+						background-color: #FCFDFF;;
+						border: 1px solid #DEE2E6;
+						padding: 0.5rem 1rem;
+						user-select: none;
+						cursor: pointer;
+
+						input {
+							cursor: pointer;
+						}
+
+						&.selected {
+							background-color: #E5F4FF;
+							border-color: #4292E2;
+						}
+						
+						&.disabled {
+							background-color: #EBF4FB;
+							border-color: #9AADC0;
+
+							input {
+								cursor: auto;
+							}
+
+							&:hover {
+								cursor: auto;
+							}
+						}
+
+						&:first-of-type {
+							border-radius: 5px 0 0 5px;
+						}
+						&:last-of-type {
+							border-radius: 0 5px 5px 0;
+						}
+					}
 				}
 			}
 			>.modal-footer {

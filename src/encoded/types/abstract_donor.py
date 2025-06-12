@@ -50,26 +50,6 @@ class AbstractDonor(SubmittedItem):
 
     Collection = AbstractDonorCollection
 
-    rev = {
-        "tissues": ("Tissue", "donor")
-    }
-
-    @calculated_property(
-        schema={
-            "title": "Tissues",
-            "type": "array",
-            "items": {
-                "type": "string",
-                "linkTo": "Tissue",
-            },
-        },
-    )
-    def tissues(self, request: Request) -> Union[List[str], None]:
-        result = self.rev_link_atids(request, "tissues")
-        if result:
-            return result
-        return
-
     @calculated_property(
         schema={
             "title": "Study",

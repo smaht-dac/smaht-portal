@@ -12,7 +12,6 @@ from . import (
     sample,
     sequencing,
     tissue,
-    ontology_term,
 )
 from .constants import file as file_constants
 from .utils import (

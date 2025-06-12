@@ -148,6 +148,7 @@ export default class DataMatrix extends React.PureComponent {
         this.loadSearchQueryResults = this.loadSearchQueryResults.bind(this);
         this.onApplyConfiguration = this.onApplyConfiguration.bind(this);
         this.getJsxExport = this.getJsxExport.bind(this);
+        this.isProductionEnv = this.isProductionEnv.bind(this);
 
         const colorRanges = this.getColorRanges(props);
 
@@ -411,6 +412,15 @@ export default class DataMatrix extends React.PureComponent {
         return userGroups && userGroups.indexOf('admin') >= 0;
     }
 
+    isProductionEnv() {
+        if (window && window.location && window.location.href) {
+            return window.location.href.indexOf('data.smaht.org') >= 0 ||
+                window.location.href.indexOf('staging.smaht.org') >= 0 ||
+                window.location.href.indexOf('devtest.smaht.org') >= 0;
+        }
+        return false;
+    }
+
     render() {
         const {
             headerFor, valueChangeMap, allowedFields, compositeValueSeparator,
@@ -454,7 +464,7 @@ export default class DataMatrix extends React.PureComponent {
 
         const fieldToNameMap = _.invert(this.state.fieldChangeMap);
 
-        const configurator = !disableConfigurator && this.isAdminUser() && (
+        const configurator = !disableConfigurator && this.isAdminUser() && !this.isProductionEnv() && (
             <DataMatrixConfigurator
                 dimensions={allowedFields}
                 fieldToNameMap={fieldToNameMap}
@@ -515,6 +525,16 @@ DataMatrix.resultPostProcessFuncs = {
         if (result.dataset && result.donor && result.dataset !== 'tissue') {
             result.donor = result.dataset;
             result.primary_field_override = "dataset";
+
+            if (result.assay.indexOf('Hi-C - ') !== -1 && result.platform !== 'Illumina') {
+                result.files = 0;
+            }
+            if (result.assay.indexOf('Fiber-seq - ') !== -1 && result.platform !== 'PacBio') {
+                result.files = 0;
+            }
+            if (result.assay.indexOf('Ultra-Long WGS - ') !== -1 && result.platform !== 'ONT') {
+                result.files = 0;
+            }
         }
         return result;
     }

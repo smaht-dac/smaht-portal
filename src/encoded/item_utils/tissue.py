@@ -5,7 +5,6 @@ from typing import Any, Dict, Union
 from . import constants, donor, item
 
 from ..item_utils import (
-    item as item_utils,
     ontology_term as ot_utils,
 )
 
@@ -34,13 +33,18 @@ def get_uberon_id(properties: Dict[str, Any]) -> str:
     return properties.get("uberon_id","")
 
 
-def get_top_grouping_term(properties: Dict[str, Any], request_handler: RequestHandler) -> str:
+def get_category(properties: Dict[str, Any]) -> str:
+    """Get category associated with tissue from calc prop"""
+    return properties.get("category","")
+
+
+def get_grouping_term_from_tag(properties: Dict[str, Any], request_handler: RequestHandler, tag: str) -> str:
     """Get top grouping term associated with tissue"""
     return get_property_value_from_identifier(
         request_handler,
         get_uberon_id(properties),
         functools.partial(
-            ot_utils.get_top_grouping_term, request_handler=request_handler
+            ot_utils.get_grouping_term_from_tag, request_handler=request_handler, tag=tag
         )
     )
 

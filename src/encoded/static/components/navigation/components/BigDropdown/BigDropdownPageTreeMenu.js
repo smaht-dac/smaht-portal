@@ -228,8 +228,8 @@ function CustomStaticLinks({ pathName, href }) {
     switch (pathName) {
         case 'data':
             return (
-                <div className="custom-static-links row mb-2">
-                    <div className="col-auto flex-fill">
+                <div className="custom-static-links row gx-0 mb-2">
+                    <div className="col-12 col-xl gx-0">
                         <h3 className="mt-2 text-400 text-larger">
                             Production Data
                         </h3>
@@ -252,14 +252,14 @@ function CustomStaticLinks({ pathName, href }) {
                             titleIcon="lungs fas mb-03"
                             className="primary-big-link is-fa-icon">
                             <h4 className="text-large">
-                                Browse By Tissue
+                                Tissue Histology Browser
                                 <span className="text-300 fst-italic text-medium">
                                     {' '}
                                     - Coming Soon
                                 </span>
                             </h4>
                         </BigDropdownBigLink>
-                        <BigDropdownBigLink
+                        {/* <BigDropdownBigLink
                             disabled
                             href=""
                             titleIcon="dna fas"
@@ -271,9 +271,9 @@ function CustomStaticLinks({ pathName, href }) {
                                     - Coming Soon
                                 </span>
                             </h4>
-                        </BigDropdownBigLink>
+                        </BigDropdownBigLink> */}
                     </div>
-                    <div className="col-auto flex-fill mt-md-2 mt-lg-0">
+                    <div className="col-12 col-xl gx-0 mt-md-2 mt-lg-0">
                         <h3 className="mt-2 text-400 text-larger">
                             Benchmarking Data
                         </h3>
@@ -315,13 +315,39 @@ function CustomStaticLinks({ pathName, href }) {
                                     />
                                 </div>
                             }
-                            className="primary-big-link bottom-edge-child">
+                            className="primary-big-link">
                             <h4 className="text-large">
                                 Truthset & Benchmarking Analysis
                             </h4>
                             <div className="description text-medium">
                                 COLO829 SNV/Indel Detection Challenge
                             </div>
+                        </BigDropdownBigLink>
+                    </div>
+                    <div className="col-12 col-xl gx-0 mt-md-2 mt-lg-0">
+                        <h3 className="mt-2 text-400 text-larger">
+                            Data Overview
+                        </h3>
+                        <hr className="mb-0" />
+                        <BigDropdownBigLink
+                            href="/data-matrix"
+                            titleIcon="table-cells fas"
+                            className="primary-big-link">
+                            <h4 className="text-large">Data Matrix</h4>
+                        </BigDropdownBigLink>
+                        <BigDropdownBigLink
+                            href="/qc-metrics"
+                            titleIcon="magnifying-glass-chart fas"
+                            className="primary-big-link">
+                            <h4 className="text-large">Data QC</h4>
+                        </BigDropdownBigLink>
+                        <BigDropdownBigLink
+                            href="/retracted-files"
+                            titleIcon="file-circle-xmark fas"
+                            className="primary-big-link">
+                            <h4 className="text-large">
+                                Data Retraction
+                            </h4>
                         </BigDropdownBigLink>
                     </div>
                 </div>
