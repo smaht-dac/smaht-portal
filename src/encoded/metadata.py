@@ -111,16 +111,16 @@ TSV_MAPPING = {
                                          field_name=['href']),
         'FileAccession': TSVDescriptor(field_type=FILE,
                                        field_name=['accession']),
-        'FileSetAccession': TSVDescriptor(field_type=FILE,
-                                       field_name=['file_sets.accession']),
-        'AnalyteAccessions': TSVDescriptor(field_type=FILE,
-                                       field_name=['file_sets.libraries.analytes.accession']),
-        'SampleAccessions': TSVDescriptor(field_type=FILE,
-                                       field_name=['file_sets.libraries.analytes.samples.accession']),
-        'DonorAccession': TSVDescriptor(field_type=FILE,
-                                       field_name=['file_sets.libraries.analytes.samples.sample_sources.donor.accession']),
         'FileName': TSVDescriptor(field_type=FILE,
                                   field_name=['annotated_filename', 'filename', 'display_title']),
+        'FileSetAccession': TSVDescriptor(field_type=FILE,
+                                          field_name=['file_sets.accession']),
+        'AnalyteAccessions': TSVDescriptor(field_type=FILE,
+                                           field_name=['file_sets.libraries.analytes.accession']),
+        'SampleAccessions': TSVDescriptor(field_type=FILE,
+                                          field_name=['file_sets.libraries.analytes.samples.accession']),
+        'DonorAccession': TSVDescriptor(field_type=FILE,
+                                        field_name=['file_sets.libraries.analytes.samples.sample_sources.donor.accession']),
         'FileStatus': TSVDescriptor(field_type=FILE,
                                     field_name=['status'],
                                     use_base_metadata=True),
@@ -521,7 +521,7 @@ def generate_other_manifest_header(manifest_enum):
 
 def generate_file_download_header(download_file_name: str, cli=False):
     """ Helper function that generates a suitable header for the File download, generating 26 columns"""
-    header1 = ['###', 'Metadata TSV Download', 'Column Count', '18'] + ([''] * 22)  # length 26
+    header1 = ['###', 'Metadata TSV Download', 'Column Count', '26'] + ([''] * 22)  # length 26
     if cli:
         header2 = ['Suggested command to download: ', '', '',
                    (f'cut -f 1,3 ./{download_file_name} | tail -n +4 | grep -v ^# | '
