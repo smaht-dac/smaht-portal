@@ -76,7 +76,7 @@ describe('Benchmarking Layout Test', function () {
 
                                     cy.title().should('equal', `${titleText} – SMaHT Data Portal`).end();
 
-                                    Cypress.log({name: 'Page Title', message: titleText});
+                                    Cypress.log({ name: 'Page Title', message: titleText });
                                     // Since COLO829 SNV/Indel Detection Challenge has a different layout, we need to handle it differently
                                     if (titleText !== 'COLO829 SNV/Indel Detection Challenge') {
                                         //This tests a toggle button that collapses and expands.
@@ -150,7 +150,7 @@ describe('Benchmarking Layout Test', function () {
                                 });
                         }
 
-                        cy.wrap($listItems.last()).should('be.visible').click({ force: true }).then(($linkElem) => {
+                        cy.wrap($listItems.last()).scrollIntoView().should('be.visible').click({ force: true }).then(($linkElem) => {
                             const linkHref = $linkElem.attr('href');
                             cy.location('pathname').should('equal', linkHref);
                             testVisit();
