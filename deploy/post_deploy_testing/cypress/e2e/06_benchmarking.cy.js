@@ -58,7 +58,7 @@ describe('Benchmarking Layout Test', function () {
             cy.get(dataNavBarItemSelectorStr).should('have.class', 'dropdown-toggle').click()
                 .should('have.class', 'dropdown-open-for')
                 .then(() => {
-                    cy.get('.big-dropdown-menu .no-level-2-children .custom-static-links > div.col-auto:nth-child(2) a.primary-big-link').should('be.visible').then(($listItems) => {
+                    cy.get('.big-dropdown-menu .no-level-2-children .custom-static-links > div.col-12:nth-child(2) a.primary-big-link').should('be.visible').then(($listItems) => {
                         expect($listItems).to.have.length(3); // Ensuring 3 benchmarking pages in dropdown
                         const allLinkElementHREFs = Cypress._.map($listItems, (liEl) => {
                             const path = new URL(liEl.href, window.location.origin).pathname;
