@@ -188,7 +188,7 @@ describe('Documentation Page & Content Tests', function () {
                             if (titleText !== 'Data Release Status' && titleText !== 'Troubleshooting') {
                                 const linkSelector = '.help-entry.static-section-entry a:not([href^="#"]):not([href^="mailto:"]):not([href*=".gov"])';
 
-                                cy.get(linkSelector).then(() => {
+                                cy.get(linkSelector).should('be.visible').then(() => {
 
                                     count++;
 
