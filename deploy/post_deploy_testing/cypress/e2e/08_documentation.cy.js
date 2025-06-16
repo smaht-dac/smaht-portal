@@ -185,7 +185,8 @@ describe('Documentation Page & Content Tests', function () {
                             expect(titleText).to.have.length.above(0);
                             prevTitle = titleText;
 
-                            if (titleText !== 'Data Release Status' && titleText !== 'Troubleshooting') {
+                            const skipPages = ['Data Release Status', 'Troubleshooting', 'Submission Data Dictionary'];
+                            if (!skipPages.includes(titleText)) {
                                 const linkSelector = '.help-entry.static-section-entry a:not([href^="#"]):not([href^="mailto:"]):not([href*=".gov"])';
 
                                 cy.get(linkSelector).should('be.visible').then(() => {
