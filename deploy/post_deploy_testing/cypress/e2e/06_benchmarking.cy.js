@@ -111,7 +111,7 @@ describe('Benchmarking Layout Test', function () {
                                                 // Now check the results count after the spinner is gone
                                                 cy.get('.tab-pane.active.show #results-count')
                                                     .invoke('text')
-                                                    .should('not.contain', '-')
+                                                    .should('not.equal', '0')
                                                     .then((originalFileText) => {
                                                         cy.wrap($button)
                                                             .find('.badge')
