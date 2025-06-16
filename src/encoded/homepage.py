@@ -202,8 +202,7 @@ def generate_production_tissue_assay_count(context, request):
 def generate_production_tissue_type_count(context, request):
     """ Get production tissue type counts """
     search_param = SearchBase.PRODUCTION_TISSUES_FILES_SEARCH_PARAMS
-    return generate_unique_facet_count(context, request, search_param,
-                                       'file_sets.libraries.analytes.samples.sample_sources.uberon_id')
+    return generate_unique_facet_count(context, request, search_param, 'sample_summary.tissues')
 
 
 @view_config(route_name='home', request_method=['GET'])

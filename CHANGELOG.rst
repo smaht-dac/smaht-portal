@@ -7,6 +7,220 @@ smaht-portal
 Change Log
 ----------
 
+0.184.7
+=======
+`PR 454 SN Fix manifest file <https://github.com/smaht-dac/smaht-portal/pull/454>`_
+
+* Prevent tissue histology placeholder image overflow
+
+
+0.184.6
+=======
+`PR 453 fix: prevent tissue histology placeholder image overflow <https://github.com/smaht-dac/smaht-portal/pull/453>`_
+
+* Prevent tissue histology placeholder image overflow
+
+
+0.184.5
+=======
+`PR 452 fix: filter files for statistics by released <https://github.com/smaht-dac/smaht-portal/pull/452>`_
+
+* fix donor view statistics counts
+
+
+0.184.4
+=======
+`PR 451 fix: update status for embedded data matrix <https://github.com/smaht-dac/smaht-portal/pull/451>`_
+
+* fix status for embedded data matrix
+
+
+0.184.3
+=======
+`PR 449 feat: fix: update manifest download button text <https://github.com/smaht-dac/smaht-portal/pull/449>`_
+
+* update manifest download button text
+
+
+0.184.2
+=======
+`PR 448 feat: donor view updates <https://github.com/smaht-dac/smaht-portal/pull/448>`_
+
+* Update Donor View
+
+
+0.184.1
+=======
+`PR 447 Add missing mappings into donor page's data matrix <https://github.com/smaht-dac/smaht-portal/pull/447>`_
+
+* Update mappings
+
+
+0.184.0
+=======
+
+* Support multiple manifest files - analyte, sequencing, sample
+
+
+0.183.0
+=======
+`PR 426 feat: Donor View page <https://github.com/smaht-dac/smaht-portal/pull/426>`_
+
+* Implement Donor View
+
+
+0.182.3
+=======
+`PR 445 Data matrix and top bar navigation updates <https://github.com/smaht-dac/smaht-portal/pull/445>`_
+
+* Fixed assay and tissue mappings
+* Fixed navigation URL in popover of benchmarking data rows summary
+* Add Data Overview section into Data menu in top bar
+
+
+0.182.2
+=======
+`PR 446 SN Fix tissue facet <https://github.com/smaht-dac/smaht-portal/pull/446>`_
+
+* Remove outer grouping from tissue facet in File
+
+
+0.182.1
+=======
+`PR 444 feat: fix: update suggestedFilename for additional manifests <https://github.com/smaht-dac/smaht-portal/pull/444>`_
+
+* Replaces the suggestedFilename in the additional manifest download
+
+
+0.182.0
+=======
+`PR 443: SN Update protected donor <https://github.com/smaht-dac/smaht-portal/pull/443>`_
+
+* Embed `donors.protected_donor` on File
+* Move `tissues` revlink from AbstractDonor to Donor
+* Add embeds from MedicalHistory to ProtectedDonor
+
+
+0.181.0
+=======
+`PR 438 feat: static page updates <https://github.com/smaht-dac/smaht-portal/pull/438>`_
+
+* Add page for submission schema reference
+* Implement FAQ documentation page
+
+
+0.180.0
+=======
+`PR 441: feat: support download for multiple manifest files <https://github.com/smaht-dac/smaht-portal/pull/441>`_
+
+* Support collection specific metadata download
+
+
+0.179.0
+=======
+`PR 439: SN Ontology term germ layer <https://github.com/smaht-dac/smaht-portal/pull/439>`_
+
+* Change the ontology_term function `get_top_grouping_term` to `get_grouping_term_from_tag`, which will recursively search links of OntologyTerm items by `grouping_term` to find the item with tags that contain tag (`tissue_type`,`germ_layer`)
+* Add calculated property `category` to Tissue which uses OntologyTerm to classify tissue as a germ layer (Mesoderm, Ectoderm, Endoderm), Germ Cells, or Clinically Accessible
+* Add `category` to the `sample_summary` calculated property to be accessible from File
+
+
+0.178.0
+=======
+`PR 437: Data Matrix <https://github.com/smaht-dac/smaht-portal/pull/437>`_
+
+* DataMatrix is a highly configurable React component for visualizing tabular data (like a matrix or heatmap), with support for grouping, aggregation, color ranges, and dynamic configuration.
+
+
+0.177.0
+=======
+`PR 442: SN Add coverage calc prop <https://github.com/smaht-dac/smaht-portal/pull/442>`_
+
+* Add `coverage` calculated property to QualityMetric and embed it on File
+
+
+0.176.0
+=======
+`PR 429: QC metrics page improvements <https://github.com/smaht-dac/smaht-portal/pull/429>`_
+
+* Improved warnings
+* Adjusted colors for tags
+* Fixed bug were contents of "Metrics By File" tab contents would not be correctly displayed when preselected tab was not "Metrics By File"
+* Added grouping by donor
+
+
+0.175.0
+=======
+`PR 427: SN Add protected donor item <https://github.com/smaht-dac/smaht-portal/pull/427>`_
+
+* Create new item type ProtectedDonor and new abstract item type AbstractDonor, with both Donor and ProtectedDonor as children
+* Adjust `linkTo` in schema of protected donor items (e.g. MedicalHistory, DeathCircumstances) to be for AbstractDonor temporarily. These will later be changed to `"linkTo": "ProtectedDonor"`` after item links have been patched.
+* Add revlinks to MedicalHistory from ProtectedDonor and to Exposure (for alcohol and tobacco exposure only) from MedicalHistory
+* Add necessary embeds to ProtectedDonor for generation of Donor Overview page
+
+
+0.174.0
+=======
+`PR 436: SN Donor study calcprop <https://github.com/smaht-dac/smaht-portal/pull/436>`_
+
+* Add `study` calculated property to Donor which uses the pattern of `external_id` to determine if the donor is Benchmarking or Production
+
+
+0.173.0
+=======
+`PR 434: SN Reference genome preferred_name <https://github.com/smaht-dac/smaht-portal/pull/434>`_
+
+* Update the `meta_workflow_run_inputs` calcprop in File to ignore ReferenceFile items
+* Add the property `submitter_comments` to FileSet for display in Submission Status page
+
+
+0.172.3
+=======
+`PR 433: fix: update status of pages <https://github.com/smaht-dac/smaht-portal/pull/433>`_
+
+* Update status of pages
+
+
+0.172.2
+=======
+`PR 430: Cypress tests for experimental assay terms grouping <https://github.com/smaht-dac/smaht-portal/pull/430>`_
+
+* Updates for 06_benchmarking and 04a_search_views_local upon updates in facet terms grouping
+* Add new steps into 03a_browse_view_basic for facet terms grouping for the Experimental Assay facet for both Include Properties and Exclude Properties
+
+
+0.172.1
+=======
+`PR 423: feat: update consortium table and data matrix <https://github.com/smaht-dac/smaht-portal/pull/423>`_
+
+* Add codes to the Consortium table
+* Adjust data matrix styles
+
+
+0.172.0
+=======
+`PR 425 SN Update schema properties <https://github.com/smaht-dac/smaht-portal/pull/425>`_
+
+* In TissueSample, change the `enum` in `category` from "Aliquot" to "Tissue Aliquot"
+* In File, add "Sequencing Supplement" to `data_category` and "Sequencing Information" to `data_type` and remove barcode values
+* In File, add property `qc_comments` to be included in the file manifest
+* In ResourceFile, add the `enum` "Donor Supplement" to `data_category` and "Donor Information" to `data_typ`e for the downloadable donor manifest file
+
+
+0.171.1
+=======
+`PR 424 style: update text in sample category popover <https://github.com/smaht-dac/smaht-portal/pull/424>`_
+
+* Updates category popover in File View
+
+
+0.171.0
+=======
+`PR 421 SN DSA code <https://github.com/smaht-dac/smaht-portal/pull/421>`_
+
+* Make `code` in DonorSpecificAssembly not a unique key. The expected value for these will now be "DSA"
+
+
 0.170.1
 =======
 `PR 417 fix: update capitalization for retraction_reason property <https://github.com/smaht-dac/smaht-portal/pull/417>`_
@@ -42,7 +256,7 @@ Change Log
 =======
 `PR 415 SN Fix validator error message <https://github.com/smaht-dac/smaht-portal/pull/415>`
 
-* Fix the TissueSample custom validator for valid combination of `external_id` and `category` to print out the expected `category` value in the error message 
+* Fix the TissueSample custom validator for valid combination of `external_id` and `category` to print out the expected `category` value in the error message
 * Add `link_related_validator` decorator to the custom validator for fastq read pairs being linked to the same FileSet
 
 
@@ -368,7 +582,6 @@ Change Log
 `PR 373: SN Add property replaced_by <https://github.com/smaht-dac/smaht-portal/pull/373>`_
 
 * Add property `replaced_by` to File to link to replacement files for files that are retracted or obsolete
-
 
 0.144.0
 =======
@@ -797,30 +1010,30 @@ Hotfixes for browse view
   This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1184
 
 * New endpoint /recent_files_summary which, by default, returns info for files released
-  within the past three months grouped by release-date, cell-line or donor, and 
+  within the past three months grouped by release-date, cell-line or donor, and
   file-description. The specific fields used for these groupings are:
-  
+
   - release-date: file_status_tracking.released
   - cell-line: file_sets.libraries.analytes.samples.sample_sources.cell_line.code
   - donor: donors.display_title
   - file-dsecription: release_tracker_description
-  
+
   Note that release_tracker_description is a newer (2024-12) calcprop (PR-298/sn_file_release_tracker);
   and included in this branch are these files from the branch sn_file_release_tracker:
-  
+
   - src/encoded/item_utils/file.py
   - src/encoded/types/file.py
-  
+
   Added these new modules to support this new endpoint:
-  
+
   - src/encoded/endpoints/recent_files_summary/recent_files_summary.py
   - src/encoded/endpoints/recent_files_summary/recent_files_summary_fields.py
   - src/encoded/endpoints/recent_files_summary/recent_files_summary_troubleshooting.py (functionally unnecessary)
   - src/encoded/endpoints/elasticsearch_utils.py (maybe move to dcicutils eventually)
   - src/encoded/endpoints/endpoint_utils.py (maybe move to dcicutils eventually)
-  
+
   This is for ticket: https://hms-dbmi.atlassian.net/browse/C4-1192
-  
+
   - FYI commit before recent (2025-01-13) change for additional tissue info: bf7ed2bcb9df387721fd329e36e8c15b97a43681
 
 
@@ -1088,7 +1301,7 @@ Hotfixes for browse view
 `PR 235: Sn ExternalQualityMetric submission template <https://github.com/smaht-dac/smaht-portal/pull/235>`_
 
 * In `commands/write_submission_spreadsheets.py`:
-  
+
   * Add `--eqm [dsa duplexseq]` argument that grabs `tooltip`, `key`, and `derived_from` from the appropriate `ExternalQualityMetric` template and writes out to a new tab in the spreadsheet
 
 * Remove properties from DonorSpecificAssembly that are now on ExternalQualityMetric

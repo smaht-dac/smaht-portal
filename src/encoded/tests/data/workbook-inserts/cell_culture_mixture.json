@@ -5,7 +5,10 @@
             "smaht"
         ],
         "submitted_id": "TEST_CELL-CULTURE-MIXTURE_HELA-HEK293",
+        "title": "HELAHEK293",
         "code": "HELAHEK293",
+        "external_id": "Hela-Hek293",
+        "description": "60-to-40 mixture of Hela and Hek293",
         "components": [
             {
                 "cell_culture": "TEST_CELL-CULTURE_HELA",
