@@ -317,9 +317,11 @@ class FileSet(SubmittedItem):
             return None
         library = request_handler.get_item(library[0])
         assay_part = self.generate_assay_part(request_handler, library)
-        if not assay_part:  # we return none if this is a single cell assay to omit this prop
+        if not assay_part:
             return None
 
+        if len(self.properties.get("samples",[]))>1: # we return none if the samples property contains multiple Cell Sample links
+            return None
         sample_source_part = self.generate_sample_source_part(request_handler, library)
         if not sample_source_part:
             return None
