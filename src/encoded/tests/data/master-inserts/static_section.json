@@ -337,6 +337,23 @@
         ]
     },
     {
+        "identifier": "faq",
+        "uuid": "d78edbe6-9a42-4512-ac8d-b909bc287103",
+        "file": "/docs/public/faq.jsx",
+        "section_type": "Page Section",
+        "status": "released",
+        "options": {
+            "filetype": "jsx",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "genome_reference_and_related_data",
         "uuid": "edf6c0f5-e051-4c4e-8e22-99dfde0b8501",
         "file": "/docs/source/genome_reference_and_related_data.rst",
@@ -559,6 +576,44 @@
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data_matrix",
+        "title": "Data Matrix",
+        "file": "/src/encoded/static/data/data-matrix-demo.jsx",
+        "status": "draft",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "ac15e912-543c-4ce5-a16a-1fcdf987181c",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "submission_data_dictionary",
+        "title": "Submission Data Dictionary",
+        "file": "/docs/public/submission_data_dictionary.jsx",
+        "status": "released",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "4aeffcf9-f3bb-40e8-a4de-ac7d1bf4fac4",
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]

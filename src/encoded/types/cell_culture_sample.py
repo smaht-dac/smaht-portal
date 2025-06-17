@@ -14,4 +14,4 @@ from .sample import Sample
 class CellCultureSample(Sample):
     item_type = "cell_culture_sample"
     schema = load_schema("encoded:schemas/cell_culture_sample.json")
-    embedded_list = []
+    embedded_list = Sample.embedded_list
