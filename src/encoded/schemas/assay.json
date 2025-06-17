@@ -7,8 +7,7 @@
         "code",
         "identifier",
         "title",
-        "valid_molecules",
-        "cell_isolation_method"
+        "valid_molecules"
     ],
     "anyOf": [
         {

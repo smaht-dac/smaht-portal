@@ -30,7 +30,8 @@ def test_files_rev_link(es_testapp: TestApp, workbook: None) -> None:
         ('/file-sets/799ca2e9-f24a-4517-bb35-88945ed41047/','TEST_TISSUE-SAMPLE_LIVER', 'illumina_novaseqx-Paired-end-150-R9', 'bulk_wgs', 'group1'), # group_tag
         ('/file-sets/8a55c725-eb48-4ef9-9a54-9271bdf11239/','TEST_TISSUE_LUNG', 'pacbio_revio_hifi-Single-end-20000-no-flow-cell', 'bulk_fiberseq', ''), # merged tissue homogenates
         ('/file-sets/b9f0f412-927f-4129-b165-f6a99935a44f/','TEST_CELL-CULTURE_HELA', 'pacbio_revio_hifi-Single-end-20000-no-flow-cell', 'bulk_mas_iso_seq', ''), # cell culture sample,
-        ("/file-sets/6ae8d017-88f8-4fe7-8d6d-849f979836c9/"), # merged intact tissues
+        ("/file-sets/6ae8d017-88f8-4fe7-8d6d-849f979836c9/",'TEST_TISSUE_LIVER', 'illumina_novaseqx-Paired-end-150-R9', 'bulk_wgs', ''), # merged intact tissues
+        ("/file-sets/149773c9-3c1c-48fd-8ac8-6466ab1dbcc7/",'TEST_CELL-SAMPLE_LIVER-CELL', 'illumina_novaseqx-Paired-end-150-R9', 'sc_pta_wgs', ''), # single-cell
     ]
 )
 def test_file_set_group(
@@ -54,7 +55,6 @@ def test_file_set_group(
 @pytest.mark.workbook
 @pytest.mark.parametrize(
     "file_set", [
-        ("/file-sets/149773c9-3c1c-48fd-8ac8-6466ab1dbcc7/"), # single-cell
         ('/file-sets/6b6531f3-7512-4ed4-8d88-b0807579f883/'), # multiple sample sources
     ]
 )

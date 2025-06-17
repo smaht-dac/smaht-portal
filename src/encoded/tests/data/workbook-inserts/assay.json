@@ -19,8 +19,7 @@
         "code": "003",
         "identifier": "bulk_ultra_long_wgs",
         "valid_sequencers": ["ont_minion_mk1b","ont_promethion_2_solo","ont_promethion_24"],
-        "valid_molecules": ["DNA"],
-        "cell_isolation_method": "Bulk"
+        "valid_molecules": ["DNA"]
     },
     {
         "uuid": "dec3e4cd-86cb-46cb-9ef7-62b1483c7ada",
@@ -31,8 +30,7 @@
         "code": "004",
         "identifier": "bulk_fiberseq",
         "valid_sequencers": ["pacbio_revio_hifi"],
-        "valid_molecules": ["DNA"],
-        "cell_isolation_method": "Bulk"
+        "valid_molecules": ["DNA"]
     },
     {
         "uuid": "53e58de8-d175-4788-8f69-00ec505b1a42",
@@ -43,8 +41,7 @@
         "code": "099",
         "identifier": "cas9_nanopore",
         "valid_sequencers": ["ont_minion_mk1b","ont_promethion_2_solo","ont_promethion_24"],
-        "valid_molecules": ["DNA"],
-        "cell_isolation_method": "Bulk"
+        "valid_molecules": ["DNA"]
     },
     {
         "uuid": "5e7ebb66-8fc1-47fe-92b3-5d96b9af2788",
@@ -55,8 +52,7 @@
         "code": "102",
         "identifier": "bulk_mas_iso_seq",
         "valid_sequencers": ["pacbio_revio_hifi"],
-        "valid_molecules": ["RNA"],
-        "cell_isolation_method": "Bulk"
+        "valid_molecules": ["RNA"]
     },
     {
         "code": "101",
@@ -66,8 +62,7 @@
             "smaht"
         ],
         "uuid": "beb12f96-624b-4fb8-afd5-8c637f5c0b97",
-        "valid_molecules": ["RNA"],
-        "cell_isolation_method": "Bulk"
+        "valid_molecules": ["RNA"]
     },
     {
         "code": "015",
