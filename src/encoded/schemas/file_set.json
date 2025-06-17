@@ -133,6 +133,10 @@
             "title": "Assay Tag",
             "grouping": "Mergeable Files"
         },
+        "file_group.group_tag": {
+            "title": "Group Tag",
+            "grouping": "Mergeable Files"
+        },
         "libraries.assay.display_title": {
             "title": "Assay"
         },
