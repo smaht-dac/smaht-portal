@@ -13,7 +13,7 @@ Change Log
 
 * Add an optional part to the `file_group` calcprop in FileSet that is set by the property `group_tag`. If present, it is added to the `file_group` so that the FileSet is put in a different File Merge Group than other file sets.
 * Adjust `generate_assay_part` of `file_group` to always return a value
-* Adjust `genearte_sample_source_part` to return the sample for cell samples and to return the sample source for multiple tissues (regardless of if they contain spatial information)
+* Adjust `generate_sample_source_part` to return the sample for cell samples and to return the sample source for multiple tissues (regardless of if they contain spatial information)
 
 
 0.184.7
