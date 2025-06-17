@@ -9,3 +9,4 @@ def get_valid_sequencers(properties: Dict[str, Any]) -> List[str]:
 def get_valid_molecules(properties: Dict[str, Any]) -> List[str]:
     """Get valid molecules from properties."""
     return properties.get("valid_molecules",[])
+
