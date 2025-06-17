@@ -477,7 +477,7 @@ Table 3A. Sequencing platform codes.
             <tbody class="table-border-inner">
                 <tr>
                     <td class="text-center">A</td>
-                    <td class="text-start">Illumina NovaSeq X</td>
+                    <td class="text-start">Illumina NovaSeq X, Illumina NovaSeq X Plus</td>
                 </tr>
                 <tr>
                     <td class="text-center">B</td>
@@ -504,12 +504,28 @@ Table 3A. Sequencing platform codes.
                     <td class="text-start">Illumina HiSeq X</td>
                 </tr>
                 <tr>
-                    <td class="text-center">H</td>
-                    <td class="text-start">Illumina NovaSeq X Plus</td>
+                    <td class="text-center text-secondary">H [depracated]</td>
+                    <td class="text-start text-secondary">Illumina NovaSeq X Plus</td>
+                </tr>
+                <tr>
+                    <td class="text-center">I</td>
+                    <td class="text-start">BGI DNBSEQ-G400</td>
+                </tr>
+                <tr>
+                    <td class="text-center">J</td>
+                    <td class="text-start">Element AVITI</td>
+                </tr>
+                <tr>
+                    <td class="text-center">K</td>
+                    <td class="text-start">Illumina NextSeq 2000</td>
+                </tr>
+                <tr>
+                    <td class="text-center">L</td>
+                    <td class="text-start">PacBio Sequel IIe</td>
                 </tr>
                 <tr>
                     <td class="cell-small-text text-start">(set the codes as data are generated on different sequencing platforms and submitted to DAC)</td>
-                    <td class="text-start">ONT MinION, Ultima Genomics, PacBio Onso, Element Aviti, PacBio Sequel</td>
+                    <td class="text-start">Ultima Genomics, PacBio Onso</td>
                 </tr>
             </tbody>
         </table>

@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.184.8
+=======
+`PR 457 feat: update nomenclature doc table <https://github.com/smaht-dac/smaht-portal/pull/457>`_
+
+* Update table 3A on nomenclature page
+
+
 0.184.7
 =======
 `PR 454 SN Fix manifest file <https://github.com/smaht-dac/smaht-portal/pull/454>`_
