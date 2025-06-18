@@ -132,12 +132,17 @@ class TestMetadataTSVWorkbook:
         res = es_testapp.post_json('/metadata/', {'type': 'OutputFile', 'include_extra_files': True})
         tsv = res._app_iter[0]
         parsed = TestMetadataTSVHelper.read_tsv_from_bytestream(tsv)
-        last_extra_file_name = parsed[-1][6]  # filename in 7th position in tsv
-        assert last_extra_file_name == 'a_second_bam_bai.bai'
+        last_extra_file_name = parsed[-1][2]  # filename in 3rd position in tsv
+        # This assert is very important as it validates the correct location of filename, which is used in the
+        # manifest file for downloads
+        assert (
+            last_extra_file_name == 'a_second_bam_bai.bai',
+            'NOTE: if you failed this test you changed the File manifest structure! Do NOT do so!'
+        )
         # check an entire row that is mostly representative
         for row in parsed:
             if '303985cf-f1db-4dea-9782-2e68092d603d' in row[0]:  # this is the row
-                assert row[6] == 'SMHT-FOO-BAR-M45-B003-DAC_SMAURF3ETDQJ_bwamem0.1.2_GRCh38.aligned.sorted.bam'
+                assert row[2] == 'SMHT-FOO-BAR-M45-B003-DAC_SMAURF3ETDQJ_bwamem0.1.2_GRCh38.aligned.sorted.bam'
                 assert row[9] == '1000'  # size
                 assert row[11] == 'Aligned Reads'  # category
                 assert row[12] == 'BAM'  # format
