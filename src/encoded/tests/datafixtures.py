@@ -644,7 +644,6 @@ def test_cell_culture_sample(
     return post_item_and_return_location(testapp, item, 'cell_culture_sample')
 
 
-
 @pytest.fixture
 def test_assay(
     testapp,
