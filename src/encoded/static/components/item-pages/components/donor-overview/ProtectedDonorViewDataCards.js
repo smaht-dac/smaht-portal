@@ -2,6 +2,95 @@
 
 import React from 'react';
 import { DataCardRow } from '../file-overview/FileViewDataCards';
+import {
+    OverlayTrigger,
+    Popover,
+    PopoverHeader,
+    PopoverBody,
+} from 'react-bootstrap';
+/**
+ * Bootstrap Popover element for the description field in the sample information
+ * data card. Contains a table with definitions for the terms used in the
+ * description field.
+ * @returns {JSX.Element} Popover component with term definitions
+ *
+ * Note: Use regular function here, as Bootstrap relies on `this`.
+ */
+function renderDescriptionPopover() {
+    return (
+        <Popover id="description-definitions-popover" className="w-auto">
+            <PopoverBody className="p-0">
+                <table className="table">
+                    <thead>
+                        <tr>
+                            <th className="text-left">Term</th>
+                            <th className="text-left">Definition</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="align-top text-left fw-bold text-nowrap">
+                                Tissue Aliquot
+                            </td>
+                            <td className="text-left">
+                                A sample of a sectioned solid tissue with a
+                                pre-defined size, that is used for the
+                                downstream sampling technique such as coring.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="align-top text-left fw-bold">
+                                Specimen
+                            </td>
+                            <td className="text-left">
+                                A sample of a solid tissue without a pre-defined
+                                size, that is neither a core nor homogenate.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="align-top text-left fw-bold">
+                                Core
+                            </td>
+                            <td className="text-left">
+                                A core sample taken from the sectioned solid
+                                tissue aliquot. Contains spatial information
+                                within the tissue sample.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="align-top text-left fw-bold">
+                                Homogenate
+                            </td>
+                            <td className="text-left">
+                                A sample of mechanically homogenized tissue that
+                                can be divided into vials for distribution.
+                                Applicable only to Benchmarking tissues.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="align-top text-left fw-bold">
+                                Liquid
+                            </td>
+                            <td className="text-left">
+                                A sample of a liquid tissue (e.g. blood or
+                                buccal swab).
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="align-top text-left fw-bold border-0">
+                                Cells
+                            </td>
+                            <td className="text-left border-0">
+                                A sample of cells derived from tissue (i.e.
+                                Fibroblasts from skin).
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </PopoverBody>
+        </Popover>
+    );
+}
 
 const default_donor_information = [
     {
@@ -19,6 +108,7 @@ const default_donor_information = [
     {
         title: 'Hardy Scale',
         getProp: (context = {}) => context?.hardy_scale,
+        titlePopover: renderDescriptionPopover(),
     },
 ];
 
@@ -213,12 +303,13 @@ export const ProtectedDonorViewDataCards = ({
                             <div className="section-body split d-flex mb-2">
                                 <div className="d-flex flex-column">
                                     {donor_information.map(
-                                        ({ title, getProp }) => {
+                                        ({ title, getProp, titlePopover }) => {
                                             return (
                                                 <DataCardRow
                                                     key={title}
                                                     title={title}
                                                     value={getProp(context)}
+                                                    titlePopover={titlePopover}
                                                 />
                                             );
                                         }
