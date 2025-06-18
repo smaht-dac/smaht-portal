@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+
+0.184.8
+=======
+`PR 455 Cypress updates <https://github.com/smaht-dac/smaht-portal/pull/455>`_
+
+* Updates: 03a_browse_views_basic via selectorVars, 04a_search_views_local, 06_benchmarking, 08_documentation
+
+
 0.184.7
 =======
 `PR 454 SN Fix manifest file <https://github.com/smaht-dac/smaht-portal/pull/454>`_
