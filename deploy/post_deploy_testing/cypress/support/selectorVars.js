@@ -4,7 +4,7 @@
 
 // Navbar and Authentication
 export const navBrowseBtnSelector =
-    '#overlays-container .big-dropdown-menu .container .col-auto:first-child a.big-link:first-of-type';
+    '#overlays-container .big-dropdown-menu .container .col-12:first-child a.big-link:first-of-type';
 export const navUserAcctDropdownBtnSelector =
     '#top-nav .navbar-collapse .navbar-acct.navbar-nav .user-account-item';
 export const navUserAcctLoginBtnSelector =
