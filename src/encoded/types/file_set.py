@@ -219,7 +219,7 @@ class FileSet(SubmittedItem):
 
     @staticmethod
     def generate_sample_source_part(
-        request_handler: RequestHandler, file_set: Dict[str, Any], library: Dict[str, Any]
+        request_handler: RequestHandler, library: Dict[str, Any]
     ) -> Union[str, None]:
         """ Note this is also derived from the library """
         samples = library_utils.get_samples(
@@ -227,13 +227,13 @@ class FileSet(SubmittedItem):
         )
         if len(samples) == 0:
             return None
-        if len(file_set.get("samples",[]))>1: #If the FileSet samples property contains multiple Cell Sample links
-            return None
-        if len(samples) > 1:
-            for sample in samples:
-                if 'cell-sample' in sample:
-                    return None
-                    # If we are multiple single cell samples, return None
+        # if len(file_set.get("samples",[]))>1: #If the FileSet samples property contains multiple Cell Sample links
+        #     return None
+        # if len(samples) > 1:
+        #     for sample in samples:
+        #         if 'cell-sample' in sample:
+        #             return None
+        #             # If we are multiple single cell samples, return None
         if len(samples) == 1:
             sample = samples[0]
             if 'tissue' in sample:
@@ -322,7 +322,7 @@ class FileSet(SubmittedItem):
         if not assay_part:
             return None
 
-        sample_source_part = self.generate_sample_source_part(request_handler, self.properties, library)
+        sample_source_part = self.generate_sample_source_part(request_handler,  library)
         if not sample_source_part:
             return None
 
