@@ -5,8 +5,13 @@
             "smaht"
         ],
         "submitted_id": "TEST_ANALYTE-PREPARATION_LIVER",
+        "description": "Liver DNA extraction",
         "extraction_method": [
             "Magnetic Beads"
+        ],
+        "homogenization_method": "Mechanical",
+        "preparation_kits": [
+            "TEST_PREPARATION-KIT_ILLUMINA-DNA"
         ]
     },
     {
@@ -21,6 +26,9 @@
         "cell_lysis_method": [
             "Chemical"
         ],
-        "suspension_type": "Whole Cell"
+        "suspension_type": "Whole Cell",
+        "treatments": [
+            "TEST_TREATMENT_CHEMICAL"
+        ]
     }
 ]

@@ -262,6 +262,7 @@ class CalcPropConstants:
         "type": "string",
     }
     SAMPLE_SUMMARY_DONOR_IDS = "donor_ids"
+    SAMPLE_SUMMARY_CATEGORY = "category"
     SAMPLE_SUMMARY_TISSUES = "tissues"
     SAMPLE_SUMMARY_TISSUE_SUBTYPES = "tissue_subtypes"
     SAMPLE_SUMMARY_TISSUE_DETAILS = "tissue_details"
@@ -275,6 +276,13 @@ class CalcPropConstants:
         "properties": {
             SAMPLE_SUMMARY_DONOR_IDS: {
                 "title": "Donor ID",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_CATEGORY: {
+                "title": "Tissue Category",
                 "type": "array",
                 "items": {
                     "type": "string",
@@ -375,6 +383,7 @@ def _build_file_embedded_list() -> List[str]:
 
         # Sample summary + Link calcprops
         "file_sets.libraries.analytes.molecule",
+        "file_sets.libraries.analytes.samples.sample_sources.category",
         "file_sets.libraries.analytes.samples.sample_sources.code",
         "file_sets.libraries.analytes.samples.sample_sources.uberon_id",
         "file_sets.libraries.analytes.samples.sample_sources.description",
@@ -386,8 +395,14 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.samples.sample_sources.donor",
 
         "quality_metrics.overall_quality_status",
+        "quality_metrics.coverage",
         # For manifest
+        "file_sets.accession",
+        "file_sets.libraries.analytes.accession",
+        "file_sets.libraries.analytes.samples.accession",
+        "file_sets.libraries.analytes.samples.sample_sources.donor.accession",
         "sequencing.sequencer.display_title",
+        "sequencing.sequencer.platform",
 
         # Include file groups tags
         "file_sets.file_group.*",
@@ -401,11 +416,13 @@ def _build_file_embedded_list() -> List[str]:
 
         # For browse search columns
         "donors.display_title",
+        "donors.protected_donor",
         "sample_summary.tissues",
 
         # For facets
         "donors.age",
-        "donors.sex"
+        "donors.sex",
+
     ]
 
 
@@ -648,6 +665,8 @@ class File(Item, CoreFile):
     def meta_workflow_run_inputs(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "meta_workflow_run_inputs")
         if result:
+            if self.type_info.name == "ReferenceFile":
+                return
             request_handler = RequestHandler(request = request)
             mwfrs=[ 
                 mwfr for mwfr in result
@@ -1010,11 +1029,17 @@ class File(Item, CoreFile):
                 file_utils.get_donors(file_properties, request_handler),
                 item_utils.get_external_id,
             ),
+            constants.SAMPLE_SUMMARY_CATEGORY: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_tissues(file_properties, request_handler),
+                tissue_utils.get_category
+            ),
             constants.SAMPLE_SUMMARY_TISSUES: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_tissues(file_properties, request_handler),
                 functools.partial(
-                    tissue_utils.get_top_grouping_term, request_handler=request_handler
+                    tissue_utils.get_grouping_term_from_tag, request_handler=request_handler,
+                    tag="tissue_type"
                 ),
             ),
             constants.SAMPLE_SUMMARY_TISSUE_SUBTYPES: get_property_values_from_identifiers(

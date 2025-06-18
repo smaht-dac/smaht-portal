@@ -134,6 +134,7 @@ const QCOverviewTable = ({
                         </span>
                         <a
                             href={`/qc-metrics?tab=metrics-by-file&file=${accession}`}
+                            target='_blank'
                             className="btn btn-sm btn-primary">
                             <i className="icon icon-chart-area fas me-1"></i>
                             Visualize Quality Metrics
@@ -154,6 +155,7 @@ const QCOverviewTable = ({
                             </span>
                             <a
                                 href={`/qc-metrics?tab=sample-integrity&file=${accession}`}
+                                target='_blank'
                                 className="btn btn-sm btn-outline-secondary">
                                 <i className="icon icon-chart-area fas me-1"></i>
                                 View Relatedness Chart

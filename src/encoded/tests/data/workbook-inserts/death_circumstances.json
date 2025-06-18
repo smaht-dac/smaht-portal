@@ -5,7 +5,7 @@
         "submission_centers": [
             "smaht"
         ],
-        "donor": "TEST_DONOR_FEMALE",
+        "donor": "TEST_PROTECTED-DONOR_FEMALE",
         "blood_transfusion_products": [
             "Platelets"
         ]
