@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.184.9
+=======
+`PR 456 feat: update status of FAQ and Submission Schema Dictionary <https://github.com/smaht-dac/smaht-portal/pull/456>`_
+
+* Add released status to page items
+*  Update status of FAQ and Submission Schema Dictionary page items
+
 
 0.184.8
 =======
