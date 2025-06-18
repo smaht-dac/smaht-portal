@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.185.0
+=======
+`PR 422 SN Upgrade treatment <https://github.com/smaht-dac/smaht-portal/pull/422>`_
+
+* Add description property to Treatment
+* Make `dependentRequired` for `concentration` and `concentration_units` in Treatment
+
 
 0.184.8
 =======
