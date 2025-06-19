@@ -130,7 +130,6 @@ Cypress.Commands.add(
  * AUTHENTICATION COMMANDS
  * @todo - Once the authentication scheme for SMaHT is finalized, the following should be commented out and
  *         adjusted to work with the new means of authentication + session storage
- * @deprecated - This code is taken from CGAP in its entirety
  */
 
 const auth0UserIds = {
@@ -253,6 +252,14 @@ Cypress.Commands.add('loginSMaHT', function (options = { useEnvToken: true }) {
         });
         return performLogin(token);
     });
+});
+
+Cypress.Commands.add('validateUser', function(userDisplayName = 'SCM'){
+    return cy.get(navUserAcctDropdownBtnSelector)
+        .should('not.contain.text', 'Login')
+        .then((accountListItem) => {
+            expect(accountListItem.text()).to.contain(userDisplayName);
+        }).end();
 });
 
 Cypress.Commands.add('logoutSMaHT', function (options = { useEnvToken: true }) {
