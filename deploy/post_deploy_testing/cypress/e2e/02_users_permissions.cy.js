@@ -1,30 +1,29 @@
 import { cypressVisitHeaders } from '../support';
-import { navUserAcctDropdownBtnSelector, navUserAcctLoginBtnSelector } from '../support/selectorVars';
+import { navUserAcctDropdownBtnSelector } from '../support/selectorVars';
 
-describe('Impersonate user JWT, navigate to profile, edit last_name to & back.', function () {
+describe('Impersonate user JWT, navigate to profile & back.', function () {
 
 
     context('Frontend Test User Profile', function () {
 
         beforeEach(function () {
             cy.visit('/', { headers: cypressVisitHeaders });
-            cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false }).end()
-                .get(navUserAcctDropdownBtnSelector)
-                .should('not.contain.text', 'Login')
-                .then((accountListItem) => {
-                    expect(accountListItem.text()).to.contain('SCM');
-                }).end();
+            cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false })
+                .validateUser('SCM')
+                .end();
         });
 
         afterEach(function () {
             cy.logoutSMaHT();
         });
 
-        it('Ensure logged in, visit profile page, add & remove access key', function () {
+        it('Ensure logged in, visit profile page, validate consortia and submission center(s), add & remove access key', function () {
 
             cy.get(navUserAcctDropdownBtnSelector).click().end()
                 .get('#overlays-container .big-dropdown-menu .help-menu-tree .level-1-title-container').contains('a', 'Profile').click().end()
-                .get('.page-container .user-info h1.user-title').should('contain', "Scientist").end() // Test only for first name as we're editing last name & it may change re: delayed indexing, etc.
+                .get('.page-container .user-info h1.user-title').should('contain', 'Scientist').end()
+                .get('.page-container .organizations #consortia li a').should('contain', 'SMaHT').end()
+                .get('.page-container .organizations #submission_centers li a').should('contain', 'HMS DAC').end()
                 .get('.page-container .access-keys-container h3').should('contain', "Access Keys").end()
                 .get('.page-container .access-keys-container #add-access-key').scrollToCenterElement().click({ force: true }).end()
                 .get('.modal-body').should('contain', 'Access Key ID').should('contain', 'Secret Access Key').end()
@@ -40,43 +39,6 @@ describe('Impersonate user JWT, navigate to profile, edit last_name to & back.',
                 });
 
         });
-
-        // TODO: Currently, editing the first and last name is not permitted for regular users. Comment out the code block below when it gets available
-        // it('Ensure logged in, visit profile page, edit last name 2x.', function () {
-
-        //     cy.get(navUserAcctDropdownBtnSelector).click().end()
-        //         .get('#overlays-container .big-dropdown-menu')
-        //         .should('have.class', 'is-open')
-        //         .get('.help-menu-tree .level-1-title-container').contains('a', 'Profile').click().end()
-        //         .get('.page-container .user-info h1.user-title').invoke('text').should('include', "Scientist").end() // Test only for first name as we're editing last name & it may change re: delayed indexing, etc.
-        //         .url().then(function (currUrl) {
-        //             return cy.visit(currUrl + '?datastore=database', { headers: cypressVisitHeaders }).end() // Edit last name ON DATASTORE=DATABASE TO PREVENT ERRORS DUE TO INDEXING NOT BEING CAUGHT UP FROM PRIOR TEST
-        //                 .get('.page-container .user-info h1.user-title .last_name .value.saved a.edit-button').click().end()
-        //                 .get('.page-container .user-info h1.user-title .last_name .value.editing input')
-        //                 .scrollToCenterElement().clear().type('SuperTest', { delay: 0 }).then(function (inputfield) {
-        //                     return cy.window().get('.page-container .user-info h1.user-title .last_name .value.editing .save-button').click()
-        //                         .should('have.length', 0).end()
-        //                         .get('.page-container .user-info h1.user-title .last_name .value.editing .loading-icon').should('have.length', 0).end()
-        //                         .get('.page-container .user-info h1.user-title').should('have.text', "Scientist SuperTest").end()
-        //                         // After reloading on datastore=database, last name stays edited. Then change back.
-        //                         .reload()//.visit(currUrl + '?datastore=database').end()
-        //                         .get('.page-container .user-info h1.user-title').should('have.text', "Scientist SuperTest").end()
-        //                         // Cleanup & test again
-        //                         .get('.page-container .user-info h1.user-title .last_name .value.saved a.edit-button').click().end()
-        //                         .get('.page-container .user-info h1.user-title .last_name .value.editing input').should('have.value', 'SuperTest')
-        //                         .clear({ force: true }).type('Test', { delay: 0 }).then(function (inputfield) {
-        //                             return cy
-        //                                 .get('.page-container .user-info h1.user-title .last_name .value.editing .save-button').click()
-        //                                 .should('have.length', 0).end()
-        //                                 .get('.page-container .user-info h1.user-title .last_name .value.editing .loading-icon').should('have.length', 0).end()
-        //                                 .get('.page-container .user-info h1.user-title').should('have.text', "Scientist Test").end()
-        //                                 .reload()
-        //                                 .get('.page-container .user-info h1.user-title').should('have.text', "Scientist Test").end();
-        //                         });
-
-        //                 });
-        //         }).end().logoutSMaHT();
-        // });
 
     });
 
