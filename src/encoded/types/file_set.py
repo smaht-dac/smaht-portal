@@ -212,9 +212,13 @@ class FileSet(SubmittedItem):
     def generate_assay_part(
         request_handler: RequestHandler, library: Dict[str, Any]
     ) -> Union[str, None]:
-        """ The library of the merge_file_group contains information on the assay."""
+        """ The library of the merge_file_group contains information on the assay.
+        This basically just checks the cell isolation method is bulk (isn't a single cell or microbulk) and if it isn't
+        return the identifier
+        """
         assay = request_handler.get_item(library_utils.get_assay(library))
-        if assay:
+        cell_isolation_method = assay_utils.get_cell_isolation_method(assay)
+        if cell_isolation_method == "Bulk":
             return item_utils.get_identifier(assay)
 
     @staticmethod
@@ -227,13 +231,6 @@ class FileSet(SubmittedItem):
         )
         if len(samples) == 0:
             return None
-        # if len(file_set.get("samples",[]))>1: #If the FileSet samples property contains multiple Cell Sample links
-        #     return None
-        # if len(samples) > 1:
-        #     for sample in samples:
-        #         if 'cell-sample' in sample:
-        #             return None
-        #             # If we are multiple single cell samples, return None
         if len(samples) == 1:
             sample = samples[0]
             if 'tissue' in sample:
@@ -243,13 +240,6 @@ class FileSet(SubmittedItem):
                         request_handler, sample, item_utils.get_submitted_id
                     )
                     # If we are a single tissue sample with spatial information, generate this based on the sample field, not the sample
-            elif 'cell-sample' in sample:
-                sample_meta = request_handler.get_item(sample)
-                return get_property_value_from_identifier(
-                    request_handler, sample, item_utils.get_submitted_id
-                )
-                # If we are one single cell sample , generate this based on the sample field, not the sample
-        # sources field
 
         # If we get here, we are a Homogenate tissue sample, multiple merged tissue samples, or cell line and should rely on sample sources
         sample_sources = library_utils.get_sample_sources(
