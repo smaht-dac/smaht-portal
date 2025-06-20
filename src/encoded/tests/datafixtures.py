@@ -671,7 +671,8 @@ def test_rna_assay(
         "title": "Bulk RNA-Seq",
         "code": "100",
         "submission_centers": [test_submission_center["uuid"]],
-        "valid_molecules": ["RNA"]
+        "valid_molecules": ["RNA"],
+        "cell_isolation_method": "Bulk"
     }
     return post_item_and_return_location(testapp, item, 'assay')
 
