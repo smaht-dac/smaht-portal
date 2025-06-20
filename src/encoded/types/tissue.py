@@ -70,10 +70,9 @@ class Tissue(SampleSource):
         Special case for Fibroblasts (3AC) as they are mostly Mesoderm but OntologyTerm links to Ectoderm for Skin.
         """
         request_handler = RequestHandler(request = request)
-        tissue_type = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="tissue_type")
-        if tissue_type in ["Testis", "Ovary"]:
+        if tissue_utils.get_protocol_id(self.properties) in ["3U", "3V","3W", "3X"]:
             return "Germ Cells"
-        elif tissue_type in ["Blood", "Buccal Swab"]:
+        elif tissue_utils.get_protocol_id(self.properties) in ["3A","3B"]:
             return "Clinically Accessible"
         elif tissue_utils.get_protocol_id(self.properties) == "3AC":
             return "Mesoderm"
