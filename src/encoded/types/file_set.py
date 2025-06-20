@@ -309,10 +309,10 @@ class FileSet(SubmittedItem):
             return None
         library = request_handler.get_item(library[0])
         assay_part = self.generate_assay_part(request_handler, library)
-        if not assay_part:
+        if not assay_part: # we return none if this is a single cell assay to omit this prop
             return None
 
-        sample_source_part = self.generate_sample_source_part(request_handler,  library)
+        sample_source_part = self.generate_sample_source_part(request_handler, library)
         if not sample_source_part:
             return None
 
