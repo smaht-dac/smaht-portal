@@ -82,7 +82,7 @@
             "title": "Donor",
             "description": "Link to the associated donor",
             "type": "string",
-            "linkTo": "ProtectedDonor"
+            "linkTo": "AbstractDonor"
         }
     }
 }

@@ -94,7 +94,7 @@
             "title": "Donor",
             "description": "The donor of the family history",
             "type": "string",
-            "linkTo": "ProtectedDonor"
+            "linkTo": "AbstractDonor"
         }
     }
 }
