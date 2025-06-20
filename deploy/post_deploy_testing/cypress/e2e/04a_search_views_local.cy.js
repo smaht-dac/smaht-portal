@@ -159,7 +159,7 @@ describe('Deployment/CI Search View Tests', function () {
                         .invoke('removeAttr', 'target') // we prevent new tab display since cypress not supports multi-tab testing
                         .click({ force: true });
 
-                    cy.get('.file-view-title h1.file-view-title-text')
+                    cy.get('.view-title h1.view-title-text')
                         .invoke('text')
                         .then((text) => {
                             expect(text.trim()).to.eq(textContent);

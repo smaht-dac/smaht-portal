@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-0.185.0
+0.186.0
 =======
 `PR 440: SN file merge group tag <https://github.com/smaht-dac/smaht-portal/pull/440>`_
 
@@ -15,6 +15,21 @@ Change Log
 * Adjust `generate_assay_part` of `file_group` to only a return a value if `cell_isolation_method` is "Bulk"
 * Make `cell_isolation_method` a required property for Assay
 * Adjust `generate_sample_source_part` to return the sample source for multiple tissues (regardless of if they contain spatial information)
+
+
+0.185.0
+=======
+`PR 422 SN Upgrade treatment <https://github.com/smaht-dac/smaht-portal/pull/422>`_
+
+* Add description property to Treatment
+* Make `dependentRequired` for `concentration` and `concentration_units` in Treatment
+
+
+0.184.8
+=======
+`PR 455 Cypress updates <https://github.com/smaht-dac/smaht-portal/pull/455>`_
+
+* Updates: 03a_browse_views_basic via selectorVars, 04a_search_views_local, 06_benchmarking, 08_documentation
 
 
 0.184.7
