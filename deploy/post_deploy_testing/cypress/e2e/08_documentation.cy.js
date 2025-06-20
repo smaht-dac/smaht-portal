@@ -185,7 +185,7 @@ describe('Documentation Page & Content Tests', function () {
                             expect(titleText).to.have.length.above(0);
                             prevTitle = titleText;
 
-                            const skipPages = ['Data Release Status', 'Troubleshooting', 'Submission Data Dictionary'];
+                            const skipPages = ['Data Release Status', 'Submission Data Dictionary'];
                             if (!skipPages.includes(titleText)) {
                                 const linkSelector = '.help-entry.static-section-entry a:not([href^="#"]):not([href^="mailto:"]):not([href*=".gov"])';
 
