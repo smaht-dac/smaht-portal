@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import memoize from 'memoize-one';
 import _ from 'underscore';
-import { OverlayTrigger, Popover } from 'react-bootstrap';
+import { OverlayTrigger, Popover, Table } from 'react-bootstrap';
 
 import ReactTooltip from 'react-tooltip';
 
@@ -40,6 +40,8 @@ import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAbove
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import { transformedFacets } from './SearchView';
 
+import { DisplayTitleColumnWrapper } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
+
 export default function BrowseView(props) {
     const { session } = props;
     return <BrowseViewBody {...props} key={session} />;
@@ -75,19 +77,19 @@ const BrowseDonorBody = (props) => {
         <>
             <h2 className="browse-summary-header">SMaHT Data Summary</h2>
             <Alerts alerts={props.alerts} className="mt-2" />
-            <div>
+            {/* <div>
                 <div className="browse-summary d-flex flex-row mt-2 mb-3 flex-wrap">
-                    {/* <BrowseSummaryStatController type="File" />
+                    <BrowseSummaryStatController type="File" />
                     <BrowseSummaryStatController type="Donor" />
                     <BrowseSummaryStatController type="Tissue" />
                     <BrowseSummaryStatController type="Assay" />
                     <BrowseSummaryStatController
                         type="File Size"
                         additionalSearchQueries="&additional_facet=file_size"
-                    /> */}
+                    />
                 </div>
             </div>
-            <hr />
+            <hr /> */}
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseDonorSearchTable />
             </BrowseViewControllerWithSelections>
@@ -274,6 +276,15 @@ export const BrowseFileSearchTable = (props) => {
     );
 };
 
+const DonorRowDetailPane = () => {
+    return (
+        <div className="donor-row-detail-pane">
+            <h3>Donor Details</h3>
+            <p>Details about the donor will be displayed here.</p>
+        </div>
+    );
+};
+
 export const BrowseDonorSearchTable = (props) => {
     const {
         session,
@@ -331,16 +342,17 @@ export const BrowseDonorSearchTable = (props) => {
                 columns,
                 hideFacets,
             }}
+            detailPane={DonorRowDetailPane}
+            renderDetailPane={true}
             useCustomSelectionController
             hideStickyFooter
             isFullscreen={false}
             toggleFullScreen={() => {}}
             currentAction={'multiselect'}
-            renderDetailPane={null}
             termTransformFxn={Schemas.Term.toName}
             separateSingleTermFacets={false}
             rowHeight={31}
-            openRowHeight={40}
+            openRowHeight={100}
         />
     );
 };
@@ -370,6 +382,18 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
 
     const commonCls = 'col-12';
 
+    let BrowseType = null;
+    switch (context['@type'][0]) {
+        case 'FileSearchResults':
+            BrowseType = 'File';
+            break;
+        case 'DonorSearchResults':
+            BrowseType = 'Donor';
+            break;
+        default:
+            break;
+    }
+
     return (
         <PageTitleContainer
             alerts={[]}
@@ -395,7 +419,9 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
                         className="static-breadcrumb nonclickable"
                         data-name="Production"
                         key="/browse">
-                        <span>Browse By Donor</span>
+                        <span>
+                            {BrowseType ? `Browse By ${BrowseType}` : 'Browse'}
+                        </span>
                     </div>
                 </div>
                 <OnlyTitle className={commonCls + ' mx-0 px-0'}>
@@ -716,9 +742,31 @@ export function createBrowseDonorColumnExtensionMap({
     const columnExtensionMap = {
         ...originalColExtMap, // Pull in defaults for all tables
         // Then overwrite or add onto the ones that already are there:
-        display_title: {
-            default_hidden: true,
-        },
+        // display_title: {
+        //     render: function (result, parentProps) {
+        //         console.log('DisplayTitle', result, parentProps);
+        //         const {
+        //             href,
+        //             context,
+        //             rowNumber,
+        //             detailOpen = true,
+        //             toggleDetailOpen,
+        //             targetTabKey,
+        //         } = parentProps;
+        //         return (
+        //             <DisplayTitleColumnWrapper
+        //                 {...{
+        //                     result,
+        //                     href,
+        //                     context,
+        //                     rowNumber,
+        //                     detailOpen: true,
+        //                     toggleDetailOpen,
+        //                 }}
+        //             />
+        //         );
+        //     },
+        // },
         // Select all button
         '@type': {
             colTitle: (
@@ -803,12 +851,41 @@ export function createBrowseDonorColumnExtensionMap({
         'sample_summary.tissues': {
             widthMap: { lg: 150, md: 150, sm: 150 },
             render: function (result, parentProps) {
-                console.log('Tissues', result);
+                console.log('DisplayTitle', result, parentProps);
+                const {
+                    href,
+                    context,
+                    rowNumber,
+                    detailOpen = true,
+                    toggleDetailOpen,
+                    targetTabKey,
+                } = parentProps;
                 if (result?.tissues?.length > 0) {
-                    return <span>{result?.tissues?.length} Tissues</span>;
+                    return (
+                        <div className="d-flex">
+                            <DisplayTitleColumnWrapper
+                                {...{
+                                    result,
+                                    href,
+                                    context,
+                                    rowNumber,
+                                    detailOpen: true,
+                                    toggleDetailOpen,
+                                    targetTabKey,
+                                }}>
+                                <span>{result?.tissues?.length} Tissues</span>
+                            </DisplayTitleColumnWrapper>
+                        </div>
+                    );
                 }
                 return null;
             },
+            // render: function (result, parentProps) {
+            //     if (result?.tissues?.length > 0) {
+            //         return <span>{result?.tissues?.length} Tissues</span>;
+            //     }
+            //     return null;
+            // },
         },
         // Hardy Scale
         hardy_scale: {
@@ -817,6 +894,7 @@ export function createBrowseDonorColumnExtensionMap({
                 return <span>{result?.hardy_scale ?? null}</span>;
             },
         },
+
         // Assays
         // 'file_sets.libraries.assay.display_title': {
         //     widthMap: { lg: 136, md: 136, sm: 136 },
@@ -890,6 +968,9 @@ export function createBrowseDonorColumnExtensionMap({
     };
 
     const columns = {
+        // display_title: {
+        //     title: 'display_title',
+        // },
         '@type': {
             title: 'Selected',
         },
@@ -919,15 +1000,6 @@ export function createBrowseDonorColumnExtensionMap({
         },
         'file_sets.sequencing.sequencer.display_title': {
             title: 'Platform',
-        },
-        'file_format.display_title': {
-            title: 'Format',
-        },
-        data_type: {
-            title: 'Data Type',
-        },
-        'software.display_title': {
-            title: 'Software',
         },
         date_created: {
             title: 'Date Created',
