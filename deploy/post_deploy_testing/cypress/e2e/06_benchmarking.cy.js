@@ -1,5 +1,4 @@
 import { cypressVisitHeaders } from "../support";
-import { navUserAcctDropdownBtnSelector } from "../support/selectorVars";
 
 const dataNavBarItemSelectorStr = '#top-nav div.navbar-collapse .navbar-nav a.id-data-menu-item';
 

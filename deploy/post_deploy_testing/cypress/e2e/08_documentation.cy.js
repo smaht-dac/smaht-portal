@@ -1,5 +1,4 @@
 import { cypressVisitHeaders } from "../support";
-import { navUserAcctDropdownBtnSelector } from "../support/selectorVars";
 
 // todo: Ensure we're selecting right 1 incase later add more -- test for `a.id-docs-menu-item` once in place upstream.
 const documentationNavBarItemSelectorStr = '#top-nav div.navbar-collapse .navbar-nav a.id-docs-menu-item';
@@ -227,7 +226,7 @@ describe('Documentation Page & Content Tests', function () {
             .should('have.class', 'dropdown-open-for').then(() => {
 
                 cy.get('.big-dropdown-menu.is-open a.level-2-title[href="/docs/submission/submission-data-dictionary"]')
-                    .click({ force: true }).wait(10000).then(function ($linkElem) {
+                    .click({ force: true }).then(function ($linkElem) {
                         cy.get('#slow-load-container').should('not.have.class', 'visible').end();
                         const linkHref = $linkElem.attr('href');
                         cy.location('pathname').should('equal', linkHref);
@@ -276,7 +275,7 @@ describe('Documentation Page & Content Tests', function () {
             .should('have.class', 'dropdown-open-for').then(() => {
 
                 cy.get('.big-dropdown-menu.is-open a.level-2-title[href="/docs/submission/faq"]')
-                    .click({ force: true }).wait(10000).then(function ($linkElem) {
+                    .click({ force: true }).then(function ($linkElem) {
                         cy.get('#slow-load-container').should('not.have.class', 'visible').end();
                         const linkHref = $linkElem.attr('href');
                         cy.location('pathname').should('equal', linkHref);
