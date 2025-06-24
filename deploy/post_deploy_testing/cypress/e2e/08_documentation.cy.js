@@ -267,4 +267,48 @@ describe('Documentation Page & Content Tests', function () {
             .logoutSMaHT();
     });
 
+    it('Visit Frequently Asked Questions, ensure FAQ items are listed, and each item has a question and answer.', function () {
+        cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false })
+            .validateUser('SCM')
+            .get(documentationNavBarItemSelectorStr)
+            .should('have.class', 'dropdown-toggle')
+            .click()
+            .should('have.class', 'dropdown-open-for').then(() => {
+
+                cy.get('.big-dropdown-menu.is-open a.level-2-title[href="/docs/submission/faq"]')
+                    .click({ force: true }).wait(10000).then(function ($linkElem) {
+                        cy.get('#slow-load-container').should('not.have.class', 'visible').end();
+                        const linkHref = $linkElem.attr('href');
+                        cy.location('pathname').should('equal', linkHref);
+                    });
+
+                // Verify that the page contains the correct header
+                cy.contains('h2.faq-header', 'Frequently Asked Questions').should('be.visible');
+
+                // Verify at least 5 .faq-item elements are present
+                cy.get('div.faq-body details').should('have.length.greaterThan', 5);
+
+                // Iterate over each FAQ accordion item
+                cy.get('div.faq-body details').each(($el) => {
+                    // Use 'within' to scope inside this <details> element
+                    cy.wrap($el).within(() => {
+                        // Verify it starts closed
+                        cy.root().should('not.have.attr', 'open');
+
+                        // Click the <summary> element
+                        cy.get('summary').click();
+
+                        // Verify it opened
+                        cy.root().should('have.attr', 'open');
+
+                        // Verify the response is visible and not empty
+                        cy.get('.response').should('be.visible').and(($resp) => {
+                            expect($resp.text().trim()).to.not.equal('');
+                        });
+                    });
+                });
+            })
+            .logoutSMaHT();
+    });
+
 });
