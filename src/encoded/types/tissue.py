@@ -37,7 +37,10 @@ def _build_tissue_embedded_list() -> List[str]:
     return [
         "donor.external_id",
         "uberon_id.identifier",
-        "uberon_id.grouping_term",
+        "uberon_id.grouping_term.display_title",
+        "uberon_id.grouping_term.identifier",
+        "uberon_id.grouping_term.grouping_term.display_title",
+        "uberon_id.grouping_term.grouping_term.display_title.identifier",
     ]
 
 
@@ -70,20 +73,22 @@ class Tissue(SampleSource):
         Special case for Fibroblasts (3AC) as they are mostly Mesoderm but OntologyTerm links to Ectoderm for Skin.
         """
         request_handler = RequestHandler(request = request)
-        tissue_type = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="tissue_type")
-        if not tissue_type:
-            print("No tissue type found")
-        if tissue_type in ["Testis", "Ovary"]:
-            return "Germ Cells"
-        elif tissue_type in ["Blood", "Buccal Swab"]:
-            return "Clinically Accessible"
-        elif tissue_utils.get_protocol_id(self.properties) == "3AC":
-            return "Mesoderm"
+        grouping_term = tissue_utils.get_first_grouping_term(self.properties, request_handler)
+        if grouping_term:
+            if tissue_utils.get_protocol_id(self.properties) in ["3U","3V","3W","3X","3Y", "3Z", "3AA", "3AB"]:
+                return "Germ Cells"
+            elif tissue_utils.get_protocol_id(self.properties) in ["3A", "3B"]:
+                return "Clinically Accessible"
+            elif tissue_utils.get_protocol_id(self.properties) == "3AC":
+                return "Mesoderm"
+            else:
+                germ_layer = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="germ_layer")
+                if not germ_layer:
+                    print(f"No germ layer found for {str(self.uuid)}")
+                return germ_layer or None
         else:
-            germ_layer = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="germ_layer")
-            if not germ_layer:
-                print("No germ layer found")
-            return germ_layer or None
+            print(f"No grouping term found for {str(self.uuid)}")
+            print(request_handler.get_item(tissue_utils.get_uberon_id(self.properties)))
 
 
 @link_related_validator
