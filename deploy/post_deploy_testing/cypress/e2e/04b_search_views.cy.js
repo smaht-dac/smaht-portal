@@ -1,5 +1,4 @@
 import { cypressVisitHeaders } from "../support";
-import { navUserAcctDropdownBtnSelector } from "../support/selectorVars";
 
 describe('Post-Deployment Search View Tests', function () {
 
@@ -41,13 +40,11 @@ describe('Post-Deployment Search View Tests', function () {
         it('Filter by "Type" filter icon within search results', function () {
             cy.visit('/search/?type=Item', { headers: cypressVisitHeaders });
 
-            cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false }).end()
-                .get(navUserAcctDropdownBtnSelector)
-                .should('not.contain.text', 'Login')
-                .then((accountListItem) => {
-                    expect(accountListItem.text()).to.contain('SCM');
-                }).end()
-                .get('.facet-list li.facet-list-element[data-key="File"] .facet-item').should('have.text', 'File').end();
+            cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false })
+                .validateUser('SCM')
+                .get('.facet-list li.facet-list-element[data-key="File"] .facet-item')
+                .should('have.text', 'File')
+                .end();
 
             cy.searchPageTotalResultCount().then((totalCountExpected) => {
                 const intervalCount = Math.floor(Math.random() * 5);//Math.min(5, parseInt(totalCountExpected / 25));

@@ -18,8 +18,8 @@ describe('About Layout Tests', function () {
                             .then((text) => {
                                 const abbreviation = text
                                     .split(' ') // Split text by spaces to get individual words
-                                    .filter(word => /^[A-Z]/.test(word)) // Filter to include only words starting with an uppercase letter
-                                    .map(word => word[0]) // Take the first letter of each selected word
+                                    .filter((word) => /^[A-Z]/.test(word)) // Filter to include only words starting with an uppercase letter
+                                    .map((word) => word[0]) // Take the first letter of each selected word
                                     .join('');   // Join letters to form the abbreviation
 
                                 const number = parseInt(text.match(/\d+/)[0]);

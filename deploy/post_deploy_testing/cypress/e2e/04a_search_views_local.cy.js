@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import { cypressVisitHeaders } from '../support';
-import { navUserAcctDropdownBtnSelector } from '../support/selectorVars';
 
 describe('Deployment/CI Search View Tests', function () {
     before(function () {
@@ -9,12 +8,7 @@ describe('Deployment/CI Search View Tests', function () {
             email: 'cypress-main-scientist@cypress.hms.harvard.edu',
             useEnvToken: false,
         })
-            .end()
-            .get(navUserAcctDropdownBtnSelector)
-            .should('not.contain.text', 'Login')
-            .then((accountListItem) => {
-                expect(accountListItem.text()).to.contain('SCM');
-            })
+            .validateUser('SCM')
             .end();
     });
 
@@ -331,12 +325,7 @@ describe('Deployment/CI Search View Tests', function () {
                 email: 'cypress-main-scientist@cypress.hms.harvard.edu',
                 useEnvToken: false,
             })
-                .end()
-                .get(navUserAcctDropdownBtnSelector)
-                .should('not.contain.text', 'Login')
-                .then((accountListItem) => {
-                    expect(accountListItem.text()).to.contain('SCM');
-                })
+                .validateUser('SCM')
                 .end();
         });
 
