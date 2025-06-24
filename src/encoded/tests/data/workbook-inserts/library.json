@@ -111,5 +111,16 @@
             "CCAGGCTGGAGTGCAGTGGC",
             "CGCCACTGCAGTCCGCAGTC"
         ]
+    },
+    {
+        "uuid": "1e4c1453-8fc2-4977-bf8e-65f1cba3061b",
+        "analytes": [
+            "TEST_ANALYTE_LIVER-CELL"
+        ],
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_LIBRARY_LIVER-CELL-DNA",
+        "assay": "sc_pta_wgs"
     }
 ]

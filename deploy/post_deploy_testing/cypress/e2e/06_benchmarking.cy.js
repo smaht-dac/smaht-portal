@@ -58,7 +58,7 @@ describe('Benchmarking Layout Test', function () {
             cy.get(dataNavBarItemSelectorStr).should('have.class', 'dropdown-toggle').click()
                 .should('have.class', 'dropdown-open-for')
                 .then(() => {
-                    cy.get('.big-dropdown-menu .no-level-2-children .custom-static-links > div.col-auto:nth-child(2) a.primary-big-link').should('be.visible').then(($listItems) => {
+                    cy.get('.big-dropdown-menu .no-level-2-children .custom-static-links > div.col-12:nth-child(2) a.primary-big-link').should('be.visible').then(($listItems) => {
                         expect($listItems).to.have.length(3); // Ensuring 3 benchmarking pages in dropdown
                         const allLinkElementHREFs = Cypress._.map($listItems, (liEl) => {
                             const path = new URL(liEl.href, window.location.origin).pathname;
@@ -76,7 +76,7 @@ describe('Benchmarking Layout Test', function () {
 
                                     cy.title().should('equal', `${titleText} – SMaHT Data Portal`).end();
 
-                                    Cypress.log({name: 'Page Title', message: titleText});
+                                    Cypress.log({ name: 'Page Title', message: titleText });
                                     // Since COLO829 SNV/Indel Detection Challenge has a different layout, we need to handle it differently
                                     if (titleText !== 'COLO829 SNV/Indel Detection Challenge') {
                                         //This tests a toggle button that collapses and expands.
@@ -111,7 +111,7 @@ describe('Benchmarking Layout Test', function () {
                                                 // Now check the results count after the spinner is gone
                                                 cy.get('.tab-pane.active.show #results-count')
                                                     .invoke('text')
-                                                    .should('not.contain', '-')
+                                                    .should('not.equal', '0')
                                                     .then((originalFileText) => {
                                                         cy.wrap($button)
                                                             .find('.badge')
@@ -150,7 +150,7 @@ describe('Benchmarking Layout Test', function () {
                                 });
                         }
 
-                        cy.wrap($listItems.last()).should('be.visible').click({ force: true }).then(($linkElem) => {
+                        cy.wrap($listItems.last()).scrollIntoView().should('be.visible').click({ force: true }).then(($linkElem) => {
                             const linkHref = $linkElem.attr('href');
                             cy.location('pathname').should('equal', linkHref);
                             testVisit();

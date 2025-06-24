@@ -65,6 +65,16 @@
             "description": "Additional comments on file set",
             "permission": "restricted_fields"
         },
+        "group_tag": {
+            "title": "Group Tag",
+            "description": "For use in file_group calculated property to make a file set part of a separate merge group",
+            "type": "string",
+            "suggested_enum": [
+                "group1",
+                "group2"
+            ],
+            "permission": "restricted_fields"
+        },
         "submitter_comments": {
             "title": "Submitter Comments",
             "description": "Submitter comments on data quality related to the file set",
@@ -121,6 +131,10 @@
         },
         "file_group.assay": {
             "title": "Assay Tag",
+            "grouping": "Mergeable Files"
+        },
+        "file_group.group_tag": {
+            "title": "Group Tag",
             "grouping": "Mergeable Files"
         },
         "libraries.assay.display_title": {
