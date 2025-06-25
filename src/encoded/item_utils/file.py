@@ -433,6 +433,11 @@ def get_override_group_coverage(file: Dict[str, Any]) -> str:
     return file.get("override_group_coverage","")
 
 
+def get_override_average_coverage(file: Dict[str, Any]) -> str:
+    """Get override average coverage from properties."""
+    return file.get("override_average_coverage","")
+
+
 def get_override_release_tracker_description(file: Dict[str, Any]) -> str:
     """Get override release tracker description from properties."""
     return file.get("override_release_tracker_description","")
@@ -451,3 +456,8 @@ def get_release_tracker_description(file: Dict[str, Any]) -> str:
 def get_release_tracker_title(file: Dict[str, Any]) -> str:
     """Get release tracker title from properties."""
     return file.get("release_tracker_title","")
+
+
+def get_coverage(file: Dict[str, Any]) -> str:
+    """Get coverage calc prop from properties."""
+    return file.get("coverage", "")

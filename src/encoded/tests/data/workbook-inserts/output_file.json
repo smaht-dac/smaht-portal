@@ -33,7 +33,8 @@
             "TEST_FILE-SET_LIVER-DNA"
         ],
         "file_size": 5000,
-        "md5sum": "211e09ebf240c7256747d10e24cb99fd"
+        "md5sum": "211e09ebf240c7256747d10e24cb99fd",
+        "override_average_coverage": 80
     },
     {
         "uuid": "cca15caa-bc11-4a6a-8998-ea0c69df8b9e",
