@@ -26,6 +26,58 @@ describe('Data Overview Page & Content Tests', function () {
 
                 // Verify that the page contains the correct header
                 cy.contains('div#retracted_files h2.section-title', 'List of Retracted Files').should('be.visible');
+
+                cy.get('.search-result-row[data-row-number]').as('resultRows');
+
+                // Ensure at least 5 results exist
+                cy.get('@resultRows').should('have.length.at.least', 5);
+
+                // Define a recursive function to step through rows
+                function checkRow(index) {
+                    if (index >= 5) return; // Limit to 5 rows
+
+                    cy.get('@resultRows').eq(index).as('currentRow');
+
+                    // Check retraction reason exists
+                    cy.get('@currentRow')
+                        .find('[data-field="retraction_reason"] .value')
+                        .should('not.be.empty');
+
+                    // Open file detail page in same tab
+                    cy.get('@currentRow')
+                        .find('[data-field="accession"] a')
+                        .then(($a) => {
+                            cy.wrap($a)
+                                .invoke('removeAttr', 'target')
+                                .click();
+                        });
+
+                    // Wait for detail page to load
+                    cy.get('.file-view-header', { timeout: 10000 }).should('be.visible');
+
+                    // Check that the file is marked as Retracted
+                    cy.get('.status-group .status')
+                        .should('be.visible')
+                        .and('contain.text', 'Retracted');
+
+                    // Check the attention message
+                    cy.get('.callout.warning .callout-text')
+                        .should('contain.text', 'was retracted due to');
+
+                    // Go back and wait for results page to load
+                    cy.go('back');
+
+                    // Wait for rows to be available again
+                    cy.get('.search-result-row[data-row-number]', { timeout: 10000 }).should('have.length.at.least', 5);
+
+                    // Recursively proceed to next row
+                    cy.then(() => checkRow(index + 1));
+                }
+
+                // Start the recursive check
+                checkRow(0);
+
+
             })
             .logoutSMaHT();
     });
