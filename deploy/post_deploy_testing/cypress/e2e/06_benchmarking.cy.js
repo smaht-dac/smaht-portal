@@ -112,6 +112,7 @@ describe('Benchmarking Layout Test', function () {
                                                         cy.wrap($button)
                                                             .find('.badge')
                                                             .invoke('text')
+                                                            .should('not.equal', '-')
                                                             .then((badgeText) => {
                                                                 expect(badgeText.trim()).to.equal(originalFileText.trim());
                                                             });
