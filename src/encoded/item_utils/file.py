@@ -456,8 +456,3 @@ def get_release_tracker_description(file: Dict[str, Any]) -> str:
 def get_release_tracker_title(file: Dict[str, Any]) -> str:
     """Get release tracker title from properties."""
     return file.get("release_tracker_title","")
-
-
-def get_coverage(file: Dict[str, Any]) -> str:
-    """Get coverage calc prop from properties."""
-    return file.get("coverage", "")
