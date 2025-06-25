@@ -33,51 +33,62 @@ describe('Data Overview Page & Content Tests', function () {
                 cy.get('@resultRows').should('have.length.at.least', 5);
 
                 // Define a recursive function to step through rows
-                function checkRow(index) {
-                    if (index >= 5) return; // Limit to 5 rows
+                function testVisit(index) {
+                    // Stop recursion after checking 5 rows
+                    if (index >= 5) return;
 
+                    // Alias the current search result row
                     cy.get('@resultRows').eq(index).as('currentRow');
 
-                    // Check retraction reason exists
+                    // Check that the "retraction_reason" field is not empty
                     cy.get('@currentRow')
                         .find('[data-field="retraction_reason"] .value')
                         .should('not.be.empty');
 
-                    // Open file detail page in same tab
+                    // Get the <a> tag in the "accession" field and store its text
                     cy.get('@currentRow')
                         .find('[data-field="accession"] a')
                         .then(($a) => {
+                            // Store the accession code (e.g. SMAFICYTBKA5) from the link text
+                            const expectedAccession = $a.text().trim();
+
+                            // Remove target="_blank" so that click stays in same tab
                             cy.wrap($a)
                                 .invoke('removeAttr', 'target')
                                 .click();
+
+                            // Verify the detail page is loaded
+                            cy.get('.file-view-header', { timeout: 10000 }).should('be.visible');
+
+                            // Check that file status is "Retracted"
+                            cy.get('.status-group .status')
+                                .should('be.visible')
+                                .and('contain.text', 'Retracted');
+
+                            // Check that the callout message contains "was retracted due to"
+                            cy.get('.callout.warning .callout-text')
+                                .should('contain.text', 'was retracted due to');
+
+                            // Check that the accession value matches the one we clicked on
+                            cy.get('.accession')
+                                .should('be.visible')
+                                .and('have.text', expectedAccession);
                         });
 
-                    // Wait for detail page to load
-                    cy.get('.file-view-header', { timeout: 10000 }).should('be.visible');
-
-                    // Check that the file is marked as Retracted
-                    cy.get('.status-group .status')
-                        .should('be.visible')
-                        .and('contain.text', 'Retracted');
-
-                    // Check the attention message
-                    cy.get('.callout.warning .callout-text')
-                        .should('contain.text', 'was retracted due to');
-
-                    // Go back and wait for results page to load
+                    // Go back to the list page
                     cy.go('back');
 
-                    // Wait for rows to be available again
-                    cy.get('.search-result-row[data-row-number]', { timeout: 10000 }).should('have.length.at.least', 5);
+                    // Wait for the list page to reload and ensure it has rows again
+                    cy.get('.search-result-row[data-row-number]', { timeout: 10000 })
+                        .should('have.length.at.least', 5)
+                        .as('resultRows'); // Re-alias since DOM was reloaded
 
-                    // Recursively proceed to next row
-                    cy.then(() => checkRow(index + 1));
+                    // Continue with the next row
+                    cy.then(() => testVisit(index + 1));
                 }
 
                 // Start the recursive check
-                checkRow(0);
-
-
+                testVisit(0);
             })
             .logoutSMaHT();
     });
