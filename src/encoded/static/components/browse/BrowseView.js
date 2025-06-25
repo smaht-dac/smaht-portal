@@ -117,16 +117,18 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
     const [downloadLink, setDownloadLink] = useState(null);
 
     useEffect(() => {
-        const searchURL =
-            '/resource-files/479cd00c-31d3-44c0-9aca-d5185ae4932a';
+        const searchURL = '/search/?type=ResourceFile&tags=clinical_manifest';
+
+        console.log('Search URL');
 
         if (session) {
             ajax.load(
                 searchURL,
                 (resp) => {
-                    if (resp?.href) {
+                    const latest_file = resp?.['@graph']?.[0];
+                    if (latest_file?.href) {
                         // Update the download link
-                        setDownloadLink(resp?.href);
+                        setDownloadLink(latest_file?.href);
 
                         // Rebuild the tooltip after the component mounts
                         ReactTooltip.rebuild();
