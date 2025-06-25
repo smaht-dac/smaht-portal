@@ -66,7 +66,7 @@ describe('Browse Views - Basic Tests', function () {
                 expect(info.assay).to.be.at.least(1);
 
                 cy.log('Total File Size: ' + info['file-size']);
-                expect(info['file-size']).to.be.at.least(1);
+                expect(info['file-size']).to.be.at.least(0.01);
             });
         });
 

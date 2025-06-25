@@ -415,7 +415,7 @@ Cypress.Commands.add(
 /*** Browse View Utils ****/
 
 Cypress.Commands.add("getQuickInfoBar", () => {
-    const infoTypes = ["file", "donor", "tissue", "assay"/*, "file-size"*/];
+    const infoTypes = ["file", "donor", "tissue", "assay", "file-size"];
     const result = {};
 
     cy.get(".browse-summary-stat").each(($el) => {
@@ -432,9 +432,36 @@ Cypress.Commands.add("getQuickInfoBar", () => {
                 .find(".browse-summary-stat-value")
                 .invoke("text")
                 .then((text) => {
-                    const value = text.trim() === "-" ? 0 : Number(text.trim());
-                    result[iconType] = value;
+                    const trimmed = text.trim();
+
+                    if (trimmed === "-") {
+                        result[iconType] = 0;
+                    } else if (iconType === "file-size") {
+                        // örnek: "14.18 TB"
+                        const match = trimmed.match(/^([\d.,]+)\s*(TB|GB|MB|KB)?$/i);
+                        if (match) {
+                            const number = parseFloat(match[1].replace(",", ""));
+                            const unit = match[2] ? match[2].toUpperCase() : "B";
+
+                            // Tercihe göre birimi sabitleyebilirsiniz; örneğin hepsini GB'e çevirin:
+                            let valueInGB;
+                            switch (unit) {
+                                case "TB": valueInGB = number * 1024; break;
+                                case "GB": valueInGB = number; break;
+                                case "MB": valueInGB = number / 1024; break;
+                                case "KB": valueInGB = number / (1024 * 1024); break;
+                                default: valueInGB = number / (1024 * 1024 * 1024); break;
+                            }
+
+                            result[iconType] = valueInGB; // GB cinsinden
+                        } else {
+                            result[iconType] = NaN; // fallback
+                        }
+                    } else {
+                        result[iconType] = Number(trimmed.replace(",", ""));
+                    }
                 });
         }
     }).then(() => result);
 });
+
