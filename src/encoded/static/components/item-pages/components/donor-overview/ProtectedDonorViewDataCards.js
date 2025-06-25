@@ -23,66 +23,54 @@ function renderDescriptionPopover() {
                 <table className="table">
                     <thead>
                         <tr>
-                            <th className="text-left">Term</th>
-                            <th className="text-left">Definition</th>
+                            <th className="text-left" colSpan={2}>
+                                Hardy Scale - Death Classification
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td className="align-top text-left fw-bold text-nowrap">
-                                Tissue Aliquot
-                            </td>
+                            <td className="align-top text-center px-5">0</td>
                             <td className="text-left">
-                                A sample of a sectioned solid tissue with a
-                                pre-defined size, that is used for the
-                                downstream sampling technique such as coring.
+                                <b>Ventilator Case.</b> All cases on a
+                                ventilator immediately before death.
                             </td>
                         </tr>
                         <tr>
-                            <td className="align-top text-left fw-bold">
-                                Specimen
-                            </td>
+                            <td className="align-top text-center px-5">1</td>
                             <td className="text-left">
-                                A sample of a solid tissue without a pre-defined
-                                size, that is neither a core nor homogenate.
+                                <b>Violent and fast death.</b> Deaths due to
+                                accident, blunt force trauma or suicide,
+                                terminal phase estimated at &lt; 10 min.
                             </td>
                         </tr>
                         <tr>
-                            <td className="align-top text-left fw-bold">
-                                Core
-                            </td>
+                            <td className="align-top text-center px-5">2</td>
                             <td className="text-left">
-                                A core sample taken from the sectioned solid
-                                tissue aliquot. Contains spatial information
-                                within the tissue sample.
+                                <b>Fast death of natural causes.</b> Sudden
+                                unexpected deaths of people who had been
+                                reasonably healthy, after a terminal phase
+                                estimated at &lt; 1 hr (with sudden death from a
+                                myocardial infarction as a model cause of death
+                                for this category).
                             </td>
                         </tr>
                         <tr>
-                            <td className="align-top text-left fw-bold">
-                                Homogenate
-                            </td>
+                            <td className="align-top text-center px-5">3</td>
                             <td className="text-left">
-                                A sample of mechanically homogenized tissue that
-                                can be divided into vials for distribution.
-                                Applicable only to Benchmarking tissues.
+                                <b>Intermediate death.</b> Death after a
+                                terminal phase of 1 to 24 hrs (not classifiable
+                                as 2 or 4); patients who were ill but death was
+                                unexpected.
                             </td>
                         </tr>
                         <tr>
-                            <td className="align-top text-left fw-bold">
-                                Liquid
-                            </td>
+                            <td className="align-top text-center px-5">4</td>
                             <td className="text-left">
-                                A sample of a liquid tissue (e.g. blood or
-                                buccal swab).
-                            </td>
-                        </tr>
-                        <tr>
-                            <td className="align-top text-left fw-bold border-0">
-                                Cells
-                            </td>
-                            <td className="text-left border-0">
-                                A sample of cells derived from tissue (i.e.
-                                Fibroblasts from skin).
+                                <b>Slow death.</b> Death after a long illness,
+                                with a terminal phase longer than 1 day
+                                (commonly cancer or chronic pulmonary disease);
+                                deaths that are not unexpected
                             </td>
                         </tr>
                     </tbody>
