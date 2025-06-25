@@ -1,4 +1,5 @@
 import { cypressVisitHeaders } from "../support";
+import { navUserAcctDropdownBtnSelector } from "../support/selectorVars";
 
 // todo: Ensure we're selecting right 1 incase later add more -- test for `a.id-docs-menu-item` once in place upstream.
 const documentationNavBarItemSelectorStr = '#top-nav div.navbar-collapse .navbar-nav a.id-docs-menu-item';
