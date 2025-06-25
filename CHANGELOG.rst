@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.186.2
+=======
+`PR 464 SN Add pluralize relatives <https://github.com/smaht-dac/smaht-portal/pull/464>`_
+
+* For relatives in FamilyHistory, add plural options to enums
+
+
 0.186.1
 =======
 `PR 456 feat: update status of FAQ, Submission Schema Dictionary, and other static pages <https://github.com/smaht-dac/smaht-portal/pull/456>`_
