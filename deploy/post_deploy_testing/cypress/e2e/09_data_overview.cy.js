@@ -65,9 +65,10 @@ describe('Data Overview Page & Content Tests', function () {
                                 .should('be.visible')
                                 .and('contain.text', 'Retracted');
 
-                            // Check that the callout message contains "was retracted due to"
+                            // Check that the callout message contains "was retracted"
+                            // TODO: verify text if retraction reason is available
                             cy.get('.callout.warning .callout-text')
-                                .should('contain.text', 'was retracted due to');
+                                .should('contain.text', 'was retracted');
 
                             // Check that the accession value matches the one we clicked on
                             cy.get('.accession')
