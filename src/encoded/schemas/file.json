@@ -219,6 +219,13 @@
                 "type": "string"
             }
         },
+        "override_average_coverage": {
+            "title": "Average Coverage Override",
+            "desciption": "An override count for estimated average coverage from sequencing that is used in the File Overview page if present, particularly for downsampled files",
+            "type": "number",
+            "minimum": 0,
+            "permission": "restricted_fields"
+        },
         "override_group_coverage": {
             "title": "Group Coverage Override",
             "desciption": "An override count for expected group coverage from sequencing that is used in the File Overview page if present, particularly for downsampled files",

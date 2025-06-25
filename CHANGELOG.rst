@@ -7,11 +7,61 @@ smaht-portal
 Change Log
 ----------
 
-0.184.8
+0.187.1
 =======
 `PR 457 feat: update nomenclature doc table <https://github.com/smaht-dac/smaht-portal/pull/457>`_
 
 * Update table 3A on nomenclature page
+
+
+0.187.0
+=======
+`PR 463: SN File average coverage <https://github.com/smaht-dac/smaht-portal/pull/463>`_
+
+* Add `average_coverage` to the `data_generation_summary` calc prop on File, grabbed from `quality_metrics.coverage`
+* Add property `override_average_coverage` to File, which can override the `average_coverage` value if present
+ 
+ 
+=======
+0.186.2
+=======
+`PR 464 SN Add pluralize relatives <https://github.com/smaht-dac/smaht-portal/pull/464>`_
+
+* For relatives in FamilyHistory, add plural options to enums
+
+
+0.186.1
+=======
+`PR 456 feat: update status of FAQ, Submission Schema Dictionary, and other static pages <https://github.com/smaht-dac/smaht-portal/pull/456>`_
+
+* Add released status to page items
+* Update status of FAQ and Submission Schema Dictionary page items
+* Update status of other static pages
+
+
+0.186.0
+=======
+`PR 440: SN file merge group tag <https://github.com/smaht-dac/smaht-portal/pull/440>`_
+
+* Add an optional part to the `file_group` calcprop in FileSet that is set by the property `group_tag`. If present, it is added to the `file_group` so that the FileSet is put in a different File Merge Group than other file sets.
+* Adjust `generate_assay_part` of `file_group` to only a return a value if `cell_isolation_method` is "Bulk"
+* Make `cell_isolation_method` a required property for Assay
+* Adjust `generate_sample_source_part` to return the sample source for multiple tissues (regardless of if they contain spatial information)
+
+
+0.185.0
+=======
+`PR 422 SN Upgrade treatment <https://github.com/smaht-dac/smaht-portal/pull/422>`_
+
+* Add description property to Treatment
+* Make `dependentRequired` for `concentration` and `concentration_units` in Treatment
+
+
+0.184.8
+=======
+`PR 455 Cypress updates <https://github.com/smaht-dac/smaht-portal/pull/455>`_
+
+* Updates: 03a_browse_views_basic via selectorVars, 04a_search_views_local, 06_benchmarking, 08_documentation
 
 
 0.184.7
