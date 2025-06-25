@@ -25,7 +25,7 @@ describe('Data Overview Page & Content Tests', function () {
                     });
 
                 // Verify that the page contains the correct header
-                cy.contains('div#retracted_files h2.section-title', 'List of Retracted Files').should('be.visible');
+                cy.contains('div#retracted-files h2.section-title', 'List of Retracted Files').should('be.visible');
 
                 cy.get('.search-result-row[data-row-number]').as('resultRows');
 
