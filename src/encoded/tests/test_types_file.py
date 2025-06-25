@@ -16,6 +16,7 @@ from ..item_utils import (
     file_set as file_set_utils,
     item as item_utils,
     library as library_utils,
+    quality_metric as qm_utils,
     sample as sample_utils,
     sequencing as sequencing_utils,
     software as software_utils,
@@ -989,6 +990,7 @@ def assert_data_generation_summary_matches_expected(
         file_set_utils.get_sequencing(file_set)
         for file_set in file_utils.get_file_sets(file)
     ]
+    quality_metrics = file_utils.get_quality_metrics(file)
     expected_platforms = [
         item_utils.get_display_title(
             get_item(
@@ -1002,13 +1004,18 @@ def assert_data_generation_summary_matches_expected(
         expected_target_coverage = [override_coverage]
     else:
         expected_target_coverage = [ target_coverage 
-            for sequencing in sequencings
-                
+            for sequencing in sequencings  
             if (target_coverage := sequencing_utils.get_target_coverage(
-                    get_item(es_testapp, item_utils.get_uuid(sequencing))
-                ))
-
-            ] if sequencings else []
+                get_item(es_testapp, item_utils.get_uuid(sequencing))
+            ))
+        ] if sequencings else []
+    if (override_average_coverage := file_utils.get_override_average_coverage(file)):
+        expected_average_coverage = [override_average_coverage]
+    else: 
+        expected_average_coverage = [ coverage 
+            for quality_metric in quality_metrics
+            if (coverage := qm_utils.get_coverage(quality_metric))
+        ] if quality_metrics else []
     expected_target_read_count = [ target_coverage 
         for sequencing in sequencings                     
         if (target_coverage := sequencing_utils.get_target_read_count(
@@ -1033,6 +1040,9 @@ def assert_data_generation_summary_matches_expected(
     )
     assert_values_match_if_present(
         data_generation_summary,"target_group_coverage",expected_target_coverage
+    )
+    assert_values_match_if_present(
+        data_generation_summary,"average_coverage",expected_average_coverage
     )
     assert_values_match_if_present(
         data_generation_summary,"target_read_count",expected_target_read_count
