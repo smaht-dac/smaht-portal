@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.186.1
+=======
+`PR 456 feat: update status of FAQ, Submission Schema Dictionary, and other static pages <https://github.com/smaht-dac/smaht-portal/pull/456>`_
+
+* Add released status to page items
+* Update status of FAQ and Submission Schema Dictionary page items
+* Update status of other static pages
+
+
 0.186.0
 =======
 `PR 440: SN file merge group tag <https://github.com/smaht-dac/smaht-portal/pull/440>`_
