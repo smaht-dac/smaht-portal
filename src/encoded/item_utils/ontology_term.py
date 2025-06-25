@@ -61,10 +61,8 @@ def get_grouping_term_from_tag(
                     top,
                     item_utils.get_display_title
                 )
-        print("No tag found after recursive search")
         return None
     else:
-        print("No grouping term found")
         return None
     
 

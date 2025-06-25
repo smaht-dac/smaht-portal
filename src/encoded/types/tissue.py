@@ -71,8 +71,6 @@ class Tissue(SampleSource):
         """
         request_handler = RequestHandler(request = request)
         tissue_type = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="tissue_type")
-        if not tissue_type:
-            print("No tissue type found")
         if tissue_type in ["Testis", "Ovary"]:
             return "Germ Cells"
         elif tissue_type in ["Blood", "Buccal Swab"]:
@@ -81,8 +79,6 @@ class Tissue(SampleSource):
             return "Mesoderm"
         else:
             germ_layer = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="germ_layer")
-            if not germ_layer:
-                print("No germ layer found")
             return germ_layer or None
 
 
