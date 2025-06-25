@@ -224,4 +224,49 @@ describe('Documentation Page & Content Tests', function () {
             })
             .logoutSMaHT();
     });
+
+    /**
+     * Test for documentation pages under public user account
+     */
+    it('PUBLIC USER - Every documentation page has links which return success status codes', function () {
+        cy.visit('/', { headers: cypressVisitHeaders })
+            .get(navUserAcctDropdownBtnSelector)
+            .should('contain.text', 'Login')
+            .end()
+            .get(documentationNavBarItemSelectorStr)
+            .should('have.class', 'dropdown-toggle')
+            .click()
+            .should('have.class', 'dropdown-open-for')
+            .then(() => {
+                // Get all links to _level 2_ static pages. Exclude directory pages for now. Do directory pages in later test.
+                cy.get('.big-dropdown-menu.is-open a.level-2-title').then(
+                    ($listItems) => {
+                        const listItemsTotalCount = $listItems.length;
+                        expect(listItemsTotalCount).to.be.above(8); // At least 9 documentation pages in dropdown.
+
+                        // Make sure public links exists and is visible
+                        [...$listItems].forEach(($linkElem, index) => {
+                            const linkHref = $linkElem.getAttribute('href');
+                            cy.request({
+                                url: linkHref,
+                                failOnStatusCode: false,
+                            }).then((response) => {
+                                expect(response.status).to.equal(200);
+                            });
+                        });
+                    }
+                );
+            });
+
+        // Ensure that search for pages with status released return no results
+        cy.visit('/search/?type=Page&status=released', {
+            headers: cypressVisitHeaders,
+            failOnStatusCode: false,
+        });
+
+        cy.get('.search-results-container.fully-loaded h3.text-300').should(
+            'contain.text',
+            'No Results'
+        );
+    });
 });
