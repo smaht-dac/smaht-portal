@@ -36,7 +36,7 @@ def get_grouping_term_from_tag(
             get_property_values_from_identifiers(
                 request_handler, [grouping_term], item_utils.get_uuid
             )
-        )     
+        )
         seen = set()
         top = None
         while to_get:
@@ -61,6 +61,7 @@ def get_grouping_term_from_tag(
                     top,
                     item_utils.get_display_title
                 )
+        print("No tag found after recursive search")
         return None
     else:
         return None

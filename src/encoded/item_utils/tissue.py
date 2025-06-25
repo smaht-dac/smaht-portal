@@ -38,8 +38,17 @@ def get_category(properties: Dict[str, Any]) -> str:
     return properties.get("category","")
 
 
+def get_first_grouping_term(properties: Dict[str, Any], request_handler: RequestHandler) -> str:
+    """Get first grouping term associated with tissue"""
+    return get_property_value_from_identifier(
+        request_handler,
+        get_uberon_id(properties),
+        ot_utils.get_grouping_term
+    )
+
+
 def get_grouping_term_from_tag(properties: Dict[str, Any], request_handler: RequestHandler, tag: str) -> str:
-    """Get top grouping term associated with tissue"""
+    """Get first grouping term associated with tissue with matching tag"""
     return get_property_value_from_identifier(
         request_handler,
         get_uberon_id(properties),
