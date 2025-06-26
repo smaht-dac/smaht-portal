@@ -25,6 +25,7 @@ def includeme(config):
     config.scan(__name__)
 
 
+TSV_WIDTH = 27 # There are 27 columns in the file manifest
 # Encode manifest file types
 FILE = 0
 CLINICAL = 1
@@ -523,8 +524,11 @@ def generate_other_manifest_header(manifest_enum):
 
 
 def generate_file_download_header(download_file_name: str, cli=False):
-    """ Helper function that generates a suitable header for the File download, generating 27 columns"""
-    header1 = ['###', 'Metadata TSV Download', 'Column Count', '27'] + ([''] * 23)  # length 27
+    """ Helper function that generates a suitable header for the File download.
+    
+        Number of columns generated set in TSV_WIDTH
+    """
+    header1 = ['###', 'Metadata TSV Download', 'Column Count', TSV_WIDTH] + ([''] * (TSV_WIDTH-4))  # length 27
     if cli:
         header2 = ['Suggested command to download: ', '', '',
                    (f'cut -f 1,3 ./{download_file_name} | tail -n +4 | grep -v ^# | '
@@ -535,12 +539,12 @@ def generate_file_download_header(download_file_name: str, cli=False):
                     f'&& export AWS_SECRET_ACCESS_KEY=$(echo $credentials | jq -r ".SecretAccessKey") '
                     f'&& export AWS_SESSION_TOKEN=$(echo $credentials | jq -r ".SessionToken") '
                     f'&& download_url=$(echo $credentials | jq -r ".download_url") '
-                    f'&& aws s3 cp "$download_url" "$1"')] + ([''] * 23)
+                    f'&& aws s3 cp "$download_url" "$1"')] + ([''] * (TSV_WIDTH-4))
     else:
         header2 = ['Suggested command to download: ', '', '',
                    "cut -f 1,3 ./{} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L "
                    "--user <access_key_id>:<access_key_secret> $0 --output $1'".format(download_file_name)] + (
-                              [''] * 23)
+                              [''] * (TSV_WIDTH-4))
     header3 = list(TSV_MAPPING[FILE].keys())
     return header1, header2, header3
 

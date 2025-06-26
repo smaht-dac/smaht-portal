@@ -1,12 +1,11 @@
 import pytest
 import io
 import csv
-from ..metadata import descend_field
+from ..metadata import descend_field, TSV_WIDTH
 
 
 class TestMetadataTSVHelper:
 
-    TSV_WIDTH = 27
 
     @staticmethod
     def read_tsv_from_bytestream(bytestream):
@@ -21,7 +20,7 @@ class TestMetadataTSVHelper:
     @classmethod
     def check_key_and_length(cls, part, expected_key):
         assert expected_key in part
-        assert len(part) == cls.TSV_WIDTH
+        assert len(part) == TSV_WIDTH
 
     @classmethod
     def check_type_length(cls, es_testapp, item_type, expected_count):
@@ -114,7 +113,7 @@ class TestMetadataTSVWorkbook:
         parsed = TestMetadataTSVHelper.read_tsv_from_bytestream(tsv)
         header1, header2, header3 = parsed[0], parsed[1], parsed[2]
         for row in parsed:  # check all rows got populated
-            assert len(row) == TestMetadataTSVHelper.TSV_WIDTH
+            assert len(row) == TSV_WIDTH
         TestMetadataTSVHelper.check_key_and_length(header1, 'Metadata TSV Download')
         TestMetadataTSVHelper.check_key_and_length(header2, 'Suggested command to download: ')
         TestMetadataTSVHelper.check_key_and_length(header3, 'FileDownloadURL')
