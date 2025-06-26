@@ -123,7 +123,9 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
             ajax.load(
                 searchURL,
                 (resp) => {
+                    // Use the first item in the response
                     const latest_file = resp?.['@graph']?.[0];
+
                     if (latest_file?.href) {
                         // Update the download link
                         setDownloadLink(latest_file?.href);
