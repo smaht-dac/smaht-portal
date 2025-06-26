@@ -119,8 +119,6 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
     useEffect(() => {
         const searchURL = '/search/?type=ResourceFile&tags=clinical_manifest';
 
-        console.log('Search URL');
-
         if (session) {
             ajax.load(
                 searchURL,
