@@ -16,7 +16,7 @@ import {
  *
  * Note: Use regular function here, as Bootstrap relies on `this`.
  */
-function renderDescriptionPopover() {
+function renderHardyScaleDescriptionPopover() {
     return (
         <Popover id="description-definitions-popover" className="w-auto">
             <PopoverBody className="p-0">
@@ -80,6 +80,108 @@ function renderDescriptionPopover() {
     );
 }
 
+/**
+ * Popover for Alcohol Exposure Frequency Description.
+ */
+function renderAlcoholFrequencyDescriptionPopover() {
+    return (
+        <Popover id="description-definitions-popover" className="w-auto">
+            <PopoverBody className="p-0">
+                <table className="table">
+                    <thead>
+                        <tr>
+                            <th className="text-left" colSpan={2}>
+                                The extent of the donor's regular exposure to
+                                alcohol
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="align-top text-left px-2">Social</td>
+                            <td className="text-left">A few drinks per year</td>
+                        </tr>
+                        <tr>
+                            <td className="align-top text-left px-2">Light</td>
+                            <td className="text-left">
+                                Less than 1 drink per day (0-6 per week)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="align-top text-left px-2">
+                                Moderate
+                            </td>
+                            <td className="text-left">
+                                Up to 2 drinks per day (7-14 per week)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="align-top text-left px-2">Heavy</td>
+                            <td className="text-left">
+                                3 or more drinks per day (15 or more per week)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </PopoverBody>
+        </Popover>
+    );
+}
+
+/**
+ * Popover for Tobacco Exposure Frequency Description.
+ */
+function renderTobaccoFrequencyDescriptionPopover() {
+    return (
+        <Popover id="description-definitions-popover" className="w-auto">
+            <PopoverBody className="p-0">
+                <table className="table">
+                    <thead>
+                        <tr>
+                            <th className="text-left" colSpan={2}>
+                                The extent of the donor's regular exposure to
+                                tobacco
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="align-top text-left px-2">Social</td>
+                            <td className="text-left">
+                                0-10 cigarettes in past 5 years, 6 or fewer
+                                cigars/pipes per year
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="align-top text-left px-2">Light</td>
+                            <td className="text-left">
+                                0-5 cigarettes per day (up to ¼ ppd), 12 or
+                                fewer cigars/pipes per year
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="align-top text-left px-2">
+                                Moderate
+                            </td>
+                            <td className="text-left">
+                                6-9 cigarettes per day (¼ to ¾ ppd), 3-5
+                                cigars/pipes per week
+                            </td>
+                        </tr>
+                        <tr>
+                            <td className="align-top text-left px-2">Heavy</td>
+                            <td className="text-left">
+                                20 or more cigarettes per day (1 or more ppd),
+                                more than 5 cigars/pipes per week
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </PopoverBody>
+        </Popover>
+    );
+}
+
 const default_donor_information = [
     {
         title: 'Donor ID',
@@ -96,7 +198,7 @@ const default_donor_information = [
     {
         title: 'Hardy Scale',
         getProp: (context = {}) => context?.hardy_scale,
-        titlePopover: renderDescriptionPopover(),
+        titlePopover: renderHardyScaleDescriptionPopover(),
     },
 ];
 
@@ -159,7 +261,7 @@ const DonorStatistics = ({ data, isLoading }) => {
  * @param {object} schemas the schemas for the exposure history
  * @returns
  */
-const ExposureCard = ({ data, schemas }) => {
+const ExposureCard = ({ data, schemas, popover }) => {
     const {
         category,
         duration,
@@ -204,16 +306,35 @@ const ExposureCard = ({ data, schemas }) => {
                 </div>
             </div>
             <div className="exposure-card-body">
-                <div
-                    className="datum"
-                    data-tip={schemas?.frequency_category?.description}>
-                    <span className="datum-title">
-                        Frequency <i className="icon icon-info-circle fas"></i>
-                    </span>
-                    <span className="datum-value">
-                        {frequency_category ?? '--'}
-                    </span>
-                </div>
+                <OverlayTrigger
+                    trigger={['hover', 'focus']}
+                    overlay={popover}
+                    placement="top"
+                    flip={true}
+                    popperConfig={{
+                        modifiers: [
+                            {
+                                name: 'flip',
+                                options: {
+                                    fallbackPlacements: [
+                                        'left',
+                                        'right',
+                                        'bottom',
+                                    ],
+                                },
+                            },
+                        ],
+                    }}>
+                    <div className="datum">
+                        <span className="datum-title">
+                            Frequency{' '}
+                            <i className="icon icon-info-circle fas"></i>
+                        </span>
+                        <span className="datum-value">
+                            {frequency_category ?? '--'}
+                        </span>
+                    </div>
+                </OverlayTrigger>
                 <div
                     className="datum"
                     data-tip={schemas?.quantity?.description}>
@@ -335,6 +456,12 @@ export const ProtectedDonorViewDataCards = ({
                         <div className="data-card-section">
                             <span className="section-title">
                                 Cancer History
+                                <i
+                                    className="icon icon-info-circle fas ms-1"
+                                    data-tip={
+                                        'Presence of cancer in donor medical history. Note: Cancer was not the cause of death for the donor.'
+                                    }
+                                />
                             </span>
                             <div className="section-body">
                                 <span>
@@ -351,6 +478,12 @@ export const ProtectedDonorViewDataCards = ({
                         <div className="data-card-section">
                             <span className="section-title">
                                 Family Cancer History
+                                <i
+                                    className="icon icon-info-circle fas ms-1"
+                                    data-tip={
+                                        "Presence of ovarian, pancreatic, or prostate cancer in donor's family's medical history. Full family history can be downloaded in the Donor Manifest."
+                                    }
+                                />
                             </span>
                             <div className="section-body">
                                 <span className="">
@@ -391,10 +524,12 @@ export const ProtectedDonorViewDataCards = ({
                         <ExposureCard
                             data={tobaccoExposure ?? { category: 'Tobacco' }}
                             schemas={exposureHistorySchemaProperties}
+                            popover={renderTobaccoFrequencyDescriptionPopover()}
                         />
                         <ExposureCard
                             data={alcoholExposure ?? { category: 'Alcohol' }}
                             schemas={exposureHistorySchemaProperties}
+                            popover={renderAlcoholFrequencyDescriptionPopover()}
                         />
                         <div className="data-card-section">
                             <span className="section-title">
