@@ -7,14 +7,21 @@ smaht-portal
 Change Log
 ----------
 
+0.187.1
+=======
+`PR 467 feat: update bulk donor metadata download button <https://github.com/smaht-dac/smaht-portal/pull/467>`_
+
+* Update download link for bulk donor metadata download link
+
+
 0.187.0
+=======
 `PR 463: SN File average coverage <https://github.com/smaht-dac/smaht-portal/pull/463>`_
 
 * Add `average_coverage` to the `data_generation_summary` calc prop on File, grabbed from `quality_metrics.coverage`
 * Add property `override_average_coverage` to File, which can override the `average_coverage` value if present
  
  
-=======
 0.186.2
 =======
 `PR 464 SN Add pluralize relatives <https://github.com/smaht-dac/smaht-portal/pull/464>`_
