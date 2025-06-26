@@ -6,7 +6,7 @@ from ..metadata import descend_field
 
 class TestMetadataTSVHelper:
 
-    TSV_WIDTH = 26
+    TSV_WIDTH = 27
 
     @staticmethod
     def read_tsv_from_bytestream(bytestream):
@@ -142,7 +142,7 @@ class TestMetadataTSVWorkbook:
         # check an entire row that is mostly representative
         for row in parsed:
             if '303985cf-f1db-4dea-9782-2e68092d603d' in row[0]:  # this is the row
-                assert row[2] == 'SMHT-FOO-BAR-M45-B003-DAC_SMAURF3ETDQJ_bwamem0.1.2_GRCh38.aligned.sorted.bam'
+                assert row[2] == 'SMHT-FOO-BAR-M45-B003-DAC_SMAURF3ETDQJ_bwamem0.1.2_GRCh38.aligned.sorted.bam' # NOTE: This row should not be changed. Needed for file download
                 assert row[9] == '1000'  # size
                 assert row[11] == 'Aligned Reads'  # category
                 assert row[12] == 'BAM'  # format
@@ -156,7 +156,7 @@ class TestMetadataTSVWorkbook:
                 assert row[20] == 'Bulk WGS'  # assay
                 assert row[21] == 'VEP (3.1.1)'  # software
                 assert row[22] == 'GRCh38'  # reference genome
-                assert row[25] == 'smaht-TEST_TISSUE_LIVER-illumina_novaseqx-Paired-end-150-R9-bulk_wgs'  # merge grp
+                assert row[26] == 'smaht-TEST_TISSUE_LIVER-illumina_novaseqx-Paired-end-150-R9-bulk_wgs'  # merge grp
                 break
 
         # check download links are now download_cli
