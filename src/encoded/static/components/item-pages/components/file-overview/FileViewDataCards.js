@@ -198,11 +198,22 @@ const default_data_information = [
         },
     },
     {
-        title: 'Estimated Average Coverage',
+        title: 'Per BAM Coverage',
         getProp: (context = {}) => {
-            const cov = context?.data_generation_summary?.average_coverage;
-            if (cov && cov.length > 0) {
-                return cov[0] + 'X';
+            if (
+                context?.file_format?.display_title === 'bam' &&
+                context?.data_type.some((d) => d === 'Aligned Reads') &&
+                context?.data_generation_summary?.assays?.some(
+                    (assay) =>
+                        assay.includes('WGS') ||
+                        assay.includes('Fiber-seq') ||
+                        assay.includes('Hi-C')
+                )
+            ) {
+                const cov = context?.data_generation_summary?.average_coverage;
+                if (cov && cov.length > 0) {
+                    return cov[0] + 'X';
+                }
             }
             return null;
         },
