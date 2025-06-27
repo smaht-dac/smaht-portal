@@ -94,4 +94,95 @@ describe('Data Overview Page & Content Tests', function () {
             .logoutSMaHT();
     });
 
+    it('Visit Data Matrix, should expand SMHT008 and validate row and column summaries', function () {
+
+        cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false })
+            .validateUser('SCM')
+            .get(dataNavBarItemSelectorStr)
+            .should('have.class', 'dropdown-toggle')
+            .click()
+            .should('have.class', 'dropdown-open-for').then(() => {
+
+                cy.get('.big-dropdown-menu.is-open a.big-link[href="/data-matrix"]')
+                    .click({ force: true }).then(function ($linkElem) {
+                        cy.get('#slow-load-container').should('not.have.class', 'visible').end();
+                        const linkHref = $linkElem.attr('href');
+                        cy.location('pathname').should('equal', linkHref);
+                    });
+
+                // Verify that the page contains the correct header
+                cy.contains('div#data_matrix_comparison h2.section-title', 'Data Matrix').should('be.visible');
+
+                // Ensure the specific data matrix exists
+                cy.get('#data-matrix-for_production').should('exist');
+
+                const expectedLabels = ['Skin', 'Heart', 'Blood'];
+                const columnTotals = {};
+
+                cy.get('#data-matrix-for_production').within(() => {
+                    // --- Step 1: Process each row individually ---
+                    cy.get('.grouping.depth-0').each(($row) => {
+                        const $label = $row.find('.grouping-row h4 .inner');
+                        const rowLabel = $label.text().trim();
+
+                        // Get row-summary before expansion
+                        const rowSummaryText = $row.find('[data-block-type="row-summary"] span').text().trim();
+                        const expectedRowSummary = parseInt(rowSummaryText, 10);
+
+                        // Expand if collapsed
+                        const expandIcon = $row.find('i.icon-plus');
+                        if (expandIcon.length > 0) {
+                            cy.wrap(expandIcon).click();
+                        }
+
+                        // Now re-wrap this row for scoped actions
+                        cy.wrap($row).as('currentRow');
+
+                        // Step 1.1: Check expected child labels
+                        cy.get('@currentRow')
+                            .find('.child-blocks .grouping-row .inner')
+                            .then(($labels) => {
+                                const labelTexts = [...$labels].map((el) => el.textContent.trim());
+                                expect(labelTexts).to.include.members(expectedLabels);
+                            });
+
+                        // Step 1.2: Sum regular blocks in this row only
+                        cy.get('@currentRow')
+                            .find('.child-blocks [data-block-type="regular"] span')
+                            .then(($regularSpans) => {
+                                const actualRowSum = Cypress._.sum(
+                                    [...$regularSpans].map((el) => parseInt(el.textContent.trim(), 10))
+                                );
+
+                                expect(actualRowSum, `Row summary for ${rowLabel}`).to.equal(expectedRowSummary);
+
+                                // While here, accumulate column totals globally
+                                cy.get('@currentRow')
+                                    .find('.child-blocks [data-block-type="regular"]')
+                                    .each(($el) => {
+                                        const groupKey = $el.parent().attr('data-group-key');
+                                        const value = parseInt($el.text().trim(), 10);
+                                        if (!isNaN(value)) {
+                                            columnTotals[groupKey] = (columnTotals[groupKey] || 0) + value;
+                                        }
+                                    });
+                            });
+                    });
+
+                    // --- Step 2: Validate column summaries globally ---
+                    cy.get('[data-block-type="col-summary"]').each(($summaryEl) => {
+                        const key = $summaryEl.parent().attr('data-group-key');
+                        if (key === 'column-summary') return; // ✅ skip special column
+
+                        const expected = parseInt($summaryEl.text().trim(), 10);
+                        const actual = columnTotals[key] || 0;
+
+                        expect(actual, `Column summary for ${key}`).to.equal(expected);
+                    });
+
+                });
+            })
+            .logoutSMaHT();
+    });
+
 });
