@@ -7,20 +7,28 @@ smaht-portal
 Change Log
 ----------
 
+0.187.2
+=======
+`PR 466 feat: add estimated average coverage to file overview <https://github.com/smaht-dac/smaht-portal/pull/466>`_
+
+* Add a new property to average coverage in file overview page
+
+
 0.187.1
+=======
 `PR 469: SN RIN minimum to zero <https://github.com/smaht-dac/smaht-portal/pull/469>`_
 
 * Change the minimum value for `rna_integrity_number` in Analyte to 0
 
 
 0.187.0
+=======
 `PR 463: SN File average coverage <https://github.com/smaht-dac/smaht-portal/pull/463>`_
 
 * Add `average_coverage` to the `data_generation_summary` calc prop on File, grabbed from `quality_metrics.coverage`
 * Add property `override_average_coverage` to File, which can override the `average_coverage` value if present
  
  
-=======
 0.186.2
 =======
 `PR 464 SN Add pluralize relatives <https://github.com/smaht-dac/smaht-portal/pull/464>`_
