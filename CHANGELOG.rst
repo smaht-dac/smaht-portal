@@ -7,11 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.187.1
+0.187.2
 =======
 `PR 467 feat: update bulk donor metadata download button <https://github.com/smaht-dac/smaht-portal/pull/467>`_
 
 * Update download link for bulk donor metadata download link
+
+
+0.187.1
+=======
+`PR 469: SN RIN minimum to zero <https://github.com/smaht-dac/smaht-portal/pull/469>`_
+
+* Change the minimum value for `rna_integrity_number` in Analyte to 0
 
 
 0.187.0
