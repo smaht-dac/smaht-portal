@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.187.1
+`PR 469: SN RIN minimum to zero <https://github.com/smaht-dac/smaht-portal/pull/469>`_
+
+* Change the minimum value for `rna_integrity_number` in Analyte to 0
+
+
 0.187.0
 `PR 463: SN File average coverage <https://github.com/smaht-dac/smaht-portal/pull/463>`_
 
