@@ -480,6 +480,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                     defaultOpen={true}
                                     compositeValueSeparator=" - "
                                     disableConfigurator={true}
+                                    idLabel="donor"
                                     key="data-matrix-key"
                                     session={session}
                                 />

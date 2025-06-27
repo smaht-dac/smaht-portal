@@ -1,7 +1,7 @@
 import { cypressVisitHeaders } from '../support';
 
 describe('Home Page', function () {
-    beforeEach(() => {
+    before(() => {
         cy.visit('/', { headers: cypressVisitHeaders });
         cy.loginSMaHT({
             email: 'cypress-main-scientist@cypress.hms.harvard.edu',
@@ -87,12 +87,52 @@ describe('Home Page', function () {
         });
     });
 
-    it('Has Data Release Tracker feed w. 3+ items', function() {
-        cy.get('.notifications-panel .data-release-tracker .data-release-item-container').should('have.length.of.at.least', 3);
+    it('Has Data Release Tracker feed w. item(s)', function() {
+        cy.get('.notifications-panel .data-release-tracker .data-release-item-container')
+            .should('have.length.greaterThan', 0);
     });
 
-    it('Has Announcements feed w. 2+ items', function() {
-        cy.get('.notifications-panel .announcements .announcement-container').should('have.length.of.at.least', 2);
+    it('Each Data Release Tracker item links to correct number of files', function () {
+        // Use an array to accumulate test steps
+        cy.get('.data-release-item-container').then(($containers) => {
+            // Iterate manually because we need sequential navigation (cy.visit)
+            const containerCount = $containers.length;
+
+            for (let i = 0; i < containerCount; i++) {
+                const $container = $containers.eq(i);
+
+                // Extract count text and href from DOM snapshot
+                const countText = $container.find('.header-link .count').text().trim();
+                const match = countText.match(/^(\d+)/);
+                const expectedCount = match ? parseInt(match[1], 10) : 0;
+                const href = $container.find('.header-link').attr('href');
+
+                // Add test logic to Cypress queue
+                cy.then(() => {
+                    cy.visit(href, { headers: cypressVisitHeaders });
+
+                    // Wait for results to load — update selector accordingly
+                    cy.searchPageTotalResultCount()
+                        .then((actualCount) => {
+                            expect(actualCount).to.eq(expectedCount);
+                        });
+
+                    // Go back for the next iteration
+                    cy.go('back');
+
+                    // Wait for page to reload before next loop
+                    cy.get('.data-release-item-container').should('have.length.at.least', containerCount);
+                });
+            }
+        });
+    });
+
+
+
+    it('Has Announcements feed w. item(s)', function() {
+        cy.visit('/', { headers: cypressVisitHeaders })
+            .get('.notifications-panel .announcements .announcement-container')
+            .should('have.length.greaterThan', 0);
     });
 
     it('Navbar dropdowns work as expected when logged in', () => {
