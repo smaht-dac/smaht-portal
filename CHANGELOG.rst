@@ -7,11 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.187.2
+0.187.3
 =======
 `PR 467 feat: update bulk donor metadata download button <https://github.com/smaht-dac/smaht-portal/pull/467>`_
 
 * Update download link for bulk donor metadata download link
+
+
+0.187.2
+=======
+`PR 457 feat: update nomenclature doc table <https://github.com/smaht-dac/smaht-portal/pull/457>`_
+
+* Update table 3A on nomenclature page
 
 
 0.187.1
