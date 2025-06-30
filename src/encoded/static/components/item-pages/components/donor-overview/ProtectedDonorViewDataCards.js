@@ -101,8 +101,8 @@ function renderAlcoholFrequencyDescriptionPopover() {
                     <thead>
                         <tr>
                             <th className="text-left" colSpan={2}>
-                                The extent of the donor's regular exposure to
-                                alcohol
+                                Frequency: The extent of the donor's regular
+                                exposure to alcohol
                             </th>
                         </tr>
                     </thead>
@@ -149,8 +149,8 @@ function renderTobaccoFrequencyDescriptionPopover() {
                     <thead>
                         <tr>
                             <th className="text-left" colSpan={2}>
-                                The extent of the donor's regular exposure to
-                                tobacco
+                                Frequency: The extent of the donor's regular
+                                exposure to tobacco
                             </th>
                         </tr>
                     </thead>
