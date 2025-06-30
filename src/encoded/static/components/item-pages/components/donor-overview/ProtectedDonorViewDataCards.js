@@ -108,17 +108,21 @@ function renderAlcoholFrequencyDescriptionPopover() {
                     </thead>
                     <tbody>
                         <tr>
-                            <td className="align-top text-left px-2">Social</td>
+                            <td className="align-middle text-left py-2 px-4 fw-semibold">
+                                Social
+                            </td>
                             <td className="text-left">A few drinks per year</td>
                         </tr>
                         <tr>
-                            <td className="align-top text-left px-2">Light</td>
+                            <td className="align-middle text-left py-2 px-4 fw-semibold">
+                                Light
+                            </td>
                             <td className="text-left">
                                 Less than 1 drink per day (0-6 per week)
                             </td>
                         </tr>
                         <tr>
-                            <td className="align-top text-left px-2">
+                            <td className="align-middle text-left py-2 px-4 fw-semibold">
                                 Moderate
                             </td>
                             <td className="text-left">
@@ -126,7 +130,9 @@ function renderAlcoholFrequencyDescriptionPopover() {
                             </td>
                         </tr>
                         <tr>
-                            <td className="align-top text-left px-2">Heavy</td>
+                            <td className="align-middle text-left py-2 px-4 fw-semibold">
+                                Heavy
+                            </td>
                             <td className="text-left">
                                 3 or more drinks per day (15 or more per week)
                             </td>
@@ -156,21 +162,25 @@ function renderTobaccoFrequencyDescriptionPopover() {
                     </thead>
                     <tbody>
                         <tr>
-                            <td className="align-top text-left px-2">Social</td>
+                            <td className="align-middle text-left py-2 px-4 fw-semibold">
+                                Social
+                            </td>
                             <td className="text-left">
                                 0-10 cigarettes in past 5 years, 6 or fewer
                                 cigars/pipes per year
                             </td>
                         </tr>
                         <tr>
-                            <td className="align-top text-left px-2">Light</td>
+                            <td className="align-middle text-left py-2 px-4 fw-semibold">
+                                Light
+                            </td>
                             <td className="text-left">
                                 0-5 cigarettes per day (up to ¼ ppd), 12 or
                                 fewer cigars/pipes per year
                             </td>
                         </tr>
                         <tr>
-                            <td className="align-top text-left px-2">
+                            <td className="align-middle text-left py-2 px-4 fw-semibold">
                                 Moderate
                             </td>
                             <td className="text-left">
@@ -179,7 +189,9 @@ function renderTobaccoFrequencyDescriptionPopover() {
                             </td>
                         </tr>
                         <tr>
-                            <td className="align-top text-left px-2">Heavy</td>
+                            <td className="align-middle text-left py-2 px-4 fw-semibold">
+                                Heavy
+                            </td>
                             <td className="text-left">
                                 20 or more cigarettes per day (1 or more ppd),
                                 more than 5 cigars/pipes per week
