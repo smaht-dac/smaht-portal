@@ -136,7 +136,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
         files: null,
     });
 
-    const { context, session, href, schemas } = props;
+    const { context, session, href } = props;
 
     // Load the files from the search URL and calculate statistics
     useEffect(() => {
@@ -174,9 +174,6 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
         );
     }, []);
 
-    // Pull out the exposure history schemas
-    const exposureHistorySchemaProperties = schemas?.['Exposure']?.properties;
-
     // Format a title string
     const titleString = (
         <h1 className="header-text fw-semibold">
@@ -204,9 +201,6 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                 />
                 <ProtectedDonorViewDataCards
                     context={context}
-                    exposureHistorySchemaProperties={
-                        exposureHistorySchemaProperties
-                    }
                     statisticValues={statisticValues}
                     isLoading={isLoading}
                 />

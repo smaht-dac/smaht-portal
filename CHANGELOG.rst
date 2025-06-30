@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.187.3
+=======
+`PR 465 feat: protected donor view updates <https://github.com/smaht-dac/smaht-portal/pull/465>`_
+
+* Update donor view following annual meeting feedback
+
+
 0.187.2
 =======
 `PR 457 feat: update nomenclature doc table <https://github.com/smaht-dac/smaht-portal/pull/457>`_
