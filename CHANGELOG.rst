@@ -7,11 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.187.2
+0.187.3
 =======
 `PR 466 feat: add estimated average coverage to file overview <https://github.com/smaht-dac/smaht-portal/pull/466>`_
 
 * Add a new property to average coverage in file overview page
+
+
+0.187.2
+=======
+`PR 457 feat: update nomenclature doc table <https://github.com/smaht-dac/smaht-portal/pull/457>`_
+
+* Update table 3A on nomenclature page
 
 
 0.187.1
