@@ -30,14 +30,18 @@ function renderHardyScaleDescriptionPopover() {
                     </thead>
                     <tbody>
                         <tr>
-                            <td className="align-top text-center px-5">0</td>
+                            <td className="fs-5 align-middle text-center px-5">
+                                0
+                            </td>
                             <td className="text-left">
                                 <b>Ventilator Case.</b> All cases on a
                                 ventilator immediately before death.
                             </td>
                         </tr>
                         <tr>
-                            <td className="align-top text-center px-5">1</td>
+                            <td className="fs-5 align-middle text-center px-5">
+                                1
+                            </td>
                             <td className="text-left">
                                 <b>Violent and fast death.</b> Deaths due to
                                 accident, blunt force trauma or suicide,
@@ -45,7 +49,9 @@ function renderHardyScaleDescriptionPopover() {
                             </td>
                         </tr>
                         <tr>
-                            <td className="align-top text-center px-5">2</td>
+                            <td className="fs-5 align-middle text-center px-5">
+                                2
+                            </td>
                             <td className="text-left">
                                 <b>Fast death of natural causes.</b> Sudden
                                 unexpected deaths of people who had been
@@ -56,7 +62,9 @@ function renderHardyScaleDescriptionPopover() {
                             </td>
                         </tr>
                         <tr>
-                            <td className="align-top text-center px-5">3</td>
+                            <td className="fs-5 align-middle text-center px-5">
+                                3
+                            </td>
                             <td className="text-left">
                                 <b>Intermediate death.</b> Death after a
                                 terminal phase of 1 to 24 hrs (not classifiable
@@ -65,7 +73,9 @@ function renderHardyScaleDescriptionPopover() {
                             </td>
                         </tr>
                         <tr>
-                            <td className="align-top text-center px-5">4</td>
+                            <td className="fs-5 align-middle text-center px-5">
+                                4
+                            </td>
                             <td className="text-left">
                                 <b>Slow death.</b> Death after a long illness,
                                 with a terminal phase longer than 1 day
