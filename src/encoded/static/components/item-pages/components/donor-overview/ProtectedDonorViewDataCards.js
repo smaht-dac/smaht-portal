@@ -393,7 +393,6 @@ const ExposureCard = ({ data, popover }) => {
  */
 export const ProtectedDonorViewDataCards = ({
     context = {},
-    exposureHistorySchemaProperties = {},
     statisticValues = {},
     isLoading = false,
 }) => {
