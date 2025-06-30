@@ -867,13 +867,6 @@ def fail_text(text: str) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--mode",
-        "-m",
-        choices=["single", "bulk"],
-        default="single",
-        help="Release mode (default: single)",
-    )
-    parser.add_argument(
         "--file", "-f", action='append', help="Identifier of the file to release", required=True
     )
     parser.add_argument("--dataset", "-d", help="Associated dataset. In bulk mode, this will be used for all files", required=True)
@@ -892,24 +885,22 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    if args.mode == 'single':
-        if not args.file or len(args.file) != 1:
-            #parser.error("In 'single' mode, you can only release one file.")
-            error = fail_text("In 'single' mode, you can only release one file.")
-            parser.error(error)
-    elif args.mode == 'bulk':
-        if not args.file or len(args.file) < 1:
-            error = fail_text("Please specify a file to release.")
-            parser.error(error)
-        if args.replace:
-            error = fail_text("In 'bulk' mode, you cannot replace a file. Use 'single' mode for that.")
-            parser.error(error)
+    if not args.file or len(args.file) < 1:
+        error = fail_text("Please specify at least one file to release.")
+        parser.error(error)
+
+    mode = 'single' if len(args.file) == 1 else 'bulk'
+
+    if mode == 'bulk' and args.replace:
+        error = fail_text("In 'bulk' mode, you cannot replace a file. Please release files individually.")
+        parser.error(error)
+            
 
     auth_key = get_auth_key(args.env)
     server = auth_key.get("server")
 
     files_to_release = args.file
-    verbose = args.mode == 'single' # Print more information in single mode
+    verbose = mode == 'single' # Print more information in single mode
 
     file_releases : List[FileRelease] = []
     for file_identifier in files_to_release:
