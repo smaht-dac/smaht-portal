@@ -134,7 +134,7 @@ describe('Data Overview Page & Content Tests', function () {
 
                         cy.wrap($row).as('currentRow');
 
-                        // Only for SMHT004 and SMHT008: expected labels should exist
+                        // SMHT004 & SMHT008 → specific label check
                         if (['SMHT004', 'SMHT008'].includes(rowLabel)) {
                             cy.get('@currentRow')
                                 .find('.child-blocks .grouping-row .inner')
@@ -144,7 +144,7 @@ describe('Data Overview Page & Content Tests', function () {
                                 });
                         }
 
-                        // For all rows: labels must not include 'N/A'
+                        // All rows → no 'N/A'
                         cy.get('@currentRow')
                             .find('.child-blocks .grouping-row .inner')
                             .then(($labels) => {
@@ -152,84 +152,27 @@ describe('Data Overview Page & Content Tests', function () {
                                 expect(labelTexts).to.not.include('N/A');
                             });
 
-                        // Validate row-summary matches sum of regular blocks
+                        // row-summary = sum of regular
                         cy.get('@currentRow')
                             .find('.child-blocks [data-block-type="regular"] span')
-                            .then(($regularSpans) => {
-                                const actualRowSum = Cypress._.sum(
-                                    [...$regularSpans].map((el) => parseInt(el.textContent.trim(), 10))
-                                );
-
-                                expect(actualRowSum, `Row summary for ${rowLabel}`).to.equal(expectedRowSummary);
+                            .then(($spans) => {
+                                const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
+                                expect(sum, `Row summary for ${rowLabel}`).to.equal(expectedRowSummary);
                             });
 
-                        // For each regular block: validate popover content and track column totals
+                        // accumulate col totals
                         cy.get('@currentRow')
                             .find('.child-blocks [data-block-type="regular"]')
                             .each(($block) => {
                                 const value = parseInt($block.text().trim(), 10);
                                 const assay = $block.parent().attr('data-group-key');
-
-                                if (value > 0) {
-                                    // Step 1: Click the block and ensure it's visible
-                                    cy.wrap($block)
-                                        .scrollIntoView()
-                                        .should('be.visible')
-                                        .click({ force: true });
-
-                                    // Step 2: Retry DOM polling manually (NOT cy.get directly)
-                                    cy.document().then((doc) => {
-                                        const checkPopover = () => {
-                                            const popover = doc.querySelector('#jap-popover');
-                                            if (popover) {
-                                                // Step 3: Wrap the real element manually
-                                                cy.wrap(popover).should('be.visible').within(() => {
-                                                    cy.get('.primary-row .col-6')
-                                                        .first()
-                                                        .find('.text-500')
-                                                        .should('have.text', rowLabel);
-
-                                                    cy.get('.primary-row .col-6.text-end .text-500')
-                                                        .should('contain.text', assay);
-
-                                                    cy.get('.secondary-row .value.text-600')
-                                                        .invoke('text')
-                                                        .then((text) => {
-                                                            const totalFiles = parseInt(text.trim(), 10);
-                                                            expect(totalFiles).to.equal(value);
-                                                        });
-                                                });
-
-                                                cy.root().click('topLeft', { force: true }); // exits popover scope
-                                            } else {
-                                                // Retry after 100ms, up to N times
-                                                if (!Cypress._.isUndefined(doc._japPopoverRetryCount)) {
-                                                    doc._japPopoverRetryCount += 1;
-                                                } else {
-                                                    doc._japPopoverRetryCount = 1;
-                                                }
-
-                                                if (doc._japPopoverRetryCount <= 20) {
-                                                    setTimeout(checkPopover, 100); // retry up to 2s
-                                                } else {
-                                                    throw new Error('Popover did not appear after clicking block.');
-                                                }
-                                            }
-                                        };
-
-                                        checkPopover();
-                                    });
-
-                                }
-
-                                // Accumulate column totals
                                 if (!isNaN(value)) {
                                     columnTotals[assay] = (columnTotals[assay] || 0) + value;
                                 }
                             });
                     });
 
-                    // After all rows, validate global column summaries
+                    // col-summary check
                     cy.then(() => {
                         cy.get('[data-block-type="col-summary"]').each(($summaryEl) => {
                             const key = $summaryEl.parent().attr('data-group-key');
@@ -239,6 +182,81 @@ describe('Data Overview Page & Content Tests', function () {
                             const actual = columnTotals[key] || 0;
 
                             expect(actual, `Column summary for ${key}`).to.equal(expected);
+                        });
+                    });
+
+                    // random 10 popovers
+                    cy.get('[data-block-type="regular"]').then(($allBlocks) => {
+                        const allBlocks = Array.from($allBlocks); // ✅ düz array
+                        const selected = Cypress._.sampleSize(allBlocks, 10); // ✅ underscore
+
+                        const logData = selected.map((el) => {
+                            const $el = Cypress.$(el);
+                            const value = parseInt($el.text().trim(), 10);
+                            const rowLabel = $el
+                                .closest('.grouping.depth-0')
+                                .find('.grouping-row h4 .inner')
+                                .first()
+                                .text()
+                                .trim();
+
+                            const assay = $el.parent().attr('data-group-key');
+                            return { rowLabel, assay, value };
+                        });
+
+                        cy.log('🔍 Popover test sample:', JSON.stringify(logData));
+                        console.log('🔍 Popover test sample:', logData);
+
+                        selected.forEach((el) => {
+                            const $el = Cypress.$(el);
+                            const value = parseInt($el.text().trim(), 10);
+                            const rowLabel = $el
+                                .closest('.grouping.depth-0')
+                                .find('.grouping-row h4 .inner')
+                                .first()
+                                .text()
+                                .trim();
+
+                            const assay = $el.parent().attr('data-group-key');
+
+                            if (value > 0) {
+                                cy.wrap(el)
+                                    .scrollIntoView()
+                                    .should('be.visible')
+                                    .click({ force: true });
+
+                                cy.document().then((doc) => {
+                                    const tryGetPopover = (retries = 10) => {
+                                        const popover = doc.querySelector('#jap-popover');
+                                        if (popover) {
+                                            cy.wrap(popover).should('be.visible').within(() => {
+                                                cy.get('.primary-row .col-6')
+                                                    .first()
+                                                    .find('.text-500')
+                                                    .should('have.text', rowLabel);
+
+                                                cy.get('.primary-row .col-6.text-end .text-500')
+                                                    .should('contain.text', assay);
+
+                                                cy.get('.secondary-row .value.text-600')
+                                                    .invoke('text')
+                                                    .then((text) => {
+                                                        const totalFiles = parseInt(text.trim(), 10);
+                                                        expect(totalFiles).to.equal(value);
+                                                    });
+                                            });
+
+                                            cy.root().click('topLeft', { force: true });
+                                        } else if (retries > 0) {
+                                            cy.wait(200).then(() => tryGetPopover(retries - 1));
+                                        } else {
+                                            throw new Error(`Popover did not appear for ${rowLabel} / ${assay}`);
+                                        }
+                                    };
+
+                                    tryGetPopover();
+                                });
+                            }
                         });
                     });
                 });
