@@ -2,12 +2,7 @@
 
 import React from 'react';
 import { DataCardRow } from '../file-overview/FileViewDataCards';
-import {
-    OverlayTrigger,
-    Popover,
-    PopoverHeader,
-    PopoverBody,
-} from 'react-bootstrap';
+import { OverlayTrigger, Popover, PopoverBody } from 'react-bootstrap';
 /**
  * Bootstrap Popover element for the description field in the sample information
  * data card. Contains a table with definitions for the terms used in the
@@ -280,10 +275,9 @@ const DonorStatistics = ({ data, isLoading }) => {
  * A card component that displays exposure data for a donor. It shows the
  * category, duration, frequency, quantity, and cessation information.
  * @param {object} data the exposure data object containing information on the exposure
- * @param {object} schemas the schemas for the exposure history
  * @returns
  */
-const ExposureCard = ({ data, schemas, popover }) => {
+const ExposureCard = ({ data, popover }) => {
     const {
         category,
         duration,
@@ -318,7 +312,9 @@ const ExposureCard = ({ data, schemas, popover }) => {
                 <span className="title">{category}</span>
                 <div
                     className="datum"
-                    data-tip={schemas?.duration?.description}>
+                    data-tip={
+                        'Number of years the donor was exposed to the substance'
+                    }>
                     <span className="datum-title">
                         Duration <i className="icon icon-info-circle fas"></i>
                     </span>
@@ -359,7 +355,9 @@ const ExposureCard = ({ data, schemas, popover }) => {
                 </OverlayTrigger>
                 <div
                     className="datum"
-                    data-tip={schemas?.quantity?.description}>
+                    data-tip={
+                        'How much of the substance the donor was regularly exposed to'
+                    }>
                     <span className="datum-title">
                         Quantity <i className="icon icon-info-circle fas"></i>
                     </span>
@@ -371,7 +369,9 @@ const ExposureCard = ({ data, schemas, popover }) => {
                 </div>
                 <div
                     className="datum"
-                    data-tip={schemas?.cessation?.description}>
+                    data-tip={
+                        'Whether exposure ceased prior to death and number of years since exposure ceased'
+                    }>
                     <span className="datum-title">
                         Cessation <i className="icon icon-info-circle fas"></i>
                     </span>
