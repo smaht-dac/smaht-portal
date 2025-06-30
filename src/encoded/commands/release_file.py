@@ -869,7 +869,7 @@ def main() -> None:
     parser.add_argument(
         "--file", "-f", action='append', help="Identifier of the file to release", required=True
     )
-    parser.add_argument("--dataset", "-d", help="Associated dataset. In bulk mode, this will be used for all files", required=True)
+    parser.add_argument("--dataset", "-d", help="Associated dataset. When releasing multiple files, this will be used for all files", required=True)
     parser.add_argument("--env", "-e", help="Environment from keys file", required=True)
     parser.add_argument(
         "--replace",
