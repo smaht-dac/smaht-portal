@@ -545,12 +545,10 @@ export const ProtectedDonorViewDataCards = ({
                     <div className="body d-flex flex-column gap-4">
                         <ExposureCard
                             data={tobaccoExposure ?? { category: 'Tobacco' }}
-                            schemas={exposureHistorySchemaProperties}
                             popover={renderTobaccoFrequencyDescriptionPopover()}
                         />
                         <ExposureCard
                             data={alcoholExposure ?? { category: 'Alcohol' }}
-                            schemas={exposureHistorySchemaProperties}
                             popover={renderAlcoholFrequencyDescriptionPopover()}
                         />
                         <div className="data-card-section">
