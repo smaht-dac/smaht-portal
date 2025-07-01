@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.188.0
+=======
+`PR 471: SN Update file merge group <https://github.com/smaht-dac/smaht-portal/pull/471>`_
+
+* Update `generate_sample_source_part` in FileSet so that the sample source part of the `file_group` is Tissue, rather than TissueSample for single tissue samples with spatial information
+
+
 0.187.3
 =======
 `PR 470: Bulk file release <https://github.com/smaht-dac/smaht-portal/pull/470>`_
