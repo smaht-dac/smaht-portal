@@ -718,7 +718,25 @@ class SubmissionStatusComponent extends React.PureComponent {
                                 </div>
                             </th>
                             <th className="text-start">Submission</th>
-                            <th className="text-start">QC status</th>
+                            <th className="text-start">
+                                QC status
+                                <object.CopyWrapper
+                                    value={this.state.fileSets
+                                        .filter((fs) => fs.final_output_file_accession)
+                                        .map((fs) => fs.final_output_file_accession)
+                                        .join(' -f ')}
+                                    className=""
+                                    data-tip={
+                                        'Copy accessions of processed files for release'
+                                    }
+                                    wrapperElement="span"
+                                    iconProps={{
+                                        style: {
+                                            fontSize: '0.875rem',
+                                            marginLeft: 3,
+                                        },
+                                    }}></object.CopyWrapper>
+                            </th>
                             <th className="text-start">MetaWorkflowRuns</th>
                             <th className="text-start">
                                 Tags{' '}

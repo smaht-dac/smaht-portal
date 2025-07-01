@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.187.3
+=======
+`PR 470: Bulk file release <https://github.com/smaht-dac/smaht-portal/pull/470>`_
+
+* Modified the release script to allow multiple files to be released at once.
+* Added a button to the Submission Status page, that will let you copy the accessions of all output files displayed, so that it can be used in the release script.
+* Minor adjustments to the QC overview script.
+
+
 0.187.2
 =======
 `PR 457 feat: update nomenclature doc table <https://github.com/smaht-dac/smaht-portal/pull/457>`_
