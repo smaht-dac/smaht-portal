@@ -177,6 +177,9 @@
         "donor.display_title": {
             "title": "Donor"
         },
+        "uberon_id.identifier": {
+            "title": "Uberon ID"
+        },
         "submission_centers.display_title": {
             "title": "Submitted By"
         }
