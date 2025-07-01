@@ -42,4 +42,16 @@ def test_coverage_calc_prop(es_testapp: TestApp, workbook: None) -> None:
         frame="object"
     )
     assert qm.get("coverage","") == 26.32
+
+
+@pytest.mark.workbook
+def test_qc_notes_calc_prop(es_testapp: TestApp, workbook: None) -> None:
+    """Ensure the coverage calc prop works."""
+    qm=get_item(
+        es_testapp,
+        "a034802c-0bcf-4df9-97dd-dbab5c62a375",
+        collection='QualityMetric',
+        frame="object"
+    )
+    assert qm.get("qc_notes","") == "Warn: foo has value bar"
     

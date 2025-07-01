@@ -1,12 +1,11 @@
 import pytest
 import io
 import csv
-from ..metadata import descend_field
+from ..metadata import descend_field, TSV_WIDTH
 
 
 class TestMetadataTSVHelper:
 
-    TSV_WIDTH = 26
 
     @staticmethod
     def read_tsv_from_bytestream(bytestream):
@@ -21,7 +20,7 @@ class TestMetadataTSVHelper:
     @classmethod
     def check_key_and_length(cls, part, expected_key):
         assert expected_key in part
-        assert len(part) == cls.TSV_WIDTH
+        assert len(part) == TSV_WIDTH
 
     @classmethod
     def check_type_length(cls, es_testapp, item_type, expected_count):
@@ -114,7 +113,7 @@ class TestMetadataTSVWorkbook:
         parsed = TestMetadataTSVHelper.read_tsv_from_bytestream(tsv)
         header1, header2, header3 = parsed[0], parsed[1], parsed[2]
         for row in parsed:  # check all rows got populated
-            assert len(row) == TestMetadataTSVHelper.TSV_WIDTH
+            assert len(row) == TSV_WIDTH
         TestMetadataTSVHelper.check_key_and_length(header1, 'Metadata TSV Download')
         TestMetadataTSVHelper.check_key_and_length(header2, 'Suggested command to download: ')
         TestMetadataTSVHelper.check_key_and_length(header3, 'FileDownloadURL')
@@ -142,7 +141,7 @@ class TestMetadataTSVWorkbook:
         # check an entire row that is mostly representative
         for row in parsed:
             if '303985cf-f1db-4dea-9782-2e68092d603d' in row[0]:  # this is the row
-                assert row[2] == 'SMHT-FOO-BAR-M45-B003-DAC_SMAURF3ETDQJ_bwamem0.1.2_GRCh38.aligned.sorted.bam'
+                assert row[2] == 'SMHT-FOO-BAR-M45-B003-DAC_SMAURF3ETDQJ_bwamem0.1.2_GRCh38.aligned.sorted.bam' # NOTE: This row should not be changed. Needed for file download
                 assert row[9] == '1000'  # size
                 assert row[11] == 'Aligned Reads'  # category
                 assert row[12] == 'BAM'  # format
@@ -156,7 +155,7 @@ class TestMetadataTSVWorkbook:
                 assert row[20] == 'Bulk WGS'  # assay
                 assert row[21] == 'VEP (3.1.1)'  # software
                 assert row[22] == 'GRCh38'  # reference genome
-                assert row[25] == 'smaht-TEST_TISSUE_LIVER-illumina_novaseqx-Paired-end-150-R9-bulk_wgs'  # merge grp
+                assert row[26] == 'smaht-TEST_TISSUE_LIVER-illumina_novaseqx-Paired-end-150-R9-bulk_wgs'  # merge grp
                 break
 
         # check download links are now download_cli

@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.188.0
+=======
+`PR 468: SN File QC notes <https://github.com/smaht-dac/smaht-portal/pull/468>`_
+
+* Add `qc_notes` calc prop to QualityMetrics which uses `flag` to identify key metrics and build a concatenated string of Warn/Fail QC metrics
+* Embed `quality_metrics.qc_notes` on File
+* Add `quality_metrics.qc_notes` as column in File Manifest
+
+
 0.187.3
 =======
 `PR 470: Bulk file release <https://github.com/smaht-dac/smaht-portal/pull/470>`_
@@ -38,7 +47,7 @@ Change Log
 * Add property `override_average_coverage` to File, which can override the `average_coverage` value if present
  
  
-=======
+
 0.186.2
 =======
 `PR 464 SN Add pluralize relatives <https://github.com/smaht-dac/smaht-portal/pull/464>`_
