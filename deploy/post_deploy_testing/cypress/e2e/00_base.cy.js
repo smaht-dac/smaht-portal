@@ -15,8 +15,7 @@ describe('Basic functionality: page loads and can authenticate.', function () {
             email: 'cypress-main-scientist@cypress.hms.harvard.edu',
             useEnvToken: false,
         })
-            .get('.user-first-name')
-            .contains('SCM')
+            .validateUser('SCM')
             .end();
 
         // Log out
