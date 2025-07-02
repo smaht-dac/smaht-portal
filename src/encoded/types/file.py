@@ -405,6 +405,7 @@ def _build_file_embedded_list() -> List[str]:
 
         "quality_metrics.overall_quality_status",
         "quality_metrics.coverage",
+        "quality_metrics.qc_notes",
         # For manifest
         "file_sets.accession",
         "file_sets.libraries.analytes.accession",
