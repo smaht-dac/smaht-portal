@@ -230,7 +230,9 @@ const default_data_information = [
  */
 function renderDescriptionPopover() {
     return (
-        <Popover id="description-definitions-popover" className="w-auto">
+        <Popover
+            id="description-definitions-popover-sample-description"
+            className="w-auto description-definitions-popover">
             <PopoverBody className="p-0">
                 <table className="table">
                     <thead>

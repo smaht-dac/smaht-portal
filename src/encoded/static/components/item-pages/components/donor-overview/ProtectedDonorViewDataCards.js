@@ -13,7 +13,9 @@ import { OverlayTrigger, Popover, PopoverBody } from 'react-bootstrap';
  */
 function renderHardyScaleDescriptionPopover() {
     return (
-        <Popover id="description-definitions-popover" className="w-auto">
+        <Popover
+            id="description-definitions-popover-hardy"
+            className="w-auto description-definitions-popover">
             <PopoverBody className="p-0">
                 <table className="table">
                     <thead>
@@ -90,7 +92,9 @@ function renderHardyScaleDescriptionPopover() {
  */
 function renderAlcoholFrequencyDescriptionPopover() {
     return (
-        <Popover id="description-definitions-popover" className="w-auto">
+        <Popover
+            id="description-definitions-popover-alcohol"
+            className="w-auto description-definitions-popover">
             <PopoverBody className="p-0">
                 <table className="table">
                     <thead>
@@ -144,7 +148,9 @@ function renderAlcoholFrequencyDescriptionPopover() {
  */
 function renderTobaccoFrequencyDescriptionPopover() {
     return (
-        <Popover id="description-definitions-popover" className="w-auto">
+        <Popover
+            id="description-definitions-popover-tobacco"
+            className="w-auto description-definitions-popover">
             <PopoverBody className="p-0">
                 <table className="table">
                     <thead>
