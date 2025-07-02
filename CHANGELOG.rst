@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.188.1
+=======
+`PR 473: SN Add additional notes to exp manifest file <https://github.com/smaht-dac/smaht-portal/pull/473>`_
+
+* Adds `sequencing.additional_notes` to the Experimental Manifest file
+
+
 0.188.0
 =======
 `PR 468: SN File QC notes <https://github.com/smaht-dac/smaht-portal/pull/468>`_
