@@ -7,6 +7,7 @@ from .acl import ONLY_ADMIN_VIEW_ACL
 from .base import Item
 
 COVERAGE_DERIVED_FROM = "mosdepth:total"
+FLAG_STATES = ["Warn", "Fail"]
 
 @collection(
     name='quality-metrics',
@@ -41,6 +42,22 @@ class QualityMetric(Item):
         for qc in qc_values:
             if qc.get("derived_from","") == COVERAGE_DERIVED_FROM:
                 return qc["value"]
+            
+    
+    @calculated_property(
+        schema={
+            "title": "QC Notes",
+            "type": "string",
+            "description": "Notes on key metrics that did not pass QC",
+        }
+    )
+    def qc_notes(self, request, qc_values: List[Dict[str, Any]]) -> str:
+        notes = []
+        for qc in qc_values:
+            if qc.get("flag","") in FLAG_STATES:
+                notes.append(f"{qc['flag']}: {qc['key']} has value {qc['value']}")
+        if notes:
+            return (";").join(notes)
 
 
 @view_config(name='download', context=QualityMetric, request_method='GET',

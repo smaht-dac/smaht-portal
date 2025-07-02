@@ -7,11 +7,29 @@ smaht-portal
 Change Log
 ----------
 
-0.187.3
+0.188.1
 =======
 `PR 467 feat: update bulk donor metadata download button <https://github.com/smaht-dac/smaht-portal/pull/467>`_
 
 * Update download link for bulk donor metadata download link
+
+
+0.188.0
+=======
+`PR 468: SN File QC notes <https://github.com/smaht-dac/smaht-portal/pull/468>`_
+
+* Add `qc_notes` calc prop to QualityMetrics which uses `flag` to identify key metrics and build a concatenated string of Warn/Fail QC metrics
+* Embed `quality_metrics.qc_notes` on File
+* Add `quality_metrics.qc_notes` as column in File Manifest
+
+
+0.187.3
+=======
+`PR 470: Bulk file release <https://github.com/smaht-dac/smaht-portal/pull/470>`_
+
+* Modified the release script to allow multiple files to be released at once.
+* Added a button to the Submission Status page, that will let you copy the accessions of all output files displayed, so that it can be used in the release script.
+* Minor adjustments to the QC overview script.
 
 
 0.187.2
@@ -34,8 +52,8 @@ Change Log
 
 * Add `average_coverage` to the `data_generation_summary` calc prop on File, grabbed from `quality_metrics.coverage`
 * Add property `override_average_coverage` to File, which can override the `average_coverage` value if present
- 
- 
+
+
 0.186.2
 =======
 `PR 464 SN Add pluralize relatives <https://github.com/smaht-dac/smaht-portal/pull/464>`_
