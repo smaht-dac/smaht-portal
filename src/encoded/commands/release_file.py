@@ -111,6 +111,12 @@ class FileRelease:
         )
 
     @cached_property
+    def library_preparations(self) -> List[dict]:
+        return self.get_items(
+            self.get_links(self.libraries, library_utils.get_library_preparation)
+        )
+
+    @cached_property
     def assays(self) -> List[dict]:
         return self.get_items(self.get_links(self.libraries, library_utils.get_assay))
 
@@ -124,6 +130,37 @@ class FileRelease:
     def analytes(self) -> List[dict]:
         return self.get_items(
             self.get_links(self.libraries, library_utils.get_analytes)
+        )
+
+    @cached_property
+    def analyte_preparations(self) -> List[dict]:
+        return self.get_items(
+            self.get_links(self.analytes, analyte_utils.get_analyte_preparation)
+        )
+
+    @cached_property
+    def preparation_kits(self) -> List[dict]:
+        return list(
+            self.get_items(
+                self.get_links(self.analyte_preparations, item_utils.get_preparation_kits)
+            ) +
+            self.get_items(
+                self.get_links(self.library_preparations, item_utils.get_preparation_kits)
+            ) +
+            self.get_items(
+                self.get_links(self.sequencings, item_utils.get_preparation_kits)
+            )
+        )
+
+    @cached_property
+    def treatments(self) -> List[dict]:
+        return list(
+            self.get_items(
+                self.get_links(self.analyte_preparations, item_utils.get_treatments)
+            ) +
+            self.get_items(
+                self.get_links(self.library_preparations, item_utils.get_treatments)
+            )
         )
 
     @cached_property
@@ -295,8 +332,12 @@ class FileRelease:
         self.add_release_items_to_patchdict(self.file_sets, "FileSet")
         self.add_release_items_to_patchdict(self.sequencings, "Sequencing")
         self.add_release_items_to_patchdict(self.libraries, "Library")
+        self.add_release_items_to_patchdict(self.library_preparations, "LibraryPreparation")
         self.add_release_items_to_patchdict(self.assays, "Assay")
         self.add_release_items_to_patchdict(self.analytes, "Analyte")
+        self.add_release_items_to_patchdict(self.analyte_preparations, "AnalytePreparation")
+        self.add_release_items_to_patchdict(self.preparation_kits, "PreparationKit")
+        self.add_release_items_to_patchdict(self.treatments, "Treatment")
         self.add_release_items_to_patchdict(self.samples, "Sample")
         self.add_release_items_to_patchdict(self.sample_sources, "SampleSource")
         self.add_release_items_to_patchdict(

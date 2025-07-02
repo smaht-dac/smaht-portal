@@ -15,6 +15,11 @@ def get_analytes(library: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
     return library.get("analytes", [])
 
 
+def get_library_preparation(library: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
+    """Get library preparation connected to library."""
+    return library.get("library_preparation", "")
+
+
 def get_all_samples(
     library: Dict[str, Any], request_handler: Optional[RequestHandler] = None
 ) -> List[str]:

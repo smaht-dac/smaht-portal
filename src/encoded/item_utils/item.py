@@ -106,3 +106,13 @@ def is_released(properties: Dict[str, Any]) -> bool:
 def get_preferred_name(properties: Dict[str, Any]) -> str:
     """Get preferred name from properties."""
     return properties.get("preferred_name", "")
+
+
+def get_preparation_kits(properties: Dict[str, Any]) -> List[Union[Dict[str, Any], str]]:
+    """Get preparation kits from properties."""
+    return properties.get("preparation_kits", [])
+
+
+def get_treatments(properties: Dict[str, Any]) -> List[Union[Dict[str, Any], str]]:
+    """Get treatments from properties."""
+    return properties.get("treatments", [])

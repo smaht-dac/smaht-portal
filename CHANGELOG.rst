@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.188.1
+=======
+`PR 474: SN Release preparation items <https://github.com/smaht-dac/smaht-portal/pull/474>`_
+
+* Update the `release_file` script to also patch AnalytePreparation, LibraryPreparation, PreparationKit, and Treatment items to `released`
+
+
 0.188.0
 =======
 `PR 468: SN File QC notes <https://github.com/smaht-dac/smaht-portal/pull/468>`_
