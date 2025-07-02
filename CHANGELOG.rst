@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.189.0
+=======
+`PR 473: SN Add additional notes to exp manifest file <https://github.com/smaht-dac/smaht-portal/pull/473>`_
+
+* Adds `sequencing.additional_notes` to the Experimental Manifest file
+
+
 0.188.1
 =======
 `PR 467 feat: update bulk donor metadata download button <https://github.com/smaht-dac/smaht-portal/pull/467>`_
