@@ -54,6 +54,7 @@ from ..item_utils import (
     analyte as analyte_utils,
     file as file_utils,
     item as item_utils,
+    quality_metric as qm_utils,
     sample as sample_utils,
     software as software_utils,
     tissue as tissue_utils,
@@ -193,6 +194,7 @@ class CalcPropConstants:
     DATA_GENERATION_SEQUENCING_PLATFORMS = "sequencing_platforms"
     DATA_GENERATION_TARGET_COVERAGE = "target_group_coverage"
     DATA_GENERATION_TARGET_READ_COUNT = "target_read_count"
+    DATA_GENERATION_AVERAGE_COVERAGE = "average_coverage"
     DATA_GENERATION_SCHEMA = {
         "title": "Data Generation Summary",
         "description": "Summary of data generation",
@@ -244,6 +246,13 @@ class CalcPropConstants:
                     "type": "string"
                 }
             },
+            DATA_GENERATION_AVERAGE_COVERAGE: {
+                "title": "Per BAM Coverage",
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+             },
             DATA_GENERATION_TARGET_READ_COUNT: {
                 "title": "Target Read Count",
                 "type": "array",
@@ -396,6 +405,7 @@ def _build_file_embedded_list() -> List[str]:
 
         "quality_metrics.overall_quality_status",
         "quality_metrics.coverage",
+        "quality_metrics.qc_notes",
         # For manifest
         "file_sets.accession",
         "file_sets.libraries.analytes.accession",
@@ -980,6 +990,9 @@ class File(Item, CoreFile):
             constants.DATA_GENERATION_TARGET_COVERAGE: (
                 self._get_group_coverage(request_handler, file_properties)
             ),
+            constants.DATA_GENERATION_AVERAGE_COVERAGE: (
+                self._get_average_coverage(request_handler, file_properties)
+            ),
             constants.DATA_GENERATION_TARGET_READ_COUNT: (
                 get_property_values_from_identifiers(
                     request_handler,
@@ -1004,6 +1017,20 @@ class File(Item, CoreFile):
             request_handler,
             file_utils.get_sequencings(file_properties, request_handler),
             sequencing_utils.get_target_coverage
+        )
+
+    def _get_average_coverage(
+        self, request_handler, file_properties: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """"Get average coverage from quality_metrics for display on file overview page.
+
+        Use override_average_coverage if present, otherwise grab coverage from quality metrics."""
+        if (override_average_coverage := file_utils.get_override_average_coverage(file_properties)):
+            return [override_average_coverage]
+        return get_property_values_from_identifiers(
+            request_handler,
+            file_utils.get_quality_metrics(file_properties),
+            qm_utils.get_coverage
         )
 
     def _get_sample_summary(
