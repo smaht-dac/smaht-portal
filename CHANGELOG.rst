@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.188.2
+=======
+`PR 466 feat: add estimated average coverage to file overview <https://github.com/smaht-dac/smaht-portal/pull/466>`_
+
+* Add a new property to average coverage in file overview page
+
+
 0.188.1
 =======
 `PR 467 feat: update bulk donor metadata download button <https://github.com/smaht-dac/smaht-portal/pull/467>`_
