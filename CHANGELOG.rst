@@ -7,11 +7,25 @@ smaht-portal
 Change Log
 ----------
 
-0.188.1
+0.188.3
 =======
 `PR 474: SN Release preparation items <https://github.com/smaht-dac/smaht-portal/pull/474>`_
 
 * Update the `release_file` script to also patch AnalytePreparation, LibraryPreparation, PreparationKit, and Treatment items to `released`
+
+
+0.188.2
+=======
+`PR 466 feat: add estimated average coverage to file overview <https://github.com/smaht-dac/smaht-portal/pull/466>`_
+
+* Add a new property to average coverage in file overview page
+
+
+0.188.1
+=======
+`PR 467 feat: update bulk donor metadata download button <https://github.com/smaht-dac/smaht-portal/pull/467>`_
+
+* Update download link for bulk donor metadata download link
 
 
 0.188.0
@@ -52,8 +66,7 @@ Change Log
 
 * Add `average_coverage` to the `data_generation_summary` calc prop on File, grabbed from `quality_metrics.coverage`
 * Add property `override_average_coverage` to File, which can override the `average_coverage` value if present
- 
- 
+
 
 0.186.2
 =======
