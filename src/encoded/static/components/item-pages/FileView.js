@@ -50,11 +50,18 @@ function ViewJSONAction({ href = '', children }) {
 const FileViewTitle = (props) => {
     const { context } = props;
 
+    const isBenchmarking = context?.sample_summary?.studies?.some(
+        (study) => study.toLowerCase() === 'benchmarking'
+    );
+
     const breadcrumbs = [
         { display_title: 'Home', href: '/' },
         { display_title: 'Data' },
-        { display_title: 'Bechmarking Data' },
-        { display_title: context?.dataset?.toUpperCase() || '' },
+        {
+            display_title: isBenchmarking
+                ? 'Benchmarking Data'
+                : 'Browse by File',
+        },
     ];
 
     return (
