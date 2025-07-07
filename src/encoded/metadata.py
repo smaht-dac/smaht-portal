@@ -482,6 +482,8 @@ TSV_MAPPING = {
         # Sequencing fields
         'SequencingSequencer': TSVDescriptor(field_type=EXPERIMENT,
                                              field_name=['sequencing.sequencer.identifier']),
+        'SequencingAdditionalNotes': TSVDescriptor(field_type=EXPERIMENT,
+                                             field_name=['sequencing.additional_notes']),
         'SequencingFlowCell': TSVDescriptor(field_type=EXPERIMENT,
                                             field_name=['sequencing.flow_cell']),
         'SequencingMovieLength': TSVDescriptor(field_type=EXPERIMENT, field_name=['sequencing.movie_length']),
