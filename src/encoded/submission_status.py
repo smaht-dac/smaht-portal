@@ -76,6 +76,9 @@ def get_file_group_qc(context, request):
             search_params["file_group.submission_center"] = file_group[
                 "submission_center"
             ]
+            search_params["file_group.group_tag"] = file_group[
+                "group_tag"
+            ]
         else:  # Just search for the current file set
             search_params["uuid"] = file_set_uuid
 
