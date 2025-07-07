@@ -15,6 +15,11 @@ def get_molecule(analyte: Dict[str, Any]) -> List[str]:
     return analyte.get("molecule", [])
 
 
+def get_analyte_preparation(analyte: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
+    """Get analyte preparation connected to analyte."""
+    return analyte.get("analyte_preparation", "")
+
+
 def get_all_samples(
     request_handler: RequestHandler, analyte: Dict[str, Any]
 ) -> List[Union[str, Dict[str, Any]]]:
