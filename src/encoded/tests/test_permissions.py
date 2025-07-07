@@ -1112,3 +1112,39 @@ def test_authenticated_user_can_delete_access_key(
         assert access_key["status"] == "current"
         patch_body = {"status": "deleted"}
         patch_item(user_app, patch_body, access_key["uuid"], status=403)
+
+
+@pytest.fixture
+def protected_donor(testapp, test_submission_center):
+    item = {
+        "uuid": "35dae4c5-c50e-4eb3-a240-4e62749eaa2b",
+        "submitted_id": "TEST_PROTECTED-DONOR_FEMALE",
+        "external_id": "SMHT001",
+        "submission_centers": [
+            test_submission_center['uuid']
+        ],
+        "age": 65,
+        "sex": "Female",
+        "hardy_scale": 3,
+        "tpc_submitted": "True",
+        "status": "restricted"
+    }
+    res = testapp.post_json('/ProtectedDonor', item)
+    return res.json['@graph'][0]
+
+
+def test_protected_donor_restricted_view(
+    protected_donor,
+    unassociated_user_app: TestApp,
+    submission_center_user_app: TestApp,
+    consortium_user_app: TestApp,
+    smaht_dbgap_app: TestApp,
+) -> None:
+    """ Tests that users without the dbGaP group cannot view restricted items """
+    donor_uuid = protected_donor['uuid']
+    for user_app in [
+        unassociated_user_app,
+        submission_center_user_app,
+        consortium_user_app,
+    ]:
+        user_app.get(f'/protected-donors/{donor_uuid}/', status=403)

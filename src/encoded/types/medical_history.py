@@ -1,9 +1,11 @@
 from typing import List, Union
+from copy import deepcopy
 
 from snovault import collection, load_schema, calculated_property
 from pyramid.request import Request
 
 from .submitted_item import SubmittedItem
+from .acl import ONLY_DBGAP_VIEW_ACL
 from ..item_utils.utils import (
     get_property_value_from_identifier,
     RequestHandler,
@@ -33,6 +35,16 @@ class MedicalHistory(SubmittedItem):
         "exposures": ("Exposure", "medical_history")
     }
 
+    class Collection(SubmittedItem.Collection):
+        pass
+
+    SUBMISSION_CENTER_STATUS_ACL = deepcopy(SubmittedItem.SUBMISSION_CENTER_STATUS_ACL).update({
+        'restricted': ONLY_DBGAP_VIEW_ACL
+    })
+    CONSORTIUM_STATUS_ACL = deepcopy(SubmittedItem.CONSORTIUM_STATUS_ACL).update({
+        'restricted': ONLY_DBGAP_VIEW_ACL
+    })
+
     @calculated_property(
         schema={
             "title": "Exposures",
@@ -48,7 +60,7 @@ class MedicalHistory(SubmittedItem):
         result = self.rev_link_atids(request, "exposures")
         request_handler = RequestHandler(request = request)
         categories = ["Alcohol", "Tobacco"]
-        valid_exposures = [ 
+        valid_exposures = [
             exp for exp in result
             if get_property_value_from_identifier(
                 request_handler,
