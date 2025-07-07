@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.189.1
+=======
+`PR 475: fix: update name for coverage <http://github.com/smaht-dac/smaht-portal/pull/475>`_
+
+* Update title for Dataset Per BAM Coverage in File Overview page
+
+
 0.189.0
 =======
 `PR 473: SN Add additional notes to exp manifest file <https://github.com/smaht-dac/smaht-portal/pull/473>`_
