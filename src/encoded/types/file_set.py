@@ -119,6 +119,7 @@ def _build_file_set_embedded_list():
 
         # Sequencing/Sequencer LinkTo - used in file_merge_group
         "sequencing.submitted_id",
+        "sequencing.additional_notes",
         "sequencing.target_coverage",
         "sequencing.target_read_count",
         "sequencing.read_type",
