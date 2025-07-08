@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.189.2
+=======
+`PR 477: feat: add ST001 and ST002 skin to benchmarking <https://github.com/smaht-dac/smaht-portal/pull/477>`_
+
+* Add ST001 and ST002 skin to benchmarking
+
+
 0.189.1
 =======
 `PR 476: Add RIN and tissue types to Submission Status <https://github.com/smaht-dac/smaht-portal/pull/476>`_
