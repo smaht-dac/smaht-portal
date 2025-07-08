@@ -233,6 +233,8 @@ def get_submission_status(context, request):
             if "file_group" in file_set:
                 fg = file_set["file_group"]
                 fg_str = f"{fg['submission_center']}_{fg['sample_source']}_{fg['sequencing']}_{fg['assay']}"
+                if 'group_tag' in fg and fg['group_tag']:
+                    fg_str += f"_{fg['group_tag']}"
                 file_set["file_group_str"] = fg_str
                 file_set["file_group"] = fg
                 # Place holder that will be replaced in the next step
