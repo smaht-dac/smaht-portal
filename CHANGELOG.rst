@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.189.1
+=======
+`PR 476: Add RIN and tissue types to Submission Status <https://github.com/smaht-dac/smaht-portal/pull/476>`_
+
+* Add RIN values of the analyte and tissue types of a fileset to the Submission Status page
+* Exclude Single-Cell PTA data from generating warnings in the sample identity check on the QC metrics page
+
+
 0.189.0
 =======
 `PR 473: SN Add additional notes to exp manifest file <https://github.com/smaht-dac/smaht-portal/pull/473>`_
