@@ -7,6 +7,42 @@ smaht-portal
 Change Log
 ----------
 
+0.189.1
+=======
+`PR 476: Add RIN and tissue types to Submission Status <https://github.com/smaht-dac/smaht-portal/pull/476>`_
+
+* Add RIN values of the analyte and tissue types of a fileset to the Submission Status page
+* Exclude Single-Cell PTA data from generating warnings in the sample identity check on the QC metrics page
+
+
+0.189.0
+=======
+`PR 473: SN Add additional notes to exp manifest file <https://github.com/smaht-dac/smaht-portal/pull/473>`_
+
+* Adds `sequencing.additional_notes` to the Experimental Manifest file
+
+
+0.188.3
+=======
+`PR 474: SN Release preparation items <https://github.com/smaht-dac/smaht-portal/pull/474>`_
+
+* Update the `release_file` script to also patch AnalytePreparation, LibraryPreparation, PreparationKit, and Treatment items to `released`
+
+
+0.188.2
+=======
+`PR 466 feat: add estimated average coverage to file overview <https://github.com/smaht-dac/smaht-portal/pull/466>`_
+
+* Add a new property to average coverage in file overview page
+
+
+0.188.1
+=======
+`PR 467 feat: update bulk donor metadata download button <https://github.com/smaht-dac/smaht-portal/pull/467>`_
+
+* Update download link for bulk donor metadata download link
+
+
 0.188.0
 =======
 `PR 468: SN File QC notes <https://github.com/smaht-dac/smaht-portal/pull/468>`_
@@ -45,8 +81,7 @@ Change Log
 
 * Add `average_coverage` to the `data_generation_summary` calc prop on File, grabbed from `quality_metrics.coverage`
 * Add property `override_average_coverage` to File, which can override the `average_coverage` value if present
- 
- 
+
 
 0.186.2
 =======

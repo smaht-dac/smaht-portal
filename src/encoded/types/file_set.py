@@ -53,6 +53,7 @@ def _build_file_set_embedded_list():
         "libraries.analytes.accession",
         "libraries.analytes.samples.accession",
         "libraries.analytes.samples.sample_sources.donor.accession",
+        "libraries.analytes.rna_integrity_number",
         "libraries.a260_a280_ratio",
         "libraries.adapter_name",
         "libraries.adapter_sequence",
@@ -118,6 +119,7 @@ def _build_file_set_embedded_list():
 
         # Sequencing/Sequencer LinkTo - used in file_merge_group
         "sequencing.submitted_id",
+        "sequencing.additional_notes",
         "sequencing.target_coverage",
         "sequencing.target_read_count",
         "sequencing.read_type",

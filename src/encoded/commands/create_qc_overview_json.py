@@ -5,6 +5,7 @@ from pathlib import Path
 from collections import OrderedDict
 from dcicutils import ff_utils
 from dcicutils.creds_utils import SMaHTKeyManager
+from functools import lru_cache
 
 # Location of resulting file in portal
 # s3://smaht-production-application-files/25d09e18-2f77-4541-a32c-0f1d99defbd3/SMAFILZCEQ1X.json
@@ -22,7 +23,7 @@ SEARCH_QUERY_QC = (
     "&field=uuid"
     "&type=FileSet"
     "&limit=10000"
-    #"&limit=1&from=600"  # for testing
+    #"&limit=10&from=600"  # for testing
     #"&accession=SMAFS9V294F9"
 )
 
@@ -362,6 +363,7 @@ class FileStats:
 
             # Search the aligned BAM and extract quality metrics from it
             final_ouput_file = self.get_final_ouput_file(mwfr, assay)
+
             if not final_ouput_file:
                 self.warnings.append(
                     f"Warning: Fileset {fileset[ACCESSION]} has no final output file"
@@ -556,6 +558,14 @@ class FileStats:
         problematic_files = {}
         for result in results:
             if result["relatedness"] < threshold:
+                # Don't count PTA data towards the problematic files
+                assay_a = get_assay_from_file(result["sample_a"])
+                if "Single-cell PTA WGS" in assay_a:
+                    continue
+                assay_b = get_assay_from_file(result["sample_b"])
+                if "Single-cell PTA WGS" in assay_b:
+                    continue
+
                 for sample in ["sample_a", "sample_b"]:
                     if result[sample] not in problematic_files:
                         problematic_files[result[sample]] = 1
@@ -675,6 +685,28 @@ class FileStats:
         ]
 
 
+def get_fileset_from_ouput_file(file_acccesion):
+    file = get_item(file_acccesion, add_on="embedded")
+    mwfr = file.get("meta_workflow_run_outputs")
+    if not mwfr:
+        raise Exception(f"No meta workflow run outputs found for file {file_acccesion}")
+    mwfr = mwfr[0]
+    mwfr_uuid = mwfr[UUID]
+    mwfr = get_item(mwfr_uuid)
+    fileset_uuid = mwfr.get("file_sets")
+    if not fileset_uuid:
+        raise Exception(f"No file sets found for meta workflow run {mwfr_uuid}")
+    fileset_uuid = fileset_uuid[0][UUID]
+    fileset = get_item(fileset_uuid, add_on="embedded")
+    return fileset
+
+@lru_cache(maxsize=None)
+def get_assay_from_file(file_acccesion):
+    fileset = get_fileset_from_ouput_file(file_acccesion)
+    assays = [l[ASSAY]["display_title"] for l in fileset[LIBRARIES]]
+    return ", ".join(assays)
+
+@lru_cache(maxsize=None)
 def get_item(uuid, add_on=""):
     item = ff_utils.get_metadata(uuid, key=SMAHT_KEY, add_on=add_on)
     return item
