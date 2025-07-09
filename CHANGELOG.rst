@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.190.1
+=======
+`PR 472: SN Add search columns <https://github.com/smaht-dac/smaht-portal/pull/472>`_
+
+* Add columns to Tissue (`uberon_id.identifier`) and OntologyTerm (`valid_protocol_ids`) search views
+
+
 0.190.0
 =======
 `PR 471: SN Update file merge group <https://github.com/smaht-dac/smaht-portal/pull/471>`_
