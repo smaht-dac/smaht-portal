@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.188.4
+=======
+`PR 478: fix: update breadcrumbs on File Overview page <https://github.com/smaht-dac/smaht-portal/pull/478>`_
+
+* Update breadcrumbs on file overview page
+
+
 0.188.3
 =======
 `PR 474: SN Release preparation items <https://github.com/smaht-dac/smaht-portal/pull/474>`_
