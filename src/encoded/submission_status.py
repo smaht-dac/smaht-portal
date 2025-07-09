@@ -76,9 +76,6 @@ def get_file_group_qc(context, request):
             search_params["file_group.submission_center"] = file_group[
                 "submission_center"
             ]
-            search_params["file_group.group_tag"] = file_group[
-                "group_tag"
-            ]
         else:  # Just search for the current file set
             search_params["uuid"] = file_set_uuid
 
@@ -236,7 +233,7 @@ def get_submission_status(context, request):
             if "file_group" in file_set:
                 fg = file_set["file_group"]
                 fg_str = f"{fg['submission_center']}_{fg['sample_source']}_{fg['sequencing']}_{fg['assay']}"
-                if fg["group_tag"]:
+                if 'group_tag' in fg and fg['group_tag']:
                     fg_str += f"_{fg['group_tag']}"
                 file_set["file_group_str"] = fg_str
                 file_set["file_group"] = fg

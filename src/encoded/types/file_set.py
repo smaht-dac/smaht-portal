@@ -53,6 +53,7 @@ def _build_file_set_embedded_list():
         "libraries.analytes.accession",
         "libraries.analytes.samples.accession",
         "libraries.analytes.samples.sample_sources.donor.accession",
+        "libraries.analytes.rna_integrity_number",
         "libraries.a260_a280_ratio",
         "libraries.adapter_name",
         "libraries.adapter_sequence",
