@@ -130,6 +130,9 @@
     "columns": {
         "identifier": {
             "title": "Identifier"
+        },
+        "valid_protocol_ids": {
+            "title": "Valid Protocol ID"
         }
     }
 }
