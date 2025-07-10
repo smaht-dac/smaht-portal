@@ -7,6 +7,20 @@ smaht-portal
 Change Log
 ----------
 
+0.190.1
+=======
+`PR 472: SN Add search columns <https://github.com/smaht-dac/smaht-portal/pull/472>`_
+
+* Add columns to Tissue (`uberon_id.identifier`) and OntologyTerm (`valid_protocol_ids`) search views
+
+
+0.190.0
+=======
+`PR 471: SN Update file merge group <https://github.com/smaht-dac/smaht-portal/pull/471>`_
+
+* Update `generate_sample_source_part` in FileSet so that the sample source part of the `file_group` is Tissue, rather than TissueSample for single tissue samples with spatial information
+
+
 0.189.1
 =======
 `PR 476: Add RIN and tissue types to Submission Status <https://github.com/smaht-dac/smaht-portal/pull/476>`_
