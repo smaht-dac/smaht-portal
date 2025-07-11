@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.190.3
+=======
+`PR 478: fix: update breadcrumbs on File Overview page <https://github.com/smaht-dac/smaht-portal/pull/478>`_
+
+* Update breadcrumbs on file overview page
+
+
 0.190.2
 =======
 `PR 477: feat: add ST001 and ST002 skin to benchmarking <https://github.com/smaht-dac/smaht-portal/pull/477>`_
