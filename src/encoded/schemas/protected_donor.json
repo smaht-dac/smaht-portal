@@ -71,7 +71,8 @@
                 "in review",
                 "obsolete",
                 "deleted",
-                "restricted"
+                "restricted",
+                "public-restricted"
             ]
         }
     },

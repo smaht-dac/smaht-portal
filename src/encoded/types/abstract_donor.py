@@ -1,6 +1,7 @@
 from typing import List, Union
 
 from pyramid.request import Request
+from copy import deepcopy
 from pyramid.view import view_config
 from snovault import calculated_property, abstract_collection, load_schema
 from snovault.util import debug_log
@@ -50,6 +51,10 @@ class AbstractDonor(SubmittedItem):
 
     Collection = AbstractDonorCollection
 
+    # Overrides here necessary for referencing purposes downstream - Will Jul 8 25
+    SUBMISSION_CENTER_STATUS_ACL = deepcopy(SubmittedItem.SUBMISSION_CENTER_STATUS_ACL)
+    CONSORTIUM_STATUS_ACL = deepcopy(SubmittedItem.CONSORTIUM_STATUS_ACL)
+
     @calculated_property(
         schema={
             "title": "Study",
@@ -84,7 +89,7 @@ def validate_external_id_on_edit(context, request):
             msg = f"external_id {external_id} does not match TPC donor nomenclature."
             return request.errors.add('body', f"{context.type_info.name}: invalid property", msg)
         else:
-            return request.validated.update({}) 
+            return request.validated.update({})
 
 
 def assert_valid_external_id(external_id: str):

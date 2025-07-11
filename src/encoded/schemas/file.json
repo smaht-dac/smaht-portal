@@ -82,7 +82,8 @@
                 "archived",
                 "deleted",
                 "public",
-                "restricted"
+                "restricted",
+                "public-restricted"
             ]
         },
         "external_quality_metrics": {
