@@ -403,6 +403,7 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
     @staticmethod
     def test_dbgap_group_with_restricted_status(submission_center_user_app, submission_center2_user_app, testapp,
                                                 protected_consortium_user_app, released_file, anontestapp,
+                                                smaht_public_dbgap_app,
                                                 authenticated_testapp):
         """ Tests that users with the dbgap group can download protected data while others cannot """
         atid = released_file['@id']
@@ -418,7 +419,32 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
         submission_center2_user_app.get(f'/{atid}@@download', status=403)
         anontestapp.get(f'/{atid}@@download', status=403)
         authenticated_testapp.get(f'/{atid}@@download', status=403)
+        smaht_public_dbgap_app.get(f'/{atid}@@download', status=403)  # public dbGaP user can't aaccess
         protected_consortium_user_app.get(f'/{atid}@@download', status=307)
+        testapp.get(f'/{atid}@@download', status=307)  # admin as well
+
+    @staticmethod
+    def test_dbgap_group_with_public_restricted_status(submission_center_user_app, submission_center2_user_app, testapp,
+                                                protected_consortium_user_app, released_file, anontestapp,
+                                                smaht_public_dbgap_app,
+                                                authenticated_testapp):
+        """ Tests that users with the public-dbgap and dbgap group can download
+            public-protected data while others cannot """
+        atid = released_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': 'public-restricted'})
+        # all can view
+        submission_center_user_app.get(f'/{atid}', status=200)
+        submission_center2_user_app.get(f'/{atid}', status=200)
+        protected_consortium_user_app.get(f'/{atid}', status=200)
+        anontestapp.get(f'/{atid}', status=200)
+        authenticated_testapp.get(f'/{atid}', status=200)
+        # but only dbGaP + public dbGaP + admin can download
+        submission_center_user_app.get(f'/{atid}@@download', status=403)
+        submission_center2_user_app.get(f'/{atid}@@download', status=403)
+        anontestapp.get(f'/{atid}@@download', status=403)
+        authenticated_testapp.get(f'/{atid}@@download', status=403)
+        protected_consortium_user_app.get(f'/{atid}@@download', status=307)
+        smaht_public_dbgap_app.get(f'/{atid}@@download', status=307)  # public dbGaP user can access
         testapp.get(f'/{atid}@@download', status=307)  # admin as well
 
 
