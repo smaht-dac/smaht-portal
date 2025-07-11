@@ -1133,18 +1133,119 @@ def protected_donor(testapp, test_submission_center):
     return res.json['@graph'][0]
 
 
+@pytest.fixture
+def protected_donor_restricted_medical_history(testapp, protected_donor, test_submission_center):
+    item = {
+        "uuid": "14557335-dc8f-417f-8e3e-c0624f795897",
+        "submitted_id": "TEST_MEDICAL-HISTORY_FEMALE",
+        "submission_centers": [
+            test_submission_center['uuid']
+        ],
+        "donor": "TEST_PROTECTED-DONOR_FEMALE",
+        "height": 3.2,
+        "weight": 45,
+        "body_mass_index": 21.5,
+        "cancer_history": "Yes",
+        "cancer_type": ["Ovarian Cancer"],
+        "family_ovarian_pancreatic_prostate_cancer": "Yes",
+        "tobacco_use": "No",
+        "alcohol_use": "Yes",
+        "hiv_nat": "Reactive",
+        "status": "restricted"
+    }
+    res = testapp.post_json('/MedicalHistory', item)
+    return res.json['@graph'][0]
+
+
 def test_protected_donor_restricted_view(
-    protected_donor,
+    protected_donor, protected_donor_restricted_medical_history,
     unassociated_user_app: TestApp,
     submission_center_user_app: TestApp,
     consortium_user_app: TestApp,
     smaht_dbgap_app: TestApp,
+    smaht_public_dbgap_app: TestApp
 ) -> None:
     """ Tests that users without the dbGaP group cannot view restricted items """
     donor_uuid = protected_donor['uuid']
+    medical_history_uuid = protected_donor_restricted_medical_history['uuid']
+    for user_app in [
+        unassociated_user_app,
+        submission_center_user_app,
+        consortium_user_app,
+        smaht_public_dbgap_app
+    ]:
+        user_app.get(f'/protected-donors/{donor_uuid}/', status=403)
+        user_app.get(f'/medical-histories/{medical_history_uuid}/', status=403)
+
+    # dbGaP group user can
+    smaht_dbgap_app.get(f'/protected-donors/{donor_uuid}/', status=200)
+    smaht_dbgap_app.get(f'/medical-histories/{medical_history_uuid}/', status=200)
+
+
+@pytest.fixture
+def public_protected_donor(testapp, test_submission_center):
+    item = {
+        "uuid": "35dae4c5-c50e-4eb3-a240-4e62749eaa2b",
+        "submitted_id": "TEST_PROTECTED-DONOR_FEMALE",
+        "external_id": "SMHT001",
+        "submission_centers": [
+            test_submission_center['uuid']
+        ],
+        "age": 65,
+        "sex": "Female",
+        "hardy_scale": 3,
+        "tpc_submitted": "True",
+        "status": "public-restricted"
+    }
+    res = testapp.post_json('/ProtectedDonor', item)
+    return res.json['@graph'][0]
+
+
+@pytest.fixture
+def protected_donor_public_restricted_medical_history(testapp, public_protected_donor, test_submission_center):
+    item = {
+        "uuid": "14557335-dc8f-417f-8e3e-c0624f795897",
+        "submitted_id": "TEST_MEDICAL-HISTORY_FEMALE",
+        "submission_centers": [
+            test_submission_center['uuid']
+        ],
+        "donor": "TEST_PROTECTED-DONOR_FEMALE",
+        "height": 3.2,
+        "weight": 45,
+        "body_mass_index": 21.5,
+        "cancer_history": "Yes",
+        "cancer_type": ["Ovarian Cancer"],
+        "family_ovarian_pancreatic_prostate_cancer": "Yes",
+        "tobacco_use": "No",
+        "alcohol_use": "Yes",
+        "hiv_nat": "Reactive",
+        "status": "public-restricted"
+    }
+    res = testapp.post_json('/MedicalHistory', item)
+    return res.json['@graph'][0]
+
+
+def test_protected_donor_public_restricted_view(
+    public_protected_donor, protected_donor_public_restricted_medical_history,
+    unassociated_user_app: TestApp,
+    submission_center_user_app: TestApp,
+    consortium_user_app: TestApp,
+    smaht_dbgap_app: TestApp,
+    smaht_public_dbgap_app: TestApp
+) -> None:
+    """ Tests that users without the dbGaP group cannot view restricted items """
+    donor_uuid = public_protected_donor['uuid']
+    public_protected_medical_history = protected_donor_public_restricted_medical_history['uuid']
     for user_app in [
         unassociated_user_app,
         submission_center_user_app,
         consortium_user_app,
     ]:
         user_app.get(f'/protected-donors/{donor_uuid}/', status=403)
+        user_app.get(f'/medical-histories/{public_protected_medical_history}/', status=403)
+
+    # dbGaP group users can
+    smaht_public_dbgap_app.get(f'/protected-donors/{donor_uuid}/', status=200)
+    smaht_public_dbgap_app.get(f'/medical-histories/{public_protected_medical_history}/', status=200)
+    smaht_dbgap_app.get(f'/protected-donors/{donor_uuid}/', status=200)
+    smaht_dbgap_app.get(f'/medical-histories/{public_protected_medical_history}/', status=200)
