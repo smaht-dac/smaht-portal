@@ -53,6 +53,7 @@ def _build_file_set_embedded_list():
         "libraries.analytes.accession",
         "libraries.analytes.samples.accession",
         "libraries.analytes.samples.sample_sources.donor.accession",
+        "libraries.analytes.rna_integrity_number",
         "libraries.a260_a280_ratio",
         "libraries.adapter_name",
         "libraries.adapter_sequence",
@@ -232,17 +233,7 @@ class FileSet(SubmittedItem):
         )
         if len(samples) == 0:
             return None
-        if len(samples) == 1:
-            sample = samples[0]
-            if 'tissue' in sample:
-                sample_meta = request_handler.get_item(sample)
-                if tissue_sample_utils.has_spatial_information(sample_meta):
-                    return get_property_value_from_identifier(
-                        request_handler, sample, item_utils.get_submitted_id
-                    )
-                    # If we are a single tissue sample with spatial information, generate this based on the sample field, not the sample
-
-        # If we get here, we are a Homogenate tissue sample, multiple merged tissue samples, or cell line and should rely on sample sources
+        # If we get here, we are a tissue sample, multiple merged tissue samples, or cell line and should rely on sample sources
         sample_sources = library_utils.get_sample_sources(
             library, request_handler=request_handler
         )

@@ -24,8 +24,8 @@ const primaryTissuePageDescription = (
             benchmarking donors:
         </p>
         <ul>
-            <li>Donor ST001: Liver 1A and Lung 1D</li>
-            <li>Donor ST002: Colon 1G and Lung 1D</li>
+            <li>Donor ST001: Liver 1A, Lung 1D, and Skin 1K</li>
+            <li>Donor ST002: Colon 1G, Lung 1D, and Skin 1K</li>
             <li>Donor ST003: Brain 1Q</li>
             <li>Donor ST004: Brain 1Q</li>
         </ul>
@@ -322,6 +322,12 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D',
             },
+            {
+                eventKey: '#skin',
+                title: 'Skin 1K',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1K',
+            },
         ],
     },
     Donor2: {
@@ -342,6 +348,12 @@ export const BenchmarkingDataMap = {
                 title: 'Lung 1D',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D',
+            },
+            {
+                eventKey: '#skin',
+                title: 'Skin 1K',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1K',
             },
         ],
     },
