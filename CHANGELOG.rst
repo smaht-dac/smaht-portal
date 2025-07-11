@@ -7,6 +7,25 @@ smaht-portal
 Change Log
 ----------
 
+1.0.0
+=====
+
+* Major version - introduction of public-restricted status, usability
+  of data portal with expanded permissions for restricted metadata
+* Adds two new ACLs for restricted and public-restricted that allows
+  metadata items to be permissions via presence of the dbgap and
+  public-dbgap
+groups
+* Expands the restricted status to apply a global block on dbGaP permission
+  for certain metadata items
+* Allow the public-restricted status to function similarly to how restricted
+  functions for non-file items ie: anyone can view, only protected users can
+  download
+* Tests for protected donor and medical history using the restricted and
+  public-restricted statuses, along with tests for files as well utilizing
+  the new groups
+
+
 0.189.0
 =======
 `PR 473: SN Add additional notes to exp manifest file <https://github.com/smaht-dac/smaht-portal/pull/473>`_
