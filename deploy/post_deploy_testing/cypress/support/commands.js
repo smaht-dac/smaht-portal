@@ -130,7 +130,6 @@ Cypress.Commands.add(
  * AUTHENTICATION COMMANDS
  * @todo - Once the authentication scheme for SMaHT is finalized, the following should be commented out and
  *         adjusted to work with the new means of authentication + session storage
- * @deprecated - This code is taken from CGAP in its entirety
  */
 
 const auth0UserIds = {
@@ -253,6 +252,14 @@ Cypress.Commands.add('loginSMaHT', function (options = { useEnvToken: true }) {
         });
         return performLogin(token);
     });
+});
+
+Cypress.Commands.add('validateUser', function(userDisplayName = 'SCM'){
+    return cy.get(navUserAcctDropdownBtnSelector)
+        .should('not.contain.text', 'Login')
+        .then((accountListItem) => {
+            expect(accountListItem.text()).to.contain(userDisplayName);
+        }).end();
 });
 
 Cypress.Commands.add('logoutSMaHT', function (options = { useEnvToken: true }) {
@@ -409,27 +416,52 @@ Cypress.Commands.add(
 
 Cypress.Commands.add("getQuickInfoBar", () => {
     const infoTypes = ["file", "donor", "tissue", "assay", "file-size"];
-    let result = {};
-  
+    const result = {};
+
     cy.get(".browse-summary-stat").each(($el) => {
-      const iconType = $el.find(".browse-link-icon").attr("data-icon-type");
-  
-      if (infoTypes.includes(iconType)) {
-        // wait till fully loaded
-        cy.wrap($el)
-          .find(".browse-summary-stat-value .icon-circle-notch.icon-spin")
-          .should("not.exist");
-  
-        // read value
-        cy.wrap($el)
-          .find(".browse-summary-stat-value")
-          .invoke("text")
-          .then((text) => {
-            const value = text.trim() === "-" ? 0 : Number(text.trim());
-            result[iconType] = value;
-          });
-      }
+        const iconType = $el.find(".browse-link-icon").attr("data-icon-type");
+
+        if (infoTypes.includes(iconType)) {
+            // wait till fully loaded
+            cy.wrap($el)
+                .find(".browse-summary-stat-value .icon-circle-notch.icon-spin")
+                .should("not.exist");
+
+            // read value
+            cy.wrap($el)
+                .find(".browse-summary-stat-value")
+                .invoke("text")
+                .then((text) => {
+                    const trimmed = text.trim();
+
+                    if (trimmed === "-") {
+                        result[iconType] = 0;
+                    } else if (iconType === "file-size") {
+                        // örnek: "14.18 TB"
+                        const match = trimmed.match(/^([\d.,]+)\s*(TB|GB|MB|KB)?$/i);
+                        if (match) {
+                            const number = parseFloat(match[1].replace(",", ""));
+                            const unit = match[2] ? match[2].toUpperCase() : "B";
+
+                            // Tercihe göre birimi sabitleyebilirsiniz; örneğin hepsini GB'e çevirin:
+                            let valueInGB;
+                            switch (unit) {
+                                case "TB": valueInGB = number * 1024; break;
+                                case "GB": valueInGB = number; break;
+                                case "MB": valueInGB = number / 1024; break;
+                                case "KB": valueInGB = number / (1024 * 1024); break;
+                                default: valueInGB = number / (1024 * 1024 * 1024); break;
+                            }
+
+                            result[iconType] = valueInGB; // GB cinsinden
+                        } else {
+                            result[iconType] = NaN; // fallback
+                        }
+                    } else {
+                        result[iconType] = Number(trimmed.replace(",", ""));
+                    }
+                });
+        }
     }).then(() => result);
-  });
-  
-  
+});
+
