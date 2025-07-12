@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.190.2
+=======
+`PR 477: feat: add ST001 and ST002 skin to benchmarking <https://github.com/smaht-dac/smaht-portal/pull/477>`_
+
+* Add ST001 and ST002 skin to benchmarking
+
+
 0.190.1
 =======
 `PR 472: SN Add search columns <https://github.com/smaht-dac/smaht-portal/pull/472>`_
