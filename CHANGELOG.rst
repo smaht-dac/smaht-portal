@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.190.5
+=======
+`PR 475: fix: update name for coverage <http://github.com/smaht-dac/smaht-portal/pull/475>`_
+
+* Update title for Dataset Per BAM Coverage in File Overview page
+
+
 0.190.4
 =======
 `PR 478: fix: update breadcrumbs on File Overview page <https://github.com/smaht-dac/smaht-portal/pull/478>`_

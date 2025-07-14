@@ -198,7 +198,7 @@ const default_data_information = [
         },
     },
     {
-        title: 'Per BAM Coverage',
+        title: 'Dataset Per BAM Coverage',
         getProp: (context = {}) => {
             if (
                 context?.file_format?.display_title === 'bam' &&
