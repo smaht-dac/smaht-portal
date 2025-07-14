@@ -73,7 +73,7 @@ class FileRelease:
 
     TISSUE = "tissue"
 
-    def __init__(self, auth_key: dict, file_identifier: str):
+    def __init__(self, auth_key: dict, file_identifier: str, verbose: bool = True):
         self.key = auth_key
         self.request_handler = self.get_request_handler()
         self.request_handler_embedded = self.get_request_handler_embedded()
@@ -81,8 +81,10 @@ class FileRelease:
         self.file_accession = item_utils.get_accession(self.file)
         self.output_meta_workflow_run = self.get_output_meta_workflow_run()
         self.patch_infos = []
+        self.patch_infos_minimal = []
         self.patch_dicts = []
         self.warnings = []
+        self.verbose = verbose
 
     @cached_property
     def file_sets(self) -> List[dict]:
@@ -109,6 +111,12 @@ class FileRelease:
         )
 
     @cached_property
+    def library_preparations(self) -> List[dict]:
+        return self.get_items(
+            self.get_links(self.libraries, library_utils.get_library_preparation)
+        )
+
+    @cached_property
     def assays(self) -> List[dict]:
         return self.get_items(self.get_links(self.libraries, library_utils.get_assay))
 
@@ -122,6 +130,37 @@ class FileRelease:
     def analytes(self) -> List[dict]:
         return self.get_items(
             self.get_links(self.libraries, library_utils.get_analytes)
+        )
+
+    @cached_property
+    def analyte_preparations(self) -> List[dict]:
+        return self.get_items(
+            self.get_links(self.analytes, analyte_utils.get_analyte_preparation)
+        )
+
+    @cached_property
+    def preparation_kits(self) -> List[dict]:
+        return list(
+            self.get_items(
+                self.get_links(self.analyte_preparations, item_utils.get_preparation_kits)
+            ) +
+            self.get_items(
+                self.get_links(self.library_preparations, item_utils.get_preparation_kits)
+            ) +
+            self.get_items(
+                self.get_links(self.sequencings, item_utils.get_preparation_kits)
+            )
+        )
+
+    @cached_property
+    def treatments(self) -> List[dict]:
+        return list(
+            self.get_items(
+                self.get_links(self.analyte_preparations, item_utils.get_treatments)
+            ) +
+            self.get_items(
+                self.get_links(self.library_preparations, item_utils.get_treatments)
+            )
         )
 
     @cached_property
@@ -218,7 +257,7 @@ class FileRelease:
             self.print_error_and_exit(
                 (
                     f"Expected exactly one associated MetaWorkflowRun, got"
-                    f" {len(mwfrs)}: {search_filter}"
+                    f" {len(mwfrs)}: {search_filter} for file {self.file_accession}"
                 )
             )
         return mwfrs[0]
@@ -252,7 +291,7 @@ class FileRelease:
         if len(file_sets) != 1:
             self.print_error_and_exit(
                 f"Expected exactly one associated FileSet, got {len(file_sets)} from"
-                f" MetaWorkflowRun {item_utils.get_accession(mwfr)}"
+                f" MetaWorkflowRun {item_utils.get_accession(mwfr)} for file {self.file_accession}"
             )
 
         return [self.get_metadata(file_sets[0])]
@@ -293,8 +332,12 @@ class FileRelease:
         self.add_release_items_to_patchdict(self.file_sets, "FileSet")
         self.add_release_items_to_patchdict(self.sequencings, "Sequencing")
         self.add_release_items_to_patchdict(self.libraries, "Library")
+        self.add_release_items_to_patchdict(self.library_preparations, "LibraryPreparation")
         self.add_release_items_to_patchdict(self.assays, "Assay")
         self.add_release_items_to_patchdict(self.analytes, "Analyte")
+        self.add_release_items_to_patchdict(self.analyte_preparations, "AnalytePreparation")
+        self.add_release_items_to_patchdict(self.preparation_kits, "PreparationKit")
+        self.add_release_items_to_patchdict(self.treatments, "Treatment")
         self.add_release_items_to_patchdict(self.samples, "Sample")
         self.add_release_items_to_patchdict(self.sample_sources, "SampleSource")
         self.add_release_items_to_patchdict(
@@ -306,9 +349,14 @@ class FileRelease:
         if obsolete_file_identifier:
             obsolete_file = self.get_metadata(obsolete_file_identifier)
             self.add_obsolete_file_patchdict(obsolete_file)
-        print("\nThe following metadata patches will be carried out in the next step:")
-        for info in self.patch_infos:
-            print(info)
+
+        if self.verbose:
+            print("\nThe following metadata patches will be carried out in the next step:")
+            for info in self.patch_infos:
+                print(info)
+        else:
+            for info in self.patch_infos_minimal:
+                print(info)
 
         if len(self.warnings) > 0:
             warning_message = "Please note the following warnings:"
@@ -317,27 +365,29 @@ class FileRelease:
                 print(warning)
 
     def execute_initial(self) -> None:
-        print("Validating file patch dictionary...")
+        if self.verbose:
+            print("Validating file patch dictionary...")
         initial_file_patch_dict = self.patch_dicts[0]
         try:
             self.validate_patch(initial_file_patch_dict)
         except Exception as e:
             print(str(e))
-            self.print_error_and_exit("Validation failed.")
+            self.print_error_and_exit(f"Validation failed for file {self.file_accession}.")
 
-        print("Validation done. Patching file metadata...")
+        if self.verbose:
+            print("Validation done. Patching file metadata...")
         try:
             self.patch_metadata(initial_file_patch_dict)
-            print(f"Initial patching of File {self.file_accession} completed.")
         except Exception as e:
             print(str(e))
-            self.print_error_and_exit("Patching failed.")
+            self.print_error_and_exit(f"Patching failed for file {self.file_accession}.")
 
-        to_print = f"Patching of File {self.file_accession} completed."
+        to_print = f"Initial patching of File {self.file_accession} completed."
         print(ok_green_text(to_print))
 
     def execute(self) -> None:
-        print("Validating all patch dictionaries...")
+        if self.verbose:
+            print("Validating all patch dictionaries...")
         self.file = self.get_metadata(item_utils.get_uuid(self.file))
         self.validate_file_after_patch()
         try:
@@ -345,15 +395,16 @@ class FileRelease:
                 self.validate_patch(patch_dict)
         except Exception as e:
             print(str(e))
-            self.print_error_and_exit("Validation failed.")
+            self.print_error_and_exit(f"Validation failed for file {self.file_accession}.")
 
-        print("Validation done. Patching...")
+        if self.verbose:
+            print("Validation done. Patching...")
         try:
             for patch_dict in self.patch_dicts[1:]:
                 self.patch_metadata(patch_dict)
         except Exception as e:
             print(str(e))
-            self.print_error_and_exit("Patching failed.")
+            self.print_error_and_exit(f"Patching failed for file {self.file_accession}.")
 
         to_print = f"Release of File {self.file_accession} completed."
         print(ok_green_text(to_print))
@@ -376,7 +427,6 @@ class FileRelease:
         }
 
     def show_patch_dicts(self) -> None:
-        print("\n")
         pp.pprint(self.patch_dicts)
 
     def add_release_item_to_patchdict(self, item: dict, item_desc: str) -> None:
@@ -467,6 +517,11 @@ class FileRelease:
                 self.get_okay_message(
                     file_constants.ANNOTATED_FILENAME, annotated_filename_info.filename
                 ),
+            ]
+        )
+        self.patch_infos_minimal.extend(
+            [
+                f"File {warning_text(file_accession)} will be released as {warning_text(annotated_filename_info.filename)}"
             ]
         )
 
@@ -853,9 +908,9 @@ def fail_text(text: str) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--file", "-f", help="Identifier of the file to release", required=True
+        "--file", "-f", action='append', help="Identifier of the file to release", required=True
     )
-    parser.add_argument("--dataset", "-d", help="Associated dataset", required=True)
+    parser.add_argument("--dataset", "-d", help="Associated dataset. When releasing multiple files, this will be used for all files", required=True)
     parser.add_argument("--env", "-e", help="Environment from keys file", required=True)
     parser.add_argument(
         "--replace",
@@ -871,20 +926,39 @@ def main() -> None:
 
     args = parser.parse_args()
 
+    if not args.file or len(args.file) < 1:
+        error = fail_text("Please specify at least one file to release.")
+        parser.error(error)
+
+    mode = 'single' if len(args.file) == 1 else 'bulk'
+
+    if mode == 'bulk' and args.replace:
+        error = fail_text("In 'bulk' mode, you cannot replace a file. Please release files individually.")
+        parser.error(error)
+            
+
     auth_key = get_auth_key(args.env)
     server = auth_key.get("server")
 
-    file_release = FileRelease(auth_key=auth_key, file_identifier=args.file)
-    file_release.prepare(dataset=args.dataset, obsolete_file_identifier=args.replace)
+    files_to_release = args.file
+    verbose = mode == 'single' # Print more information in single mode
+
+    file_releases : List[FileRelease] = []
+    for file_identifier in files_to_release:
+        file_release = FileRelease(auth_key=auth_key, file_identifier=file_identifier, verbose=verbose)
+        file_release.prepare(dataset=args.dataset, obsolete_file_identifier=args.replace)
+        file_releases.append(file_release)
 
     if args.dry_run:
-        file_release.show_patch_dicts()
+        for file_release in file_releases: 
+            print(f"\nPatch dicts for file {warning_text(file_release.file_accession)}:\n")
+            file_release.show_patch_dicts()
         exit()
 
     while True:
         resp = input(
             f"\nThe release will be carried out in two steps."
-            f"\nDo you want to proceed with patching the main file above (inital patch)? "
+            f"\nDo you want to proceed with patching the main file(s) above (inital patch)? "
             f"Data will be patched on {warning_text(server)}."
             f"\nYou have the following options: "
             f"\ny - Proceed with release"
@@ -894,9 +968,10 @@ def main() -> None:
         )
 
         if resp in ["y", "yes"]:
-            file_release.execute_initial()
+            for file_release in file_releases: 
+                file_release.execute_initial()
             resp = input(
-                f"\nDo you want to proceed with release and execute all patches above? "
+                f"\nDo you want to proceed with the release and execute all patches above? "
                 f"Data will be patched on {warning_text(server)}."
                 f"\nYou have the following options: "
                 f"\ny - Proceed with release"
@@ -906,16 +981,21 @@ def main() -> None:
             )
 
             if resp in ["y", "yes"]:
-                file_release.execute()
+                for file_release in file_releases: 
+                    file_release.execute()
                 break
             elif resp in ["p"]:
-                file_release.show_patch_dicts()
+                for file_release in file_releases: 
+                    print(f"\nPatch dicts for file {warning_text(file_release.file_accession)}:")
+                    file_release.show_patch_dicts()
                 continue
             else:
                 print(f"{warning_text('Aborted by user.')}")
                 exit()
         elif resp in ["p"]:
-            file_release.show_patch_dicts()
+            for file_release in file_releases:
+                print(f"\nPatch dicts for file {warning_text(file_release.file_accession)}:")
+                file_release.show_patch_dicts()
             continue
         else:
             print(f"{warning_text('Aborted by user.')}")

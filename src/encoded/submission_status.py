@@ -213,14 +213,28 @@ def get_submission_status(context, request):
             file_set = res
             files = res.get("files", [])
             meta_workflow_runs = res.get("meta_workflow_runs", [])
+            latest_alignment_mwfr = get_latest_alignment_mwfr_for_fileset(
+                meta_workflow_runs, all_alignment_mwfrs
+            )
             file_set["submitted_files"] = get_submitted_files_info(files)
             file_set["output_files"] = get_output_files_info(
                 files, meta_workflow_runs, all_alignment_mwfrs
+            )
+            output_file_info_to_release = get_output_files_info(
+                [], [latest_alignment_mwfr], all_alignment_mwfrs
+            )["qc_infos"] if latest_alignment_mwfr else None
+
+            file_set["final_output_file_accession"] = (
+                output_file_info_to_release[0].get(ACCESSION)
+                if output_file_info_to_release
+                else None
             )
 
             if "file_group" in file_set:
                 fg = file_set["file_group"]
                 fg_str = f"{fg['submission_center']}_{fg['sample_source']}_{fg['sequencing']}_{fg['assay']}"
+                if 'group_tag' in fg and fg['group_tag']:
+                    fg_str += f"_{fg['group_tag']}"
                 file_set["file_group_str"] = fg_str
                 file_set["file_group"] = fg
                 # Place holder that will be replaced in the next step
@@ -337,12 +351,12 @@ def add_submission_status_search_filters(
 
 def get_output_files_info(files, mwfrs, all_alignment_mwfrs):
     output_files = list(filter(lambda f: OUTPUT_FILE in f["@type"], files))
-    output_files_qc = []
+    output_files_with_qc = []
 
     # Get the output files that are on the file set
     for file in output_files:
         qc_result = get_qc_result(file, is_output_file=True)
-        output_files_qc.append(qc_result)
+        output_files_with_qc.append(qc_result)
 
     # Go through all alignment MetaWorkflowRuns and collect the output files with QCs.
     for mwfr in mwfrs:
@@ -359,13 +373,13 @@ def get_output_files_info(files, mwfrs, all_alignment_mwfrs):
                 if QUALITY_METRICS not in file:
                     continue
                 qc_result = get_qc_result(file, is_output_file=True)
-                output_files_qc.append(qc_result)
+                output_files_with_qc.append(qc_result)
 
     # Remove duplicates. Happens when the final output files have been released
-    output_files_qc_unique = list({v[ACCESSION]: v for v in output_files_qc}.values())
+    output_files_with_qc_unique = list({v[ACCESSION]: v for v in output_files_with_qc}.values())
 
     return {
-        "qc_infos": output_files_qc_unique,
+        "qc_infos": output_files_with_qc_unique,
     }
 
 
@@ -477,6 +491,24 @@ def get_all_alignments_mwfrs(context, request, filesets_from_search):
         mwfrs[r[UUID]] = r
 
     return mwfrs
+
+def get_latest_alignment_mwfr_for_fileset(fileset_mwfrs, all_alignment_mwfrs):
+    """Returns the latest alignment MetaWorkflowRun of a file set from the list of all alignment MetaWorkflowRuns"""
+
+    if not all_alignment_mwfrs:
+        return None
+    fileset_alignment_mwfrs = []
+    for mwfr in fileset_mwfrs:
+        if mwfr[UUID] in all_alignment_mwfrs:
+            fileset_alignment_mwfrs.append(mwfr)
+
+    fileset_alignment_mwfrs_sorted = sorted(
+        fileset_alignment_mwfrs,
+        key=lambda d: d["date_created"],
+        reverse=True,  # Most recent first
+    )
+    #return the most recent alignment mwfr
+    return fileset_alignment_mwfrs_sorted[0] if fileset_alignment_mwfrs_sorted else None
 
 
 def search_total(context, request, search_params):

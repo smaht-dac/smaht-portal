@@ -7,11 +7,86 @@ smaht-portal
 Change Log
 ----------
 
-0.187.3
+0.190.3
 =======
 `PR 465 feat: protected donor view updates <https://github.com/smaht-dac/smaht-portal/pull/465>`_
 
 * Update donor view following annual meeting feedback
+
+
+0.190.2
+=======
+`PR 477: feat: add ST001 and ST002 skin to benchmarking <https://github.com/smaht-dac/smaht-portal/pull/477>`_
+
+* Add ST001 and ST002 skin to benchmarking
+
+
+0.190.1
+=======
+`PR 472: SN Add search columns <https://github.com/smaht-dac/smaht-portal/pull/472>`_
+
+* Add columns to Tissue (`uberon_id.identifier`) and OntologyTerm (`valid_protocol_ids`) search views
+
+
+0.190.0
+=======
+`PR 471: SN Update file merge group <https://github.com/smaht-dac/smaht-portal/pull/471>`_
+
+* Update `generate_sample_source_part` in FileSet so that the sample source part of the `file_group` is Tissue, rather than TissueSample for single tissue samples with spatial information
+
+
+0.189.1
+=======
+`PR 476: Add RIN and tissue types to Submission Status <https://github.com/smaht-dac/smaht-portal/pull/476>`_
+
+* Add RIN values of the analyte and tissue types of a fileset to the Submission Status page
+* Exclude Single-Cell PTA data from generating warnings in the sample identity check on the QC metrics page
+
+
+0.189.0
+=======
+`PR 473: SN Add additional notes to exp manifest file <https://github.com/smaht-dac/smaht-portal/pull/473>`_
+
+* Adds `sequencing.additional_notes` to the Experimental Manifest file
+
+
+0.188.3
+=======
+`PR 474: SN Release preparation items <https://github.com/smaht-dac/smaht-portal/pull/474>`_
+
+* Update the `release_file` script to also patch AnalytePreparation, LibraryPreparation, PreparationKit, and Treatment items to `released`
+
+
+0.188.2
+=======
+`PR 466 feat: add estimated average coverage to file overview <https://github.com/smaht-dac/smaht-portal/pull/466>`_
+
+* Add a new property to average coverage in file overview page
+
+
+0.188.1
+=======
+`PR 467 feat: update bulk donor metadata download button <https://github.com/smaht-dac/smaht-portal/pull/467>`_
+
+* Update download link for bulk donor metadata download link
+
+
+0.188.0
+=======
+`PR 468: SN File QC notes <https://github.com/smaht-dac/smaht-portal/pull/468>`_
+
+* Add `qc_notes` calc prop to QualityMetrics which uses `flag` to identify key metrics and build a concatenated string of Warn/Fail QC metrics
+* Embed `quality_metrics.qc_notes` on File
+* Add `quality_metrics.qc_notes` as column in File Manifest
+
+
+0.187.3
+=======
+`PR 470: Bulk file release <https://github.com/smaht-dac/smaht-portal/pull/470>`_
+
+* Modified the release script to allow multiple files to be released at once.
+* Added a button to the Submission Status page, that will let you copy the accessions of all output files displayed, so that it can be used in the release script.
+* Minor adjustments to the QC overview script.
 
 
 0.187.2
@@ -34,9 +109,8 @@ Change Log
 
 * Add `average_coverage` to the `data_generation_summary` calc prop on File, grabbed from `quality_metrics.coverage`
 * Add property `override_average_coverage` to File, which can override the `average_coverage` value if present
- 
- 
-=======
+
+
 0.186.2
 =======
 `PR 464 SN Add pluralize relatives <https://github.com/smaht-dac/smaht-portal/pull/464>`_

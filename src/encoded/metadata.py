@@ -25,6 +25,7 @@ def includeme(config):
     config.scan(__name__)
 
 
+TSV_WIDTH = 27 # There are 27 columns in the file manifest
 # Encode manifest file types
 FILE = 0
 CLINICAL = 1
@@ -112,7 +113,7 @@ TSV_MAPPING = {
         'FileAccession': TSVDescriptor(field_type=FILE,
                                        field_name=['accession']),
         'FileName': TSVDescriptor(field_type=FILE,
-                                  field_name=['annotated_filename', 'filename', 'display_title']),
+                                  field_name=['annotated_filename', 'filename', 'display_title']), # NOTE: This row should not be changed. Needed for file download
         'FileSetAccession': TSVDescriptor(field_type=FILE,
                                           field_name=['file_sets.accession']),
         'AnalyteAccessions': TSVDescriptor(field_type=FILE,
@@ -171,6 +172,9 @@ TSV_MAPPING = {
                                        use_base_metadata=True),
         'QCComments': TSVDescriptor(field_type=FILE,
                                        field_name=['qc_comments'],
+                                       use_base_metadata=True),
+        'QCNotes': TSVDescriptor(field_type=FILE,
+                                       field_name=['quality_metrics.qc_notes'],
                                        use_base_metadata=True),
         FILE_GROUP: TSVDescriptor(field_type=FILE,
                                   field_name=['file_sets.file_group'],
@@ -478,6 +482,8 @@ TSV_MAPPING = {
         # Sequencing fields
         'SequencingSequencer': TSVDescriptor(field_type=EXPERIMENT,
                                              field_name=['sequencing.sequencer.identifier']),
+        'SequencingAdditionalNotes': TSVDescriptor(field_type=EXPERIMENT,
+                                             field_name=['sequencing.additional_notes']),
         'SequencingFlowCell': TSVDescriptor(field_type=EXPERIMENT,
                                             field_name=['sequencing.flow_cell']),
         'SequencingMovieLength': TSVDescriptor(field_type=EXPERIMENT, field_name=['sequencing.movie_length']),
@@ -520,8 +526,11 @@ def generate_other_manifest_header(manifest_enum):
 
 
 def generate_file_download_header(download_file_name: str, cli=False):
-    """ Helper function that generates a suitable header for the File download, generating 26 columns"""
-    header1 = ['###', 'Metadata TSV Download', 'Column Count', '26'] + ([''] * 22)  # length 26
+    """ Helper function that generates a suitable header for the File download.
+    
+        Number of columns generated set in TSV_WIDTH
+    """
+    header1 = ['###', 'Metadata TSV Download', 'Column Count', TSV_WIDTH] + ([''] * (TSV_WIDTH-4))  # length 27
     if cli:
         header2 = ['Suggested command to download: ', '', '',
                    (f'cut -f 1,3 ./{download_file_name} | tail -n +4 | grep -v ^# | '
@@ -532,12 +541,12 @@ def generate_file_download_header(download_file_name: str, cli=False):
                     f'&& export AWS_SECRET_ACCESS_KEY=$(echo $credentials | jq -r ".SecretAccessKey") '
                     f'&& export AWS_SESSION_TOKEN=$(echo $credentials | jq -r ".SessionToken") '
                     f'&& download_url=$(echo $credentials | jq -r ".download_url") '
-                    f'&& aws s3 cp "$download_url" "$1"')] + ([''] * 22)
+                    f'&& aws s3 cp "$download_url" "$1"')] + ([''] * (TSV_WIDTH-4))
     else:
         header2 = ['Suggested command to download: ', '', '',
                    "cut -f 1,3 ./{} | tail -n +4 | grep -v ^# | xargs -n 2 -L 1 sh -c 'curl -L "
                    "--user <access_key_id>:<access_key_secret> $0 --output $1'".format(download_file_name)] + (
-                              [''] * 22)
+                              [''] * (TSV_WIDTH-4))
     header3 = list(TSV_MAPPING[FILE].keys())
     return header1, header2, header3
 

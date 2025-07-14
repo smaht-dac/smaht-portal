@@ -5,6 +5,7 @@ from pathlib import Path
 from collections import OrderedDict
 from dcicutils import ff_utils
 from dcicutils.creds_utils import SMaHTKeyManager
+from functools import lru_cache
 
 # Location of resulting file in portal
 # s3://smaht-production-application-files/25d09e18-2f77-4541-a32c-0f1d99defbd3/SMAFILZCEQ1X.json
@@ -22,8 +23,8 @@ SEARCH_QUERY_QC = (
     "&field=uuid"
     "&type=FileSet"
     "&limit=10000"
-    #"&limit=50&from=600"  # for testing
-    #"&accession=SMAFSZNMU83N"
+    #"&limit=10&from=600"  # for testing
+    #"&accession=SMAFS9V294F9"
 )
 
 
@@ -93,7 +94,7 @@ DEFAULT_FACET_GROUPING = [
 ]
 
 DEFAULT_FACET_SAMPLE_SOURCE = [
-    {"key": CELL_LINE, "label": "All cell lines"},
+    {"key": CELL_LINE, "label": "All benchmarking cell lines"},
     {"key": TISSUES, "label": "All tissues"},
     {"key": BENCHMARKING_TISSUES, "label": "All benchmarking tissues"},
     {"key": PRODUCTION_TISSUES, "label": "All production tissues"},
@@ -192,6 +193,10 @@ QC_THRESHOLDS = {
         "samtools_stats_postprocessed:percentage_reads_mapped": 98.0,
         "picard_collect_alignment_summary_metrics:pf_mismatch_rate": 0.003,
     },
+    f"{ALL_LONG_READ}_{WGS}": {
+        "verifybamid:freemix_alpha": 0.01,
+        "samtools_stats_postprocessed:percentage_reads_mapped": 98.0,
+    },
 }
 
 
@@ -254,6 +259,7 @@ class FileStats:
         filesets = search(SEARCH_QUERY_QC)
         print(f"Number of filesets considered: {len(filesets)}")
         for fileset_from_search in progressbar(filesets, "Processing filesets "):
+
             fileset = get_item(fileset_from_search[UUID])
             fileset_accession = fileset[ACCESSION]
 
@@ -357,6 +363,7 @@ class FileStats:
 
             # Search the aligned BAM and extract quality metrics from it
             final_ouput_file = self.get_final_ouput_file(mwfr, assay)
+
             if not final_ouput_file:
                 self.warnings.append(
                     f"Warning: Fileset {fileset[ACCESSION]} has no final output file"
@@ -551,6 +558,14 @@ class FileStats:
         problematic_files = {}
         for result in results:
             if result["relatedness"] < threshold:
+                # Don't count PTA data towards the problematic files
+                assay_a = get_assay_from_file(result["sample_a"])
+                if "Single-cell PTA WGS" in assay_a:
+                    continue
+                assay_b = get_assay_from_file(result["sample_b"])
+                if "Single-cell PTA WGS" in assay_b:
+                    continue
+
                 for sample in ["sample_a", "sample_b"]:
                     if result[sample] not in problematic_files:
                         problematic_files[result[sample]] = 1
@@ -566,7 +581,7 @@ class FileStats:
             # Don't generate warnings if the file is deleted or retracted
             if all_file_infos[f]["status"] in [DELETED, RETRACTED]:
                 continue
-            
+
             self.somalier_results[donor_accession]["warnings"].append(
                 f"File {f} failed the sample integrity check for donor {donor_label}"
             )
@@ -593,22 +608,23 @@ class FileStats:
 
     def get_alignment_mwfr(self, fileset):
         mwfrs = fileset.get("meta_workflow_runs", [])
-        results = []
-        for mwfr in mwfrs:
-            mwfr_item = get_item(mwfr[UUID])
-            if mwfr_item[STATUS] == DELETED or mwfr_item["final_status"] != COMPLETED:
-                continue
-            categories = mwfr_item["meta_workflow"]["category"]
-            if "Alignment" in categories:
-                results.append(mwfr_item)
-        if len(results) == 1:
-            return results[0]
-        elif len(results) > 1:
+        # Sort the MWFRs by date_created in descending order. The first one is the most recent.
+        mwfrs_sorted = sorted(mwfrs, key=lambda x: datetime.datetime.fromisoformat(x['date_created']), reverse=True)
+
+        alignment_mwfrs = [
+            mwfr
+            for mwfr in mwfrs_sorted
+            if mwfr[STATUS] != DELETED
+            and mwfr["final_status"] == COMPLETED
+            and "Alignment" in mwfr["meta_workflow"]["category"]
+        ]
+        if len(alignment_mwfrs) > 1:
             self.warnings.append(
-                f"Warning: Fileset {fileset[ACCESSION]} has multiple alignment MWFRs. Taking last one."
+                f"Warning: Fileset {fileset[ACCESSION]} has multiple alignment MWFRs. Taking most recent one."
             )
-            return results[-1]
-        return None
+
+        return get_item(alignment_mwfrs[0][UUID]) if alignment_mwfrs else None
+
 
     def get_final_ouput_file(self, mwfr, assay):
         workflow_runs = mwfr["workflow_runs"]
@@ -669,6 +685,28 @@ class FileStats:
         ]
 
 
+def get_fileset_from_ouput_file(file_acccesion):
+    file = get_item(file_acccesion, add_on="embedded")
+    mwfr = file.get("meta_workflow_run_outputs")
+    if not mwfr:
+        raise Exception(f"No meta workflow run outputs found for file {file_acccesion}")
+    mwfr = mwfr[0]
+    mwfr_uuid = mwfr[UUID]
+    mwfr = get_item(mwfr_uuid)
+    fileset_uuid = mwfr.get("file_sets")
+    if not fileset_uuid:
+        raise Exception(f"No file sets found for meta workflow run {mwfr_uuid}")
+    fileset_uuid = fileset_uuid[0][UUID]
+    fileset = get_item(fileset_uuid, add_on="embedded")
+    return fileset
+
+@lru_cache(maxsize=None)
+def get_assay_from_file(file_acccesion):
+    fileset = get_fileset_from_ouput_file(file_acccesion)
+    assays = [l[ASSAY]["display_title"] for l in fileset[LIBRARIES]]
+    return ", ".join(assays)
+
+@lru_cache(maxsize=None)
 def get_item(uuid, add_on=""):
     item = ff_utils.get_metadata(uuid, key=SMAHT_KEY, add_on=add_on)
     return item
