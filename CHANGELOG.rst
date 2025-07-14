@@ -7,11 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.190.3
+0.190.4
 =======
 `PR 475: fix: update name for coverage <http://github.com/smaht-dac/smaht-portal/pull/475>`_
 
 * Update title for Dataset Per BAM Coverage in File Overview page
+
+
+0.190.3
+=======
+`PR 465 feat: protected donor view updates <https://github.com/smaht-dac/smaht-portal/pull/465>`_
+
+* Update donor view following annual meeting feedback
 
 
 0.190.2
