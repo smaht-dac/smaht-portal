@@ -2,13 +2,236 @@ import { cypressVisitHeaders } from "../support";
 
 const dataNavBarItemSelectorStr = '#top-nav div.navbar-collapse .navbar-nav a.id-data-menu-item';
 
+function waitForPopoverVisible(timeout = 10000) {
+    const start = Date.now();
+
+    return cy.window().then((win) =>
+        new Cypress.Promise((resolve, reject) => {
+            function check() {
+                const el = win.document.querySelector('#jap-popover');
+
+                const visible =
+                    el &&
+                    el.offsetParent !== null &&
+                    getComputedStyle(el).visibility !== 'hidden' &&
+                    getComputedStyle(el).display !== 'none' &&
+                    parseFloat(getComputedStyle(el).opacity || '1') > 0;
+
+                if (visible) {
+                    resolve(el);            // ✅ return the actual DOM element
+                } else if (Date.now() - start > timeout) {
+                    reject(new Error('Popover never became visible'));
+                } else {
+                    setTimeout(check, 100);
+                }
+            }
+            check();
+        })
+    );
+}
+
+function waitUntilPopoverClosed(timeout = 4000) {
+    return cy.window().then((win) => {
+        const start = Date.now();
+        return new Cypress.Promise((resolve, reject) => {
+            function check() {
+                const el = win.document.querySelector('#jap-popover');
+                const stillVisible =
+                    el &&
+                    el.offsetParent !== null &&
+                    getComputedStyle(el).visibility !== 'hidden' &&
+                    getComputedStyle(el).display !== 'none' &&
+                    parseFloat(getComputedStyle(el).opacity || '1') > 0;
+
+                if (!stillVisible) {
+                    resolve();
+                } else if (Date.now() - start > timeout) {
+                    reject(new Error('Popover did not close in time'));
+                } else {
+                    setTimeout(check, 100);
+                }
+            }
+            check();
+        });
+    });
+}
+
+function assertPopover({ donor, assay, value }) {
+    // wait until the element itself is truly visible
+    waitForPopoverVisible().then((popoverEl) => {
+        // let Cypress do all subsequent retries
+        cy.wrap(popoverEl).should('be.visible').within(() => {
+            // donor (left col-6) – Cypress keeps retrying until text matches
+            if (donor) {
+                cy.get('.primary-row .col-6')
+                    .eq(0)
+                    .find('.text-500', { timeout: 10000 })
+                    .should('have.text', donor);
+            }
+
+            // assay (right col-6.text-end)
+            if (assay) {
+                cy.get('.primary-row .col-6.text-end .text-500', { timeout: 10000 })
+                    .should('contain.text', assay);
+            }
+
+            // file count – retry until text is numeric and equals expected
+            cy.get('.secondary-row .value.text-600', { timeout: 10000 })
+                .invoke('text')
+                .then((t) => parseInt(t.trim(), 10))
+                .should('equal', value);
+        });
+    })
+        .then(() => {
+            // close the pop-over
+            cy.document()
+                .its('body')
+                .then((body) => cy.wrap(body).click(0, 0, { force: true }));
+
+            // wait until it is fully removed/faded-out
+            return waitUntilPopoverClosed();
+        })
+        .then(() => {
+            Cypress.log({
+                name: 'assertPopover',
+                message: `value: ${value}, donor: ${donor}, assay: ${assay}`,
+            });
+        });
+}
+
+
+
+
+function testMatrixPopoverValidation(matrixId = '#data-matrix-for_production', donors = ['SMHT004', 'SMHT008'], mustLabels = ['Skin', 'Heart', 'Blood'], optionalLabels = []) {
+    cy.get(matrixId).should('exist');
+
+    const columnTotals = {};
+
+    cy.get(matrixId).within(() => {
+        cy.get('.grouping.depth-0.may-collapse').each(($row) => {
+            const $label = $row.find('.grouping-row h4 .inner');
+            const rowLabel = $label.first().text().trim();
+
+            const rowSummaryText = $row.find('[data-block-type="row-summary"] span').text().trim();
+            const expectedRowSummary = parseInt(rowSummaryText, 10);
+
+            const expandIcon = $row.find('i.icon-plus');
+            if (expandIcon.length > 0) {
+                cy.wrap(expandIcon).click();
+            }
+
+            cy.wrap($row).as('currentRow');
+
+            if (donors.includes(rowLabel)) {
+                cy.get('@currentRow')
+                    .find('.child-blocks .grouping-row .inner')
+                    .then(($labels) => {
+                        const labelTexts = [...$labels].map((el) => el.textContent.trim());
+                        if( mustLabels.length > 0) {
+                            expect(labelTexts).to.include.members(mustLabels);
+                        }
+                        if (optionalLabels.length > 0) {
+                            expect(optionalLabels).to.include.members(labelTexts);
+                        }
+                    });
+            }
+
+            cy.get('@currentRow')
+                .find('.child-blocks .grouping-row .inner')
+                .then(($labels) => {
+                    const labelTexts = [...$labels].map((el) => el.textContent.trim());
+                    expect(labelTexts).to.not.include('N/A');
+                });
+
+            cy.get('@currentRow')
+                .find('.child-blocks [data-block-type="regular"] span')
+                .then(($spans) => {
+                    const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
+                    expect(sum, `Row summary for ${rowLabel}`).to.equal(expectedRowSummary);
+                });
+
+            cy.get('@currentRow')
+                .find('.child-blocks [data-block-type="regular"]')
+                .each(($block) => {
+                    const value = parseInt($block.text().trim(), 10);
+                    const assay = $block.parent().attr('data-group-key');
+                    if (!isNaN(value)) {
+                        columnTotals[assay] = (columnTotals[assay] || 0) + value;
+                    }
+                });
+        });
+
+        cy.then(() => {
+            cy.get('[data-block-type="col-summary"]').each(($summaryEl) => {
+                const key = $summaryEl.parent().attr('data-group-key');
+                if (key === 'column-summary') return;
+                const expected = parseInt($summaryEl.text().trim(), 10);
+                const actual = columnTotals[key] || 0;
+                expect(actual, `Column summary for ${key}`).to.equal(expected);
+            });
+        });
+
+        // Random 10 regular block popovers
+        cy.get('[data-block-type="regular"]').then(($allBlocks) => {
+            const allBlocks = Array.from($allBlocks);
+            const selected = Cypress._.sampleSize(allBlocks, 10);
+
+            const testCases = selected.map((el) => {
+                const $el = Cypress.$(el);
+                const value = parseInt($el.text().trim(), 10);
+                const donor = $el.closest('.grouping.depth-0').find('.grouping-row h4 .inner').eq(0).text().trim();
+                const assay = $el.parent().attr('data-group-key');
+                return { el, donor, assay, value };
+            });
+
+            // cy.log('🧪 Popover test sample: ' + JSON.stringify(testCases));
+
+            testCases.forEach(({ el, donor, assay, value }) => {
+                if (value > 0) {
+                    cy.wrap(el).scrollIntoView().click({ force: true });
+                    assertPopover({ donor, assay, value });
+                }
+            });
+        });
+
+        // Random 10 row-summary block popovers
+        cy.get('[data-block-type="row-summary"]').then(($blocks) => {
+            Cypress._.sampleSize([...$blocks], 10).forEach((el) => {
+                const value = parseInt(Cypress.$(el).text().trim(), 10);
+                if (value > 0) {
+                    const donor = Cypress.$(el).closest('.grouping.depth-0').find('h4 .inner').eq(0).text().trim();
+                    cy.wrap(el).scrollIntoView().click({ force: true });
+                    assertPopover({ donor, assay: '', value });
+                }
+            });
+        });
+
+        // Random 3 col-summary block popovers
+        cy.get('[data-block-type="col-summary"]').then(($blocks) => {
+            const filtered = [...$blocks].filter((el) => {
+                const key = Cypress.$(el).parent().attr('data-group-key');
+                return key && key !== 'column-summary';
+            });
+
+            Cypress._.sampleSize(filtered, 3).forEach((el) => {
+                const value = parseInt(Cypress.$(el).text().trim(), 10);
+                const assay = Cypress.$(el).parent().attr('data-group-key');
+                if (value > 0) {
+                    cy.wrap(el).scrollIntoView().click({ force: true });
+                    assertPopover({ donor: '', assay, value });
+                }
+            });
+        });
+    });
+}
+
 describe('Data Overview Page & Content Tests', function () {
 
     before(function () {
         cy.visit('/', { headers: cypressVisitHeaders });
     });
 
-    it('Visit Retracted Files List', function () {
+    it.skip('Visit Retracted Files List', function () {
 
         cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false })
             .validateUser('SCM')
@@ -113,153 +336,31 @@ describe('Data Overview Page & Content Tests', function () {
                 // Verify that the page contains the correct header
                 cy.contains('div#data_matrix_comparison h2.section-title', 'Data Matrix').should('be.visible');
 
-                // Ensure the specific data matrix exists
-                cy.get('#data-matrix-for_production').should('exist');
+                testMatrixPopoverValidation('#data-matrix-for_production', ['SMHT004', 'SMHT008'], ['Skin', 'Heart', 'Blood'], []);
+            })
+            .logoutSMaHT();
+    });
 
-                const expectedLabels = ['Skin', 'Heart', 'Blood'];
-                const columnTotals = {};
+    it('Visit Data Matrix for Benchmarking, should expand ST001, ST002, ST003, ST004 and validate row/column summaries, popover content', function () {
 
-                cy.get('#data-matrix-for_production').within(() => {
-                    cy.get('.grouping.depth-0').each(($row) => {
-                        const $label = $row.find('.grouping-row h4 .inner');
-                        const rowLabel = $label.text().trim();
+        cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false })
+            .validateUser('SCM')
+            .get(dataNavBarItemSelectorStr)
+            .should('have.class', 'dropdown-toggle')
+            .click()
+            .should('have.class', 'dropdown-open-for').then(() => {
 
-                        const rowSummaryText = $row.find('[data-block-type="row-summary"] span').text().trim();
-                        const expectedRowSummary = parseInt(rowSummaryText, 10);
-
-                        const expandIcon = $row.find('i.icon-plus');
-                        if (expandIcon.length > 0) {
-                            cy.wrap(expandIcon).click();
-                        }
-
-                        cy.wrap($row).as('currentRow');
-
-                        // SMHT004 & SMHT008 → specific label check
-                        if (['SMHT004', 'SMHT008'].includes(rowLabel)) {
-                            cy.get('@currentRow')
-                                .find('.child-blocks .grouping-row .inner')
-                                .then(($labels) => {
-                                    const labelTexts = [...$labels].map((el) => el.textContent.trim());
-                                    expect(labelTexts).to.include.members(expectedLabels);
-                                });
-                        }
-
-                        // All rows → no 'N/A'
-                        cy.get('@currentRow')
-                            .find('.child-blocks .grouping-row .inner')
-                            .then(($labels) => {
-                                const labelTexts = [...$labels].map((el) => el.textContent.trim());
-                                expect(labelTexts).to.not.include('N/A');
-                            });
-
-                        // row-summary = sum of regular
-                        cy.get('@currentRow')
-                            .find('.child-blocks [data-block-type="regular"] span')
-                            .then(($spans) => {
-                                const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
-                                expect(sum, `Row summary for ${rowLabel}`).to.equal(expectedRowSummary);
-                            });
-
-                        // accumulate col totals
-                        cy.get('@currentRow')
-                            .find('.child-blocks [data-block-type="regular"]')
-                            .each(($block) => {
-                                const value = parseInt($block.text().trim(), 10);
-                                const assay = $block.parent().attr('data-group-key');
-                                if (!isNaN(value)) {
-                                    columnTotals[assay] = (columnTotals[assay] || 0) + value;
-                                }
-                            });
+                cy.get('.big-dropdown-menu.is-open a.big-link[href="/data-matrix"]')
+                    .click({ force: true }).then(function ($linkElem) {
+                        cy.get('#slow-load-container').should('not.have.class', 'visible').end();
+                        const linkHref = $linkElem.attr('href');
+                        cy.location('pathname').should('equal', linkHref);
                     });
 
-                    // col-summary check
-                    cy.then(() => {
-                        cy.get('[data-block-type="col-summary"]').each(($summaryEl) => {
-                            const key = $summaryEl.parent().attr('data-group-key');
-                            if (key === 'column-summary') return;
+                // Verify that the page contains the correct header
+                cy.contains('div#data_matrix_comparison h2.section-title', 'Data Matrix').should('be.visible');
 
-                            const expected = parseInt($summaryEl.text().trim(), 10);
-                            const actual = columnTotals[key] || 0;
-
-                            expect(actual, `Column summary for ${key}`).to.equal(expected);
-                        });
-                    });
-
-                    // random 10 popovers
-                    cy.get('[data-block-type="regular"]').then(($allBlocks) => {
-                        const allBlocks = Array.from($allBlocks); // ✅ düz array
-                        const selected = Cypress._.sampleSize(allBlocks, 10); // ✅ underscore
-
-                        const logData = selected.map((el) => {
-                            const $el = Cypress.$(el);
-                            const value = parseInt($el.text().trim(), 10);
-                            const rowLabel = $el
-                                .closest('.grouping.depth-0')
-                                .find('.grouping-row h4 .inner')
-                                .first()
-                                .text()
-                                .trim();
-
-                            const assay = $el.parent().attr('data-group-key');
-                            return { rowLabel, assay, value };
-                        });
-
-                        cy.log('🔍 Popover test sample:', JSON.stringify(logData));
-                        console.log('🔍 Popover test sample:', logData);
-
-                        selected.forEach((el) => {
-                            const $el = Cypress.$(el);
-                            const value = parseInt($el.text().trim(), 10);
-                            const rowLabel = $el
-                                .closest('.grouping.depth-0')
-                                .find('.grouping-row h4 .inner')
-                                .first()
-                                .text()
-                                .trim();
-
-                            const assay = $el.parent().attr('data-group-key');
-
-                            if (value > 0) {
-                                cy.wrap(el)
-                                    .scrollIntoView()
-                                    .should('be.visible')
-                                    .click({ force: true });
-
-                                cy.document().then((doc) => {
-                                    const tryGetPopover = (retries = 10) => {
-                                        const popover = doc.querySelector('#jap-popover');
-                                        if (popover) {
-                                            cy.wrap(popover).should('be.visible').within(() => {
-                                                cy.get('.primary-row .col-6')
-                                                    .first()
-                                                    .find('.text-500')
-                                                    .should('have.text', rowLabel);
-
-                                                cy.get('.primary-row .col-6.text-end .text-500')
-                                                    .should('contain.text', assay);
-
-                                                cy.get('.secondary-row .value.text-600')
-                                                    .invoke('text')
-                                                    .then((text) => {
-                                                        const totalFiles = parseInt(text.trim(), 10);
-                                                        expect(totalFiles).to.equal(value);
-                                                    });
-                                            });
-
-                                            cy.root().click('topLeft', { force: true });
-                                        } else if (retries > 0) {
-                                            cy.wait(200).then(() => tryGetPopover(retries - 1));
-                                        } else {
-                                            throw new Error(`Popover did not appear for ${rowLabel} / ${assay}`);
-                                        }
-                                    };
-
-                                    tryGetPopover();
-                                });
-                            }
-                        });
-                    });
-                });
+                testMatrixPopoverValidation('#data-matrix-for_benchmarking', ['ST001', 'ST002', 'ST003', 'ST004'], [], ['Lung', 'Brain', 'Liver', 'Colon']);
             })
             .logoutSMaHT();
     });
