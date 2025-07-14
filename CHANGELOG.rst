@@ -7,11 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-0.190.3
+0.190.4
 =======
 `PR 478: fix: update breadcrumbs on File Overview page <https://github.com/smaht-dac/smaht-portal/pull/478>`_
 
 * Update breadcrumbs on file overview page
+
+
+0.190.3
+=======
+`PR 465 feat: protected donor view updates <https://github.com/smaht-dac/smaht-portal/pull/465>`_
+
+* Update donor view following annual meeting feedback
 
 
 0.190.2
