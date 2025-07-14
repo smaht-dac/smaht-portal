@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.190.6
+=======
+`PR 480: SN File data type and data category <http://github.com/smaht-dac/smaht-portal/pull/480>`_
+
+* Add enum "Fingerprint" to `data_type` for VariantCalls
+* Add enum "Consensus Reads" to `data_category` in UnalignedReads
+
+
 0.190.5
 =======
 `PR 475: fix: update name for coverage <http://github.com/smaht-dac/smaht-portal/pull/475>`_
