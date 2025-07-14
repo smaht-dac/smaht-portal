@@ -2,6 +2,21 @@ import { cypressVisitHeaders } from "../support";
 
 const dataNavBarItemSelectorStr = '#top-nav div.navbar-collapse .navbar-nav a.id-data-menu-item';
 
+/** * Waits for the popover to become visible.
+ * @param {number} timeout - The maximum time to wait for the popover to become visible, in milliseconds.
+ * @returns {Cypress.Chainable} A Cypress chainable that resolves when the popover is visible.
+ * This function performs the following steps:
+ * 1. Gets the window object to access the document.
+ * 2. Starts a timer to track how long it has been waiting.
+ * 3. Defines a recursive function `check` that:
+ *    - Checks if the popover element is visible.
+ *    - If visible, resolves the promise with the popover element.
+ *    - If not visible and the timeout has not been reached, sets a timeout to check again after 100 milliseconds.
+ *    - If the timeout is reached, rejects the promise with an error.
+ * 4. Calls the `check` function to start the process.
+ * @throws {Error} If the popover does not become visible within the specified timeout.
+ * @returns {Cypress.Chainable} A Cypress chainable that resolves when the popover is visible.
+ */
 function waitForPopoverVisible(timeout = 10000) {
     const start = Date.now();
 
@@ -30,6 +45,21 @@ function waitForPopoverVisible(timeout = 10000) {
     );
 }
 
+/** * Waits until the popover is fully closed.
+ * @param {number} timeout - The maximum time to wait for the popover to close, in milliseconds.
+ * @returns {Cypress.Chainable} A Cypress chainable that resolves when the popover is closed.
+ * This function performs the following steps:
+ * 1. Gets the window object to access the document.
+ * 2. Starts a timer to track how long it has been waiting.
+ * 3. Defines a recursive function `check` that:
+ *    - Checks if the popover element is still visible.
+ *    - If not visible, resolves the promise.
+ *    - If still visible and the timeout has not been reached, sets a timeout to check again after 100 milliseconds.
+ *    - If the timeout is reached, rejects the promise with an error.
+ * 4. Calls the `check` function to start the process.
+ * @throws {Error} If the popover does not close within the specified timeout.
+ * @returns {Cypress.Chainable} A Cypress chainable that resolves when the popover is closed.
+ */
 function waitUntilPopoverClosed(timeout = 4000) {
     return cy.window().then((win) => {
         const start = Date.now();
@@ -56,6 +86,19 @@ function waitUntilPopoverClosed(timeout = 4000) {
     });
 }
 
+/** * Asserts that the popover is visible and contains the expected donor, assay, and value.
+ * * @param {Object} params - The parameters for the assertion.
+ * * @param {string} params.donor - The expected donor name.
+ * * @param {string} params.assay - The expected assay name.
+ * * @param {number} params.value - The expected file count value.
+ * * @returns {Cypress.Chainable} A Cypress chainable that resolves when the assertion is complete.
+ * This function performs the following steps:
+ * 1. Waits for the popover to become visible.
+ * 2. Asserts that the popover is visible and contains the expected donor, assay, and value.
+ * 3. Closes the popover by clicking outside of it.
+ * 4. Waits until the popover is fully closed.
+ * 5. Logs the assertion details.
+ */
 function assertPopover({ donor, assay, value }) {
     // wait until the element itself is truly visible
     waitForPopoverVisible().then((popoverEl) => {
@@ -99,15 +142,50 @@ function assertPopover({ donor, assay, value }) {
         });
 }
 
+/**
+ * Confirm that the matrix shows exactly the labels in `expectedLabels`
+ * (in DOM order) across ALL .header-section-lower blocks, and that
+ * each label row contains ≥1 col-summary block.
+ *
+ * @param {string[]} expectedLabels  e.g. ['Donors']  or ['Donors','Cell Lines']
+ */
+function validateLowerHeaders(expectedLabels) {
+    // 1️⃣ Gather every label text in order
+    cy.get('.header-section-lower .grouping-row .label-section span')
+        .then(($spans) => [...$spans].map((el) => el.textContent.trim()))
+        .should('deep.equal', expectedLabels);
 
-
-
-function testMatrixPopoverValidation(matrixId = '#data-matrix-for_production', donors = ['SMHT004', 'SMHT008'], mustLabels = ['Skin', 'Heart', 'Blood'], optionalLabels = []) {
+    // 2️⃣ For each label, assert ≥1 col-summary under its row
+    expectedLabels.forEach((lbl) => {
+        cy.contains('.header-section-lower .label-section span', lbl)
+            .closest('.grouping-row')
+            .within(() => {
+                cy.get('[data-block-type="col-summary"]').its('length')
+                    .should('be.greaterThan', 0);
+            });
+    });
+}
+/** * Validates the data matrix popover content for specified donors and labels.
+ * * @param {string} matrixId - The CSS selector for the data matrix.
+ * @param {string[]} donors - An array of donor IDs to validate.
+ * @param {string[]} mustLabels - An array of labels that must be present in the popover.
+ * @param {string[]} optionalLabels - An array of labels that may be present in the popover.
+ * @param {string[]} expectedLowerLabels - An array of expected lower header labels.
+ * * @returns {void}
+ * This function performs the following validations:
+ * 1. Asserts that the popover is visible.
+ * 2. Validates the presence of required labels.
+ * 3. Checks for the correct donor and assay information.
+ * 4. Confirms the file count is as expected.
+ */
+function testMatrixPopoverValidation(matrixId = '#data-matrix-for_production', donors = ['SMHT004', 'SMHT008'], mustLabels = ['Skin', 'Heart', 'Blood'], optionalLabels = [], expectedLowerLabels = ['Donors']) {
     cy.get(matrixId).should('exist');
 
     const columnTotals = {};
 
     cy.get(matrixId).within(() => {
+        validateLowerHeaders(expectedLowerLabels);
+
         cy.get('.grouping.depth-0.may-collapse').each(($row) => {
             const $label = $row.find('.grouping-row h4 .inner');
             const rowLabel = $label.first().text().trim();
@@ -127,7 +205,7 @@ function testMatrixPopoverValidation(matrixId = '#data-matrix-for_production', d
                     .find('.child-blocks .grouping-row .inner')
                     .then(($labels) => {
                         const labelTexts = [...$labels].map((el) => el.textContent.trim());
-                        if( mustLabels.length > 0) {
+                        if (mustLabels.length > 0) {
                             expect(labelTexts).to.include.members(mustLabels);
                         }
                         if (optionalLabels.length > 0) {
@@ -231,7 +309,7 @@ describe('Data Overview Page & Content Tests', function () {
         cy.visit('/', { headers: cypressVisitHeaders });
     });
 
-    it.skip('Visit Retracted Files List', function () {
+    it('Visit Retracted Files List', function () {
 
         cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false })
             .validateUser('SCM')
@@ -336,7 +414,7 @@ describe('Data Overview Page & Content Tests', function () {
                 // Verify that the page contains the correct header
                 cy.contains('div#data_matrix_comparison h2.section-title', 'Data Matrix').should('be.visible');
 
-                testMatrixPopoverValidation('#data-matrix-for_production', ['SMHT004', 'SMHT008'], ['Skin', 'Heart', 'Blood'], []);
+                testMatrixPopoverValidation('#data-matrix-for_production', ['SMHT004', 'SMHT008'], ['Skin', 'Heart', 'Blood'], [], ['Donors']);
             })
             .logoutSMaHT();
     });
@@ -360,7 +438,7 @@ describe('Data Overview Page & Content Tests', function () {
                 // Verify that the page contains the correct header
                 cy.contains('div#data_matrix_comparison h2.section-title', 'Data Matrix').should('be.visible');
 
-                testMatrixPopoverValidation('#data-matrix-for_benchmarking', ['ST001', 'ST002', 'ST003', 'ST004'], [], ['Lung', 'Brain', 'Liver', 'Colon']);
+                testMatrixPopoverValidation('#data-matrix-for_benchmarking', ['ST001', 'ST002', 'ST003', 'ST004'], [], ['Lung', 'Brain', 'Liver', 'Colon'], ['Cell Lines', 'Donors']);
             })
             .logoutSMaHT();
     });
