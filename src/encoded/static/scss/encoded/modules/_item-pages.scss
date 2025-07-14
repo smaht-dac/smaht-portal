@@ -2309,5 +2309,9 @@ Popover Styles for Item Pages
 .popover {
 	&.description-definitions-popover {
 		max-width: 600px;
+
+		thead > tr > th {
+			background-color: #F1F9FF;
+		}
 	}
 }

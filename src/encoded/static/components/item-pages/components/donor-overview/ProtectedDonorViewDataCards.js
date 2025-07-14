@@ -11,7 +11,7 @@ import { OverlayTrigger, Popover, PopoverBody } from 'react-bootstrap';
  *
  * Note: Use regular function here, as Bootstrap relies on `this`.
  */
-function renderHardyScaleDescriptionPopover() {
+export function renderHardyScaleDescriptionPopover() {
     return (
         <Popover
             id="description-definitions-popover-hardy"
@@ -90,7 +90,7 @@ function renderHardyScaleDescriptionPopover() {
 /**
  * Popover for Alcohol Exposure Frequency Description.
  */
-function renderAlcoholFrequencyDescriptionPopover() {
+export function renderAlcoholFrequencyDescriptionPopover() {
     return (
         <Popover
             id="description-definitions-popover-alcohol"
@@ -146,7 +146,7 @@ function renderAlcoholFrequencyDescriptionPopover() {
 /**
  * Popover for Tobacco Exposure Frequency Description.
  */
-function renderTobaccoFrequencyDescriptionPopover() {
+export function renderTobaccoFrequencyDescriptionPopover() {
     return (
         <Popover
             id="description-definitions-popover-tobacco"
