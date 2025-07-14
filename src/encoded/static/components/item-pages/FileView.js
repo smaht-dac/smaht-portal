@@ -50,12 +50,35 @@ function ViewJSONAction({ href = '', children }) {
 const FileViewTitle = (props) => {
     const { context } = props;
 
-    const breadcrumbs = [
+    // Default breadcrumbs for the File Overview page
+    let breadcrumbs = [
         { display_title: 'Home', href: '/' },
         { display_title: 'Data' },
-        { display_title: 'Bechmarking Data' },
-        { display_title: context?.dataset?.toUpperCase() || '' },
     ];
+
+    // Determine the current breadcrumb based on the studies associated with the file
+    const currentBreadcrumb = {
+        display_title: null,
+        href: null,
+    };
+
+    if (
+        context?.sample_summary?.studies?.some(
+            (study) => study.toLowerCase() === 'production'
+        )
+    ) {
+        currentBreadcrumb.display_title = 'Browse by File';
+        currentBreadcrumb.href =
+            '/browse/?type=File&sample_summary.studies=Production&status=released';
+        breadcrumbs = [...breadcrumbs, currentBreadcrumb];
+    } else if (
+        context?.sample_summary?.studies?.some(
+            (study) => study.toLowerCase() === 'benchmarking'
+        )
+    ) {
+        currentBreadcrumb.display_title = 'Benchmarking Data';
+        breadcrumbs = [...breadcrumbs, currentBreadcrumb];
+    }
 
     return (
         <div className="view-title container-wide">
