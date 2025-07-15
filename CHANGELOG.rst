@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.190.6
+=======
+`PR 481: fix: update QC page/static section uuids to match portals <https://github.com/smaht-dac/smaht-portal/pull/481>`_
+
+* Update master-inserts uuids to match portals
+
+
 0.190.5
 =======
 `PR 475: fix: update name for coverage <http://github.com/smaht-dac/smaht-portal/pull/475>`_
