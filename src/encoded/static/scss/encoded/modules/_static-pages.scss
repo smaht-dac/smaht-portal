@@ -2823,18 +2823,59 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 
 			// Side nav
 			.sliding-sidebar-nav-container .sliding-sidebar-nav {
-				&-section {
+				
+				.benchmarking-nav-section {
 					&-title {
-						margin-bottom: 10px;
+						padding: 0px 8px;
 					}
 				}
 
 				.accordion > ul {
 					list-style-type: none;
 					padding-left: 0;
-					gap: 10px;
+					gap: 5px;
 					display: flex;
 					flex-direction: column;
+
+					.title-toggle-container {
+						display: flex;
+						justify-content: space-between;
+						align-items: center;
+
+						&.active {
+							.title {
+								color: #343741;
+								font-weight: 500;
+							}
+						}
+
+						.title {
+							flex: 1;
+							color: #717378;
+							border-radius: 4px 0px 0px 4px;
+							padding: 4px 8px;
+							
+							&:hover {
+								color: #343741;
+								cursor: pointer;
+								background-color: whitesmoke;
+								text-decoration: none;
+								font-weight: 500;
+							}
+						}
+
+						i {
+							color: #717378;
+							padding: 8px;
+							border-radius: 0px 4px 4px 0px;
+
+							&:hover {
+								color: #343741;
+								background-color: whitesmoke;
+								cursor: pointer;
+							}
+						}
+					}
 		
 					> li > div.collapse > ul,
 					> li > div.collapsing > ul {
@@ -2849,22 +2890,46 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 						font-family: Inter;
 						font-size: 0.875rem;
 						font-weight: 400;
+						display: flex;
 		
 						> a {
+							flex: 1;
 							color: #717378;
+							border-radius: 4px;
+							padding: 2px 5px;
+							font-size: 1rem;
 
 							&:hover {
-								text-decoration-color: $secondary !important;
+								cursor: pointer;
+								background-color: whitesmoke;
+								text-decoration: none;
+								font-weight: 500;
+								color: #343741;
 							}
 						}
 		
 						&.top {
-							font-size: 1rem;
+							// flex: 1;
+							// color: #717378;
+							// border-radius: 4px;
+							// padding: 2px 5px;
+							// font-size: 1rem;
+
+							&:hover {
+								// cursor: pointer;
+								// background-color: whitesmoke;
+								// text-decoration: none;
+								// font-weight: 500;
+
+								// > a {
+								// 	color: #343741;
+								// }
+							}
 						}
 						&.active {
 							font-weight: 500;
 							&.top {
-								font-weight: 700;
+								font-weight: 500;
 							}
 							&:not(.top) {
 								border-radius: 4px;
