@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.190.6
+=======
+`PR 482: SN Revert RIN minimum <http://github.com/smaht-dac/smaht-portal/pull/482>`_
+
+* Revert the minimum for `rna_integrity_number` to 1
+
+
 0.190.5
 =======
 `PR 475: fix: update name for coverage <http://github.com/smaht-dac/smaht-portal/pull/475>`_
