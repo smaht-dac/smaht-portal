@@ -198,7 +198,7 @@ const default_data_information = [
         },
     },
     {
-        title: 'Per BAM Coverage',
+        title: 'Dataset Per BAM Coverage',
         getProp: (context = {}) => {
             if (
                 context?.file_format?.display_title === 'bam' &&
@@ -251,7 +251,9 @@ const default_data_information = [
  */
 function renderDescriptionPopover() {
     return (
-        <Popover id="description-definitions-popover" className="w-auto">
+        <Popover
+            id="description-definitions-popover-sample-description"
+            className="w-auto description-definitions-popover">
             <PopoverBody className="p-0">
                 <table className="table">
                     <thead>
