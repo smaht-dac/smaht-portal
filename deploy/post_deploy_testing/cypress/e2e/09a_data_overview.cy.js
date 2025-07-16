@@ -303,7 +303,7 @@ function testMatrixPopoverValidation(matrixId = '#data-matrix-for_production', d
     });
 }
 
-describe('Data Overview Page & Content Tests', function () {
+describe('Data Overview - Retracted Files, Data Matrix for Production, Data Matrix for Benchmarking', function () {
 
     before(function () {
         cy.visit('/', { headers: cypressVisitHeaders });
