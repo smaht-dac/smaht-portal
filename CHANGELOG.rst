@@ -7,11 +7,19 @@ smaht-portal
 Change Log
 ----------
 
-0.190.6
+0.190.7
 =======
 `PR 482: SN Revert RIN minimum <http://github.com/smaht-dac/smaht-portal/pull/482>`_
 
 * Revert the minimum for `rna_integrity_number` to 1
+
+
+0.190.6
+=======
+`PR 480: SN File data type and data category <http://github.com/smaht-dac/smaht-portal/pull/480>`_
+
+* Add enum "Fingerprint" to `data_type` for VariantCalls
+* Add enum "Consensus Reads" to `data_category` in UnalignedReads
 
 
 0.190.5
