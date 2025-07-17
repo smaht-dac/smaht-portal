@@ -149,8 +149,10 @@ class Item(SnovaultItem):
         # Everyone can view - restricted to specific items via schemas.
         'public': acl.ALLOW_EVERYONE_VIEW_ACL,
         # Intended to do additional computation to determine if download
-        # is allowed if it's a downloadable file, otherwise same as "released"
+        # is allowed if it's a downloadable file, otherwise same as "released", similar for public-
+        # restricted except the group is different and view is "public"
         'restricted': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'public-restricted': acl.ALLOW_EVERYONE_VIEW_ACL,
         # Intended to tag out-of-date data
         'obsolete': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'deleted': DELETED_ACL,
@@ -162,8 +164,10 @@ class Item(SnovaultItem):
         'released': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'public': acl.ALLOW_EVERYONE_VIEW_ACL,
         # Intended to do additional computation to determine if download
-        # is allowed if it's a downloadable file, otherwise same as "released"
+        # is allowed if it's a downloadable file, otherwise same as "released", similar for public-
+        # restricted except the group is different and view is "public"
         'restricted': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'public-restricted': acl.ALLOW_EVERYONE_VIEW_ACL,
         'obsolete': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'deleted': DELETED_ACL
     }
