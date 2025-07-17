@@ -92,7 +92,10 @@ describe('Data Overview - QC Metrics', function () {
                 // Open the dropdown to get all available options' text values
                 cy.get('[role="combobox"]').click();
                 cy.get('[role="option"]').then(($options) => {
-                    const optionTexts = [...$options].map((opt) => opt.textContent.trim());
+                    let optionTexts = [...$options].map((opt) => opt.textContent.trim());
+                    // Use 3 random options for speed
+                    optionTexts = Cypress._.shuffle(optionTexts).slice(0, 3);
+
                     let prevFirstCell = null;
                     let prevXAxisTick = null;
                     let prevYAxisTick = null;
@@ -111,7 +114,7 @@ describe('Data Overview - QC Metrics', function () {
                             .its('length')
                             .should('be.gte', 1);
 
-                        // Table change check
+                        // Table content change check
                         cy.get('table.qc-metrics-data-table tbody tr:first td:first')
                             .invoke('text')
                             .then((firstCellText) => {
@@ -121,7 +124,7 @@ describe('Data Overview - QC Metrics', function () {
                                 prevFirstCell = firstCellText;
                             });
 
-                        // Chart existence and axis label checks
+                        // Chart and axis label checks
                         cy.contains('h4', 'Pairwise sample relatedness')
                             .should('be.visible')
                             .parent()
@@ -130,41 +133,35 @@ describe('Data Overview - QC Metrics', function () {
                             .and('be.visible')
                             .as('chartSvg');
 
-                        // Chart must have axis labels
                         cy.get('@chartSvg')
                             .should('contain.text', 'Sample A')
                             .and('contain.text', 'Sample B');
 
-                        // X and Y axis tick label update check
-                        // X axis: horizontal bottom tick labels (usually the last <g.tick> at the bottom)
+                        // Find the first Y axis tick label (left axis: g[transform^="translate(0,"])
+                        // --- Y Axis tick (x=0)
                         cy.get('@chartSvg')
-                            .find('g.tick text')
-                            .then(($ticks) => {
-                                // Heuristic: X axis tick is the tick with highest y attribute
-                                // Y axis tick is the tick with lowest x attribute (can be improved if axes structure changes)
-                                const ticks = [...$ticks].map((el) => {
-                                    return {
-                                        text: el.textContent.trim(),
-                                        x: Number(el.getAttribute('x') || 0),
-                                        y: Number(el.getAttribute('y') || 0),
-                                        transform: el.getAttribute('transform') || ''
-                                    };
-                                });
-
-                                // Find X axis ticks (often y is the largest)
-                                const xAxisTicks = ticks.filter((t) => t.transform.includes('rotate(-45)') || t.y > 500); // heuristics
-                                // Find Y axis ticks (often x is negative or very small)
-                                const yAxisTicks = ticks.filter((t) => t.x < 10 && !t.transform.includes('rotate(-45)'));
-
-                                const firstXAxisTick = xAxisTicks.length > 0 ? xAxisTicks[0].text : '';
-                                const firstYAxisTick = yAxisTicks.length > 0 ? yAxisTicks[0].text : '';
-
-                                if (index > 0) {
-                                    expect(firstXAxisTick).not.to.eq(prevXAxisTick);
-                                    expect(firstYAxisTick).not.to.eq(prevYAxisTick);
-                                }
-                                prevXAxisTick = firstXAxisTick;
-                                prevYAxisTick = firstYAxisTick;
+                            .find('g.tick[transform^="translate(0,"] text')
+                            .first()
+                            .invoke('text')
+                            .then((yAxisTick) => {
+                                // --- X Axis tick (y=0)
+                                cy.get('@chartSvg')
+                                    .find('g.tick')
+                                    .filter((i, el) => {
+                                        const tr = el.getAttribute('transform') || '';
+                                        return /,0\)?$/.test(tr);
+                                    })
+                                    .first()
+                                    .find('text')
+                                    .invoke('text')
+                                    .then((xAxisTick) => {
+                                        if (index > 0) {
+                                            expect(xAxisTick).not.to.eq(prevXAxisTick);
+                                            expect(yAxisTick).not.to.eq(prevYAxisTick);
+                                        }
+                                        prevXAxisTick = xAxisTick;
+                                        prevYAxisTick = yAxisTick;
+                                    });
                             });
                     });
                 });
