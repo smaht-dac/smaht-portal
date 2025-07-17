@@ -25,6 +25,13 @@ groups
   public-restricted statuses, along with tests for files as well utilizing
   the new groups
 
+0.190.6
+=======
+`PR 480: SN File data type and data category <http://github.com/smaht-dac/smaht-portal/pull/480>`_
+
+* Add enum "Fingerprint" to `data_type` for VariantCalls
+* Add enum "Consensus Reads" to `data_category` in UnalignedReads
+
 
 0.190.5
 =======
