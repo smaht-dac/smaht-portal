@@ -862,9 +862,34 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 	}
 }
 
-/**
-* Browse View
-**/
+/**************************************************
+************** Browse View Styles ****************
+***************************************************/
+
+body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-current-action="edit"]):not([data-at-type*="Error"]) {
+
+	// Donor Browse specific styles
+	&[data-at-type="DonorSearchResults"] {
+		.search-view-controls-and-results {
+			.facets-column {
+				.facets-header {
+					background-color: #F4F3FD;
+
+					.icon-toggle button[aria-pressed=true] {
+						background-color: #C4C1E0;
+					}
+				}
+			}
+
+			.results-column {
+				.search-headers-row {
+					background-color: #F4F3FD;
+				}
+			}
+		}
+	}
+}
+
 
 h2.browse-summary-header {
 	font-size: 1.5rem;
@@ -914,7 +939,12 @@ div.browse-body {
 					border-color: #5f99cf;
 				}
 			}
-		} 
+		}
+
+		.search-results-outer-container .search-results-container .search-result-row > .columns.result-table-row > .search-result-column-block > .inner > .toggle-detail-button-container {
+			display: flex;
+		}
+	
 	
 		.search-results-outer-container .search-results-container .search-result-row.detail-closed > .columns.result-table-row > .search-result-column-block[data-first-visible-column="true"][data-field="@type"],
 		.search-headers-row > .headers-columns-overflow-container > .columns > .search-headers-column-block[data-first-visible-column][data-field="@type"] {
