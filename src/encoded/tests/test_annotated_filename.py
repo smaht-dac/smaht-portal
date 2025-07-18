@@ -405,41 +405,49 @@ SOME_LIQUID_TISSUE_SAMPLE = {
 }
 SOME_OTHER_TISSUE_SAMPLE = {"category": "Core", "external_id": "SN001-01-010A1"}
 
+SOME_CELL_SAMPLE = {
+    'external_id': "ST002-1D-031-PTA"
+}
+
 @pytest.mark.parametrize(
-    "cell_culture_mixtures,cell_lines,tissue_samples,expected,errors",
+    "cell_culture_mixtures,cell_lines,tissue_samples,cell_samples,expected,errors",
     [
-        ([], [], [], "", True),
-        ([SOME_CELL_CULTURE_MIXTURE], [], [], DEFAULT_ABSENT_FIELD, False),
-        ([], [SOME_CELL_LINE], [], DEFAULT_ABSENT_FIELD, False),
+        ([], [], [], [], "", True),
+        ([SOME_CELL_CULTURE_MIXTURE], [], [], [], DEFAULT_ABSENT_FIELD, False),
+        ([], [SOME_CELL_LINE], [], [], DEFAULT_ABSENT_FIELD, False),
         (
             [SOME_CELL_CULTURE_MIXTURE],
             [SOME_CELL_LINE],
             [],
+            [],
             DEFAULT_ABSENT_FIELD,
             False,
         ),
-        ([], [], [SOME_OTHER_TISSUE_SAMPLE, SOME_CORE_TISSUE_SAMPLE], "", True),
-        ([], [], [SOME_CORE_TISSUE_SAMPLE], TISSUE_SAMPLE_ALIQUOT_ID, False),
-        ([], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE2], "MAMC", False),
-        ([], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], "100MC", False),
-        ([], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], "100MC", False),
-        ([], [], [SOME_CORE_TISSUE_SAMPLE,TPC_TISSUE_SAMPLE], TISSUE_SAMPLE_ALIQUOT_ID, False),
-        ([], [], [SOME_HOMOGENATE_TISSUE_SAMPLE], DEFAULT_ABSENT_FIELD * 2, False),
-        ([], [], [SOME_LIQUID_TISSUE_SAMPLE], DEFAULT_ABSENT_FIELD * 2, False),
-        ([], [], [SOME_CORE_TISSUE_SAMPLE, SOME_HOMOGENATE_TISSUE_SAMPLE], "MAMC", False),
-        ([SOME_CELL_CULTURE_MIXTURE], [], [SOME_CORE_TISSUE_SAMPLE], "", True),
-        ([], [SOME_CELL_LINE], [SOME_CORE_TISSUE_SAMPLE], "", True),
+        ([], [], [SOME_OTHER_TISSUE_SAMPLE, SOME_CORE_TISSUE_SAMPLE], [], "", True),
+        ([], [], [SOME_CORE_TISSUE_SAMPLE], [], TISSUE_SAMPLE_ALIQUOT_ID, False),
+        ([], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE2], [], "MAMC", False),
+        ([], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], [], "100MC", False),
+        ([], [], [SOME_CORE_TISSUE_SAMPLE,CORE_TISSUE_SAMPLE3], [], "100MC", False),
+        ([], [], [SOME_CORE_TISSUE_SAMPLE,TPC_TISSUE_SAMPLE], [], TISSUE_SAMPLE_ALIQUOT_ID, False),
+        ([], [], [SOME_HOMOGENATE_TISSUE_SAMPLE], [], DEFAULT_ABSENT_FIELD * 2, False),
+        ([], [], [SOME_LIQUID_TISSUE_SAMPLE], [], DEFAULT_ABSENT_FIELD * 2, False),
+        ([], [], [SOME_CORE_TISSUE_SAMPLE, SOME_HOMOGENATE_TISSUE_SAMPLE], [], "MAMC", False),
+        ([SOME_CELL_CULTURE_MIXTURE], [], [SOME_CORE_TISSUE_SAMPLE], [], "", True),
+        ([], [SOME_CELL_LINE], [SOME_CORE_TISSUE_SAMPLE], [], "", True),
+        ([], [], [SOME_CORE_TISSUE_SAMPLE], [SOME_CELL_SAMPLE], TISSUE_SAMPLE_ALIQUOT_ID, False),
+        ([], [], [], [SOME_CELL_SAMPLE], "XX", False),
     ],
 )
 def test_get_aliquot_id(
     cell_culture_mixtures: List[Dict[str, Any]],
     cell_lines: List[Dict[str, Any]],
     tissue_samples: List[Dict[str, Any]],
+    cell_samples: List[Dict[str, Any]],
     expected: str,
     errors: bool,
 ) -> None:
     """Test aliquot ID retrieval for annotated filenames."""
-    result = get_aliquot_id(cell_culture_mixtures, cell_lines, tissue_samples)
+    result = get_aliquot_id(cell_culture_mixtures, cell_lines, tissue_samples, cell_samples)
     assert_filename_part_matches(result, expected, errors)
 
 

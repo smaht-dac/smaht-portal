@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.190.9
+=======
+`PR 483: SN Single-cell annotated filenames  <http://github.com/smaht-dac/smaht-portal/pull/483>`_
+
+* Update `create_annotated_filenames.py` so that the aliquot ID portion returns "XX" if the samples are cell samples and no tissue samples are present
+
+
 0.190.8
 =======
 `PR 482: SN Revert RIN minimum <http://github.com/smaht-dac/smaht-portal/pull/482>`_
