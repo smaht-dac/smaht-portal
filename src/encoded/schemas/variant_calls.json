@@ -95,7 +95,8 @@
                     "Indel",
                     "MEI",
                     "SNV",
-                    "SV"
+                    "SV",
+                    "Fingerprint"
                 ]
             }
         },

@@ -7,11 +7,19 @@ smaht-portal
 Change Log
 ----------
 
-0.190.6
+0.190.7
 =======
 `PR 481: fix: update QC page/static section uuids to match portals <https://github.com/smaht-dac/smaht-portal/pull/481>`_
 
 * Update master-inserts uuids to match portals
+
+
+0.190.6
+=======
+`PR 480: SN File data type and data category <http://github.com/smaht-dac/smaht-portal/pull/480>`_
+
+* Add enum "Fingerprint" to `data_type` for VariantCalls
+* Add enum "Consensus Reads" to `data_category` in UnalignedReads
 
 
 0.190.5
