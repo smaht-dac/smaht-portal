@@ -82,99 +82,16 @@ class DonorRelease:
         return self.get_tissues_from_donor()
 
     @cached_property
-    def quality_metrics(self) -> List[dict]:
-        quality_metrics = self.get_items(file_utils.get_quality_metrics(self.file))
-        if not quality_metrics:
-            self.add_warning(
-                f"File {self.file_accession} does not have an associated QualityMetrics"
-                " item."
-            )
-        return quality_metrics
+    def tissue_samples(self) -> List[dict]:
+        return self.get_tissue_samples_from_tissues()
 
     @cached_property
-    def quality_metrics_zips(self) -> List[dict]:
-        return self.get_quality_metrics_zip_files()
+    def demographic(self) -> List[dict]:
+        return self.get_demographic_from_protected_donor()
 
     @cached_property
-    def libraries(self) -> List[dict]:
-        return self.get_items(
-            self.get_links(self.file_sets, file_set_utils.get_libraries)
-        )
-
-    @cached_property
-    def library_preparations(self) -> List[dict]:
-        return self.get_items(
-            self.get_links(self.libraries, library_utils.get_library_preparation)
-        )
-
-    @cached_property
-    def assays(self) -> List[dict]:
-        return self.get_items(self.get_links(self.libraries, library_utils.get_assay))
-
-    @cached_property
-    def sequencings(self) -> List[dict]:
-        return self.get_items(
-            self.get_links(self.file_sets, file_set_utils.get_sequencing)
-        )
-
-    @cached_property
-    def analytes(self) -> List[dict]:
-        return self.get_items(
-            self.get_links(self.libraries, library_utils.get_analytes)
-        )
-
-    @cached_property
-    def analyte_preparations(self) -> List[dict]:
-        return self.get_items(
-            self.get_links(self.analytes, analyte_utils.get_analyte_preparation)
-        )
-
-    @cached_property
-    def samples(self) -> List[dict]:
-        return self.get_items(self.get_links(self.analytes, analyte_utils.get_samples))
-
-    @cached_property
-    def sample_sources(self) -> List[dict]:
-        return self.get_items(
-            self.get_links(self.samples, sample_utils.get_sample_sources)
-        )
-
-    @cached_property
-    def cell_cultures_from_mixtures(self) -> List[dict]:
-        mixtures = [
-            sample_source
-            for sample_source in self.sample_sources
-            if cell_culture_mixture_utils.is_cell_culture_mixture(sample_source)
-        ]
-        cell_cultures = [
-            culture
-            for mixture in mixtures
-            for culture in cell_culture_mixture_utils.get_cell_cultures(mixture)
-        ]
-        if cell_cultures:
-            return self.get_items(cell_cultures)
-        return []
-
-    @cached_property
-    def cell_lines(self) -> List[dict]:
-        return self.get_items(
-            self.get_links(
-                self.sample_sources,
-                partial(sample_source_utils.get_cell_lines, self.request_handler),
-            )
-        )
-
-    @cached_property
-    def donors(self) -> List[dict]:
-        tissues = [
-            sample_source
-            for sample_source in self.sample_sources
-            if tissue_utils.is_tissue(sample_source)
-        ]
-        return self.get_items(
-            self.get_links(tissues, tissue_utils.get_donor)
-            + self.get_links(self.cell_lines, cell_line_utils.get_donor)
-        )
+    def death_circumstances(self) -> List[dict]:
+        return self.get_death_circumstances_from_protected_donor()
 
     def get_request_handler(self) -> RequestHandler:
         return RequestHandler(auth_key=self.key, frame="object", datastore="database")
@@ -228,27 +145,58 @@ class DonorRelease:
             )
         return mwfrs[0]
 
-    def get_all_output_files_from_mwfr(self, additional_filter) -> List[dict]:
-        """Get all the output files from the MetaWorkflowRun that generated the file to release
-
-        Returns:
-            List[dict]: List of output files
-        """
-        if not self.output_meta_workflow_run:
-            return []
-
-        search_filter = (
-            f"/search/?type=File&meta_workflow_run_outputs.uuid="
-            f"{item_utils.get_uuid(self.output_meta_workflow_run)}"
-        )
-        if additional_filter:
-            search_filter += f"&{additional_filter}"
-        return ff_utils.search_metadata(search_filter, key=self.key)
-
     def get_tissues_from_donor(self) -> List[dict]:
         search_filter = (
             f"/search/?type=Tissue&donor.uuid="
             f"{item_utils.get_uuid(self.donor)}"
+        )
+        return ff_utils.search_metadata(search_filter, key=self.key)
+    
+    def get_tissue_samples_from_tissue(self) -> List[dict]:
+        search_filter = "/search/?type=TissueSample&submission_centers.display_title=NDRI+TPC"
+        for tissue in self.tissues:
+            search_filter += f"{search_filter}&sample_sources.uuid={item_utils.get_uuid(tissue)}"
+        return ff_utils.search_metadata((search_filter), key=self.key)
+    
+    def get_demographic_from_protected_donor(self) -> List[dict]:
+        search_filter = (
+            f"/search/?type=Demographic&donor.uuid="
+            f"{item_utils.get_uuid(self.protected_donor)}"
+        )
+        return ff_utils.search_metadata(search_filter, key=self.key)
+
+    def get_death_circumstances_from_protected_donor(self) -> List[dict]:
+        search_filter = (
+            f"/search/?type=DeathCircumstances&donor.uuid="
+            f"{item_utils.get_uuid(self.protected_donor)}"
+        )
+        return ff_utils.search_metadata(search_filter, key=self.key)
+    
+    def get_family_histories_from_protected_donor(self) -> List[dict]:
+        search_filter = (
+            f"/search/?type=FamilyHistory&donor.uuid="
+            f"{item_utils.get_uuid(self.protected_donor)}"
+        )
+        return ff_utils.search_metadata(search_filter, key=self.key)
+
+    def get_tissue_collection_from_protected_donor(self) -> List[dict]:
+        search_filter = (
+            f"/search/?type=TissueCollection&donor.uuid="
+            f"{item_utils.get_uuid(self.protected_donor)}"
+        )
+        return ff_utils.search_metadata(search_filter, key=self.key)
+
+    def get_medical_history_from_protected_donor(self) -> List[dict]:
+        search_filter = (
+            f"/search/?type=MedicalHistory&donor.uuid="
+            f"{item_utils.get_uuid(self.protected_donor)}"
+        )
+        return ff_utils.search_metadata(search_filter, key=self.key)
+
+    def get_diagnoses_from_medical_history(self) -> List[dict]:
+        search_filter = (
+            f"/search/?type=Demographic&donor.uuid="
+            f"{item_utils.get_uuid(self.medical_history)}"
         )
         return ff_utils.search_metadata(search_filter, key=self.key)
 
