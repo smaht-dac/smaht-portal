@@ -56,7 +56,7 @@ class DonorRelease:
 
     @cached_property
     def protected_donor(self) -> dict:
-        return self.get_links(self.donor, donor_utils.get_protected_donor)
+        return donor_utils.get_protected_donor(self.donor)
 
     @cached_property
     def tissues(self) -> List[dict]:
@@ -114,20 +114,6 @@ class DonorRelease:
         """Get metadata for a list of identifiers."""
         return self.request_handler.get_items(identifiers)
 
-    def get_links(self, items: List[Dict[str, Any]], getter: Callable) -> List[str]:
-        """Get links from a list of items using a getter function.
-
-        Handle link as a string or a list of strings.
-        """
-        result = []
-        for item in items:
-            links = getter(item)
-            if isinstance(links, str):
-                result.append(links)
-            elif isinstance(links, list):
-                result.extend(links)
-        return result
-
     def get_tissues_from_donor(self) -> List[dict]:
         search_filter = (
             f"/search/?type=Tissue&donor.uuid="
@@ -135,11 +121,11 @@ class DonorRelease:
         )
         return ff_utils.search_metadata(search_filter, key=self.key)
     
-    def get_tissue_samples_from_tissue(self) -> List[dict]:
+    def get_tissue_samples_from_tissues(self) -> List[dict]:
         search_filter = "/search/?type=TissueSample&submission_centers.display_title=NDRI+TPC"
         for tissue in self.tissues:
-            search_filter += f"{search_filter}&sample_sources.uuid={item_utils.get_uuid(tissue)}"
-        return ff_utils.search_metadata((search_filter), key=self.key)
+            search_filter += f"&sample_sources.uuid={item_utils.get_uuid(tissue)}"
+        return ff_utils.search_metadata(search_filter, key=self.key)
     
     def get_demographic_from_protected_donor(self) -> List[dict]:
         search_filter = (
@@ -174,7 +160,7 @@ class DonorRelease:
             f"/search/?type=MedicalHistory&donor.uuid="
             f"{item_utils.get_uuid(self.protected_donor)}"
         )
-        return ff_utils.search_metadata(search_filter, key=self.key)
+        return result[0] if (result := ff_utils.search_metadata(search_filter, key=self.key)) else []
 
     def get_diagnoses_from_medical_history(self) -> List[dict]:
         search_filter = (
@@ -182,6 +168,7 @@ class DonorRelease:
             f"{item_utils.get_uuid(self.medical_history)}"
         )
         return ff_utils.search_metadata(search_filter, key=self.key)
+
     
     def get_exposures_from_medical_history(self) -> List[dict]:
         search_filter = (
@@ -198,28 +185,27 @@ class DonorRelease:
         return ff_utils.search_metadata(search_filter, key=self.key)
 
     def prepare(
-        self, dataset: str, **kwargs: Any
+        self, **kwargs: Any
     ) -> None:
         self.validate_donor()
         # The main donor needs to be the first patchdict.
         # - set to PUBLIC_DONOR_RELEASE_STATUS
-        self.add_release_donor_patchdict(self.donor, dataset)
-
+        self.add_release_donor_patchdict(self.donor)
+        
         # Public release items - set to PUBLIC_DONOR_RELEASE_STATUS
-        self.add_public_release_item_to_patchdict(
+        self.add_public_release_items_to_patchdict(
             self.tissues, "Tissue"
         ) 
-        self.add_public_release_item_to_patchdict(
+        self.add_public_release_items_to_patchdict(
             self.tissue_samples, "TissueSample"
         )
-
         # Protected release items - set to PROTECTED_DONOR_RELEASE_STATUS
-        self.add_protected_release_items_to_patchdict(self.protected_donor, "ProtectedDonor")
+        self.add_protected_release_item_to_patchdict(self.protected_donor, "ProtectedDonor")
         self.add_protected_release_items_to_patchdict(self.demographic, "Demographic")
         self.add_protected_release_items_to_patchdict(self.death_circumstances, "DeathCircumstances")
         self.add_protected_release_items_to_patchdict(self.family_histories, "FamilyHistory")
         self.add_protected_release_items_to_patchdict(self.tissue_collection, "TissueCollection")
-        self.add_protected_release_items_to_patchdict(self.medical_history, "MedicalHistory")
+        self.add_protected_release_item_to_patchdict(self.medical_history, "MedicalHistory")
         self.add_protected_release_items_to_patchdict(self.diagnoses, "Diagnosis")
         self.add_protected_release_items_to_patchdict(self.exposures, "Exposure")
         self.add_protected_release_items_to_patchdict(self.medical_treatments, "MedicalTreatment")
@@ -480,7 +466,7 @@ def main() -> None:
     donor_releases : List[DonorRelease] = []
     for donor_identifier in donors_to_release:
         donor_release = DonorRelease(auth_key=auth_key, donor_identifier=donor_identifier, verbose=verbose)
-        donor_release.prepare(dataset=args.dataset)
+        donor_release.prepare()
         donor_releases.append(donor_release)
 
     if args.dry_run:
