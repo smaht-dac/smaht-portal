@@ -99,6 +99,7 @@ class AssociatedItems:
     cell_culture_mixtures: List[Dict[str, Any]]
     cell_lines: List[Dict[str, Any]]
     tissue_samples: List[Dict[str, Any]]
+    cell_samples: List[Dict[str, Any]]
     tissues: List[Dict[str, Any]]
     donors: List[Dict[str, Any]]
     target_assembly: Dict[str, Any]
@@ -131,6 +132,7 @@ def get_associated_items(
     sequencers = get_sequencers(file_sets, request_handler)
     samples = get_samples(file_sets, request_handler)
     tissue_samples = get_tissue_samples(samples)
+    cell_samples = get_cell_samples(samples)
     sample_sources = get_sample_sources(samples, request_handler)
     cell_culture_mixtures = get_cell_culture_mixtures(sample_sources)
     tissues = get_tissues(sample_sources)
@@ -148,6 +150,7 @@ def get_associated_items(
         assays=assays,
         sequencers=sequencers,
         tissue_samples=tissue_samples,
+        cell_samples=cell_samples,
         sample_sources=sample_sources,
         cell_culture_mixtures=cell_culture_mixtures,
         tissues=tissues,
@@ -290,6 +293,11 @@ def get_samples(
 def get_tissue_samples(samples: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Filter samples to get tissue samples."""
     return [sample for sample in samples if sample_utils.is_tissue_sample(sample)]
+
+
+def get_cell_samples(samples: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Filter samples to get cell samples."""
+    return [sample for sample in samples if sample_utils.is_cell_sample(sample)]
 
 
 def get_sample_sources(
@@ -450,6 +458,7 @@ def get_annotated_filename(
         associated_items.cell_culture_mixtures,
         associated_items.cell_lines,
         associated_items.tissue_samples,
+        associated_items.cell_samples
     )
     donor_sex_and_age = get_donor_sex_and_age(
         associated_items.donors, associated_items.sample_sources
@@ -675,6 +684,7 @@ def get_aliquot_id(
     cell_culture_mixtures: List[Dict[str], Any],
     cell_lines: List[Dict[str], Any],
     tissue_samples: List[Dict[str], Any],
+    cell_samples: List[Dict[str], Any]
 ) -> FilenamePart:
     """Get tissue aliquot ID for file."""
 
@@ -683,6 +693,8 @@ def get_aliquot_id(
         parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
     if tissue_samples:
         parts.append(get_aliquot_id_from_samples(tissue_samples))
+    if cell_samples:
+        parts.append(get_filename_part(value=(DEFAULT_ABSENT_FIELD * 2)))
     return get_exclusive_filename_part(parts, "tissue aliquot ID")
 
 
