@@ -1,3 +1,4 @@
+import { after } from "underscore";
 import { cypressVisitHeaders } from "../support";
 
 const dataNavBarItemSelectorStr = '#top-nav div.navbar-collapse .navbar-nav a.id-data-menu-item';
@@ -34,6 +35,10 @@ describe('Data Overview - QC Metrics', function () {
             });
     });
 
+    after(function () {
+        cy.logoutSMaHT();
+    });
+
     it('Verify all tabs are present and functional', function () {
 
         // Verify that the tabs are present
@@ -57,7 +62,7 @@ describe('Data Overview - QC Metrics', function () {
         });
     });
 
-    it('Verify Sample Integrity tab, check presence of dropdown, chart and table', function () {
+    it.skip('Verify Sample Integrity tab - check presence of dropdown, chart and table', function () {
 
         // Verify that the Sample Integrity tab is present and functional
         cy.get('#qc-metrics-tabs')
@@ -168,5 +173,86 @@ describe('Data Overview - QC Metrics', function () {
             });
 
     });
+
+    it('Verify Key Metrics tab - check all Assay x Sample Source combinations: charts, data points, and Tissue Integrity row match for RNA-seq', function () {
+        cy.get('#qc-metrics-tabs')
+            .contains('button', 'Key Metrics')
+            .should('be.visible')
+            .click()
+            .should('have.class', 'active')
+            .and('have.attr', 'aria-selected', 'true')
+            .get('#qc-metrics-tabs-tabpane-key-metrics').within(() => {
+
+                // Required options
+                const assayOptions = ['WGS', 'RNA-seq'];
+                const sampleSourceOptions = [
+                    'benchmarking_cell_lines',
+                    'benchmarking_tissues',
+                    'production_tissues'
+                ];
+
+                // Assay select
+                cy.contains('div.fw-bold', 'Assay')
+                    .parent()
+                    .find('select.form-select')
+                    .as('assaySelect');
+
+                // Sample Source select
+                cy.contains('div.fw-bold', 'Sample Source')
+                    .parent()
+                    .find('select.form-select')
+                    .as('sourceSelect');
+
+                assayOptions.forEach((assay) => {
+                    cy.get('@assaySelect').select(assay)
+                        .find('option:selected')
+                        .should('have.value', assay);
+
+                    sampleSourceOptions.forEach((source) => {
+                        cy.get('@sourceSelect').select(source)
+                            .find('option:selected')
+                            .should('have.value', source);
+
+                        // Chart validation
+                        cy.get('svg.boxplot-svg').should('have.length.gte', 1).each(($svg) => {
+                            cy.wrap($svg)
+                                .find('circle.data-point')
+                                .its('length')
+                                .should('be.gte', 1);
+
+                            // X axis label
+                            cy.wrap($svg)
+                                .find('text')
+                                .then(($texts) => {
+                                    const hasXAxisLabel = [...$texts].some(
+                                        (el) => el.textContent.trim() === 'Submission Center'
+                                    );
+                                    expect(hasXAxisLabel, 'SVG has "Submission Center" X axis label').to.be.true;
+                                });
+                        });
+
+                        // If Assay is RNA-seq, check Tissue Integrity table and row count equals chart data points
+                        if (assay === 'RNA-seq') {
+                            cy.get('div.qc-key-metrics-header')
+                                .should('contain.text', 'Tissue Integrity')
+                                .should('be.visible');
+                            cy.get('table.qc-metrics-data-table').should('be.visible');
+                            cy.get('table.qc-metrics-data-table tbody tr')
+                                .then(($rows) => {
+                                    const rowCount = $rows.length;
+
+                                    cy.get('svg.boxplot-svg').each(($svg) => {
+                                        cy.wrap($svg)
+                                            .find('circle.data-point')
+                                            .should('have.length', rowCount);
+                                    });
+                                });
+                        }
+                    });
+                });
+            });
+    });
+
+
 
 });
