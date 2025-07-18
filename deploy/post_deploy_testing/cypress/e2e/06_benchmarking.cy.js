@@ -1,5 +1,4 @@
 import { cypressVisitHeaders } from "../support";
-import { navUserAcctDropdownBtnSelector } from "../support/selectorVars";
 
 const dataNavBarItemSelectorStr = '#top-nav div.navbar-collapse .navbar-nav a.id-data-menu-item';
 
@@ -41,12 +40,9 @@ describe('Benchmarking Layout Test', function () {
 
     before(function () {
         cy.visit('/', { headers: cypressVisitHeaders });
-        cy.loginSMaHT({ email: 'cypress-main-scientist@cypress.hms.harvard.edu', useEnvToken: false }).end()
-            .get(navUserAcctDropdownBtnSelector)
-            .should('not.contain.text', 'Login')
-            .then((accountListItem) => {
-                expect(accountListItem.text()).to.contain('SCM');
-            }).end();
+        cy.loginSMaHT({ email: 'cypress-main-scientist@cypress.hms.harvard.edu', useEnvToken: false })
+            .validateUser('SCM')
+            .end();
     });
 
     after(function () {
@@ -116,6 +112,7 @@ describe('Benchmarking Layout Test', function () {
                                                         cy.wrap($button)
                                                             .find('.badge')
                                                             .invoke('text')
+                                                            .should('not.equal', '-')
                                                             .then((badgeText) => {
                                                                 expect(badgeText.trim()).to.equal(originalFileText.trim());
                                                             });

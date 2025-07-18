@@ -1,8 +1,5 @@
 import { cypressVisitHeaders } from '../support';
-import {
-    navBrowseBtnSelector,
-    navUserAcctDropdownBtnSelector,
-} from '../support/selectorVars';
+import { navBrowseBtnSelector } from '../support/selectorVars';
 
 const dataNavBarItemSelectorStr =
     '#top-nav div.navbar-collapse .navbar-nav a.id-data-menu-item';
@@ -14,12 +11,7 @@ describe('Browse Views - Basic Tests', function () {
             email: 'cypress-main-scientist@cypress.hms.harvard.edu',
             useEnvToken: false,
         })
-            .end()
-            .get(navUserAcctDropdownBtnSelector)
-            .should('not.contain.text', 'Login')
-            .then((accountListItem) => {
-                expect(accountListItem.text()).to.contain('SCM');
-            })
+            .validateUser('SCM')
             .end();
     });
 
@@ -58,8 +50,8 @@ describe('Browse Views - Basic Tests', function () {
             );
         });
 
-        //TODO: Add test for when we have data to test with.
-        it.skip('There is at least 1 Donor in default browse view.', function () {
+        // Verify the counts
+        it('There is at least 1 Donor in default browse view.', function () {
             cy.getQuickInfoBar().then((info) => {
                 cy.log('Files Generated: ' + info.file);
                 expect(info.file).to.be.at.least(1);
@@ -74,7 +66,7 @@ describe('Browse Views - Basic Tests', function () {
                 expect(info.assay).to.be.at.least(1);
 
                 cy.log('Total File Size: ' + info['file-size']);
-                expect(info['file-size']).to.be.at.least(1);
+                expect(info['file-size']).to.be.at.least(0.01);
             });
         });
 
@@ -204,8 +196,6 @@ describe('Browse Views - Basic Tests', function () {
                 .get(
                     '.facet.closed[data-field="file_sets.libraries.assay.display_title"] > h5'
                 )
-                // .scrollIntoView()
-                // .should('be.visible')
                 .click()
                 .end()
                 .get(

@@ -50,6 +50,7 @@ export default class DataMatrix extends React.PureComponent {
         "defaultOpen": false,
         "compositeValueSeparator": " ",
         "disableConfigurator": true,
+        "idLabel": "",
     };
 
     static propTypes = {
@@ -90,6 +91,7 @@ export default class DataMatrix extends React.PureComponent {
         'defaultOpen': PropTypes.bool,
         'compositeValueSeparator': PropTypes.string,
         'disableConfigurator': PropTypes.bool,
+        'idLabel': PropTypes.string,
     };
 
     static parseQuery(queryString) {
@@ -424,7 +426,7 @@ export default class DataMatrix extends React.PureComponent {
     render() {
         const {
             headerFor, valueChangeMap, allowedFields, compositeValueSeparator,
-            disableConfigurator = false
+            disableConfigurator = false, idLabel = ''
         } = this.props;
         const {
             query, fieldChangeMap, columnGrouping, groupingProperties,
@@ -511,7 +513,7 @@ export default class DataMatrix extends React.PureComponent {
             </div>
         );
         return (
-            <div className="static-section data-matrix">
+            <div id={`data-matrix-for_${idLabel}`} className="static-section data-matrix">
                 <div className="row">
                     {body}
                 </div>
