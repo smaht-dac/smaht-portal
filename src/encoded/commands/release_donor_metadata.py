@@ -1,38 +1,21 @@
 import argparse
 import pprint
-from dataclasses import dataclass
-from functools import cached_property, partial
+from functools import cached_property
 from typing import Callable, Dict, List, Any
 
 from dcicutils import ff_utils  # noqa
 from dcicutils.creds_utils import SMaHTKeyManager  # noqa
 
-from encoded.commands import create_annotated_filenames as caf
 from encoded.commands.utils import get_auth_key
 from encoded.item_utils import (
     donor as donor_utils,
-    tissue as tissue_utils,
-    analyte as analyte_utils,
-    cell_culture_mixture as cell_culture_mixture_utils,
-    cell_line as cell_line_utils,
-    file as file_utils,
-    file_set as file_set_utils,
     item as item_utils,
-    library as library_utils,
-    meta_workflow_run as meta_workflow_run_utils,
-    output_file as output_file_utils,
-    quality_metric as quality_metric_utils,
-    sample as sample_utils,
-    sample_source as sample_source_utils,
-    submitted_file as submitted_file_utils,
 
 )
 from encoded.item_utils.constants import (
-    file as file_constants,
     item as item_constants,
 )
 from encoded.item_utils.utils import RequestHandler
-from encoded.server_defaults import ACCESSION_PREFIX
 
 pp = pprint.PrettyPrinter(indent=2)
 
@@ -58,8 +41,6 @@ PUBLIC_DONOR_RELEASE_STATUS = "released" ## When portal becomes public, this wil
 PROTECTED_DONOR_RELEASE_STATUS = "released" ## When portal becomes public, this will be "public-restricted"
 
 class DonorRelease:
-
-    TISSUE = "tissue"
 
     def __init__(self, auth_key: dict, donor_identifier: str, verbose: bool = True):
         self.key = auth_key
@@ -92,6 +73,30 @@ class DonorRelease:
     @cached_property
     def death_circumstances(self) -> List[dict]:
         return self.get_death_circumstances_from_protected_donor()
+    
+    @cached_property
+    def family_histories(self) -> List[dict]:
+        return self.get_family_histories_from_protected_donor()
+    
+    @cached_property
+    def tissue_collection(self) -> List[dict]:
+        return self.get_tissue_collection_from_protected_donor()
+    
+    @cached_property
+    def medical_history(self) -> List[dict]:
+        return self.get_medical_history_from_protected_donor()
+    
+    @cached_property
+    def diagnoses(self) -> List[dict]:
+        return self.get_diagnoses_from_medical_history()
+    
+    @cached_property
+    def exposures(self) -> List[dict]:
+        return self.get_exposures_from_medical_history()
+    
+    @cached_property
+    def medical_treatments(self) -> List[dict]:
+        return self.get_medical_treatments_from_medical_history()
 
     def get_request_handler(self) -> RequestHandler:
         return RequestHandler(auth_key=self.key, frame="object", datastore="database")
@@ -122,28 +127,6 @@ class DonorRelease:
             elif isinstance(links, list):
                 result.extend(links)
         return result
-
-    def get_output_meta_workflow_run(self) -> dict:
-        """Get the MetaWorkflowRun that generated the file to release
-
-        Returns:
-            dict: MetaWorkflowRun
-        """
-        if item_utils.get_type(self.file) != "OutputFile":
-            return None
-        search_filter = (
-            f"/search/?type=MetaWorkflowRun&workflow_runs.output.file.uuid="
-            f"{item_utils.get_uuid(self.file)}"
-        )
-        mwfrs = ff_utils.search_metadata(search_filter, key=self.key)
-        if len(mwfrs) != 1:    
-            self.print_error_and_exit(
-                (
-                    f"Expected exactly one associated MetaWorkflowRun, got"
-                    f" {len(mwfrs)}: {search_filter} for file {self.file_accession}"
-                )
-            )
-        return mwfrs[0]
 
     def get_tissues_from_donor(self) -> List[dict]:
         search_filter = (
@@ -195,7 +178,21 @@ class DonorRelease:
 
     def get_diagnoses_from_medical_history(self) -> List[dict]:
         search_filter = (
-            f"/search/?type=Demographic&donor.uuid="
+            f"/search/?type=Diagnosis&medical_history.uuid="
+            f"{item_utils.get_uuid(self.medical_history)}"
+        )
+        return ff_utils.search_metadata(search_filter, key=self.key)
+    
+    def get_exposures_from_medical_history(self) -> List[dict]:
+        search_filter = (
+            f"/search/?type=Exposure&medical_history.uuid="
+            f"{item_utils.get_uuid(self.medical_history)}"
+        )
+        return ff_utils.search_metadata(search_filter, key=self.key)
+    
+    def get_medical_treatments_from_medical_history(self) -> List[dict]:
+        search_filter = (
+            f"/search/?type=MedicalTreatment&medical_history.uuid="
             f"{item_utils.get_uuid(self.medical_history)}"
         )
         return ff_utils.search_metadata(search_filter, key=self.key)
@@ -261,7 +258,7 @@ class DonorRelease:
             print(str(e))
             self.print_error_and_exit(f"Patching failed for donor {self.donor_accession}.")
 
-        to_print = f"Release of Donor {self.file_accession} completed."
+        to_print = f"Release of Donor {self.donor_accession} completed."
         print(ok_green_text(to_print))
 
     def validate_patch(self, patch_body: Dict[str, Any]) -> None:
@@ -366,12 +363,12 @@ class DonorRelease:
     ) -> None:
         patch_body = {
             item_constants.UUID: item_utils.get_uuid(donor),
-            file_constants.STATUS: PUBLIC_DONOR_RELEASE_STATUS
+            item_constants.STATUS: PUBLIC_DONOR_RELEASE_STATUS
         }
         self.patch_infos.extend(
             [
                 f"\nDonor ({self.donor_accession}):",
-                self.get_okay_message(file_constants.STATUS, PUBLIC_DONOR_RELEASE_STATUS),
+                self.get_okay_message(item_constants.STATUS, PUBLIC_DONOR_RELEASE_STATUS),
             ]
         )
         self.patch_dicts.append(patch_body)
@@ -379,7 +376,7 @@ class DonorRelease:
 
     def validate_donor(self) -> None:
         self.validate_donor_output_status()
-        self.validate_file_status()
+        self.validate_donor_status()
 
 
     def validate_donor_output_status(self) -> None:
@@ -388,7 +385,7 @@ class DonorRelease:
         ) != "Donor":
             self.add_warning(f"{self.donor_accession} is not a donor item.")
 
-    def validate_file_status(self) -> None:
+    def validate_donor_status(self) -> None:
         if not item_utils.get_status(self.donor) == "in-review":
             self.add_warning(
                 f"Donor {self.donor_accession} has status"
@@ -488,7 +485,7 @@ def main() -> None:
 
     if args.dry_run:
         for donor_release in donor_releases: 
-            print(f"\nPatch dicts for file {warning_text(donor_release.donor_accession)}:\n")
+            print(f"\nPatch dicts for donor {warning_text(donor_release.donor_accession)}:\n")
             donor_release.show_patch_dicts()
         exit()
 
