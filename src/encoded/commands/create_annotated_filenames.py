@@ -693,7 +693,7 @@ def get_aliquot_id(
         parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
     if tissue_samples:
         parts.append(get_aliquot_id_from_samples(tissue_samples))
-    if cell_samples:
+    elif cell_samples:
         parts.append(get_filename_part(value=(DEFAULT_ABSENT_FIELD * 2)))
     return get_exclusive_filename_part(parts, "tissue aliquot ID")
 
