@@ -62,7 +62,7 @@ describe('Data Overview - QC Metrics', function () {
         });
     });
 
-    it.skip('Verify Sample Integrity tab - check presence of dropdown, chart and table', function () {
+    it('Verify Sample Integrity tab - check presence of dropdown, chart and table', function () {
 
         // Verify that the Sample Integrity tab is present and functional
         cy.get('#qc-metrics-tabs')
@@ -251,6 +251,120 @@ describe('Data Overview - QC Metrics', function () {
                     });
                 });
             });
+    });
+
+    it('Verify Metrics - All tab: sample 5 QC metrics and 5 sample sources, all filter combinations, chart, and table content', () => {
+        cy.get('#qc-metrics-tabs')
+            .contains('button', 'Metrics - All')
+            .should('be.visible')
+            .click()
+            .should('have.class', 'active')
+            .and('have.attr', 'aria-selected', 'true');
+
+        cy.get('#qc-metrics-tabs-tabpane-all-metrics').within(($tabPane) => {
+            // Helper functions for selects (scoped within tab pane)
+            const getQCMetricsCombobox = () => cy.get('[role="combobox"]').first();
+            const getGroupingSelect = () => cy.contains('div.fw-bold', 'Grouping').next('select.form-select');
+            const getAssaySelect = () => cy.contains('div.fw-bold', 'Assay').next('select.form-select');
+            const getSampleSourceSelect = () => cy.contains('div.fw-bold', 'Cell line').next('select.form-select');
+            const getSequencerSelect = () => cy.contains('div.fw-bold', 'Sequencer').next('select.form-select');
+
+            // Get Grouping, Assay and Sequencer options once
+            getGroupingSelect().find('option').then(($gOpts) => {
+                const groupingOptions = [...$gOpts].map((opt) => opt.value);
+
+                getAssaySelect().find('option').then(($aOpts) => {
+                    const assayOptions = [...$aOpts].map((opt) => opt.value);
+
+                    getSequencerSelect().find('option').then(($seqOpts) => {
+                        const sequencerOptions = [...$seqOpts].map((opt) => opt.value);
+
+                        // Loop all Assay options, and inside each, sample QC metrics and sample sources
+                        assayOptions.forEach((assay) => {
+                            // Select Assay and ensure it is set
+                            getAssaySelect().select(assay);
+
+                            // Now, get the current available QC metric options for this assay
+                            getQCMetricsCombobox().click();
+                            cy.get('[role="option"]').then(($qcOpts) => {
+                                let qcMetricOptions = [...$qcOpts].map((opt) => opt.textContent.trim());
+                                // Shuffle and pick 5 random QC metrics (or less if fewer)
+                                qcMetricOptions = Cypress._.shuffle(qcMetricOptions).slice(0, 5);
+
+                                // Get available Sample Source options for this assay
+                                getSampleSourceSelect().find('option').then(($sOpts) => {
+                                    let sampleSourceOptions = [...$sOpts].map((opt) => opt.value);
+                                    sampleSourceOptions = Cypress._.shuffle(sampleSourceOptions).slice(0, 5);
+
+                                    qcMetricOptions.forEach((qcMetric) => {
+                                        groupingOptions.forEach((grouping) => {
+                                            sampleSourceOptions.forEach((sampleSource) => {
+                                                sequencerOptions.forEach((sequencer) => {
+                                                    // Set QC metric (react-select)
+                                                    getQCMetricsCombobox().click();
+                                                    cy.get('[role="option"]').contains(qcMetric).click();
+
+                                                    // Set Grouping
+                                                    getGroupingSelect().select(grouping);
+
+                                                    // Set Sample Source
+                                                    getSampleSourceSelect().select(sampleSource);
+
+                                                    // Set Sequencer
+                                                    getSequencerSelect().select(sequencer);
+
+                                                    // Remove [source] from QC metric for axis/table checks
+                                                    const qcMetricYTitle = qcMetric.replace(/\s*\[.*?\]/, '').trim();
+                                                    // Make x axis title readable
+                                                    const groupingXTitle = grouping
+                                                        .replace(/_/g, ' ')
+                                                        .replace(/\b\w/g, (c) => c.toUpperCase());
+
+                                                    // Check for "No data available" message in scope
+                                                    cy.wrap($tabPane).then(($pane) => {
+                                                        cy.wrap($pane).find('.boxplot-svg, .text-center:contains("No data available for the selected filters.")', { timeout: 20000 })
+                                                            .should('have.length.gte', 1)
+                                                            .then(($elements) => {
+                                                                const noDataMsg = $elements.filter('.text-center:contains("No data available for the selected filters.")');
+                                                                if (noDataMsg.length > 0) {
+                                                                    cy.wrap(noDataMsg).should('be.visible');
+                                                                } else {
+                                                                    const $svg = $elements.filter('.boxplot-svg').first();
+                                                                    cy.wrap($svg).within(() => {
+                                                                        cy.contains('text', qcMetricYTitle).should('exist');
+                                                                        cy.get('text').then(($labels) => {
+                                                                            const found = [...$labels].some((el) =>
+                                                                                el.textContent.trim().toLowerCase() === groupingXTitle.toLowerCase()
+                                                                            );
+                                                                            expect(found, `Axis label for ${groupingXTitle} found`).to.be.true;
+                                                                        });
+
+                                                                        cy.get('circle.data-point').its('length').should('be.gte', 1);
+
+                                                                        cy.wrap($tabPane).find('.qc-metrics-data-table table').within(() => {
+                                                                            cy.get('thead th').eq(2)
+                                                                                .should('contain.text', qcMetricYTitle);
+                                                                            cy.get('tbody tr').should('have.length.at.least', 1);
+                                                                            cy.get('tbody tr').each(($row) => {
+                                                                                cy.wrap($row).find('td').eq(6).should('contain.text', assay);
+                                                                            });
+                                                                        });
+                                                                    });
+                                                                }
+                                                            });
+                                                    });
+
+                                                });
+                                            });
+                                        });
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        });
     });
 
 
