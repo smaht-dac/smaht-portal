@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.190.9
+=======
+`PR 487: SN Fix ResourceFile data_category <http://github.com/smaht-dac/smaht-portal/pull/487>`_
+
+* Fix the `data_category` enums in ResourceFile to include "Donor Supplement" and set to `default`
+
+
 0.190.8
 =======
 `PR 482: SN Revert RIN minimum <http://github.com/smaht-dac/smaht-portal/pull/482>`_
