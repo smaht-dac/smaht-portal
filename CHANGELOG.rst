@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.191.0
+=======
+`PR 486: SN Sequencing center patching for submitted files <http://github.com/smaht-dac/smaht-portal/pull/486>`_
+
+* In `commands/release_file.py`, update the initial patch of the file to include the `sequencing center` as the `submission center` for SubmittedFiles (not OutputFiles)
+* In `commands/create_annotated_filenames.py`, for SubmittedFiles use the `submission center` as the `sequencing center` for the center code
+
+
 0.190.8
 =======
 `PR 482: SN Revert RIN minimum <http://github.com/smaht-dac/smaht-portal/pull/482>`_
