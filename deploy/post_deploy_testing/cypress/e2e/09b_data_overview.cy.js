@@ -486,4 +486,134 @@ describe('Data Overview - QC Metrics', function () {
         });
     });
 
+    // Cypress E2E Test: Verify Metric by file tab (file selection, dynamic QC metric chips, chart titles and axes)
+    it('Verify Metric by file tab: file selection, dynamic QC metric chips, chart titles and axes', function () {
+        // Go to the Metrics by file tab and activate it
+        cy.get('#qc-metrics-tabs')
+            .contains('button', 'Metrics by file')
+            .should('be.visible')
+            .click()
+            .should('have.class', 'active')
+            .and('have.attr', 'aria-selected', 'true');
+
+        // Work within the "Metrics by file" tab panel
+        cy.get('#qc-metrics-tabs-tabpane-metrics-by-file').within(function () {
+
+            // 1. Assert file filter is initially empty
+            cy.contains('div.fw-bold', 'File')
+                .parent()
+                .find('input[role="combobox"]')
+                .should('exist')
+                .and('have.value', '');
+
+            // 2. QC metric combobox should display correct placeholder when no file is selected
+            cy.contains('div.fw-bold', 'QC metric')
+                .parent()
+                .find('div[id^="react-select-"][id$="-placeholder"]')
+                .should('contain.text', 'Select a file to see available QC metrics');
+
+            // 3. Open file combobox and select the first file option
+            cy.contains('div.fw-bold', 'File')
+                .parent()
+                .find('input[role="combobox"]')
+                .click();
+
+            cy.get('[role="option"]').should('have.length.gte', 1);
+
+            cy.get('[role="option"]').first().then(function ($opt) {
+                const fileName = Cypress.$($opt).text().trim();
+                cy.wrap($opt).click();
+
+                // Verify selected file appears in singleValue container
+                cy.contains('div.fw-bold', 'File')
+                    .parent()
+                    .find('[class*="singleValue"], [id$="single-value"]')
+                    .should('contain.text', fileName);
+            });
+
+            // 4. Assert QC metric chips (label + remove button) and chart titles match
+            cy.contains('div.fw-bold', 'QC metric')
+                .parent()
+                .find('div[role="button"][aria-label^="Remove"]')
+                .each(function ($btn, idx) {
+                    // Each chip: the previous sibling holds the label (use previousElementSibling for label)
+                    const $label = $btn[0].previousElementSibling;
+                    if ($label) {
+                        const chipLabel = $label.textContent.replace(/×$/, '').trim();
+                        const yLabel = chipLabel.replace(/\s*\[.*?\]/, '').trim();
+
+                        // Assert chart title matches chip label exactly
+                        cy.get('.qc-boxplot-title').eq(idx).should('have.text', chipLabel);
+
+                        // Assert chart axis labels and at least one data point
+                        cy.get('.boxplot-svg').eq(idx).within(function () {
+                            cy.contains('text', yLabel).should('exist');
+                            cy.contains('text', 'Submission Center').should('exist');
+                            cy.get('circle.data-point').should('have.length.gte', 1);
+                        });
+                    }
+                });
+
+            // 5. Remove the first QC metric chip and assert that charts and titles decrease
+            cy.contains('div.fw-bold', 'QC metric')
+                .parent()
+                .find('div[role="button"][aria-label^="Remove"]')
+                .then(function ($btns) {
+                    const count = $btns.length;
+                    if (count > 1) {
+                        cy.wrap($btns).first().click();
+                        cy.contains('div.fw-bold', 'QC metric')
+                            .parent()
+                            .find('div[role="button"][aria-label^="Remove"]').should('have.length', count - 1);
+                        cy.get('.qc-boxplot-title').should('have.length', count - 1);
+                        cy.get('.boxplot-svg').should('have.length', count - 1);
+                    }
+                });
+
+            // 6. If available, add a new QC metric chip via combobox and assert all counts increase
+            cy.contains('div.fw-bold', 'QC metric')
+                .parent()
+                .find('input[role="combobox"]')
+                .click();
+            cy.get('[role="option"]').then(function ($options) {
+                // Collect current chip labels
+                const chipLabels = [];
+                cy.contains('div.fw-bold', 'QC metric')
+                    .parent()
+                    .find('div[role="button"][aria-label^="Remove"]').each(function ($btn) {
+                        const $label = $btn[0].previousElementSibling;
+                        if ($label) chipLabels.push($label.textContent.replace(/×$/, '').trim());
+                    });
+                // Find an option that is not currently selected as a chip
+                const toAdd = [...$options].find(function (opt) {
+                    return !chipLabels.includes(opt.textContent.trim());
+                });
+                if (toAdd) {
+                    cy.wrap(toAdd).click();
+                    cy.contains('div.fw-bold', 'QC metric')
+                        .parent()
+                        .find('div[role="button"][aria-label^="Remove"]').should('have.length.gte', chipLabels.length + 1);
+                    cy.get('.qc-boxplot-title').should('have.length.gte', chipLabels.length + 1);
+                    cy.get('.boxplot-svg').should('have.length.gte', chipLabels.length + 1);
+                }
+            });
+
+            // 7. Remove all chips one by one, and assert that charts and titles disappear in sync
+            cy.contains('div.fw-bold', 'QC metric')
+                .parent()
+                .find('div[role="button"][aria-label^="Remove"]').then(function ($btns) {
+                    for (let i = $btns.length; i > 0; i--) {
+                        cy.contains('div.fw-bold', 'QC metric')
+                            .parent()
+                            .find('div[role="button"][aria-label^="Remove"]')
+                            .first()
+                            .click();
+                        cy.get('.qc-boxplot-title').should('have.length', i - 1);
+                        cy.get('.boxplot-svg').should('have.length', i - 1);
+                    }
+                });
+        });
+    });
+
+
 });
