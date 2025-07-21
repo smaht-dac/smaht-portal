@@ -7,11 +7,25 @@ smaht-portal
 Change Log
 ----------
 
-0.190.7
+0.190.9
 =======
 `PR 485: feat: add values column for enums and suggested values <https://github.com/smaht-dac/smaht-portal/pull/485>`_
 
 * Add column for enums in Submission Data Dictionary
+
+
+0.190.8
+=======
+`PR 482: SN Revert RIN minimum <http://github.com/smaht-dac/smaht-portal/pull/482>`_
+
+* Revert the minimum for `rna_integrity_number` to 1
+
+
+0.190.7
+=======
+`PR 481: fix: update QC page/static section uuids to match portals <https://github.com/smaht-dac/smaht-portal/pull/481>`_
+
+* Update master-inserts uuids to match portals
 
 
 0.190.6
