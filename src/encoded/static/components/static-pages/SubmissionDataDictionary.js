@@ -17,6 +17,7 @@ const SchemaPropertiesTable = ({ data = {} }) => {
                     <th className="text-left">Description</th>
                     <th className="text-left">Type</th>
                     <th className="text-left">Pattern</th>
+                    <th className="text-left">Values</th>
                     <th className="text-left">Also Requires</th>
                     <th className="text-left">LinkTo</th>
                     <th className="text-left">Note</th>
@@ -59,6 +60,26 @@ const SchemaPropertiesTable = ({ data = {} }) => {
                             {/* Pattern */}
                             {item?.pattern ? (
                                 <td className="text-left">{item.pattern}</td>
+                            ) : (
+                                <td className="text-left text-secondary">-</td>
+                            )}
+                            {/* Also Requires */}
+                            {item?.enum?.length || item?.suggested_enum ? (
+                                <td className="text-left">
+                                    {/* If enums are present, display it */}
+                                    {item?.enum?.length > 0 && (
+                                        <p>
+                                            <b>Options:</b>{' '}
+                                            {item.enum.join(', ')}
+                                        </p>
+                                    )}
+                                    {item?.suggested_enum?.length > 0 && (
+                                        <p>
+                                            <b>Examples:</b>{' '}
+                                            {item.suggested_enum.join(', ')}
+                                        </p>
+                                    )}
+                                </td>
                             ) : (
                                 <td className="text-left text-secondary">-</td>
                             )}
