@@ -66,7 +66,7 @@ const SchemaPropertiesTable = ({ data = {} }) => {
                             {/* Also Requires */}
                             {item?.enum?.length || item?.suggested_enum ? (
                                 <td className="text-left">
-                                    {/* If enums are present, display it */}
+                                    {/* If enums/suggested enums are present, display them */}
                                     {item?.enum?.length > 0 && (
                                         <p>
                                             <b>Options:</b>{' '}
