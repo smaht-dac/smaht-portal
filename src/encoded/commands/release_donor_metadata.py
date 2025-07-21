@@ -485,13 +485,14 @@ def main() -> None:
             f"Data will be patched on {warning_text(server)}."
             f"\nYou have the following options: "
             f"\ny - Proceed with release"
-            f"\np - Show patch dictionaries (only the first dictionary will be patched) "
+            f"\np - Show patch dictionaries"
             f"\nn - Abort "
             f"\n(y,p,n): "
         )
         if resp in ["y", "yes"]:
             for donor_release in donor_releases: 
                 donor_release.execute()
+            break
         elif resp in ["p"]:
             for donor_release in donor_releases:
                 print(f"\nPatch dicts for donor {warning_text(donor_release.donor_accession)}:")
