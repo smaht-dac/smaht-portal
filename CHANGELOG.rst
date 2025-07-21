@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.190.7
+=======
+`PR 485: feat: add values column for enums and suggested values <https://github.com/smaht-dac/smaht-portal/pull/485>`_
+
+* Add column for enums in Submission Data Dictionary
+
+
 0.190.6
 =======
 `PR 480: SN File data type and data category <http://github.com/smaht-dac/smaht-portal/pull/480>`_
