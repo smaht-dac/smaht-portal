@@ -56,7 +56,7 @@ class DonorRelease:
 
     @cached_property
     def protected_donor(self) -> dict:
-        return donor_utils.get_protected_donor(self.donor)
+        return self.get_protected_donor_from_donor()
 
     @cached_property
     def tissues(self) -> List[dict]:
@@ -113,6 +113,10 @@ class DonorRelease:
     def get_items(self, identifiers: List[str]) -> List[dict]:
         """Get metadata for a list of identifiers."""
         return self.request_handler.get_items(identifiers)
+    
+    def get_protected_donor_from_donor(self) -> List[dict]:
+        protected_donor = donor_utils.get_protected_donor(self.donor)
+        return self.get_metadata(protected_donor)
 
     def get_tissues_from_donor(self) -> List[dict]:
         search_filter = (
@@ -366,13 +370,13 @@ class DonorRelease:
 
 
     def validate_donor_output_status(self) -> None:
-        if not item_utils.get_type(
+        if item_utils.get_type(
             self.donor
         ) != "Donor":
-            self.add_warning(f"{self.donor_accession} is not a donor item.")
+            self.print_error_and_exit(f"{self.donor_accession} is not a Donor item.")
 
     def validate_donor_status(self) -> None:
-        if not item_utils.get_status(self.donor) == "in-review":
+        if item_utils.get_status(self.donor) != "in review":
             self.add_warning(
                 f"Donor {self.donor_accession} has status"
                 f" `{item_utils.get_status(self.donor)}`."
