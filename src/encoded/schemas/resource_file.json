@@ -86,11 +86,11 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "Metadata"
+                    "Metadata",
+                    "Donor Supplement"
                 ]
             },
             "default": [
-                "Metadata",
                 "Donor Supplement"
             ]
         },
