@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.190.9
+=======
+`PR 484: SN Donor metadata release <http://github.com/smaht-dac/smaht-portal/pull/484>`_
+
+* Creates the script commands/donor_metadata_release.py which takes in one or multiple Donor accession IDs and releases the Donor item and all other donor metadata, tissue, and TPC-submitted tissue sample items associated with it
+Includes the constants `PUBLIC_DONOR_RELEASE_STATUS` (currently set to `released`, but will later be changed to `public`) and `PROTECTED_DONOR_RELEASE_STATUS` (currently set to `released`, but will later be changed to `public-restricted`) to ensure only Donor, Tissue, and TissueSample items are made publicly viewable, and ProtectedDonor and all other downstream donor metadata items are only visible if users have dbGaP access
+
+
 0.190.8
 =======
 `PR 482: SN Revert RIN minimum <http://github.com/smaht-dac/smaht-portal/pull/482>`_
