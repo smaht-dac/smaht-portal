@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.191.0
+=======
+`PR 488: fix: update qc-page content uuid <https://github.com/smaht-dac/smaht-portal/pull/488>`_
+
+* Fix for updating the uuid in the qc-metrics content field in master-inserts
+
+
 0.190.9
 =======
 `PR 487: SN Fix ResourceFile data_category <http://github.com/smaht-dac/smaht-portal/pull/487>`_
