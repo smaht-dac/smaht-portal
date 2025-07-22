@@ -25,6 +25,35 @@ groups
   public-restricted statuses, along with tests for files as well utilizing
   the new groups
 
+  
+0.191.0
+=======
+`PR 485: feat: add values column for enums and suggested values <https://github.com/smaht-dac/smaht-portal/pull/485>`_
+
+* Add column for enums in Submission Data Dictionary
+
+
+0.190.9
+=======
+`PR 487: SN Fix ResourceFile data_category <http://github.com/smaht-dac/smaht-portal/pull/487>`_
+
+* Fix the `data_category` enums in ResourceFile to include "Donor Supplement" and set to `default`
+
+
+0.190.8
+=======
+`PR 482: SN Revert RIN minimum <http://github.com/smaht-dac/smaht-portal/pull/482>`_
+
+* Revert the minimum for `rna_integrity_number` to 1
+
+
+0.190.7
+=======
+`PR 481: fix: update QC page/static section uuids to match portals <https://github.com/smaht-dac/smaht-portal/pull/481>`_
+
+* Update master-inserts uuids to match portals
+
+
 0.190.6
 =======
 `PR 480: SN File data type and data category <http://github.com/smaht-dac/smaht-portal/pull/480>`_
