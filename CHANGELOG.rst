@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+0.192.0
+=======
+`PR 458: Cypress tests for home page, documentation, data overview and file overview <https://github.com/smaht-dac/smaht-portal/pull/458>`_
+
+* Various new Cypress tests to increase the test coverage for home page, documentation, data overview and file overview
+* Update commands to support multi-roles with different permissions
+
+
 0.191.0
 =======
 `PR 485: feat: add values column for enums and suggested values <https://github.com/smaht-dac/smaht-portal/pull/485>`_
