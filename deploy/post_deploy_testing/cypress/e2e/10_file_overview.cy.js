@@ -16,208 +16,265 @@ describe('File Overview - Verify Random 3 Files That are Released, Having QC Met
             .should('not.have.class', 'visible')
             .end()
             .get('.facet-charts.loading')
-            .should('not.exist').then(() => {
+            .should('not.exist')
+            .then(() => {
 
                 const TEST_FILE_COUNT = 3;
 
                 cy.get('.search-result-row[data-row-number]').as('resultRows');
 
-                // Ensure at least 3 results exist
+                // Ensure there are at least 3 results
                 cy.get('@resultRows').should('have.length.at.least', TEST_FILE_COUNT);
 
-                // Define a recursive function to step through rows
                 function testVisit(index) {
-                    // Stop recursion after checking 3 rows
                     if (index >= TEST_FILE_COUNT) return;
 
-                    // Alias the current search result row
+                    // Alias the current row
                     cy.get('@resultRows').eq(index).as('currentRow');
 
-                    // Get the <a> tag in the "annotated_file_name" field and store its text
+                    // Find and click the annotated file link
                     cy.get('@currentRow')
                         .find('[data-field="annotated_filename"] a')
                         .then(($a) => {
-                            // Store the annotated file name from the link text
                             const expectedAnnotatedFileName = $a.text().trim();
 
-                            // Remove target="_blank" so that click stays in same tab
+                            // Remove target to open in same tab and click
                             cy.wrap($a)
                                 .invoke('removeAttr', 'target')
-                                .click({ force: true }); // Click the link to visit the detail page
+                                .click({ force: true });
 
-                            // Verify the detail page is loaded
+                            // Ensure the file detail page is loaded
                             cy.get('.file-view-header', { timeout: 10000 }).should('be.visible');
 
-                            // Check that the accession value matches the one we clicked on
+                            // Check the detail page title
                             cy.get('.view-title-text')
                                 .should('be.visible')
                                 .and('have.text', expectedAnnotatedFileName);
 
-                            // Check that the File Accession value appears in the Annotated Name
+                            // Get File Accession and do further checks
                             cy.get('.accession').invoke('text').then((fileAccession) => {
-                                cy.get('.data-card .datum-title span')
-                                    .contains('Annotated Name')
-                                    .parent()
-                                    .siblings('.datum-value')
-                                    .invoke('text')
-                                    .should((annotatedName) => {
-                                        expect(annotatedName).to.include(fileAccession);
-                                    });
-                            });
 
-                            // Check that Size and MD5 Checksum values are valid (not empty, 'N/A' or '-')
-                            ['Size', 'MD5 Checksum'].forEach((field) => {
-                                cy.get('.data-card .datum-title span')
-                                    .contains(field)
-                                    .parent()
-                                    .siblings('.datum-value')
-                                    .invoke('text')
-                                    .should((value) => {
-                                        expect(value).not.to.match(/^\s*$/);      // not empty
-                                        expect(value).not.to.match(/N\/A|^-\s*$/); // not 'N/A' or '-'
-                                    });
-                            });
-
-                            // Check that there is a valid Public Release Date
-                            cy.get('.data-card .datum-title span')
-                                .contains('Public Release Date')
-                                .parent()
-                                .siblings('.datum-value')
-                                .find('.localized-date-time')
-                                .invoke('text')
-                                .should((dateText) => {
-                                    expect(dateText).not.to.match(/^\s*$/);      // not empty
-                                    expect(dateText).not.to.match(/N\/A|^-\s*$/); // not 'N/A' or '-'
-                                });
-
-                            // Check that Donor ID and Study are valid (not empty, 'N/A' or '-')
-                            ['Donor ID', 'Study'].forEach((field) => {
-                                cy.get('.data-card .header-text')
-                                    .contains('Sample Information')
-                                    .parent()
-                                    .siblings('.body')
-                                    .find('.datum-title span')
-                                    .contains(field)
-                                    .parent()
-                                    .siblings('.datum-value')
-                                    .invoke('text')
-                                    .should((value) => {
-                                        expect(value).not.to.match(/^\s*$/);      // not empty
-                                        expect(value).not.to.match(/N\/A|^-\s*$/); // not 'N/A' or '-'
-                                    });
-                            });
-
-                            // Check that Experimental Assay, Sequencing Platform and Dataset Target Coverage are valid
-                            ['Experimental Assay', 'Sequencing Platform', 'Dataset Target Coverage'].forEach((field) => {
-                                cy.get('.data-card .header-text')
-                                    .contains('Data Information')
-                                    .parent()
-                                    .siblings('.body')
-                                    .find('.datum-title span')
-                                    .contains(field)
-                                    .parent()
-                                    .siblings('.datum-value')
-                                    .invoke('text')
-                                    .should((value) => {
-                                        expect(value).not.to.match(/^\s*$/);      // not empty
-                                        expect(value).not.to.match(/N\/A|^-\s*$/); // not 'N/A' or '-'
-                                    });
-                            });
-
-                            // Check that the Download File button is enabled
-                            cy.get('#download_tsv_multiselect').should('be.visible').and('not.be.disabled');
-
-                            // List of tab names in order
-                            const tabNames = [
-                                'Analysis Information',
-                                'QC Overview',
-                                'Associated Files'
-                            ];
-
-                            // By default, the first tab should be active
-                            cy.get('.tab-router .dot-tab-nav-list button.active')
-                                .should('have.length', 1)
-                                .and('contain.text', tabNames[0]);
-
-                            // Loop through each tab except the first (which is already active)
-                            for (let i = 1; i < tabNames.length; i++) {
-                                // Click the tab by its title
-                                cy.get('.tab-router .dot-tab-nav-list .btn-title')
-                                    .contains(tabNames[i])
-                                    .parents('button')
-                                    .click();
-
-                                // After click, check that only the clicked tab is active
-                                cy.get('.tab-router .dot-tab-nav-list button.active')
-                                    .should('have.length', 1)
-                                    .and('contain.text', tabNames[i]);
-                            }
-
-                            // Switch to "QC Overview" tab to check its content
-                            cy.get('.tab-router .dot-tab-nav-list .btn-title')
-                                .contains('QC Overview')
-                                .parents('button')
-                                .click();
-
-                            // 1. There should be a value for QC Overview Status
-                            cy.get('#file-overview\\.qc-overview .header.top')
-                                .should('contain.text', 'QC Overview Status:')
-                                .within(() => {
-                                    cy.get('.badge').invoke('text').should((status) => {
-                                        expect(status.trim()).to.not.be.empty;
-                                    });
-                                });
-
-                            // 2. Under Critical QC, "View Relatedness Chart" button link should have "tab" and "file" query params
-                            cy.get('#file-overview\\.qc-overview h2.header.mb-2')
-                                .contains('Critical QC')
-                                .parent()
-                                .within(() => {
-                                    cy.get('a.btn-outline-secondary')
-                                        .should('exist')
-                                        .should((a) => {
-                                            const url = a[0].getAttribute('href');
-                                            expect(url).to.include('tab=');
-                                            expect(url).to.include('file=');
+                                // Check Donor ID and Study
+                                ['Donor ID', 'Study'].forEach((field) => {
+                                    cy.get('.data-card .header-text')
+                                        .contains('Sample Information')
+                                        .parent()
+                                        .siblings('.body')
+                                        .find('.datum-title span')
+                                        .contains(field)
+                                        .parent()
+                                        .siblings('.datum-value')
+                                        .invoke('text')
+                                        .should((value) => {
+                                            expect(value).not.to.match(/^\s*$/);
+                                            expect(value).not.to.match(/N\/A|^-\s*$/);
                                         });
                                 });
 
-                            // 3. "Visualize Quality Metrics" button link should have "tab" and "file" query params
-                            cy.get('#file-overview\\.qc-overview .header.top')
-                                .find('a.btn-primary')
-                                .should('exist')
-                                .should((a) => {
-                                    const url = a[0].getAttribute('href');
-                                    expect(url).to.include('tab=');
-                                    expect(url).to.include('file=');
+                                // Check Experimental Assay, Sequencing Platform, Dataset Target Coverage
+                                ['Experimental Assay', 'Sequencing Platform', 'Dataset Target Coverage'].forEach((field) => {
+                                    cy.get('.data-card .header-text')
+                                        .contains('Data Information')
+                                        .parent()
+                                        .siblings('.body')
+                                        .find('.datum-title span')
+                                        .contains(field)
+                                        .parent()
+                                        .siblings('.datum-value')
+                                        .invoke('text')
+                                        .should((value) => {
+                                            expect(value).not.to.match(/^\s*$/);
+                                            expect(value).not.to.match(/N\/A|^-\s*$/);
+                                        });
                                 });
 
-                            // 4. Under General QC, there should be a table with at least one row
-                            cy.get('#file-overview\\.qc-overview h2.header.mb-2')
-                                .contains('General QC')
-                                .parent()
-                                .within(() => {
-                                    cy.get('table.qc-overview-tab-table').should('exist');
-                                    cy.get('tbody tr').its('length').should('be.gte', 1);
+                                // Get File Size for later modal comparison
+                                cy.get('.data-card .header-text')
+                                    .contains('File Properties')
+                                    .parent()
+                                    .siblings('.body')
+                                    .find('.datum-title span')
+                                    .contains('Size')
+                                    .parent()
+                                    .siblings('.datum-value')
+                                    .invoke('text')
+                                    .as('fileSize');
+
+                                // Check Size and MD5 Checksum fields
+                                ['Size', 'MD5 Checksum'].forEach((field) => {
+                                    cy.get('.data-card .datum-title span')
+                                        .contains(field)
+                                        .parent()
+                                        .siblings('.datum-value')
+                                        .invoke('text')
+                                        .should((value) => {
+                                            expect(value).not.to.match(/^\s*$/);
+                                            expect(value).not.to.match(/N\/A|^-\s*$/);
+                                        });
                                 });
-                        });
 
-                    // Go back to the list page
-                    cy.go('back');
+                                // Check Public Release Date is valid
+                                cy.get('.data-card .datum-title span')
+                                    .contains('Public Release Date')
+                                    .parent()
+                                    .siblings('.datum-value')
+                                    .find('.localized-date-time')
+                                    .invoke('text')
+                                    .should((dateText) => {
+                                        expect(dateText).not.to.match(/^\s*$/);
+                                        expect(dateText).not.to.match(/N\/A|^-\s*$/);
+                                    });
 
-                    // Wait for the list page to reload and ensure it has rows again
-                    cy.get('.search-result-row[data-row-number]', { timeout: 10000 })
-                        .should('have.length.at.least', TEST_FILE_COUNT)
-                        .as('resultRows'); // Re-alias since DOM was reloaded
+                                // Tab navigation checks
+                                const tabNames = [
+                                    'Analysis Information',
+                                    'QC Overview',
+                                    'Associated Files'
+                                ];
 
-                    // Continue with the next row
-                    cy.then(() => testVisit(index + 1));
-                }
+                                // Check default active tab
+                                cy.get('.tab-router .dot-tab-nav-list button.active')
+                                    .should('have.length', 1)
+                                    .and('contain.text', tabNames[0]);
 
-                // Start the recursive check
+                                // Switch and check other tabs
+                                for (let i = 1; i < tabNames.length; i++) {
+                                    cy.get('.tab-router .dot-tab-nav-list .btn-title')
+                                        .contains(tabNames[i])
+                                        .parents('button')
+                                        .click();
+                                    cy.get('.tab-router .dot-tab-nav-list button.active')
+                                        .should('have.length', 1)
+                                        .and('contain.text', tabNames[i]);
+                                }
+
+                                // Go to QC Overview tab for QC checks
+                                cy.get('.tab-router .dot-tab-nav-list .btn-title')
+                                    .contains('QC Overview')
+                                    .parents('button')
+                                    .click();
+
+                                // 1. QC Overview Status must have a value
+                                cy.get('#file-overview\\.qc-overview .header.top')
+                                    .should('contain.text', 'QC Overview Status:')
+                                    .within(() => {
+                                        cy.get('.badge').invoke('text').should((status) => {
+                                            expect(status.trim()).to.not.be.empty;
+                                        });
+                                    });
+
+                                // 2. Check View Relatedness Chart button params under Critical QC
+                                cy.get('#file-overview\\.qc-overview h2.header.mb-2')
+                                    .contains('Critical QC')
+                                    .parent()
+                                    .within(() => {
+                                        cy.get('a.btn-outline-secondary')
+                                            .should('exist')
+                                            .should((a) => {
+                                                const url = a[0].getAttribute('href');
+                                                expect(url).to.include('tab=');
+                                                expect(url).to.include('file=');
+                                                const match = url.match(/[?&]file=([^&]+)/);
+                                                expect(match, 'file param should exist').to.not.be.null;
+                                                const fileParamValue = decodeURIComponent(match[1]);
+                                                expect(fileParamValue).to.equal(fileAccession);
+                                            });
+                                    });
+
+                                // 3. Check Visualize Quality Metrics button params
+                                cy.get('#file-overview\\.qc-overview .header.top')
+                                    .find('a.btn-primary')
+                                    .should('exist')
+                                    .should((a) => {
+                                        const url = a[0].getAttribute('href');
+                                        expect(url).to.include('tab=');
+                                        expect(url).to.include('file=');
+                                        const match = url.match(/[?&]file=([^&]+)/);
+                                        expect(match, 'file param should exist').to.not.be.null;
+                                        const fileParamValue = decodeURIComponent(match[1]);
+                                        expect(fileParamValue).to.equal(fileAccession);
+                                    });
+
+                                // 4. General QC table must have at least one row
+                                cy.get('#file-overview\\.qc-overview h2.header.mb-2')
+                                    .contains('General QC')
+                                    .parent()
+                                    .within(() => {
+                                        cy.get('table.qc-overview-tab-table').should('exist');
+                                        cy.get('tbody tr').its('length').should('be.gte', 1);
+                                    });
+
+                                // --- Download Modal checks start ---
+                                cy.get('#download_tsv_multiselect').should('be.visible').and('not.be.disabled').click();
+
+                                cy.get('.modal').should('be.visible').within(() => {
+                                    // There should be two radio buttons (by name)
+                                    cy.get('input[type="radio"][name="curl"]').should('exist');
+                                    cy.get('input[type="radio"][name="aws_cli"]').should('exist');
+                                    cy.get('input[type="radio"]').should('have.length', 2);
+
+                                    // By default, cURL tab should be active and cURL command visible
+                                    cy.get('button.nav-link.active').should('contain.text', 'cURL');
+                                    cy.get('input[type="radio"][name="curl"]').should('be.checked');
+                                    cy.get('.tab-pane.active.show').within(() => {
+                                        cy.get('.curl-command').should('be.visible');
+                                        cy.get('.aws_cli-command').should('not.exist');
+                                    });
+
+                                    // Switch to AWS CLI tab
+                                    cy.get('button.nav-link').contains('AWS CLI').click();
+                                    cy.get('button.nav-link.active').should('contain.text', 'AWS CLI');
+                                    cy.get('input[type="radio"][name="aws_cli"]').should('be.checked');
+                                    cy.get('.tab-pane.active.show').within(() => {
+                                        cy.get('.aws_cli-command').should('be.visible');
+                                        cy.get('.curl-command').should('not.exist');
+                                    });
+
+                                    // Download button text reflects selection
+                                    cy.get('button').contains(/Download AWS CLI File Manifest/i).should('be.visible');
+                                    cy.get('button.nav-link').contains('cURL').click();
+                                    cy.get('button.nav-link.active').should('contain.text', 'cURL');
+                                    cy.get('input[type="radio"][name="curl"]').should('be.checked');
+                                    cy.get('button').contains(/Download cURL File Manifest/i).should('be.visible');
+
+                                    // Additional metadata buttons
+                                    cy.contains('Download Additional Metadata Files')
+                                        .parent()
+                                        .within(() => {
+                                            ['Biosample', 'Analyte', 'Sequencing'].forEach((type) => {
+                                                cy.get('button')
+                                                    .contains(type)
+                                                    .should('be.visible')
+                                                    .and('not.be.disabled');
+                                            });
+                                        });
+
+                                    // Close modal
+                                    cy.get('.btn-close, [aria-label="Close"], button:contains("Close")').first().click({ force: true });
+                                });
+                                cy.get('.modal').should('not.exist');
+
+                                cy.get('.modal').should('not.exist');
+
+                                // Ensure the modal is closed before proceeding
+                                cy.get('.modal').should('not.exist');
+
+                                // Go back to the list page and continue with the next file
+                                cy.go('back');
+                                cy.get('.search-result-row[data-row-number]', { timeout: 10000 })
+                                    .should('have.length.at.least', TEST_FILE_COUNT)
+                                    .as('resultRows');
+
+                                cy.then(() => testVisit(index + 1));
+                            }); // End of fileAccession.then()
+                        }); // End of $a.then()
+                } // End of testVisit function
+
+                // Start testing from the first file
                 testVisit(0);
-            })
+            }) // End of .then() after visit/load
             .logoutSMaHT();
     });
+
 
 });
