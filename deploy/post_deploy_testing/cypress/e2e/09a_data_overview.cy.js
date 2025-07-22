@@ -435,7 +435,7 @@ describe('Data Overview - Retracted Files, Data Matrix for Production, Data Matr
                 // Verify that the page contains the correct header
                 cy.contains('div#page-title-container h1.page-title', 'Data Matrix').should('be.visible');
 
-                testMatrixPopoverValidation('#data-matrix-for_benchmarking', ['ST001', 'ST002', 'ST003', 'ST004'], [], ['Lung', 'Brain', 'Liver', 'Colon'], ['Cell Lines', 'Donors']);
+                testMatrixPopoverValidation('#data-matrix-for_benchmarking', ['ST001', 'ST002', 'ST003', 'ST004'], [], ['Skin', 'Lung', 'Brain', 'Liver', 'Colon'], ['Cell Lines', 'Donors']);
             })
             .logoutSMaHT();
     });
