@@ -84,7 +84,7 @@ def _build_protected_donor_embedded_list():
         'medical_history.medical_treatments.category',
         'medical_history.medical_treatments.comments',
         'medical_history.medical_treatments.counts',
-        'medical_history.medical_treatmentst.year_end',
+        'medical_history.medical_treatments.year_end',
         'medical_history.medical_treatments.year_start',
         'medical_history.diagnoses.age_at_diagnosis',
         'medical_history.diagnoses.age_at_resolution',
