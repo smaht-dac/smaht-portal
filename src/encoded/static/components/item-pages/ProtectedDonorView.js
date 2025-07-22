@@ -251,6 +251,8 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                                 'MALBAC-amplified WGS',
                                             'Single-cell MALBAC WGS - Illumina':
                                                 'MALBAC-amplified WGS',
+                                            'Single-cell PTA WGS - ONT': 'PTA-amplified WGS',
+                                            'Single-cell PTA WGS - Illumina': 'PTA-amplified WGS',
                                             'TEnCATS - ONT': 'TEnCATS',
                                             'WGS - ONT': 'WGS - Standard ONT',
                                             'Ultra-Long WGS - ONT':
@@ -318,6 +320,16 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                             textColor: '#ffffff',
                                             shortName: 'WGS',
                                         },
+                                        'Single-cell WGS': {
+                                            values: [
+                                                'PTA-amplified WGS',
+                                                'MALBAC-amplified WGS',
+                                                'WGS DLP+',
+                                            ],
+                                            backgroundColor: '#aac536',
+                                            textColor: '#ffffff',
+                                            shortName: 'scWGS',
+                                        },
                                         'RNA-seq': {
                                             values: [
                                                 'RNA-Seq - Illumina',
@@ -339,16 +351,6 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                             backgroundColor: '#2b4792',
                                             textColor: '#ffffff',
                                             shortName: 'Dupl',
-                                        },
-                                        'Single-cell WGS': {
-                                            values: [
-                                                'PTA-amplified WGS',
-                                                'MALBAC-amplified WGS',
-                                                'WGS DLP+',
-                                            ],
-                                            backgroundColor: '#aac536',
-                                            textColor: '#ffffff',
-                                            shortName: 'scWGS',
                                         },
                                         'Targeted Seq': {
                                             values: [
