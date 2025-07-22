@@ -69,3 +69,8 @@ def is_production(properties: Dict[str, Any]) -> bool:
     """Check if donor is from production study."""
     external_id = item.get_external_id(properties)
     return PRODUCTION_DONOR_REGEX.match(external_id) is not None
+
+
+def is_donor(properties: Dict[str, Any]) -> bool:
+    """Check if item is a Donor item."""
+    return item.get_type(properties) == "Donor"
