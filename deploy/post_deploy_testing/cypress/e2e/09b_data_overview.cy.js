@@ -141,13 +141,13 @@ describe('Data Overview - QC Metrics', function () {
                             .and('contain.text', 'Sample B');
 
                         // Find the first Y axis tick label (left axis: g[transform^="translate(0,"])
-                        // --- Y Axis tick (x=0)
+                        // Y Axis tick (x=0)
                         cy.get('@chartSvg')
                             .find('g.tick[transform^="translate(0,"] text')
                             .first()
                             .invoke('text')
                             .then((yAxisTick) => {
-                                // --- X Axis tick (y=0)
+                                // X Axis tick (y=0)
                                 cy.get('@chartSvg')
                                     .find('g.tick')
                                     .filter((i, el) => {
