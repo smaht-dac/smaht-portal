@@ -1,4 +1,4 @@
-import { cypressVisitHeaders } from '../support';
+import { cypressVisitHeaders, ROLE_TYPES } from '../support';
 
 describe('Basic functionality: page loads and can authenticate.', function () {
     it('Has correct title', function () {
@@ -11,10 +11,7 @@ describe('Basic functionality: page loads and can authenticate.', function () {
 
     it('Can login and out', function () {
         // Login
-        cy.loginSMaHT({
-            email: 'cypress-main-scientist@cypress.hms.harvard.edu',
-            useEnvToken: false,
-        })
+        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
             .validateUser('SCM')
             .end();
 

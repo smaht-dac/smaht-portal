@@ -1,13 +1,10 @@
-import { cypressVisitHeaders } from '../support';
+import { cypressVisitHeaders, ROLE_TYPES } from '../support';
 import { navBrowseBtnSelector, dataNavBarItemSelectorStr } from '../support/selectorVars';
 
 describe('Browse Views - Basic Tests', function () {
     before(function () {
         cy.visit('/', { headers: cypressVisitHeaders });
-        cy.loginSMaHT({
-            email: 'cypress-main-scientist@cypress.hms.harvard.edu',
-            useEnvToken: false,
-        })
+        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
             .validateUser('SCM')
             .end();
     });

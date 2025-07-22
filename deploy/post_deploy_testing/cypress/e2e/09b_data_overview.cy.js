@@ -1,4 +1,4 @@
-import { cypressVisitHeaders } from "../support";
+import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 import { dataNavBarItemSelectorStr } from "../support/selectorVars";
 
 describe('Data Overview - QC Metrics', function () {
@@ -14,7 +14,7 @@ describe('Data Overview - QC Metrics', function () {
     before(function () {
         cy.visit('/', { headers: cypressVisitHeaders });
 
-        cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false })
+        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
             .validateUser('SCM')
             .get(dataNavBarItemSelectorStr)
             .should('have.class', 'dropdown-toggle')
@@ -445,12 +445,12 @@ describe('Data Overview - QC Metrics', function () {
                                                                         // Table assertions (dynamic column indexes)
                                                                         cy.wrap($tabPane).find('.qc-metrics-data-table table').within(() => {
                                                                             cy.get('thead th').then(($ths) => {
-                                                                                const headers = [...$ths].map(th => th.textContent.trim());
+                                                                                const headers = [...$ths].map((th) => th.textContent.trim());
                                                                                 const assayIdx = headers.indexOf('Assay');
                                                                                 expect(assayIdx, 'Assay column index').to.be.gte(0);
 
-                                                                                const xMetricCol = headers.findIndex(h => h.includes(xMetricTitle));
-                                                                                const yMetricCol = headers.findIndex(h => h.includes(yMetricTitle));
+                                                                                const xMetricCol = headers.findIndex((h) => h.includes(xMetricTitle));
+                                                                                const yMetricCol = headers.findIndex((h) => h.includes(yMetricTitle));
                                                                                 expect(xMetricCol, 'X metric column index').to.be.gte(0);
                                                                                 expect(yMetricCol, 'Y metric column index').to.be.gte(0);
 
@@ -484,7 +484,6 @@ describe('Data Overview - QC Metrics', function () {
         });
     });
 
-    // Cypress E2E Test: Verify Metric by file tab (file selection, dynamic QC metric chips, chart titles and axes)
     it('Verify Metric by file tab: file selection, dynamic QC metric chips, chart titles and axes', function () {
         // Go to the Metrics by file tab and activate it
         cy.get('#qc-metrics-tabs')

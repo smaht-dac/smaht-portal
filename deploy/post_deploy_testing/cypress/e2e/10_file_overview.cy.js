@@ -1,17 +1,18 @@
-import { cypressVisitHeaders } from "../support";
+import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 
 describe('File Overview - Verify Random 3 Files That are Released, Having QC Metrics', function () {
 
     before(function () {
         cy.visit('/', { headers: cypressVisitHeaders });
 
-        cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false })
-            .validateUser('SCM');
+        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
+            .validateUser('SCM')
+            .end();
     });
 
     it('Verify Random 3 Released Files with QC Metrics', function () {
 
-        cy.visit('/search/?type=File&status=released&quality_metrics%21=No+value&sort=-file_status_tracking.released_date', { headers: cypressVisitHeaders })
+        cy.visit('/search/?type=OutputFile&status=released&quality_metrics%21=No+value&sort=-file_status_tracking.released_date', { headers: cypressVisitHeaders })
             .get('#slow-load-container')
             .should('not.have.class', 'visible')
             .end()

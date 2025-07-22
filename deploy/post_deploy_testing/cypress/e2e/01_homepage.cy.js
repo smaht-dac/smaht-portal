@@ -1,12 +1,12 @@
 import { cypressVisitHeaders } from '../support';
+import { ROLE_TYPES } from '../support';
 
 describe('Home Page', function () {
     before(() => {
         cy.visit('/', { headers: cypressVisitHeaders });
-        cy.loginSMaHT({
-            email: 'cypress-main-scientist@cypress.hms.harvard.edu',
-            useEnvToken: false,
-        });
+        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
+            .validateUser('SCM')
+            .end();
     });
 
     after(function () {

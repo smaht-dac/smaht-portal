@@ -1,4 +1,4 @@
-import { cypressVisitHeaders } from "../support";
+import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 
 describe('Post-Deployment Search View Tests', function () {
 
@@ -40,7 +40,7 @@ describe('Post-Deployment Search View Tests', function () {
         it('Filter by "Type" filter icon within search results', function () {
             cy.visit('/search/?type=Item', { headers: cypressVisitHeaders });
 
-            cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false })
+            cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
                 .validateUser('SCM')
                 .get('.facet-list li.facet-list-element[data-key="File"] .facet-item')
                 .should('have.text', 'File')

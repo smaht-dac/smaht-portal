@@ -1,4 +1,4 @@
-import { cypressVisitHeaders } from "../support";
+import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 
 describe('About Layout Tests', function () {
 

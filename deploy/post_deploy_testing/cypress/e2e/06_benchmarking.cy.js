@@ -1,4 +1,4 @@
-import { cypressVisitHeaders } from "../support";
+import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 import { dataNavBarItemSelectorStr } from "../support/selectorVars";
 
 let selectedCheckFileNumberCount = 0;
@@ -39,7 +39,7 @@ describe('Benchmarking Layout Test', function () {
 
     before(function () {
         cy.visit('/', { headers: cypressVisitHeaders });
-        cy.loginSMaHT({ email: 'cypress-main-scientist@cypress.hms.harvard.edu', useEnvToken: false })
+        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
             .validateUser('SCM')
             .end();
     });

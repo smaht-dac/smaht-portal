@@ -1,4 +1,4 @@
-import { cypressVisitHeaders } from "../support";
+import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 import { dataNavBarItemSelectorStr } from "../support/selectorVars";
 
 /** * Waits for the popover to become visible.
@@ -308,7 +308,7 @@ describe('Data Overview - Retracted Files, Data Matrix for Production, Data Matr
 
     it('Visit Retracted Files List', function () {
 
-        cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false })
+        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
             .validateUser('SCM')
             .get(dataNavBarItemSelectorStr)
             .should('have.class', 'dropdown-toggle')
@@ -394,7 +394,7 @@ describe('Data Overview - Retracted Files, Data Matrix for Production, Data Matr
 
     it('Visit Data Matrix for Production, should expand SMHT004, SMHT008 and validate row/column summaries, popover content', function () {
 
-        cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false })
+        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
             .validateUser('SCM')
             .get(dataNavBarItemSelectorStr)
             .should('have.class', 'dropdown-toggle')
@@ -418,7 +418,7 @@ describe('Data Overview - Retracted Files, Data Matrix for Production, Data Matr
 
     it('Visit Data Matrix for Benchmarking, should expand ST001, ST002, ST003, ST004 and validate row/column summaries, popover content', function () {
 
-        cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false })
+        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
             .validateUser('SCM')
             .get(dataNavBarItemSelectorStr)
             .should('have.class', 'dropdown-toggle')
