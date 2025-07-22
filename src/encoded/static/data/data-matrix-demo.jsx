@@ -206,6 +206,7 @@
                 defaultOpen={false}
                 compositeValueSeparator=" - "
                 disableConfigurator={false}
+                idLabel="benchmarking"
             />
         </div>
         <div className="col-12 col-xxl-4">
@@ -379,6 +380,7 @@
                 defaultOpen={false}
                 compositeValueSeparator=" - "
                 disableConfigurator={false}
+                idLabel="production"
             />
         </div>
     </div>
