@@ -428,13 +428,13 @@ Cypress.Commands.add("getQuickInfoBar", () => {
                     if (trimmed === "-") {
                         result[iconType] = 0;
                     } else if (iconType === "file-size") {
-                        // örnek: "14.18 TB"
+                        // e.g. "14.18 TB"
                         const match = trimmed.match(/^([\d.,]+)\s*(TB|GB|MB|KB)?$/i);
                         if (match) {
                             const number = parseFloat(match[1].replace(",", ""));
                             const unit = match[2] ? match[2].toUpperCase() : "B";
 
-                            // Tercihe göre birimi sabitleyebilirsiniz; örneğin hepsini GB'e çevirin:
+                            // convert the unit according to your preference; for example, convert all to GB:
                             let valueInGB;
                             switch (unit) {
                                 case "TB": valueInGB = number * 1024; break;
@@ -444,7 +444,7 @@ Cypress.Commands.add("getQuickInfoBar", () => {
                                 default: valueInGB = number / (1024 * 1024 * 1024); break;
                             }
 
-                            result[iconType] = valueInGB; // GB cinsinden
+                            result[iconType] = valueInGB; // GB
                         } else {
                             result[iconType] = NaN; // fallback
                         }
