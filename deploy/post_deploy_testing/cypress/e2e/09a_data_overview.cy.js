@@ -1,6 +1,5 @@
 import { cypressVisitHeaders } from "../support";
-
-const dataNavBarItemSelectorStr = '#top-nav div.navbar-collapse .navbar-nav a.id-data-menu-item';
+import { dataNavBarItemSelectorStr } from "../support/selectorVars";
 
 /** * Waits for the popover to become visible.
  * @param {number} timeout - The maximum time to wait for the popover to become visible, in milliseconds.

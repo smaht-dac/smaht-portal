@@ -1,8 +1,5 @@
 import { cypressVisitHeaders } from '../support';
-import { navBrowseBtnSelector } from '../support/selectorVars';
-
-const dataNavBarItemSelectorStr =
-    '#top-nav div.navbar-collapse .navbar-nav a.id-data-menu-item';
+import { navBrowseBtnSelector, dataNavBarItemSelectorStr } from '../support/selectorVars';
 
 describe('Browse Views - Basic Tests', function () {
     before(function () {
