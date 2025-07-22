@@ -9,7 +9,7 @@ describe('File Overview - Verify Random 3 Files That are Released, Having QC Met
             .validateUser('SCM');
     });
 
-    it('Visit Search Page', function () {
+    it('Verify Random 3 Released Files with QC Metrics', function () {
 
         cy.visit('/search/?type=File&status=released&quality_metrics%21=No+value&sort=-file_status_tracking.released_date', { headers: cypressVisitHeaders })
             .get('#slow-load-container')

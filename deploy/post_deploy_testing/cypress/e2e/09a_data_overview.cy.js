@@ -149,12 +149,12 @@ function assertPopover({ donor, assay, value }) {
  * @param {string[]} expectedLabels  e.g. ['Donors']  or ['Donors','Cell Lines']
  */
 function validateLowerHeaders(expectedLabels) {
-    // 1️⃣ Gather every label text in order
+    // Gather every label text in order
     cy.get('.header-section-lower .grouping-row .label-section span')
         .then(($spans) => [...$spans].map((el) => el.textContent.trim()))
         .should('deep.equal', expectedLabels);
 
-    // 2️⃣ For each label, assert ≥1 col-summary under its row
+    // For each label, assert ≥1 col-summary under its row
     expectedLabels.forEach((lbl) => {
         cy.contains('.header-section-lower .label-section span', lbl)
             .closest('.grouping-row')
@@ -260,8 +260,6 @@ function testMatrixPopoverValidation(matrixId = '#data-matrix-for_production', d
                 const assay = $el.parent().attr('data-group-key');
                 return { el, donor, assay, value };
             });
-
-            // cy.log('🧪 Popover test sample: ' + JSON.stringify(testCases));
 
             testCases.forEach(({ el, donor, assay, value }) => {
                 if (value > 0) {
