@@ -126,17 +126,6 @@ Cypress.Commands.add(
     }
 );
 
-/**
- * AUTHENTICATION COMMANDS
- * @todo - Once the authentication scheme for SMaHT is finalized, the following should be commented out and
- *         adjusted to work with the new means of authentication + session storage
- */
-
-const auth0UserIds = {
-    'cypress-main-scientist@cypress.hms.harvard.edu':
-        'auth0|6536c07ac994c9180dba80d5',
-};
-
 Cypress.Commands.add('signJWT', (auth0secret, email, sub) => {
     cy.request({
         url: '/auth0_config?format=json',
@@ -170,7 +159,7 @@ Cypress.Commands.add('signJWT', (auth0secret, email, sub) => {
 /**
  * This emulates login.js. Perhaps we should adjust login.js somewhat to match this better re: navigate.then(...) .
  */
-Cypress.Commands.add('loginSMaHT', function (options = { useEnvToken: true }) {
+Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: false }) {
     function performLogin(token) {
         return cy
             .window()
@@ -223,38 +212,40 @@ Cypress.Commands.add('loginSMaHT', function (options = { useEnvToken: true }) {
         }
     }
 
-    // If no token, we try to generate/impersonate one ourselves
+    cy.fixture('roles.json').then((roles) => {
+        let email, auth0UserId;
+        if (roles && roles[role] && roles[role].email && roles[role].auth0UserId) {
+            ({ email, auth0UserId } = roles[role]);
+        } else {
+            ({ email = options.user || Cypress.env('LOGIN_AS_USER'), auth0UserId } = options);
+        }
 
-    const email =
-        options.email ||
-        options.user ||
-        Cypress.env('LOGIN_AS_USER') ||
-        'cypress-main-scientist@cypress.hms.harvard.edu';
-    const auth0secret = Cypress.env('Auth0Secret');
+        const auth0secret = Cypress.env('Auth0Secret');
 
-    if (!auth0secret)
-        throw new Error('Cannot test login if no Auth0Secret in ENV vars.');
+        if (!auth0secret)
+            throw new Error('Cannot test login if no Auth0Secret in ENV vars.');
 
-    Cypress.log({
-        name: 'Login SMaHT',
-        message: 'Attempting to impersonate-login for ' + email,
-        consoleProps: () => {
-            return { auth0secret, email };
-        },
-    });
-
-    // Generate JWT
-    cy.signJWT(auth0secret, email, auth0UserIds[email] || '').then((token) => {
-        expect(token).to.have.length.greaterThan(0);
         Cypress.log({
             name: 'Login SMaHT',
-            message: 'Generated own JWT with length ' + token.length,
+            message: 'Attempting to impersonate-login for ' + email,
+            consoleProps: () => {
+                return { auth0secret, email, auth0UserId };
+            },
         });
-        return performLogin(token);
+
+        // Generate JWT
+        cy.signJWT(auth0secret, email, auth0UserId || '').then((token) => {
+            expect(token).to.have.length.greaterThan(0);
+            Cypress.log({
+                name: 'Login SMaHT',
+                message: 'Generated own JWT with length ' + token.length,
+            });
+            return performLogin(token);
+        });
     });
 });
 
-Cypress.Commands.add('validateUser', function(userDisplayName = 'SCM'){
+Cypress.Commands.add('validateUser', function (userDisplayName = 'SCM') {
     return cy.get(navUserAcctDropdownBtnSelector)
         .should('not.contain.text', 'Login')
         .then((accountListItem) => {
