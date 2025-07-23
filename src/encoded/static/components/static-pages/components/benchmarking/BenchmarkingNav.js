@@ -205,7 +205,7 @@ const BenchmarkingUINavDrop = (props) => {
                 className={
                     'title-toggle-container' + (isActive ? ' active' : '')
                 }>
-                <a className="title" href={path}>
+                <a className="title" href={path} tabIndex={isActive ? -1 : 0}>
                     {title}
                 </a>
                 <ContextAwareToggle {...{ eventKey }}>
