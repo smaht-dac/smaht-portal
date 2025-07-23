@@ -278,7 +278,7 @@
             "title": "RNA Integrity Number",
             "description": "Assessment of the integrity of RNA based on electrophoresis (or equivalent RNA Quality Score or RNA Quality Number)",
             "type": "number",
-            "minimum": 0,
+            "minimum": 1,
             "maximum": 10
         },
         "rna_integrity_number_instrument": {

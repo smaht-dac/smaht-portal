@@ -7,6 +7,57 @@ smaht-portal
 Change Log
 ----------
 
+0.192.1
+=======
+`PR 488: fix: update qc-page content uuid <https://github.com/smaht-dac/smaht-portal/pull/488>`_
+
+* Fix for updating the uuid in the qc-metrics content field in master-inserts
+
+
+0.192.0
+=======
+`PR 458: Cypress tests for home page, documentation, data overview and file overview <https://github.com/smaht-dac/smaht-portal/pull/458>`_
+
+* Various new Cypress tests to increase the test coverage for home page, documentation, data overview and file overview
+* Update commands to support multi-roles with different permissions
+
+
+0.191.0
+=======
+`PR 485: feat: add values column for enums and suggested values <https://github.com/smaht-dac/smaht-portal/pull/485>`_
+
+* Add column for enums in Submission Data Dictionary
+
+
+0.190.9
+=======
+`PR 487: SN Fix ResourceFile data_category <http://github.com/smaht-dac/smaht-portal/pull/487>`_
+
+* Fix the `data_category` enums in ResourceFile to include "Donor Supplement" and set to `default`
+
+
+0.190.8
+=======
+`PR 482: SN Revert RIN minimum <http://github.com/smaht-dac/smaht-portal/pull/482>`_
+
+* Revert the minimum for `rna_integrity_number` to 1
+
+
+0.190.7
+=======
+`PR 481: fix: update QC page/static section uuids to match portals <https://github.com/smaht-dac/smaht-portal/pull/481>`_
+
+* Update master-inserts uuids to match portals
+
+
+0.190.6
+=======
+`PR 480: SN File data type and data category <http://github.com/smaht-dac/smaht-portal/pull/480>`_
+
+* Add enum "Fingerprint" to `data_type` for VariantCalls
+* Add enum "Consensus Reads" to `data_category` in UnalignedReads
+
+
 0.190.5
 =======
 `PR 475: fix: update name for coverage <http://github.com/smaht-dac/smaht-portal/pull/475>`_
