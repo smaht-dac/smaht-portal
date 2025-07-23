@@ -20,6 +20,7 @@ from encoded.item_utils import (
     sample as sample_utils,
     sample_source as sample_source_utils,
     supplementary_file as supp_file_utils,
+    submitted_file as submitted_file_utils,
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
     donor_specific_assembly as dsa_utils,
@@ -214,6 +215,8 @@ def get_sequencing_center(
     file: Dict[str, Any], request_handler: RequestHandler
 ) -> Dict[str, Any]:
     """Get sequencing center for file."""
+    if submitted_file_utils.is_submitted_file(file):
+        return get_items(item_utils.get_submission_centers(file), request_handler)[0]
     return get_item(file_utils.get_sequencing_center(file), request_handler)
 
 
