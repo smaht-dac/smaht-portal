@@ -7,11 +7,19 @@ smaht-portal
 Change Log
 ----------
 
-0.191.1
+0.192.1
 =======
 `PR 488: fix: update qc-page content uuid <https://github.com/smaht-dac/smaht-portal/pull/488>`_
 
 * Fix for updating the uuid in the qc-metrics content field in master-inserts
+
+
+0.192.0
+=======
+`PR 458: Cypress tests for home page, documentation, data overview and file overview <https://github.com/smaht-dac/smaht-portal/pull/458>`_
+
+* Various new Cypress tests to increase the test coverage for home page, documentation, data overview and file overview
+* Update commands to support multi-roles with different permissions
 
 
 0.191.0
