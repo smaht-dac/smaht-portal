@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+0.193.0
+=======
+`PR 491: SN Donor manifest embeds <https://github.com/smaht-dac/smaht-portal/pull/491>`_
+
+* Create revlinks on ProtectedDonor and MedicalHistory for donor metadata items
+* Embed all donor metadata properties on ProtectedDonor
+* Create TSV columns in `metadata.py` for the Donor Manifest
+
+
 0.192.2
 =======
 `PR 489: feat: remove benchmarking QC button <https://github.com/smaht-dac/smaht-portal/pull/489>`_
