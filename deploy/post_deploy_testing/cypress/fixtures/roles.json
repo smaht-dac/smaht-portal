@@ -1,0 +1,22 @@
+{
+  "smaht-dbgap": {
+    "email": "cypress-main-scientist@cypress.hms.harvard.edu",
+    "auth0UserId": "auth0|6536c07ac994c9180dba80d5",
+    "description": "SMaHT network member with dbGAP access"
+  },
+  "smaht-non-dbgap": {
+    "email": "",
+    "auth0UserId": "auth0|",
+    "description":"SMaHT network member without dbGAP access"
+  },
+  "dbgap-only": {
+    "email": "",
+    "auth0UserId": "auth0|",
+    "description":"Not SMaHT network member but having dbGAP access"
+  },
+  "non-dbgap": {
+    "email": "",
+    "auth0UserId": "auth0|",
+    "description":"Not SMaHT network member and not having dbGAP access"
+  }
+}

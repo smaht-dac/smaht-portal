@@ -7,6 +7,114 @@ smaht-portal
 Change Log
 ----------
 
+0.192.1
+=======
+`PR 488: fix: update qc-page content uuid <https://github.com/smaht-dac/smaht-portal/pull/488>`_
+
+* Fix for updating the uuid in the qc-metrics content field in master-inserts
+
+
+0.192.0
+=======
+`PR 458: Cypress tests for home page, documentation, data overview and file overview <https://github.com/smaht-dac/smaht-portal/pull/458>`_
+
+* Various new Cypress tests to increase the test coverage for home page, documentation, data overview and file overview
+* Update commands to support multi-roles with different permissions
+
+
+0.191.0
+=======
+`PR 485: feat: add values column for enums and suggested values <https://github.com/smaht-dac/smaht-portal/pull/485>`_
+
+* Add column for enums in Submission Data Dictionary
+
+
+0.190.9
+=======
+`PR 487: SN Fix ResourceFile data_category <http://github.com/smaht-dac/smaht-portal/pull/487>`_
+
+* Fix the `data_category` enums in ResourceFile to include "Donor Supplement" and set to `default`
+
+
+0.190.8
+=======
+`PR 482: SN Revert RIN minimum <http://github.com/smaht-dac/smaht-portal/pull/482>`_
+
+* Revert the minimum for `rna_integrity_number` to 1
+
+
+0.190.7
+=======
+`PR 481: fix: update QC page/static section uuids to match portals <https://github.com/smaht-dac/smaht-portal/pull/481>`_
+
+* Update master-inserts uuids to match portals
+
+
+0.190.6
+=======
+`PR 480: SN File data type and data category <http://github.com/smaht-dac/smaht-portal/pull/480>`_
+
+* Add enum "Fingerprint" to `data_type` for VariantCalls
+* Add enum "Consensus Reads" to `data_category` in UnalignedReads
+
+
+0.190.5
+=======
+`PR 475: fix: update name for coverage <http://github.com/smaht-dac/smaht-portal/pull/475>`_
+
+* Update title for Dataset Per BAM Coverage in File Overview page
+
+
+0.190.4
+=======
+`PR 478: fix: update breadcrumbs on File Overview page <https://github.com/smaht-dac/smaht-portal/pull/478>`_
+
+* Update breadcrumbs on file overview page
+
+
+0.190.3
+=======
+`PR 465 feat: protected donor view updates <https://github.com/smaht-dac/smaht-portal/pull/465>`_
+
+* Update donor view following annual meeting feedback
+
+
+0.190.2
+=======
+`PR 477: feat: add ST001 and ST002 skin to benchmarking <https://github.com/smaht-dac/smaht-portal/pull/477>`_
+
+* Add ST001 and ST002 skin to benchmarking
+
+
+0.190.1
+=======
+`PR 472: SN Add search columns <https://github.com/smaht-dac/smaht-portal/pull/472>`_
+
+* Add columns to Tissue (`uberon_id.identifier`) and OntologyTerm (`valid_protocol_ids`) search views
+
+
+0.190.0
+=======
+`PR 471: SN Update file merge group <https://github.com/smaht-dac/smaht-portal/pull/471>`_
+
+* Update `generate_sample_source_part` in FileSet so that the sample source part of the `file_group` is Tissue, rather than TissueSample for single tissue samples with spatial information
+
+
+0.189.1
+=======
+`PR 476: Add RIN and tissue types to Submission Status <https://github.com/smaht-dac/smaht-portal/pull/476>`_
+
+* Add RIN values of the analyte and tissue types of a fileset to the Submission Status page
+* Exclude Single-Cell PTA data from generating warnings in the sample identity check on the QC metrics page
+
+
+0.189.0
+=======
+`PR 473: SN Add additional notes to exp manifest file <https://github.com/smaht-dac/smaht-portal/pull/473>`_
+
+* Adds `sequencing.additional_notes` to the Experimental Manifest file
+
+
 0.188.3
 =======
 `PR 474: SN Release preparation items <https://github.com/smaht-dac/smaht-portal/pull/474>`_

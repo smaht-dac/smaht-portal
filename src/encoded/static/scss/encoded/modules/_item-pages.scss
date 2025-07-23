@@ -2112,6 +2112,7 @@ File and Donor Overview Styles
 						.section {
 							&-title {
 								font-weight: 500;
+								align-items: center;
 							}
 							&-body {
 								font-weight: 500;
@@ -2200,6 +2201,7 @@ File and Donor Overview Styles
 					color: #343741;
 					font-weight: 600;
 					background-color: white;
+					z-index: 1;
 					
 					.title {
 						padding: 10px 15px;
@@ -2305,7 +2307,11 @@ File and Donor Overview Styles
 Popover Styles for Item Pages
 *****************************/
 .popover {
-	&#description-definitions-popover {
+	&.description-definitions-popover {
 		max-width: 600px;
+
+		thead > tr > th {
+			background-color: #F1F9FF;
+		}
 	}
 }

@@ -126,18 +126,6 @@ Cypress.Commands.add(
     }
 );
 
-/**
- * AUTHENTICATION COMMANDS
- * @todo - Once the authentication scheme for SMaHT is finalized, the following should be commented out and
- *         adjusted to work with the new means of authentication + session storage
- * @deprecated - This code is taken from CGAP in its entirety
- */
-
-const auth0UserIds = {
-    'cypress-main-scientist@cypress.hms.harvard.edu':
-        'auth0|6536c07ac994c9180dba80d5',
-};
-
 Cypress.Commands.add('signJWT', (auth0secret, email, sub) => {
     cy.request({
         url: '/auth0_config?format=json',
@@ -171,7 +159,7 @@ Cypress.Commands.add('signJWT', (auth0secret, email, sub) => {
 /**
  * This emulates login.js. Perhaps we should adjust login.js somewhat to match this better re: navigate.then(...) .
  */
-Cypress.Commands.add('loginSMaHT', function (options = { useEnvToken: true }) {
+Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: false }) {
     function performLogin(token) {
         return cy
             .window()
@@ -224,35 +212,45 @@ Cypress.Commands.add('loginSMaHT', function (options = { useEnvToken: true }) {
         }
     }
 
-    // If no token, we try to generate/impersonate one ourselves
+    cy.fixture('roles.json').then((roles) => {
+        let email, auth0UserId;
+        if (roles && roles[role] && roles[role].email && roles[role].auth0UserId) {
+            ({ email, auth0UserId } = roles[role]);
+        } else {
+            ({ email = options.user || Cypress.env('LOGIN_AS_USER'), auth0UserId } = options);
+        }
 
-    const email =
-        options.email ||
-        options.user ||
-        Cypress.env('LOGIN_AS_USER') ||
-        'cypress-main-scientist@cypress.hms.harvard.edu';
-    const auth0secret = Cypress.env('Auth0Secret');
+        const auth0secret = Cypress.env('Auth0Secret');
 
-    if (!auth0secret)
-        throw new Error('Cannot test login if no Auth0Secret in ENV vars.');
+        if (!auth0secret)
+            throw new Error('Cannot test login if no Auth0Secret in ENV vars.');
 
-    Cypress.log({
-        name: 'Login SMaHT',
-        message: 'Attempting to impersonate-login for ' + email,
-        consoleProps: () => {
-            return { auth0secret, email };
-        },
-    });
-
-    // Generate JWT
-    cy.signJWT(auth0secret, email, auth0UserIds[email] || '').then((token) => {
-        expect(token).to.have.length.greaterThan(0);
         Cypress.log({
             name: 'Login SMaHT',
-            message: 'Generated own JWT with length ' + token.length,
+            message: 'Attempting to impersonate-login for ' + email,
+            consoleProps: () => {
+                return { auth0secret, email, auth0UserId };
+            },
         });
-        return performLogin(token);
+
+        // Generate JWT
+        cy.signJWT(auth0secret, email, auth0UserId || '').then((token) => {
+            expect(token).to.have.length.greaterThan(0);
+            Cypress.log({
+                name: 'Login SMaHT',
+                message: 'Generated own JWT with length ' + token.length,
+            });
+            return performLogin(token);
+        });
     });
+});
+
+Cypress.Commands.add('validateUser', function (userDisplayName = 'SCM') {
+    return cy.get(navUserAcctDropdownBtnSelector)
+        .should('not.contain.text', 'Login')
+        .then((accountListItem) => {
+            expect(accountListItem.text()).to.contain(userDisplayName);
+        }).end();
 });
 
 Cypress.Commands.add('logoutSMaHT', function (options = { useEnvToken: true }) {
@@ -409,27 +407,52 @@ Cypress.Commands.add(
 
 Cypress.Commands.add("getQuickInfoBar", () => {
     const infoTypes = ["file", "donor", "tissue", "assay", "file-size"];
-    let result = {};
-  
+    const result = {};
+
     cy.get(".browse-summary-stat").each(($el) => {
-      const iconType = $el.find(".browse-link-icon").attr("data-icon-type");
-  
-      if (infoTypes.includes(iconType)) {
-        // wait till fully loaded
-        cy.wrap($el)
-          .find(".browse-summary-stat-value .icon-circle-notch.icon-spin")
-          .should("not.exist");
-  
-        // read value
-        cy.wrap($el)
-          .find(".browse-summary-stat-value")
-          .invoke("text")
-          .then((text) => {
-            const value = text.trim() === "-" ? 0 : Number(text.trim());
-            result[iconType] = value;
-          });
-      }
+        const iconType = $el.find(".browse-link-icon").attr("data-icon-type");
+
+        if (infoTypes.includes(iconType)) {
+            // wait till fully loaded
+            cy.wrap($el)
+                .find(".browse-summary-stat-value .icon-circle-notch.icon-spin")
+                .should("not.exist");
+
+            // read value
+            cy.wrap($el)
+                .find(".browse-summary-stat-value")
+                .invoke("text")
+                .then((text) => {
+                    const trimmed = text.trim();
+
+                    if (trimmed === "-") {
+                        result[iconType] = 0;
+                    } else if (iconType === "file-size") {
+                        // e.g. "14.18 TB"
+                        const match = trimmed.match(/^([\d.,]+)\s*(TB|GB|MB|KB)?$/i);
+                        if (match) {
+                            const number = parseFloat(match[1].replace(",", ""));
+                            const unit = match[2] ? match[2].toUpperCase() : "B";
+
+                            // convert the unit according to your preference; for example, convert all to GB:
+                            let valueInGB;
+                            switch (unit) {
+                                case "TB": valueInGB = number * 1024; break;
+                                case "GB": valueInGB = number; break;
+                                case "MB": valueInGB = number / 1024; break;
+                                case "KB": valueInGB = number / (1024 * 1024); break;
+                                default: valueInGB = number / (1024 * 1024 * 1024); break;
+                            }
+
+                            result[iconType] = valueInGB; // GB
+                        } else {
+                            result[iconType] = NaN; // fallback
+                        }
+                    } else {
+                        result[iconType] = Number(trimmed.replace(",", ""));
+                    }
+                });
+        }
     }).then(() => result);
-  });
-  
-  
+});
+
