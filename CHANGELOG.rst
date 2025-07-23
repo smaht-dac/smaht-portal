@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.192.2
+=======
+`PR 489: feat: remove benchmarking QC button <https://github.com/smaht-dac/smaht-portal/pull/489>`_
+
+* Remove benchmarking QC button
+
+
 0.192.1
 =======
 `PR 488: fix: update qc-page content uuid <https://github.com/smaht-dac/smaht-portal/pull/488>`_
