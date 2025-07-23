@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.192.3
+=======
+`PR 492: feat: add new announcement to homepage <https://github.com/smaht-dac/smaht-portal/pull/492>`_
+
+* Add announcement for switching to CRAM files
+
+
 0.192.2
 =======
 `PR 489: feat: remove benchmarking QC button <https://github.com/smaht-dac/smaht-portal/pull/489>`_
