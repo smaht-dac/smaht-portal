@@ -152,15 +152,14 @@ const BenchmarkingUINavLinkGenerator = ({
                             title={navBarTitle}>
                             <ul>
                                 {tabMapArray.map((obj, i) => {
-                                    console.log('obj: ', obj, i);
                                     return (
                                         <BenchmarkingUINavLink
                                             key={obj.eventKey}
                                             title={obj.title}
                                             isTop={i === 0}
-                                            cls="ps-2"
                                             {...{ currPath }}
                                             href={path + obj.eventKey}
+                                            path={path}
                                         />
                                     );
                                 })}
@@ -199,8 +198,6 @@ const BenchmarkingUINavWrapper = (props) => {
 const BenchmarkingUINavDrop = (props) => {
     const { path, currPath, title, eventKey, children, isTop } = props;
 
-    console.log('props: ', props);
-
     const isActive = currPath.includes(path);
     return (
         <li>
@@ -226,8 +223,12 @@ const BenchmarkingUINavDrop = (props) => {
 };
 
 const BenchmarkingUINavLink = (props) => {
-    const { href, currPath: pageHref, title, isTop, cls = '' } = props;
-    const isActive = href === pageHref;
+    const { path, href, currPath: pageHref, title, isTop, cls = '' } = props;
+
+    // Determine if the current page is active
+    const isActive = isTop
+        ? path === pageHref || href === pageHref
+        : href === pageHref;
 
     return (
         <li
@@ -235,7 +236,7 @@ const BenchmarkingUINavLink = (props) => {
                 isTop ? 'top' : ''
             } ${cls}`}>
             <a className="" {...{ href }}>
-                {title}
+                <span>{title}</span>
             </a>
         </li>
     );
