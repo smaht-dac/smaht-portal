@@ -40,6 +40,8 @@
                         "CODEC - Illumina": "CODEC",
                         "Single-cell MALBAC WGS - ONT": "MALBAC-amplified WGS",
                         "Single-cell MALBAC WGS - Illumina": "MALBAC-amplified WGS",
+                        "Single-cell PTA WGS - ONT": "PTA-amplified WGS",
+                        "Single-cell PTA WGS - Illumina": "PTA-amplified WGS",
                         "TEnCATS - ONT": "TEnCATS",
                         "WGS - ONT": "WGS - Standard ONT",
                         "Ultra-Long WGS - ONT": "WGS - UltraLong ONT",
@@ -82,6 +84,12 @@
                         "textColor": "#ffffff",
                         "shortName": "WGS"
                     },
+                    "Single-cell WGS": {
+                        "values": ['PTA-amplified WGS', 'MALBAC-amplified WGS', 'WGS DLP+'],
+                        "backgroundColor": "#aac536",
+                        "textColor": "#ffffff",
+                        "shortName": "scWGS"
+                    },
                     "RNA-seq": {
                         "values": ['RNA-Seq - Illumina', 'Kinnex'],
                         "backgroundColor": "#ad48ad",
@@ -93,12 +101,6 @@
                         "backgroundColor": "#2b4792",
                         "textColor": "#ffffff",
                         "shortName": "Dupl"
-                    },
-                    "Single-cell WGS": {
-                        "values": ['PTA-amplified WGS', 'MALBAC-amplified WGS', 'WGS DLP+'],
-                        "backgroundColor": "#aac536",
-                        "textColor": "#ffffff",
-                        "shortName": "scWGS"
                     },
                     "Targeted Seq": {
                         "values": ['HAT-Seq', 'L1-ONT', 'TEnCATS'],
@@ -248,6 +250,8 @@
                         "CODEC - Illumina": "CODEC",
                         "Single-cell MALBAC WGS - ONT": "MALBAC-amplified WGS",
                         "Single-cell MALBAC WGS - Illumina": "MALBAC-amplified WGS",
+                        "Single-cell PTA WGS - ONT": "PTA-amplified WGS",
+                        "Single-cell PTA WGS - Illumina": "PTA-amplified WGS",
                         "TEnCATS - ONT": "TEnCATS",
                         "WGS - ONT": "WGS - Standard ONT",
                         "Ultra-Long WGS - ONT": "WGS - UltraLong ONT",
@@ -271,6 +275,12 @@
                         "textColor": "#ffffff",
                         "shortName": "WGS"
                     },
+                    "Single-cell WGS": {
+                        "values": ['PTA-amplified WGS', 'MALBAC-amplified WGS', 'WGS DLP+'],
+                        "backgroundColor": "#aac536",
+                        "textColor": "#ffffff",
+                        "shortName": "scWGS"
+                    },
                     "RNA-seq": {
                         "values": ['RNA-Seq - Illumina', 'Kinnex'],
                         "backgroundColor": "#ad48ad",
@@ -282,12 +292,6 @@
                         "backgroundColor": "#2b4792",
                         "textColor": "#ffffff",
                         "shortName": "Dupl"
-                    },
-                    "Single-cell WGS": {
-                        "values": ['PTA-amplified WGS', 'MALBAC-amplified WGS', 'WGS DLP+'],
-                        "backgroundColor": "#aac536",
-                        "textColor": "#ffffff",
-                        "shortName": "scWGS"
                     },
                     "Targeted Seq": {
                         "values": ['HAT-Seq', 'L1-ONT', 'TEnCATS'],
