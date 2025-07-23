@@ -1269,7 +1269,7 @@ body[data-pathname^="/users/"] {
 File and Donor Overview Styles
 **********************/
 
-.item-page-container.type-File, .item-page-container.type-ProtectedDonor {
+.item-page-container.type-File, .item-page-container.type-ProtectedDonor, .item-page-container.type-Donor  {
 	font-family: 'Inter';
 
 	.view-title {
@@ -2008,7 +2008,7 @@ File and Donor Overview Styles
 	}
 }
 
-.item-page-container.type-ProtectedDonor {
+.item-page-container.type-ProtectedDonor, .item-page-container.type-Donor {
 
 	.view-title {
 		background: url('/static/img/polygon-bg-header-donor.svg'), linear-gradient(175deg, rgba(240, 251, 255, 0.5), rgba(165, 158, 240, 0.25)), #F5F9FD;
