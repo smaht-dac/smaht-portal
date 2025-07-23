@@ -7,12 +7,48 @@ smaht-portal
 Change Log
 ----------
 
-0.191.0
+0.192.3
 =======
 `PR 486: SN Sequencing center patching for submitted files <http://github.com/smaht-dac/smaht-portal/pull/486>`_
 
 * In `commands/release_file.py`, update the initial patch of the file to include the `sequencing center` as the `submission center` for SubmittedFiles (not OutputFiles)
 * In `commands/create_annotated_filenames.py`, for SubmittedFiles use the `submission center` as the `sequencing center` for the center code
+
+
+0.192.2
+=======
+`PR 489: feat: remove benchmarking QC button <https://github.com/smaht-dac/smaht-portal/pull/489>`_
+
+* Remove benchmarking QC button
+
+
+0.192.1
+=======
+`PR 488: fix: update qc-page content uuid <https://github.com/smaht-dac/smaht-portal/pull/488>`_
+
+* Fix for updating the uuid in the qc-metrics content field in master-inserts
+
+
+0.192.0
+=======
+`PR 458: Cypress tests for home page, documentation, data overview and file overview <https://github.com/smaht-dac/smaht-portal/pull/458>`_
+
+* Various new Cypress tests to increase the test coverage for home page, documentation, data overview and file overview
+* Update commands to support multi-roles with different permissions
+
+
+0.191.0
+=======
+`PR 485: feat: add values column for enums and suggested values <https://github.com/smaht-dac/smaht-portal/pull/485>`_
+
+* Add column for enums in Submission Data Dictionary
+
+
+0.190.9
+=======
+`PR 487: SN Fix ResourceFile data_category <http://github.com/smaht-dac/smaht-portal/pull/487>`_
+
+* Fix the `data_category` enums in ResourceFile to include "Donor Supplement" and set to `default`
 
 
 0.190.8

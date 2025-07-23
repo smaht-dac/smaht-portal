@@ -562,7 +562,7 @@
         "uuid": "7550cf0e-367b-4b38-85e3-54cd0c12c6bd"
     },
     {
-        "identifier": "retracted_files",
+        "identifier": "retracted-files",
         "title": "List of Retracted Files",
         "file": "/docs/public/retracted_files.jsx",
         "status": "in review",
@@ -581,10 +581,10 @@
         ]
     },
     {
-        "identifier": "data_matrix",
+        "identifier": "data_matrix_comparison",
         "title": "Data Matrix",
         "file": "/src/encoded/static/data/data-matrix-demo.jsx",
-        "status": "draft",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,

@@ -1,20 +1,11 @@
 import _ from 'underscore';
-import { cypressVisitHeaders } from '../support';
-import { navUserAcctDropdownBtnSelector } from '../support/selectorVars';
+import { cypressVisitHeaders, ROLE_TYPES } from '../support';
 
 describe('Deployment/CI Search View Tests', function () {
     before(function () {
         cy.visit('/', { headers: cypressVisitHeaders });
-        cy.loginSMaHT({
-            email: 'cypress-main-scientist@cypress.hms.harvard.edu',
-            useEnvToken: false,
-        })
-            .end()
-            .get(navUserAcctDropdownBtnSelector)
-            .should('not.contain.text', 'Login')
-            .then((accountListItem) => {
-                expect(accountListItem.text()).to.contain('SCM');
-            })
+        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
+            .validateUser('SCM')
             .end();
     });
 
@@ -327,16 +318,8 @@ describe('Deployment/CI Search View Tests', function () {
     context('/search/?type=File', function () {
         before(function () {
             cy.visit('/pages', { headers: cypressVisitHeaders }).end();
-            cy.loginSMaHT({
-                email: 'cypress-main-scientist@cypress.hms.harvard.edu',
-                useEnvToken: false,
-            })
-                .end()
-                .get(navUserAcctDropdownBtnSelector)
-                .should('not.contain.text', 'Login')
-                .then((accountListItem) => {
-                    expect(accountListItem.text()).to.contain('SCM');
-                })
+            cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
+                .validateUser('SCM')
                 .end();
         });
 
