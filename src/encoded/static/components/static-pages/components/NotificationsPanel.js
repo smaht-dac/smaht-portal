@@ -6,7 +6,7 @@ import { RightArrowIcon } from '../../util/icon';
 const announcements = [
     {
         type: 'info',
-        title: 'Attention Users',
+        title: 'Attention: BAM change',
         date: '2025-07-23',
         body: (
             <span>
