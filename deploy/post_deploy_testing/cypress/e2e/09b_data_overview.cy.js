@@ -26,10 +26,10 @@ describe('Data Overview - QC Metrics', function () {
                         cy.get('#slow-load-container').should('not.have.class', 'visible').end();
                         const linkHref = $linkElem.attr('href');
                         cy.location('pathname').should('equal', linkHref);
-                    });
-
-                // Verify that the page contains the correct header
-                cy.contains('div#qc_visualizations h2.section-title', 'QC Metric Visualizations').should('be.visible');
+                        // Verify that the page contains the correct header
+                        cy.contains('div#qc_visualizations h2.section-title', 'QC Metric Visualizations').should('be.visible');
+                    })
+                    .end();
             });
     });
 
