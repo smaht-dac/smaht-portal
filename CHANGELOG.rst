@@ -14,6 +14,13 @@ Change Log
 * Creates a script `commands/create_bulk_donor_manifest.py` that can take a list of Donor accession IDs or a search query on Donor and generates the Bulk Donor Manifest file containing the full protected donor metadata for the selected donors
 
 
+0.192.5
+=======
+`PR 494: SN Somatic VCF access status <http://github.com/smaht-dac/smaht-portal/pull/494>`_
+
+* In `commands/release_file.py`, update the `access_status` for somatic variant calls from tissues to be "Protected" instead of "Open"
+
+
 0.192.4
 =======
 `PR 484: SN Donor metadata release <http://github.com/smaht-dac/smaht-portal/pull/484>`_
