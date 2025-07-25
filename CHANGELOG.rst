@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.192.4
+=======
+`PR 494: SN Somatic VCF access status <http://github.com/smaht-dac/smaht-portal/pull/494>`_
+
+* In `commands/release_file.py`, update the `access_status` for somatic variant calls from tissues to be "Protected" instead of "Open"
+
+
 0.192.3
 =======
 `PR 486: SN Sequencing center patching for submitted files <http://github.com/smaht-dac/smaht-portal/pull/486>`_
