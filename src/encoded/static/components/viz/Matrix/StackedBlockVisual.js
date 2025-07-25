@@ -1500,8 +1500,8 @@ const Block = React.memo(function Block(props){
 
     if (openBlock?.rowIdx === rowIndex && openBlock?.columnIdx === colIndex &&
         (blockType === 'col-summary' ? (openBlock?.rowGroupKey === rowGroupKey) : (openBlock?.rowKey === group))) {
-        style['color'] = color;
-        style['borderColor'] = color;
+        style['color'] = isSummaryBlock(blockType) ? '#8a8aaa' : color;
+        style['borderColor'] = isSummaryBlock(blockType) ? '#8a8aaa' : color;
         style['pointerEvents'] = 'none'; // disable pointer events when block is open
         className += ' is-open-block';
     } else {
