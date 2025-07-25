@@ -11,7 +11,8 @@ Change Log
 =======
 `PR 490: feat: benchmarking page updates <https://github.com/smaht-dac/smaht-portal/pull/490>`_
 
-* Fix for updating the uuid in the qc-metrics content field in master-inserts
+* Make benchmarking page titles clickable
+* Remove Data Retraction Alerts in COLO829
 
 
 0.192.5
