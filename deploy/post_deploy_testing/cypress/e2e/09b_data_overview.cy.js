@@ -105,7 +105,7 @@ describe('Data Overview - QC Metrics', function () {
 
                     cy.wrap(optionTexts).each((optionText, index) => {
                         cy.get('[role="combobox"]').click();
-                        cy.get('[role="option"]').contains(optionText).click();
+                        cy.get('[role="option"]').contains(optionText).click().wait(250);
                         cy.get('div[class$="singleValue"]').should('have.text', optionText);
 
                         // Table existence and row check
