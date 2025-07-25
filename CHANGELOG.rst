@@ -7,11 +7,19 @@ smaht-portal
 Change Log
 ----------
 
-0.192.6
+0.192.7
 =======
 `PR 492: feat: add new announcement to homepage <https://github.com/smaht-dac/smaht-portal/pull/492>`_
 
 * Add announcement for switching to CRAM files
+
+
+0.192.6
+=======
+`PR 490: feat: benchmarking page updates <https://github.com/smaht-dac/smaht-portal/pull/490>`_
+
+* Make benchmarking page titles clickable
+* Remove Data Retraction Alerts in COLO829
 
 
 0.192.5
