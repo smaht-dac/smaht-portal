@@ -513,7 +513,7 @@ export default class DataMatrix extends React.PureComponent {
             </div>
         );
         return (
-            <div id={`data-matrix-for_${idLabel}`} className="static-section data-matrix">
+            <div id={`data-matrix-for_${idLabel}`} className="data-matrix">
                 <div className="row">
                     {body}
                 </div>

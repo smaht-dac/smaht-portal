@@ -80,6 +80,15 @@ export class VisualBody extends React.PureComponent {
         this.blockPopover = this.blockPopover.bind(this);
     }
 
+    findKeyByValue(obj, value) {
+        for (const [key, group] of Object.entries(obj)) {
+            if (group.values.includes(value)) {
+                return key;
+            }
+        }
+        return null;
+    }
+
     /**
      * @param {*} data A File or list of Files, represented by a block/tile.
      * @param {Object} props Props passed in from the StackedBlockVisual Component instance.
@@ -88,7 +97,8 @@ export class VisualBody extends React.PureComponent {
         const {
             query: { url: queryUrl, columnAggFields },
             fieldChangeMap, valueChangeMap, titleMap,
-            groupingProperties, columnGrouping, compositeValueSeparator
+            groupingProperties, columnGrouping, compositeValueSeparator,
+            rowGroupsExtended
         } = this.props;
         const { depth, blockType = null, columnToRowsMapping, popoverPrimaryTitle, rowGroups, rowGroupKey } = blockProps;
         const isGroup = (Array.isArray(data) && data.length >= 1) || false;
@@ -110,13 +120,16 @@ export class VisualBody extends React.PureComponent {
         if(!aggrData){
             return;
         }
-
         const primaryGroupingProperty = groupingProperties[0] || null;
         const primaryGroupingPropertyTitle = popoverPrimaryTitle || (primaryGroupingProperty && titleMap[primaryGroupingProperty]) || primaryGroupingProperty || null;
         let primaryGroupingPropertyValue = aggrData[primaryGroupingProperty];
         const secondaryGroupingProperty = groupingProperties[1] || null;
         const secondaryGroupingPropertyTitle = (secondaryGroupingProperty && titleMap[secondaryGroupingProperty]) || secondaryGroupingProperty || null;
         const secondaryGroupingPropertyValue = aggrData[secondaryGroupingProperty];
+        let secondaryGroupingPropertyGroupValue = '-';
+        if (depth > 0 && secondaryGroupingPropertyValue && rowGroupsExtended) {
+            secondaryGroupingPropertyGroupValue = this.findKeyByValue(rowGroupsExtended, secondaryGroupingPropertyValue) || '-';
+        }
 
         // Generate title area which shows current grouping vals.
         const yAxisGroupingTitle = (columnGrouping && titleMap[columnGrouping]) || columnGrouping || null;
@@ -236,30 +249,110 @@ export class VisualBody extends React.PureComponent {
                 <Popover.Body>
                     {isGroup ?
                         <div className="inner">
-                            <div className="row primary-row pb-1 pt-1">
-                                <div className="col-6">
-                                    <div className="text-400 me-05 text-capitalize text-muted">{primaryGroupingPropertyTitle}</div>
-                                    <div className="text-500">{primaryGroupingPropertyValue || '-'}</div>
+                            {blockType === 'regular' ? (
+                                <div className="row primary-row pb-1 pt-1">
+                                    <div className="col-4">
+                                        <div className="label me-05">{primaryGroupingPropertyTitle}</div>
+                                        <div className="value">{primaryGroupingPropertyValue || '-'}</div>
+                                    </div>
+                                    <div className="col-4">
+                                        {depth > 0 ? (
+                                            <React.Fragment>
+                                                <div className="label">{secondaryGroupingPropertyTitle}:</div>
+                                                <div className="value">{secondaryGroupingPropertyValue}</div>
+                                            </React.Fragment>
+                                        ) : null}
+                                    </div>
+                                    <div className="col-4">
+                                        <div className="label me-05">{'Germ Layer'}</div>
+                                        <div className="value">{secondaryGroupingPropertyGroupValue}</div>
+                                    </div>
                                 </div>
-                                <div className="col-6 text-end">
-                                    <div className="text-400 me-05 text-capitalize text-muted">{yAxisGroupingTitle}</div>
-                                    <div className="text-500">{yAxisGroupingValue || '-'}</div>
+                            ) : null}
+                            {blockType === 'col-summary' ? (
+                                <div className="row primary-row pb-1 pt-1">
+                                    <div className="col-12 value">
+                                        <span className="text-muted text-capitalize">{yAxisGroupingTitle} summary:</span> { yAxisGroupingValue || '-' }
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="row secondary-row pb-1 mt-1">
-                                <div className="col-5">
-                                    {depth > 0 ? (
-                                        <React.Fragment>
-                                            <div className="label text-400 text-capitalize text-muted">{secondaryGroupingPropertyTitle}:</div>
-                                            <div className="value text-500"><span className="text-success me-05">●</span>{secondaryGroupingPropertyValue}</div>
-                                        </React.Fragment>
-                                    ) : null}
+                            ) : null}
+                            {blockType === 'row-summary' && depth === 0 ? (
+                                <div className="row primary-row pb-1 pt-1">
+                                    <div className="col-12 value">
+                                        <span className="text-muted text-capitalize">{primaryGroupingPropertyTitle} summary:</span> { primaryGroupingPropertyValue || '-' }
+                                    </div>
                                 </div>
-                                <div className="col-7 text-end">
-                                    <div className="label text-400 text-muted">Total Files</div>
-                                    <div className="value text-600">{data.length}</div>
+                            ) : null}
+                            {blockType === 'row-summary' && depth > 0 ? (
+                                <div className="row primary-row pb-1 pt-1">
+                                    <div className="col-12 value">
+                                        <span className="text-muted text-capitalize">{secondaryGroupingPropertyTitle} summary:</span> { secondaryGroupingPropertyValue || '-' }
+                                    </div>
                                 </div>
-                            </div>
+                            ) : null}
+                            {blockType === 'regular' ? (
+                                <div className="row secondary-row pb-1 mt-1">
+                                    <div className="col-4">
+                                        <div className="label me-05">{yAxisGroupingTitle}</div>
+                                        <div className="value">{yAxisGroupingValue || '-'}</div>
+                                    </div>
+                                    <div className="col-4">
+                                        <div className="label">Total Coverage</div>
+                                        <div className="value text-danger">{'--'}</div>
+                                    </div>
+                                    <div className="col-4">
+                                        <div className="label">Total Files</div>
+                                        <div className="value">{data.length}</div>
+                                    </div>
+                                </div>
+                            ) : null}
+                            {blockType === 'col-summary' ? (
+                                <div className="row secondary-row pb-1 mt-1">
+                                    <div className="col-4">
+                                        <div className="label me-05">{primaryGroupingProperty}</div>
+                                        <div className="value text-danger">{'0'}</div>
+                                    </div>
+                                    <div className="col-4">
+                                        <div className="label">{secondaryGroupingPropertyTitle}</div>
+                                        <div className="value text-danger">{'0'}</div>
+                                    </div>
+                                    <div className="col-4">
+                                        <div className="label">Total Files</div>
+                                        <div className="value">{data.length}</div>
+                                    </div>
+                                </div>
+                            ) : null}
+                            {blockType === 'row-summary' && depth === 0 ? (
+                                <div className="row secondary-row pb-1 mt-1">
+                                    <div className="col-4">
+                                        <div className="label me-05">{secondaryGroupingPropertyTitle}</div>
+                                        <div className="value text-danger">{'0'}</div>
+                                    </div>
+                                    <div className="col-4">
+                                        &nbsp;
+                                    </div>
+                                    <div className="col-4">
+                                        <div className="label">Total Files</div>
+                                        <div className="value">{data.length}</div>
+                                    </div>
+                                </div>
+                            ) : null}
+                            {blockType === 'row-summary' && depth > 0 ? (
+                                <div className="row secondary-row pb-1 mt-1">
+                                    <div className="col-4">
+                                        <div className="label me-05">{primaryGroupingProperty}</div>
+                                        <div className="value">{primaryGroupingPropertyValue}</div>
+                                    </div>
+                                    <div className="col-4">
+                                        <div className="label">{'Germ Layer'}</div>
+                                        <div className="value">{secondaryGroupingPropertyGroupValue}</div>
+                                    </div>
+                                    <div className="col-4">
+                                        <div className="label">Total Files</div>
+                                        <div className="value">{data.length}</div>
+                                    </div>
+                                </div>
+                            ) : null}
                             {StackedBlockVisual.generatePopoverRowsFromJSON(keyValsToShow, this.props)}
                             {makeSearchButton(viewButtonDisabled)}
                         </div>
@@ -961,7 +1054,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     // We have columnSubGrouping so these are -pairs- of (0) columnSubGrouping val, (1) blocks
                                     blockData = blockData[1];
                                 }
-                                return <Block key={i} {...commonProps} {...{ parentGrouping, subGrouping }} data={blockData} indexInGroup={i} rowIndex={props.index} colIndex={colIdx} />;
+                                return <Block key={i} {...commonProps} {...{ parentGrouping, subGrouping }} data={blockData} indexInGroup={i} rowIndex={props.index} colIndex={colIdx} blockType="regular" />;
                             }) }
                         </div>
                     );
@@ -1061,11 +1154,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                             {showAxisLabels &&
                                 <div className="axis-container flex-grow-1">
                                     <div className="x-axis">{xAxisLabel || 'X'}</div>
-                                    <div className="y-axis">
-                                        <div className="y-label">{yAxisLabel || 'Y'}</div>
-                                        <div className="y-arrow">↓</div>
-                                    </div>
-
+                                    <div className="y-axis">{yAxisLabel || 'Y'}</div>
                                 </div>
                             }
                         </div>
