@@ -1,6 +1,8 @@
 from typing import Dict, List, Any, Optional
 import argparse
+import openpyxl
 import logging
+from pathlib import Path
 
 from encoded.commands.utils import get_auth_key
 from encoded.item_utils.utils import (
@@ -143,7 +145,7 @@ def get_bulk_donor_manifest(
         for d in range(1,len(donors)):
             donor = donors[d]
             medical_history = medical_histories[d]
-            generate_manifest_row(donor, medical_history, kept_properties)
+            generate_manifest_row(donor_manifest, d, donor, medical_history, kept_properties)
 
 
 def get_kept_properties(schemas: Dict[str, Any]):
@@ -184,20 +186,35 @@ def order_items_by_donor(items: List[Dict[str, Any]], donor_order: List[str]):
     return new_items
 
 
-def generate_manifest_row(donor_manifest: pd.DataFrame, d: int, donor: str, kept_properties: List[str], request_handler: RequestHandler):
+def generate_manifest_row(donor_manifest: pd.DataFrame, d: int, donor: str, medical_history: Dict[str, Any], kept_properties: List[str], request_handler: RequestHandler):
     """Generate row for manifest."""
-    donor_dict = {
+    donor_search_dict = {
         "Donor": f"search/?type=Donor&external_id={donor}&frame=raw",
         "MedicalHistory": f"search/?type=MedicalHistory&donor={donor}&frame=raw",
         "Demographic": f"search/?type=Demographic&donor={donor}&frame=raw",
         "DeathCircumstances": f"search/?type=DeathCircumstances&donor={donor}&frame=raw",
         "TissueCollection": f"search/?type=TissueCollection&donor={donor}&frame=raw",
         "FamilyHistory": f"search/?type=FamilyHistory&donor={donor}&frame=raw",
+    }
+    mh_search_dict = {
         "Exposure": f"search/?type=Exposure&medical_history={medical_history}&frame=raw",
         "Diagnosis": f"search/?type=Diagnosis&medical_history={medical_history}&frame=raw",
         "MedicalTreatment": f"search/?type=MedicalTreatment&medical_history={medical_history}&frame=raw",
     }
-    for item_type, search in donor_dict.items():
+    donor_manifest = add_row_from_search(donor_manifest, d, donor_search_dict, kept_properties, request_handler)
+    #donor_manifest = add_row_from_search(donor_manifest, d, mh_search_dict, kept_properties, request_handler)
+
+
+
+def add_row_from_search(
+        donor_manifest: pd.DataFrame,
+        d: int,
+        search_dict: Dict[str, Any],
+        kept_properties: List[str],
+        request_handler: RequestHandler
+    ) -> pd.DataFrame:
+    """"""
+    for item_type, search in search_dict.items():
         hits = ff_utils.search_metadata(search, key=request_handler.auth_key)
         subcolumns = [column.split(".")[1] for column in kept_properties if column.split(".")[0] == item_type]
         if len(hits) > 1:
@@ -238,7 +255,125 @@ def generate_manifest_row(donor_manifest: pd.DataFrame, d: int, donor: str, kept
                 col = f"{item_type}.{sub}"
                 if col in CHANGED_COLUMNS.keys():
                     col = CHANGED_COLUMNS[col]
-                donor_manifest.at[d, col] = "NA" 
+                donor_manifest.at[d, col] = "NA"
+        return donor_manifest
+
+# def write_bulk_donor_manifest(
+#     output: Path,
+#     submission_schemas: Dict[str, Any],
+#     request_handler: RequestHandler,
+#     example: bool = False
+# ) -> None:
+#     """Write a single workbook containing all submission spreadsheets."""
+#     workbook = openpyxl.Workbook()
+#     write_workbook_sheets(
+#         workbook, ordered_submission_schemas, request_handler, separate_comments=separate_comments, eqm=eqm, example=example
+#     )
+#     file_path = Path(output, WORKBOOK_FILENAME)
+#     save_workbook(workbook, file_path)
+#     if example:
+#         log.info(f"Example workbook written to: {file_path}")
+#     else:
+#         log.info(f"Workbook written to: {file_path}")
+
+
+# @dataclass(frozen=True)
+# class Spreadsheet:
+#     item: str
+#     properties: List[Property]
+#     examples: Optional[List[Dict[str,Any]]] = None
+
+
+# def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet:
+#     """Get spreadsheet information for item."""
+#     properties = get_properties(item, submission_schema)
+#     return Spreadsheet(
+#         item=item,
+#         properties=properties,
+#     )
+
+
+# def get_properties(item: str, submission_schema: Dict[str, Any]) -> List[Property]:
+#     """Get property information from the submission schema"""
+#     properties = schema_utils.get_properties(submission_schema)
+#     property_list = []
+#     for key, value in properties.items():
+#         property_list += get_nested_properties(item, key, value)
+#     return property_list
+
+
+# def write_spreadsheet(
+#     output: Path, spreadsheet: Spreadsheet, separate_comments: bool = False, example: bool = False
+# ) -> None:
+#     """Write spreadsheet to file"""
+#     file_path = get_output_file_path(output, spreadsheet)
+#     workbook = generate_workbook(spreadsheet, separate_comments=separate_comments)
+#     save_workbook(workbook, file_path)
+#     if example:
+#         log.info(f"Example spreadsheet written to: {file_path}")
+#     else:
+#         log.info(f"Spreadsheet written to: {file_path}")
+    
+
+# def get_output_file_path(output: Path, spreadsheet: Spreadsheet) -> Path:
+#     """Get the output file path"""
+#     return Path(output, f"{to_snake_case(spreadsheet.item)}{ITEM_SPREADSHEET_SUFFIX}")
+
+
+# def get_property(item: str, property_name: str, property_schema: Dict[str, Any],is_nested: bool = False) -> Property:
+#     """Get property information"""
+#     return Property(
+#         name=property_name,
+#         item=item,
+#         description=schema_utils.get_description(property_schema),
+#         value_type=schema_utils.get_schema_type(property_schema),
+#         required=is_required(property_schema),
+#         link=is_link(property_schema),
+#         enum=get_enum(property_schema),
+#         array_subtype=get_array_subtype(property_schema),
+#         pattern=schema_utils.get_pattern(property_schema),
+#         comment=schema_utils.get_submission_comment(property_schema),
+#         examples=get_examples(property_schema),
+#         format_=schema_utils.get_format(property_schema),
+#         requires=get_corequirements(property_schema),
+#         exclusive_requirements=get_exclusive_requirements(property_schema),
+#         nested=is_nested,
+#         allow_commas=is_allow_commas(property_schema),
+#         allow_multiplier_suffix=is_allow_multiplier_suffix(property_schema),
+#         search=get_search_url(property_schema)
+#     )
+
+# def generate_workbook(
+#     spreadsheet: Spreadsheet, separate_comments: bool = False
+# ) -> openpyxl.Workbook:
+#     """Generate the workbook"""
+#     workbook = openpyxl.Workbook()
+#     worksheet = workbook.active
+#     set_sheet_name(worksheet, spreadsheet)
+#     write_properties(
+#         worksheet, spreadsheet.properties, separate_comments=separate_comments,examples=spreadsheet.examples
+#     )
+#     return workbook
+
+
+# def write_property(
+#     worksheet: openpyxl.worksheet.worksheet.Worksheet,
+#     index: int,
+#     property_: Property,
+#     comments: bool = True,
+# ) -> None:
+#     """Write property to the worksheet"""
+#     row = 1  # cells 1-indexed
+#     cell = worksheet.cell(row=row, column=index, value=property_.name)
+#     set_cell_font(cell, property_)
+#     set_cell_width(worksheet, index, property_)
+#     if comments:
+#         write_comment(worksheet, index, property_)
+
+
+# def save_workbook(workbook: openpyxl.Workbook, file_path: Path) -> None:
+#     """Save the workbook to the file path"""
+#     workbook.save(filename=file_path)
 
 
 def main() -> None:
