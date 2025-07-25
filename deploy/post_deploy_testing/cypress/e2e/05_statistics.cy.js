@@ -1,5 +1,4 @@
-import { cypressVisitHeaders } from "../support";
-import { navUserAcctDropdownBtnSelector } from "../support/selectorVars";
+import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 /**
 * Test you can visit the statistics page.
 */
@@ -7,12 +6,9 @@ describe('Statistics Page Validation (Submissions and Usage)', function () {
 
     before(function () {
         cy.visit('/', { headers: cypressVisitHeaders });
-        cy.loginSMaHT({ 'email': 'cypress-main-scientist@cypress.hms.harvard.edu', 'useEnvToken': false }).end()
-            .get(navUserAcctDropdownBtnSelector)
-            .should('not.contain.text', 'Login')
-            .then((accountListItem) => {
-                expect(accountListItem.text()).to.contain('SCM');
-            }).end();
+        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
+            .validateUser('SCM')
+            .end();
     });
 
     after(function () {

@@ -2,7 +2,7 @@ from copy import deepcopy
 from typing import Any, Callable, List, Optional, Tuple, Union
 from encoded.endpoints.endpoint_utils import get_properties
 
-AGGREGATION_MAX_BUCKETS = 100
+AGGREGATION_MAX_BUCKETS = 200
 AGGREGATION_NO_VALUE = "No value"
 
 

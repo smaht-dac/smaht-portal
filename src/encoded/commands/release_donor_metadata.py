@@ -361,6 +361,11 @@ class DonorRelease:
                 self.get_okay_message(item_constants.STATUS, PUBLIC_DONOR_RELEASE_STATUS),
             ]
         )
+        self.patch_infos_minimal.extend(
+            [
+                f"Donor {warning_text(self.donor_accession)} will have status set to {PUBLIC_DONOR_RELEASE_STATUS}"
+            ]
+        )
         self.patch_dicts.append(patch_body)
 
 
@@ -466,7 +471,6 @@ def main() -> None:
 
     donors_to_release = args.donor
     verbose = mode == 'single' # Print more information in single mode
-
     donor_releases : List[DonorRelease] = []
     for donor_identifier in donors_to_release:
         donor_release = DonorRelease(auth_key=auth_key, donor_identifier=donor_identifier, verbose=verbose)
