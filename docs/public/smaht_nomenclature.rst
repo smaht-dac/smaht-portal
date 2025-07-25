@@ -384,14 +384,14 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 </tr>
                 <tr>
                     <td>3AO</td>
-                    <td>Hippocampus, Brain, Left hemisphere</td>
+                    <td>Hippocampus, Brain, Right hemisphere</td>
                     <td>Frozen</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
-| \* Fibroblasts isolated from fresh calf skin.
+| \* 3AC = Fibroblasts are isolated from fresh calf skin.
 
 
 Table 2: Benchmarking cell line codes.
