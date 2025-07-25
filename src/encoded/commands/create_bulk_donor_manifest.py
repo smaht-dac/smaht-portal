@@ -1,30 +1,22 @@
 from typing import Dict, List, Any, Optional
+import pandas as pd
 import argparse
-import openpyxl
-import logging
+import structlog
 from pathlib import Path
 
 from encoded.commands.utils import get_auth_key
 from encoded.item_utils.utils import (
-    RequestHandler,
-    get_property_values_from_identifiers
+    RequestHandler
 )
 
 from encoded.item_utils import (
     item as item_utils,
-    protected_donor as pd_utils,
     donor as donor_utils,
     medical_history as mh_utils,
 )
-from dcicutils import (
-    ff_utils,
-    misc_utils,
-    schema_utils
-)
-import pandas as pd
-import pprint
+from dcicutils import ff_utils
 
-logger = logging.getLogger(__name__)
+log = structlog.getLogger(__name__)
 
 ITEM_TYPES = [
     "Donor",
@@ -77,13 +69,12 @@ def create_bulk_donor_manifest(
 
     request_handler = RequestHandler(auth_key=auth_key)
     donors = get_donors(search, request_handler, identifiers)
-    logger.info(f"Found {len(donors)} donors to process")
+    log.info(f"Found {len(donors)} donors to process")
     schemas = ff_utils.get_schemas(key=auth_key)
+    log.info("Generated bulk donor manifest")
     bulk_donor_manifest = get_bulk_donor_manifest(donors, schemas, request_handler)
-    logger.info("Generated bulk donor manifest")
-    #log_bulk_donor_manifest(bulk_donor_manifest)
-    logger.info(f"Writing out bulk donor manifest to {output}")
-    #write_bulk_donor_manfiest(bulk_donor_manifest, output)
+    log.info(f"Writing out bulk donor manifest to {output}")
+    write_bulk_donor_manifest(bulk_donor_manifest, output)
 
 def get_donors(
     search: str,
@@ -114,7 +105,7 @@ def get_items_from_search_query(
     try:
         result = ff_utils.search_metadata(search_query, key=auth_key)
     except Exception as e:
-        logger.error(f"Error searching for items: {e}")
+        log.error(f"Error searching for items: {e}")
         result = []
     return result
 
@@ -142,13 +133,15 @@ def get_bulk_donor_manifest(
         donor_manifest = pd.DataFrame(columns=kept_properties)
         external_ids = [item_utils.get_external_id(donor) for donor in donors]
         medical_histories = get_medical_histories(external_ids, request_handler)
-        for d in range(1,len(donors)):
-            donor = donors[d]
-            medical_history = medical_histories[d]
-            generate_manifest_row(donor_manifest, d, donor, medical_history, kept_properties)
+        for idx, donor in enumerate(donors):
+            medical_history = medical_histories[idx]
+            donor_manifest = generate_manifest_row(
+                donor_manifest, idx, donor, medical_history, kept_properties, request_handler
+            )
+        return donor_manifest
 
 
-def get_kept_properties(schemas: Dict[str, Any]):
+def get_kept_properties(schemas: Dict[str, Any]) -> List[str]:
     """Get properties that are included in the bulk manifest from the schema."""
     all_kept_properties = []
     for item_type in ITEM_TYPES:
@@ -161,17 +154,16 @@ def get_kept_properties(schemas: Dict[str, Any]):
     return modified_properties
 
 
-
 def get_medical_histories(
         external_ids: List[str],
         request_handler: RequestHandler
 ) -> List[Dict[str, Any]]:
     """Get medical history list from protected donors."""
-    mh_list = []
     search_query = "search/?type=MedicalHistory&frame=embedded"
     for external_id in external_ids:
         search_query += f"&donor={external_id}"
-    return order_items_by_donor(mh_list,external_ids)
+    mh_list = ff_utils.search_metadata(search_query, key=request_handler.auth_key)
+    return order_items_by_donor(mh_list, external_ids)
 
 
 def order_items_by_donor(items: List[Dict[str, Any]], donor_order: List[str]):
@@ -186,194 +178,119 @@ def order_items_by_donor(items: List[Dict[str, Any]], donor_order: List[str]):
     return new_items
 
 
-def generate_manifest_row(donor_manifest: pd.DataFrame, d: int, donor: str, medical_history: Dict[str, Any], kept_properties: List[str], request_handler: RequestHandler):
+def generate_manifest_row(
+        donor_manifest: pd.DataFrame,
+        idx: int,
+        donor: str,
+        medical_history: Dict[str, Any],
+        kept_properties: List[str],
+        request_handler: RequestHandler
+    ):
     """Generate row for manifest."""
+    donor_external_id = item_utils.get_external_id(donor)
+    mh_submitted_id = item_utils.get_submitted_id(medical_history)
     donor_search_dict = {
-        "Donor": f"search/?type=Donor&external_id={donor}&frame=raw",
-        "MedicalHistory": f"search/?type=MedicalHistory&donor={donor}&frame=raw",
-        "Demographic": f"search/?type=Demographic&donor={donor}&frame=raw",
-        "DeathCircumstances": f"search/?type=DeathCircumstances&donor={donor}&frame=raw",
-        "TissueCollection": f"search/?type=TissueCollection&donor={donor}&frame=raw",
-        "FamilyHistory": f"search/?type=FamilyHistory&donor={donor}&frame=raw",
+        "Demographic": f"search/?type=Demographic&donor={donor_external_id}&frame=raw",
+        "DeathCircumstances": f"search/?type=DeathCircumstances&donor={donor_external_id}&frame=raw",
+        "TissueCollection": f"search/?type=TissueCollection&donor={donor_external_id}&frame=raw",
+        "FamilyHistory": f"search/?type=FamilyHistory&donor={donor_external_id}&frame=raw",
     }
     mh_search_dict = {
-        "Exposure": f"search/?type=Exposure&medical_history={medical_history}&frame=raw",
-        "Diagnosis": f"search/?type=Diagnosis&medical_history={medical_history}&frame=raw",
-        "MedicalTreatment": f"search/?type=MedicalTreatment&medical_history={medical_history}&frame=raw",
+        "Exposure": f"search/?type=Exposure&medical_history={mh_submitted_id}&frame=raw",
+        "Diagnosis": f"search/?type=Diagnosis&medical_history={mh_submitted_id}&frame=raw",
+        "MedicalTreatment": f"search/?type=MedicalTreatment&medical_history={mh_submitted_id}&frame=raw",
     }
-    donor_manifest = add_row_from_search(donor_manifest, d, donor_search_dict, kept_properties, request_handler)
-    #donor_manifest = add_row_from_search(donor_manifest, d, mh_search_dict, kept_properties, request_handler)
+    donor_manifest = add_row_from_item(donor_manifest, idx, "Donor", [donor], kept_properties)
+    donor_manifest = add_row_from_item(donor_manifest, idx, "MedicalHistory", [medical_history], kept_properties)
+    donor_manifest = add_row_from_search(donor_manifest, idx, donor_search_dict, kept_properties, request_handler)
+    donor_manifest = add_row_from_search(donor_manifest, idx, mh_search_dict, kept_properties, request_handler)
+    return donor_manifest
 
+
+def add_row_from_item(
+    donor_manifest: pd.DataFrame,
+    idx: int,
+    item_type: str,
+    items: List[Dict[str, Any]],
+    kept_properties: List[str]
+):
+    """Add row to dataframe from item properties."""
+    return format_value_from_properties(donor_manifest, idx, item_type, kept_properties, items)
 
 
 def add_row_from_search(
-        donor_manifest: pd.DataFrame,
-        d: int,
-        search_dict: Dict[str, Any],
-        kept_properties: List[str],
-        request_handler: RequestHandler
-    ) -> pd.DataFrame:
-    """"""
+    donor_manifest: pd.DataFrame,
+    idx: int,
+    search_dict: Dict[str, Any],
+    kept_properties: List[str],
+    request_handler: RequestHandler
+) -> pd.DataFrame:
+    """Add row to dataframe from portal search."""
+    tmp_dataframe = donor_manifest
     for item_type, search in search_dict.items():
         hits = ff_utils.search_metadata(search, key=request_handler.auth_key)
-        subcolumns = [column.split(".")[1] for column in kept_properties if column.split(".")[0] == item_type]
-        if len(hits) > 1:
-            for sub in subcolumns:
-                col = f"{item_type}.{sub}"
-                if col in CHANGED_COLUMNS.keys():
-                    col = CHANGED_COLUMNS[col]
-                values = []
-                for hit in hits:
-                    if sub in hit:
-                        value = hit[sub]
-                        if type(value) is list:
-                            value=";".join(value)
-                        if value or value == 0:
-                            values.append(str(value))
-                        else:
-                            values.append("NA")
+        tmp_dataframe = format_value_from_properties(tmp_dataframe, idx, item_type, kept_properties, hits)
+    return donor_manifest
+
+
+def format_value_from_properties(
+    donor_manifest: pd.DataFrame,
+    idx: int,
+    item_type: str, 
+    kept_properties: List[str],
+    results: Dict[str, Any],
+):
+    """Format and fill in dataframe columns from item properties."""
+    subcolumns = [column.split(".")[1] for column in kept_properties if column.split(".")[0] == item_type]
+    if len(results) > 1:
+        for sub in subcolumns:
+            col = f"{item_type}.{sub}"
+            if col in CHANGED_COLUMNS.keys():
+                col = CHANGED_COLUMNS[col]
+            values = []
+            for hit in results:
+                if sub in hit:
+                    value = hit[sub]
+                    if type(value) is list:
+                        value=";".join(value)
+                    if value or value == 0:
+                        values.append(str(value))
                     else:
                         values.append("NA")
-                donor_manifest.at[d, col] = "|".join(values)   
-        elif len(hits) == 1:
-            for sub in subcolumns:
-                col = f"{item_type}.{sub}"
-                if col in CHANGED_COLUMNS.keys():
-                    col = CHANGED_COLUMNS[col]
-                if sub in hits[0]:
-                    value = hits[0][sub]
-                    if type(value) is list:
-                            value=";".join(value)
-                    if value or value == 0:
-                        donor_manifest.at[d, col] = value
-                    else:
-                        donor_manifest.at[d, col] = "NA"
                 else:
-                    donor_manifest.at[d, col] = "NA"
-        else:
-            for sub in subcolumns:
-                col = f"{item_type}.{sub}"
-                if col in CHANGED_COLUMNS.keys():
-                    col = CHANGED_COLUMNS[col]
-                donor_manifest.at[d, col] = "NA"
-        return donor_manifest
-
-# def write_bulk_donor_manifest(
-#     output: Path,
-#     submission_schemas: Dict[str, Any],
-#     request_handler: RequestHandler,
-#     example: bool = False
-# ) -> None:
-#     """Write a single workbook containing all submission spreadsheets."""
-#     workbook = openpyxl.Workbook()
-#     write_workbook_sheets(
-#         workbook, ordered_submission_schemas, request_handler, separate_comments=separate_comments, eqm=eqm, example=example
-#     )
-#     file_path = Path(output, WORKBOOK_FILENAME)
-#     save_workbook(workbook, file_path)
-#     if example:
-#         log.info(f"Example workbook written to: {file_path}")
-#     else:
-#         log.info(f"Workbook written to: {file_path}")
+                    values.append("NA")
+            donor_manifest.at[idx, col] = "|".join(values)   
+    elif len(results) == 1:
+        for sub in subcolumns:
+            col = f"{item_type}.{sub}"
+            if col in CHANGED_COLUMNS.keys():
+                col = CHANGED_COLUMNS[col]
+            if sub in results[0]:
+                value = results[0][sub]
+                if type(value) is list:
+                        value=";".join(value)
+                if value or value == 0:
+                    donor_manifest.at[idx, col] = value
+                else:
+                    donor_manifest.at[idx, col] = "NA"
+            else:
+                donor_manifest.at[idx, col] = "NA"
+    else:
+        for sub in subcolumns:
+            col = f"{item_type}.{sub}"
+            if col in CHANGED_COLUMNS.keys():
+                col = CHANGED_COLUMNS[col]
+            donor_manifest.at[idx, col] = "NA"
+    return donor_manifest
 
 
-# @dataclass(frozen=True)
-# class Spreadsheet:
-#     item: str
-#     properties: List[Property]
-#     examples: Optional[List[Dict[str,Any]]] = None
-
-
-# def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet:
-#     """Get spreadsheet information for item."""
-#     properties = get_properties(item, submission_schema)
-#     return Spreadsheet(
-#         item=item,
-#         properties=properties,
-#     )
-
-
-# def get_properties(item: str, submission_schema: Dict[str, Any]) -> List[Property]:
-#     """Get property information from the submission schema"""
-#     properties = schema_utils.get_properties(submission_schema)
-#     property_list = []
-#     for key, value in properties.items():
-#         property_list += get_nested_properties(item, key, value)
-#     return property_list
-
-
-# def write_spreadsheet(
-#     output: Path, spreadsheet: Spreadsheet, separate_comments: bool = False, example: bool = False
-# ) -> None:
-#     """Write spreadsheet to file"""
-#     file_path = get_output_file_path(output, spreadsheet)
-#     workbook = generate_workbook(spreadsheet, separate_comments=separate_comments)
-#     save_workbook(workbook, file_path)
-#     if example:
-#         log.info(f"Example spreadsheet written to: {file_path}")
-#     else:
-#         log.info(f"Spreadsheet written to: {file_path}")
-    
-
-# def get_output_file_path(output: Path, spreadsheet: Spreadsheet) -> Path:
-#     """Get the output file path"""
-#     return Path(output, f"{to_snake_case(spreadsheet.item)}{ITEM_SPREADSHEET_SUFFIX}")
-
-
-# def get_property(item: str, property_name: str, property_schema: Dict[str, Any],is_nested: bool = False) -> Property:
-#     """Get property information"""
-#     return Property(
-#         name=property_name,
-#         item=item,
-#         description=schema_utils.get_description(property_schema),
-#         value_type=schema_utils.get_schema_type(property_schema),
-#         required=is_required(property_schema),
-#         link=is_link(property_schema),
-#         enum=get_enum(property_schema),
-#         array_subtype=get_array_subtype(property_schema),
-#         pattern=schema_utils.get_pattern(property_schema),
-#         comment=schema_utils.get_submission_comment(property_schema),
-#         examples=get_examples(property_schema),
-#         format_=schema_utils.get_format(property_schema),
-#         requires=get_corequirements(property_schema),
-#         exclusive_requirements=get_exclusive_requirements(property_schema),
-#         nested=is_nested,
-#         allow_commas=is_allow_commas(property_schema),
-#         allow_multiplier_suffix=is_allow_multiplier_suffix(property_schema),
-#         search=get_search_url(property_schema)
-#     )
-
-# def generate_workbook(
-#     spreadsheet: Spreadsheet, separate_comments: bool = False
-# ) -> openpyxl.Workbook:
-#     """Generate the workbook"""
-#     workbook = openpyxl.Workbook()
-#     worksheet = workbook.active
-#     set_sheet_name(worksheet, spreadsheet)
-#     write_properties(
-#         worksheet, spreadsheet.properties, separate_comments=separate_comments,examples=spreadsheet.examples
-#     )
-#     return workbook
-
-
-# def write_property(
-#     worksheet: openpyxl.worksheet.worksheet.Worksheet,
-#     index: int,
-#     property_: Property,
-#     comments: bool = True,
-# ) -> None:
-#     """Write property to the worksheet"""
-#     row = 1  # cells 1-indexed
-#     cell = worksheet.cell(row=row, column=index, value=property_.name)
-#     set_cell_font(cell, property_)
-#     set_cell_width(worksheet, index, property_)
-#     if comments:
-#         write_comment(worksheet, index, property_)
-
-
-# def save_workbook(workbook: openpyxl.Workbook, file_path: Path) -> None:
-#     """Save the workbook to the file path"""
-#     workbook.save(filename=file_path)
+def write_bulk_donor_manifest(
+    donor_manifest: pd.DataFrame,
+    output: Path
+) -> None:
+    """Write out TSV containing the bulk donor manifest to output file."""
+    donor_manifest.to_csv(output,sep='\t',index=False)
+    log.info(f"Workbook written to: {output}")
 
 
 def main() -> None:
@@ -401,19 +318,10 @@ def main() -> None:
         "-o",
         help="Output file name",
     )
-    parser.add_argument(
-        "--verbose",
-        "-v",
-        action="store_true",
-        default=False,
-        help="Increase logging verbosity",
-    )
     args = parser.parse_args()
-    if args.verbose:
-        logger.setLevel(logging.DEBUG)
     auth_key = get_auth_key(args.env)
     if not args.search and not args.donors:
-        logger.error("Must provide either --search or --identifiers")
+        log.error("Must provide either --search or --identifiers")
     else:
         create_bulk_donor_manifest(
             args.search,
