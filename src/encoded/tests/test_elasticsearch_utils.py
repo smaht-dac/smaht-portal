@@ -54,14 +54,14 @@ def test_create_elasticsearch_aggregation_query_a():
                 "meta": {"field_name": "file_sets.libraries.analytes.samples.sample_sources.cell_line.code"},
                 "terms": {
                   "field": "embedded.file_sets.libraries.analytes.samples.sample_sources.cell_line.code.raw",
-                  "missing": "No value", "size": 100
+                  "missing": "No value", "size": 200
                 },
                 "aggs": {
                   "release_tracker_description": {
                     "meta": {"field_name": "release_tracker_description"},
                     "terms": {
                       "field": "embedded.release_tracker_description.raw",
-                      "missing": "No value", "size": 100
+                      "missing": "No value", "size": 200
                     }
                   }
                 }
@@ -108,14 +108,14 @@ def test_create_elasticsearch_aggregation_query_b():
               "meta": {"field_name": "file_sets.libraries.analytes.samples.sample_sources.cell_line.code"},
               "terms": {
                 "field": "embedded.file_sets.libraries.analytes.samples.sample_sources.cell_line.code.raw",
-                "missing": "No value", "size": 100
+                "missing": "No value", "size": 200
               },
               "aggs": {
                 "release_tracker_description": {
                   "meta": {"field_name": "release_tracker_description"},
                   "terms": {
                     "field": "embedded.release_tracker_description.raw",
-                    "missing": "No value", "size": 100
+                    "missing": "No value", "size": 200
                   }
                 }
               }

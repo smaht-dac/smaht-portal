@@ -8,7 +8,6 @@ from encoded.commands.utils import get_auth_key
 from encoded.item_utils.utils import (
     RequestHandler
 )
-
 from encoded.item_utils import (
     item as item_utils,
     donor as donor_utils,
@@ -242,7 +241,7 @@ def format_value_from_properties(
 ):
     """Format and fill in dataframe columns from item properties."""
     subcolumns = [column.split(".")[1] for column in kept_properties if column.split(".")[0] == item_type]
-    if len(results) > 1:
+    if len(results) > 1: # multiple items returned from search
         for sub in subcolumns:
             col = f"{item_type}.{sub}"
             if col in CHANGED_COLUMNS.keys():
