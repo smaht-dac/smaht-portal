@@ -7,11 +7,19 @@ smaht-portal
 Change Log
 ----------
 
-0.192.4
+0.192.5
 =======
 `PR 494: SN Somatic VCF access status <http://github.com/smaht-dac/smaht-portal/pull/494>`_
 
 * In `commands/release_file.py`, update the `access_status` for somatic variant calls from tissues to be "Protected" instead of "Open"
+
+
+0.192.4
+=======
+`PR 484: SN Donor metadata release <http://github.com/smaht-dac/smaht-portal/pull/484>`_
+
+* Creates the script `commands/donor_metadata_release.py` which takes in one or multiple Donor accession IDs and releases the Donor item and all other donor metadata, tissue, and TPC-submitted tissue sample items associated with it
+Includes the constants `PUBLIC_DONOR_RELEASE_STATUS` (currently set to `released`, but will later be changed to `public`) and `PROTECTED_DONOR_RELEASE_STATUS` (currently set to `released`, but will later be changed to `public-restricted`) to ensure only Donor, Tissue, and TissueSample items are made publicly viewable, and ProtectedDonor and all other downstream donor metadata items are only visible if users have dbGaP access
 
 
 0.192.3
