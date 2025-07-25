@@ -5,6 +5,18 @@ import { RightArrowIcon } from '../../util/icon';
 
 const announcements = [
     {
+        type: 'info',
+        title: 'Attention: BAM change',
+        date: '2025-07-23',
+        body: (
+            <span>
+                As of July 8, 2025, DAC will release BAM files without the BI
+                and BD tags, which were originally added after base quality
+                recalibration (BQSR).
+            </span>
+        ),
+    },
+    {
         type: 'warning',
         title: 'Data Retraction',
         date: '2025-03-10',
@@ -24,7 +36,7 @@ const announcements = [
                     <RightArrowIcon />
                 </a>
             </span>
-        )
+        ),
     },
     {
         type: 'info',
@@ -66,12 +78,23 @@ const announcements = [
     },
 ];
 
-const AnnouncementCard = ({ title = '', body = '', footer = null, type = 'info', date = null }) => {
+const AnnouncementCard = ({
+    title = '',
+    body = '',
+    footer = null,
+    type = 'info',
+    date = null,
+}) => {
     return (
         <div className={`announcement-container ${type}`}>
             <h5 className="header">
                 {title}
-                {date ? <LocalizedTime timestamp={new Date(date)} formatType='date-sm-compact' /> : null}
+                {date ? (
+                    <LocalizedTime
+                        timestamp={new Date(date)}
+                        formatType="date-sm-compact"
+                    />
+                ) : null}
             </h5>
             <div className="body">{body}</div>
             {footer ? <div className="footer">{footer}</div> : null}
