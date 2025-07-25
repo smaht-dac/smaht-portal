@@ -105,13 +105,13 @@ Additional files are available to download that contain the full metadata for fi
 * Analyte Manifest
 * Sequencing Manifest
 
-More information on the columns contained in these files can be found in the `Submission Data Dictionary <https://data.smaht.org/docs/submission/submission-data-dictionary>`_ by searching for the item type included as the first part of the column name (e.g. for **AnalyteMolecule**, you could search for ``Analyte``)
+More information on the columns contained in these files can be found in the `Submission Data Dictionary <https://data.smaht.org/docs/submission/submission-data-dictionary>`_ by searching for the item type included as the first part of the column name (e.g. for **AnalyteMolecule**, you could search for ``Analyte`` and look for Molecule under the Metadata Property column)
 
 --------------
 Donor Manifest
 --------------
 
-The Donor manifest contains metadata on clinical and life history information for individual donors. Currently the metadata for donors is in the Bulk Donor Metadata file, which contains the full metadata for all SMaHT Benchmarking and Production donors. This file can be downloaded from the File Browse page or from individual Donor Overview pages.
+The Donor manifest contains metadata on clinical and life history information for individual donors. Currently the metadata for donors is in the Bulk Donor Metadata file, which contains the full metadata for all SMaHT Benchmarking and Production donors. This file can be downloaded from the `Production Browse By File <https://data.smaht.org/browse/?type=File&sample_summary.studies=Production&status=released>`_ page or from individual Donor Overview pages.
 This file contains information from the following portal item types:
 
 * ``Donor``
@@ -128,15 +128,19 @@ This file contains information from the following portal item types:
 Handling Multiple Values
 ------------------------
 
+Some columns in the ``Donor Manifest`` contain multiple values.
+
 ``Lists``: Columns that contain a list of multiple values associated with a single entry.
 
 Example:
-The column **MedicalHistory.allergens** may contain multiple values for multiple allergens. These values will be delimited by the semicolon “;” character (e.g. “Pollen;Cats;Penicillin”)
+
+A dnor will have one data entry for ``Medical History``.The column **MedicalHistory.allergens** may contain multiple values for multiple allergens. These values will be delimited by the semicolon (“;”) character (e.g. “Pollen;Cats;Penicillin”)
 
 ``Nested Lists``: Columns that contain a list of multiple values associated with multiple distinct data entries.
 
 Example:
-A donor may have multiple data entries of Family History. The column **FamilyHistory.relatives** can contain multiple values for different relatives that had a history of a particular disease. These values will be delimited by a combination of the pipe (“\|") and the semicolon (“;”) characters. The order of values separated by “\|” indicates how different related columns correspond to one another. For Family History items:
+
+A donor may have multiple data entries for ``Family History``. The column **FamilyHistory.relatives** can contain multiple values for different relatives that had a history of a particular disease. These values will be delimited by a combination of the pipe (“\|") and the semicolon (“;”) characters. The order of values separated by “\|” indicates how different related columns correspond to one another. For Family History items there are two associated columns:
 
 * **FamilyHistory.disease**: “Diabetes | Breast Cancer”
 * **FamilyHistory.relatives**: “Father | Mother;Sister”
@@ -150,9 +154,13 @@ Hardy Scale
 The values in the **Donor.hardy_scale** column have the following interpretation:
 
 1 = Violent and fast death. Deaths due to accident, blunt force trauma or suicide, terminal phase estimated at \< 10 min.
-2 = Fast death of natural causes. Sudden unexpected deaths of people who had been reasonably healthy, after a terminal phase estimated at \< 1 hr (with sudden death from a myocardial infarction as a model cause of death for this category)
-3 =  Intermediate death. Death after a terminal phase of 1 to 24 hrs (not classifiable as 2 or 4); patients who were ill but death was unexpected
-4 = Slow death. Death after a long illness, with a terminal phase longer than 1 day (commonly cancer or chronic pulmonary disease); deaths that are not unexpected
+
+2 = Fast death of natural causes. Sudden unexpected deaths of people who had been reasonably healthy, after a terminal phase estimated at \< 1 hr (with sudden death from a myocardial infarction as a model cause of death for this category).
+
+3 =  Intermediate death. Death after a terminal phase of 1 to 24 hrs (not classifiable as 2 or 4); patients who were ill but death was unexpected.
+
+4 = Slow death. Death after a long illness, with a terminal phase longer than 1 day (commonly cancer or chronic pulmonary disease); deaths that are not unexpected.
+
 0 = Ventilator Case. All cases on a ventilator immediately before death.
 
 
@@ -162,23 +170,25 @@ Exposure Frequency Category
 The values in the **Exposure.frequency_category** column have the following interpretation:
 
 For Alcohol Exposure:
+
 * Social = A few drinks per year
 * Light = \<1 drink per day (0-6 per week)
 * Moderate = Up to 2 drinks per day (7-14 per week)
-* Heavy = \>=3 per day (\>=15 per week)
+* Heavy = ≥3 per day (≥15 per week)
 
 For Tobacco Exposure:
-* Social = 0-10 cigarettes in past 5yr; \<=6 cigars/pipes per year
-* Light = 0-5 cigarettes per day (up to 1/4 ppd); \<=12 cigars/pipes per year
+
+* Social = 0-10 cigarettes in past 5yr; ≤6 cigars/pipes per year
+* Light = 0-5 cigarettes per day (up to 1/4 ppd); ≤12 cigars/pipes per year
 * Moderate = 6-9 cigarettes per day (1/4 to 3/4ppd); 3-5 cigars/pipes per week
-* Heavy = \>=20 cigarettes per day (\>=1ppd); \>=3-5 cigars/pipes per week
+* Heavy = ≥20 cigarettes per day (≥1ppd); ≥3-5 cigars/pipes per week
 
 
 ------------------
 Biosample Manifest
 ------------------
 
-The Biosample manifest contains metadata on the sample(s) a file was derived from.
+The ``Biosample Manifest`` contains metadata on the sample(s) a file was derived from.
 The metadata provided in each column will depend on the **SampleType** and **SampleSourceType**.
 It contains information from the following portal items:
 
