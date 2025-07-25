@@ -80,5 +80,16 @@
         "donor": "TEST_DONOR_MALE",
         "uberon_id": "UBERON:0004264",
         "anatomical_location": "Fibroblast"
+    },
+    {
+        "uuid": "bc43628d-d879-4dc7-ae6b-10b96e43d5ba",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE_LEFT-TESTIS",
+        "external_id": "ST001-3V",
+        "donor": "TEST_DONOR_MALE",
+        "uberon_id": "UBERON:0004533",
+        "anatomical_location": "left testis"
     }
 ]

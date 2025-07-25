@@ -143,5 +143,29 @@
         "tags": [
             "germ_layer"
         ]
+    },
+    {
+        "uuid": "598eefe7-6ea0-4f39-8a7a-dd986b2030a7",
+        "identifier": "UBERON:0000473",
+        "ontologies": ["UBERON"],
+        "title": "testis",
+        "preferred_name": "Testis",
+        "consortia": [
+            "smaht"
+        ],
+        "tags": [
+            "tissue_type"
+        ]
+    },
+    {
+        "uuid": "2070c3e5-a8be-4d20-85cd-85acaa8bd31c",
+        "identifier": "UBERON:0004533",
+        "ontologies": ["UBERON"],
+        "title": "left testis",
+        "preferred_name": "Left Testis",
+        "grouping_term": "UBERON:0000473",
+        "consortia": [
+            "smaht"
+        ]
     }
 ]
