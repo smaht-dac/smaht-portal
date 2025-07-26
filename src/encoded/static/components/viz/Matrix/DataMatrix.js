@@ -211,44 +211,38 @@ export default class DataMatrix extends React.PureComponent {
             const updatedState = {};
 
             updatedState[resultKey] = result;
-            let transfermedData = [];
+            const transfermedData = [];
             const populatedRowGroups = {}; // not implemented yet
             _.forEach(updatedState[resultKey], (r) => {
+                let cloned = _.clone(r);
                 if (fieldChangeMap) {
                     _.forEach(_.pairs(fieldChangeMap), function ([fieldToMapTo, fieldToMapFrom]) {
-                        if (typeof r[fieldToMapFrom] !== 'undefined' && fieldToMapTo !== fieldToMapFrom) { // If present
-                            r[fieldToMapTo] = r[fieldToMapFrom];
-                            delete r[fieldToMapFrom];
+                        if (typeof cloned[fieldToMapFrom] !== 'undefined' && fieldToMapTo !== fieldToMapFrom) { // If present
+                            cloned[fieldToMapTo] = cloned[fieldToMapFrom];
+                            delete cloned[fieldToMapFrom];
                         }
                     }, {});
                 }
                 if (resultPostProcessFuncKey && typeof DataMatrix.resultPostProcessFuncs[resultPostProcessFuncKey] === 'function') {
-                    r = DataMatrix.resultPostProcessFuncs[resultPostProcessFuncKey](r);
+                    cloned = DataMatrix.resultPostProcessFuncs[resultPostProcessFuncKey](cloned);
                 }
-                if (r.files && r.files > 0) {
-                    transfermedData = transfermedData.concat(
-                        _.times(r.files, function () {
-                            const cloned = _.clone(r);
-                            delete cloned.files;
-
-                            // Change values (e.g. shorten some):
-                            if (valueChangeMap) {
-                                _.forEach(_.pairs(valueChangeMap), function ([field, changeMap]) {
-                                    if (typeof cloned[field] === "string") { // If present
-                                        cloned[field] = changeMap[cloned[field]] || cloned[field];
-                                    }
-                                });
+                if (cloned.files && cloned.files > 0) {
+                    // Change values (e.g. shorten some):
+                    if (valueChangeMap) {
+                        _.forEach(_.pairs(valueChangeMap), function ([field, changeMap]) {
+                            if (typeof cloned[field] === "string") { // If present
+                                cloned[field] = changeMap[cloned[field]] || cloned[field];
                             }
-
-                            return cloned;
-                        }));
+                        });
+                    }
+                    transfermedData.push(cloned);
                 }
-                if (autoPopulateRowGroupsProperty && r[autoPopulateRowGroupsProperty]) {
-                    const rowGroupKey = r[autoPopulateRowGroupsProperty];
+                if (autoPopulateRowGroupsProperty && cloned[autoPopulateRowGroupsProperty]) {
+                    const rowGroupKey = cloned[autoPopulateRowGroupsProperty];
                     if (!populatedRowGroups[rowGroupKey]) {
                         populatedRowGroups[rowGroupKey] = [];
                     }
-                    populatedRowGroups[rowGroupKey].push(r[groupingProperties[0]]);
+                    populatedRowGroups[rowGroupKey].push(cloned[groupingProperties[0]]);
                 }
             });
 
