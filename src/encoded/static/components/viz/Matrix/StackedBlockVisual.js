@@ -1236,7 +1236,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 return (
                                     <div key={'col-summary-' + columnKey} className={className} style={headerItemStyle}>
                                         <div className="block-container-group" style={style}
-                                            key={'summary'} data-block-count={columnTotal} data-group-key={'column-summary'}>
+                                            key={'summary'} data-block-count={columnTotal} data-group-key={columnKey}>
                                             <Block {..._.omit(props, 'group')} data={columnSummaryData} colIndex={colIndex} blockType="col-summary" popoverPrimaryTitle={props.rowGroupKey} />
                                         </div>
                                     </div>
