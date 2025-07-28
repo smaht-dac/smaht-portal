@@ -582,8 +582,7 @@
     },
     {
         "identifier": "data_matrix_comparison",
-        "title": "Data Matrix",
-        "file": "/src/encoded/static/data/data-matrix-demo.jsx",
+        "file": "/docs/public/data_matrix_comparison.jsx",
         "status": "in review",
         "options": {
             "filetype": "jsx",
