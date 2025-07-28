@@ -604,7 +604,7 @@ class FileRelease:
             Files with expression or epigenetic data = Open
         Tissues
             BAM, FASTQ = Protected
-            Files with somatic variants = Open
+            Files with somatic variants = Protected (until confident no germline variants are present)
             Files with germline variants = Protected
             Files with expression or epigenetic data = Open
 
@@ -666,7 +666,7 @@ class FileRelease:
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
-                    file_constants.ACCESS_STATUS_OPEN
+                    file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_GENOME_ASSEMBLY: (
                     file_constants.ACCESS_STATUS_PROTECTED
