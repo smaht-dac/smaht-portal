@@ -7,6 +7,62 @@ smaht-portal
 Change Log
 ----------
 
+0.192.8
+=======
+`PR 493: AV Updates to QC metrics and Submission Status page <http://github.com/smaht-dac/smaht-portal/pull/493>`_
+
+* Update thresholds in the QC overview generation script
+* Remove table from sample identity tab in QC metrics page
+* Indictate retracted files on the Submission Status page
+* Add copy button for group coverage on the Submission Status page
+* Add retry logic when getting the QC overview data
+
+
+0.192.7
+=======
+`PR 492: feat: add new announcement to homepage <https://github.com/smaht-dac/smaht-portal/pull/492>`_
+
+* Add announcement for switching to CRAM files
+
+
+0.192.6
+=======
+`PR 490: feat: benchmarking page updates <https://github.com/smaht-dac/smaht-portal/pull/490>`_
+
+* Make benchmarking page titles clickable
+* Remove Data Retraction Alerts in COLO829
+
+
+0.192.5
+=======
+`PR 494: SN Somatic VCF access status <http://github.com/smaht-dac/smaht-portal/pull/494>`_
+
+* In `commands/release_file.py`, update the `access_status` for somatic variant calls from tissues to be "Protected" instead of "Open"
+
+
+0.192.4
+=======
+`PR 484: SN Donor metadata release <http://github.com/smaht-dac/smaht-portal/pull/484>`_
+
+* Creates the script `commands/donor_metadata_release.py` which takes in one or multiple Donor accession IDs and releases the Donor item and all other donor metadata, tissue, and TPC-submitted tissue sample items associated with it
+Includes the constants `PUBLIC_DONOR_RELEASE_STATUS` (currently set to `released`, but will later be changed to `public`) and `PROTECTED_DONOR_RELEASE_STATUS` (currently set to `released`, but will later be changed to `public-restricted`) to ensure only Donor, Tissue, and TissueSample items are made publicly viewable, and ProtectedDonor and all other downstream donor metadata items are only visible if users have dbGaP access
+
+
+0.192.3
+=======
+`PR 486: SN Sequencing center patching for submitted files <http://github.com/smaht-dac/smaht-portal/pull/486>`_
+
+* In `commands/release_file.py`, update the initial patch of the file to include the `sequencing center` as the `submission center` for SubmittedFiles (not OutputFiles)
+* In `commands/create_annotated_filenames.py`, for SubmittedFiles use the `submission center` as the `sequencing center` for the center code
+
+
+0.192.2
+=======
+`PR 489: feat: remove benchmarking QC button <https://github.com/smaht-dac/smaht-portal/pull/489>`_
+
+* Remove benchmarking QC button
+
+
 0.192.1
 =======
 `PR 488: fix: update qc-page content uuid <https://github.com/smaht-dac/smaht-portal/pull/488>`_
