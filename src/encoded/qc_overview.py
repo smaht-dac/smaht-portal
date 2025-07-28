@@ -70,4 +70,5 @@ def get_qc_overview(context, request):
 
     except Exception as e:
         response["error_msg"] = f"Error when trying to get QC overview data: {str(e)}"
+        request.response.status_code = 500
         return response

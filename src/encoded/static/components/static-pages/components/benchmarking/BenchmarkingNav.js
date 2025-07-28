@@ -108,8 +108,8 @@ function ContextAwareToggle({ children, eventKey, callback }) {
     const isCurrentEventKey = activeEventKey === eventKey;
 
     const openStatusIconCls = isCurrentEventKey
-        ? 'icon icon-angle-up fas text-secondary'
-        : 'icon icon-angle-down fas text-secondary';
+        ? 'icon icon-angle-up fas'
+        : 'icon icon-angle-down fas';
 
     return (
         <div className="d-flex justify-content-between align-items-center">
@@ -119,7 +119,7 @@ function ContextAwareToggle({ children, eventKey, callback }) {
                 onClick={decoratedOnClick}>
                 <div className="d-flex justify-content-between align-items-center w-100">
                     {children}
-                    <i className={openStatusIconCls + ' me-1'} />
+                    <i className={openStatusIconCls} />
                 </div>
             </button>
         </div>
@@ -151,15 +151,18 @@ const BenchmarkingUINavLinkGenerator = ({
                             {...{ currPath, path }}
                             title={navBarTitle}>
                             <ul>
-                                {tabMapArray.map((obj) => (
-                                    <BenchmarkingUINavLink
-                                        key={obj.eventKey}
-                                        title={obj.title}
-                                        cls="ps-2"
-                                        {...{ currPath }}
-                                        href={path + obj.eventKey}
-                                    />
-                                ))}
+                                {tabMapArray.map((obj, i) => {
+                                    return (
+                                        <BenchmarkingUINavLink
+                                            key={obj.eventKey}
+                                            title={obj.title}
+                                            isTop={i === 0}
+                                            {...{ currPath }}
+                                            href={path + obj.eventKey}
+                                            path={path}
+                                        />
+                                    );
+                                })}
                             </ul>
                         </BenchmarkingUINavDrop>
                     );
@@ -193,16 +196,25 @@ const BenchmarkingUINavWrapper = (props) => {
 };
 
 const BenchmarkingUINavDrop = (props) => {
-    const { path, currPath, title, eventKey, children } = props;
+    const { path, currPath, title, eventKey, children, isTop } = props;
 
     const isActive = currPath.includes(path);
     return (
         <li>
-            <ContextAwareToggle {...{ eventKey }}>
-                <span className={`navlink-drop ${isActive ? 'active' : ''}`}>
+            <div
+                className={
+                    'title-toggle-container' + (isActive ? ' active' : '')
+                }>
+                <a className="title" href={path} tabIndex={isActive ? -1 : 0}>
                     {title}
-                </span>
-            </ContextAwareToggle>
+                </a>
+                <ContextAwareToggle {...{ eventKey }}>
+                    <span
+                        className={`navlink-drop ${
+                            isActive ? 'active' : ''
+                        }`}></span>
+                </ContextAwareToggle>
+            </div>
             <Accordion.Collapse {...{ eventKey }}>
                 {children}
             </Accordion.Collapse>
@@ -211,16 +223,20 @@ const BenchmarkingUINavDrop = (props) => {
 };
 
 const BenchmarkingUINavLink = (props) => {
-    const { href, currPath: pageHref, title, isTop, cls = '' } = props;
-    const isActive = href === pageHref;
+    const { path, href, currPath: pageHref, title, isTop, cls = '' } = props;
+
+    // Determine if the current page is active
+    const isActive = isTop
+        ? path === pageHref || href === pageHref
+        : href === pageHref;
 
     return (
         <li
             className={`sidenav-link ${isActive ? 'active' : ''} ${
                 isTop ? 'top' : ''
             } ${cls}`}>
-            <a className="link-underline-hover" {...{ href }}>
-                {title}
+            <a className="" {...{ href }}>
+                <span>{title}</span>
             </a>
         </li>
     );
