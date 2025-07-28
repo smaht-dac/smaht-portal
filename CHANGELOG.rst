@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+0.192.8
+=======
+`PR 493: AV Updates to QC metrics and Submission Status page <http://github.com/smaht-dac/smaht-portal/pull/493>`_
+
+* Update thresholds in the QC overview generation script
+* Remove table from sample identity tab in QC metrics page
+* Indictate retracted files on the Submission Status page
+* Add copy button for group coverage on the Submission Status page
+* Add retry logic when getting the QC overview data
+
+
 0.192.7
 =======
 `PR 492: feat: add new announcement to homepage <https://github.com/smaht-dac/smaht-portal/pull/492>`_
