@@ -1059,7 +1059,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
         const rowGroupsSummaryProps = {
             ...props,
-            label: yAxisLabel,
+            label: StackedBlockVisual.pluralize(yAxisLabel),
             labelSectionStyle,
             columnKeys,
             columnWidth,
