@@ -63,8 +63,7 @@ class AnnotatedFilenameInfo:
 
 
 # dataset is required but comes in through input args for now
-REQUIRED_FILE_PROPS = [file_constants.SEQUENCING_CENTER]
-SECONDARY_REQUIRED_FILE_PROPS = ["release_tracker_description", "release_tracker_title"]
+REQUIRED_FILE_PROPS = [file_constants.SEQUENCING_CENTER, "release_tracker_description", "release_tracker_title"]
 # This lists the MWFs that need to have run in addition to the regular Alignment and QC run
 REQUIRED_ADDITIONAL_QC_RUNS = ["sample_identity_check"]
 
@@ -502,7 +501,7 @@ class FileRelease:
         ]
         file_accession = item_utils.get_accession(file)
         annotated_filename_info = self.get_annotated_filename_info(file)
-        # Add file to file set and set status to released
+        # Add file to file set
         patch_body = {
             item_constants.UUID: item_utils.get_uuid(file),
             file_constants.DATASET: dataset,
@@ -524,8 +523,20 @@ class FileRelease:
                 f"File {warning_text(file_accession)} will be released as {warning_text(annotated_filename_info.filename)}"
             ]
         )
+        if submitted_file_utils.is_submitted_file(self.file):
+            # For submitted files, patch sequencing center
+            sequencing_center = item_utils.get_submission_centers(file)[0]
+            patch_body[file_constants.SEQUENCING_CENTER] = item_utils.get_uuid(sequencing_center)
+            self.patch_infos.extend(
+                [
+                    self.get_okay_message(
+                        file_constants.SEQUENCING_CENTER, item_utils.get_display_title(sequencing_center)
+                    ),
+                ]
+            )
 
         if patch_status:
+            # set file to released
             patch_body[item_constants.STATUS] = item_constants.STATUS_RELEASED
             self.patch_infos.extend(
                 [
@@ -593,7 +604,7 @@ class FileRelease:
             Files with expression or epigenetic data = Open
         Tissues
             BAM, FASTQ = Protected
-            Files with somatic variants = Open
+            Files with somatic variants = Protected (until confident no germline variants are present)
             Files with germline variants = Protected
             Files with expression or epigenetic data = Open
 
@@ -655,7 +666,7 @@ class FileRelease:
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
-                    file_constants.ACCESS_STATUS_OPEN
+                    file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_GENOME_ASSEMBLY: (
                     file_constants.ACCESS_STATUS_PROTECTED
@@ -737,14 +748,13 @@ class FileRelease:
         return access_statuses.pop()
 
     def validate_file(self) -> None:
-        self.validate_required_file_props()
         self.validate_required_qc_runs()
         self.validate_existing_file_sets()
         self.validate_file_output_status()
         self.validate_file_status()
 
     def validate_file_after_patch(self) -> None:
-        self.validate_secondary_required_file_props()
+        self.validate_required_file_props()
 
     def validate_required_file_props(self) -> None:
         for prop in REQUIRED_FILE_PROPS:
@@ -769,14 +779,6 @@ class FileRelease:
                     self.print_error_and_exit(
                         f"File {self.file_accession} is missing the required additional QC run {mwf_name}."
                     )
-
-    def validate_secondary_required_file_props(self) -> None:
-        for prop in SECONDARY_REQUIRED_FILE_PROPS:
-            if prop not in self.file:
-                self.print_error_and_exit(
-                    f"File {self.file_accession} does not have the required property"
-                    f" `{prop}`."
-                )
 
     def validate_existing_file_sets(self) -> None:
         existing_file_sets = file_utils.get_file_sets(self.file)

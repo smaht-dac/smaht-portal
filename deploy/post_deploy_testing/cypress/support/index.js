@@ -29,3 +29,10 @@ export const cypressVisitHeaders = {
     // that request.accept.acceptable_offers() doesn't select most narrow content-type when multiple supplied unless proper 'q' values are included as well.
     Accept: 'text/html, application/xhtml+xml, application/xml;q=0.9, image/avif, image/webp, image/apng, */*;q=0.8, application/signed-exchange;v=b3;q=0.9',
 };
+
+export const ROLE_TYPES = {
+    SMAHT_DBGAP: 'smaht-dbgap',
+    SMAHT_NON_DBGAP: 'smaht-non-dbgap',
+    DBGAP_ONLY: 'dbgap-only',
+    NON_DBGAP: 'non-dbgap',
+};

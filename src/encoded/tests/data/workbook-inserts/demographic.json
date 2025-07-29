@@ -6,6 +6,8 @@
             "smaht"
         ],
         "donor": "TEST_PROTECTED-DONOR_FEMALE",
-        "military_association": "No"
+        "military_association": "Yes",
+        "international_military_base": "Yes",
+        "international_military_base_details": "Japan 1960"
     }
 ]

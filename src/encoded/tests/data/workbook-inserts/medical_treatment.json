@@ -8,9 +8,12 @@
         "category": [
             "Chemotherapy"
         ],
+        "comments": "Chemotherapy",
+        "counts": 4,
         "title": "R-CHOP",
         "year_start": 2002,
         "year_end": 2004,
-        "medical_history": "TEST_MEDICAL-HISTORY_FEMALE"
+        "medical_history": "TEST_MEDICAL-HISTORY_FEMALE",
+        "diagnosis": "TEST_DIAGNOSIS_FEMALE"
     }
 ]
