@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "0.193.0"
+version = "0.193.1"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -189,6 +189,8 @@ release-file = "encoded.commands.release_file:main"
 release-donor-metadata = "encoded.commands.release_donor_metadata:main"
 show-schema= "encoded.commands.show_schema:main"  # For dev/testing only
 write-submission-spreadsheets = "encoded.commands.write_submission_spreadsheets:main"
+update-spreadsheet-dropdowns = "encoded.commands.update_spreadsheet_dropdowns:main"
+
 
 [paste.app_factory]
 main = "encoded:main"
