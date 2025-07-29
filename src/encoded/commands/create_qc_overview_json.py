@@ -178,24 +178,35 @@ VISIBLE_FIELDS_IN_TOOLTIP_SAMPLE_IDENTITY = [
 QC_THRESHOLDS = {
     f"{ALL_ILLUMINA}_{WGS}": {
         "verifybamid:freemix_alpha": 0.01,
-        "samtools_stats_postprocessed:percentage_reads_duplicated": 8.0,
-        "samtools_stats_postprocessed:percentage_reads_mapped": 99.0,
-        "samtools_stats:percentage_of_properly_paired_reads": 96.0,
+        "samtools_stats_postprocessed:percentage_reads_duplicated": 15.0,
+        "samtools_stats_postprocessed:percentage_reads_mapped": 97.0,
+        "samtools_stats:percentage_of_properly_paired_reads": 92.0,
         "picard_collect_alignment_summary_metrics:pf_mismatch_rate": 0.008,
+        "picard_collect_insert_size_metrics:mean_insert_size": 250.0,
     },
     f"{SEQ_ONT}_{WGS}": {
         "verifybamid:freemix_alpha": 0.01,
-        "samtools_stats_postprocessed:percentage_reads_mapped": 98.0,
+        "samtools_stats_postprocessed:percentage_reads_mapped": 97.0,
         "picard_collect_alignment_summary_metrics:pf_mismatch_rate": 0.01,
     },
     f"{SEQ_PACBIO}_{WGS}": {
         "verifybamid:freemix_alpha": 0.01,
-        "samtools_stats_postprocessed:percentage_reads_mapped": 98.0,
+        "samtools_stats_postprocessed:percentage_reads_mapped": 97.0,
         "picard_collect_alignment_summary_metrics:pf_mismatch_rate": 0.003,
     },
     f"{ALL_LONG_READ}_{WGS}": {
         "verifybamid:freemix_alpha": 0.01,
-        "samtools_stats_postprocessed:percentage_reads_mapped": 98.0,
+        "samtools_stats_postprocessed:percentage_reads_mapped": 97.0,
+    },
+    f"{ALL_ILLUMINA}_{RNA_SEQ}": {
+        "verifybamid:freemix_alpha": 0.01,
+        "rnaseqc:rrna_rate": 0.01,
+        "rnaseqc:estimated_library_complexity": 50000000.0,
+        "rnaseqc:exonic_intron_ratio": 5.0,
+        "rnaseqc:mapping_rate": 0.85,
+        "rnaseqc:genes_detected": 25000.0,
+        "rnaseqc:intergenic_rate": 0.1,
+        "rnaseqc_postprocessed:percentage_chimeric_reads": 1.0,
     },
 }
 
@@ -415,21 +426,19 @@ class FileStats:
                 flag = qc_value.get("flag")
                 if flag:
                     result["quality_metrics"]["qc_values"][derived_from]["flag"] = flag
-                if derived_from not in self.qc_info:
+                if derived_from not in self.qc_info or (
+                    self.qc_info[derived_from]
+                    not in self.viz_info["facets"]["qc_metrics"][assay]
+                ):
                     self.qc_info[derived_from] = {
                         "derived_from": derived_from,
                         "tooltip": qc_value.get("tooltip", ""),
                         "key": qc_value.get("key", ""),
                     }
                     if not isinstance(value, str):
-                        if assay in self.viz_info["facets"]["qc_metrics"]:
-                            self.viz_info["facets"]["qc_metrics"][assay].append(
-                                self.qc_info[derived_from]
-                            )
-                        else:
-                            self.viz_info["facets"]["qc_metrics"][assay] = [
-                                self.qc_info[derived_from]
-                            ]
+                        self.viz_info["facets"]["qc_metrics"].setdefault(
+                            assay, []
+                        ).append(self.qc_info[derived_from])
 
             self.viz_info["facets"]["qc_metrics"][assay].sort(
                 key=lambda x: x["derived_from"]
@@ -624,7 +633,6 @@ class FileStats:
             )
 
         return get_item(alignment_mwfrs[0][UUID]) if alignment_mwfrs else None
-
 
     def get_final_ouput_file(self, mwfr, assay):
         workflow_runs = mwfr["workflow_runs"]

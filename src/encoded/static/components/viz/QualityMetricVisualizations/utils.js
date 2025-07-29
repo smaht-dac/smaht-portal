@@ -3,6 +3,7 @@
 import React from 'react';
 import * as d3 from 'd3';
 import { BoxPlotWithFacets } from './BoxPlotWithFacets';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 export const getBoxPlot = (
     qcData,
@@ -335,4 +336,34 @@ export const getFileModalContent = (file, qcInfo) => {
             </table>
         </div>
     );
+};
+
+// Retry wrapper function for ajax requests
+export const ajaxWithRetry = (url, successCallback, method = 'GET', errorCallback = null, options = {}) => {
+    const { maxRetries = 3, retryDelay = 1000, retryDelayMultiplier = 2 } = options;
+    let attempt = 0;
+    
+    const makeRequest = () => {
+        ajax.load(
+            url,
+            successCallback,
+            method,
+            (error) => {
+                attempt++;
+                if (attempt < maxRetries) {
+                    console.warn(`Request failed (attempt ${attempt}/${maxRetries}), retrying in ${retryDelay * Math.pow(retryDelayMultiplier, attempt - 1)}ms...`);
+                    setTimeout(() => {
+                        makeRequest();
+                    }, retryDelay * Math.pow(retryDelayMultiplier, attempt - 1));
+                } else {
+                    console.error(`Request failed after ${maxRetries} attempts`);
+                    if (errorCallback) {
+                        errorCallback(error);
+                    }
+                }
+            }
+        );
+    };
+    
+    makeRequest();
 };
