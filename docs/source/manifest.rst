@@ -10,7 +10,7 @@ It passes portal access credentials to the command provided in the ``smaht_manif
 File Manifest
 -------------
 
-In the ``File Manifest``, multiple values in a field under a column are separated by the pipe (``,``) character.
+In the ``File Manifest``, multiple values in a field under a column are separated by the comma (``,``) character.
 
 Below are the columns listed in the ``File Manifest`` files as of the June 2025 data release.
 
@@ -58,7 +58,7 @@ Below are the columns listed in the ``File Manifest`` files as of the June 2025 
 
 #. **Software Name/Version** - Name and version of software used to generate this file, e.g. ``pbmm2 (1.13.0)``.
 
-#. **Reference Genome** - Reference Genome version used for the analysis, e.g. ``GRCh38 [GCA_000001405.15]``.
+#. **Reference Genome** - Reference Genome version used for the analysis, e.g. ``GRCh38 [Official]``.
 
 #. **Final QC Status** - The final QC status of the analysis pipeline used to generate the file (e.g. Pass/Warn or Fail).
 
@@ -134,7 +134,7 @@ Some columns in the ``Donor Manifest`` contain multiple values.
 
 Example:
 
-A dnor will have one data entry for ``Medical History``.The column **MedicalHistory.allergens** may contain multiple values for multiple allergens. These values will be delimited by the semicolon (“;”) character (e.g. “Pollen;Cats;Penicillin”)
+A donor will have one data entry for ``Medical History``.The column **MedicalHistory.allergens** may contain multiple values for multiple allergens. These values will be delimited by the semicolon (“;”) character (e.g. “Pollen;Cats;Penicillin”)
 
 ``Nested Lists``: Columns that contain a list of multiple values associated with multiple distinct data entries.
 
@@ -188,9 +188,7 @@ For Tobacco Exposure:
 Biosample Manifest
 ------------------
 
-The ``Biosample Manifest`` contains metadata on the sample(s) a file was derived from.
-The metadata provided in each column will depend on the **SampleType** and **SampleSourceType**.
-It contains information from the following portal items:
+The ``Biosample Manifest`` contains metadata on the sample(s) a file was derived from. The metadata provided in each column will depend on the **SampleType** and **SampleSourceType**. It contains information from the following portal items:
 
 * ``Sample`` (``TissueSample``, ``CellCultureSample``, and ``CellSample``)
 * ``SampleSource`` (``Tissue``, ``CellCulture``, and ``CellCultureMixture``)
@@ -201,8 +199,7 @@ It contains information from the following portal items:
 Analyte Manifest
 ----------------
 
-The ``Analyte Manifest`` contains metadata on the analyte(s) a file was derived from.
-It contains information from the following portal items:
+The ``Analyte Manifest`` contains metadata on the analyte(s) a file was derived from. It contains information from the following portal items:
 
 * ``Analyte``
 * ``AnalytePreparation``
@@ -214,8 +211,7 @@ It contains information from the following portal items:
 Sequencing Manifest
 -------------------
 
-The ``Sequencing Manifest`` contains metadata on the library preparation and sequencing used to generate a file.
-It contains information from the following portal items:
+The ``Sequencing Manifest`` contains metadata on the library preparation and sequencing used to generate a file. It contains information from the following portal items:
 
 * ``Library``
 * ``LibraryPreparation``
