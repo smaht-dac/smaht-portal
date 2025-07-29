@@ -50,16 +50,39 @@ function ViewJSONAction({ href = '', children }) {
 const FileViewTitle = (props) => {
     const { context } = props;
 
-    const breadcrumbs = [
+    // Default breadcrumbs for the File Overview page
+    let breadcrumbs = [
         { display_title: 'Home', href: '/' },
         { display_title: 'Data' },
-        { display_title: 'Bechmarking Data' },
-        { display_title: context?.dataset?.toUpperCase() || '' },
     ];
 
+    // Determine the current breadcrumb based on the studies associated with the file
+    const currentBreadcrumb = {
+        display_title: null,
+        href: null,
+    };
+
+    if (
+        context?.sample_summary?.studies?.some(
+            (study) => study.toLowerCase() === 'production'
+        )
+    ) {
+        currentBreadcrumb.display_title = 'Browse by File';
+        currentBreadcrumb.href =
+            '/browse/?type=File&sample_summary.studies=Production&status=released';
+        breadcrumbs = [...breadcrumbs, currentBreadcrumb];
+    } else if (
+        context?.sample_summary?.studies?.some(
+            (study) => study.toLowerCase() === 'benchmarking'
+        )
+    ) {
+        currentBreadcrumb.display_title = 'Benchmarking Data';
+        breadcrumbs = [...breadcrumbs, currentBreadcrumb];
+    }
+
     return (
-        <div className="file-view-title container-wide">
-            <nav className="file-view-title-navigation">
+        <div className="view-title container-wide">
+            <nav className="view-title-navigation">
                 <ul className="breadcrumb-list">
                     {breadcrumbs.map(({ display_title, href }, i, arr) => {
                         return (
@@ -80,7 +103,7 @@ const FileViewTitle = (props) => {
                     })}
                 </ul>
             </nav>
-            <h1 className="file-view-title-text">{context?.display_title}</h1>
+            <h1 className="view-title-text">{context?.display_title}</h1>
         </div>
     );
 };
@@ -112,11 +135,13 @@ const FileViewHeader = (props) => {
             release_tracker_description ||
             `${context?.file_format?.display_title} file`;
 
-        const retraction = retraction_reason
-            ? `was retracted due to ${retraction_reason
-                  .substring(0, 1)
-                  .toLowerCase()}${retraction_reason.substring(1)}`
-            : `was retracted`;
+        const retraction = retraction_reason ? (
+            <>
+                was retracted due to <b>{retraction_reason}</b>
+            </>
+        ) : (
+            'was retracted'
+        );
 
         const replacement = context?.replaced_by ? (
             <>
@@ -271,7 +296,7 @@ const FileView = React.memo(function FileView(props) {
     return (
         <div className="file-view">
             <FileViewTitle context={context} session={session} href={href} />
-            <div className="file-view-content">
+            <div className="view-content">
                 <FileViewHeader context={context} session={session} />
                 <FileViewDataCards context={context} />
                 <FileViewTabs {...props} />

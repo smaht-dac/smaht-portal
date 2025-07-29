@@ -71,7 +71,8 @@
                 "inactive",
                 "in review",
                 "public",
-                "shared"
+                "shared",
+                "released"
             ]
         },
         "children": {

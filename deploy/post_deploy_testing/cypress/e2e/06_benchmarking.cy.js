@@ -1,7 +1,5 @@
-import { cypressVisitHeaders } from "../support";
-import { navUserAcctDropdownBtnSelector } from "../support/selectorVars";
-
-const dataNavBarItemSelectorStr = '#top-nav div.navbar-collapse .navbar-nav a.id-data-menu-item';
+import { cypressVisitHeaders, ROLE_TYPES } from "../support";
+import { dataNavBarItemSelectorStr } from "../support/selectorVars";
 
 let selectedCheckFileNumberCount = 0;
 let allResultTotalCount = 0;
@@ -41,12 +39,9 @@ describe('Benchmarking Layout Test', function () {
 
     before(function () {
         cy.visit('/', { headers: cypressVisitHeaders });
-        cy.loginSMaHT({ email: 'cypress-main-scientist@cypress.hms.harvard.edu', useEnvToken: false }).end()
-            .get(navUserAcctDropdownBtnSelector)
-            .should('not.contain.text', 'Login')
-            .then((accountListItem) => {
-                expect(accountListItem.text()).to.contain('SCM');
-            }).end();
+        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
+            .validateUser('SCM')
+            .end();
     });
 
     after(function () {
@@ -58,7 +53,7 @@ describe('Benchmarking Layout Test', function () {
             cy.get(dataNavBarItemSelectorStr).should('have.class', 'dropdown-toggle').click()
                 .should('have.class', 'dropdown-open-for')
                 .then(() => {
-                    cy.get('.big-dropdown-menu .no-level-2-children .custom-static-links > div.col-auto:nth-child(2) a.primary-big-link').should('be.visible').then(($listItems) => {
+                    cy.get('.big-dropdown-menu .no-level-2-children .custom-static-links > div.col-12:nth-child(2) a.primary-big-link').should('be.visible').then(($listItems) => {
                         expect($listItems).to.have.length(3); // Ensuring 3 benchmarking pages in dropdown
                         const allLinkElementHREFs = Cypress._.map($listItems, (liEl) => {
                             const path = new URL(liEl.href, window.location.origin).pathname;
@@ -76,7 +71,7 @@ describe('Benchmarking Layout Test', function () {
 
                                     cy.title().should('equal', `${titleText} – SMaHT Data Portal`).end();
 
-                                    Cypress.log({name: 'Page Title', message: titleText});
+                                    Cypress.log({ name: 'Page Title', message: titleText });
                                     // Since COLO829 SNV/Indel Detection Challenge has a different layout, we need to handle it differently
                                     if (titleText !== 'COLO829 SNV/Indel Detection Challenge') {
                                         //This tests a toggle button that collapses and expands.
@@ -111,10 +106,12 @@ describe('Benchmarking Layout Test', function () {
                                                 // Now check the results count after the spinner is gone
                                                 cy.get('.tab-pane.active.show #results-count')
                                                     .invoke('text')
+                                                    .should('not.equal', '0')
                                                     .then((originalFileText) => {
                                                         cy.wrap($button)
                                                             .find('.badge')
                                                             .invoke('text')
+                                                            .should('not.equal', '-')
                                                             .then((badgeText) => {
                                                                 expect(badgeText.trim()).to.equal(originalFileText.trim());
                                                             });
@@ -149,7 +146,7 @@ describe('Benchmarking Layout Test', function () {
                                 });
                         }
 
-                        cy.wrap($listItems.last()).should('be.visible').click({ force: true }).then(($linkElem) => {
+                        cy.wrap($listItems.last()).scrollIntoView().should('be.visible').click({ force: true }).then(($linkElem) => {
                             const linkHref = $linkElem.attr('href');
                             cy.location('pathname').should('equal', linkHref);
                             testVisit();
@@ -276,7 +273,7 @@ describe('Benchmarking Layout Test', function () {
                 .get(".facets-header button").first().click({ force: true }).end()
                 .get(".facets-header .facets-title").should('have.text', 'Excluded Properties').end()
                 .get('.facet.closed[data-field="file_sets.libraries.assay.display_title"] > h5').scrollIntoView().should('be.visible').click().end()
-                .get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element a').first().within(($term) => {
+                .get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element:not([data-is-grouping="true"]) a').first().within(($term) => {
                     cy.get('span.facet-count').then((assayCount) => {
                         externalDataCount = parseInt(assayCount.text());
                         expect(externalDataCount).to.be.greaterThan(0);
@@ -299,7 +296,7 @@ describe('Benchmarking Layout Test', function () {
                 .get(".facets-header .facets-title").should('have.text', 'Included Properties').end();
 
             // Re-include the first term
-            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .persistent .facet-list-element:first-child a').within(($term) => {
+            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .persistent .facet-list-element:not([data-is-grouping="true"]) a').first().within(($term) => {
                 cy.wrap($term).click({ force: true }).end();
             }).end();
 
@@ -310,7 +307,7 @@ describe('Benchmarking Layout Test', function () {
                 }).end();
 
             // Exclude the term again and verify external count
-            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element a').first().within(($term) => {
+            cy.get('.facet[data-field="file_sets.libraries.assay.display_title"] .facet-list-element:not([data-is-grouping="true"]) a').first().within(($term) => {
                 cy.wrap($term).click({ force: true }).end();
             }).end();
 

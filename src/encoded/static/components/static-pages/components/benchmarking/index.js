@@ -29,7 +29,6 @@ export const COLO829Data = ({ schemas, session, facets, href, context }) => {
     return (
         <BenchmarkingLayout
             {...{ schemas }}
-            showBamQCLink={true}
             title={BenchmarkingDataMap.COLO829?.title}
             description={BenchmarkingDataMap.COLO829?.description}
             callout={BenchmarkingDataMap.COLO829?.callout}>

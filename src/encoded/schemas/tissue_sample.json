@@ -82,7 +82,7 @@
             "description": "Type of tissue sample",
             "type": "string",
             "enum": [
-                "Aliquot",
+                "Tissue Aliquot",
                 "Cells",
                 "Core",
                 "Homogenate",

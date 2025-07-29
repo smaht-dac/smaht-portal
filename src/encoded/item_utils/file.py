@@ -12,7 +12,6 @@ from . import (
     sample,
     sequencing,
     tissue,
-    ontology_term,
 )
 from .constants import file as file_constants
 from .utils import (
@@ -432,6 +431,11 @@ def has_mobile_element_insertions(file: Dict[str, Any]) -> bool:
 def get_override_group_coverage(file: Dict[str, Any]) -> str:
     """Get override group coverage from properties."""
     return file.get("override_group_coverage","")
+
+
+def get_override_average_coverage(file: Dict[str, Any]) -> str:
+    """Get override average coverage from properties."""
+    return file.get("override_average_coverage","")
 
 
 def get_override_release_tracker_description(file: Dict[str, Any]) -> str:

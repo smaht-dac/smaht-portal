@@ -240,7 +240,9 @@
         "children": [
             "dad6eb69-bdd0-4409-898a-6e95ba420bc0",
             "1a2da742-acc2-44e2-b5d9-249fe3e837e1",
-            "2a3b8679-16a7-44be-8676-e4c290bef36e"
+            "2a3b8679-16a7-44be-8676-e4c290bef36e",
+            "eb2b9abf-1838-4cf4-81f7-5b8b39c30edb",
+            "0861c711-4728-4e10-9ff1-74b8b3f93676"
         ],
         "table-of-contents": {
             "enabled": true,
@@ -335,8 +337,7 @@
         "status": "public",
         "children": [
             "27d149b5-164a-4351-9095-7be11d6371f7",
-            "389b52ce-5161-4f08-b49b-b1b3b18f09e2",
-            "56bcafc1-55f1-4a45-ac49-d729cb1e667d"
+            "389b52ce-5161-4f08-b49b-b1b3b18f09e2"
         ],
         "table-of-contents": {
             "enabled": true
@@ -387,16 +388,34 @@
         ]
     },
     {
-        "identifier": "docs/additional-resources/troubleshooting",
-        "uuid": "56bcafc1-55f1-4a45-ac49-d729cb1e667d",
-        "title": "Troubleshooting",
+        "identifier": "docs/submission/faq",
+        "uuid": "0861c711-4728-4e10-9ff1-74b8b3f93676",
+        "title": "Frequently Asked Questions",
         "content": [
-            "a74b4355-3721-4a27-a444-e99a55a1407b"
+            "d78edbe6-9a42-4512-ac8d-b909bc287103"
         ],
         "table-of-contents": {
-            "enabled": true
+            "enabled": false
         },
-        "status": "in review",
+        "status": "released",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/submission/submission-data-dictionary",
+        "uuid": "eb2b9abf-1838-4cf4-81f7-5b8b39c30edb",
+        "status": "released",
+        "content": [
+            "4aeffcf9-f3bb-40e8-a4de-ac7d1bf4fac4"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Submission Data Dictionary",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -449,7 +468,7 @@
     {
         "identifier": "docs/how-to-upload",
         "title": "How to Upload Data (incomplete)",
-        "status": "public",
+        "status": "in review",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -863,7 +882,7 @@
     {
         "identifier": "data/analysis",
         "title": "Benchmarking Analysis",
-        "status": "public",
+        "status": "released",
         "children": [
             "b4b2da6b-d5be-4cd3-81da-691ecc1f9308"
         ],
@@ -884,7 +903,7 @@
     {
         "identifier": "data/analysis/colo829-snv-indel-detection",
         "title": "COLO829 SNV/Indel Detection Challenge",
-        "status": "public",
+        "status": "released",
         "content": [
             "6843c6e7-7b47-457d-96c3-387af3c07207"
         ],
@@ -905,7 +924,7 @@
     {
         "identifier": "resources",
         "title": "Resources",
-        "status": "public",
+        "status": "released",
         "children": [
             "5e7962d0-a218-45ba-8a76-729ef683695b"
         ],
@@ -920,7 +939,7 @@
     {
         "identifier": "resources/genome-related",
         "title": "Genome Related",
-        "status": "public",
+        "status": "released",
         "children": [
             "192a220e-64c8-4ec3-93d9-4e4218f0a7fe"
         ],
@@ -935,7 +954,7 @@
     {
         "identifier": "resources/genome-related/genome-reference-and-related-data",
         "title": "Genome Reference and Related Data",
-        "status": "public",
+        "status": "released",
         "content": [
             "edf6c0f5-e051-4c4e-8e22-99dfde0b8501"
         ],
@@ -1006,10 +1025,10 @@
     },
     {
         "identifier": "qc-metrics",
-        "uuid": "51794ad7-3b6a-4be8-b030-d74591b9cd42",
+        "uuid": "9069da47-819f-4f49-bd94-2a4cabb0e727",
         "status": "in review",
         "content": [
-            "68271697-2726-4bbf-9243-1c2ae9553c80"
+            "27d09f44-44ca-466e-ade6-6d5a5a81c99c"
         ],
         "table-of-contents": {
             "enabled": false
@@ -1048,6 +1067,24 @@
             "enabled": false
         },
         "title": "Data Retraction",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data-matrix",
+        "uuid": "d9a62257-2ad4-416f-89a5-6354807b5f5e",
+        "status": "in review",
+        "content": [
+            "ac15e912-543c-4ce5-a16a-1fcdf987181c"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Data Matrix",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

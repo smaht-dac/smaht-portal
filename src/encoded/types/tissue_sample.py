@@ -28,17 +28,8 @@ from .utils import (
 from ..item_utils import (
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
-    donor as donor_utils,
     item as item_utils
 )
-
-
-def _build_tissue_sample_embedded_list() -> List[str]:
-    return [
-        # Columns/facets for search
-        "sample_sources.external_id",
-        "sample_sources.donor.external_id",
-    ]
 
 
 @collection(
@@ -52,7 +43,7 @@ def _build_tissue_sample_embedded_list() -> List[str]:
 class TissueSample(Sample):
     item_type = "tissue_sample"
     schema = load_schema("encoded:schemas/tissue_sample.json")
-    embedded_list = _build_tissue_sample_embedded_list()
+    embedded_list = Sample.embedded_list
 
     class Collection(Item.Collection):
         pass
@@ -62,7 +53,7 @@ class TissueSample(Sample):
 def validate_external_id_on_add(context, request):
     """
     Check that `external_id` is valid.
-    
+
     Check is consistent with `category` nomenclature if the sample_source.donor is a Benchmarking or Production tissue on add (TPC-submitted items only for now).
     Check that `external_id` matches linked tissue `external_id` if Benchmarking or Production tissue sample on add.
     """
@@ -87,7 +78,7 @@ def validate_external_id_on_add(context, request):
             msg = f"external_id {external_id} does not match Tissue external_id {item_utils.get_external_id(tissue)}."
             return request.errors.add('body', 'TissueSample: invalid link', msg)
         else:
-            return request.validated.update({}) 
+            return request.validated.update({})
 
 
 @link_related_validator
@@ -138,7 +129,7 @@ def assert_external_id_category_match(external_id: str, category: str):
 def assert_tissue_category_match(category: str, external_id: str):
     """
     Check that category is Liquid or Cells if protocol id of external_id is among certain types.
-    
+
     Current types are blood, buccal swab (both Liquid), and fibroblast cell culture (Cells).
     """
     liquid_protocol_ids = ["3A", "3B"]
@@ -200,13 +191,13 @@ def validate_tissue_sample_metadata_on_edit(context, request):
                             request.errors.add('body', f"TissueSample: metadata mismatch, {check_property}{gcc_property} does not match TPC Tissue Sample {found}")
             sample_source_ids = get_property_for_validation('sample_sources', existing_properties, properties_to_update)
             sample_source_res = search_resp.json_body['@graph'][0]['sample_sources'][0]['uuid']
-            gcc_uuid = item_utils.get_uuid(get_item_or_none(request, sample_source_ids[0], 'sample-sources'))        
+            gcc_uuid = item_utils.get_uuid(get_item_or_none(request, sample_source_ids[0], 'sample-sources'))
             if sample_source_res != gcc_uuid:
                 # property does not match
                 found = res['accession']
                 request.errors.add('body', f"TissueSample: metadata mismatch, sample_sources {gcc_uuid} does not match TPC Tissue Sample {found}sample_sources {sample_source_res}")
             return request.validated.update({})
-        
+
 
 @link_related_validator
 def validate_tissue_sample_metadata_on_add(context, request):
@@ -245,12 +236,12 @@ def validate_tissue_sample_metadata_on_add(context, request):
                             request.errors.add('body', f"TissueSample: metadata mismatch, {check_property} {gcc_property} does not match TPC Tissue Sample {found}")
             sample_source_ids = data['sample_sources']
             sample_source_res = search_resp.json_body['@graph'][0]['sample_sources'][0]['uuid']
-            gcc_uuid = item_utils.get_uuid(get_item_or_none(request, sample_source_ids[0], 'sample-sources'))        
+            gcc_uuid = item_utils.get_uuid(get_item_or_none(request, sample_source_ids[0], 'sample-sources'))
             if sample_source_res != gcc_uuid:
                 # property does not match
                 found = res['accession']
                 request.errors.add('body', f"TissueSample: metadata mismatch, sample_sources {gcc_uuid} does not match TPC Tissue Sample {found} sample_sources {sample_source_res}")
-            return request.validated.update({})  
+            return request.validated.update({})
 
 
 

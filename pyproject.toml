@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "0.171.0"
+version = "0.193.1"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -44,7 +44,7 @@ certifi = ">=2021.5.30"
 chardet = "^5.0.0"
 codeguru-profiler-agent = "^1.2.4"
 colorama = "0.3.3"
-dcicsnovault = "^11.24.0"
+dcicsnovault = "^11.26.0"
 dcicutils = "^8.18.3"
 docutils = ">=0.16,<1"
 encoded-core = "^0.9.6"
@@ -116,6 +116,7 @@ WSGIProxy2 = "0.4.2"
 "zope.sqlalchemy" = "1.6"
 markdown = "^3.5.1"
 pygments = "^2.17.2"
+setuptools = "76.1.0"
 
 [tool.poetry.dev-dependencies]
 # PyCharm says boto3-stubs contains useful type hints
@@ -185,6 +186,7 @@ parse-structured-data= "encoded.commands.parse_structured_data:main"  # For dev/
 prepare-docker = "encoded.commands.prepare_template:prepare_docker_main"
 prepare-local-dev = "encoded.commands.prepare_template:prepare_local_dev_main"
 release-file = "encoded.commands.release_file:main"
+release-donor-metadata = "encoded.commands.release_donor_metadata:main"
 show-schema= "encoded.commands.show_schema:main"  # For dev/testing only
 write-submission-spreadsheets = "encoded.commands.write_submission_spreadsheets:main"
 update-spreadsheet-dropdowns = "encoded.commands.update_spreadsheet_dropdowns:main"

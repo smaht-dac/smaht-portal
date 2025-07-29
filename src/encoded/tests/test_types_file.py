@@ -16,6 +16,7 @@ from ..item_utils import (
     file_set as file_set_utils,
     item as item_utils,
     library as library_utils,
+    quality_metric as qm_utils,
     sample as sample_utils,
     sequencing as sequencing_utils,
     software as software_utils,
@@ -989,6 +990,7 @@ def assert_data_generation_summary_matches_expected(
         file_set_utils.get_sequencing(file_set)
         for file_set in file_utils.get_file_sets(file)
     ]
+    quality_metrics = file_utils.get_quality_metrics(file)
     expected_platforms = [
         item_utils.get_display_title(
             get_item(
@@ -1002,13 +1004,18 @@ def assert_data_generation_summary_matches_expected(
         expected_target_coverage = [override_coverage]
     else:
         expected_target_coverage = [ target_coverage 
-            for sequencing in sequencings
-                
+            for sequencing in sequencings  
             if (target_coverage := sequencing_utils.get_target_coverage(
-                    get_item(es_testapp, item_utils.get_uuid(sequencing))
-                ))
-
-            ] if sequencings else []
+                get_item(es_testapp, item_utils.get_uuid(sequencing))
+            ))
+        ] if sequencings else []
+    if (override_average_coverage := file_utils.get_override_average_coverage(file)):
+        expected_average_coverage = [override_average_coverage]
+    else: 
+        expected_average_coverage = [ coverage 
+            for quality_metric in quality_metrics
+            if (coverage := qm_utils.get_coverage(quality_metric))
+        ] if quality_metrics else []
     expected_target_read_count = [ target_coverage 
         for sequencing in sequencings                     
         if (target_coverage := sequencing_utils.get_target_read_count(
@@ -1033,6 +1040,9 @@ def assert_data_generation_summary_matches_expected(
     )
     assert_values_match_if_present(
         data_generation_summary,"target_group_coverage",expected_target_coverage
+    )
+    assert_values_match_if_present(
+        data_generation_summary,"average_coverage",expected_average_coverage
     )
     assert_values_match_if_present(
         data_generation_summary,"target_read_count",expected_target_read_count
@@ -1090,10 +1100,14 @@ def assert_sample_summary_matches_expected(
         [get_item(es_testapp, item_utils.get_uuid(analyte)) for analyte in analytes],
         analyte_utils.get_molecule,
     )
+    expected_category = expected_tissues = get_unique_values(
+        [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
+        tissue_utils.get_category
+    )
     expected_tissues = get_unique_values(
         [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
         functools.partial(
-            tissue_utils.get_top_grouping_term, request_handler=request_handler
+            tissue_utils.get_grouping_term_from_tag, request_handler=request_handler, tag="tissue_type"
         ),
     )
     expected_tissue_subtypes = get_unique_values(
@@ -1133,6 +1147,9 @@ def assert_sample_summary_matches_expected(
     )
     assert_values_match_if_present(
         sample_summary, "sample_names", expected_sample_names
+    )
+    assert_values_match_if_present(
+        sample_summary, "category", expected_category
     )
     assert_values_match_if_present(
         sample_summary, "tissues", expected_tissues

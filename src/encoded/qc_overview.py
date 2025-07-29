@@ -8,7 +8,7 @@ import json
 
 # This refers to the version of the JSON file that contains the QC overview data.
 # This needs to be bumped when there is a breaking change in the Front/Backend
-JSON_VERSION = "v2"
+JSON_VERSION = "v3"
 
 # Portal constants
 REFERENCE_FILE = "ReferenceFile"
@@ -70,4 +70,5 @@ def get_qc_overview(context, request):
 
     except Exception as e:
         response["error_msg"] = f"Error when trying to get QC overview data: {str(e)}"
+        request.response.status_code = 500
         return response

@@ -15,12 +15,58 @@ import {
     PopoverBody,
 } from 'react-bootstrap';
 
+export const DataCardRow = ({
+    title = '',
+    value = null,
+    titlePopover = null,
+}) => {
+    return (
+        <div className="datum">
+            <div className="datum-title">
+                <span>{title}</span>
+                {titlePopover && (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        overlay={titlePopover}
+                        placement="left"
+                        flip={true}
+                        popperConfig={{
+                            modifiers: [
+                                {
+                                    name: 'flip',
+                                    options: {
+                                        fallbackPlacements: [
+                                            'right',
+                                            'bottom',
+                                            'top',
+                                        ],
+                                    },
+                                },
+                            ],
+                        }}>
+                        <i className="icon icon-info-circle fas ms-1"></i>
+                    </OverlayTrigger>
+                )}
+            </div>
+            <div
+                className={
+                    'datum-value' +
+                    (value === null || value === 'Coming soon'
+                        ? ' coming-soon'
+                        : '')
+                }>
+                {value ?? 'N/A'}
+            </div>
+        </div>
+    );
+};
+
 /**
  * Renders a card titled `header` and rows corresponding with entries in `data`.
  * @param {string} header title for the group of data contained in the card
  * @param {Array} data array of objects containing a field's title and value
  */
-const DataCard = ({ header = '', data = [] }) => {
+export const DataCard = ({ header = '', data = [] }) => {
     return (
         <div className="data-card">
             <div className="header">
@@ -29,41 +75,11 @@ const DataCard = ({ header = '', data = [] }) => {
             <div className="body">
                 {data.map(({ title, value = null, titlePopover = null }, i) => {
                     return (
-                        <div className="datum" key={i}>
-                            <div className="datum-title">
-                                <span>{title}</span>
-                                {titlePopover && (
-                                    <OverlayTrigger
-                                        trigger={['hover', 'focus']}
-                                        overlay={titlePopover}
-                                        placement="left"
-                                        flip={true}
-                                        popperConfig={{
-                                            modifiers: [
-                                                {
-                                                    name: 'flip',
-                                                    options: {
-                                                        fallbackPlacements: [
-                                                            'right',
-                                                            'bottom',
-                                                            'top',
-                                                        ],
-                                                    },
-                                                },
-                                            ],
-                                        }}>
-                                        <i className="icon icon-info-circle fas ms-1"></i>
-                                    </OverlayTrigger>
-                                )}
-                            </div>
-                            <div
-                                className={
-                                    'datum-value' +
-                                    (value === null ? ' coming-soon' : '')
-                                }>
-                                {value ?? 'N/A'}
-                            </div>
-                        </div>
+                        <DataCardRow
+                            title={title}
+                            value={value}
+                            titlePopover={titlePopover}
+                        />
                     );
                 })}
             </div>
@@ -182,6 +198,27 @@ const default_data_information = [
         },
     },
     {
+        title: 'Dataset Per BAM Coverage',
+        getProp: (context = {}) => {
+            if (
+                context?.file_format?.display_title === 'bam' &&
+                context?.data_type.some((d) => d === 'Aligned Reads') &&
+                context?.data_generation_summary?.assays?.some(
+                    (assay) =>
+                        assay.includes('WGS') ||
+                        assay.includes('Fiber-seq') ||
+                        assay.includes('Hi-C')
+                )
+            ) {
+                const cov = context?.data_generation_summary?.average_coverage;
+                if (cov && cov.length > 0) {
+                    return cov[0] + 'X';
+                }
+            }
+            return null;
+        },
+    },
+    {
         title: 'Dataset Target Read Count',
         getProp: (context = {}) => {
             if (
@@ -214,7 +251,9 @@ const default_data_information = [
  */
 function renderDescriptionPopover() {
     return (
-        <Popover id="description-definitions-popover" className="w-auto">
+        <Popover
+            id="description-definitions-popover-sample-description"
+            className="w-auto description-definitions-popover">
             <PopoverBody className="p-0">
                 <table className="table">
                     <thead>
@@ -225,8 +264,8 @@ function renderDescriptionPopover() {
                     </thead>
                     <tbody>
                         <tr>
-                            <td className="align-top text-left fw-bold">
-                                Aliquot
+                            <td className="align-top text-left fw-bold text-nowrap">
+                                Tissue Aliquot
                             </td>
                             <td className="text-left">
                                 A sample of a sectioned solid tissue with a

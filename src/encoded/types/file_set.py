@@ -44,17 +44,65 @@ from .utils import get_properties, get_property_for_validation
 log = structlog.getLogger(__name__)
 
 
-# These codes are used to generate the mergeable bam grouping calc prop
-# This obviously is not data drive, but in calc props we cannot rely on search
-# and would rather hard code this potentially expensive operation - Will 16 April 2024
-SINGLE_CELL_ASSAY_CODES = [
-    '016', '012', '014', '105', '104', '103', '013', '011', '010'
-]
-
 def _build_file_set_embedded_list():
     """Embeds for search on file sets."""
     return [
         "submission_centers.identifier",
+
+        # embeds for experimental library and sequencing manifest
+        "libraries.analytes.accession",
+        "libraries.analytes.samples.accession",
+        "libraries.analytes.samples.sample_sources.donor.accession",
+        "libraries.analytes.rna_integrity_number",
+        "libraries.a260_a280_ratio",
+        "libraries.adapter_name",
+        "libraries.adapter_sequence",
+        "libraries.amplification_cycles",
+        "libraries.analyte_weight",
+        "libraries.antibody",
+        "libraries.barcode_sequences",
+        "libraries.comments",
+        "libraries.concatenated_reads",
+        "libraries.description",
+        "libraries.dna_target",
+        "libraries.external_id",
+        "libraries.fragment_mean_length",
+        "libraries.guide_sequence",
+        "libraries.insert_coefficient_of_variation",
+        "libraries.insert_maximum_length",
+        "libraries.insert_mean_length",
+        "libraries.insert_minimum_length",
+        "libraries.preparation_date",
+        "libraries.target_fragment_size",
+        "libraries.target_insert_maximum_length",
+        "libraries.target_insert_minimum_length",
+        "libraries.target_monomer_size",
+        "libraries.library_preparation.adapter_inclusion_method",
+        "libraries.library_preparation.amplification_method",
+        "libraries.library_preparation.description",
+        "libraries.library_preparation.enzymes",
+        "libraries.library_preparation.fragmentation_method",
+        "libraries.library_preparation.insert_selection_method",
+        "libraries.library_preparation.size_selection_method",
+        "libraries.library_preparation.strand",
+        "libraries.library_preparation.trim_adapter_sequence",
+        "libraries.library_preparation.treatments.agent",
+        "libraries.library_preparation.treatments.concentration",
+        "libraries.library_preparation.treatments.concentration_units",
+        "libraries.library_preparation.treatments.duration",
+        "libraries.library_preparation.treatments.temperature",
+        "libraries.library_preparation.preparation_kits.title",
+        "libraries.library_preparation.preparation_kits.catalog_number",
+        "libraries.library_preparation.preparation_kits.vendor",
+        "libraries.library_preparation.preparation_kits.version",
+
+        "sequencing.movie_length",
+        "sequencing.on_target_rate",
+        "sequencing.target_monomer_length",
+        "sequencing.preparation_kits.title",
+        "sequencing.preparation_kits.catalog_number",
+        "sequencing.preparation_kits.vendor",
+        "sequencing.preparation_kits.version",
 
         # Assay LinkTo - used in file_merge_group
         "libraries.assay.code",
@@ -66,11 +114,12 @@ def _build_file_set_embedded_list():
         "libraries.analytes.samples.sample_sources.code",
         "libraries.analytes.samples.sample_sources.uberon_id",
         "libraries.analytes.samples.sample_sources.cell_line.code",
+        "libraries.analytes.samples.sample_sources.uberon_id",
         "libraries.analytes.samples.sample_sources.donor.display_title",
-
 
         # Sequencing/Sequencer LinkTo - used in file_merge_group
         "sequencing.submitted_id",
+        "sequencing.additional_notes",
         "sequencing.target_coverage",
         "sequencing.target_read_count",
         "sequencing.read_type",
@@ -84,7 +133,7 @@ def _build_file_set_embedded_list():
         "files.file_format.display_title",
         "files.file_status_tracking",
         "files.quality_metrics.overall_quality_status",
-        
+
         "meta_workflow_runs.meta_workflow.display_title",
         "meta_workflow_runs.meta_workflow.category",
         "meta_workflow_runs.accession",
@@ -165,13 +214,13 @@ class FileSet(SubmittedItem):
     def generate_assay_part(
         request_handler: RequestHandler, library: Dict[str, Any]
     ) -> Union[str, None]:
-        """ The library of the merge_file_group contains information on the assay
-            This basically just checks the assay code isn't a single cell type and if
-            it isn't return the identifier
+        """ The library of the merge_file_group contains information on the assay.
+        This basically just checks the cell isolation method is bulk (isn't a single cell or microbulk) and if it isn't
+        return the identifier
         """
         assay = request_handler.get_item(library_utils.get_assay(library))
-        assay_code = item_utils.get_code(assay)
-        if assay_code not in SINGLE_CELL_ASSAY_CODES:
+        cell_isolation_method = assay_utils.get_cell_isolation_method(assay)
+        if cell_isolation_method == "Bulk":
             return item_utils.get_identifier(assay)
 
     @staticmethod
@@ -184,23 +233,7 @@ class FileSet(SubmittedItem):
         )
         if len(samples) == 0:
             return None
-        if len(samples) > 1:
-            samples_meta = request_handler.get_items(samples)
-            for sample_meta in samples_meta:
-                if sample_utils.is_tissue_sample(sample_meta) and tissue_sample_utils.has_spatial_information(sample_meta):
-                    return None # this should give some kind of warning. Should not have multiple intact tissue samples
-        if len(samples) == 1:
-            sample = samples[0]
-            if 'tissue' in sample:
-                sample_meta = request_handler.get_item(sample)
-                if tissue_sample_utils.has_spatial_information(sample_meta):
-                    return get_property_value_from_identifier(
-                        request_handler, sample, item_utils.get_submitted_id
-                    )
-        # If we are a tissue sample, generate this based on the sample field, not the sample
-        # sources field
-
-        # If we get here, we are a Homogenate tissue sample or cell line and should rely on sample sources
+        # If we get here, we are a tissue sample, multiple merged tissue samples, or cell line and should rely on sample sources
         sample_sources = library_utils.get_sample_sources(
             library, request_handler=request_handler
         )
@@ -233,6 +266,10 @@ class FileSet(SubmittedItem):
                 "assay": {
                     "title": "Assay Tag",
                     "type": "string"
+                },
+                "group_tag": {
+                    "title": "Group Tag",
+                    "type": "string"
                 }
             }
         }
@@ -252,6 +289,8 @@ class FileSet(SubmittedItem):
                 * Various information on the sequencer: name, read type, target read length
                   and flow cell
                 * Assay identifier
+                * An optional flag to differentiate the group from ones that would otherwise be in the
+                same merge group, but should be kept separate for QC or other reasons
         """
         # NOTE: we assume the first library is representative if there are multiple
         # We also assume this will always be present, and if not we do not produce this property
@@ -262,7 +301,7 @@ class FileSet(SubmittedItem):
             return None
         library = request_handler.get_item(library[0])
         assay_part = self.generate_assay_part(request_handler, library)
-        if not assay_part:  # we return none if this is a single cell assay to omit this prop
+        if not assay_part: # we return none if this is a single cell assay to omit this prop
             return None
 
         sample_source_part = self.generate_sample_source_part(request_handler, library)
@@ -285,12 +324,14 @@ class FileSet(SubmittedItem):
             item_utils.get_submission_centers(self.properties)[0],
             item_utils.get_identifier,
         )
+        group_tag_part = file_set_utils.get_group_tag(self.properties)
 
         return {
             'submission_center': sc_part,
             'sample_source': sample_source_part,
             'sequencing': sequencing_part,
-            'assay': assay_part
+            'assay': assay_part,
+            'group_tag': group_tag_part
         }
 
     @calculated_property(
@@ -307,7 +348,8 @@ class FileSet(SubmittedItem):
             request_handler,
             file_set_utils.get_tissues(self.properties, request_handler),
             functools.partial(
-                tissue_utils.get_top_grouping_term, request_handler=request_handler
+                tissue_utils.get_grouping_term_from_tag, request_handler=request_handler,
+                tag="tissue_type"
             )
         )
 
@@ -337,8 +379,8 @@ def validate_compatible_assay_and_sequencer_on_edit(context, request):
 
 def check_compatible_assay_and_sequencer(request, libraries: List[str], sequencing: str):
     """Checks that if library.assay has a valid_sequencer property, that sequencing.sequencer is among them.
-    
-    The assays with `valid_sequencers` property may need to be updated as new techologies come out 
+
+    The assays with `valid_sequencers` property may need to be updated as new techologies come out
     or are added to the portal.
     """
     assays = []

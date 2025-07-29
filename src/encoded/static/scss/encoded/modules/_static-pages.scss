@@ -1981,7 +1981,7 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 				content: "";
 				display: block;
 				height: 200px;
-				width: 130px;
+				width: 140px;
 				background-color: white;
 				overflow: hidden;
 				position: absolute;
@@ -2075,8 +2075,8 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 						z-index: 2;
 						display: flex;
 						height: 50px;
-						width: 130px;
-						padding-left: 20px;
+						width: 140px;
+						padding-left: 15px;
 						background-color: white;
 						border-left: 10px solid;
 						border-style: none none none solid;
@@ -2189,8 +2189,11 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 
 		.stackrow {
 			&-table {
+
+				&:before {
+					width: 110px;
+				}
 				&-top-labels {
-					margin-top: 60px;
 					padding-right: 35px;
 					.label {
 						width: 36px;
@@ -2250,8 +2253,10 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 	@media screen and (min-width: 768px) and (max-width: 992px) {
 		.stackrow {
 			&-table {
+				&:before {
+					width: 100px;
+				}
 				&-top-labels {
-					margin-top: 60px;
 					padding-right: 35px;
 					.label {
 						width: 32px;
@@ -2310,9 +2315,16 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 
 		.stackrow {
 			&-table {
+				&:before {
+					height: 150px;
+					width: 80px;
+				}
 				&-top-labels {
-					margin-top: 40px;
 					padding-right: 10px;
+
+					tr {
+						height: 150px;
+					}
 					.label {
 						width: 22px;
 						font-size: 0.5rem;
@@ -2383,9 +2395,16 @@ $ttd-color: rgba(77, 175, 74, 0.8);
 		margin-top: 40px;
 		.stackrow {
 			&-table {
+				&:before {
+					width: 35px;
+					height: 100px;
+				}
 				&-top-labels {
 					margin-top: 0;
 					padding-right: 15px;
+					tr {
+						height: 100px;
+					}
 					.label {
 						width: 14px;
 						font-size: 0.3rem;
@@ -2804,25 +2823,74 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 
 			// Side nav
 			.sliding-sidebar-nav-container .sliding-sidebar-nav {
-				&-section {
+				
+				.benchmarking-nav-section {
 					&-title {
-						margin-bottom: 10px;
+						padding: 0px 8px;
 					}
 				}
 
 				.accordion > ul {
 					list-style-type: none;
 					padding-left: 0;
-					gap: 10px;
+					gap: 5px;
 					display: flex;
 					flex-direction: column;
+
+					.title-toggle-container {
+						display: flex;
+						justify-content: space-between;
+						align-items: center;
+
+						&.active {
+							.title {
+								color: #343741;
+								font-weight: 600;
+
+								&:hover {
+									font-weight: 600;
+									background-color: transparent;
+									cursor: default;
+								}
+							}
+						}
+
+						.title {
+							flex: 1;
+							color: #717378;
+							border-radius: 4px 0px 0px 4px;
+							padding: 4px 8px;
+							
+							&:hover {
+								color: #343741;
+								cursor: pointer;
+								background-color: whitesmoke;
+								text-decoration: none;
+								font-weight: 500;
+							}
+						}
+
+						i {
+							color: #717378;
+							padding: 8px;
+							border-radius: 0px 4px 4px 0px;
+
+							&:hover {
+								color: #343741;
+								background-color: whitesmoke;
+								cursor: pointer;
+							}
+						}
+					}
 		
 					> li > div.collapse > ul,
 					> li > div.collapsing > ul {
 							list-style-type: none;
 							padding-left: 0; 
 						> li {
-							padding-left: 15px;
+							span {
+								padding-left: 15px;
+							}
 						}
 					}
 		
@@ -2830,28 +2898,48 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 						font-family: Inter;
 						font-size: 0.875rem;
 						font-weight: 400;
+						display: flex;
+						border: 1px solid transparent;
 		
 						> a {
+							flex: 1;
 							color: #717378;
+							border-radius: 4px;
+							padding: 2px 5px;
+							font-size: 1rem;
 
 							&:hover {
-								text-decoration-color: $secondary !important;
+								cursor: pointer;
+								background-color: whitesmoke;
+								text-decoration: none;
+								font-weight: 500;
+								color: #343741;
 							}
 						}
 		
 						&.top {
-							font-size: 1rem;
+							// flex: 1;
+							// color: #717378;
+							// border-radius: 4px;
+							// padding: 2px 5px;
+							// font-size: 1rem;
+
+							&:hover {
+								// cursor: pointer;
+								// background-color: whitesmoke;
+								// text-decoration: none;
+								// font-weight: 500;
+
+								// > a {
+								// 	color: #343741;
+								// }
+							}
 						}
 						&.active {
 							font-weight: 500;
-							&.top {
-								font-weight: 700;
-							}
-							&:not(.top) {
-								border-radius: 4px;
-								border: 1px solid #E2ECF2;
-								background: #EBF3F9; 
-							}
+							border-radius: 4px;
+							border: 1px solid #E2ECF2;
+							background: #EBF3F9;
 							
 							> a {
 								color: #343741;
@@ -2938,9 +3026,6 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 			border-color: #d7baba !important;
 		}
 	}
-}
-div#retracted_files h2.section-title {
-	font-size: 1.5rem !important;
 }
 
 /** Utilities for static page tables **/
@@ -3059,3 +3144,72 @@ Unique styling of Submission Status page
     color: #fff;
     background-color: #c1c1c1;
 }
+
+
+/*********
+FAQ page styles
+**********/
+
+.faq-container {
+	.faq-header {
+		margin-bottom: 20px;
+    	font-weight: 400;
+		border-bottom: 1px solid #f4f4f4;
+		padding-bottom: 15px;
+	}
+
+	details {
+		border-radius: 10px;
+		margin-bottom: 20px;
+		transition: background-color 50ms ease-in;
+		background-color: white;
+		
+		summary {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+			padding: 20px;
+			font-weight: 500;
+			font-size: 1.25rem;
+			gap: 20px;
+			line-height: 1.75rem;
+
+			i.icon-chevron-down {
+				transition: color 50ms ease-in, transform 300ms ease-out;
+				color: gray;
+			}
+		}
+
+		&[open] {
+			background-color: #f4f9fd;
+			transition: background-color 50ms ease-in;
+
+			summary {
+				i.icon-chevron-down {
+					color: #212529;
+					transform: rotate(180deg);
+				}
+			}
+		}
+
+		&:hover {
+			background-color: #f4f9fd;
+			transition: background-color 50ms ease-in;
+
+			summary {
+				i.icon-chevron-down {
+					color: #212529;
+					transition: color 50ms ease-in, transform 300ms ease-out;
+				}
+			}
+
+		}
+
+		.response {
+			padding: 0px 60px 20px 20px;
+			font-size: 1rem;
+		}
+	}
+}
+
+

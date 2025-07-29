@@ -105,11 +105,11 @@ export const KeyMetrics = ({ qcData }) => {
                     <div className="col-lg-6 border-end">
                         {getBoxPlot(
                             qcData,
-                            `Long read - PacBio`,
+                            `Long read - PacBio / ONT`,
                             'verifybamid:freemix_alpha',
                             assay,
                             sampleSource,
-                            'PacBio Revio',
+                            'all_long_read',
                             study,
                             [-0.01, 0.21]
                         )}

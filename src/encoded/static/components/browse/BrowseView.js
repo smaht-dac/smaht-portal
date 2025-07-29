@@ -113,20 +113,23 @@ export class BrowseViewBody extends React.PureComponent {
  *
  * Note: this component only renders for logged-in users.
  */
-export const DonorMetadataDownloadButton = ({ session }) => {
+export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
     const [downloadLink, setDownloadLink] = useState(null);
 
     useEffect(() => {
         const searchURL =
-            '/resource-files/479cd00c-31d3-44c0-9aca-d5185ae4932a';
+            '/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.released_date';
 
         if (session) {
             ajax.load(
                 searchURL,
                 (resp) => {
-                    if (resp?.href) {
+                    // Use the first item in the response
+                    const latest_file = resp?.['@graph']?.[0];
+
+                    if (latest_file?.href) {
                         // Update the download link
-                        setDownloadLink(resp?.href);
+                        setDownloadLink(latest_file?.href);
 
                         // Rebuild the tooltip after the component mounts
                         ReactTooltip.rebuild();
@@ -143,7 +146,7 @@ export const DonorMetadataDownloadButton = ({ session }) => {
     return downloadLink ? (
         <a
             data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
-            className="btn btn-sm btn-outline-secondary"
+            className={'btn btn-sm btn-outline-secondary ' + className}
             href={downloadLink}
             download>
             <span>
@@ -154,7 +157,7 @@ export const DonorMetadataDownloadButton = ({ session }) => {
     ) : (
         <button
             data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
-            className="btn btn-sm btn-outline-secondary"
+            className={'btn btn-sm btn-outline-secondary ' + className}
             disabled>
             <span>
                 <i className="icon icon-fw icon-users fas me-1" />
@@ -431,9 +434,23 @@ export function createBrowseColumnExtensionMap({
         donors: {
             widthMap: { lg: 102, md: 102, sm: 102 },
             render: function (result, parentProps) {
-                const { donors: { 0: { display_title } = {} } = [] } =
-                    result || {};
-                return display_title || null;
+                const {
+                    donors: {
+                        0: {
+                            ['@id']: donorLink,
+                            display_title,
+                            protected_donor,
+                        } = {},
+                    } = [],
+                } = result || {};
+
+                return donorLink ? (
+                    <a
+                        target="_blank"
+                        href={protected_donor?.['@id'] ?? donorLink}>
+                        {display_title}
+                    </a>
+                ) : null;
             },
         },
         // Assay

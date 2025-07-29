@@ -54,6 +54,7 @@ from ..item_utils import (
     analyte as analyte_utils,
     file as file_utils,
     item as item_utils,
+    quality_metric as qm_utils,
     sample as sample_utils,
     software as software_utils,
     tissue as tissue_utils,
@@ -193,6 +194,7 @@ class CalcPropConstants:
     DATA_GENERATION_SEQUENCING_PLATFORMS = "sequencing_platforms"
     DATA_GENERATION_TARGET_COVERAGE = "target_group_coverage"
     DATA_GENERATION_TARGET_READ_COUNT = "target_read_count"
+    DATA_GENERATION_AVERAGE_COVERAGE = "average_coverage"
     DATA_GENERATION_SCHEMA = {
         "title": "Data Generation Summary",
         "description": "Summary of data generation",
@@ -244,6 +246,13 @@ class CalcPropConstants:
                     "type": "string"
                 }
             },
+            DATA_GENERATION_AVERAGE_COVERAGE: {
+                "title": "Per BAM Coverage",
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+             },
             DATA_GENERATION_TARGET_READ_COUNT: {
                 "title": "Target Read Count",
                 "type": "array",
@@ -262,6 +271,7 @@ class CalcPropConstants:
         "type": "string",
     }
     SAMPLE_SUMMARY_DONOR_IDS = "donor_ids"
+    SAMPLE_SUMMARY_CATEGORY = "category"
     SAMPLE_SUMMARY_TISSUES = "tissues"
     SAMPLE_SUMMARY_TISSUE_SUBTYPES = "tissue_subtypes"
     SAMPLE_SUMMARY_TISSUE_DETAILS = "tissue_details"
@@ -275,6 +285,13 @@ class CalcPropConstants:
         "properties": {
             SAMPLE_SUMMARY_DONOR_IDS: {
                 "title": "Donor ID",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_CATEGORY: {
+                "title": "Tissue Category",
                 "type": "array",
                 "items": {
                     "type": "string",
@@ -375,6 +392,7 @@ def _build_file_embedded_list() -> List[str]:
 
         # Sample summary + Link calcprops
         "file_sets.libraries.analytes.molecule",
+        "file_sets.libraries.analytes.samples.sample_sources.category",
         "file_sets.libraries.analytes.samples.sample_sources.code",
         "file_sets.libraries.analytes.samples.sample_sources.uberon_id",
         "file_sets.libraries.analytes.samples.sample_sources.description",
@@ -386,8 +404,15 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.samples.sample_sources.donor",
 
         "quality_metrics.overall_quality_status",
+        "quality_metrics.coverage",
+        "quality_metrics.qc_notes",
         # For manifest
+        "file_sets.accession",
+        "file_sets.libraries.analytes.accession",
+        "file_sets.libraries.analytes.samples.accession",
+        "file_sets.libraries.analytes.samples.sample_sources.donor.accession",
         "sequencing.sequencer.display_title",
+        "sequencing.sequencer.platform",
 
         # Include file groups tags
         "file_sets.file_group.*",
@@ -401,11 +426,13 @@ def _build_file_embedded_list() -> List[str]:
 
         # For browse search columns
         "donors.display_title",
+        "donors.protected_donor",
         "sample_summary.tissues",
 
         # For facets
         "donors.age",
-        "donors.sex"
+        "donors.sex",
+
     ]
 
 
@@ -648,6 +675,8 @@ class File(Item, CoreFile):
     def meta_workflow_run_inputs(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "meta_workflow_run_inputs")
         if result:
+            if self.type_info.name == "ReferenceFile":
+                return
             request_handler = RequestHandler(request = request)
             mwfrs=[ 
                 mwfr for mwfr in result
@@ -674,7 +703,7 @@ class File(Item, CoreFile):
         result = self.rev_link_atids(request, "meta_workflow_run_outputs")
         if result:
             request_handler = RequestHandler(request = request)
-            mwfrs=[ 
+            mwfrs=[
                 mwfr for mwfr in result
                 if get_property_value_from_identifier(
                     request_handler,
@@ -795,7 +824,7 @@ class File(Item, CoreFile):
             request_handler,
             file_properties=self.properties
         )
-        return result     
+        return result
 
     def _get_libraries(
         self, request: Request, file_sets: Optional[List[str]] = None
@@ -961,6 +990,9 @@ class File(Item, CoreFile):
             constants.DATA_GENERATION_TARGET_COVERAGE: (
                 self._get_group_coverage(request_handler, file_properties)
             ),
+            constants.DATA_GENERATION_AVERAGE_COVERAGE: (
+                self._get_average_coverage(request_handler, file_properties)
+            ),
             constants.DATA_GENERATION_TARGET_READ_COUNT: (
                 get_property_values_from_identifiers(
                     request_handler,
@@ -977,7 +1009,7 @@ class File(Item, CoreFile):
         self, request_handler: Request, file_properties: Optional[List[str]] = None
     ) -> Union[List[str], None]:
         """"Get group coverage for display on file overview page.
-        
+
         Use override_group_coverage if present, otherwise grab target_coverage from sequencing."""
         if (override_group_coverage := file_utils.get_override_group_coverage(file_properties)):
             return [override_group_coverage]
@@ -985,6 +1017,20 @@ class File(Item, CoreFile):
             request_handler,
             file_utils.get_sequencings(file_properties, request_handler),
             sequencing_utils.get_target_coverage
+        )
+
+    def _get_average_coverage(
+        self, request_handler, file_properties: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """"Get average coverage from quality_metrics for display on file overview page.
+
+        Use override_average_coverage if present, otherwise grab coverage from quality metrics."""
+        if (override_average_coverage := file_utils.get_override_average_coverage(file_properties)):
+            return [override_average_coverage]
+        return get_property_values_from_identifiers(
+            request_handler,
+            file_utils.get_quality_metrics(file_properties),
+            qm_utils.get_coverage
         )
 
     def _get_sample_summary(
@@ -1010,11 +1056,17 @@ class File(Item, CoreFile):
                 file_utils.get_donors(file_properties, request_handler),
                 item_utils.get_external_id,
             ),
+            constants.SAMPLE_SUMMARY_CATEGORY: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_tissues(file_properties, request_handler),
+                tissue_utils.get_category
+            ),
             constants.SAMPLE_SUMMARY_TISSUES: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_tissues(file_properties, request_handler),
                 functools.partial(
-                    tissue_utils.get_top_grouping_term, request_handler=request_handler
+                    tissue_utils.get_grouping_term_from_tag, request_handler=request_handler,
+                    tag="tissue_type"
                 ),
             ),
             constants.SAMPLE_SUMMARY_TISSUE_SUBTYPES: get_property_values_from_identifiers(
@@ -1101,7 +1153,7 @@ class File(Item, CoreFile):
         ) -> Union[str, None]:
         """Get release tracker title for display on the home page."""
         to_include = None
-        if "file_sets" in file_properties:    
+        if "file_sets" in file_properties:
             if (cell_culture_mixture_title := get_unique_values(
                 request_handler.get_items(
                     file_utils.get_cell_culture_mixtures(file_properties, request_handler)),
