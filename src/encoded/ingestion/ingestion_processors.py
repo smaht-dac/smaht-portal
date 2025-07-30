@@ -92,6 +92,21 @@ def parse_structured_data(file: str,
                                              progress=structured_data_set_progress,
                                              debug_sleep=submission.debug_sleep if submission else None)
 
+    # Check for diffs and remove any items without any substantial changes
+    diffs = structured_data.compare()
+    no_diff_items = set()
+    for object_type in diffs:
+        for object_info in diffs[object_type]:
+            if object_info.uuid:
+                if not object_info.diffs:
+                    no_diff_items.add(object_info.path.split("/")[2])
+    
+    for object_type in structured_data.data:
+        structured_data.data[object_type] = [
+            item for item in structured_data.data[object_type]
+            if item.get('submitted_id') not in no_diff_items
+        ]
+
     ingestion_status.update({PROGRESS_INGESTER.PARSE_LOAD_DONE: PROGRESS_INGESTER.NOW()})
 
     if not novalidate:

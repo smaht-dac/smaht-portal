@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.193.1
+=======
+`PR 499: WF Fix ingesting identical items <https://github.com/smaht-dac/smaht-portal/pull/499>`_
+
+* Add diff check for ingested metadata
+
+
 0.193.0
 =======
 `PR 491: SN Donor manifest embeds <https://github.com/smaht-dac/smaht-portal/pull/491>`_
