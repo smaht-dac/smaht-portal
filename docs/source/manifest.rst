@@ -20,17 +20,17 @@ Below are the columns listed in the ``File Manifest`` files as of the June 2025 
 
 #. **File Name** - This value is a file name that also serves as a unique identifier of the file. The file nomenclature schema is described `here <https://data.smaht.org/docs/additional-resources/sample-file-nomenclature>`_.
 
-#. **FileSet Accession** - Unique value that can be used to merge to reference rows in the Experimental Manifest.
+#. **FileSet Accession** - Unique value that can be used to merge reference rows in the Experimental Manifest.
 
-#. **Analyte Accessions** - Unique value that can be used to merge to reference rows in the Analyte Manifest (may contain multiple values).
+#. **Analyte Accessions** - Unique value that can be used to merge reference rows in the Analyte Manifest (may contain multiple values).
 
-#. **Sample Accessions** - Unique value that can be used to merge to reference rows in the Biosample Manifest (may contain multiple values).
+#. **Sample Accessions** - Unique value that can be used to merge reference rows in the Biosample Manifest (may contain multiple values).
 
-#. **Donor Accession** - Unique value that can be used to merge to reference rows in the Donor Manifest.
+#. **Donor Accession** - Unique value that can be used to merge reference rows in the Donor Manifest.
 
 #. **File Status** - The status of the file (e.g. ``released`` or ``retracted``).
 
-#. **RetractedReason** - The reason a file was retracted, dependent on File Status.
+#. **Retracted Reason** - The reason a file was retracted, dependent on File Status.
 
 #. **Size** - File size in bytes.
 
@@ -180,8 +180,8 @@ For Tobacco Exposure:
 
 * Social = 0-10 cigarettes in past 5yr; ≤6 cigars/pipes per year
 * Light = 0-5 cigarettes per day (up to 1/4 ppd); ≤12 cigars/pipes per year
-* Moderate = 6-9 cigarettes per day (1/4 to 3/4ppd); 3-5 cigars/pipes per week
-* Heavy = ≥20 cigarettes per day (≥1ppd); ≥3-5 cigars/pipes per week
+* Moderate = 6-9 cigarettes per day (1/4 to 3/4 ppd); 3-5 cigars/pipes per week
+* Heavy = ≥20 cigarettes per day (≥1 ppd); ≥3-5 cigars/pipes per week
 
 
 ------------------
