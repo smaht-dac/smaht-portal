@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import memoize from 'memoize-one';
 import _ from 'underscore';
-import { OverlayTrigger, Popover } from 'react-bootstrap';
+import { OverlayTrigger, Popover, Table } from 'react-bootstrap';
 
 import ReactTooltip from 'react-tooltip';
 
@@ -40,10 +40,52 @@ import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAbove
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import { transformedFacets } from './SearchView';
 
+import { BrowseDonorBody } from './browse-view/BrowseDonor';
+
 export default function BrowseView(props) {
     const { session } = props;
     return <BrowseViewBody {...props} key={session} />;
 }
+
+const BrowseFileBody = (props) => {
+    return (
+        <>
+            <h2 className="browse-summary-header">SMaHT Data Summary</h2>
+            <Alerts alerts={props.alerts} className="mt-2" />
+            <div>
+                <div className="browse-summary d-flex flex-row mt-2 mb-3 flex-wrap">
+                    <BrowseSummaryStatController type="File" />
+                    <BrowseSummaryStatController type="Donor" />
+                    <BrowseSummaryStatController type="Tissue" />
+                    <BrowseSummaryStatController type="Assay" />
+                    <BrowseSummaryStatController
+                        type="File Size"
+                        additionalSearchQueries="&additional_facet=file_size"
+                    />
+                </div>
+            </div>
+            <hr />
+            <BrowseViewControllerWithSelections {...props}>
+                <BrowseFileSearchTable />
+            </BrowseViewControllerWithSelections>
+        </>
+    );
+};
+
+const renderBrowseBody = (props) => {
+    switch (props.context['@type'][0]) {
+        case 'FileSearchResults':
+            return <BrowseFileBody {...props} />;
+        case 'DonorSearchResults':
+            return <BrowseDonorBody {...props} />;
+        // case 'TissueSearchResults':
+        //     return <BrowseTissueBody {...props} />;
+        // case 'AssaySearchResults':
+        //     return <BrowseAssayBody {...props} />;
+        default:
+            null;
+    }
+};
 
 export class BrowseViewBody extends React.PureComponent {
     constructor(props) {
@@ -56,13 +98,6 @@ export class BrowseViewBody extends React.PureComponent {
     render() {
         const { alerts } = this.props;
 
-        // We don't need full screen btn on SMaHT
-        const passProps = _.omit(
-            this.props,
-            'isFullscreen',
-            'toggleFullScreen'
-        );
-
         return (
             <div className="search-page-outer-container" id="content">
                 <SlidingSidebarLayout openByDefault={false}>
@@ -72,32 +107,13 @@ export class BrowseViewBody extends React.PureComponent {
                         </h3>
                         <div className="browse-links">
                             <BrowseLink type="File" />
-                            <BrowseLink type="Donor" disabled />
+                            <BrowseLink type="Donor" />
                             <BrowseLink type="Tissue" disabled />
                             <BrowseLink type="Assay" disabled />
                         </div>
                     </div>
                     <div className="browse-body">
-                        <h2 className="browse-summary-header">
-                            SMaHT Data Summary
-                        </h2>
-                        <Alerts alerts={alerts} className="mt-2" />
-                        <div>
-                            <div className="browse-summary d-flex flex-row mt-2 mb-3 flex-wrap">
-                                <BrowseSummaryStatController type="File" />
-                                <BrowseSummaryStatController type="Donor" />
-                                <BrowseSummaryStatController type="Tissue" />
-                                <BrowseSummaryStatController type="Assay" />
-                                <BrowseSummaryStatController
-                                    type="File Size"
-                                    additionalSearchQueries="&additional_facet=file_size"
-                                />
-                            </div>
-                        </div>
-                        <hr />
-                        <BrowseViewControllerWithSelections {...passProps}>
-                            <BrowseViewSearchTable />
-                        </BrowseViewControllerWithSelections>
+                        {renderBrowseBody(this.props)}
                     </div>
                 </SlidingSidebarLayout>
             </div>
@@ -167,7 +183,7 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
     );
 };
 
-export const BrowseViewSearchTable = (props) => {
+export const BrowseFileSearchTable = (props) => {
     const {
         session,
         context,
@@ -209,7 +225,7 @@ export const BrowseViewSearchTable = (props) => {
     );
 
     const { columnExtensionMap, columns, hideFacets } =
-        createBrowseColumnExtensionMap(selectedFileProps);
+        createBrowseFileColumnExtensionMap(selectedFileProps);
 
     return (
         <CommonSearchView
@@ -226,6 +242,8 @@ export const BrowseViewSearchTable = (props) => {
             }}
             useCustomSelectionController
             hideStickyFooter
+            isFullscreen={false}
+            toggleFullScreen={() => {}}
             currentAction={'multiselect'}
             renderDetailPane={null}
             termTransformFxn={Schemas.Term.toName}
@@ -260,6 +278,18 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
 
     const commonCls = 'col-12';
 
+    let BrowseType = null;
+    switch (context['@type'][0]) {
+        case 'FileSearchResults':
+            BrowseType = 'File';
+            break;
+        case 'DonorSearchResults':
+            BrowseType = 'Donor';
+            break;
+        default:
+            break;
+    }
+
     return (
         <PageTitleContainer
             alerts={[]}
@@ -285,7 +315,9 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
                         className="static-breadcrumb nonclickable"
                         data-name="Production"
                         key="/browse">
-                        <span>Browse By File</span>
+                        <span>
+                            {BrowseType ? `Browse By ${BrowseType}` : 'Browse'}
+                        </span>
                     </div>
                 </div>
                 <OnlyTitle className={commonCls + ' mx-0 px-0'}>
@@ -339,7 +371,7 @@ const TypeColumnTitlePopover = function (props) {
 /**
  *  A column extension map specifically for browse view file tables.
  */
-export function createBrowseColumnExtensionMap({
+export function createBrowseFileColumnExtensionMap({
     selectedItems,
     onSelectItem,
     onResetSelectedItems,
