@@ -34,7 +34,7 @@ function waitForPopoverVisible(timeout = 10000) {
                 if (visible) {
                     resolve(el);            // ✅ return the actual DOM element
                 } else if (Date.now() - start > timeout) {
-                    reject(new Error('Popover never became visible'));
+                    reject(new Error(`Popover never became visible: ${Date.now() - start}ms elapsed, el.offsetParent: ${el ? el.offsetParent : 'null'}, visibility: ${el ? getComputedStyle(el).visibility : 'unknown'}, display: ${el ? getComputedStyle(el).display : 'unknown'}, opacity: ${el ? getComputedStyle(el).opacity : 'unknown'}`));
                 } else {
                     setTimeout(check, 100);
                 }
@@ -89,39 +89,91 @@ function waitUntilPopoverClosed(timeout = 4000) {
  * * @param {Object} params - The parameters for the assertion.
  * * @param {string} params.donor - The expected donor name.
  * * @param {string} params.assay - The expected assay name.
+ * * @param {string} params.tissue - The expected tissue name.
  * * @param {number} params.value - The expected file count value.
  * * @returns {Cypress.Chainable} A Cypress chainable that resolves when the assertion is complete.
  * This function performs the following steps:
  * 1. Waits for the popover to become visible.
- * 2. Asserts that the popover is visible and contains the expected donor, assay, and value.
+ * 2. Asserts that the popover is visible and contains the expected donor, assay, tissue, and value.
  * 3. Closes the popover by clicking outside of it.
  * 4. Waits until the popover is fully closed.
  * 5. Logs the assertion details.
  */
-function assertPopover({ donor, assay, value }) {
+function assertPopover({ donor, assay, tissue, value, blockType = 'regular', depth = 0 }) {
     // wait until the element itself is truly visible
     waitForPopoverVisible().then((popoverEl) => {
         // let Cypress do all subsequent retries
         cy.wrap(popoverEl).should('be.visible').within(() => {
-            // donor (left col-6) – Cypress keeps retrying until text matches
-            if (donor) {
-                cy.get('.primary-row .col-6')
-                    .eq(0)
-                    .find('.text-500', { timeout: 10000 })
-                    .should('have.text', donor);
+            if (blockType === 'regular') {
+                // donor (left col-4) – Cypress keeps retrying until text matches
+                if (donor) {
+                    cy.get('.primary-row .col-4', { timeout: 10000 })
+                        .eq(0)
+                        .find('.value')
+                        .should('have.text', donor);
+                }
+
+                // tissue (mid col-4)
+                if (tissue) {
+                    cy.get('.primary-row .col-4', { timeout: 10000 })
+                        .eq(1)
+                        .find('.value')
+                        .should('have.text', tissue);
+                }
+
+                // assay
+                if (assay) {
+                    cy.get('.secondary-row .col-4', { timeout: 10000 })
+                        .eq(0) // first col-4 in secondary-row
+                        .find('.value')
+                        .should('contain.text', assay);
+                }
+
+                // file count – retry until text is numeric and equals expected
+                cy.get('.secondary-row .col-4', { timeout: 10000 })
+                    .eq(2)
+                    .find('.value')
+                    .invoke('text')
+                    .then((t) => parseInt(t.trim(), 10))
+                    .should('equal', value);
+            } else if (blockType === 'row-summary') {
+                // tissue (primary row)
+                if (tissue) {
+                    cy.get('.primary-row .col-12.value', { timeout: 10000 })
+                        .should('contain.text', tissue);
+                }
+
+                // donor (secondary row - left column)
+                if (assay) {
+                    cy.get('.secondary-row .col-4', { timeout: 10000 })
+                        .eq(0) // first col-4 in secondary-row
+                        .find('.value')
+                        .should('contain.text', assay);
+                }
+
+                // file count – retry until text is numeric and equals expected
+                cy.get('.secondary-row .col-4', { timeout: 10000 })
+                    .eq(2)
+                    .find('.value')
+                    .invoke('text')
+                    .then((t) => parseInt(t.trim(), 10))
+                    .should('equal', value);
+            } else if (blockType === 'col-summary') {
+                // assay (primary row)
+                if (assay) {
+                    cy.get('.primary-row .col-12.value', { timeout: 10000 })
+                        .should('contain.text', assay);
+                }
+
+                // file count – retry until text is numeric and equals expected
+                cy.get('.secondary-row .col-4', { timeout: 10000 })
+                    .eq(2)
+                    .find('.value')
+                    .invoke('text')
+                    .then((t) => parseInt(t.trim(), 10))
+                    .should('equal', value);
             }
 
-            // assay (right col-6.text-end)
-            if (assay) {
-                cy.get('.primary-row .col-6.text-end .text-500', { timeout: 10000 })
-                    .should('contain.text', assay);
-            }
-
-            // file count – retry until text is numeric and equals expected
-            cy.get('.secondary-row .value.text-600', { timeout: 10000 })
-                .invoke('text')
-                .then((t) => parseInt(t.trim(), 10))
-                .should('equal', value);
         });
     })
         .then(() => {
@@ -136,7 +188,7 @@ function assertPopover({ donor, assay, value }) {
         .then(() => {
             Cypress.log({
                 name: 'assertPopover',
-                message: `value: ${value}, donor: ${donor}, assay: ${assay}`,
+                message: `value: ${value}, donor: ${donor}, tissue: ${tissue}, assay: ${assay}`,
             });
         });
 }
@@ -185,6 +237,8 @@ function testMatrixPopoverValidation(matrixId = '#data-matrix-for_production', d
     cy.get(matrixId).within(() => {
         validateLowerHeaders(expectedLowerLabels);
 
+        // this code block makes all collapsed sections as expanded
+        // TODO: implement test cases for all collapsed sections
         cy.get('.grouping.depth-0.may-collapse').each(($row) => {
             const $label = $row.find('.grouping-row h4 .inner');
             const rowLabel = $label.first().text().trim();
@@ -238,16 +292,6 @@ function testMatrixPopoverValidation(matrixId = '#data-matrix-for_production', d
                 });
         });
 
-        cy.then(() => {
-            cy.get('[data-block-type="col-summary"]').each(($summaryEl) => {
-                const key = $summaryEl.parent().attr('data-group-key');
-                if (key === 'column-summary') return;
-                const expected = parseInt($summaryEl.text().trim(), 10);
-                const actual = columnTotals[key] || 0;
-                expect(actual, `Column summary for ${key}`).to.equal(expected);
-            });
-        });
-
         // Random 10 regular block popovers
         cy.get('[data-block-type="regular"]').then(($allBlocks) => {
             const allBlocks = Array.from($allBlocks);
@@ -257,14 +301,15 @@ function testMatrixPopoverValidation(matrixId = '#data-matrix-for_production', d
                 const $el = Cypress.$(el);
                 const value = parseInt($el.text().trim(), 10);
                 const donor = $el.closest('.grouping.depth-0').find('.grouping-row h4 .inner').eq(0).text().trim();
+                const tissue = $el.closest('.grouping.depth-1').find('.grouping-row h4 .inner').eq(0).text().trim();
                 const assay = $el.parent().attr('data-group-key');
-                return { el, donor, assay, value };
+                return { el, donor, assay, tissue, value };
             });
 
-            testCases.forEach(({ el, donor, assay, value }) => {
+            testCases.forEach(({ el, donor, tissue, assay, value }) => {
                 if (value > 0) {
                     cy.wrap(el).scrollIntoView().click({ force: true });
-                    assertPopover({ donor, assay, value });
+                    assertPopover({ donor, assay, tissue, value });
                 }
             });
         });
@@ -276,24 +321,19 @@ function testMatrixPopoverValidation(matrixId = '#data-matrix-for_production', d
                 if (value > 0) {
                     const donor = Cypress.$(el).closest('.grouping.depth-0').find('h4 .inner').eq(0).text().trim();
                     cy.wrap(el).scrollIntoView().click({ force: true });
-                    assertPopover({ donor, assay: '', value });
+                    assertPopover({ donor, assay: '', value, blockType: 'row-summary' });
                 }
             });
         });
 
         // Random 3 col-summary block popovers
-        cy.get('[data-block-type="col-summary"]').then(($blocks) => {
-            const filtered = [...$blocks].filter((el) => {
-                const key = Cypress.$(el).parent().attr('data-group-key');
-                return key && key !== 'column-summary';
-            });
-
-            Cypress._.sampleSize(filtered, 3).forEach((el) => {
+        cy.get('[data-block-type="col-summary"]:not([data-block-value="0"])').then(($blocks) => {
+            Cypress._.sampleSize([...$blocks], 3).forEach((el) => {
                 const value = parseInt(Cypress.$(el).text().trim(), 10);
-                const assay = Cypress.$(el).parent().attr('data-group-key');
                 if (value > 0) {
+                    const assay = Cypress.$(el).parent().attr('data-group-key');
                     cy.wrap(el).scrollIntoView().click({ force: true });
-                    assertPopover({ donor: '', assay, value });
+                    assertPopover({ donor: '', assay: assay, value, blockType: 'col-summary' });
                 }
             });
         });

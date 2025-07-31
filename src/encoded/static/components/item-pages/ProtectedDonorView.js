@@ -6,7 +6,7 @@ import { ProtectedDonorViewDataCards } from './components/donor-overview/Protect
 import DefaultItemView from './DefaultItemView';
 import { ShowHideInformationToggle } from './components/file-overview/ShowHideInformationToggle';
 import { DonorMetadataDownloadButton } from '../browse/BrowseView';
-import DataMatrix from '../static-pages/components/matrix/DataMatrix';
+import DataMatrix from '../viz/Matrix/DataMatrix';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 // Page containing the details of Items of type File
@@ -320,16 +320,6 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                             textColor: '#ffffff',
                                             shortName: 'WGS',
                                         },
-                                        'Single-cell WGS': {
-                                            values: [
-                                                'PTA-amplified WGS',
-                                                'MALBAC-amplified WGS',
-                                                'WGS DLP+',
-                                            ],
-                                            backgroundColor: '#aac536',
-                                            textColor: '#ffffff',
-                                            shortName: 'scWGS',
-                                        },
                                         'RNA-seq': {
                                             values: [
                                                 'RNA-Seq - Illumina',
@@ -351,6 +341,16 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                             backgroundColor: '#2b4792',
                                             textColor: '#ffffff',
                                             shortName: 'Dupl',
+                                        },
+                                        'Single-cell WGS': {
+                                            values: [
+                                                'PTA-amplified WGS',
+                                                'MALBAC-amplified WGS',
+                                                'WGS DLP+',
+                                            ],
+                                            backgroundColor: '#aac536',
+                                            textColor: '#ffffff',
+                                            shortName: 'scWGS',
                                         },
                                         'Targeted Seq': {
                                             values: [
