@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+0.194.0
+=======
+`PR 498: SN Update manifest documentation <https://github.com/smaht-dac/smaht-portal/pull/498>`_
+
+* Update the Interpreting Manifest Files page to include new columns added to the File Manifest and information on the multiple manifest files containing full file metadata.
+
 0.193.1
 =======
 `PR 500: fix: update master inserts <https://github.com/smaht-dac/smaht-portal/pull/500>`_
