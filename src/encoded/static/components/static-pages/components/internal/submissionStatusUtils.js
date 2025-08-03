@@ -44,9 +44,13 @@ function isFloat(num) {
     return Number(num) === num && num % 1 !== 0;
 }
 
-export const createBadge = (type, description, tooltip="") => {
+export const createBadge = (type, description, tooltip = '') => {
     const cn = 'badge text-white bg-' + type;
-    return <span className={cn} data-tip={tooltip}>{description}</span>;
+    return (
+        <span className={cn} data-tip={tooltip}>
+            {description}
+        </span>
+    );
 };
 
 export const createQcBadgeLink = (type, identifier, description) => {
@@ -78,14 +82,22 @@ export const fallbackCallback = (errResp, xhr) => {
 
 export const getTargetCoverage = (sequencing) => {
     let targeCoverage = <span>Target coverage: NAx</span>;
-    if(sequencing?.target_coverage){
-        targeCoverage = <span>Target coverage: <strong>{sequencing?.target_coverage}x</strong></span>;
-    }else if (sequencing?.target_read_count){
+    if (sequencing?.target_coverage) {
+        targeCoverage = (
+            <span>
+                Target coverage: <strong>{sequencing?.target_coverage}x</strong>
+            </span>
+        );
+    } else if (sequencing?.target_read_count) {
         const readCount = d3.format(',')(sequencing?.target_read_count);
-        targeCoverage = <span>Target read count: <strong>{readCount}</strong></span>;
+        targeCoverage = (
+            <span>
+                Target read count: <strong>{readCount}</strong>
+            </span>
+        );
     }
     return targeCoverage;
-}
+};
 
 export const getQcBagdeType = (flag) => {
     let badgeType = 'secondary';
@@ -111,6 +123,10 @@ export const getQcResults = (qc_results, showCopyBtn = false) => {
             return createQcBadgeLink(badgeType, qc_uuid, overallQualityStatus);
         });
         const href = '/' + qc_info.uuid;
+        const retracted =
+            qc_info.status === 'retracted'
+                ? <span className="ps-1">{createBadge('danger', 'Retracted')}</span>
+                : '';
         const copyBtn = showCopyBtn ? (
             <object.CopyWrapper
                 value={qc_info.accession}
@@ -128,6 +144,7 @@ export const getQcResults = (qc_results, showCopyBtn = false) => {
                 <a href={href} target="_blank" data-tip={qc_info.display_title}>
                     {qc_info.accession}
                 </a>
+                {retracted}
                 {copyBtn}
                 <span className="ps-1">{qcTags}</span>
             </div>
@@ -164,7 +181,7 @@ export const getCommentsList = (
     fsComments,
     isUserAdmin,
     removeCommentFct,
-    prefix = "",
+    prefix = ''
 ) => {
     if (!fsComments) {
         return;
@@ -180,7 +197,8 @@ export const getCommentsList = (
         );
         comments.push(
             <li className="ss-line-height-140">
-                {prefix}<strong>{c}</strong>
+                {prefix}
+                <strong>{c}</strong>
                 {trashSymbol}
             </li>
         );

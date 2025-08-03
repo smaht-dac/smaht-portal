@@ -7,6 +7,40 @@ smaht-portal
 Change Log
 ----------
 
+0.193.1
+=======
+`PR 500: fix: update master inserts <https://github.com/smaht-dac/smaht-portal/pull/500>`_
+
+* Correct master-inserts for data retraction and data QC
+
+
+0.193.0
+=======
+`PR 491: SN Donor manifest embeds <https://github.com/smaht-dac/smaht-portal/pull/491>`_
+
+* Create revlinks on ProtectedDonor and MedicalHistory for donor metadata items
+* Embed all donor metadata properties on ProtectedDonor
+* Create TSV columns in `metadata.py` for the Donor Manifest
+
+
+0.192.8
+=======
+`PR 493: AV Updates to QC metrics and Submission Status page <http://github.com/smaht-dac/smaht-portal/pull/493>`_
+
+* Update thresholds in the QC overview generation script
+* Remove table from sample identity tab in QC metrics page
+* Indictate retracted files on the Submission Status page
+* Add copy button for group coverage on the Submission Status page
+* Add retry logic when getting the QC overview data
+
+
+0.192.7
+=======
+`PR 492: feat: add new announcement to homepage <https://github.com/smaht-dac/smaht-portal/pull/492>`_
+
+* Add announcement for switching to CRAM files
+
+
 0.192.6
 =======
 `PR 490: feat: benchmarking page updates <https://github.com/smaht-dac/smaht-portal/pull/490>`_

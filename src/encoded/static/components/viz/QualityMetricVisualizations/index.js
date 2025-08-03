@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { ajaxWithRetry } from './utils';
 
 import { BoxPlotWithFacets } from './BoxPlotWithFacets';
 import { ScatterPlotWithFacets } from './ScatterPlotWithFacets';
 import { SampleContamination } from './SampleContamination';
 import { KeyMetrics } from './KeyMetrics';
 import { MetricsByFile } from './MetricsByFile';
+
 
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
@@ -15,6 +16,7 @@ export const QualityMetricVisualizations = () => {
     const [tab, setTab] = useState('sample-integrity');
     const [preselectedTab, setPreselectedTab] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [loadingFailed, setLoadingFailed] = useState(false);
 
     const validTabs = [
         'sample-integrity',
@@ -25,10 +27,11 @@ export const QualityMetricVisualizations = () => {
     ];
 
     useEffect(() => {
-        ajax.load(
+        ajaxWithRetry(
             '/get_qc_overview/',
             (resp) => {
                 if (resp.error) {
+                    setLoadingFailed(true);
                     console.error(resp.error_msg);
                     return;
                 }
@@ -46,7 +49,13 @@ export const QualityMetricVisualizations = () => {
             },
             'POST',
             () => {
-                console.log('ERROR loading data');
+                setLoadingFailed(true);
+                console.log('ERROR loading data after all retry attempts');
+            },
+            {
+                maxRetries: 3,
+                retryDelay: 1000,
+                retryDelayMultiplier: 2
             }
         );
     }, []);
@@ -93,10 +102,17 @@ export const QualityMetricVisualizations = () => {
         </>
     ) : (
         <div className="loader-container text-center m-5">
-            <span className="spinner">
-                <i className="icon icon-spin icon-circle-notch fas" />{' '}
-                Loading...
-            </span>
+            {loadingFailed && (
+                <div className="alert alert-danger">
+                    Failed to load quality metrics data. Please try again later.
+                </div>
+            )}
+            {!loadingFailed && (
+                <span className="spinner">
+                    <i className="icon icon-spin icon-circle-notch fas" />{' '}
+                    Loading...
+                </span>
+            )}
         </div>
     );
 };
