@@ -2255,36 +2255,52 @@ File and Donor Overview Styles
 					max-width: 600px;
 				}
 				
-				.callout {
-					display: flex;
-					flex-direction: column;
-					align-items: center;
-					justify-content: center;
-					padding: 1.5rem;
-					margin: auto;
-					background-color: white;
-					border-radius: 12px;
-					max-width: 48%;
-					height: 42%;
-					z-index: 0;
-					display: flex;
-					text-align: center;
-					box-shadow: 0 0 8px #D3D9E7;
+			}
+		}
 
-					i {
-						color: #87B5F0;
-						font-size: 2.5rem;
-					}
+		.callout-card {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			padding: 1.5rem;
+			margin: auto;
+			background-color: white;
+			border-radius: 12px;
+			max-width: 48%;
+			height: 42%;
+			z-index: 0;
+			display: flex;
+			text-align: center;
+			box-shadow: 0 0 8px #D3D9E7;
 
-					h4 {
-						color: #0E3669;
-						font-weight: 400;
-						font-size: 1.25rem;
-					}
-					span {
-						color: #597598;
-						font-size: 0.75rem;
-					}
+			i {
+				color: #87B5F0;
+				font-size: 2.5rem;
+			}
+
+			h4 {
+				color: #0E3669;
+				font-weight: 400;
+				font-size: 1.25rem;
+			}
+			span {
+				color: #597598;
+				font-size: 0.75rem;
+			}
+
+			&.protected-data {
+				max-width: none;
+				padding: 35px 50px;
+				height: auto;
+				width: auto;
+				margin: auto 10px;
+				box-shadow: none;
+				border: 1px solid #E8E8E8;
+				background-color: #FFFFFF;
+
+				i {
+					color: #CECECE;
 				}
 			}
 		}

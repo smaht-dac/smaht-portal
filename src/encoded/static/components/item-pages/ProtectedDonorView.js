@@ -507,7 +507,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                             <img
                                 className="placeholder"
                                 src="/static/img/Tissue Histology Blur.png"></img>
-                            <div className="callout">
+                            <div className="callout-card">
                                 <i className="icon icon-lungs fas"></i>
                                 <h4>Tissue Histology Browser</h4>
                                 <span>

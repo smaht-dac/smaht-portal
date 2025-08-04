@@ -153,7 +153,8 @@ const DonorStatistics = ({ data, isLoading }) => {
 
 const ProtectedDataPlaceholder = () => {
     return (
-        <div className="protected-data-placeholder">
+        <div className="protected-data callout-card">
+            <i className="icon icon-user-lock fas"></i>
             <h4>Protected Data</h4>
             <span>Please log into the data portal for access to this data</span>
         </div>
