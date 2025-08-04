@@ -28,7 +28,7 @@ const AssociatedFilesTab = (props) => {
         const fileSetUuids = context?.file_sets
             ?.map((fs) => fs.uuid)
             ?.join('&file_sets.uuid=');
-        const associatedFilesSearchHref = `/search/?type=File&file_format.display_title=bam&uuid!=${props.context.uuid}&file_sets.uuid=${fileSetUuids}`;
+        const associatedFilesSearchHref = `/search/?type=File&file_format.display_title=cram&file_format.display_title=bam&uuid!=${props.context.uuid}&file_sets.uuid=${fileSetUuids}`;
 
         DACGeneratedFilesHref =
             associatedFilesSearchHref +
