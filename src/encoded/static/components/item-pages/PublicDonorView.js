@@ -149,14 +149,14 @@ const PublicDonorViewHeader = (props) => {
 
 /** Top-level component for the Donor Overview Page */
 const PublicDonorView = React.memo(function PublicDonorView(props) {
+    const { context, session, href } = props;
+
     const [isLoading, setIsLoading] = useState(true);
     const [statisticValues, setStatisticValues] = useState({
         tissues: context?.tissues?.length || '-',
         assays: null,
         files: null,
     });
-
-    const { context, session, href } = props;
 
     // Load the files from the search URL and calculate statistics
     useEffect(() => {
