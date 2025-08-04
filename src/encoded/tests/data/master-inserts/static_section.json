@@ -527,7 +527,7 @@
         "identifier": "qc_visualizations",
         "title": "QC Metric Visualizations",
         "file": "/docs/public/qc_visualizations.jsx",
-        "status": "in review",
+        "status": "released",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
