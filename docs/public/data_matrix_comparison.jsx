@@ -1,6 +1,6 @@
 <div key="someRandomKey" className="data-matrix-container container">
     <div className="row">
-        <div className="tabs-container d-flex gap-4 flex-wrap">
+        <div className="tabs-container d-flex flex-column flex-xxl-row gap-4 flex-wrap">
             <div className="benchmarking-tab tab-card">
                 <div className="header">
                     <span className="title">
