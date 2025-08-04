@@ -1,13 +1,13 @@
 <div key="someRandomKey" className="data-matrix-container container">
     <div className="row">
         <div className="tabs-container d-flex flex-column flex-xxl-row gap-4 flex-wrap">
-            <div className="benchmarking-tab tab-card">
+            <div className="benchmarking-tab tab-card column-grow-3">
                 <div className="header">
                     <span className="title">
                         Benchmarking Data
                     </span>
                 </div>
-                <div className="body d-flex justify-content-center overflow-auto">
+                <div className="body d-flex justify-content-start justify-content-lg-center overflow-auto">
                     <DataMatrix
                         key="data-matrix-benchmarking" // Required to prevent re-instantiation of component upon window resize & similar.
                         session={session} // Required - hooks in 'session' (boolean) from App.
@@ -218,13 +218,13 @@
                     />
                 </div>
             </div>
-            <div className="production-tab tab-card">
+            <div className="production-tab tab-card column-grow-2">
                 <div className="header">
                     <span className="title">
                         Production Data
                     </span>
                 </div>
-                <div className="body d-flex justify-content-center overflow-auto">
+                <div className="body d-flex justify-content-start justify-content-lg-center overflow-auto">
                     <DataMatrix
                         key="data-matrix-production" // Required to prevent re-instantiation of component upon window resize & similar.
                         session={session} // Required - hooks in 'session' (boolean) from App.

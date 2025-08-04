@@ -1665,6 +1665,11 @@ body[data-path="/statistics"] {
             min-width: 300px;
             flex-direction: column;
 
+            @include media-breakpoint-up(xxl) {
+                &.column-grow-3 { flex: 3; }
+                &.column-grow-2 { flex: 2; }
+            }
+
             .header {
                 display: flex;
                 width: max-content;
@@ -1695,7 +1700,6 @@ body[data-path="/statistics"] {
             }
 
             &.benchmarking-tab {
-                flex: 3;
 
                 .header {
                     border-top-color: #2746CA;
@@ -1703,10 +1707,6 @@ body[data-path="/statistics"] {
             }
 
             &.production-tab {
-                position: relative;
-                display: flex;
-                flex: 2;
-                flex-direction: column;
 
                 .header {
                     border-top-color: #9C9CFF;
