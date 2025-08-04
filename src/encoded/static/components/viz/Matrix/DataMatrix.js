@@ -211,7 +211,7 @@ export default class DataMatrix extends React.PureComponent {
             const updatedState = {};
 
             updatedState[resultKey] = result;
-            const transfermedData = [];
+            const transformedData = [];
             const populatedRowGroups = {}; // not implemented yet
             _.forEach(updatedState[resultKey], (r) => {
                 let cloned = _.clone(r);
@@ -235,7 +235,7 @@ export default class DataMatrix extends React.PureComponent {
                             }
                         });
                     }
-                    transfermedData.push(cloned);
+                    transformedData.push(cloned);
                 }
                 if (autoPopulateRowGroupsProperty && cloned[autoPopulateRowGroupsProperty]) {
                     const rowGroupKey = cloned[autoPopulateRowGroupsProperty];
@@ -246,7 +246,7 @@ export default class DataMatrix extends React.PureComponent {
                 }
             });
 
-            updatedState[resultKey] = transfermedData;
+            updatedState[resultKey] = transformedData;
 
             this.setState(updatedState, () => ReactTooltip.rebuild());
         };

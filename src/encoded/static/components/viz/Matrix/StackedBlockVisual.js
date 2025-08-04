@@ -253,7 +253,7 @@ export class VisualBody extends React.PureComponent {
                                     <div className="col-4">
                                         {depth > 0 ? (
                                             <React.Fragment>
-                                                <div className="label">{secondaryGrpPropTitle}:</div>
+                                                <div className="label">{secondaryGrpPropTitle}</div>
                                                 <div className="value">{secondaryGrpPropValue}</div>
                                             </React.Fragment>
                                         ) : null}
@@ -580,7 +580,6 @@ export class StackedBlockVisual extends React.PureComponent {
                     sortedKeys.push(this.memoized.sortBlock(nestedData[k], groupedDataIndices, k, sortField))
                 );
 
-                console.log('xxx sortedKeys:', sortedKeys);
                 if (sorting === 'asc') {
                     sortedKeys.sort((a, b) => a.count - b.count);
                 } else if (sorting === 'desc') {
