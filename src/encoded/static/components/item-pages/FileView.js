@@ -202,13 +202,13 @@ const FileViewHeader = (props) => {
                             target="_blank"
                             rel="noreferrer noopener"
                             className="link-underline-hover">
-                            original BAM file
+                            original BAM/CRAM file
                         </a>{' '}
                         of COLO829-T standard ONT WGS data{' '}
                         <strong>
                             was retracted due to missing methylation tags
                         </strong>
-                        . The replacement BAM with proper tags is made{' '}
+                        . The replacement BAM/CRAM with proper tags is made{' '}
                         <a
                             href="/SMAFIB6EQLZM"
                             target="_blank"

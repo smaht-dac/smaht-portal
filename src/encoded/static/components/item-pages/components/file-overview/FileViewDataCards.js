@@ -198,10 +198,11 @@ const default_data_information = [
         },
     },
     {
-        title: 'Dataset Per BAM Coverage',
+        title: 'Dataset Per CRAM Coverage',
         getProp: (context = {}) => {
             if (
-                context?.file_format?.display_title === 'bam' &&
+                (context?.file_format?.display_title === 'bam' ||
+                    context?.file_format?.display_title === 'cram') &&
                 context?.data_type.some((d) => d === 'Aligned Reads') &&
                 context?.data_generation_summary?.assays?.some(
                     (assay) =>

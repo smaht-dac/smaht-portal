@@ -21,7 +21,7 @@ const AssociatedFilesTab = (props) => {
     const { context = {} } = props;
     const fileSets = context?.file_sets || [];
 
-    // Create a search href for retrieving BAM files in the same file set
+    // Create a search href for retrieving BAM/CRAM files in the same file set
     let DACGeneratedFilesHref, ExternallyGeneratedFilesHref;
 
     if (fileSets.length > 0) {
@@ -61,7 +61,7 @@ const AssociatedFilesTab = (props) => {
                         <h3 className="header">No Associated Files Found</h3>
                         <span className="subheader">
                             There are no DAC generated or externally generated
-                            BAM files associated with this file
+                            BAM/CRAM files associated with this file
                         </span>
                     </div>
                 </div>
