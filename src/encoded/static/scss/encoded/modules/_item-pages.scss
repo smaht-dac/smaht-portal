@@ -1513,6 +1513,7 @@ File and Donor Overview Styles
 							margin-left: 20px;
 							word-break: break-word;
 							align-content: center;
+							font-weight: 400;
 
 							&.coming-soon {
 								color: #CCCCCC;
@@ -2328,6 +2329,22 @@ Popover Styles for Item Pages
 
 		thead > tr > th {
 			background-color: #F1F9FF;
+		}
+	}
+
+	&.public-donor-download-popover {
+		width: 300px;
+		max-width: 400px;
+		color: #343741;
+
+		.popover-header {
+			margin: 0px;
+			background-color: #F1F9FF;
+			font-weight: 500;
+		}
+
+		.popover-body {
+			padding: 15px 12px;
 		}
 	}
 }

@@ -8,6 +8,12 @@ import { ShowHideInformationToggle } from './components/file-overview/ShowHideIn
 import { DonorMetadataDownloadButton } from '../browse/BrowseView';
 import DataMatrix from '../static-pages/components/matrix/DataMatrix';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import {
+    OverlayTrigger,
+    Popover,
+    PopoverHeader,
+    PopoverBody,
+} from 'react-bootstrap';
 
 // Page containing the details of Items of type File
 export default class PublicDonorOverview extends DefaultItemView {
@@ -57,6 +63,35 @@ const PublicDonorViewTitle = (props) => {
     );
 };
 
+// Donor Manifest button with warning Popover
+const PublicDonorDownloadButton = () => {
+    return (
+        <OverlayTrigger
+            trigger="hover"
+            placement="top"
+            overlay={
+                <Popover className="public-donor-download-popover">
+                    <PopoverHeader as="h3">Data Access Needed</PopoverHeader>
+                    <PopoverBody>
+                        This data is protected. To download this data, you must
+                        apply for dbGAP access.
+                    </PopoverBody>
+                </Popover>
+            }>
+            <div className="d-flex gap-2 flex-wrap mt-1 mt-xl-0">
+                <div className="col-md-auto col-12">
+                    <button
+                        className="col-md-auto col-12 btn btn-primary btn-sm me-05 align-items-center download-button px-3"
+                        disabled>
+                        <i className="icon icon-user fas me-1" />
+                        Download Donor Manifest
+                    </button>
+                </div>
+            </div>
+        </OverlayTrigger>
+    );
+};
+
 // Header component containing high-level information for the file item
 const PublicDonorViewHeader = (props) => {
     const { context = {}, session, title = null } = props;
@@ -71,16 +106,7 @@ const PublicDonorViewHeader = (props) => {
                 <div className="d-flex flex-column flex-grow-1 ms-md-2">
                     <div className="data-group data-row header">
                         {title}
-                        <div className="d-flex gap-2 flex-wrap mt-1 mt-xl-0">
-                            <div className="col-md-auto col-12">
-                                <button
-                                    className="col-md-auto col-12 btn btn-primary btn-sm me-05 align-items-center download-button px-3"
-                                    disabled>
-                                    <i className="icon icon-user fas me-1" />
-                                    Download Donor Manifest
-                                </button>
-                            </div>
-                        </div>
+                        <PublicDonorDownloadButton />
                     </div>
                     <div className="callout d-inline px-3 py-2 mt-1">
                         <i className="icon icon-file-shield fas"></i>{' '}
@@ -479,7 +505,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                             </div>
                         ) : (
                             <div className="body">
-                                <div className="callout">
+                                <div className="callout-card">
                                     <i className="icon icon-fw icon-2x icon-table-cells fas"></i>
                                     <h4>Assay x Tissue Data Matrix</h4>
                                     <span>

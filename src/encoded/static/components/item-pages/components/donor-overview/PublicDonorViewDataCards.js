@@ -203,15 +203,15 @@ export const PublicDonorViewDataCards = ({
                                 <div className="d-flex flex-column">
                                     <DataCardRow
                                         title={'Tier'}
-                                        value={'Coming soon'}
+                                        value={'Protected'}
                                     />
                                     <DataCardRow
                                         title={'Bulk WGS Coverage'}
-                                        value={'Coming soon'}
+                                        value={'Protected'}
                                     />
                                     <DataCardRow
                                         title={'DSA'}
-                                        value={'Coming soon'}
+                                        value={'Protected'}
                                     />
                                 </div>
                             </div>

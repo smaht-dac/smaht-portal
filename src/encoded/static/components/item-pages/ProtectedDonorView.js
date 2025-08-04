@@ -485,7 +485,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                             </div>
                         ) : (
                             <div className="body">
-                                <div className="callout">
+                                <div className="callout-card">
                                     <i className="icon icon-fw icon-2x icon-table-cells fas"></i>
                                     <h4>Assay x Tissue Data Matrix</h4>
                                     <span>
