@@ -17,7 +17,12 @@ const SchemaPropertiesTable = ({ data = {} }) => {
                     <th className="text-left">Description</th>
                     <th className="text-left">Type</th>
                     <th className="text-left">Pattern</th>
-                    <th className="text-left">Values</th>
+                    <th className="text-left">
+                        Values
+                        <i
+                            className="icon icon-info-circle fas ms-1"
+                            data-tip="Options: list of accepted values. Examples: suggested values. Other values accepted"></i>
+                    </th>
                     <th className="text-left">Also Requires</th>
                     <th className="text-left">LinkTo</th>
                     <th className="text-left">Note</th>
