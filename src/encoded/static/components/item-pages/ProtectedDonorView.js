@@ -93,7 +93,7 @@ const ProtectedDonorViewHeader = (props) => {
                         <span>
                             <b>Donor Privacy:</b> Only select info from the
                             donor manifest will be shown on the data portal,
-                            download the manifest for complete donor metatadata
+                            download the manifest for complete donor metadata
                         </span>
                     </div>
                 </div>
