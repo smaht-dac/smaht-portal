@@ -197,8 +197,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
     // Format a title string
     const titleString = (
         <h1 className="header-text fw-semibold">
-            {context?.study ?? ''} Donor: {''}
-            {context?.display_title} -{' '}
+            {context?.study ?? ''} Donor: {context?.display_title} -{' '}
             {`${context?.sex ?? ''}${
                 context?.age ? ', ' + context?.age + ' yrs old' : ''
             }`}
