@@ -1803,6 +1803,10 @@ body[data-path="/statistics"] {
                 cursor: pointer;
                 border: 1px solid #0003;
 
+                &[data-block-value="0"] {
+                    cursor: default !important;
+                }
+
                 &[data-block-type="row-summary"] {
                     color: #111;
                     font-weight: 600;
