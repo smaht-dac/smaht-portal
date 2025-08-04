@@ -348,7 +348,9 @@ export class VisualBody extends React.PureComponent {
                                     </div>
                                 </div>
                             ) : null}
-                            {makeSearchButton(viewButtonDisabled)}
+                            <div className="row footer-row p-1">
+                                {makeSearchButton(viewButtonDisabled)}
+                            </div>
                         </div>
                         :
                         <div className="inner">
