@@ -1369,6 +1369,11 @@ File and Donor Overview Styles
 						i {
 							margin-right: 10px;
 						}
+
+						&:disabled {
+							background-color: #C0C7D2;
+							border: 1px solid #B6C1D1;
+						}
 					}
 				}
 		
@@ -2268,8 +2273,9 @@ File and Donor Overview Styles
 			margin: auto;
 			background-color: white;
 			border-radius: 12px;
-			max-width: 48%;
-			height: 42%;
+			width: 350px;
+			max-width: 70%;
+			height: 220px;
 			z-index: 0;
 			display: flex;
 			text-align: center;
