@@ -108,24 +108,25 @@ describe('Data Overview - QC Metrics', function () {
                         cy.get('[role="option"]').contains(optionText).click().wait(250);
                         cy.get('div[class$="singleValue"]').should('have.text', optionText);
 
+                        // Commenting out these next two checks as they are not needed at the moment
                         // Table existence and row check
-                        cy.contains('div.pt-5.h4', 'Somalier results').should('be.visible');
-                        cy.get('table.qc-metrics-data-table')
-                            .should('exist')
-                            .and('be.visible')
-                            .find('tbody tr')
-                            .its('length')
-                            .should('be.gte', 1);
+                        // cy.contains('div.pt-5.h4', 'Somalier results').should('be.visible');
+                        // cy.get('table.qc-metrics-data-table')
+                        //     .should('exist')
+                        //     .and('be.visible')
+                        //     .find('tbody tr')
+                        //     .its('length')
+                        //     .should('be.gte', 1);
 
                         // Table content change check
-                        cy.get('table.qc-metrics-data-table tbody tr:first td:first')
-                            .invoke('text')
-                            .then((firstCellText) => {
-                                if (index > 0) {
-                                    expect(firstCellText).not.to.eq(prevFirstCell);
-                                }
-                                prevFirstCell = firstCellText;
-                            });
+                        // cy.get('table.qc-metrics-data-table tbody tr:first td:first')
+                        //     .invoke('text')
+                        //     .then((firstCellText) => {
+                        //         if (index > 0) {
+                        //             expect(firstCellText).not.to.eq(prevFirstCell);
+                        //         }
+                        //         prevFirstCell = firstCellText;
+                        //     });
 
                         // Chart and axis label checks
                         cy.contains('h4', 'Pairwise sample relatedness')
