@@ -288,7 +288,7 @@ export class VisualBody extends React.PureComponent {
                             {blockType === 'regular' ? (
                                 <div className="row secondary-row pb-1 mt-1">
                                     <div className="col-4">
-                                        <div className="label me-05">{StackedBlockVisual.pluralize(yAxisGroupingTitle)}</div>
+                                        <div className="label me-05">{yAxisGroupingTitle}</div>
                                         <div className="value">{yAxisGroupingValue || '--'}</div>
                                     </div>
                                     <div className="col-4">
@@ -320,7 +320,7 @@ export class VisualBody extends React.PureComponent {
                             {blockType === 'row-summary' && depth === 0 ? (
                                 <div className="row secondary-row pb-1 mt-1">
                                     <div className="col-4">
-                                        <div className="label me-05">{secondaryGrpPropTitle}</div>
+                                        <div className="label me-05">{StackedBlockVisual.pluralize(secondaryGrpPropTitle)}</div>
                                         <div className="value">{secondaryGrpPropUniqueCount || '--'}</div>
                                     </div>
                                     <div className="col-4">
@@ -335,7 +335,7 @@ export class VisualBody extends React.PureComponent {
                             {blockType === 'row-summary' && depth > 0 ? (
                                 <div className="row secondary-row pb-1 mt-1">
                                     <div className="col-4">
-                                        <div className="label me-05">{StackedBlockVisual.pluralize(primaryGrpPropTitle)}</div>
+                                        <div className="label me-05">{primaryGrpPropTitle}</div>
                                         <div className="value">{primaryGrpPropValue}</div>
                                     </div>
                                     <div className="col-4">
