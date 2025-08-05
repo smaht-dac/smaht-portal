@@ -176,29 +176,7 @@ const default_data_information = [
             context?.data_generation_summary?.sequencing_platforms?.join(', '),
     },
     {
-        title: 'Dataset Target Coverage',
-        getProp: (context = {}) => {
-            if (
-                context?.file_format?.display_title === 'bam' &&
-                context?.data_type.some((d) => d === 'Aligned Reads') &&
-                context?.data_generation_summary?.assays?.some(
-                    (assay) =>
-                        assay.includes('WGS') ||
-                        assay.includes('Fiber-seq') ||
-                        assay.includes('Hi-C')
-                )
-            ) {
-                const cov =
-                    context?.data_generation_summary?.target_group_coverage;
-                if (cov && cov.length > 0) {
-                    return cov[0] + 'X';
-                }
-            }
-            return null;
-        },
-    },
-    {
-        title: 'Dataset Per CRAM Coverage',
+        title: 'Genome Coverage',
         getProp: (context = {}) => {
             if (
                 (context?.file_format?.display_title === 'bam' ||
@@ -220,7 +198,29 @@ const default_data_information = [
         },
     },
     {
-        title: 'Dataset Target Read Count',
+        title: 'Target Genome Coverage',
+        getProp: (context = {}) => {
+            if (
+                context?.file_format?.display_title === 'bam' &&
+                context?.data_type.some((d) => d === 'Aligned Reads') &&
+                context?.data_generation_summary?.assays?.some(
+                    (assay) =>
+                        assay.includes('WGS') ||
+                        assay.includes('Fiber-seq') ||
+                        assay.includes('Hi-C')
+                )
+            ) {
+                const cov =
+                    context?.data_generation_summary?.target_group_coverage;
+                if (cov && cov.length > 0) {
+                    return cov[0] + 'X';
+                }
+            }
+            return null;
+        },
+    },
+    {
+        title: 'RNA-Seq Read Count',
         getProp: (context = {}) => {
             if (
                 context?.file_format?.display_title === 'bam' &&

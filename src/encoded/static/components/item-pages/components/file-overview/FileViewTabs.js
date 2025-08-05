@@ -61,7 +61,7 @@ const AssociatedFilesTab = (props) => {
                         <h3 className="header">No Associated Files Found</h3>
                         <span className="subheader">
                             There are no DAC generated or externally generated
-                            BAM/CRAM files associated with this file
+                            files associated with this file
                         </span>
                     </div>
                 </div>

@@ -47,9 +47,9 @@ export const BenchmarkingDataMap = {
                 </p>
                 <p>
                     <span className="fst-italic">In silico</span> COLO829BLT50
-                    BAM/CRAM files were created by sampling and merging COLO829T
-                    and COLO829BL Illumina WGS data at a mixture ratio of 1:50
-                    at varying sequencing depths (100 - 500X).
+                    files were created by sampling and merging COLO829T and
+                    COLO829BL Illumina WGS data at a mixture ratio of 1:50 at
+                    varying sequencing depths (100 - 500X).
                 </p>
             </div>
         ),
