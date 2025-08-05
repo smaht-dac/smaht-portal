@@ -13,42 +13,200 @@ export default class DataMatrix extends React.PureComponent {
 
     static defaultProps = {
         "query": {
-            "url": "/data_matrix_aggregations/?type=File&limit=all",
-            "columnAggFields": "",
-            "rowAggFields": [""]
+            "url": "/data_matrix_aggregations/?type=File&status=released&limit=all",
+            "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"],
+            "rowAggFields": ["donors.display_title", "sample_summary.tissues"]
         },
-        "valueChangeMap": {},
-        "fieldChangeMap": {},
+        "fieldChangeMap": {
+            "assay": "file_sets.libraries.assay.display_title",
+            "donor": "donors.display_title",
+            "tissue": "sample_summary.tissues",
+            "platform": "sequencing.sequencer.platform",
+            "data_type": "data_type",
+            "file_format": "file_format.display_title",
+            "data_category": "data_category",
+            "software": "software.display_title",
+            "study": "sample_summary.studies",
+            "dataset": "dataset",
+        },
+        "valueChangeMap": {
+            "assay": {
+                "scDip-C - Illumina": "scDip-C",
+                "CompDuplex-seq - Illumina": "CompDuplex-Seq",
+                "Kinnex - PacBio": "Kinnex",
+                "Fiber-seq - PacBio": "Fiber-Seq",
+                "Fiber-seq - Illumina": "Fiber-Seq",
+                "Fiber-seq - ONT": "Fiber-Seq",
+                "RNA-seq - Illumina": "RNA-Seq - Illumina",
+                "NanoSeq - Illumina": "NanoSeq",
+                "ATAC-seq - Illumina": "ATAC-Seq",
+                "varCUT&Tag - Illumina": "varCUT&Tag",
+                "VISTA-seq - Illumina": "VISTA-Seq",
+                "scVISTA-seq - Illumina": "VISTA-Seq",
+                "Microbulk VISTA-seq - Illumina": "VISTA-Seq",
+                "CODEC - Illumina": "CODEC",
+                "Single-cell MALBAC WGS - ONT": "MALBAC-amplified WGS",
+                "Single-cell MALBAC WGS - Illumina": "MALBAC-amplified WGS",
+                "Single-cell PTA WGS - ONT": "PTA-amplified WGS",
+                "Single-cell PTA WGS - Illumina": "PTA-amplified WGS",
+                "TEnCATS - ONT": "TEnCATS",
+                "WGS - ONT": "WGS - Standard ONT",
+                "Ultra-Long WGS - ONT": "WGS - UltraLong ONT",
+                "HiDEF-seq - Illumina": "HiDEF-seq",
+                "HiDEF-seq - PacBio": "HiDEF-seq",
+                "Hi-C - Illumina": "Hi-C",
+                "Hi-C - PacBio": "Hi-C",
+                "Hi-C - ONT": "Hi-C",
+            },
+            "tissue": {
+                "endocrine pancreas": "Endocrine pancreas",
+            },
+            "study": {
+                "Benchmarking": "Donors"
+            },
+            "donor": {
+                "colo829t": "COLO829T",
+                "colo829bl": "COLO829BL",
+                "colo829blt_50to1": "COLO829BLT50",
+                "colo829blt_in_silico": "In silico BLT50",
+                "colo829_snv_indel_challenge_data": "Truth Set",
+                "hapmap": "HapMap Mixture",
+                "mei_detection_challenge_data": "Downsampled",
+                "lb_fibroblast": "LB-LA2 Fibroblast",
+                "lb_ipsc_1": "LB-LA2 iPSC-1",
+                "lb_ipsc_2": "LB-LA2 iPSC-2",
+                "lb_ipsc_4": "LB-LA2 iPSC-4",
+                "lb_ipsc_52": "LB-LA2 iPSC-52",
+                "lb_ipsc_60": "LB-LA2 iPSC-60",
+                "ipsc_snv_indel_challenge_data": "Truth Set",
+            }
+        },
         "resultPostProcessFuncKey": null, // function to process results after they are loaded
-        "groupingProperties": [],
-        "columnGrouping": "",
+        "groupingProperties": ["donor", "tissue"], // properties to group by in the matrix
+        "columnGrouping": "assay",
         "headerFor": <h3 className="mt-2 mb-0 text-300">SMaHT</h3>,
         "fallbackNameForBlankField": "None",
         /** Which state to set/prioritize if multiple files per group */
-        "statePrioritizationForGroups" : [],
-        "headerPadding"             : 200,
-        "columnGroups"              : null,
-        "showColumnGroups"          : true,
-        "columnGroupsExtended"      : null,
-        "showColumnGroupsExtended"  : true,
-        "rowGroups"                 : null,
-        "showRowGroups"             : true,
-        "autoPopulateRowGroupsProperty" : null,
-        "rowGroupsExtended"         : null,
-        "showRowGroupsExtended"     : true,
-        "titleMap"                  : {},
+        "statePrioritizationForGroups": [],
+        "headerPadding": 200,
+        "columnGroups": {
+            "Bulk WGS": {
+                "values": ['WGS - Illumina', 'WGS - PacBio', 'Fiber-Seq', 'WGS - Standard ONT', 'WGS - UltraLong ONT'],
+                "backgroundColor": "#e04141",
+                "textColor": "#ffffff",
+                "shortName": "WGS"
+            },
+            "RNA-seq": {
+                "values": ['RNA-Seq - Illumina', 'Kinnex'],
+                "backgroundColor": "#ad48ad",
+                "textColor": "#ffffff",
+                "shortName": "RNA"
+            },
+            "Duplex-seq": {
+                "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-seq'],
+                "backgroundColor": "#2b4792",
+                "textColor": "#ffffff",
+                "shortName": "Dupl"
+            },
+            "Single-cell WGS": {
+                "values": ['PTA-amplified WGS', 'MALBAC-amplified WGS', 'WGS DLP+'],
+                "backgroundColor": "#aac536",
+                "textColor": "#ffffff",
+                "shortName": "scWGS"
+            },
+            "Targeted Seq": {
+                "values": ['HAT-Seq', 'L1-ONT', 'TEnCATS'],
+                "backgroundColor": "#e1d567",
+                "textColor": "#ffffff",
+                "shortName": "Tgtd"
+            },
+            "Single-cell RNA-Seq": {
+                "values": ['snRNA-Seq', 'Slide-tags snRNA-Seq', 'STORM-Seq', 'Tranquil-Seq', '10X Genomics Xenium'],
+                "backgroundColor": "#d0b284",
+                "textColor": "#ffffff",
+                "shortName": "scRNA"
+            },
+            "Other": {
+                "values": ['Hi-C', 'scDip-C', 'Strand-Seq', 'ATAC-Seq', 'NT-Seq', 'varCUT&Tag', 'GoT-ChA'],
+                "backgroundColor": "#76cbbe",
+                "textColor": "#ffffff"
+            }
+        },
+        "showColumnGroups": true,
+        "columnGroupsExtended": {
+            "Core Assay": {
+                "values": ['Bulk WGS', 'RNA-seq', 'Duplex-seq'],
+                "backgroundColor": "#a786c2",
+                "textColor": "#ffffff"
+            },
+            "Extended Assay": {
+                "values": ['Single-cell WGS', 'Targeted Seq', 'Single-cell RNA-Seq', 'Other'],
+                "backgroundColor": "#d2bde3",
+                "textColor": "#ffffff"
+            }
+        },
+        "showColumnGroupsExtended": false,
+        "rowGroups": null,
+        "showRowGroups": false,
+        "autoPopulateRowGroupsProperty": null,
+        "rowGroupsExtended": {
+            "Ectoderm": {
+                "values": ['Brain', 'Brain - Cerebellum', 'Brain - Frontal lobe', 'Brain - Hippocampus', 'Brain - Temporal lobe', 'Skin', 'Skin - Abdomen (non-exposed)', 'Skin - Calf (sun-exposed)'],
+                "backgroundColor": "#367151",
+                "textColor": "#ffffff",
+                "shortName": "Ecto"
+            },
+            "Mesoderm": {
+                "values": ['Aorta', 'Fibroblast', 'Heart', 'Muscle', 'Adrenal Gland'],
+                "backgroundColor": "#30975e",
+                "textColor": "#ffffff",
+                "shortName": "Meso"
+            },
+            "Endoderm": {
+                "values": ['Colon', 'Colon - Ascending', 'Colon - Descending', 'Esophagus', 'Liver', 'Lung'],
+                "backgroundColor": "#53b27e",
+                "textColor": "#ffffff",
+                "shortName": "Endo"
+            },
+            "Germ cells": {
+                "values": ['Ovary', 'Testis'],
+                "backgroundColor": "#80c4a0",
+                "textColor": "#ffffff",
+                "shortName": "Germ"
+            },
+            "Clinically accessible": {
+                "values": ['Blood', 'Buccal swab'],
+                "backgroundColor": "#70a588",
+                "textColor": "#ffffff",
+                "shortName": "Clin"
+            }
+        },
+        "showRowGroupsExtended": true,
+        "titleMap": {},
         "columnSubGroupingOrder": [],
-        "colorRangeBaseColor": null, // color hex or rgba code (if set, will override colorRanges)
+        "colorRangeBaseColor": "#47adff", // color hex or rgba code (if set, will override colorRanges)
         "colorRangeSegments": 5, // split color ranges into 5 equal parts
         "colorRangeSegmentStep": 20, // step size for each segment
-        "summaryBackgroundColor": "#d91818",
-        "allowedFields": [],
-        "xAxisLabel": "X",
-        "yAxisLabel": "Y",
+        "summaryBackgroundColor": "#ececff",
+        "allowedFields": [
+            "donors.display_title",
+            "sequencing.sequencer.display_title",
+            "file_sets.libraries.assay.display_title",
+            "sample_summary.tissues",
+            "data_type",
+            "file_format.display_title",
+            "data_category",
+            "software.display_title",
+            "sequencing.sequencer.platform",
+            "sample_summary.studies",
+            "dataset",
+        ],
+        "xAxisLabel": "Assay",
+        "yAxisLabel": "Donor",
         "showAxisLabels": true,
         "showColumnSummary": true,
         "defaultOpen": false,
-        "compositeValueSeparator": " ",
+        "compositeValueSeparator": " - ",
         "disableConfigurator": true,
         "idLabel": "",
     };
