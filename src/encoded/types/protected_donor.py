@@ -1,7 +1,9 @@
 from typing import List, Union
+from copy import deepcopy
 
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
+from .acl import ONLY_DBGAP_VIEW_ACL, ONLY_PUBLIC_DBGAP_VIEW_ACL
 
 from .abstract_donor import AbstractDonor
 
@@ -123,6 +125,17 @@ class ProtectedDonor(AbstractDonor):
         "family_history": ("FamilyHistory", "donor"),
         "tissue_collection": ("TissueCollection", "donor"),
     }
+
+    SUBMISSION_CENTER_STATUS_ACL = deepcopy(AbstractDonor.SUBMISSION_CENTER_STATUS_ACL)
+    SUBMISSION_CENTER_STATUS_ACL.update({
+        'restricted': ONLY_DBGAP_VIEW_ACL,
+        'public-restricted': ONLY_PUBLIC_DBGAP_VIEW_ACL
+    })
+    CONSORTIUM_STATUS_ACL = deepcopy(AbstractDonor.CONSORTIUM_STATUS_ACL)
+    CONSORTIUM_STATUS_ACL.update({
+        'restricted': ONLY_DBGAP_VIEW_ACL,
+        'public-restricted': ONLY_PUBLIC_DBGAP_VIEW_ACL
+    })
 
     @calculated_property(
         schema={
