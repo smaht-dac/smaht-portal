@@ -32,7 +32,6 @@ from encoded.item_utils.constants import (
 )
 from encoded.item_utils.utils import RequestHandler
 from encoded.server_defaults import ACCESSION_PREFIX
-from encoded.types.analyte import Analyte
 
 pp = pprint.PrettyPrinter(indent=2)
 
