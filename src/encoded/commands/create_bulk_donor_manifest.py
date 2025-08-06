@@ -68,9 +68,9 @@ def create_bulk_donor_manifest(
 
     request_handler = RequestHandler(auth_key=auth_key)
     donors = get_donors(search, request_handler, identifiers)
-    log.info(f"Found {len(donors)} donors to process")
+    log.info(f"Found {len(donors)} Benchmarking and Production donors to process")
     schemas = ff_utils.get_schemas(key=auth_key)
-    log.info("Generated bulk donor manifest")
+    log.info("Generating bulk donor manifest")
     bulk_donor_manifest = get_bulk_donor_manifest(donors, schemas, request_handler)
     log.info(f"Writing out bulk donor manifest to {output}")
     write_bulk_donor_manifest(bulk_donor_manifest, output)
@@ -110,8 +110,8 @@ def get_items_from_search_query(
 
 
 def filter_donors(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Get donors from given items."""
-    return [item for item in items if donor_utils.is_donor(item)]
+    """Get Benchmarking and Productino donors from given items."""
+    return [item for item in items if donor_utils.is_donor(item) and donor_utils.get_study(item)]
 
 
 def get_donors_from_identifiers(
@@ -298,7 +298,7 @@ def main() -> None:
         "--search",
         "-s",
         help="Search query for donors to create bulk donor manifest",
-        default="",
+        default="search/?type=Donor&study=Benchmarking&study=Production",
     )
     parser.add_argument(
         "--donors",
@@ -311,11 +311,13 @@ def main() -> None:
         "--env",
         "-e",
         help="Environment from keys file",
+        required=True
     )
     parser.add_argument(
         "--output",
         "-o",
         help="Output file name",
+        required=True
     )
     args = parser.parse_args()
     auth_key = get_auth_key(args.env)
