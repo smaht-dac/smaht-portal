@@ -88,78 +88,93 @@ Table 1A. Protocol IDs for SMaHT benchmarking tissues.
                     <th style="min-width:95px">Protocol ID</th>
                     <th style="min-width:200px">Tissue Name for Container</th>
                     <th style="min-width:200px">Preservation</th>
+                    <th style="min-width:200px">Notes</th>
                 </tr>
             </thead>
             <tbody class="table-border-inner">
                 <tr>
                     <td>1A</td>
                     <td>Liver</td>
-                    <td>Frozen; homogenized</td>
+                    <td>Snap Frozen</td>
+                    <td>Homogenate and non-homogenate samples</td>
                 </tr>
                 <tr class="text-muted fst-italic">
                     <td>1B</td>
                     <td>unassigned</td>
                     <td>N/A</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <td>1C</td>
                     <td>Liver</td>
                     <td>Fixed</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <td>1D</td>
                     <td>Lung</td>
-                    <td>Frozen; homogenized</td>
+                    <td>Snap Frozen</td>
+                    <td>Homogenate and non-homogenate samples</td>
                 </tr>
                 <tr class="text-muted fst-italic">
                     <td>1E</td>
                     <td>unassigned</td>
                     <td>N/A</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <td>1F</td>
                     <td>Lung</td>
                     <td>Fixed</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <td>1G</td>
                     <td>Colon</td>
-                    <td>Frozen; homogenized</td>
+                    <td>Snap Frozen</td>
+                    <td>Homogenate and non-homogenate samples</td>
                 </tr>
                 <tr class="text-muted fst-italic">
                     <td>1H</td>
                     <td>unassigned</td>
                     <td>N/A</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <td>1I</td>
                     <td>Colon</td>
                     <td>Fixed</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <td>1J*</td>
                     <td>Skin</td>
-                    <td>Frozen; homogenized</td>
+                    <td>Snap Frozen</td>
+                    <td>Collected but not utilized for study; homogenization attempted but not successful</td>
                 </tr>
                 <tr>
                     <td>1K**</td>
                     <td>Skin</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
+                    <td>Cores made (intact tissue)</td>
                 </tr>
                 <tr>
                     <td>1L*</td>
                     <td>Skin</td>
                     <td>Fixed</td>
+                    <td></td>
                 </tr>
                 <tr class="text-muted fst-italic">
                     <td>1M/N/O/P</td>
                     <td>unassigned</td>
                     <td>N/A</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <td>1Q</td>
                     <td>Brain, Frontal Lobe</td>
-                    <td>Frozen; homogenate and non-homogenate samples</td>
+                    <td>Snap Frozen</td>
+                    <td>Homogenate and non-homogenate samples</td>
                 </tr>
             </tbody>
         </table>
