@@ -527,7 +527,7 @@
         "identifier": "qc_visualizations",
         "title": "QC Metric Visualizations",
         "file": "/docs/public/qc_visualizations.jsx",
-        "status": "public",
+        "status": "released",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -562,7 +562,7 @@
         "uuid": "7550cf0e-367b-4b38-85e3-54cd0c12c6bd"
     },
     {
-        "identifier": "retracted_files",
+        "identifier": "retracted-files",
         "title": "List of Retracted Files",
         "file": "/docs/public/retracted_files.jsx",
         "status": "in review",
@@ -572,7 +572,7 @@
             "default_open": true
         },
         "section_type": "Page Section",
-        "uuid": "16b9b89b-f90d-467c-9a78-829a67743313",
+        "uuid": "d523e166-89bf-439d-9770-ee92e4bcb72b",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -581,10 +581,10 @@
         ]
     },
     {
-        "identifier": "data_matrix",
+        "identifier": "data_matrix_comparison",
         "title": "Data Matrix",
         "file": "/src/encoded/static/data/data-matrix-demo.jsx",
-        "status": "draft",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
