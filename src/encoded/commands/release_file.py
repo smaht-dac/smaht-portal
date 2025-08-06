@@ -32,6 +32,7 @@ from encoded.item_utils.constants import (
 )
 from encoded.item_utils.utils import RequestHandler
 from encoded.server_defaults import ACCESSION_PREFIX
+from encoded.types.analyte import Analyte
 
 pp = pprint.PrettyPrinter(indent=2)
 
@@ -39,18 +40,20 @@ pp = pprint.PrettyPrinter(indent=2)
 ##################################################################
 ##
 ##  The file release will do the following updates to the metadata
-##  - Set file status to `released`
+##  - Set file status to `public-restricted` or `public` depending on
+##    the access status of the dataset (protected vs. open). 
+##    If the flag `--set-restricted` is used, the file will be set 
+##    to `restricted` regardless of the access status of the dataset.
+##  - Associated final output files will get the same status as the main file
 ##  - Associate the file with the fileset that the corresponding
 ##    submitted files are in
-##  - Adds `dataset`` and `access_status`` to the file
+##  - Adds `dataset` and `access_status` to the file
 ##  - Set the associated QualityMetrics item and the metrics.zip
-##    file to status `released`
-##  - Set corresponding FileSet to `released`
-##  - Set FileSet associated libraries, and sequencing to `released`
-##  - Set library associated assay and analyte to `released`
-##  - Set analyte associated samples to `released`
-##  - Set sample associated sample_source to `released`
-##  - Set donors and/or cell lines to `released`
+##    file to status `restricted`
+##  - All other associated metadata is set to `public`. This currently
+##    includes FileSet, Sequencing, Library, LibraryPreparation, Assay,
+##    Analyte, AnalytePreparation, PreparationKit, Treatment, Sample,
+##    SampleSource, CellCulture, CellLine, Donor
 ##
 ##################################################################
 ##################################################################
@@ -72,7 +75,7 @@ class FileRelease:
 
     TISSUE = "tissue"
 
-    def __init__(self, auth_key: dict, file_identifier: str, verbose: bool = True):
+    def __init__(self, auth_key: dict, file_identifier: str, set_restricted: bool = False, verbose: bool = True):
         self.key = auth_key
         self.request_handler = self.get_request_handler()
         self.request_handler_embedded = self.get_request_handler_embedded()
@@ -84,6 +87,9 @@ class FileRelease:
         self.patch_dicts = []
         self.warnings = []
         self.verbose = verbose
+        self.set_restricted = set_restricted
+        self.access_status = None
+        self.target_file_status = None
 
     @cached_property
     def file_sets(self) -> List[dict]:
@@ -313,21 +319,27 @@ class FileRelease:
         self, dataset: str, obsolete_file_identifier: str = None, **kwargs: Any
     ) -> None:
         self.validate_file()
+        self.access_status = self.get_access_status(dataset)
+        self.target_file_status = self.get_target_file_status(self.access_status)
         # The main file needs to be the first patchdict. See execute_initial()
         self.add_release_file_patchdict(self.file, dataset, patch_status=False)
 
         # From here the patches will be executed in the second round of patching
         self.add_release_item_to_patchdict(
-            self.file, "File"
+            self.file, "File", self.target_file_status
         )  # Here the status of the file be set to released.
         for file in self.get_associated_files():
+            # Associated files will get the same status as the main file
+            # Currently only relevant for RNA-Seq data
             self.add_release_file_patchdict(file, dataset)
 
-        self.add_release_items_to_patchdict(self.quality_metrics, "QualityMetric")
+        # Quality metrics and metrics zip will be made available only to the consortium
+        self.add_release_items_to_patchdict(self.quality_metrics, "QualityMetric", item_constants.STATUS_RELEASED)
         self.add_release_items_to_patchdict(
-            self.quality_metrics_zips, "Compressed QC metrics file"
+            self.quality_metrics_zips, "Compressed QC metrics file", item_constants.STATUS_RELEASED
         )
 
+        # All of the other metadata items will be set to public by default
         self.add_release_items_to_patchdict(self.file_sets, "FileSet")
         self.add_release_items_to_patchdict(self.sequencings, "Sequencing")
         self.add_release_items_to_patchdict(self.libraries, "Library")
@@ -428,28 +440,53 @@ class FileRelease:
     def show_patch_dicts(self) -> None:
         pp.pprint(self.patch_dicts)
 
-    def add_release_item_to_patchdict(self, item: dict, item_desc: str) -> None:
-        """Sets the status of the item to released and
+
+    def add_release_items_to_patchdict(
+        self,
+        items: list,
+        item_desc: str,
+        item_status: str = item_constants.STATUS_PUBLIC,
+    ) -> None:
+        """Sets the status to released in all items in the list and
+        adds the corresponding patch dict
+
+        Args:
+            items (list): List of portal item
+            item_desc (str): Just used for generating more usefuls patch infos
+            item_status (str): Status to set the items to, defaults to "public"
+        """
+        for item in items:
+            self.add_release_item_to_patchdict(item, item_desc, item_status)
+
+
+    def add_release_item_to_patchdict(
+        self,
+        item: dict,
+        item_desc: str,
+        item_status: str = item_constants.STATUS_PUBLIC,
+    ) -> None:
+        """Sets the status of the item to `item_status` and
         adds the corresponding patch dict
 
         Args:
             item (dict): Portal item
             item_desc (str): Just used for generating more usefuls patch infos
+            item_status (str): Status to set the item to, defaults to "public"
         """
         identifier_to_report = self.get_identifier_to_report(item)
         self.patch_infos.append(f"\n{item_desc} ({identifier_to_report}):")
 
-        if item_utils.is_released(item):
+        if item_utils.get_status(item) == item_status:
             self.add_okay_message(
-                item_constants.STATUS, item_constants.STATUS_RELEASED, "Not patching."
+                item_constants.STATUS, item_status, "Not patching."
             )
             return
 
         patch_body = {
             item_constants.UUID: item_utils.get_uuid(item),
-            item_constants.STATUS: item_constants.STATUS_RELEASED,
+            item_constants.STATUS: item_status,
         }
-        self.add_okay_message(item_constants.STATUS, item_constants.STATUS_RELEASED)
+        self.add_okay_message(item_constants.STATUS, item_status)
         self.patch_dicts.append(patch_body)
 
     def get_identifier_to_report(self, item: Dict[str, Any]) -> str:
@@ -458,6 +495,15 @@ class FileRelease:
         if identifier := item_utils.get_identifier(item):
             return identifier
         return item_utils.get_accession(item)
+
+    def get_target_file_status(self, access_status: str) -> str:
+        # The access status determines the file status unless the --set-restricted flag is used
+        file_status = item_constants.STATUS_PUBLIC_RESTRICTED
+        if self.set_restricted:
+            file_status = item_constants.STATUS_RESTRICTED
+        elif access_status == file_constants.ACCESS_STATUS_OPEN:
+            file_status = item_constants.STATUS_PUBLIC
+        return file_status
 
     def get_associated_files(self) -> List[dict]:
         """Get other Final output files of the alignment MWFR that need to be released. This function
@@ -481,21 +527,10 @@ class FileRelease:
 
         return associated_files
 
-    def add_release_items_to_patchdict(self, items: list, item_desc: str) -> None:
-        """Sets the status to released in all items in the list and
-        adds the corresponding patch dict
-
-        Args:
-            items (list): List of portal item
-            item_desc (str): Just used for generating more usefuls patch infos
-        """
-        for item in items:
-            self.add_release_item_to_patchdict(item, item_desc)
-
     def add_release_file_patchdict(
         self, file: dict, dataset: str, patch_status: bool = True
     ) -> None:
-        access_status = self.get_access_status(dataset)
+
         file_set_accessions = [
             item_utils.get_accession(file_set) for file_set in self.file_sets
         ]
@@ -505,14 +540,14 @@ class FileRelease:
         patch_body = {
             item_constants.UUID: item_utils.get_uuid(file),
             file_constants.DATASET: dataset,
-            file_constants.ACCESS_STATUS: access_status,
+            file_constants.ACCESS_STATUS: self.access_status,
             file_constants.ANNOTATED_FILENAME: annotated_filename_info.filename,
         }
         self.patch_infos.extend(
             [
                 f"\nFile ({file_accession}):",
                 self.get_okay_message(file_constants.DATASET, dataset),
-                self.get_okay_message(file_constants.ACCESS_STATUS, access_status),
+                self.get_okay_message(file_constants.ACCESS_STATUS, self.access_status),
                 self.get_okay_message(
                     file_constants.ANNOTATED_FILENAME, annotated_filename_info.filename
                 ),
@@ -536,12 +571,11 @@ class FileRelease:
             )
 
         if patch_status:
-            # set file to released
-            patch_body[item_constants.STATUS] = item_constants.STATUS_RELEASED
+            patch_body[item_constants.STATUS] = self.target_file_status
             self.patch_infos.extend(
                 [
                     self.get_okay_message(
-                        item_constants.STATUS, item_constants.STATUS_RELEASED
+                        item_constants.STATUS, self.target_file_status
                     ),
                 ]
             )
@@ -807,11 +841,11 @@ class FileRelease:
             )
 
     def add_obsolete_file_patchdict(self, obsolete_file: dict) -> None:
-        if not item_utils.is_released(obsolete_file):
+        if not self.has_item_been_published(obsolete_file):
             self.add_warning(
                 f"File {item_utils.get_accession(obsolete_file)} has status"
                 f" `{item_utils.get_status(obsolete_file)}`. Expected"
-                f" `{item_constants.STATUS_RELEASED}`."
+                f" `{item_constants.STATUS_RELEASED}`, `{item_constants.STATUS_RESTRICTED}`, `{item_constants.STATUS_PUBLIC}` or `{item_constants.STATUS_PUBLIC_RESTRICTED}`."
             )
             return
 
@@ -849,6 +883,18 @@ class FileRelease:
             ]:
                 return False
         return True
+
+    def has_item_been_published(self, item: dict) -> bool:
+        """Check if the item has been published."""
+
+        if item and item_utils.get_status(item) in [
+            item_constants.STATUS_RELEASED,
+            item_constants.STATUS_RESTRICTED,
+            item_constants.STATUS_PUBLIC_RESTRICTED,
+            item_constants.STATUS_PUBLIC,
+        ]:
+            return True
+        return False
 
     def print_error_and_exit(self, msg: str) -> None:
         error_message = f"ERROR: {msg} Exiting."
@@ -925,6 +971,11 @@ def main() -> None:
         help="Dry run, show patches but do not execute",
         action="store_true",
     )
+    parser.add_argument(
+        "--set-restricted",
+        help="Set this flag, if this file is early access for consortium members",
+        action="store_true",
+    )
 
     args = parser.parse_args()
 
@@ -937,18 +988,25 @@ def main() -> None:
     if mode == 'bulk' and args.replace:
         error = fail_text("In 'bulk' mode, you cannot replace a file. Please release files individually.")
         parser.error(error)
-            
 
     auth_key = get_auth_key(args.env)
     server = auth_key.get("server")
 
     files_to_release = args.file
     verbose = mode == 'single' # Print more information in single mode
+    set_restricted = bool(args.set_restricted)
 
-    file_releases : List[FileRelease] = []
+    file_releases: List[FileRelease] = []
     for file_identifier in files_to_release:
-        file_release = FileRelease(auth_key=auth_key, file_identifier=file_identifier, verbose=verbose)
-        file_release.prepare(dataset=args.dataset, obsolete_file_identifier=args.replace)
+        file_release = FileRelease(
+            auth_key=auth_key,
+            file_identifier=file_identifier,
+            set_restricted=set_restricted,
+            verbose=verbose,
+        )
+        file_release.prepare(
+            dataset=args.dataset, obsolete_file_identifier=args.replace
+        )
         file_releases.append(file_release)
 
     if args.dry_run:
