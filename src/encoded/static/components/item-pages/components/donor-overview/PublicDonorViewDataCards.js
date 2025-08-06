@@ -156,7 +156,10 @@ const ProtectedDataPlaceholder = () => {
         <div className="protected-data callout-card">
             <i className="icon icon-user-lock fas"></i>
             <h4>Protected Data</h4>
-            <span>Please log into the data portal for access to this data</span>
+            <span>
+                To view this data, you must have access to SMaHT protected
+                access data on dbGaP.
+            </span>
         </div>
     );
 };
@@ -236,7 +239,9 @@ export const PublicDonorViewDataCards = ({
                 {/* Exposures Card */}
                 <div className="data-card exposure">
                     <div className="header">
-                        <div className="header-text">Exposures</div>
+                        <div className="header-text">
+                            Environmental / Lifestyle Exposure
+                        </div>
                     </div>
                     <div className="body d-flex flex-column gap-4">
                         <ProtectedDataPlaceholder />

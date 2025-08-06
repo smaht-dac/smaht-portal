@@ -74,7 +74,7 @@ const PublicDonorDownloadButton = () => {
                     <PopoverHeader as="h3">Data Access Needed</PopoverHeader>
                     <PopoverBody>
                         This data is protected. To download this data, you must
-                        apply for dbGAP access.
+                        have access to SMaHT protected access data on dbGaP.
                     </PopoverBody>
                 </Popover>
             }>
