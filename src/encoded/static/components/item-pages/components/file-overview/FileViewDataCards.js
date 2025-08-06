@@ -201,7 +201,8 @@ const default_data_information = [
         title: 'Target Genome Coverage',
         getProp: (context = {}) => {
             if (
-                context?.file_format?.display_title === 'bam' &&
+                (context?.file_format?.display_title === 'bam' ||
+                    context?.file_format?.display_title === 'cram') &&
                 context?.data_type.some((d) => d === 'Aligned Reads') &&
                 context?.data_generation_summary?.assays?.some(
                     (assay) =>
@@ -223,7 +224,8 @@ const default_data_information = [
         title: 'RNA-Seq Read Count',
         getProp: (context = {}) => {
             if (
-                context?.file_format?.display_title === 'bam' &&
+                (context?.file_format?.display_title === 'bam' ||
+                    context?.file_format?.display_title === 'cram') &&
                 context?.data_type.some((d) => d === 'Aligned Reads') &&
                 context?.data_generation_summary?.assays?.some(
                     (assay) =>
