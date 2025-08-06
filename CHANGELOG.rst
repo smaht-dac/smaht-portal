@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.193.2
+=======
+`PR 505: Handle Aorta correctly in tissue classification table  <https://github.com/smaht-dac/smaht-portal/pull/505>`_
+
+* Treat Aorta as a special case in the tissue classification table, as GTEX only has Blood Vessel.
+
+
 0.193.1
 =======
 `PR 500: fix: update master inserts <https://github.com/smaht-dac/smaht-portal/pull/500>`_
