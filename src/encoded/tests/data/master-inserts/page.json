@@ -397,7 +397,7 @@
         "table-of-contents": {
             "enabled": false
         },
-        "status": "public",
+        "status": "released",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -408,7 +408,7 @@
     {
         "identifier": "docs/submission/submission-data-dictionary",
         "uuid": "eb2b9abf-1838-4cf4-81f7-5b8b39c30edb",
-        "status": "public",
+        "status": "released",
         "content": [
             "4aeffcf9-f3bb-40e8-a4de-ac7d1bf4fac4"
         ],
@@ -882,7 +882,7 @@
     {
         "identifier": "data/analysis",
         "title": "Benchmarking Analysis",
-        "status": "public",
+        "status": "released",
         "children": [
             "b4b2da6b-d5be-4cd3-81da-691ecc1f9308"
         ],
@@ -903,7 +903,7 @@
     {
         "identifier": "data/analysis/colo829-snv-indel-detection",
         "title": "COLO829 SNV/Indel Detection Challenge",
-        "status": "public",
+        "status": "released",
         "content": [
             "6843c6e7-7b47-457d-96c3-387af3c07207"
         ],
@@ -924,7 +924,7 @@
     {
         "identifier": "resources",
         "title": "Resources",
-        "status": "public",
+        "status": "released",
         "children": [
             "5e7962d0-a218-45ba-8a76-729ef683695b"
         ],
@@ -939,7 +939,7 @@
     {
         "identifier": "resources/genome-related",
         "title": "Genome Related",
-        "status": "public",
+        "status": "released",
         "children": [
             "192a220e-64c8-4ec3-93d9-4e4218f0a7fe"
         ],
@@ -954,7 +954,7 @@
     {
         "identifier": "resources/genome-related/genome-reference-and-related-data",
         "title": "Genome Reference and Related Data",
-        "status": "public",
+        "status": "released",
         "content": [
             "edf6c0f5-e051-4c4e-8e22-99dfde0b8501"
         ],
@@ -1025,10 +1025,10 @@
     },
     {
         "identifier": "qc-metrics",
-        "uuid": "51794ad7-3b6a-4be8-b030-d74591b9cd42",
-        "status": "in review",
+        "uuid": "9069da47-819f-4f49-bd94-2a4cabb0e727",
+        "status": "released",
         "content": [
-            "68271697-2726-4bbf-9243-1c2ae9553c80"
+            "27d09f44-44ca-466e-ade6-6d5a5a81c99c"
         ],
         "table-of-contents": {
             "enabled": false
@@ -1061,12 +1061,30 @@
         "uuid": "c39ea4df-22c5-4d81-a495-6694c3360447",
         "status": "in review",
         "content": [
-            "16b9b89b-f90d-467c-9a78-829a67743313"
+            "d523e166-89bf-439d-9770-ee92e4bcb72b"
         ],
         "table-of-contents": {
             "enabled": false
         },
         "title": "Data Retraction",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data-matrix",
+        "uuid": "d9a62257-2ad4-416f-89a5-6354807b5f5e",
+        "status": "in review",
+        "content": [
+            "ac15e912-543c-4ce5-a16a-1fcdf987181c"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Data Matrix",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

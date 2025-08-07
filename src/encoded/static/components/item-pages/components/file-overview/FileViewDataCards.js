@@ -198,6 +198,27 @@ const default_data_information = [
         },
     },
     {
+        title: 'Dataset Per BAM Coverage',
+        getProp: (context = {}) => {
+            if (
+                context?.file_format?.display_title === 'bam' &&
+                context?.data_type.some((d) => d === 'Aligned Reads') &&
+                context?.data_generation_summary?.assays?.some(
+                    (assay) =>
+                        assay.includes('WGS') ||
+                        assay.includes('Fiber-seq') ||
+                        assay.includes('Hi-C')
+                )
+            ) {
+                const cov = context?.data_generation_summary?.average_coverage;
+                if (cov && cov.length > 0) {
+                    return cov[0] + 'X';
+                }
+            }
+            return null;
+        },
+    },
+    {
         title: 'Dataset Target Read Count',
         getProp: (context = {}) => {
             if (
@@ -230,7 +251,9 @@ const default_data_information = [
  */
 function renderDescriptionPopover() {
     return (
-        <Popover id="description-definitions-popover" className="w-auto">
+        <Popover
+            id="description-definitions-popover-sample-description"
+            className="w-auto description-definitions-popover">
             <PopoverBody className="p-0">
                 <table className="table">
                     <thead>

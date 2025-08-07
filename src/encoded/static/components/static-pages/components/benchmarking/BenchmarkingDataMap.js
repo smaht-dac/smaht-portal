@@ -24,8 +24,8 @@ const primaryTissuePageDescription = (
             benchmarking donors:
         </p>
         <ul>
-            <li>Donor ST001: Liver 1A and Lung 1D</li>
-            <li>Donor ST002: Colon 1G and Lung 1D</li>
+            <li>Donor ST001: Liver 1A, Lung 1D, and Skin 1K</li>
+            <li>Donor ST002: Colon 1G, Lung 1D, and Skin 1K</li>
             <li>Donor ST003: Brain 1Q</li>
             <li>Donor ST004: Brain 1Q</li>
         </ul>
@@ -116,51 +116,6 @@ export const BenchmarkingDataMap = {
                 },
             },
         ],
-        callout: (
-            <div className="callout warning">
-                <p className="callout-text">
-                    <span className="flag">Data Retraction Notice: </span>
-                    <ul>
-                        <li>
-                            One WGS ONT PromethION 24 BAM from COLO829-BLT50,{' '}
-                            <a
-                                href="/SMAFIPHR8QOG"
-                                target="_blank"
-                                rel="noreferrer noopener"
-                                className="link-underline-hover">
-                                SMAFIPHR8QOG
-                            </a>
-                            , has been retracted due to{' '}
-                            <strong>sample swap</strong>. The replacement BAM
-                            from the correct COLO829-BLT50 sample will be made
-                            available soon.
-                        </li>
-                        <li>
-                            The{' '}
-                            <a
-                                href="/SMAFI557D2E7"
-                                target="_blank"
-                                rel="noreferrer noopener"
-                                className="link-underline-hover">
-                                {' '}
-                                original BAM file
-                            </a>{' '}
-                            of COLO829-T standard ONT WGS data was retracted due
-                            to <strong>missing methylation tags</strong>. The
-                            replacement BAM with proper tags is made{' '}
-                            <a
-                                href="/SMAFIB6EQLZM"
-                                target="_blank"
-                                rel="noreferrer noopener"
-                                className="link-underline-hover">
-                                {' '}
-                                available here.
-                            </a>
-                        </li>
-                    </ul>
-                </p>
-            </div>
-        ),
     },
     HapMap: {
         navBarTitle: 'HapMap',
@@ -322,6 +277,12 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D',
             },
+            {
+                eventKey: '#skin',
+                title: 'Skin 1K',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1K',
+            },
         ],
     },
     Donor2: {
@@ -342,6 +303,12 @@ export const BenchmarkingDataMap = {
                 title: 'Lung 1D',
                 searchHref:
                     '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D',
+            },
+            {
+                eventKey: '#skin',
+                title: 'Skin 1K',
+                searchHref:
+                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1K',
             },
         ],
     },

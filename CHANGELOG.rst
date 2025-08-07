@@ -7,6 +7,287 @@ smaht-portal
 Change Log
 ----------
 
+0.193.2
+=======
+`PR 505: Handle Aorta correctly in tissue classification table  <https://github.com/smaht-dac/smaht-portal/pull/505>`_
+
+* Treat Aorta as a special case in the tissue classification table, as GTEX only has Blood Vessel.
+
+
+0.193.1
+=======
+`PR 500: fix: update master inserts <https://github.com/smaht-dac/smaht-portal/pull/500>`_
+
+* Correct master-inserts for data retraction and data QC
+
+
+0.193.0
+=======
+`PR 491: SN Donor manifest embeds <https://github.com/smaht-dac/smaht-portal/pull/491>`_
+
+* Create revlinks on ProtectedDonor and MedicalHistory for donor metadata items
+* Embed all donor metadata properties on ProtectedDonor
+* Create TSV columns in `metadata.py` for the Donor Manifest
+
+
+0.192.8
+=======
+`PR 493: AV Updates to QC metrics and Submission Status page <http://github.com/smaht-dac/smaht-portal/pull/493>`_
+
+* Update thresholds in the QC overview generation script
+* Remove table from sample identity tab in QC metrics page
+* Indictate retracted files on the Submission Status page
+* Add copy button for group coverage on the Submission Status page
+* Add retry logic when getting the QC overview data
+
+
+0.192.7
+=======
+`PR 492: feat: add new announcement to homepage <https://github.com/smaht-dac/smaht-portal/pull/492>`_
+
+* Add announcement for switching to CRAM files
+
+
+0.192.6
+=======
+`PR 490: feat: benchmarking page updates <https://github.com/smaht-dac/smaht-portal/pull/490>`_
+
+* Make benchmarking page titles clickable
+* Remove Data Retraction Alerts in COLO829
+
+
+0.192.5
+=======
+`PR 494: SN Somatic VCF access status <http://github.com/smaht-dac/smaht-portal/pull/494>`_
+
+* In `commands/release_file.py`, update the `access_status` for somatic variant calls from tissues to be "Protected" instead of "Open"
+
+
+0.192.4
+=======
+`PR 484: SN Donor metadata release <http://github.com/smaht-dac/smaht-portal/pull/484>`_
+
+* Creates the script `commands/donor_metadata_release.py` which takes in one or multiple Donor accession IDs and releases the Donor item and all other donor metadata, tissue, and TPC-submitted tissue sample items associated with it
+Includes the constants `PUBLIC_DONOR_RELEASE_STATUS` (currently set to `released`, but will later be changed to `public`) and `PROTECTED_DONOR_RELEASE_STATUS` (currently set to `released`, but will later be changed to `public-restricted`) to ensure only Donor, Tissue, and TissueSample items are made publicly viewable, and ProtectedDonor and all other downstream donor metadata items are only visible if users have dbGaP access
+
+
+0.192.3
+=======
+`PR 486: SN Sequencing center patching for submitted files <http://github.com/smaht-dac/smaht-portal/pull/486>`_
+
+* In `commands/release_file.py`, update the initial patch of the file to include the `sequencing center` as the `submission center` for SubmittedFiles (not OutputFiles)
+* In `commands/create_annotated_filenames.py`, for SubmittedFiles use the `submission center` as the `sequencing center` for the center code
+
+
+0.192.2
+=======
+`PR 489: feat: remove benchmarking QC button <https://github.com/smaht-dac/smaht-portal/pull/489>`_
+
+* Remove benchmarking QC button
+
+
+0.192.1
+=======
+`PR 488: fix: update qc-page content uuid <https://github.com/smaht-dac/smaht-portal/pull/488>`_
+
+* Fix for updating the uuid in the qc-metrics content field in master-inserts
+
+
+0.192.0
+=======
+`PR 458: Cypress tests for home page, documentation, data overview and file overview <https://github.com/smaht-dac/smaht-portal/pull/458>`_
+
+* Various new Cypress tests to increase the test coverage for home page, documentation, data overview and file overview
+* Update commands to support multi-roles with different permissions
+
+
+0.191.0
+=======
+`PR 485: feat: add values column for enums and suggested values <https://github.com/smaht-dac/smaht-portal/pull/485>`_
+
+* Add column for enums in Submission Data Dictionary
+
+
+0.190.9
+=======
+`PR 487: SN Fix ResourceFile data_category <http://github.com/smaht-dac/smaht-portal/pull/487>`_
+
+* Fix the `data_category` enums in ResourceFile to include "Donor Supplement" and set to `default`
+
+
+0.190.8
+=======
+`PR 482: SN Revert RIN minimum <http://github.com/smaht-dac/smaht-portal/pull/482>`_
+
+* Revert the minimum for `rna_integrity_number` to 1
+
+
+0.190.7
+=======
+`PR 481: fix: update QC page/static section uuids to match portals <https://github.com/smaht-dac/smaht-portal/pull/481>`_
+
+* Update master-inserts uuids to match portals
+
+
+0.190.6
+=======
+`PR 480: SN File data type and data category <http://github.com/smaht-dac/smaht-portal/pull/480>`_
+
+* Add enum "Fingerprint" to `data_type` for VariantCalls
+* Add enum "Consensus Reads" to `data_category` in UnalignedReads
+
+
+0.190.5
+=======
+`PR 475: fix: update name for coverage <http://github.com/smaht-dac/smaht-portal/pull/475>`_
+
+* Update title for Dataset Per BAM Coverage in File Overview page
+
+
+0.190.4
+=======
+`PR 478: fix: update breadcrumbs on File Overview page <https://github.com/smaht-dac/smaht-portal/pull/478>`_
+
+* Update breadcrumbs on file overview page
+
+
+0.190.3
+=======
+`PR 465 feat: protected donor view updates <https://github.com/smaht-dac/smaht-portal/pull/465>`_
+
+* Update donor view following annual meeting feedback
+
+
+0.190.2
+=======
+`PR 477: feat: add ST001 and ST002 skin to benchmarking <https://github.com/smaht-dac/smaht-portal/pull/477>`_
+
+* Add ST001 and ST002 skin to benchmarking
+
+
+0.190.1
+=======
+`PR 472: SN Add search columns <https://github.com/smaht-dac/smaht-portal/pull/472>`_
+
+* Add columns to Tissue (`uberon_id.identifier`) and OntologyTerm (`valid_protocol_ids`) search views
+
+
+0.190.0
+=======
+`PR 471: SN Update file merge group <https://github.com/smaht-dac/smaht-portal/pull/471>`_
+
+* Update `generate_sample_source_part` in FileSet so that the sample source part of the `file_group` is Tissue, rather than TissueSample for single tissue samples with spatial information
+
+
+0.189.1
+=======
+`PR 476: Add RIN and tissue types to Submission Status <https://github.com/smaht-dac/smaht-portal/pull/476>`_
+
+* Add RIN values of the analyte and tissue types of a fileset to the Submission Status page
+* Exclude Single-Cell PTA data from generating warnings in the sample identity check on the QC metrics page
+
+
+0.189.0
+=======
+`PR 473: SN Add additional notes to exp manifest file <https://github.com/smaht-dac/smaht-portal/pull/473>`_
+
+* Adds `sequencing.additional_notes` to the Experimental Manifest file
+
+
+0.188.3
+=======
+`PR 474: SN Release preparation items <https://github.com/smaht-dac/smaht-portal/pull/474>`_
+
+* Update the `release_file` script to also patch AnalytePreparation, LibraryPreparation, PreparationKit, and Treatment items to `released`
+
+
+0.188.2
+=======
+`PR 466 feat: add estimated average coverage to file overview <https://github.com/smaht-dac/smaht-portal/pull/466>`_
+
+* Add a new property to average coverage in file overview page
+
+
+0.188.1
+=======
+`PR 467 feat: update bulk donor metadata download button <https://github.com/smaht-dac/smaht-portal/pull/467>`_
+
+* Update download link for bulk donor metadata download link
+
+
+0.188.0
+=======
+`PR 468: SN File QC notes <https://github.com/smaht-dac/smaht-portal/pull/468>`_
+
+* Add `qc_notes` calc prop to QualityMetrics which uses `flag` to identify key metrics and build a concatenated string of Warn/Fail QC metrics
+* Embed `quality_metrics.qc_notes` on File
+* Add `quality_metrics.qc_notes` as column in File Manifest
+
+
+0.187.3
+=======
+`PR 470: Bulk file release <https://github.com/smaht-dac/smaht-portal/pull/470>`_
+
+* Modified the release script to allow multiple files to be released at once.
+* Added a button to the Submission Status page, that will let you copy the accessions of all output files displayed, so that it can be used in the release script.
+* Minor adjustments to the QC overview script.
+
+
+0.187.2
+=======
+`PR 457 feat: update nomenclature doc table <https://github.com/smaht-dac/smaht-portal/pull/457>`_
+
+* Update table 3A on nomenclature page
+
+
+0.187.1
+=======
+`PR 469: SN RIN minimum to zero <https://github.com/smaht-dac/smaht-portal/pull/469>`_
+
+* Change the minimum value for `rna_integrity_number` in Analyte to 0
+
+
+0.187.0
+=======
+`PR 463: SN File average coverage <https://github.com/smaht-dac/smaht-portal/pull/463>`_
+
+* Add `average_coverage` to the `data_generation_summary` calc prop on File, grabbed from `quality_metrics.coverage`
+* Add property `override_average_coverage` to File, which can override the `average_coverage` value if present
+
+
+0.186.2
+=======
+`PR 464 SN Add pluralize relatives <https://github.com/smaht-dac/smaht-portal/pull/464>`_
+
+* For relatives in FamilyHistory, add plural options to enums
+
+
+0.186.1
+=======
+`PR 456 feat: update status of FAQ, Submission Schema Dictionary, and other static pages <https://github.com/smaht-dac/smaht-portal/pull/456>`_
+
+* Add released status to page items
+* Update status of FAQ and Submission Schema Dictionary page items
+* Update status of other static pages
+
+
+0.186.0
+=======
+`PR 440: SN file merge group tag <https://github.com/smaht-dac/smaht-portal/pull/440>`_
+
+* Add an optional part to the `file_group` calcprop in FileSet that is set by the property `group_tag`. If present, it is added to the `file_group` so that the FileSet is put in a different File Merge Group than other file sets.
+* Adjust `generate_assay_part` of `file_group` to only a return a value if `cell_isolation_method` is "Bulk"
+* Make `cell_isolation_method` a required property for Assay
+* Adjust `generate_sample_source_part` to return the sample source for multiple tissues (regardless of if they contain spatial information)
+
+
+0.185.0
+=======
+`PR 422 SN Upgrade treatment <https://github.com/smaht-dac/smaht-portal/pull/422>`_
+
+* Add description property to Treatment
+* Make `dependentRequired` for `concentration` and `concentration_units` in Treatment
+
 
 0.184.8
 =======

@@ -13,3 +13,8 @@ def get_zip_file_accession(properties: Dict[str, Any]) -> str:
     """
     url = get_url(properties)
     return url.split("/")[-1].split(".")[0]
+
+
+def get_coverage(properties: Dict[str, Any]) -> str:
+    """Get coverage calc prop from properties."""
+    return properties.get("coverage", "")

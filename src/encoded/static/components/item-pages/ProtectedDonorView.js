@@ -136,7 +136,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
         files: null,
     });
 
-    const { context, session, href, schemas } = props;
+    const { context, session, href } = props;
 
     // Load the files from the search URL and calculate statistics
     useEffect(() => {
@@ -174,9 +174,6 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
         );
     }, []);
 
-    // Pull out the exposure history schemas
-    const exposureHistorySchemaProperties = schemas?.['Exposure']?.properties;
-
     // Format a title string
     const titleString = (
         <h1 className="header-text fw-semibold">
@@ -204,9 +201,6 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                 />
                 <ProtectedDonorViewDataCards
                     context={context}
-                    exposureHistorySchemaProperties={
-                        exposureHistorySchemaProperties
-                    }
                     statisticValues={statisticValues}
                     isLoading={isLoading}
                 />
@@ -257,6 +251,8 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                                 'MALBAC-amplified WGS',
                                             'Single-cell MALBAC WGS - Illumina':
                                                 'MALBAC-amplified WGS',
+                                            'Single-cell PTA WGS - ONT': 'PTA-amplified WGS',
+                                            'Single-cell PTA WGS - Illumina': 'PTA-amplified WGS',
                                             'TEnCATS - ONT': 'TEnCATS',
                                             'WGS - ONT': 'WGS - Standard ONT',
                                             'Ultra-Long WGS - ONT':
@@ -324,6 +320,16 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                             textColor: '#ffffff',
                                             shortName: 'WGS',
                                         },
+                                        'Single-cell WGS': {
+                                            values: [
+                                                'PTA-amplified WGS',
+                                                'MALBAC-amplified WGS',
+                                                'WGS DLP+',
+                                            ],
+                                            backgroundColor: '#aac536',
+                                            textColor: '#ffffff',
+                                            shortName: 'scWGS',
+                                        },
                                         'RNA-seq': {
                                             values: [
                                                 'RNA-Seq - Illumina',
@@ -345,16 +351,6 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                             backgroundColor: '#2b4792',
                                             textColor: '#ffffff',
                                             shortName: 'Dupl',
-                                        },
-                                        'Single-cell WGS': {
-                                            values: [
-                                                'PTA-amplified WGS',
-                                                'MALBAC-amplified WGS',
-                                                'WGS DLP+',
-                                            ],
-                                            backgroundColor: '#aac536',
-                                            textColor: '#ffffff',
-                                            shortName: 'scWGS',
                                         },
                                         'Targeted Seq': {
                                             values: [
@@ -480,6 +476,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                     defaultOpen={true}
                                     compositeValueSeparator=" - "
                                     disableConfigurator={true}
+                                    idLabel="donor"
                                     key="data-matrix-key"
                                     session={session}
                                 />

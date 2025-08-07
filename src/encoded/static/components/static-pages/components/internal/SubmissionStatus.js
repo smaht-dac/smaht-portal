@@ -405,6 +405,9 @@ class SubmissionStatusComponent extends React.PureComponent {
     getSubmissionTableBody = () => {
         const tbody = this.state.fileSets.map((fs) => {
             const sequencer = fs.sequencing?.sequencer;
+            const tissueTypes = fs.tissue_types && fs.tissue_types.length
+                ? '(' + fs.tissue_types.join(', ') + ')'
+                : null;
             const targetCoverage = getTargetCoverage(fs.sequencing);
             const status_badge_type =
                 fs.status == 'released' ? 'success' : 'warning';
@@ -424,19 +427,30 @@ class SubmissionStatusComponent extends React.PureComponent {
                         Library: {getLink(lib.uuid, lib.display_title)}
                     </li>
                 );
+                const rin_number = [];
                 lib.analytes?.forEach((analyte) => {
+                    if (analyte.rna_integrity_number) {
+                        rin_number.push(analyte.rna_integrity_number);
+                    }
                     analyte.samples?.forEach((sample) => {
+                        
                         fs_details.push(
                             <li className="ss-line-height-140">
                                 Sample:{' '}
-                                {getLink(sample.uuid, sample.display_title)}
+                                {getLink(sample.uuid, sample.display_title)} {tissueTypes}
                             </li>
                         );
                     });
                 });
+                
+                const rin_details =
+                    rin_number.length > 0
+                        ? `– RIN: ${rin_number.join(', ')}`
+                        : '';
+
                 fs_details.push(
                     <li className="ss-line-height-140">
-                        Assay: {lib.assay?.display_title}
+                        Assay: {lib.assay?.display_title} {rin_details}
                     </li>
                 );
             });
@@ -718,7 +732,25 @@ class SubmissionStatusComponent extends React.PureComponent {
                                 </div>
                             </th>
                             <th className="text-start">Submission</th>
-                            <th className="text-start">QC status</th>
+                            <th className="text-start">
+                                QC status
+                                <object.CopyWrapper
+                                    value={this.state.fileSets
+                                        .filter((fs) => fs.final_output_file_accession)
+                                        .map((fs) => fs.final_output_file_accession)
+                                        .join(' -f ')}
+                                    className=""
+                                    data-tip={
+                                        'Copy accessions of processed files for release'
+                                    }
+                                    wrapperElement="span"
+                                    iconProps={{
+                                        style: {
+                                            fontSize: '0.875rem',
+                                            marginLeft: 3,
+                                        },
+                                    }}></object.CopyWrapper>
+                            </th>
                             <th className="text-start">MetaWorkflowRuns</th>
                             <th className="text-start">
                                 Tags{' '}
