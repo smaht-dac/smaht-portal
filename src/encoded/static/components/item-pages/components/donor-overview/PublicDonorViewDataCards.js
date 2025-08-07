@@ -2,7 +2,12 @@
 
 import React from 'react';
 import { DataCardRow } from '../file-overview/FileViewDataCards';
-import { OverlayTrigger, Popover, PopoverBody } from 'react-bootstrap';
+import {
+    OverlayTrigger,
+    Popover,
+    PopoverBody,
+    PopoverHeader,
+} from 'react-bootstrap';
 /**
  * Bootstrap Popover element for the description field in the sample information
  * data card. Contains a table with definitions for the terms used in the
@@ -215,6 +220,27 @@ export const PublicDonorViewDataCards = ({
                                     <DataCardRow
                                         title={'DSA'}
                                         value={'Protected'}
+                                        titlePopover={
+                                            <Popover
+                                                id="dsa-popover"
+                                                className="description-definitions-popover">
+                                                <PopoverHeader>
+                                                    DSA
+                                                </PopoverHeader>
+                                                <PopoverBody className="p-3">
+                                                    DSA, Donor-Specific genome
+                                                    Assembly, refers to the
+                                                    reconstruction of the
+                                                    complete DNA sequence of a
+                                                    single donor's genome,
+                                                    allowing for more accurate
+                                                    detection of mutations
+                                                    (i.e., variants in the DNA
+                                                    sequence) in that individual
+                                                    by using DSA as a reference.
+                                                </PopoverBody>
+                                            </Popover>
+                                        }
                                     />
                                 </div>
                             </div>
