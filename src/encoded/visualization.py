@@ -231,7 +231,8 @@ def data_matrix_aggregations(context, request):
                         if (doc['embedded.data_generation_summary.average_coverage.raw'].size() == 0) {
                             return 0;
                         } else {
-                            return Double.parseDouble(doc['embedded.data_generation_summary.average_coverage.raw'].value);
+                            double val = Double.parseDouble(doc['embedded.data_generation_summary.average_coverage.raw'].value);
+                            return Math.round(val * 100.0) / 100.0;
                         }
                     """
                 }
