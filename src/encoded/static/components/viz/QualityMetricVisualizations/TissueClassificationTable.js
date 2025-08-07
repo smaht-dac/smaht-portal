@@ -20,12 +20,9 @@ export const TissueClassificationTable = ({
 
     filteredData = JSON.parse(JSON.stringify(filteredData));
 
-    const key_pt1 = 'tissue_classifier:predicted_tissue_1';
-    const key_pt2 = 'tissue_classifier:predicted_tissue_2';
-    const key_pt3 = 'tissue_classifier:predicted_tissue_3';
-    const key_prob_pt1 = 'tissue_classifier:probability_predicted_tissue_1';
-    const key_prob_pt2 = 'tissue_classifier:probability_predicted_tissue_2';
-    const key_prob_pt3 = 'tissue_classifier:probability_predicted_tissue_3';
+    const keyPredictedTissue = (i) => `tissue_classifier:predicted_tissue_${i}`;
+    const keyProbabilityPredictedTissue = (i) =>
+        `tissue_classifier:probability_predicted_tissue_${i}`;
 
     const isCellLine = sampleSourceGroup === 'cell_line';
 
@@ -45,48 +42,50 @@ export const TissueClassificationTable = ({
 
         const submittedTissue = d.sample_source_display;
         const qc_values = d['quality_metrics']['qc_values'];
-        const pt1 = qc_values[key_pt1]['value'];
-        const pt1_prob = qc_values[key_prob_pt1]['value'];
-        const pt1_display = (
-            <span className={pt1 === submittedTissue ? 'fw-bold' : ''}>
-                {pt1} ({formatPercent(pt1_prob)})
-            </span>
-        );
+        const predictedTissues = [];
+        const predictedTissuesProbabilities = [];
+        const predictedTissueDisplay = [];
+        for (let i = 1; i <= 3; i++) {
+            const predictedTissue = qc_values[keyPredictedTissue(i)]['value'];
+            const predictedTissueProbability =
+                qc_values[keyProbabilityPredictedTissue(i)]['value'];
+            predictedTissues.push(predictedTissue);
+            predictedTissuesProbabilities.push(predictedTissueProbability);
+            let printBold = predictedTissue === submittedTissue;
+            if (
+                predictedTissue === 'Blood Vessel' &&
+                submittedTissue === 'Aorta'
+            ) {
+                // Special case for Aorta, which is a blood vessel in GTEX
+                printBold = true;
+            }
 
-        const pt2 = qc_values[key_pt2]['value'];
-        const pt2_prob = qc_values[key_prob_pt2]['value'];
-        const pt2_display = (
-            <span className={pt2 === submittedTissue ? 'fw-bold' : ''}>
-                {pt2} ({formatPercent(pt2_prob)})
-            </span>
-        );
-
-        const pt3 = qc_values[key_pt3]['value'];
-        const pt3_prob = qc_values[key_prob_pt3]['value'];
-        const pt3_display = (
-            <span className={pt3 === submittedTissue ? 'fw-bold' : ''}>
-                {pt3} ({formatPercent(pt3_prob)})
-            </span>
-        );
+            predictedTissueDisplay.push(
+                <span className={printBold ? 'fw-bold' : ''}>
+                    {predictedTissue} (
+                    {formatPercent(predictedTissueProbability)})
+                </span>
+            );
+        }
 
         if (isCellLine) {
             // We expect that Blood or Skin is in the predicted tissues
             const cellLineBlood = ['HAPMAP6', 'COLO829BLT50'];
             const cellLineSkin = ['LBLA2'];
             if (cellLineBlood.includes(submittedTissue)) {
-                result['hasMatch'] =
-                    pt1 === 'Blood' || pt2 === 'Blood' || pt3 === 'Blood';
+                result['hasMatch'] = predictedTissues.includes('Blood');
             } else if (cellLineSkin.includes(submittedTissue)) {
-                result['hasMatch'] =
-                    pt1 === 'Skin' || pt2 === 'Skin' || pt3 === 'Skin';
+                result['hasMatch'] = predictedTissues.includes('Skin');
             } else {
                 result['hasMatch'] = null;
             }
         } else {
-            result['hasMatch'] =
-                pt1 === submittedTissue ||
-                pt2 === submittedTissue ||
-                pt3 === submittedTissue;
+            if (submittedTissue === 'Aorta') {
+                // Aorta is a special case, as GTEX only has 'Blood Vessel' in their tissue datasets
+                result['hasMatch'] = predictedTissues.includes('Blood Vessel');
+            } else {
+                result['hasMatch'] = predictedTissues.includes(submittedTissue);
+            }
         }
 
         const yesBadge = <div className="text-center">{getBadge('Yes')}</div>;
@@ -102,7 +101,8 @@ export const TissueClassificationTable = ({
 
         result['Predicted tissue'] = (
             <>
-                {pt1_display}, {pt2_display}, {pt3_display}
+                {predictedTissueDisplay[0]}, {predictedTissueDisplay[1]},{' '}
+                {predictedTissueDisplay[2]}
             </>
         );
 
