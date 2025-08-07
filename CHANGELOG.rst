@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.194.0
+=======
+`PR 503: feat: public donor view <https://github.com/smaht-dac/smaht-portal/pull/503>`_
+
+* Implement Public Donor view
+
+
 0.193.2
 =======
 `PR 505: Handle Aorta correctly in tissue classification table  <https://github.com/smaht-dac/smaht-portal/pull/505>`_
