@@ -582,6 +582,7 @@
     },
     {
         "identifier": "data_matrix_comparison",
+        "title": "SMaHT Data Matrix",
         "file": "/docs/public/data_matrix_comparison.jsx",
         "status": "in review",
         "options": {
