@@ -122,5 +122,16 @@
         ],
         "submitted_id": "TEST_LIBRARY_LIVER-CELL-DNA",
         "assay": "sc_pta_wgs"
+    },
+    {
+        "uuid": "3ee95826-4331-4121-9bd4-06ca93839bfc",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_LIBRARY_FIBROBLAST",
+        "assay": "bulk_wgs",
+        "analytes": [
+            "TEST_ANALYTE_FIBROBLAST"
+        ]
     }
 ]

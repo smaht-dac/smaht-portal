@@ -456,3 +456,18 @@ def get_release_tracker_description(file: Dict[str, Any]) -> str:
 def get_release_tracker_title(file: Dict[str, Any]) -> str:
     """Get release tracker title from properties."""
     return file.get("release_tracker_title","")
+
+
+def get_tissue_type(file: Dict[str, Any], request_handler: RequestHandler) -> List[str]:
+    """
+    Get tissue type from ontology term.
+    
+    Special handling of fibroblast (3AC).
+    """
+    return get_property_values_from_identifiers(
+        request_handler,
+        get_tissues(file, request_handler),
+        partial(
+            tissue.get_tissue_type, request_handler=request_handler
+        )
+    )

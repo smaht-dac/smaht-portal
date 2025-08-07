@@ -1061,14 +1061,7 @@ class File(Item, CoreFile):
                 file_utils.get_tissues(file_properties, request_handler),
                 tissue_utils.get_category
             ),
-            constants.SAMPLE_SUMMARY_TISSUES: get_property_values_from_identifiers(
-                request_handler,
-                file_utils.get_tissues(file_properties, request_handler),
-                functools.partial(
-                    tissue_utils.get_grouping_term_from_tag, request_handler=request_handler,
-                    tag="tissue_type"
-                ),
-            ),
+            constants.SAMPLE_SUMMARY_TISSUES: file_utils.get_tissue_type(file_properties, request_handler),
             constants.SAMPLE_SUMMARY_TISSUE_SUBTYPES: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_uberon_ids(file_properties, request_handler),

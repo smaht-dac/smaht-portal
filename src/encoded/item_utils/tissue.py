@@ -136,3 +136,25 @@ def get_protocol_id(properties: Dict[str, Any]) -> str:
 def get_protocol_id_from_external_id(external_id: str) -> str:
     """Get protocol ID from external ID."""
     return external_id.split("-")[1]
+
+
+def is_fibroblast(properties: Dict[str, Any]) -> bool:
+    """Check if tissue is fibroblast from protocol ID."""
+    return get_protocol_id(properties) == "3AC"
+
+
+def get_tissue_type(properties: Dict[str, Any], request_handler: RequestHandler):
+    """
+    Get tissue type of tissue from ontology term.
+    
+    Special handling of fibroblasts (3AC)
+    """
+    fibroblast = is_fibroblast(properties)
+    if fibroblast:
+        return "Fibroblast"
+    return get_grouping_term_from_tag(
+        properties,
+        request_handler=request_handler,
+        tag="tissue_type"
+    )
+        
