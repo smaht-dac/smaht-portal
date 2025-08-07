@@ -907,19 +907,6 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 											}
 										}
 									}
-
-									&.detail-open {
-										.value {
-											color: #B75200;
-										}
-										.toggle-detail-button-container {
-											> button {
-												.icon {
-													color: #FF9A47;
-												}
-											}
-										}
-									}
 								}
 							}
 						}
@@ -1007,6 +994,42 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 									}
 								}
 							}
+						}
+
+
+
+						&.detail-tissue {
+							[data-field="sample_summary.tissues"] {
+								.inner {
+									.value {
+										color: #B75200;
+									}
+									.toggle-detail-button-container {
+										> button {
+											.icon {
+												color: #FF9A47;
+											}
+										}
+									}
+								}
+							}	
+						}
+						&.detail-assay {
+							[data-field="assays"] {
+								.inner {
+									.value {
+										color: #B75200;
+									}
+									.toggle-detail-button-container {
+										> button {
+											.icon {
+												color: #FF9A47;
+											}
+										}
+									}
+								}
+							}	
+
 						}
 					}
 				}

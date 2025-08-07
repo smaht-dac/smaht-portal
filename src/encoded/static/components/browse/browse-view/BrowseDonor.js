@@ -7,6 +7,7 @@ import {
 import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 import { Schemas } from '../../util';
+import { TISSUE_TO_CATEGORY } from '../../util/constants';
 import {
     DisplayTitleColumnWrapper,
     DisplayTitleColumnDefault,
@@ -30,24 +31,46 @@ import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/compo
  */
 const formatTissueData = (data) => {
     const defaultTissueCategories = {
-        Ectoderm: [],
-        Endoderm: [],
-        Mesoderm: [],
-        Germ: [],
-        Clinical: [],
-        Fibroblast: [],
+        Ectoderm: {
+            title: 'Ectoderm',
+            values: [],
+        },
+        Endoderm: {
+            title: 'Endoderm',
+            values: [],
+        },
+        Mesoderm: {
+            title: 'Mesoderm',
+            values: [],
+        },
+        'Germ cells': {
+            title: 'Germ',
+            values: [],
+        },
+        'Clinically accessible': {
+            title: 'Clinical',
+            values: [],
+        },
+        Fibroblast: {
+            title: 'Fibroblast',
+            values: [],
+        },
+        Unknown: {
+            title: 'Unknown',
+            values: [],
+        },
     };
 
     // group data by tissue category
     const grouped_data = data.reduce((acc, { key }) => {
-        // if category is not present, assign to 'Unknown' group
-        const tissueCategory = key?.category || 'Unknown';
+        // if category is not present in lookup map, assign to 'Unknown' group
+        const tissueCategory = TISSUE_TO_CATEGORY.get(key) || 'Unknown';
 
         if (!acc[tissueCategory]) {
-            acc[tissueCategory] = [key];
+            acc[tissueCategory] = { title: tissueCategory, values: [key] };
         } else {
             // If category exists, push tissue to that category
-            acc[tissueCategory].push(key);
+            acc[tissueCategory].values.push(key);
         }
         return acc;
     }, defaultTissueCategories);
@@ -89,7 +112,7 @@ const DetailPane = ({ itemDetails }) => {
         }
     }, []);
 
-    console.log('Tissue Data', tissueData, itemDetails);
+    // console.log('Tissue Data', tissueData, itemDetails);
 
     return tissueData && Object?.keys(tissueData)?.length > 0 ? (
         <div className="detail-content">
@@ -98,7 +121,7 @@ const DetailPane = ({ itemDetails }) => {
                 <b>
                     {/* Calculate total tissue count */}
                     {Object.keys(tissueData).reduce(
-                        (acc, key) => acc + tissueData[key].length,
+                        (acc, key) => acc + tissueData[key].values.length,
                         0
                     )}{' '}
                 </b>
@@ -106,7 +129,7 @@ const DetailPane = ({ itemDetails }) => {
             </div>
             <div className="detail-body">
                 {Object?.keys(tissueData).map((category, i) => {
-                    const tissues = tissueData[category];
+                    const tissues = tissueData[category]['values'] || [];
                     return (
                         <div key={i} className="tissue-category">
                             <div className="header-container">
@@ -148,22 +171,50 @@ const DetailPane = ({ itemDetails }) => {
     );
 };
 
-const fetchPropsForBrowseDonor = () => {
-    console.log('fetchPropsForBrowseDonor called!!!');
-};
+// const fetchPropsForBrowseDonor = () => {
+// console.log('fetchPropsForBrowseDonor called!!!');
+// };
 
 // Detail Pane
-const renderDetailPane = (
+const customRenderDetailPane = (
     itemDetails = {},
     rowIndex,
     panelWidth,
     panelDetails = {}
 ) => {
-    return (
-        <div className="detail-pane">
-            <DetailPane itemDetails={itemDetails} panelDetails={panelDetails} />
-        </div>
-    );
+    // set the corresponding detail pane based on `detailPaneType`
+    let detailPane;
+
+    console.log('customRenderDetailPane called', panelDetails);
+    switch (panelDetails?.detailPaneType) {
+        case 'tissue':
+            detailPane = (
+                <DetailPane
+                    itemDetails={itemDetails}
+                    panelDetails={panelDetails}
+                />
+            );
+            break;
+        case 'assay':
+            detailPane = (
+                <div className="detail-content">
+                    <div className="detail-header">
+                        <i className="icon icon-microscope fas"></i>
+                        <b>Assays for Donor {itemDetails.display_title}</b>
+                    </div>
+                    <div className="detail-body">
+                        <span className="text-secondary">
+                            No assay data available for this donor.
+                        </span>
+                    </div>
+                </div>
+            );
+            break;
+        default:
+            break;
+    }
+
+    return <div className="detail-pane">{detailPane}</div>;
 };
 
 // A column extension map specifically for browse view file tables.
@@ -243,7 +294,11 @@ export function createBrowseDonorColumnExtensionMap({
                     rowNumber,
                     detailOpen,
                     toggleDetailOpen,
+                    detailPaneType,
+                    handleCellClick,
                 } = parentProps;
+
+                console.log('sample_summary.tissues', parentProps);
 
                 const { data, loading, error } = parentProps?.fetchedProps;
 
@@ -278,6 +333,15 @@ export function createBrowseDonorColumnExtensionMap({
                                     rowNumber,
                                     detailOpen,
                                     toggleDetailOpen,
+                                    customToggleDetailClose: (props) => {
+                                        handleCellClick(null);
+                                        toggleDetailOpen();
+                                    },
+                                    customToggleDetailOpen: (props) => {
+                                        handleCellClick('tissue');
+                                        toggleDetailOpen();
+                                    },
+                                    isActive: detailPaneType === 'tissue',
                                     toggleOpenIcon: (
                                         <i className="icon icon-circle-plus"></i>
                                     ),
@@ -300,6 +364,7 @@ export function createBrowseDonorColumnExtensionMap({
                     rowNumber,
                     detailOpen,
                     toggleDetailOpen,
+                    handleCellClick,
                 } = parentProps;
 
                 const { data, loading, error } = parentProps?.fetchedProps;
@@ -334,6 +399,14 @@ export function createBrowseDonorColumnExtensionMap({
                                     rowNumber,
                                     detailOpen,
                                     toggleDetailOpen,
+                                    customToggleDetailClose: (props) => {
+                                        handleCellClick(null);
+                                        toggleDetailOpen();
+                                    },
+                                    customToggleDetailOpen: (props) => {
+                                        handleCellClick('assay');
+                                        toggleDetailOpen();
+                                    },
                                     toggleOpenIcon: (
                                         <i className="icon icon-circle-plus"></i>
                                     ),
@@ -587,10 +660,10 @@ const BrowseDonorSearchTable = (props) => {
                 aboveTableComponent,
                 columns,
                 hideFacets,
-                fetchProps: fetchPropsForBrowseDonor,
+                // fetchProps: fetchPropsForBrowseDonor,
             }}
             // detailPane={<>Hello there!</>}
-            renderDetailPane={renderDetailPane}
+            renderDetailPane={customRenderDetailPane}
             useCustomSelectionController
             hideStickyFooter
             currentAction={'multiselect'}
