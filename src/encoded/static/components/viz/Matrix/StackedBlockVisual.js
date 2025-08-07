@@ -145,7 +145,7 @@ export class VisualBody extends React.PureComponent {
         const yAxisGroupingTitle = (columnGrouping && titleMap[columnGrouping]) || columnGrouping || null;
         const yAxisGroupingValue = isGroup ? data[0][columnGrouping] : data[columnGrouping];
 
-        function makeSearchButton(disabled=false){
+        function generateBrowseUrl() {
             const currentFilteringProperties = groupingProperties.slice(0, depth + 1).concat([columnGrouping]);
             const currentFilteringPropertiesPairs = _.map(currentFilteringProperties, function (property) {
                 let facetField = fieldChangeMap[property] || property;
@@ -207,8 +207,7 @@ export class VisualBody extends React.PureComponent {
             const currentFilteringPropertiesVals = convertPairsToObject(currentFilteringPropertiesPairs);
 
             let initialHref = queryUrl;
-            if(rowGroups && rowGroupKey && rowGroups[rowGroupKey]?.customUrlParams && blockType === 'col-summary')
-            {
+            if (rowGroups && rowGroupKey && rowGroups[rowGroupKey]?.customUrlParams && blockType === 'col-summary') {
                 // If rowGroups is defined and rowGroupKey is set, we use customUrlParams from rowGroups
                 initialHref += '&' + rowGroups[rowGroupKey].customUrlParams;
             }
@@ -229,16 +228,24 @@ export class VisualBody extends React.PureComponent {
             hrefParts.search = '?' + queryString.stringify(hrefQuery);
             const linkHref = url.format(hrefParts);
 
+            return linkHref;
+        }
+
+        function makeSearchButton(linkHref, disabled = false) {
             return (
                 <Button disabled={disabled} href={linkHref} target="_blank" variant="primary" className="w-100 mt-1">Browse Files</Button>
             );
         }
 
-        const fileCount = _.reduce(data, function (sum, item) {
-            return sum + item.files;
-        }, 0);
+        const browseUrl = generateBrowseUrl();
 
-        const viewButtonDisabled = false;
+        const { fileCount, totalCoverage } = _.reduce(data, function (sum, item) {
+            return {
+                fileCount: sum.fileCount + item.files,
+                totalCoverage: sum.totalCoverage + item.total_coverage
+            };
+        }, { fileCount: 0, totalCoverage: 0 });
+
         return (
             <Popover id="jap-popover">
                 <Popover.Body>
@@ -293,7 +300,7 @@ export class VisualBody extends React.PureComponent {
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Coverage</div>
-                                        <div className="value text-danger">{'--'}</div>
+                                        <div className="value">{totalCoverage > 0 ? totalCoverage + 'X' : '--'}</div>
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Files</div>
@@ -349,14 +356,14 @@ export class VisualBody extends React.PureComponent {
                                 </div>
                             ) : null}
                             <div className="row footer-row p-1">
-                                {makeSearchButton(viewButtonDisabled)}
+                                {makeSearchButton(browseUrl, fileCount <= 0)}
                             </div>
                         </div>
                         :
                         <div className="inner">
                             <h5 className="text-400 mt-08 mb-15 text-center"><b>{"title"}</b></h5>
                             <hr className="mt-0 mb-1" />
-                            {makeSearchButton(viewButtonDisabled)}
+                            {makeSearchButton(browseUrl, fileCount <= 0)}
                         </div>
                     }
                 </Popover.Body>
@@ -1489,9 +1496,51 @@ Block.propTypes = {
     blockType: PropTypes.oneOf(['regular', 'row-summary', 'col-summary'])
 };
 
+// Utility functions for block types
 function isSummaryBlock(blockType) {
     return blockType === 'row-summary' || blockType === 'col-summary';
 }
+
+/**
+ * Not used in the current code, but could be used to fetch estimated coverage data.
+ * @param {*} props 
+ * @returns 
+ */
+// function EstimatedCoverage({ browseUrl }) {
+//     const [estimatedCoverage, setEstimatedCoverage] = React.useState('--');
+
+//     useEffect(() => {
+//         // convert browse_url (e.g. /search/?field=quality_metrics&donors.display_title=SMHT004&format=json&file_sets.libraries.assay.display_title=WGS&sample_summary.studies=Production&sequencing.sequencer.platform=Illumina&status=released&type=File&limit=all) params to payload
+//         const urlParams = new URLSearchParams(browseUrl.split('?')[1]);
+//         const params = Object.fromEntries(urlParams.entries());
+
+//         const payload = {
+//             'search_query_params': params,
+//             'limit': 1000, // Limit the number of files to fetch
+//         };
+//         ajax.load(
+//             '/estimated_coverage/',
+//             (resp) => {
+//                 if (resp.error) {
+//                     console.error(resp.error);
+//                     return;
+//                 }
+//                 setEstimatedCoverage(resp.estimated_coverage);
+//             },
+//             'POST',
+//             (errResp, xhr) => console.error(errResp),
+//             JSON.stringify(payload)
+//         );
+//     }, []);
+
+//     return (
+//         <div className="estimated-coverage">
+//             {estimatedCoverage}
+//         </div>
+//     );
+// }
+
+// Icons for sorting
 function FaIcon(props) {
     const { icon, iconClass } = props;
     const className = `fas icon ${icon} ${iconClass}`;
