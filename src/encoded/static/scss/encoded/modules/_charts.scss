@@ -1768,7 +1768,7 @@ body[data-path="/statistics"] {
                 .block-container-group {
                     .stacked-block[data-block-type="col-summary"] {
                         color: #111;
-                        font-weight: 600;
+                        font-weight: 500;
                         border: 1px solid #e4e4ff;
                     }
                 }
@@ -1809,7 +1809,7 @@ body[data-path="/statistics"] {
 
                 &[data-block-type="row-summary"] {
                     color: #111;
-                    font-weight: 600;
+                    font-weight: 500;
                     border: 1px solid #e4e4ff;
                 }
             }
@@ -2311,6 +2311,10 @@ body[data-path="/statistics"] {
         .value {
             font-size: 0.9rem;
             font-weight: 500 !important;
+
+            .text-muted {
+                color: #8296af !important;
+            }
         }
     }
     .secondary-row {
