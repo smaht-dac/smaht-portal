@@ -277,7 +277,7 @@ export default class DataMatrix extends React.PureComponent {
             }
 
             // If the same key already exists, convert or append to an array
-            if (result.hasOwnProperty(key)) {
+            if (key in result) {
                 if (Array.isArray(result[key])) {
                     result[key].push(value);
                 } else {
@@ -502,34 +502,36 @@ export default class DataMatrix extends React.PureComponent {
         const newGroupingProperties = Array.isArray(rowAggField2) && rowAggField2.length > 0 ? [invertedFieldChangeMap[rowAggField1[0]], invertedFieldChangeMap[rowAggField2[0]]] : [invertedFieldChangeMap[rowAggField1[0]]];
 
         const rowAggFields = [rowAggField1, rowAggField2, rowAggField3].filter((f) => f && f.length > 0).map((f) => Array.isArray(f) ? f : [f]);
-        this.setState({
-            ...this.state,
-            query: {
-                ...this.state.query,
-                url: searchUrl,
-                columnAggFields: columnAggField,
-                rowAggFields: rowAggFields
-            },
-            columnGrouping: newColumnGrouping,
-            groupingProperties: newGroupingProperties,
-            columnGroups: columnGroups,
-            showColumnGroups: showColumnGroups,
-            columnGroupsExtended: columnGroupsExtended,
-            showColumnGroupsExtended: showColumnGroupsExtended,
-            rowGroups: rowGroups,
-            showRowGroups: showRowGroups,
-            rowGroupsExtended: rowGroupsExtended,
-            showRowGroupsExtended: showRowGroupsExtended,
-            summaryBackgroundColor: summaryBackgroundColor,
-            xAxisLabel: xAxisLabel,
-            yAxisLabel: yAxisLabel,
-            showAxisLabels: showAxisLabels,
-            showColumnSummary: showColumnSummary,
-            defaultOpen: defaultOpen,
-            colorRanges: newColorRanges,
-            colorRangeBaseColor: colorRangeBaseColor,
-            colorRangeSegments: colorRangeSegments,
-            colorRangeSegmentStep: colorRangeSegmentStep,
+        this.setState((prevState) => {
+            return {
+                ...prevState,
+                query: {
+                    ...prevState.query,
+                    url: searchUrl,
+                    columnAggFields: columnAggField,
+                    rowAggFields: rowAggFields
+                },
+                columnGrouping: newColumnGrouping,
+                groupingProperties: newGroupingProperties,
+                columnGroups: columnGroups,
+                showColumnGroups: showColumnGroups,
+                columnGroupsExtended: columnGroupsExtended,
+                showColumnGroupsExtended: showColumnGroupsExtended,
+                rowGroups: rowGroups,
+                showRowGroups: showRowGroups,
+                rowGroupsExtended: rowGroupsExtended,
+                showRowGroupsExtended: showRowGroupsExtended,
+                summaryBackgroundColor: summaryBackgroundColor,
+                xAxisLabel: xAxisLabel,
+                yAxisLabel: yAxisLabel,
+                showAxisLabels: showAxisLabels,
+                showColumnSummary: showColumnSummary,
+                defaultOpen: defaultOpen,
+                colorRanges: newColorRanges,
+                colorRangeBaseColor: colorRangeBaseColor,
+                colorRangeSegments: colorRangeSegments,
+                colorRangeSegmentStep: colorRangeSegmentStep,
+            };
         });
     }
 
@@ -539,10 +541,10 @@ export default class DataMatrix extends React.PureComponent {
 
     getJsxExport() {
         const allowedKeys = Object.keys(DataMatrix.propTypes);
+        const { ...props } = this.props;
+        const { ...state } = this.state;
         const filteredProps = allowedKeys.reduce((acc, key) => {
-            if (this.props.hasOwnProperty(key)) {
-                acc[key] = this.state[key] || this.props[key];
-            }
+            acc[key] = state[key] ?? props[key];
             return acc;
         }, {});
 
@@ -616,7 +618,7 @@ export default class DataMatrix extends React.PureComponent {
         const rowAgg2 = query.rowAggFields.length > 1 ? Array.isArray(query.rowAggFields[1]) ? query.rowAggFields[1] : [query.rowAggFields[1]] : null;
         const rowAgg3 = query.rowAggFields.length > 2 ? Array.isArray(query.rowAggFields[2]) ? query.rowAggFields[2] : [query.rowAggFields[2]] : null;
 
-        const fieldToNameMap = _.invert(this.state.fieldChangeMap);
+        const fieldToNameMap = _.invert(fieldChangeMap);
 
         const configurator = !disableConfigurator && this.isAdminUser() && !this.isProductionEnv() && (
             <DataMatrixConfigurator
