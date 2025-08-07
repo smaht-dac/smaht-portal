@@ -885,6 +885,131 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 				.search-headers-row {
 					background-color: #F4F3FD;
 				}
+				
+				.search-results-container {
+					.search-result-row {
+						.search-result-column-block {
+							.inner {
+								justify-content: right;
+								.inner-value-container {
+									display: flex;
+									gap: 5px;
+									align-items: center;
+
+									.toggle-detail-button-container {
+										> button {
+											border: none;
+											background-color: transparent;
+	
+											.icon {
+												color: #317EBF;
+												font-size: 0.75rem;
+											}
+										}
+									}
+
+									&.detail-open {
+										.value {
+											color: #B75200;
+										}
+										.toggle-detail-button-container {
+											> button {
+												.icon {
+													color: #FF9A47;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+
+						.result-table-detail-container {
+							.result-table-detail {
+								.close-button-container {
+									display: none;
+								}
+								.detail-pane {
+									display: flex;
+									flex-direction: column;
+									width: 100%;
+									margin: 0px;
+									border-left: 1px solid #EFEFEF;
+									border-right: 1px solid #EFEFEF;
+
+									.detail-header {
+										padding: 10px 15px;
+
+										.icon {
+											color: #ABA9C1;
+											margin-right: 10px;
+										}
+									}
+
+									.detail-body {
+										display: flex;
+										color: #343741;
+
+										.tissue-category {
+											margin: 0px;
+											flex: 1;
+											max-width: 250px;
+											
+											.header-container {
+												display: flex;
+												padding: 0.25rem 1rem;
+												background-color: #F4F3FD;
+												border-top: 1px solid #BFC5D1;
+												border-bottom: 1px solid #BFC5D1;
+												
+												h3 {
+													color: #343741;
+													font-size: 0.75rem;
+													font-weight: 500;
+													margin: 0px;
+													line-height: normal;
+												}
+											}
+
+											&:first-of-type {
+												.header-container {
+													padding-left: 18px;
+												}
+											}
+											&:last-of-type {
+												flex: 1;
+												max-width: none;
+											}
+
+											.tissue-list-container {
+
+												padding: 10px 19px 20px 19px;
+											}
+
+											ul {
+												padding: 0px;
+												list-style-position: inside;
+
+												li {
+													color: #317EBF;
+
+													span {
+														position: relative;
+														left: -5px;
+													}
+													
+													&::marker {
+														margin-right: 5px;
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	}
