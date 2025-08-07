@@ -245,6 +245,8 @@ export class VisualBody extends React.PureComponent {
                 totalCoverage: sum.totalCoverage + item.total_coverage
             };
         }, { fileCount: 0, totalCoverage: 0 });
+        // Round totalCoverage to 2 decimal places since ES has floating point precision issues
+        const roundedTotalCoverage = totalCoverage > 0 ? Math.round(totalCoverage * 100) / 100 : 0;
 
         return (
             <Popover id="jap-popover">
@@ -300,7 +302,7 @@ export class VisualBody extends React.PureComponent {
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Coverage</div>
-                                        <div className="value">{totalCoverage > 0 ? totalCoverage + 'X' : '--'}</div>
+                                        <div className="value">{roundedTotalCoverage > 0 ? roundedTotalCoverage + 'X' : '--'}</div>
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Files</div>
