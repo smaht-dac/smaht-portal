@@ -229,7 +229,7 @@ function validateLowerHeaders(expectedLabels) {
  * 3. Checks for the correct donor and assay information.
  * 4. Confirms the file count is as expected.
  */
-function testMatrixPopoverValidation(matrixId = '#data-matrix-for_production', donors = ['SMHT004', 'SMHT008'], mustLabels = ['Skin', 'Heart', 'Blood'], optionalLabels = [], expectedLowerLabels = ['Donors']) {
+function testMatrixPopoverValidation(matrixId = '#data-matrix-for_production', donors = ['SMHT004', 'SMHT008'], mustLabels = ['Non-exposed Skin', 'Heart', 'Blood'], optionalLabels = [], expectedLowerLabels = ['Donors']) {
     cy.get(matrixId).should('exist');
 
     const columnTotals = {};
@@ -451,7 +451,7 @@ describe('Data Overview - Retracted Files, Data Matrix for Production, Data Matr
                 // Verify that the page contains the correct header
                 cy.contains('div#page-title-container h1.page-title', 'Data Matrix').should('be.visible');
 
-                testMatrixPopoverValidation('#data-matrix-for_production', ['SMHT004', 'SMHT008'], ['Skin', 'Heart', 'Blood'], [], ['Donors']);
+                testMatrixPopoverValidation('#data-matrix-for_production', ['SMHT004', 'SMHT008'], ['Non-exposed Skin', 'Heart', 'Blood'], [], ['Donors']);
             })
             .logoutSMaHT();
     });
@@ -475,7 +475,7 @@ describe('Data Overview - Retracted Files, Data Matrix for Production, Data Matr
                 // Verify that the page contains the correct header
                 cy.contains('div#page-title-container h1.page-title', 'Data Matrix').should('be.visible');
 
-                testMatrixPopoverValidation('#data-matrix-for_benchmarking', ['ST001', 'ST002', 'ST003', 'ST004'], [], ['Skin', 'Lung', 'Brain', 'Liver', 'Colon'], ['Cell Lines', 'Donors']);
+                testMatrixPopoverValidation('#data-matrix-for_benchmarking', ['ST001', 'ST002', 'ST003', 'ST004'], [], ['Non-exposed Skin', 'Lung', 'Brain', 'Liver', 'Ascending Colon'], ['Cell Lines', 'Donors']);
             })
             .logoutSMaHT();
     });
