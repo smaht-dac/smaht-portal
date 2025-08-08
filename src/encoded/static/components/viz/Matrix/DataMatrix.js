@@ -151,7 +151,7 @@ export default class DataMatrix extends React.PureComponent {
         "autoPopulateRowGroupsProperty": null,
         "rowGroupsExtended": {
             "Ectoderm": {
-                "values": ['Brain', 'Brain - Cerebellum', 'Brain - Frontal lobe', 'Brain - Hippocampus', 'Brain - Temporal lobe', 'Skin', 'Skin - Abdomen (non-exposed)', 'Skin - Calf (sun-exposed)'],
+                "values": ['Brain', 'Brain - Cerebellum', 'Brain - Frontal lobe', 'Brain - Hippocampus', 'Brain - Temporal lobe', 'Skin', 'Skin - Abdomen (non-exposed)', 'Skin - Calf (sun-exposed)', 'Non-exposed Skin', 'Sun-exposed Skin'],
                 "backgroundColor": "#367151",
                 "textColor": "#ffffff",
                 "shortName": "Ecto"
@@ -163,7 +163,7 @@ export default class DataMatrix extends React.PureComponent {
                 "shortName": "Meso"
             },
             "Endoderm": {
-                "values": ['Colon', 'Colon - Ascending', 'Colon - Descending', 'Esophagus', 'Liver', 'Lung'],
+                "values": ['Colon', 'Colon - Ascending', 'Colon - Descending', 'Ascending Colon', 'Descending Colon', 'Esophagus', 'Liver', 'Lung'],
                 "backgroundColor": "#53b27e",
                 "textColor": "#ffffff",
                 "shortName": "Endo"

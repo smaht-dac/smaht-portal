@@ -102,7 +102,7 @@ export class VisualBody extends React.PureComponent {
             groupingProperties, columnGrouping, compositeValueSeparator,
             rowGroupsExtended
         } = this.props;
-        const { depth, blockType = null, columnToRowsMapping, popoverPrimaryTitle, rowGroups, rowGroupKey } = blockProps;
+        const { depth, blockType = null, popoverPrimaryTitle, rowGroups, rowGroupKey } = blockProps;
         const isGroup = (Array.isArray(data) && data.length >= 1) || false;
         let aggrData;
 
