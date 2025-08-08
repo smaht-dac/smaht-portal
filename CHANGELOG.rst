@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.194.1
+=======
+`PR 504: feat: updates to portal for CRAM releases <https://github.com/smaht-dac/smaht-portal/pull/504>`_
+
+* Update portal to reflect CRAM files being released
+
+
 0.194.0
 =======
 `PR 496: Data matrix popover and style updates <https://github.com/smaht-dac/smaht-portal/pull/496>`_
