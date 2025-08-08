@@ -100,7 +100,7 @@ export class VisualBody extends React.PureComponent {
             query: { url: queryUrl, columnAggFields },
             fieldChangeMap, valueChangeMap, titleMap,
             groupingProperties, columnGrouping, compositeValueSeparator,
-            rowGroupsExtended
+            rowGroupsExtended, additionalPopoverData = {}
         } = this.props;
         const { depth, blockType = null, popoverPrimaryTitle, rowGroups, rowGroupKey } = blockProps;
         const isGroup = (Array.isArray(data) && data.length >= 1) || false;
@@ -136,9 +136,9 @@ export class VisualBody extends React.PureComponent {
         const secondaryGrpPropValue = aggrData[secondaryGrpProp];
         const secondaryGrpPropUniqueCount = Array.isArray(aggrData[secondaryGrpProp]) ? aggrData[secondaryGrpProp].length : (aggrData[secondaryGrpProp] && aggrData[secondaryGrpProp] !== 'No value' ? 1 : 0);
         // e.g. Germ Layer (Ectoderm, Mesoderm, Endoderm ...etc) if available
-        let secondaryGrpPropGrouperValue = null;
+        let secondaryGrpPropCategoryValue = null;
         if (depth > 0 && secondaryGrpPropValue && rowGroupsExtended) {
-            secondaryGrpPropGrouperValue = this.findKeyByValue(rowGroupsExtended, secondaryGrpPropValue);
+            secondaryGrpPropCategoryValue = this.findKeyByValue(rowGroupsExtended, secondaryGrpPropValue);
         }
 
         // Generate title area which shows current grouping vals.
@@ -260,16 +260,16 @@ export class VisualBody extends React.PureComponent {
                                         <div className="value">{primaryGrpPropValue || '--'}</div>
                                     </div>
                                     <div className="col-4">
-                                        {depth > 0 ? (
+                                        {depth > 0 || additionalPopoverData?.[primaryGrpPropValue]?.["secondary"] ? (
                                             <React.Fragment>
                                                 <div className="label">{secondaryGrpPropTitle}</div>
-                                                <div className="value">{secondaryGrpPropValue}</div>
+                                                <div className="value">{additionalPopoverData?.[primaryGrpPropValue]?.["secondary"] || secondaryGrpPropValue}</div>
                                             </React.Fragment>
                                         ) : null}
                                     </div>
                                     <div className="col-4">
                                         <div className="label me-05">{'Germ Layer'}</div>
-                                        <div className="value">{secondaryGrpPropGrouperValue || '--'}</div>
+                                        <div className="value">{ additionalPopoverData?.[primaryGrpPropValue]?.["secondaryCategory"] || secondaryGrpPropCategoryValue || '--'}</div>
                                     </div>
                                 </div>
                             ) : null}
@@ -329,12 +329,18 @@ export class VisualBody extends React.PureComponent {
                             {blockType === 'row-summary' && depth === 0 ? (
                                 <div className="row secondary-row pb-1 mt-1">
                                     <div className="col-4">
-                                        <div className="label me-05">{StackedBlockVisual.pluralize(secondaryGrpPropTitle)}</div>
-                                        <div className="value">{secondaryGrpPropUniqueCount || '--'}</div>
+                                        <div className="label me-05">{additionalPopoverData?.[primaryGrpPropValue]?.["secondaryCategory"] ? secondaryGrpPropTitle : StackedBlockVisual.pluralize(secondaryGrpPropTitle)}</div>
+                                        <div className="value">{secondaryGrpPropUniqueCount || additionalPopoverData?.[primaryGrpPropValue]?.["secondaryCategory"] || '--'}</div>
                                     </div>
-                                    <div className="col-4">
-                                        &nbsp;
-                                    </div>
+                                    {additionalPopoverData?.[primaryGrpPropValue]?.["secondary"] ?
+                                        <div className="col-4">
+                                            <div className="label">{'Germ Layer'}</div>
+                                            <div className="value">{additionalPopoverData?.[primaryGrpPropValue]?.["secondary"] || '--'}</div>
+                                        </div> :
+                                        <div className="col-4">
+                                            &nbsp;
+                                        </div>
+                                    }
                                     <div className="col-4">
                                         <div className="label">Total Files</div>
                                         <div className="value">{fileCount}</div>
@@ -349,7 +355,7 @@ export class VisualBody extends React.PureComponent {
                                     </div>
                                     <div className="col-4">
                                         <div className="label">{'Germ Layer'}</div>
-                                        <div className="value">{secondaryGrpPropGrouperValue || '--'}</div>
+                                        <div className="value">{secondaryGrpPropCategoryValue || '--'}</div>
                                     </div>
                                     <div className="col-4">
                                         <div className="label">Total Files</div>

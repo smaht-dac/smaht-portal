@@ -182,12 +182,35 @@ export default class DataMatrix extends React.PureComponent {
             }
         },
         "showRowGroupsExtended": true,
+        "additionalPopoverData": {
+            "COLO829T":{
+                "secondary": "Melanoma",
+                "secondaryCategory": "Ectoderm"
+            },
+            "COLO829BL": {
+                "secondary": "Blood",
+                "secondaryCategory": "Mesoderm"
+            },
+            "HapMap Mixture": {
+                "secondary": "Blood",
+                "secondaryCategory": "Mesoderm"
+            }
+        },
         "titleMap": {},
         "columnSubGroupingOrder": [],
         "colorRangeBaseColor": "#47adff", // color hex or rgba code (if set, will override colorRanges)
         "colorRangeSegments": 5, // split color ranges into 5 equal parts
         "colorRangeSegmentStep": 20, // step size for each segment
         "summaryBackgroundColor": "#ececff",
+        "xAxisLabel": "Assay",
+        "yAxisLabel": "Donor",
+        "showAxisLabels": true,
+        "showColumnSummary": true,
+        "defaultOpen": false,
+        "compositeValueSeparator": " - ",
+        "disableConfigurator": true,
+        "idLabel": "",
+        // allowedFields is for the configurator
         "allowedFields": [
             "donors.display_title",
             "sequencing.sequencer.display_title",
@@ -201,14 +224,6 @@ export default class DataMatrix extends React.PureComponent {
             "sample_summary.studies",
             "dataset",
         ],
-        "xAxisLabel": "Assay",
-        "yAxisLabel": "Donor",
-        "showAxisLabels": true,
-        "showColumnSummary": true,
-        "defaultOpen": false,
-        "compositeValueSeparator": " - ",
-        "disableConfigurator": true,
-        "idLabel": "",
     };
 
     static propTypes = {
@@ -232,7 +247,6 @@ export default class DataMatrix extends React.PureComponent {
         'colorRangeSegments': PropTypes.number,
         'colorRangeSegmentStep': PropTypes.number,
         'summaryBackgroundColor': PropTypes.string,
-        'allowedFields': PropTypes.arrayOf(PropTypes.string),
         'columnGroups': PropTypes.object,
         'showColumnGroups': PropTypes.bool,
         'columnGroupsExtended': PropTypes.object,
@@ -242,6 +256,7 @@ export default class DataMatrix extends React.PureComponent {
         'autoPopulateRowGroupsProperty': PropTypes.string,
         'rowGroupsExtended': PropTypes.object,
         'showRowGroupsExtended': PropTypes.bool,
+        'additionalPopoverData': PropTypes.object,
         'xAxisLabel': PropTypes.string,
         'yAxisLabel': PropTypes.string,
         'showAxisLabels': PropTypes.bool,
@@ -250,6 +265,7 @@ export default class DataMatrix extends React.PureComponent {
         'compositeValueSeparator': PropTypes.string,
         'disableConfigurator': PropTypes.bool,
         'idLabel': PropTypes.string,
+        'allowedFields': PropTypes.arrayOf(PropTypes.string),
     };
 
     static parseQuery(queryString) {
@@ -580,7 +596,7 @@ export default class DataMatrix extends React.PureComponent {
     render() {
         const {
             headerFor, valueChangeMap, allowedFields, compositeValueSeparator,
-            disableConfigurator = false, idLabel = ''
+            disableConfigurator = false, idLabel = '', additionalPopoverData = {}
         } = this.props;
         const {
             query, fieldChangeMap, columnGrouping, groupingProperties,
@@ -609,7 +625,7 @@ export default class DataMatrix extends React.PureComponent {
         const bodyProps = {
             query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
-            rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
+            rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, additionalPopoverData,
             summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary, compositeValueSeparator,
         };
 
