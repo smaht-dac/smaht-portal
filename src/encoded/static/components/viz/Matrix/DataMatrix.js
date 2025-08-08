@@ -7,9 +7,65 @@ import ReactTooltip from 'react-tooltip';
 import { console, ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { VisualBody } from './StackedBlockVisual';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
+import { germLayerTissueMapping } from '../../util/data';
 
 
 export default class DataMatrix extends React.PureComponent {
+
+    static isPlainObject = (v) => v != null && typeof v === 'object' && !Array.isArray(v);
+
+    // Simple recursive deep clone that works with objects and arrays
+    static deepClone(value) {
+        if (Array.isArray(value)) {
+            return value.map(DataMatrix.deepClone);
+        }
+        if (DataMatrix.isPlainObject(value)) {
+            return _.mapObject(value, DataMatrix.deepClone);
+        }
+        return value;
+    }
+
+    /**
+     * Deeply merges two objects without mutating the original objects.
+     * We don't use deepExtend from @hms-dbmi-bgm/shared-portal-components/es/components/util/object since
+     * it doesn't handle arrays and also mutates obj1
+     */
+    static deepExtend(obj1 = {}, obj2 = {}) {
+        // Create a full deep copy of obj1 to ensure it is never mutated
+        const result = DataMatrix.deepClone(obj1);
+
+        _.each(obj2, (value, key) => {
+            const left = result[key];
+
+            if (DataMatrix.isPlainObject(value) && DataMatrix.isPlainObject(left)) {
+                // If both values are plain objects, merge them recursively
+                result[key] = DataMatrix.deepExtend(left, value);
+            } else if (Array.isArray(value) && Array.isArray(left)) {
+                // Merge arrays, remove duplicates, and ensure a new array reference
+                result[key] = _.uniq([...left, ...value]);
+            } else if (Array.isArray(value)) {
+                // Replace with a cloned array to avoid shared references
+                result[key] = [...value];
+            } else if (DataMatrix.isPlainObject(value)) {
+                // Replace with a deep copy to avoid shared object references
+                result[key] = DataMatrix.deepClone(value);
+            } else {
+                // Override primitive values or non-matching types
+                result[key] = value;
+            }
+        });
+
+        return result;
+    }
+
+    static DEFAULT_ROW_GROUPS_EXTENDED = DataMatrix.deepExtend(germLayerTissueMapping, {
+        Ectoderm: { backgroundColor: '#367151', textColor: '#ffffff', shortName: 'Ecto' },
+        Mesoderm: { backgroundColor: '#30975e', textColor: '#ffffff', shortName: 'Meso' },
+        Endoderm: { backgroundColor: '#53b27e', textColor: '#ffffff', shortName: 'Endo' },
+        'Germ cells': { backgroundColor: '#80c4a0', textColor: '#ffffff', shortName: 'Germ' },
+        'Clinically accessible': { backgroundColor: '#70a588', textColor: '#ffffff', shortName: 'Clin' },
+    });
+
 
     static defaultProps = {
         "query": {
@@ -149,38 +205,7 @@ export default class DataMatrix extends React.PureComponent {
         "rowGroups": null,
         "showRowGroups": false,
         "autoPopulateRowGroupsProperty": null,
-        "rowGroupsExtended": {
-            "Ectoderm": {
-                "values": ['Brain', 'Brain - Cerebellum', 'Brain - Frontal lobe', 'Brain - Hippocampus', 'Brain - Temporal lobe', 'Skin', 'Skin - Abdomen (non-exposed)', 'Skin - Calf (sun-exposed)', 'Non-exposed Skin', 'Sun-exposed Skin'],
-                "backgroundColor": "#367151",
-                "textColor": "#ffffff",
-                "shortName": "Ecto"
-            },
-            "Mesoderm": {
-                "values": ['Aorta', 'Fibroblast', 'Heart', 'Muscle', 'Adrenal Gland'],
-                "backgroundColor": "#30975e",
-                "textColor": "#ffffff",
-                "shortName": "Meso"
-            },
-            "Endoderm": {
-                "values": ['Colon', 'Colon - Ascending', 'Colon - Descending', 'Ascending Colon', 'Descending Colon', 'Esophagus', 'Liver', 'Lung'],
-                "backgroundColor": "#53b27e",
-                "textColor": "#ffffff",
-                "shortName": "Endo"
-            },
-            "Germ cells": {
-                "values": ['Ovary', 'Testis'],
-                "backgroundColor": "#80c4a0",
-                "textColor": "#ffffff",
-                "shortName": "Germ"
-            },
-            "Clinically accessible": {
-                "values": ['Blood', 'Buccal swab'],
-                "backgroundColor": "#70a588",
-                "textColor": "#ffffff",
-                "shortName": "Clin"
-            }
-        },
+        "rowGroupsExtended": DataMatrix.DEFAULT_ROW_GROUPS_EXTENDED,
         "showRowGroupsExtended": true,
         "additionalPopoverData": {
             "COLO829T":{
