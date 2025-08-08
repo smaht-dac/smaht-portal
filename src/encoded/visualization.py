@@ -46,7 +46,8 @@ FIELDS_TO_DELETE = ['@context', '@id', '@type', '@graph', 'title', 'filters', 'f
 
 def includeme(config):
     config.add_route('date_histogram_aggregations', '/date_histogram_aggregations/')
-    config.add_route('data_matrix_aggregations',    '/data_matrix_aggregations')
+    config.add_route('data_matrix_aggregations', '/data_matrix_aggregations/')
+    # config.add_route('estimated_coverage', '/estimated_coverage/')
     config.scan(__name__)
 
 
@@ -222,6 +223,21 @@ def data_matrix_aggregations(context, request):
     MAX_BUCKET_COUNT = 30  # Max grouping in a data matrix.
     DEFAULT_SEARCH_PARAM_LISTS = {'type': ['File']}
     DEFAULT_COMPOSITE_VALUE_SEPARATOR = ' '
+    SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION = {
+        "total_coverage": {
+            "sum": {
+                "script": {
+                    "source": """
+                        if (doc['embedded.data_generation_summary.average_coverage.raw'].size() == 0) {
+                            return 0;
+                        } else {
+                            return Double.parseDouble(doc['embedded.data_generation_summary.average_coverage.raw'].value);
+                        }
+                    """
+                }
+            }
+        }
+    }
 
     try:
         json_body = request.json_body
@@ -277,7 +293,7 @@ def data_matrix_aggregations(context, request):
                 "missing": TERM_NAME_FOR_NO_VALUE,
                 "size": MAX_BUCKET_COUNT
             },
-            "aggs": {}
+            "aggs": deepcopy(SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION)
         }
     }
 
@@ -292,7 +308,7 @@ def data_matrix_aggregations(context, request):
                 "missing": TERM_NAME_FOR_NO_VALUE,
                 "size": MAX_BUCKET_COUNT
             },
-            "aggs": {}
+            "aggs": deepcopy(SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION)
         }
         curr_field_aggs = curr_field_aggs['field_' + str(field_index + 1)]['aggs']
 
@@ -318,7 +334,8 @@ def data_matrix_aggregations(context, request):
     def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0):
 
         curr_bucket_totals = {
-            'files': int(bucket_result['doc_count'])
+            'files': int(bucket_result['doc_count']),
+            'total_coverage': bucket_result['total_coverage']['value'] if bucket_result['total_coverage'] else 0
         }
 
         next_field_name = None
@@ -355,6 +372,7 @@ def data_matrix_aggregations(context, request):
                 # When the deepest level is reached, build a flat record from the path
                 flat_record = {field: value for field, value in path}
                 flat_record["files"] = data["files"]
+                flat_record["total_coverage"] = data.get("total_coverage", 0)
                 result.append(flat_record)
 
         # Start recursion from the root
@@ -380,3 +398,31 @@ def data_matrix_aggregations(context, request):
                 continue
 
     return ret_result
+
+# # Not used in the current code, but could be used to fetch estimated coverage data.
+# @view_config(route_name='estimated_coverage', request_method='POST')
+# @debug_log
+# def estimated_coverage(context, request):
+#     # Extract the necessary parameters from the request
+#     try:
+#         # json_body = request.json_body
+#         # search_params = json_body.get('search_query_params', {})
+#         search_params = {
+#             "type": ["OutputFile"],
+#             "quality_metrics.display_title!": "No+value",
+#         }
+#         search_params["limit"] = "all"
+#         search_params["field"] = ["accession", "quality_metrics.uuid"]
+#     except json.decoder.JSONDecodeError:
+#         raise HTTPBadRequest(detail="missing search_query_params parameter in the request body.")
+
+#     # This one we want consistent with what the user can see
+#     subreq = make_search_subreq(request, f'/search?{urlencode(search_params, True)}', inherit_user=True)
+#     search_result = perform_search_request(None, subreq)
+
+#     coverage = search_result.get('total', -1)
+
+#     return {
+#         "search_query_params": search_params,
+#         "estimated_coverage": coverage
+#     }
