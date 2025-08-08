@@ -282,7 +282,7 @@ class DonorRelease:
         identifier_to_report = self.get_identifier_to_report(item)
         self.patch_infos.append(f"\n{item_desc} ({identifier_to_report}):")
 
-        if item_utils.is_released(item):
+        if item_utils.get_status(item) == PUBLIC_DONOR_RELEASE_STATUS:
             self.add_okay_message(
                 item_constants.STATUS, PUBLIC_DONOR_RELEASE_STATUS, "Not patching."
             )
@@ -306,9 +306,9 @@ class DonorRelease:
         identifier_to_report = self.get_identifier_to_report(item)
         self.patch_infos.append(f"\n{item_desc} ({identifier_to_report}):")
 
-        if item_utils.is_released(item):
+        if item_utils.get_status(item) == PROTECTED_DONOR_RELEASE_STATUS:
             self.add_okay_message(
-                item_constants.STATUS,PROTECTED_DONOR_RELEASE_STATUS, "Not patching."
+                item_constants.STATUS, PROTECTED_DONOR_RELEASE_STATUS, "Not patching."
             )
             return
 
