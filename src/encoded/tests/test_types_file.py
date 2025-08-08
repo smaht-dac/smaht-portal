@@ -1102,7 +1102,9 @@ def assert_sample_summary_matches_expected(
     )
     expected_category = expected_tissues = get_unique_values(
         [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
-        tissue_utils.get_category
+        functools.partial(
+            tissue_utils.get_category, request_handler=request_handler
+        )
     )
     expected_tissues = get_unique_values(
         [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],

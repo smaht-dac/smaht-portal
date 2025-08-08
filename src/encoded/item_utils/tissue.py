@@ -33,11 +33,6 @@ def get_uberon_id(properties: Dict[str, Any]) -> str:
     return properties.get("uberon_id","")
 
 
-def get_category(properties: Dict[str, Any]) -> str:
-    """Get category associated with tissue from calc prop"""
-    return properties.get("category","")
-
-
 def get_grouping_term_from_tag(properties: Dict[str, Any], request_handler: RequestHandler, tag: str) -> str:
     """Get top grouping term associated with tissue"""
     return get_property_value_from_identifier(
@@ -143,6 +138,16 @@ def is_fibroblast(properties: Dict[str, Any]) -> bool:
     return get_protocol_id(properties) == "3AC"
 
 
+def is_germ_cell(properties: Dict[str, Any]) -> bool:
+    """Check if tissue is germ cell (ovary or testis) from protocol ID."""
+    return get_protocol_id(properties) in ["3U", "3V","3W", "3X"]
+
+
+def is_clinically_accessible(properties: Dict[str, Any]) -> bool:
+    """Check if tissue is clinically accessible (blood or buccal swab) from protocol ID."""
+    return get_protocol_id(properties) in ["3A", "3B"]
+
+
 def get_tissue_type(properties: Dict[str, Any], request_handler: RequestHandler):
     """
     Get tissue type of tissue from ontology term.
@@ -157,4 +162,22 @@ def get_tissue_type(properties: Dict[str, Any], request_handler: RequestHandler)
         request_handler=request_handler,
         tag="tissue_type"
     )
+
+
+def get_category(properties: Dict[str, Any], request_handler: RequestHandler) -> str:
+    """
+    Get category associated with tissue.
+    
+    Special handling of fibroblast, ovary, testis, blood, and buccal swab.
+    """
+    if is_germ_cell(properties):
+        return "Germ Cells"
+    elif is_clinically_accessible(properties):
+        return "Clinically Accessible"
+    elif is_fibroblast(properties):
+        return "Mesoderm"
+    else:
+        germ_layer = get_grouping_term_from_tag(properties, request_handler=request_handler, tag="germ_layer")
+        return germ_layer or None
+
         

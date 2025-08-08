@@ -471,3 +471,18 @@ def get_tissue_type(file: Dict[str, Any], request_handler: RequestHandler) -> Li
             tissue.get_tissue_type, request_handler=request_handler
         )
     )
+
+
+def get_tissue_category(file: Dict[str, Any], request_handler: RequestHandler) -> List[str]:
+    """
+    Get tissue category from ontology term.
+    
+    Special handling of fibroblast, ovary, testis, blood, and buccal swab.
+    """
+    return get_property_values_from_identifiers(
+        request_handler,
+        get_tissues(file, request_handler),
+        partial(
+            tissue.get_category, request_handler=request_handler
+        )
+    )

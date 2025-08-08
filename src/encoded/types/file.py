@@ -392,7 +392,6 @@ def _build_file_embedded_list() -> List[str]:
 
         # Sample summary + Link calcprops
         "file_sets.libraries.analytes.molecule",
-        "file_sets.libraries.analytes.samples.sample_sources.category",
         "file_sets.libraries.analytes.samples.sample_sources.code",
         "file_sets.libraries.analytes.samples.sample_sources.uberon_id",
         "file_sets.libraries.analytes.samples.sample_sources.description",
@@ -428,6 +427,7 @@ def _build_file_embedded_list() -> List[str]:
         "donors.display_title",
         "donors.protected_donor",
         "sample_summary.tissues",
+        "sample_summary.category",
 
         # For facets
         "donors.age",
@@ -1056,11 +1056,7 @@ class File(Item, CoreFile):
                 file_utils.get_donors(file_properties, request_handler),
                 item_utils.get_external_id,
             ),
-            constants.SAMPLE_SUMMARY_CATEGORY: get_property_values_from_identifiers(
-                request_handler,
-                file_utils.get_tissues(file_properties, request_handler),
-                tissue_utils.get_category
-            ),
+            constants.SAMPLE_SUMMARY_CATEGORY: file_utils.get_tissue_category(file_properties, request_handler),
             constants.SAMPLE_SUMMARY_TISSUES: file_utils.get_tissue_type(file_properties, request_handler),
             constants.SAMPLE_SUMMARY_TISSUE_SUBTYPES: get_property_values_from_identifiers(
                 request_handler,
