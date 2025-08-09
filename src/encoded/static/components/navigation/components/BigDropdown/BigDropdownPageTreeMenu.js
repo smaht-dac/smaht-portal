@@ -225,7 +225,6 @@ function Level1Title({ childPageItem, active, disableLinks }) {
 }
 
 function CustomStaticLinks({ pathName, href }) {
-    console.log('href, pathName', href, pathName, href.includes(pathName));
     switch (pathName) {
         case 'data':
             return (
@@ -236,23 +235,16 @@ function CustomStaticLinks({ pathName, href }) {
                         </h3>
                         <hr className="mb-0" />
                         <BigDropdownBigLink
-                            href="/browse"
+                            href="/browse/?type=File&sample_summary.studies=Production&status=released"
                             titleIcon="file fas"
                             className="primary-big-link is-fa-icon">
                             <h4 className="text-large">Browse By File</h4>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
-                            disabled
-                            href=""
+                            href="/browse/?type=Donor&sample_summary.studies=Production&status=released"
                             titleIcon="users fas"
                             className="primary-big-link is-fa-icon">
-                            <h4 className="text-large">
-                                Browse By Donor
-                                <span className="text-300 fst-italic text-medium">
-                                    {' '}
-                                    - Coming Soon
-                                </span>
-                            </h4>
+                            <h4 className="text-large">Browse By Donor</h4>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
                             disabled
