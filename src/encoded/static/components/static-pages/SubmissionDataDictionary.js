@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import Select from 'react-select';
+import {
+    OverlayTrigger,
+    Popover,
+    PopoverHeader,
+    PopoverBody,
+} from 'react-bootstrap';
 
 // Renders a table of schema properties
 const SchemaPropertiesTable = ({ data = {} }) => {
@@ -17,7 +23,45 @@ const SchemaPropertiesTable = ({ data = {} }) => {
                     <th className="text-left">Description</th>
                     <th className="text-left">Type</th>
                     <th className="text-left">Pattern</th>
-                    <th className="text-left">Values</th>
+                    <th className="text-left">
+                        Values
+                        <OverlayTrigger
+                            trigger={['hover', 'focus']}
+                            overlay={
+                                <Popover className="description-definitions-popover">
+                                    <PopoverHeader>Values</PopoverHeader>
+                                    <PopoverBody className="p-3">
+                                        <p>
+                                            <b>Options:</b> Accepted values for
+                                            this property.
+                                        </p>
+                                        <p>
+                                            <b>Examples:</b> Suggested values
+                                            for this property. Other values
+                                            accepted.
+                                        </p>
+                                    </PopoverBody>
+                                </Popover>
+                            }
+                            placement="top"
+                            flip={true}
+                            popperConfig={{
+                                modifiers: [
+                                    {
+                                        name: 'flip',
+                                        options: {
+                                            fallbackPlacements: [
+                                                'right',
+                                                'bottom',
+                                                'left',
+                                            ],
+                                        },
+                                    },
+                                ],
+                            }}>
+                            <i className="icon icon-info-circle fas ms-1"></i>
+                        </OverlayTrigger>
+                    </th>
                     <th className="text-left">Also Requires</th>
                     <th className="text-left">LinkTo</th>
                     <th className="text-left">Note</th>
