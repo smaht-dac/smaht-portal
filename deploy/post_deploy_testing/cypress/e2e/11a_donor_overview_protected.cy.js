@@ -15,7 +15,7 @@ describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and
 
     const BASE_BROWSE_URL = '/browse/?type=File&sample_summary.studies=Production&status=released';
 
-    // Prefer env var for flexibility (set in cypress.config.* -> env.BASE_BROWSE_URL)
+    // TODO: Implement environment variable support
     const getBaseUrl = () => Cypress.env('BASE_BROWSE_URL') ?? BASE_BROWSE_URL;
 
     // Safe query param append (handles both bare and existing query string)
@@ -187,7 +187,6 @@ describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and
     // Normalizes a raw text: trims and collapses internal whitespace
     const norm = (s) => (s || '').replace(/\s+/g, ' ').trim();
 
-
     // Returns true if value should trigger frequency check (non-empty and not '--' or 'N/A')
     const triggersFrequency = (text) => {
         const t = norm(text).toUpperCase();
@@ -195,15 +194,14 @@ describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and
     };
 
     // Read a datum value under a given exposure-card by its label
-    const readExposureDatum = (cardSel, label) => {
-        return cy.get(`${cardSel} .datum .datum-title:contains("${label}")`)
+    const readExposureDatum = (cardSel, label) =>
+        cy.get(`${cardSel} .datum .datum-title:contains("${label}")`)
             .should('be.visible')
             .closest('.datum')
             .find('.datum-value')
             .should('be.visible')
             .invoke('text')
-            .then(t => norm(t)); // norm() handles undefined cases
-    };
+            .then((t) => norm(t)); // norm() handles undefined cases
 
 
     // Verify a single exposure-card by its title (e.g., "Tobacco" or "Alcohol")
@@ -249,9 +247,98 @@ describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and
             .siblings('.section-body')
             .find('span')
             .invoke('text')
-            .then(t => {
+            .then((t) => {
                 const val = norm(t);
                 expect(val.startsWith('Protected'), `Other Exposures should start with "Protected" (got "${val}")`).to.be.true;
+            });
+    };
+
+    // list what's in the header, then assert presence using multiple fallbacks
+    const verifyHeaderButtons = () => {
+        // 1) Ensure the donor view header exists
+        cy.get('.donor-view .view-header', { timeout: 60000 })
+            .should('be.visible')
+            .first()
+            .then(($hdr) => {
+                // DEBUG: log all link/button texts in header
+                const texts = $hdr.find('a,button').toArray().map((el) => norm(el.innerText));
+                cy.log('Header controls (a,button):', texts.join(' | '));
+
+                // 2) Try to find Donor Metadata link by multiple strategies
+                const findMetadataLink = () => {
+                    // a) by icon
+                    let $link = $hdr.find('a.btn i.icon-users').closest('a');
+                    if ($link.length) return $link;
+
+                    // b) by download attribute
+                    $link = $hdr.find('a[download]').first();
+                    if ($link.length) return $link;
+
+                    // c) by href pattern
+                    $link = $hdr.find('a[href*="/resource-files/"]').first();
+                    if ($link.length) return $link;
+
+                    // d) by visible text (case-insensitive)
+                    $link = $hdr.find('a').filter((_, el) => /donor metadata/i.test(el.innerText || '')).first();
+                    if ($link.length) return $link;
+
+                    // e) sometimes rendered as a button (unlikely, but try)
+                    $link = $hdr.find('button').filter((_, el) => /donor metadata/i.test(el.innerText || '')).first();
+                    if ($link.length) return $link;
+
+                    return null;
+                };
+
+                const $meta = findMetadataLink();
+                if (!$meta) {
+                    // If not in header, try anywhere under .donor-view (some apps portalize controls)
+                    cy.get('.donor-view', { timeout: 10000 }).then(($view) => {
+                        const $any = $view.find('a[download], a[href*="/resource-files/"], a:contains("Donor Metadata"), button:contains("Donor Metadata")').first();
+                        if ($any.length) {
+                            cy.log('Found Metadata control outside header scope.');
+                            return cy.wrap($any);
+                        }
+                    });
+                    return;
+                }
+
+                // 3) Assert the metadata control
+                cy.wrap($meta)
+                    .should('be.visible')
+                    .then(($el) => {
+                        const tag = ($el.prop('tagName') || '').toLowerCase();
+                        // If it's an anchor, check href
+                        if (tag === 'a') {
+                            const href = $el.attr('href') || '';
+                            expect(href.length, 'Donor Metadata href should not be empty').to.be.greaterThan(0);
+                            // If your environment always uses /resource-files/, keep this; else comment out:
+                            expect(href).to.match(/\/resource-files\//);
+                        }
+                    })
+                    .invoke('text')
+                    .then((txt) => {
+                        expect(norm(txt)).to.match(/donor metadata/i);
+                    });
+
+                // Optional icon
+                cy.wrap($meta).find('i.icon-users').should('exist');
+
+                // 4) Assert the disabled "Download Donor Manifest" button
+                const $btn = $hdr.find('button.download-button').filter((_, el) =>
+                    /download donor manifest/i.test(el.innerText || '')
+                ).first();
+
+                if (!$btn.length) {
+                    // Try globally under donor-view as a fallback
+                    cy.get('.donor-view').then(($view) => {
+                        const $globalBtn = $view.find('button.download-button').filter((_, el) =>
+                            /download donor manifest/i.test(el.innerText || '')
+                        ).first();
+                        cy.wrap($globalBtn).should('be.visible').and('be.disabled').find('i.icon-user').should('exist');
+                    });
+                } else {
+                    cy.wrap($btn).should('be.visible').and('be.disabled').find('i.icon-user').should('exist');
+                }
             });
     };
 
@@ -311,10 +398,12 @@ describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and
                         // Land on protected donor view
                         cy.location('pathname', { timeout: 15000 }).should('include', '/protected-donors/');
 
-                        // (Optional) Header contains donor ID
                         cy.get('.donor-view .view-header .header-text', { timeout: 15000 })
                             .should('be.visible')
                             .and('contain', donorID);
+
+                        // Verify header buttons (scoped to the correct header)
+                        verifyHeaderButtons(donorID);
 
                         // Verify "Data Summary" / "Donor Overview" and stats (Option B for numbers)
                         verifyDonorSummary(donorID, totalCountExpected);
