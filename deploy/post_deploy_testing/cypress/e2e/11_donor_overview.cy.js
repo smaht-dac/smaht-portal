@@ -38,7 +38,7 @@ describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and
 
         // Wait until value's text matches a numeric pattern (Cypress retries internally)
         return cy.contains(baseSel, /^\s*\d+(\.\d+)?\s*$/, { timeout: 60000 })
-            .then($el => {
+            .then(($el) => {
                 const txt = $el.text().trim();
                 const cleaned = txt.replace(/[^\d.-]/g, '');
                 const num = Number(cleaned);
@@ -47,7 +47,20 @@ describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and
             });
     };
 
-    // Verify "Data Summary" card content on donor view (scoped via summaryCardSel)
+    // Helper: read the value element and its text for a given label inside the summary card
+    const getOverviewValue = (label) => {
+        const sel = `${summaryCardSel} .datum-title span:contains("${label}")`;
+        return cy.get(sel)
+            .should('be.visible')
+            .closest('.datum')
+            .find('.datum-value')
+            .should('be.visible')
+            .then($val => {
+                const text = $val.text().trim();
+                return { $el: $val, text };
+            });
+    };
+
     const verifyDonorSummary = (expectedDonorId, filesCount) => {
         // Ensure the specific card is present and visible
         cy.get(summaryCardSel, { timeout: 60000 }).should('be.visible');
@@ -61,37 +74,50 @@ describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and
             .should('be.visible')
             .and('have.text', 'Donor Overview');
 
-        // Donor Overview fields
-        const overviewFields = [
-            'Donor ID',
-            'Age',
-            'Sex',
-            'Hardy Scale',
-            'Tier',
-            'Bulk WGS Coverage',
-            'DSA',
-        ];
+        // --- Donor Overview strict checks ---------------------------------------
 
-        overviewFields.forEach((label) => {
-            // Ensure the label exists within the summary card
-            cy.get(`${summaryCardSel} .datum-title span:contains("${label}")`)
-                .should('be.visible')
-                .closest('.datum')
-                .find('.datum-value')
-                .should('be.visible')
-                .invoke('text')
-                .then((txt) => {
-                    const val = txt.trim();
-                    expect(val.length, `${label} value should not be empty`).to.be.greaterThan(0);
-
-                    // Strictly match Donor ID to the expected ID if provided
-                    if (label === 'Donor ID' && expectedDonorId) {
-                        expect(val).to.eq(expectedDonorId);
-                    }
-                });
+        // Donor ID must exactly match expectedDonorId
+        getOverviewValue('Donor ID').then(({ text }) => {
+            expect(text.length, 'Donor ID should not be empty').to.be.greaterThan(0);
+            if (expectedDonorId) expect(text).to.eq(expectedDonorId);
         });
 
-        // Donor statistics (Tissues, Assays, Files) — wait for numeric value only
+        // Age: just ensure non-empty (tighten later if you have bounds)
+        getOverviewValue('Age').then(({ text }) => {
+            expect(text.length, 'Age should not be empty').to.be.greaterThan(0);
+        });
+
+        // Sex: must be Male or Female
+        getOverviewValue('Sex').then(({ text }) => {
+            expect(['Male', 'Female'], `Sex should be Male or Female (got "${text}")`).to.include(text);
+        });
+
+        // Hardy Scale: integer between 0 and 4 inclusive
+        getOverviewValue('Hardy Scale').then(({ text }) => {
+            const n = Number(text);
+            expect(Number.isInteger(n), `Hardy Scale should be an integer (got "${text}")`).to.be.true;
+            expect(n, 'Hardy Scale should be between 0 and 4 (inclusive)').to.be.within(0, 4);
+        });
+
+        // Tier: Coming soon (+ has .coming-soon class)
+        getOverviewValue('Tier').then(({ $el, text }) => {
+            expect(text, 'Tier should be "Coming soon"').to.eq('Coming soon');
+            expect($el.hasClass('coming-soon'), 'Tier value should have .coming-soon class').to.be.true;
+        });
+
+        // Bulk WGS Coverage: Coming soon (+ class)
+        getOverviewValue('Bulk WGS Coverage').then(({ $el, text }) => {
+            expect(text, 'Bulk WGS Coverage should be "Coming soon"').to.eq('Coming soon');
+            expect($el.hasClass('coming-soon'), 'Bulk WGS Coverage should have .coming-soon class').to.be.true;
+        });
+
+        // DSA: Coming soon (+ class)
+        getOverviewValue('DSA').then(({ $el, text }) => {
+            expect(text, 'DSA should be "Coming soon"').to.eq('Coming soon');
+            expect($el.hasClass('coming-soon'), 'DSA should have .coming-soon class').to.be.true;
+        });
+
+        // --- Donor statistics (Option B: wait for numeric text) ------------------
         getNumericStatByLabel('Tissues').then((n) => expect(n).to.be.greaterThan(0));
         getNumericStatByLabel('Assays').then((n) => expect(n).to.be.greaterThan(0));
         getNumericStatByLabel('Files').then((n) => {
@@ -101,6 +127,134 @@ describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and
             }
         });
     };
+
+    // Stable selector for the "Prior Diagnosis" card
+    const priorDiagnosisSel = '.donor-view .data-card.prior-diagnosis';
+
+    // Verify "Prior Diagnosis" card content
+    const verifyPriorDiagnosis = () => {
+        // Ensure the card exists and header text is correct
+        cy.get(priorDiagnosisSel, { timeout: 20000 })
+            .should('be.visible')
+            .within(() => {
+                cy.get('.header .header-text')
+                    .should('be.visible')
+                    .and('have.text', 'Prior Diagnosis');
+
+                // --- Cancer History ---
+                cy.contains('.section-title', /^Cancer History$/)
+                    .should('be.visible')
+                    .siblings('.section-body')
+                    .find('span')
+                    .invoke('text')
+                    .then((txt) => {
+                        const val = txt.trim();
+                        const allowed = ['Yes', 'No', 'Unknown'];
+                        if (!allowed.includes(val)) {
+                            expect(val.length, `Cancer History should be Yes/No/Unknown or non-empty value (got "${val}")`)
+                                .to.be.greaterThan(0);
+                        }
+                    });
+
+                // --- Family Cancer History ---
+                cy.contains('.section-title', /^Family Cancer History$/)
+                    .should('be.visible')
+                    .siblings('.section-body')
+                    .find('span')
+                    .invoke('text')
+                    .then((txt) => {
+                        const val = txt.trim();
+                        const allowed = ['Yes', 'No', 'N/A'];
+                        expect(allowed, `Family Cancer History should be Yes, No or N/A (got "${val}")`).to.include(val);
+                    });
+
+                // --- Other Diagnosis ---
+                cy.contains('.section-title', /^Other Diagnosis$/)
+                    .should('be.visible')
+                    .siblings('.section-body')
+                    .find('span')
+                    .invoke('text')
+                    .then((txt) => {
+                        const val = txt.trim();
+                        expect(val.startsWith('Protected'), `Other Diagnosis should start with "Protected" (got "${val}")`).to.be.true;
+                    });
+            });
+    };
+
+    // Stable selector for the "Exposures" card
+    const exposuresCardSel = '.donor-view .data-card.exposure';
+
+    // Normalizes a raw text: trims and collapses internal whitespace
+    const norm = (s) => (s || '').replace(/\s+/g, ' ').trim();
+
+
+    // Returns true if value should trigger frequency check (non-empty and not '--' or 'N/A')
+    const triggersFrequency = (text) => {
+        const t = norm(text).toUpperCase();
+        return t !== '' && t !== '--' && t !== 'N/A';
+    };
+
+    // Read a datum value under a given exposure-card by its label
+    const readExposureDatum = (cardSel, label) => {
+        return cy.get(`${cardSel} .datum .datum-title:contains("${label}")`)
+            .should('be.visible')
+            .closest('.datum')
+            .find('.datum-value')
+            .should('be.visible')
+            .invoke('text')
+            .then(t => norm(t)); // norm() handles undefined cases
+    };
+
+
+    // Verify a single exposure-card by its title (e.g., "Tobacco" or "Alcohol")
+    const verifyExposureByTitle = (title) => {
+        const cardSel = `${exposuresCardSel} .exposure-card:has(.exposure-card-header .title:contains("${title}"))`;
+
+        // Ensure the card exists
+        cy.get(cardSel, { timeout: 20000 }).should('be.visible');
+
+        // Read values
+        return Cypress.Promise.all([
+            readExposureDatum(cardSel, 'Duration'),
+            readExposureDatum(cardSel, 'Frequency'),
+            readExposureDatum(cardSel, 'Quantity'),
+            readExposureDatum(cardSel, 'Cessation'),
+        ]).then(([duration, frequency, quantity, cessation]) => {
+            // If Duration or Cessation is a valid/triggering value, Frequency must be in the allowed set
+            const mustCheckFrequency = triggersFrequency(duration) || triggersFrequency(cessation);
+            if (mustCheckFrequency) {
+                const allowed = ['Social', 'Light', 'Moderate', 'Heavy'];
+                expect(allowed, `${title} -> Frequency must be one of ${allowed.join(', ')} (got "${frequency}")`)
+                    .to.include(frequency);
+            }
+            // (Optional) You can add further checks for Quantity format later if needed
+            return { duration, frequency, quantity, cessation };
+        });
+    };
+
+    // Verify the whole "Exposures" card
+    const verifyExposures = () => {
+        // Card header
+        cy.get(`${exposuresCardSel} .header .header-text`, { timeout: 20000 })
+            .should('be.visible')
+            .and('have.text', 'Exposures');
+
+        // Tobacco & Alcohol cards
+        verifyExposureByTitle('Tobacco');
+        verifyExposureByTitle('Alcohol');
+
+        // Other Exposures must start with "Protected"
+        cy.get(`${exposuresCardSel} .data-card-section .section-title:contains("Other Exposures")`)
+            .should('be.visible')
+            .siblings('.section-body')
+            .find('span')
+            .invoke('text')
+            .then(t => {
+                const val = norm(t);
+                expect(val.startsWith('Protected'), `Other Exposures should start with "Protected" (got "${val}")`).to.be.true;
+            });
+    };
+
 
     it('Browse by 3 random donors associated with released files and validate donor view', function () {
         // Visit base browse page
@@ -164,6 +318,12 @@ describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and
 
                         // Verify "Data Summary" / "Donor Overview" and stats (Option B for numbers)
                         verifyDonorSummary(donorID, totalCountExpected);
+
+                        // Verify "Prior Diagnosis" card
+                        verifyPriorDiagnosis();
+
+                        // Verify "Exposures" card
+                        verifyExposures();
                     });
                 });
             });
