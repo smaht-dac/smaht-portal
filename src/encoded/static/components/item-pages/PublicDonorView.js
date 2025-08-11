@@ -6,7 +6,7 @@ import { PublicDonorViewDataCards } from './components/donor-overview/PublicDono
 import DefaultItemView from './DefaultItemView';
 import { ShowHideInformationToggle } from './components/file-overview/ShowHideInformationToggle';
 import { DonorMetadataDownloadButton } from '../browse/BrowseView';
-import DataMatrix from '../static-pages/components/matrix/DataMatrix';
+import DataMatrix from '../viz/Matrix/DataMatrix';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import {
     OverlayTrigger,
