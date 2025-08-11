@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import memoize from 'memoize-one';
 import _ from 'underscore';
-import { OverlayTrigger, Popover } from 'react-bootstrap';
+import { OverlayTrigger, Popover, Table } from 'react-bootstrap';
 
 import ReactTooltip from 'react-tooltip';
 
@@ -40,6 +40,8 @@ import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAbove
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import { transformedFacets } from './SearchView';
 
+import { BrowseDonorBody } from './browse-view/BrowseDonor';
+
 export default function BrowseView(props) {
     const { session } = props;
     return <BrowseViewBody {...props} key={session} />;
@@ -65,31 +67,6 @@ const BrowseFileBody = (props) => {
             <hr />
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseFileSearchTable />
-            </BrowseViewControllerWithSelections>
-        </>
-    );
-};
-
-const BrowseDonorBody = (props) => {
-    return (
-        <>
-            <h2 className="browse-summary-header">SMaHT Data Summary</h2>
-            <Alerts alerts={props.alerts} className="mt-2" />
-            <div>
-                <div className="browse-summary d-flex flex-row mt-2 mb-3 flex-wrap">
-                    {/* <BrowseSummaryStatController type="File" />
-                    <BrowseSummaryStatController type="Donor" />
-                    <BrowseSummaryStatController type="Tissue" />
-                    <BrowseSummaryStatController type="Assay" />
-                    <BrowseSummaryStatController
-                        type="File Size"
-                        additionalSearchQueries="&additional_facet=file_size"
-                    /> */}
-                </div>
-            </div>
-            <hr />
-            <BrowseViewControllerWithSelections {...props}>
-                <BrowseDonorSearchTable />
             </BrowseViewControllerWithSelections>
         </>
     );
@@ -277,80 +254,8 @@ export const BrowseFileSearchTable = (props) => {
     );
 };
 
-export const BrowseDonorSearchTable = (props) => {
-    const {
-        session,
-        context,
-        currentAction,
-        schemas,
-        selectedItems,
-        onSelectItem,
-        onResetSelectedItems,
-    } = props;
-    const facets = transformedFacets(context, currentAction, schemas);
-    const tableColumnClassName = 'results-column col';
-    const facetColumnClassName = 'facets-column col-auto';
-
-    const selectedFileProps = {
-        selectedItems, // From SelectedItemsController
-        onSelectItem, // From SelectedItemsController
-        onResetSelectedItems, // From SelectedItemsController
-    };
-
-    const passProps = _.omit(props, 'isFullscreen', 'toggleFullScreen');
-
-    const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
-    const aboveTableComponent = (
-        <BrowseViewAboveSearchTableControls
-            topLeftChildren={
-                <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
-            }>
-            {session && <DonorMetadataDownloadButton session={session} />}
-            <SelectedItemsDownloadButton
-                id="download_tsv_multiselect"
-                disabled={selectedItems.size === 0}
-                className="btn btn-primary btn-sm me-05 align-items-center"
-                {...{ selectedItems, session }}
-                analyticsAddItemsToCart>
-                <i className="icon icon-download fas me-03" />
-                Download {selectedItems.size} Selected Files
-            </SelectedItemsDownloadButton>
-        </BrowseViewAboveSearchTableControls>
-    );
-
-    const { columnExtensionMap, columns, hideFacets } =
-        createBrowseDonorColumnExtensionMap(selectedFileProps);
-
-    return (
-        <CommonSearchView
-            {...passProps}
-            {...{
-                columnExtensionMap,
-                tableColumnClassName,
-                facetColumnClassName,
-                facets,
-                aboveFacetListComponent,
-                aboveTableComponent,
-                columns,
-                hideFacets,
-            }}
-            useCustomSelectionController
-            hideStickyFooter
-            isFullscreen={false}
-            toggleFullScreen={() => {}}
-            currentAction={'multiselect'}
-            renderDetailPane={null}
-            termTransformFxn={Schemas.Term.toName}
-            separateSingleTermFacets={false}
-            rowHeight={31}
-            openRowHeight={40}
-        />
-    );
-};
-
 const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
     const { context, schemas, currentAction, alerts } = props;
-    console.log('BrowseViewPageTitle', context, currentAction, alerts);
 
     if (currentAction === 'add') {
         // Fallback unless any custom PageTitles registered for @type=<ItemType>SearchResults & currentAction=add
@@ -372,6 +277,18 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
     }
 
     const commonCls = 'col-12';
+
+    let BrowseType = null;
+    switch (context['@type'][0]) {
+        case 'FileSearchResults':
+            BrowseType = 'File';
+            break;
+        case 'DonorSearchResults':
+            BrowseType = 'Donor';
+            break;
+        default:
+            break;
+    }
 
     return (
         <PageTitleContainer
@@ -398,7 +315,9 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
                         className="static-breadcrumb nonclickable"
                         data-name="Production"
                         key="/browse">
-                        <span>Browse By Donor</span>
+                        <span>
+                            {BrowseType ? `Browse By ${BrowseType}` : 'Browse'}
+                        </span>
                     </div>
                 </div>
                 <OnlyTitle className={commonCls + ' mx-0 px-0'}>
@@ -668,248 +587,6 @@ export function createBrowseFileColumnExtensionMap({
         },
         'sample_summary.tissues': {
             title: 'Tissue',
-        },
-        'file_sets.libraries.assay.display_title': {
-            title: 'Assay',
-        },
-        file_size: {
-            title: 'File Size',
-        },
-        'file_status_tracking.released_date': {
-            title: 'Release Date',
-        },
-        'file_sets.sequencing.sequencer.display_title': {
-            title: 'Platform',
-        },
-        'file_format.display_title': {
-            title: 'Format',
-        },
-        data_type: {
-            title: 'Data Type',
-        },
-        'software.display_title': {
-            title: 'Software',
-        },
-        date_created: {
-            title: 'Date Created',
-        },
-    };
-
-    const hideFacets = [
-        'dataset',
-        'file_sets.libraries.analytes.samples.sample_sources.code',
-        'status',
-        'validation_errors.name',
-        'version',
-        'sample_summary.studies',
-        'submission_centers.display_title',
-        'software.display_title',
-    ];
-
-    return { columnExtensionMap, columns, hideFacets };
-}
-/**
- *  A column extension map specifically for browse view file tables.
- */
-export function createBrowseDonorColumnExtensionMap({
-    selectedItems,
-    onSelectItem,
-    onResetSelectedItems,
-}) {
-    const columnExtensionMap = {
-        ...originalColExtMap, // Pull in defaults for all tables
-        // Then overwrite or add onto the ones that already are there:
-        display_title: {
-            default_hidden: true,
-        },
-        // Select all button
-        '@type': {
-            colTitle: (
-                // Context now passed in from HeadersRowColumn (for file count)
-                <SelectAllFilesButton
-                    {...{ selectedItems, onSelectItem, onResetSelectedItems }}
-                    type="checkbox"
-                />
-            ),
-            hideTooltip: true,
-            noSort: true,
-            widthMap: { lg: 60, md: 60, sm: 60 },
-            render: (result, parentProps) => {
-                return (
-                    <SelectionItemCheckbox
-                        {...{ selectedItems, onSelectItem, result }}
-                        isMultiSelect={true}
-                    />
-                );
-            },
-        },
-        // Access
-        // access_status: {
-        //     widthMap: { lg: 60, md: 60, sm: 60 },
-        //     colTitle: <i className="icon icon-lock fas" data-tip="Access" />,
-        //     render: function (result, parentProps) {
-        //         const { access_status } = result || {};
-
-        //         if (access_status === 'Protected') {
-        //             return (
-        //                 <span className="value">
-        //                     <i
-        //                         className="icon icon-lock fas"
-        //                         data-tip="Protected"
-        //                     />
-        //                 </span>
-        //             );
-        //         }
-        //         return (
-        //             <span className="value text-start">{access_status}</span>
-        //         );
-        //     },
-        // },
-        // File
-        annotated_filename: {
-            widthMap: { lg: 200, md: 200, sm: 200 },
-            colTitle: <>Donor</>,
-            render: function (result, parentProps) {
-                const {
-                    '@id': atId,
-                    display_title,
-                    annotated_filename,
-                } = result || {};
-
-                return (
-                    <span className="value text-start">
-                        <a
-                            href={atId}
-                            target="_blank"
-                            rel="noreferrer noopener">
-                            {annotated_filename || display_title}
-                        </a>
-                    </span>
-                );
-            },
-        },
-        // Age
-        age: {
-            widthMap: { lg: 102, md: 102, sm: 102 },
-            render: function (result, parentProps) {
-                return <span>{result?.age ?? null}</span>;
-            },
-        },
-        // Sex
-        sex: {
-            widthMap: { lg: 102, md: 102, sm: 102 },
-            render: function (result, parentProps) {
-                return <span>{result?.sex?.substring(0, 1) ?? null}</span>;
-            },
-        },
-        // Tissues
-        'sample_summary.tissues': {
-            widthMap: { lg: 150, md: 150, sm: 150 },
-            render: function (result, parentProps) {
-                console.log('Tissues', result);
-                if (result?.tissues?.length > 0) {
-                    return <span>{result?.tissues?.length} Tissues</span>;
-                }
-                return null;
-            },
-        },
-        // Hardy Scale
-        hardy_scale: {
-            widthMap: { lg: 150, md: 150, sm: 150 },
-            render: function (result, parentProps) {
-                return <span>{result?.hardy_scale ?? null}</span>;
-            },
-        },
-        // Assays
-        // 'file_sets.libraries.assay.display_title': {
-        //     widthMap: { lg: 136, md: 136, sm: 136 },
-        // },
-        // Data Type
-        // data_type: {
-        //     widthMap: { lg: 124, md: 124, sm: 124 },
-        //     render: function (result, parentProps) {
-        //         const { data_type = [] } = result || {};
-        //         if (data_type.length === 0) {
-        //             return null;
-        //         } else if (data_type.length === 1) {
-        //             return data_type[0];
-        //         } else {
-        //             return data_type.join(', ');
-        //         }
-        //     },
-        // },
-        // // File Size
-        // file_size: {
-        //     widthMap: { lg: 105, md: 100, sm: 100 },
-        //     render: function (result, parentProps) {
-        //         const value = result?.file_size;
-        //         if (!value) return null;
-        //         return (
-        //             <span className="value text-end">
-        //                 {valueTransforms.bytesToLargerUnit(value)}
-        //             </span>
-        //         );
-        //     },
-        // },
-        // // Released
-        // 'file_status_tracking.released_date': {
-        //     colTitle: 'Released',
-        //     widthMap: { lg: 115, md: 115, sm: 115 },
-        //     render: function (result, parentProps) {
-        //         const value = result?.file_status_tracking?.released_date;
-        //         if (!value) return null;
-        //         return <span className="value text-end">{value}</span>;
-        //     },
-        // },
-        // // Platform
-        // 'file_sets.sequencing.sequencer.display_title': {
-        //     widthMap: { lg: 170, md: 160, sm: 150 },
-        // },
-        // // Format
-        // 'file_format.display_title': {
-        //     widthMap: { lg: 100, md: 90, sm: 80 },
-        // },
-        // // Software
-        // 'software.display_title': {
-        //     widthMap: { lg: 151, md: 151, sm: 151 },
-        // },
-        // // Date Created
-        // date_created: {
-        //     widthMap: { lg: 151, md: 151, sm: 151 },
-        //     default_hidden: true,
-        //     render: function (result, parentProps) {
-        //         const value = result?.date_created;
-        //         if (!value) return null;
-        //         return (
-        //             <span className="value text-end">
-        //                 <LocalizedTime
-        //                     timestamp={value}
-        //                     formatType="date-file"
-        //                 />
-        //             </span>
-        //         );
-        //     },
-        // },
-    };
-
-    const columns = {
-        '@type': {
-            title: 'Selected',
-        },
-        annotated_filename: {
-            title: 'Donor',
-        },
-        age: {
-            title: 'Age',
-        },
-        sex: {
-            title: 'Sex',
-        },
-        'sample_summary.tissues': {
-            title: 'Tissues',
-        },
-        hardy_scale: {
-            title: 'Hardy Scale',
         },
         'file_sets.libraries.assay.display_title': {
             title: 'Assay',

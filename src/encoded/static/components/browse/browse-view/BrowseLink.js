@@ -3,7 +3,6 @@ import { BrowseLinkIcon } from './BrowseLinkIcon';
 
 export const BrowseLink = (props) => {
     const { type, disabled } = props;
-    console.log('BrowseLink', type, disabled);
 
     if (disabled) {
         return (

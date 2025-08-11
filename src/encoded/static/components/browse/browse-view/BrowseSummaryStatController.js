@@ -65,7 +65,6 @@ export const BrowseSummaryStatController = (props) => {
     });
 
     const fallbackFxn = useCallback((resp) => {
-        console.log('BrowseSummaryStatController error', resp);
         setLoading(false);
         setError(true);
     });

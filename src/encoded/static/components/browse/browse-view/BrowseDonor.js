@@ -1,0 +1,689 @@
+import React, { useState, useEffect } from 'react';
+
+import {
+    SelectAllFilesButton,
+    SelectedItemsDownloadButton,
+} from '../../static-pages/components/SelectAllAboveTableComponent';
+import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
+import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
+import { Schemas } from '../../util';
+import { TISSUE_TO_CATEGORY } from '../../util/constants';
+import {
+    DisplayTitleColumnWrapper,
+    DisplayTitleColumnDefault,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
+import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
+import { BrowseViewControllerWithSelections } from '../../static-pages/components/TableControllerWithSelections';
+import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
+import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
+import { DonorMetadataDownloadButton } from '../BrowseView';
+import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
+import { transformedFacets } from '../SearchView';
+import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
+
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+
+/**
+ * Format tissue data by grouping it into predefined categories.
+ * @param {*} data - The raw tissue data to format.
+ * @returns {Object} - The formatted tissue data grouped by category.
+ */
+const formatTissueData = (data) => {
+    const defaultTissueCategories = {
+        Ectoderm: {
+            title: 'Ectoderm',
+            values: [],
+        },
+        Endoderm: {
+            title: 'Endoderm',
+            values: [],
+        },
+        Mesoderm: {
+            title: 'Mesoderm',
+            values: [],
+        },
+        'Germ cells': {
+            title: 'Germ',
+            values: [],
+        },
+        'Clinically accessible': {
+            title: 'Clinical',
+            values: [],
+        },
+        Fibroblast: {
+            title: 'Fibroblast',
+            values: [],
+        },
+        Unknown: {
+            title: 'Unknown',
+            values: [],
+        },
+    };
+
+    // group data by tissue category
+    const grouped_data = data.reduce((acc, { key }) => {
+        // if category is not present in lookup map, assign to 'Unknown' group
+        const tissueCategory = TISSUE_TO_CATEGORY.get(key) || 'Unknown';
+
+        if (!acc[tissueCategory]) {
+            acc[tissueCategory] = { title: tissueCategory, values: [key] };
+        } else {
+            // If category exists, push tissue to that category
+            acc[tissueCategory].values.push(key);
+        }
+        return acc;
+    }, defaultTissueCategories);
+
+    return grouped_data;
+};
+
+/**
+ * DetailPane component that displays tissue data for a donor. Fetches tissue
+ * data based on the donor's display title and formats it for display.
+ * @param {*} itemDetails - The details of the item to display.
+ * @returns DetailPane component that displays tissue data for a donor.
+ */
+const DetailPane = ({ itemDetails }) => {
+    const [tissueData, setTissueData] = useState(null);
+
+    // Request iformation about the tissue for the files for this donor
+    useEffect(() => {
+        if (!tissueData) {
+            const searchURL = `/search/?type=File&donors.display_title=${itemDetails.display_title}`;
+            ajax.load(
+                searchURL,
+                (resp) => {
+                    setTissueData(
+                        formatTissueData(
+                            resp?.facets?.find(
+                                (f) => f.field === 'sample_summary.tissues'
+                            )?.terms || []
+                        )
+                    );
+                },
+                'GET',
+                (err) => {
+                    if (err.notification !== 'No results found') {
+                        // console.log('ERROR FileViewTabs resp', err);
+                    }
+                }
+            );
+        }
+    }, []);
+
+    // console.log('Tissue Data', tissueData, itemDetails);
+
+    return tissueData && Object?.keys(tissueData)?.length > 0 ? (
+        <div className="detail-content">
+            <div className="detail-header">
+                <i className="icon icon-lungs fas"></i>
+                <b>
+                    {/* Calculate total tissue count */}
+                    {Object.keys(tissueData).reduce(
+                        (acc, key) => acc + tissueData[key].values.length,
+                        0
+                    )}{' '}
+                </b>
+                Tissues for Donor {itemDetails.display_title}
+            </div>
+            <div className="detail-body">
+                {Object?.keys(tissueData).map((category, i) => {
+                    const tissues = tissueData[category]['values'] || [];
+                    return (
+                        <div key={i} className="tissue-category">
+                            <div className="header-container">
+                                <h3>{category}</h3>
+                            </div>
+                            <div className="tissue-list-container">
+                                {tissues.length > 0 ? (
+                                    <ul>
+                                        {tissues.map((tissue, j) => {
+                                            return (
+                                                <li key={j}>
+                                                    <span>
+                                                        <a
+                                                            href={`/search/?type=File&donors.display_title=${itemDetails.display_title}&sample_summary.tissues=${tissue}`}
+                                                            target="_blank"
+                                                            rel="noreferrer noopener">
+                                                            {tissue}
+                                                        </a>
+                                                    </span>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                ) : (
+                                    <span className="text-secondary">N/A</span>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    ) : (
+        <div className="detail-content">
+            <div className="detail-header">
+                <i className="icon icon-spin icon-circle-notch"></i>
+            </div>
+        </div>
+    );
+};
+
+// const fetchPropsForBrowseDonor = () => {
+// console.log('fetchPropsForBrowseDonor called!!!');
+// };
+
+// Detail Pane
+const customRenderDetailPane = (
+    itemDetails = {},
+    rowIndex,
+    panelWidth,
+    panelDetails = {}
+) => {
+    // set the corresponding detail pane based on `detailPaneType`
+    let detailPane;
+
+    console.log('customRenderDetailPane called', panelDetails);
+    switch (panelDetails?.detailPaneType) {
+        case 'tissue':
+            detailPane = (
+                <DetailPane
+                    itemDetails={itemDetails}
+                    panelDetails={panelDetails}
+                />
+            );
+            break;
+        case 'assay':
+            detailPane = (
+                <div className="detail-content">
+                    <div className="detail-header">
+                        <i className="icon icon-microscope fas"></i>
+                        <b>Assays for Donor {itemDetails.display_title}</b>
+                    </div>
+                    <div className="detail-body">
+                        <span className="text-secondary">
+                            No assay data available for this donor.
+                        </span>
+                    </div>
+                </div>
+            );
+            break;
+        default:
+            break;
+    }
+
+    return <div className="detail-pane">{detailPane}</div>;
+};
+
+// A column extension map specifically for browse view file tables.
+export function createBrowseDonorColumnExtensionMap({
+    selectedItems,
+    onSelectItem,
+    onResetSelectedItems,
+}) {
+    const columnExtensionMap = {
+        ...originalColExtMap, // Pull in defaults for all tables
+        // Then overwrite or add onto the ones that already are there:
+        // Select all button
+        '@type': {
+            colTitle: (
+                // Context now passed in from HeadersRowColumn (for file count)
+                <SelectAllFilesButton
+                    {...{ selectedItems, onSelectItem, onResetSelectedItems }}
+                    type="checkbox"
+                />
+            ),
+            hideTooltip: true,
+            noSort: true,
+            widthMap: { lg: 60, md: 60, sm: 60 },
+            render: (result, parentProps) => {
+                return (
+                    <SelectionItemCheckbox
+                        {...{ selectedItems, onSelectItem, result }}
+                        isMultiSelect={true}
+                    />
+                );
+            },
+        },
+        // File
+        annotated_filename: {
+            widthMap: { lg: 120, md: 120, sm: 120 },
+            colTitle: <>Donor</>,
+            render: function (result, parentProps) {
+                const {
+                    '@id': atId,
+                    display_title,
+                    annotated_filename,
+                } = result || {};
+
+                return (
+                    <span className="value text-start">
+                        <a
+                            href={atId}
+                            target="_blank"
+                            rel="noreferrer noopener">
+                            {annotated_filename || display_title}
+                        </a>
+                    </span>
+                );
+            },
+        },
+        // Age
+        age: {
+            widthMap: { lg: 80, md: 80, sm: 80 },
+            render: function (result, parentProps) {
+                return <span>{result?.age ?? null}</span>;
+            },
+        },
+        // Sex
+        sex: {
+            widthMap: { lg: 80, md: 80, sm: 80 },
+            render: function (result, parentProps) {
+                return <span>{result?.sex?.substring(0, 1) ?? null}</span>;
+            },
+        },
+        // Tissues
+        'sample_summary.tissues': {
+            widthMap: { lg: 120, md: 120, sm: 120 },
+            render: function (result, parentProps) {
+                const {
+                    href,
+                    context,
+                    rowNumber,
+                    detailOpen,
+                    toggleDetailOpen,
+                    detailPaneType,
+                    handleCellClick,
+                } = parentProps;
+
+                console.log('sample_summary.tissues', parentProps);
+
+                const { data, loading, error } = parentProps?.fetchedProps;
+
+                const tissueCount = data?.find(
+                    (f) => f.field === 'sample_summary.tissues'
+                )?.terms?.length;
+
+                if (loading) {
+                    return (
+                        <span className="value text-center">
+                            <i className="icon icon-circle-notch icon-spin fas"></i>
+                        </span>
+                    );
+                } else {
+                    return tissueCount ? (
+                        <div
+                            className={
+                                'inner-value-container' +
+                                (detailOpen ? ' detail-open' : ' detail-closed')
+                            }>
+                            <a
+                                className="value text-center"
+                                href={`/search/?type=Tissue&donor.display_title=${result?.display_title}`}>
+                                {tissueCount} Tissue
+                                {tissueCount > 1 ? 's' : ''}
+                            </a>
+                            <CustomTableRowToggleOpenButton
+                                {...{
+                                    result,
+                                    href,
+                                    context,
+                                    rowNumber,
+                                    detailOpen,
+                                    toggleDetailOpen,
+                                    customToggleDetailClose: (props) => {
+                                        handleCellClick(null);
+                                        toggleDetailOpen();
+                                    },
+                                    customToggleDetailOpen: (props) => {
+                                        handleCellClick('tissue');
+                                        toggleDetailOpen();
+                                    },
+                                    isActive: detailPaneType === 'tissue',
+                                    toggleOpenIcon: (
+                                        <i className="icon icon-circle-plus"></i>
+                                    ),
+                                    toggleCloseIcon: (
+                                        <i className="icon icon-circle-minus"></i>
+                                    ),
+                                }}></CustomTableRowToggleOpenButton>
+                        </div>
+                    ) : null;
+                }
+            },
+        },
+        // Assays
+        assays: {
+            widthMap: { lg: 105, md: 100, sm: 100 },
+            render: function (result, parentProps) {
+                const {
+                    href,
+                    context,
+                    rowNumber,
+                    detailOpen,
+                    toggleDetailOpen,
+                    handleCellClick,
+                } = parentProps;
+
+                const { data, loading, error } = parentProps?.fetchedProps;
+
+                const assayCount = data?.find(
+                    (f) => f.field === 'file_sets.libraries.assay.display_title'
+                )?.terms?.length;
+
+                if (loading) {
+                    return (
+                        <span className="value text-center">
+                            <i className="icon icon-circle-notch icon-spin fas"></i>
+                        </span>
+                    );
+                } else {
+                    return assayCount ? (
+                        <div
+                            className={
+                                'inner-value-container' +
+                                (detailOpen ? ' detail-open' : ' detail-closed')
+                            }>
+                            <a
+                                className="value text-center"
+                                href={`/search/?type=File&donors.display_title=${result?.display_title}`}>
+                                {assayCount} Assay{assayCount > 1 ? 's' : ''}
+                            </a>
+                            <CustomTableRowToggleOpenButton
+                                {...{
+                                    result,
+                                    href,
+                                    context,
+                                    rowNumber,
+                                    detailOpen,
+                                    toggleDetailOpen,
+                                    customToggleDetailClose: (props) => {
+                                        handleCellClick(null);
+                                        toggleDetailOpen();
+                                    },
+                                    customToggleDetailOpen: (props) => {
+                                        handleCellClick('assay');
+                                        toggleDetailOpen();
+                                    },
+                                    toggleOpenIcon: (
+                                        <i className="icon icon-circle-plus"></i>
+                                    ),
+                                    toggleCloseIcon: (
+                                        <i className="icon icon-circle-minus"></i>
+                                    ),
+                                }}></CustomTableRowToggleOpenButton>
+                        </div>
+                    ) : null;
+                }
+            },
+        },
+        // Files
+        files: {
+            widthMap: { lg: 105, md: 100, sm: 100 },
+            render: function (result, parentProps) {
+                const { data, loading, error } = parentProps?.fetchedProps;
+
+                const fileCount = data
+                    ?.find((f) => f.field === 'type')
+                    ?.terms?.find((term) => term.key === 'File')?.doc_count;
+
+                if (loading) {
+                    return (
+                        <span className="value text-center">
+                            <i className="icon icon-circle-notch icon-spin fas"></i>
+                        </span>
+                    );
+                } else {
+                    return fileCount ? (
+                        <a
+                            className="value text-center"
+                            href={`/search/?type=File&donors.display_title=${result?.display_title}`}>
+                            {fileCount} File{fileCount > 1 ? 's' : ''}
+                        </a>
+                    ) : null;
+                }
+            },
+        },
+        file_size: {
+            widthMap: { lg: 105, md: 100, sm: 100 },
+            render: function (result, parentProps) {
+                const {
+                    href,
+                    context,
+                    rowNumber,
+                    detailOpen,
+                    toggleDetailOpen,
+                } = parentProps;
+
+                const { data, loading, error } = parentProps?.fetchedProps;
+
+                const fileSize = data?.find(
+                    (f) => f.field === 'file_size'
+                )?.sum;
+
+                if (loading) {
+                    return (
+                        <span className="value text-center loading">
+                            <i className="icon icon-circle-notch icon-spin fas"></i>
+                        </span>
+                    );
+                } else {
+                    return fileSize ? (
+                        <span className="value text-center">
+                            {valueTransforms.bytesToLargerUnit(
+                                fileSize,
+                                0,
+                                false,
+                                true
+                            )}{' '}
+                            {valueTransforms.bytesToLargerUnit(
+                                fileSize,
+                                0,
+                                true,
+                                false
+                            )}
+                        </span>
+                    ) : null;
+                }
+            },
+        },
+        // Hardy Scale
+        hardy_scale: {
+            widthMap: { lg: 150, md: 150, sm: 150 },
+            render: function (result, parentProps) {
+                return <span>{result?.hardy_scale ?? null}</span>;
+            },
+        },
+        // Assays
+        'file_sets.libraries.assay.display_title': {
+            widthMap: { lg: 136, md: 136, sm: 136 },
+        },
+        // Data Type
+        data_type: {
+            widthMap: { lg: 124, md: 124, sm: 124 },
+            render: function (result, parentProps) {
+                const { data_type = [] } = result || {};
+                if (data_type.length === 0) {
+                    return null;
+                } else if (data_type.length === 1) {
+                    return data_type[0];
+                } else {
+                    return data_type.join(', ');
+                }
+            },
+        },
+        // Released
+        'file_status_tracking.released_date': {
+            colTitle: 'Released',
+            widthMap: { lg: 115, md: 115, sm: 115 },
+            render: function (result, parentProps) {
+                const value = result?.file_status_tracking?.released_date;
+                if (!value) return null;
+                return <span className="value text-end">{value}</span>;
+            },
+        },
+        // Platform
+        'file_sets.sequencing.sequencer.display_title': {
+            widthMap: { lg: 170, md: 160, sm: 150 },
+        },
+        // Format
+        'file_format.display_title': {
+            widthMap: { lg: 100, md: 90, sm: 80 },
+        },
+        // Software
+        'software.display_title': {
+            widthMap: { lg: 151, md: 151, sm: 151 },
+        },
+        // Date Created
+        date_created: {
+            widthMap: { lg: 151, md: 151, sm: 151 },
+            default_hidden: true,
+            render: function (result, parentProps) {
+                const value = result?.date_created;
+                if (!value) return null;
+                return (
+                    <span className="value text-end">
+                        <LocalizedTime
+                            timestamp={value}
+                            formatType="date-file"
+                        />
+                    </span>
+                );
+            },
+        },
+    };
+
+    const columns = {
+        // display_title: {
+        //     title: 'display_title',
+        // },
+        '@type': {
+            title: 'Selected',
+        },
+        annotated_filename: {
+            title: 'Donor',
+        },
+        age: {
+            title: 'Age',
+        },
+        sex: {
+            title: 'Sex',
+        },
+        'sample_summary.tissues': {
+            title: 'Tissues',
+        },
+        assays: {
+            title: 'Assays',
+        },
+        files: {
+            title: 'Files',
+        },
+        file_size: {
+            title: 'File Size',
+        },
+        hardy_scale: {
+            title: 'Hardy Scale',
+        },
+    };
+
+    const hideFacets = [
+        'dataset',
+        'file_sets.libraries.analytes.samples.sample_sources.code',
+        'status',
+        'validation_errors.name',
+        'version',
+        'sample_summary.studies',
+        'submission_centers.display_title',
+        'software.display_title',
+    ];
+
+    return { columnExtensionMap, columns, hideFacets };
+}
+
+// Search Table
+const BrowseDonorSearchTable = (props) => {
+    const {
+        session,
+        context,
+        currentAction,
+        schemas,
+        selectedItems,
+        onSelectItem,
+        onResetSelectedItems,
+    } = props;
+
+    const facets = transformedFacets(context, currentAction, schemas);
+    const tableColumnClassName = 'results-column col';
+    const facetColumnClassName = 'facets-column col-auto';
+
+    const selectedFileProps = {
+        selectedItems, // From SelectedItemsController
+        onSelectItem, // From SelectedItemsController
+        onResetSelectedItems, // From SelectedItemsController
+    };
+
+    const passProps = _.omit(props, 'isFullscreen', 'toggleFullScreen');
+
+    const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
+    const aboveTableComponent = (
+        <BrowseViewAboveSearchTableControls
+            topLeftChildren={
+                <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
+            }>
+            {session && <DonorMetadataDownloadButton session={session} />}
+            <SelectedItemsDownloadButton
+                id="download_tsv_multiselect"
+                disabled={selectedItems.size === 0}
+                className="btn btn-primary btn-sm me-05 align-items-center"
+                {...{ selectedItems, session }}
+                analyticsAddItemsToCart>
+                <i className="icon icon-download fas me-03" />
+                Download {selectedItems.size} Selected Files
+            </SelectedItemsDownloadButton>
+        </BrowseViewAboveSearchTableControls>
+    );
+
+    const { columnExtensionMap, columns, hideFacets } =
+        createBrowseDonorColumnExtensionMap(selectedFileProps);
+
+    return (
+        <CommonSearchView
+            {...passProps}
+            {...{
+                columnExtensionMap,
+                tableColumnClassName,
+                facetColumnClassName,
+                facets,
+                aboveFacetListComponent,
+                aboveTableComponent,
+                columns,
+                hideFacets,
+                // fetchProps: fetchPropsForBrowseDonor,
+            }}
+            // detailPane={<>Hello there!</>}
+            renderDetailPane={customRenderDetailPane}
+            useCustomSelectionController
+            hideStickyFooter
+            currentAction={'multiselect'}
+            termTransformFxn={Schemas.Term.toName}
+            separateSingleTermFacets={false}
+            rowHeight={31}
+            openRowHeight={100}
+        />
+    );
+};
+
+// Browse Donor Body Component
+export const BrowseDonorBody = (props) => {
+    return (
+        <>
+            <h2 className="browse-summary-header">SMaHT Data Summary</h2>
+            <Alerts alerts={props.alerts} className="mt-2" />
+            <BrowseViewControllerWithSelections {...props}>
+                <BrowseDonorSearchTable />
+            </BrowseViewControllerWithSelections>
+        </>
+    );
+};
