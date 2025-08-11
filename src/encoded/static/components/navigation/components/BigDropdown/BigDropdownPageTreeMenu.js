@@ -174,7 +174,7 @@ export function BigDropdownPageTreeMenu(props) {
     const childItemsLen = childItems.length;
     const cls =
         'tree-menu-container row' +
-        (!hasLevel2Children ? ' no-level-2-children' : '') +
+        (!hasLevel2Children ? ' no-level-2-children gx-0' : '') +
         (!topLeftMenuCol
             ? ''
             : childItemsLen < 3
