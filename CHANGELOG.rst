@@ -7,9 +7,25 @@ smaht-portal
 Change Log
 ----------
 
+0.194.1
+=======
+`PR 504: feat: updates to portal for CRAM releases <https://github.com/smaht-dac/smaht-portal/pull/504>`_
+
+* Update portal to reflect CRAM files being released
+
+
+0.194.0
+=======
+`PR 496: Data matrix popover and style updates <https://github.com/smaht-dac/smaht-portal/pull/496>`_
+
+* Move DataMatrix components to the Viz folder, enhance tab styles, and simplify data aggregation processes.
+* Adjust visual elements and update tests to reflect the redesigned data matrix popover
+* Add total coverage, tissue, and donor counts into the data matrix popover
+
+
 0.193.2
 =======
-`PR 505: Handle Aorta correctly in tissue classification table  <https://github.com/smaht-dac/smaht-portal/pull/505>`_
+`PR 505: Handle Aorta correctly in tissue classification table <https://github.com/smaht-dac/smaht-portal/pull/505>`_
 
 * Treat Aorta as a special case in the tissue classification table, as GTEX only has Blood Vessel.
 
