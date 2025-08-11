@@ -29,6 +29,7 @@ DEFAULT_BROWSE_PARAM_LISTS = {
     "type": [DEFAULT_BROWSE_TYPE],
     "sample_summary.studies": ["Production"],
     "status": ["released"],
+    "sort": ["-file_status_tracking.released_date"]
     # "additional_facet": DEFAULT_BROWSE_FACETS
 }
 
