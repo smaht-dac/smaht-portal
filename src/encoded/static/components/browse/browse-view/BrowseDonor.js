@@ -7,11 +7,7 @@ import {
 import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 import { Schemas } from '../../util';
-import { TISSUE_TO_CATEGORY } from '../../util/constants';
-import {
-    DisplayTitleColumnWrapper,
-    DisplayTitleColumnDefault,
-} from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
+import { tissueToCategory } from '../../util/data';
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
 import { BrowseViewControllerWithSelections } from '../../static-pages/components/TableControllerWithSelections';
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
@@ -64,9 +60,12 @@ const formatTissueData = (data) => {
     // group data by tissue category
     const grouped_data = data.reduce((acc, { key }) => {
         // if category is not present in lookup map, assign to 'Unknown' group
-        const tissueCategory = TISSUE_TO_CATEGORY.get(key) || 'Unknown';
+        const tissueCategory = tissueToCategory.get(key) || 'Unknown';
 
         if (!acc[tissueCategory]) {
+            console.log(
+                `Tissue category "${tissueCategory}" not found in mapping, assigning to ${tissueCategory}.`
+            );
             acc[tissueCategory] = { title: tissueCategory, values: [key] };
         } else {
             // If category exists, push tissue to that category
@@ -87,7 +86,7 @@ const formatTissueData = (data) => {
 const DetailPane = ({ itemDetails }) => {
     const [tissueData, setTissueData] = useState(null);
 
-    // Request iformation about the tissue for the files for this donor
+    // Request information about the assay for the files for this donor
     useEffect(() => {
         if (!tissueData) {
             const searchURL = `/search/?type=File&donors.display_title=${itemDetails.display_title}`;
@@ -130,15 +129,18 @@ const DetailPane = ({ itemDetails }) => {
             <div className="detail-body">
                 {Object?.keys(tissueData).map((category, i) => {
                     const tissues = tissueData[category]['values'] || [];
+
+                    console.log('Tissue Data', tissueData);
                     return (
                         <div key={i} className="tissue-category">
                             <div className="header-container">
-                                <h3>{category}</h3>
+                                <h3>{tissueData[category]?.title}</h3>
                             </div>
                             <div className="tissue-list-container">
                                 {tissues.length > 0 ? (
                                     <ul>
                                         {tissues.map((tissue, j) => {
+                                            // Create a link to search for files with this tissue
                                             return (
                                                 <li key={j}>
                                                     <span>
@@ -171,9 +173,145 @@ const DetailPane = ({ itemDetails }) => {
     );
 };
 
-// const fetchPropsForBrowseDonor = () => {
-// console.log('fetchPropsForBrowseDonor called!!!');
-// };
+/**
+ * Format tissue data by grouping it into predefined categories.
+ * @param {*} data - The raw tissue data to format.
+ * @returns {Object} - The formatted tissue data grouped by category.
+ */
+const formatAssayData = (data) => {
+    const defaultAssayCategories = {
+        'Bulk WGS': {
+            title: 'Bulk WGS',
+            values: [],
+        },
+        'Bulk RNA-seq': {
+            title: 'RNA-seq',
+            values: [],
+        },
+        'Duplex-seq WGS': {
+            title: 'Duplex-seq',
+            values: [],
+        },
+        WGA: {
+            title: 'Duplex-seq',
+            values: [],
+        },
+    };
+
+    // group data by assay category
+    const grouped_data = data.reduce((acc, item) => {
+        const assayCategory = item?.key || 'Other';
+
+        if (!acc[assayCategory]) {
+            acc[assayCategory] = {
+                title: assayCategory,
+                values: item?.terms.map((t) => t.key),
+            };
+        } else {
+            // If category exists, push tissue to that category
+            acc[assayCategory].values.push(item?.terms.map((t) => t.key));
+        }
+        return acc;
+    }, defaultAssayCategories);
+
+    return grouped_data;
+};
+
+/**
+ * AssayDetailPane component that displays assay data for a donor. Fetches assay
+ * data based on the donor's display title and formats it for display.
+ * @param {*} itemDetails - The details of the item to display.
+ * @returns AssayDetailPane component that displays tissue data for a donor.
+ */
+const AssayDetailPane = ({ itemDetails }) => {
+    const [assayData, setAssayData] = useState(null);
+
+    // Request information about the tissue for the files for this donor
+    useEffect(() => {
+        if (!assayData) {
+            const searchURL = `/search/?type=File&donors.display_title=${itemDetails.display_title}`;
+            ajax.load(
+                searchURL,
+                (resp) => {
+                    setAssayData(
+                        formatAssayData(
+                            resp?.facets?.find(
+                                (f) =>
+                                    f.field ===
+                                    'file_sets.libraries.assay.display_title'
+                            )?.terms || []
+                        )
+                    );
+                },
+                'GET',
+                (err) => {
+                    if (err.notification !== 'No results found') {
+                        // console.log('ERROR FileViewTabs resp', err);
+                    }
+                }
+            );
+        }
+    }, []);
+
+    return assayData && Object?.keys(assayData)?.length > 0 ? (
+        <div className="detail-content">
+            <div className="detail-header">
+                <i className="icon icon-dna fas"></i>
+                <b>
+                    {/* Calculate total tissue count */}
+                    {Object.keys(assayData).reduce(
+                        (acc, key) => acc + assayData[key].values.length,
+                        0
+                    )}{' '}
+                </b>
+                Assays across all tissues
+            </div>
+            <div className="detail-body">
+                {Object?.keys(assayData).map((category, i) => {
+                    const assays = assayData[category]['values'] || [];
+
+                    console.log('Assay Data', assayData);
+                    return (
+                        <div key={i} className="tissue-category">
+                            <div className="header-container">
+                                <h3>{assayData[category]?.title}</h3>
+                            </div>
+                            <div className="tissue-list-container">
+                                {assays.length > 0 ? (
+                                    <ul>
+                                        {assays.map((assay, j) => {
+                                            // Create a link to search for files with this assay
+                                            return (
+                                                <li key={j}>
+                                                    <span>
+                                                        <a
+                                                            href={`/search/?type=File&donors.display_title=${itemDetails.display_title}`}
+                                                            target="_blank"
+                                                            rel="noreferrer noopener">
+                                                            {assay}
+                                                        </a>
+                                                    </span>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                ) : (
+                                    <span className="text-secondary">N/A</span>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    ) : (
+        <div className="detail-content">
+            <div className="detail-header">
+                <i className="icon icon-spin icon-circle-notch"></i>
+            </div>
+        </div>
+    );
+};
 
 // Detail Pane
 const customRenderDetailPane = (
@@ -196,19 +334,7 @@ const customRenderDetailPane = (
             );
             break;
         case 'assay':
-            detailPane = (
-                <div className="detail-content">
-                    <div className="detail-header">
-                        <i className="icon icon-microscope fas"></i>
-                        <b>Assays for Donor {itemDetails.display_title}</b>
-                    </div>
-                    <div className="detail-body">
-                        <span className="text-secondary">
-                            No assay data available for this donor.
-                        </span>
-                    </div>
-                </div>
-            );
+            detailPane = <AssayDetailPane itemDetails={itemDetails} />;
             break;
         default:
             break;
@@ -333,6 +459,7 @@ export function createBrowseDonorColumnExtensionMap({
                                     rowNumber,
                                     detailOpen,
                                     toggleDetailOpen,
+                                    isActive: detailPaneType === 'tissue',
                                     customToggleDetailClose: (props) => {
                                         handleCellClick(null);
                                         toggleDetailOpen();
@@ -341,7 +468,6 @@ export function createBrowseDonorColumnExtensionMap({
                                         handleCellClick('tissue');
                                         toggleDetailOpen();
                                     },
-                                    isActive: detailPaneType === 'tissue',
                                     toggleOpenIcon: (
                                         <i className="icon icon-circle-plus"></i>
                                     ),
@@ -364,6 +490,7 @@ export function createBrowseDonorColumnExtensionMap({
                     rowNumber,
                     detailOpen,
                     toggleDetailOpen,
+                    detailPaneType,
                     handleCellClick,
                 } = parentProps;
 
@@ -399,6 +526,7 @@ export function createBrowseDonorColumnExtensionMap({
                                     rowNumber,
                                     detailOpen,
                                     toggleDetailOpen,
+                                    isActive: detailPaneType === 'assay',
                                     customToggleDetailClose: (props) => {
                                         handleCellClick(null);
                                         toggleDetailOpen();
