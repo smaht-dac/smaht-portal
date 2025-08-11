@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.195.1
+=======
+`PR 509: SN Fix donor metadata release <https://github.com/smaht-dac/smaht-portal/pull/509>`_
+
+* Fix patching of release status to not ignore patching if the status is `released`
+
+
 0.195.0
 =======
 `PR 503: feat: public donor view <https://github.com/smaht-dac/smaht-portal/pull/503>`_
