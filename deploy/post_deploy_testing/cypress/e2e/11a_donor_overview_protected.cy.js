@@ -1,5 +1,6 @@
 // cypress/e2e/public-protected-donor-overview.cy.js
 import { cypressVisitHeaders, ROLE_TYPES } from "../support";
+import { testMatrixPopoverValidation } from "../support/utils/dataMatrixUtils";
 
 describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and 3 Public Donors That are Associated with Released Files', function () {
 
@@ -413,6 +414,19 @@ describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and
 
                         // Verify "Exposures" card
                         verifyExposures();
+
+                        //Verify "Data Matrix"
+                        testMatrixPopoverValidation(
+                            '#data-matrix-for_donor',
+                            [donorID],
+                            [],
+                            [],
+                            ['Donors'],
+                            5, //regularBlockCount
+                            5, //rowSummaryBlockCount
+                            1, //colSummaryBlockCount
+                            totalCountExpected
+                        );
                     });
                 });
             });
