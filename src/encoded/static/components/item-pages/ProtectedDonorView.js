@@ -230,6 +230,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                     defaultOpen={true}
                                     idLabel="donor"
                                     session={session}
+                                    yAxisLabel="Tissue" // Only one donor, so y-axis is Tissue
                                 />
                             </div>
                         ) : (

@@ -250,6 +250,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                     defaultOpen={true}
                                     idLabel="donor"
                                     session={session}
+                                    yAxisLabel="Tissue" // Only one donor, so y-axis is Tissue
                                 />
                             </div>
                         ) : (
