@@ -14,6 +14,13 @@ Change Log
 * Implement Public Donor view
 
 
+0.194.2
+=======
+`PR 506: feat: add tooltip to values column header <https://github.com/smaht-dac/smaht-portal/pull/506>`_
+
+* Add tooltip for values column in Submission Data Dictionary
+
+
 0.194.1
 =======
 `PR 504: feat: updates to portal for CRAM releases <https://github.com/smaht-dac/smaht-portal/pull/504>`_
