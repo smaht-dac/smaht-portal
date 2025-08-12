@@ -461,7 +461,15 @@ export const ProtectedDonorViewDataCards = ({
                                         value={'Coming soon'}
                                     />
                                     <DataCardRow
-                                        title={'DSA'}
+                                        title={
+                                            <span>
+                                                DSA
+                                                <i
+                                                    className="icon icon-info-circle fas ms-1"
+                                                    data-tip="Donor Specific genome Assembly [DSA]"
+                                                />
+                                            </span>
+                                        }
                                         value={'Coming soon'}
                                     />
                                 </div>

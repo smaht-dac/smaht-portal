@@ -7,16 +7,53 @@ smaht-portal
 Change Log
 ----------
 
-0.194.0
+0.196.0
 =======
 `PR 508: SN Fibroblast tissue type  <https://github.com/smaht-dac/smaht-portal/pull/508>`_
 
 * Update the `get_sample_summary` function in File to return "Fibroblast" for `sample_summary.tissues` if the linked tissues have a 3AC protocol ID, otherwise use the linked OntologyTerms
 
 
+0.195.1
+=======
+`PR 509: SN Fix donor metadata release <https://github.com/smaht-dac/smaht-portal/pull/509>`_
+
+* Fix patching of release status to not ignore patching if the status is `released`
+
+
+0.195.0
+=======
+`PR 503: feat: public donor view <https://github.com/smaht-dac/smaht-portal/pull/503>`_
+
+* Implement Public Donor view
+
+
+0.194.2
+=======
+`PR 506: feat: add tooltip to values column header <https://github.com/smaht-dac/smaht-portal/pull/506>`_
+
+* Add tooltip for values column in Submission Data Dictionary
+
+
+0.194.1
+=======
+`PR 504: feat: updates to portal for CRAM releases <https://github.com/smaht-dac/smaht-portal/pull/504>`_
+
+* Update portal to reflect CRAM files being released
+
+
+0.194.0
+=======
+`PR 496: Data matrix popover and style updates <https://github.com/smaht-dac/smaht-portal/pull/496>`_
+
+* Move DataMatrix components to the Viz folder, enhance tab styles, and simplify data aggregation processes.
+* Adjust visual elements and update tests to reflect the redesigned data matrix popover
+* Add total coverage, tissue, and donor counts into the data matrix popover
+
+
 0.193.2
 =======
-`PR 505: Handle Aorta correctly in tissue classification table  <https://github.com/smaht-dac/smaht-portal/pull/505>`_
+`PR 505: Handle Aorta correctly in tissue classification table <https://github.com/smaht-dac/smaht-portal/pull/505>`_
 
 * Treat Aorta as a special case in the tissue classification table, as GTEX only has Blood Vessel.
 
