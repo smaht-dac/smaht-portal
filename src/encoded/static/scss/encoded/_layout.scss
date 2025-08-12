@@ -181,11 +181,10 @@ body {
 	@include make-wide-container;
 }
 
-/* Potentially deprecated in this project */
 body.is-full-screen {
 
 	/** Make body non-scrollable for pages which aren't search. **/
-	&:not([data-pathname="/browse/"]):not([data-pathname="/search/"]){
+	&:not([data-pathname="/browse/"]):not([data-pathname="/search/"]):not([data-pathname="/data-matrix"]) {
 		overflow: hidden;
 		&::-webkit-scrollbar { 
 			display: none; 
