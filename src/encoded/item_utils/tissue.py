@@ -140,7 +140,7 @@ def is_fibroblast(properties: Dict[str, Any]) -> bool:
 
 def is_germ_cell(properties: Dict[str, Any]) -> bool:
     """Check if tissue is germ cell (ovary or testis) from protocol ID."""
-    return get_protocol_id(properties) in ["3U", "3V","3W", "3X"]
+    return get_protocol_id(properties) in ["3U", "3V","3W", "3X", "3Y", "3Z", "3AA", "3AB"]
 
 
 def is_clinically_accessible(properties: Dict[str, Any]) -> bool:
