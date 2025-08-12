@@ -104,5 +104,16 @@
             "TEST_LIBRARY_LIVER-CELL-DNA"
         ],
         "sequencing": "TEST_SEQUENCING_NOVASEQ-500X-DNA"
+    },
+    {
+        "uuid": "625dac9e-9a0d-453a-ba95-2d83898fe2f1",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_FILE-SET_FIBROBLAST",
+        "libraries": [
+            "TEST_LIBRARY_FIBROBLAST"
+        ],
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X-DNA"
     }
 ]

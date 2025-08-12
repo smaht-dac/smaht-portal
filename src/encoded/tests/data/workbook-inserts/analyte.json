@@ -162,5 +162,21 @@
             "TEST_CELL-SAMPLE_LIVER-CELL"
         ],
         "analyte_preparation": "TEST_ANALYTE-PREPARATION_LIVER-CELL"
+    },
+    {
+        "uuid": "f09ee6f0-8451-4f50-8a62-6ccb56d20b1b",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_ANALYTE_FIBROBLAST",
+        "samples": [
+            "TEST_TISSUE-SAMPLE_FIBROBLAST"
+        ],
+        "molecule": [
+            "DNA"
+        ],
+        "molecule_detail": [
+            "Total DNA"
+        ]
     }
 ]
