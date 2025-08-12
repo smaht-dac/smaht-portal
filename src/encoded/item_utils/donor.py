@@ -71,6 +71,11 @@ def is_production(properties: Dict[str, Any]) -> bool:
     return PRODUCTION_DONOR_REGEX.match(external_id) is not None
 
 
+def is_donor(properties: Dict[str, Any]) -> bool:
+    """Check if item is a Donor item."""
+    return item.get_type(properties) == "Donor"
+
+
 def get_tissues(properties: Dict[str, Any]) -> Union[List[str], None]:
     """Get tissues revlink from properties."""
     return properties.get("tissues",[])
