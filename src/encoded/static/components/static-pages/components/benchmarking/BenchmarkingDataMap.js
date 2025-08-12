@@ -47,7 +47,7 @@ export const BenchmarkingDataMap = {
                 </p>
                 <p>
                     <span className="fst-italic">In silico</span> COLO829BLT50
-                    BAM files were created by sampling and merging COLO829T and
+                    files were created by sampling and merging COLO829T and
                     COLO829BL Illumina WGS data at a mixture ratio of 1:50 at
                     varying sequencing depths (100 - 500X).
                 </p>
@@ -116,51 +116,6 @@ export const BenchmarkingDataMap = {
                 },
             },
         ],
-        callout: (
-            <div className="callout warning">
-                <p className="callout-text">
-                    <span className="flag">Data Retraction Notice: </span>
-                    <ul>
-                        <li>
-                            One WGS ONT PromethION 24 BAM from COLO829-BLT50,{' '}
-                            <a
-                                href="/SMAFIPHR8QOG"
-                                target="_blank"
-                                rel="noreferrer noopener"
-                                className="link-underline-hover">
-                                SMAFIPHR8QOG
-                            </a>
-                            , has been retracted due to{' '}
-                            <strong>sample swap</strong>. The replacement BAM
-                            from the correct COLO829-BLT50 sample will be made
-                            available soon.
-                        </li>
-                        <li>
-                            The{' '}
-                            <a
-                                href="/SMAFI557D2E7"
-                                target="_blank"
-                                rel="noreferrer noopener"
-                                className="link-underline-hover">
-                                {' '}
-                                original BAM file
-                            </a>{' '}
-                            of COLO829-T standard ONT WGS data was retracted due
-                            to <strong>missing methylation tags</strong>. The
-                            replacement BAM with proper tags is made{' '}
-                            <a
-                                href="/SMAFIB6EQLZM"
-                                target="_blank"
-                                rel="noreferrer noopener"
-                                className="link-underline-hover">
-                                {' '}
-                                available here.
-                            </a>
-                        </li>
-                    </ul>
-                </p>
-            </div>
-        ),
     },
     HapMap: {
         navBarTitle: 'HapMap',

@@ -150,6 +150,7 @@ def get_file_group_qc(context, request):
                     files_with_qcs.append(
                         {
                             "accession": f["accession"],
+                            "status": f["status"],
                             "display_title": f["display_title"],
                             "is_output_file": f["is_output_file"],
                             "fileset_submitted_id": fs.get("submitted_id"),
@@ -446,6 +447,7 @@ def get_qc_result(file, is_output_file):
     qc_result = {
         DISPLAY_TITLE: file[DISPLAY_TITLE],
         UUID: file[UUID],
+        STATUS: file[STATUS],
         ACCESSION: file[ACCESSION],
         QUALITY_METRICS: [],
         "is_output_file": is_output_file,

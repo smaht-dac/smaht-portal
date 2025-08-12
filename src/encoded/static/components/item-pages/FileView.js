@@ -208,7 +208,7 @@ const FileViewHeader = (props) => {
                         <strong>
                             was retracted due to missing methylation tags
                         </strong>
-                        . The replacement BAM with proper tags is made{' '}
+                        . The replacement file with proper tags is made{' '}
                         <a
                             href="/SMAFIB6EQLZM"
                             target="_blank"

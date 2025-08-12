@@ -7,6 +7,92 @@ smaht-portal
 Change Log
 ----------
 
+0.195.1
+=======
+`PR 509: SN Fix donor metadata release <https://github.com/smaht-dac/smaht-portal/pull/509>`_
+
+* Fix patching of release status to not ignore patching if the status is `released`
+
+
+0.195.0
+=======
+`PR 503: feat: public donor view <https://github.com/smaht-dac/smaht-portal/pull/503>`_
+
+* Implement Public Donor view
+
+
+0.194.2
+=======
+`PR 506: feat: add tooltip to values column header <https://github.com/smaht-dac/smaht-portal/pull/506>`_
+
+* Add tooltip for values column in Submission Data Dictionary
+
+
+0.194.1
+=======
+`PR 504: feat: updates to portal for CRAM releases <https://github.com/smaht-dac/smaht-portal/pull/504>`_
+
+* Update portal to reflect CRAM files being released
+
+
+0.194.0
+=======
+`PR 496: Data matrix popover and style updates <https://github.com/smaht-dac/smaht-portal/pull/496>`_
+
+* Move DataMatrix components to the Viz folder, enhance tab styles, and simplify data aggregation processes.
+* Adjust visual elements and update tests to reflect the redesigned data matrix popover
+* Add total coverage, tissue, and donor counts into the data matrix popover
+
+
+0.193.2
+=======
+`PR 505: Handle Aorta correctly in tissue classification table <https://github.com/smaht-dac/smaht-portal/pull/505>`_
+
+* Treat Aorta as a special case in the tissue classification table, as GTEX only has Blood Vessel.
+
+
+0.193.1
+=======
+`PR 500: fix: update master inserts <https://github.com/smaht-dac/smaht-portal/pull/500>`_
+
+* Correct master-inserts for data retraction and data QC
+
+
+0.193.0
+=======
+`PR 491: SN Donor manifest embeds <https://github.com/smaht-dac/smaht-portal/pull/491>`_
+
+* Create revlinks on ProtectedDonor and MedicalHistory for donor metadata items
+* Embed all donor metadata properties on ProtectedDonor
+* Create TSV columns in `metadata.py` for the Donor Manifest
+
+
+0.192.8
+=======
+`PR 493: AV Updates to QC metrics and Submission Status page <http://github.com/smaht-dac/smaht-portal/pull/493>`_
+
+* Update thresholds in the QC overview generation script
+* Remove table from sample identity tab in QC metrics page
+* Indictate retracted files on the Submission Status page
+* Add copy button for group coverage on the Submission Status page
+* Add retry logic when getting the QC overview data
+
+
+0.192.7
+=======
+`PR 492: feat: add new announcement to homepage <https://github.com/smaht-dac/smaht-portal/pull/492>`_
+
+* Add announcement for switching to CRAM files
+
+
+0.192.6
+=======
+`PR 490: feat: benchmarking page updates <https://github.com/smaht-dac/smaht-portal/pull/490>`_
+
+* Make benchmarking page titles clickable
+* Remove Data Retraction Alerts in COLO829
+
+
 0.192.5
 =======
 `PR 494: SN Somatic VCF access status <http://github.com/smaht-dac/smaht-portal/pull/494>`_
