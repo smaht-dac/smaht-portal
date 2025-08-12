@@ -17,6 +17,20 @@ from dcicutils import ff_utils
 
 log = structlog.getLogger(__name__)
 
+##################################################################
+##################################################################
+##
+##  create-bulk-donor-metdata will grab the full donor metadata
+##  from the portal and write out to an output TSV file.
+##  Can take either a list of Donor accession IDs/uuids, a search query on Donor,
+##  or both and generate the Bulk Donor Manifest file containing the full 
+##  protected donor metadata for the selected donors.
+##  NOTE: Will only include TPC-submitted Benchmarking and Production donors
+##  in the file ,others are filtered out
+##
+##################################################################
+##################################################################
+
 ITEM_TYPES = [
     "Donor",
     "Demographic",
