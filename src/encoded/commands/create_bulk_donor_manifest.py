@@ -31,6 +31,7 @@ log = structlog.getLogger(__name__)
 ##################################################################
 ##################################################################
 
+DEFAULT_SEARCH = "search/?type=Donor&study=Benchmarking&study=Production"
 ITEM_TYPES = [
     "Donor",
     "Demographic",
@@ -312,7 +313,7 @@ def main() -> None:
         "--search",
         "-s",
         help="Search query for donors to create bulk donor manifest",
-        default="search/?type=Donor&study=Benchmarking&study=Production",
+        default=[]
     )
     parser.add_argument(
         "--donors",
@@ -336,14 +337,14 @@ def main() -> None:
     args = parser.parse_args()
     auth_key = get_auth_key(args.env)
     if not args.search and not args.donors:
-        log.error("Must provide either --search or --identifiers")
-    else:
-        create_bulk_donor_manifest(
-            args.search,
-            args.output,
-            auth_key,
-            args.donors,
-        )
+        args.search="search/?type=Donor&study=Benchmarking&study=Production"
+        log.info(f"Using default search {DEFAULT_SEARCH}")
+    create_bulk_donor_manifest(
+        args.search,
+        args.output,
+        auth_key,
+        args.donors,
+    )
 
 
 if __name__ == "__main__":
