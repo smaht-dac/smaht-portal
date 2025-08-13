@@ -1,8 +1,7 @@
-// cypress/e2e/public-protected-donor-overview.cy.js
 import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 import { testMatrixPopoverValidation } from "../support/utils/dataMatrixUtils";
 
-describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and 3 Public Donors That are Associated with Released Files', function () {
+describe('Protected Donor Overview - Verify Random 3 Protected Donors That are Associated with Released Files', function () {
 
     before(function () {
         cy.visit('/', { headers: cypressVisitHeaders });
@@ -216,9 +215,8 @@ describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and
         return Cypress.Promise.all([
             readExposureDatum(cardSel, 'Duration'),
             readExposureDatum(cardSel, 'Frequency'),
-            readExposureDatum(cardSel, 'Quantity'),
             readExposureDatum(cardSel, 'Cessation'),
-        ]).then(([duration, frequency, quantity, cessation]) => {
+        ]).then(([duration, frequency, cessation]) => {
             // If Duration or Cessation is a valid/triggering value, Frequency must be in the allowed set
             const mustCheckFrequency = triggersFrequency(duration) || triggersFrequency(cessation);
             if (mustCheckFrequency) {
@@ -226,8 +224,7 @@ describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and
                 expect(allowed, `${title} -> Frequency must be one of ${allowed.join(', ')} (got "${frequency}")`)
                     .to.include(frequency);
             }
-            // (Optional) You can add further checks for Quantity format later if needed
-            return { duration, frequency, quantity, cessation };
+            return { duration, frequency, cessation };
         });
     };
 
@@ -291,17 +288,6 @@ describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and
                 };
 
                 const $meta = findMetadataLink();
-                if (!$meta) {
-                    // If not in header, try anywhere under .donor-view (some apps portalize controls)
-                    cy.get('.donor-view', { timeout: 10000 }).then(($view) => {
-                        const $any = $view.find('a[download], a[href*="/resource-files/"], a:contains("Donor Metadata"), button:contains("Donor Metadata")').first();
-                        if ($any.length) {
-                            cy.log('Found Metadata control outside header scope.');
-                            return cy.wrap($any);
-                        }
-                    });
-                    return;
-                }
 
                 // 3) Assert the metadata control
                 cy.wrap($meta)
@@ -344,7 +330,7 @@ describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and
     };
 
 
-    it('Browse by 3 random donors associated with released files and validate donor view', function () {
+    it('Browse by 3 random protected donors associated with released files and validate protected donor view', function () {
         // Visit base browse page
         cy.visit(getBaseUrl(), { headers: cypressVisitHeaders });
 
@@ -421,7 +407,7 @@ describe('Public/Protected Donor Overview - Verify Random 3 Protected Donors and
                             [donorID],
                             [],
                             [],
-                            ['Donors'],
+                            ['Tissues'],
                             5, //regularBlockCount
                             5, //rowSummaryBlockCount
                             1, //colSummaryBlockCount
