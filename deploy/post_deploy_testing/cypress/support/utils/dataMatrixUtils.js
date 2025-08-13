@@ -249,10 +249,11 @@ export function testMatrixPopoverValidation(
     cy.get(matrixId).within(() => {
         validateLowerHeaders(expectedLowerLabels);
 
+        let anyCollapsibleRows = false;
         //collapse all to a fresh start
-        cy.get('.grouping.depth-0.may-collapse').then(($rows) => {
+        cy.get('.grouping.depth-0').then(($rows) => {
             // filter only open rows
-            const openRows = $rows.filter('.open');
+            const openRows = $rows.filter('.may-collapse.open');
 
             openRows.each((index, row) => {
                 const $icon = Cypress.$(row).find('i.icon-minus');
@@ -264,62 +265,67 @@ export function testMatrixPopoverValidation(
             if (openRows.length === 0) {
                 cy.log('No open rows found to collapse');
             }
-        });
 
+            anyCollapsibleRows = $rows.filter('.may-collapse').length > 0;
+            Cypress.log({ name: 'Collapse Rows', message: `${openRows.length} rows collapsed` });
+            Cypress.log({ name: 'Has Any Collapsible/Expandable Rows', message: `${anyCollapsibleRows}` });
 
-        // this code block makes all collapsed sections as expanded
-        // TODO: implement test cases for all collapsed sections
-        cy.get('.grouping.depth-0.may-collapse').each(($row) => {
-            const $label = $row.find('.grouping-row h4 .inner');
-            const rowLabel = $label.first().text().trim();
+            // this code block makes all collapsed sections as expanded
+            // TODO: implement test cases for all collapsed sections
+            if (anyCollapsibleRows) {
+                cy.get('.grouping.depth-0.may-collapse').each(($row) => {
+                    const $label = $row.find('.grouping-row h4 .inner');
+                    const rowLabel = $label.first().text().trim();
 
-            const rowSummaryText = $row.find('[data-block-type="row-summary"] span').text().trim();
-            const expectedRowSummary = parseInt(rowSummaryText, 10);
+                    const rowSummaryText = $row.find('[data-block-type="row-summary"] span').text().trim();
+                    const expectedRowSummary = parseInt(rowSummaryText, 10);
 
-            const expandIcon = $row.find('i.icon-plus');
-            if (expandIcon.length > 0) {
-                cy.wrap(expandIcon).click();
-            }
-
-            cy.wrap($row).as('currentRow');
-
-            if (donors.includes(rowLabel)) {
-                cy.get('@currentRow')
-                    .find('.child-blocks .grouping-row .inner')
-                    .then(($labels) => {
-                        const labelTexts = [...$labels].map((el) => el.textContent.trim());
-                        if (mustLabels.length > 0) {
-                            expect(labelTexts).to.include.members(mustLabels);
-                        }
-                        if (optionalLabels.length > 0) {
-                            expect(optionalLabels).to.include.members(labelTexts);
-                        }
-                    });
-            }
-
-            cy.get('@currentRow')
-                .find('.child-blocks .grouping-row .inner')
-                .then(($labels) => {
-                    const labelTexts = [...$labels].map((el) => el.textContent.trim());
-                    expect(labelTexts).to.not.include('N/A');
-                });
-
-            cy.get('@currentRow')
-                .find('.child-blocks [data-block-type="regular"] span')
-                .then(($spans) => {
-                    const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
-                    expect(sum, `Row summary for ${rowLabel}`).to.equal(expectedRowSummary);
-                });
-
-            cy.get('@currentRow')
-                .find('.child-blocks [data-block-type="regular"]')
-                .each(($block) => {
-                    const value = parseInt($block.text().trim(), 10);
-                    const assay = $block.parent().attr('data-group-key');
-                    if (!isNaN(value)) {
-                        columnTotals[assay] = (columnTotals[assay] || 0) + value;
+                    const expandIcon = $row.find('i.icon-plus');
+                    if (expandIcon.length > 0) {
+                        cy.wrap(expandIcon).click();
                     }
+
+                    cy.wrap($row).as('currentRow');
+
+                    if (donors.includes(rowLabel)) {
+                        cy.get('@currentRow')
+                            .find('.child-blocks .grouping-row .inner')
+                            .then(($labels) => {
+                                const labelTexts = [...$labels].map((el) => el.textContent.trim());
+                                if (mustLabels.length > 0) {
+                                    expect(labelTexts).to.include.members(mustLabels);
+                                }
+                                if (optionalLabels.length > 0) {
+                                    expect(optionalLabels).to.include.members(labelTexts);
+                                }
+                            });
+                    }
+
+                    cy.get('@currentRow')
+                        .find('.child-blocks .grouping-row .inner')
+                        .then(($labels) => {
+                            const labelTexts = [...$labels].map((el) => el.textContent.trim());
+                            expect(labelTexts).to.not.include('N/A');
+                        });
+
+                    cy.get('@currentRow')
+                        .find('.child-blocks [data-block-type="regular"] span')
+                        .then(($spans) => {
+                            const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
+                            expect(sum, `Row summary for ${rowLabel}`).to.equal(expectedRowSummary);
+                        });
+
+                    cy.get('@currentRow')
+                        .find('.child-blocks [data-block-type="regular"]')
+                        .each(($block) => {
+                            const value = parseInt($block.text().trim(), 10);
+                            const assay = $block.parent().attr('data-group-key');
+                            if (!isNaN(value)) {
+                                columnTotals[assay] = (columnTotals[assay] || 0) + value;
+                            }
+                        });
                 });
+            }
         });
 
         // Random [regularBlockCount] regular block popovers

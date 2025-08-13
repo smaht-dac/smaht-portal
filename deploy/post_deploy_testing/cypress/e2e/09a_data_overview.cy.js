@@ -113,7 +113,7 @@ describe('Data Overview - Retracted Files, Data Matrix for Production, Data Matr
                 // Verify that the page contains the correct header
                 cy.contains('div#page-title-container h1.page-title', 'Data Matrix').should('be.visible');
 
-                testMatrixPopoverValidation('#data-matrix-for_production', ['SMHT004', 'SMHT008'], ['Non-exposed Skin', 'Heart', 'Blood'], [], ['Donors']);
+                testMatrixPopoverValidation('#data-matrix-for_production', ['SMHT004', 'SMHT008', 'SMHT009'], ['Non-exposed Skin', 'Heart', 'Blood'], [], ['Donors']);
             })
             .logoutSMaHT();
     });
