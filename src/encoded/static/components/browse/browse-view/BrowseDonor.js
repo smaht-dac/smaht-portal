@@ -51,10 +51,6 @@ const formatTissueData = (data) => {
             title: 'Fibroblast',
             values: [],
         },
-        Unknown: {
-            title: 'Unknown',
-            values: [],
-        },
     };
 
     // group data by tissue category
@@ -193,7 +189,11 @@ const formatAssayData = (data) => {
             values: [],
         },
         WGA: {
-            title: 'Duplex-seq',
+            title: 'Single-cell WGS',
+            values: [],
+        },
+        Other: {
+            title: 'Other',
             values: [],
         },
     };
@@ -209,7 +209,7 @@ const formatAssayData = (data) => {
             };
         } else {
             // If category exists, push tissue to that category
-            acc[assayCategory].values.push(item?.terms.map((t) => t.key));
+            acc[assayCategory].values.push(...item?.terms.map((t) => t.key));
         }
         return acc;
     }, defaultAssayCategories);
@@ -259,18 +259,15 @@ const AssayDetailPane = ({ itemDetails }) => {
                 <i className="icon icon-dna fas"></i>
                 <b>
                     {/* Calculate total tissue count */}
-                    {Object.keys(assayData).reduce(
-                        (acc, key) => acc + assayData[key].values.length,
-                        0
-                    )}{' '}
+                    {Object.keys(assayData).reduce((acc, key) => {
+                        return acc + assayData[key].values.length;
+                    }, 0)}{' '}
                 </b>
                 Assays across all tissues
             </div>
             <div className="detail-body">
                 {Object?.keys(assayData).map((category, i) => {
                     const assays = assayData[category]['values'] || [];
-
-                    console.log('Assay Data', assayData);
                     return (
                         <div key={i} className="tissue-category">
                             <div className="header-container">
@@ -412,6 +409,7 @@ export function createBrowseDonorColumnExtensionMap({
         },
         // Tissues
         'sample_summary.tissues': {
+            noSort: true,
             widthMap: { lg: 120, md: 120, sm: 120 },
             render: function (result, parentProps) {
                 const {
@@ -482,6 +480,7 @@ export function createBrowseDonorColumnExtensionMap({
         },
         // Assays
         assays: {
+            noSort: true,
             widthMap: { lg: 105, md: 100, sm: 100 },
             render: function (result, parentProps) {
                 const {
@@ -549,6 +548,7 @@ export function createBrowseDonorColumnExtensionMap({
         },
         // Files
         files: {
+            noSort: true,
             widthMap: { lg: 105, md: 100, sm: 100 },
             render: function (result, parentProps) {
                 const { data, loading, error } = parentProps?.fetchedProps;
@@ -575,6 +575,7 @@ export function createBrowseDonorColumnExtensionMap({
             },
         },
         file_size: {
+            noSort: true,
             widthMap: { lg: 105, md: 100, sm: 100 },
             render: function (result, parentProps) {
                 const {
@@ -630,6 +631,7 @@ export function createBrowseDonorColumnExtensionMap({
         },
         // Data Type
         data_type: {
+            noSort: true,
             widthMap: { lg: 124, md: 124, sm: 124 },
             render: function (result, parentProps) {
                 const { data_type = [] } = result || {};
