@@ -7,6 +7,28 @@ smaht-portal
 Change Log
 ----------
 
+0.195.2
+=======
+`PR 510: Cypress tests for protected/public donor views <https://github.com/smaht-dac/smaht-portal/pull/510>`_
+
+* Add Cypress tests for protected and public donor views
+* Move data matrix utility functions into `dataMatrixUtils`` file to use in multiple tests
+
+
+0.195.1
+=======
+`PR 509: SN Fix donor metadata release <https://github.com/smaht-dac/smaht-portal/pull/509>`_
+
+* Fix patching of release status to not ignore patching if the status is `released`
+
+
+0.195.0
+=======
+`PR 503: feat: public donor view <https://github.com/smaht-dac/smaht-portal/pull/503>`_
+
+* Implement Public Donor view
+
+
 0.194.2
 =======
 `PR 506: feat: add tooltip to values column header <https://github.com/smaht-dac/smaht-portal/pull/506>`_
