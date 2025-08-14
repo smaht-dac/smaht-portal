@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.195.3
+=======
+`PR 512: feat: remove quantity field from protected donor view <https://github.com/smaht-dac/smaht-portal/pull/512>`_
+
+* Remove the quantity field from the Protected Donor view
+
+
 0.195.2
 =======
 `PR 510: Cypress tests for protected/public donor views <https://github.com/smaht-dac/smaht-portal/pull/510>`_
