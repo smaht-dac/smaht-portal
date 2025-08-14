@@ -117,7 +117,7 @@ describe('Protected Donor Overview - Verify Random 3 Protected Donors That are A
             expect($el.hasClass('coming-soon'), 'DSA should have .coming-soon class').to.be.true;
         });
 
-        // --- Donor statistics (Option B: wait for numeric text) ------------------
+        // --- Donor statistics ------------------
         getNumericStatByLabel('Tissues').then((n) => expect(n).to.be.greaterThan(0));
         getNumericStatByLabel('Assays').then((n) => expect(n).to.be.greaterThan(0));
         getNumericStatByLabel('Files').then((n) => {

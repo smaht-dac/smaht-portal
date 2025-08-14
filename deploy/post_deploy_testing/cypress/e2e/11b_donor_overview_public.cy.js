@@ -56,7 +56,7 @@ describe('Public Donor Overview - Verify Random 3 Public Donors That are Associa
             .closest('.datum')
             .find('.datum-value')
             .should('be.visible')
-            .then($val => {
+            .then(($val) => {
                 const text = $val.text().trim();
                 return { $el: $val, text };
             });
@@ -83,7 +83,7 @@ describe('Public Donor Overview - Verify Random 3 Public Donors That are Associa
             if (expectedDonorId) expect(text).to.eq(expectedDonorId);
         });
 
-        // Age: just ensure non-empty (tighten later if you have bounds)
+        // Age: just ensure non-empty
         getOverviewValue('Age').then(({ text }) => {
             expect(text.length, 'Age should not be empty').to.be.greaterThan(0);
         });
@@ -122,7 +122,7 @@ describe('Public Donor Overview - Verify Random 3 Public Donors That are Associa
             expect($el.hasClass('coming-soon'), 'DSA should have .coming-soon class').to.be.true;
         });
 
-        // --- Donor statistics (Option B: wait for numeric text) ------------------
+        // --- Donor statistics ------------------
         getNumericStatByLabel('Tissues').then((n) => expect(n).to.be.greaterThan(0));
         getNumericStatByLabel('Assays').then((n) => expect(n).to.be.greaterThan(0));
         getNumericStatByLabel('Files').then((n) => expect(n).to.be.greaterThan(0));
@@ -274,7 +274,10 @@ describe('Public Donor Overview - Verify Random 3 Public Donors That are Associa
                 selected.push('COLO829');
                 cy.log(`Selected donors: ${selected.join(', ')}`);
 
-                const donorSearchUrl = `${DONOR_SEARCH_URL}&display_title=${selected.join('&display_title=')}`;
+                let donorSearchUrl = DONOR_SEARCH_URL;
+                selected.forEach((donorId) => {
+                    donorSearchUrl = appendParam(donorSearchUrl, 'display_title', donorId);
+                });
 
                 cy.visit(donorSearchUrl, { headers: cypressVisitHeaders });
 
@@ -328,7 +331,7 @@ describe('Public Donor Overview - Verify Random 3 Public Donors That are Associa
                                 [donorID],
                                 [],
                                 [],
-                                ['Tissues'],
+                                ['Tissues'], // to be changed if COLO829's data matrix is specially handled in "the public donor view" in the future
                                 5, //regularBlockCount
                                 5, //rowSummaryBlockCount
                                 1, //colSummaryBlockCount
