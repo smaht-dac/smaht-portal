@@ -279,7 +279,7 @@ const DonorStatistics = ({ data, isLoading }) => {
 
 /**
  * A card component that displays exposure data for a donor. It shows the
- * category, duration, frequency, quantity, and cessation information.
+ * category, duration, frequency, and cessation information.
  * @param {object} data the exposure data object containing information on the exposure
  * @returns
  */
@@ -288,8 +288,6 @@ const ExposureCard = ({ data, popover }) => {
         category,
         duration,
         frequency_category,
-        quantity,
-        quantity_unit,
         cessation,
         cessation_duration,
     } = data || {};
@@ -359,20 +357,6 @@ const ExposureCard = ({ data, popover }) => {
                         </span>
                     </div>
                 </OverlayTrigger>
-                <div
-                    className="datum"
-                    data-tip={
-                        'How much of the substance the donor was regularly exposed to'
-                    }>
-                    <span className="datum-title">
-                        Quantity <i className="icon icon-info-circle fas"></i>
-                    </span>
-                    <span className="datum-value">
-                        {quantity && quantity_unit
-                            ? quantity + ' ' + quantity_unit
-                            : '--'}
-                    </span>
-                </div>
                 <div
                     className="datum"
                     data-tip={
