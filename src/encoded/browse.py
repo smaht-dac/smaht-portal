@@ -25,13 +25,6 @@ def includeme(config):
 DEFAULT_BROWSE_TYPE = "File"
 DEFAULT_BROWSE_FACETS = ["file_size"]
 
-DEFAULT_BROWSE_PARAM_LISTS = {
-    "type": [DEFAULT_BROWSE_TYPE],
-    "sample_summary.studies": ["Production"],
-    "status": ["released"],
-    # "additional_facet": DEFAULT_BROWSE_FACETS
-}
-
 @view_config(route_name='browse', request_method='GET', permission='search')
 @debug_log
 def browse(context, request, search_type=DEFAULT_BROWSE_TYPE, return_generator=False):
@@ -39,23 +32,7 @@ def browse(context, request, search_type=DEFAULT_BROWSE_TYPE, return_generator=F
     Simply use search results for browse view
     Redirect to proper URL w. params if needed
     """
-    orig_params = request.params
-    for k,vals in DEFAULT_BROWSE_PARAM_LISTS.items():
-        if k not in orig_params or orig_params[k] not in vals:
-            # Redirect to DEFAULT_BROWSE_PARAM_LISTS URL
-            next_qs = MultiDict()
-            for k2, v2list in DEFAULT_BROWSE_PARAM_LISTS.items():
-                for v2 in v2list:
-                    next_qs.add(k2, v2)
-            # Preserve other keys that arent in DEFAULT_BROWSE_PARAM_LISTS
-            for k2, v2 in orig_params.items():
-                if k2 not in DEFAULT_BROWSE_PARAM_LISTS:
-                    next_qs.add(k2, v2)
-            # next_qs.add("redirected_from", str(request.path_qs))
-            return HTTPFound(
-                location=str(request.path) + '?' +  urlencode(next_qs),
-                detail="Redirected from " + str(request.path_info)
-            )
+    search_type = request.params.get('type', DEFAULT_BROWSE_TYPE)
 
     return search(context, request, search_type, return_generator, forced_type="Browse")
 
