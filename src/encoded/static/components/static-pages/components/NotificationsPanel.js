@@ -3,6 +3,15 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { RightArrowIcon } from '../../util/icon';
 
+/**
+ * Toggle hook
+ */
+const useToggle = (initialState = false) => {
+    const [isToggled, setIsToggled] = useState(initialState);
+    const toggle = () => setIsToggled(!isToggled);
+    return [isToggled, toggle];
+};
+
 const announcements = [
     {
         type: 'info',
@@ -102,6 +111,89 @@ const AnnouncementCard = ({
     );
 };
 
+const TissueGroup = ({ count, tissue_group, items }) => {
+    const [isToggled, toggle] = useToggle();
+
+    return (
+        <li>
+            <button className="toggle-button tissue" onClick={() => toggle()}>
+                <i
+                    className={`icon icon-${isToggled ? 'minus' : 'plus'} fas`}
+                />
+            </button>
+            <a>{tissue_group}</a>
+            {isToggled ? (
+                <ul>
+                    {items.map((item, i) => (
+                        <li key={i}>
+                            {item?.count} {item?.value}
+                        </li>
+                    ))}
+                </ul>
+            ) : null}
+        </li>
+    );
+};
+
+const DonorGroup = ({
+    count,
+    donorGroups: donor_groups,
+    donorGroup: donor_group,
+    items,
+}) => {
+    const [isToggled, toggle] = useToggle();
+
+    let donor_title = donor_group;
+
+    if (donor_title?.includes('DAC_DONOR_')) {
+        donor_title = donor_title.replace('DAC_DONOR_', '');
+    }
+
+    return (
+        <div className="release-item">
+            <a className="title">
+                <button
+                    className="toggle-button donor"
+                    onClick={() => {
+                        toggle();
+                    }}>
+                    <i
+                        className={`icon icon-${
+                            isToggled ? 'minus' : 'plus'
+                        }`}></i>
+                </button>
+                {donor_title}
+                {/* - {donor_groups[donor_group].count} Files */}
+                <RightArrowIcon />
+            </a>
+            {isToggled ? (
+                <ul className="tissue-list">
+                    {Object.keys(donor_groups[donor_group]['items']).map(
+                        (tissue_group, i) => {
+                            const { count, query } =
+                                donor_groups[donor_group]['items'][
+                                    tissue_group
+                                ];
+                            return (
+                                <TissueGroup
+                                    key={i}
+                                    count={count}
+                                    tissue_group={tissue_group}
+                                    items={
+                                        donor_groups[donor_group]['items'][
+                                            tissue_group
+                                        ].items
+                                    }
+                                />
+                            );
+                        }
+                    )}
+                </ul>
+            ) : null}
+        </div>
+    );
+};
+
 /**
  * DataReleaseItem component displays information about a specific data release.
  * @param {*} data - The data object containing release information.
@@ -109,7 +201,7 @@ const AnnouncementCard = ({
  * @returns {JSX.Element} The rendered DataReleaseItem component.
  */
 const DataReleaseItem = ({ data, releaseItemIndex }) => {
-    const [isExpanded, setIsExpanded] = useState(true);
+    const [isToggled, toggle] = useToggle(releaseItemIndex === 0);
     const { count, items: donor_groups, query, value } = data;
 
     // Replace hyphens with slashes and add day field for Safari compatibility
@@ -121,18 +213,18 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
     return (
         <div
             className={`data-release-item-container ${
-                isExpanded ? 'expanded' : 'collapsed'
+                isToggled ? 'expanded' : 'collapsed'
             }`}>
             <div className="content">
                 <div className="header">
                     <button
                         className="toggle-button"
                         onClick={() => {
-                            setIsExpanded(!isExpanded);
+                            toggle();
                         }}>
                         <i
                             className={`icon icon-${
-                                isExpanded ? 'minus' : 'plus'
+                                isToggled ? 'minus' : 'plus'
                             }`}></i>
                     </button>
                     <a className="header-link" href={query}>
@@ -148,36 +240,13 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                 </div>
                 <div className="body">
                     {Object.keys(donor_groups).map((donor_group, i) => {
-                        let donor_title = donor_group;
-
-                        if (donor_title?.includes('DAC_DONOR_')) {
-                            donor_title = donor_title.replace('DAC_DONOR_', '');
-                        }
-
                         return (
-                            <div className="release-item" key={i}>
-                                <a className="title">
-                                    {donor_title}
-                                    <RightArrowIcon />
-                                </a>
-                                <ul>
-                                    {Object.keys(donor_groups[donor_group]).map(
-                                        (tissue_group, i) => {
-                                            const { value, count, query } =
-                                                donor_groups[donor_group][
-                                                    tissue_group
-                                                ];
-                                            return (
-                                                <li key={i}>
-                                                    <a href={query}>
-                                                        {tissue_group}
-                                                    </a>
-                                                </li>
-                                            );
-                                        }
-                                    )}
-                                </ul>
-                            </div>
+                            <DonorGroup
+                                key={i}
+                                donorGroups={donor_groups}
+                                donorGroup={donor_group}
+                                items={donor_groups[donor_group].items}
+                            />
                         );
                     })}
                 </div>
@@ -196,7 +265,7 @@ const formatReleaseData = (data) => {
     return data.map((month) => {
         // Format each month by grouping items by donor and tissue
         const formattedItems = month?.items?.reduce((acc, item) => {
-            const { value, items } = item;
+            const { count, value, items } = item;
 
             // Pull out Donor and add to [acc]
             const [donor, tissue] = value?.split('-');
@@ -205,16 +274,37 @@ const formatReleaseData = (data) => {
                 ? tissueCode + ' - ' + tissue
                 : tissue;
 
+            const tissue_items = item?.items;
+
             // Create a new entry for the donor if it doesn't exist
             if (!acc?.[donor]) {
-                acc[donor] = { [tissueTitle]: [{ ...item }] };
+                // Place tissue items into new donor group
+                const new_donor_items = {
+                    [tissueTitle]: { items: tissue_items, count },
+                };
+                acc[donor] = {
+                    items: new_donor_items,
+                    count,
+                };
             } else {
                 // Append new tissue category if it doesn't exist on donor
-                if (!acc?.[donor]?.[tissueTitle]) {
-                    acc[donor][tissueTitle] = [{ ...item }];
+                if (!acc?.[donor]?.items?.[tissueTitle]) {
+                    acc[donor].items[tissueTitle] = {
+                        items: tissue_items,
+                        count,
+                    };
+
+                    // Add count to donor total
+                    acc[donor].count += count;
                 } else {
                     // Simply add to existing tissue category
-                    acc[donor][tissueTitle].push({ ...item });
+                    acc[donor].items[tissueTitle].items.push(...tissue_items);
+
+                    // Add count to tissue total
+                    acc[donor].items[tissueTitle].count += count;
+
+                    // Add count to donor total
+                    acc[donor].count += count;
                 }
             }
 
