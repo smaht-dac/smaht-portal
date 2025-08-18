@@ -163,6 +163,32 @@ def smaht_admin(testapp):
 
 
 @pytest.fixture
+def smaht_dbgap_user(testapp):
+    item = {
+        'first_name': 'Test',
+        'last_name': 'DBGAP',
+        'email': 'smaht_dbgap@example.org',
+        'groups': ['dbgap'],
+        'status': 'current'
+    }
+    # User @@object view has keys omitted.
+    return post_item_and_return_location(testapp, item, 'user')
+
+
+@pytest.fixture
+def smaht_public_dbgap_user(testapp):
+    item = {
+        'first_name': 'Test',
+        'last_name': 'Public DBGAP',
+        'email': 'smaht_public_dbgap@example.org',
+        'groups': ['public-dbgap'],
+        'status': 'current'
+    }
+    # User @@object view has keys omitted.
+    return post_item_and_return_location(testapp, item, 'user')
+
+
+@pytest.fixture
 def blank_user(testapp):
     item = {
         'first_name': 'Unaffiliated',
@@ -300,6 +326,18 @@ def smaht_protected_gcc_user(testapp, test_submission_center, test_consortium, t
 def smaht_admin_app(testapp, smaht_admin):
     """ App associated with a consortia member who is a submitter """
     return remote_user_testapp(testapp.app, smaht_admin['uuid'])
+
+
+@pytest.fixture
+def smaht_dbgap_app(testapp, smaht_dbgap_user):
+    """ App associated with member of the public with the dbgap group (ie: expanded consortia) """
+    return remote_user_testapp(testapp.app, smaht_dbgap_user['uuid'])
+
+
+@pytest.fixture
+def smaht_public_dbgap_app(testapp, smaht_public_dbgap_user):
+    """ App associated member of the public with the public dbgap group """
+    return remote_user_testapp(testapp.app, smaht_public_dbgap_user['uuid'])
 
 
 @pytest.fixture
@@ -482,7 +520,7 @@ def test_tissue(
         "uberon_id": test_ontology_term["uuid"]
     }
     return post_item(testapp, item, "Tissue")
-    
+
 
 @pytest.fixture
 def test_tissue_sample(
