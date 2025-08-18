@@ -102,9 +102,15 @@ const AnnouncementCard = ({
     );
 };
 
+/**
+ * DataReleaseItem component displays information about a specific data release.
+ * @param {*} data - The data object containing release information.
+ * @param {*} releaseItemIndex - The index of the release item.
+ * @returns {JSX.Element} The rendered DataReleaseItem component.
+ */
 const DataReleaseItem = ({ data, releaseItemIndex }) => {
     const [isExpanded, setIsExpanded] = useState(true);
-    const { count, items: sample_groups, query, value } = data;
+    const { count, items: donor_groups, query, value } = data;
 
     // Replace hyphens with slashes and add day field for Safari compatibility
     const date_formatted = value.replace(/-/g, '/') + '/01';
@@ -141,40 +147,35 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                     </a>
                 </div>
                 <div className="body">
-                    {sample_groups.map((sample_group, i) => {
-                        let sample_group_title = sample_group.value;
+                    {Object.keys(donor_groups).map((donor_group, i) => {
+                        let donor_title = donor_group;
 
-                        if (sample_group_title?.includes('DAC_DONOR_')) {
-                            sample_group_title = sample_group_title.replace(
-                                'DAC_DONOR_',
-                                ''
-                            );
-                        }
-
-                        const sample_group_type =
-                            sample_group?.items?.[0]?.['additional_value'];
-
-                        if (sample_group_type) {
-                            sample_group_title += ` - ${sample_group_type}`;
+                        if (donor_title?.includes('DAC_DONOR_')) {
+                            donor_title = donor_title.replace('DAC_DONOR_', '');
                         }
 
                         return (
                             <div className="release-item" key={i}>
-                                <a className="title" href={sample_group.query}>
-                                    {sample_group_title}
+                                <a className="title">
+                                    {donor_title}
                                     <RightArrowIcon />
                                 </a>
                                 <ul>
-                                    {sample_group.items.map((item, i) => {
-                                        const { value, count, query } = item;
-                                        return (
-                                            <li key={i}>
-                                                <a href={query}>
-                                                    {count} {value}
-                                                </a>
-                                            </li>
-                                        );
-                                    })}
+                                    {Object.keys(donor_groups[donor_group]).map(
+                                        (tissue_group, i) => {
+                                            const { value, count, query } =
+                                                donor_groups[donor_group][
+                                                    tissue_group
+                                                ];
+                                            return (
+                                                <li key={i}>
+                                                    <a href={query}>
+                                                        {tissue_group}
+                                                    </a>
+                                                </li>
+                                            );
+                                        }
+                                    )}
                                 </ul>
                             </div>
                         );
@@ -185,6 +186,48 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
     );
 };
 
+/**
+ * `formatReleaseData` formats the release tracker data into a structure
+ * that more closely matches the UI by grouping the data by donor and tissue
+ * @param {} data
+ * @returns
+ */
+const formatReleaseData = (data) => {
+    return data.map((month) => {
+        // Format each month by grouping items by donor and tissue
+        const formattedItems = month?.items?.reduce((acc, item) => {
+            const { value, items } = item;
+
+            // Pull out Donor and add to [acc]
+            const [donor, tissue] = value?.split('-');
+            const tissueCode = items?.[0]?.['additional_value'] ?? '';
+            const tissueTitle = tissueCode
+                ? tissueCode + ' - ' + tissue
+                : tissue;
+
+            // Create a new entry for the donor if it doesn't exist
+            if (!acc?.[donor]) {
+                acc[donor] = { [tissueTitle]: [{ ...item }] };
+            } else {
+                // Append new tissue category if it doesn't exist on donor
+                if (!acc?.[donor]?.[tissueTitle]) {
+                    acc[donor][tissueTitle] = [{ ...item }];
+                } else {
+                    // Simply add to existing tissue category
+                    acc[donor][tissueTitle].push({ ...item });
+                }
+            }
+
+            return acc;
+        }, {});
+
+        return {
+            ...month,
+            items: formattedItems,
+        };
+    });
+};
+
 export const NotificationsPanel = () => {
     const [data, setData] = useState(null);
 
@@ -192,7 +235,7 @@ export const NotificationsPanel = () => {
         ajax.load(
             '/recent_files_summary?format=json&nmonths=18',
             (resp) => {
-                setData(resp?.items ?? null);
+                setData(formatReleaseData(resp?.items ?? null));
             },
             'GET',
             (err) => {
