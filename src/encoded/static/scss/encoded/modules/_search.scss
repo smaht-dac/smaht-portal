@@ -76,11 +76,6 @@ $facetlist-excluding: #450000;
 	}
 }
 
-
-
-
-
-
 /*** FACETS CONTAINER STICKY ***/
 
 .search-view-controls-and-results .facets-container {
@@ -287,7 +282,6 @@ $facetlist-excluding: #450000;
 		}
 	}
 }
-
 
 /** Btn vertical alignment (probably temporary) **/
 .above-facets-table-row {
@@ -1163,6 +1157,38 @@ div.browse-summary {
 			}
 		}
 	}
+	// override styles for compact stats
+	&.stats-compact {
+		row-gap: 15px !important;
+
+		div.browse-summary-stat {
+			height: 30px !important;
+			padding-left: 0 !important;
+			padding-right: 0 !important;
+
+			&:not(:last-of-type) {
+				border-right: unset !important;
+			}
+
+			> div {
+				div.browse-summary-stat-value {
+					font-size: 1.5rem !important;
+			}
+			div.browse-summary-stat-subtitle {
+					margin-left: 7px !important;
+				}
+			}
+			div.browse-link-icon {
+				width: 30px !important;
+				height: 30px !important;
+				border-radius: 15px !important;
+			}
+		}
+
+		hr {
+			margin: 1rem 0 0.25rem 0;
+		}
+	}
 }
 
 h3.browse-links-header,
@@ -1241,6 +1267,31 @@ div.browse-link-icon {
 		border: 1px solid #F47F6B;
 		> i {
 			color: #CC5D4A;
+		}
+	}
+}
+
+.browse-viz-container {
+	.stats-column {
+		@include navbar-static-position {
+			width: 100%;
+		}
+
+		@include navbar-fixed-position {
+			width: 320px;
+		}
+
+		div.view-toggle {
+			background-color: #F9FCFF;
+			border: 1px solid #70A3E2;
+			width: 100%;
+			gap: 10px;
+			white-space: nowrap;
+
+			.btn.btn-primary-dark {
+				background-color: $primary !important;
+				border-color: $primary !important;
+			}
 		}
 	}
 }
