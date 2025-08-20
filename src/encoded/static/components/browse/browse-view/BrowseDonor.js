@@ -70,9 +70,6 @@ const formatTissueData = (data) => {
         const tissueCategory = tissueToCategory.get(key) || 'Unknown';
 
         if (!acc[tissueCategory]) {
-            console.log(
-                `Tissue category "${tissueCategory}" not found in mapping, assigning to ${tissueCategory}.`
-            );
             acc[tissueCategory] = { title: tissueCategory, values: [key] };
         } else {
             // If category exists, push tissue to that category
@@ -85,40 +82,33 @@ const formatTissueData = (data) => {
 };
 
 /**
- * DetailPane component that displays tissue data for a donor. Fetches tissue
+ * TissueDetailPane component that displays tissue data for a donor. Fetches tissue
  * data based on the donor's display title and formats it for display.
  * @param {*} itemDetails - The details of the item to display.
- * @returns DetailPane component that displays tissue data for a donor.
+ * @returns TissueDetailPane component that displays tissue data for a donor.
  */
-const DetailPane = ({ itemDetails }) => {
+const TissueDetailPane = React.memo(function TissueDetailPane({
+    itemDetails,
+    panelDetails,
+}) {
     const [tissueData, setTissueData] = useState(null);
 
-    // Request information about the assay for the files for this donor
     useEffect(() => {
-        if (!tissueData) {
-            const searchURL = `/search/?type=File&donors.display_title=${itemDetails.display_title}`;
-            ajax.load(
-                searchURL,
-                (resp) => {
-                    setTissueData(
-                        formatTissueData(
-                            resp?.facets?.find(
-                                (f) => f.field === 'sample_summary.tissues'
-                            )?.terms || []
-                        )
-                    );
-                },
-                'GET',
-                (err) => {
-                    if (err.notification !== 'No results found') {
-                        // console.log('ERROR FileViewTabs resp', err);
-                    }
-                }
-            );
-        }
-    }, []);
+        const searchURL = `/search/?type=File&donors.display_title=${itemDetails.display_title}`;
 
-    // console.log('Tissue Data', tissueData, itemDetails);
+        // Use cached search results if available from parent
+        if (panelDetails?.searchCache) {
+            setTissueData(
+                formatTissueData(
+                    panelDetails?.searchCache?.facets?.find(
+                        (f) => f.field === 'sample_summary.tissues'
+                    )?.terms || []
+                )
+            );
+        } else {
+            panelDetails.searchRequest(searchURL);
+        }
+    }, [panelDetails.searchCache]);
 
     return tissueData && Object?.keys(tissueData)?.length > 0 ? (
         <div className="detail-content">
@@ -137,7 +127,6 @@ const DetailPane = ({ itemDetails }) => {
                 {Object?.keys(tissueData).map((category, i) => {
                     const tissues = tissueData[category]['values'] || [];
 
-                    console.log('Tissue Data', tissueData);
                     return (
                         <div key={i} className="tissue-category">
                             <div className="header-container">
@@ -178,7 +167,7 @@ const DetailPane = ({ itemDetails }) => {
             </div>
         </div>
     );
-};
+});
 
 /**
  * Format tissue data by grouping it into predefined categories.
@@ -234,35 +223,30 @@ const formatAssayData = (data) => {
  * @param {*} itemDetails - The details of the item to display.
  * @returns AssayDetailPane component that displays tissue data for a donor.
  */
-const AssayDetailPane = ({ itemDetails }) => {
+const AssayDetailPane = React.memo(function AssayDetailPane({
+    itemDetails,
+    panelDetails,
+}) {
     const [assayData, setAssayData] = useState(null);
 
-    // Request information about the tissue for the files for this donor
     useEffect(() => {
-        if (!assayData) {
-            const searchURL = `/search/?type=File&donors.display_title=${itemDetails.display_title}`;
-            ajax.load(
-                searchURL,
-                (resp) => {
-                    setAssayData(
-                        formatAssayData(
-                            resp?.facets?.find(
-                                (f) =>
-                                    f.field ===
-                                    'file_sets.libraries.assay.display_title'
-                            )?.terms || []
-                        )
-                    );
-                },
-                'GET',
-                (err) => {
-                    if (err.notification !== 'No results found') {
-                        // console.log('ERROR FileViewTabs resp', err);
-                    }
-                }
+        const searchURL = `/search/?type=File&donors.display_title=${itemDetails.display_title}`;
+
+        // Use cached search results if available from parent
+        if (panelDetails?.searchCache) {
+            setAssayData(
+                formatAssayData(
+                    panelDetails?.searchCache?.facets?.find(
+                        (f) =>
+                            f.field ===
+                            'file_sets.libraries.assay.display_title'
+                    )?.terms || []
+                )
             );
+        } else {
+            panelDetails.searchRequest(searchURL);
         }
-    }, []);
+    }, [panelDetails.searchCache]);
 
     return assayData && Object?.keys(assayData)?.length > 0 ? (
         <div className="detail-content">
@@ -319,7 +303,7 @@ const AssayDetailPane = ({ itemDetails }) => {
             </div>
         </div>
     );
-};
+});
 
 // Detail Pane
 const customRenderDetailPane = (
@@ -331,18 +315,22 @@ const customRenderDetailPane = (
     // set the corresponding detail pane based on `detailPaneType`
     let detailPane;
 
-    console.log('customRenderDetailPane called', panelDetails);
     switch (panelDetails?.detailPaneType) {
         case 'tissue':
             detailPane = (
-                <DetailPane
+                <TissueDetailPane
                     itemDetails={itemDetails}
                     panelDetails={panelDetails}
                 />
             );
             break;
         case 'assay':
-            detailPane = <AssayDetailPane itemDetails={itemDetails} />;
+            detailPane = (
+                <AssayDetailPane
+                    itemDetails={itemDetails}
+                    panelDetails={panelDetails}
+                />
+            );
             break;
         default:
             break;
@@ -433,8 +421,6 @@ export function createBrowseDonorColumnExtensionMap({
                     handleCellClick,
                 } = parentProps;
 
-                console.log('sample_summary.tissues', parentProps);
-
                 const { data, loading, error } = parentProps?.fetchedProps;
 
                 const tissueCount = data?.find(
@@ -443,8 +429,8 @@ export function createBrowseDonorColumnExtensionMap({
 
                 if (loading) {
                     return (
-                        <span className="value text-center">
-                            <i className="icon icon-circle-notch icon-spin fas"></i>
+                        <span className="value text-center loading">
+                            {/* <i className="icon icon-circle-notch icon-spin fas"></i> */}
                         </span>
                     );
                 } else {
@@ -470,8 +456,12 @@ export function createBrowseDonorColumnExtensionMap({
                                     toggleDetailOpen,
                                     isActive: detailPaneType === 'tissue',
                                     customToggleDetailClose: (props) => {
-                                        handleCellClick(null);
-                                        toggleDetailOpen();
+                                        if (detailPaneType === 'assay') {
+                                            handleCellClick('tissue');
+                                        } else {
+                                            handleCellClick(null);
+                                            toggleDetailOpen();
+                                        }
                                     },
                                     customToggleDetailOpen: (props) => {
                                         handleCellClick('tissue');
@@ -513,8 +503,8 @@ export function createBrowseDonorColumnExtensionMap({
 
                 if (loading) {
                     return (
-                        <span className="value text-center">
-                            <i className="icon icon-circle-notch icon-spin fas"></i>
+                        <span className="value text-center loading">
+                            {/* <i className="icon icon-circle-notch icon-spin fas"></i> */}
                         </span>
                     );
                 } else {
@@ -539,8 +529,12 @@ export function createBrowseDonorColumnExtensionMap({
                                     toggleDetailOpen,
                                     isActive: detailPaneType === 'assay',
                                     customToggleDetailClose: (props) => {
-                                        handleCellClick(null);
-                                        toggleDetailOpen();
+                                        if (detailPaneType === 'tissue') {
+                                            handleCellClick('assay');
+                                        } else {
+                                            handleCellClick(null);
+                                            toggleDetailOpen();
+                                        }
                                     },
                                     customToggleDetailOpen: (props) => {
                                         handleCellClick('assay');
@@ -571,8 +565,8 @@ export function createBrowseDonorColumnExtensionMap({
 
                 if (loading) {
                     return (
-                        <span className="value text-center">
-                            <i className="icon icon-circle-notch icon-spin fas"></i>
+                        <span className="value text-center loading">
+                            {/* <i className="icon icon-circle-notch icon-spin fas"></i> */}
                         </span>
                     );
                 } else {
@@ -607,7 +601,7 @@ export function createBrowseDonorColumnExtensionMap({
                 if (loading) {
                     return (
                         <span className="value text-center loading">
-                            <i className="icon icon-circle-notch icon-spin fas"></i>
+                            {/* <i className="icon icon-circle-notch icon-spin fas"></i> */}
                         </span>
                     );
                 } else {
@@ -766,7 +760,7 @@ const BrowseDonorSearchTable = (props) => {
         onResetSelectedItems, // From SelectedItemsController
     };
 
-    const passProps = _.omit(props, 'isFullscreen', 'toggleFullScreen');
+    const passProps = props;
 
     const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
     const aboveTableComponent = (
@@ -802,9 +796,7 @@ const BrowseDonorSearchTable = (props) => {
                 aboveTableComponent,
                 columns,
                 hideFacets,
-                // fetchProps: fetchPropsForBrowseDonor,
             }}
-            // detailPane={<>Hello there!</>}
             renderDetailPane={customRenderDetailPane}
             useCustomSelectionController
             hideStickyFooter

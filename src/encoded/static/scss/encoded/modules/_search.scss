@@ -881,6 +881,18 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 				}
 				
 				.search-results-container {
+
+					.columns {
+						[data-field="@type"] {
+							.inner {
+								.column-title {
+									display: flex;
+									justify-content: right;
+									margin-right: 1.25rem;
+								}
+							}
+						}
+					}
 					.search-result-row {
 						.search-result-column-block {
 							.inner {
@@ -901,6 +913,13 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 											}
 										}
 									}
+								}
+
+								.value.loading {
+									background-color: rgba(211, 211, 211, 0.2);
+									border-radius: 4px;
+									width: 80%;
+									height: 20px;
 								}
 							}
 						}
@@ -989,8 +1008,6 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 								}
 							}
 						}
-
-
 
 						&.detail-tissue {
 							[data-field="sample_summary.tissues"] {
