@@ -8,7 +8,7 @@ import {
 import { BrowseLinkIcon } from './BrowseLinkIcon';
 
 export const BrowseSummaryStatController = (props) => {
-    const { type, additionalSearchQueries = '' } = props;
+    const { type, additionalSearchQueries = '', valueContainerCls =  'ms-2' } = props;
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -87,11 +87,11 @@ export const BrowseSummaryStatController = (props) => {
         getStatistics();
     }, []);
 
-    return <BrowseSummaryStat {...{ value, type, loading, units }} />;
+    return <BrowseSummaryStat {...{ value, type, loading, units, valueContainerCls }} />;
 };
 
 const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
-    const { type, value, loading, units } = props;
+    const { type, value, loading, units, valueContainerCls = 'ms-2' } = props;
 
     let subtitle;
     switch (type) {
@@ -120,7 +120,7 @@ const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
                 {...{ type }}
                 cls="mt-04 browse-summary-stat-icon-smaller"
             />
-            <div className="ms-2">
+            <div className={valueContainerCls}>
                 {loading && (
                     <div className="browse-summary-stat-value">
                         {' '}
