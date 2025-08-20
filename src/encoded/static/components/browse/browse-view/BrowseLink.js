@@ -4,6 +4,11 @@ import { BrowseLinkIcon } from './BrowseLinkIcon';
 export const BrowseLink = (props) => {
     const { type, disabled } = props;
 
+    let studyField = 'sample_summary.studies';
+    if (type === 'Donor' || type === 'ProtectedDonor') {
+        studyField = 'study';
+    }
+
     if (disabled) {
         return (
             <div className="browse-link">
@@ -20,7 +25,7 @@ export const BrowseLink = (props) => {
 
     return (
         <a
-            href={`/browse/?type=${type}&sample_summary.studies=Production&status=released`}
+            href={`/browse/?type=${type}&${studyField}=Production&status=released`}
             className="browse-link">
             <BrowseLinkIcon {...{ type }} />
             {type}

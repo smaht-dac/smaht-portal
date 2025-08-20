@@ -735,7 +735,7 @@ export function createBrowseDonorColumnExtensionMap({
         'status',
         'validation_errors.name',
         'version',
-        'sample_summary.studies',
+        'study',
         'submission_centers.display_title',
         'software.display_title',
     ];
