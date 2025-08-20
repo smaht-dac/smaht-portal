@@ -277,7 +277,7 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
                                                 <li key={j}>
                                                     <span>
                                                         <a
-                                                            href={`/search/?type=File&donors.display_title=${itemDetails.display_title}`}
+                                                            href={`/search/?type=File&donors.display_title=${itemDetails.display_title}&&file_sets.libraries.assay.display_title=${assay}`}
                                                             target="_blank"
                                                             rel="noreferrer noopener">
                                                             {assay}
@@ -442,7 +442,7 @@ export function createBrowseDonorColumnExtensionMap({
                             }>
                             <a
                                 className="value text-center"
-                                href={`/search/?type=Tissue&donor.display_title=${result?.display_title}`}>
+                                href={`/search/?type=File&donors.display_title=${result?.display_title}`}>
                                 {tissueCount} Tissue
                                 {tissueCount > 1 ? 's' : ''}
                             </a>
