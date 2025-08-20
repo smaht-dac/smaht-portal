@@ -92,7 +92,6 @@ const DonorCohortViewChart = ({
     chartType = 'stacked',  // 'stacked' | 'single' | 'horizontal'
     topStackColor,
     bottomStackColor,
-    // NEW: axis titles
     xAxisTitle = '',
     yAxisTitle = '',
     session
@@ -110,8 +109,7 @@ const DonorCohortViewChart = ({
             .attr('height', chartHeight);
         svg.selectAll('*').remove();
 
-        const legendOn = chartType === 'stacked' && showLegend;
-        const topReserve = 44 /*TITLE_BAND*/; // + (legendOn ? 44 /*LEGEND_BAND*/ : 0);
+        const topReserve = 44 /*TITLE_BAND*/;
 
         // Reserve extra bands if axis titles are provided
         const X_TITLE_BAND = xAxisTitle ? 28 : 0;
@@ -156,11 +154,7 @@ const DonorCohortViewChart = ({
 
         const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
 
-        // --------------------------------------------
-        // Helpers for integer-only Y axis (vertical)
-        // --------------------------------------------
-        // Build an integer tick axis for Y. If the range is small, show every integer,
-        // otherwise show ~6 ticks but still format as integers.
+        // --- helpers ---
         const makeIntAxisLeft = (scale, maxTick) => {
             if (maxTick <= 10) {
                 return d3.axisLeft(scale)
@@ -171,8 +165,6 @@ const DonorCohortViewChart = ({
                 .ticks(6)
                 .tickFormat(d3.format('d'));
         };
-
-        // Helper for safe label placement (prevents pushing labels outside the chart)
         const labelY = (v, pad = 6) => Math.max(y(v) - pad, 10);
 
         // ---------- Horizontal (Ethnicity) ----------
@@ -190,13 +182,13 @@ const DonorCohortViewChart = ({
                 .range([0, height])
                 .padding(0.25);
 
-            // 1) Grid: vertical grid lines only; hide the grid group's domain path
+            // Grid: vertical lines only
             const gridG = g.append('g')
                 .call(d3.axisBottom(x).ticks(6).tickSize(height).tickFormat(''));
             gridG.selectAll('line').attr('stroke', THEME.grid);
             gridG.select('.domain').attr('stroke', 'none');
 
-            // 2) X axis (bottom): integer ticks
+            // X axis (integers)
             const xAx = g.append('g')
                 .attr('transform', `translate(0,${height})`)
                 .call(d3.axisBottom(x).ticks(6).tickFormat(d3.format('d')).tickSizeOuter(0));
@@ -206,9 +198,8 @@ const DonorCohortViewChart = ({
             xAx.selectAll('line').attr('stroke', THEME.axis.domain).attr('y2', 6);
             xAx.select('.domain').attr('stroke', THEME.axis.domain);
 
-            // 3) Y axis (left): wrap labels to two lines
-            const yAx = g.append('g')
-                .call(d3.axisLeft(y).tickSizeOuter(0));
+            // Y axis (wrapped labels)
+            const yAx = g.append('g').call(d3.axisLeft(y).tickSizeOuter(0));
             yAx.selectAll('text')
                 .style('font-size', THEME.axis.fontSizeYHorizontal)
                 .style('fill', THEME.axis.tick)
@@ -216,7 +207,7 @@ const DonorCohortViewChart = ({
             yAx.selectAll('line').attr('stroke', 'none');
             yAx.select('.domain').attr('stroke', THEME.axis.domain);
 
-            // 4) Bars
+            // Bars
             g.selectAll('.bar-h')
                 .data(data).enter().append('rect')
                 .attr('x', 0)
@@ -229,7 +220,7 @@ const DonorCohortViewChart = ({
                 .on('mousemove', moveTip)
                 .on('mouseout', hideTip);
 
-            // 5) Value labels at the end of each bar (slightly offset from the bar)
+            // End-value labels
             g.selectAll('.label-h')
                 .data(data).enter().append('text')
                 .text((d) => value(d))
@@ -239,7 +230,7 @@ const DonorCohortViewChart = ({
                 .style('font-size', THEME.label.fontSize)
                 .style('fill', THEME.label.fill);
 
-            // 6) Axis titles (optional)
+            // Axis titles
             if (yAxisTitle) {
                 g.append('text')
                     .attr('transform', 'rotate(-90)')
@@ -250,7 +241,6 @@ const DonorCohortViewChart = ({
                     .style('fill', THEME.axis.tick)
                     .text(yAxisTitle);
             }
-
             if (xAxisTitle) {
                 g.append('text')
                     .attr('x', width / 2)
@@ -265,34 +255,65 @@ const DonorCohortViewChart = ({
         }
 
         // ---------- Vertical (Stacked / Single) ----------
-        const x = d3.scaleBand().domain(data.map((d) => d.group)).range([0, width]).padding(0.3);
+        const x = d3.scaleBand()
+            .domain(data.map((d) => d.group))
+            .range([0, width])
+            .padding(0.3);
 
-        // Compute raw max for domain depending on chart type
-        const yMaxRaw = d3.max(data, (d) => chartType === 'stacked' ? (d.blue || 0) + (d.pink || 0) : (d.blue || 0)) || 0;
+        const yMaxRaw = d3.max(
+            data,
+            (d) => (chartType === 'stacked' ? (d.blue || 0) + (d.pink || 0) : (d.blue || 0))
+        ) || 0;
 
-        // Add ~10% headroom (prevents labels touching the ceiling). If all zeros, set domain max to 1.
         const yDomainMax = yMaxRaw === 0 ? 1 : Math.ceil(yMaxRaw * 1.1);
 
-        // Y scale with padded domain
-        const y = d3.scaleLinear().domain([0, yDomainMax]).nice().range([height, 0]);
+        const y = d3.scaleLinear()
+            .domain([0, yDomainMax])
+            .nice()
+            .range([height, 0]);
 
-        // Grid (integer ticks, labels hidden)
-        g.append('g')
-            .call(makeIntAxisLeft(y, yDomainMax).tickSize(-width).tickFormat(''))
-            .selectAll('line').attr('stroke', THEME.grid);
+        // --- Vertical GRID (keep Y-axis ticks; remove only top gridline) ---
+        const intTicks = (max) => {
+            if (max <= 10) return d3.range(0, max + 1, 1);
+            const step = Math.max(1, Math.round(max / 6));
+            return d3.range(0, max + 1, step);
+        };
+
+        const gridAxis = d3.axisLeft(y)
+            .tickValues(intTicks(yDomainMax))
+            .tickSize(-width)
+            .tickSizeOuter(0)
+            .tickFormat('');
+
+        const gridG = g.append('g').call(gridAxis);
+        gridG.selectAll('line')
+            .attr('stroke', THEME.grid)
+            .attr('shape-rendering', 'crispEdges');
+        gridG.select('.domain').remove(); // no axis line inside grid group
+        // remove ONLY the top gridline at yDomainMax
+        gridG.selectAll('.tick')
+            .filter((d) => d === yDomainMax)
+            .select('line')
+            .attr('stroke', 'none');
 
         // X-axis
-        const xAxV = g.append('g').attr('transform', `translate(0,${height})`).call(d3.axisBottom(x));
+        const xAxV = g.append('g')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(x));
         xAxV.selectAll('text')
             .attr('text-anchor', 'middle')
             .attr('x', 0).attr('y', 15).attr('dy', '0.35em')
-            .style('font-size', THEME.axis.fontSize).style('fill', THEME.axis.tick)
+            .style('font-size', THEME.axis.fontSize)
+            .style('fill', THEME.axis.tick)
             .call(wrapAxisLabelsLimited, x.bandwidth() - 4, 2, false);
         xAxV.select('.domain').attr('stroke', THEME.axis.domain);
 
-        // Y-axis (integer-only ticks)
+        // Y-axis (integer ticks kept visible)
         const yAxV = g.append('g').call(makeIntAxisLeft(y, yDomainMax));
-        yAxV.selectAll('text').style('font-size', THEME.axis.fontSize).style('fill', THEME.axis.tick);
+        yAxV.selectAll('text')
+            .style('font-size', THEME.axis.fontSize)
+            .style('fill', THEME.axis.tick);
+        // keep tick lines (do NOT remove)
         yAxV.select('.domain').attr('stroke', THEME.axis.domain);
 
         if (chartType === 'stacked') {
@@ -301,29 +322,39 @@ const DonorCohortViewChart = ({
 
             g.selectAll('.bar-female')
                 .data(data).enter().append('rect')
-                .attr('x', (d) => x(d.group)).attr('y', (d) => y(d.pink || 0))
-                .attr('height', (d) => y(0) - y(d.pink || 0)).attr('width', x.bandwidth())
-                .attr('fill', femaleColor).attr('stroke', 'none')
+                .attr('x', (d) => x(d.group))
+                .attr('y', (d) => y(d.pink || 0))
+                .attr('height', (d) => y(0) - y(d.pink || 0))
+                .attr('width', x.bandwidth())
+                .attr('fill', femaleColor)
+                .attr('stroke', 'none')
                 .on('mouseover', (e, d) => showTip(e, `${d.pink} Female`))
-                .on('mousemove', moveTip).on('mouseout', hideTip);
+                .on('mousemove', moveTip)
+                .on('mouseout', hideTip);
 
             g.selectAll('.bar-male')
                 .data(data).enter().append('rect')
-                .attr('x', (d) => x(d.group)).attr('y', (d) => y((d.blue || 0) + (d.pink || 0)))
-                .attr('height', (d) => y(0) - y(d.blue || 0)).attr('width', x.bandwidth())
-                .attr('fill', maleColor).attr('stroke', 'none')
+                .attr('x', (d) => x(d.group))
+                .attr('y', (d) => y((d.blue || 0) + (d.pink || 0)))
+                .attr('height', (d) => y(0) - y(d.blue || 0))
+                .attr('width', x.bandwidth())
+                .attr('fill', maleColor)
+                .attr('stroke', 'none')
                 .on('mouseover', (e, d) => showTip(e, `${d.blue} Male`))
-                .on('mousemove', moveTip).on('mouseout', hideTip);
+                .on('mousemove', moveTip)
+                .on('mouseout', hideTip);
 
             if (showLabelOnBar) {
                 g.selectAll('.label-female')
                     .data(data).enter().append('text')
-                    .filter((d) => (d.pink || 0) > 0) // show only for positive values
+                    .filter((d) => (d.pink || 0) > 0)
                     .text((d) => d.pink)
                     .attr('x', (d) => x(d.group) + x.bandwidth() / 2)
                     .attr('y', (d) => y((d.pink || 0) / 2))
-                    .attr('text-anchor', 'middle').attr('dy', '0.35em')
-                    .style('fill', '#FFFFFF').style('font-size', 12);
+                    .attr('text-anchor', 'middle')
+                    .attr('dy', '0.35em')
+                    .style('fill', '#FFFFFF')
+                    .style('font-size', 12);
 
                 g.selectAll('.label-male')
                     .data(data).enter().append('text')
@@ -331,8 +362,10 @@ const DonorCohortViewChart = ({
                     .text((d) => d.blue)
                     .attr('x', (d) => x(d.group) + x.bandwidth() / 2)
                     .attr('y', (d) => y((d.pink || 0) + (d.blue || 0) / 2))
-                    .attr('text-anchor', 'middle').attr('dy', '0.35em')
-                    .style('fill', '#FFFFFF').style('font-size', 12);
+                    .attr('text-anchor', 'middle')
+                    .attr('dy', '0.35em')
+                    .style('fill', '#FFFFFF')
+                    .style('font-size', 12);
             }
 
             g.selectAll('.label-total')
@@ -340,23 +373,26 @@ const DonorCohortViewChart = ({
                 .filter((d) => ((d.blue || 0) + (d.pink || 0)) > 0)
                 .text((d) => (d.blue || 0) + (d.pink || 0))
                 .attr('x', (d) => x(d.group) + x.bandwidth() / 2)
-                .attr('y', (d) => y((d.blue || 0) + (d.pink || 0)) - 6) // a bit more clearance
+                .attr('y', (d) => y((d.blue || 0) + (d.pink || 0)) - 6)
                 .attr('text-anchor', 'middle')
-                .style('fill', THEME.label.fill).style('font-size', THEME.label.fontSize);
+                .style('fill', THEME.label.fill)
+                .style('font-size', THEME.label.fontSize);
         } else {
             // Single-series (Hardy)
             const color = topStackColor || THEME.colors.hardy;
 
             g.selectAll('.bar-single')
                 .data(data).enter().append('rect')
-                .attr('x', (d) => x(d.group)).attr('y', (d) => y(d.blue || 0))
-                .attr('height', (d) => y(0) - y(d.blue || 0)).attr('width', x.bandwidth())
-                .attr('fill', color).attr('stroke', 'none')
-                // Show tooltip only when value > 0
+                .attr('x', (d) => x(d.group))
+                .attr('y', (d) => y(d.blue || 0))
+                .attr('height', (d) => y(0) - y(d.blue || 0))
+                .attr('width', x.bandwidth())
+                .attr('fill', color)
+                .attr('stroke', 'none')
                 .on('mouseover', (e, d) => { if ((d.blue || 0) > 0) { showTip(e, `${d.blue}`); } })
-                .on('mousemove', moveTip).on('mouseout', hideTip);
+                .on('mousemove', moveTip)
+                .on('mouseout', hideTip);
 
-            // Labels: skip zeros
             g.selectAll('.label-single')
                 .data(data).enter().append('text')
                 .filter((d) => (d.blue || 0) > 0)
@@ -364,10 +400,11 @@ const DonorCohortViewChart = ({
                 .attr('x', (d) => x(d.group) + x.bandwidth() / 2)
                 .attr('y', (d) => labelY(d.blue || 0))
                 .attr('text-anchor', 'middle')
-                .style('fill', THEME.label.fill).style('font-size', THEME.label.fontSize);
+                .style('fill', THEME.label.fill)
+                .style('font-size', THEME.label.fontSize);
         }
 
-        // --- Axis titles for vertical charts (optional) ---
+        // Axis titles (vertical)
         if (yAxisTitle) {
             g.append('text')
                 .attr('transform', 'rotate(-90)')
@@ -391,7 +428,6 @@ const DonorCohortViewChart = ({
         return () => tip.remove();
     }, [data, effectiveWidth, chartHeight, chartType, topStackColor, bottomStackColor, showLegend, showLabelOnBar, title, xAxisTitle, yAxisTitle, session]);
 
-    // Legend sits under the title (no overlap)
     const legendTop = TITLE_BAND - 15;
 
     return (
@@ -433,7 +469,6 @@ const DonorCohortViewChart = ({
                         rootCloseEvent="click"
                         overlay={popover}
                     >
-                        {/* use a button for a11y; enable click with pointerEvents:auto */}
                         <button
                             type="button"
                             aria-label="More info"
@@ -465,7 +500,6 @@ const DonorCohortViewChart = ({
                         maxWidth: 120
                     }}
                 >
-                    {/* Title */}
                     <div
                         style={{
                             textAlign: 'center',
@@ -477,7 +511,6 @@ const DonorCohortViewChart = ({
                         Donor Sex
                     </div>
 
-                    {/* Items stacked vertically */}
                     <div
                         style={{
                             display: 'flex',
@@ -485,7 +518,6 @@ const DonorCohortViewChart = ({
                             gap: 6
                         }}
                     >
-                        {/* Male */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <span
                                 aria-hidden
@@ -500,7 +532,6 @@ const DonorCohortViewChart = ({
                             <span style={{ fontSize: 11, lineHeight: 1 }}>Male</span>
                         </div>
 
-                        {/* Female */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <span
                                 aria-hidden
