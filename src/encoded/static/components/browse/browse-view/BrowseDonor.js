@@ -748,7 +748,7 @@ const BrowseDonorSearchTable = (props) => {
         onResetSelectedItems, // From SelectedItemsController
     };
 
-    const passProps = _.omit(props, 'isFullscreen', 'toggleFullScreen');
+    const passProps = props;
 
     const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
     const aboveTableComponent = (
