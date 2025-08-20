@@ -25,4 +25,40 @@ navigate.setNavigateFunction = function (...args) {
 
 // TODO
 
+/**
+ * Get the browse parameters for our given `browseBaseState`.
+ * If `browseBaseState` param is not provided, it is retrieved from the Redux store.
+ *
+ * @param {string} [browseBaseState=null] The browse base state. By default is set to "only_4dn" on app init.
+ * @returns {Object} JSON form of URI query params for given or current browseBaseState.
+ */
+navigate.getBrowseBaseParams = function(browseBaseState = null){
+    if (browseBaseState === 'item_search') {
+        return {};
+    }
+    if (!browseBaseState){
+        if (store === null){
+            // eslint-disable-next-line prefer-destructuring
+            store = require('../../store').store;
+        }
+        var storeState = store.getState();
+        browseBaseState = storeState.browseBaseState;
+    }
+    return _.clone(navigate.getBrowseBaseParams.mappings['all'].parameters);
+};
+
+
+navigate.getBrowseBaseParams.mappings = {
+    'all' : {
+        'parameters' : { 'type' : ['File'] },
+    }
+};
+
+/** Utility function to check if we are on a browse page. */
+navigate.isBrowseHref = function(href){
+    if (typeof href === 'string') href = url.parse(href);
+    if (href.pathname.slice(0,8) === '/browse/') return true;
+    return false;
+};
+
 export { navigate };

@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
+import * as _ from 'underscore';
+import { Popover } from 'react-bootstrap';
+
 import {
     SelectAllFilesButton,
     SelectedItemsDownloadButton,
@@ -9,12 +12,17 @@ import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-comp
 import { Schemas } from '../../util';
 import { tissueToCategory } from '../../util/data';
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
+import { IconToggle } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Toggle';
 import { BrowseViewControllerWithSelections } from '../../static-pages/components/TableControllerWithSelections';
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
+import { BrowseSummaryStatController } from './BrowseSummaryStatController';
 import { DonorMetadataDownloadButton } from '../BrowseView';
 import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
+import { FacetCharts } from './../components/FacetCharts';
+import DonorCohortViewChart from '../components/DonorCohortViewChart';
+import { renderHardyScaleDescriptionPopover } from '../../item-pages/components/donor-overview/ProtectedDonorViewDataCards';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
 
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
@@ -52,6 +60,8 @@ const formatTissueData = (data) => {
             values: [],
         },
     };
+
+    if(!data) return defaultTissueCategories;
 
     // group data by tissue category
     const grouped_data = data.reduce((acc, { key }) => {
@@ -472,7 +482,8 @@ export function createBrowseDonorColumnExtensionMap({
                                     toggleCloseIcon: (
                                         <i className="icon icon-circle-minus"></i>
                                     ),
-                                }}></CustomTableRowToggleOpenButton>
+                                }}>
+                            </CustomTableRowToggleOpenButton>
                         </div>
                     ) : null;
                 }
@@ -807,10 +818,178 @@ const BrowseDonorSearchTable = (props) => {
 
 // Browse Donor Body Component
 export const BrowseDonorBody = (props) => {
+    const [toggleViewIndex, setToggleViewIndex] = useState(1);
+    const { alerts, windowWidth, windowHeight, navigate, isFullscreen, session } = props;
+    const initialFields = ['file_sets.libraries.assay.display_title', 'data_category'];
+
+    const donorAgeGroupData = [
+        // { ageGroup: '18-30', blue: 0, pink: 0, total: 54 },
+        { ageGroup: '31-55', blue: 7, pink: 3, total: 54 },
+        { ageGroup: '56-65', blue: 9, pink: 3, total: 54 },
+        { ageGroup: '66-75', blue: 9, pink: 2, total: 54 },
+        { ageGroup: '76-85', blue: 9, pink: 5, total: 54 },
+        { ageGroup: '≥86', blue: 1, pink: 6, total: 54 },
+    ];
+    const donorEthnicityData = [
+        { ageGroup: 'American Indian or Alaska Native', blue: 10, pink: 0, total: 54 },
+        { ageGroup: 'Asian', blue: 8, pink: 0, total: 54 },
+        { ageGroup: 'Black or African American', blue: 11, pink: 0, total: 54 },
+        { ageGroup: 'Hispanic, Latino or Spanish Origin', blue: 10, pink: 0, total: 54 },
+        { ageGroup: 'Middle Eastern or North African', blue: 2, pink: 0, total: 54 },
+        { ageGroup: 'Native Hawaiian or Other Pacific Islander', blue: 3, pink: 0, total: 54 },
+        { ageGroup: 'Other', blue: 4, pink: 0, total: 54 },
+        { ageGroup: 'White', blue: 6, pink: 0, total: 54 },
+    ];
+    const donorHardyScaleData = [
+        { ageGroup: '0', blue: 10, pink: 0, total: 54 },
+        { ageGroup: '1', blue: 8, pink: 0, total: 54 },
+        { ageGroup: '2', blue: 11, pink: 0, total: 54 },
+        { ageGroup: '3', blue: 10, pink: 0, total: 54 },
+        { ageGroup: '4', blue: 15, pink: 0, total: 54 },
+    ];
+
+    // Popover
+    const ethnicityPopover = (
+        <Popover id="chart-info-popover-ethnicity" style={{ maxWidth: 400 }} className="w-auto description-definitions-popover">
+            <Popover.Body className="p-0">
+                <table className="table">
+                    <thead>
+                        <tr>
+                            <th className="text-left">
+                                Donor Privacy Notice
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="text-left">
+                                These are aggregated sums only. SMaHT Network does not release self-reported ethnicity information for individual donors.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </Popover.Body>
+        </Popover>
+    );
+
+    const statsProps = { valueContainerCls: "ms-15 pt-1 d-flex align-items-center" };
+
     return (
         <>
-            <h2 className="browse-summary-header">SMaHT Data Summary</h2>
-            <Alerts alerts={props.alerts} className="mt-2" />
+            <Alerts alerts={alerts} className="mt-2" />
+            <div className="row browse-viz-container">
+                <div className="stats-column col-auto">
+                    <h2 className="browse-summary-header">
+                        {toggleViewIndex === 0 ? 'Data' : 'Cohort'} Summary
+                    </h2>
+                    <div>
+                        <div className="browse-summary stats-compact d-flex flex-column mt-2 mb-25 flex-wrap">
+                            <BrowseSummaryStatController type="File" {... statsProps} />
+                            <BrowseSummaryStatController type="Donor" {... statsProps} />
+                            <BrowseSummaryStatController type="Tissue" {... statsProps} />
+                            <BrowseSummaryStatController type="Assay" {... statsProps} />
+                            <hr />
+                            <BrowseSummaryStatController
+                                type="File Size"
+                                additionalSearchQueries="&additional_facet=file_size"
+                                {...statsProps}
+                            />
+                        </div>
+                    </div>
+                    <IconToggle
+                        options={[
+                            {
+                                title: <React.Fragment><i className="icon fas icon-fas icon-database me-1" /> Data View</React.Fragment>,
+                                dataTip: 'Toggle data view',
+                                btnCls: 'w-100 btn-sm',
+                                onClick: () => setToggleViewIndex(0),
+                            },
+                            {
+                                title: <React.Fragment><i className="icon fas icon-fas icon-users me-1" /> Cohort View</React.Fragment>,
+                                dataTip: 'Toggle cohort view',
+                                btnCls: 'w-100 btn-sm',
+                                onClick: () => setToggleViewIndex(1),
+                            },
+                        ]}
+                        activeIdx={toggleViewIndex}
+                        divCls="view-toggle p-1"
+                    />
+                </div>
+                <div className="col ps-0">
+                    {toggleViewIndex === 0 ? (
+                        <div
+                            id="facet-charts-container"
+                            className="container ps-4">
+                            <FacetCharts
+                                {..._.pick(
+                                    props,
+                                    'context',
+                                    'href',
+                                    'session',
+                                    'schemas',
+                                    'browseBaseState'
+                                )}
+                                {...{
+                                    windowWidth,
+                                    windowHeight,
+                                    navigate,
+                                    isFullscreen,
+                                    initialFields,
+                                }}
+                            />
+                        </div>
+                    ) : (
+                        <div style={{
+                            display: 'grid',
+                            gap: 16,
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+                            alignItems: 'start'
+                        }}>
+                            <DonorCohortViewChart
+                                title="Donor Age Groups"
+                                data={session ? donorAgeGroupData : []}
+                                chartWidth="auto"
+                                chartHeight={420}
+                                chartType="stacked"
+                                topStackColor="#2F62AA"
+                                bottomStackColor="#B79AEF"
+                                xAxisTitle="Age Group"
+                                yAxisTitle="Donors"
+                                showLegend
+                                session={session}
+                            />
+
+                            <DonorCohortViewChart
+                                title="Donor Hardy Scale"
+                                data={session ? donorHardyScaleData : []}
+                                chartWidth="auto"
+                                chartHeight={420}
+                                chartType="single"
+                                topStackColor="#56A9F5"
+                                xAxisTitle="Hardy Scale"
+                                yAxisTitle="Donors"
+                                popover={session && renderHardyScaleDescriptionPopover()}
+                                session={session}
+                            />
+
+                            <DonorCohortViewChart
+                                title="Donor Self-Reported Ethnicity"
+                                data={session ? donorEthnicityData : []}
+                                chartWidth="auto"
+                                chartHeight={420}
+                                chartType="horizontal"
+                                topStackColor="#14B3BB"
+                                xAxisTitle="Donors"
+                                yAxisTitle="Ethnicity"
+                                popover={session && ethnicityPopover}
+                                session={session}
+                            />
+
+                        </div>
+                    )}
+                </div>
+            </div>
+            <hr />
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseDonorSearchTable />
             </BrowseViewControllerWithSelections>
