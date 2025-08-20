@@ -887,6 +887,18 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 				}
 				
 				.search-results-container {
+
+					.columns {
+						[data-field="@type"] {
+							.inner {
+								.column-title {
+									display: flex;
+									justify-content: right;
+									margin-right: 1.25rem;
+								}
+							}
+						}
+					}
 					.search-result-row {
 						.search-result-column-block {
 							.inner {
