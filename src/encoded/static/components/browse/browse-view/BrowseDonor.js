@@ -418,8 +418,8 @@ export function createBrowseDonorColumnExtensionMap({
 
                 if (loading) {
                     return (
-                        <span className="value text-center">
-                            <i className="icon icon-circle-notch icon-spin fas"></i>
+                        <span className="value text-center loading">
+                            {/* <i className="icon icon-circle-notch icon-spin fas"></i> */}
                         </span>
                     );
                 } else {
@@ -491,8 +491,8 @@ export function createBrowseDonorColumnExtensionMap({
 
                 if (loading) {
                     return (
-                        <span className="value text-center">
-                            <i className="icon icon-circle-notch icon-spin fas"></i>
+                        <span className="value text-center loading">
+                            {/* <i className="icon icon-circle-notch icon-spin fas"></i> */}
                         </span>
                     );
                 } else {
@@ -553,8 +553,8 @@ export function createBrowseDonorColumnExtensionMap({
 
                 if (loading) {
                     return (
-                        <span className="value text-center">
-                            <i className="icon icon-circle-notch icon-spin fas"></i>
+                        <span className="value text-center loading">
+                            {/* <i className="icon icon-circle-notch icon-spin fas"></i> */}
                         </span>
                     );
                 } else {
@@ -589,7 +589,7 @@ export function createBrowseDonorColumnExtensionMap({
                 if (loading) {
                     return (
                         <span className="value text-center loading">
-                            <i className="icon icon-circle-notch icon-spin fas"></i>
+                            {/* <i className="icon icon-circle-notch icon-spin fas"></i> */}
                         </span>
                     );
                 } else {
