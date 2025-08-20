@@ -167,7 +167,7 @@ const DonorCohortViewChart = ({
                 .range([0, width]);
 
             const y = d3.scaleBand()
-                .domain(data.map(d => d.ageGroup))
+                .domain(data.map(d => d.group))
                 .range([0, height])
                 .padding(0.25);
 
@@ -204,7 +204,7 @@ const DonorCohortViewChart = ({
             g.selectAll('.bar-h')
                 .data(data).enter().append('rect')
                 .attr('x', 0)
-                .attr('y', d => y(d.ageGroup))
+                .attr('y', d => y(d.group))
                 .attr('height', y.bandwidth())
                 .attr('width', d => x(value(d)))
                 .attr('fill', color)
@@ -218,7 +218,7 @@ const DonorCohortViewChart = ({
                 .data(data).enter().append('text')
                 .text(d => value(d))
                 .attr('x', d => x(value(d)) + 10)
-                .attr('y', d => y(d.ageGroup) + y.bandwidth() / 2)
+                .attr('y', d => y(d.group) + y.bandwidth() / 2)
                 .attr('dy', '0.35em')
                 .style('font-size', THEME.label.fontSize)
                 .style('fill', THEME.label.fill);
@@ -249,7 +249,7 @@ const DonorCohortViewChart = ({
         }
 
         // ---------- Vertical (Stacked / Single) ----------
-        const x = d3.scaleBand().domain(data.map(d => d.ageGroup)).range([0, width]).padding(0.3);
+        const x = d3.scaleBand().domain(data.map(d => d.group)).range([0, width]).padding(0.3);
         const yMax = d3.max(data, d => chartType === 'stacked' ? (d.blue || 0) + (d.pink || 0) : (d.blue || 0)) || 0;
         const y = d3.scaleLinear().domain([0, yMax]).nice().range([height, 0]);
 
@@ -278,7 +278,7 @@ const DonorCohortViewChart = ({
 
             g.selectAll('.bar-female')
                 .data(data).enter().append('rect')
-                .attr('x', d => x(d.ageGroup)).attr('y', d => y(d.pink || 0))
+                .attr('x', d => x(d.group)).attr('y', d => y(d.pink || 0))
                 .attr('height', d => y(0) - y(d.pink || 0)).attr('width', x.bandwidth())
                 .attr('fill', femaleColor).attr('stroke', 'none')
                 .on('mouseover', (e, d) => showTip(e, `${d.pink} Female`))
@@ -286,7 +286,7 @@ const DonorCohortViewChart = ({
 
             g.selectAll('.bar-male')
                 .data(data).enter().append('rect')
-                .attr('x', d => x(d.ageGroup)).attr('y', d => y((d.blue || 0) + (d.pink || 0)))
+                .attr('x', d => x(d.group)).attr('y', d => y((d.blue || 0) + (d.pink || 0)))
                 .attr('height', d => y(0) - y(d.blue || 0)).attr('width', x.bandwidth())
                 .attr('fill', maleColor).attr('stroke', 'none')
                 .on('mouseover', (e, d) => showTip(e, `${d.blue} Male`))
@@ -297,7 +297,7 @@ const DonorCohortViewChart = ({
                     .data(data).enter().append('text')
                     .filter(d => (d.pink || 0) > 0)
                     .text(d => d.pink)
-                    .attr('x', d => x(d.ageGroup) + x.bandwidth() / 2)
+                    .attr('x', d => x(d.group) + x.bandwidth() / 2)
                     .attr('y', d => y((d.pink || 0) / 2))
                     .attr('text-anchor', 'middle').attr('dy', '0.35em')
                     .style('fill', '#FFFFFF').style('font-size', 12);
@@ -306,7 +306,7 @@ const DonorCohortViewChart = ({
                     .data(data).enter().append('text')
                     .filter(d => (d.blue || 0) > 0)
                     .text(d => d.blue)
-                    .attr('x', d => x(d.ageGroup) + x.bandwidth() / 2)
+                    .attr('x', d => x(d.group) + x.bandwidth() / 2)
                     .attr('y', d => y((d.pink || 0) + (d.blue || 0) / 2))
                     .attr('text-anchor', 'middle').attr('dy', '0.35em')
                     .style('fill', '#FFFFFF').style('font-size', 12);
@@ -316,7 +316,7 @@ const DonorCohortViewChart = ({
                 .data(data).enter().append('text')
                 .filter(d => ((d.blue || 0) + (d.pink || 0)) > 0)
                 .text(d => (d.blue || 0) + (d.pink || 0))
-                .attr('x', d => x(d.ageGroup) + x.bandwidth() / 2)
+                .attr('x', d => x(d.group) + x.bandwidth() / 2)
                 .attr('y', d => y((d.blue || 0) + (d.pink || 0)) - 4)
                 .attr('text-anchor', 'middle')
                 .style('fill', THEME.label.fill).style('font-size', THEME.label.fontSize);
@@ -326,7 +326,7 @@ const DonorCohortViewChart = ({
 
             g.selectAll('.bar-single')
                 .data(data).enter().append('rect')
-                .attr('x', d => x(d.ageGroup)).attr('y', d => y(d.blue || 0))
+                .attr('x', d => x(d.group)).attr('y', d => y(d.blue || 0))
                 .attr('height', d => y(0) - y(d.blue || 0)).attr('width', x.bandwidth())
                 .attr('fill', color).attr('stroke', 'none')
                 .on('mouseover', (e, d) => showTip(e, `${d.blue}`))
@@ -335,7 +335,7 @@ const DonorCohortViewChart = ({
             g.selectAll('.label-single')
                 .data(data).enter().append('text')
                 .text(d => d.blue || 0)
-                .attr('x', d => x(d.ageGroup) + x.bandwidth() / 2)
+                .attr('x', d => x(d.group) + x.bandwidth() / 2)
                 .attr('y', d => y(d.blue || 0) - 6)
                 .attr('text-anchor', 'middle')
                 .style('fill', THEME.label.fill).style('font-size', THEME.label.fontSize);
