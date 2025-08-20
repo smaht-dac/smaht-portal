@@ -221,8 +221,8 @@ def convert_date_range(date_range_str):
 def bar_plot_chart(context, request):
 
     MAX_BUCKET_COUNT = 30  # Max amount of bars or bar sections to return, excluding 'other'.
-    DEFAULT_BROWSE_PARAM_LISTS = {'type': ['SubmittedFile']}
-    SUM_FILES_EXPS_AGGREGATION_DEFINITION = {}
+    DEFAULT_BROWSE_PARAM_LISTS = {'type': ['Donor']}
+    SUM_AGGREGATION_DEFINITION = {}
 
     try:
         json_body = request.json_body
@@ -242,11 +242,11 @@ def bar_plot_chart(context, request):
                 "missing": TERM_NAME_FOR_NO_VALUE,
                 "size": MAX_BUCKET_COUNT
             },
-            "aggs": deepcopy(SUM_FILES_EXPS_AGGREGATION_DEFINITION)
+            "aggs": deepcopy(SUM_AGGREGATION_DEFINITION)
         }
     }
 
-    primary_agg.update(deepcopy(SUM_FILES_EXPS_AGGREGATION_DEFINITION))
+    primary_agg.update(deepcopy(SUM_AGGREGATION_DEFINITION))
 
     # Nest in additional fields, if any
     curr_field_aggs = primary_agg['field_0']['aggs']
@@ -259,7 +259,7 @@ def bar_plot_chart(context, request):
                 "missing": TERM_NAME_FOR_NO_VALUE,
                 "size": MAX_BUCKET_COUNT
             },
-            "aggs": deepcopy(SUM_FILES_EXPS_AGGREGATION_DEFINITION)
+            "aggs": deepcopy(SUM_AGGREGATION_DEFINITION)
         }
         curr_field_aggs = curr_field_aggs['field_' + str(field_index)]['aggs']
 
@@ -276,7 +276,7 @@ def bar_plot_chart(context, request):
         "field": fields_to_aggregate_for[0],
         "terms": {},
         "total": {
-            "files": search_result['total'],
+            "doc_count": search_result['total'],
         },
         "other_doc_count": search_result['aggregations']['field_0'].get('sum_other_doc_count', 0),
         "time_generated": str(datetime.utcnow())
@@ -285,7 +285,7 @@ def bar_plot_chart(context, request):
     def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0):
 
         curr_bucket_totals = {
-            'files': int(bucket_result['doc_count'])
+            'doc_count': int(bucket_result['doc_count'])
         }
 
         next_field_name = None
@@ -429,7 +429,7 @@ def data_matrix_aggregations(context, request):
     def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0):
 
         curr_bucket_totals = {
-            'files': int(bucket_result['doc_count']),
+            'doc_count': int(bucket_result['doc_count']),
             'total_coverage': bucket_result['total_coverage']['value'] if bucket_result['total_coverage'] else 0
         }
 
@@ -493,31 +493,3 @@ def data_matrix_aggregations(context, request):
                 continue
 
     return ret_result
-
-# # Not used in the current code, but could be used to fetch estimated coverage data.
-# @view_config(route_name='estimated_coverage', request_method='POST')
-# @debug_log
-# def estimated_coverage(context, request):
-#     # Extract the necessary parameters from the request
-#     try:
-#         # json_body = request.json_body
-#         # search_params = json_body.get('search_query_params', {})
-#         search_params = {
-#             "type": ["OutputFile"],
-#             "quality_metrics.display_title!": "No+value",
-#         }
-#         search_params["limit"] = "all"
-#         search_params["field"] = ["accession", "quality_metrics.uuid"]
-#     except json.decoder.JSONDecodeError:
-#         raise HTTPBadRequest(detail="missing search_query_params parameter in the request body.")
-
-#     # This one we want consistent with what the user can see
-#     subreq = make_search_subreq(request, f'/search?{urlencode(search_params, True)}', inherit_user=True)
-#     search_result = perform_search_request(None, subreq)
-
-#     coverage = search_result.get('total', -1)
-
-#     return {
-#         "search_query_params": search_params,
-#         "estimated_coverage": coverage
-#     }

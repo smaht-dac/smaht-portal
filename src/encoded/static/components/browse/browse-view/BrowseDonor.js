@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import * as _ from 'underscore';
 import { Popover } from 'react-bootstrap';
+import url from 'url';
 
 import {
     SelectAllFilesButton,
@@ -819,34 +820,121 @@ const BrowseDonorSearchTable = (props) => {
 // Browse Donor Body Component
 export const BrowseDonorBody = (props) => {
     const [toggleViewIndex, setToggleViewIndex] = useState(1);
-    const { alerts, windowWidth, windowHeight, navigate, isFullscreen, session } = props;
+    const [donorAgeGroupData, setDonorAgeGroupData] = useState([]);
+    const [donorHardyScaleData, setDonorHardyScaleData] = useState([]);
+    const { alerts, windowWidth, windowHeight, navigate, isFullscreen, href, session } = props;
     const initialFields = ['file_sets.libraries.assay.display_title', 'data_category'];
 
-    const donorAgeGroupData = [
-        // { ageGroup: '18-30', blue: 0, pink: 0, total: 54 },
-        { ageGroup: '31-55', blue: 7, pink: 3, total: 54 },
-        { ageGroup: '56-65', blue: 9, pink: 3, total: 54 },
-        { ageGroup: '66-75', blue: 9, pink: 2, total: 54 },
-        { ageGroup: '76-85', blue: 9, pink: 5, total: 54 },
-        { ageGroup: '≥86', blue: 1, pink: 6, total: 54 },
-    ];
+    useEffect(() => {
+        const dataUrl = '/bar_plot_aggregations/';
+
+        const hrefParts = url.parse(href, true);
+        const hrefQuery = _.clone(hrefParts.query);
+        delete hrefQuery.limit;
+        delete hrefQuery.field;
+
+        const requestBody = {
+            "search_query_params": hrefQuery,
+            "fields_to_aggregate_for": ["hardy_scale", "sex", "age"]
+        };
+        const commonCallback = (rawData) => {
+
+            // Age intervals
+            const ageGroups = [
+                { label: '18-30', min: 18, max: 30 },
+                { label: '31-55', min: 31, max: 55 },
+                { label: '56-65', min: 56, max: 65 },
+                { label: '66-75', min: 66, max: 75 },
+                { label: '76-85', min: 76, max: 85 },
+                { label: '≥86', min: 86, max: Infinity }
+            ];
+
+            const hardyScaleRange = [0, 1, 2, 3, 4];
+
+            // Donor Hardy Scale Data
+            const updatedDonorHardyScaleData = hardyScaleRange.map(scaleValue => {
+                const scale = rawData.terms[scaleValue] || null;
+                let totalCount = 0;
+
+                if (scale) {
+                    for (const sexKey in scale.terms) {
+                        totalCount += scale.terms[sexKey].total.doc_count;
+                    }
+                }
+
+                return {
+                    group: String(scaleValue),
+                    blue: totalCount,
+                    pink: 0,
+                    total: rawData.total.doc_count
+                };
+            });
+
+            // Donor Age Group Data (Male → blue, Female → pink)
+            const updatedDonorAgeGroupData = ageGroups.map((group) => {
+                let blueCount = 0;
+                let pinkCount = 0;
+
+                Object.values(rawData.terms).forEach((scale) => {
+                    Object.values(scale.terms).forEach((sex) => {
+                        Object.entries(sex.terms).forEach(([age, info]) => {
+                            const ageNum = parseInt(age, 10);
+                            if (ageNum >= group.min && ageNum <= group.max) {
+                                if (sex.term === "Male") blueCount += info.doc_count;
+                                if (sex.term === "Female") pinkCount += info.doc_count;
+                            }
+                        });
+                    });
+                });
+
+                return {
+                    group: group.label,
+                    blue: blueCount,
+                    pink: pinkCount,
+                    total: rawData.total.doc_count
+                };
+            });
+
+            setDonorAgeGroupData(updatedDonorAgeGroupData);
+            setDonorHardyScaleData(updatedDonorHardyScaleData);
+        };
+        const commonFallback = (r) => {
+            if (r && r.error) {
+                console.error('Error fetching data:', r.error);
+            } else {
+                console.log('Data fetched successfully:', r);
+            }
+        };
+        // Perform any necessary side effects here
+        ajax.load(dataUrl, (r) => commonCallback(r), 'POST', (r) => commonFallback(r), JSON.stringify(requestBody), {}, null);
+
+    }, [session, href]);
+
+    // const donorAgeGroupData = [
+    //     { group: '18-30', blue: 0, pink: 0, total: 54 },
+    //     { group: '31-55', blue: 7, pink: 3, total: 54 },
+    //     { group: '56-65', blue: 9, pink: 3, total: 54 },
+    //     { group: '66-75', blue: 9, pink: 2, total: 54 },
+    //     { group: '76-85', blue: 9, pink: 5, total: 54 },
+    //     { group: '≥86', blue: 1, pink: 6, total: 54 },
+    // ];
     const donorEthnicityData = [
-        { ageGroup: 'American Indian or Alaska Native', blue: 10, pink: 0, total: 54 },
-        { ageGroup: 'Asian', blue: 8, pink: 0, total: 54 },
-        { ageGroup: 'Black or African American', blue: 11, pink: 0, total: 54 },
-        { ageGroup: 'Hispanic, Latino or Spanish Origin', blue: 10, pink: 0, total: 54 },
-        { ageGroup: 'Middle Eastern or North African', blue: 2, pink: 0, total: 54 },
-        { ageGroup: 'Native Hawaiian or Other Pacific Islander', blue: 3, pink: 0, total: 54 },
-        { ageGroup: 'Other', blue: 4, pink: 0, total: 54 },
-        { ageGroup: 'White', blue: 6, pink: 0, total: 54 },
+        { group: 'American Indian or Alaska Native', blue: 10, pink: 0, total: 54 },
+        { group: 'Asian', blue: 8, pink: 0, total: 54 },
+        { group: 'Black or African American', blue: 11, pink: 0, total: 54 },
+        { group: 'Hispanic, Latino or Spanish Origin', blue: 10, pink: 0, total: 54 },
+        { group: 'Middle Eastern or North African', blue: 2, pink: 0, total: 54 },
+        { group: 'Native Hawaiian or Other Pacific Islander', blue: 3, pink: 0, total: 54 },
+        { group: 'Other', blue: 4, pink: 0, total: 54 },
+        { group: 'White', blue: 6, pink: 0, total: 54 },
     ];
-    const donorHardyScaleData = [
-        { ageGroup: '0', blue: 10, pink: 0, total: 54 },
-        { ageGroup: '1', blue: 8, pink: 0, total: 54 },
-        { ageGroup: '2', blue: 11, pink: 0, total: 54 },
-        { ageGroup: '3', blue: 10, pink: 0, total: 54 },
-        { ageGroup: '4', blue: 15, pink: 0, total: 54 },
-    ];
+    // const donorHardyScaleData = [
+    //     { group: '0', blue: 10, pink: 0, total: 54 },
+    //     { group: '1', blue: 8, pink: 0, total: 54 },
+    //     { group: '2', blue: 11, pink: 0, total: 54 },
+    //     { group: '3', blue: 10, pink: 0, total: 54 },
+    //     { group: '4', blue: 15, pink: 0, total: 54 },
+    // ];
 
     // Popover
     const ethnicityPopover = (
