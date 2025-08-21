@@ -429,7 +429,7 @@ def data_matrix_aggregations(context, request):
     def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0):
 
         curr_bucket_totals = {
-            'doc_count': int(bucket_result['doc_count']),
+            'files': int(bucket_result['doc_count']),
             'total_coverage': bucket_result['total_coverage']['value'] if bucket_result['total_coverage'] else 0
         }
 
