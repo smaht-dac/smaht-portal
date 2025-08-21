@@ -94,7 +94,8 @@ const DonorCohortViewChart = ({
     bottomStackColor,
     xAxisTitle = '',
     yAxisTitle = '',
-    session
+    session,
+    loading = false
 }) => {
     const svgRef = React.useRef();
     const outerRef = React.useRef();
@@ -129,7 +130,7 @@ const DonorCohortViewChart = ({
         const width = effectiveWidth - margin.left - margin.right;
         const height = chartHeight - margin.top - margin.bottom;
 
-        // Panel
+        // Panel (always draw so card looks consistent while loading)
         svg.append('rect')
             .attr('x', 10).attr('y', 10)
             .attr('width', effectiveWidth - 20)
@@ -137,6 +138,11 @@ const DonorCohortViewChart = ({
             .attr('rx', THEME.panel.radius)
             .attr('fill', THEME.panel.fill)
             .attr('stroke', THEME.panel.stroke);
+
+        // If loading: skip chart rendering completely
+        if (loading) {
+            return;
+        }
 
         if (!data || (Array.isArray(data) && data.length === 0)) {
             return;
@@ -289,8 +295,7 @@ const DonorCohortViewChart = ({
         gridG.selectAll('line')
             .attr('stroke', THEME.grid)
             .attr('shape-rendering', 'crispEdges');
-        gridG.select('.domain').remove(); // no axis line inside grid group
-        // remove ONLY the top gridline at yDomainMax
+        gridG.select('.domain').remove();
         gridG.selectAll('.tick')
             .filter((d) => d === yDomainMax)
             .select('line')
@@ -313,7 +318,6 @@ const DonorCohortViewChart = ({
         yAxV.selectAll('text')
             .style('font-size', THEME.axis.fontSize)
             .style('fill', THEME.axis.tick);
-        // keep tick lines (do NOT remove)
         yAxV.select('.domain').attr('stroke', THEME.axis.domain);
 
         if (chartType === 'stacked') {
@@ -426,7 +430,7 @@ const DonorCohortViewChart = ({
         }
 
         return () => tip.remove();
-    }, [data, effectiveWidth, chartHeight, chartType, topStackColor, bottomStackColor, showLegend, showLabelOnBar, title, xAxisTitle, yAxisTitle, session]);
+    }, [data, effectiveWidth, chartHeight, chartType, topStackColor, bottomStackColor, showLegend, showLabelOnBar, title, xAxisTitle, yAxisTitle, session, loading]);
 
     const legendTop = TITLE_BAND - 15;
 
@@ -485,8 +489,36 @@ const DonorCohortViewChart = ({
                 )}
             </div>
 
+            {/* Loading overlay */}
+            {loading && (
+                <div
+                    role="status"
+                    aria-live="polite"
+                    aria-busy="true"
+                    style={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 5,
+                        pointerEvents: 'none'
+                    }}
+                >
+                    <i className="icon icon-spin icon-circle-notch fas" aria-hidden="true" style={{ fontSize: 22, lineHeight: 0 }} />
+                    {/* screen-reader only text (Bootstrap's sr-only equivalent) */}
+                    <span style={{
+                        position: 'absolute',
+                        width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden',
+                        clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0
+                    }}>
+                        Loading
+                    </span>
+                </div>
+            )}
+
             {/* Legend (vertical, compact) */}
-            {chartType === 'stacked' && showLegend && (
+            {chartType === 'stacked' && showLegend && !loading && (
                 <div
                     style={{
                         position: 'absolute',

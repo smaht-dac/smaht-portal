@@ -814,6 +814,7 @@ export const BrowseDonorBody = (props) => {
     const [toggleViewIndex, setToggleViewIndex] = useState(1);
     const [donorAgeGroupData, setDonorAgeGroupData] = useState([]);
     const [donorHardyScaleData, setDonorHardyScaleData] = useState([]);
+    const [loading, setLoading] = useState(false);
     const { alerts, windowWidth, windowHeight, navigate, isFullscreen, href, session } = props;
     const initialFields = ['file_sets.libraries.assay.display_title', 'data_category'];
 
@@ -844,7 +845,7 @@ export const BrowseDonorBody = (props) => {
             const hardyScaleRange = [0, 1, 2, 3, 4];
 
             // Donor Hardy Scale Data
-            const updatedDonorHardyScaleData = hardyScaleRange.map(scaleValue => {
+            const updatedDonorHardyScaleData = hardyScaleRange.map((scaleValue) => {
                 const scale = rawData.terms[scaleValue] || null;
                 let totalCount = 0;
 
@@ -889,37 +890,44 @@ export const BrowseDonorBody = (props) => {
 
             setDonorAgeGroupData(updatedDonorAgeGroupData);
             setDonorHardyScaleData(updatedDonorHardyScaleData);
+            setLoading(false);
         };
         const commonFallback = (r) => {
             if (r && r.error) {
                 console.error('Error fetching data:', r.error);
+                setDonorAgeGroupData([]);
+                setDonorHardyScaleData([]);
             } else {
                 console.log('Data fetched successfully:', r);
             }
+            setLoading(false);
         };
+        setLoading(true);
         // Perform any necessary side effects here
         ajax.load(dataUrl, (r) => commonCallback(r), 'POST', (r) => commonFallback(r), JSON.stringify(requestBody), {}, null);
 
     }, [session, href]);
 
-    // const donorAgeGroupData = [
+    // TODO: remove hardcoded data when tests are ok
+    // const donorAgeGroupDataX = [
     //     { group: '18-30', blue: 0, pink: 0, total: 54 },
-    //     { group: '31-55', blue: 7, pink: 3, total: 54 },
-    //     { group: '56-65', blue: 9, pink: 3, total: 54 },
+    //     { group: '31-55', blue: 9, pink: 2, total: 54 },
+    //     { group: '56-65', blue: 9, pink: 2, total: 54 },
     //     { group: '66-75', blue: 9, pink: 2, total: 54 },
-    //     { group: '76-85', blue: 9, pink: 5, total: 54 },
+    //     { group: '76-85', blue: 9, pink: 2, total: 54 },
     //     { group: '≥86', blue: 1, pink: 6, total: 54 },
     // ];
     const donorEthnicityData = [
-        { group: 'American Indian or Alaska Native', blue: 10, pink: 0, total: 54 },
-        { group: 'Asian', blue: 8, pink: 0, total: 54 },
-        { group: 'Black or African American', blue: 11, pink: 0, total: 54 },
-        { group: 'Hispanic, Latino or Spanish Origin', blue: 10, pink: 0, total: 54 },
-        { group: 'Middle Eastern or North African', blue: 2, pink: 0, total: 54 },
-        { group: 'Native Hawaiian or Other Pacific Islander', blue: 3, pink: 0, total: 54 },
-        { group: 'Other', blue: 4, pink: 0, total: 54 },
-        { group: 'White', blue: 6, pink: 0, total: 54 },
+        { group: 'American Indian or Alaska Native', blue: 10, pink: 0, total: 83 },
+        { group: 'Asian', blue: 8, pink: 0, total: 83 },
+        { group: 'Black or African American', blue: 11, pink: 0, total: 83 },
+        { group: 'Hispanic, Latino or Spanish Origin', blue: 10, pink: 0, total: 83 },
+        { group: 'Middle Eastern or North African', blue: 15, pink: 0, total: 83 },
+        { group: 'Native Hawaiian or Other Pacific Islander', blue: 10, pink: 0, total: 83 },
+        { group: 'Other', blue: 8, pink: 0, total: 83 },
+        { group: 'White', blue: 11, pink: 0, total: 83 },
     ];
+    // TODO: remove hardcoded data when tests are ok
     // const donorHardyScaleData = [
     //     { group: '0', blue: 10, pink: 0, total: 54 },
     //     { group: '1', blue: 8, pink: 0, total: 54 },
@@ -1037,6 +1045,7 @@ export const BrowseDonorBody = (props) => {
                                 yAxisTitle="Donors"
                                 showLegend
                                 session={session}
+                                loading={loading}
                             />
 
                             <DonorCohortViewChart
@@ -1050,6 +1059,7 @@ export const BrowseDonorBody = (props) => {
                                 yAxisTitle="Donors"
                                 popover={session && renderHardyScaleDescriptionPopover()}
                                 session={session}
+                                loading={loading}
                             />
 
                             <DonorCohortViewChart
