@@ -1,0 +1,113 @@
+{
+    "title": "Abstract Variant",
+    "description": "Variant Item - Abstract",
+    "$id": "/profiles/abstract_variant.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "external_id",
+        "submission_centers",
+        ],
+    "identifyingProperties": [
+        "accession",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "AV"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "variant_id": {
+            "type": "string",
+            "title": "Variant ID",
+            "description": "A unique identifier for the variant"
+        },
+        "variant_type": {
+            "type": "string",
+            "title": "Variant Type",
+            "description": "Type of the variant (e.g., SNP, Indel, Structural)",
+            "enum": [
+                "SNP",
+                "Indel",
+                "Structural",
+                "CNV",
+                "MEI",
+                "Duplication",
+                "Translocation", 
+                "Insertion", 
+                "Deletion", 
+                "Inversion","Tandem repeat",
+                "Complex"
+            ]  
+        },
+        "variant_location": {
+            "type": "string",
+            "title": "Variant Location",
+            "description": "Genomic location of the variant hg38 format",
+            "linkTo": "GenomicLocation"
+        },
+        "REF": {
+            "title": "Ref",
+            "field_name": "REF",
+            "type": "string",
+            "do_import": true,
+            "vcf_field": "REF",
+            "source_name": "VCF",
+            "source_version": "VCFv4.2",
+            "description": "Reference allele",
+            "scope": "variant",
+            "schema_title": "Ref"
+        },
+        "ALT": {
+            "title": "Alt",
+            "field_name": "ALT",
+            "type": "string",
+            "do_import": true,
+            "vcf_field": "ALT",
+            "source_name": "VCF",
+            "source_version": "VCFv4.2",
+            "description": "Alternative allele",
+            "scope": "variant",
+            "schema_title": "Alt"
+        }
+    }, 
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        }
+    },
+    "columns": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        }
+    }
+}
