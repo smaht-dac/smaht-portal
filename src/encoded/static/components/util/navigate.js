@@ -50,7 +50,8 @@ navigate.getBrowseBaseParams = function(browseBaseState = null){
 
 navigate.getBrowseBaseParams.mappings = {
     'all' : {
-        'parameters' : { 'type' : ['File'] },
+        // 'parameters' : { 'type' : ['File'] },
+        'parameters' : { 'type' : ['Donor'] },
     }
 };
 

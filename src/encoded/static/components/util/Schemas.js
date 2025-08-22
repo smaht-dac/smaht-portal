@@ -265,7 +265,7 @@ export const Field = {
         field,
         schemas,
         schemaOnly = false,
-        itemType = 'ExperimentSet'
+        itemType = 'Donor'
     ) {
         if (!schemaOnly && Field.nameMap[field]) {
             return Field.nameMap[field];

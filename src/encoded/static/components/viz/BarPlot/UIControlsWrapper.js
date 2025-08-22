@@ -54,11 +54,9 @@ export class UIControlsWrapper extends React.PureComponent {
         availableFields_XAxis: [
             // { title: 'Donor', field: 'donors.display_title' },
             { title: 'Sequencer', field: 'sequencing.sequencer.display_title' },
-            {
-                title: 'Assay Type',
-                field: 'file_sets.libraries.assay.display_title',
-            },
-            { title: 'Tissue', field: 'sample_summary.tissues' },
+            { title: 'Assay Type', field: 'file_sets.libraries.assay.display_title' },
+            // { title: 'Tissue', field: 'sample_summary.tissues' },
+            { title: 'Tissue', field: 'tissues.uberon_id.display_title' },
             // { title: 'Data Type', field: 'data_type' },
             // { title: 'File Format', field: 'file_format.display_title' },
             // { title: 'Data Category', field: 'data_category' },
@@ -113,7 +111,8 @@ export class UIControlsWrapper extends React.PureComponent {
         this.handleFieldSelect = _.throttle(this.handleFieldSelect.bind(this), 300);
 
         this.state = {
-            'aggregateType': 'files',
+            'aggregateType': 'doc_count',
+            // 'aggregateType': 'files',
             'showState': this.filterObjExistsAndNoFiltersSelected() || (props.barplot_data_filtered && props.barplot_data_filtered.total.experiment_sets === 0) ? 'all' : 'filtered',
             'openDropdown': null
         };
@@ -395,7 +394,7 @@ export class UIControlsWrapper extends React.PureComponent {
                         <div className="row" style={{ 'maxWidth': 210, 'float': 'right' }}>
                             <div className="col-3" style={{ 'width': 51 }}>
                                 {/* <h6 className="dropdown-heading">Y Axis</h6> */}
-                                <h6 className="dropdown-heading"># of Donors</h6>
+                                <h6 className="dropdown-heading">Donors</h6>
                             </div>
                             <div className="col-9" style={{ 'width': 100, 'textAlign': 'left', visibility: 'hidden' }}>
                                 <DropdownButton
