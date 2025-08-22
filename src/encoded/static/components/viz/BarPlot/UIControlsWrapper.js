@@ -61,10 +61,7 @@ export class UIControlsWrapper extends React.PureComponent {
         availableFields_Subdivision: [
             { title: 'Donor', field: 'donors.display_title' },
             { title: 'Sequencer', field: 'sequencing.sequencer.display_title' },
-            {
-                title: 'Assay Type',
-                field: 'file_sets.libraries.assay.display_title',
-            },
+            { title: 'Assay Type', field: 'file_sets.libraries.assay.display_title' },
             { title: 'Tissue', field: 'sample_summary.tissues' },
             { title: 'Data Type', field: 'data_type' },
             { title: 'File Format', field: 'file_format.display_title' },

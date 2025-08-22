@@ -83,13 +83,10 @@ class Body extends React.PureComponent {
         var countsToShow = _.omit(currentCounts, this.props.primaryCount, 'experiments_active');
 
         countsToShow = _.pairs(countsToShow).map(function(countPair, i){
-
-            var colSize = countPair[0] === 'experiment_sets' ?
-                6 : countPair[0] === 'experiments' ?
-                    6 : countPair[0] === 'files' ? 4 : 2;
+            var colSize = countPair[0] === 'donors' ?
+                10 : countPair[0] === 'files' ? 10 : 2;
             var name = null;
-            if (countPair[0] === 'experiment_sets') name = "Exp Sets";
-            if (countPair[0] === 'experiments')     name = "Experiments";
+            if (countPair[0] === 'donors') name = "Donors";
             if (countPair[0] === 'files')           name = "Files";
 
             return (
@@ -117,9 +114,8 @@ class Body extends React.PureComponent {
 
     primaryCountLabel(){
         var name = null;
-        if (this.props.primaryCount === 'experiment_sets') name = "Exp Sets";
-        if (this.props.primaryCount === 'experiments') name = "Experiments";
         if (this.props.primaryCount === 'files') name = "Files";
+        if (this.props.primaryCount === 'donors') name = "Donors";
         return (
             <small className="pull-right sets-label">{ name }</small>
         );

@@ -175,7 +175,7 @@ class Bar extends React.PureComponent {
         const hasSubSections = Array.isArray(d.bars);
         const barSections = (hasSubSections ?
             // If needed, remove sort + reverse to keep order of heaviest->lightest aggs regardless of color
-            barplot_color_cycler.sortObjectsByColorPalette(d.bars).reverse() : [_.extend({}, d, { color : 'rgb(139, 114, 142)' })]
+            barplot_color_cycler.sortObjectsByColorPalette(d.bars).reverse() : [_.extend({}, d, { color : '#5da5da' })]
         );
         let className = "chart-bar";
         const topLabel = showBarCount ? <span className="bar-top-label" key="text-label">{ d.count }</span> : null;
