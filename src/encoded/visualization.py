@@ -221,8 +221,19 @@ def convert_date_range(date_range_str):
 def bar_plot_chart(context, request):
 
     MAX_BUCKET_COUNT = 30  # Max amount of bars or bar sections to return, excluding 'other'.
-    DEFAULT_BROWSE_PARAM_LISTS = {'type': ['Donor']}
-    SUM_AGGREGATION_DEFINITION = {}
+    DEFAULT_BROWSE_PARAM_LISTS = {
+        'type': ['File'],
+        'sample_summary.studies': ['Production'],
+        'status': ['released']
+    }
+    SUM_AGGREGATION_DEFINITION = {
+        "total_donors": {
+            "cardinality": {
+                "field": "embedded.donors.display_title.raw",
+                "precision_threshold": 10000
+            }
+        }
+    }
 
     try:
         json_body = request.json_body
@@ -277,6 +288,7 @@ def bar_plot_chart(context, request):
         "terms": {},
         "total": {
             "doc_count": search_result['total'],
+            "donors": search_result['aggregations']['total_donors']['value'],
         },
         "other_doc_count": search_result['aggregations']['field_0'].get('sum_other_doc_count', 0),
         "time_generated": str(datetime.utcnow())
@@ -285,7 +297,8 @@ def bar_plot_chart(context, request):
     def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0):
 
         curr_bucket_totals = {
-            'doc_count': int(bucket_result['doc_count'])
+            'doc_count': int(bucket_result['doc_count']),
+            'donors': int(bucket_result['total_donors']['value']),
         }
 
         next_field_name = None

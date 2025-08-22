@@ -148,12 +148,12 @@ export class FacetCharts extends React.PureComponent {
                     // Reset existing filters if selecting from 'all' view. Preserve if from filtered view.
                     var currentExpSetFilters = browseBaseState === 'all' ? {} : currExpSetFilters;
 
-                    var newExpSetFilters = _.reduce(cursorProps.path, function(expSetFilters, node){
+                    var newDonorFilters = _.reduce(cursorProps.path, function(donorFilters, node){
                         // Do not change filter IF SET ALREADY because we want to strictly enable filters, not disable any.
-                        if (expSetFilters && expSetFilters[node.field] && expSetFilters[node.field].has(node.term)){
-                            return expSetFilters;
+                        if (donorFilters && donorFilters[node.field] && donorFilters[node.field].has(node.term)){
+                            return donorFilters;
                         }
-                        return searchFilters.changeFilter(node.field, node.term, expSetFilters, null, true);// Existing expSetFilters, if null they're retrieved from Redux store, only return new expSetFilters vs saving them == set to TRUE
+                        return searchFilters.changeFilter(node.field, node.term, donorFilters, null, true);// Existing donorFilters, if null they're retrieved from Redux store, only return new donorFilters vs saving them == set to TRUE
                     }, currentExpSetFilters);
 
                     // Register 'Set Filter' event for each field:term pair (node) of selected Bar Section.
@@ -166,7 +166,7 @@ export class FacetCharts extends React.PureComponent {
                         });
                     });
 
-                    searchFilters.saveChangedFilters(newExpSetFilters, browseBaseHref, () => {
+                    searchFilters.saveChangedFilters(newDonorFilters, browseBaseHref, () => {
                         // Scroll to top of browse page container after navigation is complete.
                         setTimeout(layout.animateScrollTo, 200, "content", Math.abs(layout.getPageVerticalScrollPosition() - 510) * 2, 79);
                     });
@@ -210,7 +210,7 @@ export class FacetCharts extends React.PureComponent {
         const gridState = layout.responsiveGridState(windowWidth || null);
         const cursorDetailActions = this.cursorDetailActions();
         const browseBaseParams = navigate.getBrowseBaseParams();
-        const expSetFilters = searchFilters.contextFiltersToExpSetFilters(context && context.filters, browseBaseParams);
+        const donorFilters = searchFilters.contextFiltersToExpSetFilters(context && context.filters, browseBaseParams);
         let height = show === 'small' ? 300 : 370;
         let width;
 
@@ -241,7 +241,7 @@ export class FacetCharts extends React.PureComponent {
         return (
             <div className={"facet-charts show-" + show} key="facet-charts">
                 <ChartDataController.Provider id="barplot1">
-                    <BarPlot.UIControlsWrapper legend chartHeight={height} {...{ href, windowWidth, cursorDetailActions, expSetFilters }}>
+                    <BarPlot.UIControlsWrapper legend chartHeight={height} {...{ href, windowWidth, cursorDetailActions, donorFilters }}>
                         <BarPlot.Chart {...{ width, height, schemas, windowWidth, href, cursorDetailActions, context }} />
                     </BarPlot.UIControlsWrapper>
                 </ChartDataController.Provider>

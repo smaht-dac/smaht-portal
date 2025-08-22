@@ -204,7 +204,7 @@ const initialDetailCursorState = {
     'term' : 'Title',
     'filteredOut' : false,
     'includeTitleDescendentPrefix' : true,
-    'primaryCount' : 'experiment_sets',
+    'primaryCount' : 'donors',
     'path' : [
         //{
         //    'field' : "Test.Field.Name",
@@ -228,6 +228,7 @@ export default class ChartDetailCursor extends React.PureComponent {
             // 'experiments'         : d.experiments || 0,
             // 'experiments_active'  : d.active || 0,
             // 'experiment_sets'     : d.experiment_sets || 0,
+            'donors'              : d.donors || 0,
             'files'               : d.files || 0 //d.activeFiles || d.files || 0
         };
     }

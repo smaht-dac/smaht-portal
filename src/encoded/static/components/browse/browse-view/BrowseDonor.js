@@ -816,7 +816,7 @@ export const BrowseDonorBody = (props) => {
     const [donorHardyScaleData, setDonorHardyScaleData] = useState([]);
     const [loading, setLoading] = useState(false);
     const { alerts, windowWidth, windowHeight, navigate, isFullscreen, href, session } = props;
-    const initialFields = ['tissues.uberon_id.display_title'];
+    const initialFields = ['sample_summary.tissues'];
 
     useEffect(() => {
         const dataUrl = '/bar_plot_aggregations/';

@@ -40,7 +40,7 @@ const refs = {
  * @private
  * @type {Object}
  * @property {{ field: string, terms: Object }} barplot_data_filtered       Object for root/first-level field with bucketed term counts, recursed with children as set in 'barplot_data_fields'.
- * @property {{ field: string, terms: Object }} barplot_data_unfiltered     Same as `barplot_data_filtered` but without concern for any expSetFilters aside from those in `browseBaseParams`.
+ * @property {{ field: string, terms: Object }} barplot_data_unfiltered     Same as `barplot_data_filtered` but without concern for any donorFilters aside from those in `browseBaseParams`.
  * @property {string[]} barplot_data_fields                                 List of fields on which aggregations/bucketing is done for generating `barplot_data_filtered` & `barplot_data_unfiltered`.
  * @property {booolean} isLoadingChartData                                  Whether we are currently loading.
  */
@@ -119,7 +119,7 @@ let lastTimeSyncCalled = 0;
 
 /**
  * Use this React component to wrap individual charts and provide them with source of experiments data via
- * their props.filtered_bar_data and props.unfiltered_bar_data. Also provides props.expSetFilters from redux store.
+ * their props.filtered_bar_data and props.unfiltered_bar_data. Also provides props.donorFilters from redux store.
  *
  * @class Provider
  * @type {Component}
@@ -264,7 +264,7 @@ export const ChartDataController = {
                 return;
             }
 
-            // We treat expSetFilters as being empty if we're not on browse page --
+            // We treat donorFilters as being empty if we're not on browse page --
             // if we are not on the browse page, no need to get chart info
             const isBrowseHrefPrev = prevHref.indexOf('/browse/') !== -1;
             const isBrowseHrefNext = refs.href.indexOf('/browse/') !== -1;
@@ -426,7 +426,7 @@ export const ChartDataController = {
     },
 
     /**
-     * Fetch new data from back-end regardless of expSetFilters state, e.g. for when session has changed (@see App.prototype.componentDidUpdate()).
+     * Fetch new data from back-end regardless of donorFilters state, e.g. for when session has changed (@see App.prototype.componentDidUpdate()).
      *
      * @public
      * @static
@@ -443,19 +443,19 @@ export const ChartDataController = {
     },
 
     /**
-     * Internally used to either fetch new filtered experiments or clear them, according to state of expSetFilters from Redux store.
+     * Internally used to either fetch new filtered experiments or clear them, according to state of donorFilters from Redux store.
      * Called by listener to Redux store.
      *
      * @static
      * @memberof module:viz/chart-data-controller
-     * @param {Object} expSetFilters - (Newly-updated) Experiment Set Filters in Redux store.
+     * @param {Object} donorFilters - (Newly-updated) Experiment Set Filters in Redux store.
      * @param {function} callback - Callback function to call after updating state.
      * @returns {void} Nothing
      */
-    handleUpdatedFilters : function(expSetFilters, callback, opts){
+    handleUpdatedFilters : function(donorFilters, callback, opts){
 
         // Reset or re-fetch 'filtered-in' data.
-        if (_.keys(expSetFilters).length === 0 && state.barplot_data_unfiltered && (!opts || !opts.searchQuery)){
+        if (_.keys(donorFilters).length === 0 && state.barplot_data_unfiltered && (!opts || !opts.searchQuery)){
             ChartDataController.setState({ 'barplot_data_filtered' : null }, callback);
         } else if (state.barplot_data_unfiltered) {
             ChartDataController.fetchAndSetFilteredBarPlotData(callback, opts);
@@ -524,7 +524,7 @@ export const ChartDataController = {
             const filteredSearchParams = navigate.mergeObjectsOfLists(
                 { 'q' : searchQuery || null },
                 baseSearchParams,
-                searchFilters.expSetFiltersToJSON(currentExpSetFilters)
+                {}//searchFilters.expSetFiltersToJSON(currentExpSetFilters)
             );
             currentRequests.filtered = ajax.load(
                 refs.baseSearchPath,
@@ -546,7 +546,7 @@ export const ChartDataController = {
 
 
     /**
-     * Like ChartDataController.fetchUnfilteredAndFilteredExperimentSets(), but only to get filtered/selected experiments according to expSetFilters from Redux store.
+     * Like ChartDataController.fetchUnfilteredAndFilteredExperimentSets(), but only to get filtered/selected experiments according to donorFilters from Redux store.
      *
      * @memberof module:viz/chart-data-controller
      * @private
@@ -565,7 +565,7 @@ export const ChartDataController = {
         const filteredSearchParams = navigate.mergeObjectsOfLists(
             { 'q' : searchQuery || null },
             navigate.getBrowseBaseParams(opts.browseBaseState || null),
-            searchFilters.expSetFiltersToJSON(currentExpSetFilters)
+            {} //searchFilters.expSetFiltersToJSON(currentExpSetFilters)
         );
 
         if (currentRequests.filtered !== null){

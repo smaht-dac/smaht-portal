@@ -45,6 +45,7 @@ export class UIControlsWrapper extends React.PureComponent {
             experiment_sets: 'Experiment Sets',
             experiments: 'Experiments',
             files: 'Files',
+            donors: 'Donors',
 
             // Show state
             all: 'All',
@@ -55,12 +56,7 @@ export class UIControlsWrapper extends React.PureComponent {
             // { title: 'Donor', field: 'donors.display_title' },
             { title: 'Sequencer', field: 'sequencing.sequencer.display_title' },
             { title: 'Assay Type', field: 'file_sets.libraries.assay.display_title' },
-            // { title: 'Tissue', field: 'sample_summary.tissues' },
-            { title: 'Tissue', field: 'tissues.uberon_id.display_title' },
-            // { title: 'Data Type', field: 'data_type' },
-            // { title: 'File Format', field: 'file_format.display_title' },
-            // { title: 'Data Category', field: 'data_category' },
-            // { title: 'Software', field: 'software.display_title' },
+            { title: 'Tissue', field: 'sample_summary.tissues' }
         ],
         availableFields_Subdivision: [
             { title: 'Donor', field: 'donors.display_title' },
@@ -111,7 +107,7 @@ export class UIControlsWrapper extends React.PureComponent {
         this.handleFieldSelect = _.throttle(this.handleFieldSelect.bind(this), 300);
 
         this.state = {
-            'aggregateType': 'doc_count',
+            'aggregateType': 'donors',
             // 'aggregateType': 'files',
             'showState': this.filterObjExistsAndNoFiltersSelected() || (props.barplot_data_filtered && props.barplot_data_filtered.total.experiment_sets === 0) ? 'all' : 'filtered',
             'openDropdown': null
@@ -134,8 +130,8 @@ export class UIControlsWrapper extends React.PureComponent {
 
     // TODO: MAYBE REMOVE HREF WHEN SWITCH SEARCH FROM /BROWSE/
     filterObjExistsAndNoFiltersSelected() {
-        const { expSetFilters, href } = this.props;
-        return searchFilters.filterObjExistsAndNoFiltersSelected(expSetFilters) && !searchFilters.searchQueryStringFromHref(href);
+        const { donorFilters, href } = this.props;
+        return searchFilters.filterObjExistsAndNoFiltersSelected(donorFilters) && !searchFilters.searchQueryStringFromHref(href);
     }
 
     titleMap(key = null, fromDropdown = false) {
