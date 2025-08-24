@@ -249,6 +249,13 @@ const fieldToTransformationDict = memoize(function () {
 export const Field = {
     nameMap: {
         'sample_summary.tissues': 'Tissue',
+        'file_sets.libraries.assay.display_title': 'Assay Type',
+        'sequencing.sequencer.display_title': 'Sequencer',
+        'donors.display_title': 'Donor',
+        'data_type': 'Data Type',
+        'file_format.display_title': 'File Format',
+        'data_category': 'Data Category',
+        'software.display_title': 'Software',
         '@id': 'Link',
         display_title: 'Title',
     },
