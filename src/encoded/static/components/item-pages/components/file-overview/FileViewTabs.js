@@ -96,6 +96,57 @@ const AnalysisInformationTab = (props) => {
 
 // DotRouterTab content for displaying QC information for the current file.
 const QCOverviewTab = ({ context }) => {
+    const [isConsortiumMember, setIsConsortiumMember] = useState(false);
+
+    useEffect(() => {
+        // Request user session information
+        ajax.load(
+            // `/${JWT.getUserDetails()?.uuid}`,
+            `/session-properties`,
+            (resp) => {
+                console.log('response', resp);
+                // Check if user is a member of SMaHT consortium
+                const isConsortiumMember = resp?.consortia?.some(
+                    ({ uuid, display_title }) => {
+                        uuid === '358aed10-9b9d-4e26-ab84-4bd162da182b' &&
+                            display_title === 'SMaHT';
+                    }
+                );
+                if (isConsortiumMember) {
+                    setIsConsortiumMember(true);
+                }
+            },
+            'GET',
+            (err) => {
+                if (err.notification !== 'No results found') {
+                    console.log(
+                        'ERROR determining user consortium membership',
+                        err
+                    );
+                }
+            }
+        );
+    }, []);
+
+    // Show placeholder for non-consortium members
+    if (!isConsortiumMember) {
+        return (
+            <div className="no-results">
+                <div className="no-results-content">
+                    <i className="icon icon-user-friends fas"></i>
+                    <h3 className="header">
+                        SMaHT Consortium Membership Required
+                    </h3>
+                    <span className="subheader">
+                        You must be a member of the SMaHT consortium to view QC
+                        metrics.
+                    </span>
+                </div>
+            </div>
+        );
+    }
+
+    // Assume a user is a consortium member, check for QualityMetrics Items
     return context?.quality_metrics?.length > 0 ? (
         <QcOverviewTabContent context={context} />
     ) : (
