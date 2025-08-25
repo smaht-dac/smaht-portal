@@ -101,16 +101,11 @@ const QCOverviewTab = ({ context }) => {
     useEffect(() => {
         // Request user session information
         ajax.load(
-            // `/${JWT.getUserDetails()?.uuid}`,
             `/session-properties`,
             (resp) => {
-                console.log('response', resp);
                 // Check if user is a member of SMaHT consortium
-                const isConsortiumMember = resp?.consortia?.some(
-                    ({ uuid, display_title }) => {
-                        uuid === '358aed10-9b9d-4e26-ab84-4bd162da182b' &&
-                            display_title === 'SMaHT';
-                    }
+                const isConsortiumMember = resp?.details?.consortia?.includes(
+                    '358aed10-9b9d-4e26-ab84-4bd162da182b'
                 );
                 if (isConsortiumMember) {
                     setIsConsortiumMember(true);
@@ -135,8 +130,8 @@ const QCOverviewTab = ({ context }) => {
                 <i className="icon icon-user-lock fas"></i>
                 <h4>Protected Data</h4>
                 <span>
-                    To view this data, you must have access to SMaHT protected
-                    access data on dbGaP.
+                    To view this data, you must have access
+                    <br /> to SMaHT protected access data on dbGaP.
                 </span>
             </div>
         );
