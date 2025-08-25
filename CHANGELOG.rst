@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+1.1.0
+=====
+
+* Open Data URL support for SMaHT
+* New calc-prop 'open_data_url' which will show the location
+  of files in open data buckets
+* Redirect with no auth will be processed for public files, otherwise
+  a redirect with auth will be sent
+* Requires update to permissions for S3 Federation user
+
 1.0.0
 =====
 
@@ -25,7 +35,7 @@ groups
   public-restricted statuses, along with tests for files as well utilizing
   the new groups
 
-  
+
 0.195.3
 =======
 `PR 512: feat: remove quantity field from protected donor view <https://github.com/smaht-dac/smaht-portal/pull/512>`_

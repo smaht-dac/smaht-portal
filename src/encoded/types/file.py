@@ -1,4 +1,5 @@
 from boto3 import client as boto_client
+from botocore.exceptions import ClientError
 from datetime import datetime
 import functools
 from pyramid.exceptions import HTTPForbidden
@@ -6,7 +7,10 @@ from pyramid.request import Request
 from pyramid.response import Response
 from pyramid.view import view_config
 from typing import Any, Dict, List, Optional, Union
-
+import os
+from botocore.exceptions import ClientError
+from dcicutils.secrets_utils import assume_identity
+from dcicutils.misc_utils import override_environ
 from encoded_core.types.file import (
     HREF_SCHEMA,
     UNMAPPED_OBJECT_SCHEMA,
@@ -66,6 +70,9 @@ from ..item_utils.utils import (
     get_unique_values,
     RequestHandler,
 )
+
+
+log = structlog.getLogger(__name__)
 
 
 class CalcPropConstants:
@@ -1191,7 +1198,7 @@ class File(Item, CoreFile):
             ]
             return " ".join(to_include)
         if "file_sets" in file_properties:
-            assay_title= get_unique_values(
+            assay_title = get_unique_values(
                 request_handler.get_items(file_utils.get_assays(file_properties, request_handler)),
                 item_utils.get_display_title,
                 )
@@ -1213,6 +1220,120 @@ class File(Item, CoreFile):
             ]
         if to_include:
             return " ".join(to_include)
+
+    @staticmethod
+    def get_presigned_url_location(client, external, request, filename) -> str:
+        """ Opens an S3 boto3 client and returns a presigned url for the requested file to be downloaded"""
+        param_get_object = {
+            'Bucket': external['bucket'],
+            'Key': external['key'],
+            'ResponseContentDisposition': "attachment; filename=" + filename
+        }
+        if request.range:
+            param_get_object.update({'Range': request.headers.get('Range')})
+            del param_get_object['ResponseContentDisposition']
+        location = client.generate_presigned_url(
+            ClientMethod='get_object',
+            Params=param_get_object,
+            ExpiresIn=36*60*60
+        )
+        return location
+
+    def get_open_data_url_or_presigned_url_location(self, external, request, filename, datastore_is_database) -> str:
+        """ This function differs materially from fourfront - we have three possibilities, one where we are
+            directing to truly public data, another where we are directing to protected data in the open
+            data account (with auth) and another where we are directing to data we hold in our buckets (with auth) """
+        open_data_url = None
+        s3_client = self.setup_unified_s3_client()
+        if datastore_is_database:  # view model came from DB - must compute calc prop
+            open_data_url = self._open_data_url(s3_client, self.properties['status'], filename=filename)
+        else:  # view model came from elasticsearch - calc props should be here
+            if hasattr(self.model, 'source'):
+                es_model_props = self.model.source['embedded']
+                open_data_url = es_model_props.get('open_data_url', '')
+                if filename not in open_data_url:  # we requested an extra_file, so recompute with correct filename
+                    open_data_url = self._open_data_url(s3_client, self.properties['status'], filename=filename)
+            if not open_data_url:  # fallback to DB
+                open_data_url = self._open_data_url(s3_client, self.properties['status'], filename=filename)
+
+        # Redirect with no auth
+        if open_data_url and 'smaht-open-data-public' in open_data_url:
+            return open_data_url
+        # Redirect with auth
+        elif open_data_url and 'smaht-open-data-protected' in open_data_url:
+            open_data_key = open_data_url[open_data_url.index('https://smaht-open-data-protected.s3.amazonaws.com/'):]
+            open_data_external = {
+                'bucket': 'smaht-open-data-protected',
+                'key': open_data_key
+            }
+            return self.get_presigned_url_location(s3_client, open_data_external, request, filename)
+        else:
+            return self.get_presigned_url_location(s3_client, external, request, filename)
+
+    @staticmethod
+    def setup_unified_s3_client():
+        """ Creates an S3 client using credentials from the secrets manager """
+        if 'IDENTITY' in os.environ:
+            identity = assume_identity()
+            with override_environ(**identity):
+                return boto_client(
+                    's3',
+                    aws_access_key_id=os.environ.get('S3_AWS_ACCESS_KEY_ID'),
+                    aws_secret_access_key=os.environ.get('S3_AWS_SECRET_ACCESS_KEY')
+                )
+        log.error(f'No identity found! Bucket resolution likely to fail')
+        return boto_client('s3')  # this fallback will throw permission errors downstream
+
+    @staticmethod
+    def _head_s3(client, bucket, key):
+        """ Helper for below method for mocking purposes. """
+        return client.head_object(Bucket=bucket, Key=key)
+
+    def _open_data_url(self, s3_client, status, filename):
+        """ Helper for below method containing core functionality. """
+        if not filename:
+            return None
+        if status in ['released', 'archived', 'restricted', 'public-restricted', 'public']:
+            # TODO: ensure these bucket names are accurate
+            open_data_public_bucket = 'smaht-open-data-public'
+            open_data_protected_bucket = 'smaht-open-data-protected'
+            bucket_type = 'wfoutput'  # almost always going to be wfoutput
+            open_data_key = 'smaht-production/{bucket_type}/{uuid}/{filename}'.format(
+                bucket_type=bucket_type, uuid=self.uuid, filename=filename,
+            )
+            extra_open_data_key = 'smaht-production/{bucket_type}/{uuid}/{filename}'.format(
+                bucket_type='files', uuid=self.uuid, filename=filename,
+            )
+            # Check if the file exists in the Open Data S3 bucket under both wfoutput and files paths
+            # Requires assuming identity to _head_object
+            for open_data_bucket in [open_data_public_bucket, open_data_protected_bucket]:
+                for key in [open_data_key, extra_open_data_key]:
+                    # If the file exists in the Open Data S3 bucket, client.head_object will succeed (not throw ClientError)
+                    # Returning a valid S3 URL to the public url of the file
+                    try:
+                        self._head_s3(s3_client, open_data_bucket, key)
+                    except ClientError:
+                        continue  # try the other key
+                    location = 'https://{open_data_bucket}.s3.amazonaws.com/{open_data_key}'.format(
+                        open_data_bucket=open_data_bucket, open_data_key=key,
+                    )
+                    return location
+                else:
+                    return None  # got client error for both possibilities
+        else:
+            return None
+
+    @calculated_property(schema={
+        "title": "Open Data URL",
+        "description": "Location of file on Open Data Bucket, if it exists",
+        "type": "string"
+    })
+    def open_data_url(self, request, accession, file_format, status=None):
+        """ Computes the open data URL and checks if it exists. """
+        fformat = get_item_or_none(request, file_format, frame='raw')  # no calc props needed
+        filename = "{}.{}".format(accession, fformat.get('standard_file_extension', ''))
+        s3_client = self.setup_unified_s3_client()
+        return self._open_data_url(s3_client, status, filename)
 
 
 @view_config(name='drs', context=File, request_method='GET',
