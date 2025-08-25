@@ -131,17 +131,13 @@ const QCOverviewTab = ({ context }) => {
     // Show placeholder for non-consortium members
     if (!isConsortiumMember) {
         return (
-            <div className="no-results">
-                <div className="no-results-content">
-                    <i className="icon icon-user-friends fas"></i>
-                    <h3 className="header">
-                        SMaHT Consortium Membership Required
-                    </h3>
-                    <span className="subheader">
-                        You must be a member of the SMaHT consortium to view QC
-                        metrics.
-                    </span>
-                </div>
+            <div className="protected-data callout-card">
+                <i className="icon icon-user-lock fas"></i>
+                <h4>Protected Data</h4>
+                <span>
+                    To view this data, you must have access to SMaHT protected
+                    access data on dbGaP.
+                </span>
             </div>
         );
     }
