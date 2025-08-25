@@ -432,7 +432,7 @@ def _build_file_embedded_list() -> List[str]:
         # For facets
         "donors.age",
         "donors.sex",
-
+        "donors.hardy_scale",
     ]
 
 

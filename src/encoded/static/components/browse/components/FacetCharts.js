@@ -137,7 +137,7 @@ export class FacetCharts extends React.PureComponent {
     cursorDetailActions(){
         const { href, browseBaseState, context } = this.props;
         const isBrowseHref = navigate.isBrowseHref(href);
-        const currExpSetFilters = searchFilters.contextFiltersToExpSetFilters(context && context.filters);
+        const currDonorFilters = searchFilters.contextFiltersToExpSetFilters(context && context.filters);
         return [
             {
                 'title' : isBrowseHref ? 'Explore' : 'Browse',
@@ -146,7 +146,7 @@ export class FacetCharts extends React.PureComponent {
                         browseBaseHref = navigate.getBrowseBaseHref(baseParams);
 
                     // Reset existing filters if selecting from 'all' view. Preserve if from filtered view.
-                    var currentExpSetFilters = browseBaseState === 'all' ? {} : currExpSetFilters;
+                    var currentDonorFilters = browseBaseState === 'all' ? {} : currDonorFilters;
 
                     var newDonorFilters = _.reduce(cursorProps.path, function(donorFilters, node){
                         // Do not change filter IF SET ALREADY because we want to strictly enable filters, not disable any.
@@ -154,7 +154,7 @@ export class FacetCharts extends React.PureComponent {
                             return donorFilters;
                         }
                         return searchFilters.changeFilter(node.field, node.term, donorFilters, null, true);// Existing donorFilters, if null they're retrieved from Redux store, only return new donorFilters vs saving them == set to TRUE
-                    }, currentExpSetFilters);
+                    }, currentDonorFilters);
 
                     // Register 'Set Filter' event for each field:term pair (node) of selected Bar Section.
                     _.forEach(cursorProps.path, function(node){
@@ -162,7 +162,7 @@ export class FacetCharts extends React.PureComponent {
                             'name' : analytics.eventLabelFromChartNode(node, false),    // 'New' filter logged here.
                             'field_key'   : node.field,
                             'term_key'    : node.term,
-                            'filters'     : analytics.getStringifiedCurrentFilters(currExpSetFilters), // 'Existing' filters, or filters at time of action, go here.
+                            'filters'     : analytics.getStringifiedCurrentFilters(currDonorFilters), // 'Existing' filters, or filters at time of action, go here.
                         });
                     });
 
@@ -172,17 +172,17 @@ export class FacetCharts extends React.PureComponent {
                     });
                 },
                 'disabled' : function(cursorProps){
-                    if (currExpSetFilters && typeof currExpSetFilters === 'object'){
+                    if (currDonorFilters && typeof currDonorFilters === 'object'){
                         if (
                             Array.isArray(cursorProps.path) &&
                             (cursorProps.path[0] && cursorProps.path[0].field) &&
-                            currExpSetFilters[cursorProps.path[0].field] instanceof Set &&
-                            currExpSetFilters[cursorProps.path[0].field].has(cursorProps.path[0].term) &&
+                            currDonorFilters[cursorProps.path[0].field] instanceof Set &&
+                            currDonorFilters[cursorProps.path[0].field].has(cursorProps.path[0].term) &&
                             (
                                 !cursorProps.path[1] || (
                                     cursorProps.path[1].field &&
-                                    currExpSetFilters[cursorProps.path[1].field] instanceof Set &&
-                                    currExpSetFilters[cursorProps.path[1].field].has(cursorProps.path[1].term)
+                                    currDonorFilters[cursorProps.path[1].field] instanceof Set &&
+                                    currDonorFilters[cursorProps.path[1].field].has(cursorProps.path[1].term)
                                 )
                             )
                         ) return true;

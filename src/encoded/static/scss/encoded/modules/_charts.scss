@@ -534,7 +534,7 @@
         }
     }
 
-    .x-axis-right-label {
+    .x-axis-label {
         position: relative;
         h6, h5, h4 {
             font-weight: 500;
@@ -552,7 +552,7 @@
             padding-bottom: 10px;
         }
         
-        .x-axis-right-label {
+        .x-axis-label {
             > .row > div {
                 &:last-child {
                     padding-left: 5px;
@@ -565,9 +565,10 @@
                 margin: 0;
                 line-height: 33px;
                 white-space: nowrap;
-                text-align: right;
+                text-align: left;
                 font-weight: 400;
             }
+            padding-bottom: 10px;
         }
         .dropdown {
             width : 100%;
@@ -1561,14 +1562,14 @@ body[data-path="/statistics"] {
         > .details-title {
             padding: 0 10px 7px;
             border-bottom: 1px solid #ddd;
-            font-size: 1.2rem;
+            font-size: 1rem;
             margin: 0;
             font-weight: 300;
             .term-color-indicator {
                 float: left;
                 position: relative;
                 font-size: 0.85rem;
-                top: 5px;
+                top: 3px;
                 padding-right: 6px;
                 padding-left: 2px;
                 transition: color .5s;

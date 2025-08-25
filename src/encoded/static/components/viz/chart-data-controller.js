@@ -206,6 +206,34 @@ export const ChartDataController = {
     Provider : Provider,
 
     /**
+     * Transforms donor filters to file filters.
+     * @param {*} fileFilters - The file filters to transform.
+     * @returns {*} The transformed file filters.
+     */
+    transformFilterDonorToFile : function(fileFilters){
+        if (fileFilters.sex) {
+            fileFilters['donors.sex'] = fileFilters.sex;
+            delete fileFilters.sex;
+        }
+        if (fileFilters.study) {
+            fileFilters['sample_summary.studies'] = fileFilters.study;
+            delete fileFilters.study;
+        }
+        if (fileFilters.external_id) {
+            fileFilters['donors.display_title'] = fileFilters.external_id;
+            delete fileFilters.external_id;
+        }
+        if (fileFilters['hardy_scale.from']) {
+            fileFilters['donors.hardy_scale.from'] = fileFilters['hardy_scale.from'];
+            delete fileFilters['hardy_scale.from'];
+        }
+        if (fileFilters['hardy_scale.to']) {
+            fileFilters['donors.hardy_scale.to'] = fileFilters['hardy_scale.to'];
+            delete fileFilters['hardy_scale.to'];
+        }
+        return fileFilters;
+    },
+    /**
      * This function must be called before this component is used anywhere else.
      *
      * @todo Perhaps move initialize() call from facetcharts.js to app.js.
@@ -268,16 +296,16 @@ export const ChartDataController = {
             // if we are not on the browse page, no need to get chart info
             const isBrowseHrefPrev = prevHref.indexOf('/browse/') !== -1;
             const isBrowseHrefNext = refs.href.indexOf('/browse/') !== -1;
-            const prevExpSetFilters = isBrowseHrefPrev ? searchFilters.contextFiltersToExpSetFilters(prevContextFilters,  prevBrowseBaseParams) : {};
-            const nextExpSetFilters = isBrowseHrefNext ? searchFilters.contextFiltersToExpSetFilters(refs.contextFilters, nextBrowseBaseParams) : {};
+            const prevDonorFilters = isBrowseHrefPrev ? searchFilters.contextFiltersToExpSetFilters(prevContextFilters,  prevBrowseBaseParams) : {};
+            const nextDonorFilters = isBrowseHrefNext ? searchFilters.contextFiltersToExpSetFilters(refs.contextFilters, nextBrowseBaseParams) : {};
             const didFiltersChange = (
-                !searchFilters.compareExpSetFilters(nextExpSetFilters, prevExpSetFilters) ||
+                !searchFilters.compareExpSetFilters(nextDonorFilters, prevDonorFilters) ||
                 (prevHref && (prevSearchQuery !== nextSearchQuery))
             );
 
             // Step 2. Check if need to refresh filtered data only.
             if (didFiltersChange) {
-                ChartDataController.handleUpdatedFilters(nextExpSetFilters, notifyUpdateCallbacks, { 'searchQuery' : nextSearchQuery });
+                ChartDataController.handleUpdatedFilters(nextDonorFilters, notifyUpdateCallbacks, { 'searchQuery' : nextSearchQuery });
             }
         });
 
@@ -470,9 +498,12 @@ export const ChartDataController = {
     fetchUnfilteredAndFilteredBarPlotData : function(callback = null, opts = {}){
 
         const currentBrowseBaseParams = navigate.getBrowseBaseParams(opts.browseBaseState || null);
-        const currentExpSetFilters = searchFilters.contextFiltersToExpSetFilters(refs.contextFilters, currentBrowseBaseParams);
+        // map filters to match between Donor to File
+        const clonedContextFilters = object.deepClone(refs.contextFilters);
+        const currentDonorFilters = ChartDataController.transformFilterDonorToFile(searchFilters.contextFiltersToExpSetFilters(clonedContextFilters, currentBrowseBaseParams));
+
         const searchQuery = opts.searchQuery || searchFilters.searchQueryStringFromHref(refs.href);
-        const filtersSet = (_.keys(currentExpSetFilters).length > 0) || searchQuery;
+        const filtersSet = (_.keys(currentDonorFilters).length > 0) || searchQuery;
 
         let barplot_data_filtered = null;
         let barplot_data_unfiltered = null;
@@ -524,7 +555,7 @@ export const ChartDataController = {
             const filteredSearchParams = navigate.mergeObjectsOfLists(
                 { 'q' : searchQuery || null },
                 baseSearchParams,
-                {}//searchFilters.expSetFiltersToJSON(currentExpSetFilters)
+                searchFilters.expSetFiltersToJSON(currentDonorFilters)
             );
             currentRequests.filtered = ajax.load(
                 refs.baseSearchPath,
@@ -555,17 +586,17 @@ export const ChartDataController = {
      * @returns {void} Nothing
      */
     fetchAndSetFilteredBarPlotData : function(callback = null, opts = {}){
-
         // `currentBrowseBaseParams` not rly needed for BarPlot agg endpoint (since passing thru all filters anyway)
         const currentBrowseBaseParams = navigate.getBrowseBaseParams(opts.browseBaseState || null);
-        const currentExpSetFilters = searchFilters.contextFiltersToExpSetFilters(refs.contextFilters, currentBrowseBaseParams);
+        const clonedContextFilters = object.deepClone(refs.contextFilters);
+        const currentDonorFilters = ChartDataController.transformFilterDonorToFile(searchFilters.contextFiltersToExpSetFilters(clonedContextFilters, currentBrowseBaseParams));
 
         const searchQuery = opts.searchQuery || searchFilters.searchQueryStringFromHref(refs.href);
 
         const filteredSearchParams = navigate.mergeObjectsOfLists(
             { 'q' : searchQuery || null },
             navigate.getBrowseBaseParams(opts.browseBaseState || null),
-            {} //searchFilters.expSetFiltersToJSON(currentExpSetFilters)
+            searchFilters.expSetFiltersToJSON(currentDonorFilters)
         );
 
         if (currentRequests.filtered !== null){

@@ -8,10 +8,7 @@ from .abstract_donor import AbstractDonor
 
 def _build_donor_embedded_list():
     """Embeds for search on donor."""
-    return [
-        'tissues.uberon_id.display_title',
-        'tissues.uberon_id.identifier',
-    ]
+    return []
 
 
 @collection(

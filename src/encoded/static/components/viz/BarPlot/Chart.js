@@ -149,8 +149,8 @@ export function genChartBarDims(
  * @see module:viz/chart-data-controller.Provider
  * @see module:viz/BarPlot.UIControlsWrapper
  *
- * @prop {Object[]} experiment_sets - List of all expsets, with at least fields needed to aggregate by embedded.
- * @prop {Object[]} filtered_experiment_sets - List of selected expsets, with at least fields needed to aggregate by embedded.
+ * @prop {Object[]} experiment_sets - List of all donors, with at least fields needed to aggregate by embedded.
+ * @prop {Object[]} filtered_experiment_sets - List of selected donors, with at least fields needed to aggregate by embedded.
  * @prop {Object[]} fields - List of at least one field objects, each containing at least 'field' property in object-dot-notation.
  * @prop {string} fields.field - Field, in <code>object.dot.notation</code>.
  * @prop {string} fields.name - Name of field.

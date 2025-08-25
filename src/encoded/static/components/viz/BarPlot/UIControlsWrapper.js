@@ -54,9 +54,9 @@ export class UIControlsWrapper extends React.PureComponent {
         },
         availableFields_XAxis: [
             // { title: 'Donor', field: 'donors.display_title' },
-            { title: 'Sequencer', field: 'sequencing.sequencer.display_title' },
+            { title: 'Tissue', field: 'sample_summary.tissues' },
             { title: 'Assay Type', field: 'file_sets.libraries.assay.display_title' },
-            { title: 'Tissue', field: 'sample_summary.tissues' }
+            { title: 'Sequencer', field: 'sequencing.sequencer.display_title' },
         ],
         availableFields_Subdivision: [
             { title: 'Donor', field: 'donors.display_title' },
@@ -106,7 +106,7 @@ export class UIControlsWrapper extends React.PureComponent {
         this.state = {
             'aggregateType': 'donors',
             // 'aggregateType': 'files',
-            'showState': this.filterObjExistsAndNoFiltersSelected() || (props.barplot_data_filtered && props.barplot_data_filtered.total.experiment_sets === 0) ? 'all' : 'filtered',
+            'showState': this.filterObjExistsAndNoFiltersSelected() || (props.barplot_data_filtered && props.barplot_data_filtered.total.donors === 0) ? 'all' : 'filtered',
             'openDropdown': null
         };
     }
@@ -117,8 +117,8 @@ export class UIControlsWrapper extends React.PureComponent {
             // Set to filtered if new filtered data arrives.
             // Inverse of this done in getDerivedStateFromProps
             if (showState === "all" && newFilteredData &&
-                newFilteredData.total.experiment_sets > 0 &&
-                (!pastFilteredData || pastFilteredData.total.experiment_sets === 0)) {
+                newFilteredData.total.donors > 0 &&
+                (!pastFilteredData || pastFilteredData.total.donors === 0)) {
                 return { 'showState': 'filtered' };
             }
             return null;
@@ -407,44 +407,36 @@ export class UIControlsWrapper extends React.PureComponent {
                 <div className="row">
                     <div className="col-12 col-md-9">{this.adjustedChildChart()}</div>
                     <div className="col-12 col-md-3 chart-aside" style={{ 'height': chartHeight }}>
-                        {this.renderShowTypeDropdown()}
+                        <div className="x-axis-label">
+                            <h6 className="dropdown-heading">X Axis</h6>
+                            <DropdownButton id="select-barplot-field-0" onSelect={this.handleFirstFieldSelect}
+                                disabled={isLoadingChartData} title={xAxisDropdownTitle} variant={btnVariant}
+                                onToggle={this.handleDropDownXAxisFieldToggle} size="xs">
+                                {
+                                    this.renderDropDownMenuItems(
+                                        _.map(availableFields_XAxis, function (field) {
+                                            //const isDisabled = barplot_data_fields[1] && barplot_data_fields[1] === field.field;
+                                            return [
+                                                field.field,
+                                                field.title || Schemas.Field.toName(field.field),
+                                                field.description || null,
+                                                //isDisabled,
+                                                //isDisabled ? 'Field is already selected for "Group By"' : null
+                                            ]; // key, title, subtitle
+                                        }),
+                                        barplot_data_fields[0]
+                                    )
+                                }
+                            </DropdownButton>
+                        </div>
+                        {/* {this.renderShowTypeDropdown()} */}
                         {this.renderGroupByFieldDropdown()}
-                        <div className="legend-container" style={{ 'height': legendContainerHeight }}>
-                            {/* <AggregatedLegend {...{ cursorDetailActions, barplot_data_filtered, barplot_data_unfiltered, aggregateType, schemas }}
+                        <div className="legend-container d-none" style={{ 'height': legendContainerHeight }}>
+                            <AggregatedLegend {...{ cursorDetailActions, barplot_data_filtered, barplot_data_unfiltered, aggregateType, schemas }}
                                 height={legendContainerHeight}
                                 field={_.findWhere(availableFields_Subdivision, { 'field': barplot_data_fields[1] }) || null}
-                                showType={showState} /> */}
+                                showType={showState} />
                         </div>
-                        <div className="x-axis-right-label">
-                            <div className="row">
-                                <div className="col-12 col-md-3">
-                                    <h6 className="dropdown-heading">X Axis</h6>
-                                </div>
-                                <div className="col-12 col-md-9 pull-right">
-                                    <DropdownButton id="select-barplot-field-0" onSelect={this.handleFirstFieldSelect}
-                                        disabled={isLoadingChartData} title={xAxisDropdownTitle} variant={btnVariant}
-                                        onToggle={this.handleDropDownXAxisFieldToggle} size="xs">
-                                        {
-                                            this.renderDropDownMenuItems(
-                                                _.map(availableFields_XAxis, function (field) {
-                                                    //const isDisabled = barplot_data_fields[1] && barplot_data_fields[1] === field.field;
-                                                    return [
-                                                        field.field,
-                                                        field.title || Schemas.Field.toName(field.field),
-                                                        field.description || null,
-                                                        //isDisabled,
-                                                        //isDisabled ? 'Field is already selected for "Group By"' : null
-                                                    ]; // key, title, subtitle
-                                                }),
-                                                barplot_data_fields[0]
-                                            )
-                                        }
-                                    </DropdownButton>
-                                </div>
-                            </div>
-
-                        </div>
-
                     </div>
                 </div>
             </div>
