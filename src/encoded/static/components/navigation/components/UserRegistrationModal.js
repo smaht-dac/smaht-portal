@@ -19,12 +19,12 @@ export const UserRegistrationModal = React.memo(function UserRegistrationModal(
         onRegistrationComplete,
     } = props;
 
-    function onExitLinkClick(e) {
+    const handleExitLinkClick = React.useCallback((e) => {
         e.preventDefault();
         onRegistrationCancel();
         showLock();
         analytics.event('registration', 'UserRegistrationModal', 'ExitLinkClick');
-    }
+    }, [onRegistrationCancel, showLock]);
 
     if (!unverifiedUserEmail) {
         // Error (maybe if user manually cleared cookies or localStorage... idk)
@@ -43,45 +43,10 @@ export const UserRegistrationModal = React.memo(function UserRegistrationModal(
         );
     }
 
-    // const isEmailAGmail = unverifiedUserEmail.slice(-10) === '@gmail.com';
-    // function onGoogleLinkClick(e) {
-    //     e.preventDefault();
-    //     analytics.event('registration', 'UserRegistrationModal', 'CreateGoogleAccountLinkClick');
-    //     window.open(e.target.href);
-    // }
-    const formHeading = null;
-    // (
-    //     <div className="mb-3">
-    //         <div className="text-400 mb-2 mt-05" style={{
-    //             borderRadius: '7px',
-    //             border: '1px solid #cae5fe',
-    //             background: '#f1f9ff',
-    //             boxShadow: 'none',
-    //             padding: '20px'
-    //         }}>
-    //             You have never logged in as <span className="text-600">{unverifiedUserEmail}</span> before.
-    //         </div>
-    //         <div style={{ fontWeight: 600 }}>Are you a member of the SMaHT Consortium?</div>
-    //         <ul>
-    //             <li>
-    //                 Please <span className="text-500">register below</span> or{' '}
-    //                 <a href="#" className="link-underline-hover" onClick={onExitLinkClick}>use a different email address</a>{' '}
-    //                 if you have an existing account.
-    //             </li>
-    //             { isEmailAGmail?
-    //                 <li>
-    //                     If you prefer, you can use your institutional email address as your account ID by creating a new google account at{' '}
-    //                     <a href="https://accounts.google.com/signup/v2" className="link-underline-hover" target="_blank" rel="noopener noreferrer" onClick={onGoogleLinkClick}>
-    //                         https://accounts.google.com/signup/v2
-    //                     </a> and selecting &quot;Use my current email address instead&quot;.
-    //                 </li>
-    //                 : null }
-    //         </ul>
-    //     </div>
-    // );
+    const formHeading = null; // Could customize heading based on whether user is registering via invitation, etc.
 
     return (
-        <Modal show size="modal-dialog modal-xl" onHide={onRegistrationCancel}>
+        <Modal show size="modal-dialog modal-lg" onHide={onRegistrationCancel}>
             <Modal.Header closeButton>
                 <Modal.Title className="ps-2 d-flex align-items-center" style={{ fontSize: '1.5rem', fontWeight: '600', color: '#343741' }}>
                     <img
@@ -89,12 +54,12 @@ export const UserRegistrationModal = React.memo(function UserRegistrationModal(
                         src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
                         height="47"
                     />
-                    SMaHT User Registration
+                    New User Registration
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body className="p-4">
                 <UserRegistrationForm heading={formHeading} schemas={schemas} unverifiedUserEmail={unverifiedUserEmail}
-                    onComplete={onRegistrationComplete} onCancel={onRegistrationCancel} onExitLinkClick={onExitLinkClick} />
+                    onComplete={onRegistrationComplete} onCancel={onRegistrationCancel} onExitLinkClick={handleExitLinkClick} />
             </Modal.Body>
         </Modal>
     );

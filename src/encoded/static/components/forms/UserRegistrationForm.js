@@ -14,8 +14,6 @@ import {
     analytics,
     logger,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { LinkToSelector } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/LinkToSelector';
-import Collapse from 'react-bootstrap/esm/Collapse';
 import { Checkbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Checkbox';
 
 export default class UserRegistrationForm extends React.PureComponent {
@@ -24,6 +22,7 @@ export default class UserRegistrationForm extends React.PureComponent {
         onComplete: PropTypes.func.isRequired,
         endpoint: PropTypes.string.isRequired,
         captchaSiteKey: PropTypes.string,
+        onExitLinkClick: PropTypes.func.isRequired,
     };
 
     static defaultProps = {
@@ -38,15 +37,15 @@ export default class UserRegistrationForm extends React.PureComponent {
         this.onReCaptchaError = this.onReCaptchaError.bind(this);
         this.onReCaptchaExpiration = this.onReCaptchaExpiration.bind(this);
 
-        this.onFirstNameChange      = this.onFirstNameChange.bind(this);
-        this.onLastNameChange       = this.onLastNameChange.bind(this);
-        this.onContactEmailChange   = this.onContactEmailChange.bind(this);
-        this.onLabNameChange        = this.onLabNameChange.bind(this);
-        this.onSelectLab            = this.onSelectLab.bind(this);
-        this.onClearLab             = this.onClearLab.bind(this);
+        this.onFirstNameChange = this.onFirstNameChange.bind(this);
+        this.onLastNameChange = this.onLastNameChange.bind(this);
+        this.onAffiliationInstitutionChange = this.onAffiliationInstitutionChange.bind(this);
 
         this.maySubmitForm = this.maySubmitForm.bind(this);
         this.onFormSubmit = this.onFormSubmit.bind(this);
+
+        this.onConsortiumMemberYes = this.onConsortiumMemberYes.bind(this);
+        this.onConsortiumMemberNo = this.onConsortiumMemberNo.bind(this);
 
         this.formRef = React.createRef();
         this.recaptchaContainerRef = React.createRef();
@@ -59,13 +58,18 @@ export default class UserRegistrationForm extends React.PureComponent {
 
             // These fields are required, so we store in state
             // to be able to do some as-you-type validation
-            "value_for_first_name"          : null,
-            "value_for_last_name"           : null,
-            "value_for_contact_email"       : null,
-            "value_for_pending_lab"         : null,
-            "value_for_pending_lab_details" : null,
-            "value_for_lab_name"            : null
+            "value_for_first_name": null,
+            "value_for_last_name": null,
+            "value_for_affiliation_institution": null,
         };
+    }
+
+    onConsortiumMemberYes() {
+        this.setState({ isConsortiumMember: true });
+    }
+
+    onConsortiumMemberNo() {
+        this.setState({ isConsortiumMember: false });
     }
 
     componentDidMount() {
@@ -80,7 +84,8 @@ export default class UserRegistrationForm extends React.PureComponent {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if (this.state.isConsortiumMember === false && prevState.isConsortiumMember !== false && !this.captchaJSTag && this.recaptchaContainerRef.current) {
+        const { isConsortiumMember } = this.state;
+        if (isConsortiumMember === false && prevState.isConsortiumMember !== false && !this.captchaJSTag && this.recaptchaContainerRef.current) {
             window.onRecaptchaLoaded = this.onRecaptchaLibLoaded;
             this.captchaJSTag = document.createElement('script');
             this.captchaJSTag.setAttribute(
@@ -90,7 +95,7 @@ export default class UserRegistrationForm extends React.PureComponent {
             this.captchaJSTag.setAttribute('async', true);
             document.head.appendChild(this.captchaJSTag);
         }
-        if (this.state.isConsortiumMember !== false && prevState.isConsortiumMember === false) {
+        if (isConsortiumMember !== false && prevState.isConsortiumMember === false) {
             if (this.captchaJSTag) {
                 document.head.removeChild(this.captchaJSTag);
                 delete this.captchaJSTag;
@@ -144,33 +149,8 @@ export default class UserRegistrationForm extends React.PureComponent {
         this.setState({ value_for_last_name: e.target.value });
     }
 
-    onContactEmailChange(e) {
-        this.setState({ value_for_contact_email: e.target.value });
-    }
-
-    onLabNameChange(e) {
-        this.setState({ value_for_lab_name: e.target.value });
-    }
-
-    /**
-     * Maybe obsolete
-     * @param {*} value_for_pending_lab
-     * @param {*} value_for_pending_lab_details
-     */
-    onSelectLab(value_for_pending_lab, value_for_pending_lab_details){
-        // TODO: If value_for_pending_lab exists but not value_for_pending_lab_details,
-        // then do AJAX request to get details.
-        // TODO: Error fallback (?)
-        console.log('Received lab - ', value_for_pending_lab, value_for_pending_lab_details);
-        this.setState({ value_for_pending_lab, value_for_pending_lab_details });
-    }
-
-    onClearLab(e){
-        e.preventDefault();
-        this.setState({
-            'value_for_pending_lab' : null,
-            'value_for_pending_lab_details' : null
-        });
+    onAffiliationInstitutionChange(e) {
+        this.setState({ value_for_affiliation_institution: e.target.value });
     }
 
     onFormSubmit(evt) {
@@ -255,22 +235,13 @@ export default class UserRegistrationForm extends React.PureComponent {
     render() {
         const { schemas, heading, unverifiedUserEmail, onExitLinkClick } = this.props;
         const {
-            registrationStatus, value_for_first_name, value_for_last_name, value_for_contact_email,
-            value_for_pending_lab_details, value_for_pending_lab, captchaErrorMsg: captchaError, isConsortiumMember
+            registrationStatus, value_for_first_name, value_for_last_name, value_for_affiliation_institution,
+            captchaErrorMsg: captchaError, isConsortiumMember
         } = this.state;
 
-        // eslint-disable-next-line no-useless-escape
-        const emailValidationRegex =
-            /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-        const contactEmail =
-            value_for_contact_email && value_for_contact_email.toLowerCase();
-        const isContactEmailValid =
-            !contactEmail || emailValidationRegex.test(contactEmail);
         const maySubmit = this.maySubmitForm();
         let errorIndicator = null;
         let loadingIndicator = null;
-
-        const isEmailAGmail = unverifiedUserEmail.slice(-10) === '@gmail.com';
 
         if (registrationStatus === 'network-failure') {
             // TODO: Hide form in this case?
@@ -327,32 +298,20 @@ export default class UserRegistrationForm extends React.PureComponent {
                 {heading}
 
                 <div className="mb-1">
-                    <div className="text-300 mb-2 mt-05" style={{
-                        borderRadius: '7px',
-                        border: '1px solid #cae5fe',
-                        background: '#f1f9ff',
-                        boxShadow: 'none',
-                        padding: '10px'
-                    }}>
+                    <div className="text-300 mb-2 mt-05 info-panel">
                         You have never logged in as <span className="text-600">{unverifiedUserEmail}</span> before.
                     </div>
-                    <div className="mt-1 text-600" style={{ paddingLeft: '10px' }}>Are you a member of the SMaHT Consortium?</div>
-                    <div className="d-flex gap-3 mt-2" style={{
-                        borderRadius: '7px',
-                        border: '1px solid #f0f0f0',
-                        background: '#fbfbfb',
-                        boxShadow: 'none',
-                        padding: '10px'
-                    }}>
+                    <div className="mt-1 text-60 ps-1 text-500" style={{ paddingLeft: '10px' }}>Are you a member of the SMaHT Consortium?</div>
+                    <div className="d-flex gap-3 mt-2 option-panel">
                         <Checkbox
                             checked={isConsortiumMember === true}
-                            onChange={() => this.setState({ isConsortiumMember: true })}>
-                            Yes, I am a new/existing member of the SMaHT
+                            onChange={this.onConsortiumMemberYes}>
+                            Yes, I am a member of SMaHT
                         </Checkbox>
                         <Checkbox
                             checked={isConsortiumMember === false}
-                            onChange={() => this.setState({ isConsortiumMember: false })}>
-                            No, I'd like to register today
+                            onChange={this.onConsortiumMemberNo}>
+                            No, I am&nbsp;<strong>not</strong>&nbsp;a member of SMaHT
                         </Checkbox>
                     </div>
                 </div>
@@ -364,26 +323,12 @@ export default class UserRegistrationForm extends React.PureComponent {
                         ref={this.formRef}
                         onSubmit={this.onFormSubmit}
                         style={{ fontSize: '0.9rem' }}>
-                        <div>
-                            <div className="d-flex align-items-center gap-2 mb-15 mt-2" style={{ borderBottom: '1px solid #ddd', paddingBottom: '5px' }}>
-                                <h3 className="h3 m-0" style={{ fontSize: '1.1rem', fontWeight: 500 }}>New User Registration</h3>
-                            </div>
-                            <div>
-                                If you have an account with a different email address, please{' '}
-                                <a href="#" className="link-underline-hover" onClick={onExitLinkClick}>sign in here</a>.
-                            </div>
-                        </div>
+
                         <div className="form-group d-flex align-items-center gap-3 mt-2">
-                            <label htmlFor="email-address" style={{ fontWeight: '500' }} className="mb-1">
-                                Primary E-Mail or Username:
+                            <label htmlFor="email-address" className="mb-1 text-500">
+                                Primary Email:
                             </label>
-                            <span id="email-address" className="text-300 fs-5" style={{
-                                borderRadius: '7px',
-                                border: '1px solid #cae5fe',
-                                background: '#f1f9ff',
-                                boxShadow: 'none',
-                                padding: '5px 15px'
-                            }}>
+                            <span id="email-address" className="text-300 fs-5">
                                 {object.itemUtil.User.gravatar(unverifiedUserEmail, 36, { 'style': { 'borderRadius': '50%', 'marginRight': 20 } }, 'mm')}
                                 {unverifiedUserEmail}
                             </span>
@@ -392,7 +337,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                         <div className="row mt-2">
                             <div className="col-12 col-md-6">
                                 <div className="form-group">
-                                    <label htmlFor="firstName" className="mb-1" style={{ fontWeight: 500 }}>
+                                    <label htmlFor="firstName" className="mb-1 text-500">
                                         First Name{' '}
                                         <span className="text-danger">*</span>
                                     </label>
@@ -414,7 +359,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                             </div>
                             <div className="col-12 col-md-6">
                                 <div className="form-group">
-                                    <label htmlFor="lastName" className="mb-1" style={{ fontWeight: 500 }}>
+                                    <label htmlFor="lastName" className="mb-1 text-500">
                                         Last Name{' '}
                                         <span className="text-danger">*</span>
                                     </label>
@@ -436,32 +381,31 @@ export default class UserRegistrationForm extends React.PureComponent {
                             </div>
                         </div>
 
-                        {/* <hr className="mt-1 mb-2" /> */}
-
-                        <div className="mt-3">
-                            <label htmlFor="pendingLab" className="form-label mb-1" style={{ fontWeight: 500 }}>Lab Name <span className="text-300">(Optional)</span></label>
-                            <input name="primary_lab" type="text" onChange={this.onLabNameChange}
-                                className={"form-control"} />
-                            {/* <div>
-                                <LookupLabField onSelect={this.onSelectLab} currentLabDetails={value_for_pending_lab_details} onClear={this.onClearLab} />
-                            </div> */}
-                            {/* <small className="d-inline text-body-secondary">
-                                TTD, GCC or Institute with which you are associated.
-                            </small> */}
+                        <div className="row mt-3">
+                            <div className="col-12">
+                                <div className="form-group">
+                                    <label htmlFor="affiliation_institution" className="form-label mb-1 text-500">Affiliation/Institution{' '}
+                                        <span className="text-danger">*</span>
+                                    </label>
+                                    <input
+                                        name="affiliation_institution"
+                                        type="text"
+                                        onChange={this.onAffiliationInstitutionChange}
+                                        className={
+                                            'form-control' +
+                                            (value_for_affiliation_institution === ''
+                                                ? ' is-invalid'
+                                                : '')
+                                        }
+                                    />
+                                    <div className="invalid-feedback">
+                                        Affiliation/Institution cannot be blank
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <JobTitleField {...{ value_for_pending_lab, value_for_pending_lab_details, schemas }} />
-
-                        <div className="mt-3">
-                            <label htmlFor="contactEmail" className="form-label mb-1" style={{ fontWeight: 500 }}>Preferred Contact Email <span className="text-300">(Optional)</span></label>
-                            <input name="preferred_email" type="text" onChange={this.onContactEmailChange}
-                                className={"form-control" + (!isContactEmailValid ? " is-invalid" : "")} />
-                            <small className="d-inline text-muted" style={{ fontSize: '0.8rem' }}>
-                                {isContactEmailValid ? "Preferred contact email, if different from login/primary email." : "Please enter a valid e-mail address."}
-                            </small>
-                        </div>
-
-                        <div className="row mt-2">
+                        <div className="row mt-3">
                             <div className="col-12 col-lg-5">
                                 <div
                                     className={
@@ -480,7 +424,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                                 </div>
                             </div>
                             <div className="col-12 col-lg-7">
-                                <p>
+                                <p className="fs-6 lh-lg ps-05">
                                     By signing up, you are agreeing to our{' '}
                                     <a
                                         href="/privacy-policy"
@@ -498,16 +442,6 @@ export default class UserRegistrationForm extends React.PureComponent {
                             </div>
                         </div>
 
-                        {/* <div className="clearfix">
-                            <div className="d-grid gap-1">
-                                <button
-                                    type="submit"
-                                    disabled={!maySubmit}
-                                    className="btn btn-lg btn-primary text-300 mt-2">
-                                    Sign Up
-                                </button>
-                            </div>
-                        </div> */}
                         <div className="mt-1 py-1" style={{ backgroundColor: '#f8f8f8' }}>
                             <div className="d-grid gap-1 my-3">
                                 <button type="submit"
@@ -526,196 +460,6 @@ export default class UserRegistrationForm extends React.PureComponent {
     }
 }
 
-
-class LookupLabField extends React.PureComponent {
-
-    static fieldTitleColStyle = {
-        flex: 1,
-        padding: '7px 0 4px 10px',
-        fontSize: '1.125rem',
-        background: '#f4f4f4',
-        marginRight: 5,
-        borderRadius: 4,
-    };
-
-    static propTypes = {
-        onSelect: PropTypes.func.isRequired,
-        onClear: PropTypes.func.isRequired,
-        loading: PropTypes.bool.isRequired,
-    };
-
-    constructor(props) {
-        super(props);
-        this.receiveItem = this.receiveItem.bind(this);
-        this.setIsSelecting = _.throttle(
-            this.toggleIsSelecting.bind(this, true),
-            3000,
-            { trailing: false }
-        );
-        this.unsetIsSelecting = this.toggleIsSelecting.bind(this, false);
-        this.toggleIsSelecting = this.toggleIsSelecting.bind(this);
-        this.state = {
-            isSelecting: false,
-        };
-    }
-
-    toggleIsSelecting(isSelecting = null) {
-        this.setState(function ({ isSelecting: prevIsSelecting }) {
-            if (typeof isSelecting !== 'boolean') {
-                isSelecting = !prevIsSelecting;
-            }
-            return { isSelecting };
-        });
-    }
-
-    receiveItem(items, endDataPost) {
-        const { onSelect } = this.props;
-
-        if (!items || !Array.isArray(items) || items.length === 0) {
-            return;
-        }
-
-        if (
-            !_.every(items, function ({ id, json }) {
-                return id && typeof id === 'string' && json;
-            })
-        ) {
-            return;
-        }
-
-        // endDataPost = (endDataPost !== 'undefined' && typeof endDataPost === 'boolean') ? endDataPost : true;
-
-        if (items.length > 1) {
-            console.warn('Multiple labs selected but we only get a single item, since handler\'s multiple version not implemented yet!');
-        }
-
-        // We can change back to `endDataPost` instead of `false` in future if we ever allow multiple labs.
-        // But most likely additional labs would go into different field, since User.lab is not an array at moment anyway.
-        this.setState({ isSelecting: false }, function () {
-            // Invoke the object callback function, using the text input.
-            // eslint-disable-next-line react/destructuring-assignment
-
-            onSelect(items[0].id, items[0].json);
-        });
-    }
-
-    render() {
-        const { loading, currentLabDetails, onClear } = this.props;
-        const { isSelecting } = this.state;
-        const tooltip = "Search for a Lab and add it to the display.";
-        const dropMessage = "Drop a Lab here.";
-        const searchURL = '/search/?currentAction=selection&type=SubmissionCenter';
-        const currLabTitle = (
-            isSelecting && (
-                <div style={LookupLabField.fieldTitleColStyle}>
-                    Select a lab or drag & drop Lab Item or URL into this window.
-                </div>
-            )
-        ) || (
-            currentLabDetails && currentLabDetails['@id'] && currentLabDetails.display_title && (
-                <div style={LookupLabField.fieldTitleColStyle}>
-                    <a className="link-underline-hover" href={object.itemUtil.atId(currentLabDetails)}
-                        target="_blank" data-tip="View lab in new tab" rel="noopener noreferrer" style={{ verticalAlign: "middle" }}>
-                        {currentLabDetails.display_title}
-                    </a>
-                    &nbsp;&nbsp;<i className="icon icon-fw icon-external-link-alt fas text-small" />
-                </div>
-            )
-        ) || (
-            <div style={LookupLabField.fieldTitleColStyle} onClick={this.setIsSelecting} className="clickable" data-tip={tooltip}>
-                No Submission Center selected
-            </div>
-        );
-
-        return (
-            <React.Fragment>
-                <div className="flexrow ms-0 me-0">
-                    { currLabTitle }
-                    <div className="field-buttons w-auto">
-                        { currentLabDetails && currentLabDetails['@id'] ?
-                            <button type="button" onClick={onClear} className="btn btn-secondary me-05">
-                                Clear
-                            </button>
-                            : null }
-                        <button type="button" className="btn btn-primary" onClick={this.setIsSelecting} disabled={loading || isSelecting} data-tip={tooltip}>
-                            Select
-                        </button>
-                    </div>
-                </div>
-                {isSelecting ? (
-                    <LinkToSelector
-                        isSelecting
-                        onSelect={this.receiveItem}
-                        onCloseChildWindow={this.unsetIsSelecting}
-                        dropMessage={dropMessage}
-                        searchURL={searchURL}
-                    />
-                ) : null}
-            </React.Fragment>
-        );
-    }
-}
-
-function JobTitleField(props) {
-    const { value_for_pending_lab, value_for_pending_lab_details, schemas } = props;
-    const fieldSchema = JobTitleField.getJobTitleSchema(schemas);
-    let formControl;
-
-    if (
-        fieldSchema &&
-        Array.isArray(fieldSchema.suggested_enum) &&
-        fieldSchema.suggested_enum.length > 0
-    ) {
-        formControl = (
-            <select
-                name="job_title"
-                defaultValue="null"
-                className="form-control">
-                <option hidden disabled value="null">
-                    {' '}
-                    -- select an option --{' '}
-                </option>
-                {_.map(fieldSchema.suggested_enum, function (val) {
-                    return (
-                        <option value={val} key={val}>
-                            {val}
-                        </option>
-                    );
-                })}
-            </select>
-        );
-    } else {
-        formControl = (
-            <input type="text" name="job_title" className="form-control" />
-        );
-    }
-
-    return (
-        <Collapse in={!!(value_for_pending_lab)}>
-            <div className="clearfix">
-                <div className="form-group">
-                    <label htmlFor="jobTitle">
-                        Job Title
-                        { value_for_pending_lab_details && value_for_pending_lab_details.display_title &&
-                        <span className="text-400"> at { value_for_pending_lab_details.display_title}</span> }
-                        <span className="text-300"> (Optional)</span>
-                    </label>
-                    {formControl}
-                </div>
-            </div>
-        </Collapse>
-    );
-}
-JobTitleField.getJobTitleSchema = function (schemas) {
-    return (
-        (schemas &&
-            schemas.User &&
-            schemas.User.properties &&
-            schemas.User.properties.job_title) ||
-        null
-    );
-};
-
 function SMaHTNetworkMember({
     onExitLinkClick,
     className = "",
@@ -723,39 +467,28 @@ function SMaHTNetworkMember({
     return (
         <section className={`container py-4 ${className}`}>
             <div className="row g-5">
-                {/* Existing Members */}
-                <div className="col-12 col-md-6">
-                    <div className="d-flex align-items-center gap-2 mb-15" style={{ borderBottom: '1px solid #ddd', paddingBottom: '5px' }}>
+                <div className="col-12">
+                    <div className="d-flex align-items-center gap-2 mb-15 section-header">
                         <i className="icon icon-fw icon-users fas text-secondary" aria-hidden="true" />
-                        <h3 className="h3 m-0" style={{ fontSize: '1.1rem', fontWeight: 500 }}>Existing SMaHT Members</h3>
-                    </div>
-
-                    <ul className="fs-6 ps-1">
-                        <li>
-                            If you have an account with a different email address, please{" "}
-                            <a href="#" className="link-underline-hover" onClick={onExitLinkClick}>sign in here</a>.
-                        </li>
-                    </ul>
-                </div>
-
-                {/* New Member */}
-                <div className="col-12 col-md-6">
-                    <div className="d-flex align-items-center gap-2 mb-15" style={{ borderBottom: '1px solid #ddd', paddingBottom: '5px' }}>
-                        <i className="icon icon-fw icon-user fas text-secondary" aria-hidden="true" />
-                        <h3 className="h3 m-0" style={{ fontSize: '1.1rem', fontWeight: 500 }}>New SMaHT Member</h3>
+                        <h3 className="h3 m-0 text-500" style={{ fontSize: '1.1rem' }}>SMaHT Members</h3>
                     </div>
 
                     <p className="fs-6">
+                        If you have an account with a different email address, please{" "}
+                        <a href="#" className="link-underline-hover" onClick={onExitLinkClick}>sign in here</a>.
+                    </p>
+
+                    <p className="fs-6 mt-3">
                         To create an account with full SMaHT consortium membership
                         permission you need to:
                     </p>
 
                     <ol className="fs-6 ps-15 mt-2">
                         <li>
-                            Register with the OC with your institutional email address
+                            <strong>Register with the OC</strong> with your institutional email address
                         </li>
                         <li>
-                            Contact the DAC to create an account. Documentation on how to do
+                            <strong>Contact the DAC</strong> to create an account. Documentation on how to do
                             this can be found <a href="/docs/access/creating-an-account" target="_blank">here</a>.
                         </li>
                     </ol>

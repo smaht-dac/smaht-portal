@@ -1263,11 +1263,44 @@ body[data-pathname^="/users/"] {
 }
 
 .user-registration-form-container {
+	.info-panel {
+		border-radius: 7px;
+		border: 1px solid #cae5fe;
+		background: #f1f9ff;
+		box-shadow: none;
+		padding: 10px;
+	}
+	.option-panel {
+		border-radius: 7px;
+		border: 1px solid #f0f0f0;
+		background: #fbfbfb;
+		box-shadow: none;
+		padding: 10px;
+
+		label {
+			font-size: 0.9rem;
+		}
+	}
+	.section-header {
+		border-bottom: 1px solid #ddd;
+		padding-bottom: 5px;
+	}
+	li {
+		margin-bottom: 15px;
+		line-height: 150%;
+	}
 	h4 {
 		font-size: 1.1rem;
 	}
 	p {
 		font-size: 0.9rem;
+	}
+	#email-address{
+		border-radius: 7px;
+		border: 1px solid #cae5fe;
+		background: #f1f9ff;
+		box-shadow: none;
+		padding: 5px 15px;
 	}
 }
 
