@@ -1,12 +1,11 @@
 import React from 'react';
-
 import * as d3 from 'd3';
 import { OverlayTrigger } from 'react-bootstrap';
 
 // --- Theme (kept from mockup) ---
 const THEME = {
     panel: { radius: 14, stroke: '#E5E7EB', fill: '#FFFFFF' },
-    grid: '#FFFFFF', // '#ECEFF3',
+    grid: '#FFFFFF',
     title: { color: '#5A6C8D', size: 16, weight: 500 },
     axis: { tick: '#6B7280', fontSize: 12, fontSizeYHorizontal: 11, domain: '#CBD5E1' },
     label: { fill: '#111827', fontSize: 12 },
@@ -18,11 +17,12 @@ const THEME = {
     }
 };
 
-// --- Wrap long axis labels (limit to N lines) ---
+// --- Wrap long axis labels (limit to N lines, add tooltip if truncated) ---
 function wrapAxisLabelsLimited(selection, maxWidth, maxLines = 2, isYAxis = false) {
     selection.each(function () {
         const text = d3.select(this);
-        const words = text.text().split(/\s+/).reverse();
+        const originalText = text.text();
+        const words = originalText.split(/\s+/).reverse();
         let word, line = [], lineNumber = 0;
         const lineHeight = 1.1;
         const x = +text.attr('x') || 0;
@@ -31,6 +31,7 @@ function wrapAxisLabelsLimited(selection, maxWidth, maxLines = 2, isYAxis = fals
 
         text.text(null);
         let tspan = text.append('tspan').attr('x', x).attr('y', y).attr('dy', `${dy}em`);
+        let truncated = false;
 
         while ((word = words.pop())) {
             line.push(word);
@@ -50,6 +51,9 @@ function wrapAxisLabelsLimited(selection, maxWidth, maxLines = 2, isYAxis = fals
                         last.text(last.text().slice(0, -1));
                     }
                     if (!last.text().endsWith('…')) last.text(last.text() + '…');
+                    truncated = true;
+                    // mark truncated BEFORE return
+                    text.attr('data-truncated', '1').attr('data-fulltext', originalText);
                     return;
                 }
                 tspan = text.append('tspan')
@@ -59,8 +63,13 @@ function wrapAxisLabelsLimited(selection, maxWidth, maxLines = 2, isYAxis = fals
             }
         }
         if (isYAxis) text.selectAll('tspan').attr('text-anchor', 'end');
+
+        if (!truncated) {
+            text.attr('data-truncated', null).attr('data-fulltext', null);
+        }
     });
 }
+
 
 // --- Responsive width hook ---
 function useParentWidth(ref) {
@@ -96,7 +105,8 @@ const DonorCohortViewChart = ({
     yAxisTitle = '',
     legendTitle = '',
     session,
-    loading = false
+    loading = false,
+    showBarTooltip = false
 }) => {
     const svgRef = React.useRef();
     const outerRef = React.useRef();
@@ -191,7 +201,7 @@ const DonorCohortViewChart = ({
             gridG.selectAll('line').attr('stroke', THEME.grid);
             gridG.select('.domain').attr('stroke', 'none');
 
-            // X axis (integers)
+            // X axis
             const xAx = g.append('g')
                 .attr('transform', `translate(0,${height})`)
                 .call(d3.axisBottom(x).ticks(6).tickFormat(d3.format('d')).tickSizeOuter(0));
@@ -208,8 +218,29 @@ const DonorCohortViewChart = ({
                 .style('fill', THEME.axis.tick)
                 .call(wrapAxisLabelsLimited, margin.left - 75, 2, true);
 
+            // Add tooltip only when truncated; also set cursor conditionally
+            yAx.selectAll('text')
+                .each(function () {
+                    const t = d3.select(this);
+                    const isTruncated = !!t.attr('data-truncated');
+                    t.style('cursor', isTruncated ? 'pointer' : 'default');
+                })
+                .on('mouseover', function (e) {
+                    const t = d3.select(this);
+                    if (t.attr('data-truncated')) showTip(e, t.attr('data-fulltext'));
+                })
+                .on('mousemove', function (e) {
+                    const t = d3.select(this);
+                    if (t.attr('data-truncated')) moveTip(e);
+                })
+                .on('mouseout', function () {
+                    const t = d3.select(this);
+                    if (t.attr('data-truncated')) hideTip();
+                });
+
             yAx.selectAll('line').attr('stroke', 'none');
             yAx.select('.domain').attr('stroke', THEME.axis.domain);
+
 
             // Bars
             g.selectAll('.bar-h')
@@ -220,9 +251,9 @@ const DonorCohortViewChart = ({
                 .attr('width', (d) => x(value(d)))
                 .attr('fill', color)
                 .attr('stroke', 'none')
-                .on('mouseover', (e, d) => showTip(e, `${value(d)}`))
-                .on('mousemove', moveTip)
-                .on('mouseout', hideTip);
+                .on('mouseover', showBarTooltip ? (e, d) => showTip(e, `${value(d)}`) : null)
+                .on('mousemove', showBarTooltip ? moveTip : null)
+                .on('mouseout', showBarTooltip ? hideTip : null);
 
             // End-value labels
             g.selectAll('.label-h')
@@ -330,9 +361,9 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', femaleColor)
                 .attr('stroke', 'none')
-                .on('mouseover', (e, d) => showTip(e, `${d.pink} Female`))
-                .on('mousemove', moveTip)
-                .on('mouseout', hideTip);
+                .on('mouseover', showBarTooltip ? (e, d) => showTip(e, `${d.pink} Female`) : null)
+                .on('mousemove', showBarTooltip ? moveTip : null)
+                .on('mouseout', showBarTooltip ? hideTip : null);
 
             g.selectAll('.bar-male')
                 .data(data).enter().append('rect')
@@ -342,9 +373,9 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', maleColor)
                 .attr('stroke', 'none')
-                .on('mouseover', (e, d) => showTip(e, `${d.blue} Male`))
-                .on('mousemove', moveTip)
-                .on('mouseout', hideTip);
+                .on('mouseover', showBarTooltip ? (e, d) => showTip(e, `${d.blue} Male`) : null)
+                .on('mousemove', showBarTooltip ? moveTip : null)
+                .on('mouseout', showBarTooltip ? hideTip : null);
 
             if (showLabelOnBar) {
                 g.selectAll('.label-female')
@@ -391,9 +422,9 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', color)
                 .attr('stroke', 'none')
-                .on('mouseover', (e, d) => { if ((d.blue || 0) > 0) { showTip(e, `${d.blue}`); } })
-                .on('mousemove', moveTip)
-                .on('mouseout', hideTip);
+                .on('mouseover', showBarTooltip ? (e, d) => { if ((d.blue || 0) > 0) { showTip(e, `${d.blue}`); } } : null)
+                .on('mousemove', showBarTooltip ? moveTip : null)
+                .on('mouseout', showBarTooltip ? hideTip : null);
 
             g.selectAll('.label-single')
                 .data(data).enter().append('text')
