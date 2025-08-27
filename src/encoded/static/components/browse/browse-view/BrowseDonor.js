@@ -809,11 +809,54 @@ const BrowseDonorSearchTable = (props) => {
     );
 };
 
+/**
+ * Donor self-reported ethnicity data
+ * This data is used to visualize the distribution of self-reported ethnicities among donors.
+ */
+const donorSelfReportedEthnicityData = [
+    { group: 'American Indian or Alaska Native', blue: 10, pink: 0, total: 83 },
+    { group: 'Asian', blue: 8, pink: 0, total: 83 },
+    { group: 'Black or African American', blue: 11, pink: 0, total: 83 },
+    { group: 'Hispanic, Latino or Spanish Origin', blue: 10, pink: 0, total: 83 },
+    { group: 'Middle Eastern or North African', blue: 15, pink: 0, total: 83 },
+    { group: 'Native Hawaiian or Other Pacific Islander', blue: 10, pink: 0, total: 83 },
+    { group: 'Other', blue: 8, pink: 0, total: 83 },
+    { group: 'White', blue: 11, pink: 0, total: 83 },
+];
+
+/**
+ * Renders a popover with information about donor self-reported ethnicities.
+ * @param {*} customId - The custom ID for the popover.
+ * @returns - The popover component.
+ */
+export const renderEthnicityPopover = (customId) => (
+    <Popover id={customId || "chart-info-popover-ethnicity"} style={{ maxWidth: 400 }} className="w-auto description-definitions-popover">
+        <Popover.Body className="p-0">
+            <table className="table">
+                <thead>
+                    <tr>
+                        <th className="text-left">
+                            Donor Privacy Notice
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td className="text-left">
+                            These are aggregated sums only. SMaHT Network does not release self-reported ethnicity information for individual donors.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </Popover.Body>
+    </Popover>
+);
+
 // Browse Donor Body Component
 export const BrowseDonorBody = (props) => {
     const [toggleViewIndex, setToggleViewIndex] = useState(1);
-    const [donorAgeGroupData, setDonorAgeGroupData] = useState([]);
-    const [donorHardyScaleData, setDonorHardyScaleData] = useState([]);
+    const [donorAgeGroupData, setDonorAgeGroupData] = useState();
+    const [donorHardyScaleData, setDonorHardyScaleData] = useState();
     const [loading, setLoading] = useState(false);
     const { alerts, windowWidth, windowHeight, navigate, isFullscreen, href, session } = props;
     const initialFields = ['sample_summary.tissues'];
@@ -908,58 +951,6 @@ export const BrowseDonorBody = (props) => {
 
     }, [session, href]);
 
-    // TODO: remove hardcoded data when tests are ok
-    // const donorAgeGroupDataX = [
-    //     { group: '18-30', blue: 0, pink: 0, total: 54 },
-    //     { group: '31-55', blue: 9, pink: 2, total: 54 },
-    //     { group: '56-65', blue: 9, pink: 2, total: 54 },
-    //     { group: '66-75', blue: 9, pink: 2, total: 54 },
-    //     { group: '76-85', blue: 9, pink: 2, total: 54 },
-    //     { group: '≥86', blue: 1, pink: 6, total: 54 },
-    // ];
-    const donorEthnicityData = [
-        { group: 'American Indian or Alaska Native', blue: 10, pink: 0, total: 83 },
-        { group: 'Asian', blue: 8, pink: 0, total: 83 },
-        { group: 'Black or African American', blue: 11, pink: 0, total: 83 },
-        { group: 'Hispanic, Latino or Spanish Origin', blue: 10, pink: 0, total: 83 },
-        { group: 'Middle Eastern or North African', blue: 15, pink: 0, total: 83 },
-        { group: 'Native Hawaiian or Other Pacific Islander', blue: 10, pink: 0, total: 83 },
-        { group: 'Other', blue: 8, pink: 0, total: 83 },
-        { group: 'White', blue: 11, pink: 0, total: 83 },
-    ];
-    // TODO: remove hardcoded data when tests are ok
-    // const donorHardyScaleData = [
-    //     { group: '0', blue: 10, pink: 0, total: 54 },
-    //     { group: '1', blue: 8, pink: 0, total: 54 },
-    //     { group: '2', blue: 11, pink: 0, total: 54 },
-    //     { group: '3', blue: 10, pink: 0, total: 54 },
-    //     { group: '4', blue: 15, pink: 0, total: 54 },
-    // ];
-
-    // Popover
-    const ethnicityPopover = (
-        <Popover id="chart-info-popover-ethnicity" style={{ maxWidth: 400 }} className="w-auto description-definitions-popover">
-            <Popover.Body className="p-0">
-                <table className="table">
-                    <thead>
-                        <tr>
-                            <th className="text-left">
-                                Donor Privacy Notice
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td className="text-left">
-                                These are aggregated sums only. SMaHT Network does not release self-reported ethnicity information for individual donors.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </Popover.Body>
-        </Popover>
-    );
-
     const statsProps = { valueContainerCls: "ms-15 pt-1 d-flex align-items-center" };
 
     return (
@@ -1029,7 +1020,7 @@ export const BrowseDonorBody = (props) => {
                     ) : (
                         <div style={{
                             display: 'grid',
-                            gap: 16,
+                            gap: 0,
                             gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
                             alignItems: 'start'
                         }}>
@@ -1043,6 +1034,7 @@ export const BrowseDonorBody = (props) => {
                                 bottomStackColor="#B79AEF"
                                 xAxisTitle="Age Group"
                                 yAxisTitle="Donors"
+                                legendTitle="Donor Sex"
                                 showLegend
                                 session={session}
                                 loading={loading}
@@ -1064,14 +1056,14 @@ export const BrowseDonorBody = (props) => {
 
                             <DonorCohortViewChart
                                 title="Donor Self-Reported Ethnicity"
-                                data={session ? donorEthnicityData : []}
+                                data={session ? donorSelfReportedEthnicityData : []}
                                 chartWidth="auto"
                                 chartHeight={420}
                                 chartType="horizontal"
                                 topStackColor="#14B3BB"
                                 xAxisTitle="Donors"
                                 yAxisTitle="Ethnicity"
-                                popover={session && ethnicityPopover}
+                                popover={session && renderEthnicityPopover()}
                                 session={session}
                             />
 

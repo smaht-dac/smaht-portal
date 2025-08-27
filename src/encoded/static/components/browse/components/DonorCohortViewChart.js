@@ -94,6 +94,7 @@ const DonorCohortViewChart = ({
     bottomStackColor,
     xAxisTitle = '',
     yAxisTitle = '',
+    legendTitle = '',
     session,
     loading = false
 }) => {
@@ -139,12 +140,8 @@ const DonorCohortViewChart = ({
             .attr('fill', THEME.panel.fill)
             .attr('stroke', THEME.panel.stroke);
 
-        // If loading: skip chart rendering completely
-        if (loading) {
-            return;
-        }
-
-        if (!data || (Array.isArray(data) && data.length === 0)) {
+        // skip drawing if no data or loading
+        if (loading || !data || (Array.isArray(data) && data.length === 0)) {
             return;
         }
 
@@ -210,6 +207,7 @@ const DonorCohortViewChart = ({
                 .style('font-size', THEME.axis.fontSizeYHorizontal)
                 .style('fill', THEME.axis.tick)
                 .call(wrapAxisLabelsLimited, margin.left - 75, 2, true);
+
             yAx.selectAll('line').attr('stroke', 'none');
             yAx.select('.domain').attr('stroke', THEME.axis.domain);
 
@@ -490,7 +488,7 @@ const DonorCohortViewChart = ({
             </div>
 
             {/* Loading overlay */}
-            {loading && (
+            {loading && session && (
                 <div
                     role="status"
                     aria-live="polite"
@@ -506,19 +504,31 @@ const DonorCohortViewChart = ({
                     }}
                 >
                     <i className="icon icon-spin icon-circle-notch fas" aria-hidden="true" style={{ fontSize: 22, lineHeight: 0 }} />
-                    {/* screen-reader only text (Bootstrap's sr-only equivalent) */}
-                    <span style={{
-                        position: 'absolute',
-                        width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden',
-                        clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0
-                    }}>
+                    {/* screen-reader only text */}
+                    <span className="visually-hidden">
                         Loading
                     </span>
                 </div>
             )}
 
+            {!session && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 5,
+                        pointerEvents: 'none'
+                    }}
+                >
+                    <span className="text-secondary">Login required to view</span>
+                </div>
+            )}
+
             {/* Legend (vertical, compact) */}
-            {chartType === 'stacked' && showLegend && !loading && (
+            {chartType === 'stacked' && showLegend && session && !loading && data && (
                 <div
                     style={{
                         position: 'absolute',
@@ -540,7 +550,7 @@ const DonorCohortViewChart = ({
                             marginBottom: 6
                         }}
                     >
-                        Donor Sex
+                        {legendTitle}
                     </div>
 
                     <div
