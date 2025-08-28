@@ -464,7 +464,7 @@ Table 2B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3AO</td>
                     <td>Hippocampus, Brain, Right hemisphere</td>
-                    <td>Snap Froze</td>
+                    <td>Snap Frozen</td>
                 </tr>
             </tbody>
         </table>
