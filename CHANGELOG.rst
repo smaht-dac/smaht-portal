@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+0.195.2
+=======
+`PR 511: SN Sample Nomenclature doc <https://github.com/smaht-dac/smaht-portal/pull/511>`_
+
+* Update tables to match newest version of the documentation
+* Add newest version of the pdf document to the page
+
 0.195.1
 =======
 `PR 509: SN Fix donor metadata release <https://github.com/smaht-dac/smaht-portal/pull/509>`_
