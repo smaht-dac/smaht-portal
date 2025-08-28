@@ -164,7 +164,7 @@ Table 2A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>Snap Frozen</td>
                     <td>Homogenate and non-homogenate samples</td>
                 </tr>
-                <tr class="text-muted fst-italic">
+                <tr class="text-secondary fst-italic">
                     <td>1B</td>
                     <td>unassigned</td>
                     <td>N/A</td>
@@ -182,7 +182,7 @@ Table 2A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>Snap Frozen</td>
                     <td>Homogenate and non-homogenate samples</td>
                 </tr>
-                <tr class="text-muted fst-italic">
+                <tr class="text-secondary fst-italic">
                     <td>1E</td>
                     <td>unassigned</td>
                     <td>N/A</td>
@@ -200,7 +200,7 @@ Table 2A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>Snap Frozen</td>
                     <td>Homogenate and non-homogenate samples</td>
                 </tr>
-                <tr class="text-muted fst-italic">
+                <tr class="text-secondary fst-italic">
                     <td>1H</td>
                     <td>unassigned</td>
                     <td>N/A</td>
@@ -213,24 +213,24 @@ Table 2A. Protocol IDs for SMaHT benchmarking tissues.
                     <td></td>
                 </tr>
                 <tr>
-                    <td>1J*</td>
+                    <td>1J</td>
                     <td>Skin</td>
                     <td>Snap Frozen</td>
-                    <td>Collected but not utilized for study; homogenization attempted but not successful</td>
+                    <td>Tissue specimen (~10 cm)</td>
                 </tr>
                 <tr>
-                    <td>1K**</td>
+                    <td>1K</td>
                     <td>Skin</td>
                     <td>Snap Frozen</td>
-                    <td>Cores made (intact tissue)</td>
+                    <td>Tissue core from the intact tissue was made (~1 cm)</td>
                 </tr>
                 <tr>
-                    <td>1L*</td>
+                    <td>1L</td>
                     <td>Skin</td>
                     <td>Fixed</td>
                     <td></td>
                 </tr>
-                <tr class="text-muted fst-italic">
+                <tr class="text-secondary fst-italic">
                     <td>1M/N/O/P</td>
                     <td>unassigned</td>
                     <td>N/A</td>
@@ -246,10 +246,8 @@ Table 2A. Protocol IDs for SMaHT benchmarking tissues.
         </table>
     </div>
 
-| \* 1J and 1L tissues are collected, but not utilized for study.
-| \*\* Cores made (intact tissue).
 
-Table 1B. Protocol IDs for SMaHT production tissues.
+Table 2B. Protocol IDs for SMaHT production tissues.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
@@ -266,7 +264,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3A</td>
                     <td>Blood, Whole</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3B</td>
@@ -276,7 +274,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3C</td>
                     <td>Esophagus</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3D</td>
@@ -286,7 +284,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3E</td>
                     <td>Colon, Ascending</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3F</td>
@@ -296,7 +294,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3G</td>
                     <td>Colon, Descending</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3H</td>
@@ -306,7 +304,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3I</td>
                     <td>Liver Sample</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3J</td>
@@ -316,7 +314,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3K</td>
                     <td>Adrenal Gland, Left</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3L</td>
@@ -326,7 +324,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3M</td>
                     <td>Adrenal Gland, Right</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3N</td>
@@ -336,7 +334,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3O</td>
                     <td>Aorta, Abdominal</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3P</td>
@@ -346,7 +344,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3Q</td>
                     <td>Lung</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3R</td>
@@ -356,7 +354,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3S</td>
                     <td>Heart, LV</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3T</td>
@@ -366,7 +364,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3U</td>
                     <td>Testis, Left</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3V</td>
@@ -376,7 +374,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3W</td>
                     <td>Testis, Right</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3X</td>
@@ -386,7 +384,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3Y</td>
                     <td>Ovary, Left</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3Z</td>
@@ -396,7 +394,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3AA</td>
                     <td>Ovary, Right</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3AB</td>
@@ -411,7 +409,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3AD</td>
                     <td>Skin, Calf</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3AE</td>
@@ -421,7 +419,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3AF</td>
                     <td>Skin, Abdomen</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3AG</td>
@@ -431,7 +429,7 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3AH</td>
                     <td>Muscle</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3AI</td>
@@ -446,27 +444,27 @@ Table 1B. Protocol IDs for SMaHT production tissues.
                 <tr>
                     <td>3AK</td>
                     <td>Frontal Lobe, Brain, Left hemisphere</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3AL</td>
                     <td>Temporal Lobe, Brain, Left hemisphere</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3AM</td>
                     <td>Cerebellum, Brain, Left hemisphere</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3AN</td>
                     <td>Hippocampus, Brain, Left hemisphere</td>
-                    <td>Frozen</td>
+                    <td>Snap Frozen</td>
                 </tr>
                 <tr>
                     <td>3AO</td>
                     <td>Hippocampus, Brain, Right hemisphere</td>
-                    <td>Frozen</td>
+                    <td>Snap Froze</td>
                 </tr>
             </tbody>
         </table>
@@ -474,63 +472,6 @@ Table 1B. Protocol IDs for SMaHT production tissues.
 
 | \* 3AC = Fibroblasts are isolated from fresh calf skin.
 
-
-Table 2: Benchmarking cell line codes.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. raw:: html
-
-    <div class="table-responsive">
-        <table class="table table-sm text-start">
-            <thead class="thead-smaht table-borderless">
-                <tr>
-                    <th>Kit/Sample ID</th>
-                    <th>Cell line description</th>
-                </tr>
-            </thead>
-            <tbody class="table-border-inner">
-                <tr>
-                    <td>COLO829T</td>
-                    <td>COLO829 tumor cell line</td>
-                </tr>
-                <tr>
-                    <td>COLO829BL</td>
-                    <td>COLO829BL normal lymphoblast cell line</td>
-                </tr>
-                <tr>
-                    <td>COLO829BLT50</td>
-                    <td>COLO829 1:50 admixture</td>
-                </tr>
-                <tr>
-                    <td>HAPMAP6</td>
-                    <td>Cell admixture of six HapMap cell lines</td>
-                </tr>
-                <tr>
-                    <td>LBLA2</td>
-                    <td>LB-LA2 fibroblast cell line</td>
-                </tr>
-                <tr>
-                    <td>LBIPSC1</td>
-                    <td>iPSC line from clone #1 derived from the LB-LA2 fibroblast cell line</td>
-                </tr>
-                <tr>
-                    <td>LBIPSC2</td>
-                    <td>iPSC line from clone #2 derived from the LB-LA2 fibroblast cell line</td>
-                </tr>
-                <tr>
-                    <td>LBIPSC4</td>
-                    <td>iPSC line from clone #4 derived from the LB-LA2 fibroblast cell line</td>
-                </tr>
-                <tr>
-                    <td>LBIPSC52</td>
-                    <td>iPSC line from clone #52 derived from the LB-LA2 fibroblast cell line</td>
-                </tr>
-                <tr>
-                    <td>LBIPSC60</td>
-                    <td>iPSC line from clone #60 derived from the LB-LA2 fibroblast cell line</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
 
 
 Part 2: Base Schema, Platform, and Assay Codes
@@ -585,8 +526,8 @@ Table 3A. Sequencing platform codes.
                     <td class="text-start">Illumina HiSeq X</td>
                 </tr>
                 <tr>
-                    <td class="text-center text-secondary">H [depracated]</td>
-                    <td class="text-start text-secondary">Illumina NovaSeq X Plus</td>
+                    <td class="text-center text-secondary fst-italic">H [deprecated]</td>
+                    <td class="text-start text-secondary fst-italic">Illumina NovaSeq X Plus</td>
                 </tr>
                 <tr>
                     <td class="text-center">I</td>
@@ -605,8 +546,12 @@ Table 3A. Sequencing platform codes.
                     <td class="text-start">PacBio Sequel IIe</td>
                 </tr>
                 <tr>
+                    <td class="text-center">M</td>
+                    <td class="text-start">Ultima Genomics UG 100</td>
+                </tr>
+                <tr>
                     <td class="cell-small-text text-start">(set the codes as data are generated on different sequencing platforms and submitted to DAC)</td>
-                    <td class="text-start">Ultima Genomics, PacBio Onso</td>
+                    <td class="text-start">PacBio Onso</td>
                 </tr>
             </tbody>
         </table>
@@ -781,6 +726,11 @@ Table 3B. Experimental Assay Codes
                     <td>029</td>
                     <td>L1-ONT</td>
                     <td>DNA, Bulk, L1-ONT</td>
+                </tr>
+                <tr>
+                    <td>030</td>
+                    <td>ppmSeq</td>
+                    <td>DNA, Bulk, Duplex-seq, ppmSeq</td>
                 </tr>
                 <tr>
                     <td colspan="3" class="pb-3 pt-07"></td>
