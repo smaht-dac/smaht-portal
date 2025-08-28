@@ -85,8 +85,65 @@ Naming Schema
     <img class="grey-border" src="/static/img/Nomenclature_Part1.jpeg" alt="Nomenclature Part 1"/>
 
 
+Table 1: Benchmarking cell line codes.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. raw:: html
 
-Table 1A. Protocol IDs for SMaHT benchmarking tissues.
+    <div class="table-responsive">
+        <table class="table table-sm text-start">
+            <thead class="thead-smaht table-borderless">
+                <tr>
+                    <th>Kit/Sample ID</th>
+                    <th>Cell line description</th>
+                </tr>
+            </thead>
+            <tbody class="table-border-inner">
+                <tr>
+                    <td>COLO829T</td>
+                    <td>COLO829 tumor cell line</td>
+                </tr>
+                <tr>
+                    <td>COLO829BL</td>
+                    <td>COLO829BL normal lymphoblast cell line</td>
+                </tr>
+                <tr>
+                    <td>COLO829BLT50</td>
+                    <td>COLO829 1:50 admixture</td>
+                </tr>
+                <tr>
+                    <td>HAPMAP6</td>
+                    <td>Cell admixture of six HapMap cell lines</td>
+                </tr>
+                <tr>
+                    <td>LBLA2</td>
+                    <td>LB-LA2 fibroblast cell line</td>
+                </tr>
+                <tr>
+                    <td>LBIPSC1</td>
+                    <td>iPSC line from clone #1 derived from the LB-LA2 fibroblast cell line</td>
+                </tr>
+                <tr>
+                    <td>LBIPSC2</td>
+                    <td>iPSC line from clone #2 derived from the LB-LA2 fibroblast cell line</td>
+                </tr>
+                <tr>
+                    <td>LBIPSC4</td>
+                    <td>iPSC line from clone #4 derived from the LB-LA2 fibroblast cell line</td>
+                </tr>
+                <tr>
+                    <td>LBIPSC52</td>
+                    <td>iPSC line from clone #52 derived from the LB-LA2 fibroblast cell line</td>
+                </tr>
+                <tr>
+                    <td>LBIPSC60</td>
+                    <td>iPSC line from clone #60 derived from the LB-LA2 fibroblast cell line</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+Table 2A. Protocol IDs for SMaHT benchmarking tissues.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
