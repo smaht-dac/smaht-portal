@@ -28,6 +28,16 @@ Schema Documentation
             <tbody class="table-border-inner">
                 <tr>
                     <td>
+                        <a href="/static/files/SMaHT Sample and File Nomenclature v2.0.pdf" download>
+                            <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
+                        </a>
+                    </td>
+                    <td>2.0</td>
+                    <td>08/28/2025</td>
+                    <td><a href="/static/files/SMaHT Sample and File Nomenclature v2.0.pdf" download>SMaHT Sample and File Nomenclature v2.0.pdf</a></td>
+                </tr>
+                <tr>
+                    <td>
                         <a href="/static/files/SMaHT Sample and File Nomenclature v1.2.pdf" download>
                             <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
                         </a>
