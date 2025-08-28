@@ -7,12 +7,46 @@ smaht-portal
 Change Log
 ----------
 
-0.195.2
+1.0.1
 =======
 `PR 511: SN Sample Nomenclature doc <https://github.com/smaht-dac/smaht-portal/pull/511>`_
 
 * Update tables to match newest version of the documentation
 * Add newest version of the pdf document to the page
+
+
+1.0.0
+=====
+
+* Major version - introduction of public-restricted status, usability
+  of data portal with expanded permissions for restricted metadata
+* Adds two new ACLs for restricted and public-restricted that allows
+  metadata items to be permissions via presence of the dbgap and
+  public-dbgap
+groups
+* Expands the restricted status to apply a global block on dbGaP permission
+  for certain metadata items
+* Allow the public-restricted status to function similarly to how restricted
+  functions for non-file items ie: anyone can view, only protected users can
+  download
+* Tests for protected donor and medical history using the restricted and
+  public-restricted statuses, along with tests for files as well utilizing
+  the new groups
+
+  
+0.195.3
+=======
+`PR 512: feat: remove quantity field from protected donor view <https://github.com/smaht-dac/smaht-portal/pull/512>`_
+
+* Remove the quantity field from the Protected Donor view
+
+
+0.195.2
+=======
+`PR 510: Cypress tests for protected/public donor views <https://github.com/smaht-dac/smaht-portal/pull/510>`_
+
+* Add Cypress tests for protected and public donor views
+* Move data matrix utility functions into `dataMatrixUtils`` file to use in multiple tests
 
 
 0.195.1

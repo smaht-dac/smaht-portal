@@ -9,7 +9,7 @@ import {
 /** Expected to throw error of some sort if not on search page, or no results. */
 Cypress.Commands.add('searchPageTotalResultCount', function (options) {
     return cy
-        .get('div.above-results-table-row #results-count')
+        .get('div.above-results-table-row #results-count, div.above-facets-table-row #results-count')
         .invoke('text')
         .then(function (resultText) {
             return parseInt(resultText);
