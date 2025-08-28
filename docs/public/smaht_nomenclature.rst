@@ -972,6 +972,10 @@ Table 5. Genome version (A) and variant type (B) tables
                     <td>GRCh38</td>
                 </tr>
                 <tr>
+                    <td>GRCh38 with ALT contigs</td>
+                    <td>GRCh38_ALT</td>
+                </tr>
+                <tr>
                     <td>T2T CHM13</td>
                     <td>CHM13</td>
                 </tr>
@@ -985,30 +989,18 @@ Table 5. Genome version (A) and variant type (B) tables
             <caption style="caption-side:top;">(B)</caption>
             <thead>
                 <tr>
-                    <th>Variant Type or other Data Type</th>
+                    <th>Data Type</th>
                     <th>Code</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>Substitutions, short insertions and deletions</td>
-                    <td>snv</td>
+                    <td>Reference conversion</td>
+                    <td>[Source]To[Target]</td>
                 </tr>
                 <tr>
-                    <td>Copy number variants</td>
-                    <td>cnv</td>
-                </tr>
-                <tr>
-                    <td>Structural variants including large insertions and deletions, duplications, inversions, translocations</td>
-                    <td>sv</td>
-                </tr>
-                <tr>
-                    <td>Mobile element insertions</td>
-                    <td>mei</td>
-                </tr>
-                <tr>
-                    <td>Donor-specific genome assembly</td>
-                    <td>dsa</td>
+                    <td>Donor-specific genome assembly haplotype</td>
+                    <td>hapX, hapY, hapX1, hapX2</td>
                 </tr>
                 <tr>
                     <td>Gene expression level</td>
@@ -1021,15 +1013,6 @@ Table 5. Genome version (A) and variant type (B) tables
             </tbody>
         </table>
     </div>
-
-
-Part 3: File Name breakdown
----------------------------
-
-.. raw:: html
-
-    <img class="grey-border" src="/static/img/Nomenclature_Part3.jpeg" alt="Nomenclature Part 3"/>
-
 
 
 Example Files with the SMaHT Nomenclature
