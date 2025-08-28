@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.0.1
+=======
+`PR 511: SN Sample Nomenclature doc <https://github.com/smaht-dac/smaht-portal/pull/511>`_
+
+* Update tables to match newest version of the documentation
+* Add newest version of the pdf document to the page
+
+
 1.0.0
 =====
 
