@@ -462,34 +462,19 @@ const DonorCohortViewChart = ({
     }, [data, effectiveWidth, chartHeight, chartType, topStackColor, bottomStackColor, showLegend, showLabelOnBar, title, xAxisTitle, yAxisTitle, session, loading]);
 
     const legendTop = TITLE_BAND - 15;
+    const titleStyle = {
+        color: THEME.title.color,
+        fontSize: THEME.title.size,
+        fontWeight: THEME.title.weight
+    };
 
     return (
-        <div ref={outerRef} style={{ position: 'relative', display: 'inline-block', width: '100%', height: chartHeight }}>
+        <div ref={outerRef} className="donor-cohort-view-chart" style={{ height: chartHeight }}>
             <svg ref={svgRef} />
 
             {/* Title + info icon (centered) */}
-            <div
-                style={{
-                    position: 'absolute',
-                    top: 18,
-                    left: title.length < 25 ? '50%' : '40%',
-                    transform: title.length < 25 ? 'translateX(-50%)' : 'translateX(-35%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    pointerEvents: 'none',
-                    zIndex: 2
-                }}
-            >
-                <h3
-                    style={{
-                        margin: 0,
-                        color: THEME.title.color,
-                        fontSize: THEME.title.size,
-                        fontWeight: THEME.title.weight,
-                        pointerEvents: 'none'
-                    }}
-                >
+            <div className={"chart-title-container" + (title.length < 25 ? '' : ' long-title')}>
+                <h3 style={titleStyle}>
                     {title}
                 </h3>
 
@@ -502,16 +487,7 @@ const DonorCohortViewChart = ({
                         rootCloseEvent="click"
                         overlay={popover}
                     >
-                        <button
-                            type="button"
-                            aria-label="More info"
-                            style={{
-                                all: 'unset',
-                                cursor: 'pointer',
-                                pointerEvents: 'auto',
-                                lineHeight: 0
-                            }}
-                        >
+                        <button type="button" className="info-tooltip" aria-label="More info">
                             <i className="icon icon-info-circle fas" />
                         </button>
                     </OverlayTrigger>
@@ -520,21 +496,8 @@ const DonorCohortViewChart = ({
 
             {/* Loading overlay */}
             {loading && session && (
-                <div
-                    role="status"
-                    aria-live="polite"
-                    aria-busy="true"
-                    style={{
-                        position: 'absolute',
-                        inset: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 5,
-                        pointerEvents: 'none'
-                    }}
-                >
-                    <i className="icon icon-spin icon-circle-notch fas" aria-hidden="true" style={{ fontSize: 22, lineHeight: 0 }} />
+                <div className="loading">
+                    <i className="icon icon-spin icon-circle-notch fas" />
                     {/* screen-reader only text */}
                     <span className="visually-hidden">
                         Loading
@@ -543,80 +506,27 @@ const DonorCohortViewChart = ({
             )}
 
             {!session && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        inset: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 5,
-                        pointerEvents: 'none'
-                    }}
-                >
+                <div className="login-required">
                     <span className="text-secondary">Login required to view</span>
                 </div>
             )}
 
             {/* Legend (vertical, compact) */}
             {chartType === 'stacked' && showLegend && session && !loading && data && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: legendTop,
-                        right: 15,
-                        background: '#fff',
-                        border: `1px solid ${THEME.panel.stroke}`,
-                        borderRadius: 10,
-                        padding: '4px 5px',
-                        minWidth: 90,
-                        maxWidth: 120
-                    }}
-                >
-                    <div
-                        style={{
-                            textAlign: 'center',
-                            fontSize: 11,
-                            fontWeight: 500,
-                            marginBottom: 6
-                        }}
-                    >
+                <div className="legend-container" style={{ top: legendTop, border: `1px solid ${THEME.panel.stroke}` }}>
+                    <div className="legend-title">
                         {legendTitle}
                     </div>
 
-                    <div
-                        style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 6
-                        }}
-                    >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span
-                                aria-hidden
-                                style={{
-                                    width: 12,
-                                    height: 12,
-                                    borderRadius: 3,
-                                    background: topStackColor || THEME.colors.male,
-                                    flex: '0 0 auto'
-                                }}
-                            />
-                            <span style={{ fontSize: 11, lineHeight: 1 }}>Male</span>
+                    <div className="legend-content">
+                        <div className="legend-item">
+                            <span className="color-box" style={{ background: topStackColor || THEME.colors.male }} />
+                            <span className="value">Male</span>
                         </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span
-                                aria-hidden
-                                style={{
-                                    width: 12,
-                                    height: 12,
-                                    borderRadius: 3,
-                                    background: bottomStackColor || THEME.colors.female,
-                                    flex: '0 0 auto'
-                                }}
-                            />
-                            <span style={{ fontSize: 11, lineHeight: 1 }}>Female</span>
+                        <div className="legend-item">
+                            <span className="color-box" style={{ background: bottomStackColor || THEME.colors.female }} />
+                            <span className="value">Female</span>
                         </div>
                     </div>
                 </div>
