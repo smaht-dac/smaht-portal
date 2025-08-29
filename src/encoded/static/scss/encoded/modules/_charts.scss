@@ -2030,6 +2030,18 @@ body[data-path="/statistics"] {
 }
 
 /************ Donor Cohort Charts *********/
+.donor-cohort-view-chart-container {
+    display: grid;
+    gap: 0;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    align-items: start;
+    @include media-breakpoint-down(lg) {
+        grid-template-columns: none;
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+    }
+}
 
 .donor-cohort-view-chart {
     position: relative;
@@ -2126,6 +2138,9 @@ body[data-path="/statistics"] {
         h3 {
             margin: 0;
             pointer-events: none;
+            color: #5A6C8D;
+            font-size: 16px;
+            font-weight: 500;
         }
 
         .info-tooltip {

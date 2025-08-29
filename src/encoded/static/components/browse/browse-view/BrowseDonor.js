@@ -814,14 +814,15 @@ const BrowseDonorSearchTable = (props) => {
  * This data is used to visualize the distribution of self-reported ethnicities among donors.
  */
 const donorSelfReportedEthnicityData = [
-    { group: 'American Indian or Alaska Native', blue: 10, pink: 0, total: 83 },
-    { group: 'Asian', blue: 8, pink: 0, total: 83 },
-    { group: 'Black or African American', blue: 11, pink: 0, total: 83 },
-    { group: 'Hispanic, Latino or Spanish Origin', blue: 10, pink: 0, total: 83 },
-    { group: 'Middle Eastern or North African', blue: 15, pink: 0, total: 83 },
-    { group: 'Native Hawaiian or Other Pacific Islander', blue: 10, pink: 0, total: 83 },
-    { group: 'Other', blue: 8, pink: 0, total: 83 },
-    { group: 'White', blue: 11, pink: 0, total: 83 },
+    { group: 'American Indian or Alaska Native', blue: 1, pink: 0, total: 10 },
+    // { group: 'Asian', blue: 8, pink: 0, total: 83 },
+    // { group: 'Black or African American', blue: 11, pink: 0, total: 83 },
+    { group: 'Hispanic, Latino or Spanish Origin', blue: 1, pink: 0, total: 10 },
+    // { group: 'Middle Eastern or North African', blue: 15, pink: 0, total: 83 },
+    // { group: 'Native Hawaiian or Other Pacific Islander', blue: 10, pink: 0, total: 83 },
+    // { group: 'Other', blue: 8, pink: 0, total: 83 },
+    { group: 'White', blue: 7, pink: 0, total: 10 },
+    { group: 'More than 1 Race/Ethnicity', blue: 1, pink: 0, total: 10 },
 ];
 
 /**
@@ -1018,12 +1019,7 @@ export const BrowseDonorBody = (props) => {
                             />
                         </div>
                     ) : (
-                        <div style={{
-                            display: 'grid',
-                            gap: 0,
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-                            alignItems: 'start'
-                        }}>
+                        <div className="donor-cohort-view-chart-container">
                             <DonorCohortViewChart
                                 title="Donor Age Groups"
                                 data={session ? donorAgeGroupData : []}

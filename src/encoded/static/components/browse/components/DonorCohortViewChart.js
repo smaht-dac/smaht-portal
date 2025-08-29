@@ -462,11 +462,6 @@ const DonorCohortViewChart = ({
     }, [data, effectiveWidth, chartHeight, chartType, topStackColor, bottomStackColor, showLegend, showLabelOnBar, title, xAxisTitle, yAxisTitle, session, loading]);
 
     const legendTop = TITLE_BAND - 15;
-    const titleStyle = {
-        color: THEME.title.color,
-        fontSize: THEME.title.size,
-        fontWeight: THEME.title.weight
-    };
 
     return (
         <div ref={outerRef} className="donor-cohort-view-chart" style={{ height: chartHeight }}>
@@ -474,7 +469,7 @@ const DonorCohortViewChart = ({
 
             {/* Title + info icon (centered) */}
             <div className={"chart-title-container" + (title.length < 25 ? '' : ' long-title')}>
-                <h3 style={titleStyle}>
+                <h3>
                     {title}
                 </h3>
 
