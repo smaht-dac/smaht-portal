@@ -1144,18 +1144,26 @@ div.browse-summary {
 	div.browse-summary-stat {
 		height: 62px;
 
-		@media screen and (max-width: 1020px) {
-			padding-left: 30px;
-		}
-
 		&:not(:last-of-type) {
-			padding-right: 30px;
+			padding-right: 20px;
 			border-right: 1px solid #c0dbfb;
 		}
 
 		&:not(:first-of-type) {
 			padding-left: 30px;
 		}
+
+		@media screen and (max-width: 1020px) {
+			padding-left: 10px;
+
+			&:not(:last-of-type) {
+				padding-right: 10px;
+			}
+			&:not(:first-of-type) {
+				padding-left: 20px;
+			}
+		}
+
 
 		> div {
 			div.browse-summary-stat-value {
@@ -1289,12 +1297,10 @@ div.browse-link-icon {
 }
 
 .browse-viz-container {
-	.stats-column {
-		@include navbar-static-position {
-			width: 100%;
-		}
+	.stats-column {		
+		width: 100%;
 
-		@include navbar-fixed-position {
+		@include media-breakpoint-up(xl) {
 			width: 320px;
 		}
 
