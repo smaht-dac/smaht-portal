@@ -472,22 +472,21 @@ const DonorCohortViewChart = ({
                 <div className={"chart-title-container" + (title.length < 25 ? '' : ' long-title')}>
                     <h3>
                         {title}
+                        {popover && (
+                            <OverlayTrigger
+                                trigger="click"
+                                flip
+                                placement="auto"
+                                rootClose
+                                rootCloseEvent="click"
+                                overlay={popover}
+                            >
+                                <button type="button" className="info-tooltip" aria-label="More info">
+                                    <i className="icon icon-info-circle fas" />
+                                </button>
+                            </OverlayTrigger>
+                        )}
                     </h3>
-
-                    {popover && (
-                        <OverlayTrigger
-                            trigger="click"
-                            flip
-                            placement="auto"
-                            rootClose
-                            rootCloseEvent="click"
-                            overlay={popover}
-                        >
-                            <button type="button" className="info-tooltip" aria-label="More info">
-                                <i className="icon icon-info-circle fas" />
-                            </button>
-                        </OverlayTrigger>
-                    )}
                 </div>
             }
 

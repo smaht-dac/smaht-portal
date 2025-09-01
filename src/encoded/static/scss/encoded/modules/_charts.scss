@@ -2041,6 +2041,9 @@ body[data-path="/statistics"] {
         flex-wrap: wrap;
         flex-direction: row;
     }
+    @include media-breakpoint-between(xl, xxl) {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
 }
 
 .donor-cohort-view-chart {
@@ -2122,23 +2125,26 @@ body[data-path="/statistics"] {
     .chart-title-container {
         position: absolute;
         top: 18px;
-        left: 55%;
-        transform: translateX(-50%);
-        display: flex;
-        align-items: center;
+        // left: 55%;
+        // transform: translateX(-50%);
+        // display: flex;
+        // align-items: center;
         gap: 8px;
-        pointer-events: none;
+        // pointer-events: none;
         z-index: 2;
+        display: block;
+        text-align: center;
+        width: 100%;
 
-        &.long-title {
-            left: 45% !important;
-            transform: translateX(-35%) !important;
+        // &.long-title {
+        //     left: 45% !important;
+        //     transform: translateX(-35%) !important;
 
-            @media (min-width: 1200px) and (max-width: 1550px) {
-                left: 30% !important;
-                transform: translateX(-20%) !important;
-            }
-        }
+        //     @media (min-width: 1200px) and (max-width: 1550px) {
+        //         left: 30% !important;
+        //         transform: translateX(-20%) !important;
+        //     }
+        // }
 
         h3 {
             margin: 0;
@@ -2150,9 +2156,15 @@ body[data-path="/statistics"] {
 
         .info-tooltip {
             all: unset;
-            cursor: pointer;
-            pointer-events: auto;
+            pointer-events: auto !important;
             line-height: 0;
+            margin-left: 10px;
+            color: #444;
+
+            &:hover {
+                color: #000;
+                cursor: pointer !important;
+            }
         }
     }
 }
