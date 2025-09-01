@@ -17,7 +17,7 @@ import { IconToggle } from '@hms-dbmi-bgm/shared-portal-components/es/components
 import { BrowseViewControllerWithSelections } from '../../static-pages/components/TableControllerWithSelections';
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
-import { BrowseSummaryStatController } from './BrowseSummaryStatController';
+import { BrowseSummaryStatsViewer } from './BrowseSummaryStatController';
 import { DonorMetadataDownloadButton } from '../BrowseView';
 import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
@@ -952,37 +952,7 @@ export const BrowseDonorBody = (props) => {
 
     }, [session, href]);
 
-    const statsSummary = useMemo(() => {
-        const responsiveGridState = layout.responsiveGridState(windowWidth);
-        let statsProps = null;
-        let statsContainerCls = null;
-        if (['sm', 'md', 'xl', 'xxl', 'xs'].indexOf(responsiveGridState) !== -1) {
-            statsProps = { valueContainerCls: "ms-15 pt-1 d-flex align-items-center" };
-            statsContainerCls = "browse-summary stats-compact d-flex flex-column mt-2 mb-25 flex-wrap";
-        } else {
-            statsProps = { valueContainerCls: "ms-1" };
-            statsContainerCls = "browse-summary d-flex flex-row mt-2 mb-3 flex-wrap";
-        }
-        return (
-            <div>
-                <div className={statsContainerCls}>
-                    <BrowseSummaryStatController type="File" {...statsProps} />
-                    <BrowseSummaryStatController type="Donor" {...statsProps} />
-                    <BrowseSummaryStatController type="Tissue" {...statsProps} />
-                    <BrowseSummaryStatController type="Assay" {...statsProps} />
-                    <hr />
-                    <BrowseSummaryStatController
-                        type="File Size"
-                        additionalSearchQueries="&additional_facet=file_size"
-                        {...statsProps}
-                    />
-                </div>
-            </div>
-        );
-    }, [href, session, windowWidth]);
-
-    // const statsProps = { valueContainerCls: "ms-15 pt-1 d-flex align-items-center" };
-    // console.log('xxx layout.responsiveGridState(windowWidth)', layout.responsiveGridState(windowWidth));
+    const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
 
     return (
         <>
@@ -992,7 +962,7 @@ export const BrowseDonorBody = (props) => {
                     <h2 className="browse-summary-header">
                         {toggleViewIndex === 0 ? 'Data' : 'Cohort'} Summary
                     </h2>
-                    {statsSummary}
+                    <BrowseSummaryStatsViewer {...{ session, href, windowWidth, useCompactFor }} />
                     <IconToggle
                         options={[
                             {

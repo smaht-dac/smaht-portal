@@ -2133,6 +2133,11 @@ body[data-path="/statistics"] {
         &.long-title {
             left: 45% !important;
             transform: translateX(-35%) !important;
+
+            @media (min-width: 1200px) and (max-width: 1550px) {
+                left: 30% !important;
+                transform: translateX(-20%) !important;
+            }
         }
 
         h3 {

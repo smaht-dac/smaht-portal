@@ -1145,7 +1145,7 @@ div.browse-summary {
 		height: 62px;
 
 		&:not(:last-of-type) {
-			padding-right: 20px;
+			padding-right: 30px;
 			border-right: 1px solid #c0dbfb;
 		}
 
@@ -1157,10 +1157,18 @@ div.browse-summary {
 			padding-left: 10px;
 
 			&:not(:last-of-type) {
-				padding-right: 10px;
+				padding-right: 10px !important;
 			}
 			&:not(:first-of-type) {
-				padding-left: 20px;
+				padding-left: 20px !important;
+			}
+		}
+
+		@media screen and (min-width: 1021px) and (max-width: 1200px) {
+			padding-left: 20px !important;
+
+			&:not(:last-of-type) {
+				padding-right: 20px !important;
 			}
 		}
 
@@ -1300,7 +1308,7 @@ div.browse-link-icon {
 	.stats-column {		
 		width: 100%;
 
-		@include media-breakpoint-up(xl) {
+		@media (min-width: 1200px) {
 			width: 320px;
 		}
 

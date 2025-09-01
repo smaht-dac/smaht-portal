@@ -35,7 +35,7 @@ import {
 } from '../static-pages/components/SelectAllAboveTableComponent';
 import { BrowseViewControllerWithSelections } from '../static-pages/components/TableControllerWithSelections';
 import { BrowseLink } from './browse-view/BrowseLink';
-import { BrowseSummaryStatController } from './browse-view/BrowseSummaryStatController';
+import { BrowseSummaryStatsViewer } from './browse-view/BrowseSummaryStatController';
 import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import { transformedFacets } from './SearchView';
@@ -52,18 +52,7 @@ const BrowseFileBody = (props) => {
         <>
             <h2 className="browse-summary-header">SMaHT Data Summary</h2>
             <Alerts alerts={props.alerts} className="mt-2" />
-            <div>
-                <div className="browse-summary d-flex flex-row mt-2 mb-3 flex-wrap">
-                    <BrowseSummaryStatController type="File" />
-                    <BrowseSummaryStatController type="Donor" />
-                    <BrowseSummaryStatController type="Tissue" />
-                    <BrowseSummaryStatController type="Assay" />
-                    <BrowseSummaryStatController
-                        type="File Size"
-                        additionalSearchQueries="&additional_facet=file_size"
-                    />
-                </div>
-            </div>
+            <BrowseSummaryStatsViewer {...props} />
             <hr />
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseFileSearchTable />

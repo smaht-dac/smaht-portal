@@ -1,11 +1,52 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import PropTypes from 'prop-types';
 
 import {
     ajax,
+    layout,
     valueTransforms,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import { BrowseLinkIcon } from './BrowseLinkIcon';
+
+export const BrowseSummaryStatsViewer = React.memo((props) => {
+    const { href, session, windowWidth, useCompactFor = ['sm', 'md'] } = props;
+
+    const responsiveGridState = layout.responsiveGridState(windowWidth);
+    const statsProps = { href, session };
+    let statsContainerCls = null;
+    if (useCompactFor.indexOf(responsiveGridState) !== -1) {
+        statsProps['valueContainerCls'] = "ms-15 pt-1 d-flex align-items-center";
+        statsContainerCls = "browse-summary stats-compact d-flex flex-column mt-2 mb-25 flex-wrap";
+    } else {
+        statsProps['valueContainerCls'] = ['lg', 'xl', 'xxl'].indexOf(responsiveGridState) !== -1 ? "ms-2" : "ms-1";
+        statsContainerCls = "browse-summary d-flex flex-row mt-2 mb-3 flex-wrap";
+    }
+    return (
+        <div>
+            <div className={statsContainerCls}>
+                <BrowseSummaryStatController type="File" {...statsProps} />
+                <BrowseSummaryStatController type="Donor" {...statsProps} />
+                <BrowseSummaryStatController type="Tissue" {...statsProps} />
+                <BrowseSummaryStatController type="Assay" {...statsProps} />
+                <hr />
+                <BrowseSummaryStatController
+                    type="File Size"
+                    additionalSearchQueries="&additional_facet=file_size"
+                    {...statsProps}
+                />
+            </div>
+        </div>
+    );
+});
+BrowseSummaryStatsViewer.propTypes = {
+    href: PropTypes.string.isRequired,
+    session: PropTypes.object.isRequired,
+    windowWidth: PropTypes.number.isRequired,
+    useCompactFor: PropTypes.arrayOf(
+        PropTypes.oneOf(['xs', 'sm', 'md', 'lg', 'xl', 'xxl'])
+    ),
+};
 
 export const BrowseSummaryStatController = (props) => {
     const { type, additionalSearchQueries = '', valueContainerCls =  'ms-2' } = props;
@@ -88,6 +129,13 @@ export const BrowseSummaryStatController = (props) => {
     }, []);
 
     return <BrowseSummaryStat {...{ value, type, loading, units, valueContainerCls }} />;
+};
+BrowseSummaryStatController.propTypes = {
+    type: PropTypes.oneOf(['File', 'Donor', 'Tissue', 'Assay', 'File Size']).isRequired,
+    additionalSearchQueries: PropTypes.string,
+    valueContainerCls: PropTypes.string,
+    href: PropTypes.string.isRequired,
+    session: PropTypes.object.isRequired,
 };
 
 const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
