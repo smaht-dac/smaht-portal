@@ -427,6 +427,7 @@ def _build_file_embedded_list() -> List[str]:
         # For browse search columns
         "donors.display_title",
         "donors.protected_donor",
+        "donors.tags",
         "sample_summary.tissues",
 
         # For facets
