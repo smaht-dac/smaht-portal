@@ -208,7 +208,7 @@ export const BrowseFileSearchTable = (props) => {
                 {...{ selectedItems, session }}
                 analyticsAddItemsToCart>
                 <i className="icon icon-download fas me-03" />
-                Download {selectedItems.size} Selected Files
+                Download {selectedItems.size}&nbsp;<span className="d-inline d-sm-none d-md-inline d-lg-none d-xl-inline">Selected</span>&nbsp;Files
             </SelectedItemsDownloadButton>
         </BrowseViewAboveSearchTableControls>
     );

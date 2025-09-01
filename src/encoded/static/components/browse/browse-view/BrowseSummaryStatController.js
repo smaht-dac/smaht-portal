@@ -10,7 +10,7 @@ import {
 import { BrowseLinkIcon } from './BrowseLinkIcon';
 
 export const BrowseSummaryStatsViewer = React.memo((props) => {
-    const { href, session, windowWidth, useCompactFor = ['sm', 'md'] } = props;
+    const { href, session, windowWidth, useCompactFor = ['xs', 'sm', 'md'] } = props;
 
     const responsiveGridState = layout.responsiveGridState(windowWidth);
     const statsProps = { href, session };
