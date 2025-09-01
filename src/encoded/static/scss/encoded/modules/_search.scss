@@ -294,54 +294,39 @@ $facetlist-excluding: #450000;
 	margin-top: 5px;
 
 	.right-buttons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
+
 		> button.btn {
 			display: inline-flex;
 			align-items: center;
 			@extend .fixed-height;
+			flex-grow: 0;
 
 			@include media-breakpoint-down(sm) {
 				width: 100% !important;
 				margin-top: 10px;
-				margin-left: 0px !important;
+				margin-left: 0 !important;
+				margin-right: 0 !important;
 				text-align: center;
-				display: inline-block;
-			}
-
-			@include media-breakpoint-between(sm, md) {
-				&:not(:first-child) {
-					margin-left: 4px !important;
-				}
+				display: block;
 			}
 		}
+
 		@include media-breakpoint-down(sm) {
 			width: 100%;
 			margin-top: 10px;
-
-			> button.btn {
-				flex-grow: 1;
-				width: 100% !important;
-			}
-		}
-		@include media-breakpoint-between(sm, md) {
-			padding-left: 0px !important;
-			padding-right: 0px !important;
 		}
 	}
+
 	.results-count > button.btn {
 		white-space: nowrap;
-		
+
 		@include media-breakpoint-down(sm) {
 			width: 33% !important;
 		}
 	}
-
-	// .search-result-config-panel {
-	// 	> .inner {
-	// 		.panel-title {
-	// 			background-color: #fff;;
-	// 		}
-	// 	}
-	// }
 }
 
 /************************************************
