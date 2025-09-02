@@ -99,8 +99,6 @@ describe('Browse Views - Basic Tests', function () {
                 .get(
                     '.facet.closed[data-field="file_sets.libraries.assay.display_title"] > h5'
                 )
-                // .scrollIntoView()
-                // .should('be.visible')
                 .click()
                 .end()
                 .get(
