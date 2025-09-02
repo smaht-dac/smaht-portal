@@ -294,8 +294,7 @@
         },
         "donors.display_title": {
             "title": "Donor",
-            "search_type": "sayt",
-            "sayt_item_type": "Donor"
+            "search_type": "basic"
         },
         "donors.age": {
             "title": "Donor Age",
