@@ -53,9 +53,15 @@ export const BrowseSummaryStatController = (props) => {
                 }
             });
         } else if (type === 'Assay') {
+            console.log(type, resp);
             facets.forEach((facet) => {
                 if (facet.field === 'file_sets.libraries.assay.display_title') {
-                    setValue(facet.terms.length);
+                    setValue(
+                        facet.terms.reduce(
+                            (acc, curr) => acc + (curr?.terms?.length ?? 1), // Sum across all terms or group
+                            0
+                        )
+                    );
                 }
             });
         }
