@@ -53,7 +53,6 @@ export const BrowseSummaryStatController = (props) => {
                 }
             });
         } else if (type === 'Assay') {
-            console.log(type, resp);
             facets.forEach((facet) => {
                 if (facet.field === 'file_sets.libraries.assay.display_title') {
                     setValue(
