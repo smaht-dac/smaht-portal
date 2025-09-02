@@ -127,7 +127,7 @@ const QCOverviewTab = ({ session, context }) => {
             }
         );
 
-        // Re-run when session changes context changes
+        // Re-run when session or context changes
     }, [session, context]);
 
     // Show spinner while loading
