@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.0.1
+=====
+`PR 515: feat: sort tables by date_released <https://github.com/smaht-dac/smaht-portal/pull/515>`_
+
+* Sort tables by date_released instead of date_created
+
+
 1.0.0
 =====
 
