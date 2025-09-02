@@ -94,7 +94,7 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
     const [tissueData, setTissueData] = useState(null);
 
     useEffect(() => {
-        const searchURL = `/search/?type=File&donors.display_title=${itemDetails.display_title}`;
+        const searchURL = `/search/?type=File&status=released&donors.display_title=${itemDetails.display_title}`;
 
         // Use cached search results if available from parent
         if (panelDetails?.searchCache) {
@@ -141,7 +141,7 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
                                                 <li key={j}>
                                                     <span>
                                                         <a
-                                                            href={`/search/?type=File&donors.display_title=${itemDetails.display_title}&sample_summary.tissues=${tissue}`}
+                                                            href={`/search/?type=File&status=released&donors.display_title=${itemDetails.display_title}&sample_summary.tissues=${tissue}`}
                                                             target="_blank"
                                                             rel="noreferrer noopener">
                                                             {tissue}
@@ -230,7 +230,7 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
     const [assayData, setAssayData] = useState(null);
 
     useEffect(() => {
-        const searchURL = `/search/?type=File&donors.display_title=${itemDetails.display_title}`;
+        const searchURL = `/search/?type=File&status=released&donors.display_title=${itemDetails.display_title}`;
 
         // Use cached search results if available from parent
         if (panelDetails?.searchCache) {
@@ -277,7 +277,7 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
                                                 <li key={j}>
                                                     <span>
                                                         <a
-                                                            href={`/search/?type=File&donors.display_title=${itemDetails.display_title}&&file_sets.libraries.assay.display_title=${assay}`}
+                                                            href={`/search/?type=File&status=released&donors.display_title=${itemDetails.display_title}&&file_sets.libraries.assay.display_title=${assay}`}
                                                             target="_blank"
                                                             rel="noreferrer noopener">
                                                             {assay}
@@ -442,7 +442,7 @@ export function createBrowseDonorColumnExtensionMap({
                             }>
                             <a
                                 className="value text-center"
-                                href={`/search/?type=File&donors.display_title=${result?.display_title}`}>
+                                href={`/search/?type=File&status=released&donors.display_title=${result?.display_title}`}>
                                 {tissueCount} Tissue
                                 {tissueCount > 1 ? 's' : ''}
                             </a>
@@ -523,7 +523,7 @@ export function createBrowseDonorColumnExtensionMap({
                             }>
                             <a
                                 className="value text-center"
-                                href={`/search/?type=File&donors.display_title=${result?.display_title}`}>
+                                href={`/search/?type=File&status=released&donors.display_title=${result?.display_title}`}>
                                 {assayCount} Assay{assayCount > 1 ? 's' : ''}
                             </a>
                             <CustomTableRowToggleOpenButton
@@ -580,7 +580,7 @@ export function createBrowseDonorColumnExtensionMap({
                     return fileCount ? (
                         <a
                             className="value text-center"
-                            href={`/search/?type=File&donors.display_title=${result?.display_title}`}>
+                            href={`/search/?type=File&status=released&donors.display_title=${result?.display_title}`}>
                             {fileCount} File{fileCount > 1 ? 's' : ''}
                         </a>
                     ) : null;

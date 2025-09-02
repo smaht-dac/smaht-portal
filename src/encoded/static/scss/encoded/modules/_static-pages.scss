@@ -951,10 +951,12 @@ body[data-path="/"]>#application>#layout {
 													}
 												}
 											}
-	
-											ul {
+
+											.tissue-list {
 												margin-top: 0px;
 												padding-left: 1rem;
+												list-style-type: none;
+												padding-left: 20px;
 
 												li {
 													font-weight: 300;
@@ -968,12 +970,23 @@ body[data-path="/"]>#application>#layout {
 														&:hover {
 															text-decoration: underline;
 														}
-													}
-													
+													}													
 												}
 											}
 										}
 
+										.toggle-button {
+											&.donor {
+												background-color: transparent;
+												border: none;
+												color: #2A28BD;
+											}
+											&.tissue {
+												background-color: transparent;
+												border: none;
+												color: #2A28BD;
+											}
+										}
 									}
 									&:before {
 										content: "";
