@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.0.1
+=====
+`PR 514: fix: correct assay counts for browse by file page <https://github.com/smaht-dac/smaht-portal/pull/514>`_
+
+* Fix assay counts on File Browse Data Summary Statistics
+
+
 1.0.0
 =====
 
