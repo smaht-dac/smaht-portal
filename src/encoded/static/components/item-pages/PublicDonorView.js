@@ -2,24 +2,30 @@
 
 import React, { useState, useEffect } from 'react';
 import _ from 'underscore';
-import { ProtectedDonorViewDataCards } from './components/donor-overview/ProtectedDonorViewDataCards';
+import { PublicDonorViewDataCards } from './components/donor-overview/PublicDonorViewDataCards';
 import DefaultItemView from './DefaultItemView';
 import { ShowHideInformationToggle } from './components/file-overview/ShowHideInformationToggle';
 import { DonorMetadataDownloadButton } from '../browse/BrowseView';
 import DataMatrix from '../viz/Matrix/DataMatrix';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import {
+    OverlayTrigger,
+    Popover,
+    PopoverHeader,
+    PopoverBody,
+} from 'react-bootstrap';
 
 // Page containing the details of Items of type File
-export default class ProtectedDonorOverview extends DefaultItemView {
+export default class PublicDonorOverview extends DefaultItemView {
     getTabViewContents() {
         const initTabs = [];
-        initTabs.push(ProtectedDonorView.getTabObject(this.props));
+        initTabs.push(PublicDonorView.getTabObject(this.props));
         return initTabs.concat(this.getCommonTabs()); // Add remainder of common tabs (Details, Attribution)
     }
 }
 
 // Donor Overview's header component containing breadcrumbs and filename
-const ProtectedDonorViewTitle = (props) => {
+const PublicDonorViewTitle = (props) => {
     const { context } = props;
 
     const breadcrumbs = [
@@ -57,8 +63,37 @@ const ProtectedDonorViewTitle = (props) => {
     );
 };
 
+// Donor Manifest button with warning Popover
+const PublicDonorDownloadButton = () => {
+    return (
+        <OverlayTrigger
+            trigger="hover"
+            placement="top"
+            overlay={
+                <Popover className="public-donor-download-popover">
+                    <PopoverHeader as="h3">Data Access Needed</PopoverHeader>
+                    <PopoverBody>
+                        This data is protected. To download this data, you must
+                        have access to SMaHT protected access data on dbGaP.
+                    </PopoverBody>
+                </Popover>
+            }>
+            <div className="d-flex gap-2 flex-wrap mt-1 mt-xl-0">
+                <div className="col-md-auto col-12">
+                    <button
+                        className="col-md-auto col-12 btn btn-primary btn-sm me-05 align-items-center download-button px-3"
+                        disabled>
+                        <i className="icon icon-user fas me-1" />
+                        Download Donor Manifest
+                    </button>
+                </div>
+            </div>
+        </OverlayTrigger>
+    );
+};
+
 // Header component containing high-level information for the file item
-const ProtectedDonorViewHeader = (props) => {
+const PublicDonorViewHeader = (props) => {
     const { context = {}, session, title = null } = props;
     const { notes_to_tsv } = context;
 
@@ -71,22 +106,7 @@ const ProtectedDonorViewHeader = (props) => {
                 <div className="d-flex flex-column flex-grow-1 ms-md-2">
                     <div className="data-group data-row header">
                         {title}
-                        <div className="d-flex gap-2 flex-wrap mt-1 mt-xl-0">
-                            <DonorMetadataDownloadButton
-                                session={session}
-                                className="col-md-auto col-12"
-                            />
-                            <div
-                                className="col-md-auto col-12"
-                                data-tip="Donor Manifest Download is coming soon">
-                                <button
-                                    className="col-md-auto col-12 btn btn-primary btn-sm me-05 align-items-center download-button px-3"
-                                    disabled>
-                                    <i className="icon icon-user fas me-1" />
-                                    Download Donor Manifest
-                                </button>
-                            </div>
-                        </div>
+                        <PublicDonorDownloadButton />
                     </div>
                     <div className="callout d-inline px-3 py-2 mt-1">
                         <i className="icon icon-file-shield fas"></i>{' '}
@@ -128,15 +148,15 @@ const ProtectedDonorViewHeader = (props) => {
 };
 
 /** Top-level component for the Donor Overview Page */
-const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
+const PublicDonorView = React.memo(function PublicDonorView(props) {
+    const { context, session, href } = props;
+
     const [isLoading, setIsLoading] = useState(true);
     const [statisticValues, setStatisticValues] = useState({
         tissues: context?.tissues?.length || '-',
         assays: null,
         files: null,
     });
-
-    const { context, session, href } = props;
 
     // Load the files from the search URL and calculate statistics
     useEffect(() => {
@@ -186,19 +206,19 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
 
     return (
         <div className="donor-view">
-            <ProtectedDonorViewTitle
+            <PublicDonorViewTitle
                 context={context}
                 session={session}
                 href={href}
                 title={titleString}
             />
             <div className="view-content">
-                <ProtectedDonorViewHeader
+                <PublicDonorViewHeader
                     context={context}
                     session={session}
                     title={titleString}
                 />
-                <ProtectedDonorViewDataCards
+                <PublicDonorViewDataCards
                     context={context}
                     statisticValues={statisticValues}
                     isLoading={isLoading}
@@ -278,10 +298,10 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
  * Tab object for the FileView component, provides necessary information
  * to parent class, DefaultItemView
  */
-ProtectedDonorView.getTabObject = function (props) {
+PublicDonorView.getTabObject = function (props) {
     return {
         tab: <span>Donor Overview</span>,
         key: 'donor-overview',
-        content: <ProtectedDonorView {...props} />,
+        content: <PublicDonorView {...props} />,
     };
 };

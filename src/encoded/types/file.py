@@ -678,7 +678,7 @@ class File(Item, CoreFile):
             if self.type_info.name == "ReferenceFile":
                 return
             request_handler = RequestHandler(request = request)
-            mwfrs=[ 
+            mwfrs=[
                 mwfr for mwfr in result
                 if get_property_value_from_identifier(
                     request_handler,
@@ -1235,19 +1235,6 @@ def post_upload(context, request):
     return CorePostUpload(context, request)
 
 
-@view_config(name='download_cli', context=File, permission='view', request_method=['GET'])
-@debug_log
-def download_cli(context, request):
-    """ Creates download credentials for files intended for use with awscli/rclone """
-    # 2024-11-05/dmichaels - limit to dbgap users like download
-    # Noticeed this endpoint lacked appropriate checking for dbgap
-    # group users which should be exactly like the download endpoint.
-    if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
-        raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
-                            'Please check with DAC/your PI about your status.')
-    return CoreDownloadCli(context, request)
-
-
 def validate_user_has_protected_access(request):
     """ Validates that the user who executed the request context either is
         an admin or has the dbgap group
@@ -1258,12 +1245,44 @@ def validate_user_has_protected_access(request):
     return False
 
 
+def validate_user_has_public_protected_access(request):
+    """ Validates that the user who executed the request context either is
+        an admin or has the dbgap group
+    """
+    principals = request.effective_principals
+    if 'group.admin' in principals or 'group.public-dbgap' in principals:
+        return True
+    return False
+
+
+@view_config(name='download_cli', context=File, permission='view', request_method=['GET'])
+@debug_log
+def download_cli(context, request):
+    """ Creates download credentials for files intended for use with awscli/rclone """
+    # Download restriction for restricted status
+    if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
+        raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
+                            'Please check with DAC/your PI about your status.')
+    # Download restriction for public-restricted
+    if context.properties.get('status') == 'public-restricted' and not (
+            validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
+        raise HTTPForbidden('This is a public-restricted file and is not available through download_cli without'
+                            'dbGaP approval. Please check with the DAC/your PI about your status.')
+    return CoreDownloadCli(context, request)
+
+
 @view_config(name='download', context=File, request_method='GET',
              permission='view', subpath_segments=[0, 1])
 def download(context, request):
+    # Download restriction for public-restricted
     if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
-        raise HTTPForbidden('This is a restricted file not available for download without dbGAP approval. '
+        raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
+    # Download restriction for public-restricted
+    if context.properties.get('status') == 'public-restricted' and not (
+            validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
+        raise HTTPForbidden('This is a public-restricted file and is not available through download_cli without'
+                            'dbGaP approval. Please check with the DAC/your PI about your status.')
     return CoreDownload(context, request)
 
 

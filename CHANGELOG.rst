@@ -7,11 +7,90 @@ smaht-portal
 Change Log
 ----------
 
-0.194.0
+1.0.1
 =======
 `PR 498: SN Update manifest documentation <https://github.com/smaht-dac/smaht-portal/pull/498>`_
 
 * Update the Interpreting Manifest Files page to include new columns added to the File Manifest and information on the multiple manifest files containing full file metadata.
+
+
+1.0.0
+=====
+
+* Major version - introduction of public-restricted status, usability
+  of data portal with expanded permissions for restricted metadata
+* Adds two new ACLs for restricted and public-restricted that allows
+  metadata items to be permissions via presence of the dbgap and
+  public-dbgap
+groups
+* Expands the restricted status to apply a global block on dbGaP permission
+  for certain metadata items
+* Allow the public-restricted status to function similarly to how restricted
+  functions for non-file items ie: anyone can view, only protected users can
+  download
+* Tests for protected donor and medical history using the restricted and
+  public-restricted statuses, along with tests for files as well utilizing
+  the new groups
+
+  
+0.195.3
+=======
+`PR 512: feat: remove quantity field from protected donor view <https://github.com/smaht-dac/smaht-portal/pull/512>`_
+
+* Remove the quantity field from the Protected Donor view
+
+
+0.195.2
+=======
+`PR 510: Cypress tests for protected/public donor views <https://github.com/smaht-dac/smaht-portal/pull/510>`_
+
+* Add Cypress tests for protected and public donor views
+* Move data matrix utility functions into `dataMatrixUtils`` file to use in multiple tests
+
+
+0.195.1
+=======
+`PR 509: SN Fix donor metadata release <https://github.com/smaht-dac/smaht-portal/pull/509>`_
+
+* Fix patching of release status to not ignore patching if the status is `released`
+
+
+0.195.0
+=======
+`PR 503: feat: public donor view <https://github.com/smaht-dac/smaht-portal/pull/503>`_
+
+* Implement Public Donor view
+
+
+0.194.2
+=======
+`PR 506: feat: add tooltip to values column header <https://github.com/smaht-dac/smaht-portal/pull/506>`_
+
+* Add tooltip for values column in Submission Data Dictionary
+
+
+0.194.1
+=======
+`PR 504: feat: updates to portal for CRAM releases <https://github.com/smaht-dac/smaht-portal/pull/504>`_
+
+* Update portal to reflect CRAM files being released
+
+
+0.194.0
+=======
+`PR 496: Data matrix popover and style updates <https://github.com/smaht-dac/smaht-portal/pull/496>`_
+
+* Move DataMatrix components to the Viz folder, enhance tab styles, and simplify data aggregation processes.
+* Adjust visual elements and update tests to reflect the redesigned data matrix popover
+* Add total coverage, tissue, and donor counts into the data matrix popover
+
+
+0.193.2
+=======
+`PR 505: Handle Aorta correctly in tissue classification table <https://github.com/smaht-dac/smaht-portal/pull/505>`_
+
+* Treat Aorta as a special case in the tissue classification table, as GTEX only has Blood Vessel.
+
 
 0.193.1
 =======

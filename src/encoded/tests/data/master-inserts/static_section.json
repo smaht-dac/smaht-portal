@@ -527,7 +527,7 @@
         "identifier": "qc_visualizations",
         "title": "QC Metric Visualizations",
         "file": "/docs/public/qc_visualizations.jsx",
-        "status": "in review",
+        "status": "released",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -582,8 +582,8 @@
     },
     {
         "identifier": "data_matrix_comparison",
-        "title": "Data Matrix",
-        "file": "/src/encoded/static/data/data-matrix-demo.jsx",
+        "title": "SMaHT Data Matrix",
+        "file": "/docs/public/data_matrix_comparison.jsx",
         "status": "in review",
         "options": {
             "filetype": "jsx",
