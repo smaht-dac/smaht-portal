@@ -1,6 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import * as _ from 'underscore';
+import queryString from 'query-string';
 
+import url from 'url';
 import {
     ajax,
     layout,
@@ -8,6 +11,7 @@ import {
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import { BrowseLinkIcon } from './BrowseLinkIcon';
+import { ChartDataController } from '../../viz/chart-data-controller';
 
 export const BrowseSummaryStatsViewer = React.memo((props) => {
     const { href, session, windowWidth, useCompactFor = ['xs', 'sm', 'md'] } = props;
@@ -49,7 +53,7 @@ BrowseSummaryStatsViewer.propTypes = {
 };
 
 export const BrowseSummaryStatController = (props) => {
-    const { type, additionalSearchQueries = '', valueContainerCls =  'ms-2' } = props;
+    const { href: propHref, type, additionalSearchQueries = '', valueContainerCls =  'ms-2' } = props;
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -115,18 +119,27 @@ export const BrowseSummaryStatController = (props) => {
         if (error) setError(false);
 
         // Use search for query-based metrics
+        // TODO: validate href
+        const hrefParts = url.parse(propHref, true);
+        let hrefQuery = _.clone(hrefParts.query);
+        if (hrefQuery.type === 'Donor' || (hrefQuery.type?.length === 1 && hrefQuery.type[0] === 'Donor')) {
+            hrefQuery = ChartDataController.transformFilterDonorToFile(hrefQuery);
+            hrefQuery.type = ['File'];
+        }
+        const searchUrl = `/search/?${queryString.stringify(hrefQuery)}${additionalSearchQueries}`;
         ajax.load(
-            `/search/?type=File&sample_summary.studies=Production&format=json&status=released${additionalSearchQueries}`,
+            // `/search/?type=File&sample_summary.studies=Production&format=json&status=released${additionalSearchQueries}`,
+            searchUrl,
             callbackFxn,
             'GET',
             fallbackFxn
         );
-    }, [callbackFxn, fallbackFxn]);
+    }, [propHref, callbackFxn, fallbackFxn]);
 
     // On mount, get statistics
     useEffect(() => {
         getStatistics();
-    }, []);
+    }, [propHref]);
 
     return <BrowseSummaryStat {...{ value, type, loading, units, valueContainerCls }} />;
 };

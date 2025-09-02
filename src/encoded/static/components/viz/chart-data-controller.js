@@ -231,6 +231,10 @@ export const ChartDataController = {
             fileFilters['donors.hardy_scale.to'] = fileFilters['hardy_scale.to'];
             delete fileFilters['hardy_scale.to'];
         }
+        if (fileFilters['tags']) {
+            fileFilters['donors.tags'] = fileFilters['tags'];
+            delete fileFilters['tags'];
+        }
         return fileFilters;
     },
     /**
