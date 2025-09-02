@@ -11,7 +11,7 @@ Change Log
 =====
 `PR 515: feat: sort tables by date_released <https://github.com/smaht-dac/smaht-portal/pull/515>`_
 
-* Sort tables by date_released instead of date_created
+* Sort benchmarking tables by date_released instead of date_created
 
 
 1.0.0
