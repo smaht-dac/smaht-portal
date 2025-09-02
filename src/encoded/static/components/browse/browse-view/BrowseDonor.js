@@ -16,8 +16,6 @@ import { DonorMetadataDownloadButton } from '../BrowseView';
 import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
-
-import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 /**

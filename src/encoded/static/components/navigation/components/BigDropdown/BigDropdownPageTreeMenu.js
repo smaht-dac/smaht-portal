@@ -241,7 +241,7 @@ function CustomStaticLinks({ pathName, href }) {
                             <h4 className="text-large">Browse By File</h4>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
-                            href="/browse/?type=Donor&sample_summary.studies=Production&status=released"
+                            href="/browse/?type=Donor&study=Production&status=released&tags=has_released_files"
                             titleIcon="users fas"
                             className="primary-big-link is-fa-icon">
                             <h4 className="text-large">Browse By Donor</h4>
@@ -345,9 +345,7 @@ function CustomStaticLinks({ pathName, href }) {
                             href="/retracted-files"
                             titleIcon="file-circle-xmark fas"
                             className="primary-big-link">
-                            <h4 className="text-large">
-                                Data Retraction
-                            </h4>
+                            <h4 className="text-large">Data Retraction</h4>
                         </BigDropdownBigLink>
                     </div>
                 </div>
