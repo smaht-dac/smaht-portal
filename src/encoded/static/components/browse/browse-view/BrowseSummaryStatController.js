@@ -1,44 +1,86 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import * as _ from 'underscore';
-import queryString from 'query-string';
 
 import url from 'url';
-import {
-    ajax,
-    layout,
-    valueTransforms,
-} from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { ajax, layout, valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import { BrowseLinkIcon } from './BrowseLinkIcon';
 import { ChartDataController } from '../../viz/chart-data-controller';
 
 export const BrowseSummaryStatsViewer = React.memo((props) => {
     const { href, session, windowWidth, useCompactFor = ['xs', 'sm', 'md'] } = props;
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(false);
+    const [data, setData] = useState(null);
+
+    useEffect(() => {
+        if (!loading) setLoading(true);
+        if (error) setError(false);
+
+        const callbackFxn = (resp) => {
+            setLoading(false);
+            setError(false);
+            const data = {
+                files: resp.total.doc_count,
+                donors: resp.total.donors,
+                tissues: resp.total.tissues,
+                assays: resp.total.assays,
+                file_size: resp.total.file_size
+            };
+            setData(data);
+        };
+
+        const fallbackFxn = (resp) => {
+            setLoading(false);
+            setError(true);
+        };
+
+        const hrefParts = url.parse(href, true);
+        let hrefQuery = _.clone(hrefParts.query);
+        if (hrefQuery.type === 'Donor' || (hrefQuery.type?.length === 1 && hrefQuery.type[0] === 'Donor')) {
+            hrefQuery = ChartDataController.transformFilterDonorToFile(hrefQuery);
+            hrefQuery.type = ['File'];
+        }
+        delete hrefQuery.limit;
+        delete hrefQuery.field;
+
+        const requestBody = {
+            "search_query_params": hrefQuery,
+            "fields_to_aggregate_for": ["sample_summary.tissues"]
+        };
+
+        ajax.load(
+            '/bar_plot_aggregations/',
+            callbackFxn,
+            'POST',
+            fallbackFxn,
+            JSON.stringify(requestBody),
+            {},
+            null
+        );
+    }, [href, session]);
+
+    const statsProps = { href, session, loading, error, data };
+    let containerCls = null;
 
     const responsiveGridState = layout.responsiveGridState(windowWidth);
-    const statsProps = { href, session };
-    let statsContainerCls = null;
     if (useCompactFor.indexOf(responsiveGridState) !== -1) {
-        statsProps['valueContainerCls'] = "ms-15 pt-1 d-flex align-items-center";
-        statsContainerCls = "browse-summary stats-compact d-flex flex-column mt-2 mb-25 flex-wrap";
+        statsProps['containerCls'] = "ms-15 pt-1 d-flex align-items-center";
+        containerCls = "browse-summary stats-compact d-flex flex-column mt-2 mb-25 flex-wrap";
     } else {
-        statsProps['valueContainerCls'] = ['lg', 'xl', 'xxl'].indexOf(responsiveGridState) !== -1 ? "ms-2" : "ms-1";
-        statsContainerCls = "browse-summary d-flex flex-row mt-2 mb-3 flex-wrap";
+        statsProps['containerCls'] = ['lg', 'xl', 'xxl'].indexOf(responsiveGridState) !== -1 ? "ms-2" : "ms-1";
+        containerCls = "browse-summary d-flex flex-row mt-2 mb-3 flex-wrap";
     }
     return (
         <div>
-            <div className={statsContainerCls}>
+            <div className={containerCls}>
                 <BrowseSummaryStatController type="File" {...statsProps} />
                 <BrowseSummaryStatController type="Donor" {...statsProps} />
                 <BrowseSummaryStatController type="Tissue" {...statsProps} />
                 <BrowseSummaryStatController type="Assay" {...statsProps} />
                 <hr />
-                <BrowseSummaryStatController
-                    type="File Size"
-                    additionalSearchQueries="&additional_facet=file_size"
-                    {...statsProps}
-                />
+                <BrowseSummaryStatController type="File Size" {...statsProps} />
             </div>
         </div>
     );
@@ -53,106 +95,59 @@ BrowseSummaryStatsViewer.propTypes = {
 };
 
 export const BrowseSummaryStatController = (props) => {
-    const { href: propHref, type, additionalSearchQueries = '', valueContainerCls =  'ms-2' } = props;
+    const { type, containerCls =  'ms-2', loading, error, data } = props;
 
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
     const [value, setValue] = useState('');
     const [units, setUnits] = useState('');
 
-    const callbackFxn = useCallback((resp) => {
-        const { facets = [], total } = resp;
-        if (type === 'File Size') {
-            facets.forEach((facet) => {
-                if (facet.field === 'file_size') {
-                    setValue(
-                        valueTransforms.bytesToLargerUnit(
-                            facet.sum,
-                            0,
-                            false,
-                            true
-                        )
-                    );
-                    setUnits(
-                        valueTransforms.bytesToLargerUnit(
-                            facet.sum,
-                            0,
-                            true,
-                            false
-                        )
-                    );
-                }
-            });
-        } else if (type === 'File') {
-            setValue(total);
-        } else if (type === 'Tissue') {
-            facets.forEach((facet) => {
-                if (facet.field === 'sample_summary.tissues') {
-                    setValue(facet.terms.length);
-                }
-            });
-        } else if (type === 'Donor') {
-            facets.forEach((facet) => {
-                if (facet.field === 'donors.display_title') {
-                    setValue(facet.terms.length);
-                }
-            });
-        } else if (type === 'Assay') {
-            facets.forEach((facet) => {
-                if (facet.field === 'file_sets.libraries.assay.display_title') {
-                    setValue(facet.terms.length);
-                }
-            });
-        }
-
-        setLoading(false);
-        setError(false);
-    });
-
-    const fallbackFxn = useCallback((resp) => {
-        setLoading(false);
-        setError(true);
-    });
-
-    const getStatistics = useCallback(() => {
-        if (!loading) setLoading(true);
-        if (error) setError(false);
-
-        // Use search for query-based metrics
-        // TODO: validate href
-        const hrefParts = url.parse(propHref, true);
-        let hrefQuery = _.clone(hrefParts.query);
-        if (hrefQuery.type === 'Donor' || (hrefQuery.type?.length === 1 && hrefQuery.type[0] === 'Donor')) {
-            hrefQuery = ChartDataController.transformFilterDonorToFile(hrefQuery);
-            hrefQuery.type = ['File'];
-        }
-        const searchUrl = `/search/?${queryString.stringify(hrefQuery)}${additionalSearchQueries}`;
-        ajax.load(
-            // `/search/?type=File&sample_summary.studies=Production&format=json&status=released${additionalSearchQueries}`,
-            searchUrl,
-            callbackFxn,
-            'GET',
-            fallbackFxn
-        );
-    }, [propHref, callbackFxn, fallbackFxn]);
-
-    // On mount, get statistics
     useEffect(() => {
-        getStatistics();
-    }, [propHref]);
+        if (loading || !data) {
+            return;
+        }
+        if (error) {
+            setValue('-');
+            setUnits('');
+            return;
+        }
 
-    return <BrowseSummaryStat {...{ value, type, loading, units, valueContainerCls }} />;
+        if (type === 'File Size') {
+            setValue(
+                valueTransforms.bytesToLargerUnit(data.file_size, 0, false, true)
+            );
+            setUnits(
+                valueTransforms.bytesToLargerUnit(data.file_size, 0, true, false)
+            );
+        } else if (type === 'File') {
+            setValue(data.files);
+        } else if (type === 'Tissue') {
+            setValue(data.tissues);
+        } else if (type === 'Donor') {
+            setValue(data.donors);
+        } else if (type === 'Assay') {
+            setValue(data.assays);
+        }
+    }, [data, type, error, loading]);
+
+    return <BrowseSummaryStat {...{ value, type, loading, units, containerCls }} />;
 };
 BrowseSummaryStatController.propTypes = {
     type: PropTypes.oneOf(['File', 'Donor', 'Tissue', 'Assay', 'File Size']).isRequired,
-    additionalSearchQueries: PropTypes.string,
-    valueContainerCls: PropTypes.string,
+    containerCls: PropTypes.string,
     href: PropTypes.string.isRequired,
     session: PropTypes.object.isRequired,
+    data: PropTypes.shape({
+        files: PropTypes.number,
+        donors: PropTypes.number,
+        tissues: PropTypes.number,
+        assays: PropTypes.number,
+        file_size: PropTypes.number
+    }).isRequired,
+    loading: PropTypes.bool.isRequired,
+    error: PropTypes.bool.isRequired
 };
 
 const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
-    const { type, value, loading, units, valueContainerCls = 'ms-2' } = props;
+    const { type, value, loading, units, containerCls = 'ms-2' } = props;
 
     let subtitle;
     switch (type) {
@@ -181,7 +176,7 @@ const BrowseSummaryStat = React.memo(function BrowseSummaryStat(props) {
                 {...{ type }}
                 cls="mt-04 browse-summary-stat-icon-smaller"
             />
-            <div className={valueContainerCls}>
+            <div className={containerCls}>
                 {loading && (
                     <div className="browse-summary-stat-value">
                         {' '}

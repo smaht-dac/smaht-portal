@@ -232,6 +232,23 @@ def bar_plot_chart(context, request):
                 "field": "embedded.donors.display_title.raw",
                 "precision_threshold": 10000
             }
+        },
+        "total_tissues": {
+            "cardinality": {
+                "field": "embedded.sample_summary.tissues.raw",
+                "precision_threshold": 10000
+            }
+        },
+        "total_assays": {
+            "cardinality": {
+                "field": "embedded.file_sets.libraries.assay.display_title.raw",
+                "precision_threshold": 10000
+            }
+        },
+        "total_file_size": {
+            "sum": {
+                "field": "embedded.file_size"
+            }
         }
     }
 
@@ -289,6 +306,9 @@ def bar_plot_chart(context, request):
         "total": {
             "doc_count": search_result['total'],
             "donors": search_result['aggregations']['total_donors']['value'],
+            "assays": search_result['aggregations']['total_assays']['value'],
+            "tissues": search_result['aggregations']['total_tissues']['value'],
+            "file_size": search_result['aggregations']['total_file_size']['value']
         },
         "other_doc_count": search_result['aggregations']['field_0'].get('sum_other_doc_count', 0),
         "time_generated": str(datetime.utcnow())
