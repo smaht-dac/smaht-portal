@@ -122,10 +122,13 @@ const QCOverviewTab = ({ session, context }) => {
                         err
                     );
                 }
+                setIsConsortiumMember(false);
                 setIsLoading(false);
             }
         );
-    }, [session]);
+
+        // Re-run when session changes context changes
+    }, [session, context]);
 
     // Show spinner while loading
     if (isLoading) {
