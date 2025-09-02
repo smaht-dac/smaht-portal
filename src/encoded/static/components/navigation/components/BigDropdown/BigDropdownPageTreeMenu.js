@@ -241,7 +241,7 @@ function CustomStaticLinks({ pathName, href }) {
                             <h4 className="text-large">Browse By File</h4>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
-                            href="/browse/?type=Donor&study=Production&status=released"
+                            href="/browse/?type=Donor&study=Production&status=released&tags=has_released_files"
                             titleIcon="users fas"
                             className="primary-big-link is-fa-icon">
                             <h4 className="text-large">Browse By Donor</h4>
