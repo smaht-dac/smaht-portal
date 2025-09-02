@@ -483,7 +483,7 @@ export function createBrowseDonorColumnExtensionMap({
         // Assays
         assays: {
             noSort: true,
-            widthMap: { lg: 105, md: 100, sm: 100 },
+            widthMap: { lg: 120, md: 120, sm: 120 },
             render: function (result, parentProps) {
                 const {
                     href,
@@ -497,9 +497,16 @@ export function createBrowseDonorColumnExtensionMap({
 
                 const { data, loading, error } = parentProps?.fetchedProps;
 
-                const assayCount = data?.find(
-                    (f) => f.field === 'file_sets.libraries.assay.display_title'
-                )?.terms?.length;
+                const assayCount = data
+                    ?.find(
+                        (f) =>
+                            f.field ===
+                            'file_sets.libraries.assay.display_title'
+                    )
+                    ?.terms?.reduce(
+                        (acc, curr) => acc + (curr?.terms?.length ?? 1),
+                        0
+                    );
 
                 if (loading) {
                     return (
@@ -630,10 +637,6 @@ export function createBrowseDonorColumnExtensionMap({
             render: function (result, parentProps) {
                 return <span>{result?.hardy_scale ?? null}</span>;
             },
-        },
-        // Assays
-        'file_sets.libraries.assay.display_title': {
-            widthMap: { lg: 136, md: 136, sm: 136 },
         },
         // Data Type
         data_type: {

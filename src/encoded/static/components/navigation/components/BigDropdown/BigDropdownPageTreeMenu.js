@@ -345,9 +345,7 @@ function CustomStaticLinks({ pathName, href }) {
                             href="/retracted-files"
                             titleIcon="file-circle-xmark fas"
                             className="primary-big-link">
-                            <h4 className="text-large">
-                                Data Retraction
-                            </h4>
+                            <h4 className="text-large">Data Retraction</h4>
                         </BigDropdownBigLink>
                     </div>
                 </div>
