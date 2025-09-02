@@ -41,6 +41,19 @@ ONLY_ADMIN_VIEW_ACL: Acl = [
 ]
 
 
+# This ACL allows only those who have the dbGaP group to view
+ONLY_DBGAP_VIEW_ACL: Acl = [
+    (Allow, 'group.dbgap', ['view', 'view_raw'])
+] + ONLY_ADMIN_VIEW_ACL
+
+
+# Use this to denote data that can be accessed by users of the public who
+# have the dbGaP permission (and those with the internal dbgap group)
+ONLY_PUBLIC_DBGAP_VIEW_ACL: Acl = [
+    (Allow, 'group.public-dbgap', ['view', 'view_raw'])
+] + ONLY_DBGAP_VIEW_ACL
+
+
 # User ACLs
 ONLY_ADMIN_VIEW_USER_DETAILS_ACL = [
     (Allow, 'group.admin', ['view', 'view_raw', 'view_details', 'edit']),
@@ -162,5 +175,3 @@ ALLOW_CONSORTIUM_MEMBER_VIEW_ACL: Acl = SUBMISSION_CENTER_MEMBER_VIEW_ACL + CONS
 
 # Submission centers can be restricted to only those folks for view
 ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL: Acl = SUBMISSION_CENTER_MEMBER_VIEW_ACL + ONLY_ADMIN_VIEW_ACL
-
-
