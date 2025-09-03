@@ -73,7 +73,14 @@ class BarSection extends React.PureComponent {
         } else {
             // Use a percentage for styling purposes because we want the outermost bar height
             // to transition and child bar sections to stay aligned to it.
-            height = (d.count / d.parent.count) * 100 + '%';
+
+            //new implementation - sum d.parent.bars.count - normalize height since we want to keep the outermost bar height consistent - uozturk
+            var parentBarsCount = _.reduce(d.parent.bars, function(sum, bar){
+                return sum + bar.count;
+            }, 0);
+            height = (d.count / parentBarsCount) * 100 + '%';
+            // old implementation
+            // height = (d.count / d.parent.count) * 100 + '%';
         }
 
         return (
