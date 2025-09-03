@@ -51,6 +51,7 @@ export default class UserRegistrationForm extends React.PureComponent {
         this.recaptchaContainerRef = React.createRef();
 
         this.state = {
+            captchaSiteKey: this.props.captchaSiteKey,
             captchaResponseToken: null,
             captchaErrorMsg: null,
             registrationStatus: 'form',
@@ -81,6 +82,23 @@ export default class UserRegistrationForm extends React.PureComponent {
         // );
         // this.captchaJSTag.setAttribute('async', true);
         // document.head.appendChild(this.captchaJSTag);
+        ajax.load(
+            '/recaptcha_config?format=json',
+            (resp) => {
+                if (resp.RecaptchaKey) {
+                    // set captchaSiteKey provided by /recaptcha_config
+                    this.setState({
+                        captchaSiteKey: resp.RecaptchaKey
+                    });
+                } else {
+                    console.warn('No RecaptchaKey found in /recaptcha_config response -- cannot render reCaptcha!');
+                }
+            },
+            'GET',
+            (resp) => {
+                console.error('Error loading reCaptcha config:', resp.error || resp.message);
+            }
+        );
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -111,7 +129,7 @@ export default class UserRegistrationForm extends React.PureComponent {
     }
 
     onRecaptchaLibLoaded() {
-        const { captchaSiteKey } = this.props;
+        const { captchaSiteKey } = this.state;
         const { onReCaptchaResponse, onReCaptchaExpiration } = this;
         console.info('Loaded Google reCaptcha library..');
         grecaptcha.render(this.recaptchaContainerRef.current, {
