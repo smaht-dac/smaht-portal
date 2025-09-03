@@ -158,7 +158,7 @@ export default class UserRegistrationForm extends React.PureComponent {
         evt.stopPropagation();
 
         const { endpoint, onComplete, unverifiedUserEmail } = this.props;
-        const { value_for_pending_lab } = this.state;
+        const { value_for_affiliation_institution } = this.state;
         const maySubmit = this.maySubmitForm();
         const formData = serialize(this.formRef.current, { hash: true });
 
@@ -168,12 +168,9 @@ export default class UserRegistrationForm extends React.PureComponent {
 
         // Add data which is held in state but not form fields -- email & lab.
         formData.email = unverifiedUserEmail;
-        if (value_for_pending_lab){ // Add pending_lab, if any.
-            formData.pending_lab = value_for_pending_lab;
-        }
-        if ((!value_for_pending_lab && formData.job_title) || formData.job_title === "null"){
-            // Remove any potentially default vals if no pending_lab requested.
-            delete formData.job_title;
+        if (value_for_affiliation_institution) { // Add affiliation_institution, if any.
+            formData.institution = value_for_affiliation_institution;
+            delete formData.affiliation_institution;
         }
 
         console.log('Full data being sent - ', formData);
@@ -216,12 +213,14 @@ export default class UserRegistrationForm extends React.PureComponent {
             captchaResponseToken,
             value_for_first_name,
             value_for_last_name,
+            value_for_affiliation_institution,
             registrationStatus,
         } = this.state;
         return (
             captchaResponseToken &&
             value_for_first_name &&
             value_for_last_name &&
+            value_for_affiliation_institution &&
             registrationStatus === 'form'
         );
     }
