@@ -81,6 +81,20 @@ class Tissue(SampleSource):
             germ_layer = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="germ_layer")
             return germ_layer or None
 
+    @calculated_property(
+        schema={
+            "title": "Tissue Type",
+            "description": "Tissue type",
+            "type": "string"
+        }
+    )
+    def tissue_type(self, request: Request):
+        """Get the tissue type from the properties.
+        """
+        request_handler = RequestHandler(request=request)
+        tissue_type = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="tissue_type")
+        return tissue_type or None
+
 
 @link_related_validator
 def validate_external_id_on_add(context, request):
