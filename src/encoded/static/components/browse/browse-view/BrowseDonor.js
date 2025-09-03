@@ -737,6 +737,7 @@ export function createBrowseDonorColumnExtensionMap({
         'study',
         'submission_centers.display_title',
         'software.display_title',
+        'tags'
     ];
 
     return { columnExtensionMap, columns, hideFacets };
