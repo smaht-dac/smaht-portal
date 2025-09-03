@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.0.1
+=====
+
+* Show CRAM file on the Submission Status page if they were generated from a BAM to CRAM conversion workflow.
+* Hide obsolete files from the Submission Status page.
+* Make sure MetaWorkflowRuns are sorted by date created (oldest first) on the Submission Status page.
+
+
 1.0.0
 =====
 
