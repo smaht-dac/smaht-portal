@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import * as _ from 'underscore';
 import { Popover } from 'react-bootstrap';
 import url from 'url';
+import memoize from 'memoize-one';
 
 import {
     SelectAllFilesButton,
@@ -816,7 +817,7 @@ const BrowseDonorSearchTable = (props) => {
  * Donor self-reported ethnicity data
  * This data is used to visualize the distribution of self-reported ethnicities among donors.
  */
-const donorSelfReportedEthnicityData = [
+const donorSelfReportedEthnicityData = memoize(() => _.chain([
     { group: 'American Indian or Alaska Native', blue: 1, pink: 0, total: 10 },
     // { group: 'Asian', blue: 8, pink: 0, total: 83 },
     // { group: 'Black or African American', blue: 11, pink: 0, total: 83 },
@@ -826,7 +827,10 @@ const donorSelfReportedEthnicityData = [
     // { group: 'Other', blue: 8, pink: 0, total: 83 },
     { group: 'White', blue: 7, pink: 0, total: 10 },
     { group: 'More than 1 Race/Ethnicity', blue: 1, pink: 0, total: 10 },
-];
+]).sortBy((item) => item.group.toLowerCase()) // 2. kriter: group (artan)
+    .sortBy((item) => -item.blue)               // 1. kriter: blue (azalan)
+    .value()
+);
 
 /**
  * Renders a popover with information about donor self-reported ethnicities.
@@ -1042,7 +1046,7 @@ export const BrowseDonorBody = (props) => {
 
                             <DonorCohortViewChart
                                 title="Donor Self-Reported Ethnicity"
-                                data={session ? donorSelfReportedEthnicityData : []}
+                                data={session ? donorSelfReportedEthnicityData() : []}
                                 chartWidth="auto"
                                 chartHeight={420}
                                 chartType="horizontal"
