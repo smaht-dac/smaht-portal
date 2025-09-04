@@ -142,14 +142,18 @@ export class FacetCharts extends React.PureComponent {
             {
                 'title' : isBrowseHref ? 'Explore' : 'Browse',
                 'function' : function(cursorProps, mouseEvt){
-                    var baseParams = navigate.getBrowseBaseParams(browseBaseState),
-                        browseBaseHref = navigate.getBrowseBaseHref(baseParams);
+                    var baseParams = navigate.getBrowseBaseParams(browseBaseState, 'donor'),
+                        browseBaseHref = navigate.getBrowseBaseHref(baseParams, 'donor');
 
                     // Reset existing filters if selecting from 'all' view. Preserve if from filtered view.
                     var currentDonorFilters = browseBaseState === 'all' ? {} : currDonorFilters;
 
                     var newDonorFilters = _.reduce(cursorProps.path, function(donorFilters, node){
                         // Do not change filter IF SET ALREADY because we want to strictly enable filters, not disable any.
+                        if(node.field === 'sample_summary.tissues'){
+                            node.field = 'tissues.tissue_type';
+                        }
+
                         if (donorFilters && donorFilters[node.field] && donorFilters[node.field].has(node.term)){
                             return donorFilters;
                         }

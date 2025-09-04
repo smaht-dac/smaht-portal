@@ -32,7 +32,7 @@ navigate.setNavigateFunction = function (...args) {
  * @param {string} [browseBaseState=null] The browse base state. By default is set to "only_4dn" on app init.
  * @returns {Object} JSON form of URI query params for given or current browseBaseState.
  */
-navigate.getBrowseBaseParams = function(browseBaseState = null){
+navigate.getBrowseBaseParams = function(browseBaseState = null, mapping = 'all'){
     if (browseBaseState === 'item_search') {
         return {};
     }
@@ -44,7 +44,7 @@ navigate.getBrowseBaseParams = function(browseBaseState = null){
         var storeState = store.getState();
         browseBaseState = storeState.browseBaseState;
     }
-    return _.clone(navigate.getBrowseBaseParams.mappings['all'].parameters);
+    return _.clone(navigate.getBrowseBaseParams.mappings[mapping].parameters);
 };
 
 
@@ -53,9 +53,23 @@ navigate.getBrowseBaseParams.mappings = {
         'parameters': {
             'type': ['File'],
             'sample_summary.studies': ['Production'],
-            'status': ['released']
+            'status': ['released'],
+        }
+    },
+    'donor' : {
+        'parameters': {
+            'type': ['Donor'],
+            'study': ['Production'],
+            'status': ['released'],
+            'tags': ['has_released_files']
         }
     }
+};
+
+navigate.getBrowseBaseHref = function(browseBaseParams = null, mapping = 'all'){
+    if (!browseBaseParams) browseBaseParams = navigate.getBrowseBaseParams(null, mapping);
+    else if (typeof browseBaseParams === 'string') browseBaseParams = navigate.getBrowseBaseParams(browseBaseParams, mapping);
+    return '/browse/?' + queryString.stringify(browseBaseParams);
 };
 
 /** Utility function to check if we are on a browse page. */

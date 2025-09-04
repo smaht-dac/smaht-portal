@@ -235,6 +235,10 @@ export const ChartDataController = {
             fileFilters['donors.tags'] = fileFilters['tags'];
             delete fileFilters['tags'];
         }
+        if (fileFilters['tissues.tissue_type']) {
+            fileFilters['sample_summary.tissues'] = fileFilters['tissues.tissue_type'];
+            delete fileFilters['tissues.tissue_type'];
+        }
         return fileFilters;
     },
     /**
