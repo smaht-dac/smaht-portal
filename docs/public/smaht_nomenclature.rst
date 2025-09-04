@@ -164,10 +164,10 @@ Table 2A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>Snap Frozen</td>
                     <td>Homogenate and non-homogenate samples</td>
                 </tr>
-                <tr class="text-secondary fst-italic">
-                    <td>1B</td>
-                    <td>unassigned</td>
-                    <td>N/A</td>
+                <tr>
+                    <td class="text-secondary fst-italic">1B</td>
+                    <td class="text-secondary fst-italic">unassigned</td>
+                    <td class="text-secondary fst-italic">N/A</td>
                     <td></td>
                 </tr>
                 <tr>
@@ -182,10 +182,10 @@ Table 2A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>Snap Frozen</td>
                     <td>Homogenate and non-homogenate samples</td>
                 </tr>
-                <tr class="text-secondary fst-italic">
-                    <td>1E</td>
-                    <td>unassigned</td>
-                    <td>N/A</td>
+                <tr>
+                    <td class="text-secondary fst-italic">1E</td>
+                    <td class="text-secondary fst-italic">unassigned</td>
+                    <td class="text-secondary fst-italic">N/A</td>
                     <td></td>
                 </tr>
                 <tr>
@@ -200,10 +200,10 @@ Table 2A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>Snap Frozen</td>
                     <td>Homogenate and non-homogenate samples</td>
                 </tr>
-                <tr class="text-secondary fst-italic">
-                    <td>1H</td>
-                    <td>unassigned</td>
-                    <td>N/A</td>
+                <tr>
+                    <td class="text-secondary fst-italic">1H</td>
+                    <td class="text-secondary fst-italic">unassigned</td>
+                    <td class="text-secondary fst-italic">N/A</td>
                     <td></td>
                 </tr>
                 <tr>
@@ -230,10 +230,10 @@ Table 2A. Protocol IDs for SMaHT benchmarking tissues.
                     <td>Fixed</td>
                     <td></td>
                 </tr>
-                <tr class="text-secondary fst-italic">
-                    <td>1M/N/O/P</td>
-                    <td>unassigned</td>
-                    <td>N/A</td>
+                <tr>
+                    <td class="text-secondary fst-italic">1M/N/O/P</td>
+                    <td class="text-secondary fst-italic">unassigned</td>
+                    <td class="text-secondary fst-italic">N/A</td>
                     <td></td>
                 </tr>
                 <tr>
