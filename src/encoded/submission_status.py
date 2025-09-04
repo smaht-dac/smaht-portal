@@ -364,7 +364,7 @@ def get_output_files_info(files, mwfrs, all_alignment_mwfrs):
 
     # Get the output files that are on the file set
     for file in output_files:
-        if file[STATUS] in [OBSOLETE]:
+        if file[STATUS] in [DELETED, OBSOLETE]:
             continue
         qc_result = get_qc_result(file, is_output_file=True)
         output_files_with_qc.append(qc_result)
@@ -383,7 +383,7 @@ def get_output_files_info(files, mwfrs, all_alignment_mwfrs):
                 file = output["file"]
                 if QUALITY_METRICS not in file:
                     continue
-                if file[STATUS] in [OBSOLETE]:
+                if file[STATUS] in [DELETED, OBSOLETE]:
                     continue
                 qc_result = get_qc_result(file, is_output_file=True)
                 output_files_with_qc.append(qc_result)
