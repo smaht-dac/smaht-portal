@@ -7,12 +7,19 @@ smaht-portal
 Change Log
 ----------
 
-1.0.1
+1.0.2
 =======
 `PR 511: SN Sample Nomenclature doc <https://github.com/smaht-dac/smaht-portal/pull/511>`_
 
 * Update tables to match newest version of the documentation
 * Add newest version of the pdf document to the page
+
+
+1.0.1
+=======
+`PR 498: SN Update manifest documentation <https://github.com/smaht-dac/smaht-portal/pull/498>`_
+
+* Update the Interpreting Manifest Files page to include new columns added to the File Manifest and information on the multiple manifest files containing full file metadata.
 
 
 1.0.0
