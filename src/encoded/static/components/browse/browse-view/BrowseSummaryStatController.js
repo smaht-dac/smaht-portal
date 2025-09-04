@@ -38,7 +38,7 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
 
         const hrefParts = url.parse(href, true);
         let hrefQuery = _.clone(hrefParts.query);
-        if (hrefQuery.type === 'Donor' || (hrefQuery.type?.length === 1 && hrefQuery.type[0] === 'Donor')) {
+        if (hrefQuery.type === 'Donor' || (hrefQuery.type?.length > 0 && hrefQuery.type[0] === 'Donor')) {
             hrefQuery = ChartDataController.transformFilterDonorToFile(hrefQuery);
             hrefQuery.type = ['File'];
         }
