@@ -85,7 +85,7 @@ Naming Schema
     <img class="grey-border" src="/static/img/Nomenclature_Part1.jpeg" alt="Nomenclature Part 1"/>
 
 
-Table 1: Benchmarking cell line codes.
+Table 1. Benchmarking cell line codes.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. raw:: html
 
@@ -559,8 +559,8 @@ Table 3A. Sequencing platform codes.
 
 
 
-Table 3B. Experimental Assay Codes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Table 3B. Experimental assay codes.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. raw:: html
 
@@ -797,8 +797,8 @@ Table 3B. Experimental Assay Codes
     </div>
 
 
-Table 4. SMaHT Data Genration Center Codes.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Table 4. SMaHT data generation center codes.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. raw:: html
 
@@ -952,21 +952,21 @@ Part 3: File Name breakdown
     <img class="grey-border" src="/static/img/Nomenclature_Part3.jpeg" alt="Nomenclature Part 3"/>
 
 
-Table 5. Genome version (A) and variant type (B) tables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Table 5. Genome version (A) and variant type (B) tables.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. raw:: html
 
     <div class="table-responsive">
         <table class="table table-sm text-start">
             <caption style="caption-side:top;">(A)</caption>
-            <thead>
+            <thead class="thead-smaht table-borderless">
                 <tr>
                     <th>Reference Genome</th>
                     <th>Code</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="table-border-inner">
                 <tr>
                     <td>GRCh38 without ALT contigs</td>
                     <td>GRCh38</td>
@@ -987,13 +987,13 @@ Table 5. Genome version (A) and variant type (B) tables
         </table>
         <table class="table table-sm text-start">
             <caption style="caption-side:top;">(B)</caption>
-            <thead>
+            <thead class="thead-smaht table-borderless">
                 <tr>
                     <th>Data Type</th>
                     <th>Code</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="table-border-inner">
                 <tr>
                     <td>Reference conversion</td>
                     <td>[Source]To[Target]</td>
