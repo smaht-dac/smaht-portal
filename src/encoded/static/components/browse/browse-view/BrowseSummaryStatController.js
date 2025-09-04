@@ -7,13 +7,15 @@ import { ajax, layout, valueTransforms } from '@hms-dbmi-bgm/shared-portal-compo
 
 import { BrowseLinkIcon } from './BrowseLinkIcon';
 import { ChartDataController } from '../../viz/chart-data-controller';
+import { navigate } from '../../util/navigate';
 
 export const BrowseSummaryStatsViewer = React.memo((props) => {
-    const { href, session, windowWidth, useCompactFor = ['xs', 'sm', 'md'] } = props;
+    const { href, session, windowWidth, useCompactFor = ['xs', 'sm', 'md'], autoSync = false } = props;
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
     const [data, setData] = useState(null);
 
+    // only re-fetch data when href changes if autoSync is true
     useEffect(() => {
         if (!loading) setLoading(true);
         if (error) setError(false);
@@ -36,7 +38,9 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
             setError(true);
         };
 
-        const hrefParts = url.parse(href, true);
+        const searchUrl = autoSync ? href : navigate.getBrowseBaseHref(null, 'donor');
+
+        const hrefParts = url.parse(searchUrl, true);
         let hrefQuery = _.clone(hrefParts.query);
         if (hrefQuery.type === 'Donor' || (hrefQuery.type?.length > 0 && hrefQuery.type[0] === 'Donor')) {
             hrefQuery = ChartDataController.transformFilterDonorToFile(hrefQuery);
@@ -59,9 +63,9 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
             {},
             null
         );
-    }, [href, session]);
+    }, autoSync ? [href, session] : [session]);
 
-    const statsProps = { href, session, loading, error, data };
+    const statsProps = { session, loading, error, data };
     let containerCls = null;
 
     const responsiveGridState = layout.responsiveGridState(windowWidth);
@@ -92,6 +96,8 @@ BrowseSummaryStatsViewer.propTypes = {
     useCompactFor: PropTypes.arrayOf(
         PropTypes.oneOf(['xs', 'sm', 'md', 'lg', 'xl', 'xxl'])
     ),
+    // If true, will re-fetch data when href changes. If false, only fetches on session change.
+    autoSync: PropTypes.bool
 };
 
 export const BrowseSummaryStatController = (props) => {
