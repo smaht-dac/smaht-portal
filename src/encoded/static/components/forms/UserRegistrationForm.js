@@ -319,15 +319,17 @@ export default class UserRegistrationForm extends React.PureComponent {
                         You have never logged in as <span className="text-600">{unverifiedUserEmail}</span> before.
                     </div>
                     <div className="mt-1 text-60 ps-1 text-500" style={{ paddingLeft: '10px' }}>Are you a member of the SMaHT Consortium?</div>
-                    <div className="d-flex gap-3 mt-2 option-panel">
+                    <div className="d-flex gap-3 mt-2 option-panel flex-column flex-lg-row">
                         <Checkbox
                             checked={isConsortiumMember === true}
-                            onChange={this.onConsortiumMemberYes}>
+                            onChange={this.onConsortiumMemberYes}
+                            className="col-12 col-lg-auto">
                             Yes, I am a member of SMaHT
                         </Checkbox>
                         <Checkbox
                             checked={isConsortiumMember === false}
-                            onChange={this.onConsortiumMemberNo}>
+                            onChange={this.onConsortiumMemberNo}
+                            className="col-12 col-lg-auto">
                             No, I am&nbsp;<strong>not</strong>&nbsp;a member of SMaHT
                         </Checkbox>
                     </div>
@@ -352,7 +354,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                         </div>
 
                         <div className="row mt-2">
-                            <div className="col-12 col-md-6">
+                            <div className="col-12 col-lg-6">
                                 <div className="form-group">
                                     <label htmlFor="firstName" className="mb-1 text-500">
                                         First Name{' '}
@@ -374,7 +376,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                                     </div>
                                 </div>
                             </div>
-                            <div className="col-12 col-md-6">
+                            <div className="col-12 col-lg-6 mt-3 mt-lg-0">
                                 <div className="form-group">
                                     <label htmlFor="lastName" className="mb-1 text-500">
                                         Last Name{' '}
