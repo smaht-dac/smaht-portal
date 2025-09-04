@@ -104,7 +104,7 @@ export class UIControlsWrapper extends React.PureComponent {
         this.handleFieldSelect = _.throttle(this.handleFieldSelect.bind(this), 300);
 
         this.state = {
-            'aggregateType': 'donors',
+            'aggregateType': props.mapping === 'all' ? 'doc_count' : 'donors',
             // 'aggregateType': 'files',
             'showState': this.filterObjExistsAndNoFiltersSelected() || (props.barplot_data_filtered && props.barplot_data_filtered.total.donors === 0) ? 'all' : 'filtered',
             'openDropdown': null
@@ -352,7 +352,8 @@ export class UIControlsWrapper extends React.PureComponent {
     render() {
         const {
             barplot_data_filtered, barplot_data_unfiltered, barplot_data_fields, isLoadingChartData, href, btnVariant,
-            availableFields_XAxis, availableFields_Subdivision, schemas, chartHeight, windowWidth, cursorDetailActions
+            availableFields_XAxis, availableFields_Subdivision, schemas, chartHeight, windowWidth, cursorDetailActions,
+            mapping = 'all'
         } = this.props;
         const { aggregateType, showState } = this.state;
 
@@ -387,7 +388,7 @@ export class UIControlsWrapper extends React.PureComponent {
                         <div className="row" style={{ 'maxWidth': 210, 'float': 'right' }}>
                             <div className="col-3" style={{ 'width': 51 }}>
                                 {/* <h6 className="dropdown-heading">Y Axis</h6> */}
-                                <h6 className="dropdown-heading">Donors</h6>
+                                <h6 className="dropdown-heading">{mapping === 'all' ? 'Files' : 'Donors'}</h6>
                             </div>
                             <div className="col-9" style={{ 'width': 100, 'textAlign': 'left', visibility: 'hidden' }}>
                                 <DropdownButton

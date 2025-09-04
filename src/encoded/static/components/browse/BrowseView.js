@@ -36,6 +36,8 @@ import {
 import { BrowseViewControllerWithSelections } from '../static-pages/components/TableControllerWithSelections';
 import { BrowseLink } from './browse-view/BrowseLink';
 import { BrowseSummaryStatsViewer } from './browse-view/BrowseSummaryStatController';
+import { FacetCharts } from './components/FacetCharts';
+import { navigate } from '../util/navigate';
 import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import { transformedFacets } from './SearchView';
@@ -48,11 +50,41 @@ export default function BrowseView(props) {
 }
 
 const BrowseFileBody = (props) => {
+    const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
+    const { session, href, windowWidth, windowHeight, isFullscreen } = props;
+    const initialFields = ['sample_summary.tissues'];
     return (
         <>
             <h2 className="browse-summary-header">SMaHT Data Summary</h2>
             <Alerts alerts={props.alerts} className="mt-2" />
-            <BrowseSummaryStatsViewer {...props} />
+            <div className="row browse-viz-container">
+                <div className="stats-column col-auto">
+                    <BrowseSummaryStatsViewer {...{ session, href, windowWidth, useCompactFor }} />
+                </div>
+                <div className="col ps-0">
+                    <div
+                        id="facet-charts-container"
+                        className="container ps-4">
+                        <FacetCharts
+                            {..._.pick(
+                                props,
+                                'context',
+                                'href',
+                                'session',
+                                'schemas',
+                                'browseBaseState'
+                            )}
+                            {...{
+                                windowWidth,
+                                windowHeight,
+                                navigate,
+                                isFullscreen,
+                                initialFields,
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
             <hr />
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseFileSearchTable />

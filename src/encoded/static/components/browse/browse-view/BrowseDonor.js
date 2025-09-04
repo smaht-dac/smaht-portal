@@ -1010,6 +1010,7 @@ export const BrowseDonorBody = (props) => {
                                     navigate,
                                     isFullscreen,
                                     initialFields,
+                                    mapping: 'donor'
                                 }}
                             />
                         </div>

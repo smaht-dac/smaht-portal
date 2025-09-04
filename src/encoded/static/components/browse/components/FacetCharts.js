@@ -135,22 +135,22 @@ export class FacetCharts extends React.PureComponent {
 
     /** Defines buttons/actions to be shown in onHover popover. */
     cursorDetailActions(){
-        const { href, browseBaseState, context } = this.props;
+        const { href, browseBaseState, context, mapping = 'all' } = this.props;
         const isBrowseHref = navigate.isBrowseHref(href);
         const currDonorFilters = searchFilters.contextFiltersToExpSetFilters(context && context.filters);
         return [
             {
                 'title' : isBrowseHref ? 'Explore' : 'Browse',
                 'function' : function(cursorProps, mouseEvt){
-                    var baseParams = navigate.getBrowseBaseParams(browseBaseState, 'donor'),
-                        browseBaseHref = navigate.getBrowseBaseHref(baseParams, 'donor');
+                    var baseParams = navigate.getBrowseBaseParams(browseBaseState, mapping),
+                        browseBaseHref = navigate.getBrowseBaseHref(baseParams, mapping);
 
                     // Reset existing filters if selecting from 'all' view. Preserve if from filtered view.
                     var currentDonorFilters = browseBaseState === 'all' ? {} : currDonorFilters;
 
                     var newDonorFilters = _.reduce(cursorProps.path, function(donorFilters, node){
                         // Do not change filter IF SET ALREADY because we want to strictly enable filters, not disable any.
-                        if(node.field === 'sample_summary.tissues'){
+                        if(node.field === 'sample_summary.tissues' && mapping === 'donor'){
                             node.field = 'tissues.tissue_type';
                         }
 
@@ -159,6 +159,7 @@ export class FacetCharts extends React.PureComponent {
                         }
                         return searchFilters.changeFilter(node.field, node.term, donorFilters, null, true);// Existing donorFilters, if null they're retrieved from Redux store, only return new donorFilters vs saving them == set to TRUE
                     }, currentDonorFilters);
+                    newDonorFilters.type = []; // Reset type filter so it gets set to 'Donor' from browseBaseHref.
 
                     // Register 'Set Filter' event for each field:term pair (node) of selected Bar Section.
                     _.forEach(cursorProps.path, function(node){
@@ -205,7 +206,7 @@ export class FacetCharts extends React.PureComponent {
         const show = this.show();
         if (!show) return null; // We don't show section at all.
 
-        const { context, debug, windowWidth, colWidthPerScreenSize, schemas, href, isFullscreen } = this.props;
+        const { context, debug, windowWidth, colWidthPerScreenSize, schemas, href, isFullscreen, mapping = 'all' } = this.props;
         const { mounted } = this.state;
 
         if (context && context.total === 0) return null;
@@ -213,7 +214,7 @@ export class FacetCharts extends React.PureComponent {
 
         const gridState = layout.responsiveGridState(windowWidth || null);
         const cursorDetailActions = this.cursorDetailActions();
-        const browseBaseParams = navigate.getBrowseBaseParams();
+        const browseBaseParams = navigate.getBrowseBaseParams(null, mapping);
         const donorFilters = searchFilters.contextFiltersToExpSetFilters(context && context.filters, browseBaseParams);
         let height = show === 'small' ? 300 : 370;
         let width;
@@ -245,7 +246,7 @@ export class FacetCharts extends React.PureComponent {
         return (
             <div className={"facet-charts show-" + show} key="facet-charts">
                 <ChartDataController.Provider id="barplot1">
-                    <BarPlot.UIControlsWrapper legend chartHeight={height} {...{ href, windowWidth, cursorDetailActions, donorFilters }}>
+                    <BarPlot.UIControlsWrapper legend chartHeight={height} {...{ href, windowWidth, cursorDetailActions, donorFilters, mapping }}>
                         <BarPlot.Chart {...{ width, height, schemas, windowWidth, href, cursorDetailActions, context }} />
                     </BarPlot.UIControlsWrapper>
                 </ChartDataController.Provider>
