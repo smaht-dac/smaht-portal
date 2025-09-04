@@ -7,8 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+1.0.2
+=====
+`PR 517: Improve Submission Status page file display logic <https://github.com/smaht-dac/smaht-portal/pull/517>`_
+
+* Show CRAM file on the Submission Status page if they were generated from a BAM to CRAM conversion workflow.
+* Hide obsolete files from the Submission Status page.
+* Make sure MetaWorkflowRuns are sorted by date created (oldest first) on the Submission Status page.
+
+
 1.0.1
-=======
+=====
 `PR 498: SN Update manifest documentation <https://github.com/smaht-dac/smaht-portal/pull/498>`_
 
 * Update the Interpreting Manifest Files page to include new columns added to the File Manifest and information on the multiple manifest files containing full file metadata.
