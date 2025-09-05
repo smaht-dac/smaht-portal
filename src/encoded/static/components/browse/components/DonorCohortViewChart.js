@@ -1,0 +1,536 @@
+import React from 'react';
+import * as d3 from 'd3';
+import { OverlayTrigger } from 'react-bootstrap';
+
+// --- Theme (kept from mockup) ---
+const THEME = {
+    panel: { radius: 14, stroke: '#A3C4ED', fill: '#FFFFFF' },
+    grid: '#FFFFFF',
+    title: { color: '#5A6C8D', size: 16, weight: 500 },
+    axis: { tick: '#6B7280', fontSize: 12, fontSizeYHorizontal: 11, domain: '#CBD5E1' },
+    label: { fill: '#111827', fontSize: 12 },
+    colors: {
+        male: '#2F62AA',
+        female: '#B79AEF',
+        hardy: '#56A9F5',
+        ethnicity: '#14B3BB'
+    }
+};
+
+// --- Wrap long axis labels (limit to N lines, add tooltip if truncated) ---
+function wrapAxisLabelsLimited(selection, maxWidth, maxLines = 2, isYAxis = false) {
+    selection.each(function () {
+        const text = d3.select(this);
+        const originalText = text.text();
+        const words = originalText.split(/\s+/).reverse();
+        let word, line = [], lineNumber = 0;
+        const lineHeight = 1.1;
+        const x = +text.attr('x') || 0;
+        const y = +text.attr('y') || 0;
+        const dy = parseFloat(text.attr('dy')) || 0;
+
+        text.text(null);
+        let tspan = text.append('tspan').attr('x', x).attr('y', y).attr('dy', `${dy}em`);
+        let truncated = false;
+
+        while ((word = words.pop())) {
+            line.push(word);
+            tspan.text(line.join(' '));
+            const tooLong = tspan.node().getComputedTextLength() > maxWidth;
+            if (tooLong) {
+                line.pop(); tspan.text(line.join(' '));
+                line = [word];
+                lineNumber += 1;
+                if (lineNumber >= maxLines) {
+                    const rest = [word, ...words.reverse()].join(' ');
+                    const last = text.append('tspan')
+                        .attr('x', x).attr('y', y)
+                        .attr('dy', `${lineNumber * lineHeight + dy}em`)
+                        .text(rest);
+                    while (last.node().getComputedTextLength() > maxWidth && last.text().length > 0) {
+                        last.text(last.text().slice(0, -1));
+                    }
+                    if (!last.text().endsWith('…')) last.text(last.text() + '…');
+                    truncated = true;
+                    // mark truncated BEFORE return
+                    text.attr('data-truncated', '1').attr('data-fulltext', originalText);
+                    return;
+                }
+                tspan = text.append('tspan')
+                    .attr('x', x).attr('y', y)
+                    .attr('dy', `${lineNumber * lineHeight + dy}em`)
+                    .text(word);
+            }
+        }
+        if (isYAxis) text.selectAll('tspan').attr('text-anchor', 'end');
+
+        if (!truncated) {
+            text.attr('data-truncated', null).attr('data-fulltext', null);
+        }
+    });
+}
+
+
+// --- Responsive width hook ---
+function useParentWidth(ref) {
+    const [w, setW] = React.useState(0);
+    React.useEffect(() => {
+        if (!ref.current) return;
+        const ro = new ResizeObserver(([entry]) => {
+            const cw = entry.contentBoxSize
+                ? entry.contentBoxSize[0]?.inlineSize ?? entry.contentRect.width
+                : entry.contentRect.width;
+            setW(Math.max(1, Math.floor(cw)));
+        });
+        ro.observe(ref.current);
+        return () => ro.disconnect();
+    }, [ref]);
+    return w;
+}
+
+const TITLE_BAND = 44;   // vertical space reserved for title
+
+const DonorCohortViewChart = ({
+    title = '',
+    data,
+    chartWidth = 'auto',
+    chartHeight = 420,
+    popover = null,
+    showLegend = false,
+    showLabelOnBar = true,
+    chartType = 'stacked',  // 'stacked' | 'single' | 'horizontal'
+    topStackColor,
+    bottomStackColor,
+    xAxisTitle = '',
+    yAxisTitle = '',
+    legendTitle = '',
+    session,
+    loading = false,
+    showBarTooltip = false,
+    showXAxisTitle = true,
+    showYAxisTitle = true
+}) => {
+    const svgRef = React.useRef();
+    const outerRef = React.useRef();
+    const measuredW = useParentWidth(outerRef);
+    const effectiveWidth = chartWidth === 'auto' ? measuredW : chartWidth;
+
+    React.useEffect(() => {
+        if (!effectiveWidth) return;
+
+        const svg = d3.select(svgRef.current)
+            .attr('width', effectiveWidth)
+            .attr('height', chartHeight);
+        svg.selectAll('*').remove();
+
+        const topReserve = 44 /*TITLE_BAND*/;
+
+        // Reserve extra bands if axis titles are provided
+        const X_TITLE_BAND = xAxisTitle ? 28 : 0;
+        const Y_TITLE_BAND = yAxisTitle ? 28 : 0;
+
+        // Extra left for long Y labels; extra right for end-values on horizontal
+        const leftForHorizontal = Math.min(200, Math.max(100, effectiveWidth * 0.28));
+        const rightForHorizontal = 56;
+
+        const margin = {
+            top: (chartType === 'horizontal' ? 20 : 30) + topReserve,
+            right: chartType === 'horizontal' ? rightForHorizontal : 24,
+            bottom: (chartType === 'horizontal' ? 40 : 56) + X_TITLE_BAND,
+            left: (chartType === 'horizontal' ? leftForHorizontal : 36) + Y_TITLE_BAND
+        };
+
+        const width = effectiveWidth - margin.left - margin.right;
+        const height = chartHeight - (/*margin.top*/topReserve +20) - margin.bottom;
+
+        // Panel (always draw so card looks consistent while loading)
+        svg.append('rect')
+            .attr('x', 10).attr('y', 10)
+            .attr('width', effectiveWidth - 20)
+            .attr('height', chartHeight - 20)
+            .attr('rx', THEME.panel.radius)
+            .attr('fill', THEME.panel.fill)
+            .attr('stroke', THEME.panel.stroke);
+
+        // skip drawing if no data or loading
+        if (loading || !data || (Array.isArray(data) && data.length === 0)) {
+            return;
+        }
+
+        // Tooltip
+        const tip = d3.select('body').append('div')
+            .style('position', 'absolute').style('padding', '6px 10px')
+            .style('background', '#111827').style('color', '#fff')
+            .style('border-radius', '6px').style('font-size', '12px')
+            .style('pointer-events', 'none').style('opacity', 0);
+        const showTip = (e, html) => tip.style('left', e.pageX + 10 + 'px').style('top', e.pageY - 28 + 'px').style('opacity', 1).html(html);
+        const moveTip = (e) => tip.style('left', e.pageX + 10 + 'px').style('top', e.pageY - 28 + 'px');
+        const hideTip = () => tip.style('opacity', 0);
+
+        const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+        // --- helpers ---
+        const makeIntAxisLeft = (scale, maxTick) => {
+            if (maxTick <= 10) {
+                return d3.axisLeft(scale)
+                    .tickValues(d3.range(0, maxTick + 1, 1))
+                    .tickFormat(d3.format('d'));
+            }
+            return d3.axisLeft(scale)
+                .ticks(6)
+                .tickFormat(d3.format('d'));
+        };
+        const labelY = (v, pad = 6) => Math.max(y(v) - pad, 10);
+
+        // ---------- Horizontal (Ethnicity) ----------
+        if (chartType === 'horizontal') {
+            const value = (d) => (d.blue || 0) + (d.pink || 0);
+            const color = topStackColor || THEME.colors.ethnicity;
+
+            const x = d3.scaleLinear()
+                .domain([0, (d3.max(data, value) || 0)])
+                .nice()
+                .range([0, width]);
+
+            const y = d3.scaleBand()
+                .domain(data.map((d) => d.group))
+                .range([0, height])
+                .padding(0.25);
+
+            // Grid: vertical lines only
+            const gridG = g.append('g')
+                .call(d3.axisBottom(x).ticks(6).tickSize(height).tickFormat(''));
+            gridG.selectAll('line').attr('stroke', THEME.grid);
+            gridG.select('.domain').attr('stroke', 'none');
+
+            // X axis
+            const xAx = g.append('g')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(x).ticks(6).tickFormat(d3.format('d')).tickSizeOuter(0));
+            xAx.selectAll('text')
+                .style('font-size', THEME.axis.fontSize)
+                .style('fill', THEME.axis.tick);
+            xAx.selectAll('line').attr('stroke', THEME.axis.domain).attr('y2', 6);
+            xAx.select('.domain').attr('stroke', THEME.axis.domain);
+
+            // Y axis (wrapped labels)
+            const yAx = g.append('g').call(d3.axisLeft(y).tickSizeOuter(0));
+            const yLabelMaxWidth = showYAxisTitle ? margin.left - 50 : (margin.left - 25);
+            yAx.selectAll('text')
+                .style('font-size', THEME.axis.fontSizeYHorizontal)
+                .style('fill', THEME.axis.tick)
+                .call(wrapAxisLabelsLimited, yLabelMaxWidth, 2, true);
+
+            // Add tooltip only when truncated; also set cursor conditionally
+            yAx.selectAll('text')
+                .each(function () {
+                    const t = d3.select(this);
+                    const isTruncated = !!t.attr('data-truncated');
+                    t.style('cursor', isTruncated ? 'pointer' : 'default');
+                })
+                .on('mouseover', function (e) {
+                    const t = d3.select(this);
+                    if (t.attr('data-truncated')) showTip(e, t.attr('data-fulltext'));
+                })
+                .on('mousemove', function (e) {
+                    const t = d3.select(this);
+                    if (t.attr('data-truncated')) moveTip(e);
+                })
+                .on('mouseout', function () {
+                    const t = d3.select(this);
+                    if (t.attr('data-truncated')) hideTip();
+                });
+
+            yAx.selectAll('line').attr('stroke', 'none');
+            yAx.select('.domain').attr('stroke', THEME.axis.domain);
+
+
+            // Bars
+            g.selectAll('.bar-h')
+                .data(data).enter().append('rect')
+                .attr('x', 0)
+                .attr('y', (d) => y(d.group))
+                .attr('height', (d) => y.bandwidth())
+                .attr('width', (d) => x(value(d)))
+                .attr('fill', color)
+                .attr('stroke', 'none')
+                .on('mouseover', showBarTooltip ? (e, d) => showTip(e, `${value(d)}`) : null)
+                .on('mousemove', showBarTooltip ? moveTip : null)
+                .on('mouseout', showBarTooltip ? hideTip : null);
+
+            // End-value labels
+            g.selectAll('.label-h')
+                .data(data).enter().append('text')
+                .text((d) => value(d))
+                .attr('x', (d) => x(value(d)) + 10)
+                .attr('y', (d) => y(d.group) + y.bandwidth() / 2)
+                .attr('dy', '0.35em')
+                .style('font-size', THEME.label.fontSize)
+                .style('fill', THEME.label.fill);
+
+            // Axis titles
+            if (showYAxisTitle && yAxisTitle) {
+                g.append('text')
+                    .attr('transform', 'rotate(-90)')
+                    .attr('x', -height / 2)
+                    .attr('y', -margin.left + 34)
+                    .attr('text-anchor', 'middle')
+                    .style('font-size', 12)
+                    .style('fill', THEME.axis.tick)
+                    .text(yAxisTitle);
+            }
+            if (showXAxisTitle && xAxisTitle) {
+                g.append('text')
+                    .attr('x', width / 2)
+                    .attr('y', height + 38)
+                    .attr('text-anchor', 'middle')
+                    .style('font-size', 12)
+                    .style('fill', THEME.axis.tick)
+                    .text(xAxisTitle);
+            }
+
+            return () => tip.remove();
+        }
+
+        // ---------- Vertical (Stacked / Single) ----------
+        const x = d3.scaleBand()
+            .domain(data.map((d) => d.group))
+            .range([0, width])
+            .padding(0.3);
+
+        const yMaxRaw = d3.max(
+            data,
+            (d) => (chartType === 'stacked' ? (d.blue || 0) + (d.pink || 0) : (d.blue || 0))
+        ) || 0;
+
+        const yDomainMax = yMaxRaw === 0 ? 1 : Math.ceil(yMaxRaw * 1.1);
+
+        const y = d3.scaleLinear()
+            .domain([0, yDomainMax])
+            .nice()
+            .range([height, 0]);
+
+        // --- Vertical GRID (keep Y-axis ticks; remove only top gridline) ---
+        const intTicks = (max) => {
+            if (max <= 10) return d3.range(0, max + 1, 1);
+            const step = Math.max(1, Math.round(max / 6));
+            return d3.range(0, max + 1, step);
+        };
+
+        const gridAxis = d3.axisLeft(y)
+            .tickValues(intTicks(yDomainMax))
+            .tickSize(-width)
+            .tickSizeOuter(0)
+            .tickFormat('');
+
+        const gridG = g.append('g').call(gridAxis);
+        gridG.selectAll('line')
+            .attr('stroke', THEME.grid)
+            .attr('shape-rendering', 'crispEdges');
+        gridG.select('.domain').remove();
+        gridG.selectAll('.tick')
+            .filter((d) => d === yDomainMax)
+            .select('line')
+            .attr('stroke', 'none');
+
+        // X-axis
+        const xAxV = g.append('g')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(x));
+        xAxV.selectAll('text')
+            .attr('text-anchor', 'middle')
+            .attr('x', 0).attr('y', 15).attr('dy', '0.35em')
+            .style('font-size', THEME.axis.fontSize)
+            .style('fill', THEME.axis.tick)
+            .call(wrapAxisLabelsLimited, x.bandwidth() - 4, 2, false);
+        xAxV.select('.domain').attr('stroke', THEME.axis.domain);
+
+        // Y-axis (integer ticks kept visible)
+        const yAxV = g.append('g').call(makeIntAxisLeft(y, yDomainMax));
+        yAxV.selectAll('text')
+            .style('font-size', THEME.axis.fontSize)
+            .style('fill', THEME.axis.tick);
+        yAxV.select('.domain').attr('stroke', THEME.axis.domain);
+
+        if (chartType === 'stacked') {
+            const maleColor = topStackColor || THEME.colors.male;
+            const femaleColor = bottomStackColor || THEME.colors.female;
+
+            g.selectAll('.bar-female')
+                .data(data).enter().append('rect')
+                .attr('x', (d) => x(d.group))
+                .attr('y', (d) => y(d.pink || 0))
+                .attr('height', (d) => y(0) - y(d.pink || 0))
+                .attr('width', x.bandwidth())
+                .attr('fill', femaleColor)
+                .attr('stroke', 'none')
+                .on('mouseover', showBarTooltip ? (e, d) => showTip(e, `${d.pink} Female`) : null)
+                .on('mousemove', showBarTooltip ? moveTip : null)
+                .on('mouseout', showBarTooltip ? hideTip : null);
+
+            g.selectAll('.bar-male')
+                .data(data).enter().append('rect')
+                .attr('x', (d) => x(d.group))
+                .attr('y', (d) => y((d.blue || 0) + (d.pink || 0)))
+                .attr('height', (d) => y(0) - y(d.blue || 0))
+                .attr('width', x.bandwidth())
+                .attr('fill', maleColor)
+                .attr('stroke', 'none')
+                .on('mouseover', showBarTooltip ? (e, d) => showTip(e, `${d.blue} Male`) : null)
+                .on('mousemove', showBarTooltip ? moveTip : null)
+                .on('mouseout', showBarTooltip ? hideTip : null);
+
+            if (showLabelOnBar) {
+                g.selectAll('.label-female')
+                    .data(data).enter().append('text')
+                    .filter((d) => (d.pink || 0) > 0)
+                    .text((d) => d.pink)
+                    .attr('x', (d) => x(d.group) + x.bandwidth() / 2)
+                    .attr('y', (d) => y((d.pink || 0) / 2))
+                    .attr('text-anchor', 'middle')
+                    .attr('dy', '0.35em')
+                    .style('fill', '#FFFFFF')
+                    .style('font-size', 12);
+
+                g.selectAll('.label-male')
+                    .data(data).enter().append('text')
+                    .filter((d) => (d.blue || 0) > 0)
+                    .text((d) => d.blue)
+                    .attr('x', (d) => x(d.group) + x.bandwidth() / 2)
+                    .attr('y', (d) => y((d.pink || 0) + (d.blue || 0) / 2))
+                    .attr('text-anchor', 'middle')
+                    .attr('dy', '0.35em')
+                    .style('fill', '#FFFFFF')
+                    .style('font-size', 12);
+            }
+
+            g.selectAll('.label-total')
+                .data(data).enter().append('text')
+                .filter((d) => ((d.blue || 0) + (d.pink || 0)) > 0)
+                .text((d) => (d.blue || 0) + (d.pink || 0))
+                .attr('x', (d) => x(d.group) + x.bandwidth() / 2)
+                .attr('y', (d) => y((d.blue || 0) + (d.pink || 0)) - 6)
+                .attr('text-anchor', 'middle')
+                .style('fill', THEME.label.fill)
+                .style('font-size', THEME.label.fontSize);
+        } else {
+            // Single-series (Hardy)
+            const color = topStackColor || THEME.colors.hardy;
+
+            g.selectAll('.bar-single')
+                .data(data).enter().append('rect')
+                .attr('x', (d) => x(d.group))
+                .attr('y', (d) => y(d.blue || 0))
+                .attr('height', (d) => y(0) - y(d.blue || 0))
+                .attr('width', x.bandwidth())
+                .attr('fill', color)
+                .attr('stroke', 'none')
+                .on('mouseover', showBarTooltip ? (e, d) => { if ((d.blue || 0) > 0) { showTip(e, `${d.blue}`); } } : null)
+                .on('mousemove', showBarTooltip ? moveTip : null)
+                .on('mouseout', showBarTooltip ? hideTip : null);
+
+            g.selectAll('.label-single')
+                .data(data).enter().append('text')
+                .filter((d) => (d.blue || 0) > 0)
+                .text((d) => d.blue || 0)
+                .attr('x', (d) => x(d.group) + x.bandwidth() / 2)
+                .attr('y', (d) => labelY(d.blue || 0))
+                .attr('text-anchor', 'middle')
+                .style('fill', THEME.label.fill)
+                .style('font-size', THEME.label.fontSize);
+        }
+
+        // Axis titles (vertical)
+        if (showYAxisTitle && yAxisTitle) {
+            g.append('text')
+                .attr('transform', 'rotate(-90)')
+                .attr('x', -height / 2)
+                .attr('y', -margin.left + 34)
+                .attr('text-anchor', 'middle')
+                .style('font-size', 12)
+                .style('fill', THEME.axis.tick)
+                .text(yAxisTitle);
+        }
+        if (showXAxisTitle && xAxisTitle) {
+            g.append('text')
+                .attr('x', (width / 2) - 14)
+                .attr('y', height + 53)
+                .attr('text-anchor', 'middle')
+                .style('font-size', 12)
+                .style('fill', THEME.axis.tick)
+                .text(xAxisTitle);
+        }
+
+        return () => tip.remove();
+    }, [data, effectiveWidth, chartHeight, chartType, topStackColor, bottomStackColor, showLegend, showLabelOnBar, title, xAxisTitle, yAxisTitle, session, loading]);
+
+    return (
+        <div ref={outerRef} className="donor-cohort-view-chart" style={{ height: chartHeight }}>
+            <svg ref={svgRef} />
+
+            {/* Title + info icon (centered) */}
+            {session &&
+                <div className="chart-title-container">
+                    <h3>
+                        {title}
+                        {popover && (
+                            <OverlayTrigger
+                                trigger="click"
+                                flip
+                                placement="auto"
+                                rootClose
+                                rootCloseEvent="click"
+                                overlay={popover}
+                            >
+                                <button type="button" className="info-tooltip" aria-label="More info">
+                                    <i className="icon icon-info-circle fas" />
+                                </button>
+                            </OverlayTrigger>
+                        )}
+                    </h3>
+                </div>
+            }
+
+            {/* Loading overlay */}
+            {loading && session && (
+                <div className="loading">
+                    <i className="icon icon-spin icon-circle-notch fas" />
+                    {/* screen-reader only text */}
+                    <span className="visually-hidden">
+                        Loading
+                    </span>
+                </div>
+            )}
+
+            {!session && (
+                <div className="login-required">
+                    <span className="text-secondary">Login required to view</span>
+                </div>
+            )}
+
+            {/* Legend (vertical, compact) */}
+            {chartType === 'stacked' && showLegend && session && !loading && data && (
+                <div className="legend-container" style={{ border: `1px solid ${THEME.panel.stroke}` }}>
+                    <div className="legend-title">
+                        {legendTitle}
+                    </div>
+
+                    <div className="legend-content">
+                        <div className="legend-item">
+                            <span className="color-box" style={{ background: topStackColor || THEME.colors.male }} />
+                            <span className="value">Male</span>
+                        </div>
+
+                        <div className="legend-item">
+                            <span className="color-box" style={{ background: bottomStackColor || THEME.colors.female }} />
+                            <span className="value">Female</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+        </div>
+    );
+};
+
+export default DonorCohortViewChart;
