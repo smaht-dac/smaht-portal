@@ -527,7 +527,7 @@
         "identifier": "qc_visualizations",
         "title": "QC Metric Visualizations",
         "file": "/docs/public/qc_visualizations.jsx",
-        "status": "public",
+        "status": "released",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -572,7 +572,7 @@
             "default_open": true
         },
         "section_type": "Page Section",
-        "uuid": "16b9b89b-f90d-467c-9a78-829a67743313",
+        "uuid": "d523e166-89bf-439d-9770-ee92e4bcb72b",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -582,8 +582,8 @@
     },
     {
         "identifier": "data_matrix_comparison",
-        "title": "Data Matrix",
-        "file": "/src/encoded/static/data/data-matrix-demo.jsx",
+        "title": "SMaHT Data Matrix",
+        "file": "/docs/public/data_matrix_comparison.jsx",
         "status": "in review",
         "options": {
             "filetype": "jsx",

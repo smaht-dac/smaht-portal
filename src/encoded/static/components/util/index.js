@@ -22,3 +22,6 @@ export const fileUtil = fileUtilities;
 
 import * as SearchEngineOptimizationUtilities from './seo';
 export const SEO = SearchEngineOptimizationUtilities;
+
+// Data mappings
+export { germLayerTissueMapping } from './data';

@@ -136,6 +136,7 @@ def _build_file_set_embedded_list():
 
         "meta_workflow_runs.meta_workflow.display_title",
         "meta_workflow_runs.meta_workflow.category",
+        "meta_workflow_runs.meta_workflow.name",
         "meta_workflow_runs.accession",
         "meta_workflow_runs.final_status",
         "meta_workflow_runs.date_created",
