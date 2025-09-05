@@ -112,7 +112,7 @@ def parse_structured_data(file: str,
 
 def get_no_diff_items(structured_data: StructuredDataSet) -> set:
     '''
-    Return a set of items that are not being changed in a given StructureDataSet
+    Return a set of items that are not being changed in a given StructuredDataSet
     '''
     diffs = structured_data.compare()
     no_diff_items = set()
