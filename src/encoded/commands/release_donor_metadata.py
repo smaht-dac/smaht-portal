@@ -37,8 +37,9 @@ pp = pprint.PrettyPrinter(indent=2)
 ##################################################################
 ##################################################################
 
-PUBLIC_DONOR_RELEASE_STATUS = "released" ## When portal becomes public, this will be "public"
-PROTECTED_DONOR_RELEASE_STATUS = "released" ## When portal becomes public, this will be "public-restricted"
+PUBLIC_DONOR_RELEASE_STATUS = "public"  # When portal becomes public, this will be "public"
+PROTECTED_DONOR_RELEASE_STATUS = "public-restricted"  # When portal becomes public, this will be "public-restricted"
+
 
 class DonorRelease:
 
@@ -242,7 +243,7 @@ class DonorRelease:
         if self.verbose:
             print("Validation done. Patching...")
         try:
-            for patch_dict in self.patch_dicts[1:]:
+            for patch_dict in self.patch_dicts:  #[1:]:
                 self.patch_metadata(patch_dict)
         except Exception as e:
             print(str(e))
