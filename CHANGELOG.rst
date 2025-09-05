@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.1.0
+=====
+`PR 508: SN Fibroblast tissue type  <https://github.com/smaht-dac/smaht-portal/pull/508>`_
+
+* Update the `get_sample_summary` function in File to return "Fibroblast" for `sample_summary.tissues` if the linked tissues have a 3AC protocol ID, otherwise use the linked OntologyTerms
+
+
 1.0.2
 =====
 `PR 517: Improve Submission Status page file display logic <https://github.com/smaht-dac/smaht-portal/pull/517>`_
