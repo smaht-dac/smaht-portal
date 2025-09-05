@@ -321,6 +321,10 @@
         "donors.sex": {
             "title": "Donor Sex"
         },
+        "donors.hardy_scale": {
+            "title": "Donor Hardy Scale",
+            "aggregation_type": "stats"
+        },
         "sample_summary.tissues": {
             "title": "Tissue"
         },
