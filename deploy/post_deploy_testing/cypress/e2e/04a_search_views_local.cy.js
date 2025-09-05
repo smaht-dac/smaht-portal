@@ -50,7 +50,7 @@ describe('Deployment/CI Search View Tests', function () {
             // Verify that unwanted results are not visible
             cy.get('.facet-list-element[data-key]').should(
                 'not.contain.text',
-                'NotExpectedResult'
+                'Item'
             ); // Ensure unwanted result is absent
 
             // Click on the "File" link

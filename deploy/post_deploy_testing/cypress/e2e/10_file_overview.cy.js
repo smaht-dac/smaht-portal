@@ -72,8 +72,8 @@ describe('File Overview - Verify Random 3 Files That are Released, Having QC Met
                                         });
                                 });
 
-                                // Check Experimental Assay, Sequencing Platform, Dataset Target Coverage
-                                ['Experimental Assay', 'Sequencing Platform', 'Dataset Target Coverage'].forEach((field) => {
+                                // Check Experimental Assay, Sequencing Platform, Genome Coverage, Target Genome Coverage
+                                ['Experimental Assay', 'Sequencing Platform', 'Genome Coverage', 'Target Genome Coverage'].forEach((field) => {
                                     cy.get('.data-card .header-text')
                                         .contains('Data Information')
                                         .parent()
