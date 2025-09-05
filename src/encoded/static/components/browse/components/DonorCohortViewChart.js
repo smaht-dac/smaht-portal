@@ -137,7 +137,7 @@ const DonorCohortViewChart = ({
             top: (chartType === 'horizontal' ? 20 : 30) + topReserve,
             right: chartType === 'horizontal' ? rightForHorizontal : 24,
             bottom: (chartType === 'horizontal' ? 40 : 56) + X_TITLE_BAND,
-            left: (chartType === 'horizontal' ? leftForHorizontal : 56) + Y_TITLE_BAND
+            left: (chartType === 'horizontal' ? leftForHorizontal : 36) + Y_TITLE_BAND
         };
 
         const width = effectiveWidth - margin.left - margin.right;
@@ -215,10 +215,11 @@ const DonorCohortViewChart = ({
 
             // Y axis (wrapped labels)
             const yAx = g.append('g').call(d3.axisLeft(y).tickSizeOuter(0));
+            const yLabelMaxWidth = showYAxisTitle ? margin.left - 50 : (margin.left - 25);
             yAx.selectAll('text')
                 .style('font-size', THEME.axis.fontSizeYHorizontal)
                 .style('fill', THEME.axis.tick)
-                .call(wrapAxisLabelsLimited, margin.left - 75, 2, true);
+                .call(wrapAxisLabelsLimited, yLabelMaxWidth, 2, true);
 
             // Add tooltip only when truncated; also set cursor conditionally
             yAx.selectAll('text')
