@@ -2078,7 +2078,8 @@ body[data-path="/statistics"] {
 
     .legend-container {
         position: absolute;
-        right: 15px;
+        top: 20px;
+        right: 20px;
         background: #fff;
         border-radius: 10px;
         padding: 4px 5px;
@@ -2094,6 +2095,7 @@ body[data-path="/statistics"] {
             font-size: 11px;
             font-weight: 500;
             margin-bottom: 6px;
+            color: #657B95;
         }
 
         .legend-content {
@@ -2124,27 +2126,12 @@ body[data-path="/statistics"] {
 
     .chart-title-container {
         position: absolute;
-        top: 18px;
-        // left: 55%;
-        // transform: translateX(-50%);
-        // display: flex;
-        // align-items: center;
+        top: 25px;
         gap: 8px;
-        // pointer-events: none;
         z-index: 2;
         display: block;
         text-align: center;
         width: 100%;
-
-        // &.long-title {
-        //     left: 45% !important;
-        //     transform: translateX(-35%) !important;
-
-        //     @media (min-width: 1200px) and (max-width: 1550px) {
-        //         left: 30% !important;
-        //         transform: translateX(-20%) !important;
-        //     }
-        // }
 
         h3 {
             margin: 0;
@@ -2159,7 +2146,7 @@ body[data-path="/statistics"] {
             pointer-events: auto !important;
             line-height: 0;
             margin-left: 10px;
-            color: #444;
+            color: #89A0BB;
 
             &:hover {
                 color: #000;

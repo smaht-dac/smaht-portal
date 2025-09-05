@@ -4,7 +4,7 @@ import { OverlayTrigger } from 'react-bootstrap';
 
 // --- Theme (kept from mockup) ---
 const THEME = {
-    panel: { radius: 14, stroke: '#E5E7EB', fill: '#FFFFFF' },
+    panel: { radius: 14, stroke: '#A3C4ED', fill: '#FFFFFF' },
     grid: '#FFFFFF',
     title: { color: '#5A6C8D', size: 16, weight: 500 },
     axis: { tick: '#6B7280', fontSize: 12, fontSizeYHorizontal: 11, domain: '#CBD5E1' },
@@ -106,7 +106,9 @@ const DonorCohortViewChart = ({
     legendTitle = '',
     session,
     loading = false,
-    showBarTooltip = false
+    showBarTooltip = false,
+    showXAxisTitle = true,
+    showYAxisTitle = true
 }) => {
     const svgRef = React.useRef();
     const outerRef = React.useRef();
@@ -132,14 +134,14 @@ const DonorCohortViewChart = ({
         const rightForHorizontal = 56;
 
         const margin = {
-            top: topReserve + 20,
+            top: (chartType === 'horizontal' ? 20 : 30) + topReserve,
             right: chartType === 'horizontal' ? rightForHorizontal : 24,
             bottom: (chartType === 'horizontal' ? 40 : 56) + X_TITLE_BAND,
             left: (chartType === 'horizontal' ? leftForHorizontal : 56) + Y_TITLE_BAND
         };
 
         const width = effectiveWidth - margin.left - margin.right;
-        const height = chartHeight - margin.top - margin.bottom;
+        const height = chartHeight - (/*margin.top*/topReserve +20) - margin.bottom;
 
         // Panel (always draw so card looks consistent while loading)
         svg.append('rect')
@@ -266,7 +268,7 @@ const DonorCohortViewChart = ({
                 .style('fill', THEME.label.fill);
 
             // Axis titles
-            if (yAxisTitle) {
+            if (showYAxisTitle && yAxisTitle) {
                 g.append('text')
                     .attr('transform', 'rotate(-90)')
                     .attr('x', -height / 2)
@@ -276,7 +278,7 @@ const DonorCohortViewChart = ({
                     .style('fill', THEME.axis.tick)
                     .text(yAxisTitle);
             }
-            if (xAxisTitle) {
+            if (showXAxisTitle && xAxisTitle) {
                 g.append('text')
                     .attr('x', width / 2)
                     .attr('y', height + 38)
@@ -438,7 +440,7 @@ const DonorCohortViewChart = ({
         }
 
         // Axis titles (vertical)
-        if (yAxisTitle) {
+        if (showYAxisTitle && yAxisTitle) {
             g.append('text')
                 .attr('transform', 'rotate(-90)')
                 .attr('x', -height / 2)
@@ -448,7 +450,7 @@ const DonorCohortViewChart = ({
                 .style('fill', THEME.axis.tick)
                 .text(yAxisTitle);
         }
-        if (xAxisTitle) {
+        if (showXAxisTitle && xAxisTitle) {
             g.append('text')
                 .attr('x', (width / 2) - 14)
                 .attr('y', height + 53)
@@ -461,15 +463,13 @@ const DonorCohortViewChart = ({
         return () => tip.remove();
     }, [data, effectiveWidth, chartHeight, chartType, topStackColor, bottomStackColor, showLegend, showLabelOnBar, title, xAxisTitle, yAxisTitle, session, loading]);
 
-    const legendTop = TITLE_BAND - 15;
-
     return (
         <div ref={outerRef} className="donor-cohort-view-chart" style={{ height: chartHeight }}>
             <svg ref={svgRef} />
 
             {/* Title + info icon (centered) */}
             {session &&
-                <div className={"chart-title-container" + (title.length < 25 ? '' : ' long-title')}>
+                <div className="chart-title-container">
                     <h3>
                         {title}
                         {popover && (
@@ -509,7 +509,7 @@ const DonorCohortViewChart = ({
 
             {/* Legend (vertical, compact) */}
             {chartType === 'stacked' && showLegend && session && !loading && data && (
-                <div className="legend-container" style={{ top: legendTop, border: `1px solid ${THEME.panel.stroke}` }}>
+                <div className="legend-container" style={{ border: `1px solid ${THEME.panel.stroke}` }}>
                     <div className="legend-title">
                         {legendTitle}
                     </div>

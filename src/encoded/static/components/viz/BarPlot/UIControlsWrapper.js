@@ -388,7 +388,7 @@ export class UIControlsWrapper extends React.PureComponent {
                         <div className="row" style={{ 'maxWidth': 210, 'float': 'right' }}>
                             <div className="col-3" style={{ 'width': 51 }}>
                                 {/* <h6 className="dropdown-heading">Y Axis</h6> */}
-                                <h6 className="dropdown-heading">{mapping === 'all' ? 'Files' : 'Donors'}</h6>
+                                <h6 className="dropdown-heading">{mapping === 'all' ? '# of Files' : '# of Donors'}</h6>
                             </div>
                             <div className="col-9" style={{ 'width': 100, 'textAlign': 'left', visibility: 'hidden' }}>
                                 <DropdownButton

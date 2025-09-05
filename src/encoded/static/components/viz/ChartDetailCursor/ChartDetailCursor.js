@@ -115,7 +115,7 @@ class Body extends React.PureComponent {
     primaryCountLabel(){
         var name = null;
         if (this.props.primaryCount === 'files') name = "Files";
-        if (this.props.primaryCount === 'donors') name = "Donors";
+        if (this.props.primaryCount === 'donors') name = "# of Donors";
         return (
             <small className="pull-right sets-label">{ name }</small>
         );

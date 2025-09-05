@@ -1241,6 +1241,10 @@ div.browse-summary {
 			margin: 1rem 0 0.25rem 0;
 		}
 	}
+
+	hr {
+		color: #C0DBFB;
+	}
 }
 
 h3.browse-links-header,
@@ -1283,7 +1287,7 @@ div.browse-link-icon {
 	border-radius: 22.5px;
 
 	&.browse-summary-stat-icon-smaller {
-		font-size: 1.2em;
+		font-size: 1em;
 	}
 
 	&[data-icon-type='file'] {
@@ -1294,31 +1298,31 @@ div.browse-link-icon {
 		}
 	}
 	&[data-icon-type='donor'] {
-		background-color: #FBE8E8;
-		border: 1px solid #CC8B8B;
+		background-color: #F0EFFD;
+		border: 1px solid #775FBD;
 		> i {
-			color: #B10808;
+			color: #743FAB;
 		}
 	}
 	&[data-icon-type='tissue'] {
 		background-color: #D6F7EB;
 		border: 1px solid #5FBD8D;
 		> i {
-			color: #09AE5E;
+			color: #0F9655;
 		}
 	}
 	&[data-icon-type='assay'] {
-		background-color: #E7E6FF;
-		border: 1px solid #775FBD;
+		background-color: #FFF0EC;
+		border: 1px solid #DE5900;
 		> i {
-			color: #6A28AF;
+			color: #DE5900;
 		}
 	}
 	&[data-icon-type='file-size'] {
-		background-color: #FFEFDB;
-		border: 1px solid #F47F6B;
+		background-color: #F1F1F1;
+		border: 1px solid #7D7873;
 		> i {
-			color: #CC5D4A;
+			color: #707070;
 		}
 	}
 }
@@ -1333,14 +1337,19 @@ div.browse-link-icon {
 
 		div.view-toggle {
 			background-color: #F9FCFF;
-			border: 1px solid #70A3E2;
+			border: 1px solid #A3C4ED;
 			width: 100%;
 			gap: 10px;
 			white-space: nowrap;
+			border-radius: 0.5rem !important;
+
+			.btn.btn-link {
+				color: #657B95;
+			}
 
 			.btn.btn-primary-dark {
-				background-color: $primary !important;
-				border-color: $primary !important;
+				background-color: #6093D0 !important;
+				border-color: #457ABC !important;
 			}
 		}
 	}

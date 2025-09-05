@@ -26,6 +26,7 @@ import { FacetCharts } from './../components/FacetCharts';
 import DonorCohortViewChart from '../components/DonorCohortViewChart';
 import { renderHardyScaleDescriptionPopover } from '../../item-pages/components/donor-overview/ProtectedDonorViewDataCards';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
+import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 
 import { ajax, layout } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
@@ -554,7 +555,8 @@ export function createBrowseDonorColumnExtensionMap({
                                     toggleCloseIcon: (
                                         <i className="icon icon-circle-minus"></i>
                                     ),
-                                }}></CustomTableRowToggleOpenButton>
+                                }}>
+                            </CustomTableRowToggleOpenButton>
                         </div>
                     ) : null;
                 }
@@ -852,7 +854,7 @@ export const renderEthnicityPopover = (customId) => (
                 <tbody>
                     <tr>
                         <td className="text-left">
-                            These are aggregated sums only. SMaHT Network does not release self-reported ethnicity information for individual donors.
+                            These numbers are aggregated sums of every 10 donors released by the Tissue Procurement Center.
                         </td>
                     </tr>
                 </tbody>
@@ -974,8 +976,8 @@ export const BrowseDonorBody = (props) => {
                     <IconToggle
                         options={[
                             {
-                                title: <React.Fragment><i className="icon fas icon-fas icon-database me-1" /> Data View</React.Fragment>,
-                                dataTip: 'Toggle data view',
+                                title: <React.Fragment><i className="icon fas icon-fas icon-database me-1" /> Donor View</React.Fragment>,
+                                dataTip: 'Toggle donor view',
                                 btnCls: 'w-100 btn-sm',
                                 onClick: () => setToggleViewIndex(0),
                             },
@@ -1017,44 +1019,47 @@ export const BrowseDonorBody = (props) => {
                     ) : (
                         <div className="donor-cohort-view-chart-container">
                             <DonorCohortViewChart
-                                title="Donor Age Groups"
+                                title="Age Groups"
                                 data={session ? donorAgeGroupData : []}
                                 chartWidth="auto"
                                 chartHeight={420}
                                 chartType="stacked"
-                                topStackColor="#2F62AA"
-                                bottomStackColor="#B79AEF"
+                                topStackColor="#4567CF"
+                                bottomStackColor="#9892F5"
                                 xAxisTitle="Age Group"
-                                yAxisTitle="Donors"
+                                yAxisTitle="# of Donors"
                                 legendTitle="Donor Sex"
                                 showLegend
+                                showXAxisTitle={false}
                                 session={session}
                                 loading={loading}
                             />
 
                             <DonorCohortViewChart
-                                title="Donor Hardy Scale"
+                                title="Hardy Scale"
                                 data={session ? donorHardyScaleData : []}
                                 chartWidth="auto"
                                 chartHeight={420}
                                 chartType="single"
                                 topStackColor="#56A9F5"
                                 xAxisTitle="Hardy Scale"
-                                yAxisTitle="Donors"
+                                yAxisTitle="# of Donors"
+                                showXAxisTitle={false}
                                 popover={session && renderHardyScaleDescriptionPopover()}
                                 session={session}
                                 loading={loading}
                             />
 
                             <DonorCohortViewChart
-                                title="Donor Self-Reported Ethnicity"
+                                title="Self-Reported Ethnicity"
                                 data={session ? donorSelfReportedEthnicityData() : []}
                                 chartWidth="auto"
                                 chartHeight={420}
                                 chartType="horizontal"
-                                topStackColor="#14B3BB"
-                                xAxisTitle="Donors"
+                                topStackColor="#17C0CC"
+                                xAxisTitle="# of Donors"
                                 yAxisTitle="Ethnicity"
+                                showYAxisTitle={false}
                                 popover={session && renderEthnicityPopover()}
                                 session={session}
                             />
