@@ -16,32 +16,20 @@ def portal(es_testapp):
 
 
 @pytest.mark.workbook
-def test_identical_donor(portal, workbook: None):
-    identical_donor = { 'Donor': [ {
-        "submitted_id": "TEST_DONOR_MALE",
-        "external_id": "ST001",
-        "submission_centers": ["smaht"],
-        "age": 45,
-        "sex": "Male",
-        "tpc_submitted": "True",
-    } ] }
-
-    structured_data = add_items(identical_donor, StructuredDataSet(portal=portal))
+@pytest.mark.parametrize(
+    "donor_data,expected_no_diff",
+    [
+        (
+            { 'Donor': [ { "submitted_id": "TEST_DONOR_MALE", "age": 45 } ] },
+            {"TEST_DONOR_MALE"}
+        ),
+        (
+            { 'Donor': [ { "submitted_id": "TEST_DONOR_MALE", "age": 5 } ] },
+            set()
+        ),
+    ]
+)
+def test_donor_diff(portal, workbook: None, donor_data, expected_no_diff):
+    structured_data = add_items(donor_data, StructuredDataSet(portal=portal))
     no_diff_items = get_no_diff_items(structured_data)
-    assert no_diff_items == {"TEST_DONOR_MALE"}, no_diff_items
-
-
-@pytest.mark.workbook
-def test_diff_donor(portal, workbook: None):
-    diff_donor = { 'Donor': [ {
-        "submitted_id": "TEST_DONOR_MALE",
-        "external_id": "ST001",
-        "submission_centers": ["smaht"],
-        "age": 5,
-        "sex": "Male",
-        "tpc_submitted": "True",
-    } ] }
-
-    structured_data = add_items(diff_donor, StructuredDataSet(portal=portal))
-    no_diff_items = get_no_diff_items(structured_data)
-    assert no_diff_items == set(), no_diff_items
+    assert no_diff_items == expected_no_diff, no_diff_items
