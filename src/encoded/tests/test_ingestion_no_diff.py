@@ -1,7 +1,7 @@
 import pytest
 from dcicutils.structured_data import Portal, StructuredDataSet
 from encoded.ingestion.ingestion_processors import get_no_diff_items
-from .helpers import workbook_lookup
+from webtest.app import TestApp
 
 
 def add_items(data: dict, structured_data: StructuredDataSet) -> StructuredDataSet:
@@ -10,9 +10,13 @@ def add_items(data: dict, structured_data: StructuredDataSet) -> StructuredDataS
     return structured_data
 
 
-@pytest.mark.workbook
-def test_identical_donor():
+@pytest.fixture(scope="module")
+def portal(es_testapp):
+    return Portal(es_testapp)
 
+
+@pytest.mark.workbook
+def test_identical_donor(portal, workbook: None):
     identical_donor = { 'Donor': [ {
         "submitted_id": "TEST_DONOR_MALE",
         "external_id": "ST001",
@@ -22,15 +26,13 @@ def test_identical_donor():
         "tpc_submitted": "True",
     } ] }
 
-    structured_data = add_items(identical_donor, StructuredDataSet(portal = Portal()))
-    assert get_no_diff_items(structured_data) == set()
+    structured_data = add_items(identical_donor, StructuredDataSet(portal=portal))
+    no_diff_items = get_no_diff_items(structured_data)
+    assert no_diff_items == {"TEST_DONOR_MALE"}, no_diff_items
 
 
 @pytest.mark.workbook
-def test_diff_donor():
-
-    # print(workbook_lookup("Donor", True))
-
+def test_diff_donor(portal, workbook: None):
     diff_donor = { 'Donor': [ {
         "submitted_id": "TEST_DONOR_MALE",
         "external_id": "ST001",
@@ -40,8 +42,6 @@ def test_diff_donor():
         "tpc_submitted": "True",
     } ] }
 
-    structured_data = StructuredDataSet()
-    for object_type in diff_donor:
-        structured_data._add(object_type, diff_donor[object_type])
-    
-    assert get_no_diff_items(structured_data) == {"TEST_DONOR_MALE"}
+    structured_data = add_items(diff_donor, StructuredDataSet(portal=portal))
+    no_diff_items = get_no_diff_items(structured_data)
+    assert no_diff_items == set(), no_diff_items
