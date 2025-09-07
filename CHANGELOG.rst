@@ -7,11 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-1.0.3
+1.1.1
 =======
 `PR 499: WF Fix ingesting identical items <https://github.com/smaht-dac/smaht-portal/pull/499>`_
 
 * Add diff check for ingested metadata
+
+
+1.1.0
+=====
+`PR 508: SN Fibroblast tissue type  <https://github.com/smaht-dac/smaht-portal/pull/508>`_
+
+* Update the `get_sample_summary` function in File to return "Fibroblast" for `sample_summary.tissues` if the linked tissues have a 3AC protocol ID, otherwise use the linked OntologyTerms
 
 
 1.0.2
