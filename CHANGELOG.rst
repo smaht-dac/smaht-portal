@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.1.2
+=====
+`PR 518: feat: Add Pipeline Docs to portal <https://github.com/smaht-dac/smaht-portal/pull/518>`_
+
+* Add Pipeline documentation to the portal as static pages
+
+
 1.1.1
 =====
 `PR 513: feat: QC Tab update <https://github.com/smaht-dac/smaht-portal/pull/513>`_
