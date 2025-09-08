@@ -617,5 +617,58 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+
+
+
+
+    {
+        "identifier": "Long-Read_Oxford_Nanopore",
+        "uuid": "187b2079-61a5-43d6-8252-9070268cae2f",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "Long-Read_PacBio_HiFi",
+        "uuid": "1e1372c7-fa89-422d-98a3-d0f4f8dec1ea",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+
+    {
+        "identifier": "Short-Read_Illumina_Paired-End",
+        "uuid": "8dd992f1-58a9-4b23-8595-c2d505012796",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]
