@@ -54,7 +54,7 @@ export const UserRegistrationModal = React.memo(function UserRegistrationModal(
                         src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
                         height="47"
                     />
-                    New User Registration
+                    New User - Self Registration
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body className="p-4">

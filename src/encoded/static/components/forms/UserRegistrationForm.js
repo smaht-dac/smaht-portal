@@ -324,7 +324,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                             checked={isConsortiumMember === true}
                             onChange={this.onConsortiumMemberYes}
                             className="col-12 col-lg-auto">
-                            Yes, I am a member of SMaHT
+                            Yes, I am a verified member of SMaHT
                         </Checkbox>
                         <Checkbox
                             checked={isConsortiumMember === false}
@@ -343,6 +343,11 @@ export default class UserRegistrationForm extends React.PureComponent {
                         onSubmit={this.onFormSubmit}
                         style={{ fontSize: '0.9rem' }}>
 
+                        <div className="d-flex align-items-center gap-2 mb-15 mt-3 section-header">
+                            <i className="icon icon-fw icon-user fas text-secondary fs-4" aria-hidden="true" />
+                            <h3 className="h3 m-0 text-500" style={{ fontSize: '1.1rem' }}>Open Data: Self Registration</h3>
+                        </div>
+                        
                         <div className="form-group d-flex align-items-center gap-3 mt-2">
                             <label htmlFor="email-address" className="mb-1 text-500">
                                 Primary Email:
@@ -425,6 +430,19 @@ export default class UserRegistrationForm extends React.PureComponent {
                         </div>
 
                         <div className="row mt-3">
+                            <div className="col-12">
+                                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                                    <i class="fas icon icon-user-shield me-2 fs-1"></i>
+                                    <div>
+                                        <strong>Protected Data Access:</strong> Self-registration will give you access to download open data.
+                                        <br />
+                                        To get access to protected data, sign up with the same institutional email address to dbGAP as well.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="row mt-3">
                             <div className="col-12 col-lg-5">
                                 <div
                                     className={
@@ -488,8 +506,8 @@ function SMaHTNetworkMember({
             <div className="row g-5">
                 <div className="col-12">
                     <div className="d-flex align-items-center gap-2 mb-15 section-header">
-                        <i className="icon icon-fw icon-users fas text-secondary" aria-hidden="true" />
-                        <h3 className="h3 m-0 text-500" style={{ fontSize: '1.1rem' }}>SMaHT Members</h3>
+                        <i className="icon icon-fw icon-users fas text-secondary fs-4" aria-hidden="true" />
+                        <h3 className="h3 m-0 text-500" style={{ fontSize: '1.1rem' }}>Verified SMaHT Members</h3>
                     </div>
 
                     <p className="fs-6">
@@ -498,8 +516,7 @@ function SMaHTNetworkMember({
                     </p>
 
                     <p className="fs-6 mt-3">
-                        To create an account with full SMaHT consortium membership
-                        permission you need to:
+                        If you are seeing this page, you may be using a non-registered email address. Make sure to:
                     </p>
 
                     <ol className="fs-6 ps-15 mt-2">
