@@ -424,6 +424,24 @@
         ]
     },
     {
+        "identifier": "docs/submission/donor-metadata-data-dictionary",
+        "uuid": "5e64b78a-58c1-48c3-b031-e8837a19b4a4",
+        "status": "released",
+        "content": [
+            "abb80b35-61ac-4433-b6e3-55be1ba15e18"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Donor Metadata Data Dictionary",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "docs/pipeline-protocols",
         "title": "Pipeline Protocols (incomplete)",
         "status": "in review",
