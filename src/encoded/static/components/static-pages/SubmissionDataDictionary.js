@@ -107,7 +107,7 @@ const SchemaPropertiesTable = ({ data = {} }) => {
                             ) : (
                                 <td className="text-left text-secondary">-</td>
                             )}
-                            {/* Also Requires */}
+                            {/* Values */}
                             {item?.enum?.length || item?.suggested_enum ? (
                                 <td className="text-left">
                                     {/* If enums/suggested enums are present, display them */}
