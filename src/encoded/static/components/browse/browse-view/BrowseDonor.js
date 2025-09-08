@@ -854,7 +854,7 @@ const BrowseDonorSearchTable = (props) => {
  * Donor self-reported ethnicity data
  * This data is used to visualize the distribution of self-reported ethnicities among donors.
  */
-const donorSelfReportedEthnicityData = memoize(() =>
+export const donorSelfReportedEthnicityData = memoize(() =>
     _.chain([
         {
             group: 'American Indian or Alaska Native',
@@ -1039,7 +1039,7 @@ export const BrowseDonorBody = (props) => {
                         {toggleViewIndex === 0 ? 'Data' : 'Cohort'} Summary
                     </h2>
                     <BrowseSummaryStatsViewer
-                        {...{ session, href, windowWidth, useCompactFor }}
+                        {...{ session, href, windowWidth, useCompactFor, mapping: 'donor' }}
                     />
                     <IconToggle
                         options={[

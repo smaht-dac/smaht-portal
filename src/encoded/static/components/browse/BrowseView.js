@@ -61,7 +61,7 @@ const BrowseFileBody = (props) => {
             <div className="row browse-viz-container">
                 <div className="stats-column col-auto">
                     <BrowseSummaryStatsViewer
-                        {...{ session, href, windowWidth, useCompactFor }}
+                        {...{ session, href, windowWidth, useCompactFor, mapping: 'all' }}
                     />
                 </div>
                 <div className="col ps-0">

@@ -20,6 +20,7 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
         windowWidth,
         useCompactFor = ['xs', 'sm', 'md'],
         autoSync = false,
+        mapping = 'donor'
     } = props;
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
@@ -51,16 +52,29 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
 
             const searchUrl = autoSync
                 ? href
-                : navigate.getBrowseBaseHref(null, 'donor');
+                : navigate.getBrowseBaseHref(null, mapping);
 
             const hrefParts = url.parse(searchUrl, true);
             let hrefQuery = _.clone(hrefParts.query);
+            // donor
             if (
                 hrefQuery.type === 'Donor' ||
                 (hrefQuery.type?.length > 0 && hrefQuery.type[0] === 'Donor')
             ) {
                 hrefQuery =
                     ChartDataController.transformFilterDonorToFile(hrefQuery);
+                hrefQuery.type = ['File'];
+            }
+            // protected donor - TODO: merge donor and protected_donor handling?
+            if (
+                hrefQuery.type === 'ProtectedDonor' ||
+                (hrefQuery.type?.length > 0 &&
+                    hrefQuery.type[0] === 'ProtectedDonor')
+            ) {
+                hrefQuery =
+                    ChartDataController.transformFilterDonorToFile(
+                        hrefQuery
+                    );
                 hrefQuery.type = ['File'];
             }
             delete hrefQuery.limit;
