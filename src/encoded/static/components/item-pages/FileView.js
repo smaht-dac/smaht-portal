@@ -12,6 +12,9 @@ import { SelectedItemsDownloadButton } from '../static-pages/components/SelectAl
 import { ShowHideInformationToggle } from './components/file-overview/ShowHideInformationToggle';
 import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
+import { OverlayTrigger } from 'react-bootstrap';
+import { renderProtectedAccessPopover } from './PublicDonorView';
+
 // Page containing the details of Items of type File
 export default class FileOverview extends DefaultItemView {
     getTabViewContents() {
@@ -171,16 +174,30 @@ const FileViewHeader = (props) => {
         <div className="file-view-header">
             <div className="data-group data-row header">
                 <h1 className="header-text">File Overview</h1>
-                <SelectedItemsDownloadButton
-                    id="download_tsv_multiselect"
-                    className="btn btn-primary btn-sm me-05 align-items-center download-file-button"
-                    session={session}
-                    selectedItems={selectedFile}
-                    disabled={false}
-                    analyticsAddItemsToCart>
-                    <i className="icon icon-download fas me-07" />
-                    Download File
-                </SelectedItemsDownloadButton>
+                {session ? (
+                    <SelectedItemsDownloadButton
+                        id="download_tsv_multiselect"
+                        className="btn btn-primary btn-sm me-05 align-items-center download-file-button"
+                        session={session}
+                        selectedItems={selectedFile}
+                        disabled={false}
+                        analyticsAddItemsToCart>
+                        <i className="icon icon-download fas me-07" />
+                        Download File
+                    </SelectedItemsDownloadButton>
+                ) : (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="top"
+                        overlay={renderProtectedAccessPopover()}>
+                        <button
+                            className="btn btn-primary btn-sm me-05 align-items-center pe-auto"
+                            disabled={true}>
+                            <i className="icon icon-download fas me-03" />
+                            Download File
+                        </button>
+                    </OverlayTrigger>
+                )}
             </div>
 
             {!accessionsOfInterest.includes(accession) &&

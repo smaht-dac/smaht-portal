@@ -939,12 +939,13 @@ body[data-path="/"]>#application>#layout {
 												}
 	
 												&:hover {
-													display: flex;
+													display: inline;
 													cursor: pointer;
 													color: #3C71F9;
 	
 													svg {
-														display: flex;
+														display: inline-flex;
+														vertical-align: text-top;
 														fill: #3C71F9;
 														width: 12px;
 														margin-left: 4px;

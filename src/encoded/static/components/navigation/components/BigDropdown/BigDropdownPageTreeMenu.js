@@ -53,6 +53,7 @@ export function BigDropdownPageTreeMenu(props) {
         href,
         childrenToHide = [],
         disableLinksOnLevel1Titles = false,
+        session,
     } = props;
     const {
         display_title,
@@ -186,7 +187,7 @@ export function BigDropdownPageTreeMenu(props) {
     return (
         <div className={cls}>
             {topLeftMenuCol}
-            <CustomStaticLinks {...{ pathName, href }} />
+            <CustomStaticLinks {...{ pathName, href, session }} />
             {childItems}
         </div>
     );
@@ -224,7 +225,7 @@ function Level1Title({ childPageItem, active, disableLinks }) {
     );
 }
 
-function CustomStaticLinks({ pathName, href }) {
+function CustomStaticLinks({ pathName, href, session }) {
     switch (pathName) {
         case 'data':
             return (
@@ -235,15 +236,21 @@ function CustomStaticLinks({ pathName, href }) {
                         </h3>
                         <hr className="mb-0" />
                         <BigDropdownBigLink
-                            href="/browse/?type=File&sample_summary.studies=Production&status=released"
+                            href="/browse/?type=File&sample_summary.studies=Production&status=released&status=public-restricted&status=public"
                             titleIcon="file fas"
                             className="primary-big-link is-fa-icon">
                             <h4 className="text-large">Browse By File</h4>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
-                            href="/browse/?type=Donor&study=Production&status=released&tags=has_released_files"
+                            // Note: the status of the public href should be "public"
+                            href="/browse/?type=Donor&study=Production&status=public&status=public-restricted&tags=has_released_files"
+                            // Note: the status of ProtectedDonor should be "released" at most
+                            // Assumes that even if public ProtectedDonors exist, they should not be shown
+                            protectedHref="/browse/?type=ProtectedDonor&study=Production&status=released&tags=has_released_files"
                             titleIcon="users fas"
-                            className="primary-big-link is-fa-icon">
+                            className="primary-big-link is-fa-icon"
+                            checkUserPermissions={true} // Check if user permissions allow greater access
+                        >
                             <h4 className="text-large">Browse By Donor</h4>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
@@ -335,18 +342,24 @@ function CustomStaticLinks({ pathName, href }) {
                             className="primary-big-link">
                             <h4 className="text-large">Data Matrix</h4>
                         </BigDropdownBigLink>
-                        <BigDropdownBigLink
-                            href="/qc-metrics"
-                            titleIcon="magnifying-glass-chart fas"
-                            className="primary-big-link">
-                            <h4 className="text-large">Data QC</h4>
-                        </BigDropdownBigLink>
-                        <BigDropdownBigLink
-                            href="/retracted-files"
-                            titleIcon="file-circle-xmark fas"
-                            className="primary-big-link">
-                            <h4 className="text-large">Data Retraction</h4>
-                        </BigDropdownBigLink>
+                        {session && (
+                            <>
+                                <BigDropdownBigLink
+                                    href="/qc-metrics"
+                                    titleIcon="magnifying-glass-chart fas"
+                                    className="primary-big-link">
+                                    <h4 className="text-large">Data QC</h4>
+                                </BigDropdownBigLink>
+                                <BigDropdownBigLink
+                                    href="/retracted-files"
+                                    titleIcon="file-circle-xmark fas"
+                                    className="primary-big-link">
+                                    <h4 className="text-large">
+                                        Data Retraction
+                                    </h4>
+                                </BigDropdownBigLink>
+                            </>
+                        )}
                     </div>
                 </div>
             );

@@ -41,13 +41,15 @@ import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAbov
 import { transformedFacets } from './SearchView';
 
 import { BrowseDonorBody } from './browse-view/BrowseDonor';
+import { BrowseProtectedDonorBody } from './browse-view/BrowseProtectedDonor';
+import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
 
 export default function BrowseView(props) {
-    const { session } = props;
-    return <BrowseViewBody {...props} key={session} />;
+    return <BrowseViewBody {...props} />;
 }
 
 const BrowseFileBody = (props) => {
+    console.log('browse file props', props);
     return (
         <>
             <h2 className="browse-summary-header">SMaHT Data Summary</h2>
@@ -66,7 +68,9 @@ const BrowseFileBody = (props) => {
             </div>
             <hr />
             <BrowseViewControllerWithSelections {...props}>
-                <BrowseFileSearchTable />
+                <BrowseFileSearchTable
+                    isConsortiumMember={props.isConsortiumMember}
+                />
             </BrowseViewControllerWithSelections>
         </>
     );
@@ -78,6 +82,8 @@ const renderBrowseBody = (props) => {
             return <BrowseFileBody {...props} />;
         case 'DonorSearchResults':
             return <BrowseDonorBody {...props} />;
+        case 'ProtectedDonorSearchResults':
+            return <BrowseProtectedDonorBody {...props} />;
         // case 'TissueSearchResults':
         //     return <BrowseTissueBody {...props} />;
         // case 'AssaySearchResults':
@@ -85,6 +91,71 @@ const renderBrowseBody = (props) => {
         default:
             null;
     }
+};
+
+/**
+ * Component for rendering the content on the Browse page, checking for user permissions and
+ * displaying the appropriate content.
+ * @param {Object} props
+ * @returns
+ */
+const BrowseViewContent = (props) => {
+    console.log('props', props);
+    const [isConsortiumMember, setIsConsortiumMember] = useState(false);
+    const { session } = props;
+
+    // Include `isConsortiumMember` in the props passed to child components
+    const passProps = { ...props, isConsortiumMember };
+
+    // Note: should abstract and place in a custom hook
+    useEffect(() => {
+        // Only check for consortium membership when user is logged in
+        if (session) {
+            // Request session information
+            ajax.load(
+                `/session-properties`,
+                (resp) => {
+                    // Check if user is a member of SMaHT consortium
+                    const isConsortiumMember =
+                        resp?.details?.consortia?.includes(
+                            '358aed10-9b9d-4e26-ab84-4bd162da182b'
+                        );
+                    setIsConsortiumMember(isConsortiumMember);
+                },
+                'GET',
+                (err) => {
+                    if (err.notification !== 'No results found') {
+                        console.log(
+                            'ERROR determining user consortium membership',
+                            err
+                        );
+                    }
+                    setIsConsortiumMember(false);
+                }
+            );
+        }
+    }, [session]);
+
+    return (
+        <SlidingSidebarLayout openByDefault={false}>
+            <div className="sidebar-nav-body">
+                <h3 className="browse-links-header">
+                    Browse Production Data By
+                </h3>
+                <div className="browse-links">
+                    <BrowseLink type="File" />
+                    <BrowseLink
+                        type="Donor"
+                        isConsortiumMember={isConsortiumMember}
+                        session={session}
+                    />
+                    <BrowseLink type="Tissue" disabled />
+                    <BrowseLink type="Assay" disabled />
+                </div>
+            </div>
+            <div className="browse-body">{renderBrowseBody(passProps)}</div>
+        </SlidingSidebarLayout>
+    );
 };
 
 export class BrowseViewBody extends React.PureComponent {
@@ -96,26 +167,9 @@ export class BrowseViewBody extends React.PureComponent {
     }
 
     render() {
-        const { alerts } = this.props;
-
         return (
             <div className="search-page-outer-container" id="content">
-                <SlidingSidebarLayout openByDefault={false}>
-                    <div className="sidebar-nav-body">
-                        <h3 className="browse-links-header">
-                            Browse Production Data By
-                        </h3>
-                        <div className="browse-links">
-                            <BrowseLink type="File" />
-                            <BrowseLink type="Donor" />
-                            <BrowseLink type="Tissue" disabled />
-                            <BrowseLink type="Assay" disabled />
-                        </div>
-                    </div>
-                    <div className="browse-body">
-                        {renderBrowseBody(this.props)}
-                    </div>
-                </SlidingSidebarLayout>
+                <BrowseViewContent {...this.props} />
             </div>
         );
     }
@@ -193,6 +247,7 @@ export const BrowseFileSearchTable = (props) => {
         onSelectItem,
         onResetSelectedItems,
     } = props;
+    console.log('browse file search table props', props);
     const facets = transformedFacets(context, currentAction, schemas);
     const tableColumnClassName = 'results-column col';
     const facetColumnClassName = 'facets-column col-auto';
@@ -212,15 +267,29 @@ export const BrowseFileSearchTable = (props) => {
                 <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
             }>
             {session && <DonorMetadataDownloadButton session={session} />}
-            <SelectedItemsDownloadButton
-                id="download_tsv_multiselect"
-                disabled={selectedItems.size === 0}
-                className="btn btn-primary btn-sm me-05 align-items-center"
-                {...{ selectedItems, session }}
-                analyticsAddItemsToCart>
-                <i className="icon icon-download fas me-03" />
-                Download {selectedItems.size} Selected Files
-            </SelectedItemsDownloadButton>
+            {session && props?.isConsortiumMember ? (
+                <SelectedItemsDownloadButton
+                    id="download_tsv_multiselect"
+                    disabled={selectedItems.size === 0}
+                    className="btn btn-primary btn-sm me-05 align-items-center"
+                    {...{ selectedItems, session }}
+                    analyticsAddItemsToCart>
+                    <i className="icon icon-download fas me-03" />
+                    Download {selectedItems.size} Selected Files
+                </SelectedItemsDownloadButton>
+            ) : (
+                <OverlayTrigger
+                    trigger={['hover', 'focus']}
+                    placement="top"
+                    overlay={renderProtectedAccessPopover()}>
+                    <button
+                        className="btn btn-primary btn-sm me-05 align-items-center"
+                        disabled={true}>
+                        <i className="icon icon-download fas me-03" />
+                        Download {selectedItems.size} Donor Manifests
+                    </button>
+                </OverlayTrigger>
+            )}
         </BrowseViewAboveSearchTableControls>
     );
 

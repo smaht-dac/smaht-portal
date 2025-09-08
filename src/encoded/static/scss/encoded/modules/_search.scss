@@ -304,6 +304,11 @@ $facetlist-excluding: #450000;
 			display: inline-flex;
 			align-items: center;
 			@extend .fixed-height;
+
+			&[disabled] {
+				pointer-events: auto;
+				cursor: auto;
+			}
 		}
 	}
 
@@ -869,7 +874,8 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-current-action="edit"]):not([data-at-type*="Error"]) {
 
 	// Donor Browse specific styles
-	&[data-at-type="DonorSearchResults"] {
+	&[data-at-type="DonorSearchResults"],
+	&[data-at-type="ProtectedDonorSearchResults"] {
 		.search-view-controls-and-results {
 			.facets-column {
 				.facets-header {
@@ -910,11 +916,12 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 
 									.toggle-detail-button-container {
 										> button {
+											color: #317EBF;
 											border: none;
 											background-color: transparent;
 	
 											.icon {
-												color: #317EBF;
+												margin-left: 5px;
 												font-size: 0.75rem;
 											}
 										}
@@ -1023,6 +1030,7 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 									}
 									.toggle-detail-button-container {
 										> button {
+										color: #B75200;
 											.icon {
 												color: #FF9A47;
 											}
@@ -1039,7 +1047,8 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 									}
 									.toggle-detail-button-container {
 										> button {
-											.icon {
+										color: #B75200;
+										.icon {
 												color: #FF9A47;
 											}
 										}

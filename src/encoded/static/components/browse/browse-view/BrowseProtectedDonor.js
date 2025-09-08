@@ -17,8 +17,6 @@ import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { renderProtectedAccessPopover } from '../../item-pages/PublicDonorView';
-import { OverlayTrigger } from 'react-bootstrap';
 
 /**
  * Format tissue data by grouping it into predefined categories.
@@ -274,7 +272,7 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
                                                 <li key={j}>
                                                     <span>
                                                         <a
-                                                            href={`/search/?type=File&status=released&status=public&status=public-restricted&donors.display_title=${itemDetails.display_title}&&file_sets.libraries.assay.display_title=${assay}`}
+                                                            href={`/search/?type=File&status=released&status=public&status=public-restricted&donors.display_title=${itemDetails.display_title}&file_sets.libraries.assay.display_title=${assay}`}
                                                             target="_blank"
                                                             rel="noreferrer noopener">
                                                             {assay}
@@ -337,7 +335,7 @@ const customRenderDetailPane = (
 };
 
 // A column extension map specifically for browse view file tables.
-export function createBrowseDonorColumnExtensionMap({
+export function createBrowseProtectedDonorColumnExtensionMap({
     selectedItems,
     onSelectItem,
     onResetSelectedItems,
@@ -472,10 +470,7 @@ export function createBrowseDonorColumnExtensionMap({
                                             <i className="icon icon-circle-minus"></i>
                                         </>
                                     ),
-                                }}>
-                                {tissueCount} Tissue
-                                {tissueCount > 1 ? 's' : ''}
-                            </CustomTableRowToggleOpenButton>
+                                }}></CustomTableRowToggleOpenButton>
                         </div>
                     ) : null;
                 }
@@ -639,7 +634,46 @@ export function createBrowseDonorColumnExtensionMap({
         hardy_scale: {
             widthMap: { lg: 150, md: 150, sm: 150 },
             render: function (result, parentProps) {
-                return <span>{result?.hardy_scale ?? null}</span>;
+                const hardy_scale = result?.hardy_scale;
+                return hardy_scale ? (
+                    <span className="value text-start">
+                        {result?.hardy_scale}
+                    </span>
+                ) : null;
+            },
+        },
+        // Cancer History
+        'medical_history.cancer_history': {
+            widthMap: { lg: 180, md: 180, sm: 180 },
+            render: function (result, parentProps) {
+                const cancer_history =
+                    result?.medical_history?.[0]?.cancer_history;
+
+                return cancer_history ? (
+                    <span className="value text-start">{cancer_history}</span>
+                ) : null;
+            },
+        },
+        // Tobacco Use
+        'medical_history.tobacco_use': {
+            widthMap: { lg: 180, md: 180, sm: 180 },
+            render: function (result, parentProps) {
+                const tobacco_use = result?.medical_history?.[0]?.tobacco_use;
+
+                return tobacco_use ? (
+                    <span className="value text-start">{tobacco_use}</span>
+                ) : null;
+            },
+        },
+        // Alcohol Use
+        'medical_history.alcohol_use': {
+            widthMap: { lg: 180, md: 180, sm: 180 },
+            render: function (result, parentProps) {
+                const alcohol_use = result?.medical_history?.[0]?.alcohol_use;
+
+                return alcohol_use ? (
+                    <span className="value text-start">{alcohol_use}</span>
+                ) : null;
             },
         },
         // Data Type
@@ -729,6 +763,15 @@ export function createBrowseDonorColumnExtensionMap({
         hardy_scale: {
             title: 'Hardy Scale',
         },
+        'medical_history.cancer_history': {
+            title: 'Cancer History',
+        },
+        'medical_history.tobacco_use': {
+            title: 'Tobacco',
+        },
+        'medical_history.alcohol_use': {
+            title: 'Alcohol',
+        },
     };
 
     const hideFacets = [
@@ -746,7 +789,7 @@ export function createBrowseDonorColumnExtensionMap({
 }
 
 // Search Table
-const BrowseDonorSearchTable = (props) => {
+const BrowseProtectedDonorSearchTable = (props) => {
     const {
         session,
         context,
@@ -755,7 +798,6 @@ const BrowseDonorSearchTable = (props) => {
         selectedItems,
         onSelectItem,
         onResetSelectedItems,
-        isConsortiumMember,
     } = props;
 
     const facets = transformedFacets(context, currentAction, schemas);
@@ -777,34 +819,20 @@ const BrowseDonorSearchTable = (props) => {
                 <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
             }>
             {session && <DonorMetadataDownloadButton session={session} />}
-            {session && isConsortiumMember ? (
-                <SelectedItemsDownloadButton
-                    id="download_tsv_multiselect"
-                    disabled={selectedItems.size === 0}
-                    className="btn btn-primary btn-sm me-05 align-items-center"
-                    {...{ selectedItems, session }}
-                    analyticsAddItemsToCart>
-                    <i className="icon icon-download fas me-03" />
-                    Download {selectedItems.size} Selected Files
-                </SelectedItemsDownloadButton>
-            ) : (
-                <OverlayTrigger
-                    trigger={['hover', 'focus']}
-                    placement="top"
-                    overlay={renderProtectedAccessPopover()}>
-                    <button
-                        className="btn btn-primary btn-sm me-05 align-items-center"
-                        disabled={true}>
-                        <i className="icon icon-download fas me-03" />
-                        Download {selectedItems.size} Donor Manifests
-                    </button>
-                </OverlayTrigger>
-            )}
+            <SelectedItemsDownloadButton
+                id="download_tsv_multiselect"
+                disabled={selectedItems.size === 0}
+                className="btn btn-primary btn-sm me-05 align-items-center"
+                {...{ selectedItems, session }}
+                analyticsAddItemsToCart>
+                <i className="icon icon-download fas me-03" />
+                Download {selectedItems.size} Selected Files
+            </SelectedItemsDownloadButton>
         </BrowseViewAboveSearchTableControls>
     );
 
     const { columnExtensionMap, columns, hideFacets } =
-        createBrowseDonorColumnExtensionMap(selectedFileProps);
+        createBrowseProtectedDonorColumnExtensionMap(selectedFileProps);
 
     return (
         <CommonSearchView
@@ -831,14 +859,14 @@ const BrowseDonorSearchTable = (props) => {
     );
 };
 
-// Browse Donor Body Component
-export const BrowseDonorBody = (props) => {
+// Browse Protected Donor Body Component
+export const BrowseProtectedDonorBody = (props) => {
     return (
         <>
             <h2 className="browse-summary-header">SMaHT Data Summary</h2>
             <Alerts alerts={props.alerts} className="mt-2" />
             <BrowseViewControllerWithSelections {...props}>
-                <BrowseDonorSearchTable />
+                <BrowseProtectedDonorSearchTable />
             </BrowseViewControllerWithSelections>
         </>
     );
