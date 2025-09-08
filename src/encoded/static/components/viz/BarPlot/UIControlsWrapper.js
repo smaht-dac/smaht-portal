@@ -432,7 +432,7 @@ export class UIControlsWrapper extends React.PureComponent {
                         </div>
                         {/* {this.renderShowTypeDropdown()} */}
                         {this.renderGroupByFieldDropdown()}
-                        <div className="legend-container d-none" style={{ 'height': legendContainerHeight }}>
+                        <div className="legend-container" style={{ 'height': legendContainerHeight }}>
                             <AggregatedLegend {...{ cursorDetailActions, barplot_data_filtered, barplot_data_unfiltered, aggregateType, schemas }}
                                 height={legendContainerHeight}
                                 field={_.findWhere(availableFields_Subdivision, { 'field': barplot_data_fields[1] }) || null}
@@ -565,7 +565,7 @@ export class AggregatedLegend extends React.Component {
             <div className="legend-container-inner" ref={this.legendContainerRef}>
                 <Legend {...{ href, aggregateType, cursorDetailActions }} field={fieldForLegend || null}
                     includeFieldTitles={false} schemas={schemas}
-                    width={this.width()} height={this.height()} hasPopover
+                    width={this.width()} height={this.height()} hasPopover={false}
                 //expandable
                 //expandableAfter={8}
                 //cursorDetailActions={boundActions(this, showType)}
