@@ -926,7 +926,8 @@
         "title": "Resources",
         "status": "released",
         "children": [
-            "5e7962d0-a218-45ba-8a76-729ef683695b"
+            "5e7962d0-a218-45ba-8a76-729ef683695b",
+            "6e144832-6abc-47e2-bea5-f720598cf61a"
         ],
         "uuid": "c546dd8b-cc0d-4a56-abac-d7fd999a81f5",
         "consortia": [
@@ -970,6 +971,87 @@
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
+
+
+
+
+    {
+        "identifier": "resources/pipeline-docs",
+        "title": "Pipeline Documentation",
+        "status": "in review",
+        "children": [
+            "379e3032-a0fe-45d6-8277-b373b52d3a79",
+            "1756229d-7498-444f-b574-983d3020f948",
+            "ab58ce07-b8f9-4807-aa8a-d651b6cd733d"
+        ],
+        "uuid": "6e144832-6abc-47e2-bea5-f720598cf61a",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "resources/pipeline-docs/alignment_pipelines",
+        "title": "Alignment Pipelines",
+        "status": "in review",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "content": [
+            "187b2079-61a5-43d6-8252-9070268cae2f",
+            "1e1372c7-fa89-422d-98a3-d0f4f8dec1ea",
+            "8dd992f1-58a9-4b23-8595-c2d505012796"
+        ],
+        "uuid": "379e3032-a0fe-45d6-8277-b373b52d3a79",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "resources/pipeline-docs/qc_pipelines",
+        "title": "QC Pipelines",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "status": "in review",
+        "uuid": "1756229d-7498-444f-b574-983d3020f948",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "resources/pipeline-docs/analysis_pipelines",
+        "title": "Analysis Pipelines",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "status": "in review",
+        "uuid": "ab58ce07-b8f9-4807-aa8a-d651b6cd733d",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+
+
+
+
+
+
+
     {
         "identifier": "privacy-policy",
         "title": "Privacy Policy",
