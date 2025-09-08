@@ -76,8 +76,8 @@
             "smaht"
         ],
         "submitted_id": "TEST_TISSUE_FIBROBLAST",
-        "external_id": "ST001-3AC",
-        "donor": "TEST_DONOR_MALE",
+        "external_id": "SMHT001-3AC",
+        "donor": "TEST_DONOR_FEMALE",
         "uberon_id": "UBERON:0004264",
         "anatomical_location": "Fibroblast"
     }
