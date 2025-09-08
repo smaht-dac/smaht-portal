@@ -108,9 +108,9 @@ const QCOverviewTab = ({ session, context }) => {
             `/session-properties`,
             (resp) => {
                 // Check if user is a member of SMaHT consortium
-                const isConsortiumMember = resp?.details?.consortia?.includes(
-                    '358aed10-9b9d-4e26-ab84-4bd162da182b'
-                );
+                const consortium_uuid = '358aed10-9b9d-4e26-ab84-4bd162da182b';
+                const isConsortiumMember =
+                    resp?.details?.consortia?.includes(consortium_uuid);
                 setIsConsortiumMember(isConsortiumMember);
                 setIsLoading(false);
             },
