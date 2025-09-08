@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.1.1
+=====
+`PR 513: feat: QC Tab update <https://github.com/smaht-dac/smaht-portal/pull/513>`_
+
+* Show placeholder for QC Tab when user does not have access to related QC Items for that file
+
+
 1.1.0
 =====
 `PR 508: SN Fibroblast tissue type  <https://github.com/smaht-dac/smaht-portal/pull/508>`_
