@@ -890,6 +890,12 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 			.results-column {
 				.search-headers-row {
 					background-color: #F4F3FD;
+
+					.search-headers-column-block {
+						.column-sort-icon {
+							color: #C8C5D7;
+						}
+					}
 				}
 				
 				.search-results-container {
@@ -952,7 +958,7 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 
 									.detail-header {
 										padding: 10px 15px;
-										font-size: 15px;
+										font-size: 1rem;
 
 										.icon {
 											color: #ABA9C1;
