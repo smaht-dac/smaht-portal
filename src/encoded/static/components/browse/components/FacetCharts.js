@@ -140,7 +140,7 @@ export class FacetCharts extends React.PureComponent {
         const currDonorFilters = searchFilters.contextFiltersToExpSetFilters(context && context.filters);
         return [
             {
-                'title' : isBrowseHref ? 'Explore' : 'Browse',
+                'title' : isBrowseHref ? 'Explore' + (mapping === 'donor' ? ' Donors' : '') : 'Browse',
                 'function' : function(cursorProps, mouseEvt){
                     var baseParams = navigate.getBrowseBaseParams(browseBaseState, mapping),
                         browseBaseHref = navigate.getBrowseBaseHref(baseParams, mapping);

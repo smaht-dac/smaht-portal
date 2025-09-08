@@ -7,6 +7,7 @@ import { console, object, isServerSide, logger } from '@hms-dbmi-bgm/shared-port
 // `Schemas` kept for project-specific transforms
 import { Schemas } from './../../util';
 import CursorComponent from './CursorComponent';
+import { navigate } from './../../util';
 
 /**
  * A plain JS object which contains at least 'title' and 'function' properties.
@@ -87,15 +88,33 @@ class Body extends React.PureComponent {
                 10 : countPair[0] === 'files' ? 10 : 2;
             var name = null;
             if (countPair[0] === 'donors') name = "Donors";
-            if (countPair[0] === 'files')           name = "Files";
+            if (countPair[0] === 'files') name = "Files";
 
-            return (
-                <div key={countPair[0] || i} className={"text-end col-" + colSize}>
-                    { countPair[1] }<small> { name }</small>
-                </div>
-            );
+            if (countPair[0] === 'files') {
+                const baseParams = navigate.getBrowseBaseParams(null, 'all');
+                _.forEach(props.path, p => {
+                    if (p.field && p.term) {
+                        baseParams[p.field] = p.term;
+                    }
+                });
+                const browseBaseHref = navigate.getBrowseBaseHref(baseParams, 'all');
+
+                return (
+                    <div key={countPair[0] || i} className={"text-end col-" + colSize}>
+                        <a href={browseBaseHref} target='_blank' rel="noreferrer noopener">
+                            {countPair[1]}<small> {name}</small>
+                        </a>
+                    </div>
+                );
+            } else {
+                return (
+                    <div key={countPair[0] || i} className={"text-end col-" + colSize}>
+                        { countPair[1] }<small> { name }</small>
+                    </div>
+                );
+            }
         });
-
+        
         return (
             <div className="row">
                 { this.props.primaryCount !== 'files' ? <div className="col-2"></div> : null }
