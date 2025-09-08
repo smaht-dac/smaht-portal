@@ -939,24 +939,23 @@ body[data-path="/"]>#application>#layout {
 												}
 	
 												&:hover {
-													display: flex;
+													display: inline;
 													cursor: pointer;
 													color: #3C71F9;
 	
 													svg {
-														display: flex;
+														display: inline-flex;
+														vertical-align: text-top;
 														fill: #3C71F9;
 														width: 12px;
 														margin-left: 4px;
 													}
 												}
 											}
-
-											.tissue-list {
+	
+											ul {
 												margin-top: 0px;
 												padding-left: 1rem;
-												list-style-type: none;
-												padding-left: 20px;
 
 												li {
 													font-weight: 300;
@@ -970,23 +969,12 @@ body[data-path="/"]>#application>#layout {
 														&:hover {
 															text-decoration: underline;
 														}
-													}													
+													}
+													
 												}
 											}
 										}
 
-										.toggle-button {
-											&.donor {
-												background-color: transparent;
-												border: none;
-												color: #2A28BD;
-											}
-											&.tissue {
-												background-color: transparent;
-												border: none;
-												color: #2A28BD;
-											}
-										}
 									}
 									&:before {
 										content: "";

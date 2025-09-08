@@ -2,8 +2,13 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import queryString from 'query-string';
 import _ from 'underscore';
-import { Modal, Tabs, Tab } from 'react-bootstrap';
+import { Modal, Tabs, Tab, OverlayTrigger } from 'react-bootstrap';
 import ReactTooltip from 'react-tooltip';
+
+import {
+    renderLoginAccessPopover,
+    renderProtectedAccessPopover,
+} from '../../item-pages/PublicDonorView';
 
 import {
     ajax,
@@ -15,49 +20,47 @@ import {
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { display as dateTimeDisplay } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 
-export const SelectAllAboveTableComponent = React.memo(
-    function SelectAllAboveTableComponent(props) {
-        const {
-            href,
-            searchHref,
-            context,
-            onFilter,
-            schemas,
-            isContextLoading = false, // Present only on embedded search views,
-            navigate,
-            sortBy,
-            sortColumns,
-            hiddenColumns,
-            addHiddenColumn,
-            removeHiddenColumn,
-            columnDefinitions,
-            session,
-            selectedItems, // From SelectedItemsController
-            onSelectItem, // From SelectedItemsController
-            onResetSelectedItems, // From SelectedItemsController
-        } = props;
-        const { filters: ctxFilters = null, total: totalResultCount = 0 } =
-            context || {};
+export const SelectAllAboveTableComponent = (props) => {
+    const {
+        href,
+        searchHref,
+        context,
+        onFilter,
+        schemas,
+        isContextLoading = false, // Present only on embedded search views,
+        navigate,
+        sortBy,
+        sortColumns,
+        hiddenColumns,
+        addHiddenColumn,
+        removeHiddenColumn,
+        columnDefinitions,
+        session,
+        selectedItems, // From SelectedItemsController
+        onSelectItem, // From SelectedItemsController
+        onResetSelectedItems, // From SelectedItemsController
+        deniedAccessPopoverType,
+    } = props;
+    const { filters: ctxFilters = null, total: totalResultCount = 0 } =
+        context || {};
 
-        const selectedFileProps = {
-            selectedItems, // From SelectedItemsController
-            onSelectItem, // From SelectedItemsController
-            onResetSelectedItems, // From SelectedItemsController
-        };
+    const selectedFileProps = {
+        selectedItems, // From SelectedItemsController
+        onSelectItem, // From SelectedItemsController
+        onResetSelectedItems, // From SelectedItemsController
+    };
 
-        return (
-            <div className="d-flex w-100 mb-05">
-                <div className="col-auto ms-0 ps-0">
-                    <span className="text-400" id="results-count">
-                        {totalResultCount}
-                    </span>{' '}
-                    Results
-                </div>
-                <div className="ms-auto col-auto me-0 pe-0">
-                    <SelectAllFilesButton
-                        {...selectedFileProps}
-                        {...{ context }}
-                    />
+    return (
+        <div className="d-flex w-100 mb-05">
+            <div className="col-auto ms-0 ps-0">
+                <span className="text-400" id="results-count">
+                    {totalResultCount}
+                </span>{' '}
+                Results
+            </div>
+            <div className="ms-auto col-auto me-0 pe-0">
+                <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
+                {session ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
@@ -67,11 +70,29 @@ export const SelectAllAboveTableComponent = React.memo(
                         <i className="icon icon-download fas me-03" />
                         Download {selectedItems.size} Selected Files
                     </SelectedItemsDownloadButton>
-                </div>
+                ) : (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="top"
+                        overlay={
+                            deniedAccessPopoverType === 'login'
+                                ? renderLoginAccessPopover()
+                                : deniedAccessPopoverType === 'protected'
+                                ? renderProtectedAccessPopover()
+                                : null
+                        }>
+                        <button
+                            className="btn btn-primary btn-sm me-05 align-items-center pe-auto"
+                            disabled={true}>
+                            <i className="icon icon-download fas me-03" />
+                            Download {selectedItems.size} Donor Manifests
+                        </button>
+                    </OverlayTrigger>
+                )}
             </div>
-        );
-    }
-);
+        </div>
+    );
+};
 
 const SELECT_ALL_LIMIT = 8000;
 
