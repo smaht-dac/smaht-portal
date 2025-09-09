@@ -194,7 +194,7 @@ const LeftNavGuest = React.memo(function LeftNavGuest(props) {
             <DataNavItem {...props} />
             <DocsNavItem {...props} />
             <AboutNavItem {...props} />
-            <DocsNavItem {...props} />
+            <ResourcesNavItem {...props} />
         </div>
     );
 });
