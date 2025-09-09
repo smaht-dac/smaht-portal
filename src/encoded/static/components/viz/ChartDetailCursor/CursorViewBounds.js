@@ -290,7 +290,7 @@ export default class CursorViewBounds extends React.PureComponent {
                         _.pick(this, 'onNodeMouseEnter', 'onNodeMouseLeave', 'onNodeClick')
                     ))
                 }
-                <ChartDetailCursor {..._.pick(this.props, 'windowWidth', 'windowHeight', 'href', 'schemas')} ref={this.cursorRef} />
+                <ChartDetailCursor {..._.pick(this.props, 'windowWidth', 'windowHeight', 'href', 'schemas', 'mapping')} ref={this.cursorRef} />
             </div>
         );
     }

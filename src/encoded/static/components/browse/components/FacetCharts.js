@@ -133,6 +133,13 @@ export class FacetCharts extends React.PureComponent {
         return props.views[0]; // Default
     }
 
+    titleMapping = {
+        'all' : 'Explore Files',
+        'donor' : 'Explore Donors',
+        'protected-donor' : 'Explore Donors',
+        'file' : 'Explore Files'
+    };
+
     /** Defines buttons/actions to be shown in onHover popover. */
     cursorDetailActions(){
         const { href, browseBaseState, context, mapping = 'all' } = this.props;
@@ -140,7 +147,7 @@ export class FacetCharts extends React.PureComponent {
         const currDonorFilters = searchFilters.contextFiltersToExpSetFilters(context && context.filters);
         return [
             {
-                'title' : isBrowseHref ? 'Explore' + (mapping === 'donor' || mapping === 'protected-donor' ? ' Donors' : '') : 'Browse',
+                'title' : isBrowseHref && this.titleMapping[mapping] ? this.titleMapping[mapping] : 'Browse',
                 'function' : function(cursorProps, mouseEvt){
                     var baseParams = navigate.getBrowseBaseParams(browseBaseState, mapping),
                         browseBaseHref = navigate.getBrowseBaseHref(baseParams, mapping);
