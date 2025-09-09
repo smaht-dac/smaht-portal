@@ -785,6 +785,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
         'sample_summary.studies',
         'submission_centers.display_title',
         'software.display_title',
+        'tags',
     ];
 
     return { columnExtensionMap, columns, hideFacets };
