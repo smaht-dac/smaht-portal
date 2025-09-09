@@ -145,7 +145,8 @@ def recent_files_summary(request: PyramidRequest,
         base_query_arguments = {
             "type": types if types else None,
             "status": statuses if statuses else None,
-            "data_category": categories if categories else None
+            "data_category": categories if categories else None,
+            'sample_summary.studies': ['Production']
         }
 
         return {key: value for key, value in base_query_arguments.items() if value is not None}
