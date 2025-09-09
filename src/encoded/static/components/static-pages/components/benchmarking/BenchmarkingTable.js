@@ -262,6 +262,7 @@ export const BenchmarkingTable = (props) => {
                     'donors.display_title',
                     'donors.age',
                     'donors.sex',
+                    'donors.hardy_scale',
                     'sample_summary.tissues',
                     'date_created',
                 ]
