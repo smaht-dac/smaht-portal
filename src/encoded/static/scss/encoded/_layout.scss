@@ -223,7 +223,8 @@ body:not([data-at-type*='Error']) #page-title-container.static-page-title {
 
 // Render page title for donor browse pages
 body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-current-action="edit"]):not([data-at-type*="Error"]) {
-	&[data-at-type="DonorSearchResults"] #page-title-container {
+	&[data-at-type="DonorSearchResults"] #page-title-container,
+	&[data-at-type="ProtectedDonorSearchResults"] #page-title-container {
 		background: url('/static/img/polygon-bg-header-donor.svg'), linear-gradient(175deg, rgba(240, 251, 255, 0.5), rgba(165, 158, 240, 0.25)), #F5F9FD;
 		background-size: cover;
 	}

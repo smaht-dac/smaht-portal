@@ -903,11 +903,15 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 		.search-view-controls-and-results {
 			.facets-column {
 				.facets-header {
-					background-color: #F4F3FD;
-
-					.icon-toggle button[aria-pressed=true] {
-						background-color: #C4C1E0;
+					
+					&[data-excluding="false"] {
+						background-color: #F4F3FD;
+						
+						.icon-toggle button[aria-pressed=true] {
+							background-color: #C4C1E0;
+						}
 					}
+
 				}
 			}
 
