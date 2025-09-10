@@ -813,7 +813,12 @@ const BrowseProtectedDonorSearchTable = (props) => {
         onResetSelectedItems, // From SelectedItemsController
     };
 
-    const passProps = props;
+    const passProps = {
+        ...props,
+        customColumnSearchHref: (result) =>
+            '/peek-metadata/?additional_facet=file_size&type=File&donors.display_title=' +
+            result?.display_title,
+    };
 
     const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
     const aboveTableComponent = (

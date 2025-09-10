@@ -768,6 +768,10 @@ const BrowseDonorSearchTable = (props) => {
             clear_filters:
                 '/browse/?type=Donor&study=Production&tags=has_released_files',
         },
+        // Provide a search for populating custom column(s)
+        customColumnSearchHref: (result) =>
+            '/peek-metadata/?additional_facet=file_size&type=File&donors.display_title=' +
+            result?.display_title,
     };
 
     const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;

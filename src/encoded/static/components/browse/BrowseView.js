@@ -506,6 +506,9 @@ export function createBrowseFileColumnExtensionMap({
         donors: {
             widthMap: { lg: 102, md: 102, sm: 102 },
             render: function (result, parentProps) {
+                // Determine if user is consortium member from parent props
+                // to decide whether to link to protected donor or public donor
+                const { isConsortiumMember = false } = parentProps || {};
                 const {
                     donors: {
                         0: {
@@ -519,7 +522,11 @@ export function createBrowseFileColumnExtensionMap({
                 return donorLink ? (
                     <a
                         target="_blank"
-                        href={protected_donor?.['@id'] ?? donorLink}>
+                        href={
+                            isConsortiumMember
+                                ? protected_donor?.['@id']
+                                : donorLink
+                        }>
                         {display_title}
                     </a>
                 ) : null;
