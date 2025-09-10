@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
+import { useIsConsortiumMember } from '../../../util/hooks';
+
 export const BigDropdownBigLink = (props) => {
     const {
         children,
@@ -13,39 +15,9 @@ export const BigDropdownBigLink = (props) => {
         disabled,
         protectedHref,
         href,
-        checkUserPermissions,
         ...passProps // Contains: `href`, `rel`, `onClick`, etc.
     } = props;
-    const [isConsortiumMember, setIsConsortiumMember] = useState(false);
-
-    // Note: should abstract and place in a custom hook
-    useEffect(() => {
-        if (props?.checkUserPermissions) {
-            // Request session information
-            ajax.load(
-                `/session-properties`,
-                (resp) => {
-                    console.log('checking for permission', resp);
-                    // Check if user is a member of SMaHT consortium
-                    const isConsortiumMember =
-                        resp?.details?.consortia?.includes(
-                            '358aed10-9b9d-4e26-ab84-4bd162da182b'
-                        );
-                    setIsConsortiumMember(isConsortiumMember);
-                },
-                'GET',
-                (err) => {
-                    if (err.notification !== 'No results found') {
-                        console.log(
-                            'ERROR determining user consortium membership',
-                            err
-                        );
-                    }
-                    setIsConsortiumMember(false);
-                }
-            );
-        }
-    }, []);
+    const isConsortiumMember = useIsConsortiumMember(props.session);
 
     // Determine proper href to send users to
     const hrefToUse = disabled

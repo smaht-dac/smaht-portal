@@ -14,6 +14,7 @@ import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/co
 
 import { OverlayTrigger } from 'react-bootstrap';
 import { renderProtectedAccessPopover } from './PublicDonorView';
+import { useIsConsortiumMember } from '../util/hooks';
 
 // Page containing the details of Items of type File
 export default class FileOverview extends DefaultItemView {
@@ -72,7 +73,7 @@ const FileViewTitle = (props) => {
     ) {
         currentBreadcrumb.display_title = 'Browse by File';
         currentBreadcrumb.href =
-            '/browse/?type=File&sample_summary.studies=Production&status=released';
+            '/browse/?type=File&sample_summary.studies=Production';
         breadcrumbs = [...breadcrumbs, currentBreadcrumb];
     } else if (
         context?.sample_summary?.studies?.some(
@@ -113,7 +114,7 @@ const FileViewTitle = (props) => {
 
 // Header component containing high-level information for the file item
 const FileViewHeader = (props) => {
-    const { context = {}, session } = props;
+    const { context = {}, session, isConsortiumMember } = props;
     const {
         accession,
         status,
@@ -174,7 +175,7 @@ const FileViewHeader = (props) => {
         <div className="file-view-header">
             <div className="data-group data-row header">
                 <h1 className="header-text">File Overview</h1>
-                {session ? (
+                {isConsortiumMember ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         className="btn btn-primary btn-sm me-05 align-items-center"
@@ -191,7 +192,7 @@ const FileViewHeader = (props) => {
                         placement="top"
                         overlay={renderProtectedAccessPopover()}>
                         <button
-                            className="btn btn-primary btn-sm me-05 align-items-center pe-auto download-file-button"
+                            className="btn btn-primary btn-sm me-05 align-items-center pe-auto download-button"
                             disabled={true}>
                             <i className="icon icon-download fas me-03" />
                             Download File
@@ -310,13 +311,22 @@ const FileViewHeader = (props) => {
 /** Top-level component for the File Overview Page */
 const FileView = React.memo(function FileView(props) {
     const { context, session, href } = props;
+    const isConsortiumMember = useIsConsortiumMember(session);
+
     return (
         <div className="file-view">
             <FileViewTitle context={context} session={session} href={href} />
             <div className="view-content">
-                <FileViewHeader context={context} session={session} />
+                <FileViewHeader
+                    context={context}
+                    session={session}
+                    isConsortiumMember={isConsortiumMember}
+                />
                 <FileViewDataCards context={context} />
-                <FileViewTabs {...props} />
+                <FileViewTabs
+                    {...props}
+                    isConsortiumMember={isConsortiumMember}
+                />
             </div>
         </div>
     );

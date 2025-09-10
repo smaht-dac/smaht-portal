@@ -236,21 +236,17 @@ function CustomStaticLinks({ pathName, href, session }) {
                         </h3>
                         <hr className="mb-0" />
                         <BigDropdownBigLink
-                            href="/browse/?type=File&sample_summary.studies=Production&status=released&status=public-restricted&status=public"
+                            href="/browse/?type=File&sample_summary.studies=Production"
                             titleIcon="file fas"
                             className="primary-big-link is-fa-icon">
                             <h4 className="text-large">Browse By File</h4>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
-                            // Note: the status of the public href should be "public"
-                            href="/browse/?type=Donor&study=Production&status=public&status=public-restricted&tags=has_released_files"
-                            // Note: the status of ProtectedDonor should be "released" at most
-                            // Assumes that even if public ProtectedDonors exist, they should not be shown
-                            protectedHref="/browse/?type=ProtectedDonor&study=Production&status=released&tags=has_released_files"
+                            session={session}
+                            href="/browse/?type=Donor&study=Production&tags=has_released_files"
+                            protectedHref="/browse/?type=ProtectedDonor&study=Production&tags=has_released_files"
                             titleIcon="users fas"
-                            className="primary-big-link is-fa-icon"
-                            checkUserPermissions={true} // Check if user permissions allow greater access
-                        >
+                            className="primary-big-link is-fa-icon">
                             <h4 className="text-large">Browse By Donor</h4>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
@@ -266,19 +262,6 @@ function CustomStaticLinks({ pathName, href, session }) {
                                 </span>
                             </h4>
                         </BigDropdownBigLink>
-                        {/* <BigDropdownBigLink
-                            disabled
-                            href=""
-                            titleIcon="dna fas"
-                            className="primary-big-link is-fa-icon bottom-edge-child">
-                            <h4 className="text-large">
-                                Browse By Assay
-                                <span className="text-300 fst-italic text-medium">
-                                    {' '}
-                                    - Coming Soon
-                                </span>
-                            </h4>
-                        </BigDropdownBigLink> */}
                     </div>
                     <div className="col-12 col-xl gx-0 mt-md-2 mt-lg-0">
                         <h3 className="mt-2 text-400 text-larger">

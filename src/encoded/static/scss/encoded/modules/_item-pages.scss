@@ -1362,9 +1362,9 @@ File and Donor Overview Styles
 						height: 31px;
 						font-size: 0.875rem;
 						font-weight: 500;
-						padding: 0px 20px;
 						display: flex;
 						align-items: center;
+						gap: 5px;
 	
 						i {
 							margin-right: 10px;
@@ -1373,6 +1373,11 @@ File and Donor Overview Styles
 						&:disabled {
 							background-color: #C0C7D2;
 							border: 1px solid #B6C1D1;
+							pointer-events: auto;
+
+							&:hover {
+								cursor: default;
+							}
 						}
 					}
 				}

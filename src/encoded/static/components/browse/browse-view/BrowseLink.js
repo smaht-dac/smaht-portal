@@ -33,14 +33,13 @@ export const BrowseLink = (props) => {
         if (session && isConsortiumMember) {
             // Only include released files (assume ProtectedDonor items should not be public)
             hrefToUse =
-                '/browse/?type=ProtectedDonor&study=Production&status=released&tags=has_released_files';
+                '/browse/?type=ProtectedDonor&study=Production&tags=has_released_files';
         } else {
             hrefToUse =
-                '/browse/?type=Donor&study=Production&status=public&status=public-restricted&tags=has_released_files';
+                '/browse/?type=Donor&study=Production&tags=has_released_files';
         }
     } else if (type === 'File') {
-        hrefToUse =
-            '/browse/?type=File&sample_summary.studies=Production&status=public&status=public-restricted&status=released';
+        hrefToUse = '/browse/?type=File&sample_summary.studies=Production';
     }
 
     return (

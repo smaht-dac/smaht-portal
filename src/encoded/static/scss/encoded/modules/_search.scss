@@ -880,6 +880,7 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 		font-weight: 500;
 		display: flex;
 		align-items: center;
+		gap: 5px;
 
 		i {
 			margin-right: 10px;
@@ -888,6 +889,11 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 		&:disabled {
 			background-color: #C0C7D2;
 			border: 1px solid #B6C1D1;
+			pointer-events: auto;
+
+			&:hover {
+				cursor: default;
+			}
 		}
 	}
 

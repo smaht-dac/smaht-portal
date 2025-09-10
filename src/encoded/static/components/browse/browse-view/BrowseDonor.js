@@ -418,18 +418,14 @@ export function createBrowseDonorColumnExtensionMap({
                     handleCellClick,
                 } = parentProps;
 
-                const { data, loading, error } = parentProps?.fetchedProps;
+                const { data, loading } = parentProps?.fetchedProps;
 
                 const tissueCount = data?.find(
                     (f) => f.field === 'sample_summary.tissues'
                 )?.terms?.length;
 
                 if (loading) {
-                    return (
-                        <span className="value text-center loading">
-                            {/* <i className="icon icon-circle-notch icon-spin fas"></i> */}
-                        </span>
-                    );
+                    return <span className="value text-center loading"></span>;
                 } else {
                     return tissueCount ? (
                         <div
@@ -510,11 +506,7 @@ export function createBrowseDonorColumnExtensionMap({
                     );
 
                 if (loading) {
-                    return (
-                        <span className="value text-center loading">
-                            {/* <i className="icon icon-circle-notch icon-spin fas"></i> */}
-                        </span>
-                    );
+                    return <span className="value text-center loading"></span>;
                 } else {
                     return assayCount ? (
                         <div
@@ -784,30 +776,32 @@ const BrowseDonorSearchTable = (props) => {
             topLeftChildren={
                 <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
             }>
-            {session && <DonorMetadataDownloadButton session={session} />}
-            {session && isConsortiumMember ? (
-                <SelectedItemsDownloadButton
-                    id="download_tsv_multiselect"
-                    disabled={selectedItems.size === 0}
-                    className="btn btn-primary btn-sm me-05 align-items-center"
-                    {...{ selectedItems, session }}
-                    analyticsAddItemsToCart>
-                    <i className="icon icon-download fas me-03" />
-                    Download {selectedItems.size} Donor Manifests
-                </SelectedItemsDownloadButton>
-            ) : (
-                <OverlayTrigger
-                    trigger={['hover', 'focus']}
-                    placement="top"
-                    overlay={renderProtectedAccessPopover()}>
-                    <button
-                        className="btn btn-primary btn-sm me-05 align-items-center download-button"
-                        disabled={true}>
+            <div className="d-flex gap-2">
+                {session && <DonorMetadataDownloadButton session={session} />}
+                {session && isConsortiumMember ? (
+                    <SelectedItemsDownloadButton
+                        id="download_tsv_multiselect"
+                        disabled={selectedItems.size === 0}
+                        className="btn btn-primary btn-sm me-05 align-items-center"
+                        {...{ selectedItems, session }}
+                        analyticsAddItemsToCart>
                         <i className="icon icon-download fas me-03" />
                         Download {selectedItems.size} Donor Manifests
-                    </button>
-                </OverlayTrigger>
-            )}
+                    </SelectedItemsDownloadButton>
+                ) : (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="top"
+                        overlay={renderProtectedAccessPopover()}>
+                        <button
+                            className="btn btn-primary btn-sm me-05 align-items-center download-button"
+                            disabled={true}>
+                            <i className="icon icon-download fas me-03" />
+                            Download {selectedItems.size} Donor Manifests
+                        </button>
+                    </OverlayTrigger>
+                )}
+            </div>
         </BrowseViewAboveSearchTableControls>
     );
 
