@@ -17,23 +17,99 @@ from dcicutils import ff_utils
 
 log = structlog.getLogger(__name__)
 
-##################################################################
-##################################################################
-##
-##  create-bulk-donor-metdata will grab the full donor metadata
-##  from the portal and write out to an output TSV file.
-##  Can take either a list of Donor accession IDs/uuids, a search query on Donor,
-##  or both and generate the Bulk Donor Manifest file containing the full 
-##  protected donor metadata for the selected donors.
-##  NOTE: Will only include TPC-submitted Benchmarking and Production donors
-##  in the file ,others are filtered out
-##
-##################################################################
-##################################################################
+"""
+Bulk Donor Manifest Generator
+=============================
 
-DEFAULT_SEARCH = "search/?type=Donor&study=Benchmarking&study=Production"
-ITEM_TYPES = [
-    "Donor",
+This script retrieves donor metadata from the portal and generates a bulk
+donor manifest in TSV format. The manifest can be tailored using donor
+identifiers, a donor search query, or (if neither is provided) a default
+search. 
+
+Only TPC-submitted Benchmarking and Production donors are included in the
+output, even if other donors are supplied via search or identifiers.
+
+By default, the manifest includes protected donor properties. Use the
+--public/p flag to restrict the output to public donor properties only.
+
+Usage
+-----
+    python create_bulk_donor_manifest.py --env <environment> --output <output_file> [options]
+
+Required Arguments
+------------------
+    --env, -e
+        Environment name from your .smaht_keys.json file (e.g. data, devtest).
+    --output, -o
+        Path to the output TSV file that will contain the bulk donor manifest.
+
+Optional Arguments
+------------------
+    --search, -s
+        A search query string for retrieving donors, e.g.
+        "search/?type=Donor&study=Benchmarking".
+        Can be combined with --donors, or omitted to use the default search.
+    --donors, -d
+        A list of donor accession IDs or UUIDs (space-separated).
+        Can be combined with --search, or omitted to use the default search.
+
+    NOTE: If both --search and --donors are provided, donors from both
+    sources are included. If only --donors is provided, only those donors are
+    used and the default search is ignored.
+
+
+    --public, -p
+        Generate a manifest containing only **public donor properties**
+        (derived from the "Donor" item type).
+        Mutually exclusive with --restricted.
+
+    --restricted, -r
+        Generate a manifest containing **Donors with the status 'restricted'**
+        Mutually exclusive with --public.
+        WARNING: This option has no effect when --search or --donors are
+        provided, since those explicitly control which donors are included.
+
+Behavior
+--------
+    * If both --search and --donors are provided, donors from both are included.
+    * If only one of --search or --donors is provided, that source is used.
+    * If neither is provided, a default search query is constructed:
+    * The --public option restricts the manifest to public donor properties only, 
+        however, if a search or donor IDs are provided the public metadata for those
+        donors will be added to the manifest regardless of the status of those donors.
+
+Output
+------
+    The output is a tab-separated values (TSV) file containing donor metadata,
+    with columns determined by the selected mode (public vs restricted).
+    Some property names are adjusted for clarity (e.g.,
+    "MedicalHistory.height" becomes "MedicalHistory.height_m").
+
+Examples
+--------
+    # Generate a manifest containing protected data from the default Benchmarking/Production search
+    create_bulk_donor_manifest.py -e data -o donors.tsv
+
+    # Generate a public manifest for devtest from 2 specific donors using IDs
+    create_bulk_donor_manifest.py -e devtest -o donors.tsv -p -d SMADOZMJG4G1 SMADOQLTKYL4
+
+    # Generate a manifest that includes donors with status=restricted
+    create_bulk_donor_manifest.py --env data --output donors.tsv --restricted
+
+    # Generate a manifest from a specific search query
+    create_bulk_donor_manifest.py --env data --output donors.tsv --search "search/?type=ProtectedDonor&study=Benchmarking"
+    WARNING: if creating a protected manifest from a specific search query searching for ProtectedDonor is recommended
+    to avoid exceptions caused by Donors not linked to ProtectedDonor items.
+"""
+
+
+DEFAULT_STATUS = "public-restricted"
+PUBLIC_STATUS = "public"
+RESTRICTED_STATUS = "restricted"
+DEFAULT_SEARCH_STEM = "search/?study=Benchmarking&study=Production"
+PUBLIC_ITEM_TYPES = ["Donor"]  # Top level item must be first - i.e. Donor
+PROTECTED_ITEM_TYPES = [  # Top level item must be first - i.e. ProtectedDonor
+    "ProtectedDonor",
     "Demographic",
     "DeathCircumstances",
     "MedicalHistory",
@@ -46,18 +122,20 @@ ITEM_TYPES = [
 
 IGNORED_PROPERTIES = [
     "accession",
-    "uuid",
-    "tags",
-    "submitted_id",
-    "date_created",
-    "submitted_by",
-    "status",
-    "schema_version",
-    "last_modified",
-    "submission_centers",
-    "consortia",
     "alternate_accessions",
-    "protocols"
+    "consortia",
+    "date_created",
+    "eligibility",
+    "last_modified",
+    "protocols",
+    "schema_version",
+    "status",
+    "submission_centers",    
+    "submitted_by",
+    "submitted_id",    
+    "tags",
+    "tpc_submitted",
+    "uuid",    
 ]
 
 CHANGED_COLUMNS = {
@@ -74,35 +152,41 @@ CHANGED_COLUMNS = {
 
 
 def create_bulk_donor_manifest(
-    search: str,
     output: str,
     auth_key: Dict[str, str],
+    search: Optional[str] = None,
     identifiers: Optional[List[str]] = None,
+    public: bool = False,
 ) -> None:
     """Create bulk donor manifest file for given donors."""
 
     request_handler = RequestHandler(auth_key=auth_key)
-    donors = get_donors(search, request_handler, identifiers)
+    # import pdb; pdb.set_trace()
+    donors = get_donors(request_handler, search, identifiers)
     log.info(f"Found {len(donors)} Benchmarking and Production donors to process")
     schemas = ff_utils.get_schemas(key=auth_key)
     log.info("Generating bulk donor manifest")
-    bulk_donor_manifest = get_bulk_donor_manifest(donors, schemas, request_handler)
+    bulk_donor_manifest = get_bulk_donor_manifest(donors, schemas, request_handler, public)
     log.info(f"Writing out bulk donor manifest to {output}")
     write_bulk_donor_manifest(bulk_donor_manifest, output)
 
+
 def get_donors(
-    search: str,
     request_handler: RequestHandler,
+    search: Optional[str] = None,
     identifiers: Optional[List[str]] = None,
 ) -> List[Dict[str, Any]]:
     """Get donor items from given search query and idenitfiers."""
+    auth_key = request_handler.auth_key
+    donors = []
+    #import pdb; pdb.set_trace()
+    if search:
+        donors += get_donors_from_search(search, auth_key)
     if identifiers:
-        return get_donors_from_search(
-            search, request_handler.auth_key
-        ) + get_donors_from_identifiers(identifiers, request_handler)
-    return get_donors_from_search(
-            search, request_handler.auth_key
-        )
+        donors += get_donors_from_identifiers(identifiers, request_handler)
+    # remove duplicates
+    return list({d["uuid"]: d for d in donors}.values())
+
 
 def get_donors_from_search(search_query: str, auth_key: Dict[str, str]) -> List[str]:
     """Get donor items from given search query."""
@@ -126,7 +210,7 @@ def get_items_from_search_query(
 
 def filter_donors(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Get Benchmarking and Productino donors from given items."""
-    return [item for item in items if donor_utils.is_donor(item) and donor_utils.get_study(item)]
+    return [item for item in items if donor_utils.is_abstract_donor(item) and donor_utils.get_study(item)]
 
 
 def get_donors_from_identifiers(
@@ -140,30 +224,36 @@ def get_donors_from_identifiers(
 def get_bulk_donor_manifest(
         donors: List[Dict[str, Any]],
         schemas: Dict[str, Any],
-        request_handler: RequestHandler
+        request_handler: RequestHandler,
+        public: bool = False
     ) -> pd.DataFrame:
         """Generate dataframe of bulk donor manifest from list of donors."""
-        kept_properties = get_kept_properties(schemas)
+        kept_properties = get_kept_properties(schemas, public)
+        #import pdb; pdb.set_trace()
         donor_manifest = pd.DataFrame(columns=kept_properties)
         external_ids = [item_utils.get_external_id(donor) for donor in donors]
         medical_histories = get_medical_histories(external_ids, request_handler)
         for idx, donor in enumerate(donors):
             medical_history = medical_histories[idx]
             donor_manifest = generate_manifest_row(
-                donor_manifest, idx, donor, medical_history, kept_properties, request_handler
+                donor_manifest, idx, donor, medical_history, kept_properties, request_handler, public
             )
         return donor_manifest
 
 
-def get_kept_properties(schemas: Dict[str, Any]) -> List[str]:
+def get_kept_properties(schemas: Dict[str, Any], public: bool = False) -> List[str]:
     """Get properties that are included in the bulk manifest from the schema."""
     all_kept_properties = []
-    for item_type in ITEM_TYPES:
+    # import pdb; pdb.set_trace()
+    item_types = PROTECTED_ITEM_TYPES
+    if public:
+        item_types = PUBLIC_ITEM_TYPES
+    for item_type in item_types:
         kept_properties = []
-        if item_type == "Donor":
-            kept_properties+= [f"{item_type}.accession"]
-        kept_properties  += [f"{item_type}.{prop}" for prop in schemas[item_type]['properties'].keys() if prop not in IGNORED_PROPERTIES and 'calculatedProperty' not in schemas[item_type]['properties'][prop] and 'linkTo' not in schemas[item_type]['properties'][prop]]
-        all_kept_properties+=kept_properties
+        if item_type == PUBLIC_ITEM_TYPES[0] or item_type == PROTECTED_ITEM_TYPES[0]:
+            kept_properties += [f"{item_type}.accession"]
+        kept_properties += [f"{item_type}.{prop}" for prop in schemas[item_type]['properties'].keys() if prop not in IGNORED_PROPERTIES and 'calculatedProperty' not in schemas[item_type]['properties'][prop] and 'linkTo' not in schemas[item_type]['properties'][prop]]
+        all_kept_properties += kept_properties
     modified_properties = [CHANGED_COLUMNS[prop] if prop in CHANGED_COLUMNS.keys() else prop for prop in all_kept_properties ]
     return modified_properties
 
@@ -198,9 +288,13 @@ def generate_manifest_row(
         donor: str,
         medical_history: Dict[str, Any],
         kept_properties: List[str],
-        request_handler: RequestHandler
+        request_handler: RequestHandler,
+        public: bool = False
     ):
     """Generate row for manifest."""
+    donor_type = "ProtectedDonor"
+    if public:
+        donor_type = "Donor"
     donor_external_id = item_utils.get_external_id(donor)
     mh_submitted_id = item_utils.get_submitted_id(medical_history)
     donor_search_dict = {
@@ -214,7 +308,7 @@ def generate_manifest_row(
         "Diagnosis": f"search/?type=Diagnosis&medical_history={mh_submitted_id}&frame=raw",
         "MedicalTreatment": f"search/?type=MedicalTreatment&medical_history={mh_submitted_id}&frame=raw",
     }
-    donor_manifest = add_row_from_item(donor_manifest, idx, "Donor", [donor], kept_properties)
+    donor_manifest = add_row_from_item(donor_manifest, idx, donor_type, [donor], kept_properties)
     donor_manifest = add_row_from_item(donor_manifest, idx, "MedicalHistory", [medical_history], kept_properties)
     donor_manifest = add_row_from_search(donor_manifest, idx, donor_search_dict, kept_properties, request_handler)
     donor_manifest = add_row_from_search(donor_manifest, idx, mh_search_dict, kept_properties, request_handler)
@@ -312,15 +406,13 @@ def main() -> None:
     parser.add_argument(
         "--search",
         "-s",
-        help="Search query for donors to create bulk donor manifest",
-        default=[]
+        help="Search query for donors to create bulk donor manifest - format search/?type=Donor",
     )
     parser.add_argument(
         "--donors",
         "-d",
         nargs="*",
         help="Donor identifiers to create bulk donor manifest",
-        default=[],
     )
     parser.add_argument(
         "--env",
@@ -334,16 +426,49 @@ def main() -> None:
         help="Output file name",
         required=True
     )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--public",
+        "-p",
+        action="store_true",
+        default=False,
+        help="Create public manifest (only public donor properties)",
+    )
+    group.add_argument(
+        "--restricted",
+        "-r",
+        action="store_true",
+        default=False,
+        help="Create restricted manifest (includes restricted donors) WARNING: Has no effect when --search or --donors are provided."
+    )
     args = parser.parse_args()
     auth_key = get_auth_key(args.env)
-    if not args.search and not args.donors:
-        args.search="search/?type=Donor&study=Benchmarking&study=Production"
-        log.info(f"Using default search {DEFAULT_SEARCH}")
+    # support providing both search and donors, but if only one is provided
+    # use that preferentially and if neither use default search based on public or not
+    if args.restricted and (args.search or args.donors):
+        log.warning("WARNING: --restricted has no effect when --search or --donors are provided.")
+    if args.donors:
+        if not args.search:
+            search_query = None
+    elif not args.search:
+        # default to default search based on public or not
+        search_query = DEFAULT_SEARCH_STEM
+        if args.public:
+            search_query += f"&type={PUBLIC_ITEM_TYPES[0]}&status={PUBLIC_STATUS}"
+        else:
+            search_query += f"&type={PROTECTED_ITEM_TYPES[0]}&status={DEFAULT_STATUS}"
+            if args.restricted:
+                search_query += f"&status={RESTRICTED_STATUS}"
+        log.info(f"Using default search {search_query} to get donors")
+    else:
+        search_query = args.search
+    # import pdb; pdb.set_trace()
     create_bulk_donor_manifest(
-        args.search,
         args.output,
         auth_key,
+        search_query,
         args.donors,
+        args.public,
     )
 
 
