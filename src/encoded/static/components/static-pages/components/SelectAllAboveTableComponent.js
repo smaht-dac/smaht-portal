@@ -44,6 +44,8 @@ export const SelectAllAboveTableComponent = (props) => {
     const { filters: ctxFilters = null, total: totalResultCount = 0 } =
         context || {};
 
+    console.log('SelectAllAboveTableComponent ', props);
+
     const selectedFileProps = {
         selectedItems, // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
@@ -58,9 +60,31 @@ export const SelectAllAboveTableComponent = (props) => {
                 </span>{' '}
                 Results
             </div>
-            <div className="ms-auto col-auto me-0 pe-0">
+            <div className="ms-auto col-auto me-0 d-flex pe-0">
                 <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
-                {session ? (
+                {/* Show popover if needed */}
+                {deniedAccessPopoverType === 'login' ||
+                deniedAccessPopoverType === 'protected' ? (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="top"
+                        overlay={
+                            deniedAccessPopoverType === 'login' ? (
+                                renderLoginAccessPopover()
+                            ) : deniedAccessPopoverType === 'protected' ? (
+                                renderProtectedAccessPopover()
+                            ) : (
+                                <></>
+                            )
+                        }>
+                        <button
+                            className="btn btn-primary btn-sm me-05 align-items-center pe-auto download-button"
+                            disabled={true}>
+                            <i className="icon icon-download fas me-03" />
+                            Download {selectedItems.size} Selected Files
+                        </button>
+                    </OverlayTrigger>
+                ) : (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
@@ -70,24 +94,6 @@ export const SelectAllAboveTableComponent = (props) => {
                         <i className="icon icon-download fas me-03" />
                         Download {selectedItems.size} Selected Files
                     </SelectedItemsDownloadButton>
-                ) : (
-                    <OverlayTrigger
-                        trigger={['hover', 'focus']}
-                        placement="top"
-                        overlay={
-                            deniedAccessPopoverType === 'login'
-                                ? renderLoginAccessPopover()
-                                : deniedAccessPopoverType === 'protected'
-                                ? renderProtectedAccessPopover()
-                                : null
-                        }>
-                        <button
-                            className="btn btn-primary btn-sm me-05 align-items-center pe-auto"
-                            disabled={true}>
-                            <i className="icon icon-download fas me-03" />
-                            Download {selectedItems.size} Donor Manifests
-                        </button>
-                    </OverlayTrigger>
                 )}
             </div>
         </div>

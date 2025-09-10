@@ -17,8 +17,14 @@ import { DonorMetadataDownloadButton } from '../BrowseView';
 import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
-import { valueTransforms, ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import {
+    valueTransforms,
+    ajax,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { BrowseDonorVizWrapper } from './BrowseDonorVizWrapper';
+import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { OverlayTrigger } from 'react-bootstrap';
+import { renderProtectedAccessPopover } from '../../item-pages/PublicDonorView';
 
 /**
  * Format tissue data by grouping it into predefined categories.
@@ -801,6 +807,7 @@ const BrowseProtectedDonorSearchTable = (props) => {
         selectedItems,
         onSelectItem,
         onResetSelectedItems,
+        isConsortiumMember,
     } = props;
 
     const facets = transformedFacets(context, currentAction, schemas);
@@ -813,7 +820,12 @@ const BrowseProtectedDonorSearchTable = (props) => {
         onResetSelectedItems, // From SelectedItemsController
     };
 
-    const passProps = props;
+    const passProps = {
+        ...props,
+        customColumnSearchHref: (result) =>
+            '/peek-metadata/?additional_facet=file_size&type=File&donors.display_title=' +
+            result?.display_title,
+    };
 
     const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
     const aboveTableComponent = (
@@ -821,16 +833,32 @@ const BrowseProtectedDonorSearchTable = (props) => {
             topLeftChildren={
                 <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
             }>
-            {session && <DonorMetadataDownloadButton session={session} />}
-            <SelectedItemsDownloadButton
-                id="download_tsv_multiselect"
-                disabled={selectedItems.size === 0}
-                className="btn btn-primary btn-sm me-05 align-items-center"
-                {...{ selectedItems, session }}
-                analyticsAddItemsToCart>
-                <i className="icon icon-download fas me-03" />
-                Download {selectedItems.size} Selected Files
-            </SelectedItemsDownloadButton>
+            <div className="d-flex gap-2">
+                <DonorMetadataDownloadButton session={session} />
+                {session && isConsortiumMember ? (
+                    <SelectedItemsDownloadButton
+                        id="download_tsv_multiselect"
+                        disabled={selectedItems.size === 0}
+                        className="btn btn-primary btn-sm me-05 align-items-center"
+                        {...{ selectedItems, session }}
+                        analyticsAddItemsToCart>
+                        <i className="icon icon-download fas me-03" />
+                        Download {selectedItems.size} Donor Manifests
+                    </SelectedItemsDownloadButton>
+                ) : (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="top"
+                        overlay={renderProtectedAccessPopover()}>
+                        <button
+                            className="btn btn-primary btn-sm me-05 align-items-center download-button"
+                            disabled={true}>
+                            <i className="icon icon-download fas me-03" />
+                            Download {selectedItems.size} Donor Manifests
+                        </button>
+                    </OverlayTrigger>
+                )}
+            </div>
         </BrowseViewAboveSearchTableControls>
     );
 
@@ -869,10 +897,12 @@ export const BrowseProtectedDonorBody = (props) => {
     return (
         <>
             <Alerts alerts={alerts} className="mt-2" />
-            <BrowseDonorVizWrapper {...props} mapping="protected-donor" />           
+            <BrowseDonorVizWrapper {...props} mapping="protected-donor" />
             <hr />
             <BrowseViewControllerWithSelections {...props}>
-                <BrowseProtectedDonorSearchTable />
+                <BrowseProtectedDonorSearchTable
+                    isConsortiumMember={props.isConsortiumMember}
+                />
             </BrowseViewControllerWithSelections>
         </>
     );

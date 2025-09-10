@@ -14,6 +14,7 @@ import {
     PopoverHeader,
     PopoverBody,
 } from 'react-bootstrap';
+import { useIsConsortiumMember } from '../util/hooks';
 
 // Page containing the details of Items of type File
 export default class PublicDonorOverview extends DefaultItemView {
@@ -90,7 +91,8 @@ export const renderProtectedAccessPopover = () => {
 };
 
 // Donor Manifest button with warning Popover
-const PublicDonorDownloadButton = () => {
+const PublicDonorDownloadButton = ({ session }) => {
+    const isConsortiumMember = useIsConsortiumMember(session);
     return (
         <OverlayTrigger
             trigger={['hover', 'focus']}
@@ -124,7 +126,7 @@ const PublicDonorViewHeader = (props) => {
                 <div className="d-flex flex-column flex-grow-1 ms-md-2">
                     <div className="data-group data-row header">
                         {title}
-                        <PublicDonorDownloadButton />
+                        <PublicDonorDownloadButton session={session} />
                     </div>
                     <div className="callout d-inline px-3 py-2 mt-1">
                         <i className="icon icon-file-shield fas"></i>{' '}

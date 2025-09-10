@@ -45,6 +45,7 @@ import { transformedFacets } from './SearchView';
 import { BrowseDonorBody } from './browse-view/BrowseDonor';
 import { BrowseProtectedDonorBody } from './browse-view/BrowseProtectedDonor';
 import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
+import { useIsConsortiumMember } from '../util/hooks';
 
 export default function BrowseView(props) {
     return <BrowseViewBody {...props} />;
@@ -61,7 +62,13 @@ const BrowseFileBody = (props) => {
             <div className="row browse-viz-container">
                 <div className="stats-column col-auto">
                     <BrowseSummaryStatsViewer
-                        {...{ session, href, windowWidth, useCompactFor, mapping: 'all' }}
+                        {...{
+                            session,
+                            href,
+                            windowWidth,
+                            useCompactFor,
+                            mapping: 'all',
+                        }}
                     />
                 </div>
                 <div className="col ps-0">
@@ -120,41 +127,11 @@ const renderBrowseBody = (props) => {
  * @returns
  */
 const BrowseViewContent = (props) => {
-    console.log('props', props);
-    const [isConsortiumMember, setIsConsortiumMember] = useState(false);
     const { session } = props;
+    const isConsortiumMember = useIsConsortiumMember(session);
 
     // Include `isConsortiumMember` in the props passed to child components
     const passProps = { ...props, isConsortiumMember };
-
-    // Note: should abstract and place in a custom hook
-    useEffect(() => {
-        // Only check for consortium membership when user is logged in
-        if (session) {
-            // Request session information
-            ajax.load(
-                `/session-properties`,
-                (resp) => {
-                    // Check if user is a member of SMaHT consortium
-                    const isConsortiumMember =
-                        resp?.details?.consortia?.includes(
-                            '358aed10-9b9d-4e26-ab84-4bd162da182b'
-                        );
-                    setIsConsortiumMember(isConsortiumMember);
-                },
-                'GET',
-                (err) => {
-                    if (err.notification !== 'No results found') {
-                        console.log(
-                            'ERROR determining user consortium membership',
-                            err
-                        );
-                    }
-                    setIsConsortiumMember(false);
-                }
-            );
-        }
-    }, [session]);
 
     return (
         <SlidingSidebarLayout openByDefault={false}>
@@ -207,10 +184,10 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
     const [downloadLink, setDownloadLink] = useState(null);
 
     useEffect(() => {
-        const searchURL =
-            '/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.released_date';
-
         if (session) {
+            const searchURL =
+                '/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.released_date';
+
             ajax.load(
                 searchURL,
                 (resp) => {
@@ -230,6 +207,8 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
                     console.log('Error loading Bulk Donor Metadata button');
                 }
             );
+        } else {
+            setDownloadLink(null);
         }
     }, [session]);
 
@@ -267,7 +246,6 @@ export const BrowseFileSearchTable = (props) => {
         onSelectItem,
         onResetSelectedItems,
     } = props;
-    console.log('browse file search table props', props);
     const facets = transformedFacets(context, currentAction, schemas);
     const tableColumnClassName = 'results-column col';
     const facetColumnClassName = 'facets-column col-auto';
@@ -286,30 +264,32 @@ export const BrowseFileSearchTable = (props) => {
             topLeftChildren={
                 <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
             }>
-            {session && <DonorMetadataDownloadButton session={session} />}
-            {session && props?.isConsortiumMember ? (
-                <SelectedItemsDownloadButton
-                    id="download_tsv_multiselect"
-                    disabled={selectedItems.size === 0}
-                    className="btn btn-primary btn-sm me-05 align-items-center"
-                    {...{ selectedItems, session }}
-                    analyticsAddItemsToCart>
-                    <i className="icon icon-download fas me-03" />
-                    Download {selectedItems.size} Selected Files
-                </SelectedItemsDownloadButton>
-            ) : (
-                <OverlayTrigger
-                    trigger={['hover', 'focus']}
-                    placement="top"
-                    overlay={renderProtectedAccessPopover()}>
-                    <button
+            <div className="d-flex gap-2">
+                <DonorMetadataDownloadButton session={session} />
+                {session && props?.isConsortiumMember ? (
+                    <SelectedItemsDownloadButton
+                        id="download_tsv_multiselect"
+                        disabled={selectedItems.size === 0}
                         className="btn btn-primary btn-sm me-05 align-items-center"
-                        disabled={true}>
+                        {...{ selectedItems, session }}
+                        analyticsAddItemsToCart>
                         <i className="icon icon-download fas me-03" />
-                        Download {selectedItems.size} Donor Manifests
-                    </button>
-                </OverlayTrigger>
-            )}
+                        Download {selectedItems.size} Selected Files
+                    </SelectedItemsDownloadButton>
+                ) : (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="top"
+                        overlay={renderProtectedAccessPopover()}>
+                        <button
+                            className="btn btn-primary btn-sm me-05 align-items-center download-button"
+                            disabled={true}>
+                            <i className="icon icon-download fas me-03" />
+                            Download {selectedItems.size} Selected Files
+                        </button>
+                    </OverlayTrigger>
+                )}
+            </div>
         </BrowseViewAboveSearchTableControls>
     );
 
@@ -555,6 +535,9 @@ export function createBrowseFileColumnExtensionMap({
         donors: {
             widthMap: { lg: 102, md: 102, sm: 102 },
             render: function (result, parentProps) {
+                // Determine if user is consortium member from parent props
+                // to decide whether to link to protected donor or public donor
+                const { isConsortiumMember = false } = parentProps || {};
                 const {
                     donors: {
                         0: {
@@ -568,7 +551,11 @@ export function createBrowseFileColumnExtensionMap({
                 return donorLink ? (
                     <a
                         target="_blank"
-                        href={protected_donor?.['@id'] ?? donorLink}>
+                        href={
+                            isConsortiumMember
+                                ? protected_donor?.['@id']
+                                : donorLink
+                        }>
                         {display_title}
                     </a>
                 ) : null;

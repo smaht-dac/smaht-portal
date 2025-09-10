@@ -886,23 +886,57 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 
 body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-current-action="edit"]):not([data-at-type*="Error"]) {
 
+	// Styles for donwload button
+	.download-button {
+		height: 31px;
+		font-size: 0.875rem;
+		font-weight: 500;
+		display: flex;
+		align-items: center;
+		gap: 5px;
+
+		i {
+			margin-right: 10px;
+		}
+
+		&:disabled {
+			background-color: #C0C7D2;
+			border: 1px solid #B6C1D1;
+			pointer-events: auto;
+
+			&:hover {
+				cursor: default;
+			}
+		}
+	}
+
 	// Donor Browse specific styles
 	&[data-at-type="DonorSearchResults"],
 	&[data-at-type="ProtectedDonorSearchResults"] {
 		.search-view-controls-and-results {
 			.facets-column {
 				.facets-header {
-					background-color: #F4F3FD;
-
-					.icon-toggle button[aria-pressed=true] {
-						background-color: #C4C1E0;
+					
+					&[data-excluding="false"] {
+						background-color: #F4F3FD;
+						
+						.icon-toggle button[aria-pressed=true] {
+							background-color: #C4C1E0;
+						}
 					}
+
 				}
 			}
 
 			.results-column {
 				.search-headers-row {
 					background-color: #F4F3FD;
+
+					.search-headers-column-block {
+						.column-sort-icon {
+							color: #C8C5D7;
+						}
+					}
 				}
 				
 				.search-results-container {
@@ -965,7 +999,7 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 
 									.detail-header {
 										padding: 10px 15px;
-										font-size: 15px;
+										font-size: 1rem;
 
 										.icon {
 											color: #ABA9C1;
