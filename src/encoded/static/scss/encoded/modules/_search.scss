@@ -873,6 +873,24 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 
 body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-current-action="edit"]):not([data-at-type*="Error"]) {
 
+	// Styles for donwload button
+	.download-button {
+		height: 31px;
+		font-size: 0.875rem;
+		font-weight: 500;
+		display: flex;
+		align-items: center;
+
+		i {
+			margin-right: 10px;
+		}
+
+		&:disabled {
+			background-color: #C0C7D2;
+			border: 1px solid #B6C1D1;
+		}
+	}
+
 	// Donor Browse specific styles
 	&[data-at-type="DonorSearchResults"],
 	&[data-at-type="ProtectedDonorSearchResults"] {

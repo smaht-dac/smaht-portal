@@ -177,7 +177,7 @@ const FileViewHeader = (props) => {
                 {session ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
-                        className="btn btn-primary btn-sm me-05 align-items-center download-file-button"
+                        className="btn btn-primary btn-sm me-05 align-items-center"
                         session={session}
                         selectedItems={selectedFile}
                         disabled={false}
@@ -191,7 +191,7 @@ const FileViewHeader = (props) => {
                         placement="top"
                         overlay={renderProtectedAccessPopover()}>
                         <button
-                            className="btn btn-primary btn-sm me-05 align-items-center pe-auto"
+                            className="btn btn-primary btn-sm me-05 align-items-center pe-auto download-file-button"
                             disabled={true}>
                             <i className="icon icon-download fas me-03" />
                             Download File

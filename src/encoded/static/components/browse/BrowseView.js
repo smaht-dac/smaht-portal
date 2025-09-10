@@ -283,10 +283,10 @@ export const BrowseFileSearchTable = (props) => {
                     placement="top"
                     overlay={renderProtectedAccessPopover()}>
                     <button
-                        className="btn btn-primary btn-sm me-05 align-items-center"
+                        className="btn btn-primary btn-sm me-05 align-items-center download-button"
                         disabled={true}>
                         <i className="icon icon-download fas me-03" />
-                        Download {selectedItems.size} Donor Manifests
+                        Download {selectedItems.size} Selected Files
                     </button>
                 </OverlayTrigger>
             )}

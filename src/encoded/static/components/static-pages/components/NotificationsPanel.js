@@ -190,7 +190,7 @@ export const NotificationsPanel = () => {
 
     useEffect(() => {
         ajax.load(
-            '/recent_files_summary?format=json&nmonths=18',
+            '/recent_files_summary?format=json&nmonths=3',
             (resp) => {
                 setData(resp?.items ?? null);
             },

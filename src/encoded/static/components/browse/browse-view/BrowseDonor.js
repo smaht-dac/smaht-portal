@@ -768,7 +768,15 @@ const BrowseDonorSearchTable = (props) => {
         onResetSelectedItems, // From SelectedItemsController
     };
 
-    const passProps = props;
+    // Pass modified context to CommonSearchView to set default filters
+    const passProps = {
+        ...props,
+        context: {
+            ...context,
+            clear_filters:
+                '/browse/?type=Donor&study=Production&tags=has_released_files',
+        },
+    };
 
     const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
     const aboveTableComponent = (
@@ -785,7 +793,7 @@ const BrowseDonorSearchTable = (props) => {
                     {...{ selectedItems, session }}
                     analyticsAddItemsToCart>
                     <i className="icon icon-download fas me-03" />
-                    Download {selectedItems.size} Selected Files
+                    Download {selectedItems.size} Donor Manifests
                 </SelectedItemsDownloadButton>
             ) : (
                 <OverlayTrigger
@@ -793,7 +801,7 @@ const BrowseDonorSearchTable = (props) => {
                     placement="top"
                     overlay={renderProtectedAccessPopover()}>
                     <button
-                        className="btn btn-primary btn-sm me-05 align-items-center"
+                        className="btn btn-primary btn-sm me-05 align-items-center download-button"
                         disabled={true}>
                         <i className="icon icon-download fas me-03" />
                         Download {selectedItems.size} Donor Manifests
