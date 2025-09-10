@@ -157,10 +157,10 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
     const [downloadLink, setDownloadLink] = useState(null);
 
     useEffect(() => {
-        const searchURL =
-            '/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.released_date';
-
         if (session) {
+            const searchURL =
+                '/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.released_date';
+
             ajax.load(
                 searchURL,
                 (resp) => {
@@ -180,6 +180,8 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
                     console.log('Error loading Bulk Donor Metadata button');
                 }
             );
+        } else {
+            setDownloadLink(null);
         }
     }, [session]);
 
@@ -236,7 +238,7 @@ export const BrowseFileSearchTable = (props) => {
                 <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
             }>
             <div className="d-flex gap-2">
-                {session && <DonorMetadataDownloadButton session={session} />}
+                <DonorMetadataDownloadButton session={session} />
                 {session && props?.isConsortiumMember ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"

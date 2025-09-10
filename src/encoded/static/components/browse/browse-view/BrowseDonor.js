@@ -781,7 +781,7 @@ const BrowseDonorSearchTable = (props) => {
                 <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
             }>
             <div className="d-flex gap-2">
-                {session && <DonorMetadataDownloadButton session={session} />}
+                <DonorMetadataDownloadButton session={session} />
                 {session && isConsortiumMember ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
