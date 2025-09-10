@@ -46,7 +46,7 @@ export const UserRegistrationModal = React.memo(function UserRegistrationModal(
     const formHeading = null; // Could customize heading based on whether user is registering via invitation, etc.
 
     return (
-        <Modal show size="modal-dialog modal-lg" onHide={onRegistrationCancel}>
+        <Modal show size="modal-dialog modal-lg user-registration-modal" onHide={onRegistrationCancel}>
             <Modal.Header closeButton>
                 <Modal.Title className="ps-2 d-flex align-items-center" style={{ fontSize: '1.5rem', fontWeight: '600', color: '#343741' }}>
                     <img

@@ -1262,6 +1262,12 @@ body[data-pathname^="/users/"] {
 	color: rgb(229, 149, 69);
 }
 
+.user-registration-modal.modal-lg {
+	@include media-breakpoint-up(lg) {
+		min-width: 900px;
+	}
+}
+
 .user-registration-form-container {
 	.info-panel {
 		border-radius: 7px;

@@ -318,7 +318,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                     <div className="text-300 mb-2 mt-05 info-panel">
                         You have never logged in as <span className="text-600">{unverifiedUserEmail}</span> before.
                     </div>
-                    <div className="mt-1 text-60 ps-1 text-500" style={{ paddingLeft: '10px' }}>Are you a member of the SMaHT Consortium?</div>
+                    <div className="mt-1 text-60 ps-1 text-500" style={{ paddingLeft: '10px' }}>Are you a SMaHT Network member, verified by the SMaHT Organization Center?</div>
                     <div className="d-flex gap-3 mt-2 option-panel flex-column flex-lg-row">
                         <Checkbox
                             checked={isConsortiumMember === true}
@@ -434,7 +434,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                                 <div class="alert alert-danger d-flex align-items-center" role="alert">
                                     <i class="fas icon icon-user-shield me-2 fs-1"></i>
                                     <div>
-                                        <strong>Protected Data Access:</strong> Self-registration will give you access to download open data.
+                                        <strong>Protected Data Access:</strong> Self-registration will give you access to open data and metadata <strong>only</strong>.
                                         <br />
                                         To get access to protected data, sign up with the same institutional email address to dbGAP as well.
                                     </div>
