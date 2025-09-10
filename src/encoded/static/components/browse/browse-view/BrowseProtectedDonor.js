@@ -17,10 +17,6 @@ import { DonorMetadataDownloadButton } from '../BrowseView';
 import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
-import {
-    valueTransforms,
-    ajax,
-} from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { BrowseDonorVizWrapper } from './BrowseDonorVizWrapper';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { OverlayTrigger } from 'react-bootstrap';
