@@ -6,12 +6,14 @@ import _ from 'underscore';
 
 import { BrowseSummaryStatsViewer } from './BrowseSummaryStatController';
 import { FacetCharts } from '../components/FacetCharts';
+import { ChartDataController } from '../../viz/chart-data-controller';
 import DonorCohortViewChart from '../components/DonorCohortViewChart';
 import { renderHardyScaleDescriptionPopover } from '../../item-pages/components/donor-overview/PublicDonorViewDataCards';
 
 import { IconToggle } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Toggle';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { Popover } from 'react-bootstrap';
+import { set } from 'date-fns';
 
 
 /**
@@ -92,17 +94,43 @@ export const BrowseDonorVizWrapper = (props) => {
     } = props;
     const initialFields = ['sample_summary.tissues'];
 
-    useEffect(() => {
-        const dataUrl = '/bar_plot_aggregations/';
-
+    const fileFilters = useMemo(() => {
         const hrefParts = url.parse(href, true);
         const hrefQuery = _.clone(hrefParts.query);
         delete hrefQuery.limit;
         delete hrefQuery.field;
 
+        ChartDataController.transformFilterDonorToFile(hrefQuery);
+        hrefQuery.type = 'File';
+
+        return hrefQuery;
+    }, [href, session]);
+
+    const buildFilesHref = (d, additionalParam = {}) => {
+        const ff = { ...fileFilters, ...additionalParam };
+        if (d?.field) {
+            if (d.from !== null && d.from !== undefined)
+                ff[`${d.field}.from`] = d.from;
+            if (d.to !== null && d.to !== undefined)
+                ff[`${d.field}.to`] = d.to;
+        }
+        return url.format({ pathname: '/browse/', query: ff });
+    }
+
+    useEffect(() => {
+        const dataUrl = '/bar_plot_aggregations/';
+
+        // const hrefParts = url.parse(href, true);
+        // const hrefQuery = _.clone(hrefParts.query);
+        // delete hrefQuery.limit;
+        // delete hrefQuery.field;
+
+        // ChartDataController.transformFilterDonorToFile(hrefQuery);
+        // hrefQuery.type = 'File';
+
         const requestBody = {
-            search_query_params: hrefQuery,
-            fields_to_aggregate_for: ['hardy_scale', 'sex', 'age'],
+            search_query_params: fileFilters,
+            fields_to_aggregate_for: ['donors.hardy_scale', 'donors.sex', 'donors.age'],
         };
         const commonCallback = (rawData) => {
             // Age intervals
@@ -122,10 +150,12 @@ export const BrowseDonorVizWrapper = (props) => {
                 (scaleValue) => {
                     const scale = rawData.terms[scaleValue] || null;
                     let totalCount = 0;
+                    let totalFileCount = 0;
 
                     if (scale) {
                         for (const sexKey in scale.terms) {
-                            totalCount += scale.terms[sexKey].total.doc_count;
+                            totalCount += scale.terms[sexKey].total.donors;
+                            totalFileCount += scale.terms[sexKey].total.doc_count;
                         }
                     }
 
@@ -133,7 +163,13 @@ export const BrowseDonorVizWrapper = (props) => {
                         group: String(scaleValue),
                         blue: totalCount,
                         pink: 0,
-                        total: rawData.total.doc_count,
+                        total: rawData.total.donors,
+                        blueFileCount: totalFileCount,
+                        pinkFileCount: 0,
+                        totalFileCount: totalFileCount,
+                        field: 'donors.hardy_scale',
+                        from: scaleValue,
+                        to: scaleValue,
                     };
                 }
             );
@@ -142,16 +178,22 @@ export const BrowseDonorVizWrapper = (props) => {
             const updatedDonorAgeGroupData = ageGroups.map((group) => {
                 let blueCount = 0;
                 let pinkCount = 0;
+                let blueFileCount = 0;
+                let pinkFileCount = 0;
 
                 Object.values(rawData.terms).forEach((scale) => {
                     Object.values(scale.terms).forEach((sex) => {
                         Object.entries(sex.terms).forEach(([age, info]) => {
                             const ageNum = parseInt(age, 10);
                             if (ageNum >= group.min && ageNum <= group.max) {
-                                if (sex.term === 'Male')
-                                    blueCount += info.doc_count;
-                                if (sex.term === 'Female')
-                                    pinkCount += info.doc_count;
+                                if (sex.term === 'Male') {
+                                    blueCount += info.donors;
+                                    blueFileCount += info.doc_count;
+                                }
+                                if (sex.term === 'Female') {
+                                    pinkCount += info.donors;
+                                    pinkFileCount += info.doc_count;
+                                }
                             }
                         });
                     });
@@ -161,7 +203,13 @@ export const BrowseDonorVizWrapper = (props) => {
                     group: group.label,
                     blue: blueCount,
                     pink: pinkCount,
-                    total: rawData.total.doc_count,
+                    total: rawData.total.donors,
+                    blueFileCount: blueFileCount,
+                    pinkFileCount: pinkFileCount,
+                    totalFileCount: blueFileCount + pinkFileCount,
+                    field: 'donors.age',
+                    from: group.min,
+                    to: group.max === Infinity ? null : group.max,
                 };
             });
 
@@ -270,9 +318,11 @@ export const BrowseDonorVizWrapper = (props) => {
                             yAxisTitle="# of Donors"
                             legendTitle="Donor Sex"
                             showLegend
+                            showBarTooltip={true}
                             showXAxisTitle={false}
                             session={session}
                             loading={loading}
+                            buildFilesHref={buildFilesHref}
                         />
 
                         <DonorCohortViewChart
@@ -289,8 +339,11 @@ export const BrowseDonorVizWrapper = (props) => {
                                 session &&
                                 renderHardyScaleDescriptionPopover()
                             }
+                            showBarTooltip={true}
+                            tooltipTitles={{ left: 'Hardy Scale', right: '# of Donors' }}
                             session={session}
                             loading={loading}
+                            buildFilesHref={buildFilesHref}
                         />
 
                         <DonorCohortViewChart

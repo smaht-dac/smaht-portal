@@ -1,8 +1,11 @@
 import React from 'react';
+
 import * as d3 from 'd3';
 import { OverlayTrigger } from 'react-bootstrap';
 
-// --- Theme (kept from mockup) ---
+import { navigate } from '../../util/navigate';
+
+// --- Theme ---
 const THEME = {
     panel: { radius: 14, stroke: '#A3C4ED', fill: '#FFFFFF' },
     grid: '#FFFFFF',
@@ -70,7 +73,6 @@ function wrapAxisLabelsLimited(selection, maxWidth, maxLines = 2, isYAxis = fals
     });
 }
 
-
 // --- Responsive width hook ---
 function useParentWidth(ref) {
     const [w, setW] = React.useState(0);
@@ -107,6 +109,13 @@ const DonorCohortViewChart = ({
     session,
     loading = false,
     showBarTooltip = false,
+    // optional: forward “Explore Donors” button click to parent
+    onExploreClick = function() { console.log('Explore Donors clicked'); },
+    // optional: titles in the tooltip header (left and right)
+    tooltipTitles = { left: 'Age Group', right: '# of Donors' },
+    // optional: key in data for file count (omit if not needed)
+    filesCountKey: propFilesCountKey = 'totalFileCount',
+    buildFilesHref = () => console.log('buildFilesHref not provided'),
     showXAxisTitle = true,
     showYAxisTitle = true
 }) => {
@@ -123,7 +132,7 @@ const DonorCohortViewChart = ({
             .attr('height', chartHeight);
         svg.selectAll('*').remove();
 
-        const topReserve = 44 /*TITLE_BAND*/;
+        const topReserve = TITLE_BAND;
 
         // Reserve extra bands if axis titles are provided
         const X_TITLE_BAND = xAxisTitle ? 28 : 0;
@@ -157,15 +166,165 @@ const DonorCohortViewChart = ({
             return;
         }
 
-        // Tooltip
-        const tip = d3.select('body').append('div')
-            .style('position', 'absolute').style('padding', '6px 10px')
-            .style('background', '#111827').style('color', '#fff')
-            .style('border-radius', '6px').style('font-size', '12px')
-            .style('pointer-events', 'none').style('opacity', 0);
-        const showTip = (e, html) => tip.style('left', e.pageX + 10 + 'px').style('top', e.pageY - 28 + 'px').style('opacity', 1).html(html);
-        const moveTip = (e) => tip.style('left', e.pageX + 10 + 'px').style('top', e.pageY - 28 + 'px');
-        const hideTip = () => tip.style('opacity', 0);
+        // Rich tooltip with pin/unpin
+        const tooltipSel = d3
+            .select('body')
+            .selectAll('.cohort-tooltip')
+            .data([0])
+            .join('div')
+            .attr('class', 'cohort-tooltip')
+            .style('position', 'absolute')
+            .style('opacity', 0); // pointer-events toggled via class
+
+        let _isPinned = false;
+        let _pinnedData = null;
+        let _lastColor = '#5B9BD5'; // safety fallback
+
+        // Optional external props (guarded)
+        const _titles =
+            (typeof tooltipTitles === 'object' && tooltipTitles) || {
+                left: 'Tissue',
+                right: '# of Donors',
+            };
+        const _explore = typeof onExploreClick === 'function' ? onExploreClick : null;
+
+        /**
+            * Build tooltip card HTML matching the provided popover structure.
+            * Signature intentionally unchanged.
+            * @param {object} d Data object for the hovered/pinned bar
+            * @param {string} barStackType - 'pink' | 'blue' | null
+        */
+        function renderRichTooltip(d, barStackType) {
+            const donorCount = barStackType === 'pink' ? d?.pink || 0 : (barStackType === 'blue' ? d?.blue || 0 : (d?.blue || 0) + (d?.pink || 0));
+            const fileCount = barStackType === 'pink' ? d?.pinkFileCount || 0 : (barStackType === 'blue' ? d?.blueFileCount || 0 : (d?.totalFileCount || 0));
+            const swatchColor = barStackType === 'pink' ? (bottomStackColor || THEME.colors.female) : (barStackType === 'blue' ? (topStackColor || THEME.colors.male) : topStackColor);
+            const fileAdditionalParam = barStackType === 'pink' ? { 'donors.sex': 'Female' } : (barStackType === 'blue' ? { 'donors.sex': 'Male' } : {});
+
+            const leftTitle = (tooltipTitles && tooltipTitles.left) || 'Tissue';
+            const rightTitle = (tooltipTitles && tooltipTitles.right) || '# of Donors';
+            const groupLabel = d?.group ?? d?.label ?? d?.name ?? '';
+
+            // If parent provided a navigation callback, show the button; otherwise hide it.
+            const hasExplore = typeof onExploreClick === 'function' && _isPinned;
+
+            const href =
+                typeof buildFilesHref === 'function' ? buildFilesHref(d, fileAdditionalParam) : null;
+
+            return `
+<div class="cursor-component-container mosaic-detail-cursor sticky" style="width: 240px; margin-left: 25px; margin-top: 10px;">
+  <div class="inner">
+    <div class="mosaic-cursor-body">
+      <h6 class="field-title">
+        <small class="pull-right sets-label">${rightTitle}</small>${leftTitle}
+      </h6>
+      <h3 class="details-title">
+        <i class="term-color-indicator icon icon-circle fas" style="color: ${swatchColor || ''};"></i>
+        <div class="primary-count count text-400 pull-right count-donors">${donorCount || 0}</div>
+        <span>${groupLabel}</span>
+      </h3>
+
+      ${fileCount !== null ? `
+      <div class="details row">
+        <div class="col-sm-12">
+          <div class="row">
+            <div class="col-2"></div>
+            <div class="text-end col-10">
+                ${href ? `
+              <a href="${href}" target="_blank" rel="noreferrer noopener">
+                ${fileCount}<small> Files</small>
+              </a>` : `${fileCount}<small> Files</small>`
+                }
+            </div>
+          </div>
+        </div>
+      </div>` : ''
+                }
+
+      ${hasExplore ? `
+      <div class="actions buttons-container">
+        <div class="button-container col-12">
+          <div class="d-grid gap-1">
+            <button type="button" class="btn btn-primary btn-sm w-100" data-explore="1" disabled>Explore Donors</button>
+          </div>
+        </div>
+      </div>` : ''
+                }
+    </div>
+  </div>
+</div>`;
+        }
+
+        // Hover show
+        function showTip(e, d, barStackType) {
+            if (!showBarTooltip || _isPinned) return;
+
+            tooltipSel
+                .html(renderRichTooltip(d, barStackType))
+                .style('left', e.pageX + 12 + 'px')
+                .style('top', e.pageY - 12 + 'px')
+                .style('opacity', 1)
+                .classed('is-pinned', false);
+        }
+
+        // Follow cursor
+        function moveTip(e) {
+            if (!showBarTooltip || _isPinned) return;
+            tooltipSel.style('left', e.pageX + 12 + 'px').style('top', e.pageY - 12 + 'px');
+        }
+
+        // Hide on mouseout
+        function hideTip() {
+            if (!showBarTooltip || _isPinned) return;
+            tooltipSel.style('opacity', 0);
+        }
+
+        // Pin on bar click — add a click handler on your bars to call this
+        function pinTip(e, d, barStackType) {
+            if (!showBarTooltip) return;
+            e.stopPropagation();
+            _isPinned = true;
+            _pinnedData = d;
+
+            const rect = e.currentTarget.getBoundingClientRect();
+            const left = window.pageXOffset + rect.left + rect.width / 2;
+            const top = window.pageYOffset + rect.top + 8;
+
+            tooltipSel
+                .html(renderRichTooltip(d, barStackType))
+                .style('left', `${left}px`)
+                .style('top', `${top}px`)
+                .style('opacity', 1)
+                .classed('is-pinned', true);
+
+            if (_explore) {
+                tooltipSel.select('[data-explore="1"]').on('click', (ev) => {
+                    ev.stopPropagation();
+                    _explore(_pinnedData);
+                });
+            }
+        }
+
+        // Unpin when clicking outside or pressing ESC (registered once)
+        d3.select('body').on('click.cohortTooltip', (event) => {
+            if (!_isPinned) return;
+            const el = tooltipSel.node();
+            if (el && !el.contains(event.target)) {
+                _isPinned = false;
+                _pinnedData = null;
+                tooltipSel.classed('is-pinned', false).style('opacity', 0);
+            }
+        });
+
+        d3.select(window).on('keydown.cohortTooltip', (event) => {
+            if (event.key === 'Escape' && _isPinned) {
+                _isPinned = false;
+                _pinnedData = null;
+                tooltipSel.classed('is-pinned', false).style('opacity', 0);
+            }
+        });
+        // ===== end tooltip =====
+
+
 
         const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
 
@@ -254,9 +413,9 @@ const DonorCohortViewChart = ({
                 .attr('width', (d) => x(value(d)))
                 .attr('fill', color)
                 .attr('stroke', 'none')
-                .on('mouseover', showBarTooltip ? (e, d) => showTip(e, `${value(d)}`) : null)
-                .on('mousemove', showBarTooltip ? moveTip : null)
-                .on('mouseout', showBarTooltip ? hideTip : null);
+                .on('mouseover', (e, d) => showTip(e, `${value(d)}`))
+                .on('mousemove', moveTip)
+                .on('mouseout', hideTip);
 
             // End-value labels
             g.selectAll('.label-h')
@@ -289,7 +448,14 @@ const DonorCohortViewChart = ({
                     .text(xAxisTitle);
             }
 
-            return () => tip.remove();
+            return () => {
+                // remove tooltip div if it exists
+                d3.selectAll('.cohort-tooltip').remove();
+
+                // detach global listeners
+                d3.select('body').on('click.cohortTooltip', null);
+                d3.select(window).on('keydown.cohortTooltip', null);
+            };
         }
 
         // ---------- Vertical (Stacked / Single) ----------
@@ -355,7 +521,7 @@ const DonorCohortViewChart = ({
         if (chartType === 'stacked') {
             const maleColor = topStackColor || THEME.colors.male;
             const femaleColor = bottomStackColor || THEME.colors.female;
-
+            
             g.selectAll('.bar-female')
                 .data(data).enter().append('rect')
                 .attr('x', (d) => x(d.group))
@@ -364,9 +530,10 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', femaleColor)
                 .attr('stroke', 'none')
-                .on('mouseover', showBarTooltip ? (e, d) => showTip(e, `${d.pink} Female`) : null)
-                .on('mousemove', showBarTooltip ? moveTip : null)
-                .on('mouseout', showBarTooltip ? hideTip : null);
+                .on('mouseover', (e, d) => showTip(e, d, 'pink'))
+                .on('mousemove', moveTip)
+                .on('mouseout', hideTip)
+                .on('click', (e,d) => pinTip(e, d, 'pink'));
 
             g.selectAll('.bar-male')
                 .data(data).enter().append('rect')
@@ -376,9 +543,10 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', maleColor)
                 .attr('stroke', 'none')
-                .on('mouseover', showBarTooltip ? (e, d) => showTip(e, `${d.blue} Male`) : null)
-                .on('mousemove', showBarTooltip ? moveTip : null)
-                .on('mouseout', showBarTooltip ? hideTip : null);
+                .on('mouseover', (e, d) => showTip(e, d, 'blue'))
+                .on('mousemove', moveTip)
+                .on('mouseout', hideTip)
+                .on('click', (e,d) => pinTip(e, d, 'blue'));
 
             if (showLabelOnBar) {
                 g.selectAll('.label-female')
@@ -425,9 +593,10 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', color)
                 .attr('stroke', 'none')
-                .on('mouseover', showBarTooltip ? (e, d) => { if ((d.blue || 0) > 0) { showTip(e, `${d.blue}`); } } : null)
-                .on('mousemove', showBarTooltip ? moveTip : null)
-                .on('mouseout', showBarTooltip ? hideTip : null);
+                .on('mouseover', (e, d) => { if ((d.blue || 0) > 0) { showTip(e, d, null); } })
+                .on('mousemove', moveTip)
+                .on('mouseout', hideTip)
+                .on('click', (e, d) => { if ((d.blue || 0) > 0) { pinTip(e, d, null); } });
 
             g.selectAll('.label-single')
                 .data(data).enter().append('text')
@@ -461,7 +630,14 @@ const DonorCohortViewChart = ({
                 .text(xAxisTitle);
         }
 
-        return () => tip.remove();
+        return () => {
+            // remove tooltip div if it exists
+            d3.selectAll('.cohort-tooltip').remove();
+
+            // detach global listeners
+            d3.select('body').on('click.cohortTooltip', null);
+            d3.select(window).on('keydown.cohortTooltip', null);
+        };
     }, [data, effectiveWidth, chartHeight, chartType, topStackColor, bottomStackColor, showLegend, showLabelOnBar, title, xAxisTitle, yAxisTitle, session, loading]);
 
     return (
