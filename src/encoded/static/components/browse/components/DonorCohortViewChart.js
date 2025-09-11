@@ -123,6 +123,8 @@ const DonorCohortViewChart = ({
     const outerRef = React.useRef();
     const measuredW = useParentWidth(outerRef);
     const effectiveWidth = chartWidth === 'auto' ? measuredW : chartWidth;
+    // unique id per chart instance (stable for component lifetime)
+    const instanceIdRef = React.useRef(`ct-${Math.random().toString(36).slice(2)}`);
 
     React.useEffect(() => {
         if (!effectiveWidth) return;
@@ -166,13 +168,16 @@ const DonorCohortViewChart = ({
             return;
         }
 
+        // created once per chart instance, removed on unmount
+        const instanceId = instanceIdRef.current;
+
         // Rich tooltip with pin/unpin
         const tooltipSel = d3
             .select('body')
-            .selectAll('.cohort-tooltip')
+            .selectAll(`.cohort-tooltip.${instanceId}`)
             .data([0])
             .join('div')
-            .attr('class', 'cohort-tooltip')
+            .attr('class', `cohort-tooltip ${instanceId}`)
             .style('position', 'absolute')
             .style('opacity', 0); // pointer-events toggled via class
 
@@ -282,6 +287,11 @@ const DonorCohortViewChart = ({
         function pinTip(e, d, barStackType) {
             if (!showBarTooltip) return;
             e.stopPropagation();
+
+            if (_isPinned && _pinnedData === d) {
+                unpinTooltip();
+                return;
+            }
             _isPinned = true;
             _pinnedData = d;
 
@@ -304,27 +314,61 @@ const DonorCohortViewChart = ({
             }
         }
 
+        let _overSvg = false;
+        let _overTooltip = false;
+        const _unpinDelayMs = 120; // small grace period to allow crossing edges
+        let _unpinTimer = null;
+
+        function scheduleUnpinCheck() {
+            if (_unpinTimer) clearTimeout(_unpinTimer);
+            _unpinTimer = setTimeout(() => {
+                if (!_overSvg && !_overTooltip) {
+                    unpinTooltip();
+                }
+            }, _unpinDelayMs);
+        }
+        // helper to unpin & hide (reuse the same logic everywhere)
+        function unpinTooltip() {
+            if (!_isPinned) return;
+            _isPinned = false;
+            _pinnedData = null;
+            tooltipSel.classed('is-pinned', false).style('opacity', 0);
+        }
+
+        tooltipSel
+            .on(`mouseenter.cohortTooltip.${instanceId}`, () => {
+                _overTooltip = true;
+                if (_unpinTimer) { clearTimeout(_unpinTimer); _unpinTimer = null; }
+            })
+            .on(`mouseleave.cohortTooltip.${instanceId}`, () => {
+                _overTooltip = false;
+                // if not over SVG anymore, schedule unpin
+                scheduleUnpinCheck();
+            });
+
+        // SVG-level hover tracking (instance scoped)
+        d3.select(svgRef.current)
+            .on(`mouseenter.cohortTooltip.${instanceId}`, () => {
+                _overSvg = true;
+                if (_unpinTimer) { clearTimeout(_unpinTimer); _unpinTimer = null; }
+            })
+            .on(`mouseleave.cohortTooltip.${instanceId}`, () => {
+                _overSvg = false;
+                // if not over tooltip either, schedule unpin
+                scheduleUnpinCheck();
+            });
+
         // Unpin when clicking outside or pressing ESC (registered once)
-        d3.select('body').on('click.cohortTooltip', (event) => {
+        d3.select('body').on(`click.cohortTooltip.${instanceId}`, (event) => {
             if (!_isPinned) return;
             const el = tooltipSel.node();
-            if (el && !el.contains(event.target)) {
-                _isPinned = false;
-                _pinnedData = null;
-                tooltipSel.classed('is-pinned', false).style('opacity', 0);
-            }
+            if (el && !el.contains(event.target)) unpinTooltip();
         });
 
-        d3.select(window).on('keydown.cohortTooltip', (event) => {
-            if (event.key === 'Escape' && _isPinned) {
-                _isPinned = false;
-                _pinnedData = null;
-                tooltipSel.classed('is-pinned', false).style('opacity', 0);
-            }
+        d3.select(window).on(`keydown.cohortTooltip.${instanceId}`, (event) => {
+            if (event.key === 'Escape' && _isPinned) unpinTooltip();
         });
         // ===== end tooltip =====
-
-
 
         const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
 
@@ -450,11 +494,14 @@ const DonorCohortViewChart = ({
 
             return () => {
                 // remove tooltip div if it exists
-                d3.selectAll('.cohort-tooltip').remove();
+                d3.selectAll(`.cohort-tooltip.${instanceId}`).remove();
 
                 // detach global listeners
-                d3.select('body').on('click.cohortTooltip', null);
-                d3.select(window).on('keydown.cohortTooltip', null);
+                d3.select('body').on(`click.cohortTooltip.${instanceId}`, null);
+                d3.select(window).on(`keydown.cohortTooltip.${instanceId}`, null);
+                d3.select(svgRef.current).on(`mouseenter.cohortTooltip.${instanceId}`, null);
+                d3.select(svgRef.current).on(`mouseleave.cohortTooltip.${instanceId}`, null);
+                if (_unpinTimer) clearTimeout(_unpinTimer);
             };
         }
 
@@ -632,11 +679,14 @@ const DonorCohortViewChart = ({
 
         return () => {
             // remove tooltip div if it exists
-            d3.selectAll('.cohort-tooltip').remove();
+            d3.selectAll(`.cohort-tooltip.${instanceId}`).remove();
 
             // detach global listeners
-            d3.select('body').on('click.cohortTooltip', null);
-            d3.select(window).on('keydown.cohortTooltip', null);
+            d3.select('body').on(`click.cohortTooltip.${instanceId}`, null);
+            d3.select(window).on(`keydown.cohortTooltip.${instanceId}`, null);
+            d3.select(svgRef.current).on(`mouseenter.cohortTooltip.${instanceId}`, null);
+            d3.select(svgRef.current).on(`mouseleave.cohortTooltip.${instanceId}`, null);
+            if (_unpinTimer) clearTimeout(_unpinTimer);
         };
     }, [data, effectiveWidth, chartHeight, chartType, topStackColor, bottomStackColor, showLegend, showLabelOnBar, title, xAxisTitle, yAxisTitle, session, loading]);
 
