@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.1.3
+=======
+`PR 499: WF Fix ingesting identical items <https://github.com/smaht-dac/smaht-portal/pull/499>`_
+
+* Add diff check for ingested metadata
+
+
 1.1.2
 =====
 `PR 520: Add tag filtering for release tracker and improve notifications panel UX <https://github.com/smaht-dac/smaht-portal/pull/520>`_
