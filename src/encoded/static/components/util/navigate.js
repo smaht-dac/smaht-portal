@@ -53,14 +53,14 @@ navigate.getBrowseBaseParams.mappings = {
         'parameters': {
             'type': ['File'],
             'sample_summary.studies': ['Production'],
-            'status': ['public', 'public-restricted', 'released'],
+            // 'status': ['public', 'public-restricted', 'released'],
         }
     },
     'donor' : {
         'parameters': {
             'type': ['Donor'],
             'study': ['Production'],
-            'status': ['released'],
+            // 'status': ['released'],
             'tags': ['has_released_files']
         }
     },
@@ -68,7 +68,7 @@ navigate.getBrowseBaseParams.mappings = {
         'parameters': {
             'type': ['ProtectedDonor'],
             'study': ['Production'],
-            'status': ['released'],
+            // 'status': ['released'],
             'tags': ['has_released_files']
         }
     }
