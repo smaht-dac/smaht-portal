@@ -96,23 +96,45 @@ const QCOverviewTable = ({
     accession,
     isRNASeq = false,
     isOutputFile = false,
+    session,
 }) => {
     const [data, setData] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        const searchUrl = `/search/?${qcItems
-            .map((item) => `uuid=${item.uuid}`)
-            .join('&')}`;
+        if (session && qcItems?.length > 0) {
+            setIsLoading(true);
+            const searchUrl = `/search/?${qcItems
+                .map((item) => `uuid=${item.uuid}`)
+                .join('&')}`;
 
-        ajax.load(
-            searchUrl,
-            (resp) => {
-                setData(formatRawData(resp['@graph']));
-            },
-            'GET'
+            ajax.load(
+                searchUrl,
+                (resp) => {
+                    setData(formatRawData(resp['@graph']));
+                    setIsLoading(false);
+                },
+                'GET',
+                (err) => {
+                    console.log('ERROR loading QC items', err);
+                    setIsLoading(false);
+                }
+            );
+        } else {
+            setData(null);
+            setIsLoading(false);
+        }
+    }, [session]);
+
+    // Show spinner while QC Items are fetched
+    if (isLoading) {
+        return (
+            <>
+                <i className="icon icon-spin icon-spinner fas me-1"></i>
+                Loading
+            </>
         );
-    }, []);
-
+    }
     return data ? (
         <div className="content qc-overview-tab">
             <div>
@@ -134,7 +156,7 @@ const QCOverviewTable = ({
                         </span>
                         <a
                             href={`/qc-metrics?tab=metrics-by-file&file=${accession}`}
-                            target='_blank'
+                            target="_blank"
                             className="btn btn-sm btn-primary">
                             <i className="icon icon-chart-area fas me-1"></i>
                             Visualize Quality Metrics
@@ -155,7 +177,7 @@ const QCOverviewTable = ({
                             </span>
                             <a
                                 href={`/qc-metrics?tab=sample-integrity&file=${accession}`}
-                                target='_blank'
+                                target="_blank"
                                 className="btn btn-sm btn-outline-secondary">
                                 <i className="icon icon-chart-area fas me-1"></i>
                                 View Relatedness Chart
@@ -312,24 +334,20 @@ const QCOverviewTable = ({
                 </div>
             </div>
         </div>
-    ) : (
-        <>
-            <i className="icon icon-spin icon-spinner fas me-1"></i>
-            Loading
-        </>
-    );
+    ) : null;
 };
 
 // Top level component for QC Overview tab content
-export const QcOverviewTabContent = ({ context }) => {
+export const QcOverviewTabContent = ({ session, context }) => {
     return (
         <QCOverviewTable
-            qcItems={context.quality_metrics}
-            accession={context.accession}
+            qcItems={context?.quality_metrics ?? []}
+            accession={context?.accession}
             isRNASeq={context?.assays?.some(
                 (assay) => assay?.display_title === 'RNA-seq'
             )}
             isOutputFile={context?.['@type'].includes('OutputFile')}
+            session={session}
         />
     );
 };
