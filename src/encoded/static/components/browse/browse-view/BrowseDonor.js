@@ -773,8 +773,7 @@ const BrowseDonorSearchTable = (props) => {
         ...props,
         context: {
             ...context,
-            clear_filters:
-                '/browse/?type=Donor&study=Production&tags=has_released_files',
+            clear_filters: BROWSE_LINKS.donor,
         },
         // Provide a search for populating custom column(s)
         customColumnSearchHref: (result) =>

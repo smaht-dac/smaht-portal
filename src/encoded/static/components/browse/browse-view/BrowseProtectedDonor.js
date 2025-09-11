@@ -13,7 +13,7 @@ import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/
 import { BrowseViewControllerWithSelections } from '../../static-pages/components/TableControllerWithSelections';
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
-import { DonorMetadataDownloadButton } from '../BrowseView';
+import { BROWSE_LINKS, DonorMetadataDownloadButton } from '../BrowseView';
 import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
@@ -816,8 +816,14 @@ const BrowseProtectedDonorSearchTable = (props) => {
         onResetSelectedItems, // From SelectedItemsController
     };
 
+    // Pass modified context to CommonSearchView to set default filters
     const passProps = {
         ...props,
+        context: {
+            ...context,
+            clear_filters: BROWSE_LINKS.protected_donor,
+        },
+        // Provide a search for populating custom column(s)
         customColumnSearchHref: (result) =>
             '/peek-metadata/?additional_facet=file_size&type=File&donors.display_title=' +
             result?.display_title,

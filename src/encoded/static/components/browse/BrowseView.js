@@ -47,6 +47,13 @@ import { BrowseProtectedDonorBody } from './browse-view/BrowseProtectedDonor';
 import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
 import { useIsConsortiumMember } from '../util/hooks';
 
+export const BROWSE_LINKS = {
+    file: '/browse/?type=File&sample_summary.studies=Production&donors.tags=has_released_files',
+    donor: '/browse/?type=Donor&study=Production&tags=has_released_files',
+    protected_donor:
+        '/browse/?type=ProtectedDonor&study=Production&tags=has_released_files',
+};
+
 export default function BrowseView(props) {
     return <BrowseViewBody {...props} />;
 }
@@ -127,11 +134,18 @@ const renderBrowseBody = (props) => {
  * @returns
  */
 const BrowseViewContent = (props) => {
-    const { session } = props;
+    const { context, session } = props;
     const isConsortiumMember = useIsConsortiumMember(session);
 
     // Include `isConsortiumMember` in the props passed to child components
-    const passProps = { ...props, isConsortiumMember };
+    const passProps = {
+        ...props,
+        context: {
+            ...context,
+            clear_filters: BROWSE_LINKS.file,
+        },
+        isConsortiumMember,
+    };
 
     return (
         <SlidingSidebarLayout openByDefault={false}>
