@@ -323,9 +323,9 @@ export const NotificationsPanel = () => {
 
     useEffect(() => {
         ajax.load(
-            '/recent_files_summary?format=json&nmonths=18',
+            '/recent_files_summary?format=json&nmonths=3',
             (resp) => {
-                setData(formatReleaseData(resp?.items ?? null));
+                setData(resp?.items ?? []);
             },
             'GET',
             (err) => {
@@ -343,18 +343,20 @@ export const NotificationsPanel = () => {
                 <div className="section-body-container">
                     <div className="section-body">
                         <div className="section-body-items-container">
-                            {data ? (
-                                data.map((releaseItem, i) => {
-                                    return (
-                                        <DataReleaseItem
-                                            data={releaseItem}
-                                            key={i}
-                                            releaseItemIndex={i}
-                                        />
-                                    );
-                                })
-                            ) : (
+                            {data === null ? (
                                 <i className="icon fas icon-spinner icon-spin"></i>
+                            ) : data.length === 0 ? (
+                                <div className="text-center text-muted py-3">
+                                    No recent data releases found.
+                                </div>
+                            ) : (
+                                data.map((releaseItem, i) => (
+                                    <DataReleaseItem
+                                        data={releaseItem}
+                                        key={i}
+                                        releaseItemIndex={i}
+                                    />
+                                ))
                             )}
                         </div>
                     </div>

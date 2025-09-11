@@ -40,6 +40,7 @@ from snovault.search.search_utils import make_search_subreq as snovault_make_sea
 QUERY_FILE_TYPES = ["OutputFile", "SubmittedFile"]
 QUERY_FILE_STATUSES = ["released"]
 QUERY_FILE_CATEGORIES = ["!Quality Control"]
+QUERY_FILE_TAGS = ["!exclude_from_release_tracker"]
 QUERY_RECENT_MONTHS = 3
 QUERY_INCLUDE_CURRENT_MONTH = True
 BASE_SEARCH_QUERY = "/search/"
@@ -132,12 +133,13 @@ def recent_files_summary(request: PyramidRequest,
 
     def create_base_query_arguments(request: PyramidRequest) -> dict:
 
-        global QUERY_FILE_CATEGORIES, QUERY_FILE_STATUSES, QUERY_FILE_TYPES
+        global QUERY_FILE_CATEGORIES, QUERY_FILE_STATUSES, QUERY_FILE_TYPES, QUERY_FILE_TAGS
         nonlocal exclude_submitted_file
 
         types = request_args(request, "type", QUERY_FILE_TYPES)
         statuses = request_args(request, "status", QUERY_FILE_STATUSES)
         categories = request_args(request, "category", QUERY_FILE_CATEGORIES)
+        tags = request_args(request, "tag", QUERY_FILE_TAGS)
 
         if exclude_submitted_file and ("SubmittedFile" in types):
             types.remove("SubmittedFile")
@@ -145,7 +147,8 @@ def recent_files_summary(request: PyramidRequest,
         base_query_arguments = {
             "type": types if types else None,
             "status": statuses if statuses else None,
-            "data_category": categories if categories else None
+            "data_category": categories if categories else None,
+            "tags": tags if tags else None
         }
 
         return {key: value for key, value in base_query_arguments.items() if value is not None}
