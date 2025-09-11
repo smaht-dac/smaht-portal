@@ -12,6 +12,8 @@ import {
 import { BigDropdownIntroductionWrapper } from './BigDropdownIntroductionWrapper';
 import { BigDropdownBigLink } from './BigDropdownBigLink';
 
+import { BROWSE_LINKS } from '../../../browse/BrowseView';
+
 export function BigDropdownPageTreeMenuIntroduction(props) {
     const {
         linkToTopLevelDirPage = true,
@@ -236,15 +238,15 @@ function CustomStaticLinks({ pathName, href, session }) {
                         </h3>
                         <hr className="mb-0" />
                         <BigDropdownBigLink
-                            href="/browse/?type=File&sample_summary.studies=Production"
+                            href={BROWSE_LINKS.file}
                             titleIcon="file fas"
                             className="primary-big-link is-fa-icon">
                             <h4 className="text-large">Browse By File</h4>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
                             session={session}
-                            href="/browse/?type=Donor&study=Production&tags=has_released_files"
-                            protectedHref="/browse/?type=ProtectedDonor&study=Production&tags=has_released_files"
+                            href={BROWSE_LINKS.donor}
+                            protectedHref={BROWSE_LINKS.protected_donor}
                             titleIcon="users fas"
                             className="primary-big-link is-fa-icon">
                             <h4 className="text-large">Browse By Donor</h4>

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { BrowseLinkIcon } from './BrowseLinkIcon';
-import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { BROWSE_LINKS } from '../BrowseView';
 
 export const BrowseLink = (props) => {
     const {
@@ -32,14 +32,12 @@ export const BrowseLink = (props) => {
         // Protected link for consortium members
         if (session && isConsortiumMember) {
             // Only include released files (assume ProtectedDonor items should not be public)
-            hrefToUse =
-                '/browse/?type=ProtectedDonor&study=Production&tags=has_released_files';
+            hrefToUse = BROWSE_LINKS.protected_donor;
         } else {
-            hrefToUse =
-                '/browse/?type=Donor&study=Production&tags=has_released_files';
+            hrefToUse = BROWSE_LINKS.donor;
         }
     } else if (type === 'File') {
-        hrefToUse = '/browse/?type=File&sample_summary.studies=Production';
+        hrefToUse = BROWSE_LINKS.file;
     }
 
     return (

@@ -16,6 +16,8 @@ import { OverlayTrigger } from 'react-bootstrap';
 import { renderProtectedAccessPopover } from './PublicDonorView';
 import { useIsConsortiumMember } from '../util/hooks';
 
+import { BROWSE_LINKS } from '../browse/BrowseView';
+
 // Page containing the details of Items of type File
 export default class FileOverview extends DefaultItemView {
     getTabViewContents() {
@@ -72,8 +74,7 @@ const FileViewTitle = (props) => {
         )
     ) {
         currentBreadcrumb.display_title = 'Browse by File';
-        currentBreadcrumb.href =
-            '/browse/?type=File&sample_summary.studies=Production';
+        currentBreadcrumb.href = BROWSE_LINKS.file;
         breadcrumbs = [...breadcrumbs, currentBreadcrumb];
     } else if (
         context?.sample_summary?.studies?.some(
