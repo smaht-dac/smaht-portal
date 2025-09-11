@@ -117,6 +117,26 @@ export const BrowseDonorVizWrapper = (props) => {
         return url.format({ pathname: '/browse/', query: ff });
     }
 
+    const donorFilters = useMemo(() => {
+        const hrefParts = url.parse(href, true);
+        const hrefQuery = _.clone(hrefParts.query);
+        delete hrefQuery.limit;
+        delete hrefQuery.field;
+
+        return hrefQuery;
+    }, [href, session]);
+
+    const buildExploreDonorsHref = (d, additionalParam = {}) => {
+        const ff = { ...donorFilters, ...additionalParam };
+        if (d?.field) {
+            if (d.from !== null && d.from !== undefined)
+                ff[`${d.field.replace('donors.', '')}.from`] = d.from;
+            if (d.to !== null && d.to !== undefined)
+                ff[`${d.field.replace('donors.', '')}.to`] = d.to;
+        }
+        return url.format({ pathname: '/browse/', query: ff });
+    }
+
     useEffect(() => {
         const dataUrl = '/bar_plot_aggregations/';
 
@@ -323,6 +343,7 @@ export const BrowseDonorVizWrapper = (props) => {
                             session={session}
                             loading={loading}
                             buildFilesHref={buildFilesHref}
+                            buildExploreDonorsHref={buildExploreDonorsHref}
                         />
 
                         <DonorCohortViewChart
@@ -344,6 +365,7 @@ export const BrowseDonorVizWrapper = (props) => {
                             session={session}
                             loading={loading}
                             buildFilesHref={buildFilesHref}
+                            buildExploreDonorsHref={buildExploreDonorsHref}
                         />
 
                         <DonorCohortViewChart

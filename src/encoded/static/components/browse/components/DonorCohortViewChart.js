@@ -3,8 +3,6 @@ import React from 'react';
 import * as d3 from 'd3';
 import { OverlayTrigger } from 'react-bootstrap';
 
-import { navigate } from '../../util/navigate';
-
 // --- Theme ---
 const THEME = {
     panel: { radius: 14, stroke: '#A3C4ED', fill: '#FFFFFF' },
@@ -110,7 +108,7 @@ const DonorCohortViewChart = ({
     loading = false,
     showBarTooltip = false,
     // optional: forward “Explore Donors” button click to parent
-    onExploreClick = function() { console.log('Explore Donors clicked'); },
+    buildExploreDonorsHref = () => console.log('buildExploreDonorsHref not provided'),
     // optional: titles in the tooltip header (left and right)
     tooltipTitles = { left: 'Age Group', right: '# of Donors' },
     // optional: key in data for file count (omit if not needed)
@@ -204,16 +202,14 @@ const DonorCohortViewChart = ({
             const fileCount = barStackType === 'pink' ? d?.pinkFileCount || 0 : (barStackType === 'blue' ? d?.blueFileCount || 0 : (d?.totalFileCount || 0));
             const swatchColor = barStackType === 'pink' ? (bottomStackColor || THEME.colors.female) : (barStackType === 'blue' ? (topStackColor || THEME.colors.male) : topStackColor);
             const fileAdditionalParam = barStackType === 'pink' ? { 'donors.sex': 'Female' } : (barStackType === 'blue' ? { 'donors.sex': 'Male' } : {});
+            const donorAdditionalParam = barStackType === 'pink' ? { 'sex': 'Female' } : (barStackType === 'blue' ? { 'sex': 'Male' } : {});
 
             const leftTitle = (tooltipTitles && tooltipTitles.left) || 'Tissue';
             const rightTitle = (tooltipTitles && tooltipTitles.right) || '# of Donors';
             const groupLabel = d?.group ?? d?.label ?? d?.name ?? '';
 
-            // If parent provided a navigation callback, show the button; otherwise hide it.
-            const hasExplore = typeof onExploreClick === 'function' && _isPinned;
-
-            const href =
-                typeof buildFilesHref === 'function' ? buildFilesHref(d, fileAdditionalParam) : null;
+            const filesHref = typeof buildFilesHref === 'function' ? buildFilesHref(d, fileAdditionalParam) : null;
+            const donorsHref = typeof buildExploreDonorsHref === 'function' ? buildExploreDonorsHref(d, donorAdditionalParam) : null;
 
             return `
 <div class="cursor-component-container mosaic-detail-cursor sticky" style="width: 240px; margin-left: 25px; margin-top: 10px;">
@@ -234,8 +230,8 @@ const DonorCohortViewChart = ({
           <div class="row">
             <div class="col-2"></div>
             <div class="text-end col-10">
-                ${href ? `
-              <a href="${href}" target="_blank" rel="noreferrer noopener">
+                ${filesHref ? `
+              <a href="${filesHref}" target="_blank" rel="noreferrer noopener">
                 ${fileCount}<small> Files</small>
               </a>` : `${fileCount}<small> Files</small>`
                 }
@@ -245,11 +241,11 @@ const DonorCohortViewChart = ({
       </div>` : ''
                 }
 
-      ${hasExplore ? `
+      ${donorsHref != null ? `
       <div class="actions buttons-container">
         <div class="button-container col-12">
           <div class="d-grid gap-1">
-            <button type="button" class="btn btn-primary btn-sm w-100" data-explore="1" disabled>Explore Donors</button>
+            <a href=${donorsHref} class="btn btn-primary btn-sm w-100 active" role="button" aria-pressed="true" data-explore="1">Explore Donors</a>
           </div>
         </div>
       </div>` : ''
@@ -305,13 +301,6 @@ const DonorCohortViewChart = ({
                 .style('top', `${top}px`)
                 .style('opacity', 1)
                 .classed('is-pinned', true);
-
-            if (_explore) {
-                tooltipSel.select('[data-explore="1"]').on('click', (ev) => {
-                    ev.stopPropagation();
-                    _explore(_pinnedData);
-                });
-            }
         }
 
         let _overSvg = false;
@@ -329,10 +318,10 @@ const DonorCohortViewChart = ({
         }
         // helper to unpin & hide (reuse the same logic everywhere)
         function unpinTooltip() {
-            if (!_isPinned) return;
-            _isPinned = false;
-            _pinnedData = null;
-            tooltipSel.classed('is-pinned', false).style('opacity', 0);
+            // if (!_isPinned) return;
+            // _isPinned = false;
+            // _pinnedData = null;
+            // tooltipSel.classed('is-pinned', false).style('opacity', 0);
         }
 
         tooltipSel

@@ -223,6 +223,14 @@ export const ChartDataController = {
             fileFilters['donors.display_title'] = fileFilters.external_id;
             delete fileFilters.external_id;
         }
+        if (fileFilters['age.from']) {
+            fileFilters['donors.age.from'] = fileFilters['age.from'];
+            delete fileFilters['age.from'];
+        }
+        if (fileFilters['age.to']) {
+            fileFilters['donors.age.to'] = fileFilters['age.to'];
+            delete fileFilters['age.to'];
+        }
         if (fileFilters['hardy_scale.from']) {
             fileFilters['donors.hardy_scale.from'] = fileFilters['hardy_scale.from'];
             delete fileFilters['hardy_scale.from'];
