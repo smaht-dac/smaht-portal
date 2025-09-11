@@ -921,36 +921,61 @@ body[data-path="/"]>#application>#layout {
 										}
 									}
 									.body {
-										padding-left: 8px;
 										color: #485983;
 										font-size: 0.75rem;
 
 										.release-item {
-											padding: 10px 0px 0px 0px;
-											.title {
-												color: #485983;
-												font-weight: 700;
-												font-size: 0.875rem;
-												align-items: center;
-												width: max-content;
-												
-												svg {
-													display: none;
-												}
-	
-												&:hover {
+											padding: 5px 0px 0px 0px;
+											
+											.donor-group-header {
+												display: flex;
+												padding: 2px 0px;
+												border-radius: 4px;
+												gap: 4px;
+
+												.toggle-button {
+													border-radius: 100%;
+													padding: 2px;
+													color: #485983;
+													margin: auto;
 													display: flex;
-													cursor: pointer;
-													color: #3C71F9;
-	
-													svg {
+												}
+
+												.title {
+													display: flex;
+													flex: 1;
+													justify-content: space-between;
+													color: #485983;
+													font-weight: 700;
+													font-size: 0.875rem;
+													align-items: center;
+													width: max-content;
+													padding: 2px 8px;
+													border-radius: 7px;
+													align-items: baseline;
+													transition: background-color 100ms;
+													
+													.count {
 														display: flex;
-														fill: #3C71F9;
-														width: 12px;
-														margin-left: 4px;
+														gap: 4px;
+														align-items: center;
+														font-size: 0.6875rem;
+													}
+
+													&:hover {
+														cursor: pointer;
+														background-color: whitesmoke;
+														transition: background-color 100ms;
+														color: #3C71F9;
+														
+														i {
+															fill: #3C71F9;
+														}
 													}
 												}
+												
 											}
+											
 
 											.tissue-list {
 												margin-top: 0px;

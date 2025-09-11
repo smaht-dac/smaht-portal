@@ -149,9 +149,11 @@ const DonorGroup = ({
         donor_title = donor_title.replace('DAC_DONOR_', '');
     }
 
+    console.log('DonorGroup render', count, donor_group, items);
+
     return (
         <div className="release-item">
-            <a className="title">
+            <div className="donor-group-header">
                 <button
                     className="toggle-button donor"
                     onClick={() => {
@@ -162,10 +164,14 @@ const DonorGroup = ({
                             isToggled ? 'minus' : 'plus'
                         }`}></i>
                 </button>
-                {donor_title}
-                {/* - {donor_groups[donor_group].count} Files */}
-                <RightArrowIcon />
-            </a>
+                <a className="title">
+                    {donor_title}
+                    <span className="count">
+                        {count ?? 0} {count > 1 ? 'Files' : 'File'}
+                        <i className="icon icon-arrow-right"></i>
+                    </span>
+                </a>
+            </div>
             {isToggled ? (
                 <ul className="tissue-list">
                     {Object.keys(donor_groups[donor_group]['items']).map(
@@ -210,6 +216,8 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
     const month = date.toLocaleString('default', { month: 'long' });
     const year = date.toLocaleString('default', { year: 'numeric' });
 
+    console.log('DataReleaseItem render', data, releaseItemIndex);
+
     return (
         <div
             className={`data-release-item-container ${
@@ -242,6 +250,7 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                     {Object.keys(donor_groups).map((donor_group, i) => {
                         return (
                             <DonorGroup
+                                count={donor_groups[donor_group].count}
                                 key={i}
                                 donorGroups={donor_groups}
                                 donorGroup={donor_group}
@@ -321,11 +330,13 @@ const formatReleaseData = (data) => {
 export const NotificationsPanel = () => {
     const [data, setData] = useState(null);
 
+    console.log('NotificationsPanel render data', data);
+
     useEffect(() => {
         ajax.load(
             '/recent_files_summary?format=json&nmonths=3',
             (resp) => {
-                setData(resp?.items ?? []);
+                setData(resp?.items ? formatReleaseData(resp?.items) : []);
             },
             'GET',
             (err) => {
