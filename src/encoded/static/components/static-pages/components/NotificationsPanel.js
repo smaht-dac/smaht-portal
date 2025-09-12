@@ -123,7 +123,7 @@ const TissueGroup = ({ count, tissue_group, items }) => {
             </button>
             <a>{tissue_group}</a>
             {isToggled ? (
-                <ul>
+                <ul className="file-group-list">
                     {items.map((item, i) => (
                         <li key={i}>
                             {item?.count} {item?.value}
@@ -135,21 +135,15 @@ const TissueGroup = ({ count, tissue_group, items }) => {
     );
 };
 
-const DonorGroup = ({
-    count,
-    donorGroups: donor_groups,
-    donorGroup: donor_group,
-    items,
-}) => {
+const DonorGroup = (props) => {
     const [isToggled, toggle] = useToggle();
 
+    const { count, donorGroups: donor_groups, donorGroup: donor_group } = props;
     let donor_title = donor_group;
 
     if (donor_title?.includes('DAC_DONOR_')) {
         donor_title = donor_title.replace('DAC_DONOR_', '');
     }
-
-    console.log('DonorGroup render', count, donor_group, items);
 
     return (
         <div className="release-item">
@@ -217,8 +211,6 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
     const month = date.toLocaleString('default', { month: 'long' });
     const year = date.toLocaleString('default', { year: 'numeric' });
 
-    console.log('DataReleaseItem render', data, releaseItemIndex);
-
     return (
         <div
             className={`data-release-item-container ${
@@ -248,6 +240,7 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                     </a>
                 </div>
                 <div className="body">
+                    {/* Map donor groups to drop-downs */}
                     {Object.keys(donor_groups).map((donor_group, i) => {
                         return (
                             <DonorGroup
@@ -255,7 +248,7 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                                 key={i}
                                 donorGroups={donor_groups}
                                 donorGroup={donor_group}
-                                items={donor_groups[donor_group].items}
+                                query={donor_groups[donor_group].query}
                             />
                         );
                     })}

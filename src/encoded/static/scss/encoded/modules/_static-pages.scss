@@ -966,11 +966,12 @@ body[data-path="/"]>#application>#layout {
 														gap: 4px;
 														align-items: center;
 														font-size: 0.6875rem;
+														color: #65759f;
 													}
 
 													&:hover {
 														cursor: pointer;
-														background: rgb(14 116 210 / 9%);
+														background-color: #E7F1FB;
 														transition: background-color 100ms;
 														// border-radius: 7px 7px 0px 0px;
 														
@@ -982,8 +983,13 @@ body[data-path="/"]>#application>#layout {
 												
 												&.expanded {
 													.title {
-														background: rgb(14 116 210 / 9%);
+														background-color: #E7F1FB;
 														border-radius: 7px 7px 0px 0px;
+														border-color: #B8D3EF;
+														
+														&:hover {
+															background-color: #e0ecf8;
+														}
 													}
 												}
 											}
@@ -992,8 +998,13 @@ body[data-path="/"]>#application>#layout {
 											.tissue-list {
 												margin-top: 0px;
 												list-style-type: none;
-												background: rgb(14 116 210 / 9%);
+												background: #F4F9FF;
+												padding-top: 5px;
 												padding-left: 0px;
+												margin-left: 20px;
+												border-radius: 0px 0px 7px 7px;
+												border: 1px solid #B8D3EF;
+												border-top: none;
 
 												li {
 													font-weight: 300;
@@ -1011,6 +1022,10 @@ body[data-path="/"]>#application>#layout {
 														}
 													}													
 												}
+											}
+
+											.file-group-list {
+												padding-left: 37px;
 											}
 										}
 
