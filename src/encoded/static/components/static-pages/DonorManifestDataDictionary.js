@@ -10,8 +10,6 @@ import {
 
 // Renders a table of schema properties
 const DonorManifestDataDictionaryTable = ({ data = {} }) => {
-    // console.log('Rendering table with data:', data);
-
     return Object.keys(data).length > 0 ? (
         <table className="table table-bordered table-striped">
             <thead className="thead-smaht">
@@ -149,9 +147,13 @@ export const DonorManifestDataDictionary = () => {
         }
     }, []);
 
-    const options = ([...fieldsToDisplay] || []).map((schemaItem) => {
+    const options = ([...fieldsToDisplay] || []).flatMap((schemaItem) => {
         const [schemaKey, properties] = schemaItem;
-        return { value: schemaKey, label: schemaKey };
+
+        return properties?.map((property) => {
+            const value = `${schemaKey}.${property.title}`;
+            return { value: value, label: value?.toLowerCase() };
+        });
     });
 
     return schemaData ? (
@@ -174,12 +176,16 @@ export const DonorManifestDataDictionary = () => {
             {selectedSchema?.value && (
                 <div
                     className={`selected-schema schema-item ${selectedSchema.value} table-responsive`}>
-                    <h3 className="fs-4">{selectedSchema.value}</h3>
+                    <h3 className="fs-4">
+                        {selectedSchema.value?.split('.')?.[0]}
+                    </h3>
                     {selectedSchema.value && (
                         <>
                             <DonorManifestDataDictionaryTable
                                 data={
-                                    schemaData[selectedSchema.value]?.properties
+                                    schemaData[
+                                        selectedSchema.value?.split('.')?.[0]
+                                    ]?.properties
                                 }
                             />
                             <hr className="my-5"></hr>
