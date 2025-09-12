@@ -125,11 +125,15 @@ const DonorCohortViewChart = ({
     const instanceIdRef = React.useRef(`ct-${Math.random().toString(36).slice(2)}`);
 
     React.useEffect(() => {
-        if (!effectiveWidth) return;
+        // skip drawing if no data or loading
+        if (!effectiveWidth || loading || !data || (Array.isArray(data) && data.length === 0)) {
+            return;
+        }
 
-        const svg = d3.select(svgRef.current)
-            .attr('width', effectiveWidth)
-            .attr('height', chartHeight);
+        const svg =
+            d3.select(svgRef.current)
+                .attr('width', effectiveWidth)
+                .attr('height', chartHeight);
         svg.selectAll('*').remove();
 
         const topReserve = TITLE_BAND;
@@ -139,18 +143,20 @@ const DonorCohortViewChart = ({
         const Y_TITLE_BAND = yAxisTitle ? 28 : 0;
 
         // Extra left for long Y labels; extra right for end-values on horizontal
-        const leftForHorizontal = Math.min(200, Math.max(100, effectiveWidth * 0.28));
-        const rightForHorizontal = 56;
+        const leftHorizontal = Math.min(200, Math.max(100, effectiveWidth * 0.28));
+        const rightHorizontal = 56;
+
+        const isHorizontal = chartType === 'horizontal';
 
         const margin = {
-            top: (chartType === 'horizontal' ? 20 : 30) + topReserve,
-            right: chartType === 'horizontal' ? rightForHorizontal : 24,
-            bottom: (chartType === 'horizontal' ? 40 : 56) + X_TITLE_BAND,
-            left: (chartType === 'horizontal' ? leftForHorizontal : 36) + Y_TITLE_BAND
+            top: (isHorizontal ? 20 : 30) + topReserve,
+            right: isHorizontal ? rightHorizontal : 24,
+            bottom: (isHorizontal ? 40 : 56) + X_TITLE_BAND,
+            left: (isHorizontal ? leftHorizontal : 36) + Y_TITLE_BAND
         };
 
         const width = effectiveWidth - margin.left - margin.right;
-        const height = chartHeight - (/*margin.top*/topReserve +20) - margin.bottom;
+        const height = chartHeight - (/*margin.top*/topReserve + 20) - margin.bottom;
 
         // Panel (always draw so card looks consistent while loading)
         svg.append('rect')
@@ -160,11 +166,6 @@ const DonorCohortViewChart = ({
             .attr('rx', THEME.panel.radius)
             .attr('fill', THEME.panel.fill)
             .attr('stroke', THEME.panel.stroke);
-
-        // skip drawing if no data or loading
-        if (loading || !data || (Array.isArray(data) && data.length === 0)) {
-            return;
-        }
 
         // created once per chart instance, removed on unmount
         const instanceId = instanceIdRef.current;
@@ -181,78 +182,103 @@ const DonorCohortViewChart = ({
 
         let _isPinned = false;
         let _pinnedData = null;
-        let _lastColor = '#5B9BD5'; // safety fallback
-
-        // Optional external props (guarded)
-        const _titles =
-            (typeof tooltipTitles === 'object' && tooltipTitles) || {
-                left: 'Tissue',
-                right: '# of Donors',
-            };
-        const _explore = typeof onExploreClick === 'function' ? onExploreClick : null;
 
         /**
             * Build tooltip card HTML matching the provided popover structure.
             * Signature intentionally unchanged.
             * @param {object} d Data object for the hovered/pinned bar
-            * @param {string} barStackType - 'pink' | 'blue' | null
+            * @param {string} barStackType - 'primary' | 'secondary' | null
         */
         function renderRichTooltip(d, barStackType) {
-            const donorCount = barStackType === 'pink' ? d?.pink || 0 : (barStackType === 'blue' ? d?.blue || 0 : (d?.blue || 0) + (d?.pink || 0));
-            const fileCount = barStackType === 'pink' ? d?.pinkFileCount || 0 : (barStackType === 'blue' ? d?.blueFileCount || 0 : (d?.totalFileCount || 0));
-            const swatchColor = barStackType === 'pink' ? (bottomStackColor || THEME.colors.female) : (barStackType === 'blue' ? (topStackColor || THEME.colors.male) : topStackColor);
-            const fileAdditionalParam = barStackType === 'pink' ? { 'donors.sex': 'Female' } : (barStackType === 'blue' ? { 'donors.sex': 'Male' } : {});
-            const donorAdditionalParam = barStackType === 'pink' ? { 'sex': 'Female' } : (barStackType === 'blue' ? { 'sex': 'Male' } : {});
+            const stackConfig = {
+                primary: {
+                    donorCount: d?.value1 || 0,
+                    fileCount: d?.value1FileCount || 0,
+                    swatchColor: topStackColor || THEME.colors.male,
+                    fileAdditionalParam: { 'donors.sex': 'Male' },
+                    donorAdditionalParam: { sex: 'Male' }
+                },
+                secondary: {
+                    donorCount: d?.value2 || 0,
+                    fileCount: d?.value2FileCount || 0,
+                    swatchColor: bottomStackColor || THEME.colors.female,
+                    fileAdditionalParam: { 'donors.sex': 'Female' },
+                    donorAdditionalParam: { sex: 'Female' }
+                },
+                default: {
+                    donorCount: (d?.value1 || 0) + (d?.value2 || 0),
+                    fileCount: d?.totalFileCount || 0,
+                    swatchColor: topStackColor,
+                    fileAdditionalParam: {},
+                    donorAdditionalParam: {}
+                }
+            };
+            
+            const {
+                donorCount,
+                fileCount,
+                swatchColor,
+                fileAdditionalParam,
+                donorAdditionalParam
+            } = stackConfig[barStackType] ?? stackConfig.default;
 
-            const leftTitle = (tooltipTitles && tooltipTitles.left) || 'Tissue';
-            const rightTitle = (tooltipTitles && tooltipTitles.right) || '# of Donors';
+            const leftTitle = tooltipTitles?.left || 'Group';
+            const rightTitle = tooltipTitles?.right || '# of Donors';
             const groupLabel = d?.group ?? d?.label ?? d?.name ?? '';
 
-            const filesHref = typeof buildFilesHref === 'function' ? buildFilesHref(d, fileAdditionalParam) : null;
-            const donorsHref = typeof buildExploreDonorsHref === 'function' ? buildExploreDonorsHref(d, donorAdditionalParam) : null;
+            const filesHref =
+                typeof buildFilesHref === 'function'
+                    ? buildFilesHref(d, fileAdditionalParam)
+                    : null;
 
+            const donorsHref =
+                typeof buildExploreDonorsHref === 'function'
+                    ? buildExploreDonorsHref(d, donorAdditionalParam)
+                    : null;
+
+            // pure HTML generated since we inject into d3 tooltip div, otherwise server libraries required to convert JSX to HTML
             return `
-<div class="cursor-component-container mosaic-detail-cursor sticky" style="width: 240px; margin-left: 25px; margin-top: 10px;">
-  <div class="inner">
-    <div class="mosaic-cursor-body">
-      <h6 class="field-title">
-        <small class="pull-right sets-label">${rightTitle}</small>${leftTitle}
-      </h6>
-      <h3 class="details-title">
-        <i class="term-color-indicator icon icon-circle fas" style="color: ${swatchColor || ''};"></i>
-        <div class="primary-count count text-400 pull-right count-donors">${donorCount || 0}</div>
-        <span>${groupLabel}</span>
-      </h3>
+                <div class="cursor-component-container mosaic-detail-cursor sticky" style="width: 240px; margin-left: 25px; margin-top: 10px;">
+                  <div class="inner">
+                    <div class="mosaic-cursor-body">
+                      <h6 class="field-title">
+                        <small class="pull-right sets-label">${rightTitle}</small>${leftTitle}
+                      </h6>
+                      <h3 class="details-title">
+                        <i class="term-color-indicator icon icon-circle fas" style="color: ${swatchColor || ''};"></i>
+                        <div class="primary-count count text-400 pull-right count-donors">${donorCount || 0}</div>
+                        <span>${groupLabel}</span>
+                      </h3>
 
-      ${fileCount !== null ? `
-      <div class="details row">
-        <div class="col-sm-12">
-          <div class="row">
-            <div class="col-2"></div>
-            <div class="text-end col-10">
-                ${filesHref ? `
-              <a href="${filesHref}" target="_blank" rel="noreferrer noopener">
-                ${fileCount}<small> Files</small>
-              </a>` : `${fileCount}<small> Files</small>`
-                }
-            </div>
-          </div>
-        </div>
-      </div>` : ''
-                }
+                      ${fileCount !== null ? `
+                      <div class="details row">
+                        <div class="col-sm-12">
+                          <div class="row">
+                            <div class="col-2"></div>
+                            <div class="text-end col-10">
+                                ${filesHref ? `
+                              <a href="${filesHref}" target="_blank" rel="noreferrer noopener">
+                                ${fileCount}<small> Files</small>
+                              </a>` : `${fileCount}<small> Files</small>`
+                                }
+                            </div>
+                          </div>
+                        </div>
+                      </div>` : ''
+                        }
 
-      ${donorsHref != null ? `
-      <div class="actions buttons-container">
-        <div class="button-container col-12">
-          <div class="d-grid gap-1">
-            <a href=${donorsHref} class="btn btn-primary btn-sm w-100 active" role="button" aria-pressed="true" data-explore="1">Explore Donors</a>
-          </div>
-        </div>
-      </div>` : ''
-                }
-    </div>
-  </div>
-</div>`;
+                      ${donorsHref != null ? `
+                      <div class="actions buttons-container">
+                        <div class="button-container col-12">
+                          <div class="d-grid gap-1">
+                            <a href=${donorsHref} class="btn btn-primary btn-sm w-100 active" role="button" aria-pressed="true" data-explore="1">Explore Donors</a>
+                          </div>
+                        </div>
+                      </div>` : ''
+                        }
+                    </div>
+                  </div>
+                </div>`;
         }
 
         // Hover show
@@ -374,8 +400,8 @@ const DonorCohortViewChart = ({
         const labelY = (v, pad = 6) => Math.max(y(v) - pad, 10);
 
         // ---------- Horizontal (Ethnicity) ----------
-        if (chartType === 'horizontal') {
-            const value = (d) => (d.blue || 0) + (d.pink || 0);
+        if (isHorizontal) {
+            const value = (d) => (d.value1 || 0) + (d.value2 || 0);
             const color = topStackColor || THEME.colors.ethnicity;
 
             const x = d3.scaleLinear()
@@ -445,7 +471,7 @@ const DonorCohortViewChart = ({
                 .attr('width', (d) => x(value(d)))
                 .attr('fill', color)
                 .attr('stroke', 'none')
-                .on('mouseover', (e, d) => showTip(e, `${value(d)}`))
+                .on('mouseover', (e, d) => showTip(e, d, null))
                 .on('mousemove', moveTip)
                 .on('mouseout', hideTip);
 
@@ -501,7 +527,7 @@ const DonorCohortViewChart = ({
 
         const yMaxRaw = d3.max(
             data,
-            (d) => (chartType === 'stacked' ? (d.blue || 0) + (d.pink || 0) : (d.blue || 0))
+            (d) => (chartType === 'stacked' ? (d.value1 || 0) + (d.value2 || 0) : (d.value1 || 0))
         ) || 0;
 
         const yDomainMax = yMaxRaw === 0 ? 1 : Math.ceil(yMaxRaw * 1.1);
@@ -560,36 +586,36 @@ const DonorCohortViewChart = ({
             g.selectAll('.bar-female')
                 .data(data).enter().append('rect')
                 .attr('x', (d) => x(d.group))
-                .attr('y', (d) => y(d.pink || 0))
-                .attr('height', (d) => y(0) - y(d.pink || 0))
+                .attr('y', (d) => y(d.value2 || 0))
+                .attr('height', (d) => y(0) - y(d.value2 || 0))
                 .attr('width', x.bandwidth())
                 .attr('fill', femaleColor)
                 .attr('stroke', 'none')
-                .on('mouseover', (e, d) => showTip(e, d, 'pink'))
+                .on('mouseover', (e, d) => showTip(e, d, 'secondary'))
                 .on('mousemove', moveTip)
                 .on('mouseout', hideTip)
-                .on('click', (e,d) => pinTip(e, d, 'pink'));
+                .on('click', (e,d) => pinTip(e, d, 'secondary'));
 
             g.selectAll('.bar-male')
                 .data(data).enter().append('rect')
                 .attr('x', (d) => x(d.group))
-                .attr('y', (d) => y((d.blue || 0) + (d.pink || 0)))
-                .attr('height', (d) => y(0) - y(d.blue || 0))
+                .attr('y', (d) => y((d.value1 || 0) + (d.value2 || 0)))
+                .attr('height', (d) => y(0) - y(d.value1 || 0))
                 .attr('width', x.bandwidth())
                 .attr('fill', maleColor)
                 .attr('stroke', 'none')
-                .on('mouseover', (e, d) => showTip(e, d, 'blue'))
+                .on('mouseover', (e, d) => showTip(e, d, 'primary'))
                 .on('mousemove', moveTip)
                 .on('mouseout', hideTip)
-                .on('click', (e,d) => pinTip(e, d, 'blue'));
+                .on('click', (e,d) => pinTip(e, d, 'primary'));
 
             if (showLabelOnBar) {
                 g.selectAll('.label-female')
                     .data(data).enter().append('text')
-                    .filter((d) => (d.pink || 0) > 0)
-                    .text((d) => d.pink)
+                    .filter((d) => (d.value2 || 0) > 0)
+                    .text((d) => d.value2)
                     .attr('x', (d) => x(d.group) + x.bandwidth() / 2)
-                    .attr('y', (d) => y((d.pink || 0) / 2))
+                    .attr('y', (d) => y((d.value2 || 0) / 2))
                     .attr('text-anchor', 'middle')
                     .attr('dy', '0.35em')
                     .style('fill', '#FFFFFF')
@@ -597,10 +623,10 @@ const DonorCohortViewChart = ({
 
                 g.selectAll('.label-male')
                     .data(data).enter().append('text')
-                    .filter((d) => (d.blue || 0) > 0)
-                    .text((d) => d.blue)
+                    .filter((d) => (d.value1 || 0) > 0)
+                    .text((d) => d.value1)
                     .attr('x', (d) => x(d.group) + x.bandwidth() / 2)
-                    .attr('y', (d) => y((d.pink || 0) + (d.blue || 0) / 2))
+                    .attr('y', (d) => y((d.value2 || 0) + (d.value1 || 0) / 2))
                     .attr('text-anchor', 'middle')
                     .attr('dy', '0.35em')
                     .style('fill', '#FFFFFF')
@@ -609,10 +635,10 @@ const DonorCohortViewChart = ({
 
             g.selectAll('.label-total')
                 .data(data).enter().append('text')
-                .filter((d) => ((d.blue || 0) + (d.pink || 0)) > 0)
-                .text((d) => (d.blue || 0) + (d.pink || 0))
+                .filter((d) => ((d.value1 || 0) + (d.value2 || 0)) > 0)
+                .text((d) => (d.value1 || 0) + (d.value2 || 0))
                 .attr('x', (d) => x(d.group) + x.bandwidth() / 2)
-                .attr('y', (d) => y((d.blue || 0) + (d.pink || 0)) - 6)
+                .attr('y', (d) => y((d.value1 || 0) + (d.value2 || 0)) - 6)
                 .attr('text-anchor', 'middle')
                 .style('fill', THEME.label.fill)
                 .style('font-size', THEME.label.fontSize);
@@ -623,22 +649,22 @@ const DonorCohortViewChart = ({
             g.selectAll('.bar-single')
                 .data(data).enter().append('rect')
                 .attr('x', (d) => x(d.group))
-                .attr('y', (d) => y(d.blue || 0))
-                .attr('height', (d) => y(0) - y(d.blue || 0))
+                .attr('y', (d) => y(d.value1 || 0))
+                .attr('height', (d) => y(0) - y(d.value1 || 0))
                 .attr('width', x.bandwidth())
                 .attr('fill', color)
                 .attr('stroke', 'none')
-                .on('mouseover', (e, d) => { if ((d.blue || 0) > 0) { showTip(e, d, null); } })
+                .on('mouseover', (e, d) => { if ((d.value1 || 0) > 0) { showTip(e, d, null); } })
                 .on('mousemove', moveTip)
                 .on('mouseout', hideTip)
-                .on('click', (e, d) => { if ((d.blue || 0) > 0) { pinTip(e, d, null); } });
+                .on('click', (e, d) => { if ((d.value1 || 0) > 0) { pinTip(e, d, null); } });
 
             g.selectAll('.label-single')
                 .data(data).enter().append('text')
-                .filter((d) => (d.blue || 0) > 0)
-                .text((d) => d.blue || 0)
+                .filter((d) => (d.value1 || 0) > 0)
+                .text((d) => d.value1 || 0)
                 .attr('x', (d) => x(d.group) + x.bandwidth() / 2)
-                .attr('y', (d) => labelY(d.blue || 0))
+                .attr('y', (d) => labelY(d.value1 || 0))
                 .attr('text-anchor', 'middle')
                 .style('fill', THEME.label.fill)
                 .style('font-size', THEME.label.fontSize);

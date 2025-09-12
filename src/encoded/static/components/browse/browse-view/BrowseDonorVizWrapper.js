@@ -22,28 +22,18 @@ import { set } from 'date-fns';
  */
 export const donorSelfReportedEthnicityData = memoize(() =>
     _.chain([
-        {
-            group: 'American Indian or Alaska Native',
-            blue: 1,
-            pink: 0,
-            total: 10,
-        },
-        // { group: 'Asian', blue: 8, pink: 0, total: 83 },
-        // { group: 'Black or African American', blue: 11, pink: 0, total: 83 },
-        {
-            group: 'Hispanic, Latino or Spanish Origin',
-            blue: 1,
-            pink: 0,
-            total: 10,
-        },
-        // { group: 'Middle Eastern or North African', blue: 15, pink: 0, total: 83 },
-        // { group: 'Native Hawaiian or Other Pacific Islander', blue: 10, pink: 0, total: 83 },
-        // { group: 'Other', blue: 8, pink: 0, total: 83 },
-        { group: 'White', blue: 7, pink: 0, total: 10 },
-        { group: 'More than 1 Race/Ethnicity', blue: 1, pink: 0, total: 10 },
+        { group: 'American Indian or Alaska Native', value1: 1, value2: 0, total: 10 },
+        // { group: 'Asian', value1: 8, value2: 0, total: 83 },
+        // { group: 'Black or African American', value1: 11, value2: 0, total: 83 },
+        { group: 'Hispanic, Latino or Spanish Origin', value1: 1, value2: 0, total: 10 },
+        // { group: 'Middle Eastern or North African', value1: 15, value2: 0, total: 83 },
+        // { group: 'Native Hawaiian or Other Pacific Islander', value1: 10, value2: 0, total: 83 },
+        // { group: 'Other', value1: 8, value2: 0, total: 83 },
+        { group: 'White', value1: 7, value2: 0, total: 10 },
+        { group: 'More than 1 Race/Ethnicity', value1: 1, value2: 0, total: 10 },
     ])
-        .sortBy((item) => item.group.toLowerCase()) // 2. kriter: group (artan)
-        .sortBy((item) => -item.blue) // 1. kriter: blue (azalan)
+        .sortBy((item) => item.group.toLowerCase()) // #2 group asc
+        .sortBy((item) => -item.value1) // #1 value1 desc
         .value()
 );
 
@@ -181,11 +171,11 @@ export const BrowseDonorVizWrapper = (props) => {
 
                     return {
                         group: String(scaleValue),
-                        blue: totalCount,
-                        pink: 0,
+                        value1: totalCount,
+                        value2: 0,
                         total: rawData.total.donors,
-                        blueFileCount: totalFileCount,
-                        pinkFileCount: 0,
+                        value1FileCount: totalFileCount,
+                        value2FileCount: 0,
                         totalFileCount: totalFileCount,
                         field: 'donors.hardy_scale',
                         from: scaleValue,
@@ -194,12 +184,12 @@ export const BrowseDonorVizWrapper = (props) => {
                 }
             );
 
-            // Donor Age Group Data (Male → blue, Female → pink)
+            // Donor Age Group Data (Male → value1, Female → value2)
             const updatedDonorAgeGroupData = ageGroups.map((group) => {
-                let blueCount = 0;
-                let pinkCount = 0;
-                let blueFileCount = 0;
-                let pinkFileCount = 0;
+                let value1Count = 0;
+                let value2Count = 0;
+                let value1FileCount = 0;
+                let value2FileCount = 0;
 
                 Object.values(rawData.terms).forEach((scale) => {
                     Object.values(scale.terms).forEach((sex) => {
@@ -207,12 +197,12 @@ export const BrowseDonorVizWrapper = (props) => {
                             const ageNum = parseInt(age, 10);
                             if (ageNum >= group.min && ageNum <= group.max) {
                                 if (sex.term === 'Male') {
-                                    blueCount += info.donors;
-                                    blueFileCount += info.doc_count;
+                                    value1Count += info.donors;
+                                    value1FileCount += info.doc_count;
                                 }
                                 if (sex.term === 'Female') {
-                                    pinkCount += info.donors;
-                                    pinkFileCount += info.doc_count;
+                                    value2Count += info.donors;
+                                    value2FileCount += info.doc_count;
                                 }
                             }
                         });
@@ -221,12 +211,12 @@ export const BrowseDonorVizWrapper = (props) => {
 
                 return {
                     group: group.label,
-                    blue: blueCount,
-                    pink: pinkCount,
+                    value1: value1Count,
+                    value2: value2Count,
                     total: rawData.total.donors,
-                    blueFileCount: blueFileCount,
-                    pinkFileCount: pinkFileCount,
-                    totalFileCount: blueFileCount + pinkFileCount,
+                    value1FileCount: value1FileCount,
+                    value2FileCount: value2FileCount,
+                    totalFileCount: value1FileCount + value2FileCount,
                     field: 'donors.age',
                     from: group.min,
                     to: group.max === Infinity ? null : group.max,
