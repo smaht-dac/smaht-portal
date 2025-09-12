@@ -932,28 +932,34 @@ body[data-path="/"]>#application>#layout {
 												padding: 2px 0px;
 												border-radius: 4px;
 												gap: 4px;
+												padding-bottom: 0px;
+												
 
 												.toggle-button {
+													display: flex;
 													border-radius: 100%;
 													padding: 2px;
 													color: #485983;
 													margin: auto;
-													display: flex;
+													width: 16px;
 												}
 
 												.title {
 													display: flex;
 													flex: 1;
 													justify-content: space-between;
-													color: #485983;
 													font-weight: 700;
 													font-size: 0.875rem;
 													align-items: center;
 													width: max-content;
 													padding: 2px 8px;
+													color: #485983;
+													border: 1px solid transparent;
 													border-radius: 7px;
 													align-items: baseline;
 													transition: background-color 100ms;
+													margin-bottom: 0px;
+													padding-bottom: 0px;
 													
 													.count {
 														display: flex;
@@ -964,9 +970,9 @@ body[data-path="/"]>#application>#layout {
 
 													&:hover {
 														cursor: pointer;
-														background-color: whitesmoke;
+														background: rgb(14 116 210 / 9%);
 														transition: background-color 100ms;
-														color: #3C71F9;
+														// border-radius: 7px 7px 0px 0px;
 														
 														i {
 															fill: #3C71F9;
@@ -974,20 +980,28 @@ body[data-path="/"]>#application>#layout {
 													}
 												}
 												
+												&.expanded {
+													.title {
+														background: rgb(14 116 210 / 9%);
+														border-radius: 7px 7px 0px 0px;
+													}
+												}
 											}
 											
 
 											.tissue-list {
 												margin-top: 0px;
-												padding-left: 1rem;
 												list-style-type: none;
-												padding-left: 20px;
+												background: rgb(14 116 210 / 9%);
+												padding-left: 0px;
 
 												li {
 													font-weight: 300;
-													line-height: 1.25rem;
 													line-height: 1rem;
 													margin-top: 0.25rem;
+													border-radius: 0px 0px 7px 7px;
+													margin-top: 0px;
+													padding: 4px;
 
 													a {
 														color: #485983;
@@ -1004,12 +1018,12 @@ body[data-path="/"]>#application>#layout {
 											&.donor {
 												background-color: transparent;
 												border: none;
-												color: #2A28BD;
+												color: #485983;
 											}
 											&.tissue {
 												background-color: transparent;
 												border: none;
-												color: #2A28BD;
+												color: #485983;
 											}
 										}
 									}
@@ -1062,11 +1076,6 @@ body[data-path="/"]>#application>#layout {
 										.body {
 											height: 0px;
 											overflow: hidden;
-										}
-
-										.toggle-button {
-											i:before {
-											}
 										}
 									}
 								}
@@ -1260,9 +1269,6 @@ body[data-path="/"]>#application>#layout {
 				}
 		
 				.about-consortium {
-			
-					.section-header {
-					}
 
 					&-links {
 						display: flex;

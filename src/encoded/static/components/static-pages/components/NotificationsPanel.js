@@ -153,7 +153,8 @@ const DonorGroup = ({
 
     return (
         <div className="release-item">
-            <div className="donor-group-header">
+            <div
+                className={`donor-group-header ${isToggled ? 'expanded' : ''}`}>
                 <button
                     className="toggle-button donor"
                     onClick={() => {
