@@ -7,6 +7,29 @@ smaht-portal
 Change Log
 ----------
 
+1.1.4
+=======
+`PR 521: Modify production tissues in Submission Status page <https://github.com/smaht-dac/smaht-portal/pull/521>`_
+
+* Adjust production tissues in Submission Status page
+
+
+1.1.3
+=======
+`PR 499: WF Fix ingesting identical items <https://github.com/smaht-dac/smaht-portal/pull/499>`_
+
+* Add diff check for ingested metadata
+
+
+1.1.2
+=====
+`PR 520: Add tag filtering for release tracker and improve notifications panel UX <https://github.com/smaht-dac/smaht-portal/pull/520>`_
+
+* Released files can now be excluded from the release tracker by adding the tag `exclude_from_release_tracker`
+* Only show the last 3 months in the release tracker
+* In the notification panel UX, handle the case correctly when there are no released files.
+
+
 1.1.1
 =====
 `PR 513: feat: QC Tab update <https://github.com/smaht-dac/smaht-portal/pull/513>`_
