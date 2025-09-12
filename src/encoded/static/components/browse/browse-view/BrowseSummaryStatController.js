@@ -65,7 +65,6 @@ export const BrowseSummaryStatController = (props) => {
     });
 
     const fallbackFxn = useCallback((resp) => {
-        console.log('BrowseSummaryStatController error', resp);
         setLoading(false);
         setError(true);
     });
@@ -76,7 +75,7 @@ export const BrowseSummaryStatController = (props) => {
 
         // Use search for query-based metrics
         ajax.load(
-            `/search/?type=File&sample_summary.studies=Production&format=json&status=released${additionalSearchQueries}`,
+            `/search/?type=File&sample_summary.studies=Production&format=json&status=released&status=public&status=public-restricted${additionalSearchQueries}`,
             callbackFxn,
             'GET',
             fallbackFxn

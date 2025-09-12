@@ -14,6 +14,7 @@ import {
     SelectedItemsDownloadButton,
 } from '../../../static-pages/components/SelectAllAboveTableComponent';
 import { EmbeddedItemSearchTable } from '../EmbeddedItemSearchTable';
+import { renderProtectedAccessPopover } from '../../PublicDonorView';
 
 /**
  * Wraps the File Overview Table in a SelectedItemsController component, which
@@ -89,6 +90,28 @@ export const FileOverviewTable = (props) => {
                         {...{ selectedItems, onSelectItem, result }}
                         isMultiSelect={true}
                     />
+                );
+            },
+        },
+        // Access
+        access_status: {
+            widthMap: { lg: 70, md: 70, sm: 70 },
+            colTitle: <i className="icon icon-lock fas" data-tip="Access" />,
+            render: function (result, parentProps) {
+                const { access_status } = result || {};
+
+                if (access_status === 'Protected') {
+                    return (
+                        <span className="value">
+                            <i
+                                className="icon icon-lock fas"
+                                data-tip="Protected"
+                            />
+                        </span>
+                    );
+                }
+                return (
+                    <span className="value text-start">{access_status}</span>
                 );
             },
         },
@@ -274,7 +297,6 @@ export const FileOverviewTable = (props) => {
                 columnExtensionMap={FileOverviewColExtMap}
                 hideColumns={[
                     'display_title',
-                    'access_status',
                     'data_type',
                     'file_sets.sequencing.sequencer.display_title',
                     'file_format.display_title',
@@ -284,6 +306,7 @@ export const FileOverviewTable = (props) => {
                 ]}
                 columns={{
                     '@type': {},
+                    access_status: {},
                     annotated_filename: {},
                     'software.display_title': {},
                     'software.version': {},
@@ -342,15 +365,29 @@ const FileOverviewAboveTableComponent = (props) => {
                     {...selectedFileProps}
                     context={context}
                 />
-                <SelectedItemsDownloadButton
-                    id="download_tsv_multiselect"
-                    disabled={selectedItems?.size === 0}
-                    className="btn btn-primary btn-sm me-05 align-items-center"
-                    {...{ selectedItems, session }}
-                    analyticsAddItemsToCart>
-                    <i className="icon icon-download fas me-07" />
-                    Download {selectedItems?.size} Selected Files
-                </SelectedItemsDownloadButton>
+                {session ? (
+                    <SelectedItemsDownloadButton
+                        id="download_tsv_multiselect"
+                        disabled={selectedItems?.size === 0}
+                        className="btn btn-primary btn-sm me-05 align-items-center"
+                        {...{ selectedItems, session }}
+                        analyticsAddItemsToCart>
+                        <i className="icon icon-download fas me-07" />
+                        Download {selectedItems?.size} Selected Files
+                    </SelectedItemsDownloadButton>
+                ) : (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="top"
+                        overlay={renderProtectedAccessPopover()}>
+                        <button
+                            className="btn btn-primary btn-sm me-05 align-items-center pe-auto"
+                            disabled={true}>
+                            <i className="icon icon-download fas me-03" />
+                            Download {selectedItems?.size} Selected Files
+                        </button>
+                    </OverlayTrigger>
+                )}
             </div>
         </div>
     );

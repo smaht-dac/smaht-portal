@@ -142,6 +142,7 @@ export const HashBasedTabController = ({
     tabMapArray, // An array of objects containing { eventKey: <hash value of tab>, title: <title of tab>, searchHref: <searchHref for tab>}
     controllerId,
     defaultActiveKeyProp = null,
+    deniedAccessPopoverType,
 }) => {
     if (!tabMapArray || !tabMapArray.length) {
         return <div>Coming Soon</div>;
@@ -151,7 +152,14 @@ export const HashBasedTabController = ({
     const defaultActiveKey = defaultActiveKeyProp || tabMapArray[0]?.eventKey;
 
     // Commons needed by TableControllerWithSelections...
-    const commonTableProps = { schemas, session, facets, href, context };
+    const commonTableProps = {
+        schemas,
+        session,
+        facets,
+        href,
+        context,
+        deniedAccessPopoverType,
+    };
 
     // Grab the hash for use in setting the current active tab
     const urlParts = memoizedUrlParse(href);
@@ -200,7 +208,11 @@ export const HashBasedTabController = ({
                             <TableControllerWithSelections
                                 {...{ searchHref, tabMap }}
                                 {...commonTableProps}>
-                                <BenchmarkingTable />
+                                <BenchmarkingTable
+                                    deniedAccessPopoverType={
+                                        deniedAccessPopoverType
+                                    }
+                                />
                             </TableControllerWithSelections>
                         </div>
                     </Tab>
