@@ -291,9 +291,8 @@ const DonorCohortViewChart = ({
             _isPinned = true;
             _pinnedData = d;
 
-            const rect = e.currentTarget.getBoundingClientRect();
-            const left = window.pageXOffset + rect.left + rect.width / 2;
-            const top = window.pageYOffset + rect.top + 8;
+            const left = e.pageX + 12;
+            const top = e.pageY - 12;
 
             tooltipSel
                 .html(renderRichTooltip(d, barStackType))
@@ -318,10 +317,10 @@ const DonorCohortViewChart = ({
         }
         // helper to unpin & hide (reuse the same logic everywhere)
         function unpinTooltip() {
-            // if (!_isPinned) return;
-            // _isPinned = false;
-            // _pinnedData = null;
-            // tooltipSel.classed('is-pinned', false).style('opacity', 0);
+            if (!_isPinned) return;
+            _isPinned = false;
+            _pinnedData = null;
+            tooltipSel.classed('is-pinned', false).style('opacity', 0);
         }
 
         tooltipSel
