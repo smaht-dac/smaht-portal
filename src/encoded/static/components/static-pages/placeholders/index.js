@@ -30,6 +30,7 @@ import { ChallengeTableWrapper } from '../components/challenges/ChallengeTables'
 import DataMatrix from '../../viz/Matrix/DataMatrix';
 import RetractedFilesTable from '../components/RetractedFilesTable';
 import { SubmissionDataDictionary } from '../SubmissionDataDictionary';
+import { DonorManifestDataDictionary } from '../DonorManifestDataDictionary';
 
 /**
  * Any placeholder(s) used in a StaticSection _must_ get imported here
@@ -57,6 +58,7 @@ const placeholders = {
     RetractedFilesTable,
     DataMatrix,
     SubmissionDataDictionary,
+    DonorManifestDataDictionary,
 };
 
 export const replaceString = memoize(
