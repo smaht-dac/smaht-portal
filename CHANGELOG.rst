@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.1.4
+=======
+`PR 521: Modify production tissues in Submission Status page <https://github.com/smaht-dac/smaht-portal/pull/521>`_
+
+* Adjust production tissues in Submission Status page
+
+
 1.1.3
 =======
 `PR 499: WF Fix ingesting identical items <https://github.com/smaht-dac/smaht-portal/pull/499>`_
