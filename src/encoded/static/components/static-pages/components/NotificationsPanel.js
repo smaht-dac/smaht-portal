@@ -3,6 +3,15 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { RightArrowIcon } from '../../util/icon';
 
+/**
+ * Toggle hook
+ */
+const useToggle = (initialState = false) => {
+    const [isToggled, setIsToggled] = useState(initialState);
+    const toggle = () => setIsToggled(!isToggled);
+    return [isToggled, toggle];
+};
+
 const announcements = [
     {
         type: 'info',
@@ -102,9 +111,99 @@ const AnnouncementCard = ({
     );
 };
 
+const TissueGroup = ({ count, tissue_group, items }) => {
+    const [isToggled, toggle] = useToggle();
+
+    return (
+        <li>
+            <button className="toggle-button tissue" onClick={() => toggle()}>
+                <i
+                    className={`icon icon-${isToggled ? 'minus' : 'plus'} fas`}
+                />
+            </button>
+            <a>{tissue_group}</a>
+            {isToggled ? (
+                <ul className="file-group-list">
+                    {items.map((item, i) => (
+                        <li key={i}>
+                            {item?.count} {item?.value}
+                        </li>
+                    ))}
+                </ul>
+            ) : null}
+        </li>
+    );
+};
+
+const DonorGroup = (props) => {
+    const [isToggled, toggle] = useToggle();
+
+    const { count, donorGroups: donor_groups, donorGroup: donor_group } = props;
+    let donor_title = donor_group;
+
+    if (donor_title?.includes('DAC_DONOR_')) {
+        donor_title = donor_title.replace('DAC_DONOR_', '');
+    }
+
+    return (
+        <div className="release-item">
+            <div
+                className={`donor-group-header ${isToggled ? 'expanded' : ''}`}>
+                <button
+                    className="toggle-button donor"
+                    onClick={() => {
+                        toggle();
+                    }}>
+                    <i
+                        className={`icon icon-${
+                            isToggled ? 'minus' : 'plus'
+                        }`}></i>
+                </button>
+                <a className="title">
+                    {donor_title}
+                    <span className="count">
+                        {count ?? 0} {count > 1 ? 'Files' : 'File'}
+                        <i className="icon icon-arrow-right"></i>
+                    </span>
+                </a>
+            </div>
+            {isToggled ? (
+                <ul className="tissue-list">
+                    {Object.keys(donor_groups[donor_group]['items']).map(
+                        (tissue_group, i) => {
+                            const { count, query } =
+                                donor_groups[donor_group]['items'][
+                                    tissue_group
+                                ];
+                            return (
+                                <TissueGroup
+                                    key={i}
+                                    count={count}
+                                    tissue_group={tissue_group}
+                                    items={
+                                        donor_groups[donor_group]['items'][
+                                            tissue_group
+                                        ].items
+                                    }
+                                />
+                            );
+                        }
+                    )}
+                </ul>
+            ) : null}
+        </div>
+    );
+};
+
+/**
+ * DataReleaseItem component displays information about a specific data release.
+ * @param {*} data - The data object containing release information.
+ * @param {*} releaseItemIndex - The index of the release item.
+ * @returns {JSX.Element} The rendered DataReleaseItem component.
+ */
 const DataReleaseItem = ({ data, releaseItemIndex }) => {
-    const [isExpanded, setIsExpanded] = useState(true);
-    const { count, items: sample_groups, query, value } = data;
+    const [isToggled, toggle] = useToggle(releaseItemIndex === 0);
+    const { count, items: donor_groups, query, value } = data;
 
     // Replace hyphens with slashes and add day field for Safari compatibility
     const date_formatted = value.replace(/-/g, '/') + '/01';
@@ -115,18 +214,18 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
     return (
         <div
             className={`data-release-item-container ${
-                isExpanded ? 'expanded' : 'collapsed'
+                isToggled ? 'expanded' : 'collapsed'
             }`}>
             <div className="content">
                 <div className="header">
                     <button
                         className="toggle-button"
                         onClick={() => {
-                            setIsExpanded(!isExpanded);
+                            toggle();
                         }}>
                         <i
                             className={`icon icon-${
-                                isExpanded ? 'minus' : 'plus'
+                                isToggled ? 'minus' : 'plus'
                             }`}></i>
                     </button>
                     <a className="header-link" href={query}>
@@ -141,42 +240,16 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                     </a>
                 </div>
                 <div className="body">
-                    {sample_groups.map((sample_group, i) => {
-                        let sample_group_title = sample_group.value;
-
-                        if (sample_group_title?.includes('DAC_DONOR_')) {
-                            sample_group_title = sample_group_title.replace(
-                                'DAC_DONOR_',
-                                ''
-                            );
-                        }
-
-                        const sample_group_type =
-                            sample_group?.items?.[0]?.['additional_value'];
-
-                        if (sample_group_type) {
-                            sample_group_title += ` - ${sample_group_type}`;
-                        }
-
+                    {/* Map donor groups to drop-downs */}
+                    {Object.keys(donor_groups).map((donor_group, i) => {
                         return (
-                            <div className="release-item" key={i}>
-                                <a className="title" href={sample_group.query}>
-                                    {sample_group_title}
-                                    <RightArrowIcon />
-                                </a>
-                                <ul>
-                                    {sample_group.items.map((item, i) => {
-                                        const { value, count, query } = item;
-                                        return (
-                                            <li key={i}>
-                                                <a href={query}>
-                                                    {count} {value}
-                                                </a>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            </div>
+                            <DonorGroup
+                                count={donor_groups[donor_group].count}
+                                key={i}
+                                donorGroups={donor_groups}
+                                donorGroup={donor_group}
+                                query={donor_groups[donor_group].query}
+                            />
                         );
                     })}
                 </div>
@@ -185,14 +258,79 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
     );
 };
 
+/**
+ * `formatReleaseData` formats the release tracker data into a structure
+ * that more closely matches the UI by grouping the data by donor and tissue
+ * @param {} data
+ * @returns
+ */
+const formatReleaseData = (data) => {
+    return data.map((month) => {
+        // Format each month by grouping items by donor and tissue
+        const formattedItems = month?.items?.reduce((acc, item) => {
+            const { count, value, items } = item;
+
+            // Pull out Donor and add to [acc]
+            const [donor, tissue] = value?.split('-');
+            const tissueCode = items?.[0]?.['additional_value'] ?? '';
+            const tissueTitle = tissueCode
+                ? tissueCode + ' - ' + tissue
+                : tissue;
+
+            const tissue_items = item?.items;
+
+            // Create a new entry for the donor if it doesn't exist
+            if (!acc?.[donor]) {
+                // Place tissue items into new donor group
+                const new_donor_items = {
+                    [tissueTitle]: { items: tissue_items, count },
+                };
+                acc[donor] = {
+                    items: new_donor_items,
+                    count,
+                };
+            } else {
+                // Append new tissue category if it doesn't exist on donor
+                if (!acc?.[donor]?.items?.[tissueTitle]) {
+                    acc[donor].items[tissueTitle] = {
+                        items: tissue_items,
+                        count,
+                    };
+
+                    // Add count to donor total
+                    acc[donor].count += count;
+                } else {
+                    // Simply add to existing tissue category
+                    acc[donor].items[tissueTitle].items.push(...tissue_items);
+
+                    // Add count to tissue total
+                    acc[donor].items[tissueTitle].count += count;
+
+                    // Add count to donor total
+                    acc[donor].count += count;
+                }
+            }
+
+            return acc;
+        }, {});
+
+        return {
+            ...month,
+            items: formattedItems,
+        };
+    });
+};
+
 export const NotificationsPanel = () => {
     const [data, setData] = useState(null);
+
+    console.log('NotificationsPanel render data', data);
 
     useEffect(() => {
         ajax.load(
             '/recent_files_summary?format=json&nmonths=3',
             (resp) => {
-                setData(resp?.items ?? []);
+                setData(resp?.items ? formatReleaseData(resp?.items) : []);
             },
             'GET',
             (err) => {
