@@ -7,9 +7,133 @@ smaht-portal
 Change Log
 ----------
 
+1.1.4
+=======
+`PR 521: Modify production tissues in Submission Status page <https://github.com/smaht-dac/smaht-portal/pull/521>`_
+
+* Adjust production tissues in Submission Status page
+
+
+1.1.3
+=======
+`PR 499: WF Fix ingesting identical items <https://github.com/smaht-dac/smaht-portal/pull/499>`_
+
+* Add diff check for ingested metadata
+
+
+1.1.2
+=====
+`PR 520: Add tag filtering for release tracker and improve notifications panel UX <https://github.com/smaht-dac/smaht-portal/pull/520>`_
+
+* Released files can now be excluded from the release tracker by adding the tag `exclude_from_release_tracker`
+* Only show the last 3 months in the release tracker
+* In the notification panel UX, handle the case correctly when there are no released files.
+
+
+1.1.1
+=====
+`PR 513: feat: QC Tab update <https://github.com/smaht-dac/smaht-portal/pull/513>`_
+
+* Show placeholder for QC Tab when user does not have access to related QC Items for that file
+
+
+1.1.0
+=====
+`PR 508: SN Fibroblast tissue type  <https://github.com/smaht-dac/smaht-portal/pull/508>`_
+
+* Update the `get_sample_summary` function in File to return "Fibroblast" for `sample_summary.tissues` if the linked tissues have a 3AC protocol ID, otherwise use the linked OntologyTerms
+
+
+1.0.2
+=====
+`PR 517: Improve Submission Status page file display logic <https://github.com/smaht-dac/smaht-portal/pull/517>`_
+
+* Show CRAM file on the Submission Status page if they were generated from a BAM to CRAM conversion workflow.
+* Hide obsolete files from the Submission Status page.
+* Make sure MetaWorkflowRuns are sorted by date created (oldest first) on the Submission Status page.
+
+
+1.0.1
+=====
+`PR 498: SN Update manifest documentation <https://github.com/smaht-dac/smaht-portal/pull/498>`_
+
+* Update the Interpreting Manifest Files page to include new columns added to the File Manifest and information on the multiple manifest files containing full file metadata.
+
+
+1.0.0
+=====
+
+* Major version - introduction of public-restricted status, usability
+  of data portal with expanded permissions for restricted metadata
+* Adds two new ACLs for restricted and public-restricted that allows
+  metadata items to be permissions via presence of the dbgap and
+  public-dbgap
+groups
+* Expands the restricted status to apply a global block on dbGaP permission
+  for certain metadata items
+* Allow the public-restricted status to function similarly to how restricted
+  functions for non-file items ie: anyone can view, only protected users can
+  download
+* Tests for protected donor and medical history using the restricted and
+  public-restricted statuses, along with tests for files as well utilizing
+  the new groups
+
+  
+0.195.3
+=======
+`PR 512: feat: remove quantity field from protected donor view <https://github.com/smaht-dac/smaht-portal/pull/512>`_
+
+* Remove the quantity field from the Protected Donor view
+
+
+0.195.2
+=======
+`PR 510: Cypress tests for protected/public donor views <https://github.com/smaht-dac/smaht-portal/pull/510>`_
+
+* Add Cypress tests for protected and public donor views
+* Move data matrix utility functions into `dataMatrixUtils`` file to use in multiple tests
+
+
+0.195.1
+=======
+`PR 509: SN Fix donor metadata release <https://github.com/smaht-dac/smaht-portal/pull/509>`_
+
+* Fix patching of release status to not ignore patching if the status is `released`
+
+
+0.195.0
+=======
+`PR 503: feat: public donor view <https://github.com/smaht-dac/smaht-portal/pull/503>`_
+
+* Implement Public Donor view
+
+
+0.194.2
+=======
+`PR 506: feat: add tooltip to values column header <https://github.com/smaht-dac/smaht-portal/pull/506>`_
+
+* Add tooltip for values column in Submission Data Dictionary
+
+
+0.194.1
+=======
+`PR 504: feat: updates to portal for CRAM releases <https://github.com/smaht-dac/smaht-portal/pull/504>`_
+
+* Update portal to reflect CRAM files being released
+
+
+0.194.0
+=======
+`PR 496: Data matrix popover and style updates <https://github.com/smaht-dac/smaht-portal/pull/496>`_
+
+* Move DataMatrix components to the Viz folder, enhance tab styles, and simplify data aggregation processes.
+* Adjust visual elements and update tests to reflect the redesigned data matrix popover
+* Add total coverage, tissue, and donor counts into the data matrix popover
+
+
 0.193.2
 =======
-`PR 505: Handle Aorta correctly in tissue classification table  <https://github.com/smaht-dac/smaht-portal/pull/505>`_
+`PR 505: Handle Aorta correctly in tissue classification table <https://github.com/smaht-dac/smaht-portal/pull/505>`_
 
 * Treat Aorta as a special case in the tissue classification table, as GTEX only has Blood Vessel.
 

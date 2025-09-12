@@ -7,50 +7,248 @@ import ReactTooltip from 'react-tooltip';
 import { console, ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { VisualBody } from './StackedBlockVisual';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
+import { germLayerTissueMapping } from '../../util/data';
 
 
 export default class DataMatrix extends React.PureComponent {
 
+    static isPlainObject = (v) => v != null && typeof v === 'object' && !Array.isArray(v);
+
+    // Simple recursive deep clone that works with objects and arrays
+    static deepClone(value) {
+        if (Array.isArray(value)) {
+            return value.map(DataMatrix.deepClone);
+        }
+        if (DataMatrix.isPlainObject(value)) {
+            return _.mapObject(value, DataMatrix.deepClone);
+        }
+        return value;
+    }
+
+    /**
+     * Deeply merges two objects without mutating the original objects.
+     * We don't use deepExtend from @hms-dbmi-bgm/shared-portal-components/es/components/util/object since
+     * it doesn't handle arrays and also mutates obj1
+     */
+    static deepExtend(obj1 = {}, obj2 = {}) {
+        // Create a full deep copy of obj1 to ensure it is never mutated
+        const result = DataMatrix.deepClone(obj1);
+
+        _.each(obj2, (value, key) => {
+            const left = result[key];
+
+            if (DataMatrix.isPlainObject(value) && DataMatrix.isPlainObject(left)) {
+                // If both values are plain objects, merge them recursively
+                result[key] = DataMatrix.deepExtend(left, value);
+            } else if (Array.isArray(value) && Array.isArray(left)) {
+                // Merge arrays, remove duplicates, and ensure a new array reference
+                result[key] = _.uniq([...left, ...value]);
+            } else if (Array.isArray(value)) {
+                // Replace with a cloned array to avoid shared references
+                result[key] = [...value];
+            } else if (DataMatrix.isPlainObject(value)) {
+                // Replace with a deep copy to avoid shared object references
+                result[key] = DataMatrix.deepClone(value);
+            } else {
+                // Override primitive values or non-matching types
+                result[key] = value;
+            }
+        });
+
+        return result;
+    }
+
+    static DEFAULT_ROW_GROUPS_EXTENDED = DataMatrix.deepExtend(germLayerTissueMapping, {
+        Ectoderm: { backgroundColor: '#367151', textColor: '#ffffff', shortName: 'Ecto' },
+        Mesoderm: { backgroundColor: '#30975e', textColor: '#ffffff', shortName: 'Meso' },
+        Endoderm: { backgroundColor: '#53b27e', textColor: '#ffffff', shortName: 'Endo' },
+        'Germ cells': { backgroundColor: '#80c4a0', textColor: '#ffffff', shortName: 'Germ' },
+        'Clinically accessible': { backgroundColor: '#70a588', textColor: '#ffffff', shortName: 'Clin' },
+    });
+
+
     static defaultProps = {
         "query": {
-            "url": "/data_matrix_aggregations/?type=File&limit=all",
-            "columnAggFields": "",
-            "rowAggFields": [""]
+            "url": "/data_matrix_aggregations/?type=File&status=released&limit=all",
+            "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"],
+            "rowAggFields": ["donors.display_title", "sample_summary.tissues"]
         },
-        "valueChangeMap": {},
-        "fieldChangeMap": {},
+        "fieldChangeMap": {
+            "assay": "file_sets.libraries.assay.display_title",
+            "donor": "donors.display_title",
+            "tissue": "sample_summary.tissues",
+            "platform": "sequencing.sequencer.platform",
+            "data_type": "data_type",
+            "file_format": "file_format.display_title",
+            "data_category": "data_category",
+            "software": "software.display_title",
+            "study": "sample_summary.studies",
+            "dataset": "dataset",
+        },
+        "valueChangeMap": {
+            "assay": {
+                "scDip-C - Illumina": "scDip-C",
+                "CompDuplex-seq - Illumina": "CompDuplex-Seq",
+                "Kinnex - PacBio": "Kinnex",
+                "Fiber-seq - PacBio": "Fiber-Seq",
+                "Fiber-seq - Illumina": "Fiber-Seq",
+                "Fiber-seq - ONT": "Fiber-Seq",
+                "RNA-seq - Illumina": "RNA-Seq - Illumina",
+                "NanoSeq - Illumina": "NanoSeq",
+                "ATAC-seq - Illumina": "ATAC-Seq",
+                "varCUT&Tag - Illumina": "varCUT&Tag",
+                "VISTA-seq - Illumina": "VISTA-Seq",
+                "scVISTA-seq - Illumina": "VISTA-Seq",
+                "Microbulk VISTA-seq - Illumina": "VISTA-Seq",
+                "CODEC - Illumina": "CODEC",
+                "Single-cell MALBAC WGS - ONT": "MALBAC-amplified WGS",
+                "Single-cell MALBAC WGS - Illumina": "MALBAC-amplified WGS",
+                "Single-cell PTA WGS - ONT": "PTA-amplified WGS",
+                "Single-cell PTA WGS - Illumina": "PTA-amplified WGS",
+                "TEnCATS - ONT": "TEnCATS",
+                "WGS - ONT": "WGS - Standard ONT",
+                "Ultra-Long WGS - ONT": "WGS - UltraLong ONT",
+                "HiDEF-seq - Illumina": "HiDEF-seq",
+                "HiDEF-seq - PacBio": "HiDEF-seq",
+                "Hi-C - Illumina": "Hi-C",
+                "Hi-C - PacBio": "Hi-C",
+                "Hi-C - ONT": "Hi-C",
+            },
+            "tissue": {
+                "endocrine pancreas": "Endocrine pancreas",
+            },
+            "study": {
+                "Benchmarking": "Donors"
+            },
+            "donor": {
+                "colo829t": "COLO829T",
+                "colo829bl": "COLO829BL",
+                "colo829blt_50to1": "COLO829BLT50",
+                "colo829blt_in_silico": "In silico BLT50",
+                "colo829_snv_indel_challenge_data": "Truth Set",
+                "hapmap": "HapMap Mixture",
+                "mei_detection_challenge_data": "Downsampled",
+                "lb_fibroblast": "LB-LA2 Fibroblast",
+                "lb_ipsc_1": "LB-LA2 iPSC-1",
+                "lb_ipsc_2": "LB-LA2 iPSC-2",
+                "lb_ipsc_4": "LB-LA2 iPSC-4",
+                "lb_ipsc_52": "LB-LA2 iPSC-52",
+                "lb_ipsc_60": "LB-LA2 iPSC-60",
+                "ipsc_snv_indel_challenge_data": "Truth Set",
+            }
+        },
         "resultPostProcessFuncKey": null, // function to process results after they are loaded
-        "groupingProperties": [],
-        "columnGrouping": "",
+        "groupingProperties": ["donor", "tissue"], // properties to group by in the matrix
+        "columnGrouping": "assay",
         "headerFor": <h3 className="mt-2 mb-0 text-300">SMaHT</h3>,
         "fallbackNameForBlankField": "None",
         /** Which state to set/prioritize if multiple files per group */
-        "statePrioritizationForGroups" : [],
-        "headerPadding"             : 200,
-        "columnGroups"              : null,
-        "showColumnGroups"          : true,
-        "columnGroupsExtended"      : null,
-        "showColumnGroupsExtended"  : true,
-        "rowGroups"                 : null,
-        "showRowGroups"             : true,
-        "autoPopulateRowGroupsProperty" : null,
-        "rowGroupsExtended"         : null,
-        "showRowGroupsExtended"     : true,
-        "titleMap"                  : {},
+        "statePrioritizationForGroups": [],
+        "headerPadding": 200,
+        "columnGroups": {
+            "Bulk WGS": {
+                "values": ['WGS - Illumina', 'WGS - PacBio', 'Fiber-Seq', 'WGS - Standard ONT', 'WGS - UltraLong ONT'],
+                "backgroundColor": "#e04141",
+                "textColor": "#ffffff",
+                "shortName": "WGS"
+            },
+            "RNA-seq": {
+                "values": ['RNA-Seq - Illumina', 'Kinnex'],
+                "backgroundColor": "#ad48ad",
+                "textColor": "#ffffff",
+                "shortName": "RNA"
+            },
+            "Duplex-seq": {
+                "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-seq'],
+                "backgroundColor": "#2b4792",
+                "textColor": "#ffffff",
+                "shortName": "Dupl"
+            },
+            "Single-cell WGS": {
+                "values": ['PTA-amplified WGS', 'MALBAC-amplified WGS', 'WGS DLP+'],
+                "backgroundColor": "#aac536",
+                "textColor": "#ffffff",
+                "shortName": "scWGS"
+            },
+            "Targeted Seq": {
+                "values": ['HAT-Seq', 'L1-ONT', 'TEnCATS'],
+                "backgroundColor": "#e1d567",
+                "textColor": "#ffffff",
+                "shortName": "Tgtd"
+            },
+            "Single-cell RNA-Seq": {
+                "values": ['snRNA-Seq', 'Slide-tags snRNA-Seq', 'STORM-Seq', 'Tranquil-Seq', '10X Genomics Xenium'],
+                "backgroundColor": "#d0b284",
+                "textColor": "#ffffff",
+                "shortName": "scRNA"
+            },
+            "Other": {
+                "values": ['Hi-C', 'scDip-C', 'Strand-Seq', 'ATAC-Seq', 'NT-Seq', 'varCUT&Tag', 'GoT-ChA'],
+                "backgroundColor": "#76cbbe",
+                "textColor": "#ffffff"
+            }
+        },
+        "showColumnGroups": true,
+        "columnGroupsExtended": {
+            "Core Assay": {
+                "values": ['Bulk WGS', 'RNA-seq', 'Duplex-seq'],
+                "backgroundColor": "#a786c2",
+                "textColor": "#ffffff"
+            },
+            "Extended Assay": {
+                "values": ['Single-cell WGS', 'Targeted Seq', 'Single-cell RNA-Seq', 'Other'],
+                "backgroundColor": "#d2bde3",
+                "textColor": "#ffffff"
+            }
+        },
+        "showColumnGroupsExtended": false,
+        "rowGroups": null,
+        "showRowGroups": false,
+        "autoPopulateRowGroupsProperty": null,
+        "rowGroupsExtended": DataMatrix.DEFAULT_ROW_GROUPS_EXTENDED,
+        "showRowGroupsExtended": true,
+        "additionalPopoverData": {
+            "COLO829T":{
+                "secondary": "Melanoma",
+                "secondaryCategory": "Ectoderm"
+            },
+            "COLO829BL": {
+                "secondary": "Blood",
+                "secondaryCategory": "Mesoderm"
+            },
+            "HapMap Mixture": {
+                "secondary": "Blood",
+                "secondaryCategory": "Mesoderm"
+            }
+        },
+        "titleMap": {},
         "columnSubGroupingOrder": [],
-        "colorRangeBaseColor": null, // color hex or rgba code (if set, will override colorRanges)
+        "colorRangeBaseColor": "#47adff", // color hex or rgba code (if set, will override colorRanges)
         "colorRangeSegments": 5, // split color ranges into 5 equal parts
         "colorRangeSegmentStep": 20, // step size for each segment
-        "summaryBackgroundColor": "#d91818",
-        "allowedFields": [],
-        "xAxisLabel": "X",
-        "yAxisLabel": "Y",
+        "summaryBackgroundColor": "#ececff",
+        "xAxisLabel": "Assay",
+        "yAxisLabel": "Donor",
         "showAxisLabels": true,
         "showColumnSummary": true,
         "defaultOpen": false,
-        "compositeValueSeparator": " ",
+        "compositeValueSeparator": " - ",
         "disableConfigurator": true,
         "idLabel": "",
+        // allowedFields is for the configurator
+        "allowedFields": [
+            "donors.display_title",
+            "sequencing.sequencer.display_title",
+            "file_sets.libraries.assay.display_title",
+            "sample_summary.tissues",
+            "data_type",
+            "file_format.display_title",
+            "data_category",
+            "software.display_title",
+            "sequencing.sequencer.platform",
+            "sample_summary.studies",
+            "dataset",
+        ],
     };
 
     static propTypes = {
@@ -74,7 +272,6 @@ export default class DataMatrix extends React.PureComponent {
         'colorRangeSegments': PropTypes.number,
         'colorRangeSegmentStep': PropTypes.number,
         'summaryBackgroundColor': PropTypes.string,
-        'allowedFields': PropTypes.arrayOf(PropTypes.string),
         'columnGroups': PropTypes.object,
         'showColumnGroups': PropTypes.bool,
         'columnGroupsExtended': PropTypes.object,
@@ -84,6 +281,7 @@ export default class DataMatrix extends React.PureComponent {
         'autoPopulateRowGroupsProperty': PropTypes.string,
         'rowGroupsExtended': PropTypes.object,
         'showRowGroupsExtended': PropTypes.bool,
+        'additionalPopoverData': PropTypes.object,
         'xAxisLabel': PropTypes.string,
         'yAxisLabel': PropTypes.string,
         'showAxisLabels': PropTypes.bool,
@@ -92,6 +290,7 @@ export default class DataMatrix extends React.PureComponent {
         'compositeValueSeparator': PropTypes.string,
         'disableConfigurator': PropTypes.bool,
         'idLabel': PropTypes.string,
+        'allowedFields': PropTypes.arrayOf(PropTypes.string),
     };
 
     static parseQuery(queryString) {
@@ -119,7 +318,7 @@ export default class DataMatrix extends React.PureComponent {
             }
 
             // If the same key already exists, convert or append to an array
-            if (result.hasOwnProperty(key)) {
+            if (key in result) {
                 if (Array.isArray(result[key])) {
                     result[key].push(value);
                 } else {
@@ -211,48 +410,42 @@ export default class DataMatrix extends React.PureComponent {
             const updatedState = {};
 
             updatedState[resultKey] = result;
-            let transfermedData = [];
+            const transformedData = [];
             const populatedRowGroups = {}; // not implemented yet
             _.forEach(updatedState[resultKey], (r) => {
+                let cloned = _.clone(r);
                 if (fieldChangeMap) {
                     _.forEach(_.pairs(fieldChangeMap), function ([fieldToMapTo, fieldToMapFrom]) {
-                        if (typeof r[fieldToMapFrom] !== 'undefined' && fieldToMapTo !== fieldToMapFrom) { // If present
-                            r[fieldToMapTo] = r[fieldToMapFrom];
-                            delete r[fieldToMapFrom];
+                        if (typeof cloned[fieldToMapFrom] !== 'undefined' && fieldToMapTo !== fieldToMapFrom) { // If present
+                            cloned[fieldToMapTo] = cloned[fieldToMapFrom];
+                            delete cloned[fieldToMapFrom];
                         }
                     }, {});
                 }
                 if (resultPostProcessFuncKey && typeof DataMatrix.resultPostProcessFuncs[resultPostProcessFuncKey] === 'function') {
-                    r = DataMatrix.resultPostProcessFuncs[resultPostProcessFuncKey](r);
+                    cloned = DataMatrix.resultPostProcessFuncs[resultPostProcessFuncKey](cloned);
                 }
-                if (r.files && r.files > 0) {
-                    transfermedData = transfermedData.concat(
-                        _.times(r.files, function () {
-                            const cloned = _.clone(r);
-                            delete cloned.files;
-
-                            // Change values (e.g. shorten some):
-                            if (valueChangeMap) {
-                                _.forEach(_.pairs(valueChangeMap), function ([field, changeMap]) {
-                                    if (typeof cloned[field] === "string") { // If present
-                                        cloned[field] = changeMap[cloned[field]] || cloned[field];
-                                    }
-                                });
+                if (cloned.files && cloned.files > 0) {
+                    // Change values (e.g. shorten some):
+                    if (valueChangeMap) {
+                        _.forEach(_.pairs(valueChangeMap), function ([field, changeMap]) {
+                            if (typeof cloned[field] === "string") { // If present
+                                cloned[field] = changeMap[cloned[field]] || cloned[field];
                             }
-
-                            return cloned;
-                        }));
+                        });
+                    }
+                    transformedData.push(cloned);
                 }
-                if (autoPopulateRowGroupsProperty && r[autoPopulateRowGroupsProperty]) {
-                    const rowGroupKey = r[autoPopulateRowGroupsProperty];
+                if (autoPopulateRowGroupsProperty && cloned[autoPopulateRowGroupsProperty]) {
+                    const rowGroupKey = cloned[autoPopulateRowGroupsProperty];
                     if (!populatedRowGroups[rowGroupKey]) {
                         populatedRowGroups[rowGroupKey] = [];
                     }
-                    populatedRowGroups[rowGroupKey].push(r[groupingProperties[0]]);
+                    populatedRowGroups[rowGroupKey].push(cloned[groupingProperties[0]]);
                 }
             });
 
-            updatedState[resultKey] = transfermedData;
+            updatedState[resultKey] = transformedData;
 
             this.setState(updatedState, () => ReactTooltip.rebuild());
         };
@@ -350,34 +543,36 @@ export default class DataMatrix extends React.PureComponent {
         const newGroupingProperties = Array.isArray(rowAggField2) && rowAggField2.length > 0 ? [invertedFieldChangeMap[rowAggField1[0]], invertedFieldChangeMap[rowAggField2[0]]] : [invertedFieldChangeMap[rowAggField1[0]]];
 
         const rowAggFields = [rowAggField1, rowAggField2, rowAggField3].filter((f) => f && f.length > 0).map((f) => Array.isArray(f) ? f : [f]);
-        this.setState({
-            ...this.state,
-            query: {
-                ...this.state.query,
-                url: searchUrl,
-                columnAggFields: columnAggField,
-                rowAggFields: rowAggFields
-            },
-            columnGrouping: newColumnGrouping,
-            groupingProperties: newGroupingProperties,
-            columnGroups: columnGroups,
-            showColumnGroups: showColumnGroups,
-            columnGroupsExtended: columnGroupsExtended,
-            showColumnGroupsExtended: showColumnGroupsExtended,
-            rowGroups: rowGroups,
-            showRowGroups: showRowGroups,
-            rowGroupsExtended: rowGroupsExtended,
-            showRowGroupsExtended: showRowGroupsExtended,
-            summaryBackgroundColor: summaryBackgroundColor,
-            xAxisLabel: xAxisLabel,
-            yAxisLabel: yAxisLabel,
-            showAxisLabels: showAxisLabels,
-            showColumnSummary: showColumnSummary,
-            defaultOpen: defaultOpen,
-            colorRanges: newColorRanges,
-            colorRangeBaseColor: colorRangeBaseColor,
-            colorRangeSegments: colorRangeSegments,
-            colorRangeSegmentStep: colorRangeSegmentStep,
+        this.setState((prevState) => {
+            return {
+                ...prevState,
+                query: {
+                    ...prevState.query,
+                    url: searchUrl,
+                    columnAggFields: columnAggField,
+                    rowAggFields: rowAggFields
+                },
+                columnGrouping: newColumnGrouping,
+                groupingProperties: newGroupingProperties,
+                columnGroups: columnGroups,
+                showColumnGroups: showColumnGroups,
+                columnGroupsExtended: columnGroupsExtended,
+                showColumnGroupsExtended: showColumnGroupsExtended,
+                rowGroups: rowGroups,
+                showRowGroups: showRowGroups,
+                rowGroupsExtended: rowGroupsExtended,
+                showRowGroupsExtended: showRowGroupsExtended,
+                summaryBackgroundColor: summaryBackgroundColor,
+                xAxisLabel: xAxisLabel,
+                yAxisLabel: yAxisLabel,
+                showAxisLabels: showAxisLabels,
+                showColumnSummary: showColumnSummary,
+                defaultOpen: defaultOpen,
+                colorRanges: newColorRanges,
+                colorRangeBaseColor: colorRangeBaseColor,
+                colorRangeSegments: colorRangeSegments,
+                colorRangeSegmentStep: colorRangeSegmentStep,
+            };
         });
     }
 
@@ -387,10 +582,10 @@ export default class DataMatrix extends React.PureComponent {
 
     getJsxExport() {
         const allowedKeys = Object.keys(DataMatrix.propTypes);
+        const { ...props } = this.props;
+        const { ...state } = this.state;
         const filteredProps = allowedKeys.reduce((acc, key) => {
-            if (this.props.hasOwnProperty(key)) {
-                acc[key] = this.state[key] || this.props[key];
-            }
+            acc[key] = state[key] ?? props[key];
             return acc;
         }, {});
 
@@ -426,7 +621,7 @@ export default class DataMatrix extends React.PureComponent {
     render() {
         const {
             headerFor, valueChangeMap, allowedFields, compositeValueSeparator,
-            disableConfigurator = false, idLabel = ''
+            disableConfigurator = false, idLabel = '', additionalPopoverData = {}
         } = this.props;
         const {
             query, fieldChangeMap, columnGrouping, groupingProperties,
@@ -455,7 +650,7 @@ export default class DataMatrix extends React.PureComponent {
         const bodyProps = {
             query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
-            rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
+            rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, additionalPopoverData,
             summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary, compositeValueSeparator,
         };
 
@@ -464,7 +659,7 @@ export default class DataMatrix extends React.PureComponent {
         const rowAgg2 = query.rowAggFields.length > 1 ? Array.isArray(query.rowAggFields[1]) ? query.rowAggFields[1] : [query.rowAggFields[1]] : null;
         const rowAgg3 = query.rowAggFields.length > 2 ? Array.isArray(query.rowAggFields[2]) ? query.rowAggFields[2] : [query.rowAggFields[2]] : null;
 
-        const fieldToNameMap = _.invert(this.state.fieldChangeMap);
+        const fieldToNameMap = _.invert(fieldChangeMap);
 
         const configurator = !disableConfigurator && this.isAdminUser() && !this.isProductionEnv() && (
             <DataMatrixConfigurator
@@ -513,7 +708,7 @@ export default class DataMatrix extends React.PureComponent {
             </div>
         );
         return (
-            <div id={`data-matrix-for_${idLabel}`} className="static-section data-matrix">
+            <div id={`data-matrix-for_${idLabel}`} className="data-matrix">
                 <div className="row">
                     {body}
                 </div>

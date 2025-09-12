@@ -57,30 +57,6 @@ class Tissue(SampleSource):
     class Collection(Item.Collection):
         pass
 
-    @calculated_property(
-        schema={
-            "title": "Category",
-            "description": "Category of tissue type",
-            "type": "string"
-        }
-    )
-    def category(self, request: Request):
-        """Get category of tissue type (either germ layer from OntologyTerm, Germ Cells, or Clinically Accessible).
-        
-        Special case for Fibroblasts (3AC) as they are mostly Mesoderm but OntologyTerm links to Ectoderm for Skin.
-        """
-        request_handler = RequestHandler(request = request)
-        tissue_type = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="tissue_type")
-        if tissue_type in ["Testis", "Ovary"]:
-            return "Germ Cells"
-        elif tissue_type in ["Blood", "Buccal Swab"]:
-            return "Clinically Accessible"
-        elif tissue_utils.get_protocol_id(self.properties) == "3AC":
-            return "Mesoderm"
-        else:
-            germ_layer = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="germ_layer")
-            return germ_layer or None
-
 
 @link_related_validator
 def validate_external_id_on_add(context, request):

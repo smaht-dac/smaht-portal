@@ -51,7 +51,9 @@ export const DataCardRow = ({
             <div
                 className={
                     'datum-value' +
-                    (value === null || value === 'Coming soon'
+                    (value === null ||
+                    value === 'Coming soon' ||
+                    value === 'Protected'
                         ? ' coming-soon'
                         : '')
                 }>
@@ -76,6 +78,7 @@ export const DataCard = ({ header = '', data = [] }) => {
                 {data.map(({ title, value = null, titlePopover = null }, i) => {
                     return (
                         <DataCardRow
+                            key={i}
                             title={title}
                             value={value}
                             titlePopover={titlePopover}
@@ -176,10 +179,33 @@ const default_data_information = [
             context?.data_generation_summary?.sequencing_platforms?.join(', '),
     },
     {
-        title: 'Dataset Target Coverage',
+        title: 'Genome Coverage',
         getProp: (context = {}) => {
             if (
-                context?.file_format?.display_title === 'bam' &&
+                (context?.file_format?.display_title === 'bam' ||
+                    context?.file_format?.display_title === 'cram') &&
+                context?.data_type.some((d) => d === 'Aligned Reads') &&
+                context?.data_generation_summary?.assays?.some(
+                    (assay) =>
+                        assay.includes('WGS') ||
+                        assay.includes('Fiber-seq') ||
+                        assay.includes('Hi-C')
+                )
+            ) {
+                const cov = context?.data_generation_summary?.average_coverage;
+                if (cov && cov.length > 0) {
+                    return cov[0] + 'X';
+                }
+            }
+            return null;
+        },
+    },
+    {
+        title: 'Target Genome Coverage',
+        getProp: (context = {}) => {
+            if (
+                (context?.file_format?.display_title === 'bam' ||
+                    context?.file_format?.display_title === 'cram') &&
                 context?.data_type.some((d) => d === 'Aligned Reads') &&
                 context?.data_generation_summary?.assays?.some(
                     (assay) =>
@@ -198,31 +224,11 @@ const default_data_information = [
         },
     },
     {
-        title: 'Dataset Per BAM Coverage',
+        title: 'RNA-Seq Read Count',
         getProp: (context = {}) => {
             if (
-                context?.file_format?.display_title === 'bam' &&
-                context?.data_type.some((d) => d === 'Aligned Reads') &&
-                context?.data_generation_summary?.assays?.some(
-                    (assay) =>
-                        assay.includes('WGS') ||
-                        assay.includes('Fiber-seq') ||
-                        assay.includes('Hi-C')
-                )
-            ) {
-                const cov = context?.data_generation_summary?.average_coverage;
-                if (cov && cov.length > 0) {
-                    return cov[0] + 'X';
-                }
-            }
-            return null;
-        },
-    },
-    {
-        title: 'Dataset Target Read Count',
-        getProp: (context = {}) => {
-            if (
-                context?.file_format?.display_title === 'bam' &&
+                (context?.file_format?.display_title === 'bam' ||
+                    context?.file_format?.display_title === 'cram') &&
                 context?.data_type.some((d) => d === 'Aligned Reads') &&
                 context?.data_generation_summary?.assays?.some(
                     (assay) =>
