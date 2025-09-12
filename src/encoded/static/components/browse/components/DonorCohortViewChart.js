@@ -109,8 +109,8 @@ const DonorCohortViewChart = ({
     showBarTooltip = false,
     // optional: forward “Explore Donors” button click to parent
     buildExploreDonorsHref = () => console.log('buildExploreDonorsHref not provided'),
-    // optional: titles in the tooltip header (left and right)
-    tooltipTitles = { left: 'Age Group', right: '# of Donors' },
+    // optional: titles in the tooltip header (crumb + detail's left and right)
+    tooltipTitles = { crumb: null, left: null, right: '# of Donors' },
     // optional: key in data for file count (omit if not needed)
     filesCountKey: propFilesCountKey = 'totalFileCount',
     buildFilesHref = () => console.log('buildFilesHref not provided'),
@@ -222,9 +222,14 @@ const DonorCohortViewChart = ({
                 donorAdditionalParam
             } = stackConfig[barStackType] ?? stackConfig.default;
 
-            const leftTitle = tooltipTitles?.left || 'Group';
+            const hasCrumb = barStackType === 'primary' || barStackType === 'secondary';
+
+            const crumbTitle = hasCrumb ? tooltipTitles?.crumb || 'N/A' : null;
+            const crumbLabel = hasCrumb ? (d?.group || '') : null;
+            const crumbValue = hasCrumb ? (d?.value1 || 0) + (d?.value2 || 0) : 0;
+            const leftTitle = tooltipTitles?.left || 'N/A';
             const rightTitle = tooltipTitles?.right || '# of Donors';
-            const groupLabel = d?.group ?? d?.label ?? d?.name ?? '';
+            const groupLabel = hasCrumb ? (barStackType === 'primary' ? 'Male' : 'Female') : (d?.group || '');
 
             const filesHref =
                 typeof buildFilesHref === 'function'
@@ -241,6 +246,15 @@ const DonorCohortViewChart = ({
                 <div class="cursor-component-container mosaic-detail-cursor sticky" style="width: 240px; margin-left: 25px; margin-top: 10px;">
                   <div class="inner">
                     <div class="mosaic-cursor-body">
+                      ${hasCrumb ? `
+                      <div class="detail-crumbs">
+	                    <div data-depth="0" class="crumb row first">
+		                    <div class="field col-auto">${crumbTitle}</div>
+		                    <div class="name col">${crumbLabel}</div>
+		                    <div class="count col-auto pull-right text-end">${crumbValue}</div>
+	                    </div>
+                      </div>` : ''
+                        }
                       <h6 class="field-title">
                         <small class="pull-right sets-label">${rightTitle}</small>${leftTitle}
                       </h6>

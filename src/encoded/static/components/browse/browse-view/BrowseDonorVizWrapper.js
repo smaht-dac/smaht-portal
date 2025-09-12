@@ -329,6 +329,7 @@ export const BrowseDonorVizWrapper = (props) => {
                             legendTitle="Donor Sex"
                             showLegend
                             showBarTooltip={true}
+                            tooltipTitles={{ crumb: 'Age Group', left: 'Donor Sex', right: '# of Donors' }}
                             showXAxisTitle={false}
                             session={session}
                             loading={loading}
@@ -351,7 +352,7 @@ export const BrowseDonorVizWrapper = (props) => {
                                 renderHardyScaleDescriptionPopover()
                             }
                             showBarTooltip={true}
-                            tooltipTitles={{ left: 'Hardy Scale', right: '# of Donors' }}
+                            tooltipTitles={{ crumb: null, left: 'Hardy Scale', right: '# of Donors' }}
                             session={session}
                             loading={loading}
                             buildFilesHref={buildFilesHref}
