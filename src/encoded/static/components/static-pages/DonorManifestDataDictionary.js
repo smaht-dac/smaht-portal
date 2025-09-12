@@ -60,7 +60,6 @@ const DonorManifestDataDictionaryTable = ({ data = {} }) => {
             </thead>
             <tbody>
                 {Object.keys(data).map((propertyKey, i) => {
-                    // console.log(propertyKey, data[propertyKey]);
                     const item = data[propertyKey];
                     return (
                         <tr key={i}>
@@ -130,7 +129,6 @@ export const DonorManifestDataDictionary = () => {
     const [selectedSchema, setSelectedSchema] = React.useState(null);
 
     useEffect(() => {
-        // console.log('fetch', fieldsToDisplay);
         if (!schemaData) {
             ajax.load(
                 '/submission-schemas/?format=json',
