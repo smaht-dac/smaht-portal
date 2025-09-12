@@ -40,15 +40,16 @@ pp = pprint.PrettyPrinter(indent=2)
 ##
 ##  The file release will do the following updates to the metadata
 ##  - Set file status to `public-restricted` or `public` depending on
-##    the access status of the dataset (protected vs. open). 
-##    If the flag `--set-restricted` is used, the file will be set 
+##    the access status of the dataset (protected vs. open) and the release mode
+##    (internal vs. external).
+##    If the release mode is internal, the file and associated QC will be set
 ##    to `restricted` regardless of the access status of the dataset.
 ##  - Associated final output files will get the same status as the main file
 ##  - Associate the file with the fileset that the corresponding
 ##    submitted files are in
 ##  - Adds `dataset` and `access_status` to the file
 ##  - Set the associated QualityMetrics item and the metrics.zip
-##    file to status `restricted`
+##    file to the same status as the main file
 ##  - All other associated metadata is set to `public`. This currently
 ##    includes FileSet, Sequencing, Library, LibraryPreparation, Assay,
 ##    Analyte, AnalytePreparation, PreparationKit, Treatment, Sample,
@@ -74,7 +75,7 @@ class FileRelease:
 
     TISSUE = "tissue"
 
-    def __init__(self, auth_key: dict, file_identifier: str, set_restricted: bool = False, verbose: bool = True):
+    def __init__(self, auth_key: dict, file_identifier: str, mode: str = "internal", verbose: bool = True):
         self.key = auth_key
         self.request_handler = self.get_request_handler()
         self.request_handler_embedded = self.get_request_handler_embedded()
@@ -86,7 +87,7 @@ class FileRelease:
         self.patch_dicts = []
         self.warnings = []
         self.verbose = verbose
-        self.set_restricted = set_restricted
+        self.set_restricted = True if mode == "internal" else False
         self.access_status = None
         self.target_file_status = None
 
@@ -332,10 +333,10 @@ class FileRelease:
             # Currently only relevant for RNA-Seq data
             self.add_release_file_patchdict(file, dataset)
 
-        # Quality metrics and metrics zip will be made available only to the consortium
-        self.add_release_items_to_patchdict(self.quality_metrics, "QualityMetric", item_constants.STATUS_RELEASED)
+        # Quality metrics and metrics zip will get the same status as the file
+        self.add_release_items_to_patchdict(self.quality_metrics, "QualityMetric", self.target_file_status)
         self.add_release_items_to_patchdict(
-            self.quality_metrics_zips, "Compressed QC metrics file", item_constants.STATUS_RELEASED
+            self.quality_metrics_zips, "Compressed QC metrics file", self.target_file_status
         )
 
         # All of the other metadata items will be set to public by default
@@ -439,7 +440,6 @@ class FileRelease:
     def show_patch_dicts(self) -> None:
         pp.pprint(self.patch_dicts)
 
-
     def add_release_items_to_patchdict(
         self,
         items: list,
@@ -456,7 +456,6 @@ class FileRelease:
         """
         for item in items:
             self.add_release_item_to_patchdict(item, item_desc, item_status)
-
 
     def add_release_item_to_patchdict(
         self,
@@ -496,7 +495,7 @@ class FileRelease:
         return item_utils.get_accession(item)
 
     def get_target_file_status(self, access_status: str) -> str:
-        # The access status determines the file status unless the --set-restricted flag is used
+        # The access status determines the file status unless the release mode is internal
         file_status = item_constants.STATUS_PUBLIC_RESTRICTED
         if self.set_restricted:
             file_status = item_constants.STATUS_RESTRICTED
@@ -798,10 +797,13 @@ class FileRelease:
                 )
 
     def validate_required_qc_runs(self) -> None:
-        """Check if the file has been input to other MWFRs. It must have been input to all required QC runs if it's a BAM."""
-        if output_file_utils.is_output_file(
+        """Check if the file has been input to other MWFRs. It must have been input to all required QC runs if it's a BAM/CRAM."""
+
+        is_final_bam_or_cram = output_file_utils.is_final_output_bam(
             self.file
-        ) and output_file_utils.is_final_output_bam(self.file):
+        ) or output_file_utils.is_final_output_cram(self.file)
+
+        if is_final_bam_or_cram:
             additional_runs = []
             mwfr_inputs = self.file.get("meta_workflow_run_inputs", [])
             for mwfr_input in mwfr_inputs:
@@ -958,10 +960,16 @@ def main() -> None:
         "--file", "-f", action='append', help="Identifier of the file to release", required=True
     )
     parser.add_argument("--dataset", "-d", help="Associated dataset. When releasing multiple files, this will be used for all files", required=True)
+    parser.add_argument(
+        "--release-mode", 
+        "-r",
+        help="Release mode", 
+        choices=["internal", "external"], 
+        required=True
+    )
     parser.add_argument("--env", "-e", help="Environment from keys file", required=True)
     parser.add_argument(
         "--replace",
-        "-r",
         help="Identifier of the file to replace (set to obsolete)",
         required=False,
     )
@@ -970,11 +978,7 @@ def main() -> None:
         help="Dry run, show patches but do not execute",
         action="store_true",
     )
-    parser.add_argument(
-        "--set-restricted",
-        help="Set this flag, if this file is early access for consortium members",
-        action="store_true",
-    )
+    
 
     args = parser.parse_args()
 
@@ -993,14 +997,14 @@ def main() -> None:
 
     files_to_release = args.file
     verbose = mode == 'single' # Print more information in single mode
-    set_restricted = bool(args.set_restricted)
+    release_mode = args.release_mode
 
     file_releases: List[FileRelease] = []
     for file_identifier in files_to_release:
         file_release = FileRelease(
             auth_key=auth_key,
             file_identifier=file_identifier,
-            set_restricted=set_restricted,
+            mode=release_mode,
             verbose=verbose,
         )
         file_release.prepare(
