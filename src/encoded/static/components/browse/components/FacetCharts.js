@@ -157,8 +157,9 @@ export class FacetCharts extends React.PureComponent {
 
                     var newDonorFilters = _.reduce(cursorProps.path, function(donorFilters, node){
                         // Do not change filter IF SET ALREADY because we want to strictly enable filters, not disable any.
-                        if(node.field === 'sample_summary.tissues' && mapping === 'donor'){
-                            node.field = 'tissues.tissue_type';
+                        if(node.field === 'sample_summary.tissues'){
+                            if (mapping === 'donor') node.field = 'tissues.tissue_type';
+                            if (mapping === 'protected-donor') node.field = 'donor.tissues.tissue_type';
                         }
 
                         if (donorFilters && donorFilters[node.field] && donorFilters[node.field].has(node.term)){
