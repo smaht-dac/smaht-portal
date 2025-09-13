@@ -12,7 +12,7 @@ import { columnExtensionMap as originalColExtMap } from './columnExtensionMap';
 import { transformedFacets, SearchViewPageTitle } from './SearchView';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import { SelectAllFilesButton, SelectedItemsDownloadButton } from '../static-pages/components/SelectAllAboveTableComponent';
-import { createBrowseColumnExtensionMap } from './BrowseView';
+import { createBrowseFileColumnExtensionMap } from './BrowseView';
 import { pageTitleViews, PageTitleContainer, TitleAndSubtitleBeside } from '../PageTitleSection';
 
 
@@ -51,7 +51,7 @@ function FileTableWithSelectedFilesCheckboxes(props){
     };
 
     const { columnExtensionMap, columns, hideFacets } = useMemo(function () {
-        let { columnExtensionMap, columns, hideFacets } = createBrowseColumnExtensionMap(selectedFileProps);
+        let { columnExtensionMap, columns, hideFacets } = createBrowseFileColumnExtensionMap(selectedFileProps);
         columnExtensionMap = _.extend({}, propColumnExtensionMap, columnExtensionMap);
         return { columnExtensionMap, columns, hideFacets };
     }, [propColumnExtensionMap, selectedFileProps]);

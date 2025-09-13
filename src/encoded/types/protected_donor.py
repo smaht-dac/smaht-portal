@@ -102,7 +102,9 @@ def _build_protected_donor_embedded_list():
         'medical_history.exposures.quantity',
         'medical_history.exposures.quantity_unit',
         'medical_history.exposures.route',
-        'medical_history.exposures.substance'
+        'medical_history.exposures.substance',
+
+        'donor.tissues.tissue_type'
     ]
 
 
@@ -124,6 +126,7 @@ class ProtectedDonor(AbstractDonor):
         "death_circumstances": ("DeathCircumstances", "donor"),
         "family_history": ("FamilyHistory", "donor"),
         "tissue_collection": ("TissueCollection", "donor"),
+        "donor": ("Donor", "protected_donor"),
     }
 
     SUBMISSION_CENTER_STATUS_ACL = deepcopy(AbstractDonor.SUBMISSION_CENTER_STATUS_ACL)
@@ -205,4 +208,18 @@ class ProtectedDonor(AbstractDonor):
     )
     def tissue_collection(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "tissue_collection")
+        return result or None
+
+    @calculated_property(
+        schema={
+            "title": "Donor",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "Donor",
+            },
+        },
+    )
+    def donor(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "donor")
         return result or None

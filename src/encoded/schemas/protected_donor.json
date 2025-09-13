@@ -86,6 +86,15 @@
         },
         "submission_centers.display_title": {
             "title": "Submitted By"
+        },
+        "medical_history.cancer_history": {
+            "title": "Cancer History"
+        },
+        "medical_history.tobacco_use": {
+            "title": "Tobacco"
+        },
+        "medical_history.alcohol_use": {
+            "title": "Alcohol"
         }
     },
     "columns": {
