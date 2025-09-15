@@ -111,7 +111,7 @@ const AnnouncementCard = ({
     );
 };
 
-const TissueGroup = ({ count, tissue_group, items }) => {
+const TissueGroup = ({ tissue_group, items, query }) => {
     const [isToggled, toggle] = useToggle();
 
     return (
@@ -121,14 +121,18 @@ const TissueGroup = ({ count, tissue_group, items }) => {
                     className={`icon icon-${isToggled ? 'minus' : 'plus'} fas`}
                 />
             </button>
-            <a>{tissue_group}</a>
+            <a href={query}>{tissue_group}</a>
             {isToggled ? (
                 <ul className="file-group-list">
-                    {items.map((item, i) => (
-                        <li key={i}>
-                            {item?.count} {item?.value}
-                        </li>
-                    ))}
+                    {items.map((item, i) => {
+                        return (
+                            <li key={i}>
+                                <a href={item?.query}>
+                                    {item?.count} {item?.value}
+                                </a>
+                            </li>
+                        );
+                    })}
                 </ul>
             ) : null}
         </li>
@@ -138,11 +142,16 @@ const TissueGroup = ({ count, tissue_group, items }) => {
 const DonorGroup = (props) => {
     const [isToggled, toggle] = useToggle();
 
-    const { count, donorGroups: donor_groups, donorGroup: donor_group } = props;
-    let donor_title = donor_group;
+    const {
+        count,
+        donorGroups: donor_groups,
+        donorGroup: donor_group,
+        query,
+    } = props;
+    let donorTitle = donor_group;
 
-    if (donor_title?.includes('DAC_DONOR_')) {
-        donor_title = donor_title.replace('DAC_DONOR_', '');
+    if (donorTitle?.includes('DAC_DONOR_')) {
+        donorTitle = donorTitle.replace('DAC_DONOR_', '');
     }
 
     return (
@@ -159,8 +168,8 @@ const DonorGroup = (props) => {
                             isToggled ? 'minus' : 'plus'
                         }`}></i>
                 </button>
-                <a className="title">
-                    {donor_title}
+                <a className="title" href={query}>
+                    {donorTitle}
                     <span className="count">
                         {count ?? 0} {count > 1 ? 'Files' : 'File'}
                         <i className="icon icon-arrow-right"></i>
@@ -171,7 +180,7 @@ const DonorGroup = (props) => {
                 <ul className="tissue-list">
                     {Object.keys(donor_groups[donor_group]['items']).map(
                         (tissue_group, i) => {
-                            const { count, query } =
+                            const { count, items, query } =
                                 donor_groups[donor_group]['items'][
                                     tissue_group
                                 ];
@@ -180,11 +189,8 @@ const DonorGroup = (props) => {
                                     key={i}
                                     count={count}
                                     tissue_group={tissue_group}
-                                    items={
-                                        donor_groups[donor_group]['items'][
-                                            tissue_group
-                                        ].items
-                                    }
+                                    items={items}
+                                    query={query}
                                 />
                             );
                         }
@@ -268,40 +274,67 @@ const formatReleaseData = (data) => {
     return data.map((month) => {
         // Format each month by grouping items by donor and tissue
         const formattedItems = month?.items?.reduce((acc, item) => {
-            const { count, value, items } = item;
+            const { count, value, items, query } = item;
 
             // Pull out Donor and add to [acc]
-            const [donor, tissue] = value?.split('-');
-            const tissueCode = items?.[0]?.['additional_value'] ?? '';
-            const tissueTitle = tissueCode
-                ? tissueCode + ' - ' + tissue
-                : tissue;
+            const [donor, tissueCode] = value?.split('-');
+            const tissueType = items?.[0]?.['additional_value'] ?? '';
+            const tissueTitle = tissueType
+                ? tissueType + ' - ' + tissueCode
+                : tissueCode;
 
-            const tissue_items = item?.items;
+            // Update the query to filter on donor instead of release title
+            const donorFilters = `donors.display_title=${donor}`;
+            const donorQuery = query?.replace(
+                `release_tracker_title=${value}`,
+                donorFilters
+            );
+
+            // Do the same for tissue query
+            const tissueFilters = `${donorFilters}&sample_summary.tissues=${tissueType}`;
+            const tissueQuery = query?.replace(
+                `release_tracker_title=${value}`,
+                tissueFilters
+            );
+
+            // Update tissue item queries to include tissue query + specific tissue filter
+            const tissueItems = item?.items.map((tissueItem) => ({
+                ...tissueItem,
+                query: `${tissueQuery}&${
+                    tissueItem.name
+                }=${tissueItem.value.replaceAll(' ', '+')}`,
+            }));
 
             // Create a new entry for the donor if it doesn't exist
             if (!acc?.[donor]) {
                 // Place tissue items into new donor group
-                const new_donor_items = {
-                    [tissueTitle]: { items: tissue_items, count },
+                const newDonorItems = {
+                    [tissueTitle]: {
+                        items: tissueItems,
+                        count,
+                        query: tissueQuery,
+                        donor,
+                    },
                 };
                 acc[donor] = {
-                    items: new_donor_items,
+                    items: newDonorItems,
                     count,
+                    query: donorQuery,
                 };
             } else {
                 // Append new tissue category if it doesn't exist on donor
                 if (!acc?.[donor]?.items?.[tissueTitle]) {
                     acc[donor].items[tissueTitle] = {
-                        items: tissue_items,
+                        items: tissueItems,
                         count,
+                        query: tissueQuery,
                     };
 
                     // Add count to donor total
                     acc[donor].count += count;
                 } else {
                     // Simply add to existing tissue category
-                    acc[donor].items[tissueTitle].items.push(...tissue_items);
+                    acc[donor].items[tissueTitle].items.push(...tissueItems);
 
                     // Add count to tissue total
                     acc[donor].items[tissueTitle].count += count;
@@ -323,8 +356,6 @@ const formatReleaseData = (data) => {
 
 export const NotificationsPanel = () => {
     const [data, setData] = useState(null);
-
-    console.log('NotificationsPanel render data', data);
 
     useEffect(() => {
         ajax.load(
