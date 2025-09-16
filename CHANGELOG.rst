@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+
+1.1.5
+=======
+
+* Re-include ingestion_processors in app config
+
+
 1.1.4
 =======
 `PR 521: Modify production tissues in Submission Status page <https://github.com/smaht-dac/smaht-portal/pull/521>`_
