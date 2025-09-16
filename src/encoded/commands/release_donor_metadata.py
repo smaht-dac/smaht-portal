@@ -43,7 +43,7 @@ PROTECTED_DONOR_RELEASE_STATUS = "public-restricted"  # When portal becomes publ
 
 class DonorRelease:
 
-    def __init__(self, auth_key: dict, donor_identifier: str, verbose: bool = True):
+    def __init__(self, auth_key: dict, donor_identifier: str, verbose: bool = True, exclude_tissues: bool = False) -> None:
         self.key = auth_key
         self.request_handler = self.get_request_handler()
         self.request_handler_embedded = self.get_request_handler_embedded()
@@ -54,6 +54,7 @@ class DonorRelease:
         self.patch_dicts = []
         self.warnings = []
         self.verbose = verbose
+        self.exclude_tissues = exclude_tissues
 
     @cached_property
     def protected_donor(self) -> dict:
@@ -196,14 +197,17 @@ class DonorRelease:
         # The main donor needs to be the first patchdict.
         # - set to PUBLIC_DONOR_RELEASE_STATUS
         self.add_release_donor_patchdict(self.donor)
-        
-        # Public release items - set to PUBLIC_DONOR_RELEASE_STATUS
-        self.add_public_release_items_to_patchdict(
-            self.tissues, "Tissue"
-        ) 
-        self.add_public_release_items_to_patchdict(
-            self.tissue_samples, "TissueSample"
-        )
+        if not self.exclude_tissues:
+            """ generally will be false so tissue and tissue sample items will be set to PUBLIC_DONOR_RELEASE_STATUS
+                however, to 'reset' Donors and linked items back to 'in review' or another non-public status
+                using this flage will exclude tissues and tissue samples from being set to the new status
+            """
+            self.add_public_release_items_to_patchdict(
+                self.tissues, "Tissue"
+            )
+            self.add_public_release_items_to_patchdict(
+                self.tissue_samples, "TissueSample"
+            )
         # Protected release items - set to PROTECTED_DONOR_RELEASE_STATUS
         self.add_protected_release_item_to_patchdict(self.protected_donor, "ProtectedDonor")
         self.add_protected_release_items_to_patchdict(self.demographic, "Demographic")
@@ -457,6 +461,11 @@ def main() -> None:
         help="Dry run, show patches but do not execute",
         action="store_true",
     )
+    parser.add_argument(
+        "--exclude-tissues",
+        help="Exclude tissues and tissue samples from being operated on",
+        action="store_true",
+    )
 
     args = parser.parse_args()
 
@@ -474,7 +483,8 @@ def main() -> None:
     verbose = mode == 'single' # Print more information in single mode
     donor_releases : List[DonorRelease] = []
     for donor_identifier in donors_to_release:
-        donor_release = DonorRelease(auth_key=auth_key, donor_identifier=donor_identifier, verbose=verbose)
+        donor_release = DonorRelease(auth_key=auth_key, donor_identifier=donor_identifier, verbose=verbose,
+                                     exclude_tissues=args.exclude_tissues)
         donor_release.prepare()
         donor_releases.append(donor_release)
 
