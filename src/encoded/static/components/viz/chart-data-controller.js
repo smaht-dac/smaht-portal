@@ -109,6 +109,8 @@ let isInitialized = false;
 
 let isInitialLoadComplete = false;
 
+let recentMapping = null;
+
 /**
  * @private
  * @ignore
@@ -264,7 +266,7 @@ export const ChartDataController = {
      * @param {?function} [callback]            Optional callback for after initializing.
      * @returns {void} Undefined
      */
-    initialize : function(browseBaseState = null, fields = null, callback = null){
+    initialize : function(browseBaseState = null, fields = null, mapping = 'all', callback = null){
         if (!refs.store) refs.store = require('./../../store').store;
 
         const initStoreState = refs.store.getState();
@@ -303,12 +305,12 @@ export const ChartDataController = {
             const prevSearchQuery = searchFilters.searchQueryStringFromHref(prevHref);
             const nextSearchQuery = searchFilters.searchQueryStringFromHref(refs.href);
 
-            const prevBrowseBaseParams = navigate.getBrowseBaseParams(prevBrowseBaseState);
-            const nextBrowseBaseParams = navigate.getBrowseBaseParams(refs.browseBaseState);
+            const prevBrowseBaseParams = navigate.getBrowseBaseParams(prevBrowseBaseState, mapping);
+            const nextBrowseBaseParams = navigate.getBrowseBaseParams(refs.browseBaseState, mapping);
 
             // Step 1. Check if need to refetch both unfiltered & filtered data.
             if (refs.browseBaseState !== prevBrowseBaseState){
-                ChartDataController.sync(null, { 'searchQuery' : nextSearchQuery });
+                ChartDataController.sync( mapping, null, { 'searchQuery' : nextSearchQuery });
                 return;
             }
 
@@ -325,13 +327,15 @@ export const ChartDataController = {
 
             // Step 2. Check if need to refresh filtered data only.
             if (didFiltersChange) {
-                ChartDataController.handleUpdatedFilters(nextDonorFilters, notifyUpdateCallbacks, { 'searchQuery' : nextSearchQuery });
+                ChartDataController.handleUpdatedFilters(nextDonorFilters, mapping, notifyUpdateCallbacks, { 'searchQuery' : nextSearchQuery });
             }
         });
 
         isInitialized = true;
 
-        ChartDataController.sync(function(){
+        recentMapping = mapping;
+
+        ChartDataController.sync(mapping, function(){
             isInitialLoadComplete = true;
             callback(state);
         }, { isInitial : true });
@@ -350,7 +354,9 @@ export const ChartDataController = {
      * @static
      * @returns {boolean} True if initialized.
      */
-    isInitialized : function(){
+    isInitialized: function (mapping) {
+        if (mapping && mapping !== recentMapping) isInitialized = false;
+
         return isInitialized;
     },
 
@@ -421,7 +427,7 @@ export const ChartDataController = {
     /**
      * Updates fields for which BarPlot aggregations are performed.
      */
-    updateBarPlotFields : function(fields, callback = null){
+    updateBarPlotFields : function(mapping, fields, callback = null){
         if (Array.isArray(fields) && Array.isArray(state.barplot_data_fields)){
             if (fields.length === state.barplot_data_fields.length){
                 // Cancel if fields are same as before.
@@ -431,7 +437,7 @@ export const ChartDataController = {
             }
         }
         ChartDataController.setState({ 'barplot_data_fields' : fields, 'isLoadingChartData' : true }, callback);
-        ChartDataController.sync();
+        ChartDataController.sync(mapping);
     },
 
     /**
@@ -457,10 +463,9 @@ export const ChartDataController = {
 
         var allCountsChanged = (
             updatedState && updatedState.barplot_data_unfiltered && updatedState.barplot_data_unfiltered.total && (
-                !state.barplot_data_unfiltered || !state.barplot_data_unfiltered.total || !state.barplot_data_unfiltered.total.experiment_sets ||
-                updatedState.barplot_data_unfiltered.total.experiment_sets !== state.barplot_data_unfiltered.total.experiment_sets ||
-                updatedState.barplot_data_unfiltered.total.experiments !== state.barplot_data_unfiltered.total.experiments ||
-                updatedState.barplot_data_unfiltered.total.files !== state.barplot_data_unfiltered.total.files
+                !state.barplot_data_unfiltered || !state.barplot_data_unfiltered.total ||
+                updatedState.barplot_data_unfiltered.total.files !== state.barplot_data_unfiltered.total.files ||
+                updatedState.barplot_data_unfiltered.total.donors !== state.barplot_data_unfiltered.total.donors
             )
         );
 
@@ -481,12 +486,12 @@ export const ChartDataController = {
      * @param {function} [callback] - Function to be called after sync complete.
      * @returns {void} Nothing
      */
-    sync : function(callback = null, syncOpts = {}){
+    sync : function(mapping = 'all', callback = null, syncOpts = {}){
         if (!isInitialized) throw Error("Not initialized.");
         lastTimeSyncCalled = Date.now();
         if (!syncOpts.fromSync) syncOpts.fromSync = true;
         ChartDataController.setState({ 'isLoadingChartData' : true }, function(){
-            ChartDataController.fetchUnfilteredAndFilteredBarPlotData(callback, syncOpts);
+            ChartDataController.fetchUnfilteredAndFilteredBarPlotData(mapping, callback, syncOpts);
         });
     },
 
@@ -500,28 +505,27 @@ export const ChartDataController = {
      * @param {function} callback - Callback function to call after updating state.
      * @returns {void} Nothing
      */
-    handleUpdatedFilters : function(donorFilters, callback, opts){
+    handleUpdatedFilters : function(donorFilters, mapping, callback, opts){
 
         // Reset or re-fetch 'filtered-in' data.
         if (_.keys(donorFilters).length === 0 && state.barplot_data_unfiltered && (!opts || !opts.searchQuery)){
             ChartDataController.setState({ 'barplot_data_filtered' : null }, callback);
         } else if (state.barplot_data_unfiltered) {
-            ChartDataController.fetchAndSetFilteredBarPlotData(callback, opts);
+            ChartDataController.fetchAndSetFilteredBarPlotData(mapping, callback, opts);
         } else {
-            ChartDataController.fetchUnfilteredAndFilteredBarPlotData(callback, opts);
+            ChartDataController.fetchUnfilteredAndFilteredBarPlotData(mapping, callback, opts);
         }
     },
 
     /**
      * Called by ChartDataController.sync() internally.
      */
-    fetchUnfilteredAndFilteredBarPlotData : function(callback = null, opts = {}){
+    fetchUnfilteredAndFilteredBarPlotData : function(mapping = 'all', callback = null, opts = {}, forceToFile = true){
 
-        const currentBrowseBaseParams = navigate.getBrowseBaseParams(opts.browseBaseState || null);
+        const currentBrowseBaseParams = navigate.getBrowseBaseParams(opts.browseBaseState || null, mapping);
         // map filters to match between Donor to File
         const clonedContextFilters = object.deepClone(refs.contextFilters);
         const currentDonorFilters = ChartDataController.transformFilterDonorToFile(searchFilters.contextFiltersToExpSetFilters(clonedContextFilters, currentBrowseBaseParams));
-
         const searchQuery = opts.searchQuery || searchFilters.searchQueryStringFromHref(refs.href);
         const filtersSet = (_.keys(currentDonorFilters).length > 0) || searchQuery;
 
@@ -537,7 +541,11 @@ export const ChartDataController = {
 
         });
 
-        const baseSearchParams = navigate.getBrowseBaseParams(opts.browseBaseState || null);
+        let baseSearchParams = navigate.getBrowseBaseParams(opts.browseBaseState || null, mapping);
+        if (mapping !== 'all' && forceToFile) {
+            baseSearchParams = ChartDataController.transformFilterDonorToFile(baseSearchParams);
+            baseSearchParams.type = ['File'];
+        }
 
         notifyLoadStartCallbacks();
 
@@ -605,19 +613,25 @@ export const ChartDataController = {
      * @param {function} [callback] - Optional callback function.
      * @returns {void} Nothing
      */
-    fetchAndSetFilteredBarPlotData : function(callback = null, opts = {}){
+    fetchAndSetFilteredBarPlotData : function(mapping = 'all', callback = null, opts = {}, forceToFile = true){
         // `currentBrowseBaseParams` not rly needed for BarPlot agg endpoint (since passing thru all filters anyway)
-        const currentBrowseBaseParams = navigate.getBrowseBaseParams(opts.browseBaseState || null);
+        const currentBrowseBaseParams = navigate.getBrowseBaseParams(opts.browseBaseState || null, mapping);
         const clonedContextFilters = object.deepClone(refs.contextFilters);
         const currentDonorFilters = ChartDataController.transformFilterDonorToFile(searchFilters.contextFiltersToExpSetFilters(clonedContextFilters, currentBrowseBaseParams));
 
         const searchQuery = opts.searchQuery || searchFilters.searchQueryStringFromHref(refs.href);
 
-        const filteredSearchParams = navigate.mergeObjectsOfLists(
+        let filteredSearchParams = navigate.mergeObjectsOfLists(
             { 'q' : searchQuery || null },
-            navigate.getBrowseBaseParams(opts.browseBaseState || null),
+            navigate.getBrowseBaseParams(opts.browseBaseState || null, mapping),
             searchFilters.expSetFiltersToJSON(currentDonorFilters)
         );
+
+        if (mapping !== 'all' && forceToFile) {
+            filteredSearchParams = ChartDataController.transformFilterDonorToFile(filteredSearchParams);
+            filteredSearchParams.type = ['File'];
+        }
+
 
         if (currentRequests.filtered !== null){
             currentRequests.filtered.abort && currentRequests.filtered.abort();

@@ -91,6 +91,7 @@ class Body extends React.PureComponent {
             if (countPair[0] === 'files') name = "Files";
 
             if (countPair[0] === 'files' && props.mapping !== 'all') {
+                // DO NOT CHANGE - mapping should be 'all' to generate file links
                 const baseParams = navigate.getBrowseBaseParams(null, 'all');
                 _.forEach(props.path, p => {
                     if (p.field && p.term) {

@@ -165,7 +165,7 @@ export const BrowseDonorVizWrapper = (props) => {
                     if (scale) {
                         for (const sexKey in scale.terms) {
                             totalCount += scale.terms[sexKey].total.donors;
-                            totalFileCount += scale.terms[sexKey].total.doc_count;
+                            totalFileCount += scale.terms[sexKey].total.files;
                         }
                     }
 
@@ -198,11 +198,11 @@ export const BrowseDonorVizWrapper = (props) => {
                             if (ageNum >= group.min && ageNum <= group.max) {
                                 if (sex.term === 'Male') {
                                     value1Count += info.donors;
-                                    value1FileCount += info.doc_count;
+                                    value1FileCount += info.files;
                                 }
                                 if (sex.term === 'Female') {
                                     value2Count += info.donors;
-                                    value2FileCount += info.doc_count;
+                                    value2FileCount += info.files;
                                 }
                             }
                         });

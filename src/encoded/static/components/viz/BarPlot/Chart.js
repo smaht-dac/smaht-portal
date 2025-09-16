@@ -22,7 +22,7 @@ import { PopoverViewContainer } from './ViewContainer';
  * @param {number} [availWidth=400] - Available width, in pixels, for chart.
  * @param {number} [availHeight=400] - Available width, in pixels, for chart.
  * @param {Object} [styleOpts=Chart.getDefaultStyleOpts()] - Style settings for chart which may contain chart offsets (for axes).
- * @param {string} [aggregateType="experiment_sets"] - Type of value to count up. Should be one of ["experiment_sets", "files", "experiments"].
+ * @param {string} [aggregateType="files"] - Type of value to count up. Should be one of ["donors", "files"].
  * @param {boolean} [useOnlyPopulatedFields=false] - Determine which fields to show via checking for which fields have multiple terms present.
  * @param {?number} [fullHeightCount=null] - 100% Y-Axis count value. Overrides height of bars.
  * @return {Object} Object containing bar dimensions for first field which has more than 1 possible term, index of field used, and all fields passed originally.
@@ -32,7 +32,7 @@ export function genChartBarDims(
     availWidth              = 400,
     availHeight             = 400,
     styleOpts               = Chart.defaultStyleOpts,
-    aggregateType           = 'experiment_sets',
+    aggregateType           = 'files',
     useOnlyPopulatedFields  = false,
     fullHeightCount         = null
 ){
@@ -80,7 +80,7 @@ export function genChartBarDims(
                         'height'    : barHeight
                     },
                     'donors' : termObj.donors,
-                    'files'  : termObj.doc_count
+                    'files'  : termObj.files
                 };
                 if (typeof termObj.field === 'string') {
                     barNode.bars = genBarData(termObj, { 'height' : barHeight }, barNode);
@@ -156,7 +156,7 @@ export function genChartBarDims(
  * @prop {string} fields.name - Name of field.
  * @prop {number} width - Self explanatory.
  * @prop {number} height - Self explanatory.
- * @prop {string} aggregateType - Set by UIControlsWrapper. Controls whether Y-Axis has 'experiment_sets', 'experiments', or 'files'.
+ * @prop {string} aggregateType - Set by UIControlsWrapper. Controls whether Y-Axis has 'donors' or 'files'.
  * @prop {string} showType - Set by UIControlsWrapper. Controls whether showing "all" experiments or only the selected or "filtered"-in experiments.
  */
 export class Chart extends React.PureComponent {
@@ -245,18 +245,17 @@ export class Chart extends React.PureComponent {
         'width'         : PropTypes.number,
         'useOnlyPopulatedFields' : PropTypes.bool,
         'showType'      : PropTypes.oneOf(['all', 'filtered', 'both']),
-        'aggregateType' : PropTypes.oneOf(['experiment_sets', 'experiments', 'files']),
+        'aggregateType' : PropTypes.oneOf(['donors', 'files']),
         'windowWidth'   : PropTypes.number,
         'href'          : PropTypes.string,
         'cursorDetailActions' : PopoverViewContainer.propTypes.cursorDetailActions
     };
 
     static defaultProps = {
-        'experiments' : [],
         'fields' : [],
         'useOnlyPopulatedFields' : false,
         'showType' : 'both',
-        'aggregateType' : 'experiments',
+        'aggregateType' : 'files',
         'styleOptions' : null, // Can use to override default margins/style stuff.
     };
 

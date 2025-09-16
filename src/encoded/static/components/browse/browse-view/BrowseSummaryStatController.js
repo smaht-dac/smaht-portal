@@ -36,7 +36,7 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
                 setLoading(false);
                 setError(false);
                 const data = {
-                    files: resp.total.doc_count,
+                    files: resp.total.files,
                     donors: resp.total.donors,
                     tissues: resp.total.tissues,
                     assays: resp.total.assays,

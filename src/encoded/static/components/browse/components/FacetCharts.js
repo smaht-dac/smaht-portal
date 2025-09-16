@@ -69,12 +69,13 @@ export class FacetCharts extends React.PureComponent {
      * Initializes ChartDataController if not yet initialized, which fetches data used for charts.
      */
     componentDidMount(){
-        var { debug, browseBaseState, initialFields } = this.props;
+        var { debug, browseBaseState, initialFields, mapping } = this.props;
 
-        if (!ChartDataController.isInitialized()){
+        if (!ChartDataController.isInitialized(mapping)){
             ChartDataController.initialize(
                 browseBaseState,
                 initialFields,
+                mapping,
                 ()=>{
                     if (debug) console.log("Mounted FacetCharts after initializing ChartDataController:", ChartDataController.getState());
                     setTimeout(() => this.setState({ 'mounted' : true }), 100);

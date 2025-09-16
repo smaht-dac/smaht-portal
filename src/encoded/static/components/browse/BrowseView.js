@@ -95,6 +95,7 @@ const BrowseFileBody = (props) => {
                                 navigate,
                                 isFullscreen,
                                 initialFields,
+                                mapping: 'all',
                             }}
                         />
                     </div>

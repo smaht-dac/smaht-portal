@@ -21,7 +21,8 @@ export class UIControlsWrapper extends React.PureComponent {
     static canShowChart(chartData) {
         if (!chartData) return false;
         if (!chartData.total) return false;
-        if (chartData.total && chartData.total.experiment_sets === 0) return false;
+        if (chartData.total && chartData.total.files === 0) return false;
+        if (chartData.total && chartData.total.donors === 0) return false;
         if (typeof chartData.field !== 'string') return false;
         if (typeof chartData.terms !== 'object') return false;
         if (_.keys(chartData.terms).length === 0) return false;
@@ -42,8 +43,6 @@ export class UIControlsWrapper extends React.PureComponent {
     static defaultProps = {
         titleMap: {
             // Aggr type
-            experiment_sets: 'Experiment Sets',
-            experiments: 'Experiments',
             files: 'Files',
             donors: 'Donors',
 
@@ -80,7 +79,7 @@ export class UIControlsWrapper extends React.PureComponent {
             showState === 'filtered' &&
             (!barplot_data_filtered ||
                 (barplot_data_filtered &&
-                    barplot_data_filtered.total.experiment_sets === 0))
+                    barplot_data_filtered.total.files === 0))
         ) {
             return { showState: 'all' };
         }
@@ -104,8 +103,7 @@ export class UIControlsWrapper extends React.PureComponent {
         this.handleFieldSelect = _.throttle(this.handleFieldSelect.bind(this), 300);
 
         this.state = {
-            'aggregateType': props.mapping === 'all' ? 'doc_count' : 'donors',
-            // 'aggregateType': 'files',
+            'aggregateType': props.mapping === 'all' ? 'files' : 'donors',
             'showState': this.filterObjExistsAndNoFiltersSelected() || (props.barplot_data_filtered && props.barplot_data_filtered.total.donors === 0) ? 'all' : 'filtered',
             'openDropdown': null
         };
@@ -180,13 +178,13 @@ export class UIControlsWrapper extends React.PureComponent {
      * @param {Event} [event]       Reference to event of DropDown change.
      */
     handleFieldSelect(fieldIndex, newFieldKey, event = null) {
-        const { barplot_data_fields, updateBarPlotFields, availableFields_XAxis, availableFields_Subdivision } = this.props;
+        const { barplot_data_fields, updateBarPlotFields, availableFields_XAxis, availableFields_Subdivision, mapping } = this.props;
         let newFields;
 
         if (newFieldKey === "none") {
             // Only applies to subdivision (fieldIndex 1)
             newFields = barplot_data_fields.slice(0, 1);
-            updateBarPlotFields(newFields);
+            updateBarPlotFields(mapping, newFields);
             return;
         }
 
@@ -211,7 +209,7 @@ export class UIControlsWrapper extends React.PureComponent {
                 'field': barplot_data_fields[otherFieldIndex]
             };
         }
-        updateBarPlotFields(_.pluck(newFields, 'field'));
+        updateBarPlotFields(mapping, _.pluck(newFields, 'field'));
         //analytics
         analytics.event('cursor_detail', 'BarPlot', 'Set Aggregation Field', null, {
             'name': '[' + _.pluck(newFields, 'field').join(', ') + ']',
@@ -268,7 +266,7 @@ export class UIControlsWrapper extends React.PureComponent {
         // TODO: MAYBE REMOVE HREF WHEN SWITCH SEARCH FROM /BROWSE/
         const isSelectedDisabled = !!(
             (this.filterObjExistsAndNoFiltersSelected() && !searchFilters.searchQueryStringFromHref(href)) ||
-            (barplot_data_filtered && barplot_data_filtered.total.experiment_sets === 0)
+            (barplot_data_filtered && barplot_data_filtered.total.files === 0)
         );
         const aggrTypeTitle = this.titleMap(aggregateType);
         const showStateTitle = showState === 'all' ? 'All' : 'Selected';
@@ -448,15 +446,14 @@ export class UIControlsWrapper extends React.PureComponent {
 
 export class AggregatedLegend extends React.Component {
 
-    static collectSubDivisionFieldTermCounts = memoize(function (rootField, aggregateType = 'experiment_sets') {
+    static collectSubDivisionFieldTermCounts = memoize(function (rootField, aggregateType = 'files') {
         if (!rootField) return null;
 
         const retField = {
             'field': null,
             'terms': {},
             'total': {
-                'experiment_sets': 0,
-                'experiments': 0,
+                'donors': 0,
                 'files': 0
             }
         };
@@ -468,16 +465,13 @@ export class AggregatedLegend extends React.Component {
             _.forEach(_.keys(childField.terms), function (t) {
                 if (typeof retField.terms[t] === 'undefined') {
                     retField.terms[t] = {
-                        'experiment_sets': 0,
-                        'experiments': 0,
-                        'files': 0
+                        'files': 0,
+                        'donors': 0
                     };
                 }
-                retField.terms[t].experiment_sets += childField.terms[t].experiment_sets;
-                retField.terms[t].experiments += childField.terms[t].experiments;
+                retField.terms[t].donors += childField.terms[t].donors;
                 retField.terms[t].files += childField.terms[t].files;
-                retField.total.experiment_sets += childField.terms[t].experiment_sets;
-                retField.total.experiments += childField.terms[t].experiments;
+                retField.total.donors += childField.terms[t].donors;
                 retField.total.files += childField.terms[t].files;
             });
         });
@@ -510,7 +504,7 @@ export class AggregatedLegend extends React.Component {
         return Legend.barPlotFieldDataToLegendFieldsData(
             AggregatedLegend.collectSubDivisionFieldTermCounts(
                 showType === 'all' ? barplot_data_unfiltered : barplot_data_filtered || barplot_data_unfiltered,
-                aggregateType || 'experiment_sets',
+                aggregateType || 'files',
                 field
             ),
             function (term) { return typeof term[aggregateType] === 'number' ? -term[aggregateType] : 'term'; }
@@ -555,7 +549,7 @@ export class AggregatedLegend extends React.Component {
 
     render() {
         const { field, barplot_data_unfiltered, isLoadingChartData, aggregateType, href, cursorDetailActions, schemas } = this.props;
-        if (!field || !barplot_data_unfiltered || isLoadingChartData || (barplot_data_unfiltered.total && barplot_data_unfiltered.total.experiment_sets === 0)) {
+        if (!field || !barplot_data_unfiltered || isLoadingChartData || (barplot_data_unfiltered.total && barplot_data_unfiltered.total.files === 0)) {
             return null;
         }
 

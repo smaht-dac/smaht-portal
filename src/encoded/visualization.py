@@ -252,10 +252,16 @@ def bar_plot_chart(context, request):
         }
     }
 
+    isFileTypeSearch = False
     try:
         json_body = request.json_body
         search_param_lists = json_body.get('search_query_params', deepcopy(DEFAULT_BROWSE_PARAM_LISTS))
         fields_to_aggregate_for = json_body.get('fields_to_aggregate_for', request.params.getall('field'))
+
+        if 'type' in search_param_lists and (
+            (isinstance(search_param_lists['type'], list) and 'File' in search_param_lists['type'] and len(search_param_lists['type']) == 1) or
+            (isinstance(search_param_lists['type'], str) and search_param_lists['type'] == 'File')):
+            isFileTypeSearch = True
     except json.decoder.JSONDecodeError:
         search_param_lists = request.GET.dict_of_lists()
         fields_to_aggregate_for = request.params.getall('field')
@@ -305,6 +311,7 @@ def bar_plot_chart(context, request):
         "terms": {},
         "total": {
             "doc_count": search_result['total'],
+            "files": search_result['total'] if isFileTypeSearch else 0,
             "donors": search_result['aggregations']['total_donors']['value'],
             "assays": search_result['aggregations']['total_assays']['value'],
             "tissues": search_result['aggregations']['total_tissues']['value'],
@@ -318,6 +325,7 @@ def bar_plot_chart(context, request):
 
         curr_bucket_totals = {
             'doc_count': int(bucket_result['doc_count']),
+            "files": int(bucket_result['doc_count']) if isFileTypeSearch else 0,
             'donors': int(bucket_result['total_donors']['value']),
         }
 

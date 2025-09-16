@@ -206,9 +206,8 @@ export class Legend extends React.PureComponent {
                     'term' : p[0],
                     'field' : field.field
                 }),
-                'experiment_sets' : p[1].experiment_sets,
-                'experiments' : p[1].experiments,
-                'files' : p[1].files
+                'files' : p[1].files,
+                'donors' : p[1].donors
             };
         });
 
