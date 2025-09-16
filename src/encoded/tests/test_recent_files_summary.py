@@ -10,7 +10,7 @@ _TYPE = "type=OutputFile&type=SubmittedFile"
 
 recent_files_summary_raw_results = {
     "@context": "/terms/",
-    "@id": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2023-07-01&date_created.to=2025-01-31&from=0&limit=0",
+    "@id": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2023-07-01&date_created.to=2025-01-31&from=0&limit=0",
     "@type": [
         "OutputFileSearchResults",
         "FileSearchResults",
@@ -22,12 +22,12 @@ recent_files_summary_raw_results = {
         {
             "field": "type",
             "term": "OutputFile",
-            "remove": "/search/?status=released&data_category%21=Quality+Control&date_created.from=2023-07-01&date_created.to=2025-01-31"
+            "remove": "/search/?status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2023-07-01&date_created.to=2025-01-31"
         },
         {
             "field": "status",
             "term": "released",
-            "remove": f"/search/?{_TYPE}&data_category%21=Quality+Control&date_created.from=2023-07-01&date_created.to=2025-01-31"
+            "remove": f"/search/?{_TYPE}&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2023-07-01&date_created.to=2025-01-31"
         },
         {
             "field": "data_category!",
@@ -35,14 +35,19 @@ recent_files_summary_raw_results = {
             "remove": f"/search/?{_TYPE}&status=released&date_created.from=2023-07-01&date_created.to=2025-01-31"
         },
         {
+            "field": "tags!",
+            "term": "exclude_from_release_tracker",
+            "remove": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2023-07-01&date_created.to=2025-01-31"
+        },
+        {
             "field": "date_created.from",
             "term": "2023-07-01",
-            "remove": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.to=2025-01-31"
+            "remove": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.to=2025-01-31"
         },
         {
             "field": "date_created.to",
             "term": "2025-01-31",
-            "remove": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2023-07-01"
+            "remove": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2023-07-01"
         }
     ],
     "facets": [
@@ -298,6 +303,22 @@ recent_files_summary_raw_results = {
                 },
                 {
                     "key": "Sequencing Reads",
+                    "doc_count": 54
+                }
+            ],
+            "extra_aggs": {
+                "meta": {}
+            }
+        },
+        {
+            "field": "tags",
+            "title": "Tags",
+            "total": 0,
+            "aggregation_type": "terms",
+            "description": "Key words that can tag an item - useful for filtering.",
+            "terms": [
+                {
+                    "key": "No+Value",
                     "doc_count": 54
                 }
             ],
@@ -773,10 +794,10 @@ recent_files_summary_expected_results = {
                             "name": "release_tracker_description",
                             "value": "WGS ONT PromethION 24 bam",
                             "count": 1,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-08-01&date_created.to=2024-08-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=WGS+ONT+PromethION+24+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-08-01&date_created.to=2024-08-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=WGS+ONT+PromethION+24+bam"
                         }
                     ],
-                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-08-01&date_created.to=2024-08-31&donors.display_title=DAC_DONOR_COLO829"
+                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-08-01&date_created.to=2024-08-31&donors.display_title=DAC_DONOR_COLO829"
                 },
                 {
                     "name": "file_sets.libraries.analytes.samples.sample_sources.code",
@@ -787,13 +808,13 @@ recent_files_summary_expected_results = {
                             "name": "release_tracker_description",
                             "value": "WGS Illumina NovaSeq X bam",
                             "count": 1,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-08-01&date_created.to=2024-08-31&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q&release_tracker_description=WGS+Illumina+NovaSeq+X+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-08-01&date_created.to=2024-08-31&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q&release_tracker_description=WGS+Illumina+NovaSeq+X+bam"
                         }
                     ],
-                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-08-01&date_created.to=2024-08-31&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q"
+                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-08-01&date_created.to=2024-08-31&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q"
                 }
             ],
-            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-08-01&date_created.to=2024-08-31"
+            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-08-01&date_created.to=2024-08-31"
         },
         {
             "name": "date_created",
@@ -809,16 +830,16 @@ recent_files_summary_expected_results = {
                             "name": "release_tracker_description",
                             "value": "WGS ONT PromethION 24 bam",
                             "count": 3,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&release_tracker_description=WGS+ONT+PromethION+24+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&release_tracker_description=WGS+ONT+PromethION+24+bam"
                         },
                         {
                             "name": "release_tracker_description",
                             "value": "WGS Illumina NovaSeq X bam",
                             "count": 2,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&release_tracker_description=WGS+Illumina+NovaSeq+X+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&release_tracker_description=WGS+Illumina+NovaSeq+X+bam"
                         }
                     ],
-                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G"
+                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G"
                 },
                 {
                     "name": "file_sets.libraries.analytes.samples.sample_sources.code",
@@ -829,16 +850,16 @@ recent_files_summary_expected_results = {
                             "name": "release_tracker_description",
                             "value": "WGS ONT PromethION 24 bam",
                             "count": 3,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=WGS+ONT+PromethION+24+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=WGS+ONT+PromethION+24+bam"
                         },
                         {
                             "name": "release_tracker_description",
                             "value": "Fiber-seq PacBio Revio bam",
                             "count": 1,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=Fiber-seq+PacBio+Revio+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&release_tracker_description=Fiber-seq+PacBio+Revio+bam"
                         }
                     ],
-                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A"
+                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A"
                 },
                 {
                     "name": "file_sets.libraries.analytes.samples.sample_sources.code",
@@ -849,16 +870,16 @@ recent_files_summary_expected_results = {
                             "name": "release_tracker_description",
                             "value": "WGS ONT PromethION 24 bam",
                             "count": 3,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&release_tracker_description=WGS+ONT+PromethION+24+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&release_tracker_description=WGS+ONT+PromethION+24+bam"
                         },
                         {
                             "name": "release_tracker_description",
                             "value": "WGS Illumina NovaSeq X bam",
                             "count": 1,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&release_tracker_description=WGS+Illumina+NovaSeq+X+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&release_tracker_description=WGS+Illumina+NovaSeq+X+bam"
                         }
                     ],
-                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D"
+                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D"
                 },
                 {
                     "name": "file_sets.libraries.analytes.samples.sample_sources.code",
@@ -869,16 +890,16 @@ recent_files_summary_expected_results = {
                             "name": "release_tracker_description",
                             "value": "WGS ONT PromethION 24 bam",
                             "count": 3,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&release_tracker_description=WGS+ONT+PromethION+24+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&release_tracker_description=WGS+ONT+PromethION+24+bam"
                         },
                         {
                             "name": "release_tracker_description",
                             "value": "WGS Illumina NovaSeq X bam",
                             "count": 1,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&release_tracker_description=WGS+Illumina+NovaSeq+X+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&release_tracker_description=WGS+Illumina+NovaSeq+X+bam"
                         }
                     ],
-                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D"
+                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D"
                 },
                 {
                     "name": "file_sets.libraries.analytes.samples.sample_sources.code",
@@ -889,10 +910,10 @@ recent_files_summary_expected_results = {
                             "name": "release_tracker_description",
                             "value": "WGS ONT PromethION 24 bam",
                             "count": 1,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS+ONT+PromethION+24+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS+ONT+PromethION+24+bam"
                         }
                     ],
-                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50"
+                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50"
                 },
                 {
                     "name": "file_sets.libraries.analytes.samples.sample_sources.code",
@@ -903,13 +924,13 @@ recent_files_summary_expected_results = {
                             "name": "release_tracker_description",
                             "value": "WGS Illumina NovaSeq X bam",
                             "count": 1,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q&release_tracker_description=WGS+Illumina+NovaSeq+X+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q&release_tracker_description=WGS+Illumina+NovaSeq+X+bam"
                         }
                     ],
-                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q"
+                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q"
                 }
             ],
-            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-06-01&date_created.to=2024-06-30"
+            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-06-01&date_created.to=2024-06-30"
         },
         {
             "name": "date_created",
@@ -925,28 +946,28 @@ recent_files_summary_expected_results = {
                             "name": "release_tracker_description",
                             "value": "WGS ONT PromethION 24 bam",
                             "count": 4,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-05-01&date_created.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS+ONT+PromethION+24+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-05-01&date_created.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS+ONT+PromethION+24+bam"
                         },
                         {
                             "name": "release_tracker_description",
                             "value": "WGS Illumina NovaSeq X Plus bam",
                             "count": 2,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-05-01&date_created.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS+Illumina+NovaSeq+X+Plus+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-05-01&date_created.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS+Illumina+NovaSeq+X+Plus+bam"
                         },
                         {
                             "name": "release_tracker_description",
                             "value": "WGS Illumina NovaSeq X bam",
                             "count": 2,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-05-01&date_created.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS+Illumina+NovaSeq+X+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-05-01&date_created.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS+Illumina+NovaSeq+X+bam"
                         },
                         {
                             "name": "release_tracker_description",
                             "value": "WGS PacBio Revio bam",
                             "count": 2,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-05-01&date_created.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS+PacBio+Revio+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-05-01&date_created.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50&release_tracker_description=WGS+PacBio+Revio+bam"
                         }
                     ],
-                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-05-01&date_created.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50"
+                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-05-01&date_created.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=COLO829BLT50"
                 },
                 {
                     "name": "donors.display_title",
@@ -957,10 +978,10 @@ recent_files_summary_expected_results = {
                             "name": "release_tracker_description",
                             "value": "WGS Illumina NovaSeq X bam",
                             "count": 7,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-05-01&date_created.to=2024-05-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=WGS+Illumina+NovaSeq+X+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-05-01&date_created.to=2024-05-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=WGS+Illumina+NovaSeq+X+bam"
                         }
                     ],
-                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-05-01&date_created.to=2024-05-31&donors.display_title=DAC_DONOR_COLO829"
+                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-05-01&date_created.to=2024-05-31&donors.display_title=DAC_DONOR_COLO829"
                 },
                 {
                     "name": "file_sets.libraries.analytes.samples.sample_sources.code",
@@ -971,19 +992,19 @@ recent_files_summary_expected_results = {
                             "name": "release_tracker_description",
                             "value": "WGS Illumina NovaSeq X Plus bam",
                             "count": 3,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-05-01&date_created.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=WGS+Illumina+NovaSeq+X+Plus+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-05-01&date_created.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=WGS+Illumina+NovaSeq+X+Plus+bam"
                         },
                         {
                             "name": "release_tracker_description",
                             "value": "WGS ONT PromethION 24 bam",
                             "count": 2,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-05-01&date_created.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=WGS+ONT+PromethION+24+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-05-01&date_created.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6&release_tracker_description=WGS+ONT+PromethION+24+bam"
                         }
                     ],
-                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-05-01&date_created.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6"
+                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-05-01&date_created.to=2024-05-31&file_sets.libraries.analytes.samples.sample_sources.code=HAPMAP6"
                 }
             ],
-            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-05-01&date_created.to=2024-05-31"
+            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-05-01&date_created.to=2024-05-31"
         },
         {
             "name": "date_created",
@@ -999,13 +1020,13 @@ recent_files_summary_expected_results = {
                             "name": "release_tracker_description",
                             "value": "Fiber-seq PacBio Revio bam",
                             "count": 3,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-04-01&date_created.to=2024-04-30&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=Fiber-seq+PacBio+Revio+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-04-01&date_created.to=2024-04-30&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=Fiber-seq+PacBio+Revio+bam"
                         }
                     ],
-                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-04-01&date_created.to=2024-04-30&donors.display_title=DAC_DONOR_COLO829"
+                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-04-01&date_created.to=2024-04-30&donors.display_title=DAC_DONOR_COLO829"
                 }
             ],
-            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-04-01&date_created.to=2024-04-30"
+            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-04-01&date_created.to=2024-04-30"
         },
         {
             "name": "date_created",
@@ -1021,28 +1042,28 @@ recent_files_summary_expected_results = {
                             "name": "release_tracker_description",
                             "value": "Ultra-Long WGS ONT PromethION 24 bam",
                             "count": 4,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-03-01&date_created.to=2024-03-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=Ultra-Long+WGS+ONT+PromethION+24+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-03-01&date_created.to=2024-03-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=Ultra-Long+WGS+ONT+PromethION+24+bam"
                         },
                         {
                             "name": "release_tracker_description",
                             "value": "Fiber-seq PacBio Revio bam",
                             "count": 2,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-03-01&date_created.to=2024-03-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=Fiber-seq+PacBio+Revio+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-03-01&date_created.to=2024-03-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=Fiber-seq+PacBio+Revio+bam"
                         },
                         {
                             "name": "release_tracker_description",
                             "value": "WGS ONT PromethION 24 bam",
                             "count": 2,
-                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-03-01&date_created.to=2024-03-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=WGS+ONT+PromethION+24+bam"
+                            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-03-01&date_created.to=2024-03-31&donors.display_title=DAC_DONOR_COLO829&release_tracker_description=WGS+ONT+PromethION+24+bam"
                         }
                     ],
-                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-03-01&date_created.to=2024-03-31&donors.display_title=DAC_DONOR_COLO829"
+                    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-03-01&date_created.to=2024-03-31&donors.display_title=DAC_DONOR_COLO829"
                 }
             ],
-            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2024-03-01&date_created.to=2024-03-31"
+            "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2024-03-01&date_created.to=2024-03-31"
         }
     ],
-    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&date_created.from=2023-07-01&date_created.to=2025-01-31"
+    "query": f"/search/?{_TYPE}&status=released&data_category%21=Quality+Control&tags%21=exclude_from_release_tracker&date_created.from=2023-07-01&date_created.to=2025-01-31"
 }
 
 class TestPyramidRequest(PyramidRequest):
