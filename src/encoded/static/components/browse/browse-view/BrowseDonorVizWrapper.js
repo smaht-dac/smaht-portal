@@ -90,7 +90,7 @@ export const BrowseDonorVizWrapper = (props) => {
         delete hrefQuery.limit;
         delete hrefQuery.field;
 
-        ChartDataController.transformFilterDonorToFile(hrefQuery);
+        ChartDataController.transformFilterDonorToFile(hrefQuery, mapping);
         hrefQuery.type = 'File';
 
         return hrefQuery;
@@ -129,14 +129,6 @@ export const BrowseDonorVizWrapper = (props) => {
 
     useEffect(() => {
         const dataUrl = '/bar_plot_aggregations/';
-
-        // const hrefParts = url.parse(href, true);
-        // const hrefQuery = _.clone(hrefParts.query);
-        // delete hrefQuery.limit;
-        // delete hrefQuery.field;
-
-        // ChartDataController.transformFilterDonorToFile(hrefQuery);
-        // hrefQuery.type = 'File';
 
         const requestBody = {
             search_query_params: fileFilters,

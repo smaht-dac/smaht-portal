@@ -208,51 +208,43 @@ export const ChartDataController = {
     Provider : Provider,
 
     /**
-     * Transforms donor filters to file filters.
+     * Transforms donor filters to file filters. Changes are made in place.
+     * If mapping is not 'donor' or 'protected-donor', returns filters unchanged.
+     *
+     * @public
+     * @static
      * @param {*} fileFilters - The file filters to transform.
      * @returns {*} The transformed file filters.
      */
-    transformFilterDonorToFile : function(fileFilters){
-        if (fileFilters.sex) {
-            fileFilters['donors.sex'] = fileFilters.sex;
-            delete fileFilters.sex;
+    transformFilterDonorToFile(fileFilters, mapping = 'all') {
+        if (mapping !== 'donor' && mapping !== 'protected-donor') return fileFilters;
+
+        // order is important here, as some fields may get renamed to the same destination
+        // e.g. 'tags' and 'donors.tags' both become 'donors.tags'
+        // so we need to process 'tags' first before it gets renamed
+        const pairs = [
+            ['sex', 'donors.sex'],
+            ['study', 'sample_summary.studies'],
+            ['external_id', 'donors.display_title'],
+            ['display_title', 'donors.display_title'],
+            ['age.from', 'donors.age.from'],
+            ['age.to', 'donors.age.to'],
+            ['hardy_scale.from', 'donors.hardy_scale.from'],
+            ['hardy_scale.to', 'donors.hardy_scale.to'],
+            ['tags', 'donors.tags'],
+            ['tissues.tissue_type', 'sample_summary.tissues'],
+            ['donor.tissues.tissue_type', 'sample_summary.tissues'],
+        ];
+
+        const out = { ...fileFilters };
+
+        for (const [src, dst] of pairs) {
+            if (Object.prototype.hasOwnProperty.call(fileFilters, src) && fileFilters[src] !== undefined) {
+                fileFilters[dst] = fileFilters[src];
+                delete fileFilters[src];
+            }
         }
-        if (fileFilters.study) {
-            fileFilters['sample_summary.studies'] = fileFilters.study;
-            delete fileFilters.study;
-        }
-        if (fileFilters.external_id) {
-            fileFilters['donors.display_title'] = fileFilters.external_id;
-            delete fileFilters.external_id;
-        }
-        if (fileFilters['age.from']) {
-            fileFilters['donors.age.from'] = fileFilters['age.from'];
-            delete fileFilters['age.from'];
-        }
-        if (fileFilters['age.to']) {
-            fileFilters['donors.age.to'] = fileFilters['age.to'];
-            delete fileFilters['age.to'];
-        }
-        if (fileFilters['hardy_scale.from']) {
-            fileFilters['donors.hardy_scale.from'] = fileFilters['hardy_scale.from'];
-            delete fileFilters['hardy_scale.from'];
-        }
-        if (fileFilters['hardy_scale.to']) {
-            fileFilters['donors.hardy_scale.to'] = fileFilters['hardy_scale.to'];
-            delete fileFilters['hardy_scale.to'];
-        }
-        if (fileFilters['tags']) {
-            fileFilters['donors.tags'] = fileFilters['tags'];
-            delete fileFilters['tags'];
-        }
-        if (fileFilters['tissues.tissue_type']) {
-            fileFilters['sample_summary.tissues'] = fileFilters['tissues.tissue_type'];
-            delete fileFilters['tissues.tissue_type'];
-        }
-        if (fileFilters['donor.tissues.tissue_type']) {
-            fileFilters['sample_summary.tissues'] = fileFilters['donor.tissues.tissue_type'];
-            delete fileFilters['donor.tissues.tissue_type'];
-        }
+
         return fileFilters;
     },
     /**
@@ -525,7 +517,7 @@ export const ChartDataController = {
         const currentBrowseBaseParams = navigate.getBrowseBaseParams(opts.browseBaseState || null, mapping);
         // map filters to match between Donor to File
         const clonedContextFilters = object.deepClone(refs.contextFilters);
-        const currentDonorFilters = ChartDataController.transformFilterDonorToFile(searchFilters.contextFiltersToExpSetFilters(clonedContextFilters, currentBrowseBaseParams));
+        const currentDonorFilters = ChartDataController.transformFilterDonorToFile(searchFilters.contextFiltersToExpSetFilters(clonedContextFilters, currentBrowseBaseParams), mapping);
         const searchQuery = opts.searchQuery || searchFilters.searchQueryStringFromHref(refs.href);
         const filtersSet = (_.keys(currentDonorFilters).length > 0) || searchQuery;
 
@@ -543,7 +535,7 @@ export const ChartDataController = {
 
         let baseSearchParams = navigate.getBrowseBaseParams(opts.browseBaseState || null, mapping);
         if (mapping !== 'all' && forceToFile) {
-            baseSearchParams = ChartDataController.transformFilterDonorToFile(baseSearchParams);
+            ChartDataController.transformFilterDonorToFile(baseSearchParams, mapping);
             baseSearchParams.type = ['File'];
         }
 
@@ -617,7 +609,7 @@ export const ChartDataController = {
         // `currentBrowseBaseParams` not rly needed for BarPlot agg endpoint (since passing thru all filters anyway)
         const currentBrowseBaseParams = navigate.getBrowseBaseParams(opts.browseBaseState || null, mapping);
         const clonedContextFilters = object.deepClone(refs.contextFilters);
-        const currentDonorFilters = ChartDataController.transformFilterDonorToFile(searchFilters.contextFiltersToExpSetFilters(clonedContextFilters, currentBrowseBaseParams));
+        const currentDonorFilters = ChartDataController.transformFilterDonorToFile(searchFilters.contextFiltersToExpSetFilters(clonedContextFilters, currentBrowseBaseParams), mapping);
 
         const searchQuery = opts.searchQuery || searchFilters.searchQueryStringFromHref(refs.href);
 
@@ -628,7 +620,7 @@ export const ChartDataController = {
         );
 
         if (mapping !== 'all' && forceToFile) {
-            filteredSearchParams = ChartDataController.transformFilterDonorToFile(filteredSearchParams);
+            ChartDataController.transformFilterDonorToFile(filteredSearchParams, mapping);
             filteredSearchParams.type = ['File'];
         }
 
