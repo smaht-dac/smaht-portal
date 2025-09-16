@@ -7,6 +7,20 @@ smaht-portal
 Change Log
 ----------
 
+1.2.0
+=====
+`PR 518: feat: Add Pipeline Docs to portal <https://github.com/smaht-dac/smaht-portal/pull/518>`_
+
+* Add Pipeline documentation to the portal as static pages
+
+
+1.1.5
+=======
+`PR 524: fix: update uuids to match prod <https://github.com/smaht-dac/smaht-portal/pull/524>`_
+
+* Fix uuids for the pages and static sections below in order to prevent uuid mismatches causing reindex crash
+
+
 1.1.4
 =======
 `PR 521: Modify production tissues in Submission Status page <https://github.com/smaht-dac/smaht-portal/pull/521>`_
