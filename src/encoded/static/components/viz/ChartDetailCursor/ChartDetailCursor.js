@@ -81,7 +81,7 @@ class Body extends React.PureComponent {
         if (props.path.length === 0) return null;
         var currentCounts = this.getCurrentCounts(props.path);
         if (!currentCounts) return null;
-        var countsToShow = _.omit(currentCounts, this.props.primaryCount, 'experiments_active');
+        var countsToShow = _.omit(currentCounts, this.props.primaryCount, 'all_donor_ids');
 
         countsToShow = _.pairs(countsToShow).map(function(countPair, i){
             var colSize = countPair[0] === 'donors' ?
@@ -242,7 +242,8 @@ export default class ChartDetailCursor extends React.PureComponent {
     static getCounts(d){
         return {
             'donors'              : d.donors || 0,
-            'files'               : d.files || 0
+            'files'               : d.files || 0,
+            'all_donor_ids'       : d.all_donor_ids || [],
         };
     }
 

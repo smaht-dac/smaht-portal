@@ -168,7 +168,24 @@ export class FacetCharts extends React.PureComponent {
                         }
                         return searchFilters.changeFilter(node.field, node.term, donorFilters, null, true);// Existing donorFilters, if null they're retrieved from Redux store, only return new donorFilters vs saving them == set to TRUE
                     }, currentDonorFilters);
-                    newDonorFilters.type = []; // Reset type filter so it gets set to 'Donor' from browseBaseHref.
+
+                    // very hacky - since Donor and ProtectedDonor lack tissues/sequencers/assays that are associated with released files,
+                    // we need to add a display_title filter with all donor ids in the selected tissue
+                    // TODO: refactor this when we have a better data model
+                    const keysToClear = [
+                        'donor.tissues.tissue_type',
+                        'tissues.tissue_type',
+                        'file_sets.libraries.assay.display_title',
+                        'sequencing.sequencer.display_title',
+                    ];
+
+                    if (mapping !== 'all' && keysToClear.some(k => newDonorFilters[k])) {
+                        const last = cursorProps?.path?.at?.(-1) ?? cursorProps?.path?.[cursorProps.path.length - 1];
+                        newDonorFilters.display_title = last?.all_donor_ids ?? [];
+                        keysToClear.forEach(k => delete newDonorFilters[k]);
+                    }
+                    // Reset type filter so it gets set to 'Donor' from browseBaseHref.
+                    newDonorFilters.type = [];
 
                     // Register 'Set Filter' event for each field:term pair (node) of selected Bar Section.
                     _.forEach(cursorProps.path, function(node){

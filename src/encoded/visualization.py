@@ -249,6 +249,13 @@ def bar_plot_chart(context, request):
             "sum": {
                 "field": "embedded.file_size"
             }
+        },
+        "all_donors_ids": {
+            "terms": {
+                "field": "embedded.donors.display_title.raw",
+                "size": 10000,
+                "order": { "_key": "asc" }
+            }
         }
     }
 
@@ -315,7 +322,8 @@ def bar_plot_chart(context, request):
             "donors": search_result['aggregations']['total_donors']['value'],
             "assays": search_result['aggregations']['total_assays']['value'],
             "tissues": search_result['aggregations']['total_tissues']['value'],
-            "file_size": search_result['aggregations']['total_file_size']['value']
+            "file_size": search_result['aggregations']['total_file_size']['value'],
+            "all_donors_ids": [b["key"] for b in search_result["aggregations"]["all_donors_ids"]["buckets"]]
         },
         "other_doc_count": search_result['aggregations']['field_0'].get('sum_other_doc_count', 0),
         "time_generated": str(datetime.utcnow())
@@ -327,6 +335,7 @@ def bar_plot_chart(context, request):
             'doc_count': int(bucket_result['doc_count']),
             "files": int(bucket_result['doc_count']) if isFileTypeSearch else 0,
             'donors': int(bucket_result['total_donors']['value']),
+            'all_donors_ids': [b['key'] for b in bucket_result['all_donors_ids']['buckets']]
         }
 
         next_field_name = None

@@ -80,7 +80,8 @@ export function genChartBarDims(
                         'height'    : barHeight
                     },
                     'donors' : termObj.donors,
-                    'files'  : termObj.files
+                    'files'  : termObj.files,
+                    'all_donor_ids' : termObj.all_donors_ids || []
                 };
                 if (typeof termObj.field === 'string') {
                     barNode.bars = genBarData(termObj, { 'height' : barHeight }, barNode);
