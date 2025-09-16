@@ -10,6 +10,7 @@ Change Log
 
 1.1.5
 =======
+`PR 525: Fix: Re-include ingestion_processors in app config <https://github.com/smaht-dac/smaht-portal/pull/525>`_
 
 * Re-include ingestion_processors in app config
 
