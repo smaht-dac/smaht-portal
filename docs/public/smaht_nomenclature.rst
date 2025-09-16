@@ -82,7 +82,7 @@ Naming Schema
 
 .. raw:: html
     
-    <img class="grey-border" src="/static/img/Nomenclature_Part1.jpeg" alt="Nomenclature Part 1"/>
+    <img class="grey-border" src="/static/img/Nomenclature_Part1.png" alt="Nomenclature Part 1"/>
 
 
 Table 1. Benchmarking cell line codes.
@@ -479,7 +479,7 @@ Part 2: Base Schema, Platform, and Assay Codes
 
 .. raw:: html
     
-    <img class="grey-border" src="/static/img/Nomenclature_Part2.jpeg" alt="Nomenclature Part 2"/>
+    <img class="grey-border" src="/static/img/Nomenclature_Part2.png" alt="Nomenclature Part 2"/>
 
 
 
@@ -949,7 +949,7 @@ Part 3: File Name breakdown
 
 .. raw:: html
 
-    <img class="grey-border" src="/static/img/Nomenclature_Part3.jpeg" alt="Nomenclature Part 3"/>
+    <img class="grey-border" src="/static/img/Nomenclature_Part3.png" alt="Nomenclature Part 3"/>
 
 
 Table 5. Genome version (A) and variant type (B) tables.
@@ -1020,5 +1020,5 @@ Example Files with the SMaHT Nomenclature
 
 .. raw:: html
 
-    <img class="grey-border" src="/static/img/Nomenclature_ExampleFiles.jpeg" alt="Nomenclature_ExampleFiles"/>
+    <img class="grey-border" src="/static/img/Nomenclature_ExampleFiles.png" alt="Nomenclature_ExampleFiles"/>
 
