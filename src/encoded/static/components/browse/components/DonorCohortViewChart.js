@@ -281,7 +281,7 @@ const DonorCohortViewChart = ({
                       </div>` : ''
                         }
 
-                      ${donorsHref != null ? `
+                      ${donorsHref != null && _isPinned ? `
                       <div class="actions buttons-container">
                         <div class="button-container col-12">
                           <div class="d-grid gap-1">
