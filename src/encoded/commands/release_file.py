@@ -50,7 +50,8 @@ pp = pprint.PrettyPrinter(indent=2)
 ##  - Adds `dataset` and `access_status` to the file
 ##  - Set the associated QualityMetrics item and the metrics.zip
 ##    file to the same status as the main file
-##  - All other associated metadata is set to `public`. This currently
+##  - All other associated metadata is set to `public` or `restricted` depending
+##    on whether the release is internal or external. This currently
 ##    includes FileSet, Sequencing, Library, LibraryPreparation, Assay,
 ##    Analyte, AnalytePreparation, PreparationKit, Treatment, Sample,
 ##    SampleSource, CellCulture, CellLine, Donor
@@ -339,23 +340,28 @@ class FileRelease:
             self.quality_metrics_zips, "Compressed QC metrics file", self.target_file_status
         )
 
-        # All of the other metadata items will be set to public by default
-        self.add_release_items_to_patchdict(self.file_sets, "FileSet")
-        self.add_release_items_to_patchdict(self.sequencings, "Sequencing")
-        self.add_release_items_to_patchdict(self.libraries, "Library")
-        self.add_release_items_to_patchdict(self.library_preparations, "LibraryPreparation")
-        self.add_release_items_to_patchdict(self.assays, "Assay")
-        self.add_release_items_to_patchdict(self.analytes, "Analyte")
-        self.add_release_items_to_patchdict(self.analyte_preparations, "AnalytePreparation")
-        self.add_release_items_to_patchdict(self.preparation_kits, "PreparationKit")
-        self.add_release_items_to_patchdict(self.treatments, "Treatment")
-        self.add_release_items_to_patchdict(self.samples, "Sample")
-        self.add_release_items_to_patchdict(self.sample_sources, "SampleSource")
+        # If the release is internal, set all linked items (that have not been previously published) to restricted. 
+        # Otherwise, set them to public
+        linked_item_status = item_constants.STATUS_PUBLIC
+        if self.target_file_status == item_constants.STATUS_RESTRICTED:
+            linked_item_status = item_constants.STATUS_RESTRICTED
+
+        self.add_release_items_to_patchdict(self.file_sets, "FileSet", linked_item_status)
+        self.add_release_items_to_patchdict(self.sequencings, "Sequencing", linked_item_status)
+        self.add_release_items_to_patchdict(self.libraries, "Library", linked_item_status)
+        self.add_release_items_to_patchdict(self.library_preparations, "LibraryPreparation", linked_item_status)
+        self.add_release_items_to_patchdict(self.assays, "Assay", linked_item_status)
+        self.add_release_items_to_patchdict(self.analytes, "Analyte", linked_item_status)
+        self.add_release_items_to_patchdict(self.analyte_preparations, "AnalytePreparation", linked_item_status)
+        self.add_release_items_to_patchdict(self.preparation_kits, "PreparationKit", linked_item_status)
+        self.add_release_items_to_patchdict(self.treatments, "Treatment", linked_item_status)
+        self.add_release_items_to_patchdict(self.samples, "Sample", linked_item_status)
+        self.add_release_items_to_patchdict(self.sample_sources, "SampleSource", linked_item_status)
         self.add_release_items_to_patchdict(
-            self.cell_cultures_from_mixtures, "CellCulture"
+            self.cell_cultures_from_mixtures, "CellCulture", linked_item_status
         )
-        self.add_release_items_to_patchdict(self.cell_lines, "CellLine")
-        self.add_release_items_to_patchdict(self.donors, "Donor")
+        self.add_release_items_to_patchdict(self.cell_lines, "CellLine", linked_item_status)
+        self.add_release_items_to_patchdict(self.donors, "Donor", linked_item_status)
 
         if obsolete_file_identifier:
             obsolete_file = self.get_metadata(obsolete_file_identifier)
@@ -474,9 +480,10 @@ class FileRelease:
         identifier_to_report = self.get_identifier_to_report(item)
         self.patch_infos.append(f"\n{item_desc} ({identifier_to_report}):")
 
-        if item_utils.get_status(item) == item_status:
+        current_item_status = item_utils.get_status(item)
+        if current_item_status in [item_status, item_constants.STATUS_PUBLIC]:
             self.add_okay_message(
-                item_constants.STATUS, item_status, "Not patching."
+                item_constants.STATUS, current_item_status, "Not patching."
             )
             return
 
@@ -620,22 +627,22 @@ class FileRelease:
         MAPPING IS NOT IMPLEMENTED FOR EPIGENETIC DATA YET
 
         COLO829:
-            BAM, FASTQ = Open
+            CRAM, BAM, FASTQ = Open
             Files with somatic variants = Open
             Files with germline variants = Open
             Files with expression or epigenetic data = Open
         HapMap and “HG***”
-            BAM, FASTQ = Open
+            CRAM, BAM, FASTQ = Open
             Files with somatic variants = Open
             Files with germline variants = Open
             Files with expression or epigenetic data = Open
         iPSC / Fibroblast (i.e. LB-LA)
-            BAM, FASTQ = Protected
+            CRAM, BAM, FASTQ = Protected
             Files with somatic variants = Protected
             Files with germline variants = Protected
             Files with expression or epigenetic data = Open
         Tissues
-            BAM, FASTQ = Protected
+            CRAM, BAM, FASTQ = Protected
             Files with somatic variants = Protected (until confident no germline variants are present)
             Files with germline variants = Protected
             Files with expression or epigenetic data = Open
