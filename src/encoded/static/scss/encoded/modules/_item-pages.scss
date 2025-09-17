@@ -1264,7 +1264,7 @@ body[data-pathname^="/users/"] {
 
 .user-registration-modal.modal-lg {
 	@include media-breakpoint-up(lg) {
-		min-width: 900px;
+		min-width: 875px;
 	}
 }
 
@@ -1307,6 +1307,16 @@ body[data-pathname^="/users/"] {
 		background: #f1f9ff;
 		box-shadow: none;
 		padding: 5px 15px;
+	}
+	div.alert-danger {
+		color: #DD999A;
+		background-color: #fdf2f2;
+		> div {
+			color: #6c4545;
+		}
+	}
+	.lh-lg {
+		line-height: 1.75 !important;
 	}
 }
 

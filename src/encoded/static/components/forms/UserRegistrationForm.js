@@ -432,7 +432,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                         <div className="row mt-3">
                             <div className="col-12">
                                 <div class="alert alert-danger d-flex align-items-center" role="alert">
-                                    <i class="fas icon icon-user-shield me-2 fs-1"></i>
+                                    <i class="fas icon icon-file-shield me-2 fs-2"></i>
                                     <div>
                                         <strong>Protected Data Access:</strong> Self-registration will give you access to open data and metadata <strong>only</strong>.
                                         <br />
@@ -462,17 +462,15 @@ export default class UserRegistrationForm extends React.PureComponent {
                             </div>
                             <div className="col-12 col-lg-7">
                                 <p className="fs-6 lh-lg ps-05">
-                                    By signing up, you are agreeing to our{' '}
+                                    By registering, you are agreeing to the{' '}
                                     <a
                                         href="/privacy-policy"
                                         className="link-underline-hover"
                                         target="_blank"
                                         rel="noreferrer noopener">
-                                        Privacy Policy
+                                        SMaHT Portal User Privacy Policy
                                     </a>
-                                    .
-                                    <br />
-                                    We may track your usage of the portal to help
+                                    . We may track your usage of the portal to help
                                     improve the quality of user experience and/or
                                     security assurance purposes.
                                 </p>
