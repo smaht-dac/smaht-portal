@@ -102,7 +102,7 @@ const AnnouncementCard = ({
     );
 };
 
-// Warning to include in the data release
+// Warning to include in the data release item for September 2025
 const ReleaseItemWarning = () => {
     return (
         <div className="warning">
@@ -116,7 +116,7 @@ const ReleaseItemWarning = () => {
     );
 };
 
-const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
+const DataReleaseItem = ({ data, callout = null }) => {
     const [isExpanded, setIsExpanded] = useState(true);
     const { count, items: sample_groups, query, value } = data;
 
@@ -245,14 +245,12 @@ export const NotificationsPanel = () => {
                                         <DataReleaseItem
                                             data={releaseItem}
                                             key={i}
-                                            releaseItemIndex={i}
                                             callout={<ReleaseItemWarning />}
                                         />
                                     ) : (
                                         <DataReleaseItem
                                             data={releaseItem}
                                             key={i}
-                                            releaseItemIndex={i}
                                         />
                                     );
                                 })
