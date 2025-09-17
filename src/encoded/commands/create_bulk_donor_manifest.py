@@ -74,7 +74,7 @@ Behavior
     * If both --search and --donors are provided, donors from both are included.
     * If only one of --search or --donors is provided, that source is used.
     * If neither is provided, a default search query is constructed:
-    * The --public option restricts the manifest to public donor properties only, 
+    * The --public option restricts the manifest to public donor properties only,
         however, if a search or donor IDs are provided the public metadata for those
         donors will be added to the manifest regardless of the status of those donors.
 
@@ -130,12 +130,12 @@ IGNORED_PROPERTIES = [
     "protocols",
     "schema_version",
     "status",
-    "submission_centers",    
+    "submission_centers",
     "submitted_by",
-    "submitted_id",    
+    "submitted_id",
     "tags",
     "tpc_submitted",
-    "uuid",    
+    "uuid",
 ]
 
 CHANGED_COLUMNS = {
@@ -179,7 +179,6 @@ def get_donors(
     """Get donor items from given search query and idenitfiers."""
     auth_key = request_handler.auth_key
     donors = []
-    #import pdb; pdb.set_trace()
     if search:
         donors += get_donors_from_search(search, auth_key)
     if identifiers:
@@ -226,19 +225,18 @@ def get_bulk_donor_manifest(
         schemas: Dict[str, Any],
         request_handler: RequestHandler,
         public: bool = False
-    ) -> pd.DataFrame:
-        """Generate dataframe of bulk donor manifest from list of donors."""
-        kept_properties = get_kept_properties(schemas, public)
-        #import pdb; pdb.set_trace()
-        donor_manifest = pd.DataFrame(columns=kept_properties)
-        external_ids = [item_utils.get_external_id(donor) for donor in donors]
-        medical_histories = get_medical_histories(external_ids, request_handler)
-        for idx, donor in enumerate(donors):
-            medical_history = medical_histories[idx]
-            donor_manifest = generate_manifest_row(
-                donor_manifest, idx, donor, medical_history, kept_properties, request_handler, public
-            )
-        return donor_manifest
+) -> pd.DataFrame:
+    """Generate dataframe of bulk donor manifest from list of donors."""
+    kept_properties = get_kept_properties(schemas, public)
+    donor_manifest = pd.DataFrame(columns=kept_properties)
+    external_ids = [item_utils.get_external_id(donor) for donor in donors]
+    medical_histories = get_medical_histories(external_ids, request_handler)
+    for idx, donor in enumerate(donors):
+        medical_history = medical_histories[idx]
+        donor_manifest = generate_manifest_row(
+            donor_manifest, idx, donor, medical_history, kept_properties, request_handler, public
+        )
+    return donor_manifest
 
 
 def get_kept_properties(schemas: Dict[str, Any], public: bool = False) -> List[str]:
@@ -252,9 +250,17 @@ def get_kept_properties(schemas: Dict[str, Any], public: bool = False) -> List[s
         kept_properties = []
         if item_type == PUBLIC_ITEM_TYPES[0] or item_type == PROTECTED_ITEM_TYPES[0]:
             kept_properties += [f"{item_type}.accession"]
-        kept_properties += [f"{item_type}.{prop}" for prop in schemas[item_type]['properties'].keys() if prop not in IGNORED_PROPERTIES and 'calculatedProperty' not in schemas[item_type]['properties'][prop] and 'linkTo' not in schemas[item_type]['properties'][prop]]
+        kept_properties += [
+            f"{item_type}.{prop}"
+            for prop in schemas[item_type]['properties'].keys()
+            if prop not in IGNORED_PROPERTIES
+            and 'calculatedProperty' not in schemas[item_type]['properties'][prop]
+            and 'linkTo' not in schemas[item_type]['properties'][prop]
+        ]
         all_kept_properties += kept_properties
-    modified_properties = [CHANGED_COLUMNS[prop] if prop in CHANGED_COLUMNS.keys() else prop for prop in all_kept_properties ]
+    modified_properties = [
+        CHANGED_COLUMNS[prop] if prop in CHANGED_COLUMNS.keys()
+        else prop for prop in all_kept_properties]
     return modified_properties
 
 
@@ -290,7 +296,7 @@ def generate_manifest_row(
         kept_properties: List[str],
         request_handler: RequestHandler,
         public: bool = False
-    ):
+):
     """Generate row for manifest."""
     donor_type = "ProtectedDonor"
     if public:
@@ -344,13 +350,13 @@ def add_row_from_search(
 def format_value_from_properties(
     donor_manifest: pd.DataFrame,
     idx: int,
-    item_type: str, 
+    item_type: str,
     kept_properties: List[str],
     results: Dict[str, Any],
 ):
     """Format and fill in dataframe columns from item properties."""
     subcolumns = [column.split(".")[1] for column in kept_properties if column.split(".")[0] == item_type]
-    if len(results) > 1: # multiple items returned from search
+    if len(results) > 1:  # multiple items returned from search
         for sub in subcolumns:
             col = f"{item_type}.{sub}"
             if col in CHANGED_COLUMNS.keys():
@@ -360,14 +366,14 @@ def format_value_from_properties(
                 if sub in hit:
                     value = hit[sub]
                     if type(value) is list:
-                        value=";".join(value)
+                        value = ";".join(value)
                     if value or value == 0:
                         values.append(str(value))
                     else:
                         values.append("NA")
                 else:
                     values.append("NA")
-            donor_manifest.at[idx, col] = "|".join(values)   
+            donor_manifest.at[idx, col] = "|".join(values)
     elif len(results) == 1:
         for sub in subcolumns:
             col = f"{item_type}.{sub}"
@@ -376,7 +382,7 @@ def format_value_from_properties(
             if sub in results[0]:
                 value = results[0][sub]
                 if type(value) is list:
-                        value=";".join(value)
+                    value = ";".join(value)
                 if value or value == 0:
                     donor_manifest.at[idx, col] = value
                 else:
@@ -397,7 +403,7 @@ def write_bulk_donor_manifest(
     output: Path
 ) -> None:
     """Write out TSV containing the bulk donor manifest to output file."""
-    donor_manifest.to_csv(output,sep='\t',index=False)
+    donor_manifest.to_csv(output, sep='\t', index=False)
     log.info(f"Workbook written to: {output}")
 
 
