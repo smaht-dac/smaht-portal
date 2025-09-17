@@ -796,6 +796,23 @@ body[data-path="/"]>#application>#layout {
 						}
 					}
 
+					.callout {
+						.warning {
+							color: #495983;
+							background-color: #FFF3F2;
+							border: 1px solid #E6B4B2;
+							border-radius: 5px;
+							margin-top: 5px;
+							padding: 10px;
+							font-size: 12px;
+
+							i {
+								color: #B13635;
+								margin-right: 5px;
+							}
+						}
+					}
+
 					&.data-release-tracker {
 						display: flex;
 
