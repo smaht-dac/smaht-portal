@@ -762,7 +762,7 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
     assert submitted_file_with_sample_sources_search
     for submitted_file in submitted_file_with_sample_sources_search:
         assert_sample_sources_calcprop_matches_embeds(submitted_file)
-    
+
     output_file_with_sample_sources_search = search_type_for_key(
         es_testapp, "OutputFile", search_key
     )
@@ -827,7 +827,7 @@ def assert_cell_line_donors_match_calcprop(
     file: Dict[str, Any],
     cell_lines: List[Dict[str, Any]],
 ) -> None:
-    """Ensure cell line donors match calcprop.""" 
+    """Ensure cell line donors match calcprop."""
     donor_ids = get_property_values_from_identifiers(
         request_handler, cell_lines, functools.partial(cell_line_utils.get_source_donor, request_handler)
     )
@@ -843,7 +843,7 @@ def assert_donors_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     analytes = get_unique_values(libraries, library_utils.get_analytes)
     samples = get_unique_values(analytes, analyte_utils.get_samples)
     sample_sources = get_unique_values(samples, sample_utils.get_sample_sources)
-    donors = get_unique_values(sample_sources, tissue_utils.get_donor)     
+    donors = get_unique_values(sample_sources, tissue_utils.get_donor)
     assert_items_match(donors_from_calcprop, donors)
 
 
@@ -1003,21 +1003,21 @@ def assert_data_generation_summary_matches_expected(
     if (override_coverage := file_utils.get_override_group_coverage(file)):
         expected_target_coverage = [override_coverage]
     else:
-        expected_target_coverage = [ target_coverage 
-            for sequencing in sequencings  
+        expected_target_coverage = [ target_coverage
+            for sequencing in sequencings
             if (target_coverage := sequencing_utils.get_target_coverage(
                 get_item(es_testapp, item_utils.get_uuid(sequencing))
             ))
         ] if sequencings else []
     if (override_average_coverage := file_utils.get_override_average_coverage(file)):
         expected_average_coverage = [override_average_coverage]
-    else: 
-        expected_average_coverage = [ coverage 
+    else:
+        expected_average_coverage = [ coverage
             for quality_metric in quality_metrics
             if (coverage := qm_utils.get_coverage(quality_metric))
         ] if quality_metrics else []
-    expected_target_read_count = [ target_coverage 
-        for sequencing in sequencings                     
+    expected_target_read_count = [ target_coverage
+        for sequencing in sequencings
         if (target_coverage := sequencing_utils.get_target_read_count(
                 get_item(es_testapp, item_utils.get_uuid(sequencing))
             ))
@@ -1246,7 +1246,7 @@ def test_release_tracker(es_testapp: TestApp, workbook: None) -> None:
 
     Checks fields present on inserts match values expected by parsing tags.
     """
-    
+
     search = "tags=test_release_tracker"
     files_with_release_tracker_description = get_search(es_testapp, search)
     for file in files_with_release_tracker_description:
@@ -1311,3 +1311,41 @@ def test_new_20241104( es_testapp: TestApp, workbook: None) -> None:
     unaligned_reads = portal.get_metadata("92e8371b-bcdf-44de-ad49-3a5f108e91eb", raw=True)
     unaligned_reads_sid = unaligned_reads.get("sid")
     assert unaligned_reads_sid is None
+
+
+def test_files_open_data_url_not_released(testapp, fastq_json):
+    """ Test S3 Open Data URL when a file has not been flagged as released """
+    res = testapp.post_json('/file_fastq', fastq_json, status=201)
+    resobj = res.json['@graph'][0]
+    # 1. check that initial download works
+    download_link = resobj['href']
+    direct_res = testapp.get(download_link, status=307)
+    # 2. check that the bucket in the redirect is the 4DN test bucket, not open data
+    non_open_data_bucket = 'test-wfout-bucket.s3.amazonaws.com'
+    assert non_open_data_bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+
+def test_files_open_data_url_released_not_transferred(testapp, fastq_json_released):
+    """ Test S3 Open Data URL when a file has been released but not transferred to Open Data """
+    res = testapp.post_json('/file_fastq', fastq_json_released, status=201)
+    resobj = res.json['@graph'][0]
+    # 1. check that initial download works
+    download_link = resobj['href']
+    direct_res = testapp.get(download_link, status=307)
+    # 2. check that the bucket in the redirect is the 4DN test bucket, not open data
+    non_open_data_bucket = 'test-wfout-bucket.s3.amazonaws.com'
+    assert non_open_data_bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+
+def test_files_open_data_url_released_and_transferred(testapp, fastq_json_released):
+    """ Test S3 Open Data URL when a file has been released and has been transferred to Open Data"""
+    with mock.patch('encoded.types.file.File._head_s3', return_value=None):
+        res = testapp.post_json('/file_fastq', fastq_json_released, status=201)
+        bucket = '4dn-open-data-public' # the Open Data bucket, not the 4DN test bucket
+        resobj = res.json['@graph'][0]
+        # 1. check that initial download works
+        download_link = resobj['href']
+        direct_res = testapp.get(download_link, status=307)
+        # 2. check that the bucket in the redirect is the open data bucket, not 4DN test
+        assert bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+

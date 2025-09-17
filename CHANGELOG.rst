@@ -7,7 +7,8 @@ smaht-portal
 Change Log
 ----------
 
-1.1.2
+
+1.1.3
 =====
 
 * Adjusts the user schema to replicate the attributions without
@@ -16,6 +17,15 @@ Change Log
 * Regression test for the above
 * Change data release tracker to direct users to /browse, include only
   production files
+
+1.1.2
+=====
+`PR 520: Add tag filtering for release tracker and improve notifications panel UX <https://github.com/smaht-dac/smaht-portal/pull/520>`_
+
+* Released files can now be excluded from the release tracker by adding the tag `exclude_from_release_tracker`
+* Only show the last 3 months in the release tracker
+* In the notification panel UX, handle the case correctly when there are no released files.
+
 
 1.1.1
 =====

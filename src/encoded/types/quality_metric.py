@@ -2,12 +2,15 @@ from typing import List, Dict, Any
 from pyramid.view import view_config
 from snovault import collection, load_schema, calculated_property
 from encoded_core.qc_views import download as qc_download
+from copy import deepcopy
 
-from .acl import ONLY_ADMIN_VIEW_ACL
+from submitted_item import SubmittedItem
+from .acl import ONLY_ADMIN_VIEW_ACL, ONLY_DBGAP_VIEW_ACL, ONLY_PUBLIC_DBGAP_VIEW_ACL
 from .base import Item
 
 COVERAGE_DERIVED_FROM = "mosdepth:total"
 FLAG_STATES = ["Warn", "Fail"]
+
 
 @collection(
     name='quality-metrics',
@@ -20,6 +23,17 @@ class QualityMetric(Item):
     item_type = 'quality_metric'
     schema = load_schema("encoded:schemas/quality_metric.json")
     embedded_list = []
+
+    SUBMISSION_CENTER_STATUS_ACL = deepcopy(SubmittedItem.SUBMISSION_CENTER_STATUS_ACL)
+    SUBMISSION_CENTER_STATUS_ACL.update({
+        'restricted': ONLY_DBGAP_VIEW_ACL,
+        'public-restricted': ONLY_PUBLIC_DBGAP_VIEW_ACL
+    })
+    CONSORTIUM_STATUS_ACL = deepcopy(SubmittedItem.CONSORTIUM_STATUS_ACL)
+    CONSORTIUM_STATUS_ACL.update({
+        'restricted': ONLY_DBGAP_VIEW_ACL,
+        'public-restricted': ONLY_PUBLIC_DBGAP_VIEW_ACL
+    })
 
     @calculated_property(
         schema={
@@ -42,8 +56,8 @@ class QualityMetric(Item):
         for qc in qc_values:
             if qc.get("derived_from","") == COVERAGE_DERIVED_FROM:
                 return qc["value"]
-            
-    
+
+
     @calculated_property(
         schema={
             "title": "QC Notes",
