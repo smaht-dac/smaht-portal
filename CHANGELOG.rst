@@ -8,6 +8,13 @@ Change Log
 ----------
 
 
+1.1.6
+=======
+`PR 526: feat: release tracker CRAM warning callout <https://github.com/smaht-dac/smaht-portal/pull/526>`_
+
+* Add support for CRAM warning in release tracker items
+
+
 1.1.5
 =======
 `PR 525: Fix: Re-include ingestion_processors in app config <https://github.com/smaht-dac/smaht-portal/pull/525>`_
