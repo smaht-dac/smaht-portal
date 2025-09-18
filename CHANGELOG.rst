@@ -8,6 +8,13 @@ Change Log
 ----------
 
 
+1.2.0
+=======
+`PR 527: feat: homepage announcement for portal shutdown <https://github.com/smaht-dac/smaht-portal/pull/527>`_
+
+* Implement announcement in homepage banner for portal shutdown
+
+
 1.1.5
 =======
 `PR 525: Fix: Re-include ingestion_processors in app config <https://github.com/smaht-dac/smaht-portal/pull/525>`_
