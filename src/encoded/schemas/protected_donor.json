@@ -77,12 +77,15 @@
         }
     },
     "facets": {
-        "sex": {
-            "title": "Sex"
+        "external_id": {
+            "title": "Donor ID"
         },
         "age": {
             "title": "Age",
             "aggregation_type": "stats"
+        },
+        "sex": {
+            "title": "Sex"
         },
         "submission_centers.display_title": {
             "title": "Submitted By"
@@ -95,6 +98,10 @@
         },
         "medical_history.alcohol_use": {
             "title": "Alcohol"
+        },
+        "hardy_scale": {
+            "title": "Hardy Scale",
+            "aggregation_type": "stats"
         }
     },
     "columns": {

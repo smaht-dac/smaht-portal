@@ -788,6 +788,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
         'status',
         'validation_errors.name',
         'version',
+        'study',
         'sample_summary.studies',
         'submission_centers.display_title',
         'software.display_title',
