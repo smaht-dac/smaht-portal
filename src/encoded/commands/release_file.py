@@ -1028,11 +1028,11 @@ def main() -> None:
     while True:
         resp = input(
             f"\nThe release will be carried out in two steps."
-            f"\nDo you want to proceed with the release and execute all patches above? "
+            f"\nDo you want to proceed with patching the main file(s) above (initial patch)?"
             f"Data will be patched on {warning_text(server)}."
             f"\nYou have the following options: "
             f"\ny - Proceed with release"
-            f"\np - Show patch dictionaries"
+            f"\np - Show patch dictionaries (only the first dictionary will be patched)"
             f"\nn - Abort "
             f"\n(y,p,n): "
         )
@@ -1040,8 +1040,30 @@ def main() -> None:
         if resp in ["y", "yes"]:
             for file_release in file_releases: 
                 file_release.execute_initial()
-                file_release.execute()
-            break
+                
+            resp = input(
+                f"\nDo you want to proceed with the release and execute all patches above? "
+                f"Data will be patched on {warning_text(server)}."
+                f"\nYou have the following options: "
+                f"\ny - Proceed with release"
+                f"\np - Show patch dictionaries "
+                f"\nn - Abort "
+                f"\n(y,p,n): "
+            )
+
+            if resp in ["y", "yes"]:
+                for file_release in file_releases: 
+                    file_release.execute()
+                break
+            elif resp in ["p"]:
+                for file_release in file_releases: 
+                    print(f"\nPatch dicts for file {warning_text(file_release.file_accession)}:")
+                    file_release.show_patch_dicts()
+                continue
+            else:
+                print(f"{warning_text('Aborted by user.')}")
+                exit()
+
         elif resp in ["p"]:
             for file_release in file_releases:
                 print(f"\nPatch dicts for file {warning_text(file_release.file_accession)}:")
