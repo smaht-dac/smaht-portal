@@ -822,7 +822,7 @@ const BrowseProtectedDonorSearchTable = (props) => {
         },
         // Provide a search for populating custom column(s)
         customColumnSearchHref: (result) =>
-            '/peek-metadata/?additional_facet=file_size&type=File&donors.display_title=' +
+            '/peek-metadata/?additional_facet=file_size&status=public&status=public-restricted&status=released&type=File&donors.display_title=' +
             result?.display_title,
     };
 
