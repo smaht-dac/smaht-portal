@@ -44,7 +44,7 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
                 ) : (
                     <React.Fragment>
                         <i className="account-icon icon icon-user fas d-inline d-lg-none" />
-                        <span>Login</span>
+                        <span>Login / Register</span>
                     </React.Fragment>
                 )}
             </a>
@@ -79,7 +79,10 @@ export const NotLoggedInAlert = {
     message: (
         <span>
             You are currently browsing as guest, please{' '}
-            <a onClick={onAlertLoginClick} href="#loginbtn" className="link-underline-hover">
+            <a
+                onClick={onAlertLoginClick}
+                href="#loginbtn"
+                className="link-underline-hover">
                 login
             </a>{' '}
             if you have an account.
