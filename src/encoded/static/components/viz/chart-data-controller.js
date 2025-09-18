@@ -225,7 +225,7 @@ export const ChartDataController = {
         const pairs = [
             ['sex', 'donors.sex'],
             ['study', 'sample_summary.studies'],
-            ['external_id', 'donors.display_title'],
+            ['external_id', 'donors.external_id'],
             ['display_title', 'donors.display_title'],
             ['age.from', 'donors.age.from'],
             ['age.to', 'donors.age.to'],
@@ -236,14 +236,17 @@ export const ChartDataController = {
             ['donor.tissues.tissue_type', 'sample_summary.tissues'],
         ];
 
-        const out = { ...fileFilters };
-
         for (const [src, dst] of pairs) {
             if (Object.prototype.hasOwnProperty.call(fileFilters, src) && fileFilters[src] !== undefined) {
                 fileFilters[dst] = fileFilters[src];
                 delete fileFilters[src];
             }
         }
+
+        //override
+        // TODO: keep aligned "status" field with BROWSE_STATUS_FILTERS in BrowseView.js and also other fields should match with BROWSE_LINKS
+        fileFilters.type = ['File'];
+        fileFilters.status = ['public', 'restricted', 'public-restricted', 'released'];
 
         return fileFilters;
     },
@@ -536,7 +539,6 @@ export const ChartDataController = {
         let baseSearchParams = navigate.getBrowseBaseParams(opts.browseBaseState || null, mapping);
         if (mapping !== 'all' && forceToFile) {
             ChartDataController.transformFilterDonorToFile(baseSearchParams, mapping);
-            baseSearchParams.type = ['File'];
         }
 
         notifyLoadStartCallbacks();
@@ -621,7 +623,6 @@ export const ChartDataController = {
 
         if (mapping !== 'all' && forceToFile) {
             ChartDataController.transformFilterDonorToFile(filteredSearchParams, mapping);
-            filteredSearchParams.type = ['File'];
         }
 
 

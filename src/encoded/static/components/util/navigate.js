@@ -47,13 +47,13 @@ navigate.getBrowseBaseParams = function(browseBaseState = null, mapping = 'all')
     return _.clone(navigate.getBrowseBaseParams.mappings[mapping].parameters);
 };
 
-
+// TODO: keep aligned "status" field with BROWSE_STATUS_FILTERS in BrowseView.js and also other fields should match with BROWSE_LINKS
 navigate.getBrowseBaseParams.mappings = {
     'all' : {
         'parameters': {
             'type': ['File'],
             'sample_summary.studies': ['Production'],
-            // 'status': ['public', 'public-restricted', 'released'],
+            'status': ['public', 'public-restricted', 'restricted', 'released'],
             'donors.tags': ['has_released_files'],
         }
     },
@@ -61,7 +61,7 @@ navigate.getBrowseBaseParams.mappings = {
         'parameters': {
             'type': ['Donor'],
             'study': ['Production'],
-            // 'status': ['released'],
+            // 'status': ['public', 'public-restricted', 'restricted', 'released'],
             'tags': ['has_released_files']
         }
     },
@@ -69,7 +69,7 @@ navigate.getBrowseBaseParams.mappings = {
         'parameters': {
             'type': ['ProtectedDonor'],
             'study': ['Production'],
-            // 'status': ['released'],
+            // 'status': ['public', 'public-restricted', 'restricted', 'released'],
             'tags': ['has_released_files']
         }
     }

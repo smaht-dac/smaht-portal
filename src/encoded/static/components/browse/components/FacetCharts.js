@@ -2,10 +2,7 @@
 
 import React from 'react';
 import _ from 'underscore';
-import url from 'url';
 
-import { unhighlightTerms } from '@hms-dbmi-bgm/shared-portal-components/es/components/viz/utilities';
-import { FlexibleDescriptionBox } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/FlexibleDescriptionBox';
 import { object, layout, ajax, console, isServerSide, analytics, searchFilters, memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import { navigate } from './../../util';
@@ -181,11 +178,11 @@ export class FacetCharts extends React.PureComponent {
 
                     if (mapping !== 'all' && keysToClear.some(k => newDonorFilters[k])) {
                         const last = cursorProps?.path?.at?.(-1) ?? cursorProps?.path?.[cursorProps.path.length - 1];
-                        newDonorFilters.display_title = last?.all_donor_ids ?? [];
+                        newDonorFilters.external_id = last?.all_donor_ids ?? [];
                         keysToClear.forEach(k => delete newDonorFilters[k]);
                     }
                     // Reset type filter so it gets set to 'Donor' from browseBaseHref.
-                    newDonorFilters.type = [];
+                    delete newDonorFilters.type;
 
                     // Register 'Set Filter' event for each field:term pair (node) of selected Bar Section.
                     _.forEach(cursorProps.path, function(node){

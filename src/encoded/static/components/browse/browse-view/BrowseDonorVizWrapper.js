@@ -91,7 +91,6 @@ export const BrowseDonorVizWrapper = (props) => {
         delete hrefQuery.field;
 
         ChartDataController.transformFilterDonorToFile(hrefQuery, mapping);
-        hrefQuery.type = 'File';
 
         return hrefQuery;
     }, [href, session]);

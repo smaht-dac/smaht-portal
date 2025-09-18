@@ -65,7 +65,6 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
                     hrefQuery,
                     mapping
                 );
-                hrefQuery.type = ['File'];
             }
             // protected donor - TODO: merge donor and protected_donor handling?
             if (
@@ -77,7 +76,6 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
                     hrefQuery,
                     mapping
                 );
-                hrefQuery.type = ['File'];
             }
             delete hrefQuery.limit;
             delete hrefQuery.field;
