@@ -48,7 +48,7 @@ import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
 import { useIsConsortiumMember } from '../util/hooks';
 
 export const BROWSE_LINKS = {
-    file: '/browse/?type=File&sample_summary.studies=Production&donors.tags=has_released_files',
+    file: '/browse/?type=File&sample_summary.studies=Production&status=released&status=public&status=restricted&status=public-restricted',
     donor: '/browse/?type=Donor&study=Production&tags=has_released_files',
     protected_donor:
         '/browse/?type=ProtectedDonor&study=Production&tags=has_released_files',
