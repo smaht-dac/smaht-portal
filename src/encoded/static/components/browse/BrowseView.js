@@ -47,11 +47,19 @@ import { BrowseProtectedDonorBody } from './browse-view/BrowseProtectedDonor';
 import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
 import { useIsConsortiumMember } from '../util/hooks';
 
+export const BROWSE_STATUS_FILTERS =
+    'status=public&status=public-restricted&status=restricted&status=released';
+
 export const BROWSE_LINKS = {
-    file: '/browse/?type=File&sample_summary.studies=Production&status=released&status=public&status=restricted&status=public-restricted',
-    donor: '/browse/?type=Donor&study=Production&tags=has_released_files',
+    file:
+        '/browse/?type=File&sample_summary.studies=Production&donors.tags=has_released_files&' +
+        BROWSE_STATUS_FILTERS,
+    donor:
+        '/browse/?type=Donor&study=Production&tags=has_released_files&' +
+        BROWSE_STATUS_FILTERS,
     protected_donor:
-        '/browse/?type=ProtectedDonor&study=Production&tags=has_released_files',
+        '/browse/?type=ProtectedDonor&study=Production&tags=has_released_files&' +
+        BROWSE_STATUS_FILTERS,
 };
 
 export default function BrowseView(props) {

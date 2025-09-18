@@ -14,7 +14,11 @@ import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/
 import { BrowseViewControllerWithSelections } from '../../static-pages/components/TableControllerWithSelections';
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
-import { BROWSE_LINKS, DonorMetadataDownloadButton } from '../BrowseView';
+import {
+    BROWSE_STATUS_FILTERS,
+    BROWSE_LINKS,
+    DonorMetadataDownloadButton,
+} from '../BrowseView';
 import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
@@ -90,7 +94,7 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
     const [tissueData, setTissueData] = useState(null);
 
     useEffect(() => {
-        const searchURL = `/search/?type=File&status=released&status=public&status=public-restricted&donors.display_title=${itemDetails.display_title}`;
+        const searchURL = `/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}`;
 
         // Use cached search results if available from parent
         if (panelDetails?.searchCache) {
@@ -137,7 +141,7 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
                                                 <li key={j}>
                                                     <span>
                                                         <a
-                                                            href={`/search/?type=File&status=released&status=public&status=public-restricted&donors.display_title=${itemDetails.display_title}&sample_summary.tissues=${tissue}`}
+                                                            href={`/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}&sample_summary.tissues=${tissue}`}
                                                             target="_blank"
                                                             rel="noreferrer noopener">
                                                             {tissue}
@@ -234,7 +238,7 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
     const [assayData, setAssayData] = useState(null);
 
     useEffect(() => {
-        const searchURL = `/search/?type=File&status=released&status=public&status=public-restricted&donors.display_title=${itemDetails.display_title}`;
+        const searchURL = `/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}`;
 
         // Use cached search results if available from parent
         if (panelDetails?.searchCache) {
@@ -281,7 +285,7 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
                                                 <li key={j}>
                                                     <span>
                                                         <a
-                                                            href={`/search/?type=File&status=released&status=public&status=public-restricted&donors.display_title=${itemDetails.display_title}&&file_sets.libraries.assay.display_title=${assay}`}
+                                                            href={`/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}&&file_sets.libraries.assay.display_title=${assay}`}
                                                             target="_blank"
                                                             rel="noreferrer noopener">
                                                             {assay}
@@ -583,7 +587,7 @@ export function createBrowseDonorColumnExtensionMap({
                     return fileCount ? (
                         <a
                             className="value text-center"
-                            href={`/search/?type=File&status=released&status=public&status=public-restricted&donors.display_title=${result?.display_title}`}>
+                            href={`/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${result?.display_title}`}>
                             {fileCount} File{fileCount > 1 ? 's' : ''}
                         </a>
                     ) : null;
@@ -777,7 +781,7 @@ const BrowseDonorSearchTable = (props) => {
         },
         // Provide a search for populating custom column(s)
         customColumnSearchHref: (result) =>
-            '/peek-metadata/?additional_facet=file_size&type=File&donors.display_title=' +
+            `/peek-metadata/?additional_facet=file_size&${BROWSE_STATUS_FILTERS}&type=File&donors.display_title=` +
             result?.display_title,
     };
 

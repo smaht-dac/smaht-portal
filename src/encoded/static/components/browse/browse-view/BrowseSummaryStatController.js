@@ -20,7 +20,7 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
         windowWidth,
         useCompactFor = ['xs', 'sm', 'md'],
         autoSync = false,
-        mapping = 'donor'
+        mapping = 'donor',
     } = props;
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
@@ -61,7 +61,10 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
                 hrefQuery.type === 'Donor' ||
                 (hrefQuery.type?.length > 0 && hrefQuery.type[0] === 'Donor')
             ) {
-                ChartDataController.transformFilterDonorToFile(hrefQuery, mapping);
+                ChartDataController.transformFilterDonorToFile(
+                    hrefQuery,
+                    mapping
+                );
                 hrefQuery.type = ['File'];
             }
             // protected donor - TODO: merge donor and protected_donor handling?
@@ -70,7 +73,10 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
                 (hrefQuery.type?.length > 0 &&
                     hrefQuery.type[0] === 'ProtectedDonor')
             ) {
-                ChartDataController.transformFilterDonorToFile(hrefQuery, mapping);
+                ChartDataController.transformFilterDonorToFile(
+                    hrefQuery,
+                    mapping
+                );
                 hrefQuery.type = ['File'];
             }
             delete hrefQuery.limit;
