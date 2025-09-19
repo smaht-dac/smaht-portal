@@ -1007,8 +1007,20 @@ Table 5. Genome version (A) and variant type (B) tables.
                     <td>gene</td>
                 </tr>
                 <tr>
-                    <td>Transcript isoform expression level</td>
+                    <td>Transcript isoform expression level or isoform information</td>
                     <td>isoform</td>
+                </tr>
+                <tr>
+                    <td>Junction annotations</td>
+                    <td>junction</td>
+                </tr>
+                <tr>
+                    <td>Full-length, non-concatemer (FLNC) Kinnex reads</td>
+                    <td>flnc</td>
+                </tr>
+                <tr>
+                    <td>Aligned consensus Duplex-Seq BAM</td>
+                    <td>consensus</td>
                 </tr>
             </tbody>
         </table>
