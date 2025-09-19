@@ -430,9 +430,11 @@ def _build_file_embedded_list() -> List[str]:
         "sample_summary.category",
 
         # For facets
+        "donors.external_id",
         "donors.age",
         "donors.sex",
-
+        "donors.hardy_scale",
+        "donors.tags",
     ]
 
 

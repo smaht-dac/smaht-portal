@@ -46,8 +46,8 @@ FIELDS_TO_DELETE = ['@context', '@id', '@type', '@graph', 'title', 'filters', 'f
 
 def includeme(config):
     config.add_route('date_histogram_aggregations', '/date_histogram_aggregations/')
+    config.add_route('bar_plot_chart', '/bar_plot_aggregations/')
     config.add_route('data_matrix_aggregations', '/data_matrix_aggregations/')
-    # config.add_route('estimated_coverage', '/estimated_coverage/')
     config.scan(__name__)
 
 
@@ -214,6 +214,151 @@ def convert_date_range(date_range_str):
             date_to = datetime.strptime(data_range_split[2], '%Y-%m-%d')
 
     return [date_from, date_to]
+
+
+@view_config(route_name='bar_plot_chart', request_method=['GET', 'POST'])
+@debug_log
+def bar_plot_chart(context, request):
+
+    MAX_BUCKET_COUNT = 30  # Max amount of bars or bar sections to return, excluding 'other'.
+    DEFAULT_BROWSE_PARAM_LISTS = {
+        'type': ['File'],
+        'sample_summary.studies': ['Production'],
+        'status': ['released']
+    }
+    SUM_AGGREGATION_DEFINITION = {
+        "total_donors": {
+            "cardinality": {
+                "field": "embedded.donors.display_title.raw",
+                "precision_threshold": 10000
+            }
+        },
+        "total_tissues": {
+            "cardinality": {
+                "field": "embedded.sample_summary.tissues.raw",
+                "precision_threshold": 10000
+            }
+        },
+        "total_assays": {
+            "cardinality": {
+                "field": "embedded.file_sets.libraries.assay.display_title.raw",
+                "precision_threshold": 10000
+            }
+        },
+        "total_file_size": {
+            "sum": {
+                "field": "embedded.file_size"
+            }
+        },
+        "all_donors_ids": {
+            "terms": {
+                "field": "embedded.donors.display_title.raw",
+                "size": 10000,
+                "order": { "_key": "asc" }
+            }
+        }
+    }
+
+    isFileTypeSearch = False
+    try:
+        json_body = request.json_body
+        search_param_lists = json_body.get('search_query_params', deepcopy(DEFAULT_BROWSE_PARAM_LISTS))
+        fields_to_aggregate_for = json_body.get('fields_to_aggregate_for', request.params.getall('field'))
+
+        if 'type' in search_param_lists and (
+            (isinstance(search_param_lists['type'], list) and 'File' in search_param_lists['type'] and len(search_param_lists['type']) == 1) or
+            (isinstance(search_param_lists['type'], str) and search_param_lists['type'] == 'File')):
+            isFileTypeSearch = True
+    except json.decoder.JSONDecodeError:
+        search_param_lists = request.GET.dict_of_lists()
+        fields_to_aggregate_for = request.params.getall('field')
+
+    if len(fields_to_aggregate_for) == 0:
+        raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
+
+    primary_agg = {
+        "field_0": {
+            "terms": {
+                "field": "embedded." + fields_to_aggregate_for[0] + '.raw',
+                "missing": TERM_NAME_FOR_NO_VALUE,
+                "size": MAX_BUCKET_COUNT
+            },
+            "aggs": deepcopy(SUM_AGGREGATION_DEFINITION)
+        }
+    }
+
+    primary_agg.update(deepcopy(SUM_AGGREGATION_DEFINITION))
+
+    # Nest in additional fields, if any
+    curr_field_aggs = primary_agg['field_0']['aggs']
+    for field_index, field in enumerate(fields_to_aggregate_for):
+        if field_index == 0:
+            continue
+        curr_field_aggs["field_" + str(field_index)] = {
+            "terms": {
+                "field": "embedded." + field + '.raw',
+                "missing": TERM_NAME_FOR_NO_VALUE,
+                "size": MAX_BUCKET_COUNT
+            },
+            "aggs": deepcopy(SUM_AGGREGATION_DEFINITION)
+        }
+        curr_field_aggs = curr_field_aggs['field_' + str(field_index)]['aggs']
+
+    search_param_lists['limit'] = search_param_lists['from'] = [0]
+    subreq = make_search_subreq(request, '{}?{}'.format('/search/', urlencode(search_param_lists, True)))
+    search_result = perform_search_request(None, subreq, custom_aggregations=primary_agg)
+
+    for field_to_delete in FIELDS_TO_DELETE:
+        if search_result.get(field_to_delete) is None:
+            continue
+        del search_result[field_to_delete]
+
+    ret_result = {  # We will fill up the "terms" here from our search_result buckets and then return this dictionary.
+        "field": fields_to_aggregate_for[0],
+        "terms": {},
+        "total": {
+            "doc_count": search_result['total'],
+            "files": search_result['total'] if isFileTypeSearch else 0,
+            "donors": search_result['aggregations']['total_donors']['value'],
+            "assays": search_result['aggregations']['total_assays']['value'],
+            "tissues": search_result['aggregations']['total_tissues']['value'],
+            "file_size": search_result['aggregations']['total_file_size']['value'],
+            "all_donors_ids": [b["key"] for b in search_result["aggregations"]["all_donors_ids"]["buckets"]]
+        },
+        "other_doc_count": search_result['aggregations']['field_0'].get('sum_other_doc_count', 0),
+        "time_generated": str(datetime.utcnow())
+    }
+
+    def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0):
+
+        curr_bucket_totals = {
+            'doc_count': int(bucket_result['doc_count']),
+            "files": int(bucket_result['doc_count']) if isFileTypeSearch else 0,
+            'donors': int(bucket_result['total_donors']['value']),
+            'all_donors_ids': [b['key'] for b in bucket_result['all_donors_ids']['buckets']]
+        }
+
+        next_field_name = None
+        if len(fields_to_aggregate_for) > curr_field_depth + 1:  # More fields agg results to add
+            next_field_name = fields_to_aggregate_for[curr_field_depth + 1]
+            returned_buckets[bucket_result['key']] = {
+                "term": bucket_result['key'],
+                "field": next_field_name,
+                "total": curr_bucket_totals,
+                "terms": {},
+                "other_doc_count": bucket_result['field_' + str(curr_field_depth + 1)].get('sum_other_doc_count', 0),
+            }
+            for bucket in bucket_result['field_' + str(curr_field_depth + 1)]['buckets']:
+                format_bucket_result(bucket, returned_buckets[bucket_result['key']]['terms'], curr_field_depth + 1)
+
+        else:
+            # Terminal field aggregation -- return just totals, nothing else.
+            returned_buckets[bucket_result['key']] = curr_bucket_totals
+
+    for bucket in search_result['aggregations']['field_0']['buckets']:
+        format_bucket_result(bucket, ret_result['terms'], 0)
+
+    return ret_result
 
 
 @view_config(route_name='data_matrix_aggregations', request_method=['POST'])
@@ -398,31 +543,3 @@ def data_matrix_aggregations(context, request):
                 continue
 
     return ret_result
-
-# # Not used in the current code, but could be used to fetch estimated coverage data.
-# @view_config(route_name='estimated_coverage', request_method='POST')
-# @debug_log
-# def estimated_coverage(context, request):
-#     # Extract the necessary parameters from the request
-#     try:
-#         # json_body = request.json_body
-#         # search_params = json_body.get('search_query_params', {})
-#         search_params = {
-#             "type": ["OutputFile"],
-#             "quality_metrics.display_title!": "No+value",
-#         }
-#         search_params["limit"] = "all"
-#         search_params["field"] = ["accession", "quality_metrics.uuid"]
-#     except json.decoder.JSONDecodeError:
-#         raise HTTPBadRequest(detail="missing search_query_params parameter in the request body.")
-
-#     # This one we want consistent with what the user can see
-#     subreq = make_search_subreq(request, f'/search?{urlencode(search_params, True)}', inherit_user=True)
-#     search_result = perform_search_request(None, subreq)
-
-#     coverage = search_result.get('total', -1)
-
-#     return {
-#         "search_query_params": search_params,
-#         "estimated_coverage": coverage
-#     }
