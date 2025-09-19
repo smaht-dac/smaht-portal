@@ -14,6 +14,7 @@ import {
     PopoverHeader,
     PopoverBody,
 } from 'react-bootstrap';
+import { useIsConsortiumMember } from '../util/hooks';
 
 // Page containing the details of Items of type File
 export default class PublicDonorOverview extends DefaultItemView {
@@ -63,21 +64,40 @@ const PublicDonorViewTitle = (props) => {
     );
 };
 
+export const renderLoginAccessPopover = () => {
+    return (
+        <Popover className="popover download-popover login">
+            <PopoverHeader as="h3">
+                Open Data - Log in to Download
+            </PopoverHeader>
+            <PopoverBody>
+                Login/Create a SMaHT portal account to download open data.
+            </PopoverBody>
+        </Popover>
+    );
+};
+export const renderProtectedAccessPopover = () => {
+    return (
+        <Popover className={'popover download-popover protected'}>
+            <PopoverHeader as="h3">
+                Protected Data - Access Needed
+            </PopoverHeader>
+            <PopoverBody>
+                This data is protected. To download this data, you must apply to
+                for access to SMaHT protected data on dbGaP.
+            </PopoverBody>
+        </Popover>
+    );
+};
+
 // Donor Manifest button with warning Popover
-const PublicDonorDownloadButton = () => {
+const PublicDonorDownloadButton = ({ session }) => {
+    const isConsortiumMember = useIsConsortiumMember(session);
     return (
         <OverlayTrigger
-            trigger="hover"
+            trigger={['hover', 'focus']}
             placement="top"
-            overlay={
-                <Popover className="public-donor-download-popover">
-                    <PopoverHeader as="h3">Data Access Needed</PopoverHeader>
-                    <PopoverBody>
-                        This data is protected. To download this data, you must
-                        have access to SMaHT protected access data on dbGaP.
-                    </PopoverBody>
-                </Popover>
-            }>
+            overlay={renderProtectedAccessPopover()}>
             <div className="d-flex gap-2 flex-wrap mt-1 mt-xl-0">
                 <div className="col-md-auto col-12">
                     <button
@@ -106,7 +126,7 @@ const PublicDonorViewHeader = (props) => {
                 <div className="d-flex flex-column flex-grow-1 ms-md-2">
                     <div className="data-group data-row header">
                         {title}
-                        <PublicDonorDownloadButton />
+                        <PublicDonorDownloadButton session={session} />
                     </div>
                     <div className="callout d-inline px-3 py-2 mt-1">
                         <i className="icon icon-file-shield fas"></i>{' '}

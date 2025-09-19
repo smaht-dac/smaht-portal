@@ -1362,9 +1362,9 @@ File and Donor Overview Styles
 						height: 31px;
 						font-size: 0.875rem;
 						font-weight: 500;
-						padding: 0px 20px;
 						display: flex;
 						align-items: center;
+						gap: 5px;
 	
 						i {
 							margin-right: 10px;
@@ -1373,6 +1373,11 @@ File and Donor Overview Styles
 						&:disabled {
 							background-color: #C0C7D2;
 							border: 1px solid #B6C1D1;
+							pointer-events: auto;
+
+							&:hover {
+								cursor: default;
+							}
 						}
 					}
 				}
@@ -2353,41 +2358,6 @@ File and Donor Overview Styles
 				color: #597598;
 				font-size: 0.875rem;
 			}
-		}
-	}
-}
-
-
-/****************************
-Popover Styles for Item Pages
-*****************************/
-.popover {
-	&.description-definitions-popover {
-		max-width: 600px;
-
-		thead > tr > th {
-			background-color: #F1F9FF;
-		}
-
-		.popover-header {
-			font-weight: 600;
-			background-color: #F1F9FF;
-		}
-	}
-
-	&.public-donor-download-popover {
-		width: 300px;
-		max-width: 400px;
-		color: #343741;
-
-		.popover-header {
-			margin: 0px;
-			background-color: #F1F9FF;
-			font-weight: 500;
-		}
-
-		.popover-body {
-			padding: 15px 12px;
 		}
 	}
 }

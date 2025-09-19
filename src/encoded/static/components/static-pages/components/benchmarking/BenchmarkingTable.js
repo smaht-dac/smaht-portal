@@ -40,6 +40,7 @@ export const BenchmarkingTable = (props) => {
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
         tabMap,
+        deniedAccessPopoverType,
     } = props;
 
     const selectedFileProps = {
@@ -232,6 +233,7 @@ export const BenchmarkingTable = (props) => {
                         onResetSelectedItems,
                         href,
                         searchHref,
+                        deniedAccessPopoverType,
                     }}
                 />
             }
