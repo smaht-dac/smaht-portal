@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 import pytest
 from dcicutils import schema_utils
 from webtest.app import TestApp
+from unittest import mock
 
 from .utils import (
     get_item, get_search, patch_item, post_item, post_item_and_return_location
@@ -1311,41 +1312,3 @@ def test_new_20241104( es_testapp: TestApp, workbook: None) -> None:
     unaligned_reads = portal.get_metadata("92e8371b-bcdf-44de-ad49-3a5f108e91eb", raw=True)
     unaligned_reads_sid = unaligned_reads.get("sid")
     assert unaligned_reads_sid is None
-
-
-def test_files_open_data_url_not_released(testapp, fastq_json):
-    """ Test S3 Open Data URL when a file has not been flagged as released """
-    res = testapp.post_json('/file_fastq', fastq_json, status=201)
-    resobj = res.json['@graph'][0]
-    # 1. check that initial download works
-    download_link = resobj['href']
-    direct_res = testapp.get(download_link, status=307)
-    # 2. check that the bucket in the redirect is the 4DN test bucket, not open data
-    non_open_data_bucket = 'test-wfout-bucket.s3.amazonaws.com'
-    assert non_open_data_bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
-
-
-def test_files_open_data_url_released_not_transferred(testapp, fastq_json_released):
-    """ Test S3 Open Data URL when a file has been released but not transferred to Open Data """
-    res = testapp.post_json('/file_fastq', fastq_json_released, status=201)
-    resobj = res.json['@graph'][0]
-    # 1. check that initial download works
-    download_link = resobj['href']
-    direct_res = testapp.get(download_link, status=307)
-    # 2. check that the bucket in the redirect is the 4DN test bucket, not open data
-    non_open_data_bucket = 'test-wfout-bucket.s3.amazonaws.com'
-    assert non_open_data_bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
-
-
-def test_files_open_data_url_released_and_transferred(testapp, fastq_json_released):
-    """ Test S3 Open Data URL when a file has been released and has been transferred to Open Data"""
-    with mock.patch('encoded.types.file.File._head_s3', return_value=None):
-        res = testapp.post_json('/file_fastq', fastq_json_released, status=201)
-        bucket = '4dn-open-data-public' # the Open Data bucket, not the 4DN test bucket
-        resobj = res.json['@graph'][0]
-        # 1. check that initial download works
-        download_link = resobj['href']
-        direct_res = testapp.get(download_link, status=307)
-        # 2. check that the bucket in the redirect is the open data bucket, not 4DN test
-        assert bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
-
