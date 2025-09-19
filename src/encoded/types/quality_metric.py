@@ -4,7 +4,7 @@ from snovault import collection, load_schema, calculated_property
 from encoded_core.qc_views import download as qc_download
 from copy import deepcopy
 
-from submitted_item import SubmittedItem
+from .submitted_item import SubmittedItem
 from .acl import ONLY_ADMIN_VIEW_ACL, ONLY_DBGAP_VIEW_ACL, ONLY_PUBLIC_DBGAP_VIEW_ACL
 from .base import Item
 
