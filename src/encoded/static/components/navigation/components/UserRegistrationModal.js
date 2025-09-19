@@ -48,7 +48,7 @@ export const UserRegistrationModal = React.memo(function UserRegistrationModal(
     return (
         <Modal show size="modal-dialog modal-lg user-registration-modal" onHide={onRegistrationCancel}>
             <Modal.Header closeButton>
-                <Modal.Title className="ps-2 d-flex align-items-center" style={{ fontSize: '1.5rem', fontWeight: '600', color: '#343741' }}>
+                <Modal.Title className="ps-2 d-flex align-items-center">
                     <img
                         className="me-1"
                         src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
@@ -57,7 +57,7 @@ export const UserRegistrationModal = React.memo(function UserRegistrationModal(
                     New User - Self Registration
                 </Modal.Title>
             </Modal.Header>
-            <Modal.Body className="p-4">
+            <Modal.Body className="p-4 pb-0">
                 <UserRegistrationForm heading={formHeading} schemas={schemas} unverifiedUserEmail={unverifiedUserEmail}
                     onComplete={onRegistrationComplete} onCancel={onRegistrationCancel} onExitLinkClick={handleExitLinkClick} />
             </Modal.Body>

@@ -1262,9 +1262,17 @@ body[data-pathname^="/users/"] {
 	color: rgb(229, 149, 69);
 }
 
-.user-registration-modal.modal-lg {
-	@include media-breakpoint-up(lg) {
-		min-width: 875px;
+.user-registration-modal {
+	&.modal-lg {
+		@include media-breakpoint-up(lg) {
+			min-width: 875px;
+		}
+	}
+
+	.modal-content>.modal-header>.modal-title {
+		color: #343741;
+		font-size: 1.5rem;
+		font-weight: 600;
 	}
 }
 
@@ -1295,6 +1303,10 @@ body[data-pathname^="/users/"] {
 		margin-bottom: 15px;
 		line-height: 150%;
 	}
+	h3.section-title {
+		font-size: 1.1rem !important;
+		font-weight: 500 !important;
+	}
 	h4 {
 		font-size: 1.1rem;
 	}
@@ -1317,6 +1329,25 @@ body[data-pathname^="/users/"] {
 	}
 	.lh-lg {
 		line-height: 1.75 !important;
+	}
+	.loading-indicator {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		font-size: 3em;
+		color: rgba(0, 0, 0, 0.8);
+		background-color: rgba(255, 255, 255, 0.85);
+		left: 0;
+		right: 0;
+		bottom: 0;
+		top: 0;
+	}
+	.footer-button-container {
+		background-color: #f8f8f8;
+  		width: calc(100% + 2.5rem);
+  		margin-left: -1.25rem;
+  		padding-left: 0.75rem;
+  		padding-right: 0.75rem;
 	}
 }
 

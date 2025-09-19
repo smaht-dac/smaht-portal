@@ -274,20 +274,8 @@ export default class UserRegistrationForm extends React.PureComponent {
             registrationStatus === 'success-loading'
         ) {
             loadingIndicator = (
-                <div
-                    style={{
-                        position: 'absolute',
-                        display: 'flex',
-                        alignItems: 'center',
-                        fontSize: '3em',
-                        color: 'rgba(0,0,0,0.8)',
-                        backgroundColor: 'rgba(255,255,255,0.85)',
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        top: 0,
-                    }}>
-                    <div className="text-center" style={{ width: '100%' }}>
+                <div className="loading-indicator">
+                    <div className="text-center w-100">
                         <i className="icon icon-spin icon-circle-notch fas" />
                     </div>
                 </div>
@@ -307,14 +295,12 @@ export default class UserRegistrationForm extends React.PureComponent {
         }
 
         return (
-            <div
-                className="user-registration-form-container"
-                style={{ position: 'relative' }}>
+            <div className="user-registration-form-container position-relative">
                 {errorIndicator}
 
                 {heading}
 
-                <div className="mb-1">
+                <div className={isConsortiumMember === true ? "mb-1" : "mb-3"}>
                     <div className="text-300 mb-2 mt-05 info-panel">
                         You have never logged in as <span className="text-600">{unverifiedUserEmail}</span> before.
                     </div>
@@ -345,10 +331,10 @@ export default class UserRegistrationForm extends React.PureComponent {
 
                         <div className="d-flex align-items-center gap-2 mb-15 mt-3 section-header">
                             <i className="icon icon-fw icon-user fas text-secondary fs-4" aria-hidden="true" />
-                            <h3 className="h3 m-0 text-500" style={{ fontSize: '1.1rem' }}>Open Data: Self Registration</h3>
+                            <h3 className="section-title m-0">Open Data: Self Registration</h3>
                         </div>
                         
-                        <div className="form-group d-flex align-items-center gap-3 mt-2">
+                        <div className="form-group d-flex flex-column flex-lg-row align-items-lg-center gap-0 gap-lg-3 mt-2">
                             <label htmlFor="email-address" className="mb-1 text-500">
                                 Primary Email:
                             </label>
@@ -477,7 +463,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                             </div>
                         </div>
 
-                        <div className="mt-1 py-1" style={{ backgroundColor: '#f8f8f8' }}>
+                        <div className="footer-button-container mt-1 py-1">
                             <div className="d-grid gap-1 my-3">
                                 <button type="submit"
                                     disabled={!maySubmit}
@@ -505,7 +491,7 @@ function SMaHTNetworkMember({
                 <div className="col-12">
                     <div className="d-flex align-items-center gap-2 mb-15 section-header">
                         <i className="icon icon-fw icon-users fas text-secondary fs-4" aria-hidden="true" />
-                        <h3 className="h3 m-0 text-500" style={{ fontSize: '1.1rem' }}>Verified SMaHT Members</h3>
+                        <h3 className="section-title m-0">Verified SMaHT Members</h3>
                     </div>
 
                     <p className="fs-6">
