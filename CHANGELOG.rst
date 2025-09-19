@@ -8,7 +8,7 @@ Change Log
 ----------
 
 
-1.1.3
+1.1.7
 =====
 
 * Adjusts the user schema to replicate the attributions without
@@ -17,6 +17,34 @@ Change Log
 * Regression test for the above
 * Change data release tracker to direct users to /browse, include only
   production files
+
+1.1.6
+=======
+`PR 526: feat: release tracker CRAM warning callout <https://github.com/smaht-dac/smaht-portal/pull/526>`_
+
+* Add support for CRAM warning in release tracker items
+
+
+1.1.5
+=======
+`PR 525: Fix: Re-include ingestion_processors in app config <https://github.com/smaht-dac/smaht-portal/pull/525>`_
+
+* Re-include ingestion_processors in app config
+
+
+1.1.4
+=======
+`PR 521: Modify production tissues in Submission Status page <https://github.com/smaht-dac/smaht-portal/pull/521>`_
+
+* Adjust production tissues in Submission Status page
+
+
+1.1.3
+=======
+`PR 499: WF Fix ingesting identical items <https://github.com/smaht-dac/smaht-portal/pull/499>`_
+
+* Add diff check for ingested metadata
+
 
 1.1.2
 =====
