@@ -1275,3 +1275,11 @@ def test_protected_donor_public_restricted_view(
     smaht_public_dbgap_app.get(f'/medical-histories/{public_protected_medical_history}/', status=200)
     smaht_dbgap_app.get(f'/protected-donors/{donor_uuid}/', status=200)
     smaht_dbgap_app.get(f'/medical-histories/{public_protected_medical_history}/', status=200)
+
+
+def test_public_user_retains_submission_center_on_patch(testapp, blank_user):
+    """ This test tests that the server default for submission_centers does not populate when patching users """
+    item = testapp.patch_json(f'/{blank_user["uuid"]}', {
+        'status': 'current'  # empty patch in effect
+    }).json['@graph'][0]
+    assert 'submission_centers' not in item
