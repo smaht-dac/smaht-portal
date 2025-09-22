@@ -78,6 +78,7 @@ export const DataCard = ({ header = '', data = [] }) => {
                 {data.map(({ title, value = null, titlePopover = null }, i) => {
                     return (
                         <DataCardRow
+                            key={i}
                             title={title}
                             value={value}
                             titlePopover={titlePopover}
