@@ -139,15 +139,32 @@ const TissueGroup = ({ tissue_group, items, query }) => {
     );
 };
 
-const DonorGroup = (props) => {
-    const [isToggled, toggle] = useToggle();
+// Warning to include in the data release item for September 2025
+const ReleaseItemWarning = () => {
+    return (
+        <div className="announcement-container warning">
+            <div className="header">
+                <i className="icon fas icon-database"></i>
+                <span>CRAM CONVERSION</span>
+            </div>
+            <span>
+                As of September 15, 2025, all released BAMs have been converted
+                to CRAMs for optimal file storage at the DAC. The data release
+                tracker will start to announce new CRAMs as they are released.
+            </span>
+        </div>
+    );
+};
 
+const DonorGroup = (props) => {
     const {
         count,
         donorGroups: donor_groups,
         donorGroup: donor_group,
         query,
     } = props;
+    const [isToggled, toggle] = useToggle();
+
     let donorTitle = donor_group;
 
     if (donorTitle?.includes('DAC_DONOR_')) {
@@ -207,7 +224,7 @@ const DonorGroup = (props) => {
  * @param {*} releaseItemIndex - The index of the release item.
  * @returns {JSX.Element} The rendered DataReleaseItem component.
  */
-const DataReleaseItem = ({ data, releaseItemIndex }) => {
+const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
     const [isToggled, toggle] = useToggle(releaseItemIndex === 0);
     const { count, items: donor_groups, query, value } = data;
 
@@ -234,19 +251,21 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                                 isToggled ? 'minus' : 'plus'
                             }`}></i>
                     </button>
-                    <a className="header-link" href={query}>
+                    <a className="header-link" href={count > 0 ? query : null}>
                         <span>
-                            {releaseItemIndex === 0 ? 'Latest: ' : ''}
                             {month} {year}
                         </span>
-                        <span className="count">
-                            {count} {count > 1 ? 'Files' : 'File'}
-                            <i className="icon icon-arrow-right"></i>
-                        </span>
+                        {count > 0 ? (
+                            <span className="count">
+                                {count} {count > 1 ? 'Files' : 'File'}
+                                <i className="icon icon-arrow-right"></i>
+                            </span>
+                        ) : null}
                     </a>
                 </div>
                 <div className="body">
                     {/* Map donor groups to drop-downs */}
+                    {callout ? <div className="callout">{callout}</div> : null}
                     {Object.keys(donor_groups).map((donor_group, i) => {
                         return (
                             <DonorGroup
@@ -382,17 +401,33 @@ export const NotificationsPanel = () => {
                             {data === null ? (
                                 <i className="icon fas icon-spinner icon-spin"></i>
                             ) : data.length === 0 ? (
-                                <div className="text-center text-muted py-3">
-                                    No recent data releases found.
-                                </div>
+                                <DataReleaseItem
+                                    data={{
+                                        name: 'file_status_tracking.released',
+                                        value: '2025-09',
+                                        count: 0,
+                                        items: [],
+                                        query: '',
+                                    }}
+                                    callout={<ReleaseItemWarning />}
+                                />
                             ) : (
-                                data.map((releaseItem, i) => (
-                                    <DataReleaseItem
-                                        data={releaseItem}
-                                        key={i}
-                                        releaseItemIndex={i}
-                                    />
-                                ))
+                                data.map((releaseItem, i) => {
+                                    return releaseItem?.value === '2025-09' ? (
+                                        <DataReleaseItem
+                                            data={releaseItem}
+                                            key={i}
+                                            callout={<ReleaseItemWarning />}
+                                            releaseItemIndex={i}
+                                        />
+                                    ) : (
+                                        <DataReleaseItem
+                                            data={releaseItem}
+                                            key={i}
+                                            releaseItemIndex={i}
+                                        />
+                                    );
+                                })
                             )}
                         </div>
                     </div>
