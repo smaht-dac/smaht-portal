@@ -43,7 +43,7 @@ import { transformedFacets } from './SearchView';
 import { BrowseDonorBody } from './browse-view/BrowseDonor';
 import { BrowseProtectedDonorBody } from './browse-view/BrowseProtectedDonor';
 import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
-import { useIsConsortiumMember } from '../util/hooks';
+import { useUserDownloadAccess } from '../util/hooks';
 
 export const BROWSE_STATUS_FILTERS =
     'status=public&status=public-restricted&status=restricted&status=released';
@@ -84,7 +84,7 @@ const BrowseFileBody = (props) => {
             <hr />
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseFileSearchTable
-                    isConsortiumMember={props.isConsortiumMember}
+                    userDownloadAccess={props.userDownloadAccess}
                 />
             </BrowseViewControllerWithSelections>
         </>
@@ -116,16 +116,16 @@ const renderBrowseBody = (props) => {
  */
 const BrowseViewContent = (props) => {
     const { context, session } = props;
-    const isConsortiumMember = useIsConsortiumMember(session);
+    const userDownloadAccess = useUserDownloadAccess(session);
 
-    // Include `isConsortiumMember` in the props passed to child components
+    // Include `userDownloadAccess` in the props passed to child components
     const passProps = {
         ...props,
         context: {
             ...context,
             clear_filters: BROWSE_LINKS.file,
         },
-        isConsortiumMember,
+        userDownloadAccess,
     };
 
     return (
@@ -138,7 +138,7 @@ const BrowseViewContent = (props) => {
                     <BrowseLink type="File" />
                     <BrowseLink
                         type="Donor"
-                        isConsortiumMember={isConsortiumMember}
+                        userDownloadAccess={userDownloadAccess}
                         session={session}
                     />
                     <BrowseLink type="Tissue" disabled />
@@ -261,7 +261,7 @@ export const BrowseFileSearchTable = (props) => {
             }>
             <div className="d-flex gap-2">
                 <DonorMetadataDownloadButton session={session} />
-                {session && props?.isConsortiumMember ? (
+                {session ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
@@ -530,9 +530,8 @@ export function createBrowseFileColumnExtensionMap({
         donors: {
             widthMap: { lg: 102, md: 102, sm: 102 },
             render: function (result, parentProps) {
-                // Determine if user is consortium member from parent props
-                // to decide whether to link to protected donor or public donor
-                const { isConsortiumMember = false } = parentProps || {};
+                // Get user download access from parent props
+                const { userDownloadAccess = {} } = parentProps || {};
                 const {
                     donors: {
                         0: {
@@ -547,7 +546,9 @@ export function createBrowseFileColumnExtensionMap({
                     <a
                         target="_blank"
                         href={
-                            isConsortiumMember
+                            (userDownloadAccess?.['restricted'] ||
+                                userDownloadAccess?.['public-restricted']) &&
+                            protected_donor
                                 ? protected_donor?.['@id']
                                 : donorLink
                         }>

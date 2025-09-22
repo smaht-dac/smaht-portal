@@ -3,16 +3,20 @@ import { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 /**
- * Custom hook to determine if user is a member of SMaHT consortium by
- * requesting user permissions from /session-properties endpoint.
- *
- * Note: If session is false, will always return false.
+ * Checks the session-properties endpoint to determine the statuses that a user
+ * has access to. Ultimately used to determine whether to disable the download
+ * button on file pages of certain types, and whether to transform links to
+ * Browse by Donor page to Browse by ProtectedDonor page.
  *
  * @param {*} session
- * @returns {boolean} isConsortiumMember
+ * @returns {Object} An object representing downloadable access statuses
  */
-export const useIsConsortiumMember = (session = false) => {
-    const [isConsortiumMember, setIsConsortiumMember] = useState(false);
+export const useUserDownloadAccess = (session = false) => {
+    const [downloadAccessObject, setDownloadAccessObject] = useState({
+        public: session,
+        'public-restricted': false,
+        restricted: false,
+    });
 
     useEffect(() => {
         let isCancelled = false;
@@ -21,13 +25,47 @@ export const useIsConsortiumMember = (session = false) => {
             ajax.load(
                 '/session-properties',
                 (resp) => {
+                    console.log('resp', resp);
                     if (isCancelled) return;
 
-                    const smaht_uuid = '358aed10-9b9d-4e26-ab84-4bd162da182b'; // SMaHT consortium UUID
+                    // If user is not logged in, they have no download access
+                    if (!session) {
+                        setDownloadAccessObject(null);
+                        return;
+                    }
 
-                    const isMember =
-                        resp?.details?.consortia?.includes(smaht_uuid);
-                    setIsConsortiumMember(Boolean(isMember));
+                    // Get consortia associated with user
+                    const userConsortia = resp?.details?.consortia || [];
+
+                    // Check if user is a member of SMaHT consortium
+                    const smaht_uuid = '358aed10-9b9d-4e26-ab84-4bd162da182b'; // SMaHT consortium UUID
+                    const isMember = userConsortia?.includes(smaht_uuid);
+
+                    // Get groups associated with user
+                    const userGroups = resp?.details?.groups || [];
+
+                    const userDownloadAccessObj = { ...downloadAccessObject };
+
+                    if (isMember) {
+                        // User is either admin or dbgap member of SMaHT
+                        if (
+                            userGroups?.includes('admin') ||
+                            userGroups?.includes('dbgap')
+                        ) {
+                            userDownloadAccessObj['public-restricted'] = true;
+                            userDownloadAccessObj['restricted'] = true;
+                        }
+                    } else {
+                        // User is not a member of SMaHT
+                        if (userGroups?.includes('public-dbgap')) {
+                            userDownloadAccessObj['public-restricted'] = true;
+                        }
+                        if (userGroups?.includes('dbgap')) {
+                            userDownloadAccessObj['restricted'] = true;
+                        }
+                    }
+
+                    setDownloadAccessObject(userDownloadAccessObj);
                 },
                 'GET',
                 (err) => {
@@ -35,16 +73,16 @@ export const useIsConsortiumMember = (session = false) => {
 
                     if (err?.notification !== 'No results found') {
                         console.error(
-                            'ERROR determining user consortium membership:',
+                            'ERROR determining user access statuses:',
                             err
                         );
                     }
-                    setIsConsortiumMember(false);
+                    setDownloadAccessObject(null);
                 }
             );
         } else {
-            // If no session, user can't be a member
-            setIsConsortiumMember(false);
+            // If no session, user can't have access statuses
+            setDownloadAccessObject(null);
         }
 
         return () => {
@@ -52,5 +90,5 @@ export const useIsConsortiumMember = (session = false) => {
         };
     }, [session]);
 
-    return isConsortiumMember;
+    return downloadAccessObject;
 };

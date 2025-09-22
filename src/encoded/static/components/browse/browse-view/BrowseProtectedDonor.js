@@ -21,7 +21,12 @@ import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { OverlayTrigger } from 'react-bootstrap';
+import {
+    Popover,
+    PopoverHeader,
+    PopoverBody,
+    OverlayTrigger,
+} from 'react-bootstrap';
 import { renderProtectedAccessPopover } from '../../item-pages/PublicDonorView';
 
 /**
@@ -804,7 +809,6 @@ const BrowseProtectedDonorSearchTable = (props) => {
         selectedItems,
         onSelectItem,
         onResetSelectedItems,
-        isConsortiumMember,
     } = props;
 
     const facets = transformedFacets(context, currentAction, schemas);
@@ -838,16 +842,31 @@ const BrowseProtectedDonorSearchTable = (props) => {
             }>
             <div className="d-flex gap-2">
                 <DonorMetadataDownloadButton session={session} />
-                {session && isConsortiumMember ? (
-                    <SelectedItemsDownloadButton
-                        id="download_tsv_multiselect"
-                        disabled={selectedItems.size === 0}
-                        className="btn btn-primary btn-sm me-05 align-items-center"
-                        {...{ selectedItems, session }}
-                        analyticsAddItemsToCart>
-                        <i className="icon icon-download fas me-03" />
-                        Download {selectedItems.size} Donor Manifests
-                    </SelectedItemsDownloadButton>
+                {session ? (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="top"
+                        overlay={
+                            <Popover
+                                className={
+                                    'popover download-popover coming-soon'
+                                }>
+                                <PopoverHeader as="h3">
+                                    Donor Manifest Coming Soon
+                                </PopoverHeader>
+                                <PopoverBody>
+                                    Check back with future portal releases for
+                                    the ability to download the donor manifest.
+                                </PopoverBody>
+                            </Popover>
+                        }>
+                        <button
+                            className="btn btn-primary btn-sm me-05 align-items-center download-button"
+                            disabled={true}>
+                            <i className="icon icon-download fas me-03" />
+                            Download {selectedItems.size} Donor Manifests
+                        </button>
+                    </OverlayTrigger>
                 ) : (
                     <OverlayTrigger
                         trigger={['hover', 'focus']}
@@ -900,9 +919,7 @@ export const BrowseProtectedDonorBody = (props) => {
             <h2 className="browse-summary-header">SMaHT Data Summary</h2>
             <Alerts alerts={props.alerts} className="mt-2" />
             <BrowseViewControllerWithSelections {...props}>
-                <BrowseProtectedDonorSearchTable
-                    isConsortiumMember={props.isConsortiumMember}
-                />
+                <BrowseProtectedDonorSearchTable />
             </BrowseViewControllerWithSelections>
         </>
     );

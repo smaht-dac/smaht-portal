@@ -45,9 +45,9 @@ body .__react_component_tooltip {
 
 // Styles for Popovers shared across the portal
 
-/****************************
-Popover Styles for Item Pages
-*****************************/
+/*************
+Popover Styles
+**************/
 .popover {
 	&.description-definitions-popover {
 		max-width: 600px;
@@ -88,6 +88,11 @@ Popover Styles for Item Pages
         &.protected {
             .popover-header {
                 background-color: #FDDCDC;
+            }
+        }
+        &.coming-soon {
+            .popover-header {
+                background-color: #F1F9FF;
             }
         }
 	}

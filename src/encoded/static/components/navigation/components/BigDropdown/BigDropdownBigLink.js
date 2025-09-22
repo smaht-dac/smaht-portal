@@ -1,10 +1,8 @@
 'use strict';
 
 import React, { useState, useEffect } from 'react';
-import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
-import { useIsConsortiumMember } from '../../../util/hooks';
+import { useUserDownloadAccess } from '../../../util/hooks';
 
 export const BigDropdownBigLink = (props) => {
     const {
@@ -17,12 +15,18 @@ export const BigDropdownBigLink = (props) => {
         href,
         ...passProps // Contains: `href`, `rel`, `onClick`, etc.
     } = props;
-    const isConsortiumMember = useIsConsortiumMember(props.session);
+
+    // Allow users with public-restricted or restricted access to see protected links
+    const userDownloadAccess = useUserDownloadAccess(props.session);
+    const hasRestrictedAccess =
+        userDownloadAccess?.['restricted'] ||
+        userDownloadAccess?.['public-restricted'] ||
+        false;
 
     // Determine proper href to send users to
     const hrefToUse = disabled
         ? 'javascript:void(0)'
-        : isConsortiumMember
+        : hasRestrictedAccess
         ? protectedHref || href
         : href;
 
