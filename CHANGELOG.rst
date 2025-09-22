@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.1.8
+======
+`PR 524: fix: update uuids to match prod <https://github.com/smaht-dac/smaht-portal/pull/524>`_
+
+* Fix uuids for the pages and static sections below in order to prevent uuid mismatches causing reindex crash
+
+
 1.1.7
 =====
 `PR 511: SN Sample Nomenclature doc <https://github.com/smaht-dac/smaht-portal/pull/511>`_
