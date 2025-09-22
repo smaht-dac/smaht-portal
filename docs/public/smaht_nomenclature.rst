@@ -1028,7 +1028,7 @@ Table 5. Genome version (A) and variant type (B) tables.
 
 
 Example Files with the SMaHT Nomenclature
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------------
 
 .. raw:: html
 
