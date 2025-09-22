@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import Select from 'react-select';
 import {
@@ -8,8 +8,26 @@ import {
     PopoverBody,
 } from 'react-bootstrap';
 
-// Renders a table of schema properties
-const DonorManifestDataDictionaryTable = ({ data = {} }) => {
+/**
+ * Renders a table of schema properties for columns in Donor Manifest. Not all properties
+ * in the submission schema are included in the Donor Manifest, so we use a predefined
+ * list of properties to display for each item type.
+ *
+ * We also provide a default titles and examples and allow them to be overwritten by the
+ * submission schema
+ * @param {Object} data
+ * @returns
+ */
+const DonorManifestDataDictionaryTable = ({
+    selectedProperty = null,
+    data = {},
+}) => {
+    console.log(
+        'Rendering table with data:',
+        data,
+        'selectedProperty:',
+        selectedProperty
+    );
     return Object.keys(data).length > 0 ? (
         <table className="table table-bordered table-striped">
             <thead className="thead-smaht">
@@ -55,67 +73,77 @@ const DonorManifestDataDictionaryTable = ({ data = {} }) => {
                             <i className="icon icon-info-circle fas ms-1"></i>
                         </OverlayTrigger>
                     </th>
-                    <th className="text-left">Note</th>
                 </tr>
             </thead>
             <tbody>
-                {Object.keys(data).map((propertyKey, i) => {
-                    const item = data[propertyKey];
-                    return (
-                        <tr key={i}>
-                            {/* Title */}
-                            {item?.title ? (
-                                <td
-                                    className={`text-left ${
-                                        item.is_required
-                                            ? 'text-danger fw-bold'
-                                            : ''
-                                    }`}>
-                                    {item.title}
-                                </td>
-                            ) : (
-                                <td className="text-left text-secondary">-</td>
-                            )}
-                            {/* Description */}
-                            {item?.description ? (
-                                <td className="text-left">
-                                    {item.description}
-                                </td>
-                            ) : (
-                                <td className="text-left text-secondary">-</td>
-                            )}
-                            {/* Values */}
-                            {item?.enum?.length || item?.suggested_enum ? (
-                                <td className="text-left">
-                                    {/* If enums/suggested enums are present, display them */}
-                                    {item?.enum?.length > 0 && (
-                                        <p>
-                                            <b>Options:</b>{' '}
-                                            {item.enum.join(', ')}
-                                        </p>
-                                    )}
-                                    {item?.suggested_enum?.length > 0 && (
-                                        <p>
-                                            <b>Examples:</b>{' '}
-                                            {item.suggested_enum.join(', ')}
-                                        </p>
-                                    )}
-                                </td>
-                            ) : (
-                                <td className="text-left text-secondary">-</td>
-                            )}
-                            {/* Note */}
-                            {item?.submissionComment ? (
-                                <td className="text-left">
-                                    {' '}
-                                    {item.submissionComment}
-                                </td>
-                            ) : (
-                                <td className="text-left text-secondary">-</td>
-                            )}
-                        </tr>
-                    );
-                })}
+                {Object.keys(data)
+                    .filter((property) =>
+                        // If a specific property is selected, filter out the rest
+                        selectedProperty
+                            ? data[property]?.title === selectedProperty
+                            : true
+                    )
+                    .map((propertyKey, i) => {
+                        const item = data[propertyKey];
+
+                        return (
+                            <tr
+                                key={i}
+                                className={`${
+                                    item?.title === selectedProperty
+                                        ? 'selected-property'
+                                        : ''
+                                }`}>
+                                {/* Title */}
+                                {item?.title ? (
+                                    <td
+                                        className={`text-left ${
+                                            item.is_required
+                                                ? 'text-danger fw-bold'
+                                                : ''
+                                        }`}>
+                                        {item.title}
+                                    </td>
+                                ) : (
+                                    <td className="text-left text-secondary">
+                                        -
+                                    </td>
+                                )}
+                                {/* Description */}
+                                {item?.description ? (
+                                    <td className="text-left">
+                                        {item.description}
+                                    </td>
+                                ) : (
+                                    <td className="text-left text-secondary">
+                                        -
+                                    </td>
+                                )}
+                                {/* Values */}
+                                {item?.enum?.length || item?.suggested_enum ? (
+                                    <td className="text-left">
+                                        {/* If enums/suggested enums are present, display them */}
+                                        {item?.enum?.length > 0 && (
+                                            <p>
+                                                <b>Options:</b>{' '}
+                                                {item.enum.join(', ')}
+                                            </p>
+                                        )}
+                                        {item?.suggested_enum?.length > 0 && (
+                                            <p>
+                                                <b>Examples:</b>{' '}
+                                                {item.suggested_enum.join(', ')}
+                                            </p>
+                                        )}
+                                    </td>
+                                ) : (
+                                    <td className="text-left text-secondary">
+                                        -
+                                    </td>
+                                )}
+                            </tr>
+                        );
+                    })}
             </tbody>
         </table>
     ) : (
@@ -123,10 +151,55 @@ const DonorManifestDataDictionaryTable = ({ data = {} }) => {
     );
 };
 
+// Updates the `fieldsToDisplay` Map with information from the schema
+const formatSchemaData = (data) => {
+    // Create new Map with updated schema information
+    const filteredSchemaData = new Map();
+    fieldsToDisplay.forEach((schemaProperties, schemaItem) => {
+        // Overwrite any existing properties with those from the schema
+        filteredSchemaData.set(
+            schemaItem,
+            schemaProperties.map((property) => {
+                return {
+                    ...data[schemaItem]?.properties?.[property.title],
+                    ...property, // Place default properties last to overwrite
+                };
+            })
+        );
+    });
+
+    return filteredSchemaData;
+};
+
+// Memoized component to render all schema tables
+const DonorManifestDataDictionaryTables = React.memo(
+    function DonorManifestDataDictionaryTables({ schemaData }) {
+        return (
+            <div className="schemas-container">
+                {[...schemaData].map((schemaItem, i) => {
+                    const [schemaKey, properties] = schemaItem;
+
+                    return (
+                        <div
+                            id={schemaKey}
+                            className={`schema-item ${schemaKey} mb-5 table-responsive`}
+                            key={i}>
+                            <h3 className="fs-4">{schemaKey}</h3>
+                            <DonorManifestDataDictionaryTable
+                                data={properties}
+                            />
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    }
+);
+
 // Requests the submission schemas JSON and redners as a list of tables
 export const DonorManifestDataDictionary = () => {
-    const [schemaData, setSchemaData] = React.useState(null);
-    const [selectedSchema, setSelectedSchema] = React.useState(null);
+    const [schemaData, setSchemaData] = useState(null);
+    const [selectedSchema, setSelectedSchema] = useState(null);
 
     useEffect(() => {
         if (!schemaData) {
@@ -134,7 +207,7 @@ export const DonorManifestDataDictionary = () => {
                 '/submission-schemas/?format=json',
                 (resp) => {
                     // Handle the response data
-                    setSchemaData(resp);
+                    setSchemaData(formatSchemaData(resp));
                 },
                 'GET',
                 (err) => {
@@ -148,11 +221,21 @@ export const DonorManifestDataDictionary = () => {
     const options = ([...fieldsToDisplay] || []).flatMap((schemaItem) => {
         const [schemaKey, properties] = schemaItem;
 
-        return properties?.map((property) => {
-            const value = `${schemaKey}.${property.title}`;
-            return { value: value, label: value?.toLowerCase() };
-        });
+        return [
+            { value: schemaKey, label: schemaKey },
+            ...properties?.map((property) => {
+                const value = `${schemaKey}.${property.title}`;
+                return { value: value, label: value?.toLowerCase() };
+            }),
+        ];
     });
+
+    // Split selected schema into item type and property
+    // E.g. AlignedReads.read_length -> [AlignedReads, read_length]
+    // If only item type is selected, property will be null
+    const selectedSchemaItem = selectedSchema?.value?.split('.')?.[0] || null;
+    const selectedSchemaProperty =
+        selectedSchema?.value?.split('.')?.[1] || null;
 
     return schemaData ? (
         <div className="schema-reference-page">
@@ -177,52 +260,18 @@ export const DonorManifestDataDictionary = () => {
                     <h3 className="fs-4">
                         {selectedSchema.value?.split('.')?.[0]}
                     </h3>
-                    {selectedSchema.value && (
+                    {selectedSchemaItem && (
                         <>
                             <DonorManifestDataDictionaryTable
-                                data={
-                                    schemaData[
-                                        selectedSchema.value?.split('.')?.[0]
-                                    ]?.properties
-                                }
+                                data={schemaData.get(selectedSchemaItem)}
+                                selectedProperty={selectedSchemaProperty}
                             />
                             <hr className="my-5"></hr>
                         </>
                     )}
                 </div>
             )}
-            <div className="schemas-container">
-                {[...fieldsToDisplay].map((schemaItem, i) => {
-                    const [schemaKey, properties] = schemaItem;
-
-                    // Pull out relevant properties from item type
-                    const propertiesToDisplay = properties.reduce(
-                        (acc, property) => {
-                            const title = property.title;
-
-                            // Overwrite the existing property with any default fields
-                            acc[title] = {
-                                ...schemaData[schemaKey]?.properties?.[title],
-                                ...property,
-                            };
-                            return acc;
-                        },
-                        {}
-                    );
-
-                    return (
-                        <div
-                            id={schemaKey}
-                            className={`schema-item ${schemaKey} mb-5 table-responsive`}
-                            key={i}>
-                            <h3 className="fs-4">{schemaKey}</h3>
-                            <DonorManifestDataDictionaryTable
-                                data={propertiesToDisplay}
-                            />
-                        </div>
-                    );
-                })}
-            </div>
+            <DonorManifestDataDictionaryTables schemaData={schemaData} />
         </div>
     ) : (
         <div>
