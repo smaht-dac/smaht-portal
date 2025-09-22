@@ -13,6 +13,7 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
         showLock,
         isLoading,
         isAuth0LibraryLoaded = true,
+        disabled = false,
     } = props;
     const onClick = useCallback(
         function (e) {
@@ -25,6 +26,24 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
         },
         [showLock]
     );
+
+    if (disabled) {
+        return (
+            <a
+                role="button"
+                href="#"
+                className="nav-link user-account-item disabled"
+                id={id}
+                onClick={(e) => {
+                    e.preventDefault();
+                    return false;
+                }}>
+                <i className="account-icon icon icon-user fas d-inline d-lg-none" />
+                <span>Login</span>
+            </a>
+        );
+    }
+    
     return (
         <React.Fragment>
             <a
