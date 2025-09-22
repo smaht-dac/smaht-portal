@@ -14,7 +14,7 @@ import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/co
 
 import { OverlayTrigger } from 'react-bootstrap';
 import { renderProtectedAccessPopover } from './PublicDonorView';
-import { useIsConsortiumMember } from '../util/hooks';
+import { useUserDownloadAccess } from '../util/hooks';
 
 import { BROWSE_LINKS } from '../browse/BrowseView';
 
@@ -115,7 +115,7 @@ const FileViewTitle = (props) => {
 
 // Header component containing high-level information for the file item
 const FileViewHeader = (props) => {
-    const { context = {}, session, isConsortiumMember } = props;
+    const { context = {}, session, userDownloadAccess } = props;
     const {
         accession,
         status,
@@ -176,7 +176,7 @@ const FileViewHeader = (props) => {
         <div className="file-view-header">
             <div className="data-group data-row header">
                 <h1 className="header-text">File Overview</h1>
-                {isConsortiumMember ? (
+                {userDownloadAccess?.[status] ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         className="btn btn-primary btn-sm me-05 align-items-center"
@@ -312,7 +312,7 @@ const FileViewHeader = (props) => {
 /** Top-level component for the File Overview Page */
 const FileView = React.memo(function FileView(props) {
     const { context, session, href } = props;
-    const isConsortiumMember = useIsConsortiumMember(session);
+    const userDownloadAccess = useUserDownloadAccess(session);
 
     return (
         <div className="file-view">
@@ -321,13 +321,10 @@ const FileView = React.memo(function FileView(props) {
                 <FileViewHeader
                     context={context}
                     session={session}
-                    isConsortiumMember={isConsortiumMember}
+                    userDownloadAccess={userDownloadAccess}
                 />
                 <FileViewDataCards context={context} />
-                <FileViewTabs
-                    {...props}
-                    isConsortiumMember={isConsortiumMember}
-                />
+                <FileViewTabs {...props} />
             </div>
         </div>
     );

@@ -4,7 +4,7 @@ import { BenchmarkingLayout, HashBasedTabController } from './BenchmarkingUI';
 import { BenchmarkingDataMap } from './BenchmarkingDataMap';
 import { BenchmarkingUINav } from './BenchmarkingNav';
 import SlidingSidebarLayout from '../../../shared/SlidingSidebarLayout';
-import { useIsConsortiumMember } from '../../../util/hooks';
+import { useUserDownloadAccess } from '../../../util/hooks';
 
 /**
  * In order to be used in static sections, the following componentes MUST be imported
@@ -70,7 +70,8 @@ export const IPSCFibroblastData = ({
     context,
 }) => {
     const iPSCTabMapArray = BenchmarkingDataMap.iPScFibroblasts?.tabMapArray;
-    const isConsortiumMember = useIsConsortiumMember(session);
+    const userDownloadAccess = useUserDownloadAccess(session);
+    const hasRestrictedAccess = userDownloadAccess?.['restricted'] || false;
 
     return (
         <BenchmarkingLayout
@@ -81,7 +82,7 @@ export const IPSCFibroblastData = ({
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 deniedAccessPopoverType={
-                    isConsortiumMember ? null : 'protected'
+                    hasRestrictedAccess ? null : 'protected'
                 }
                 controllerId="IPSC-Tab-Renderer"
                 tabMapArray={iPSCTabMapArray}
@@ -92,7 +93,8 @@ export const IPSCFibroblastData = ({
 
 export const Donor1Data = ({ schemas, session, facets, href, context }) => {
     const donor1TabMapArray = BenchmarkingDataMap.Donor1?.tabMapArray;
-    const isConsortiumMember = useIsConsortiumMember(session);
+    const userDownloadAccess = useUserDownloadAccess(session);
+    const hasRestrictedAccess = userDownloadAccess?.['restricted'] || false;
 
     return (
         <BenchmarkingLayout
@@ -102,7 +104,7 @@ export const Donor1Data = ({ schemas, session, facets, href, context }) => {
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 deniedAccessPopoverType={
-                    isConsortiumMember ? null : 'protected'
+                    hasRestrictedAccess ? null : 'protected'
                 }
                 controllerId="Donor1-Tab-Renderer"
                 tabMapArray={donor1TabMapArray}
@@ -113,7 +115,8 @@ export const Donor1Data = ({ schemas, session, facets, href, context }) => {
 
 export const Donor2Data = ({ schemas, session, facets, href, context }) => {
     const donor2TabMapArray = BenchmarkingDataMap.Donor2?.tabMapArray;
-    const isConsortiumMember = useIsConsortiumMember(session);
+    const userDownloadAccess = useUserDownloadAccess(session);
+    const hasRestrictedAccess = userDownloadAccess?.['restricted'] || false;
 
     return (
         <BenchmarkingLayout
@@ -123,7 +126,7 @@ export const Donor2Data = ({ schemas, session, facets, href, context }) => {
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 deniedAccessPopoverType={
-                    isConsortiumMember ? null : 'protected'
+                    hasRestrictedAccess ? null : 'protected'
                 }
                 controllerId="Donor2-Tab-Renderer"
                 tabMapArray={donor2TabMapArray}
@@ -134,7 +137,8 @@ export const Donor2Data = ({ schemas, session, facets, href, context }) => {
 
 export const Donor3Data = ({ schemas, session, facets, href, context }) => {
     const donor3TabMapArray = BenchmarkingDataMap.Donor3?.tabMapArray;
-    const isConsortiumMember = useIsConsortiumMember(session);
+    const userDownloadAccess = useUserDownloadAccess(session);
+    const hasRestrictedAccess = userDownloadAccess?.['restricted'] || false;
 
     return (
         <BenchmarkingLayout
@@ -144,7 +148,7 @@ export const Donor3Data = ({ schemas, session, facets, href, context }) => {
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 deniedAccessPopoverType={
-                    isConsortiumMember ? null : 'protected'
+                    hasRestrictedAccess ? null : 'protected'
                 }
                 controllerId="Donor3-Tab-Renderer"
                 tabMapArray={donor3TabMapArray}
@@ -155,7 +159,8 @@ export const Donor3Data = ({ schemas, session, facets, href, context }) => {
 
 export const Donor4Data = ({ schemas, session, facets, href, context }) => {
     const donor4TabMapArray = BenchmarkingDataMap.Donor4?.tabMapArray;
-    const isConsortiumMember = useIsConsortiumMember(session);
+    const userDownloadAccess = useUserDownloadAccess(session);
+    const hasRestrictedAccess = userDownloadAccess?.['restricted'] || false;
 
     return (
         <BenchmarkingLayout
@@ -165,7 +170,7 @@ export const Donor4Data = ({ schemas, session, facets, href, context }) => {
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
                 deniedAccessPopoverType={
-                    isConsortiumMember ? null : 'protected'
+                    hasRestrictedAccess ? null : 'protected'
                 }
                 controllerId="Donor4-Tab-Renderer"
                 tabMapArray={donor4TabMapArray}

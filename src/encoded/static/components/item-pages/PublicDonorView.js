@@ -14,7 +14,6 @@ import {
     PopoverHeader,
     PopoverBody,
 } from 'react-bootstrap';
-import { useIsConsortiumMember } from '../util/hooks';
 
 // Page containing the details of Items of type File
 export default class PublicDonorOverview extends DefaultItemView {
@@ -92,12 +91,25 @@ export const renderProtectedAccessPopover = () => {
 
 // Donor Manifest button with warning Popover
 const PublicDonorDownloadButton = ({ session }) => {
-    const isConsortiumMember = useIsConsortiumMember(session);
     return (
         <OverlayTrigger
             trigger={['hover', 'focus']}
             placement="top"
-            overlay={renderProtectedAccessPopover()}>
+            overlay={
+                session ? (
+                    <Popover className={'popover download-popover coming-soon'}>
+                        <PopoverHeader as="h3">
+                            Donor Manifest Coming Soon
+                        </PopoverHeader>
+                        <PopoverBody>
+                            Check back with future portal releases for the
+                            ability to download the donor manifest.
+                        </PopoverBody>
+                    </Popover>
+                ) : (
+                    renderProtectedAccessPopover()
+                )
+            }>
             <div className="d-flex gap-2 flex-wrap mt-1 mt-xl-0">
                 <div className="col-md-auto col-12">
                     <button
