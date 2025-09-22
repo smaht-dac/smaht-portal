@@ -7,11 +7,86 @@ smaht-portal
 Change Log
 ----------
 
-1.0.1
+1.0.8
 =====
 `PR 515: feat: sort tables by date_released <https://github.com/smaht-dac/smaht-portal/pull/515>`_
 
 * Sort benchmarking tables by date_released instead of date_created
+
+
+1.1.7
+=====
+`PR 511: SN Sample Nomenclature doc <https://github.com/smaht-dac/smaht-portal/pull/511>`_
+
+* Update page to match newest version of the documentation
+* Add newest version of the pdf document to the page
+
+
+1.1.6
+=====
+`PR 526: feat: release tracker CRAM warning callout <https://github.com/smaht-dac/smaht-portal/pull/526>`_
+
+* Add support for CRAM warning in release tracker items
+
+
+1.1.5
+=====
+`PR 525: Fix: Re-include ingestion_processors in app config <https://github.com/smaht-dac/smaht-portal/pull/525>`_
+
+* Re-include ingestion_processors in app config
+
+
+1.1.4
+=====
+`PR 521: Modify production tissues in Submission Status page <https://github.com/smaht-dac/smaht-portal/pull/521>`_
+
+* Adjust production tissues in Submission Status page
+
+
+1.1.3
+=====
+`PR 499: WF Fix ingesting identical items <https://github.com/smaht-dac/smaht-portal/pull/499>`_
+
+* Add diff check for ingested metadata
+
+
+1.1.2
+=====
+`PR 520: Add tag filtering for release tracker and improve notifications panel UX <https://github.com/smaht-dac/smaht-portal/pull/520>`_
+
+* Released files can now be excluded from the release tracker by adding the tag `exclude_from_release_tracker`
+* Only show the last 3 months in the release tracker
+* In the notification panel UX, handle the case correctly when there are no released files.
+
+
+1.1.1
+=====
+`PR 513: feat: QC Tab update <https://github.com/smaht-dac/smaht-portal/pull/513>`_
+
+* Show placeholder for QC Tab when user does not have access to related QC Items for that file
+
+
+1.1.0
+=====
+`PR 508: SN Fibroblast tissue type  <https://github.com/smaht-dac/smaht-portal/pull/508>`_
+
+* Update the `get_sample_summary` function in File to return "Fibroblast" for `sample_summary.tissues` if the linked tissues have a 3AC protocol ID, otherwise use the linked OntologyTerms
+
+
+1.0.2
+=====
+`PR 517: Improve Submission Status page file display logic <https://github.com/smaht-dac/smaht-portal/pull/517>`_
+
+* Show CRAM file on the Submission Status page if they were generated from a BAM to CRAM conversion workflow.
+* Hide obsolete files from the Submission Status page.
+* Make sure MetaWorkflowRuns are sorted by date created (oldest first) on the Submission Status page.
+
+
+1.0.1
+=====
+`PR 498: SN Update manifest documentation <https://github.com/smaht-dac/smaht-portal/pull/498>`_
+
+* Update the Interpreting Manifest Files page to include new columns added to the File Manifest and information on the multiple manifest files containing full file metadata.
 
 
 1.0.0

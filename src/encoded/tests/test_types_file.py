@@ -1102,13 +1102,15 @@ def assert_sample_summary_matches_expected(
     )
     expected_category = expected_tissues = get_unique_values(
         [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
-        tissue_utils.get_category
+        functools.partial(
+            tissue_utils.get_category, request_handler=request_handler
+        )
     )
     expected_tissues = get_unique_values(
         [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
         functools.partial(
-            tissue_utils.get_grouping_term_from_tag, request_handler=request_handler, tag="tissue_type"
-        ),
+            tissue_utils.get_tissue_type, request_handler=request_handler
+        )
     )
     expected_tissue_subtypes = get_unique_values(
         [tissue_utils.get_uberon_id(

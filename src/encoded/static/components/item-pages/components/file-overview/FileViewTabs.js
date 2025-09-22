@@ -95,21 +95,81 @@ const AnalysisInformationTab = (props) => {
 };
 
 // DotRouterTab content for displaying QC information for the current file.
-const QCOverviewTab = ({ context }) => {
-    return context?.quality_metrics?.length > 0 ? (
-        <QcOverviewTabContent context={context} />
-    ) : (
-        <div className="no-results">
-            <div className="no-results-content">
-                <i className="icon icon-chart-area fas"></i>
-                <h3 className="header">QC Overview Coming Soon</h3>
-                <span className="subheader">
-                    Check back for updates on QC Overview development with
-                    future portal releases
-                </span>
+const QCOverviewTab = ({ session, context }) => {
+    const [isConsortiumMember, setIsConsortiumMember] = useState(false);
+    const [isLoading, setIsLoading] = useState(true); // Loading state by default
+
+    useEffect(() => {
+        // Show loading spinner while fetching session information
+        setIsLoading(true);
+
+        // Request session information
+        ajax.load(
+            `/session-properties`,
+            (resp) => {
+                // Check if user is a member of SMaHT consortium
+                const consortium_uuid = '358aed10-9b9d-4e26-ab84-4bd162da182b';
+                const isConsortiumMember =
+                    resp?.details?.consortia?.includes(consortium_uuid);
+                setIsConsortiumMember(isConsortiumMember);
+                setIsLoading(false);
+            },
+            'GET',
+            (err) => {
+                if (err.notification !== 'No results found') {
+                    console.log(
+                        'ERROR determining user consortium membership',
+                        err
+                    );
+                }
+                setIsConsortiumMember(false);
+                setIsLoading(false);
+            }
+        );
+
+        // Re-run when session or context changes
+    }, [session, context]);
+
+    // Show spinner while loading
+    if (isLoading) {
+        return (
+            <>
+                <i className="icon icon-spin icon-spinner fas me-1"></i>
+                Loading
+            </>
+        );
+    } else {
+        // User is not a consortium member
+        if (!isConsortiumMember) {
+            return (
+                <div className="protected-data callout-card">
+                    <i className="icon icon-user-lock fas"></i>
+                    <h4>Protected Data</h4>
+                    <span>
+                        To view this data, you must have access
+                        <br /> to SMaHT protected access data on dbGaP.
+                    </span>
+                </div>
+            );
+        }
+
+        // User is a consortium member, show QC overview content if available
+        return context?.quality_metrics &&
+            context?.quality_metrics?.length > 0 ? (
+            <QcOverviewTabContent session={session} context={context} />
+        ) : (
+            <div className="no-results">
+                <div className="no-results-content">
+                    <i className="icon icon-chart-area fas"></i>
+                    <h3 className="header">QC Overview Coming Soon</h3>
+                    <span className="subheader">
+                        Check back for updates on QC Overview development with
+                        future portal releases
+                    </span>
+                </div>
             </div>
-        </div>
-    );
+        );
+    }
 };
 
 export const FileViewTabs = (props) => {
@@ -160,19 +220,22 @@ export const FileViewTabs = (props) => {
                     dotPath=".analysis-information"
                     tabTitle="Analysis Information"
                     arrowTabs={false}
+                    cache={true}
                     default>
                     <AnalysisInformationTab {...props} />
                 </DotRouterTab>
                 <DotRouterTab
                     dotPath=".qc-overview"
                     tabTitle="QC Overview"
-                    arrowTabs={false}>
+                    arrowTabs={false}
+                    cache={true}>
                     <QCOverviewTab {...props} />
                 </DotRouterTab>
                 <DotRouterTab
                     dotPath=".associated-files"
                     tabTitle="Associated Files"
-                    arrowTabs={false}>
+                    arrowTabs={false}
+                    cache={true}>
                     <AssociatedFilesTab {...props} />
                 </DotRouterTab>
             </DotRouter>
