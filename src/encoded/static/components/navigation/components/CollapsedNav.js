@@ -137,6 +137,7 @@ function DataNavItem(props) {
 function ResourcesNavItem(props) {
     const { session, ...navItemProps } = props;
     // `navItemProps` contains: href, windowHeight, windowWidth, isFullscreen, testWarning, mounted, overlaysContainer
+
     return (
         <BigDropdownPageLoader treeURL="/resources" session={session}>
             <BigDropdownNavItem
@@ -148,7 +149,22 @@ function ResourcesNavItem(props) {
                     titleIcon="info-circle fas"
                     linkToTopLevelDirPage={false}
                 />
-                <BigDropdownPageTreeMenu disableLinksOnLevel1Titles />
+                <BigDropdownPageTreeMenu
+                    childrenToHide={[
+                        'resources/pipeline-docs/fastq_files',
+                        'resources/pipeline-docs/short-read_illumina_paired-end',
+                        'resources/pipeline-docs/long-read_pacbio_hifi',
+                        'resources/pipeline-docs/long-read_oxford_nanopore',
+                        'resources/pipeline-docs/short-read_rna-seq_paired-end',
+                        'resources/pipeline-docs/long-read_rna-seq_pacbio_kinnex',
+                        'resources/pipeline-docs/genome_builds',
+                        'resources/pipeline-docs/genome_annotations',
+                        'resources/pipeline-docs/variant_catalogs',
+                        'resources/pipeline-docs/software_specific',
+                        'resources/pipeline-docs/release_changelog',
+                    ]}
+                    disableLinksOnLevel1Titles
+                />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
     );

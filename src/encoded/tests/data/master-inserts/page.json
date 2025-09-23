@@ -971,18 +971,23 @@
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
-
-
-
-
     {
         "identifier": "resources/pipeline-docs",
         "title": "Pipeline Documentation",
         "status": "in review",
         "children": [
+            "31b8d53a-fb68-4c76-aacf-cfb1ca75a3e5",
             "379e3032-a0fe-45d6-8277-b373b52d3a79",
             "1756229d-7498-444f-b574-983d3020f948",
-            "ab58ce07-b8f9-4807-aa8a-d651b6cd733d"
+            "ab58ce07-b8f9-4807-aa8a-d651b6cd733d",
+            "041ca9a2-2b67-409c-ac50-4705f995fb99",
+            "582c7cab-bd68-4e86-aa29-6d0e6718b62a",
+            "3f503a50-8646-4b4d-b870-73eabc8106a2",
+            "1ac937fa-8057-44da-ae9d-869d1cc56a1b",
+            "01f81cd2-5423-4c26-afd2-5e31f6eef6b6",
+            "f873a9df-a511-4e02-af8c-d6e050980b4e",
+            "078a29b1-3cb8-4bcf-bf76-865b66afaa74",
+            "45445bef-a513-4236-a013-baeecb3e9e25"
         ],
         "uuid": "6e144832-6abc-47e2-bea5-f720598cf61a",
         "consortia": [
@@ -993,17 +998,30 @@
         ]
     },
     {
-        "identifier": "resources/pipeline-docs/alignment_pipelines",
-        "title": "Alignment Pipelines",
+        "identifier": "resources/pipeline-docs/index",
+        "title": "Pipeline Docs",
+        "status": "in review",
+        "content": [
+            "b78b2ebb-d01c-4635-8a67-76a98ab81772"
+        ],
+        "uuid": "31b8d53a-fb68-4c76-aacf-cfb1ca75a3e5",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "resources/pipeline-docs/fastq_files",
+        "title": "FASTQ Files",
         "status": "in review",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 4
         },
         "content": [
-            "187b2079-61a5-43d6-8252-9070268cae2f",
-            "1e1372c7-fa89-422d-98a3-d0f4f8dec1ea",
-            "8dd992f1-58a9-4b23-8595-c2d505012796"
+            "187b2079-61a5-43d6-8252-9070268cae2f"
         ],
         "uuid": "379e3032-a0fe-45d6-8277-b373b52d3a79",
         "consortia": [
@@ -1014,12 +1032,14 @@
         ]
     },
     {
-        "identifier": "resources/pipeline-docs/qc_pipelines",
-        "title": "QC Pipelines",
+        "identifier": "resources/pipeline-docs/short-read_illumina_paired-end",
+        "title": "Short-Read Illumina Paired-End",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 4
-        },
+        },"content": [
+            "1e1372c7-fa89-422d-98a3-d0f4f8dec1ea"
+        ],
         "status": "in review",
         "uuid": "1756229d-7498-444f-b574-983d3020f948",
         "consortia": [
@@ -1030,12 +1050,15 @@
         ]
     },
     {
-        "identifier": "resources/pipeline-docs/analysis_pipelines",
-        "title": "Analysis Pipelines",
+        "identifier": "resources/pipeline-docs/long-read_pacbio_hifi",
+        "title": "Long-Read PacBio HiFi",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 4
         },
+        "content": [
+            "8dd992f1-58a9-4b23-8595-c2d505012796"
+        ],
         "status": "in review",
         "uuid": "ab58ce07-b8f9-4807-aa8a-d651b6cd733d",
         "consortia": [
@@ -1045,13 +1068,158 @@
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
-
-
-
-
-
-
-
+    {
+        "identifier": "resources/pipeline-docs/long-read_oxford_nanopore",
+        "title": "Long-Read Oxford Nanopore",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "content": [
+            "9cc46136-477d-4f6e-8751-94d41e6fb5cf"
+        ],
+        "status": "in review",
+        "uuid": "041ca9a2-2b67-409c-ac50-4705f995fb99",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "resources/pipeline-docs/short-read_rna-seq_paired-end",
+        "title": "Short-Read RNA-seq Paired-End",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "content": [
+            "e1ee7924-99cf-4584-9c89-1e023436c797"
+        ],
+        "status": "in review",
+        "uuid": "582c7cab-bd68-4e86-aa29-6d0e6718b62a",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "resources/pipeline-docs/long-read_rna-seq_pacbio_kinnex",
+        "title": "Long-Read RNA-seq PacBio Kinnex",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "content": [
+            "22b22be8-8380-4407-a952-c8106d70c4bc"
+        ],
+        "status": "in review",
+        "uuid": "3f503a50-8646-4b4d-b870-73eabc8106a2",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "resources/pipeline-docs/genome_builds",
+        "title": "Genome Builds",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "content": [
+            "455af80f-2dbd-40c7-b7b0-451783dc87ef"
+        ],
+        "status": "in review",
+        "uuid": "1ac937fa-8057-44da-ae9d-869d1cc56a1b",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "resources/pipeline-docs/genome_annotations",
+        "title": "Genome Annotations",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "content": [
+            "1dc93422-bed2-45c5-8f98-ee57414d4c4a"
+        ],
+        "status": "in review",
+        "uuid": "01f81cd2-5423-4c26-afd2-5e31f6eef6b6",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "resources/pipeline-docs/variant_catalogs",
+        "title": "Variant Catalogs",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "content": [
+            "2112c809-bca7-46cc-b700-a5280cb2cdee"
+        ],
+        "status": "in review",
+        "uuid": "f873a9df-a511-4e02-af8c-d6e050980b4e",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "resources/pipeline-docs/software_specific",
+        "title": "Software Specific",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "content": [
+            "45e37138-0988-4f31-be2a-acec7605bf3d"
+        ],
+        "status": "in review",
+        "uuid": "078a29b1-3cb8-4bcf-bf76-865b66afaa74",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "resources/pipeline-docs/release_changelog",
+        "title": "Release Changelog",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "content": [
+            "408bc595-868c-43a6-a8f0-105c22ded302"
+        ],
+        "status": "in review",
+        "uuid": "45445bef-a513-4236-a013-baeecb3e9e25",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
     {
         "identifier": "privacy-policy",
         "title": "Privacy Policy",

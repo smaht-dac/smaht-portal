@@ -623,7 +623,23 @@
 
 
     {
-        "identifier": "Long-Read_Oxford_Nanopore",
+        "identifier": "pipeline_docs",
+        "uuid": "b78b2ebb-d01c-4635-8a67-76a98ab81772",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "fastq_files",
         "uuid": "187b2079-61a5-43d6-8252-9070268cae2f",
         "section_type": "Page Section",
         "status": "in review",
@@ -639,7 +655,7 @@
         ]
     },
     {
-        "identifier": "Long-Read_PacBio_HiFi",
+        "identifier": "short-read_illumina_paired-end",
         "uuid": "1e1372c7-fa89-422d-98a3-d0f4f8dec1ea",
         "section_type": "Page Section",
         "status": "in review",
@@ -654,10 +670,137 @@
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
     },
-
     {
-        "identifier": "Short-Read_Illumina_Paired-End",
+        "identifier": "long-read_pacbio_hifi",
         "uuid": "8dd992f1-58a9-4b23-8595-c2d505012796",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "long-read_oxford_nanopore",
+        "uuid": "9cc46136-477d-4f6e-8751-94d41e6fb5cf",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "short-read_rna-seq_paired-end",
+        "uuid": "e1ee7924-99cf-4584-9c89-1e023436c797",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "long-read_rna-seq_pacbio_kinnex",
+        "uuid": "22b22be8-8380-4407-a952-c8106d70c4bc",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "genome_builds",
+        "uuid": "455af80f-2dbd-40c7-b7b0-451783dc87ef",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "genome_annotations",
+        "uuid": "1dc93422-bed2-45c5-8f98-ee57414d4c4a",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "variant_catalogs",
+        "uuid": "2112c809-bca7-46cc-b700-a5280cb2cdee",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "software_specific",
+        "uuid": "45e37138-0988-4f31-be2a-acec7605bf3d",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "release_changelog",
+        "uuid": "408bc595-868c-43a6-a8f0-105c22ded302",
         "section_type": "Page Section",
         "status": "in review",
         "options": {

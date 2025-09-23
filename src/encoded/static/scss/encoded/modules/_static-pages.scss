@@ -256,6 +256,28 @@
 		}	
 	}
 
+	.section-content {
+		pre.code-block.copy-wrapper {
+			position: relative;
+			background-color: #F7F8FA;
+			transition: transform 0.4s; 
+			transform-origin: 50% 50%; 
+			transform: translate3d(0px, 0px, 0px);
+			padding: 15px;
+			border-radius: 5px;
+
+			.icon {
+				position: absolute;
+				top: 15px;
+				right: 15px;
+			}
+
+			&:hover {
+				cursor: pointer;
+			}
+		}
+	}
+
 	a {
 		text-decoration: none;
 
