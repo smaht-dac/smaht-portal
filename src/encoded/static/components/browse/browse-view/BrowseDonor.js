@@ -23,6 +23,7 @@ import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
+import { BrowseDonorVizWrapper } from './BrowseDonorVizWrapper';
 
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { renderProtectedAccessPopover } from '../../item-pages/PublicDonorView';
