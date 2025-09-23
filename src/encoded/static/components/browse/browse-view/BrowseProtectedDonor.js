@@ -129,21 +129,24 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
                             <div className="tissue-list-container">
                                 {tissues.length > 0 ? (
                                     <ul>
-                                        {tissues.map((tissue, j) => {
-                                            // Create a link to search for files with this tissue
-                                            return (
-                                                <li key={j}>
-                                                    <span>
-                                                        <a
-                                                            href={`/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}&sample_summary.tissues=${tissue}`}
-                                                            target="_blank"
-                                                            rel="noreferrer noopener">
-                                                            {tissue}
-                                                        </a>
-                                                    </span>
-                                                </li>
-                                            );
-                                        })}
+                                        {tissues
+                                            .sort((a, b) => a.localeCompare(b))
+                                            .map((tissue, j) => {
+                                                console.log(tissue);
+                                                // Create a link to search for files with this tissue
+                                                return (
+                                                    <li key={j}>
+                                                        <span>
+                                                            <a
+                                                                href={`/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}&sample_summary.tissues=${tissue}`}
+                                                                target="_blank"
+                                                                rel="noreferrer noopener">
+                                                                {tissue}
+                                                            </a>
+                                                        </span>
+                                                    </li>
+                                                );
+                                            })}
                                     </ul>
                                 ) : (
                                     <span className="text-secondary">N/A</span>

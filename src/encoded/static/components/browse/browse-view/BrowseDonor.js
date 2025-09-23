@@ -129,21 +129,23 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
                             <div className="tissue-list-container">
                                 {tissues.length > 0 ? (
                                     <ul>
-                                        {tissues.map((tissue, j) => {
-                                            // Create a link to search for files with this tissue
-                                            return (
-                                                <li key={j}>
-                                                    <span>
-                                                        <a
-                                                            href={`/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}&sample_summary.tissues=${tissue}`}
-                                                            target="_blank"
-                                                            rel="noreferrer noopener">
-                                                            {tissue}
-                                                        </a>
-                                                    </span>
-                                                </li>
-                                            );
-                                        })}
+                                        {tissues
+                                            .sort((a, b) => a.localeCompare(b))
+                                            .map((tissue, j) => {
+                                                // Create a link to search for files with this tissue
+                                                return (
+                                                    <li key={j}>
+                                                        <span>
+                                                            <a
+                                                                href={`/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}&sample_summary.tissues=${tissue}`}
+                                                                target="_blank"
+                                                                rel="noreferrer noopener">
+                                                                {tissue}
+                                                            </a>
+                                                        </span>
+                                                    </li>
+                                                );
+                                            })}
                                     </ul>
                                 ) : (
                                     <span className="text-secondary">N/A</span>
@@ -273,21 +275,23 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
                             <div className="tissue-list-container">
                                 {assays.length > 0 ? (
                                     <ul>
-                                        {assays.map((assay, j) => {
-                                            // Create a link to search for files with this assay
-                                            return (
-                                                <li key={j}>
-                                                    <span>
-                                                        <a
-                                                            href={`/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}&&file_sets.libraries.assay.display_title=${assay}`}
-                                                            target="_blank"
-                                                            rel="noreferrer noopener">
-                                                            {assay}
-                                                        </a>
-                                                    </span>
-                                                </li>
-                                            );
-                                        })}
+                                        {assays
+                                            .sort((a, b) => a.localeCompare(b))
+                                            .map((assay, j) => {
+                                                // Create a link to search for files with this assay
+                                                return (
+                                                    <li key={j}>
+                                                        <span>
+                                                            <a
+                                                                href={`/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}&&file_sets.libraries.assay.display_title=${assay}`}
+                                                                target="_blank"
+                                                                rel="noreferrer noopener">
+                                                                {assay}
+                                                            </a>
+                                                        </span>
+                                                    </li>
+                                                );
+                                            })}
                                     </ul>
                                 ) : (
                                     <span className="text-secondary">N/A</span>
