@@ -19,6 +19,7 @@ import {
     valueTransforms,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { display as dateTimeDisplay } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
+import { useUserDownloadAccess } from '../../util/hooks';
 
 export const SelectAllAboveTableComponent = (props) => {
     const {
@@ -44,7 +45,11 @@ export const SelectAllAboveTableComponent = (props) => {
     const { filters: ctxFilters = null, total: totalResultCount = 0 } =
         context || {};
 
-    console.log('SelectAllAboveTableComponent ', props);
+    // Get user download access
+    const userDownloadAccess = useUserDownloadAccess(session);
+    const hasDownloadAccess =
+        userDownloadAccess['restricted'] ||
+        userDownloadAccess['public-restricted'];
 
     const selectedFileProps = {
         selectedItems, // From SelectedItemsController
@@ -63,8 +68,17 @@ export const SelectAllAboveTableComponent = (props) => {
             <div className="ms-auto col-auto me-0 d-flex pe-0">
                 <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
                 {/* Show popover if needed */}
-                {deniedAccessPopoverType === 'login' ||
-                deniedAccessPopoverType === 'protected' ? (
+                {hasDownloadAccess ? (
+                    <SelectedItemsDownloadButton
+                        id="download_tsv_multiselect"
+                        disabled={selectedItems.size === 0}
+                        className="btn btn-primary btn-sm me-05 align-items-center"
+                        {...{ selectedItems, session }}
+                        analyticsAddItemsToCart>
+                        <i className="icon icon-download fas me-03" />
+                        Download {selectedItems.size} Selected Files
+                    </SelectedItemsDownloadButton>
+                ) : (
                     <OverlayTrigger
                         trigger={['hover', 'focus']}
                         placement="top"
@@ -84,16 +98,6 @@ export const SelectAllAboveTableComponent = (props) => {
                             Download {selectedItems.size} Selected Files
                         </button>
                     </OverlayTrigger>
-                ) : (
-                    <SelectedItemsDownloadButton
-                        id="download_tsv_multiselect"
-                        disabled={selectedItems.size === 0}
-                        className="btn btn-primary btn-sm me-05 align-items-center"
-                        {...{ selectedItems, session }}
-                        analyticsAddItemsToCart>
-                        <i className="icon icon-download fas me-03" />
-                        Download {selectedItems.size} Selected Files
-                    </SelectedItemsDownloadButton>
                 )}
             </div>
         </div>

@@ -243,7 +243,7 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
             download>
             <span>
                 <i className="icon icon-fw icon-users fas me-1" />
-                Donor Metadata
+                Download Bulk Donor Metadata
             </span>
         </a>
     ) : (
@@ -253,7 +253,7 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
             disabled>
             <span>
                 <i className="icon icon-fw icon-users fas me-1" />
-                Donor Metadata
+                Download Bulk Donor Metadata
             </span>
         </button>
     );

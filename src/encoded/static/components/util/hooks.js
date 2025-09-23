@@ -25,14 +25,7 @@ export const useUserDownloadAccess = (session = false) => {
             ajax.load(
                 '/session-properties',
                 (resp) => {
-                    console.log('resp', resp);
                     if (isCancelled) return;
-
-                    // If user is not logged in, they have no download access
-                    if (!session) {
-                        setDownloadAccessObject(null);
-                        return;
-                    }
 
                     // Get consortia associated with user
                     const userConsortia = resp?.details?.consortia || [];
@@ -77,12 +70,8 @@ export const useUserDownloadAccess = (session = false) => {
                             err
                         );
                     }
-                    setDownloadAccessObject(null);
                 }
             );
-        } else {
-            // If no session, user can't have access statuses
-            setDownloadAccessObject(null);
         }
 
         return () => {

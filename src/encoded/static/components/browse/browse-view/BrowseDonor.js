@@ -60,10 +60,6 @@ const formatTissueData = (data) => {
             title: 'Clinical',
             values: [],
         },
-        Fibroblast: {
-            title: 'Fibroblast',
-            values: [],
-        },
     };
 
     if (!data) return defaultTissueCategories;
@@ -139,21 +135,23 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
                             <div className="tissue-list-container">
                                 {tissues.length > 0 ? (
                                     <ul>
-                                        {tissues.map((tissue, j) => {
-                                            // Create a link to search for files with this tissue
-                                            return (
-                                                <li key={j}>
-                                                    <span>
-                                                        <a
-                                                            href={`/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}&sample_summary.tissues=${tissue}`}
-                                                            target="_blank"
-                                                            rel="noreferrer noopener">
-                                                            {tissue}
-                                                        </a>
-                                                    </span>
-                                                </li>
-                                            );
-                                        })}
+                                        {tissues
+                                            .sort((a, b) => a.localeCompare(b))
+                                            .map((tissue, j) => {
+                                                // Create a link to search for files with this tissue
+                                                return (
+                                                    <li key={j}>
+                                                        <span>
+                                                            <a
+                                                                href={`/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}&sample_summary.tissues=${tissue}`}
+                                                                target="_blank"
+                                                                rel="noreferrer noopener">
+                                                                {tissue}
+                                                            </a>
+                                                        </span>
+                                                    </li>
+                                                );
+                                            })}
                                     </ul>
                                 ) : (
                                     <span className="text-secondary">N/A</span>
@@ -283,21 +281,23 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
                             <div className="tissue-list-container">
                                 {assays.length > 0 ? (
                                     <ul>
-                                        {assays.map((assay, j) => {
-                                            // Create a link to search for files with this assay
-                                            return (
-                                                <li key={j}>
-                                                    <span>
-                                                        <a
-                                                            href={`/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}&&file_sets.libraries.assay.display_title=${assay}`}
-                                                            target="_blank"
-                                                            rel="noreferrer noopener">
-                                                            {assay}
-                                                        </a>
-                                                    </span>
-                                                </li>
-                                            );
-                                        })}
+                                        {assays
+                                            .sort((a, b) => a.localeCompare(b))
+                                            .map((assay, j) => {
+                                                // Create a link to search for files with this assay
+                                                return (
+                                                    <li key={j}>
+                                                        <span>
+                                                            <a
+                                                                href={`/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}&&file_sets.libraries.assay.display_title=${assay}`}
+                                                                target="_blank"
+                                                                rel="noreferrer noopener">
+                                                                {assay}
+                                                            </a>
+                                                        </span>
+                                                    </li>
+                                                );
+                                            })}
                                     </ul>
                                 ) : (
                                     <span className="text-secondary">N/A</span>
@@ -408,19 +408,28 @@ export function createBrowseDonorColumnExtensionMap({
         age: {
             widthMap: { lg: 80, md: 80, sm: 80 },
             render: function (result, parentProps) {
-                return <span>{result?.age ?? null}</span>;
+                return (
+                    <span className="value text-center w-100">
+                        {result?.age ?? null}
+                    </span>
+                );
             },
         },
         // Sex
         sex: {
             widthMap: { lg: 80, md: 80, sm: 80 },
             render: function (result, parentProps) {
-                return <span>{result?.sex?.substring(0, 1) ?? null}</span>;
+                return (
+                    <span className="value text-center w-100">
+                        {result?.sex?.substring(0, 1) ?? null}
+                    </span>
+                );
             },
         },
         // Tissues
         'sample_summary.tissues': {
             noSort: true,
+            colAlignment: 'text-end',
             widthMap: { lg: 120, md: 120, sm: 120 },
             render: function (result, parentProps) {
                 const {
@@ -495,6 +504,7 @@ export function createBrowseDonorColumnExtensionMap({
         // Assays
         assays: {
             noSort: true,
+            colAlignment: 'text-end',
             widthMap: { lg: 120, md: 120, sm: 120 },
             render: function (result, parentProps) {
                 const {
@@ -573,6 +583,7 @@ export function createBrowseDonorColumnExtensionMap({
         // Files
         files: {
             noSort: true,
+            colAlignment: 'text-end',
             widthMap: { lg: 105, md: 100, sm: 100 },
             render: function (result, parentProps) {
                 const { data, loading, error } = parentProps?.fetchedProps;
@@ -600,6 +611,7 @@ export function createBrowseDonorColumnExtensionMap({
         },
         file_size: {
             noSort: true,
+            colAlignment: 'text-end',
             widthMap: { lg: 105, md: 100, sm: 100 },
             render: function (result, parentProps) {
                 const {
@@ -646,7 +658,11 @@ export function createBrowseDonorColumnExtensionMap({
         hardy_scale: {
             widthMap: { lg: 150, md: 150, sm: 150 },
             render: function (result, parentProps) {
-                return <span>{result?.hardy_scale ?? null}</span>;
+                return (
+                    <span className="value text-center">
+                        {result?.hardy_scale ?? null}
+                    </span>
+                );
             },
         },
         // Data Type
@@ -796,44 +812,6 @@ const BrowseDonorSearchTable = (props) => {
             }>
             <div className="d-flex gap-2">
                 <DonorMetadataDownloadButton session={session} />
-                {session ? (
-                    <OverlayTrigger
-                        trigger={['hover', 'focus']}
-                        placement="top"
-                        overlay={
-                            <Popover
-                                className={
-                                    'popover download-popover coming-soon'
-                                }>
-                                <PopoverHeader as="h3">
-                                    Donor Manifest Coming Soon
-                                </PopoverHeader>
-                                <PopoverBody>
-                                    Check back with future portal releases for
-                                    the ability to download the donor manifest.
-                                </PopoverBody>
-                            </Popover>
-                        }>
-                        <button
-                            className="btn btn-primary btn-sm me-05 align-items-center download-button"
-                            disabled={true}>
-                            <i className="icon icon-download fas me-03" />
-                            Download {selectedItems.size} Donor Manifests
-                        </button>
-                    </OverlayTrigger>
-                ) : (
-                    <OverlayTrigger
-                        trigger={['hover', 'focus']}
-                        placement="top"
-                        overlay={renderProtectedAccessPopover()}>
-                        <button
-                            className="btn btn-primary btn-sm me-05 align-items-center download-button"
-                            disabled={true}>
-                            <i className="icon icon-download fas me-03" />
-                            Download {selectedItems.size} Donor Manifests
-                        </button>
-                    </OverlayTrigger>
-                )}
             </div>
         </BrowseViewAboveSearchTableControls>
     );
