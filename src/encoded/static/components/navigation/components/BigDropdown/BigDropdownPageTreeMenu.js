@@ -225,7 +225,6 @@ function Level1Title({ childPageItem, active, disableLinks }) {
 }
 
 function CustomStaticLinks({ pathName, href }) {
-    console.log('href, pathName', href, pathName, href.includes(pathName));
     switch (pathName) {
         case 'data':
             return (
@@ -353,9 +352,7 @@ function CustomStaticLinks({ pathName, href }) {
                             href="/retracted-files"
                             titleIcon="file-circle-xmark fas"
                             className="primary-big-link">
-                            <h4 className="text-large">
-                                Data Retraction
-                            </h4>
+                            <h4 className="text-large">Data Retraction</h4>
                         </BigDropdownBigLink>
                     </div>
                 </div>
