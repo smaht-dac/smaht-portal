@@ -102,8 +102,8 @@ const PublicDonorDownloadButton = ({ session }) => {
                             Donor Manifest Coming Soon
                         </PopoverHeader>
                         <PopoverBody>
-                            Check back with future portal releases for the
-                            ability to download the donor manifest.
+                            Individual Donor manifests are coming soon in future
+                            portal releases.
                         </PopoverBody>
                     </Popover>
                 ) : (

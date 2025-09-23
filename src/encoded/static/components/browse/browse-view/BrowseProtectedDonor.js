@@ -56,10 +56,6 @@ const formatTissueData = (data) => {
             title: 'Clinical',
             values: [],
         },
-        Fibroblast: {
-            title: 'Fibroblast',
-            values: [],
-        },
     };
 
     // group data by tissue category
@@ -402,19 +398,28 @@ export function createBrowseProtectedDonorColumnExtensionMap({
         age: {
             widthMap: { lg: 80, md: 80, sm: 80 },
             render: function (result, parentProps) {
-                return <span>{result?.age ?? null}</span>;
+                return (
+                    <span className="text-center w-100">
+                        {result?.age ?? null}
+                    </span>
+                );
             },
         },
         // Sex
         sex: {
             widthMap: { lg: 80, md: 80, sm: 80 },
             render: function (result, parentProps) {
-                return <span>{result?.sex?.substring(0, 1) ?? null}</span>;
+                return (
+                    <span className="text-center w-100">
+                        {result?.sex?.substring(0, 1) ?? null}
+                    </span>
+                );
             },
         },
         // Tissues
         'sample_summary.tissues': {
             noSort: true,
+            colAlignment: 'text-end',
             widthMap: { lg: 120, md: 120, sm: 120 },
             render: function (result, parentProps) {
                 const {
@@ -490,6 +495,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
         // Assays
         assays: {
             noSort: true,
+            colAlignment: 'text-end',
             widthMap: { lg: 120, md: 120, sm: 120 },
             render: function (result, parentProps) {
                 const {
@@ -572,6 +578,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
         // Files
         files: {
             noSort: true,
+            colAlignment: 'text-end',
             widthMap: { lg: 105, md: 100, sm: 100 },
             render: function (result, parentProps) {
                 const { data, loading, error } = parentProps?.fetchedProps;
@@ -581,11 +588,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
                     ?.terms?.find((term) => term.key === 'File')?.doc_count;
 
                 if (loading) {
-                    return (
-                        <span className="value text-center loading">
-                            {/* <i className="icon icon-circle-notch icon-spin fas"></i> */}
-                        </span>
-                    );
+                    return <span className="value text-center loading"></span>;
                 } else {
                     return fileCount ? (
                         <a
@@ -599,17 +602,10 @@ export function createBrowseProtectedDonorColumnExtensionMap({
         },
         file_size: {
             noSort: true,
+            colAlignment: 'text-end',
             widthMap: { lg: 105, md: 100, sm: 100 },
             render: function (result, parentProps) {
-                const {
-                    href,
-                    context,
-                    rowNumber,
-                    detailOpen,
-                    toggleDetailOpen,
-                } = parentProps;
-
-                const { data, loading, error } = parentProps?.fetchedProps;
+                const { data, loading } = parentProps?.fetchedProps;
 
                 const fileSize = data?.find(
                     (f) => f.field === 'file_size'
@@ -617,13 +613,13 @@ export function createBrowseProtectedDonorColumnExtensionMap({
 
                 if (loading) {
                     return (
-                        <span className="value text-center loading">
+                        <span className="value loading">
                             {/* <i className="icon icon-circle-notch icon-spin fas"></i> */}
                         </span>
                     );
                 } else {
                     return fileSize ? (
-                        <span className="value text-center">
+                        <span className="value">
                             {valueTransforms.bytesToLargerUnit(
                                 fileSize,
                                 0,
@@ -647,7 +643,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
             render: function (result, parentProps) {
                 const hardy_scale = result?.hardy_scale;
                 return hardy_scale ? (
-                    <span className="value text-start">
+                    <span className="value text-center">
                         {result?.hardy_scale}
                     </span>
                 ) : null;
@@ -661,29 +657,29 @@ export function createBrowseProtectedDonorColumnExtensionMap({
                     result?.medical_history?.[0]?.cancer_history;
 
                 return cancer_history ? (
-                    <span className="value text-start">{cancer_history}</span>
+                    <span className="value text-center">{cancer_history}</span>
                 ) : null;
             },
         },
         // Tobacco Use
         'medical_history.tobacco_use': {
-            widthMap: { lg: 180, md: 180, sm: 180 },
+            widthMap: { lg: 120, md: 120, sm: 120 },
             render: function (result, parentProps) {
                 const tobacco_use = result?.medical_history?.[0]?.tobacco_use;
 
                 return tobacco_use ? (
-                    <span className="value text-start">{tobacco_use}</span>
+                    <span className="value text-center">{tobacco_use}</span>
                 ) : null;
             },
         },
         // Alcohol Use
         'medical_history.alcohol_use': {
-            widthMap: { lg: 180, md: 180, sm: 180 },
+            widthMap: { lg: 120, md: 120, sm: 120 },
             render: function (result, parentProps) {
                 const alcohol_use = result?.medical_history?.[0]?.alcohol_use;
 
                 return alcohol_use ? (
-                    <span className="value text-start">{alcohol_use}</span>
+                    <span className="value text-center">{alcohol_use}</span>
                 ) : null;
             },
         },
@@ -832,6 +828,7 @@ const BrowseProtectedDonorSearchTable = (props) => {
         customColumnSearchHref: (result) =>
             `/peek-metadata/?additional_facet=file_size&${BROWSE_STATUS_FILTERS}&type=File&donors.display_title=` +
             result?.display_title,
+        defaultColAlignment: 'text-left',
     };
 
     const aboveFacetListComponent = <BrowseViewAboveFacetListComponent />;
@@ -856,7 +853,7 @@ const BrowseProtectedDonorSearchTable = (props) => {
                                 </PopoverHeader>
                                 <PopoverBody>
                                     Check back with future portal releases for
-                                    the ability to download the donor manifest.
+                                    the ability to download the Donor Manifest.
                                 </PopoverBody>
                             </Popover>
                         }>

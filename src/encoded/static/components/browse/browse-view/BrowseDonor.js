@@ -56,10 +56,6 @@ const formatTissueData = (data) => {
             title: 'Clinical',
             values: [],
         },
-        Fibroblast: {
-            title: 'Fibroblast',
-            values: [],
-        },
     };
 
     // group data by tissue category
@@ -402,19 +398,28 @@ export function createBrowseDonorColumnExtensionMap({
         age: {
             widthMap: { lg: 80, md: 80, sm: 80 },
             render: function (result, parentProps) {
-                return <span>{result?.age ?? null}</span>;
+                return (
+                    <span className="value text-center w-100">
+                        {result?.age ?? null}
+                    </span>
+                );
             },
         },
         // Sex
         sex: {
             widthMap: { lg: 80, md: 80, sm: 80 },
             render: function (result, parentProps) {
-                return <span>{result?.sex?.substring(0, 1) ?? null}</span>;
+                return (
+                    <span className="value text-center w-100">
+                        {result?.sex?.substring(0, 1) ?? null}
+                    </span>
+                );
             },
         },
         // Tissues
         'sample_summary.tissues': {
             noSort: true,
+            colAlignment: 'text-end',
             widthMap: { lg: 120, md: 120, sm: 120 },
             render: function (result, parentProps) {
                 const {
@@ -489,6 +494,7 @@ export function createBrowseDonorColumnExtensionMap({
         // Assays
         assays: {
             noSort: true,
+            colAlignment: 'text-end',
             widthMap: { lg: 120, md: 120, sm: 120 },
             render: function (result, parentProps) {
                 const {
@@ -567,6 +573,7 @@ export function createBrowseDonorColumnExtensionMap({
         // Files
         files: {
             noSort: true,
+            colAlignment: 'text-end',
             widthMap: { lg: 105, md: 100, sm: 100 },
             render: function (result, parentProps) {
                 const { data, loading, error } = parentProps?.fetchedProps;
@@ -594,6 +601,7 @@ export function createBrowseDonorColumnExtensionMap({
         },
         file_size: {
             noSort: true,
+            colAlignment: 'text-end',
             widthMap: { lg: 105, md: 100, sm: 100 },
             render: function (result, parentProps) {
                 const {
@@ -640,7 +648,11 @@ export function createBrowseDonorColumnExtensionMap({
         hardy_scale: {
             widthMap: { lg: 150, md: 150, sm: 150 },
             render: function (result, parentProps) {
-                return <span>{result?.hardy_scale ?? null}</span>;
+                return (
+                    <span className="value text-center">
+                        {result?.hardy_scale ?? null}
+                    </span>
+                );
             },
         },
         // Data Type
