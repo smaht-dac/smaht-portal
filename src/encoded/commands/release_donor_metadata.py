@@ -43,7 +43,7 @@ PROTECTED_DONOR_RELEASE_STATUS = "public-restricted"  # When portal becomes publ
 
 class DonorRelease:
 
-    def __init__(self, auth_key: dict, donor_identifier: str, verbose: bool = True, exclude_tissues: bool = False) -> None:
+    def __init__(self, auth_key: dict, donor_identifier: str, verbose: bool = True, include_tissues: bool = False) -> None:
         self.key = auth_key
         self.request_handler = self.get_request_handler()
         self.request_handler_embedded = self.get_request_handler_embedded()
@@ -54,7 +54,7 @@ class DonorRelease:
         self.patch_dicts = []
         self.warnings = []
         self.verbose = verbose
-        self.exclude_tissues = exclude_tissues
+        self.include_tissues = include_tissues
 
     @cached_property
     def protected_donor(self) -> dict:
@@ -197,10 +197,10 @@ class DonorRelease:
         # The main donor needs to be the first patchdict.
         # - set to PUBLIC_DONOR_RELEASE_STATUS
         self.add_release_donor_patchdict(self.donor)
-        if not self.exclude_tissues:
-            """ generally will be false so tissue and tissue sample items will be set to PUBLIC_DONOR_RELEASE_STATUS
+        if self.include_tissues:
+            """ generally will be false so tissue and tissue sample items will not be set to PUBLIC_DONOR_RELEASE_STATUS
                 however, to 'reset' Donors and linked items back to 'in review' or another non-public status
-                using this flage will exclude tissues and tissue samples from being set to the new status
+                using this flag will include tissues and tissue samples to set to the new status
             """
             self.add_public_release_items_to_patchdict(
                 self.tissues, "Tissue"
@@ -462,8 +462,8 @@ def main() -> None:
         action="store_true",
     )
     parser.add_argument(
-        "--exclude-tissues",
-        help="Exclude tissues and tissue samples from being operated on",
+        "--include-tissues",
+        help="Include tissues and tissue samples in the operation",
         action="store_true",
     )
 
@@ -484,7 +484,7 @@ def main() -> None:
     donor_releases : List[DonorRelease] = []
     for donor_identifier in donors_to_release:
         donor_release = DonorRelease(auth_key=auth_key, donor_identifier=donor_identifier, verbose=verbose,
-                                     exclude_tissues=args.exclude_tissues)
+                                     include_tissues=args.include_tissues)
         donor_release.prepare()
         donor_releases.append(donor_release)
 
