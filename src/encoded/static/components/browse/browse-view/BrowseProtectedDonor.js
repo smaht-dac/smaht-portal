@@ -132,7 +132,6 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
                                         {tissues
                                             .sort((a, b) => a.localeCompare(b))
                                             .map((tissue, j) => {
-                                                console.log(tissue);
                                                 // Create a link to search for files with this tissue
                                                 return (
                                                     <li key={j}>
