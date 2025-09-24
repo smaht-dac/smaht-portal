@@ -1,12 +1,19 @@
 'use strict';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Modal from 'react-bootstrap/esm/Modal';
 
 import { analytics } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import UserRegistrationForm from './../../forms/UserRegistrationForm';
+
+// TO REMOVE AFTER PORTAL REOPENS --
+import {
+    performLogout,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/navigation/components/LoginController';
+// TO REMOVE AFTER PORTAL REOPENS --
+
 
 export const UserRegistrationModal = React.memo(function UserRegistrationModal(
     props
@@ -18,6 +25,13 @@ export const UserRegistrationModal = React.memo(function UserRegistrationModal(
         unverifiedUserEmail,
         onRegistrationComplete,
     } = props;
+
+    // TO REMOVE AFTER PORTAL REOPENS --
+    // Remove jwttoken cookie when component mounts
+    useEffect(() => {
+       performLogout();
+    }, []);
+    // TO REMOVE AFTER PORTAL REOPENS --
 
     function onExitLinkClick(e) {
         e.preventDefault();
@@ -139,26 +153,54 @@ export const UserRegistrationModal = React.memo(function UserRegistrationModal(
         </div>
     );
 
+    // TO REMOVE AFTER PORTAL REOPENS --
+    const formHeadingDuringShutdown = (
+        <div className="mb-3">
+            <h3 className="text-400 my-3 text-center">
+                Limited Access
+            </h3>
+            <h4 className="text-400 mb-2 text-center">
+                The SMaHT Data Portal will have limited access to users from Sept 29 - Oct 10.
+            </h4>
+             <h4 className="text-400 mb-2 text-center">
+                Please return again after October 10th, 2025.
+            </h4>
+        </div>
+    );
+    // TO REMOVE AFTER PORTAL REOPENS --
+
     return (
-        <Modal show size="lg" onHide={onRegistrationCancel}>
-            <Modal.Header closeButton>
-                <Modal.Title>Account Unauthorized</Modal.Title>
-            </Modal.Header>
+        // <Modal show size="lg" onHide={onRegistrationCancel}>
+        //     <Modal.Header closeButton>
+        //         <Modal.Title>Account Unauthorized</Modal.Title>
+        //     </Modal.Header>
+        //     <Modal.Body>
+        //         {/* <UserRegistrationForm
+        //             heading={formHeading}
+        //             schemas={schemas}
+        //             unverifiedUserEmail={unverifiedUserEmail}
+        //             onComplete={onRegistrationComplete}
+        //             onCancel={onRegistrationCancel}
+        //         /> */}
+        //         <div
+        //             className="user-registration-form-container"
+        //             style={{ position: 'relative' }}>
+        //             {formHeading}
+        //         </div>
+        //     </Modal.Body>
+        // </Modal>
+
+        // TO REMOVE AFTER PORTAL REOPENS --
+        <Modal show size="md" onHide={onRegistrationCancel}>
             <Modal.Body>
-                {/* <UserRegistrationForm
-                    heading={formHeading}
-                    schemas={schemas}
-                    unverifiedUserEmail={unverifiedUserEmail}
-                    onComplete={onRegistrationComplete}
-                    onCancel={onRegistrationCancel}
-                /> */}
                 <div
                     className="user-registration-form-container"
                     style={{ position: 'relative' }}>
-                    {formHeading}
+                    {formHeadingDuringShutdown}
                 </div>
             </Modal.Body>
         </Modal>
+        // TO REMOVE AFTER PORTAL REOPENS --
     );
 });
 UserRegistrationModal.propTypes = {
