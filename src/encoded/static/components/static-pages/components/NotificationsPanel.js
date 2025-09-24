@@ -3,15 +3,15 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { RightArrowIcon } from '../../util/icon';
 
-/**
- * Toggle hook
- */
+// Toggle hook for expanding/collapsing sections
+// Note: should move this into a shared hooks location eventaully
 const useToggle = (initialState = false) => {
     const [isToggled, setIsToggled] = useState(initialState);
     const toggle = () => setIsToggled(!isToggled);
     return [isToggled, toggle];
 };
 
+// Default announcement data
 const announcements = [
     {
         type: 'info',
@@ -87,11 +87,20 @@ const announcements = [
     },
 ];
 
+/**
+ * AnnouncementCard component displays an individual announcement.
+ * @param {string} type - The type of announcement (e.g., 'info', 'warning').
+ * @param {string} title - The title of the announcement.
+ * @param {JSX.Element} body - The body content of the announcement.
+ * @param {JSX.Element|null} footer - Optional footer content for the announcement.
+ * @param {JSX.Element|null} date - Optional date string for the announcement.
+ * @returns {JSX.Element} The rendered AnnouncementCard component.
+ */
 const AnnouncementCard = ({
+    type = 'info',
     title = '',
     body = '',
     footer = null,
-    type = 'info',
     date = null,
 }) => {
     return (
@@ -111,7 +120,13 @@ const AnnouncementCard = ({
     );
 };
 
-const TissueGroup = ({ tissue_group, items, query }) => {
+/**
+ * TissueGroup component displays a tissue group with a toggle to show/hide its items.
+ * @param {string} tissue_group - The name of the tissue group.
+ * @param {Array} items - The list of items (file groups) within the tissue group.
+ * @returns {JSX.Element} The rendered TissueGroup component.
+ */
+const TissueGroup = ({ tissue_group, items }) => {
     const [isToggled, toggle] = useToggle();
 
     return (
@@ -156,6 +171,14 @@ const ReleaseItemWarning = () => {
     );
 };
 
+/**
+ * DonorGroup component displays a donor group with a toggle to show/hide its tissue groups.
+ * @param {number} count - The total count of files in the donor group.
+ * @param {Object} donorGroups - The object containing all donor groups.
+ * @param {string} donorGroup - The name of the donor group.
+ * @param {string} query - The query URL for the donor group.
+ * @returns {JSX.Element} The rendered DonorGroup component.
+ */
 const DonorGroup = (props) => {
     const {
         count,
@@ -197,7 +220,7 @@ const DonorGroup = (props) => {
                 <ul className="tissue-list">
                     {Object.keys(donor_groups[donor_group]['items']).map(
                         (tissue_group, i) => {
-                            const { count, items, query } =
+                            const { count, items } =
                                 donor_groups[donor_group]['items'][
                                     tissue_group
                                 ];
@@ -207,7 +230,6 @@ const DonorGroup = (props) => {
                                     count={count}
                                     tissue_group={tissue_group}
                                     items={items}
-                                    query={query}
                                 />
                             );
                         }
@@ -220,8 +242,9 @@ const DonorGroup = (props) => {
 
 /**
  * DataReleaseItem component displays information about a specific data release.
- * @param {*} data - The data object containing release information.
- * @param {*} releaseItemIndex - The index of the release item.
+ * @param {object} data - The data object containing release information.
+ * @param {number} releaseItemIndex - The index of the release item.
+ * @param {JSX.Element|null} callout - Optional callout component to display above the donor groups.
  * @returns {JSX.Element} The rendered DataReleaseItem component.
  */
 const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
@@ -286,8 +309,8 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
 /**
  * `formatReleaseData` formats the release tracker data into a structure
  * that more closely matches the UI by grouping the data by donor and tissue
- * @param {} data
- * @returns
+ * @param {Array} data - The raw release tracker data from the API.
+ * @returns {Array} The formatted release tracker data.
  */
 const formatReleaseData = (data) => {
     return data.map((month) => {
@@ -373,6 +396,11 @@ const formatReleaseData = (data) => {
     });
 };
 
+/**
+ * NotificationsPanel component displays a panel containg the data release
+ * tracker, the announcements section, and other relevant links/information.
+ * @returns {JSX.Element} The rendered NotificationsPanel component.
+ */
 export const NotificationsPanel = () => {
     const [data, setData] = useState(null);
 
