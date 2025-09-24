@@ -6,6 +6,7 @@ import _ from 'underscore';
 import { layout } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { UserRegistrationModal } from './UserRegistrationModal';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import { Popover, PopoverBody } from 'react-bootstrap';
 
 export const LoginNavItem = React.memo(function LoginNavItem(props) {
     const {
@@ -14,8 +15,7 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
         showLock,
         isLoading,
         isAuth0LibraryLoaded = true,
-        disabled = false,
-        popover = null
+        disabled = false
     } = props;
     const onClick = useCallback(
         function (e) {
@@ -48,25 +48,7 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
 
     return (
         <React.Fragment>
-            <OverlayTrigger
-                trigger={['hover', 'focus']}
-                overlay={popover}
-                placement="top"
-                flip={true}
-                popperConfig={{
-                    modifiers: [
-                        {
-                            name: 'flip',
-                            options: {
-                                fallbackPlacements: [
-                                    'bottom',
-                                    'top',
-                                    'left',
-                                ],
-                            },
-                        },
-                    ],
-                }}>
+            <LoginButtonWrapper>
                 <a
                     role="button"
                     href="#"
@@ -88,7 +70,7 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
                         </React.Fragment>
                     )}
                 </a>
-            </OverlayTrigger>
+            </LoginButtonWrapper>
             {unverifiedUserEmail ? <UserRegistrationModal {...props} /> : null}
         </React.Fragment>
     );
@@ -115,14 +97,81 @@ export const onAlertLoginClick = function (e) {
     return false;
 };
 
+export const PortalShutdownPopover = React.forwardRef(
+    ({ customId, className,...props }, ref) => (
+        <Popover
+            id={customId ?? 'portal-shutdown-info-popover'}
+            className="w-auto warning-popover"
+            ref={ref}
+            {...props}
+        >
+            <PopoverBody className="p-0">
+                <table className="table">
+                    <thead>
+                        <tr>
+                            <th className="text-left">Limited Access to Portal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="text-left">
+                                The data portal will have limited access from Sept 29 - Oct 10.
+                                Please visit again after October 10th, 2025.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </PopoverBody>
+        </Popover>
+    )
+);
+
+export const LoginButtonWrapper = function ({ children, popoverId, showPopover = true }) {
+    const [mounted, setMounted] = React.useState(false);
+    React.useEffect(() => setMounted(true), []);
+
+    if (!showPopover || !mounted) {
+        return children;
+    }
+
+    return (
+        <OverlayTrigger
+            trigger={['hover', 'focus']}
+            overlay={(props) => <PortalShutdownPopover customId={popoverId} {...props} />}
+            placement="top"
+            flip
+            popperConfig={{
+                modifiers: [
+                    {
+                        name: 'flip',
+                        options: {
+                            fallbackPlacements: [
+                                'bottom',
+                                'top',
+                                'left',
+                            ],
+                        },
+                    },
+                ],
+            }}
+        >
+            {children}
+        </OverlayTrigger>
+    );
+};
+
 export const NotLoggedInAlert = {
     title: 'Not Logged In',
     message: (
         <span>
             You are currently browsing as guest, please{' '}
-            <a onClick={onAlertLoginClick} href="#loginbtn" className="link-underline-hover">
-                login
-            </a>{' '}
+            {
+                <LoginButtonWrapper customId="alert-login-popover">
+                    <a onClick={onAlertLoginClick} href="#loginbtn" className="link-underline-hover">
+                        login
+                    </a>
+                </LoginButtonWrapper>
+            }{' '}
             if you have an account.
         </span>
     ),

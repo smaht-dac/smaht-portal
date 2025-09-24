@@ -4,7 +4,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
-import { Popover, PopoverBody } from 'react-bootstrap';
 import {
     JWT,
     isServerSide,
@@ -85,8 +84,6 @@ export const AccountNav = React.memo(function AccountNav(props) {
                         key="login-register"
                         className="user-account-item"
                         disabled={false} // TODO: remove when portal shut down is over
-                        popover={renderPortalShutdownPopover()}
-
                     />
                 </LoginController>
             </div>
@@ -288,27 +285,3 @@ const HelpdeskButton = React.memo(function HelpdeskButton(props) {
     );
 });
 
-export function renderPortalShutdownPopover(customId) {
-    return (
-        <Popover
-            id={customId ?? 'portal-shutdown-popover'}
-            className="w-auto warning-popover">
-            <PopoverBody className="p-0">
-                <table className="table">
-                    <thead>
-                        <tr>
-                            <th className="text-left">
-                                Limited Access to Portal
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td className="text-left">The data portal will have limited access from Sept 29 - Oct 10. Please visit again after October 10th, 2025.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </PopoverBody>
-        </Popover>
-    );
-}
