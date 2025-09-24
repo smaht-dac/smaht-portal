@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import { layout } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { UserRegistrationModal } from './UserRegistrationModal';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 
 export const LoginNavItem = React.memo(function LoginNavItem(props) {
     const {
@@ -14,6 +15,7 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
         isLoading,
         isAuth0LibraryLoaded = true,
         disabled = false,
+        popover = null
     } = props;
     const onClick = useCallback(
         function (e) {
@@ -43,30 +45,50 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
             </a>
         );
     }
-    
+
     return (
         <React.Fragment>
-            <a
-                role="button"
-                href="#"
-                className={
-                    'nav-link user-account-item' +
-                    (unverifiedUserEmail ? ' active' : '')
-                }
-                id={id}
-                onClick={onClick}
-                disabled={!isAuth0LibraryLoaded}>
-                {isLoading ? (
-                    <span className="pull-right">
-                        <i className="account-icon icon icon-spin icon-circle-notch fas align-middle" />
-                    </span>
-                ) : (
-                    <React.Fragment>
-                        <i className="account-icon icon icon-user fas d-inline d-lg-none" />
-                        <span>Login</span>
-                    </React.Fragment>
-                )}
-            </a>
+            <OverlayTrigger
+                trigger={['hover', 'focus']}
+                overlay={popover}
+                placement="top"
+                flip={true}
+                popperConfig={{
+                    modifiers: [
+                        {
+                            name: 'flip',
+                            options: {
+                                fallbackPlacements: [
+                                    'bottom',
+                                    'top',
+                                    'left',
+                                ],
+                            },
+                        },
+                    ],
+                }}>
+                <a
+                    role="button"
+                    href="#"
+                    className={
+                        'nav-link user-account-item' +
+                        (unverifiedUserEmail ? ' active' : '')
+                    }
+                    id={id}
+                    onClick={onClick}
+                    disabled={!isAuth0LibraryLoaded}>
+                    {isLoading ? (
+                        <span className="pull-right">
+                            <i className="account-icon icon icon-spin icon-circle-notch fas align-middle" />
+                        </span>
+                    ) : (
+                        <React.Fragment>
+                            <i className="account-icon icon icon-user fas d-inline d-lg-none" />
+                            <span>Login</span>
+                        </React.Fragment>
+                    )}
+                </a>
+            </OverlayTrigger>
             {unverifiedUserEmail ? <UserRegistrationModal {...props} /> : null}
         </React.Fragment>
     );
