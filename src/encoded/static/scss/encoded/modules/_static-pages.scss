@@ -948,46 +948,98 @@ body[data-path="/"]>#application>#layout {
 										}
 									}
 									.body {
-										padding-left: 8px;
 										color: #485983;
 										font-size: 0.75rem;
 
 										.release-item {
-											padding: 10px 0px 0px 0px;
-											.title {
-												color: #485983;
-												font-weight: 700;
-												font-size: 0.875rem;
-												align-items: center;
-												width: max-content;
+											padding: 5px 0px 0px 0px;
+											
+											.donor-group-header {
+												display: flex;
+												padding: 2px 0px;
+												border-radius: 4px;
+												gap: 4px;
+												padding-bottom: 0px;
 												
-												svg {
-													display: none;
-												}
-	
-												&:hover {
+
+												.toggle-button {
 													display: flex;
-													cursor: pointer;
-													color: #3C71F9;
-	
-													svg {
+													border-radius: 100%;
+													padding: 2px;
+													color: #485983;
+													margin: auto;
+													width: 16px;
+												}
+
+												.title {
+													display: flex;
+													flex: 1;
+													justify-content: space-between;
+													font-weight: 700;
+													font-size: 0.875rem;
+													align-items: center;
+													width: max-content;
+													padding: 2px 8px;
+													color: #485983;
+													border: 1px solid transparent;
+													border-radius: 7px;
+													align-items: baseline;
+													transition: background-color 100ms;
+													margin-bottom: 0px;
+													padding-bottom: 0px;
+													
+													.count {
 														display: flex;
-														fill: #3C71F9;
-														width: 12px;
-														margin-left: 4px;
+														gap: 4px;
+														align-items: center;
+														font-size: 0.6875rem;
+														color: #65759f;
+													}
+
+													&:hover {
+														cursor: pointer;
+														background-color: #E7F1FB;
+														transition: background-color 100ms;
+														// border-radius: 7px 7px 0px 0px;
+														
+														i {
+															fill: #3C71F9;
+														}
+													}
+												}
+												
+												&.expanded {
+													.title {
+														background-color: #E7F1FB;
+														border-radius: 7px 7px 0px 0px;
+														border-color: #B8D3EF;
+														
+														&:hover {
+															background-color: #e0ecf8;
+														}
 													}
 												}
 											}
-	
-											ul {
+											
+
+											.tissue-list {
 												margin-top: 0px;
-												padding-left: 1rem;
+												list-style-type: none;
+												background: #F4F9FF;
+												padding-top: 5px;
+												padding-left: 0px;
+												margin-left: 20px;
+												border-radius: 0px 0px 7px 7px;
+												border: 1px solid #B8D3EF;
+												border-top: none;
 
 												li {
 													font-weight: 300;
-													line-height: 1.25rem;
 													line-height: 1rem;
 													margin-top: 0.25rem;
+													border-radius: 0px 0px 7px 7px;
+													margin-top: 0px;
+													padding: 4px;
 
 													a {
 														color: #485983;
@@ -995,12 +1047,27 @@ body[data-path="/"]>#application>#layout {
 														&:hover {
 															text-decoration: underline;
 														}
-													}
-													
+													}													
 												}
+											}
+
+											.file-group-list {
+												padding-left: 37px;
 											}
 										}
 
+										.toggle-button {
+											&.donor {
+												background-color: transparent;
+												border: none;
+												color: #485983;
+											}
+											&.tissue {
+												background-color: transparent;
+												border: none;
+												color: #485983;
+											}
+										}
 									}
 									&:before {
 										content: "";
@@ -1051,11 +1118,6 @@ body[data-path="/"]>#application>#layout {
 										.body {
 											height: 0px;
 											overflow: hidden;
-										}
-
-										.toggle-button {
-											i:before {
-											}
 										}
 									}
 								}
@@ -1249,9 +1311,6 @@ body[data-path="/"]>#application>#layout {
 				}
 		
 				.about-consortium {
-			
-					.section-header {
-					}
 
 					&-links {
 						display: flex;

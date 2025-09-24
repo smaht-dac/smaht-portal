@@ -3,6 +3,15 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { RightArrowIcon } from '../../util/icon';
 
+// Toggle hook for expanding/collapsing sections
+// Note: should move this into a shared hooks location eventaully
+const useToggle = (initialState = false) => {
+    const [isToggled, setIsToggled] = useState(initialState);
+    const toggle = () => setIsToggled(!isToggled);
+    return [isToggled, toggle];
+};
+
+// Default announcement data
 const announcements = [
     {
         type: 'info',
@@ -78,11 +87,20 @@ const announcements = [
     },
 ];
 
+/**
+ * AnnouncementCard component displays an individual announcement.
+ * @param {string} type - The type of announcement (e.g., 'info', 'warning').
+ * @param {string} title - The title of the announcement.
+ * @param {JSX.Element} body - The body content of the announcement.
+ * @param {JSX.Element|null} footer - Optional footer content for the announcement.
+ * @param {JSX.Element|null} date - Optional date string for the announcement.
+ * @returns {JSX.Element} The rendered AnnouncementCard component.
+ */
 const AnnouncementCard = ({
+    type = 'info',
     title = '',
     body = '',
     footer = null,
-    type = 'info',
     date = null,
 }) => {
     return (
@@ -99,6 +117,40 @@ const AnnouncementCard = ({
             <div className="body">{body}</div>
             {footer ? <div className="footer">{footer}</div> : null}
         </div>
+    );
+};
+
+/**
+ * TissueGroup component displays a tissue group with a toggle to show/hide its items.
+ * @param {string} tissue_group - The name of the tissue group.
+ * @param {Array} items - The list of items (file groups) within the tissue group.
+ * @returns {JSX.Element} The rendered TissueGroup component.
+ */
+const TissueGroup = ({ tissue_group, items }) => {
+    const [isToggled, toggle] = useToggle();
+
+    return (
+        <li>
+            <button className="toggle-button tissue" onClick={() => toggle()}>
+                <i
+                    className={`icon icon-${isToggled ? 'minus' : 'plus'} fas`}
+                />
+            </button>
+            <span>{tissue_group}</span>
+            {isToggled ? (
+                <ul className="file-group-list">
+                    {items.map((item, i) => {
+                        return (
+                            <li key={i}>
+                                <span>
+                                    {item?.count} {item?.value}
+                                </span>
+                            </li>
+                        );
+                    })}
+                </ul>
+            ) : null}
+        </li>
     );
 };
 
@@ -119,9 +171,85 @@ const ReleaseItemWarning = () => {
     );
 };
 
-const DataReleaseItem = ({ data, callout = null }) => {
-    const [isExpanded, setIsExpanded] = useState(true);
-    const { count, items: sample_groups, query, value } = data;
+/**
+ * DonorGroup component displays a donor group with a toggle to show/hide its tissue groups.
+ * @param {number} count - The total count of files in the donor group.
+ * @param {Object} donorGroups - The object containing all donor groups.
+ * @param {string} donorGroup - The name of the donor group.
+ * @param {string} query - The query URL for the donor group.
+ * @returns {JSX.Element} The rendered DonorGroup component.
+ */
+const DonorGroup = (props) => {
+    const {
+        count,
+        donorGroups: donor_groups,
+        donorGroup: donor_group,
+        query,
+    } = props;
+    const [isToggled, toggle] = useToggle();
+
+    let donorTitle = donor_group;
+
+    if (donorTitle?.includes('DAC_DONOR_')) {
+        donorTitle = donorTitle.replace('DAC_DONOR_', '');
+    }
+
+    return (
+        <div className="release-item">
+            <div
+                className={`donor-group-header ${isToggled ? 'expanded' : ''}`}>
+                <button
+                    className="toggle-button donor"
+                    onClick={() => {
+                        toggle();
+                    }}>
+                    <i
+                        className={`icon icon-${
+                            isToggled ? 'minus' : 'plus'
+                        }`}></i>
+                </button>
+                <a className="title" href={query}>
+                    {donorTitle}
+                    <span className="count">
+                        {count ?? 0} {count > 1 ? 'Files' : 'File'}
+                        <i className="icon icon-arrow-right"></i>
+                    </span>
+                </a>
+            </div>
+            {isToggled ? (
+                <ul className="tissue-list">
+                    {Object.keys(donor_groups[donor_group]['items']).map(
+                        (tissue_group, i) => {
+                            const { count, items } =
+                                donor_groups[donor_group]['items'][
+                                    tissue_group
+                                ];
+                            return (
+                                <TissueGroup
+                                    key={i}
+                                    count={count}
+                                    tissue_group={tissue_group}
+                                    items={items}
+                                />
+                            );
+                        }
+                    )}
+                </ul>
+            ) : null}
+        </div>
+    );
+};
+
+/**
+ * DataReleaseItem component displays information about a specific data release.
+ * @param {object} data - The data object containing release information.
+ * @param {number} releaseItemIndex - The index of the release item.
+ * @param {JSX.Element|null} callout - Optional callout component to display above the donor groups.
+ * @returns {JSX.Element} The rendered DataReleaseItem component.
+ */
+const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
+    const [isToggled, toggle] = useToggle(releaseItemIndex === 0);
+    const { count, items: donor_groups, query, value } = data;
 
     // Replace hyphens with slashes and add day field for Safari compatibility
     const date_formatted = value.replace(/-/g, '/') + '/01';
@@ -132,18 +260,18 @@ const DataReleaseItem = ({ data, callout = null }) => {
     return (
         <div
             className={`data-release-item-container ${
-                isExpanded ? 'expanded' : 'collapsed'
+                isToggled ? 'expanded' : 'collapsed'
             }`}>
             <div className="content">
                 <div className="header">
                     <button
                         className="toggle-button"
                         onClick={() => {
-                            setIsExpanded(!isExpanded);
+                            toggle();
                         }}>
                         <i
                             className={`icon icon-${
-                                isExpanded ? 'minus' : 'plus'
+                                isToggled ? 'minus' : 'plus'
                             }`}></i>
                     </button>
                     <a className="header-link" href={count > 0 ? query : null}>
@@ -159,43 +287,17 @@ const DataReleaseItem = ({ data, callout = null }) => {
                     </a>
                 </div>
                 <div className="body">
+                    {/* Map donor groups to drop-downs */}
                     {callout ? <div className="callout">{callout}</div> : null}
-                    {sample_groups.map((sample_group, i) => {
-                        let sample_group_title = sample_group.value;
-
-                        if (sample_group_title?.includes('DAC_DONOR_')) {
-                            sample_group_title = sample_group_title.replace(
-                                'DAC_DONOR_',
-                                ''
-                            );
-                        }
-
-                        const sample_group_type =
-                            sample_group?.items?.[0]?.['additional_value'];
-
-                        if (sample_group_type) {
-                            sample_group_title += ` - ${sample_group_type}`;
-                        }
-
+                    {Object.keys(donor_groups).map((donor_group, i) => {
                         return (
-                            <div className="release-item" key={i}>
-                                <a className="title" href={sample_group.query}>
-                                    {sample_group_title}
-                                    <RightArrowIcon />
-                                </a>
-                                <ul>
-                                    {sample_group.items.map((item, i) => {
-                                        const { value, count, query } = item;
-                                        return (
-                                            <li key={i}>
-                                                <a href={query}>
-                                                    {count} {value}
-                                                </a>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            </div>
+                            <DonorGroup
+                                count={donor_groups[donor_group].count}
+                                key={i}
+                                donorGroups={donor_groups}
+                                donorGroup={donor_group}
+                                query={donor_groups[donor_group].query}
+                            />
                         );
                     })}
                 </div>
@@ -204,6 +306,101 @@ const DataReleaseItem = ({ data, callout = null }) => {
     );
 };
 
+/**
+ * `formatReleaseData` formats the release tracker data into a structure
+ * that more closely matches the UI by grouping the data by donor and tissue
+ * @param {Array} data - The raw release tracker data from the API.
+ * @returns {Array} The formatted release tracker data.
+ */
+const formatReleaseData = (data) => {
+    return data.map((month) => {
+        // Format each month by grouping items by donor and tissue
+        const formattedItems = month?.items?.reduce((acc, item) => {
+            const { count, value, items, query } = item;
+
+            // Pull out Donor and add to [acc]
+            const [donor, tissueCode] = value?.split('-');
+            const tissueType = items?.[0]?.['additional_value'] ?? '';
+            const tissueTitle = tissueType
+                ? tissueType + ' - ' + tissueCode
+                : tissueCode;
+
+            // Update the query to filter on donor instead of release title
+            const donorFilters = `donors.display_title=${donor}`;
+            const donorQuery = query?.replace(
+                `release_tracker_title=${value}`,
+                donorFilters
+            );
+
+            // Do the same for tissue query
+            const tissueFilters = `${donorFilters}&sample_summary.tissues=${tissueType}`;
+            const tissueQuery = query?.replace(
+                `release_tracker_title=${value}`,
+                tissueFilters
+            );
+
+            // Update tissue item queries to include tissue query + specific tissue filter
+            const tissueItems = item?.items.map((tissueItem) => ({
+                ...tissueItem,
+                query: `${tissueQuery}&${
+                    tissueItem.name
+                }=${tissueItem.value.replaceAll(' ', '+')}`,
+            }));
+
+            // Create a new entry for the donor if it doesn't exist
+            if (!acc?.[donor]) {
+                // Place tissue items into new donor group
+                const newDonorItems = {
+                    [tissueTitle]: {
+                        items: tissueItems,
+                        count,
+                        query: tissueQuery,
+                        donor,
+                    },
+                };
+                acc[donor] = {
+                    items: newDonorItems,
+                    count,
+                    query: donorQuery,
+                };
+            } else {
+                // Append new tissue category if it doesn't exist on donor
+                if (!acc?.[donor]?.items?.[tissueTitle]) {
+                    acc[donor].items[tissueTitle] = {
+                        items: tissueItems,
+                        count,
+                        query: tissueQuery,
+                    };
+
+                    // Add count to donor total
+                    acc[donor].count += count;
+                } else {
+                    // Simply add to existing tissue category
+                    acc[donor].items[tissueTitle].items.push(...tissueItems);
+
+                    // Add count to tissue total
+                    acc[donor].items[tissueTitle].count += count;
+
+                    // Add count to donor total
+                    acc[donor].count += count;
+                }
+            }
+
+            return acc;
+        }, {});
+
+        return {
+            ...month,
+            items: formattedItems,
+        };
+    });
+};
+
+/**
+ * NotificationsPanel component displays a panel containg the data release
+ * tracker, the announcements section, and other relevant links/information.
+ * @returns {JSX.Element} The rendered NotificationsPanel component.
+ */
 export const NotificationsPanel = () => {
     const [data, setData] = useState(null);
 
@@ -211,7 +408,7 @@ export const NotificationsPanel = () => {
         ajax.load(
             '/recent_files_summary?format=json&nmonths=3',
             (resp) => {
-                setData(resp?.items ?? []);
+                setData(resp?.items ? formatReleaseData(resp?.items) : []);
             },
             'GET',
             (err) => {
@@ -241,6 +438,7 @@ export const NotificationsPanel = () => {
                                         query: '',
                                     }}
                                     callout={<ReleaseItemWarning />}
+                                    releaseItemIndex={0}
                                 />
                             ) : (
                                 data.map((releaseItem, i) => {
@@ -249,11 +447,13 @@ export const NotificationsPanel = () => {
                                             data={releaseItem}
                                             key={i}
                                             callout={<ReleaseItemWarning />}
+                                            releaseItemIndex={i}
                                         />
                                     ) : (
                                         <DataReleaseItem
                                             data={releaseItem}
                                             key={i}
+                                            releaseItemIndex={i}
                                         />
                                     );
                                 })
