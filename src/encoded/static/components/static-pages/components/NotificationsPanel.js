@@ -121,15 +121,15 @@ const TissueGroup = ({ tissue_group, items, query }) => {
                     className={`icon icon-${isToggled ? 'minus' : 'plus'} fas`}
                 />
             </button>
-            <a href={query}>{tissue_group}</a>
+            <span>{tissue_group}</span>
             {isToggled ? (
                 <ul className="file-group-list">
                     {items.map((item, i) => {
                         return (
                             <li key={i}>
-                                <a href={item?.query}>
+                                <span>
                                     {item?.count} {item?.value}
-                                </a>
+                                </span>
                             </li>
                         );
                     })}
@@ -410,6 +410,7 @@ export const NotificationsPanel = () => {
                                         query: '',
                                     }}
                                     callout={<ReleaseItemWarning />}
+                                    releaseItemIndex={0}
                                 />
                             ) : (
                                 data.map((releaseItem, i) => {
