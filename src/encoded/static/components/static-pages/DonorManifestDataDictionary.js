@@ -86,6 +86,8 @@ const DonorManifestDataDictionaryTable = ({
                     .map((propertyKey, i) => {
                         const item = data[propertyKey];
 
+                        console.log('Rendering row for item:', item);
+
                         return (
                             <tr
                                 key={i}
@@ -135,6 +137,10 @@ const DonorManifestDataDictionaryTable = ({
                                                 {item.suggested_enum.join(', ')}
                                             </p>
                                         )}
+                                    </td>
+                                ) : item?.example ? (
+                                    <td className="text-left">
+                                        <b>Example:</b> {item.example}
                                     </td>
                                 ) : (
                                     <td className="text-left text-secondary">
@@ -290,60 +296,93 @@ const fieldsToDisplay = new Map([
                 title: 'accession',
                 description:
                     'A unique identifier to be used to reference the object',
+                example: 'SMADOXHZ8YDJ',
             },
             {
                 title: 'external_id',
                 description: 'External ID for the item provided by submitter',
+                example: 'SMHT005',
             },
-            { title: 'age' },
-            { title: 'eligibility' },
-            { title: 'hardy_scale' },
-            { title: 'sex' },
-            { title: 'tpc_submitted' },
+            { title: 'age', example: '22' },
+            { title: 'eligibility', example: 'Yes' },
+            { title: 'hardy_scale', example: '3' },
+            { title: 'sex', example: 'Male' },
+            { title: 'tpc_submitted', example: 'TRUE' },
         ],
     ],
     [
         'Demographic',
         [
             { title: 'international_military_base' },
-            { title: 'international_military_base_details' },
+            {
+                title: 'international_military_base_details',
+                example: 'Asia 1960s',
+            },
             { title: 'military_association' },
         ],
     ],
     [
         'DeathCircumstances',
         [
-            { title: 'blood_transfusion' },
-            { title: 'blood_transfusion_products' },
-            { title: 'cause_of_death_immediate' },
-            { title: 'cause_of_death_immediate_interval' },
-            { title: 'cause_of_death_initial' },
-            { title: 'cause_of_death_last_underlying' },
-            { title: 'circumstances_of_death' },
-            { title: 'death_pronounced_interval_h' },
+            { title: 'blood_transfusion', example: 'Packed RBCs' },
+            {
+                title: 'blood_transfusion_products',
+                example: 'Respiratory Failure',
+            },
+            { title: 'cause_of_death_immediate', example: 'Cardiac arrest' },
+            {
+                title: 'cause_of_death_immediate_interval',
+                example: '0.13',
+            },
+            {
+                title: 'cause_of_death_initial',
+                example: 'Respiratory distress',
+            },
+            {
+                title: 'cause_of_death_last_underlying',
+                example: 'Alcohol abuse',
+            },
+            {
+                title: 'circumstances_of_death',
+                description: 'The manner or context in which death occurred',
+            },
+            {
+                title: 'death_pronounced_interval_h',
+                description:
+                    'Interval of time between death pronouncement and witness of death (hours)',
+                example: '1.48',
+            },
             { title: 'donor_stream' },
             { title: 'place_of_death' },
             { title: 'region_of_death' },
             { title: 'season_of_death' },
             { title: 'sepsis_at_death' },
             { title: 'ventilator_at_death' },
-            { title: 'ventilator_time_h' },
+            {
+                title: 'ventilator_time_h',
+                description:
+                    'Time the donor was on a ventilator prior to death (hours)',
+                example: '90.5',
+            },
         ],
     ],
     [
         'MedicalHistory',
         [
             { title: 'alcohol_use' },
-            { title: 'allergens' },
+            { title: 'allergens', example: 'Penicillin' },
             { title: 'allergies' },
             { title: 'autograft_transplantation' },
-            { title: 'autograft_transplantation_details' },
-            { title: 'body_mass_index' },
+            {
+                title: 'autograft_transplantation_details',
+                example: 'Muscle from thigh for knee re-build',
+            },
+            { title: 'body_mass_index', example: '33.84' },
             { title: 'cancer_chemotherapy' },
             { title: 'cancer_current' },
             { title: 'cancer_history' },
             { title: 'cancer_radiation_therapy' },
-            { title: 'cancer_type' },
+            { title: 'cancer_type', example: 'Skin cancer' },
             { title: 'cmv_total_antibody' },
             { title: 'cmv_igg_antibody' },
             { title: 'cmv_igm_antibody' },
@@ -355,7 +394,11 @@ const fieldsToDisplay = new Map([
             { title: 'family_diabetes' },
             { title: 'family_heart_disease' },
             { title: 'family_ovarian_pancreatic_prostate_cancer' },
-            { title: 'height_m' },
+            {
+                title: 'height_m',
+                description: 'Height of the donor (meters)',
+                example: '1.75',
+            },
             { title: 'hepatitis_b_core_antibody' },
             { title: 'hepatitis_b_surface_antibody' },
             { title: 'hepatitis_b_surface_antigen' },
@@ -364,50 +407,86 @@ const fieldsToDisplay = new Map([
             { title: 'hiv_1_2_antibody' },
             { title: 'hiv_nat' },
             { title: 'illicit_drug_use' },
-            { title: 'pregnancy_count' },
+            { title: 'pregnancy_count', example: '2' },
             { title: 'pregnancy_male_fetus' },
             { title: 'syphilis_rpr' },
             { title: 'tobacco_use' },
             { title: 'toxic_exposure' },
             { title: 'twin_or_multiple_birth' },
             { title: 'twin_or_multiple_birth_details' },
-            { title: 'weight_kg' },
+            {
+                title: 'weight_kg',
+                description: 'Weight of the donor (kg)',
+                example: '59.87',
+            },
             { title: 'xenograft_transplantation' },
-            { title: 'xenograft_transplantation_details' },
+            {
+                title: 'xenograft_transplantation_details',
+                example: 'Pig heart valve',
+            },
         ],
     ],
     [
         'TissueCollection',
         [
-            { title: 'collection_site' },
-            { title: 'ischemic_time_h' },
+            { title: 'collection_site', example: 'TPC4' },
+            {
+                title: 'ischemic_time_h',
+                description:
+                    'Time interval between death, presumed death, or cross-clamp application and beginning of tissue collection (hours)',
+                example: '14.8',
+            },
             { title: 'organ_transplant' },
-            { title: 'organs_transplanted' },
-            { title: 'recovery_datetime' },
-            { title: 'recovery_interval_min' },
+            { title: 'organs_transplanted', example: 'Bone' },
+            { title: 'recovery_datetime', example: '12/6/24' },
+            {
+                title: 'recovery_interval_min',
+                description:
+                    'Total time interval of tissue collection (minutes)',
+                example: '205',
+            },
             { title: 'refrigeration_prior_to_procurement' },
-            { title: 'refrigeration_prior_to_procurement_time_h' },
+            {
+                title: 'refrigeration_prior_to_procurement_time_h',
+                description:
+                    'Interval of time the donor was refrigerated prior to tissue collection (hours)',
+                example: '12.07',
+            },
         ],
     ],
-    ['FamilyHistory', [{ title: 'disease' }, { title: 'relatives' }]],
+    [
+        'FamilyHistory',
+        [
+            { title: 'disease', example: 'Diabetes' },
+            { title: 'relatives', example: 'Cousin' },
+        ],
+    ],
     [
         'MedicalTreatment',
         [
-            { title: 'title' },
-            { title: 'category' },
-            { title: 'comments' },
-            { title: 'counts' },
-            { title: 'year_end' },
-            { title: 'year_start' },
+            { title: 'title', example: 'Cataract surgery' },
+            { title: 'category', example: 'Surgery' },
+            { title: 'comments', example: 'bilateral' },
+            { title: 'counts', example: '1' },
+            { title: 'year_end', example: '1999' },
+            { title: 'year_start', example: '2012' },
         ],
     ],
     [
         'Diagnosis',
         [
-            { title: 'age_at_diagnosis' },
-            { title: 'age_at_resolution' },
-            { title: 'comments' },
-            { title: 'disease' },
+            { title: 'age_at_diagnosis', example: 'NA|31' },
+            { title: 'age_at_resolution', example: 'NA|NA|21' },
+            {
+                title: 'comments',
+                example:
+                    'Improved ejection fraction|Nonischemic|NA|Admission course event|NA|NA',
+            },
+            {
+                title: 'disease',
+                example:
+                    'Asthma|Sleep apnea|Gastroesophageal reflux disease (GERD)',
+            },
         ],
     ],
     [
@@ -415,14 +494,22 @@ const fieldsToDisplay = new Map([
         [
             { title: 'category' },
             { title: 'cessation' },
-            { title: 'cessation_duration_y' },
-            { title: 'comments' },
-            { title: 'duration_y' },
+            {
+                title: 'cessation_duration_y',
+                description: 'Duration since exposure ceased (years)',
+                example: '26',
+            },
+            { title: 'comments', example: 'Estimate: On and off use|NA' },
+            {
+                title: 'duration_y',
+                description: 'Duration of the exposure (years)',
+                example: '5',
+            },
             { title: 'frequency_category' },
-            { title: 'quantity' },
+            { title: 'quantity', example: '1|12' },
             { title: 'quantity_unit' },
             { title: 'route' },
-            { title: 'substance' },
+            { title: 'substance', example: 'Asbestos' },
         ],
     ],
 ]);
