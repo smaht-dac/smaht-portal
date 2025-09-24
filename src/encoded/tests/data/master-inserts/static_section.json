@@ -617,5 +617,24 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "identifier": "smaht-team",
+        "title": "SMaHT Team",
+        "file": "/docs/public/smaht_team.jsx",
+        "status": "released",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "c8e2f3e2-2f3e-4d1b-8e2a-5f3e2d1b8e2a",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]
