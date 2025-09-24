@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+1.2.0
+=====
+
+* Adjusts the user schema to replicate the attributions without
+  serverDefault for submission center, ensuring attribution is not given
+  erroneously to non-affiliated users
+* Regression test for the above
+* Change data release tracker to direct users to /browse, include only
+  production files, update tests as needed
+
+
 1.1.8
 ======
 `PR 524: fix: update uuids to match prod <https://github.com/smaht-dac/smaht-portal/pull/524>`_
@@ -21,16 +32,6 @@ Change Log
 * Update page to match newest version of the documentation
 * Add newest version of the pdf document to the page
 
-
-1.1.7
-=====
-
-* Adjusts the user schema to replicate the attributions without
-  serverDefault for submission center, ensuring attribution is not given
-  erroneously to non-affiliated users
-* Regression test for the above
-* Change data release tracker to direct users to /browse, include only
-  production files
 
 1.1.6
 =====
