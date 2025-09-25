@@ -219,8 +219,7 @@ export const PortalShutdownWarningModal = React.memo(function (props) {
             </h3>
 
             <h4 style={{ fontSize: "16px", fontWeight: "400", marginBottom: "12px" }}>
-                The SMaHT Data Portal will have limited access to users
-                from Sept 29 – Oct 10.
+                The SMaHT Data Portal will have limited access from Sept 29 – Oct 10.
             </h4>
 
             <h4 style={{ fontSize: "16px", fontWeight: "400", marginBottom: "0" }}>
