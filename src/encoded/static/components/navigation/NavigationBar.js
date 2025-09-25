@@ -88,7 +88,7 @@ export class NavigationBar extends React.PureComponent {
             testWarningPresent,
             hideTestWarning,
         } = this.props;
-        const testWarningVisible = testWarningPresent & !isFullscreen; // Hidden on full screen mode.
+        const testWarningVisible = !!(testWarningPresent & !isFullscreen); // Hidden on full screen mode.
         const message =
             context?.test_warning ||
             'The Data Portal will have limited access from Sept 29 - Oct 10. Please visit again after October 10th, 2025.';
