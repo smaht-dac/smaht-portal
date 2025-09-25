@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import Select from 'react-select';
 import {
@@ -22,12 +22,6 @@ const DonorManifestDataDictionaryTable = ({
     selectedProperty = null,
     data = {},
 }) => {
-    console.log(
-        'Rendering table with data:',
-        data,
-        'selectedProperty:',
-        selectedProperty
-    );
     return Object.keys(data).length > 0 ? (
         <table className="table table-bordered table-striped">
             <thead className="thead-smaht">
@@ -86,8 +80,6 @@ const DonorManifestDataDictionaryTable = ({
                     .map((propertyKey, i) => {
                         const item = data[propertyKey];
 
-                        console.log('Rendering row for item:', item);
-
                         return (
                             <tr
                                 key={i}
@@ -98,14 +90,7 @@ const DonorManifestDataDictionaryTable = ({
                                 }`}>
                                 {/* Title */}
                                 {item?.title ? (
-                                    <td
-                                        className={`text-left ${
-                                            item.is_required
-                                                ? 'text-danger fw-bold'
-                                                : ''
-                                        }`}>
-                                        {item.title}
-                                    </td>
+                                    <td className="text-left">{item.title}</td>
                                 ) : (
                                     <td className="text-left text-secondary">
                                         -
@@ -139,8 +124,8 @@ const DonorManifestDataDictionaryTable = ({
                                         )}
                                     </td>
                                 ) : item?.example ? (
-                                    <td className="text-left">
-                                        <b>Example:</b> {item.example}
+                                    <td className="text-left example">
+                                        <b>Ex:</b> {item.example}
                                     </td>
                                 ) : (
                                     <td className="text-left text-secondary">
@@ -245,21 +230,34 @@ export const DonorManifestDataDictionary = () => {
 
     return schemaData ? (
         <div className="schema-reference-page">
+            <div className="callout mt-2 mb-2">
+                <p className="mb-2">
+                    The <b>Donor Metadata Data Dictionary</b> provides a
+                    reference of metadata items and properties included in the
+                    Donor Manifest. You can search for specific metadata items
+                    or properties using the dropdown below.
+                </p>
+                <p>
+                    To search by a <b>metadata item</b>, type in the name of the
+                    item in the search bar below (e.g. <i>Family History</i>).
+                    <br />
+                    For a <b>metadata property</b>, type in the name of the
+                    property (e.g. <i>disease</i>).
+                    <br />
+                    To search for a <b>specific property within an item</b>,
+                    type &lt;item&gt;.&lt;property&gt; (e.g.
+                    <i>FamilyHistory.disease</i>).
+                </p>
+            </div>
+            <hr className="my-4"></hr>
             <Select
                 value={selectedSchema}
-                placeholder="Select a tab/item type from the Submission Spreadsheet (e.g. AlignedReads or Analyte)..."
+                placeholder="Select a item type or property from the Donor Metadata (e.g. Demographic)..."
                 onChange={(selectedItem) => {
                     setSelectedSchema(selectedItem);
                 }}
                 options={options}
             />
-            <div className="callout mt-2">
-                <p>
-                    <b>Note:</b> Metadata Property names in{' '}
-                    <span className="text-danger fw-bold">RED</span> are
-                    required for all items of that item type.
-                </p>
-            </div>
             {selectedSchema?.value && (
                 <div
                     className={`selected-schema schema-item ${selectedSchema.value} table-responsive`}>
