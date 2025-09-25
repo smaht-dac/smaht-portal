@@ -339,7 +339,7 @@ div.navbar-fixed-top {
                 > button {
                     @include navbar-link-button-item;
                     
-                    &.disabled {
+                    &.disabled, &.muted {
                         cursor: default;
                         color: #cad1d6;
                     }
@@ -379,7 +379,8 @@ div.navbar-fixed-top {
                                 margin: auto;
                             }
 
-                            &.disabled {
+                            &.disabled,
+                            &.muted {
                                 background-color: #cad1d6 !important;
                                 border-color: #959ba6 !important;
                             }

@@ -4,7 +4,7 @@ import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import { layout } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { UserRegistrationModal } from './UserRegistrationModal';
+import { PortalShutdownWarningModal, UserRegistrationModal } from './UserRegistrationModal';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import { Popover, PopoverBody } from 'react-bootstrap';
 
@@ -15,6 +15,7 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
         showLock,
         isLoading,
         isAuth0LibraryLoaded = true,
+        className = '',
         disabled = false
     } = props;
     const onClick = useCallback(
@@ -34,7 +35,7 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
             <a
                 role="button"
                 href="#"
-                className="nav-link user-account-item disabled"
+                className={"nav-link user-account-item disabled" + (className ? ' ' + className : '')}
                 id={id}
                 onClick={(e) => {
                     e.preventDefault();
@@ -54,7 +55,8 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
                     href="#"
                     className={
                         'nav-link user-account-item' +
-                        (unverifiedUserEmail ? ' active' : '')
+                        (unverifiedUserEmail ? ' active' : '') +
+                        (className ? ' ' + className : '')
                     }
                     id={id}
                     onClick={onClick}
@@ -71,7 +73,8 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
                     )}
                 </a>
             </LoginButtonWrapper>
-            {unverifiedUserEmail ? <UserRegistrationModal {...props} /> : null}
+            {/* {unverifiedUserEmail ? <UserRegistrationModal {...props} /> : null} */} {/* // COMMENT OUT AFTER PORTAL REOPENS -- */}
+            {unverifiedUserEmail ? <PortalShutdownWarningModal {...props} /> : null} {/* // TO REMOVE AFTER PORTAL REOPENS -- */}
         </React.Fragment>
     );
 });

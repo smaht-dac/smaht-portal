@@ -82,8 +82,8 @@ export const AccountNav = React.memo(function AccountNav(props) {
                     <LoginNavItem
                         {...{ schemas, session, href, windowWidth }}
                         key="login-register"
-                        className="user-account-item"
-                        disabled={false} // TODO: remove when portal shut down is over
+                        className="muted" // TODO: remove when portal shut down is over
+                        disabled={false}
                     />
                 </LoginController>
             </div>
