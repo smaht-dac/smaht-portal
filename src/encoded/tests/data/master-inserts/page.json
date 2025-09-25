@@ -390,7 +390,7 @@
     },
 
     {
-        "identifier": "docs/additional-resources/donor-metadata-data-dictionary",
+        "identifier": "docs/additional-resources/donor-manifest-dictionary",
         "uuid": "5e64b78a-58c1-48c3-b031-e8837a19b4a4",
         "status": "released",
         "content": [
@@ -399,7 +399,7 @@
         "table-of-contents": {
             "enabled": false
         },
-        "title": "Donor Metadata Data Dictionary",
+        "title": "Donor Manifest Dictionary",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],

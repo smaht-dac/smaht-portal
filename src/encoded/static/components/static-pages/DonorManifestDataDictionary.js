@@ -41,9 +41,8 @@ const DonorManifestDataDictionaryTable = ({
                                             this property.
                                         </p>
                                         <p>
-                                            <b>Examples:</b> Suggested values
-                                            for this property. Other values
-                                            accepted.
+                                            <b>Ex:</b> Example values for this
+                                            property.
                                         </p>
                                     </PopoverBody>
                                 </Popover>
@@ -232,10 +231,10 @@ export const DonorManifestDataDictionary = () => {
         <div className="schema-reference-page">
             <div className="callout mt-2 mb-2">
                 <p className="mb-2">
-                    The <b>Donor Metadata Data Dictionary</b> provides a
-                    reference of metadata items and properties included in the
-                    Donor Manifest. You can search for specific metadata items
-                    or properties using the dropdown below.
+                    The <b>Donor Manifest Dictionary</b> provides a reference of
+                    metadata items and properties included in the Donor
+                    Manifest. You can search for specific metadata items or
+                    properties using the dropdown below.
                 </p>
                 <p>
                     Search by: <br />

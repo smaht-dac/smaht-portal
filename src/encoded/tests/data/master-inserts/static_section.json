@@ -619,9 +619,9 @@
         ]
     },
     {
-        "identifier": "donor_metadata_data_dictionary",
-        "title": "Donor Metadata Data Dictionary",
-        "file": "/docs/public/donor_metadata_data_dictionary.jsx",
+        "identifier": "donor_manifest_dictionary",
+        "title": "Donor Manifest Dictionary",
+        "file": "/docs/public/donor_manifest_dictionary.jsx",
         "status": "released",
         "options": {
             "filetype": "jsx",
