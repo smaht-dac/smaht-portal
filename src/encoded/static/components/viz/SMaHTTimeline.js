@@ -43,8 +43,7 @@ const TimelineItem = ({
                 </h3>
             </div>
             <div className="timeline-content">
-                <TimelineAccordion
-                    defaultActiveKey={itemKey === 0 ? ['1'] : ['0']}>
+                <TimelineAccordion defaultActiveKey={['0', '1']}>
                     {categories.map((category, j) => {
                         return (
                             <TimelineAccordionDrawer
@@ -118,7 +117,9 @@ function ContextAwareToggle({
             )}
             {link ? (
                 <a href={link} className="card-header-link">
-                    <RightArrowIcon fill={currentTier === tier ? '#74CFB2' : '#9CC7EF'} />
+                    <RightArrowIcon
+                        fill={currentTier === tier ? '#74CFB2' : '#9CC7EF'}
+                    />
                 </a>
             ) : null}
         </div>

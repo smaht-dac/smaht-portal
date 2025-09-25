@@ -6,6 +6,7 @@ import {
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import { BrowseLinkIcon } from './BrowseLinkIcon';
+import { BROWSE_STATUS_FILTERS } from '../BrowseView';
 
 export const BrowseSummaryStatController = (props) => {
     const { type, additionalSearchQueries = '' } = props;
@@ -65,7 +66,6 @@ export const BrowseSummaryStatController = (props) => {
     });
 
     const fallbackFxn = useCallback((resp) => {
-        console.log('BrowseSummaryStatController error', resp);
         setLoading(false);
         setError(true);
     });
@@ -76,7 +76,7 @@ export const BrowseSummaryStatController = (props) => {
 
         // Use search for query-based metrics
         ajax.load(
-            `/search/?type=File&sample_summary.studies=Production&format=json&status=released${additionalSearchQueries}`,
+            `/search/?type=File&sample_summary.studies=Production&format=json&${BROWSE_STATUS_FILTERS}${additionalSearchQueries}`,
             callbackFxn,
             'GET',
             fallbackFxn
