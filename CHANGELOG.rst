@@ -7,6 +7,24 @@ smaht-portal
 Change Log
 ----------
 
+1.2.0
+=====
+
+* Adjusts the user schema to replicate the attributions without
+  serverDefault for submission center, ensuring attribution is not given
+  erroneously to non-affiliated users
+* Regression test for the above
+* Change data release tracker to direct users to /browse, include only
+  production files, update tests as needed
+
+
+1.1.8
+======
+`PR 524: fix: update uuids to match prod <https://github.com/smaht-dac/smaht-portal/pull/524>`_
+
+* Fix uuids for the pages and static sections below in order to prevent uuid mismatches causing reindex crash
+
+
 1.1.7
 =====
 `PR 511: SN Sample Nomenclature doc <https://github.com/smaht-dac/smaht-portal/pull/511>`_
@@ -100,7 +118,7 @@ groups
   public-restricted statuses, along with tests for files as well utilizing
   the new groups
 
-  
+
 0.195.3
 =======
 `PR 512: feat: remove quantity field from protected donor view <https://github.com/smaht-dac/smaht-portal/pull/512>`_
