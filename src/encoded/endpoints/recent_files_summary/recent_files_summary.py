@@ -43,7 +43,7 @@ QUERY_FILE_CATEGORIES = ["!Quality Control"]
 QUERY_FILE_TAGS = ["!exclude_from_release_tracker"]
 QUERY_RECENT_MONTHS = 3
 QUERY_INCLUDE_CURRENT_MONTH = True
-BASE_SEARCH_QUERY = "/search/"
+BASE_SEARCH_QUERY = "/browse/"
 LEGACY_DEFAULT = False
 
 
@@ -148,6 +148,7 @@ def recent_files_summary(request: PyramidRequest,
             "type": types if types else None,
             "status": statuses if statuses else None,
             "data_category": categories if categories else None,
+            'sample_summary.studies': ['Production'],
             "tags": tags if tags else None
         }
 
@@ -221,7 +222,7 @@ def recent_files_summary(request: PyramidRequest,
                     if_or_else_if = "if" if aggregation_field_grouping_index == 0 else "else if"
                     # Note that if there are multiple values for the aggregation field just the "first" one will be chosen;
                     # where "first" means which was indexed first, which from an application POV is kind of arbitrary.
-                    # If we want to make it more deterministic we could order the results (say) alphabetically like so: 
+                    # If we want to make it more deterministic we could order the results (say) alphabetically like so:
                     #   def value = doc['embedded.{aggregation_field}.raw'].stream().min((a, b) -> a.compareTo(b)).get();
                     #   return '{aggregation_field}:' + value;
                     # OR, if we actually want to aggregation on ALL values we could collect the results and return all like so:

@@ -7,22 +7,68 @@ smaht-portal
 Change Log
 ----------
 
-1.2.0
+1.3.0
 =======
 `PR 523: feat: Donor Metadata Dictionary <https://github.com/smaht-dac/smaht-portal/pull/523>`_
 
 * Implement Donor Metadata Dictionary page
 
 
+1.2.1
+=====
+
+* Correct link in submission doc page 
+
+
+1.2.0
+=====
+
+* Adjusts the user schema to replicate the attributions without
+  serverDefault for submission center, ensuring attribution is not given
+  erroneously to non-affiliated users
+* Regression test for the above
+* Change data release tracker to direct users to /browse, include only
+  production files, update tests as needed
+
+
+1.1.8
+======
+`PR 524: fix: update uuids to match prod <https://github.com/smaht-dac/smaht-portal/pull/524>`_
+
+* Fix uuids for the pages and static sections below in order to prevent uuid mismatches causing reindex crash
+
+
+1.1.7
+=====
+`PR 511: SN Sample Nomenclature doc <https://github.com/smaht-dac/smaht-portal/pull/511>`_
+
+* Update page to match newest version of the documentation
+* Add newest version of the pdf document to the page
+
+
+1.1.6
+=====
+`PR 526: feat: release tracker CRAM warning callout <https://github.com/smaht-dac/smaht-portal/pull/526>`_
+
+* Add support for CRAM warning in release tracker items
+
+
+1.1.5
+=====
+`PR 525: Fix: Re-include ingestion_processors in app config <https://github.com/smaht-dac/smaht-portal/pull/525>`_
+
+* Re-include ingestion_processors in app config
+
+
 1.1.4
-=======
+=====
 `PR 521: Modify production tissues in Submission Status page <https://github.com/smaht-dac/smaht-portal/pull/521>`_
 
 * Adjust production tissues in Submission Status page
 
 
 1.1.3
-=======
+=====
 `PR 499: WF Fix ingesting identical items <https://github.com/smaht-dac/smaht-portal/pull/499>`_
 
 * Add diff check for ingested metadata
@@ -85,7 +131,7 @@ groups
   public-restricted statuses, along with tests for files as well utilizing
   the new groups
 
-  
+
 0.195.3
 =======
 `PR 512: feat: remove quantity field from protected donor view <https://github.com/smaht-dac/smaht-portal/pull/512>`_
