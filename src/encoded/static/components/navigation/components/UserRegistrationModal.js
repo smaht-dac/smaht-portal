@@ -180,12 +180,13 @@ UserRegistrationModal.propTypes = {
 // TO REMOVE AFTER PORTAL REOPENS --
 export const PortalShutdownWarningModal = React.memo(function (props) {
     const [show, setShow] = useState(true);
-    const handleClose = () => setShow(false);
 
-    // Remove jwttoken cookie when component mounts
-    useEffect(() => {
-        performLogout();
-    }, []);
+    const handleClose = () => {
+        setShow(false);
+        location.reload();
+    };
+
+    performLogout();
 
     // since this component is to be removed after portal reopens, the css styles are kept inline for easier removal
     const formHeadingDuringShutdown = (
