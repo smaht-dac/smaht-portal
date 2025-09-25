@@ -79,10 +79,6 @@ const SchemaPropertiesTable = ({ schemaKey = '', data = {} }) => {
                             ?.find(
                                 ({ title }) => title === propertyKey
                             )?.description;
-                        console.log(
-                            'description_from_map',
-                            description_from_map
-                        );
                     }
                     return (
                         <tr key={i}>
@@ -181,7 +177,6 @@ const SchemaPropertiesTable = ({ schemaKey = '', data = {} }) => {
 export const SubmissionDataDictionary = () => {
     const [schemaData, setSchemaData] = React.useState(null);
     const [selectedSchema, setSelectedSchema] = React.useState(null);
-    console.log('schema', schemaData);
 
     useEffect(() => {
         ajax.load(
