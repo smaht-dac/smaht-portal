@@ -238,14 +238,15 @@ export const DonorManifestDataDictionary = () => {
                     or properties using the dropdown below.
                 </p>
                 <p>
-                    To search by a <b>metadata item</b>, type in the name of the
-                    item in the search bar below (e.g. <i>Family History</i>).
+                    Search by: <br />
+                    <b>Metadata item: </b> type in the name of the item in the
+                    search bar below (e.g. <i>Family History</i>).
                     <br />
-                    For a <b>metadata property</b>, type in the name of the
-                    property (e.g. <i>disease</i>).
+                    <b>Metadata property: </b> type in the name of the property
+                    (e.g. <i>disease</i>).
                     <br />
-                    To search for a <b>specific property within an item</b>,
-                    type &lt;item&gt;.&lt;property&gt; (e.g.
+                    <b>Specific property in an item: </b> type
+                    &lt;item&gt;.&lt;property&gt; (e.g.
                     <i>FamilyHistory.disease</i>).
                 </p>
             </div>
