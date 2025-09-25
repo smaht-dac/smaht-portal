@@ -239,14 +239,14 @@ export const DonorManifestDataDictionary = () => {
                 <p>
                     Search by: <br />
                     <b>Metadata item: </b> type in the name of the item in the
-                    search bar below (e.g. <i>Family History</i>).
+                    search bar below (e.g. <i>FamilyHistory</i>).
                     <br />
                     <b>Metadata property: </b> type in the name of the property
                     (e.g. <i>disease</i>).
                     <br />
                     <b>Specific property in an item: </b> type
                     &lt;item&gt;.&lt;property&gt; (e.g.
-                    <i>FamilyHistory.disease</i>).
+                    <i>familyhistory.disease</i>).
                 </p>
             </div>
             <hr className="my-4"></hr>
