@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+1.2.1
+=====
+
+* Correct link in submission doc page 
+
+
 1.2.0
 =====
 
