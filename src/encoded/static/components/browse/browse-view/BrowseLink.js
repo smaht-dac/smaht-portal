@@ -1,9 +1,18 @@
 import React from 'react';
 import { BrowseLinkIcon } from './BrowseLinkIcon';
+import { BROWSE_LINKS } from '../BrowseView';
 
-export const BrowseLink = React.memo(function BrowseLink(props) {
-    const { type, disabled } = props;
+export const BrowseLink = (props) => {
+    const { type, disabled, session = false, userDownloadAccess = {} } = props;
 
+    let studyField = 'sample_summary.studies';
+    let additionalFilters = null;
+    if (type === 'Donor' || type === 'ProtectedDonor') {
+        studyField = 'study';
+        additionalFilters = '&tags=has_released_files';
+    }
+
+    // Return a disabled version
     if (disabled) {
         return (
             <div className="browse-link">
@@ -18,10 +27,36 @@ export const BrowseLink = React.memo(function BrowseLink(props) {
         );
     }
 
+    let hrefToUse = '';
+
+    // Set href based on the type of file
+    if (type === 'Donor') {
+        // Protected link for consortium members
+        if (
+            session &&
+            (userDownloadAccess?.['restricted'] ||
+                userDownloadAccess?.['public-restricted'])
+        ) {
+            // Only include released files (assume ProtectedDonor items should not be public)
+            hrefToUse = BROWSE_LINKS.protected_donor;
+        } else {
+            hrefToUse = BROWSE_LINKS.donor;
+        }
+    } else if (type === 'File') {
+        hrefToUse = BROWSE_LINKS.file;
+    }
+
     return (
-        <a href={`/browse/?type=${type}`} className="browse-link">
+        <a
+            href={
+                hrefToUse ||
+                `/browse/?type=${type}&${studyField}=Production&status=released${
+                    additionalFilters || ''
+                }`
+            }
+            className="browse-link">
             <BrowseLinkIcon {...{ type }} />
             {type}
         </a>
     );
-});
+};

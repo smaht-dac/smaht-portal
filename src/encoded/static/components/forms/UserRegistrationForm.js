@@ -14,8 +14,7 @@ import {
     analytics,
     logger,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { LinkToSelector } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/LinkToSelector';
-import Collapse from 'react-bootstrap/esm/Collapse';
+import { Checkbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Checkbox';
 
 export default class UserRegistrationForm extends React.PureComponent {
     static propTypes = {
@@ -23,10 +22,11 @@ export default class UserRegistrationForm extends React.PureComponent {
         onComplete: PropTypes.func.isRequired,
         endpoint: PropTypes.string.isRequired,
         captchaSiteKey: PropTypes.string,
+        onExitLinkClick: PropTypes.func.isRequired,
     };
 
     static defaultProps = {
-        captchaSiteKey: '6Ldq_OIeAAAAAFyJU-_A_EuazErJnF8vMRFS4gaA', // XXX: this needs to be resolved another way
+        captchaSiteKey: '6Lf6dZYUAAAAAEq46tu1mNp0BTCyl0-_wuJAu3nj', // XXX: this needs to be resolved another way
         endpoint: '/create-unauthorized-user',
     };
 
@@ -39,40 +39,86 @@ export default class UserRegistrationForm extends React.PureComponent {
 
         this.onFirstNameChange = this.onFirstNameChange.bind(this);
         this.onLastNameChange = this.onLastNameChange.bind(this);
-        this.onContactEmailChange = this.onContactEmailChange.bind(this);
-        this.onSelectProject = this.onSelectProject.bind(this);
-        this.onClearProject = this.onClearProject.bind(this);
+        this.onAffiliationInstitutionChange = this.onAffiliationInstitutionChange.bind(this);
 
         this.maySubmitForm = this.maySubmitForm.bind(this);
         this.onFormSubmit = this.onFormSubmit.bind(this);
+
+        this.onConsortiumMemberYes = this.onConsortiumMemberYes.bind(this);
+        this.onConsortiumMemberNo = this.onConsortiumMemberNo.bind(this);
 
         this.formRef = React.createRef();
         this.recaptchaContainerRef = React.createRef();
 
         this.state = {
+            captchaSiteKey: this.props.captchaSiteKey,
             captchaResponseToken: null,
             captchaErrorMsg: null,
             registrationStatus: 'form',
+            isConsortiumMember: null,
 
             // These fields are required, so we store in state
             // to be able to do some as-you-type validation
-            value_for_first_name: null,
-            value_for_last_name: null,
-            value_for_contact_email: null,
-            value_for_pending_project: null,
-            value_for_pending_project_details: null,
+            "value_for_first_name": null,
+            "value_for_last_name": null,
+            "value_for_affiliation_institution": null,
         };
     }
 
+    onConsortiumMemberYes() {
+        this.setState({ isConsortiumMember: true });
+    }
+
+    onConsortiumMemberNo() {
+        this.setState({ isConsortiumMember: false });
+    }
+
     componentDidMount() {
-        window.onRecaptchaLoaded = this.onRecaptchaLibLoaded;
-        this.captchaJSTag = document.createElement('script');
-        this.captchaJSTag.setAttribute(
-            'src',
-            'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit'
+        // window.onRecaptchaLoaded = this.onRecaptchaLibLoaded;
+        // this.captchaJSTag = document.createElement('script');
+        // this.captchaJSTag.setAttribute(
+        //     'src',
+        //     'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit'
+        // );
+        // this.captchaJSTag.setAttribute('async', true);
+        // document.head.appendChild(this.captchaJSTag);
+        ajax.load(
+            '/recaptcha_config?format=json',
+            (resp) => {
+                if (resp.RecaptchaKey) {
+                    // set captchaSiteKey provided by /recaptcha_config
+                    this.setState({
+                        captchaSiteKey: resp.RecaptchaKey
+                    });
+                } else {
+                    console.warn('No RecaptchaKey found in /recaptcha_config response -- cannot render reCaptcha!');
+                }
+            },
+            'GET',
+            (resp) => {
+                console.error('Error loading reCaptcha config:', resp.error || resp.message);
+            }
         );
-        this.captchaJSTag.setAttribute('async', true);
-        document.head.appendChild(this.captchaJSTag);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        const { isConsortiumMember } = this.state;
+        if (isConsortiumMember === false && prevState.isConsortiumMember !== false && !this.captchaJSTag && this.recaptchaContainerRef.current) {
+            window.onRecaptchaLoaded = this.onRecaptchaLibLoaded;
+            this.captchaJSTag = document.createElement('script');
+            this.captchaJSTag.setAttribute(
+                'src',
+                'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit'
+            );
+            this.captchaJSTag.setAttribute('async', true);
+            document.head.appendChild(this.captchaJSTag);
+        }
+        if (isConsortiumMember !== false && prevState.isConsortiumMember === false) {
+            if (this.captchaJSTag) {
+                document.head.removeChild(this.captchaJSTag);
+                delete this.captchaJSTag;
+            }
+        }
     }
 
     componentWillUnmount() {
@@ -83,7 +129,7 @@ export default class UserRegistrationForm extends React.PureComponent {
     }
 
     onRecaptchaLibLoaded() {
-        const { captchaSiteKey } = this.props;
+        const { captchaSiteKey } = this.state;
         const { onReCaptchaResponse, onReCaptchaExpiration } = this;
         console.info('Loaded Google reCaptcha library..');
         grecaptcha.render(this.recaptchaContainerRef.current, {
@@ -121,34 +167,8 @@ export default class UserRegistrationForm extends React.PureComponent {
         this.setState({ value_for_last_name: e.target.value });
     }
 
-    onContactEmailChange(e) {
-        this.setState({ value_for_contact_email: e.target.value });
-    }
-
-    onSelectProject(
-        value_for_pending_project,
-        value_for_pending_project_details
-    ) {
-        // TODO: If value_for_pending_project exists but not value_for_pending_project_details,
-        // then do AJAX request to get details.
-        // TODO: Error fallback (?)
-        console.log(
-            'Received project - ',
-            value_for_pending_project,
-            value_for_pending_project_details
-        );
-        this.setState({
-            value_for_pending_project,
-            value_for_pending_project_details,
-        });
-    }
-
-    onClearProject(e) {
-        e.preventDefault();
-        this.setState({
-            value_for_pending_project: null,
-            value_for_pending_project_details: null,
-        });
+    onAffiliationInstitutionChange(e) {
+        this.setState({ value_for_affiliation_institution: e.target.value });
     }
 
     onFormSubmit(evt) {
@@ -156,7 +176,7 @@ export default class UserRegistrationForm extends React.PureComponent {
         evt.stopPropagation();
 
         const { endpoint, onComplete, unverifiedUserEmail } = this.props;
-        const { value_for_pending_project } = this.state;
+        const { value_for_affiliation_institution } = this.state;
         const maySubmit = this.maySubmitForm();
         const formData = serialize(this.formRef.current, { hash: true });
 
@@ -164,18 +184,11 @@ export default class UserRegistrationForm extends React.PureComponent {
             return;
         }
 
-        // Add data which is held in state but not form fields -- email & project.
+        // Add data which is held in state but not form fields -- email & lab.
         formData.email = unverifiedUserEmail;
-        if (value_for_pending_project) {
-            // Add pending_project, if any.
-            formData.pending_project = value_for_pending_project;
-        }
-        if (
-            (!value_for_pending_project && formData.job_title) ||
-            formData.job_title === 'null'
-        ) {
-            // Remove any potentially default vals if no pending_project requested.
-            delete formData.job_title;
+        if (value_for_affiliation_institution) { // Add affiliation_institution, if any.
+            formData.institution = value_for_affiliation_institution;
+            delete formData.affiliation_institution;
         }
 
         console.log('Full data being sent - ', formData);
@@ -218,35 +231,31 @@ export default class UserRegistrationForm extends React.PureComponent {
             captchaResponseToken,
             value_for_first_name,
             value_for_last_name,
+            value_for_affiliation_institution,
             registrationStatus,
         } = this.state;
         return (
             captchaResponseToken &&
             value_for_first_name &&
             value_for_last_name &&
+            value_for_affiliation_institution &&
             registrationStatus === 'form'
         );
     }
 
+    onGoogleLinkClick(e) {
+        e.preventDefault();
+        analytics.event('registration', 'UserRegistrationModal', 'CreateGoogleAccountLinkClick');
+        window.open(e.target.href);
+    }
+
     render() {
-        const { schemas, heading, unverifiedUserEmail } = this.props;
+        const { schemas, heading, unverifiedUserEmail, onExitLinkClick } = this.props;
         const {
-            registrationStatus,
-            value_for_first_name,
-            value_for_last_name,
-            value_for_contact_email,
-            value_for_pending_project_details,
-            value_for_pending_project,
-            captchaErrorMsg: captchaError,
+            registrationStatus, value_for_first_name, value_for_last_name, value_for_affiliation_institution,
+            captchaErrorMsg: captchaError, isConsortiumMember
         } = this.state;
 
-        // eslint-disable-next-line no-useless-escape
-        const emailValidationRegex =
-            /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-        const contactEmail =
-            value_for_contact_email && value_for_contact_email.toLowerCase();
-        const isContactEmailValid =
-            !contactEmail || emailValidationRegex.test(contactEmail);
         const maySubmit = this.maySubmitForm();
         let errorIndicator = null;
         let loadingIndicator = null;
@@ -265,20 +274,8 @@ export default class UserRegistrationForm extends React.PureComponent {
             registrationStatus === 'success-loading'
         ) {
             loadingIndicator = (
-                <div
-                    style={{
-                        position: 'absolute',
-                        display: 'flex',
-                        alignItems: 'center',
-                        fontSize: '3em',
-                        color: 'rgba(0,0,0,0.8)',
-                        backgroundColor: 'rgba(255,255,255,0.85)',
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        top: 0,
-                    }}>
-                    <div className="text-center" style={{ width: '100%' }}>
+                <div className="loading-indicator">
+                    <div className="text-center w-100">
                         <i className="icon icon-spin icon-circle-notch fas" />
                     </div>
                 </div>
@@ -298,156 +295,185 @@ export default class UserRegistrationForm extends React.PureComponent {
         }
 
         return (
-            <div
-                className="user-registration-form-container"
-                style={{ position: 'relative' }}>
+            <div className="user-registration-form-container position-relative">
                 {errorIndicator}
 
                 {heading}
 
-                <form
-                    method="POST"
-                    name="user-registration-form was-validated"
-                    ref={this.formRef}
-                    onSubmit={this.onFormSubmit}>
-                    <div className="form-group">
-                        <label htmlFor="email-address">
-                            Primary E-Mail or Username
-                        </label>
-                        <h4 id="email-address" className="text-300 mt-0">
-                            {object.itemUtil.User.gravatar(
-                                unverifiedUserEmail,
-                                36,
-                                {
-                                    style: {
-                                        borderRadius: '50%',
-                                        marginRight: 10,
-                                    },
-                                },
-                                'mm'
-                            )}
-                            {unverifiedUserEmail}
-                        </h4>
+                <div className={isConsortiumMember === true ? "mb-1" : "mb-3"}>
+                    <div className="text-300 mb-2 mt-05 info-panel">
+                        You have never logged in as <span className="text-600">{unverifiedUserEmail}</span> before.
                     </div>
+                    <div className="mt-1 text-60 ps-1 text-500" style={{ paddingLeft: '10px' }}>Are you a SMaHT Network member, verified by the SMaHT Organization Center?</div>
+                    <div className="d-flex gap-3 mt-2 option-panel flex-column flex-lg-row">
+                        <Checkbox
+                            checked={isConsortiumMember === true}
+                            onChange={this.onConsortiumMemberYes}
+                            className="col-12 col-lg-auto">
+                            Yes, I am a verified member of SMaHT
+                        </Checkbox>
+                        <Checkbox
+                            checked={isConsortiumMember === false}
+                            onChange={this.onConsortiumMemberNo}
+                            className="col-12 col-lg-auto">
+                            No, I am&nbsp;<strong>not</strong>&nbsp;a member of SMaHT
+                        </Checkbox>
+                    </div>
+                </div>
 
-                    <div className="row">
-                        <div className="col-12 col-md-6">
-                            <div className="form-group">
-                                <label htmlFor="firstName">
-                                    First Name{' '}
-                                    <span className="text-danger">*</span>
-                                </label>
-                                <input
-                                    name="first_name"
-                                    type="text"
-                                    onChange={this.onFirstNameChange}
-                                    className={
-                                        'form-control' +
-                                        (value_for_first_name === ''
-                                            ? ' is-invalid'
-                                            : '')
-                                    }
-                                />
-                                <div className="invalid-feedback">
-                                    First name cannot be blank
+                {isConsortiumMember === true ? <SMaHTNetworkMember onExitLinkClick={onExitLinkClick} /> : isConsortiumMember === false ? (
+                    <form
+                        method="POST"
+                        name="user-registration-form was-validated"
+                        ref={this.formRef}
+                        onSubmit={this.onFormSubmit}
+                        style={{ fontSize: '0.9rem' }}>
+
+                        <div className="d-flex align-items-center gap-2 mb-15 mt-3 section-header">
+                            <i className="icon icon-fw icon-user fas text-secondary fs-4" aria-hidden="true" />
+                            <h3 className="section-title m-0">Open Data: Self Registration</h3>
+                        </div>
+                        
+                        <div className="form-group d-flex flex-column flex-lg-row align-items-lg-center gap-0 gap-lg-3 mt-2">
+                            <label htmlFor="email-address" className="mb-1 text-500">
+                                Primary Email:
+                            </label>
+                            <span id="email-address" className="text-300 fs-5">
+                                {object.itemUtil.User.gravatar(unverifiedUserEmail, 36, { 'style': { 'borderRadius': '50%', 'marginRight': 20 } }, 'mm')}
+                                {unverifiedUserEmail}
+                            </span>
+                        </div>
+
+                        <div className="row mt-2">
+                            <div className="col-12 col-lg-6">
+                                <div className="form-group">
+                                    <label htmlFor="firstName" className="mb-1 text-500">
+                                        First Name{' '}
+                                        <span className="text-danger">*</span>
+                                    </label>
+                                    <input
+                                        name="first_name"
+                                        type="text"
+                                        onChange={this.onFirstNameChange}
+                                        className={
+                                            'form-control' +
+                                            (value_for_first_name === ''
+                                                ? ' is-invalid'
+                                                : '')
+                                        }
+                                    />
+                                    <div className="invalid-feedback">
+                                        First name cannot be blank
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-12 col-lg-6 mt-3 mt-lg-0">
+                                <div className="form-group">
+                                    <label htmlFor="lastName" className="mb-1 text-500">
+                                        Last Name{' '}
+                                        <span className="text-danger">*</span>
+                                    </label>
+                                    <input
+                                        name="last_name"
+                                        type="text"
+                                        onChange={this.onLastNameChange}
+                                        className={
+                                            'form-control' +
+                                            (value_for_last_name === ''
+                                                ? ' is-invalid'
+                                                : '')
+                                        }
+                                    />
+                                    <div className="invalid-feedback">
+                                        Last name cannot be blank
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="col-12 col-md-6">
-                            <div className="form-group">
-                                <label htmlFor="lastName">
-                                    Last Name{' '}
-                                    <span className="text-danger">*</span>
-                                </label>
-                                <input
-                                    name="last_name"
-                                    type="text"
-                                    onChange={this.onLastNameChange}
-                                    className={
-                                        'form-control' +
-                                        (value_for_last_name === ''
-                                            ? ' is-invalid'
-                                            : '')
-                                    }
-                                />
-                                <div className="invalid-feedback">
-                                    Last name cannot be blank
+
+                        <div className="row mt-3">
+                            <div className="col-12">
+                                <div className="form-group">
+                                    <label htmlFor="affiliation_institution" className="form-label mb-1 text-500">Affiliation/Institution{' '}
+                                        <span className="text-danger">*</span>
+                                    </label>
+                                    <input
+                                        name="affiliation_institution"
+                                        type="text"
+                                        onChange={this.onAffiliationInstitutionChange}
+                                        className={
+                                            'form-control' +
+                                            (value_for_affiliation_institution === ''
+                                                ? ' is-invalid'
+                                                : '')
+                                        }
+                                    />
+                                    <div className="invalid-feedback">
+                                        Affiliation/Institution cannot be blank
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <hr className="mt-1 mb-2" />
-
-                    <div className="form-group">
-                        <label htmlFor="pendingProject">
-                            Primary Project{' '}
-                            <span className="text-300">(Selected for you)</span>
-                        </label>
-                        <div>
-                            <p>cgap-training</p>
+                        <div className="row mt-3">
+                            <div className="col-12">
+                                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                                    <i class="fas icon icon-file-shield me-2 fs-2"></i>
+                                    <div>
+                                        <strong>Protected Data Access:</strong> Self-registration will give you access to open data and metadata <strong>only</strong>.
+                                        <br />
+                                        To get access to protected data, sign up with the same institutional email address to dbGAP as well.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <small className="form-text text-muted">
-                            Project with which you are associated.
-                        </small>
-                    </div>
 
-                    <JobTitleField
-                        {...{
-                            value_for_pending_project,
-                            value_for_pending_project_details,
-                            schemas,
-                        }}
-                    />
-
-                    <div className="row">
-                        <div className="col-12 col-lg-5">
-                            <div
-                                className={
-                                    'recaptcha-container' +
-                                    (captchaError ? ' has-error' : '')
-                                }>
+                        <div className="row mt-3">
+                            <div className="col-12 col-lg-5">
                                 <div
-                                    className="g-recaptcha"
-                                    ref={this.recaptchaContainerRef}
-                                />
-                                {captchaError ? (
-                                    <span className="help-block">
-                                        {captchaError}
-                                    </span>
-                                ) : null}
+                                    className={
+                                        'recaptcha-container' +
+                                        (captchaError ? ' has-error' : '')
+                                    }>
+                                    <div
+                                        className="g-recaptcha"
+                                        ref={this.recaptchaContainerRef}
+                                    />
+                                    {captchaError ? (
+                                        <span className="help-block">
+                                            {captchaError}
+                                        </span>
+                                    ) : null}
+                                </div>
+                            </div>
+                            <div className="col-12 col-lg-7">
+                                <p className="fs-6 lh-lg ps-05">
+                                    By registering, you are agreeing to the{' '}
+                                    <a
+                                        href="/privacy-policy"
+                                        className="link-underline-hover"
+                                        target="_blank"
+                                        rel="noreferrer noopener">
+                                        SMaHT Portal User Privacy Policy
+                                    </a>
+                                    . We may track your usage of the portal to help
+                                    improve the quality of user experience and/or
+                                    security assurance purposes.
+                                </p>
                             </div>
                         </div>
-                        <div className="col-12 col-lg-7">
-                            <p>
-                                By signing up, you are agreeing to our{' '}
-                                <a
-                                    href="/help/about/privacy-policy"
-                                    className="link-underline-hover"
-                                    target="_blank"
-                                    rel="noreferrer noopener">
-                                    Privacy Policy
-                                </a>
-                                .
-                                <br />
-                                We may track your usage of the portal to help
-                                improve the quality of user experience and/or
-                                security assurance purposes.
-                            </p>
-                        </div>
-                    </div>
 
-                    <div className="clearfix">
-                        <div className="d-grid gap-1">
-                            <button
-                                type="submit"
-                                disabled={!maySubmit}
-                                className="btn btn-lg btn-primary text-300 mt-2">
-                                Sign Up
-                            </button>
+                        <div className="footer-button-container mt-1 py-1">
+                            <div className="d-grid gap-1 my-3">
+                                <button type="submit"
+                                    disabled={!maySubmit}
+                                    className="btn btn-lg btn-primary text-300">
+                                    Sign Up
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                ) : null}
 
                 {loadingIndicator}
             </div>
@@ -455,225 +481,39 @@ export default class UserRegistrationForm extends React.PureComponent {
     }
 }
 
-// Use this once we have public projects that can be accessed. For now we should just rely on
-// using cgap-core as the core project - Will March 15 2022
-class LookupProjectField extends React.PureComponent {
-    static fieldTitleColStyle = {
-        flex: 1,
-        padding: '7px 0 4px 10px',
-        fontSize: '1.125rem',
-        background: '#f4f4f4',
-        marginRight: 5,
-        borderRadius: 4,
-    };
-
-    static propTypes = {
-        onSelect: PropTypes.func.isRequired,
-        onClear: PropTypes.func.isRequired,
-        loading: PropTypes.bool.isRequired,
-    };
-
-    constructor(props) {
-        super(props);
-        this.receiveItem = this.receiveItem.bind(this);
-        this.setIsSelecting = _.throttle(
-            this.toggleIsSelecting.bind(this, true),
-            3000,
-            { trailing: false }
-        );
-        this.unsetIsSelecting = this.toggleIsSelecting.bind(this, false);
-        this.toggleIsSelecting = this.toggleIsSelecting.bind(this);
-        this.state = {
-            isSelecting: false,
-        };
-    }
-
-    toggleIsSelecting(isSelecting = null) {
-        this.setState(function ({ isSelecting: prevIsSelecting }) {
-            if (typeof isSelecting !== 'boolean') {
-                isSelecting = !prevIsSelecting;
-            }
-            return { isSelecting };
-        });
-    }
-
-    receiveItem(items, endDataPost) {
-        const { onSelect } = this.props;
-
-        if (!items || !Array.isArray(items) || items.length === 0) {
-            return;
-        }
-
-        if (
-            !_.every(items, function ({ id, json }) {
-                return id && typeof id === 'string' && json;
-            })
-        ) {
-            return;
-        }
-
-        // endDataPost = (endDataPost !== 'undefined' && typeof endDataPost === 'boolean') ? endDataPost : true;
-
-        if (items.length > 1) {
-            console.warn(
-                "Multiple projects selected but we only get a single item, since handler's multiple version not implemented yet!"
-            );
-        }
-
-        // We can change back to `endDataPost` instead of `false` in future if we ever allow multiple projects.
-        // But most likely additional projects would go into different field, since User.project is not an array at moment anyway.
-        this.setState({ isSelecting: false }, function () {
-            // Invoke the object callback function, using the text input.
-            // eslint-disable-next-line react/destructuring-assignment
-
-            onSelect(items[0].id, items[0].json);
-        });
-    }
-
-    render() {
-        const { loading, currentProjectDetails, onClear } = this.props;
-        const { isSelecting } = this.state;
-        const tooltip = 'Search for a Project and add it to the display.';
-        const dropMessage = 'Drop a Project here, likely cgap-core.';
-        const searchURL = '/search/?currentAction=selection&type=Project';
-        const currProjectTitle = (isSelecting && (
-            <div style={LookupProjectField.fieldTitleColStyle}>
-                Select a project or drag & drop Project Item or URL into this
-                window.
-            </div>
-        )) ||
-            (currentProjectDetails &&
-                currentProjectDetails['@id'] &&
-                currentProjectDetails.display_title && (
-                    <div style={LookupProjectField.fieldTitleColStyle}>
-                        <a
-                            href={object.itemUtil.atId(currentProjectDetails)}
-                            className="link-underline-hover"
-                            target="_blank"
-                            data-tip="View project in new tab"
-                            rel="noopener noreferrer"
-                            style={{ verticalAlign: 'middle' }}>
-                            {currentProjectDetails.display_title}
-                        </a>
-                        &nbsp;&nbsp;
-                        <i className="icon icon-fw icon-external-link-alt fas text-small" />
-                    </div>
-                )) || (
-                <div
-                    style={LookupProjectField.fieldTitleColStyle}
-                    onClick={this.setIsSelecting}
-                    className="clickable"
-                    data-tip={tooltip}>
-                    No Project selected
-                </div>
-            );
-
-        return (
-            <React.Fragment>
-                <div className="flexrow ms-0 me-0">
-                    {currProjectTitle}
-                    <div className="field-buttons">
-                        {currentProjectDetails &&
-                        currentProjectDetails['@id'] ? (
-                            <button
-                                type="button"
-                                onClick={onClear}
-                                className="btn btn-secondary me-05">
-                                Clear
-                            </button>
-                        ) : null}
-                        <button
-                            type="button"
-                            className="btn btn-primary"
-                            onClick={this.setIsSelecting}
-                            disabled={loading || isSelecting}
-                            data-tip={tooltip}>
-                            Select
-                        </button>
-                    </div>
-                </div>
-                {isSelecting ? (
-                    <LinkToSelector
-                        isSelecting
-                        onSelect={this.receiveItem}
-                        onCloseChildWindow={this.unsetIsSelecting}
-                        dropMessage={dropMessage}
-                        searchURL={searchURL}
-                    />
-                ) : null}
-            </React.Fragment>
-        );
-    }
-}
-
-function JobTitleField(props) {
-    const {
-        value_for_pending_project,
-        value_for_pending_project_details,
-        schemas,
-    } = props;
-    const fieldSchema = JobTitleField.getJobTitleSchema(schemas);
-    let formControl;
-
-    if (
-        fieldSchema &&
-        Array.isArray(fieldSchema.suggested_enum) &&
-        fieldSchema.suggested_enum.length > 0
-    ) {
-        formControl = (
-            <select
-                name="job_title"
-                defaultValue="null"
-                className="form-control">
-                <option hidden disabled value="null">
-                    {' '}
-                    -- select an option --{' '}
-                </option>
-                {_.map(fieldSchema.suggested_enum, function (val) {
-                    return (
-                        <option value={val} key={val}>
-                            {val}
-                        </option>
-                    );
-                })}
-            </select>
-        );
-    } else {
-        formControl = (
-            <input type="text" name="job_title" className="form-control" />
-        );
-    }
-
+function SMaHTNetworkMember({
+    onExitLinkClick,
+    className = "",
+}) {
     return (
-        <Collapse in={!!value_for_pending_project}>
-            <div className="clearfix">
-                <div className="form-group">
-                    <label htmlFor="jobTitle">
-                        Job Title
-                        {value_for_pending_project_details &&
-                            value_for_pending_project_details.display_title && (
-                                <span className="text-400">
-                                    {' '}
-                                    at{' '}
-                                    {
-                                        value_for_pending_project_details.display_title
-                                    }
-                                </span>
-                            )}
-                        <span className="text-300"> (Optional)</span>
-                    </label>
-                    {formControl}
+        <section className={`container py-4 ${className}`}>
+            <div className="row g-5">
+                <div className="col-12">
+                    <div className="d-flex align-items-center gap-2 mb-15 section-header">
+                        <i className="icon icon-fw icon-users fas text-secondary fs-4" aria-hidden="true" />
+                        <h3 className="section-title m-0">Verified SMaHT Members</h3>
+                    </div>
+
+                    <p className="fs-6">
+                        If you have an account with a different email address, please{" "}
+                        <a href="#" className="link-underline-hover" onClick={onExitLinkClick}>sign in here</a>.
+                    </p>
+
+                    <p className="fs-6 mt-3">
+                        If you are seeing this page, you may be using a non-registered email address. Make sure to:
+                    </p>
+
+                    <ol className="fs-6 ps-15 mt-2">
+                        <li>
+                            <strong>Register with the OC</strong> with your institutional email address
+                        </li>
+                        <li>
+                            <strong>Contact the DAC</strong> to create an account. Documentation on how to do
+                            this can be found <a href="/docs/access/creating-an-account" target="_blank">here</a>.
+                        </li>
+                    </ol>
                 </div>
             </div>
-        </Collapse>
+        </section>
     );
 }
-JobTitleField.getJobTitleSchema = function (schemas) {
-    return (
-        (schemas &&
-            schemas.User &&
-            schemas.User.properties &&
-            schemas.User.properties.job_title) ||
-        null
-    );
-};

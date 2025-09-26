@@ -365,7 +365,7 @@ div.navbar-fixed-top {
                             border: 1px solid #0B62BA;
                             border-radius: 4px;
                             height: 35px;
-                            width: 120px;
+                            width: auto;
                             margin: auto 0px auto auto;
                             
                             span {
@@ -410,7 +410,7 @@ div.navbar-fixed-top {
                                 border-radius: 4px;
                                 height: 35px;
                                 margin: auto;
-                                padding: 0px 37px;
+                                padding: 0px 20px;
 
                                 span {
                                     color: white;
@@ -1295,6 +1295,25 @@ body.scrolled-past-top {
                 img.account-icon-image {
                     width: 24px !important;
                     height: 24px !important;
+                }
+            }
+        }
+    }
+}
+
+@include media-breakpoint-between(lg, xl) {
+    div.navbar-fixed-top {
+        .navbar-main {
+            .navbar-nav {
+                &.navbar-acct {
+                    .helpdesk {
+                        i.icon-envelope {
+                            margin-right: 0px;
+                        }
+                        span {
+                            display: none;
+                        }
+                    }
                 }
             }
         }
