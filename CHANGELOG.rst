@@ -7,8 +7,16 @@ smaht-portal
 Change Log
 ----------
 
-1.3.0
+1.3.1
 =======
+`PR 527: feat: homepage announcement for portal shutdown <https://github.com/smaht-dac/smaht-portal/pull/527>`_
+
+* Implement announcement in homepage banner for portal shutdown
+* Prevent non-admins from seeing the user registration modal during portal shutdown 
+
+
+1.3.0
+=====
 `PR 523: feat: Donor Metadata Dictionary <https://github.com/smaht-dac/smaht-portal/pull/523>`_
 
 * Implement Donor Metadata Dictionary page
@@ -51,13 +59,6 @@ Change Log
 `PR 526: feat: release tracker CRAM warning callout <https://github.com/smaht-dac/smaht-portal/pull/526>`_
 
 * Add support for CRAM warning in release tracker items
-
-
-1.2.0
-=======
-`PR 527: feat: homepage announcement for portal shutdown <https://github.com/smaht-dac/smaht-portal/pull/527>`_
-
-* Implement announcement in homepage banner for portal shutdown
 
 
 1.1.5
