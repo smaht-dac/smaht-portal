@@ -7,6 +7,19 @@ smaht-portal
 Change Log
 ----------
 
+1.3.0
+=======
+`PR 523: feat: Donor Metadata Dictionary <https://github.com/smaht-dac/smaht-portal/pull/523>`_
+
+* Implement Donor Metadata Dictionary page
+
+
+1.2.1
+=====
+
+* Correct link in submission doc page 
+
+
 1.2.0
 =====
 
