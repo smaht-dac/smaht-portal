@@ -34,7 +34,7 @@ const PersonCard = ({ name, title, org, imgUrl, profileUrl }) => {
                         name
                     )}
                 </Card.Title>
-                {title && <div className="text-muted lh-sm wrap">{title}</div>}
+                {title && <div className="lh-sm wrap person-title">{title}</div>}
                 {/* {org && <div className="text-muted-50 wrap">{org}</div>} */}
             </Card.Body>
         </Card>
@@ -188,14 +188,14 @@ export default function TeamCGAP() {
 
                 {/* Leadership */}
                 <Section title="Leadership" showLogo>
-                    <Subgroup title="DBMI Biomedical Informatics Leads" people={leadership_DBMI} />
-                    <Subgroup title="Steering Committee" people={steering_committee} />
+                    <Subgroup title="DAC Biomedical Informatics Leads" people={leadership_DBMI} />
+                    {/* <Subgroup title="Steering Committee" people={steering_committee} /> */}
                 </Section>
 
                 {/* Platform */}
                 <Section
-                    title="DBMI Platform Team"
-                    subtitle="The multidisciplinary DBMI Platform team works on SMaHT Platform"
+                    title="DAC Platform Team"
+                    subtitle="The multidisciplinary DAC Platform team works on SMaHT Platform"
                 >
                     <Subgroup title="Bioinformatics" people={platform_bio} />
                     <Subgroup title="Data Curation" people={platform_curation} />
@@ -213,6 +213,8 @@ export default function TeamCGAP() {
         @media (min-width: 1400px) {
           .custom-xxl { max-width: 1200px; }
         }
+
+        .rounded-circle { border-radius: 5% !important; }
 
         /* .team-wrapper { background: #f7fbff; } */
 
@@ -286,8 +288,8 @@ export default function TeamCGAP() {
 
         /* Circular avatar (kept smaller than card width) */
         .person-avatar-wrap {
-          width: 140px;
-          height: 140px;
+          width: 175px;
+          height: 200px;
           margin: 0 auto 0.4rem auto;
           overflow: hidden;
           position: relative;
@@ -323,6 +325,10 @@ export default function TeamCGAP() {
         /* Hover ring accent */
         .person-card:hover .person-avatar-wrap {
           box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
+        }
+
+        .person-title {
+          color: #0e468b !important;
         }
 
         /* Text wrapping so long names don't stretch the card */
