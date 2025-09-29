@@ -9,7 +9,7 @@ import {
 } from 'react-bootstrap';
 
 // Renders a table of schema properties
-const SchemaPropertiesTable = ({ data = {} }) => {
+const SchemaPropertiesTable = ({ schemaKey = '', data = {} }) => {
     // sort the keys based on requirement
     const sortedPropertyKeys = Object.keys(data).sort((a, b) => {
         return data[a]?.is_required ? -1 : 1;
@@ -70,25 +70,36 @@ const SchemaPropertiesTable = ({ data = {} }) => {
             <tbody>
                 {sortedPropertyKeys.map((propertyKey, i) => {
                     const item = data[propertyKey];
+
+                    // Get a backup description from fieldsToDisplay if needed
+                    let description_from_map;
+                    if (!item?.description) {
+                        description_from_map = backup_property_values
+                            ?.get(schemaKey)
+                            ?.find(
+                                ({ title }) => title === propertyKey
+                            )?.description;
+                    }
                     return (
                         <tr key={i}>
                             {/* Title */}
-                            {item?.title ? (
-                                <td
-                                    className={`text-left ${
-                                        item.is_required
-                                            ? 'text-danger fw-bold'
-                                            : ''
-                                    }`}>
-                                    {item.title}
-                                </td>
-                            ) : (
-                                <td className="text-left text-secondary">-</td>
-                            )}
+
+                            <td
+                                className={`text-left ${
+                                    item?.is_required
+                                        ? 'text-danger fw-bold'
+                                        : ''
+                                }`}>
+                                {item?.title ?? propertyKey}
+                            </td>
                             {/* Description */}
                             {item?.description ? (
                                 <td className="text-left">
                                     {item.description}
+                                </td>
+                            ) : description_from_map ? (
+                                <td className="text-left">
+                                    {description_from_map}
                                 </td>
                             ) : (
                                 <td className="text-left text-secondary">-</td>
@@ -107,7 +118,7 @@ const SchemaPropertiesTable = ({ data = {} }) => {
                             ) : (
                                 <td className="text-left text-secondary">-</td>
                             )}
-                            {/* Also Requires */}
+                            {/* Values */}
                             {item?.enum?.length || item?.suggested_enum ? (
                                 <td className="text-left">
                                     {/* If enums/suggested enums are present, display them */}
@@ -229,6 +240,7 @@ export const SubmissionDataDictionary = () => {
                             key={i}>
                             <h3 className="fs-4">{schemaKey}</h3>
                             <SchemaPropertiesTable
+                                schemaKey={schemaKey}
                                 data={schemaData[schemaKey]?.properties}
                             />
                         </div>
@@ -242,3 +254,42 @@ export const SubmissionDataDictionary = () => {
         </div>
     );
 };
+
+const backup_property_values = new Map([
+    [
+        'Donor',
+        [
+            {
+                title: 'external_id',
+                description: 'External ID for the item provided by submitter',
+            },
+        ],
+    ],
+    [
+        'ProtectedDonor',
+        [
+            {
+                title: 'external_id',
+                description: 'External ID for the item provided by submitter',
+            },
+        ],
+    ],
+    [
+        'AlignedReads',
+        [
+            {
+                title: 'data_type',
+                description: 'Detailed type of information in the file',
+            },
+        ],
+    ],
+    [
+        'DeathCircumstances',
+        [
+            {
+                title: 'circumstances_of_death',
+                description: 'The manner or context in which death occurred',
+            },
+        ],
+    ],
+]);

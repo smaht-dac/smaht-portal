@@ -772,7 +772,7 @@ const SelectedItemsDownloadModal = function (props) {
                         suggestedFilename,
                         action,
                         isAWSDownload,
-                        handleDownloadClick: onClick,
+                        onClick,
                     }}
                 />
             </Modal.Footer>

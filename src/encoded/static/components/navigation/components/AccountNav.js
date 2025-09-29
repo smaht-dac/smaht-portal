@@ -82,7 +82,8 @@ export const AccountNav = React.memo(function AccountNav(props) {
                     <LoginNavItem
                         {...{ schemas, session, href, windowWidth }}
                         key="login-register"
-                        className="user-account-item"
+                        className="muted" // TODO: remove when portal shut down is over
+                        disabled={false}
                     />
                 </LoginController>
             </div>
@@ -283,3 +284,4 @@ const HelpdeskButton = React.memo(function HelpdeskButton(props) {
         </a>
     );
 });
+

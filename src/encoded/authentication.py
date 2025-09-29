@@ -63,7 +63,12 @@ def session_properties(context, request):
             }
         else:
             raise LoginDenied(domain=request.domain)
-
+        
+    ## TO REMOVE WHEN PORTAL REOPENS ##
+    if 'group.admin' not in request.effective_principals:
+        raise LoginDenied(domain=request.domain)
+    ###################################
+            
     namespace, userid = principal.split('.', 1)
     properties = get_basic_properties_for_user(request, userid)
     return properties

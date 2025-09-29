@@ -7,6 +7,34 @@ smaht-portal
 Change Log
 ----------
 
+1.3.2
+=====
+`PR 514: fix: correct assay counts for browse by file page <https://github.com/smaht-dac/smaht-portal/pull/514>`_
+
+* Fix assay counts on File Browse Data Summary Statistics
+
+
+1.3.1
+=======
+`PR 527: feat: homepage announcement for portal shutdown <https://github.com/smaht-dac/smaht-portal/pull/527>`_
+
+* Implement announcement in homepage banner for portal shutdown
+* Prevent non-admins from seeing the user registration modal during portal shutdown 
+
+
+1.3.0
+=====
+`PR 523: feat: Donor Metadata Dictionary <https://github.com/smaht-dac/smaht-portal/pull/523>`_
+
+* Implement Donor Metadata Dictionary page
+
+
+1.2.1
+=====
+
+* Correct link in submission doc page 
+
+
 1.2.0
 =====
 
