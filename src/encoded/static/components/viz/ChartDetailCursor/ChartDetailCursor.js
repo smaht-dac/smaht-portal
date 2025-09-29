@@ -128,7 +128,7 @@ class Body extends React.PureComponent {
 
     primaryCount(node){
         return (
-            <div className={"primary-count count text-400 pull-right count-" + (this.props.primaryCount || "unknown")}>
+            <div className={"primary-count count text-400 count-" + (this.props.primaryCount || "unknown")}>
                 { node[this.props.primaryCount] }
             </div>
         );
@@ -139,7 +139,7 @@ class Body extends React.PureComponent {
         if (this.props.primaryCount === 'files') name = "Files";
         if (this.props.primaryCount === 'donors') name = "# of Donors";
         return (
-            <small className="pull-right sets-label">{ name }</small>
+            <small className="sets-label">{ name }</small>
         );
     }
 
@@ -154,23 +154,30 @@ class Body extends React.PureComponent {
         return (
             <div className="mosaic-cursor-body">
                 <Crumbs path={path} schemas={schemas} primaryCount={primaryCount} />
-                <h6 className="field-title">
-                    { this.primaryCountLabel() }
-                    {
-                        includeTitleDescendentPrefix && props.path.length > 1 ?
-                            <small className="descendent-prefix"> &gt; </small> : null
-                    }{ leafNodeFieldTitle }
+                <h6 className="field-title row px-0">
+                    <span className="col-7">
+                        {
+                            includeTitleDescendentPrefix && props.path.length > 1 ?
+                                <small className="descendent-prefix"> &gt; </small> : null
+                        }{leafNodeFieldTitle}
+                    </span>
+                    <span className="col-5 text-end">
+                        {this.primaryCountLabel()}
+                    </span>
                     {/* this.props.filteredOut ?
                         <small className="filtered-out-label"> (filtered out)</small>
                     : null */}
                 </h6>
-                <h3 className="details-title">
-                    <i className="term-color-indicator icon icon-circle fas"
-                        style={{ color : leafNode.color || barplot_color_cycler.colorForNode(leafNode) }}
-                    />
-                    { this.primaryCount(leafNode) }
-                    <span>{ Schemas.Term.toName(leafNode.field, leafNode.term) }</span>
-
+                <h3 className="details-title row px-0">
+                    <span className="col-8">
+                        <i className="term-color-indicator icon icon-circle fas"
+                            style={{ color: leafNode.color || barplot_color_cycler.colorForNode(leafNode) }}
+                        />
+                        <span>{Schemas.Term.toName(leafNode.field, leafNode.term)}</span>
+                    </span>
+                    <span className="col-4 text-end">
+                        {this.primaryCount(leafNode)}
+                    </span>
                 </h3>
                 <div className="details row">
                     <div className="col-sm-12">
