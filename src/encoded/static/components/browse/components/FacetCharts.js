@@ -176,10 +176,10 @@ export class FacetCharts extends React.PureComponent {
                         'sequencing.sequencer.display_title',
                     ];
 
-                    if (mapping !== 'all' && keysToClear.some(k => newDonorFilters[k])) {
+                    if (mapping !== 'all' && keysToClear.some((k) => newDonorFilters[k])) {
                         const last = cursorProps?.path?.at?.(-1) ?? cursorProps?.path?.[cursorProps.path.length - 1];
                         newDonorFilters.external_id = last?.all_donor_ids ?? [];
-                        keysToClear.forEach(k => delete newDonorFilters[k]);
+                        keysToClear.forEach((k) => delete newDonorFilters[k]);
                     }
                     // Reset type filter so it gets set to 'Donor' from browseBaseHref.
                     delete newDonorFilters.type;

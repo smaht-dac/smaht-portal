@@ -93,16 +93,18 @@ class Body extends React.PureComponent {
             if (countPair[0] === 'files' && props.mapping !== 'all') {
                 // DO NOT CHANGE - mapping should be 'all' to generate file links
                 const baseParams = navigate.getBrowseBaseParams(null, 'all');
-                _.forEach(props.path, p => {
+                _.forEach(props.path, (p) => {
                     if (p.field && p.term) {
                         baseParams[p.field] = p.term;
                     }
                 });
+                const last = props?.path?.at?.(-1) ?? cursorProps?.path?.[cursorProps.path.length - 1];
+                baseParams['donors.external_id'] = last?.all_donor_ids ?? [];
                 const browseBaseHref = navigate.getBrowseBaseHref(baseParams, 'all');
 
                 return (
                     <div key={countPair[0] || i} className={"text-end col-" + colSize}>
-                        <a href={browseBaseHref} target='_blank' rel="noreferrer noopener">
+                        <a href={browseBaseHref} target="_blank" rel="noreferrer noopener">
                             {countPair[1]}<small> {name}</small>
                         </a>
                     </div>
@@ -115,7 +117,7 @@ class Body extends React.PureComponent {
                 );
             }
         });
-        
+
         return (
             <div className="row">
                 { this.props.primaryCount !== 'files' ? <div className="col-2"></div> : null }
