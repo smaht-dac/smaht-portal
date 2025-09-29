@@ -7,11 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-1.3.2
+1.3.3
 =====
 `PR 515: feat: sort tables by date_released <https://github.com/smaht-dac/smaht-portal/pull/515>`_
 
 * Sort benchmarking tables by date_released instead of date_created
+
+
+1.3.2
+=====
+`PR 514: fix: correct assay counts for browse by file page <https://github.com/smaht-dac/smaht-portal/pull/514>`_
+
+* Fix assay counts on File Browse Data Summary Statistics
 
 
 1.3.1
