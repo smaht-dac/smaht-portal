@@ -19,20 +19,19 @@ export class TestWarning extends React.PureComponent {
     }
 
     render() {
-        const { visible } = this.props;
-        if (!visible) return null;
+        const { visible, message } = this.props;
+        if (!visible || !message) return null;
         return (
             <div className="test-warning">
                 <div className="container">
                     <div className="row">
                         <div
-                            className="col-10 text-container"
+                            className="col-11 text-container"
                             style={{ fontSize: '13.5px' }}>
-                            <i className="icon fas icon-fw icon-info-circle circle-icon d-none d-md-inline-block" />
-                            The data displayed on this page is not official and
-                            only for testing purposes.
+                            <i className="icon fas icon-fw icon-triangle-exclamation circle-icon d-none d-md-inline-block" />
+                            <span>{message}</span>
                         </div>
-                        <div className="col-2 close-button-container">
+                        <div className="col-1 close-button-container">
                             <a
                                 className="test-warning-close icon icon-times fas"
                                 title="Hide"
