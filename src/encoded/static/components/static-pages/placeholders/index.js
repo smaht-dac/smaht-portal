@@ -30,6 +30,7 @@ import { ChallengeTableWrapper } from '../components/challenges/ChallengeTables'
 import DataMatrix from '../../viz/Matrix/DataMatrix';
 import RetractedFilesTable from '../components/RetractedFilesTable';
 import { SubmissionDataDictionary } from '../SubmissionDataDictionary';
+import { DonorManifestDataDictionary } from '../DonorManifestDataDictionary';
 import SMAHTTeam from '../components/SMAHTTeam';
 
 /**
@@ -58,6 +59,7 @@ const placeholders = {
     RetractedFilesTable,
     DataMatrix,
     SubmissionDataDictionary,
+    DonorManifestDataDictionary,
     SMAHTTeam,
 };
 

@@ -2390,4 +2390,16 @@ Popover Styles for Item Pages
 			padding: 15px 12px;
 		}
 	}
+	&.warning-popover {
+		max-width: 300px;
+
+		thead > tr > th {
+			background-color: #fff1f1 !important;
+			font-weight: 600;
+		}
+
+		.popover-body {
+			padding: 15px 12px;
+		}
+	}
 }

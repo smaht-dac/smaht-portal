@@ -7,6 +7,45 @@ smaht-portal
 Change Log
 ----------
 
+1.3.2
+=====
+`PR 514: fix: correct assay counts for browse by file page <https://github.com/smaht-dac/smaht-portal/pull/514>`_
+
+* Fix assay counts on File Browse Data Summary Statistics
+
+
+1.3.1
+=======
+`PR 527: feat: homepage announcement for portal shutdown <https://github.com/smaht-dac/smaht-portal/pull/527>`_
+
+* Implement announcement in homepage banner for portal shutdown
+* Prevent non-admins from seeing the user registration modal during portal shutdown 
+
+
+1.3.0
+=====
+`PR 523: feat: Donor Metadata Dictionary <https://github.com/smaht-dac/smaht-portal/pull/523>`_
+
+* Implement Donor Metadata Dictionary page
+
+
+1.2.1
+=====
+
+* Correct link in submission doc page 
+
+
+1.2.0
+=====
+
+* Adjusts the user schema to replicate the attributions without
+  serverDefault for submission center, ensuring attribution is not given
+  erroneously to non-affiliated users
+* Regression test for the above
+* Change data release tracker to direct users to /browse, include only
+  production files, update tests as needed
+
+
 1.1.8
 ======
 `PR 524: fix: update uuids to match prod <https://github.com/smaht-dac/smaht-portal/pull/524>`_
@@ -107,7 +146,7 @@ groups
   public-restricted statuses, along with tests for files as well utilizing
   the new groups
 
-  
+
 0.195.3
 =======
 `PR 512: feat: remove quantity field from protected donor view <https://github.com/smaht-dac/smaht-portal/pull/512>`_
