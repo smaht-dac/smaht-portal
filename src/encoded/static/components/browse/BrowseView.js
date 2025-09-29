@@ -723,6 +723,7 @@ export function createBrowseFileColumnExtensionMap({
         'sample_summary.studies',
         'submission_centers.display_title',
         'software.display_title',
+        'donors.tags',
     ];
 
     return { columnExtensionMap, columns, hideFacets };
