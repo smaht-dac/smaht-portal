@@ -1798,7 +1798,8 @@ class BodyElement extends React.PureComponent {
             // See: https://stackoverflow.com/questions/49723019/compare-with-previous-props-in-getderivedstatefromprops
             lastHref: props.href,
             // Whether Test Data warning banner is visible.
-            testWarningPresent: false, //!globals.productionHost[props.hrefParts.hostname] || false
+            // testWarningPresent: !globals.productionHost[props.hrefParts.hostname] || false
+            testWarningPresent: true, // TODO: set to false when portal shut down is over
         };
 
         /**
