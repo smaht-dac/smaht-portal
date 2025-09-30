@@ -126,7 +126,7 @@ const DonorCohortViewChart = ({
 
     React.useEffect(() => {
         // skip drawing if no data or loading
-        if (!effectiveWidth || loading || !data || (Array.isArray(data) && data.length === 0)) {
+        if (!effectiveWidth) {
             return;
         }
 
@@ -166,6 +166,11 @@ const DonorCohortViewChart = ({
             .attr('rx', THEME.panel.radius)
             .attr('fill', THEME.panel.fill)
             .attr('stroke', THEME.panel.stroke);
+
+        // draw the borders only, skip rest of drawing if no data or loading
+        if (!session || loading || !data || (Array.isArray(data) && data.length === 0)) {
+            return;
+        }
 
         // created once per chart instance, removed on unmount
         const instanceId = instanceIdRef.current;
@@ -213,7 +218,7 @@ const DonorCohortViewChart = ({
                     donorAdditionalParam: {}
                 }
             };
-            
+
             const {
                 donorCount,
                 fileCount,
@@ -253,8 +258,7 @@ const DonorCohortViewChart = ({
 		                    <div class="name col">${crumbLabel}</div>
 		                    <div class="count col-auto pull-right text-end">${crumbValue}</div>
 	                    </div>
-                      </div>` : ''
-                        }
+                      </div>` : ''}
                       <h6 class="field-title">
                         <small class="pull-right sets-label">${rightTitle}</small>${leftTitle}
                       </h6>
@@ -273,13 +277,11 @@ const DonorCohortViewChart = ({
                                 ${filesHref ? `
                               <a href="${filesHref}" target="_blank" rel="noreferrer noopener">
                                 ${fileCount}<small> Files</small>
-                              </a>` : `${fileCount}<small> Files</small>`
-                                }
+                              </a>` : `${fileCount}<small> Files</small>`}
                             </div>
                           </div>
                         </div>
-                      </div>` : ''
-                        }
+                      </div>` : ''}
 
                       ${donorsHref != null && _isPinned ? `
                       <div class="actions buttons-container">
@@ -288,8 +290,7 @@ const DonorCohortViewChart = ({
                             <a href=${donorsHref} class="btn btn-primary btn-sm w-100 active" role="button" aria-pressed="true" data-explore="1">Explore Donors</a>
                           </div>
                         </div>
-                      </div>` : ''
-                        }
+                      </div>` : ''}
                     </div>
                   </div>
                 </div>`;
@@ -596,7 +597,7 @@ const DonorCohortViewChart = ({
         if (chartType === 'stacked') {
             const maleColor = topStackColor || THEME.colors.male;
             const femaleColor = bottomStackColor || THEME.colors.female;
-            
+
             g.selectAll('.bar-female')
                 .data(data).enter().append('rect')
                 .attr('x', (d) => x(d.group))
@@ -723,27 +724,25 @@ const DonorCohortViewChart = ({
             <svg ref={svgRef} />
 
             {/* Title + info icon (centered) */}
-            {session &&
-                <div className="chart-title-container">
-                    <h3>
-                        {title}
-                        {popover && (
-                            <OverlayTrigger
-                                trigger="click"
-                                flip
-                                placement="auto"
-                                rootClose
-                                rootCloseEvent="click"
-                                overlay={popover}
-                            >
-                                <button type="button" className="info-tooltip" aria-label="More info">
-                                    <i className="icon icon-info-circle fas" />
-                                </button>
-                            </OverlayTrigger>
-                        )}
-                    </h3>
-                </div>
-            }
+            <div className="chart-title-container">
+                <h3>
+                    {title}
+                    {session && popover && (
+                        <OverlayTrigger
+                            trigger="click"
+                            flip
+                            placement="auto"
+                            rootClose
+                            rootCloseEvent="click"
+                            overlay={popover}
+                        >
+                            <button type="button" className="info-tooltip" aria-label="More info">
+                                <i className="icon icon-info-circle fas" />
+                            </button>
+                        </OverlayTrigger>
+                    )}
+                </h3>
+            </div>
 
             {/* Loading overlay */}
             {loading && session && (
@@ -763,7 +762,7 @@ const DonorCohortViewChart = ({
             )}
 
             {/* Legend (vertical, compact) */}
-            {chartType === 'stacked' && showLegend && session && !loading && data && (
+            {chartType === 'stacked' && showLegend && (
                 <div className="legend-container" style={{ border: `1px solid ${THEME.panel.stroke}` }}>
                     <div className="legend-title">
                         {legendTitle}
