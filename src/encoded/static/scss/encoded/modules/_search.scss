@@ -1107,6 +1107,15 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 			}
 		}
 	}
+
+	.donor-metadata {
+		pointer-events: auto;
+		&:disabled {
+			&:hover {
+				cursor: default;
+			}
+		}
+	}
 }
 
 

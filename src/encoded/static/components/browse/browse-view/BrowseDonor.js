@@ -434,7 +434,7 @@ export function createBrowseDonorColumnExtensionMap({
             },
         },
         // Tissues
-        'sample_summary.tissues': {
+        tissues: {
             noSort: true,
             colAlignment: 'text-end',
             widthMap: { lg: 120, md: 120, sm: 120 },
@@ -729,9 +729,6 @@ export function createBrowseDonorColumnExtensionMap({
     };
 
     const columns = {
-        // display_title: {
-        //     title: 'display_title',
-        // },
         '@type': {
             title: 'Selected',
         },
@@ -744,7 +741,7 @@ export function createBrowseDonorColumnExtensionMap({
         sex: {
             title: 'Sex',
         },
-        'sample_summary.tissues': {
+        tissues: {
             title: 'Tissues',
         },
         assays: {
@@ -762,6 +759,7 @@ export function createBrowseDonorColumnExtensionMap({
     };
 
     const hideFacets = [
+        'tissues',
         'dataset',
         'file_sets.libraries.analytes.samples.sample_sources.code',
         'status',

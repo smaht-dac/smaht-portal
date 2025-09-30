@@ -432,7 +432,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
             },
         },
         // Tissues
-        'sample_summary.tissues': {
+        tissues: {
             noSort: true,
             colAlignment: 'text-end',
             widthMap: { lg: 120, md: 120, sm: 120 },
@@ -773,7 +773,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
         sex: {
             title: 'Sex',
         },
-        'sample_summary.tissues': {
+        tissues: {
             title: 'Tissues',
         },
         assays: {
