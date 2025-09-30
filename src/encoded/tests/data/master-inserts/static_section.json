@@ -3,7 +3,7 @@
         "identifier": "coming-soon",
         "title": "Coming Soon",
         "body": "Coming soon!",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "md",
             "collapsible": false,
@@ -22,7 +22,7 @@
         "identifier": "about.associate_membership_policy",
         "title": "Associate Membership Policy",
         "file": "/docs/public/about_membership_policy.md",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "md",
             "collapsible": false,
@@ -41,7 +41,7 @@
         "identifier": "consortium-map",
         "title": "SMaHT Consortium Members Map",
         "file": "/docs/public/consortium_map.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -60,7 +60,7 @@
         "identifier": "alluvial",
         "title": "SMaHT Data Overview",
         "file": "/docs/public/alluvial.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -79,7 +79,7 @@
         "identifier": "assay-table",
         "title": "SMaHT Benchmarking Experimental Assays",
         "file": "/docs/public/assay-table.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -98,7 +98,7 @@
         "identifier": "benchmarking.COLO829",
         "title": "COLO829 Data Table",
         "file": "/docs/public/benchmarking_COLO829.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -117,7 +117,7 @@
         "identifier": "benchmarking.HapMap",
         "title": "HapMap Data Table",
         "file": "/docs/public/benchmarking_HapMap.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -136,7 +136,7 @@
         "identifier": "benchmarking.iPSCFibroblast",
         "title": "iPSC Fibroblast Data Table",
         "file": "/docs/public/benchmarking_iPSCFibroblast.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -155,7 +155,7 @@
         "identifier": "benchmarking.donorst001",
         "title": "Donor ST001",
         "file": "/docs/public/benchmarking_tissues_Donor1.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -174,7 +174,7 @@
         "identifier": "benchmarking.donorst002",
         "title": "Donor ST002",
         "file": "/docs/public/benchmarking_tissues_Donor2.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -193,7 +193,7 @@
         "identifier": "benchmarking.donorst003",
         "title": "Donor ST003",
         "file": "/docs/public/benchmarking_tissues_Donor3.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -212,7 +212,7 @@
         "identifier": "benchmarking.donorst004",
         "title": "Donor ST004",
         "file": "/docs/public/benchmarking_tissues_Donor4.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -232,7 +232,7 @@
         "uuid": "442c8aa0-dc6c-43d7-814a-854af460b014",
         "file": "/docs/source/account_creation.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst",
             "initial_header_level": 2
@@ -288,7 +288,7 @@
         "uuid": "442c8aa0-dc6c-43d7-814a-854af460b015",
         "file": "/docs/source/getting_started.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst",
             "initial_header_level": 2
@@ -324,7 +324,7 @@
         "uuid": "442c8aa0-dc6c-43d7-814a-854af460b016",
         "file": "/docs/source/credentials.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst",
             "initial_header_level": 2
@@ -412,7 +412,7 @@
         "uuid": "1a2fdcbf-eead-4441-a028-76c5a3e2ac16",
         "file": "/docs/source/uploading_files.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst"
         },
@@ -428,7 +428,7 @@
         "uuid": "a74b4355-3721-4a27-a444-e99a55a1407b",
         "file": "/docs/source/troubleshooting.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst"
         },
@@ -444,7 +444,7 @@
         "uuid": "1b656dca-547b-4c2a-b61b-57d4903b4599",
         "file": "/docs/source/file_download.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst",
             "initial_header_level": 2
@@ -461,7 +461,7 @@
         "uuid": "e88a8a3d-cee8-430e-bfed-5c056bc384ea",
         "file": "/docs/public/smaht_nomenclature.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst"
         },
@@ -477,7 +477,7 @@
         "uuid": "6206008f-9288-4156-b55d-52a75f5332e8",
         "file": "/docs/source/referencing_data.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst",
             "initial_header_level": 2
@@ -494,7 +494,7 @@
         "uuid": "794304f1-3c36-4528-bce8-0f6d6b165fc5",
         "file": "/docs/source/data_release_status.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst",
             "initial_header_level": 2
@@ -511,7 +511,7 @@
         "uuid": "f525c58f-e6b8-499f-98df-6c24c1af9f26",
         "file": "/docs/source/manifest.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst",
             "initial_header_level": 2

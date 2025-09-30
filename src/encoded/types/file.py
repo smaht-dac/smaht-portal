@@ -460,8 +460,8 @@ class File(Item, CoreFile):
         'retracted',
         'in review',
         'released',
-        'restricted',
-        'public'
+        'protected-network',
+        'open'
     ]
     STATUS_TO_REVISION_DATE_CONVERSION = [
         'retracted',
@@ -556,9 +556,9 @@ class File(Item, CoreFile):
         ]
     })
     def file_access_status(self, status: str = 'in review') -> Optional[str]:
-        if status in ['public', 'released']:
+        if status in ['open', 'released']:
             return self.OPEN
-        elif status == 'restricted':
+        elif status == 'protected-network':
             return self.PROTECTED
         return None
 
@@ -599,11 +599,11 @@ class File(Item, CoreFile):
                     "type": "string",
                     "format": "date",
                 },
-                "public": {
+                "open": {
                     "type": "string",
                     "format": "date-time"
                 },
-                "restricted": {
+                "protected-network": {
                     "type": "string",
                     "format": "date-time"
                 }
@@ -1249,13 +1249,13 @@ def validate_user_has_public_protected_access(request):
 def download_cli(context, request):
     """ Creates download credentials for files intended for use with awscli/rclone """
     # Download restriction for restricted status
-    if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
+    if context.properties.get('status') in ['protected-network', 'protected-early'] and not validate_user_has_protected_access(request):
         raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
-    # Download restriction for public-restricted
-    if context.properties.get('status') == 'public-restricted' and not (
+    # Download restriction for protected
+    if context.properties.get('status') in ['protected'] and not (
             validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
-        raise HTTPForbidden('This is a public-restricted file and is not available through download_cli without'
+        raise HTTPForbidden('This is a protected file and is not available through download_cli without'
                             'dbGaP approval. Please check with the DAC/your PI about your status.')
     return CoreDownloadCli(context, request)
 
@@ -1263,14 +1263,14 @@ def download_cli(context, request):
 @view_config(name='download', context=File, request_method='GET',
              permission='view', subpath_segments=[0, 1])
 def download(context, request):
-    # Download restriction for public-restricted
-    if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
-        raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
+    # Download restriction for protected
+    if context.properties.get('status') in ['protected-network', 'protected-early'] and not validate_user_has_protected_access(request):
+        raise HTTPForbidden('This is a restricted file not available for download without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
-    # Download restriction for public-restricted
-    if context.properties.get('status') == 'public-restricted' and not (
+    # Download restriction for protected
+    if context.properties.get('status') in ['protected'] and not (
             validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
-        raise HTTPForbidden('This is a public-restricted file and is not available through download_cli without'
+        raise HTTPForbidden('This is a protected file and is not available through download without'
                             'dbGaP approval. Please check with the DAC/your PI about your status.')
     return CoreDownload(context, request)
 

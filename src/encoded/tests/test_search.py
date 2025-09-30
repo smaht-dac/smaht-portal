@@ -95,7 +95,7 @@ def test_search_total(workbook, es_testapp, anon_es_testapp):
     """ Test that we can extract some search totals """
     search = {
         'type': 'File',
-        'status': ['released', 'restricted', 'public'],
+        'status': ['released', 'protected-network', 'open'],
     }
     res = es_testapp.post_json('/search_total', search).json['total']
     assert res == 8

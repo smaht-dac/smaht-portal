@@ -71,8 +71,8 @@
                 "in review",
                 "obsolete",
                 "deleted",
-                "restricted",
-                "public-restricted"
+                "protected-network",
+                "protected"
             ]
         }
     },

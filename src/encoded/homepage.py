@@ -20,14 +20,14 @@ class SearchBase:
     """ Contains search params for getting various bits of information from the ES """
     ALL_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'restricted', 'public'],
+        'status': ['released', 'protected-network', 'open'],
         'additional_facet': [
             'file_sets.libraries.assay.display_title'
         ]
     }
     COLO829_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'restricted', 'public'],
+        'status': ['released', 'protected-network', 'open'],
         'dataset': ['colo829blt_50to1', 'colo829t', 'colo829bl'],
         'additional_facet': [
             'file_sets.libraries.assay.display_title'
@@ -35,7 +35,7 @@ class SearchBase:
     }
     HAPMAP_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'restricted', 'public'],
+        'status': ['released', 'protected-network', 'open'],
         'dataset': ['hapmap'],
         'additional_facet': [
             'file_sets.libraries.assay.display_title'
@@ -43,7 +43,7 @@ class SearchBase:
     }
     IPSC_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'restricted', 'public'],
+        'status': ['released', 'protected-network', 'open'],
         'dataset': ['lb_fibroblast', 'lb_ipsc_1', 'lb_ipsc_2', 'lb_ipsc_4', 'lb_ipsc_52', 'lb_ipsc_60'],
         'additional_facet': [
             'file_sets.libraries.assay.display_title'
@@ -51,7 +51,7 @@ class SearchBase:
     }
     TISSUES_RELEASED_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'restricted', 'public'],
+        'status': ['released', 'protected-network', 'open'],
         'dataset': ['tissue'],
         'file_sets.libraries.analytes.samples.sample_sources.code': [
             'ST001-1A',
@@ -67,7 +67,7 @@ class SearchBase:
     }
     PRODUCTION_TISSUES_FILES_SEARCH_PARAMS = {
         'type': 'File',
-        'status': ['released', 'restricted', 'public'],
+        'status': ['released', 'protected-network', 'open'],
         'sample_summary.studies': ['Production'],
         'additional_facet': [
             'file_sets.libraries.assay.display_title',

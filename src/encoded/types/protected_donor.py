@@ -128,13 +128,13 @@ class ProtectedDonor(AbstractDonor):
 
     SUBMISSION_CENTER_STATUS_ACL = deepcopy(AbstractDonor.SUBMISSION_CENTER_STATUS_ACL)
     SUBMISSION_CENTER_STATUS_ACL.update({
-        'restricted': ONLY_DBGAP_VIEW_ACL,
-        'public-restricted': ONLY_PUBLIC_DBGAP_VIEW_ACL
+        'protected-network': ONLY_DBGAP_VIEW_ACL,
+        'protected': ONLY_PUBLIC_DBGAP_VIEW_ACL
     })
     CONSORTIUM_STATUS_ACL = deepcopy(AbstractDonor.CONSORTIUM_STATUS_ACL)
     CONSORTIUM_STATUS_ACL.update({
-        'restricted': ONLY_DBGAP_VIEW_ACL,
-        'public-restricted': ONLY_PUBLIC_DBGAP_VIEW_ACL
+        'protected-network': ONLY_DBGAP_VIEW_ACL,
+        'protected': ONLY_PUBLIC_DBGAP_VIEW_ACL
     })
 
     @calculated_property(

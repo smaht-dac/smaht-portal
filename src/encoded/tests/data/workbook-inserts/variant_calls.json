@@ -19,7 +19,7 @@
         ],
         "reference_genome": "GRCh38",
         "file_size": 100000,
-        "status": "public",
+        "status": "open",
         "dataset": "colo829t",
         "tags": [
             "test_release_tracker",

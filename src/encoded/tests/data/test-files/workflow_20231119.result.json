@@ -16,7 +16,7 @@
             "main_file_name": "main.cwl",
             "name": "sample-workflow-1",
             "schema_version": "1",
-            "status": "public",
+            "status": "open",
             "submission_centers": [
                 "SubmissionCenter1",
                 "SubmissionCenter2"
