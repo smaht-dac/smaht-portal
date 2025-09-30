@@ -920,6 +920,14 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 					background-color: #F4F3FD;
 
 					.search-headers-column-block {
+						.icon {
+							color: #B0ADBE;
+							font-size: 0.875rem;
+
+							&-info-circle {
+								margin-left: 5px;
+							}
+						}
 						.column-sort-icon {
 							color: #C8C5D7;
 						}
