@@ -400,13 +400,26 @@ export function createBrowseDonorColumnExtensionMap({
         },
         // Age
         age: {
-            widthMap: { lg: 80, md: 80, sm: 80 },
+            widthMap: { lg: 120, md: 120, sm: 120 },
+            colTitle: (
+                <span>
+                    Age
+                    <i
+                        className="icon icon-fw icon-info-circle fas ms-1"
+                        data-tip="Note: ages 89 and above are denoted as 89+"
+                    />
+                </span>
+            ),
             render: function (result, parentProps) {
-                return (
-                    <span className="value text-center w-100">
-                        {result?.age ?? null}
-                    </span>
-                );
+                if (!result?.age) return null;
+                else {
+                    const ageString = result.age === 89 ? '89+' : result?.age;
+                    return (
+                        <span className="value text-center w-100">
+                            {ageString}
+                        </span>
+                    );
+                }
             },
         },
         // Sex
