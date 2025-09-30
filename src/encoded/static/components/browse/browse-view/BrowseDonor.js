@@ -400,12 +400,12 @@ export function createBrowseDonorColumnExtensionMap({
         },
         // Age
         age: {
-            widthMap: { lg: 120, md: 120, sm: 120 },
+            widthMap: { lg: 100, md: 100, sm: 100 },
             colTitle: (
                 <span>
                     Age
                     <i
-                        className="icon icon-fw icon-info-circle fas ms-1"
+                        className="icon icon-fw icon-info-circle fas"
                         data-tip="Note: ages 89 and above are denoted as 89+"
                     />
                 </span>
@@ -591,7 +591,7 @@ export function createBrowseDonorColumnExtensionMap({
         files: {
             noSort: true,
             colAlignment: 'text-end',
-            widthMap: { lg: 105, md: 100, sm: 100 },
+            widthMap: { lg: 90, md: 90, sm: 90 },
             render: function (result, parentProps) {
                 const { data, loading, error } = parentProps?.fetchedProps;
 
@@ -619,7 +619,7 @@ export function createBrowseDonorColumnExtensionMap({
         file_size: {
             noSort: true,
             colAlignment: 'text-end',
-            widthMap: { lg: 105, md: 100, sm: 100 },
+            widthMap: { lg: 90, md: 90, sm: 90 },
             render: function (result, parentProps) {
                 const {
                     href,
@@ -663,7 +663,7 @@ export function createBrowseDonorColumnExtensionMap({
         },
         // Hardy Scale
         hardy_scale: {
-            widthMap: { lg: 150, md: 150, sm: 150 },
+            widthMap: { lg: 140, md: 140, sm: 140 },
             render: function (result, parentProps) {
                 return (
                     <span className="value text-center">
@@ -825,6 +825,13 @@ const BrowseDonorSearchTable = (props) => {
     const { columnExtensionMap, columns, hideFacets } =
         createBrowseDonorColumnExtensionMap(selectedFileProps);
 
+    // Custom sort functions for specific facet lists
+    const facetListSortFxns = {
+        hardy_scale: (a, b) => {
+            return a.key - b.key;
+        },
+    };
+
     return (
         <CommonSearchView
             {...passProps}
@@ -833,6 +840,7 @@ const BrowseDonorSearchTable = (props) => {
                 tableColumnClassName,
                 facetColumnClassName,
                 facets,
+                facetListSortFxns,
                 aboveFacetListComponent,
                 aboveTableComponent,
                 columns,
