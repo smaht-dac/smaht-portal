@@ -460,6 +460,9 @@ class File(Item, CoreFile):
         'retracted',
         'in review',
         'released',
+        'protected',
+        'open-network',
+        'open-early',
         'protected-network',
         'open'
     ]

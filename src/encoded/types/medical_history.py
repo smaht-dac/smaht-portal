@@ -78,7 +78,7 @@ class MedicalHistory(SubmittedItem):
     def diagnoses(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "diagnoses")
         return result or None
- 
+
     @calculated_property(
         schema={
             "title": "Medical Treatments",

@@ -11,7 +11,7 @@ from .abstract_donor import AbstractDonor
 def _build_protected_donor_embedded_list():
     """Embeds for search on protected donor."""
     return [
-        # Embeds for donor manifest and Donor Overview page 
+        # Embeds for donor manifest and Donor Overview page
         'demographic.international_military_base',
         'demographic.international_military_base_details',
         'demographic.military_association',
