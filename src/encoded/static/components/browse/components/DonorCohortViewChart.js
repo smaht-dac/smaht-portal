@@ -168,7 +168,7 @@ const DonorCohortViewChart = ({
             .attr('stroke', THEME.panel.stroke);
 
         // draw the borders only, skip rest of drawing if no data or loading
-        if (loading || !data || (Array.isArray(data) && data.length === 0)) {
+        if (loading || !data || (Array.isArray(data) && (data.length === 0 || data[0].total === 0))) {
             return;
         }
 
@@ -755,7 +755,7 @@ const DonorCohortViewChart = ({
                 </div>
             )}
 
-            {!loading && (!data || (Array.isArray(data) && data.length === 0)) && (
+            {!loading && (!data || (Array.isArray(data) && (data.length === 0 || data[0].total === 0))) && (
                 <div className="no-data">
                     <span className="text-secondary">No data available</span>
                 </div>

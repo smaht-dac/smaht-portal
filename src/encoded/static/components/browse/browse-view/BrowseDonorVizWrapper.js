@@ -37,6 +37,18 @@ export const donorSelfReportedEthnicityData = memoize(() =>
         .value()
 );
 
+// Age intervals
+export const ageGroups = [
+    { label: '18-30', min: 18, max: 30 },
+    { label: '31-55', min: 31, max: 55 },
+    { label: '56-65', min: 56, max: 65 },
+    { label: '66-75', min: 66, max: 75 },
+    { label: '76-85', min: 76, max: 85 },
+    { label: '≥86', min: 86, max: Infinity },
+];
+
+export const hardyScaleRange = [0, 1, 2, 3, 4];
+
 /**
  * Renders a popover with information about donor self-reported ethnicities.
  * @param {*} customId - The custom ID for the popover.
@@ -134,18 +146,6 @@ export const BrowseDonorVizWrapper = (props) => {
             fields_to_aggregate_for: ['donors.hardy_scale', 'donors.sex', 'donors.age'],
         };
         const commonCallback = (rawData) => {
-            // Age intervals
-            const ageGroups = [
-                { label: '18-30', min: 18, max: 30 },
-                { label: '31-55', min: 31, max: 55 },
-                { label: '56-65', min: 56, max: 65 },
-                { label: '66-75', min: 66, max: 75 },
-                { label: '76-85', min: 76, max: 85 },
-                { label: '≥86', min: 86, max: Infinity },
-            ];
-
-            const hardyScaleRange = [0, 1, 2, 3, 4];
-
             // Donor Hardy Scale Data
             const updatedDonorHardyScaleData = hardyScaleRange.map(
                 (scaleValue) => {
@@ -309,7 +309,7 @@ export const BrowseDonorVizWrapper = (props) => {
                     <div className="donor-cohort-view-chart-container">
                         <DonorCohortViewChart
                             title="Age Groups"
-                            data={session ? donorAgeGroupData : []}
+                            data={donorAgeGroupData}
                             chartWidth="auto"
                             chartHeight={420}
                             chartType="stacked"
@@ -330,7 +330,7 @@ export const BrowseDonorVizWrapper = (props) => {
 
                         <DonorCohortViewChart
                             title="Hardy Scale"
-                            data={session ? donorHardyScaleData : []}
+                            data={donorHardyScaleData}
                             chartWidth="auto"
                             chartHeight={420}
                             chartType="single"
