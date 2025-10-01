@@ -338,10 +338,7 @@ export const BrowseDonorVizWrapper = (props) => {
                             xAxisTitle="Hardy Scale"
                             yAxisTitle="# of Donors"
                             showXAxisTitle={false}
-                            popover={
-                                session &&
-                                renderHardyScaleDescriptionPopover()
-                            }
+                            popover={renderHardyScaleDescriptionPopover()}
                             showBarTooltip={true}
                             tooltipTitles={{ crumb: null, left: 'Hardy Scale', right: '# of Donors' }}
                             session={session}
@@ -352,11 +349,7 @@ export const BrowseDonorVizWrapper = (props) => {
 
                         <DonorCohortViewChart
                             title="Self-Reported Ethnicity"
-                            data={
-                                session
-                                    ? donorSelfReportedEthnicityData()
-                                    : []
-                            }
+                            data={donorSelfReportedEthnicityData()}
                             chartWidth="auto"
                             chartHeight={420}
                             chartType="horizontal"
@@ -364,7 +357,7 @@ export const BrowseDonorVizWrapper = (props) => {
                             xAxisTitle="# of Donors"
                             yAxisTitle="Ethnicity"
                             showYAxisTitle={false}
-                            popover={session && renderEthnicityPopover()}
+                            popover={renderEthnicityPopover()}
                             session={session}
                         />
                     </div>

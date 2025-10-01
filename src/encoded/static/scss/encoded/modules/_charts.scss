@@ -2066,7 +2066,7 @@ body[data-path="/statistics"] {
         }
     }
 
-    .login-required {
+    .login-required, .no-data {
         position: absolute;
         inset: 0;
         display: flex;
@@ -2085,10 +2085,6 @@ body[data-path="/statistics"] {
         padding: 4px 5px;
         min-width: 90px;
         max-width: 120px;
-
-        &:hover {
-            opacity: 0.3;
-        }
 
         .legend-title {
             text-align: center;

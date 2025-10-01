@@ -168,7 +168,7 @@ const DonorCohortViewChart = ({
             .attr('stroke', THEME.panel.stroke);
 
         // draw the borders only, skip rest of drawing if no data or loading
-        if (!session || loading || !data || (Array.isArray(data) && data.length === 0)) {
+        if (loading || !data || (Array.isArray(data) && data.length === 0)) {
             return;
         }
 
@@ -717,7 +717,7 @@ const DonorCohortViewChart = ({
             d3.select(svgRef.current).on(`mouseleave.cohortTooltip.${instanceId}`, null);
             if (_unpinTimer) clearTimeout(_unpinTimer);
         };
-    }, [data, effectiveWidth, chartHeight, chartType, topStackColor, bottomStackColor, showLegend, showLabelOnBar, title, xAxisTitle, yAxisTitle, session, loading]);
+    }, [data, effectiveWidth, chartHeight, chartType, topStackColor, bottomStackColor, showLegend, showLabelOnBar, title, xAxisTitle, yAxisTitle, loading]);
 
     return (
         <div ref={outerRef} className="donor-cohort-view-chart" style={{ height: chartHeight }}>
@@ -727,7 +727,7 @@ const DonorCohortViewChart = ({
             <div className="chart-title-container">
                 <h3>
                     {title}
-                    {session && popover && (
+                    {popover && (
                         <OverlayTrigger
                             trigger="click"
                             flip
@@ -745,7 +745,7 @@ const DonorCohortViewChart = ({
             </div>
 
             {/* Loading overlay */}
-            {loading && session && (
+            {loading && (
                 <div className="loading">
                     <i className="icon icon-spin icon-circle-notch fas" />
                     {/* screen-reader only text */}
@@ -755,11 +755,17 @@ const DonorCohortViewChart = ({
                 </div>
             )}
 
-            {!session && (
+            {!loading && (!data || (Array.isArray(data) && data.length === 0)) && (
+                <div className="no-data">
+                    <span className="text-secondary">No data available</span>
+                </div>
+            )}
+
+            {/* {!session && (
                 <div className="login-required">
                     <span className="text-secondary">Login required to view</span>
                 </div>
-            )}
+            )} */}
 
             {/* Legend (vertical, compact) */}
             {chartType === 'stacked' && showLegend && (
