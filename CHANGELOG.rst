@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+1.4.0
+=====
+
+`PR 516: feat: Browse By Donor + Visualizations + User Registration Form <https://github.com/smaht-dac/smaht-portal/pull/516>`_
+
+* New browse by donor (and protected donor) view
+* Visualizations for donor demographics including age, sex, and, hardy scale and self-reported ethnicity
+* New user registration form with email verification and reCAPTCHA
+* Updates "status" for browse views, data matrix and misc. filters
+
+
 1.3.3
 =====
 `PR 515: feat: sort tables by date_released <https://github.com/smaht-dac/smaht-portal/pull/515>`_

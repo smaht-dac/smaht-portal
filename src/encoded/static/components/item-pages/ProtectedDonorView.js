@@ -216,7 +216,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                 <DataMatrix
                                     key="data-matrix-donor"
                                     query={{
-                                        url: `/data_matrix_aggregations/?type=File&limit=all&status=released&donors.display_title=${context.display_title}`,
+                                        url: `/data_matrix_aggregations/?type=File&status=released&status=public&status=restricted&status=public-restricted&donors.display_title=${context.display_title}&limit=all`,
                                         columnAggFields: [
                                             'file_sets.libraries.assay.display_title',
                                             'sequencing.sequencer.platform',

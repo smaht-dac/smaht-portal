@@ -40,6 +40,7 @@ export const BenchmarkingTable = (props) => {
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
         tabMap,
+        deniedAccessPopoverType,
     } = props;
 
     const selectedFileProps = {
@@ -232,6 +233,7 @@ export const BenchmarkingTable = (props) => {
                         onResetSelectedItems,
                         href,
                         searchHref,
+                        deniedAccessPopoverType,
                     }}
                 />
             }
@@ -260,6 +262,7 @@ export const BenchmarkingTable = (props) => {
                     'donors.display_title',
                     'donors.age',
                     'donors.sex',
+                    'donors.hardy_scale',
                     'sample_summary.tissues',
                     'date_created',
                 ]
