@@ -82,7 +82,7 @@ export const BrowseDonorVizWrapper = (props) => {
         session,
         mapping
     } = props;
-    const initialFields = ['sample_summary.tissues'];
+    const initialFields = ['sample_summary.tissues', 'sequencing.sequencer.display_title'];
 
     const fileFilters = useMemo(() => {
         const hrefParts = url.parse(href, true);

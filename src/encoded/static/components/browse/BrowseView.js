@@ -69,7 +69,7 @@ export default function BrowseView(props) {
 const BrowseFileBody = (props) => {
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
     const { session, href, windowWidth, windowHeight, isFullscreen } = props;
-    const initialFields = ['sample_summary.tissues'];
+    const initialFields = ['sample_summary.tissues', 'sequencing.sequencer.display_title'];
     return (
         <>
             <h2 className="browse-summary-header">SMaHT Data Summary</h2>

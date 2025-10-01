@@ -167,7 +167,7 @@ export class FacetCharts extends React.PureComponent {
                     }, currentDonorFilters);
 
                     // very hacky - since Donor and ProtectedDonor lack tissues/sequencers/assays that are associated with released files,
-                    // we need to add a display_title filter with all donor ids in the selected tissue
+                    // we need to add a external_id filter with all donor ids in the selected tissue
                     // TODO: refactor this when we have a better data model
                     const keysToClear = [
                         'donor.tissues.tissue_type',
