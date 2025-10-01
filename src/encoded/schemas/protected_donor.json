@@ -128,10 +128,6 @@
         },
         "medical_history.alcohol_use": {
             "title": "Alcohol"
-        },
-        "hardy_scale": {
-            "title": "Hardy Scale",
-            "aggregation_type": "stats"
         }
     },
     "columns": {
