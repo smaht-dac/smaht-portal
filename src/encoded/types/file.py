@@ -609,7 +609,19 @@ class File(Item, CoreFile):
                 "protected-network": {
                     "type": "string",
                     "format": "date-time"
-                }
+                },
+                "protected": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "open-network": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "open-early": {
+                    "type": "string",
+                    "format": "date-time"
+                },
             }
         }
     )
