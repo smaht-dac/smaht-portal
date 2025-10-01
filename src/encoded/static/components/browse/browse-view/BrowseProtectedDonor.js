@@ -400,13 +400,26 @@ export function createBrowseProtectedDonorColumnExtensionMap({
         },
         // Age
         age: {
-            widthMap: { lg: 80, md: 80, sm: 80 },
+            widthMap: { lg: 100, md: 100, sm: 100 },
+            colTitle: (
+                <span>
+                    Age
+                    <i
+                        className="icon icon-fw icon-info-circle fas"
+                        data-tip="Note: ages 89 and above are denoted as 89+"
+                    />
+                </span>
+            ),
             render: function (result, parentProps) {
-                return (
-                    <span className="text-center w-100">
-                        {result?.age ?? null}
-                    </span>
-                );
+                if (!result?.age) return null;
+                else {
+                    const ageString = result.age === 89 ? '89+' : result?.age;
+                    return (
+                        <span className="value text-center w-100">
+                            {ageString}
+                        </span>
+                    );
+                }
             },
         },
         // Sex
@@ -421,7 +434,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
             },
         },
         // Tissues
-        'sample_summary.tissues': {
+        tissues: {
             noSort: true,
             colAlignment: 'text-end',
             widthMap: { lg: 120, md: 120, sm: 120 },
@@ -583,7 +596,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
         files: {
             noSort: true,
             colAlignment: 'text-end',
-            widthMap: { lg: 105, md: 100, sm: 100 },
+            widthMap: { lg: 90, md: 90, sm: 90 },
             render: function (result, parentProps) {
                 const { data, loading, error } = parentProps?.fetchedProps;
 
@@ -607,7 +620,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
         file_size: {
             noSort: true,
             colAlignment: 'text-end',
-            widthMap: { lg: 105, md: 100, sm: 100 },
+            widthMap: { lg: 90, md: 90, sm: 90 },
             render: function (result, parentProps) {
                 const { data, loading } = parentProps?.fetchedProps;
 
@@ -643,7 +656,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
         },
         // Hardy Scale
         hardy_scale: {
-            widthMap: { lg: 150, md: 150, sm: 150 },
+            widthMap: { lg: 140, md: 140, sm: 140 },
             render: function (result, parentProps) {
                 const hardy_scale = result?.hardy_scale;
                 return hardy_scale ? (
@@ -655,35 +668,38 @@ export function createBrowseProtectedDonorColumnExtensionMap({
         },
         // Cancer History
         'medical_history.cancer_history': {
-            widthMap: { lg: 180, md: 180, sm: 180 },
+            widthMap: { lg: 160, md: 160, sm: 160 },
+            colAlignment: 'text-start',
             render: function (result, parentProps) {
                 const cancer_history =
                     result?.medical_history?.[0]?.cancer_history;
 
                 return cancer_history ? (
-                    <span className="value text-center">{cancer_history}</span>
+                    <span className="value text-start">{cancer_history}</span>
                 ) : null;
             },
         },
         // Tobacco Use
         'medical_history.tobacco_use': {
-            widthMap: { lg: 120, md: 120, sm: 120 },
+            widthMap: { lg: 115, md: 115, sm: 115 },
+            colAlignment: 'text-start',
             render: function (result, parentProps) {
                 const tobacco_use = result?.medical_history?.[0]?.tobacco_use;
 
                 return tobacco_use ? (
-                    <span className="value text-center">{tobacco_use}</span>
+                    <span className="value text-start">{tobacco_use}</span>
                 ) : null;
             },
         },
         // Alcohol Use
         'medical_history.alcohol_use': {
-            widthMap: { lg: 120, md: 120, sm: 120 },
+            widthMap: { lg: 105, md: 105, sm: 105 },
+            colAlignment: 'text-start',
             render: function (result, parentProps) {
                 const alcohol_use = result?.medical_history?.[0]?.alcohol_use;
 
                 return alcohol_use ? (
-                    <span className="value text-center">{alcohol_use}</span>
+                    <span className="value text-start">{alcohol_use}</span>
                 ) : null;
             },
         },
@@ -759,7 +775,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
         sex: {
             title: 'Sex',
         },
-        'sample_summary.tissues': {
+        tissues: {
             title: 'Tissues',
         },
         assays: {
@@ -852,6 +868,13 @@ const BrowseProtectedDonorSearchTable = (props) => {
     const { columnExtensionMap, columns, hideFacets } =
         createBrowseProtectedDonorColumnExtensionMap(selectedFileProps);
 
+    // Custom sort functions for specific facet lists
+    const facetListSortFxns = {
+        hardy_scale: (a, b) => {
+            return a.key - b.key;
+        },
+    };
+
     return (
         <CommonSearchView
             {...passProps}
@@ -860,6 +883,7 @@ const BrowseProtectedDonorSearchTable = (props) => {
                 tableColumnClassName,
                 facetColumnClassName,
                 facets,
+                facetListSortFxns,
                 aboveFacetListComponent,
                 aboveTableComponent,
                 columns,

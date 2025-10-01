@@ -407,13 +407,26 @@ export function createBrowseDonorColumnExtensionMap({
         },
         // Age
         age: {
-            widthMap: { lg: 80, md: 80, sm: 80 },
+            widthMap: { lg: 100, md: 100, sm: 100 },
+            colTitle: (
+                <span>
+                    Age
+                    <i
+                        className="icon icon-fw icon-info-circle fas"
+                        data-tip="Note: ages 89 and above are denoted as 89+"
+                    />
+                </span>
+            ),
             render: function (result, parentProps) {
-                return (
-                    <span className="value text-center w-100">
-                        {result?.age ?? null}
-                    </span>
-                );
+                if (!result?.age) return null;
+                else {
+                    const ageString = result.age === 89 ? '89+' : result?.age;
+                    return (
+                        <span className="value text-center w-100">
+                            {ageString}
+                        </span>
+                    );
+                }
             },
         },
         // Sex
@@ -428,7 +441,7 @@ export function createBrowseDonorColumnExtensionMap({
             },
         },
         // Tissues
-        'sample_summary.tissues': {
+        tissues: {
             noSort: true,
             colAlignment: 'text-end',
             widthMap: { lg: 120, md: 120, sm: 120 },
@@ -585,7 +598,7 @@ export function createBrowseDonorColumnExtensionMap({
         files: {
             noSort: true,
             colAlignment: 'text-end',
-            widthMap: { lg: 105, md: 100, sm: 100 },
+            widthMap: { lg: 90, md: 90, sm: 90 },
             render: function (result, parentProps) {
                 const { data, loading, error } = parentProps?.fetchedProps;
 
@@ -613,7 +626,7 @@ export function createBrowseDonorColumnExtensionMap({
         file_size: {
             noSort: true,
             colAlignment: 'text-end',
-            widthMap: { lg: 105, md: 100, sm: 100 },
+            widthMap: { lg: 90, md: 90, sm: 90 },
             render: function (result, parentProps) {
                 const {
                     href,
@@ -657,7 +670,7 @@ export function createBrowseDonorColumnExtensionMap({
         },
         // Hardy Scale
         hardy_scale: {
-            widthMap: { lg: 150, md: 150, sm: 150 },
+            widthMap: { lg: 140, md: 140, sm: 140 },
             render: function (result, parentProps) {
                 return (
                     <span className="value text-center">
@@ -723,9 +736,6 @@ export function createBrowseDonorColumnExtensionMap({
     };
 
     const columns = {
-        // display_title: {
-        //     title: 'display_title',
-        // },
         '@type': {
             title: 'Selected',
         },
@@ -738,7 +748,7 @@ export function createBrowseDonorColumnExtensionMap({
         sex: {
             title: 'Sex',
         },
-        'sample_summary.tissues': {
+        tissues: {
             title: 'Tissues',
         },
         assays: {
@@ -756,6 +766,7 @@ export function createBrowseDonorColumnExtensionMap({
     };
 
     const hideFacets = [
+        'tissues',
         'dataset',
         'file_sets.libraries.analytes.samples.sample_sources.code',
         'status',
@@ -820,6 +831,13 @@ const BrowseDonorSearchTable = (props) => {
     const { columnExtensionMap, columns, hideFacets } =
         createBrowseDonorColumnExtensionMap(selectedFileProps);
 
+    // Custom sort functions for specific facet lists
+    const facetListSortFxns = {
+        hardy_scale: (a, b) => {
+            return a.key - b.key;
+        },
+    };
+
     return (
         <CommonSearchView
             {...passProps}
@@ -828,6 +846,7 @@ const BrowseDonorSearchTable = (props) => {
                 tableColumnClassName,
                 facetColumnClassName,
                 facets,
+                facetListSortFxns,
                 aboveFacetListComponent,
                 aboveTableComponent,
                 columns,

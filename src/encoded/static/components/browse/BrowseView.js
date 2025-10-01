@@ -238,7 +238,9 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
     return downloadLink ? (
         <a
             data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
-            className={'btn btn-sm btn-outline-secondary ' + className}
+            className={
+                'donor-metadata btn btn-sm btn-outline-secondary ' + className
+            }
             href={downloadLink}
             download>
             <span>
@@ -247,15 +249,22 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
             </span>
         </a>
     ) : (
-        <button
-            data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
-            className={'btn btn-sm btn-outline-secondary ' + className}
-            disabled>
-            <span>
-                <i className="icon icon-fw icon-users fas me-1" />
-                Download Bulk Donor Metadata
-            </span>
-        </button>
+        <OverlayTrigger
+            trigger={['hover', 'focus']}
+            placement="top"
+            overlay={renderProtectedAccessPopover()}>
+            <button
+                className={
+                    'donor-metadata btn btn-sm btn-outline-secondary ' +
+                    className
+                }
+                disabled>
+                <span>
+                    <i className="icon icon-fw icon-users fas me-1" />
+                    Download Bulk Donor Metadata
+                </span>
+            </button>
+        </OverlayTrigger>
     );
 };
 
