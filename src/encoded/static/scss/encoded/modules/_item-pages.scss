@@ -1262,7 +1262,94 @@ body[data-pathname^="/users/"] {
 	color: rgb(229, 149, 69);
 }
 
+.user-registration-modal {
+	&.modal-lg {
+		@include media-breakpoint-up(lg) {
+			min-width: 875px;
+		}
+	}
 
+	.modal-content>.modal-header>.modal-title {
+		color: #343741;
+		font-size: 1.5rem;
+		font-weight: 600;
+	}
+}
+
+.user-registration-form-container {
+	.info-panel {
+		border-radius: 7px;
+		border: 1px solid #cae5fe;
+		background: #f1f9ff;
+		box-shadow: none;
+		padding: 10px;
+	}
+	.option-panel {
+		border-radius: 7px;
+		border: 1px solid #f0f0f0;
+		background: #fbfbfb;
+		box-shadow: none;
+		padding: 10px;
+
+		label {
+			font-size: 0.9rem;
+		}
+	}
+	.section-header {
+		border-bottom: 1px solid #ddd;
+		padding-bottom: 5px;
+	}
+	li {
+		margin-bottom: 15px;
+		line-height: 150%;
+	}
+	h3.section-title {
+		font-size: 1.1rem !important;
+		font-weight: 500 !important;
+	}
+	h4 {
+		font-size: 1.1rem;
+	}
+	p {
+		font-size: 0.9rem;
+	}
+	#email-address{
+		border-radius: 7px;
+		border: 1px solid #cae5fe;
+		background: #f1f9ff;
+		box-shadow: none;
+		padding: 5px 15px;
+	}
+	div.alert-danger {
+		color: #DD999A;
+		background-color: #fdf2f2;
+		> div {
+			color: #6c4545;
+		}
+	}
+	.lh-lg {
+		line-height: 1.75 !important;
+	}
+	.loading-indicator {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		font-size: 3em;
+		color: rgba(0, 0, 0, 0.8);
+		background-color: rgba(255, 255, 255, 0.85);
+		left: 0;
+		right: 0;
+		bottom: 0;
+		top: 0;
+	}
+	.footer-button-container {
+		background-color: #f8f8f8;
+  		width: calc(100% + 2.5rem);
+  		margin-left: -1.25rem;
+  		padding-left: 0.75rem;
+  		padding-right: 0.75rem;
+	}
+}
 
 
 /*********************
@@ -1362,9 +1449,9 @@ File and Donor Overview Styles
 						height: 31px;
 						font-size: 0.875rem;
 						font-weight: 500;
-						padding: 0px 20px;
 						display: flex;
 						align-items: center;
+						gap: 5px;
 	
 						i {
 							margin-right: 10px;
@@ -1373,6 +1460,11 @@ File and Donor Overview Styles
 						&:disabled {
 							background-color: #C0C7D2;
 							border: 1px solid #B6C1D1;
+							pointer-events: auto;
+
+							&:hover {
+								cursor: default;
+							}
 						}
 					}
 				}
@@ -2384,6 +2476,18 @@ Popover Styles for Item Pages
 			margin: 0px;
 			background-color: #F1F9FF;
 			font-weight: 500;
+		}
+
+		.popover-body {
+			padding: 15px 12px;
+		}
+	}
+	&.warning-popover {
+		max-width: 300px;
+
+		thead > tr > th {
+			background-color: #fff1f1 !important;
+			font-weight: 600;
 		}
 
 		.popover-body {

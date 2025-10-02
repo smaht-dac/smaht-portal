@@ -82,7 +82,8 @@ export const AccountNav = React.memo(function AccountNav(props) {
                     <LoginNavItem
                         {...{ schemas, session, href, windowWidth }}
                         key="login-register"
-                        className="user-account-item"
+                        className="muted" // TODO: remove when portal shut down is over
+                        disabled={false}
                     />
                 </LoginController>
             </div>
@@ -279,7 +280,8 @@ const HelpdeskButton = React.memo(function HelpdeskButton(props) {
     return (
         <a role="button" href={mailto} className="helpdesk nav-link">
             <i className="icon icon-envelope fas" />
-            Helpdesk
+            <span>Helpdesk</span>
         </a>
     );
 });
+

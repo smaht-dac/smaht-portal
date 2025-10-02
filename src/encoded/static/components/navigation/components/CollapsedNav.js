@@ -207,8 +207,10 @@ const LeftNavGuest = React.memo(function LeftNavGuest(props) {
 
     return (
         <div className="navbar-nav me-auto">
-            <AboutNavItem {...props} />
+            <DataNavItem {...props} />
             <DocsNavItem {...props} />
+            <AboutNavItem {...props} />
+            <ResourcesNavItem {...props} />
         </div>
     );
 });

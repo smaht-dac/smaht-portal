@@ -988,12 +988,13 @@ body[data-path="/"]>#application>#layout {
 												}
 	
 												&:hover {
-													display: flex;
+													display: inline;
 													cursor: pointer;
 													color: #3C71F9;
 	
 													svg {
-														display: flex;
+														display: inline-flex;
+														vertical-align: text-top;
 														fill: #3C71F9;
 														width: 12px;
 														margin-left: 4px;
@@ -2685,6 +2686,30 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 					>div {
 						flex-direction: column;
 					}
+
+					// Download button styling
+					.download-button {
+						height: 31px;
+						font-size: 0.875rem;
+						font-weight: 500;
+						display: flex;
+						align-items: center;
+						gap: 5px;
+
+						i {
+							margin-right: 10px;
+						}
+
+						&:disabled {
+							background-color: #C0C7D2;
+							border: 1px solid #B6C1D1;
+							pointer-events: auto;
+
+							&:hover {
+								cursor: default;
+							}
+						}
+					}
 				}
 			}
 	
@@ -3262,3 +3287,11 @@ FAQ page styles
 }
 
 
+// Schema Reference pages (Data Dictionary)
+.static-section-entry#donor_manifest_dictionary {
+	.schema-reference-page {
+		.example {
+			color: $gray-70;
+		}
+	}
+}
