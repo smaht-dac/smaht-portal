@@ -3,6 +3,11 @@ import { object } from '@hms-dbmi-bgm/shared-portal-components/es/components/uti
 import React from 'react';
 import * as d3 from 'd3';
 
+import {
+    EXTERNAL_RELEASE_STATUSES,
+    INTERNAL_RELEASE_STATUSES,
+} from './submissionStatusConfig';
+
 export const formatDate = (date_str) => {
     if (!date_str) {
         return '';
@@ -174,6 +179,14 @@ export const getQcResultsSummary = (qc_results) => {
             return <span>{badge} / </span>;
         }
     });
+};
+
+export const isReleasedExternally = (status) => {
+    return EXTERNAL_RELEASE_STATUSES.includes(status);
+};
+
+export const isReleasedInternally = (status) => {
+    return INTERNAL_RELEASE_STATUSES.includes(status);
 };
 
 export const getCommentsList = (

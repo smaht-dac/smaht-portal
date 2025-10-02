@@ -163,7 +163,9 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         const options = [
             <option value="all">All</option>,
             <option value="in review">In Review</option>,
-            <option value="released">Released, Restricted, Public</option>,
+            <option value="open">Released to public</option>,
+            <option value="released-network">Released to network</option>,
+            <option value="released-public-network">Released to public or network</option>,
         ];
         const defaultValue = 'in review';
         const filterName = 'fileset_status';

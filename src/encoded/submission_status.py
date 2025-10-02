@@ -10,13 +10,16 @@ import colorsys
 # Portal constants
 FILESET = "FileSet"
 UPLOADED = "uploaded"
-RELEASED = "released"
-PUBLIC = "public"
 UPLOADING = "uploading"
 ARCHIVED = "archived"
 DELETED = "deleted"
 OBSOLETE = "obsolete"
-RESTRICTED = "restricted"
+OPEN = "open"
+OPEN_EARLY = "open-early"
+OPEN_NETWORK = "open-network"
+PROTECTED = "protected"
+PROTECTED_EARLY = "protected-early"
+PROTECTED_NETWORK = "protected-network"
 STATUS = "status"
 O2_PATH = "o2_path"
 SUBMITTED_FILE = "SubmittedFile"
@@ -307,8 +310,10 @@ def add_submission_status_search_filters(
     if not filter:
         return
     if "fileset_status" in filter:
-        if filter["fileset_status"] == "released":
-            search_params[STATUS] = [RESTRICTED, RELEASED, PUBLIC]
+        if filter["fileset_status"] == "released-network":
+            search_params[STATUS] = [OPEN_EARLY, OPEN_NETWORK]
+        elif filter["fileset_status"] == "released-public-network":
+            search_params[STATUS] = [OPEN, OPEN_EARLY, OPEN_NETWORK]
         elif filter["fileset_status"] != "all":
             search_params[STATUS] = filter["fileset_status"]
     if "submission_center" in filter:

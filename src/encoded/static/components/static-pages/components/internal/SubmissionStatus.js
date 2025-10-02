@@ -16,6 +16,8 @@ import {
     getQcResultsSummary,
     getCommentsList,
     getTargetCoverage,
+    isReleasedExternally,
+    isReleasedInternally
 } from './submissionStatusUtils';
 
 import {
@@ -410,7 +412,7 @@ class SubmissionStatusComponent extends React.PureComponent {
                 : null;
             const targetCoverage = getTargetCoverage(fs.sequencing);
             const status_badge_type =
-                fs.status == 'released' ? 'success' : 'warning';
+                isReleasedExternally(fs.status) ? 'success' : 'warning';
             const status = createBadge(status_badge_type, fs.status);
             let fs_details = [
                 <li className="ss-line-height-140">Status: {status}</li>,
