@@ -83,7 +83,8 @@
                 "deleted",
                 "open",
                 "protected-network",
-                "protected"
+                "protected",
+                "public"
             ]
         },
         "external_quality_metrics": {
