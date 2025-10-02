@@ -794,7 +794,34 @@ body[data-path="/"]>#application>#layout {
 							text-align: center;
     						width: 100%;
 						}
+						.content {
+							.body {
+								.callout {
+									.announcement-container.warning {
+										border-radius: 5px;
+										margin-top: 5px;
+										padding: 10px;
+										font-size: 12px;
+										border-color: #D5DFF2;
+			
+										div.header {
+											color: #485983;
+											background-color: transparent;
+											justify-content: flex-start;
+											align-items: center;
+											
+											i {
+												color: #485983;
+												margin-right: 5px;
+											}
+										}
+			
+									}
+								}
+							}
+						}
 					}
+
 
 					&.data-release-tracker {
 						display: flex;
@@ -939,12 +966,13 @@ body[data-path="/"]>#application>#layout {
 												}
 	
 												&:hover {
-													display: flex;
+													display: inline;
 													cursor: pointer;
 													color: #3C71F9;
 	
 													svg {
-														display: flex;
+														display: inline-flex;
+														vertical-align: text-top;
 														fill: #3C71F9;
 														width: 12px;
 														margin-left: 4px;
@@ -1072,81 +1100,6 @@ body[data-path="/"]>#application>#layout {
 								background-color: #D5DFF2;
 								box-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
 							}
-							
-							.announcement-container {
-								background-color: rgba(255, 255, 255, 0.8);
-								border: 1px solid #b4c1f7;
-								padding: 12px;
-								border-radius: 9px;
-								
-								.header {
-									font-size: 0.75rem;
-									color: #485983;
-									margin-top: 0px;
-									margin-bottom: 5px;
-									text-transform: uppercase;
-
-									.localized-date-time {
-										text-transform: none;
-										font-weight: 500;
-										margin-left: 8px;
-										font-size: 0.65rem;
-										color: #90a2cd;
-										float: right !important;
-									}
-								}
-								.body {
-									font-size: 0.75rem;
-									margin-top: 0px;
-									color: #485983;
-
-									ul {
-										padding-left: 16px;
-
-										li {
-											margin-top: 5px;
-										}
-									}
-								}
-								.footer {
-									margin-top: 10px;
-									padding-top: 10px;
-									border-top: 1px solid #b4c1f733;
-									a {
-										display: flex;
-										color: #485983;
-										font-size: 0.75rem;
-										font-weight: 500;
-										
-										svg {
-											display: none;
-										}
-
-										&:hover {
-											cursor: pointer;
-											color: #3C71F9;
-
-											svg {
-												display: flex;
-												fill: #3C71F9;
-												width: 12px;
-												margin-left: 4px;
-											}
-										}
-									}
-								}
-
-								&.warning {
-									.header {
-										color: #b13535;
-									}
-								}
-								&.feature {
-									.header {
-										color: #3E97EA;
-									}
-								}
-							}
 						}
 					}
 					&.about-consortium {
@@ -1217,6 +1170,81 @@ body[data-path="/"]>#application>#layout {
 							}
 						}
 						
+					}
+
+					.announcement-container {
+						background-color: #fcfdfe;
+						border: 1px solid #b4c1f7;
+						padding: 12px;
+						border-radius: 9px;
+						
+						.header {
+							font-size: 0.75rem;
+							color: #485983;
+							margin-top: 0px;
+							margin-bottom: 5px;
+							text-transform: uppercase;
+
+							.localized-date-time {
+								text-transform: none;
+								font-weight: 500;
+								margin-left: 8px;
+								font-size: 0.65rem;
+								color: #90a2cd;
+								float: right !important;
+							}
+						}
+						.body {
+							font-size: 0.75rem;
+							margin-top: 0px;
+							color: #485983;
+
+							ul {
+								padding-left: 16px;
+
+								li {
+									margin-top: 5px;
+								}
+							}
+						}
+						.footer {
+							margin-top: 10px;
+							padding-top: 10px;
+							border-top: 1px solid #b4c1f733;
+							a {
+								display: flex;
+								color: #485983;
+								font-size: 0.75rem;
+								font-weight: 500;
+								
+								svg {
+									display: none;
+								}
+
+								&:hover {
+									cursor: pointer;
+									color: #3C71F9;
+
+									svg {
+										display: flex;
+										fill: #3C71F9;
+										width: 12px;
+										margin-left: 4px;
+									}
+								}
+							}
+						}
+
+						&.warning {
+							.header {
+								color: #b13535;
+							}
+						}
+						&.feature {
+							.header {
+								color: #3E97EA;
+							}
+						}
 					}
 
 				}
@@ -2636,6 +2664,30 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 					>div {
 						flex-direction: column;
 					}
+
+					// Download button styling
+					.download-button {
+						height: 31px;
+						font-size: 0.875rem;
+						font-weight: 500;
+						display: flex;
+						align-items: center;
+						gap: 5px;
+
+						i {
+							margin-right: 10px;
+						}
+
+						&:disabled {
+							background-color: #C0C7D2;
+							border: 1px solid #B6C1D1;
+							pointer-events: auto;
+
+							&:hover {
+								cursor: default;
+							}
+						}
+					}
 				}
 			}
 	
@@ -3213,3 +3265,11 @@ FAQ page styles
 }
 
 
+// Schema Reference pages (Data Dictionary)
+.static-section-entry#donor_manifest_dictionary {
+	.schema-reference-page {
+		.example {
+			color: $gray-70;
+		}
+	}
+}

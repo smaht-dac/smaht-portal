@@ -337,7 +337,8 @@
         "status": "public",
         "children": [
             "27d149b5-164a-4351-9095-7be11d6371f7",
-            "389b52ce-5161-4f08-b49b-b1b3b18f09e2"
+            "389b52ce-5161-4f08-b49b-b1b3b18f09e2",
+            "5e64b78a-58c1-48c3-b031-e8837a19b4a4"
         ],
         "table-of-contents": {
             "enabled": true
@@ -380,6 +381,25 @@
             "header-depth": 4
         },
         "status": "public",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+
+    {
+        "identifier": "docs/additional-resources/donor-manifest-dictionary",
+        "uuid": "5e64b78a-58c1-48c3-b031-e8837a19b4a4",
+        "status": "released",
+        "content": [
+            "abb80b35-61ac-4433-b6e3-55be1ba15e18"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Donor Manifest Dictionary",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -1076,10 +1096,10 @@
     },
     {
         "identifier": "data-matrix",
-        "uuid": "d9a62257-2ad4-416f-89a5-6354807b5f5e",
+        "uuid": "3e10a2a2-a918-4a4a-95d5-db032dff1321",
         "status": "in review",
         "content": [
-            "ac15e912-543c-4ce5-a16a-1fcdf987181c"
+            "2851ec1b-ecdb-479a-b88e-deedaa1886ef"
         ],
         "table-of-contents": {
             "enabled": false

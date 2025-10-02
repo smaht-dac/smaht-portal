@@ -594,7 +594,7 @@
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
-        "uuid": "ac15e912-543c-4ce5-a16a-1fcdf987181c",
+        "uuid": "2851ec1b-ecdb-479a-b88e-deedaa1886ef",
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
@@ -614,6 +614,25 @@
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "uuid": "4aeffcf9-f3bb-40e8-a4de-ac7d1bf4fac4",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "donor_manifest_dictionary",
+        "title": "Donor Manifest Dictionary",
+        "file": "/docs/public/donor_manifest_dictionary.jsx",
+        "status": "released",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "abb80b35-61ac-4433-b6e3-55be1ba15e18",
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
