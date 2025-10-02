@@ -1,3 +1,65 @@
+"""
+Script to release donor and related records to open or protected statuses in SMaHT portal.
+
+This script if for the release of donor metadata and associated
+items in the SMaHT data portal. It transitions Donor and related
+linked records (e.g., ProtectedDonor, MedicalHistory, Demographic,
+FamilyHistory, Exposures, Treatments, Tissues, TissueSamples) from their
+current status (typically `in review`) into a specified release status.
+
+The script supports both "network release" (with a temporary "-early" status)
+and "external release" (full public release, stripping the "-early" suffix),
+as well as a dry-run mode for previewing changes before execution.
+
+Core behavior:
+- Updates the donor item to the chosen open release status.
+- Updates the associated protected donor and related items to the protected
+  release status.
+- Optionally updates linked Tissue and TissueSample records.
+- Validates and patches metadata on the target server.
+- Provides an interactive prompt for confirmation before patching.
+
+Usage:
+    python donor_release.py --donor DONOR_ID --env ENV [options]
+
+Options:
+    --donor, -d DONOR_ID
+        One or more identifiers of donors to release. Required.
+        Accepts accessions, UUIDs, or submitted identifiers.
+
+    --env, -e ENV
+        Name of the environment as defined in the local keys file.
+        Required. Used to retrieve authentication credentials.
+
+    --dry-run
+        If provided, patch dictionaries will be prepared and displayed but
+        not executed to allow review prior to updating the metadata.        you to preview the changes before committing them.
+
+    --include-tissues
+        If provided, Tissue and TissueSample items associated with the donor
+        will also be updated to the open release status. By default,
+        tissues are excluded.
+
+    --external
+        If provided, removes the "-early" suffix from release statuses
+        and performs a full public release (visible to all users, not just
+        within the consortium network). By default, donors are released
+        with the "-early" suffix to limit visibility to only network.
+
+Output:
+    - Prints detailed patch information in single-donor mode, or a
+      condensed summary in bulk mode.
+    - Warns if donor status is not as expected.
+    - Displays errors and aborts if validation fails.
+
+Examples:
+    # Dry run a single donor release in a dev environment
+    python donor_release.py --donor 72205a8a-8480-43a6-84fe-c2d2bf8263a5 --env devtest --dry-run
+
+    # Release multiple donors externally with tissues included
+    python donor_release.py -d SMADODDZCLFE -d SMADOGYU231H -e data --include-tissues --external
+"""
+
 import argparse
 import pprint
 from functools import cached_property
@@ -20,30 +82,14 @@ from encoded.item_utils.utils import RequestHandler
 pp = pprint.PrettyPrinter(indent=2)
 
 
-##################################################################
-##################################################################
-##
-##  The donor release will do the following updates to the metadata
-##  - Set donor status to PUBLIC_DONOR_RELEASE_STATUS
-##  - Set associated protected donor status to PROTECTED_DONOR_RELEASE_STATUS
-##  - Set the associated MedicalHistory, Demographic,
-## DeathCircumstances, FamilyHistory, and TissueCollection status to
-## PROTECTED_DONOR_RELEASE_STATUS
-##  - Set the associated Exposure, MedicalTreatment, and Diagnosis 
-## status to PROTECTED_DONOR_RELEASE_STATUS
-##  - Set associated Tissue and NDRI TissueSample items to 
-## PUBLIC_DONOR_RELEASE_STATUS
-##
-##################################################################
-##################################################################
-
-PUBLIC_DONOR_RELEASE_STATUS = "public"  # When portal becomes public, this will be "public"
-PROTECTED_DONOR_RELEASE_STATUS = "public-restricted"  # When portal becomes public, this will be "public-restricted"
+NETWORK_DONOR_RELEASE_STATUS = "open-early"
+NETWORK_PROTECTED_DONOR_RELEASE_STATUS = "protected-early"
 
 
 class DonorRelease:
-
-    def __init__(self, auth_key: dict, donor_identifier: str, verbose: bool = True, include_tissues: bool = False) -> None:
+    def __init__(self, auth_key: dict, donor_identifier: str, verbose: bool = True, include_tissues: bool = False,
+                 open_release_status: str = NETWORK_DONOR_RELEASE_STATUS, 
+                 protected_release_status: str = NETWORK_PROTECTED_DONOR_RELEASE_STATUS) -> None:
         self.key = auth_key
         self.request_handler = self.get_request_handler()
         self.request_handler_embedded = self.get_request_handler_embedded()
@@ -54,7 +100,35 @@ class DonorRelease:
         self.patch_dicts = []
         self.warnings = []
         self.verbose = verbose
+        self.open_release_status = open_release_status
+        self.protected_release_status = protected_release_status
         self.include_tissues = include_tissues
+    """
+        Initialize a DonorRelease object to manage the release of a donor
+        and associated linked records.
+
+        Args:
+            auth_key (dict):
+                Authentication key dictionary retrieved from get_auth_key().
+                Must contain at least 'server' and token information.
+            donor_identifier (str):
+                Identifier of the donor item to release. May be an accession,
+                UUID, or submitted identifier.
+            verbose (bool, optional):
+                If True, prints detailed patch information and messages.
+                Defaults to True. In bulk release mode this is typically False.
+            include_tissues (bool, optional):
+                If True, includes associated Tissue and TissueSample records
+                in the release operation. Defaults to False.
+            open_release_status (str, optional):
+                Status string to set for the main Donor and Tissue/TissueSample
+                items. Defaults to the consortium "network release" status
+                (e.g., "open-early").
+            protected_release_status (str, optional):
+                Status string to set for protected donor and related items
+                (e.g., Demographic, MedicalHistory, Diagnosis).
+                Defaults to the consortium "protected-early" status.
+    """
 
     @cached_property
     def protected_donor(self) -> dict:
@@ -75,27 +149,27 @@ class DonorRelease:
     @cached_property
     def death_circumstances(self) -> List[dict]:
         return self.get_death_circumstances_from_protected_donor()
-    
+
     @cached_property
     def family_histories(self) -> List[dict]:
         return self.get_family_histories_from_protected_donor()
-    
+
     @cached_property
     def tissue_collection(self) -> List[dict]:
         return self.get_tissue_collection_from_protected_donor()
-    
+
     @cached_property
     def medical_history(self) -> List[dict]:
         return self.get_medical_history_from_protected_donor()
-    
+
     @cached_property
     def diagnoses(self) -> List[dict]:
         return self.get_diagnoses_from_medical_history()
-    
+
     @cached_property
     def exposures(self) -> List[dict]:
         return self.get_exposures_from_medical_history()
-    
+
     @cached_property
     def medical_treatments(self) -> List[dict]:
         return self.get_medical_treatments_from_medical_history()
@@ -115,7 +189,7 @@ class DonorRelease:
     def get_items(self, identifiers: List[str]) -> List[dict]:
         """Get metadata for a list of identifiers."""
         return self.request_handler.get_items(identifiers)
-    
+
     def get_protected_donor_from_donor(self) -> List[dict]:
         protected_donor = donor_utils.get_protected_donor(self.donor)
         return self.get_metadata(protected_donor)
@@ -126,13 +200,13 @@ class DonorRelease:
             f"{item_utils.get_uuid(self.donor)}"
         )
         return ff_utils.search_metadata(search_filter, key=self.key)
-    
+
     def get_tissue_samples_from_tissues(self) -> List[dict]:
         search_filter = "/search/?type=TissueSample&submission_centers.display_title=NDRI+TPC"
         for tissue in self.tissues:
             search_filter += f"&sample_sources.uuid={item_utils.get_uuid(tissue)}"
         return ff_utils.search_metadata(search_filter, key=self.key)
-    
+
     def get_demographic_from_protected_donor(self) -> List[dict]:
         search_filter = (
             f"/search/?type=Demographic&donor.uuid="
@@ -146,7 +220,7 @@ class DonorRelease:
             f"{item_utils.get_uuid(self.protected_donor)}"
         )
         return ff_utils.search_metadata(search_filter, key=self.key)
-    
+
     def get_family_histories_from_protected_donor(self) -> List[dict]:
         search_filter = (
             f"/search/?type=FamilyHistory&donor.uuid="
@@ -175,14 +249,13 @@ class DonorRelease:
         )
         return ff_utils.search_metadata(search_filter, key=self.key)
 
-    
     def get_exposures_from_medical_history(self) -> List[dict]:
         search_filter = (
             f"/search/?type=Exposure&medical_history.uuid="
             f"{item_utils.get_uuid(self.medical_history)}"
         )
         return ff_utils.search_metadata(search_filter, key=self.key)
-    
+
     def get_medical_treatments_from_medical_history(self) -> List[dict]:
         search_filter = (
             f"/search/?type=MedicalTreatment&medical_history.uuid="
@@ -195,29 +268,39 @@ class DonorRelease:
     ) -> None:
         self.validate_donor()
         # The main donor needs to be the first patchdict.
-        # - set to PUBLIC_DONOR_RELEASE_STATUS
-        self.add_release_donor_patchdict(self.donor)
+        self.add_release_donor_patchdict(self.donor, self.open_release_status)
         if self.include_tissues:
             """ generally will be false so tissue and tissue sample items will not be set to PUBLIC_DONOR_RELEASE_STATUS
                 however, to 'reset' Donors and linked items back to 'in review' or another non-public status
                 using this flag will include tissues and tissue samples to set to the new status
             """
             self.add_public_release_items_to_patchdict(
-                self.tissues, "Tissue"
+                self.tissues, "Tissue",
+                self.open_release_status
             )
             self.add_public_release_items_to_patchdict(
-                self.tissue_samples, "TissueSample"
+                self.tissue_samples, "TissueSample",
+                self.open_release_status
             )
         # Protected release items - set to PROTECTED_DONOR_RELEASE_STATUS
-        self.add_protected_release_item_to_patchdict(self.protected_donor, "ProtectedDonor")
-        self.add_protected_release_items_to_patchdict(self.demographic, "Demographic")
-        self.add_protected_release_items_to_patchdict(self.death_circumstances, "DeathCircumstances")
-        self.add_protected_release_items_to_patchdict(self.family_histories, "FamilyHistory")
-        self.add_protected_release_items_to_patchdict(self.tissue_collection, "TissueCollection")
-        self.add_protected_release_item_to_patchdict(self.medical_history, "MedicalHistory")
-        self.add_protected_release_items_to_patchdict(self.diagnoses, "Diagnosis")
-        self.add_protected_release_items_to_patchdict(self.exposures, "Exposure")
-        self.add_protected_release_items_to_patchdict(self.medical_treatments, "MedicalTreatment")
+        self.add_protected_release_item_to_patchdict(
+            self.protected_donor, "ProtectedDonor", self.protected_release_status)
+        self.add_protected_release_items_to_patchdict(
+            self.demographic, "Demographic", self.protected_release_status)
+        self.add_protected_release_items_to_patchdict(
+            self.death_circumstances, "DeathCircumstances", self.protected_release_status)
+        self.add_protected_release_items_to_patchdict(
+            self.family_histories, "FamilyHistory", self.protected_release_status)
+        self.add_protected_release_items_to_patchdict(
+            self.tissue_collection, "TissueCollection", self.protected_release_status)
+        self.add_protected_release_item_to_patchdict(
+            self.medical_history, "MedicalHistory", self.protected_release_status)
+        self.add_protected_release_items_to_patchdict(
+            self.diagnoses, "Diagnosis", self.protected_release_status)
+        self.add_protected_release_items_to_patchdict(
+            self.exposures, "Exposure", self.protected_release_status)
+        self.add_protected_release_items_to_patchdict(
+            self.medical_treatments, "MedicalTreatment", self.protected_release_status)
 
         if self.verbose:
             print("\nThe following metadata patches will be carried out in the next step:")
@@ -276,52 +359,56 @@ class DonorRelease:
     def show_patch_dicts(self) -> None:
         pp.pprint(self.patch_dicts)
 
-    def add_public_release_item_to_patchdict(self, item: dict, item_desc: str) -> None:
+    def add_public_release_item_to_patchdict(self, item: dict, item_desc: str,
+                                             status: str = NETWORK_DONOR_RELEASE_STATUS) -> None:
         """Sets the status of the item to PUBLIC_DONOR_RELEASED_STATUS and
         adds the corresponding patch dict
 
         Args:
             item (dict): Portal item
             item_desc (str): Just used for generating more usefuls patch infos
+            status (str): Status to set the item to
         """
         identifier_to_report = self.get_identifier_to_report(item)
         self.patch_infos.append(f"\n{item_desc} ({identifier_to_report}):")
 
-        if item_utils.get_status(item) == PUBLIC_DONOR_RELEASE_STATUS:
+        if item_utils.get_status(item) == status:
             self.add_okay_message(
-                item_constants.STATUS, PUBLIC_DONOR_RELEASE_STATUS, "Not patching."
+                item_constants.STATUS, status, "Not patching."
             )
             return
 
         patch_body = {
             item_constants.UUID: item_utils.get_uuid(item),
-            item_constants.STATUS: PUBLIC_DONOR_RELEASE_STATUS,
+            item_constants.STATUS: status,
         }
-        self.add_okay_message(item_constants.STATUS, PUBLIC_DONOR_RELEASE_STATUS)
+        self.add_okay_message(item_constants.STATUS, status)
         self.patch_dicts.append(patch_body)
 
-    def add_protected_release_item_to_patchdict(self, item: dict, item_desc: str) -> None:
+    def add_protected_release_item_to_patchdict(self, item: dict, item_desc: str,
+                                                status: str = NETWORK_PROTECTED_DONOR_RELEASE_STATUS) -> None:
         """Sets the status of the item to PROTECTED_DONOR_RELEASE_STATUS and
         adds the corresponding patch dict
 
         Args:
             item (dict): Portal item
             item_desc (str): Just used for generating more usefuls patch infos
+            status (str): Status to set the item to
         """
         identifier_to_report = self.get_identifier_to_report(item)
         self.patch_infos.append(f"\n{item_desc} ({identifier_to_report}):")
 
-        if item_utils.get_status(item) == PROTECTED_DONOR_RELEASE_STATUS:
+        if item_utils.get_status(item) == status:
             self.add_okay_message(
-                item_constants.STATUS, PROTECTED_DONOR_RELEASE_STATUS, "Not patching."
+                item_constants.STATUS, status, "Not patching."
             )
             return
 
         patch_body = {
             item_constants.UUID: item_utils.get_uuid(item),
-            item_constants.STATUS:PROTECTED_DONOR_RELEASE_STATUS,
+            item_constants.STATUS: status
         }
-        self.add_okay_message(item_constants.STATUS,PROTECTED_DONOR_RELEASE_STATUS)
+        self.add_okay_message(item_constants.STATUS, status)
         self.patch_dicts.append(patch_body)
 
     def get_identifier_to_report(self, item: Dict[str, Any]) -> str:
@@ -331,7 +418,8 @@ class DonorRelease:
             return identifier
         return item_utils.get_accession(item)
 
-    def add_public_release_items_to_patchdict(self, items: list, item_desc: str) -> None:
+    def add_public_release_items_to_patchdict(self, items: list, item_desc: str,
+                                              status: str = NETWORK_DONOR_RELEASE_STATUS) -> None:
         """Sets the status to PUBLIC_DONOR_RELEASE_STATUS in all items in the list and
         adds the corresponding patch dict
 
@@ -340,9 +428,10 @@ class DonorRelease:
             item_desc (str): Just used for generating more usefuls patch infos
         """
         for item in items:
-            self.add_public_release_item_to_patchdict(item, item_desc)
+            self.add_public_release_item_to_patchdict(item, item_desc, status)
 
-    def add_protected_release_items_to_patchdict(self, items: list, item_desc: str) -> None:
+    def add_protected_release_items_to_patchdict(self, items: list, item_desc: str,
+                                                 status: str = NETWORK_PROTECTED_DONOR_RELEASE_STATUS) -> None:
         """Sets the status to PROTECTED_DONOR_RELEASE_STATUS in all items in the list and
         adds the corresponding patch dict
 
@@ -351,33 +440,31 @@ class DonorRelease:
             item_desc (str): Just used for generating more usefuls patch infos
         """
         for item in items:
-            self.add_protected_release_item_to_patchdict(item, item_desc)
+            self.add_protected_release_item_to_patchdict(item, item_desc, status)
 
     def add_release_donor_patchdict(
-        self, donor: dict
+        self, donor: dict, status: str = NETWORK_DONOR_RELEASE_STATUS
     ) -> None:
         patch_body = {
             item_constants.UUID: item_utils.get_uuid(donor),
-            item_constants.STATUS: PUBLIC_DONOR_RELEASE_STATUS
+            item_constants.STATUS: status
         }
         self.patch_infos.extend(
             [
                 f"\nDonor ({self.donor_accession}):",
-                self.get_okay_message(item_constants.STATUS, PUBLIC_DONOR_RELEASE_STATUS),
+                self.get_okay_message(item_constants.STATUS, status),
             ]
         )
         self.patch_infos_minimal.extend(
             [
-                f"Donor {warning_text(self.donor_accession)} will have status set to {PUBLIC_DONOR_RELEASE_STATUS}"
+                f"Donor {warning_text(self.donor_accession)} will have status set to {status}.",
             ]
         )
         self.patch_dicts.append(patch_body)
 
-
     def validate_donor(self) -> None:
         self.validate_donor_output_status()
         self.validate_donor_status()
-
 
     def validate_donor_output_status(self) -> None:
         if item_utils.get_type(
@@ -451,6 +538,26 @@ def fail_text(text: str) -> str:
 
 
 def main() -> None:
+    """
+    Parses arguments, validates donors, prepares release patch dictionaries,
+    and either shows the planned updates (dry-run) or prompts the user to
+    confirm patching metadata on the target server.
+
+    Command-line options:
+        --donor, -d
+            One or more donor identifiers (required).
+        --env, -e
+            Environment name from keys file (required).
+        --dry-run
+            Preview patches without executing them.
+        --include-tissues
+            Include Tissue and TissueSample items in the release.
+        --external
+            Perform full public release by removing the "-early" suffix.
+
+    Exits with an error message if required arguments are missing,
+    donors fail validation, or patching fails.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--donor", "-d", action='append', help="Identifier of the donor to release", required=True
@@ -466,7 +573,11 @@ def main() -> None:
         help="Include tissues and tissue samples in the operation",
         action="store_true",
     )
-
+    parser.add_argument(
+        "--external",
+        help="Default False - Release donor to all users - not just within network",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     if not args.donor or len(args.donor) < 1:
@@ -474,17 +585,25 @@ def main() -> None:
         parser.error(error)
 
     mode = 'single' if len(args.donor) == 1 else 'bulk'
-            
 
     auth_key = get_auth_key(args.env)
     server = auth_key.get("server")
 
+    open_release_status = None
+    protected_release_status = None
+    if args.external:
+        open_release_status = NETWORK_DONOR_RELEASE_STATUS.removesuffix("-early")
+        protected_release_status = NETWORK_PROTECTED_DONOR_RELEASE_STATUS.removesuffix("-early")
+    else:
+        open_release_status = NETWORK_DONOR_RELEASE_STATUS
+        protected_release_status = NETWORK_PROTECTED_DONOR_RELEASE_STATUS
     donors_to_release = args.donor
-    verbose = mode == 'single' # Print more information in single mode
-    donor_releases : List[DonorRelease] = []
+    verbose = mode == 'single'  # Print more information in single mode
+    donor_releases: List[DonorRelease] = []
     for donor_identifier in donors_to_release:
         donor_release = DonorRelease(auth_key=auth_key, donor_identifier=donor_identifier, verbose=verbose,
-                                     include_tissues=args.include_tissues)
+                                     include_tissues=args.include_tissues, open_release_status=open_release_status,
+                                     protected_release_status=protected_release_status)
         donor_release.prepare()
         donor_releases.append(donor_release)
 
