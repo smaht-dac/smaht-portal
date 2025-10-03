@@ -245,7 +245,7 @@ export const DonorManifestDataDictionary = () => {
                     (e.g. <i>disease</i>).
                     <br />
                     <b>Specific property in an item: </b> type
-                    &lt;item&gt;.&lt;property&gt; (e.g.
+                    &lt;item&gt;.&lt;property&gt; (e.g.{' '}
                     <i>familyhistory.disease</i>).
                 </p>
             </div>
