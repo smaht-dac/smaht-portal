@@ -23,11 +23,13 @@ class Demographic(SubmittedItem):
 
     SUBMISSION_CENTER_STATUS_ACL = deepcopy(SubmittedItem.SUBMISSION_CENTER_STATUS_ACL)
     SUBMISSION_CENTER_STATUS_ACL.update({
+        'protected-early': ONLY_DBGAP_VIEW_ACL,
         'protected-network': ONLY_DBGAP_VIEW_ACL,
         'protected': ONLY_PUBLIC_DBGAP_VIEW_ACL
     })
     CONSORTIUM_STATUS_ACL = deepcopy(SubmittedItem.CONSORTIUM_STATUS_ACL)
     CONSORTIUM_STATUS_ACL.update({
+        'protected-early': ONLY_DBGAP_VIEW_ACL,
         'protected-network': ONLY_DBGAP_VIEW_ACL,
         'protected': ONLY_PUBLIC_DBGAP_VIEW_ACL
     })

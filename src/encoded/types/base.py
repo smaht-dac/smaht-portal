@@ -154,6 +154,7 @@ class Item(SnovaultItem):
         # restricted except the group is different and view is "open"
         'protected-network': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'open-early': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'open-network': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'protected-early': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'restricted': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'protected': acl.ALLOW_EVERYONE_VIEW_ACL,
@@ -172,6 +173,7 @@ class Item(SnovaultItem):
         # is allowed if it's a downloadable file, otherwise same as "released", similar for public-
         # restricted except the group is different and view is "open"
         'open-early': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'open-network': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'protected-early': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'protected-network': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'restricted': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,

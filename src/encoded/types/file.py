@@ -464,6 +464,7 @@ class File(Item, CoreFile):
         'open-network',
         'open-early',
         'protected-network',
+        'protected-early',
         'open'
     ]
     STATUS_TO_REVISION_DATE_CONVERSION = [
@@ -619,6 +620,10 @@ class File(Item, CoreFile):
                     "format": "date-time"
                 },
                 "open-early": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "protected-early": {
                     "type": "string",
                     "format": "date-time"
                 },
