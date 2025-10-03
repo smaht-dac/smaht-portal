@@ -84,7 +84,10 @@
                 "open",
                 "protected-network",
                 "protected",
-                "public"
+                "public",
+                "open-early",
+                "protected-early",
+                "open-network"
             ]
         },
         "external_quality_metrics": {
