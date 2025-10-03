@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.5.0
+=====
+
+`PR 518: feat: Add Pipeline Docs to portal <https://github.com/smaht-dac/smaht-portal/pull/518>`_
+
+* Add Pipeline documentation to the portal as static pages
+
+
 1.4.0
 =====
 
