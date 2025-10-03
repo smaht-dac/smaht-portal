@@ -641,6 +641,24 @@
         ]
     },
     {
+        "identifier": "docs/additional-resources/donor-manifest-dictionary",
+        "uuid": "5e64b78a-58c1-48c3-b031-e8837a19b4a4",
+        "status": "released",
+        "content": [
+            "abb80b35-61ac-4433-b6e3-55be1ba15e18"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "Donor Manifest Dictionary",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "docs/submission/faq",
         "uuid": "0861c711-4728-4e10-9ff1-74b8b3f93676",
         "title": "Frequently Asked Questions",
