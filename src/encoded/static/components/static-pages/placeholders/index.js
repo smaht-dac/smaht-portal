@@ -31,6 +31,7 @@ import DataMatrix from '../../viz/Matrix/DataMatrix';
 import RetractedFilesTable from '../components/RetractedFilesTable';
 import { SubmissionDataDictionary } from '../SubmissionDataDictionary';
 import { DonorManifestDataDictionary } from '../DonorManifestDataDictionary';
+import SMAHTTeam from '../components/SMAHTTeam';
 
 /**
  * Any placeholder(s) used in a StaticSection _must_ get imported here
@@ -59,6 +60,7 @@ const placeholders = {
     DataMatrix,
     SubmissionDataDictionary,
     DonorManifestDataDictionary,
+    SMAHTTeam,
 };
 
 export const replaceString = memoize(

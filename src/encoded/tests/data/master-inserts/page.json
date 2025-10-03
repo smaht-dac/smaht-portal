@@ -1111,5 +1111,23 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "identifier": "about/smaht-team",
+        "uuid": "d9a62257-2ad4-416f-89a5-6354807b5f5e",
+        "status": "public",
+        "content": [
+            "c8e2f3e2-2f3e-4d1b-8e2a-5f3e2d1b8e2a"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "title": "SMaHT Team",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]
