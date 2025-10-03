@@ -116,7 +116,7 @@ export const BrowseDonorVizWrapper = (props) => {
                 ff[`${d.field}.to`] = d.to;
         }
         return url.format({ pathname: '/browse/', query: ff });
-    }
+    };
 
     const donorFilters = useMemo(() => {
         const hrefParts = url.parse(href, true);
@@ -136,7 +136,7 @@ export const BrowseDonorVizWrapper = (props) => {
                 ff[`${d.field.replace('donors.', '')}.to`] = d.to;
         }
         return url.format({ pathname: '/browse/', query: ff });
-    }
+    };
 
     useEffect(() => {
         const dataUrl = '/bar_plot_aggregations/';
@@ -285,7 +285,7 @@ export const BrowseDonorVizWrapper = (props) => {
                 {toggleViewIndex === 0 ? (
                     <div
                         id="facet-charts-container"
-                        className="container ps-4">
+                        className="container ps-0 ps-xl-4">
                         <FacetCharts
                             {..._.pick(
                                 props,

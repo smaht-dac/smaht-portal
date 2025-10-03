@@ -87,7 +87,7 @@ const BrowseFileBody = (props) => {
                     />
                 </div>
                 <div className="col ps-0">
-                    <div id="facet-charts-container" className="container ps-4">
+                    <div id="facet-charts-container" className="container ps-0 ps-xl-4">
                         <FacetCharts
                             {..._.pick(
                                 props,

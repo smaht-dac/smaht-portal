@@ -257,7 +257,7 @@ export class Legend extends React.PureComponent {
         'expandable': false,
         'expandableAfter' : 5,
         'defaultExpanded' : false,
-        'aggregateType' : 'experiment_sets',
+        'aggregateType' : 'files',
         'title' : null //<h4 className="text-500">Legend</h4>
     };
 
