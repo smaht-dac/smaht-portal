@@ -106,7 +106,22 @@ function DocsNavItem(props) {
                     titleIcon="book fas"
                     linkToTopLevelDirPage={false}
                 />
-                <BigDropdownPageTreeMenu disableLinksOnLevel1Titles />
+                <BigDropdownPageTreeMenu
+                    disableLinksOnLevel1Titles
+                    childrenToHide={[
+                        'docs/analysis/fastq_files',
+                        'docs/analysis/short-read_illumina_paired-end',
+                        'docs/analysis/long-read_pacbio_hifi',
+                        'docs/analysis/long-read_oxford_nanopore',
+                        'docs/analysis/short-read_rna-seq_paired-end',
+                        'docs/analysis/long-read_rna-seq_pacbio_kinnex',
+                        'docs/analysis/genome_builds',
+                        'docs/analysis/genome_annotations',
+                        'docs/analysis/variant_catalogs',
+                        'docs/analysis/software_specific',
+                        'docs/analysis/release_changelog',
+                    ]}
+                />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
     );
@@ -149,22 +164,7 @@ function ResourcesNavItem(props) {
                     titleIcon="info-circle fas"
                     linkToTopLevelDirPage={false}
                 />
-                <BigDropdownPageTreeMenu
-                    childrenToHide={[
-                        'resources/pipeline-docs/fastq_files',
-                        'resources/pipeline-docs/short-read_illumina_paired-end',
-                        'resources/pipeline-docs/long-read_pacbio_hifi',
-                        'resources/pipeline-docs/long-read_oxford_nanopore',
-                        'resources/pipeline-docs/short-read_rna-seq_paired-end',
-                        'resources/pipeline-docs/long-read_rna-seq_pacbio_kinnex',
-                        'resources/pipeline-docs/genome_builds',
-                        'resources/pipeline-docs/genome_annotations',
-                        'resources/pipeline-docs/variant_catalogs',
-                        'resources/pipeline-docs/software_specific',
-                        'resources/pipeline-docs/release_changelog',
-                    ]}
-                    disableLinksOnLevel1Titles
-                />
+                <BigDropdownPageTreeMenu disableLinksOnLevel1Titles />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
     );
