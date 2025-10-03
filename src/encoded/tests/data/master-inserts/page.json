@@ -590,7 +590,8 @@
         "status": "public",
         "children": [
             "27d149b5-164a-4351-9095-7be11d6371f7",
-            "389b52ce-5161-4f08-b49b-b1b3b18f09e2"
+            "389b52ce-5161-4f08-b49b-b1b3b18f09e2",
+            "5e64b78a-58c1-48c3-b031-e8837a19b4a4"
         ],
         "table-of-contents": {
             "enabled": true
