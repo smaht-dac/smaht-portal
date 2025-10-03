@@ -116,7 +116,7 @@ export const BrowseDonorVizWrapper = (props) => {
                 ff[`${d.field}.to`] = d.to;
         }
         return url.format({ pathname: '/browse/', query: ff });
-    }
+    };
 
     const donorFilters = useMemo(() => {
         const hrefParts = url.parse(href, true);
@@ -136,7 +136,7 @@ export const BrowseDonorVizWrapper = (props) => {
                 ff[`${d.field.replace('donors.', '')}.to`] = d.to;
         }
         return url.format({ pathname: '/browse/', query: ff });
-    }
+    };
 
     useEffect(() => {
         const dataUrl = '/bar_plot_aggregations/';

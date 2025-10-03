@@ -38,6 +38,8 @@ import { responsiveGridState, DeferMount } from './util/layout';
 import { requestAnimationFrame as raf } from '@hms-dbmi-bgm/shared-portal-components/es/components/viz/utilities';
 
 import { PageTitleSection, toRegistryLookupContext } from './PageTitleSection';
+import { ChartDataController } from './viz/chart-data-controller';
+
 
 // import './encoded/static/scss/style.css'; // @TODO: currently not resolving; need to fix
 // import './encoded/static/scss/print.css';
@@ -72,8 +74,8 @@ class Timeout {
  * This is wrapped by a Redux store and then rendered by either the server-side
  * NodeJS sub-process or by the browser.
  *
- * @see https://github.com/4dn-dcic/fourfront/blob/master/src/encoded/static/server.js
- * @see https://github.com/4dn-dcic/fourfront/blob/master/src/encoded/static/browser.js
+ * @see https://github.com/smaht-dac/smaht-portal/blob/main/src/encoded/static/server.js
+ * @see https://github.com/smaht-dac/smaht-portal/blob/main/src/encoded/static/browser.js
  */
 export default class App extends React.PureComponent {
     /**
@@ -452,6 +454,18 @@ export default class App extends React.PureComponent {
                     Alerts.queue(NotLoggedInAlert);
                 }
             }
+        }
+
+        // We could migrate this block of code to ChartDataController if it were stored in Redux.
+        if (prevState.session !== session) {
+            _.keys(navigate.getBrowseBaseParams.mappings).forEach(function (mapping) {
+                if (ChartDataController.isInitialized(mapping)) {
+                    setTimeout(function () {
+                        console.log("SYNCING CHART DATA - " + mapping + " - DUE TO SESSION CHANGE");
+                        ChartDataController.sync(mapping);
+                    }, 0);
+                }
+            });
         }
 
         // We can skip doing this unless debugging on localhost-
