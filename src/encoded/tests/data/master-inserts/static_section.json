@@ -636,7 +636,7 @@
     },
     {
         "identifier": "fastq_files",
-        "uuid": "187b2079-61a5-43d6-8252-9070268cae2f",
+        "uuid": "439034da-bad5-42c5-8124-3be68276d6cc",
         "section_type": "Page Section",
         "status": "in review",
         "options": {
@@ -652,7 +652,7 @@
     },
     {
         "identifier": "short-read_illumina_paired-end",
-        "uuid": "1e1372c7-fa89-422d-98a3-d0f4f8dec1ea",
+        "uuid": "ce182c42-4f0e-4c1b-b325-213f730a0b42",
         "section_type": "Page Section",
         "status": "in review",
         "options": {
@@ -668,7 +668,7 @@
     },
     {
         "identifier": "long-read_pacbio_hifi",
-        "uuid": "8dd992f1-58a9-4b23-8595-c2d505012796",
+        "uuid": "23bd319b-19eb-4408-869b-eda806da56a5",
         "section_type": "Page Section",
         "status": "in review",
         "options": {
