@@ -71,6 +71,7 @@
                 "in review",
                 "obsolete",
                 "deleted",
+                "protected-early",
                 "protected-network",
                 "protected"
             ]
