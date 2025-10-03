@@ -1,3 +1,14 @@
+#facet-charts-container.container {
+    @include media-breakpoint-up(xs) {
+        max-width: 95% !important
+    }
+    @include media-breakpoint-up(md) {
+        max-width: 95% !important
+    }
+    @include media-breakpoint-up(xxl) {
+        max-width: 98% !important
+    }
+}
 
 .facet-charts {
     transition: opacity 0.75s;

@@ -285,7 +285,7 @@ export const BrowseDonorVizWrapper = (props) => {
                 {toggleViewIndex === 0 ? (
                     <div
                         id="facet-charts-container"
-                        className="container ps-4">
+                        className="container ps-0 ps-xl-4">
                         <FacetCharts
                             {..._.pick(
                                 props,
