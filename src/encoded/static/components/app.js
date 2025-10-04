@@ -1799,7 +1799,7 @@ class BodyElement extends React.PureComponent {
             lastHref: props.href,
             // Whether Test Data warning banner is visible.
             // testWarningPresent: !globals.productionHost[props.hrefParts.hostname] || false
-            testWarningPresent: true, // TODO: set to false when portal shut down is over
+            testWarningPresent: false,
         };
 
         /**
