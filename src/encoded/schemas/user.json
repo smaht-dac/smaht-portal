@@ -66,6 +66,9 @@
         "time_zone": {
             "$merge": "snovault:schemas/user.json#/properties/timezone"
         },
+        "was_unauthorized": {
+            "$merge": "snovault:schemas/user.json#/properties/was_unauthorized"
+        },
         "submits_for": {
             "title": "Submits for",
             "description": "Submission Centers a user is authorized to submit data for.",
@@ -98,6 +101,11 @@
                 "type": "string",
                 "linkTo": "Consortium"
             }
+        },
+        "institution": {
+            "title": "Institution",
+            "type": "string",
+            "comment": "Can be user supplied - purely informational"
         }
     }
 }

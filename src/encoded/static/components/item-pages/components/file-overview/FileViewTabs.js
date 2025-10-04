@@ -100,7 +100,6 @@ const QCOverviewTab = ({ session, context }) => {
     const [isLoading, setIsLoading] = useState(true); // Loading state by default
 
     useEffect(() => {
-        // Show loading spinner while fetching session information
         setIsLoading(true);
 
         // Request session information

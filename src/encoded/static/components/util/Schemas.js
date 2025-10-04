@@ -248,15 +248,14 @@ const fieldToTransformationDict = memoize(function () {
 
 export const Field = {
     nameMap: {
-        'experiments_in_set.biosample.biosource.individual.organism.name':
-            'Organism',
-        accession: 'Experiment Set',
-        'experiments_in_set.digestion_enzyme.name': 'Enzyme',
-        'experiments_in_set.biosample.biosource_summary': 'Biosource',
-        'experiments_in_set.lab.title': 'Lab',
-        'experiments_in_set.experiment_type': 'Experiment Type',
-        'experiments_in_set.experiment_type.display_title': 'Experiment Type',
-        experimentset_type: 'Set Type',
+        'sample_summary.tissues': 'Tissue',
+        'file_sets.libraries.assay.display_title': 'Assay Type',
+        'sequencing.sequencer.display_title': 'Sequencer',
+        'donors.display_title': 'Donor',
+        'data_type': 'Data Type',
+        'file_format.display_title': 'File Format',
+        'data_category': 'Data Category',
+        'software.display_title': 'Software',
         '@id': 'Link',
         display_title: 'Title',
     },
@@ -265,7 +264,7 @@ export const Field = {
         field,
         schemas,
         schemaOnly = false,
-        itemType = 'ExperimentSet'
+        itemType = 'Donor'
     ) {
         if (!schemaOnly && Field.nameMap[field]) {
             return Field.nameMap[field];

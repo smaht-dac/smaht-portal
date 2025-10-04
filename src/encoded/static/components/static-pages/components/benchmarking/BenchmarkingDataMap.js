@@ -32,8 +32,12 @@ const primaryTissuePageDescription = (
     </>
 );
 
+const BENCHMARKING_STATUS_FILTERS =
+    'status=public&status=public-restricted&status=restricted&status=released';
+
 export const BenchmarkingDataMap = {
     COLO829: {
+        deniedAccessPopoverType: 'login',
         navBarTitle: 'COLO829',
         title: 'COLO829 Cell Line Data',
         description: (
@@ -118,6 +122,7 @@ export const BenchmarkingDataMap = {
         ],
     },
     HapMap: {
+        deniedAccessPopoverType: 'login',
         navBarTitle: 'HapMap',
         title: 'HapMap Cell Line Data',
         description: (
@@ -174,11 +179,12 @@ export const BenchmarkingDataMap = {
                 eventKey: '#hapmap-truthset',
                 title: 'Truth Set',
                 // searchHref:
-                //     '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=hapmap_snv_indel_challenge_data',
+                //     '/search/?type=File&' + BENCHMARKING_STATUS_FILTERS + '&dataset=hapmap_snv_indel_challenge_data',
             },
         ],
     },
     iPScFibroblasts: {
+        deniedAccessPopoverType: 'protected',
         navBarTitle: 'iPSC and Fibroblasts',
         title: 'iPSC Cell Line Data',
         description: (
@@ -240,25 +246,12 @@ export const BenchmarkingDataMap = {
                 eventKey: '#lb_ipsc_truthset',
                 title: 'Truth Set',
                 // searchHref:
-                //     '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=ipsc_snv_indel_challenge_data',
+                //     '/search/?type=File&'+BENCHMARKING_STATUS_FILTERS + '&dataset=ipsc_snv_indel_challenge_data',
             },
         ],
-        callout: (
-            <div className="callout success">
-                <p className="callout-text">
-                    <span className="flag">Note:</span> The iPSC and fibroblast
-                    data are available via Globus upon request. To access the
-                    data on Globus, please contact SMaHT Data Analysis Center
-                    (DAC) through the{' '}
-                    <a href="mailto:smhelp@hms-dbmi.atlassian.net?subject=Helpdesk%20Inquiry%20from%20data.smaht.org&body=Name%3A%0D%0AContact%20Information%20(so%20we%20can%20get%20back%20to%20you!)%3A%0D%0A%0D%0AQuestions%2FComments%3A%0D%0A%0D%0A">
-                        Helpdesk
-                    </a>
-                    .
-                </p>
-            </div>
-        ),
     },
     Donor1: {
+        deniedAccessPopoverType: 'protected',
         navBarTitle: 'Donor ST001',
         title: 'Donor ST001 : Benchmarking Tissue Data',
         description: primaryTissuePageDescription,
@@ -286,6 +279,7 @@ export const BenchmarkingDataMap = {
         ],
     },
     Donor2: {
+        deniedAccessPopoverType: 'protected',
         navBarTitle: 'Donor ST002',
         title: 'Donor ST002 : Benchmarking Tissue Data',
         description: primaryTissuePageDescription,
@@ -313,6 +307,7 @@ export const BenchmarkingDataMap = {
         ],
     },
     Donor3: {
+        deniedAccessPopoverType: 'protected',
         navBarTitle: 'Donor ST003',
         title: 'Donor ST003 : Benchmarking Tissue Data',
         description: primaryTissuePageDescription,
@@ -328,6 +323,7 @@ export const BenchmarkingDataMap = {
         ],
     },
     Donor4: {
+        deniedAccessPopoverType: 'protected',
         navBarTitle: 'Donor ST004',
         title: 'Donor ST004 : Benchmarking Tissue Data',
         description: primaryTissuePageDescription,

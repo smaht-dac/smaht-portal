@@ -78,15 +78,57 @@
         }
     },
     "facets": {
-        "sex": {
-            "title": "Sex"
+        "external_id": {
+            "title": "Donor ID"
         },
         "age": {
             "title": "Age",
-            "aggregation_type": "stats"
+            "aggregation_type": "range",
+            "number_step": 1,
+            "ranges": [
+                {
+                    "from": 18,
+                    "to": 30
+                },
+                {
+                    "from": 31,
+                    "to": 55
+                },
+                {
+                    "from": 56,
+                    "to": 65
+                },
+                {
+                    "from": 66,
+                    "to": 75
+                },
+                {
+                    "from": 76,
+                    "to": 85
+                },
+                {
+                    "from": 86
+                }
+            ]
+        },
+        "sex": {
+            "title": "Sex"
         },
         "submission_centers.display_title": {
             "title": "Submitted By"
+        },
+        "medical_history.cancer_history": {
+            "title": "Cancer History"
+        },
+        "hardy_scale": {
+            "title": "Hardy Scale",
+            "aggregation_type": "terms"
+        },
+        "medical_history.tobacco_use": {
+            "title": "Tobacco"
+        },
+        "medical_history.alcohol_use": {
+            "title": "Alcohol"
         }
     },
     "columns": {

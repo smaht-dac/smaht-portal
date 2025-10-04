@@ -26,11 +26,12 @@ export const UserRegistrationModal = React.memo(function UserRegistrationModal(
         onRegistrationComplete,
     } = props;
 
-    function onExitLinkClick(e) {
+    const handleExitLinkClick = React.useCallback((e) => {
         e.preventDefault();
         onRegistrationCancel();
         showLock();
-    }
+        analytics.event('registration', 'UserRegistrationModal', 'ExitLinkClick');
+    }, [onRegistrationCancel, showLock]);
 
     if (!unverifiedUserEmail) {
         // Error (maybe if user manually cleared cookies or localStorage... idk)
@@ -49,121 +50,23 @@ export const UserRegistrationModal = React.memo(function UserRegistrationModal(
         );
     }
 
-    const isEmailAGmail = unverifiedUserEmail.slice(-10) === '@gmail.com';
-    function onGoogleLinkClick(e) {
-        e.preventDefault();
-        analytics.event('Authentication', 'CreateGoogleAccountLinkClick', {
-            event_label: 'None',
-        });
-        window.open(e.target.href);
-    }
-    const mailtoLink =
-        "mailto:smhelp@hms-dbmi.atlassian.net?subject=Account%20Registration%20Request&body=Name%3A%20%3CPlease%20enter%20your%20full%20name%20here%3E%0D%0AEmail%3A%20%3CPlease%20enter%20the%20email%20address%20you'd%20like%20us%20to%20respond%20to%20here%3E%0D%0A%0D%0AOrganization%2FInstitution%3A%20%3CPlease%20enter%20your%20affiliated%20organization%20here%3E%0D%0A%0D%0AComment%3A%20%3CPlease%20enter%20any%20additional%20information%20that%20would%20be%20useful%20to%20us%20in%20verifying%20your%20access%3E";
-    const formHeading = (
-        <div className="mb-3">
-            <h4 className="text-400 mb-2 mt-05">
-                An account associated with the email{' '}
-                <span className="text-600">{unverifiedUserEmail}</span> does not
-                exist in the system.
-            </h4>
-            <ul className="mt-1">
-                <li>
-                    Please note that the SMaHT Data Portal is currently under
-                    development and is available to consortium members only.
-                </li>
-                <li>
-                    If you are submitting data to SMaHT Data Analysis Center and
-                    need to have access now, please click the button below to
-                    contact the SMaHT Data Analysis Center DAC team.
-                </li>
-                <li>
-                    More information about account creation can be found{' '}
-                    <a
-                        href="/docs/access/creating-an-account"
-                        target="_blank"
-                        rel="noreferrer noopener">
-                        here
-                    </a>
-                    .
-                </li>
-            </ul>
-
-            <a className="btn w-100 btn-primary mt-2" href={mailtoLink}>
-                <i className="icon fas icon-envelope me-05" />
-                Request Access
-            </a>
-            {/*
-            <h4 className="text-400 mb-2 mt-05">
-                You have never logged in as{' '}
-                <span className="text-600">{unverifiedUserEmail}</span> before.
-            </h4>
-            <ul>
-                <li>
-                    Please <span className="text-500">register below</span> or{' '}
-                    <a href="#" className="text-500" onClick={onExitLinkClick}>
-                        use a different email address
-                    </a>{' '}
-                    if you have an existing account.
-                </li>
-                <li>
-                    For information on the CGAP login process, see our
-                    documentation{' '}
-                    <a
-                        href="/help/logging-in"
-                        target="_blank"
-                        rel="noreferrer noopener">
-                        here.
-                    </a>
-                </li>
-                <li>
-                    This registration form will only work on the{' '}
-                    <a
-                        href="https://cgap-training.hms.harvard.edu"
-                        target="_blank"
-                        rel="noreferrer noopener">
-                        cgap-training
-                    </a>{' '}
-                    environment. If you are not on this environment, please
-                    reach out to the CGAP team for help with account creation.
-                </li>
-                {isEmailAGmail ? (
-                    <li>
-                        If you prefer, you can use your institutional email
-                        address as your account ID by creating a new google
-                        account at{' '}
-                        <a
-                            href="https://accounts.google.com/signup/v2"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={onGoogleLinkClick}>
-                            https://accounts.google.com/signup/v2
-                        </a>{' '}
-                        and selecting &quot;Use my current email address
-                        instead&quot;.
-                    </li>
-                ) : null}
-            </ul>*/}
-        </div>
-    );
+    const formHeading = null; // Could customize heading based on whether user is registering via invitation, etc.
 
     return (
-        <Modal show size="lg" onHide={onRegistrationCancel}>
+        <Modal show size="modal-dialog modal-lg user-registration-modal" onHide={onRegistrationCancel}>
             <Modal.Header closeButton>
-                <Modal.Title>Account Unauthorized</Modal.Title>
+                <Modal.Title className="ps-2 d-flex align-items-center">
+                    <img
+                        className="me-1"
+                        src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
+                        height="47"
+                    />
+                    New User - Self Registration
+                </Modal.Title>
             </Modal.Header>
-            <Modal.Body>
-                {/* <UserRegistrationForm
-                    heading={formHeading}
-                    schemas={schemas}
-                    unverifiedUserEmail={unverifiedUserEmail}
-                    onComplete={onRegistrationComplete}
-                    onCancel={onRegistrationCancel}
-                /> */}
-                <div
-                    className="user-registration-form-container"
-                    style={{ position: 'relative' }}>
-                    {formHeading}
-                </div>
+            <Modal.Body className="p-4 pb-0">
+                <UserRegistrationForm heading={formHeading} schemas={schemas} unverifiedUserEmail={unverifiedUserEmail}
+                    onComplete={onRegistrationComplete} onCancel={onRegistrationCancel} onExitLinkClick={handleExitLinkClick} />
             </Modal.Body>
         </Modal>
     );

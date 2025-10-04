@@ -298,8 +298,7 @@
         },
         "donors.display_title": {
             "title": "Donor",
-            "search_type": "sayt",
-            "sayt_item_type": "Donor"
+            "search_type": "basic"
         },
         "donors.age": {
             "title": "Donor Age",
@@ -325,6 +324,10 @@
         },
         "donors.sex": {
             "title": "Donor Sex"
+        },
+        "donors.hardy_scale": {
+            "title": "Donor Hardy Scale",
+            "aggregation_type": "stats"
         },
         "sample_summary.tissues": {
             "title": "Tissue"
