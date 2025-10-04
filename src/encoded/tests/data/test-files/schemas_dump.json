@@ -330,7 +330,7 @@
                     "obsolete",
                     "archived",
                     "deleted",
-                    "public"
+                    "open"
                 ]
             },
             "file_format": {
@@ -757,7 +757,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -1127,7 +1127,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -1479,7 +1479,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -1803,7 +1803,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -2177,7 +2177,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -2441,7 +2441,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -2784,7 +2784,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -3063,7 +3063,7 @@
                 "default": "released",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -3305,7 +3305,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -3775,7 +3775,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -4080,7 +4080,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -4365,7 +4365,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -4690,7 +4690,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -4984,7 +4984,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -5281,7 +5281,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -5584,7 +5584,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -6205,7 +6205,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -6488,7 +6488,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -6775,7 +6775,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -7090,7 +7090,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -7449,7 +7449,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -7830,7 +7830,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -8240,7 +8240,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -8540,7 +8540,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -9529,7 +9529,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -10156,7 +10156,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -10460,7 +10460,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -10682,7 +10682,7 @@
                     "obsolete",
                     "archived",
                     "deleted",
-                    "public"
+                    "open"
                 ]
             },
             "file_format": {
@@ -11206,7 +11206,7 @@
                     "deleted",
                     "inactive",
                     "in review",
-                    "public",
+                    "open",
                     "shared"
                 ],
                 "readonly": true
@@ -11587,7 +11587,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -11865,7 +11865,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -12217,7 +12217,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -12570,7 +12570,7 @@
                     "obsolete",
                     "archived",
                     "deleted",
-                    "public"
+                    "open"
                 ]
             },
             "file_format": {
@@ -13113,7 +13113,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -13446,7 +13446,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -13715,7 +13715,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -14098,7 +14098,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -14428,7 +14428,7 @@
             "status": {
                 "default": "in review",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -14890,7 +14890,7 @@
                 "default": "released",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -15147,7 +15147,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -15483,7 +15483,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -15798,7 +15798,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -16258,7 +16258,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -16517,7 +16517,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -16819,7 +16819,7 @@
                     "obsolete",
                     "archived",
                     "deleted",
-                    "public"
+                    "open"
                 ]
             },
             "file_format": {
@@ -17968,7 +17968,7 @@
                     "obsolete",
                     "archived",
                     "deleted",
-                    "public"
+                    "open"
                 ]
             },
             "file_format": {
@@ -18427,7 +18427,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -18955,7 +18955,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -19582,7 +19582,7 @@
                     "obsolete",
                     "archived",
                     "deleted",
-                    "public"
+                    "open"
                 ]
             },
             "file_format": {
@@ -19879,7 +19879,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -20144,7 +20144,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -20454,7 +20454,7 @@
                 "default": "in review",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "draft",
                     "released",
                     "in review",
@@ -20732,7 +20732,7 @@
                     "obsolete",
                     "archived",
                     "deleted",
-                    "public"
+                    "open"
                 ]
             },
             "file_format": {
@@ -21188,7 +21188,7 @@
                 "default": "current",
                 "permission": "restricted_fields",
                 "enum": [
-                    "public",
+                    "open",
                     "shared",
                     "current",
                     "inactive",

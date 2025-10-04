@@ -131,19 +131,19 @@ def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_f
     assert 'in review' in res
     assert 'released' not in res
     assert 'released_date' not in res
-    assert 'public' not in res
+    assert 'open' not in res
     res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
                                      {'status': 'released'}).json['@graph'][0]['file_status_tracking']
     assert 'in review' in res
     assert 'released' in res
     assert 'released_date' in res
-    assert 'public' not in res
+    assert 'open' not in res
     res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
-                                     {'status': 'public'}).json['@graph'][0]['file_status_tracking']
+                                     {'status': 'open'}).json['@graph'][0]['file_status_tracking']
     assert 'in review' in res
     assert 'released' in res
     assert 'released_date' in res
-    assert 'public' in res
+    assert 'open' in res
 
 
 @pytest.mark.parametrize(
@@ -154,7 +154,7 @@ def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_f
         ("archived", False),
         ("in review", True),
         ("obsolete", False),
-        ("public", False),
+        ("open", False),
     ]
 )
 def test_upload_credentials(
@@ -180,8 +180,8 @@ def test_upload_credentials(
     "status,expected",
     [
         ("released", "Open"),
-        ("public", "Open"),
-        ("restricted", "Protected"),
+        ("open", "Open"),
+        ("protected-network", "Protected"),
         ("deleted", None),  # test just one additional since there is significant setup cost
     ]
 )

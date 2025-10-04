@@ -11,7 +11,7 @@
         "hardy_scale": 3,
         "tpc_submitted": "True",
         "protected_donor": "TEST_PROTECTED-DONOR_FEMALE",
-        "status": "public"
+        "status": "open"
     },
     {
         "uuid": "637232c9-4008-462c-9b2f-bfc376db641e",
@@ -24,7 +24,7 @@
         "sex": "Male",
         "protected_donor": "TEST_PROTECTED-DONOR_MALE",
         "tpc_submitted": "True",
-        "status": "public"
+        "status": "open"
     },
     {
         "uuid": "a6f312a3-909b-41cd-ac14-bb72541df6b9",

@@ -70,6 +70,7 @@
                 "deleted",
                 "inactive",
                 "in review",
+                "open",
                 "public",
                 "shared",
                 "released"

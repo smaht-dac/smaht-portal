@@ -16,7 +16,7 @@ def static_section(
         "identifier": "some-static-section",
         "consortia": [test_consortium["uuid"]],
         "submission_centers": [test_submission_center["uuid"]],
-        "status": "public",
+        "status": "open",
         "section_type": "Page Section",
         "options": {
             "filetype": "md",

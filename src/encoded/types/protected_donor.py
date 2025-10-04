@@ -11,7 +11,7 @@ from .abstract_donor import AbstractDonor
 def _build_protected_donor_embedded_list():
     """Embeds for search on protected donor."""
     return [
-        # Embeds for donor manifest and Donor Overview page 
+        # Embeds for donor manifest and Donor Overview page
         'demographic.international_military_base',
         'demographic.international_military_base_details',
         'demographic.military_association',
@@ -131,13 +131,15 @@ class ProtectedDonor(AbstractDonor):
 
     SUBMISSION_CENTER_STATUS_ACL = deepcopy(AbstractDonor.SUBMISSION_CENTER_STATUS_ACL)
     SUBMISSION_CENTER_STATUS_ACL.update({
-        'restricted': ONLY_DBGAP_VIEW_ACL,
-        'public-restricted': ONLY_PUBLIC_DBGAP_VIEW_ACL
+        'protected-early': ONLY_DBGAP_VIEW_ACL,
+        'protected-network': ONLY_DBGAP_VIEW_ACL,
+        'protected': ONLY_PUBLIC_DBGAP_VIEW_ACL
     })
     CONSORTIUM_STATUS_ACL = deepcopy(AbstractDonor.CONSORTIUM_STATUS_ACL)
     CONSORTIUM_STATUS_ACL.update({
-        'restricted': ONLY_DBGAP_VIEW_ACL,
-        'public-restricted': ONLY_PUBLIC_DBGAP_VIEW_ACL
+        'protected-early': ONLY_DBGAP_VIEW_ACL,
+        'protected-network': ONLY_DBGAP_VIEW_ACL,
+        'protected': ONLY_PUBLIC_DBGAP_VIEW_ACL
     })
 
     @calculated_property(

@@ -81,9 +81,13 @@
                 "obsolete",
                 "archived",
                 "deleted",
+                "open",
+                "protected-network",
+                "protected",
                 "public",
-                "restricted",
-                "public-restricted"
+                "open-early",
+                "protected-early",
+                "open-network"
             ]
         },
         "external_quality_metrics": {

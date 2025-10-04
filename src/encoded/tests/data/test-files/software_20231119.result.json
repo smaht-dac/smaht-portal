@@ -14,10 +14,10 @@
             "commit": "abc123",
             "date_created": "2023-11-01T12:00:00Z",
             "description": "This is a sample software for testing purposes.",
-            "name": "public",
+            "name": "open",
             "schema_version": "1",
             "source_url": "https://github.com/sample-software-1",
-            "status": "public",
+            "status": "open",
             "submission_centers": [
                 "SubmissionCenter1",
                 "SubmissionCenter2"
