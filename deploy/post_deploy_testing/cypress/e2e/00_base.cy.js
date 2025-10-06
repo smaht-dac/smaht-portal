@@ -9,13 +9,25 @@ describe('Basic functionality: page loads and can authenticate.', function () {
             .end();
     });
 
-    it('Can login and out', function () {
-        // Login
-        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM')
-            .end();
-
-        // Log out
-        cy.logoutSMaHT().end();
+    it('Can users having different roles login and out in order', function () {
+        // SMAHT (dbgap) user
+        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP).then(() => {
+            cy.logoutSMaHT().then(() => {
+                // SMAHT (non-dbgap) user
+                cy.loginSMaHT(ROLE_TYPES.SMAHT_NON_DBGAP).then(() => {
+                    cy.logoutSMaHT().then(() => {
+                        // Public (dbgap) user
+                        cy.loginSMaHT(ROLE_TYPES.PUBLIC_DBGAP).then(() => {
+                            cy.logoutSMaHT().then(() => {
+                                // Public (non-dbgap) user
+                                cy.loginSMaHT(ROLE_TYPES.PUBLIC_NON_DBGAP).then(() => {
+                                    cy.logoutSMaHT();
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        });
     });
 });
