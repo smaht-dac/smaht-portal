@@ -135,7 +135,7 @@ class DonorRelease:
                 Defaults to the consortium "protected-early" status.
             force_status_change (bool, optional):
                 If True, forces the status update even if the item is already
-                in a terminal status (e.g., already open or proteccted). Use with caution.
+                in a terminal status (e.g., already open or protected). Use with caution.
     """
 
     @cached_property
@@ -629,7 +629,6 @@ def main() -> None:
         action="store_true",
     )
     args = parser.parse_args()
-
     if not args.donor or len(args.donor) < 1:
         error = fail_text("Please specify at least one donor to release.")
         parser.error(error)
@@ -648,9 +647,10 @@ def main() -> None:
         open_release_status = NETWORK_DONOR_RELEASE_STATUS
         protected_release_status = NETWORK_PROTECTED_DONOR_RELEASE_STATUS
     donors_to_release = args.donor
-    verbose = mode == 'single'  # Print more information in single mode
+    # verbose = mode == 'single'  # Print more information in single mode
     if args.force_status_change:
         print(warning_text("Forcing status change even if item is already released or in terminal status."))
+    verbose = mode == 'single' # Print more information in single mode
     donor_releases: List[DonorRelease] = []
     for donor_identifier in donors_to_release:
         donor_release = DonorRelease(auth_key=auth_key, donor_identifier=donor_identifier, verbose=verbose,
