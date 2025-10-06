@@ -794,32 +794,6 @@ body[data-path="/"]>#application>#layout {
 							text-align: center;
     						width: 100%;
 						}
-						.content {
-							.body {
-								.callout {
-									.announcement-container.warning {
-										border-radius: 5px;
-										margin-top: 5px;
-										padding: 10px;
-										font-size: 12px;
-										border-color: #D5DFF2;
-			
-										div.header {
-											color: #485983;
-											background-color: transparent;
-											justify-content: flex-start;
-											align-items: center;
-											
-											i {
-												color: #485983;
-												margin-right: 5px;
-											}
-										}
-			
-									}
-								}
-							}
-						}
 					}
 
 
@@ -1236,8 +1210,24 @@ body[data-path="/"]>#application>#layout {
 						}
 
 						&.warning {
-							.header {
-								color: #b13535;
+							border-radius: 8px;
+							margin: 5px;
+							padding: 10px;
+							font-size: 12px;
+							border-color: #D5DFF2;
+							color: #485983;
+
+							div.header {
+								color: #485983;
+								background-color: transparent;
+								justify-content: flex-start;
+								align-items: center;
+								font-weight: 600;
+								
+								i {
+									color: #485983;
+									margin-right: 5px;
+								}
 							}
 						}
 						&.feature {

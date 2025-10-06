@@ -207,20 +207,20 @@ const DataReleaseItem = ({ data, callout = null }) => {
 export const NotificationsPanel = () => {
     const [data, setData] = useState(null);
 
-    useEffect(() => {
-        ajax.load(
-            '/recent_files_summary?format=json&nmonths=3',
-            (resp) => {
-                setData(resp?.items ?? []);
-            },
-            'GET',
-            (err) => {
-                if (err.notification !== 'No results found') {
-                    console.log('ERROR NotificationsPanel resp', err);
-                }
-            }
-        );
-    }, []);
+    // useEffect(() => {
+    //     ajax.load(
+    //         '/recent_files_summary?format=json&nmonths=3',
+    //         (resp) => {
+    //             setData(resp?.items ?? []);
+    //         },
+    //         'GET',
+    //         (err) => {
+    //             if (err.notification !== 'No results found') {
+    //                 console.log('ERROR NotificationsPanel resp', err);
+    //             }
+    //         }
+    //     );
+    // }, []);
 
     return (
         <div className="notifications-panel container">
@@ -229,7 +229,8 @@ export const NotificationsPanel = () => {
                 <div className="section-body-container">
                     <div className="section-body">
                         <div className="section-body-items-container">
-                            {data === null ? (
+                            <ReleaseItemWarning />
+                            {/* {data === null ? (
                                 <i className="icon fas icon-spinner icon-spin"></i>
                             ) : data.length === 0 ? (
                                 <DataReleaseItem
@@ -257,7 +258,7 @@ export const NotificationsPanel = () => {
                                         />
                                     );
                                 })
-                            )}
+                            )} */}
                         </div>
                     </div>
                 </div>
