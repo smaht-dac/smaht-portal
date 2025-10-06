@@ -33,7 +33,7 @@ const primaryTissuePageDescription = (
 );
 
 const BENCHMARKING_STATUS_FILTERS =
-    'status=public&status=public-restricted&status=restricted&status=released';
+    'status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network';
 
 export const BenchmarkingDataMap = {
     COLO829: {
@@ -64,31 +64,41 @@ export const BenchmarkingDataMap = {
                 eventKey: '#main',
                 title: 'COLO829T',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=colo829t&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=colo829t&sort=-file_status_tracking.released_date',
             },
             {
                 eventKey: '#BL',
                 title: 'COLO829BL',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=colo829bl&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=colo829bl&sort=-file_status_tracking.released_date',
             },
             {
                 eventKey: '#150',
                 title: 'COLO829BLT50',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=colo829blt_50to1&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=colo829blt_50to1&sort=-file_status_tracking.released_date',
             },
             {
                 eventKey: '#silico',
                 title: 'In silico BLT50',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=colo829blt_in_silico&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=colo829blt_in_silico&sort=-file_status_tracking.released_date',
             },
             {
                 eventKey: '#truthset',
                 title: 'Truth Set',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=colo829_snv_indel_challenge_data&tags=truth_set&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=colo829_snv_indel_challenge_data&tags=truth_set&sort=-file_status_tracking.released_date',
                 facetsToHide: [
                     'dataset',
                     'file_sets.libraries.analytes.samples.sample_sources.code',
@@ -167,13 +177,17 @@ export const BenchmarkingDataMap = {
                 eventKey: '#hapmap-mixture',
                 title: 'HapMap mixture',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=hapmap&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=hapmap&sort=-file_status_tracking.released_date',
             },
             {
                 eventKey: '#hapmap-downsampled',
                 title: 'Downsampled',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=mei_detection_challenge_data&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=mei_detection_challenge_data&sort=-file_status_tracking.released_date',
             },
             {
                 eventKey: '#hapmap-truthset',
@@ -210,37 +224,49 @@ export const BenchmarkingDataMap = {
                 eventKey: '#lb-fibroblast',
                 title: 'LB-LA2',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=lb_fibroblast&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=lb_fibroblast&sort=-file_status_tracking.released_date',
             },
             {
                 eventKey: '#lb_ipsc_1',
                 title: 'LB-LA2 iPSC-1',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=lb_ipsc_1&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=lb_ipsc_1&sort=-file_status_tracking.released_date',
             },
             {
                 eventKey: '#lb_ipsc_2',
                 title: 'LB-LA2 iPSC-2',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=lb_ipsc_2&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=lb_ipsc_2&sort=-file_status_tracking.released_date',
             },
             {
                 eventKey: '#lb_ipsc_4',
                 title: 'LB-LA2 iPSC-4',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=lb_ipsc_4&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=lb_ipsc_4&sort=-file_status_tracking.released_date',
             },
             {
                 eventKey: '#lb_ipsc_52',
                 title: 'LB-LA2 iPSC-52',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=lb_ipsc_52&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=lb_ipsc_52&sort=-file_status_tracking.released_date',
             },
             {
                 eventKey: '#lb_ipsc_60',
                 title: 'LB-LA2 iPSC-60',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=lb_ipsc_60&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=lb_ipsc_60&sort=-file_status_tracking.released_date',
             },
             {
                 eventKey: '#lb_ipsc_truthset',
@@ -262,19 +288,25 @@ export const BenchmarkingDataMap = {
                 eventKey: '#liver',
                 title: 'Liver 1A',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&sort=-file_status_tracking.released_date',
             },
             {
                 eventKey: '#lung',
                 title: 'Lung 1D',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&sort=-file_status_tracking.released_date',
             },
             {
                 eventKey: '#skin',
                 title: 'Skin 1K',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1K&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1K&sort=-file_status_tracking.released_date',
             },
         ],
     },
@@ -290,19 +322,25 @@ export const BenchmarkingDataMap = {
                 eventKey: '#colon',
                 title: 'Colon 1G',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&sort=-file_status_tracking.released_date',
             },
             {
                 eventKey: '#lung',
                 title: 'Lung 1D',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&sort=-file_status_tracking.released_date',
             },
             {
                 eventKey: '#skin',
                 title: 'Skin 1K',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1K&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1K&sort=-file_status_tracking.released_date',
             },
         ],
     },
@@ -318,7 +356,9 @@ export const BenchmarkingDataMap = {
                 eventKey: '#brain',
                 title: 'Brain 1Q',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q&sort=-file_status_tracking.released_date',
             },
         ],
     },
@@ -334,7 +374,9 @@ export const BenchmarkingDataMap = {
                 eventKey: '#brain',
                 title: 'Brain 1Q',
                 searchHref:
-                    '/search/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q&sort=-file_status_tracking.released_date',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q&sort=-file_status_tracking.released_date',
             },
         ],
     },
