@@ -596,11 +596,31 @@ class FileRelease:
         # Open/Protected are terminal statuses. Don't patch if already open/protected
         if current_item_status in [
             item_status,
-            item_constants.STATUS_OPEN,
-            item_constants.STATUS_PROTECTED,
         ]:
             self.add_okay_message(
                 item_constants.STATUS, current_item_status, "Not patching."
+            )
+            return
+        
+        # Open/Protected are terminal statuses. Don't patch if already open/protected
+        if current_item_status in [
+            item_constants.STATUS_OPEN,
+            item_constants.STATUS_PROTECTED,
+            #item_constants.STATUS_PROTECTED_NETWORK,
+            #item_constants.STATUS_OPEN_NETWORK,
+        ]:
+            self.add_okay_message(
+                item_constants.STATUS, current_item_status, "Not patching - terminal status."
+            )
+            return
+        
+        # In case of a network release, don't alter temporary statuses
+        if current_item_status in [
+            item_constants.STATUS_OPEN_EARLY,
+            item_constants.STATUS_PROTECTED_EARLY,
+        ] and self.mode == MODE_NETWORK:
+            self.add_okay_message(
+                item_constants.STATUS, current_item_status, "Not switching early access statuses in a network release."
             )
             return
 
