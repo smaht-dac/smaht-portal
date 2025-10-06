@@ -163,7 +163,7 @@ It is important to know that the ``smaht-submitr`` tool and SMaHT data portal wi
 
 You can view all of the supported SMaHT objects and their identifying (and required) properties, as well as reference data here:
 
-* https://staging.smaht.org/docs/user-guide/referencing-data
+* https://data.smaht.org/docs/user-guide/referencing-data
 * https://submitr.readthedocs.io/en/draft/object_model.html
 
 Implicit Properties

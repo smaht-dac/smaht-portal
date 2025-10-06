@@ -25,13 +25,16 @@ export const PRIMARY_PRODUCTION_TISSUES = [
     'Brain',
     'Buccal Swab',
     'Colon',
+    'Ascending Colon',
+    'Descending Colon',
     'Esophagus',
     'Heart',
     'Liver',
     'Lung',
     'Muscle',
     'Ovary',
-    'Skin',
+    'Non-exposed Skin',
+    'Sun-exposed Skin',
     'Testis',
 ];
 

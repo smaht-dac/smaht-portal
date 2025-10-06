@@ -338,6 +338,11 @@ div.navbar-fixed-top {
                 > a,
                 > button {
                     @include navbar-link-button-item;
+                    
+                    &.disabled, &.muted {
+                        cursor: default;
+                        color: #cad1d6;
+                    }
                 }
 
                 @include navbar-fixed-position {
@@ -365,13 +370,19 @@ div.navbar-fixed-top {
                             border: 1px solid #0B62BA;
                             border-radius: 4px;
                             height: 35px;
-                            width: 120px;
+                            width: auto;
                             margin: auto 0px auto auto;
                             
                             span {
                                 color: white;
                                 font-weight: 500;
                                 margin: auto;
+                            }
+
+                            &.disabled,
+                            &.muted {
+                                background-color: #cad1d6 !important;
+                                border-color: #959ba6 !important;
                             }
                         }
 
@@ -410,7 +421,7 @@ div.navbar-fixed-top {
                                 border-radius: 4px;
                                 height: 35px;
                                 margin: auto;
-                                padding: 0px 37px;
+                                padding: 0px 20px;
 
                                 span {
                                     color: white;
@@ -447,30 +458,6 @@ div.navbar-fixed-top {
                             i.icon.account-icon {
                                 margin-right: 12px;
                             }
-    
-                            // &.has-image {
-                            //     // padding-left: 8px;
-                            //     display: flex;
-                            //     align-items: center;
-                            //     img.account-icon-image {
-                            //         margin-right: 8px;
-                            //         border-radius: 8px;
-                            //         width: 30px;
-                            //         height: 30px;
-                            //     }
-                            //     .user-first-name {
-                            //         flex-grow: 0;
-                            //         flex-shrink: 1;
-                            //         overflow: hidden;
-                            //         text-overflow: ellipsis;
-                            //     }
-                            //     @include media-breakpoint-up(lg){
-                            //         img.account-icon-image {
-                            //             margin-right: 12px;
-                            //         }
-                            //     }
-                
-                            // }
     
                             .dropdown-menu {
                                 /** Align it to right edge so doesn't go off-screen **/
@@ -661,7 +648,7 @@ div.navbar-fixed-top {
     padding: 10px 0;
     height: 52px;
     color: #fff;
-    background-color: #7e4544;
+    background-color: #a63243;
     overflow: hidden;
     transition: margin-top $navbar-transition-length $navbar-transition-easing;
     transform: translate3d(0,0,0);
@@ -693,7 +680,7 @@ div.navbar-fixed-top {
                 width: 600px;
                 transform: rotate3d(0,0,1,-40deg);
                 background: rgba(255,255,255,0.08);
-                background: #4e2828;
+                background: #771c2a;
                 box-shadow: 0 0 200px rgba(0,0,0,0.5);
                 z-index: -1;
                 //border-right: 7px solid rgba(255, 255, 255, 0.45);
@@ -1295,6 +1282,25 @@ body.scrolled-past-top {
                 img.account-icon-image {
                     width: 24px !important;
                     height: 24px !important;
+                }
+            }
+        }
+    }
+}
+
+@include media-breakpoint-between(lg, xl) {
+    div.navbar-fixed-top {
+        .navbar-main {
+            .navbar-nav {
+                &.navbar-acct {
+                    .helpdesk {
+                        i.icon-envelope {
+                            margin-right: 0px;
+                        }
+                        span {
+                            display: none;
+                        }
+                    }
                 }
             }
         }
