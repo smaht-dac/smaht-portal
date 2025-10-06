@@ -53,8 +53,8 @@ navigate.getBrowseBaseParams.mappings = {
         'parameters': {
             'type': ['File'],
             'sample_summary.studies': ['Production'],
-            'status': ['public', 'public-restricted', 'restricted', 'released'],
-            'donors.tags': ['has_released_files'],
+            'status': ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'],
+            //'donors.tags': ['has_released_files'],
         }
     },
     'donor' : {
