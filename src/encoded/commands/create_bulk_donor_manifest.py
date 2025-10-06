@@ -1,22 +1,3 @@
-from typing import Dict, List, Any, Optional
-import pandas as pd
-import argparse
-import structlog
-from pathlib import Path
-
-from encoded.commands.utils import get_auth_key
-from encoded.item_utils.utils import (
-    RequestHandler
-)
-from encoded.item_utils import (
-    item as item_utils,
-    donor as donor_utils,
-    medical_history as mh_utils,
-)
-from dcicutils import ff_utils
-
-log = structlog.getLogger(__name__)
-
 """
 Bulk Donor Manifest Generator
 =============================
@@ -29,8 +10,9 @@ search.
 Only TPC-submitted Benchmarking and Production donors are included in the
 output, even if other donors are supplied via search or identifiers.
 
-By default, the manifest includes protected donor properties. Use the
---public/p flag to restrict the output to public donor properties only.
+By default, the manifest includes protected donor properties for open donors. Use the
+--public/p flag to restrict the output to public donor properties only and the
+--network/n flag to include network-released donors (including protected properties)
 
 Usage
 -----
@@ -101,11 +83,28 @@ Examples
     WARNING: if creating a protected manifest from a specific search query searching for ProtectedDonor is recommended
     to avoid exceptions caused by Donors not linked to ProtectedDonor items.
 """
+from typing import Dict, List, Any, Optional
+import pandas as pd
+import argparse
+import structlog
+from pathlib import Path
 
+from encoded.commands.utils import get_auth_key
+from encoded.item_utils.utils import (
+    RequestHandler
+)
+from encoded.item_utils import (
+    item as item_utils,
+    donor as donor_utils,
+    medical_history as mh_utils,
+)
+from dcicutils import ff_utils
 
-DEFAULT_STATUS = "public-restricted"
-PUBLIC_STATUS = "public"
-RESTRICTED_STATUS = "restricted"
+log = structlog.getLogger(__name__)
+
+DEFAULT_STATUS = "open-early"
+PUBLIC_STATUS = "open"
+RESTRICTED_STATUS = ""
 DEFAULT_SEARCH_STEM = "search/?study=Benchmarking&study=Production"
 PUBLIC_ITEM_TYPES = ["Donor"]  # Top level item must be first - i.e. Donor
 PROTECTED_ITEM_TYPES = [  # Top level item must be first - i.e. ProtectedDonor
@@ -418,7 +417,6 @@ def main() -> None:
         "--donors",
         "-d",
         nargs="*",
-        help="Donor identifiers to create bulk donor manifest",
     )
     parser.add_argument(
         "--env",
