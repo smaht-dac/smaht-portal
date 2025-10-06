@@ -305,8 +305,8 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
         <div className="container timeline-container">
             <div id="timeline" className={`tier-${currentTier}`}>
                 <span className="latest-release">
-                    <b>Latest Release: </b>
-                    {data.release_date ?? (
+                    <b>Latest Release: </b> October 11, 2025
+                    {/* {data.release_date ?? (
                         <>
                             {isLoading && (
                                 <span className="spinner">
@@ -320,7 +320,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                 />
                             )}
                         </>
-                    )}
+                    )} */}
                 </span>
 
                 {data.timeline_content.map((d, i) => {
