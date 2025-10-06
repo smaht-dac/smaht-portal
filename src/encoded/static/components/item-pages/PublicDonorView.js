@@ -269,7 +269,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                 <DataMatrix
                                     key="data-matrix-donor"
                                     query={{
-                                        url: `/data_matrix_aggregations/?type=File&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&donors.display_title=${context.display_title}&limit=all`,
+                                        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${context.display_title}&limit=all`,
                                         columnAggFields: [
                                             'file_sets.libraries.assay.display_title',
                                             'sequencing.sequencer.platform',
