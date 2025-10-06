@@ -44,7 +44,6 @@ describe('Documentation Page & Content Tests', function () {
         // Wait until help menu has loaded via AJAX and is a dropdown.
         // todo: Ensure we're selecting right 1 incase later add more -- test for `a.id-docs-menu-item` once in place upstream.
         cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM')
             .get(documentationNavBarItemSelectorStr).should('have.class', 'dropdown-toggle').click().should('have.class', 'dropdown-open-for').then(() => {
                 cy.get('div.big-dropdown-menu div.level-1-title-container a, div.big-dropdown-menu a.level-2-title').then(($listItems) => {
                     console.log($listItems);
@@ -150,7 +149,6 @@ describe('Documentation Page & Content Tests', function () {
     it('Every documentation page has links which return success status codes - SAMPLING', function () {
 
         cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM')
             .get(documentationNavBarItemSelectorStr).should('have.class', 'dropdown-toggle').click().should('have.class', 'dropdown-open-for').then(() => {
 
                 // Get all links to _level 2_ static pages. Exclude directory pages for now. Do directory pages in later test.
@@ -265,7 +263,6 @@ describe('Documentation Page & Content Tests', function () {
     it('Visit Submission Data Dictionary, ensure schema and schema items are listed, select options have items and selectable.', function () {
 
         cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM')
             .get(documentationNavBarItemSelectorStr)
             .should('have.class', 'dropdown-toggle')
             .click()
@@ -314,7 +311,6 @@ describe('Documentation Page & Content Tests', function () {
 
     it('Visit Frequently Asked Questions, ensure FAQ items are listed, and each item has a question and answer.', function () {
         cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM')
             .get(documentationNavBarItemSelectorStr)
             .should('have.class', 'dropdown-toggle')
             .click()

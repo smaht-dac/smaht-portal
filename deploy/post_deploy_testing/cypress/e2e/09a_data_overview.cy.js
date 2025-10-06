@@ -11,7 +11,6 @@ describe('Data Overview - Retracted Files, Data Matrix for Production, Data Matr
     it('Visit Retracted Files List', function () {
 
         cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM')
             .get(dataNavBarItemSelectorStr)
             .should('have.class', 'dropdown-toggle')
             .click()
@@ -97,7 +96,6 @@ describe('Data Overview - Retracted Files, Data Matrix for Production, Data Matr
     it('Visit Data Matrix for Production, should expand SMHT004, SMHT008 and validate row/column summaries, popover content', function () {
 
         cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM')
             .get(dataNavBarItemSelectorStr)
             .should('have.class', 'dropdown-toggle')
             .click()
@@ -121,7 +119,6 @@ describe('Data Overview - Retracted Files, Data Matrix for Production, Data Matr
     it('Visit Data Matrix for Benchmarking, should expand ST001, ST002, ST003, ST004 and validate row/column summaries, popover content', function () {
 
         cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM')
             .get(dataNavBarItemSelectorStr)
             .should('have.class', 'dropdown-toggle')
             .click()

@@ -5,7 +5,6 @@ describe('Deployment/CI Search View Tests', function () {
     before(function () {
         cy.visit('/', { headers: cypressVisitHeaders });
         cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM')
             .end();
     });
 
@@ -319,7 +318,6 @@ describe('Deployment/CI Search View Tests', function () {
         before(function () {
             cy.visit('/pages', { headers: cypressVisitHeaders }).end();
             cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-                .validateUser('SCM')
                 .end();
         });
 
