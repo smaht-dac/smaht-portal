@@ -14,6 +14,7 @@ import {
     PopoverHeader,
     PopoverBody,
 } from 'react-bootstrap';
+import { BROWSE_STATUS_FILTERS } from '../browse/BrowseView';
 
 // Page containing the details of Items of type File
 export default class PublicDonorOverview extends DefaultItemView {
@@ -195,7 +196,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
         // load value from searchUrl if not provided
         setIsLoading(true);
         ajax.load(
-            `/search/?type=File&status=released&donors.display_title=${context?.display_title}`,
+            `/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${context?.display_title}`,
             (resp) => {
                 setStatisticValues({
                     tissues: resp?.facets?.find(
