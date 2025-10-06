@@ -278,18 +278,39 @@
     },
     {
         "email": "cypress-main-scientist@cypress.hms.harvard.edu",
-        "first_name": "Scientist",
-        "last_name": "Cypress Main",
+        "first_name": "Cypress",
+        "last_name": "Dbgap",
         "uuid": "6fc63b40-6620-4a40-bb1b-a99f25ccdb63",
+        "groups": [
+            "dbgap"
+        ],
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "submits_for": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "email": "cypress-main-non-dbgap@cypress.hms.harvard.edu",
+        "first_name": "Cypress",
+        "last_name": "Non-dbgap",
+        "uuid": "0f237e9e-68e8-4dca-890d-417d8c395698",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ]
+    },
+    {
+        "email": "cypress-main-public-dbgap@cypress.hms.harvard.edu",
+        "first_name": "Cypress",
+        "last_name": "Public Dbgap",
+        "uuid": "4dfabc34-3958-4911-8fbc-bec194847cb6",
+        "groups": [
+            "public-dbgap"
+        ]
+    },
+    {
+        "email": "cypress-main-public-non-dbgap@cypress.hms.harvard.edu",
+        "first_name": "Cypress",
+        "last_name": "Public Non-dbgap",
+        "uuid": "1d3edcd4-7cae-49d0-b7ca-eaac97e25df7"
     },
     {
         "email": "rahi_navelkar@hms.harvard.edu",
