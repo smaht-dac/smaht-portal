@@ -40,13 +40,19 @@ export const SelectAllAboveTableComponent = (props) => {
         selectedItems, // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
-        deniedAccessPopoverType,
+        deniedAccessPopoverType = 'login', // default to login popover
     } = props;
     const { filters: ctxFilters = null, total: totalResultCount = 0 } =
         context || {};
 
     // Get user download access
     const userDownloadAccess = useUserDownloadAccess(session);
+
+    // Determine if a user can download this table's files
+    const canDownloadFiles =
+        (deniedAccessPopoverType === 'protected' &&
+            userDownloadAccess['protected']) ||
+        (deniedAccessPopoverType === 'login' && userDownloadAccess['open']);
 
     const selectedFileProps = {
         selectedItems, // From SelectedItemsController
@@ -64,8 +70,8 @@ export const SelectAllAboveTableComponent = (props) => {
             </div>
             <div className="ms-auto col-auto me-0 d-flex pe-0">
                 <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
-                {/* Show popover if needed */}
-                {userDownloadAccess['protected'] ? (
+                {/* Show popover if user has the access needed for this table */}
+                {canDownloadFiles ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
