@@ -47,9 +47,6 @@ export const SelectAllAboveTableComponent = (props) => {
 
     // Get user download access
     const userDownloadAccess = useUserDownloadAccess(session);
-    const hasDownloadAccess =
-        userDownloadAccess['protected'] ||
-        userDownloadAccess['protected-network'];
 
     const selectedFileProps = {
         selectedItems, // From SelectedItemsController
@@ -68,7 +65,7 @@ export const SelectAllAboveTableComponent = (props) => {
             <div className="ms-auto col-auto me-0 d-flex pe-0">
                 <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
                 {/* Show popover if needed */}
-                {hasDownloadAccess ? (
+                {userDownloadAccess['protected'] ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
