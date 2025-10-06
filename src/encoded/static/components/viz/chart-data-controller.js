@@ -246,7 +246,7 @@ export const ChartDataController = {
         //override
         // TODO: keep aligned "status" field with BROWSE_STATUS_FILTERS in BrowseView.js and also other fields should match with BROWSE_LINKS
         fileFilters.type = ['File'];
-        fileFilters.status = ['public', 'restricted', 'public-restricted', 'released'];
+        fileFilters.status = ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'];
 
         return fileFilters;
     },
