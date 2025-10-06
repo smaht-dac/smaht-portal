@@ -43,7 +43,8 @@ const TimelineItem = ({
                 </h3>
             </div>
             <div className="timeline-content">
-                <TimelineAccordion defaultActiveKey={['0', '1']}>
+                <TimelineAccordion
+                    defaultActiveKey={itemKey === 0 ? ['1'] : ['0']}>
                     {categories.map((category, j) => {
                         return (
                             <TimelineAccordionDrawer
