@@ -33,6 +33,6 @@ export const cypressVisitHeaders = {
 export const ROLE_TYPES = {
     SMAHT_DBGAP: 'smaht-dbgap',
     SMAHT_NON_DBGAP: 'smaht-non-dbgap',
-    DBGAP_ONLY: 'dbgap-only',
-    NON_DBGAP: 'non-dbgap',
+    PUBLIC_DBGAP: 'public-dbgap',
+    PUBLIC_NON_DBGAP: 'public-non-dbgap',
 };
