@@ -13,20 +13,19 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
  */
 export const useUserDownloadAccess = (session = false) => {
     const [downloadAccessObject, setDownloadAccessObject] = useState({
-        public: session,
-        'public-restricted': false,
-        restricted: false,
+        open: session,
+        'open-early': false,
+        'open-network': false,
+        protected: false,
+        'protected-early': false,
+        'protected-network': false,
     });
 
     useEffect(() => {
-        let isCancelled = false;
-
         if (session) {
             ajax.load(
                 '/session-properties',
                 (resp) => {
-                    if (isCancelled) return;
-
                     // Get consortia associated with user
                     const userConsortia = resp?.details?.consortia || [];
 
@@ -40,21 +39,23 @@ export const useUserDownloadAccess = (session = false) => {
                     const userDownloadAccessObj = { ...downloadAccessObject };
 
                     if (isMember) {
+                        // User is a member of SMaHT
+                        userDownloadAccessObj['open-early'] = true;
+                        userDownloadAccessObj['open-network'] = true;
+
                         // User is either admin or dbgap member of SMaHT
                         if (
                             userGroups?.includes('admin') ||
                             userGroups?.includes('dbgap')
                         ) {
-                            userDownloadAccessObj['public-restricted'] = true;
-                            userDownloadAccessObj['restricted'] = true;
+                            userDownloadAccessObj['protected'] = true;
+                            userDownloadAccessObj['protected-early'] = true;
+                            userDownloadAccessObj['protected-network'] = true;
                         }
                     } else {
                         // User is not a member of SMaHT
                         if (userGroups?.includes('public-dbgap')) {
-                            userDownloadAccessObj['public-restricted'] = true;
-                        }
-                        if (userGroups?.includes('dbgap')) {
-                            userDownloadAccessObj['restricted'] = true;
+                            userDownloadAccessObj['protected'] = true;
                         }
                     }
 
@@ -73,10 +74,6 @@ export const useUserDownloadAccess = (session = false) => {
                 }
             );
         }
-
-        return () => {
-            isCancelled = true; // Prevent setting state if unmounted or session changes
-        };
     }, [session]);
 
     return downloadAccessObject;
