@@ -48,7 +48,7 @@ import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
 import { useUserDownloadAccess } from '../util/hooks';
 
 export const BROWSE_STATUS_FILTERS =
-    'status=public&status=public-restricted&status=restricted&status=released';
+    'status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network';
 
 export const BROWSE_LINKS = {
     file:
@@ -69,7 +69,10 @@ export default function BrowseView(props) {
 const BrowseFileBody = (props) => {
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
     const { session, href, windowWidth, windowHeight, isFullscreen } = props;
-    const initialFields = ['sample_summary.tissues', 'sequencing.sequencer.display_title'];
+    const initialFields = [
+        'sample_summary.tissues',
+        'sequencing.sequencer.display_title',
+    ];
     return (
         <>
             <h2 className="browse-summary-header">SMaHT Data Summary</h2>
@@ -583,9 +586,8 @@ export function createBrowseFileColumnExtensionMap({
                     <a
                         target="_blank"
                         href={
-                            (userDownloadAccess?.['restricted'] ||
-                                userDownloadAccess?.['public-restricted']) &&
-                            protected_donor
+                            userDownloadAccess?.['protected'] &&
+                            protected_donor?.['@id']
                                 ? protected_donor?.['@id']
                                 : donorLink
                         }>

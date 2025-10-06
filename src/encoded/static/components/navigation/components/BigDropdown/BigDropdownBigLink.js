@@ -16,7 +16,7 @@ export const BigDropdownBigLink = (props) => {
         ...passProps // Contains: `href`, `rel`, `onClick`, etc.
     } = props;
 
-    // Allow users with public-restricted or restricted access to see protected links
+    // Allow users with protected access to see protected links
     const userDownloadAccess = useUserDownloadAccess(props.session);
 
     // Determine proper href to send users to
