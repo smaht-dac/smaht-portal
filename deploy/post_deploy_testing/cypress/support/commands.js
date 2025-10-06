@@ -213,11 +213,11 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
     }
 
     cy.fixture('roles.json').then((roles) => {
-        let email, auth0UserId;
+        let email, auth0UserId, shortname;
         if (roles && roles[role] && roles[role].email && roles[role].auth0UserId) {
-            ({ email, auth0UserId } = roles[role]);
+            ({ email, auth0UserId, shortname } = roles[role]);
         } else {
-            ({ email = options.user || Cypress.env('LOGIN_AS_USER'), auth0UserId } = options);
+            ({ email = options.user || Cypress.env('LOGIN_AS_USER'), auth0UserId, shortname } = options);
         }
 
         const auth0secret = Cypress.env('Auth0Secret');
@@ -240,14 +240,14 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
                 name: 'Login SMaHT',
                 message: 'Generated own JWT with length ' + token.length,
             });
-            return performLogin(token);
+            return performLogin(token).validateUser(shortname);
         });
     });
 });
 
-Cypress.Commands.add('validateUser', function (userDisplayName = 'SCM') {
+Cypress.Commands.add('validateUser', function (userDisplayName = '') {
     return cy.get(navUserAcctDropdownBtnSelector)
-        .should('not.contain.text', 'Login')
+        .should('not.contain.text', 'Login / Register')
         .then((accountListItem) => {
             expect(accountListItem.text()).to.contain(userDisplayName);
         }).end();
@@ -255,13 +255,14 @@ Cypress.Commands.add('validateUser', function (userDisplayName = 'SCM') {
 
 Cypress.Commands.add('logoutSMaHT', function (options = { useEnvToken: true }) {
     cy.get(navUserAcctDropdownBtnSelector)
+        .scrollIntoView()
         .click()
         .end()
         .get('#logoutbtn')
         .click()
         .end()
         .get(navUserAcctLoginBtnSelector)
-        .should('contain', 'Login')
+        .should('contain', 'Login / Register')
         .end()
         .get('#slow-load-container')
         .should('not.have.class', 'visible')
