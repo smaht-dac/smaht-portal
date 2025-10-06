@@ -19,6 +19,18 @@ export const useUserDownloadAccess = (session = false) => {
         protected: false,
         'protected-early': false,
         'protected-network': false,
+        // Default to true in these situations. If it is visible, user can
+        // likely download. Otherwise let backend enforce download access.
+        released: true,
+        uploading: true,
+        uploaded: true,
+        retracted: true,
+        'upload failed': true,
+        'to be uploaded by workflow': true,
+        'in review': true,
+        obsolete: true,
+        archived: true,
+        deleted: true,
     });
 
     useEffect(() => {
