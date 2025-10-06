@@ -48,8 +48,8 @@ export const SelectAllAboveTableComponent = (props) => {
     // Get user download access
     const userDownloadAccess = useUserDownloadAccess(session);
     const hasDownloadAccess =
-        userDownloadAccess['restricted'] ||
-        userDownloadAccess['public-restricted'];
+        userDownloadAccess['protected'] ||
+        userDownloadAccess['protected-network'];
 
     const selectedFileProps = {
         selectedItems, // From SelectedItemsController
