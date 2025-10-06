@@ -48,7 +48,7 @@ import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
 import { useUserDownloadAccess } from '../util/hooks';
 
 export const BROWSE_STATUS_FILTERS =
-    'status=public&status=public-restricted&status=restricted&status=released';
+    'status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network';
 
 export const BROWSE_LINKS = {
     file:
