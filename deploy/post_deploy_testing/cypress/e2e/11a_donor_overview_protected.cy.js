@@ -6,7 +6,7 @@ describe('Protected Donor Overview - Verify Random 3 Protected Donors That are A
     before(function () {
         cy.visit('/', { headers: cypressVisitHeaders });
         cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM');
+            .end();
     });
 
     after(function () {

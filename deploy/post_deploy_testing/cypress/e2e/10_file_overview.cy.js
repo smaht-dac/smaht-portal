@@ -6,7 +6,6 @@ describe('File Overview - Verify Random 3 Files That are Released, Having QC Met
         cy.visit('/', { headers: cypressVisitHeaders });
 
         cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM')
             .end();
     });
 

@@ -5,7 +5,6 @@ describe('Home Page', function () {
     before(() => {
         cy.visit('/', { headers: cypressVisitHeaders });
         cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM')
             .end();
     });
 

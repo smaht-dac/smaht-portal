@@ -41,7 +41,6 @@ describe('Post-Deployment Search View Tests', function () {
             cy.visit('/search/?type=Item', { headers: cypressVisitHeaders });
 
             cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-                .validateUser('SCM')
                 .get('.facet-list li.facet-list-element[data-key="File"] .facet-item')
                 .should('have.text', 'File')
                 .end();

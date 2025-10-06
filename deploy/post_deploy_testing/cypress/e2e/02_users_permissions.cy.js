@@ -9,7 +9,6 @@ describe('Impersonate user JWT, navigate to profile & back.', function () {
         beforeEach(function () {
             cy.visit('/', { headers: cypressVisitHeaders });
             cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-                .validateUser('SCM')
                 .end();
         });
 
