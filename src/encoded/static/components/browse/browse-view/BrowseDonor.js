@@ -869,8 +869,8 @@ const RedirectBanner = ({ href }) => {
     return href ? (
         <div className="callout data-available">
             <span className="callout-text">
-                <i className="icon icon-users fas"></i> Thank you for logging
-                in! Please{' '}
+                <i className="icon icon-users fas"></i> Welcome to the SMaHT
+                Data Portal! Please{' '}
                 <a href={href?.replace('type=Donor', 'type=ProtectedDonor')}>
                     click here
                 </a>{' '}
