@@ -1265,7 +1265,7 @@ body[data-path="/"]>#application>#layout {
 							.header {
 								font-weight: 600;
 							}
-							
+
 							i {
 								color: #485983;
 								margin-right: 5px;
@@ -2722,6 +2722,7 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 						&.has-access {
 							&:disabled {
 								background-color: #0E74D2;
+								border-color: #0E74D2;
 							}
 						}
 					}

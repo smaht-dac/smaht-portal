@@ -917,6 +917,7 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 		&.has-access {
 			&:disabled {
 				background-color: #0E74D2;
+				border-color: #0E74D2;
 			}
 		}
 	}
