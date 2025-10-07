@@ -864,6 +864,7 @@ const BrowseDonorSearchTable = (props) => {
     );
 };
 
+// Banner Component to allow redirect to ProtectedDonor view after login
 const RedirectBanner = ({ href }) => {
     return href ? (
         <div className="callout data-available">
