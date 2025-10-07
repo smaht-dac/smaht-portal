@@ -1483,6 +1483,11 @@ File and Donor Overview Styles
 								border-color: #B6C1D1;
 							}
 						}
+						&.has-access {
+							&:disabled {
+								background-color: #0E74D2;
+							}
+						}
 					}
 				}
 

@@ -282,6 +282,7 @@ export const BrowseFileSearchTable = (props) => {
         selectedItems,
         onSelectItem,
         onResetSelectedItems,
+        userDownloadAccess,
     } = props;
     const facets = transformedFacets(context, currentAction, schemas);
     const tableColumnClassName = 'results-column col';
@@ -303,11 +304,11 @@ export const BrowseFileSearchTable = (props) => {
             }>
             <div className="d-flex gap-2">
                 <DonorMetadataDownloadButton session={session} />
-                {session ? (
+                {userDownloadAccess?.['protected'] ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
-                        className="download-button btn btn-primary btn-sm me-05 align-items-center"
+                        className="download-button has-access btn btn-primary btn-sm me-05 align-items-center"
                         {...{ selectedItems, session }}
                         analyticsAddItemsToCart>
                         <i className="icon icon-download fas me-03" />

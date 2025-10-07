@@ -75,7 +75,7 @@ export const SelectAllAboveTableComponent = (props) => {
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
-                        className="download-button btn btn-primary btn-sm me-05 align-items-center"
+                        className="download-button has-access btn btn-primary btn-sm me-05 align-items-center"
                         {...{ selectedItems, session }}
                         analyticsAddItemsToCart>
                         <i className="icon icon-download fas me-03" />
