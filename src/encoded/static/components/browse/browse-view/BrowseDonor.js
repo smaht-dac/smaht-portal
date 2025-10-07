@@ -870,7 +870,7 @@ const RedirectBanner = ({ href }) => {
             <span className="callout-text">
                 <i className="icon icon-users fas"></i> Thank you for logging
                 in! Please{' '}
-                <a href={href?.replace('?type=Donor', '?type=ProtectedDonor')}>
+                <a href={href?.replace('type=Donor', 'type=ProtectedDonor')}>
                     click here
                 </a>{' '}
                 to load complete donor data.
