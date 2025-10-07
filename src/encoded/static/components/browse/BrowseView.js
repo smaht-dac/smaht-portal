@@ -210,11 +210,18 @@ export class BrowseViewBody extends React.PureComponent {
  */
 export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
     const [downloadLink, setDownloadLink] = useState(null);
+    const userDownloadAccess = useUserDownloadAccess(session);
+
+    // Get the highest access level the user has
+    const highestUserAccess = userDownloadAccess?.['protected-early']
+        ? 'protected-early'
+        : userDownloadAccess?.['protected']
+        ? 'protected'
+        : 'open';
 
     useEffect(() => {
         if (session) {
-            const searchURL =
-                '/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.released_date';
+            const searchURL = `/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.released_date&status=${highestUserAccess}`;
 
             ajax.load(
                 searchURL,
@@ -238,7 +245,7 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
         } else {
             setDownloadLink(null);
         }
-    }, [session]);
+    }, [session, highestUserAccess]);
 
     return downloadLink ? (
         <a
