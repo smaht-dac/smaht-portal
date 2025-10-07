@@ -90,6 +90,32 @@ export const DataCard = ({ header = '', data = [] }) => {
     );
 };
 
+// Function to assign the correct text based on status
+export const statusBadgeMap = {
+    open: {
+        statusTitle: 'Open',
+    },
+    'open-early': {
+        statusTitle: 'Open',
+        badge: 'PRE-RELEASE',
+    },
+    'open-network': {
+        statusTitle: 'Open',
+        badge: 'NETWORK ONLY',
+    },
+    protected: {
+        statusTitle: 'Protected',
+    },
+    'protected-early': {
+        statusTitle: 'Protected',
+        badge: 'PRE-RELEASE',
+    },
+    'protected-network': {
+        statusTitle: 'Protected',
+        badge: 'NETWORK ONLY',
+    },
+};
+
 /**
  * Below are arrays of file property objects with `title` and `getProp`, a
  * function for extracting the property's value (if available) from `context`.
@@ -98,15 +124,23 @@ export const DataCard = ({ header = '', data = [] }) => {
 const default_file_properties = [
     {
         title: 'Status',
-        getProp: (context = {}) => (
-            <>
-                <i
-                    className="status-indicator-dot me-07"
-                    data-status={context?.status}
-                />
-                {capitalizeSentence(context?.status)}
-            </>
-        ),
+        getProp: (context = {}) => {
+            const { statusTitle = capitalizeSentence(context?.status), badge } =
+                statusBadgeMap[context?.status] || {};
+
+            return (
+                <div className={`file-status ${context?.status}`}>
+                    <i
+                        className="status-indicator-dot me-07"
+                        data-status={context?.status}
+                    />
+                    {statusTitle}
+                    <span className={`ms-1 badge ${context?.status}`}>
+                        {badge}
+                    </span>
+                </div>
+            );
+        },
     },
     {
         title: 'Annotated Name',

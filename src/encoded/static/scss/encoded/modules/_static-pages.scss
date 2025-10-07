@@ -2676,6 +2676,17 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 							&:hover {
 								cursor: default;
 							}
+							&:active {
+								color: white;
+								background-color: #C0C7D2;
+								border-color: #B6C1D1;
+							}
+						}
+						
+						&.has-access {
+							&:disabled {
+								background-color: #0E74D2;
+							}
 						}
 					}
 				}

@@ -573,6 +573,18 @@ h3.submission-subtitle {
 		border: 1px solid #adb5bd;
 		background-color: #fff;
 	}
+
+	&[data-status="open"]:before,
+	&[data-status="open-early"]:before,
+	&[data-status="open-network"]:before {
+		background-color: #289902;
+	}
+
+	&[data-status="protected"]:before,
+	&[data-status="protected-early"]:before,
+	&[data-status="protected-network"]:before {
+		background-color: #6E53ED;
+	}
 }
 
 
@@ -1352,9 +1364,9 @@ body[data-pathname^="/users/"] {
 }
 
 
-/*********************
+/****************************
 File and Donor Overview Styles
-**********************/
+*****************************/
 
 .item-page-container.type-File, .item-page-container.type-ProtectedDonor, .item-page-container.type-Donor  {
 	font-family: 'Inter';
@@ -1464,6 +1476,16 @@ File and Donor Overview Styles
 
 							&:hover {
 								cursor: default;
+							}
+							&:active {
+								color: white;
+								background-color: #C0C7D2;
+								border-color: #B6C1D1;
+							}
+						}
+						&.has-access {
+							&:disabled {
+								background-color: #0E74D2;
 							}
 						}
 					}
@@ -2101,6 +2123,31 @@ File and Donor Overview Styles
 						}
 					}
 				}
+			}
+		}
+	}
+
+	.file-status {
+		display: flex;
+		align-items: center;
+		color: #212529;
+
+		.badge {
+			font-weight: 500;
+		}
+
+		&.open-early,
+		&.protected-early {
+			.badge {
+				background-color: #FFEDC7;
+				color: #A05208;
+			}
+		}
+		&.open-network,
+		&.protected-network {
+			.badge {
+				background-color: #E9E6FF;
+				color: #422E80;
 			}
 		}
 	}

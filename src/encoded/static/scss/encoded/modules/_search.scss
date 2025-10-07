@@ -907,6 +907,17 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 			&:hover {
 				cursor: default;
 			}
+			&:active {
+				color: white;
+				background-color: #C0C7D2;
+				border-color: #B6C1D1;
+			}
+		}
+
+		&.has-access {
+			&:disabled {
+				background-color: #0E74D2;
+			}
 		}
 	}
 
@@ -1126,6 +1137,11 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 		&:disabled {
 			&:hover {
 				cursor: default;
+			}
+			&:active {
+				color: #343741;
+				background-color: #DEE2E6;
+				border-color: #DEE2E6;
 			}
 		}
 	}
