@@ -105,16 +105,16 @@ const AnnouncementCard = ({
 // Warning to include in the data release item for September 2025
 const ReleaseItemWarning = () => {
     return (
-        <div className="announcement-container warning">
+        <div className="announcement-container cram-conversion">
             <div className="header">
                 <i className="icon fas icon-database"></i>
                 <span>CRAM CONVERSION</span>
             </div>
-            <span>
+            <div className="body">
                 As of September 15, 2025, all released BAMs have been converted
                 to CRAMs for optimal file storage at the DAC. The data release
                 tracker will start to announce new CRAMs as they are released.
-            </span>
+            </div>
         </div>
     );
 };

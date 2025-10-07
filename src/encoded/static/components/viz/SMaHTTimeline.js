@@ -306,7 +306,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
         <div className="container timeline-container">
             <div id="timeline" className={`tier-${currentTier}`}>
                 <span className="latest-release">
-                    <b>Latest Release: </b> October 11, 2025
+                    <b>Latest Official Release: </b> October 11, 2025
                     {/* {data.release_date ?? (
                         <>
                             {isLoading && (

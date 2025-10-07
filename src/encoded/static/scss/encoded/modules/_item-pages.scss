@@ -949,6 +949,29 @@ i.status-indicator-dot {
 			color: #BB3F3F;
 		}
 	}
+	&.data-available {
+		background-color: #E3FBFF;
+		border: 1px solid #96E8F7;
+		padding: 15px;
+		margin-bottom: 10px;
+
+		i {
+			color: #8ED3DF;
+			margin-right: 10px;
+			font-size: 1.125rem;
+		}
+
+		.callout-text { 
+			color: #0E4855;
+			font-size: 1rem;
+		}
+
+		a {
+			color: #0E4855;
+			font-weight: 600;
+			text-decoration: underline;
+		}
+	}
 }
 
 
@@ -1486,6 +1509,7 @@ File and Donor Overview Styles
 						&.has-access {
 							&:disabled {
 								background-color: #0E74D2;
+								border-color: #0E74D2;
 							}
 						}
 					}
