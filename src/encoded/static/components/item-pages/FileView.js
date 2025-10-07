@@ -15,6 +15,7 @@ import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/co
 import { OverlayTrigger } from 'react-bootstrap';
 import { renderProtectedAccessPopover } from './PublicDonorView';
 import { useUserDownloadAccess } from '../util/hooks';
+import { statusBadgeMap } from './components/file-overview/FileViewDataCards';
 
 import { BROWSE_LINKS } from '../browse/BrowseView';
 
@@ -172,6 +173,9 @@ const FileViewHeader = (props) => {
         );
     }
 
+    const { statusTitle = capitalizeSentence(status), badge = null } =
+        statusBadgeMap?.[status] || {};
+
     return (
         <div className="file-view-header">
             <div className="data-group data-row header">
@@ -249,12 +253,18 @@ const FileViewHeader = (props) => {
                 </div>
                 <div className="datum right-group">
                     <div className="status-group">
-                        <i
-                            className="status-indicator-dot"
-                            data-status={status}></i>
-                        <span className="status">
-                            {capitalizeSentence(status)}
-                        </span>
+                        <div className={`file-status ${status}`}>
+                            <i
+                                className="status-indicator-dot me-07"
+                                data-status={status}
+                            />
+                            {statusTitle ?? status}
+                            {badge && (
+                                <span className={`ms-1 badge ${status}`}>
+                                    {badge}
+                                </span>
+                            )}
+                        </div>
                     </div>
                     <span className="vertical-divider">|</span>
                     <ViewJSONAction href={context['@id']}>
