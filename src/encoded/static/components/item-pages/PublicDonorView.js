@@ -5,7 +5,6 @@ import _ from 'underscore';
 import { PublicDonorViewDataCards } from './components/donor-overview/PublicDonorViewDataCards';
 import DefaultItemView from './DefaultItemView';
 import { ShowHideInformationToggle } from './components/file-overview/ShowHideInformationToggle';
-import { DonorMetadataDownloadButton } from '../browse/BrowseView';
 import DataMatrix from '../viz/Matrix/DataMatrix';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import {
