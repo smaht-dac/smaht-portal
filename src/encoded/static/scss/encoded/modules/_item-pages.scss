@@ -954,11 +954,12 @@ i.status-indicator-dot {
 		border: 1px solid #96E8F7;
 		padding: 15px;
 		margin-bottom: 10px;
+		border-radius: 7px;
 
 		i {
 			color: #8ED3DF;
 			margin-right: 10px;
-			font-size: 1.125rem;
+			font-size: 1.5rem;
 		}
 
 		.callout-text { 
