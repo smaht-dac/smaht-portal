@@ -15,6 +15,7 @@ import {
     PopoverBody,
 } from 'react-bootstrap';
 import { BROWSE_STATUS_FILTERS } from '../browse/BrowseView';
+import { useUserDownloadAccess } from '../util/hooks';
 
 // Page containing the details of Items of type File
 export default class PublicDonorOverview extends DefaultItemView {
@@ -125,58 +126,93 @@ const PublicDonorDownloadButton = ({ session }) => {
     );
 };
 
+// Banner component to redirect user to ProtectedDonor page if they have access
+const ProtectedDonorRedirectBanner = ({ href }) => {
+    return href ? (
+        <div className="callout data-available">
+            <span className="callout-text">
+                <i className="icon icon-users fas"></i> Thank you for logging
+                in! Please <a href={href}>click here</a> to load protected donor
+                data.
+            </span>
+        </div>
+    ) : null;
+};
+
 // Header component containing high-level information for the file item
 const PublicDonorViewHeader = (props) => {
     const { context = {}, session, title = null } = props;
     const { notes_to_tsv } = context;
+    const [showRedirectBanner, setShowRedirectBanner] = useState(false);
+    const userDownloadAccess = useUserDownloadAccess(session);
+
+    useEffect(() => {
+        if (
+            context?.protected_donor?.['@id'] &&
+            session &&
+            userDownloadAccess?.['protected']
+        ) {
+            setShowRedirectBanner(true);
+        }
+    }, [session, userDownloadAccess, context]);
 
     return (
-        <div className="view-header">
-            <div className="d-flex flex-row align-items-center">
-                <div className="d-none d-md-flex">
-                    <img src="/static/img/misc-icons/donor_profile.svg" />
-                </div>
-                <div className="d-flex flex-column flex-grow-1 ms-md-2">
-                    <div className="data-group data-row header">
-                        {title}
-                        <PublicDonorDownloadButton session={session} />
+        <>
+            {showRedirectBanner && (
+                <ProtectedDonorRedirectBanner
+                    href={context?.protected_donor?.['@id']}
+                />
+            )}
+            <div className="view-header">
+                <div className="d-flex flex-row align-items-center">
+                    <div className="d-none d-md-flex">
+                        <img src="/static/img/misc-icons/donor_profile.svg" />
                     </div>
-                    <div className="callout d-inline px-3 py-2 mt-1">
-                        <i className="icon icon-file-shield fas"></i>{' '}
-                        <span>
-                            <b>Donor Privacy:</b> Only select info from the
-                            donor manifest will be shown on the data portal,
-                            download the manifest for complete donor metadata
-                        </span>
+                    <div className="d-flex flex-column flex-grow-1 ms-md-2">
+                        <div className="data-group data-row header">
+                            {title}
+                            <PublicDonorDownloadButton session={session} />
+                        </div>
+                        <div className="callout d-inline px-3 py-2 mt-1">
+                            <i className="icon icon-file-shield fas"></i>{' '}
+                            <span>
+                                <b>Donor Privacy:</b> Only select info from the
+                                donor manifest will be shown on the data portal,
+                                download the manifest for complete donor
+                                metadata
+                            </span>
+                        </div>
                     </div>
                 </div>
+                {notes_to_tsv && notes_to_tsv.length > 0 ? (
+                    <div className="data-group data-row">
+                        <div className="datum description">
+                            <span className="datum-title">Notes </span>
+                            <span className="vertical-divider">|</span>
+                            <ShowHideInformationToggle
+                                id="show-hide-tsv-notes"
+                                useToggle={notes_to_tsv.length > 1}>
+                                <ul className="list-unstyled">
+                                    {notes_to_tsv.map((note, i) => (
+                                        <li
+                                            key={note}
+                                            className={
+                                                'datum-value-notes-to-tsv text-gray ' +
+                                                (i > 0 ? 'mt-1' : '')
+                                            }>
+                                            {note
+                                                .substring(0, 1)
+                                                .toUpperCase() +
+                                                note.substring(1)}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </ShowHideInformationToggle>
+                        </div>
+                    </div>
+                ) : null}
             </div>
-            {notes_to_tsv && notes_to_tsv.length > 0 ? (
-                <div className="data-group data-row">
-                    <div className="datum description">
-                        <span className="datum-title">Notes </span>
-                        <span className="vertical-divider">|</span>
-                        <ShowHideInformationToggle
-                            id="show-hide-tsv-notes"
-                            useToggle={notes_to_tsv.length > 1}>
-                            <ul className="list-unstyled">
-                                {notes_to_tsv.map((note, i) => (
-                                    <li
-                                        key={note}
-                                        className={
-                                            'datum-value-notes-to-tsv text-gray ' +
-                                            (i > 0 ? 'mt-1' : '')
-                                        }>
-                                        {note.substring(0, 1).toUpperCase() +
-                                            note.substring(1)}
-                                    </li>
-                                ))}
-                            </ul>
-                        </ShowHideInformationToggle>
-                    </div>
-                </div>
-            ) : null}
-        </div>
+        </>
     );
 };
 
