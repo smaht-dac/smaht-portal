@@ -90,7 +90,9 @@ const BrowseFileBody = (props) => {
                     />
                 </div>
                 <div className="col ps-0">
-                    <div id="facet-charts-container" className="container ps-0 ps-xl-4">
+                    <div
+                        id="facet-charts-container"
+                        className="container ps-0 ps-xl-4">
                         <FacetCharts
                             {..._.pick(
                                 props,
@@ -305,7 +307,7 @@ export const BrowseFileSearchTable = (props) => {
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
-                        className="btn btn-primary btn-sm me-05 align-items-center"
+                        className="download-button btn btn-primary btn-sm me-05 align-items-center"
                         {...{ selectedItems, session }}
                         analyticsAddItemsToCart>
                         <i className="icon icon-download fas me-03" />
@@ -317,7 +319,7 @@ export const BrowseFileSearchTable = (props) => {
                         placement="top"
                         overlay={renderProtectedAccessPopover()}>
                         <button
-                            className="btn btn-primary btn-sm me-05 align-items-center download-button"
+                            className="download-button btn btn-primary btn-sm me-05 align-items-center"
                             disabled={true}>
                             <i className="icon icon-download fas me-03" />
                             Download {selectedItems.size} Selected Files

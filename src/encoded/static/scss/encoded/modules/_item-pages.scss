@@ -583,7 +583,7 @@ h3.submission-subtitle {
 	&[data-status="protected"]:before,
 	&[data-status="protected-early"]:before,
 	&[data-status="protected-network"]:before {
-		background-color: #422E80;
+		background-color: #6E53ED;
 	}
 }
 
@@ -1476,6 +1476,11 @@ File and Donor Overview Styles
 
 							&:hover {
 								cursor: default;
+							}
+							&:active {
+								color: white;
+								background-color: #C0C7D2;
+								border-color: #B6C1D1;
 							}
 						}
 					}
