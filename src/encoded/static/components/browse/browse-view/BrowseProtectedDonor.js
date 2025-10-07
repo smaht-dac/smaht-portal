@@ -892,7 +892,6 @@ const BrowseProtectedDonorSearchTable = (props) => {
             renderDetailPane={customRenderDetailPane}
             useCustomSelectionController
             hideStickyFooter
-            currentAction={'multiselect'}
             termTransformFxn={Schemas.Term.toName}
             separateSingleTermFacets={false}
             rowHeight={31}

@@ -348,7 +348,6 @@ export const BrowseFileSearchTable = (props) => {
             hideStickyFooter
             isFullscreen={false}
             toggleFullScreen={() => {}}
-            currentAction={'multiselect'}
             renderDetailPane={null}
             termTransformFxn={Schemas.Term.toName}
             separateSingleTermFacets={false}

@@ -35,7 +35,7 @@ export const TableControllerWithSelections = (props) => {
     return (
         <SelectedItemsController
             {...{ context, href }}
-            currentAction={'multiselect'}>
+        >
             {renderChildren()}
         </SelectedItemsController>
     );
@@ -62,7 +62,7 @@ export const BrowseViewControllerWithSelections = (props) => {
     return (
         <SelectedItemsController
             {...{ context, href }}
-            currentAction={'multiselect'}>
+        >
             {renderChildren()}
         </SelectedItemsController>
     );
