@@ -1257,10 +1257,10 @@ body[data-path="/"]>#application>#layout {
 						&.cram-conversion {
 							color: #485983;
 							font-size: 12px;
-							margin: 5px;
+							margin: 0px;
 							border-radius: 8px;
 							padding: 10px;
-							border-color: #D5DFF2;
+							border-color: transparent;
 
 							.header {
 								font-weight: 600;
@@ -1407,7 +1407,7 @@ body[data-path="/"]>#application>#layout {
 						}
 
 						&.data-release-tracker {
-							flex: 2;
+							flex: none;
 						}
 
 						&.about-consortium {
