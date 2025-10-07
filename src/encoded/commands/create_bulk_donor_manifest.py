@@ -46,7 +46,7 @@ Optional Arguments
         Mutually exclusive with --restricted.
 
     --restricted, -r
-        Generate a manifest containing **Donors with the status 'restricted'**
+        Generate a manifest containing **Donors with the status 'open-early'**
         Mutually exclusive with --public.
         WARNING: This option has no effect when --search or --donors are
         provided, since those explicitly control which donors are included.
@@ -102,9 +102,9 @@ from dcicutils import ff_utils
 
 log = structlog.getLogger(__name__)
 
-DEFAULT_STATUS = "open-early"
+DEFAULT_STATUS = "protected"
 PUBLIC_STATUS = "open"
-RESTRICTED_STATUS = ""
+RESTRICTED_STATUS = "protected-early"
 DEFAULT_SEARCH_STEM = "search/?study=Benchmarking&study=Production"
 PUBLIC_ITEM_TYPES = ["Donor"]  # Top level item must be first - i.e. Donor
 PROTECTED_ITEM_TYPES = [  # Top level item must be first - i.e. ProtectedDonor
