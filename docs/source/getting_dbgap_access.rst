@@ -1,0 +1,1 @@
+We are currently working to register SMaHT Data in dbGAP. Instructions on how to get protected data permission from dbGAP are coming soon.

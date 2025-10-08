@@ -655,5 +655,24 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "identifier": "getting_dbgap_access",
+        "title": "Getting dbGAP Access - Coming Soon",
+        "file": "/docs/source/getting_dbgap_access.rst",
+        "status": "open",
+        "options": {
+            "filetype": "rst",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "f8b1b363-5530-4109-83c2-7b94acbc0e18",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]
