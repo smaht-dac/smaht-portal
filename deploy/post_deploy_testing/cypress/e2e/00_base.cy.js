@@ -10,24 +10,16 @@ describe('Basic functionality: page loads and can authenticate.', function () {
     });
 
     it('Can users having different roles login and out in order', function () {
-        // SMAHT (dbgap) user
-        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP).then(() => {
-            cy.logoutSMaHT().then(() => {
-                // SMAHT (non-dbgap) user
-                cy.loginSMaHT(ROLE_TYPES.SMAHT_NON_DBGAP).then(() => {
-                    cy.logoutSMaHT().then(() => {
-                        // Public (dbgap) user
-                        cy.loginSMaHT(ROLE_TYPES.PUBLIC_DBGAP).then(() => {
-                            cy.logoutSMaHT().then(() => {
-                                // Public (non-dbgap) user
-                                cy.loginSMaHT(ROLE_TYPES.PUBLIC_NON_DBGAP).then(() => {
-                                    cy.logoutSMaHT();
-                                });
-                            });
-                        });
-                    });
-                });
-            });
+        const rolesInOrder = [
+            ROLE_TYPES.SMAHT_DBGAP,
+            ROLE_TYPES.SMAHT_NON_DBGAP,
+            ROLE_TYPES.PUBLIC_DBGAP,
+            ROLE_TYPES.PUBLIC_NON_DBGAP,
+        ];
+        cy.wrap(rolesInOrder).each((role) => {
+            cy.loginSMaHT(role);
+            cy.logoutSMaHT();
         });
+
     });
 });
