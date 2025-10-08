@@ -160,7 +160,12 @@ Cypress.Commands.add('signJWT', (auth0secret, email, sub) => {
  * This emulates login.js. Perhaps we should adjust login.js somewhat to match this better re: navigate.then(...) .
  */
 Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: false }) {
-    function performLogin(token) {
+    Cypress.log({
+        name: 'Login SMaHT',
+        message: 'Attempting to login as role ' + role
+    });
+
+    function performLogin(token, userDisplayName = '') {
         return cy
             .window()
             .then((w) => {
@@ -200,6 +205,7 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
                     })
                     .end();
             })
+            .validateUser(userDisplayName)
             .end();
     }
 
@@ -240,7 +246,7 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
                 name: 'Login SMaHT',
                 message: 'Generated own JWT with length ' + token.length,
             });
-            return performLogin(token).validateUser(shortname);
+            return performLogin(token, shortname);
         });
     });
 });
@@ -249,12 +255,16 @@ Cypress.Commands.add('validateUser', function (userDisplayName = '') {
     return cy.get(navUserAcctDropdownBtnSelector)
         .should('not.contain.text', 'Login / Register')
         .then((accountListItem) => {
+            Cypress.log({
+                name: 'Validate User',
+                message: 'Validating user is ' + userDisplayName,
+            });
             expect(accountListItem.text()).to.contain(userDisplayName);
         }).end();
 });
 
 Cypress.Commands.add('logoutSMaHT', function (options = { useEnvToken: true }) {
-    cy.get(navUserAcctDropdownBtnSelector)
+    return cy.get(navUserAcctDropdownBtnSelector)
         .scrollIntoView()
         .click()
         .end()
