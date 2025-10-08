@@ -3322,10 +3322,11 @@ FAQ page styles
 			padding: 10px 15px;
 			max-width: 150px;
 			text-wrap: wrap;
-			text-align: left;
+			text-align: center;
 			font-weight: 400;
 			background-color: #f1f9ff;
 			border-right: 1px solid #DBDBDB;
+			line-height: 1.25rem;
 		}
 	}
 
@@ -3334,6 +3335,7 @@ FAQ page styles
 
 		td {
 			border-right: 1px solid #DBDBDB;
+			line-height: 1.25rem;
 		}
 	}
 
@@ -3341,7 +3343,6 @@ FAQ page styles
 		width: 200px;
 		text-align: left;
 		padding: 15px 10px;
-		line-height: 1.25rem;
 	}
 
 	.open {

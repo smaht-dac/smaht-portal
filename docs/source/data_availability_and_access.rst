@@ -20,7 +20,8 @@ All data/metadata files generated from the SMaHT Network are available for downl
 
 .. raw:: html
 
-    <hr />
+    <br />
+    <br />
     <div class="table-responsive">
         <table class="data-availability-table table-sm">
             <thead>
@@ -36,7 +37,7 @@ All data/metadata files generated from the SMaHT Network are available for downl
             </thead>
             <tbody>
                 <tr>
-                    <td class="row-label"><b>Sequence Data</b> &lpar;FASTQ, BAM/CRAM&rpar;</td>
+                    <td class="row-label"><b>Sequence Data</b><br/> &lpar;FASTQ, BAM/CRAM&rpar;</td>
                     <td class="open">open</td>
                     <td class="open">open</td>
                     <td class="protected">protected</td>
@@ -45,7 +46,7 @@ All data/metadata files generated from the SMaHT Network are available for downl
                     <td class="protected">protected</td>
                 </tr>
                 <tr>
-                    <td class="row-label"><b>Germline Variants</b></td>
+                    <td class="row-label"><b>Germline Variants</b><br/></td>
                     <td class="open">open</td>
                     <td class="open">open</td>
                     <td class="protected">protected</td>
@@ -54,7 +55,7 @@ All data/metadata files generated from the SMaHT Network are available for downl
                     <td class="protected">protected</td>
                 </tr>
                 <tr>
-                    <td class="row-label"><b>Somatic Variants</b>&lpar;all variant types, from individual donor or aggregated samples&rpar;</td>
+                    <td class="row-label"><b>Somatic Variants</b><br/>&lpar;all variant types, from individual donor or aggregated samples&rpar;</td>
                     <td class="open">open</td>
                     <td class="open">open</td>
                     <td class="protected">protected</td>
@@ -63,7 +64,7 @@ All data/metadata files generated from the SMaHT Network are available for downl
                     <td class="open">open</td>
                 </tr>
                 <tr>
-                    <td class="row-label"><b>Gene Expression Profile</b></td>
+                    <td class="row-label"><b>Gene Expression Profile</b><br/></td>
                     <td class="open">open</td>
                     <td class="open">open</td>
                     <td class="protected">protected</td>
@@ -72,7 +73,7 @@ All data/metadata files generated from the SMaHT Network are available for downl
                     <td class="open">open</td>
                 </tr>
                 <tr>
-                    <td class="row-label"><b>Epigenetic Profile</b></td>
+                    <td class="row-label"><b>Epigenetic Profile</b><br/></td>
                     <td class="open">open</td>
                     <td class="open">open</td>
                     <td class="protected">protected</td>
@@ -81,7 +82,7 @@ All data/metadata files generated from the SMaHT Network are available for downl
                     <td class="open">open</td>
                 </tr>
                 <tr>
-                    <td class="row-label"><b>Limited Donor Metadata</b> &lpar;i.e., age, sex, hardy scale&rpar;</td>
+                    <td class="row-label"><b>Limited Donor Metadata</b><br/> &lpar;i.e., age, sex, hardy scale&rpar;</td>
                     <td class="open">open</td>
                     <td class="open">open</td>
                     <td class="open">open</td>
@@ -90,7 +91,7 @@ All data/metadata files generated from the SMaHT Network are available for downl
                     <td class="open">open</td>
                 </tr>
                 <tr>
-                    <td class="row-label"><b>Full Donor Metadata</b> &lpar;e.g., smoking status, environmental exposure, prior clinical history&rpar;</td>
+                    <td class="row-label"><b>Full Donor Metadata</b><br/> &lpar;e.g., smoking status, environmental exposure, prior clinical history&rpar;</td>
                     <td class="protected">protected</td>
                     <td class="protected">protected</td>
                     <td class="protected">protected</td>
@@ -99,7 +100,7 @@ All data/metadata files generated from the SMaHT Network are available for downl
                     <td class="protected">protected</td>
                 </tr>
                 <tr>
-                    <td class="row-label"><b>Reference Files</b> &lpar;e.g., Human genome reference, gene models, genome stratification into easy/difficult/extreme-to-map regions&rpar;</td>
+                    <td class="row-label"><b>Reference Files</b><br/> &lpar;e.g., Human genome reference, gene models, genome stratification into easy/difficult/extreme-to-map regions&rpar;</td>
                     <td class="open">open</td>
                     <td class="open">open</td>
                     <td class="open">open</td>
@@ -108,7 +109,7 @@ All data/metadata files generated from the SMaHT Network are available for downl
                     <td class="open">open</td>
                 </tr>
                 <tr>
-                    <td class="row-label"><b>Histology</b> &lpar;Amperio SVS images, histology and pathology data&rpar;</td>
+                    <td class="row-label"><b>Histology</b><br/> &lpar;Amperio SVS images, histology and pathology data&rpar;</td>
                     <td class="not-applicable">N/A</td>
                     <td class="not-applicable">N/A</td>
                     <td class="not-applicable">N/A</td>
