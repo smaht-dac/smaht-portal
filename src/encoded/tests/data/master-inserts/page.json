@@ -242,7 +242,7 @@
             "550230b3-34fe-42cf-8fb8-72fad10b9861"
         ],
         "table-of-contents": {
-            "enabled": true,
+            "enabled": false,
             "header-depth": 4
         },
         "status": "open",
