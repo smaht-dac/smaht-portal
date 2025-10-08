@@ -636,5 +636,24 @@
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]
+    },
+    {
+        "identifier": "data_availability_and_access",
+        "title": "SMaHT Data Availability and Access",
+        "file": "/docs/source/data_availability_and_access.rst",
+        "status": "open",
+        "options": {
+            "filetype": "rst",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "550230b3-34fe-42cf-8fb8-72fad10b9861",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
     }
 ]

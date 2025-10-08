@@ -3311,3 +3311,49 @@ FAQ page styles
 		}
 	}
 }
+
+// Data Availability and Access page
+.data-availability-table {
+	width: max-content;
+	border: 1px solid #DBDBDB;
+
+	thead {
+		th {
+			padding: 10px 15px;
+			max-width: 150px;
+			text-wrap: wrap;
+			text-align: left;
+			font-weight: 400;
+			background-color: #f1f9ff;
+			border-right: 1px solid #DBDBDB;
+		}
+	}
+
+	tr {
+		border-bottom: 1px solid #DBDBDB;
+
+		td {
+			border-right: 1px solid #DBDBDB;
+		}
+	}
+
+	.row-label {
+		width: 200px;
+		text-align: left;
+		padding: 15px 10px;
+		line-height: 1.25rem;
+	}
+
+	.open {
+		background-color: #DBFFEE;
+		color: #028105;
+	}
+	.protected {
+		background-color: #F3F1FF;
+		color: #745BEE;
+	}
+	.not-applicable {
+		background-color: #F6F8FA;
+		color: #5A5B5B;
+	}
+}

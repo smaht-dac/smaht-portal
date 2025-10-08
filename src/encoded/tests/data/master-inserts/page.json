@@ -161,7 +161,8 @@
             "508b5585-2329-4878-913b-4b70eeea6cb6",
             "9ff656c8-5a17-4531-9198-368d59e0008f",
             "9132c670-83ef-4e35-b4df-ec4a8f9b8692",
-            "d5fcb57f-f405-4991-87f3-549f9cafcc95"
+            "d5fcb57f-f405-4991-87f3-549f9cafcc95",
+            "6c1d10cd-0627-40f5-897c-c96c89023b29"
         ],
         "table-of-contents": {
             "enabled": true,
@@ -220,6 +221,25 @@
         "title": "Interpreting Manifest Files",
         "content": [
             "f525c58f-e6b8-499f-98df-6c24c1af9f26"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "status": "open",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/access/data-availability-and-access",
+        "uuid": "6c1d10cd-0627-40f5-897c-c96c89023b29",
+        "title": "Data Availability and Access",
+        "content": [
+            "550230b3-34fe-42cf-8fb8-72fad10b9861"
         ],
         "table-of-contents": {
             "enabled": true,
