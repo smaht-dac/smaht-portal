@@ -392,7 +392,7 @@
     {
         "identifier": "docs/additional-resources/donor-manifest-dictionary",
         "uuid": "5e64b78a-58c1-48c3-b031-e8837a19b4a4",
-        "status": "released",
+        "status": "open-network",
         "content": [
             "abb80b35-61ac-4433-b6e3-55be1ba15e18"
         ],
@@ -417,7 +417,7 @@
         "table-of-contents": {
             "enabled": false
         },
-        "status": "released",
+        "status": "open-network",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -428,7 +428,7 @@
     {
         "identifier": "docs/submission/submission-data-dictionary",
         "uuid": "eb2b9abf-1838-4cf4-81f7-5b8b39c30edb",
-        "status": "released",
+        "status": "open-network",
         "content": [
             "4aeffcf9-f3bb-40e8-a4de-ac7d1bf4fac4"
         ],
@@ -902,7 +902,7 @@
     {
         "identifier": "data/analysis",
         "title": "Benchmarking Analysis",
-        "status": "released",
+        "status": "open",
         "children": [
             "b4b2da6b-d5be-4cd3-81da-691ecc1f9308"
         ],
@@ -923,7 +923,7 @@
     {
         "identifier": "data/analysis/colo829-snv-indel-detection",
         "title": "COLO829 SNV/Indel Detection Challenge",
-        "status": "released",
+        "status": "open",
         "content": [
             "6843c6e7-7b47-457d-96c3-387af3c07207"
         ],
@@ -944,7 +944,7 @@
     {
         "identifier": "resources",
         "title": "Resources",
-        "status": "released",
+        "status": "open",
         "children": [
             "5e7962d0-a218-45ba-8a76-729ef683695b"
         ],
@@ -959,7 +959,7 @@
     {
         "identifier": "resources/genome-related",
         "title": "Genome Related",
-        "status": "released",
+        "status": "open",
         "children": [
             "192a220e-64c8-4ec3-93d9-4e4218f0a7fe"
         ],
@@ -974,7 +974,7 @@
     {
         "identifier": "resources/genome-related/genome-reference-and-related-data",
         "title": "Genome Reference and Related Data",
-        "status": "released",
+        "status": "open",
         "content": [
             "edf6c0f5-e051-4c4e-8e22-99dfde0b8501"
         ],
@@ -1046,7 +1046,7 @@
     {
         "identifier": "qc-metrics",
         "uuid": "9069da47-819f-4f49-bd94-2a4cabb0e727",
-        "status": "released",
+        "status": "protected-network",
         "content": [
             "27d09f44-44ca-466e-ade6-6d5a5a81c99c"
         ],
