@@ -75,8 +75,6 @@ export const useUserDownloadAccess = (session = false) => {
                 },
                 'GET',
                 (err) => {
-                    if (isCancelled) return;
-
                     if (err?.notification !== 'No results found') {
                         console.error(
                             'ERROR determining user access statuses:',
