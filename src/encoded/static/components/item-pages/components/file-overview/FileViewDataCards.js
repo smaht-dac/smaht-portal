@@ -123,7 +123,7 @@ export const statusBadgeMap = {
  */
 const default_file_properties = [
     {
-        title: 'Status',
+        title: 'Access',
         getProp: (context = {}) => {
             const { statusTitle = capitalizeSentence(context?.status), badge } =
                 statusBadgeMap[context?.status] || {};
@@ -147,7 +147,6 @@ const default_file_properties = [
         getProp: (context = {}) =>
             context?.annotated_filename ?? context?.filename,
     },
-    { title: 'Access', getProp: (context = {}) => context?.access_status },
     { title: 'UUID', getProp: (context = {}) => context?.uuid },
     {
         title: 'Data Format',
