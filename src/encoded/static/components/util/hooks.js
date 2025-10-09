@@ -2,6 +2,24 @@
 import { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
+const defaultDownloadAccessObject = {
+    open: false,
+    'open-early': false,
+    'open-network': false,
+    protected: false,
+    'protected-early': false,
+    'protected-network': false,
+    released: false,
+    uploading: false,
+    uploaded: false,
+    retracted: false,
+    'upload failed': false,
+    'to be uploaded by workflow': false,
+    'in review': false,
+    obsolete: false,
+    archived: false,
+    deleted: false,
+};
 /**
  * Checks the session-properties endpoint to determine the statuses that a user
  * has access to. Ultimately used to determine whether to disable the download
@@ -11,30 +29,32 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
  * @param {*} session
  * @returns {Object} An object representing downloadable access statuses
  */
-export const useUserDownloadAccess = (session = false) => {
-    const [downloadAccessObject, setDownloadAccessObject] = useState({
-        open: session,
-        'open-early': false,
-        'open-network': false,
-        protected: false,
-        'protected-early': false,
-        'protected-network': false,
-        // Default to true in these situations. If it is visible, user can
-        // likely download. Otherwise let backend enforce download access.
-        released: true,
-        uploading: true,
-        uploaded: true,
-        retracted: true,
-        'upload failed': true,
-        'to be uploaded by workflow': true,
-        'in review': true,
-        obsolete: true,
-        archived: true,
-        deleted: true,
-    });
+export const useUserDownloadAccess = (session) => {
+    const [downloadAccessObject, setDownloadAccessObject] = useState(
+        defaultDownloadAccessObject
+    );
 
     useEffect(() => {
         if (session) {
+            const userDownloadAccessObj = { ...defaultDownloadAccessObject };
+
+            // If session exists, user has access to the following statuses
+            userDownloadAccessObj['open'] = true;
+
+            // Default to true when user is logged in. If it is visible, user
+            // can likely download. Otherwise let backend enforce download
+            // access.
+            userDownloadAccessObj['released'] = true;
+            userDownloadAccessObj['uploading'] = true;
+            userDownloadAccessObj['uploaded'] = true;
+            userDownloadAccessObj['retracted'] = true;
+            userDownloadAccessObj['upload failed'] = true;
+            userDownloadAccessObj['to be uploaded by workflow'] = true;
+            userDownloadAccessObj['in review'] = true;
+            userDownloadAccessObj['obsolete'] = true;
+            userDownloadAccessObj['archived'] = true;
+            userDownloadAccessObj['deleted'] = true;
+
             ajax.load(
                 '/session-properties',
                 (resp) => {
@@ -47,8 +67,6 @@ export const useUserDownloadAccess = (session = false) => {
 
                     // Get groups associated with user
                     const userGroups = resp?.details?.groups || [];
-
-                    const userDownloadAccessObj = { ...downloadAccessObject };
 
                     if (isMember) {
                         // User is a member of SMaHT
