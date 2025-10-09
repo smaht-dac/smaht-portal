@@ -260,7 +260,7 @@ const DonorCohortViewChart = ({
 	                    </div>
                       </div>` : ''}
                       <h6 class="field-title">
-                        <small class="pull-right sets-label">${rightTitle}</small>${leftTitle}
+                        <small class="pull-right sets-label">${rightTitle}</small><small>${leftTitle}</small>
                       </h6>
                       <h3 class="details-title">
                         <i class="term-color-indicator icon icon-circle fas" style="color: ${swatchColor || ''};"></i>

@@ -1293,7 +1293,7 @@ body[data-path="/statistics"] {
         }
 
         > .field-title {
-            padding: 7px 10px 1px;
+            padding: 7px 10px 5px;
             margin: 0;
             font-weight: 300;
             .descendent-prefix {
@@ -1306,7 +1306,7 @@ body[data-path="/statistics"] {
         > .details-title {
             padding: 0 10px 7px;
             border-bottom: 1px solid #ddd;
-            font-size: 1rem;
+            font-size: 0.95rem;
             margin: 0;
             font-weight: 300;
             .term-color-indicator {
