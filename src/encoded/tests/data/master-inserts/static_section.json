@@ -337,9 +337,26 @@
         ]
     },
     {
-        "identifier": "faq",
-        "uuid": "d78edbe6-9a42-4512-ac8d-b909bc287103",
-        "file": "/docs/public/faq.jsx",
+        "identifier": "submission_faq",
+        "uuid": "6bea6bcb-8e08-4b56-981a-63caa22a78f2",
+        "file": "/docs/public/submission_faq.jsx",
+        "section_type": "Page Section",
+        "status": "released",
+        "options": {
+            "filetype": "jsx",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "pipeline_faq",
+        "uuid": "6c096d6a-d9ff-43ec-b6f6-10ebf8e55c5d",
+        "file": "/docs/public/pipeline_faq.jsx",
         "section_type": "Page Section",
         "status": "released",
         "options": {

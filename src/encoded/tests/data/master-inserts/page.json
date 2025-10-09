@@ -139,6 +139,7 @@
         "children": [
             "39cbfcb1-ba80-4968-85e0-b668b4b04f9f",
             "6523af8e-34e5-40eb-9e09-710a41b824a4",
+            "f8513cd6-f7ae-43b6-9a7d-b6966ab505ca",
             "1ada4fca-af4b-4304-947d-59e2918ab728"
         ],
         "table-of-contents": {
@@ -274,6 +275,43 @@
         ]
     },
     {
+        "identifier": "docs/analysis",
+        "title": "Analysis",
+        "status": "open",
+        "children": [
+            "b3e754fd-be49-4998-bd05-040623617cdf"
+        ],
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "uuid": "f8513cd6-f7ae-43b6-9a7d-b6966ab505ca",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/analysis/pipeline_faq",
+        "uuid": "b3e754fd-be49-4998-bd05-040623617cdf",
+        "title": "Pipeline FAQ",
+        "content": [
+            "6c096d6a-d9ff-43ec-b6f6-10ebf8e55c5d"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "status": "open",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "docs/submission",
         "title": "Submission",
         "status": "open",
@@ -282,7 +320,7 @@
             "1a2da742-acc2-44e2-b5d9-249fe3e837e1",
             "2a3b8679-16a7-44be-8676-e4c290bef36e",
             "eb2b9abf-1838-4cf4-81f7-5b8b39c30edb",
-            "0861c711-4728-4e10-9ff1-74b8b3f93676"
+            "00e9634f-8b43-413d-bfe6-0f0eafce4e40"
         ],
         "table-of-contents": {
             "enabled": true,
@@ -448,11 +486,11 @@
         ]
     },
     {
-        "identifier": "docs/submission/faq",
-        "uuid": "0861c711-4728-4e10-9ff1-74b8b3f93676",
-        "title": "Frequently Asked Questions",
+        "identifier": "docs/submission/submission_faq",
+        "uuid": "00e9634f-8b43-413d-bfe6-0f0eafce4e40",
+        "title": "Submission FAQ",
         "content": [
-            "d78edbe6-9a42-4512-ac8d-b909bc287103"
+            "6bea6bcb-8e08-4b56-981a-63caa22a78f2"
         ],
         "table-of-contents": {
             "enabled": false
