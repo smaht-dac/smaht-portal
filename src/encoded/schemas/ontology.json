@@ -68,7 +68,7 @@
             "default": "1"
         },
         "status": {
-            "default": "released",
+            "default": "current",
             "enum": [
                 "released",
                 "current",
