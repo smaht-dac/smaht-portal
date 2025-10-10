@@ -5,13 +5,13 @@ How to Create a SMaHT Data Portal Account
 .. raw:: html
 
     <div class="account-creation-nav">
-        <a class="nav-link" target="" href="#for-smaht-network-members">
+        <a class="nav-link" target="" href="#for-non-smaht-network-members">
             <i class="icon icon-globe fas"> </i>
             <span class="nav-link-title">Non-SMaHT Network Members</span>
             <span class="nav-link-subtitle">Self-Registration</span>
 
         </a>
-        <a class="nav-link" target="" href="#for-non-smaht-network-members">
+        <a class="nav-link" target="" href="#for-smaht-network-members">
             <i class="icon icon-users fas"></i>
             <span class="nav-link-title">SMaHT Network Members</span>
             <span class="nav-link-subtitle">Membership Verification</span>
