@@ -729,7 +729,7 @@ const DonorCohortViewChart = ({
                     {title}
                     {popover && (
                         <OverlayTrigger
-                            trigger="click"
+                            // trigger="click"
                             flip
                             placement="auto"
                             rootClose
