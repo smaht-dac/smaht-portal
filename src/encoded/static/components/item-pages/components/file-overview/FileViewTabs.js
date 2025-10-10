@@ -101,38 +101,40 @@ const QCOverviewTab = ({ session, context }) => {
 
     // Check if quality metrics exist and are valid
     const fileHasQualityMetrics =
-        context?.quality_metrics &&
-        context?.quality_metrics?.length > 0 &&
-        !context?.quality_metrics[0]?.error;
+        context?.quality_metrics && context?.quality_metrics?.length > 0;
 
-    // If quality metrics exist, show QCOverviewTabContent
-    // If quality metrics do not exist, check if user has protected access
-    // If user does not have protected access, show protected data message
-    // If user has protected access, show no results message
-    const status = context?.status || 'open';
-    return fileHasQualityMetrics ? (
-        <QcOverviewTabContent session={session} context={context} />
-    ) : !userDownloadAccess['protected'] ? (
-        <div className="protected-data callout-card">
-            <i className="icon icon-user-lock fas"></i>
-            <h4>Protected Data</h4>
-            <span>
-                To view this data, you must have access
-                <br /> to SMaHT protected access data on dbGaP.
-            </span>
-        </div>
-    ) : (
-        <div className="no-results">
-            <div className="no-results-content">
-                <i className="icon icon-chart-area fas"></i>
-                <h3 className="header">QC Overview Coming Soon</h3>
-                <span className="subheader">
-                    Check back for updates on QC Overview development with
-                    future portal releases
+    // Check if user has permission to view quality metrics
+    const userHasPermission = !context?.quality_metrics?.[0]?.error;
+
+    // If quality metrics exist and user has access, show QCOverviewTabContent
+    // Otherwise, show appropriate message
+    if (fileHasQualityMetrics) {
+        return userHasPermission ? (
+            <QcOverviewTabContent session={session} context={context} />
+        ) : (
+            <div className="protected-data callout-card">
+                <i className="icon icon-user-lock fas"></i>
+                <h4>Protected Data</h4>
+                <span>
+                    To view this data, you must have access
+                    <br /> to SMaHT protected access data on dbGaP.
                 </span>
             </div>
-        </div>
-    );
+        );
+    } else {
+        return (
+            <div className="no-results">
+                <div className="no-results-content">
+                    <i className="icon icon-chart-area fas"></i>
+                    <h3 className="header">QC Overview Coming Soon</h3>
+                    <span className="subheader">
+                        Check back for updates on QC Overview development with
+                        future portal releases
+                    </span>
+                </div>
+            </div>
+        );
+    }
 };
 
 export const FileViewTabs = (props) => {
