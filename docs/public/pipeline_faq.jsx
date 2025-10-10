@@ -35,9 +35,12 @@
             <div className="response">
                 <span>CRAM files are generated from BAM using Samtools <i>view</i>.</span>
                 <br/>
+                <br/>
                 <span>Command:</span>
                 <br/>
-                <pre><code>{`samtools view -@ <threads> -hC -T <reference.fasta> -o <output.cram>  <input.bam></input.bam>`}</code></pre>
+                <div class="ps-2">
+                    <code>samtools view -@</code> {`<threads>`} <code>-hC -T</code> {`<reference.fasta>`} <code>-o</code> {`<output.cram>`} <code>-</code> {`<input.bam>`}
+                </div>
             </div>
         </details>
 
@@ -46,7 +49,9 @@
             <div className="response">
                 <span>CRAM files are generated using the standard reference genome agreed upon by the consortium.</span>
                 <br/>
-                <span>The specific version in use is GCA_000001405.15 no_alt_analysis_set, accessible for download here in the following file: GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz</span>
+                <br/>
+                <span>The specific version in use is GCA_000001405.15 no_alt_analysis_set, accessible for download <a tagret="_blank" href="https://www.google.com/url?q=https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/&sa=D&source=docs&ust=1760049508430248&usg=AOvVaw1Xxrhdbz21NdR1DnkE1wEH">here</a> in the following file: GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz</span>
+                <br/>
                 <br/>
                 <span>This version excludes ALT contigs and Human decoy sequences from hs38d1 (GCA_000786075.2), and includes the following sequences:</span>
                 <ul>
@@ -59,6 +64,7 @@
                 <br/>
                 <i>Note: The two PAR regions on chrY have been hard-masked with Ns, and the chromosome Y sequence is not identical to the GenBank sequence but shares the same coordinates. Similarly, duplicate copies of centromeric arrays and WGS on chromosomes 5, 14, 19, 21 & 22 have been hard-masked with Ns.</i>
                 <br/>
+                <br/>
                 <i>Note: The EBV sequence is not part of the genome assembly but is included in the analysis set for aligning reads often present in sequencing samples.</i>
             </div>
         </details>
@@ -68,9 +74,10 @@
             <div className="response">
                 <span>You can convert any CRAM file back to BAM using Samtools <i>view</i>.</span>
                 <br/>
+                <br/>
                 <span>Command:</span>
                 <br/>
-                <pre><code>{`samtools view -@ <threads> -hb -T <reference.fasta> <input.cram> > <output.bam></output.bam>`}</code></pre>
+                <div class="ps-2"><code>samtools view -@</code> {`<threads>`} <code>-hb -T</code> {`<reference.fasta>`} {`<input.cram>`} <code>{`>`}</code> {`<output.bam>`}</div>
                 <ul>
                     <li><i><code>view</code></i> decodes the CRAM file with the reference (-T) and produces BAM (-b) with header (-h).</li>
                 </ul>
@@ -80,11 +87,13 @@
         <details>
             <summary><span>How can I generate an unaligned BAM (uBAM) from a CRAM file?</span><i className="icon icon-chevron-down fas"></i></summary>      
             <div className="response">
-                <span>You can use Picard RevertSam. This command removes all alignment information, restores original qualities from the OQ tag if present, and sanitizes the file to enforce mate consistency (if paired-end data) while discarding non-primary alignments.</span>
+                <span>You can use Picard <i>RevertSam</i>. This command removes all alignment information, restores original qualities from the OQ tag if present, and sanitizes the file to enforce mate consistency (if paired-end data) while discarding non-primary alignments.</span>
+                <br/>
                 <br/>
                 <span>Command:</span>
                 <br/>
-                <pre><code>{`picard RevertSam \ \nI=<input.cram> \ \nO=<unmapped.bam> \ \nREFERENCE_SEQUENCE=<reference.fasta> \ \nREMOVE_ALIGNMENT_INFORMATION=true \ \nRESTORE_ORIGINAL_QUALITIES=true \ \nSANITIZE=true \ \nKEEP_FIRST_DUPLICATE=true`}</code></pre>
+                <div class="ps-2"><code>{`picard RevertSam \ \nI=`}</code>{`<input.cram>`} <code>{`\ \nO=`}</code>{`<unmapped.bam>`} <code>{`\ \nREFERENCE_SEQUENCE=`}</code>{`<reference.fasta>`} <code>{`\\nREMOVE_ALIGNMENT_INFORMATION=true \nRESTORE_ORIGINAL_QUALITIES=true \nSANITIZE=true \nKEEP_FIRST_DUPLICATE=true`}</code></div>
+                <br/>
                 <br/>
                 <span>Use the <code>-Xmx</code> argument to set Java heap space if needed (e.g., -Xmx32g allocates 32G).</span>
             </div>
