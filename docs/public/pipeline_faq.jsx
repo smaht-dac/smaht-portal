@@ -103,27 +103,37 @@
             <summary><span>How can I regenerate FASTQ files from a CRAM file?</span><i className="icon icon-chevron-down fas"></i></summary>
             <div className="response">
                 <b>Illumina paired-end</b>
-                <span>Use Samtools <code>view</code>, Samtools collate, and Samtools fastq in combination. Both mapped and unmapped reads are retained.</span>
+                <br/>
+                <span>Use Samtools <i>view</i>, Samtools <i>collate</i>, and Samtools <i>fastq</i> in combination. Both mapped and unmapped reads are retained.</span>
+                <br/>
                 <br/>
                 <span>Command:</span>
                 <br/>
-                <pre><code>{`samtools view -@ <threads> -hb -T <reference.fasta> <input.cram> | \ \nsamtools view -@ <threads> -hb -T <reference.fasta> <input.cram> | \ \nsamtools collate -@ <threads> -f -r 10000000 -u -O - | \ \nsamtools fastq \ \n-1 <prefix>.1.fastq.gz \ \n-2 <prefix>.2.fastq.gz \ \n-0 /dev/null -s /dev/null -n \ \n-O \ \n-@ <threads> -`}</code></pre>
+                <div class="ps-2"><code>samtools view -@</code> {`<threads>`} <code>-hb -T</code> {`<reference.fasta>`} {`<input.cram> `}<code> {`| `}\<br/>{`samtools collate -@`}</code> {`<threads>`} <code>{`-f -r 10000000 -u -O - | `}\<br/>{`samtools fastq`} \</code><br/>
+                    <div class="ps-4">
+                        <code>-1</code> {`<prefix>`}<code>{`.1.fastq.gz`} \<br/>{`-2 `}</code>{`<prefix>`}<code>{`.2.fastq.gz`} \ <br/>{`-0 /dev/null -s /dev/null -n`} \ <br/>-O \ <br/>-@</code> {`<threads>`} <code>-</code>
+                    </div>
+                </div>
                 <ul>
-                    <li><code>view</code> decodes the CRAM file with the reference (-T) and produces BAM (-b) with header (-h).</li>
-                    <li><code>collate</code> ensures read pairs are sorted correctly. Fast mode (-f) uses an in-memory buffer (-r) to speed up pairing (10M alignments ~12GB RAM).</li>
-                    <li><code>fastq</code> writes paired reads to {`<prefix>`}.1.fastq.gz and {`<prefix>`}.2.fastq.gz, one mate per file. -O uses OQ quality scores if available. Unpaired and singleton reads are discarded (-0 /dev/null -s /dev/null) (- this is actually not necessary for DAC generated data since we do not discard individual mates during alignment and we don't have singleton or unpaired reads in the CRAM file; added to the command for completion.)</li>
+                    <li><i><code>view</code></i> decodes the CRAM file with the reference (<code>-T</code>) and produces BAM (<code>-b</code>) with header (<code>-h</code>).</li>
+                    <li><i><code>collate</code></i> ensures read pairs are sorted correctly. Fast mode (<code>-f</code>) uses an in-memory buffer (<code>-r</code>) to speed up pairing (10M alignments ~12GB RAM).</li>
+                    <li><i><code>fastq</code></i> writes paired reads to {`<prefix>`}<code>.1.fastq.gz</code> and {`<prefix>`}<code>.2.fastq.gz</code>, one mate per file. <code>-O</code> uses OQ quality scores if available. Unpaired and singleton reads are discarded (<code>-0 /dev/null -s /dev/null</code>) - <i>this is actually not necessary for DAC generated data since we do not discard individual mates during alignment and we don't have singleton or unpaired reads in the CRAM file; added to the command for completion.</i></li>
                 </ul>
 
                 <br/>
                 <b>PacBio</b>
+                <br/>
                 <span>Use Samtools <code>view</code> and Samtools <code>fastq</code> in combination. Both mapped and unmapped reads are retained.</span>
+                <br/>
                 <br/>
                 <span>Command:</span>
                 <br/>
-                <pre><code>{`samtools view -@ <threads> -hb -T <reference.fasta> <input.cram> | \ \nsamtools fastq -n -@ <threads> - | \ \nbgzip -@ <threads> > <prefix>.fastq.gz`}</code></pre>
+                <div class="ps-2">
+                    <code>samtools view -@</code> {`<threads>`} <code>-hb -T</code> {`<reference.fasta>`} {`<input.cram>`}<code> | \<br/>samtools fastq -n -@ </code>{`<threads>`}<code> - | \</code><br/><code>bgzip -@ </code>{`<threads>`}<code> {`>`} </code>{`<prefix>`}<code>.fastq.gz</code>
+                </div>
                 <ul>
-                    <li><code>view</code> decodes the CRAM file with the reference (-T) and produces BAM (-b) with header (-h).</li>
-                    <li><code>fastq / bgzip</code> writes all reads to {`<prefix>`}.fastq.gz. -n preserves original read names.</li>
+                    <li><i><code>view</code></i> decodes the CRAM file with the reference (<code>-T</code>) and produces BAM (<code>-b</code>) with header (<code>-h</code>).</li>
+                    <li><i><code>fastq</code></i> / <i><code>bgzip</code></i> writes all reads to {`<prefix>`}<code>.fastq.gz</code>. <code>-n</code> preserves original read names.</li>
                 </ul>
                 <br/>
                 <i>Note: FASTQ cannot carry SAM auxiliary tags (e.g., MM/ML tags for methylation). If converted to FASTQ, these tags are lost unless re-annotated after re-alignment.</i>
@@ -131,34 +141,40 @@
                 <br/>
                 <br/>
                 <b>Re-alignment using pbmm2</b>
+                <br/>
                 <span>If re-aligning using pbmm2 (<a href="https://github.com/PacificBiosciences/pbmm2">https://github.com/PacificBiosciences/pbmm2</a>), you can simply generate the aligned BAM from the CRAM file and run pbmm2 directly. pbmm2 will ignore non-primary alignments and import all tags correctly.</span>
 
                 <br/>
                 <br/>
                 <b>ONT</b>
-                <span>Use Samtools <code>view</code> and Samtools <code>fastq</code> in combination. Both mapped and unmapped reads are retained.</span>
-
+                <br/>
+                <span>Use Samtools <i>view</i> and Samtools <i>fastq</i> in combination. Both mapped and unmapped reads are retained.</span>
+                <br/>
                 <br/>
                 <span>Command:</span>
                 <br/>
-                <pre><code>{`samtools view -@ <threads> -hb -T <reference.fasta> <input.cram> | \ \nsamtools fastq -n -@ <threads> - | \ \nbgzip -@ <threads> > <prefix>.fastq.gz`}</code></pre>
+                <div class="ps-2"><code>samtools view -@ </code>{`<threads>`}<code> -hb -T </code>{`<reference.fasta> <input.cram>`} <code>| \</code><br/> <code>samtools fastq -n -@ </code>{`<threads>`}<code> - | \</code><br/><code>bgzip -@ </code>{`<threads>`}<code> {`>`} </code>{`<prefix>`}<code>.fastq.gz</code></div>
                 <ul>
-                    <li><i><code>view</code></i> decodes the CRAM file with the reference (-T) and produces BAM (-b) with header (-h).</li>
-                    <li><i><code>fastq / bgzip</code></i> writes all reads to {`<prefix>`}<code>.fastq.gz. -n</code> preserves original read names.</li>
+                    <li><i><code>view</code></i> decodes the CRAM file with the reference (<code>-T</code>) and produces BAM (<code>-b</code>) with header (<code>-h</code>).</li>
+                    <li><i><code>fastq / bgzip</code></i> writes all reads to {`<prefix>`}<code>.fastq.gz</code>. <code>-n</code> preserves original read names.</li>
                 </ul>
 
+                <br/>
                 <i>Note: FASTQ cannot carry SAM auxiliary tags (e.g., MM/ML tags for methylation). If converted to FASTQ, these tags are lost unless re-annotated after re-alignment.</i>
 
+                <br/>
+                <br/>
                 <b>Re-alignment using minimap2</b>
+                <br/>
                 <span>If re-aligning using minimap2, FASTQ can be streamed directly into minimap2 while carrying over the desired tags.</span>
-
+                <br/>
                 <br/>
                 <span>Command:</span>
                 <br/>
-                <pre><code>{`samtools view -@ <threads> -hb -T <reference.fasta> <input.cram> | \ \nsamtools fastq -n -@ <threads> -T <tag1>,<tag2> - | \ \nminimap2 -y <...> > <aligned.bam>`}</code></pre>
+                <div class="ps-2"><code>samtools view -@</code> {`<threads>`} <code>-hb -T </code>{`<reference.fasta> <input.cram>`} <code>| \</code> <br/><code>samtools fastq -n -@ </code>{`<threads>`} <code>-T </code>{`<tag1>,<tag2>`} <code>- |</code> <br/><code>minimap2 -y</code> {`<...>`} <code>{`>`}</code> {`<aligned.bam>`}</div>
                 <ul>
-                    <li><i><code>view</code></i> decodes the CRAM file with the reference (-T) and produces BAM (-b) with header (-h).</li>
-                    <li><i><code>fastq</code></i> extracts all reads while preserving read names (-n) and appending the specified tags (-T). In minimap2, the -y option re-imports these annotated tags into the alignment.</li>
+                    <li><i><code>view</code></i> decodes the CRAM file with the reference (<code>-T</code>) and produces BAM (<code>-b</code>) with header (<code>-h</code>).</li>
+                    <li><i><code>fastq</code></i> extracts all reads while preserving read names (<code>-n</code>) and appending the specified tags (<code>-T</code>). In minimap2, the <code>-y</code> option re-imports these annotated tags into the alignment.</li>
                 </ul>
             </div>
         </details>
