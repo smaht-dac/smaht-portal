@@ -10,8 +10,8 @@ Metadata objects tagged under certain ``status`` values become viewable by users
 A description of important ``status`` values most
 relevant to users is below.
 
-* ``public`` status is used to denote data that is accessible to all SMaHT Data Portal users.
-* ``released`` status is used to denote data that is accessible only to registered SMaHT Consortia users.
+* ``open``, ``protected`` status is used to denote open data that is accessible to all SMaHT Data Portal users.
+* ``open-network``, ``protected-network`` status is used to denote data that is accessible only to SMaHT Consortium users.
 * ``obsolete`` status is used to denote previously ``released`` data that has been superseded by new data, also only viewable by registered SMaHT Consortia members.
 * ``restricted`` status is used to denote controlled access data whose metadata is viewable by consortia users but can only be downloaded by dbGaP approved users. The set of approved users is managed internally by DAC.
 
