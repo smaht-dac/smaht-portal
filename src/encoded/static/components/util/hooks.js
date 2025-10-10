@@ -101,6 +101,8 @@ export const useUserDownloadAccess = (session) => {
                     }
                 }
             );
+        } else {
+            setDownloadAccessObject(defaultDownloadAccessObject);
         }
     }, [session]);
 
