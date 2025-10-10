@@ -39,7 +39,7 @@
                 <span>Command:</span>
                 <br/>
                 <div class="ps-2">
-                    <code>samtools view -@</code> {`<threads>`} <code>-hC -T</code> {`<reference.fasta>`} <code>-o</code> {`<output.cram>`} <code>-</code> {`<input.bam>`}
+                    <code>samtools view -@</code> {`<threads>`} <code>-hC -T</code> {`<reference.fasta>`} <code>-o</code> {`<output.cram>`} {`<input.bam>`}
                 </div>
             </div>
         </details>
@@ -78,6 +78,7 @@
                 <span>Command:</span>
                 <br/>
                 <div class="ps-2"><code>samtools view -@</code> {`<threads>`} <code>-hb -T</code> {`<reference.fasta>`} {`<input.cram>`} <code>{`>`}</code> {`<output.bam>`}</div>
+                <br/>
                 <ul>
                     <li><i><code>view</code></i> decodes the CRAM file with the reference (-T) and produces BAM (-b) with header (-h).</li>
                 </ul>
@@ -92,7 +93,7 @@
                 <br/>
                 <span>Command:</span>
                 <br/>
-                <div class="ps-2"><code>{`picard RevertSam \ \nI=`}</code>{`<input.cram>`} <code>{`\ \nO=`}</code>{`<unmapped.bam>`} <code>{`\ \nREFERENCE_SEQUENCE=`}</code>{`<reference.fasta>`} <code>{`\\nREMOVE_ALIGNMENT_INFORMATION=true \nRESTORE_ORIGINAL_QUALITIES=true \nSANITIZE=true \nKEEP_FIRST_DUPLICATE=true`}</code></div>
+                <div class="ps-2"><code>picard RevertSam \ <br/></code><code>I=</code>{`<input.cram>`} <code>\ <br/>O=</code>{`<unmapped.bam>`} <br/><code>{`\ REFERENCE_SEQUENCE=`}</code>{`<reference.fasta>`} <code>\ <br/>REMOVE_ALIGNMENT_INFORMATION=true <br/>RESTORE_ORIGINAL_QUALITIES=true <br/>SANITIZE=true <br/>KEEP_FIRST_DUPLICATE=true</code></div>
                 <br/>
                 <br/>
                 <span>Use the <code>-Xmx</code> argument to set Java heap space if needed (e.g., -Xmx32g allocates 32G).</span>
@@ -114,6 +115,7 @@
                         <code>-1</code> {`<prefix>`}<code>{`.1.fastq.gz`} \<br/>{`-2 `}</code>{`<prefix>`}<code>{`.2.fastq.gz`} \ <br/>{`-0 /dev/null -s /dev/null -n`} \ <br/>-O \ <br/>-@</code> {`<threads>`} <code>-</code>
                     </div>
                 </div>
+                <br/>
                 <ul>
                     <li><i><code>view</code></i> decodes the CRAM file with the reference (<code>-T</code>) and produces BAM (<code>-b</code>) with header (<code>-h</code>).</li>
                     <li><i><code>collate</code></i> ensures read pairs are sorted correctly. Fast mode (<code>-f</code>) uses an in-memory buffer (<code>-r</code>) to speed up pairing (10M alignments ~12GB RAM).</li>
@@ -154,6 +156,7 @@
                 <span>Command:</span>
                 <br/>
                 <div class="ps-2"><code>samtools view -@ </code>{`<threads>`}<code> -hb -T </code>{`<reference.fasta> <input.cram>`} <code>| \</code><br/> <code>samtools fastq -n -@ </code>{`<threads>`}<code> - | \</code><br/><code>bgzip -@ </code>{`<threads>`}<code> {`>`} </code>{`<prefix>`}<code>.fastq.gz</code></div>
+                <br/>
                 <ul>
                     <li><i><code>view</code></i> decodes the CRAM file with the reference (<code>-T</code>) and produces BAM (<code>-b</code>) with header (<code>-h</code>).</li>
                     <li><i><code>fastq / bgzip</code></i> writes all reads to {`<prefix>`}<code>.fastq.gz</code>. <code>-n</code> preserves original read names.</li>
@@ -172,6 +175,7 @@
                 <span>Command:</span>
                 <br/>
                 <div class="ps-2"><code>samtools view -@</code> {`<threads>`} <code>-hb -T </code>{`<reference.fasta> <input.cram>`} <code>| \</code> <br/><code>samtools fastq -n -@ </code>{`<threads>`} <code>-T </code>{`<tag1>,<tag2>`} <code>- |</code> <br/><code>minimap2 -y</code> {`<...>`} <code>{`>`}</code> {`<aligned.bam>`}</div>
+                <br/>
                 <ul>
                     <li><i><code>view</code></i> decodes the CRAM file with the reference (<code>-T</code>) and produces BAM (<code>-b</code>) with header (<code>-h</code>).</li>
                     <li><i><code>fastq</code></i> extracts all reads while preserving read names (<code>-n</code>) and appending the specified tags (<code>-T</code>). In minimap2, the <code>-y</code> option re-imports these annotated tags into the alignment.</li>
