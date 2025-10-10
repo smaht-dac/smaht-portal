@@ -5,13 +5,13 @@ How to Create a SMaHT Data Portal Account
 .. raw:: html
 
     <div class="account-creation-nav">
-        <a class="nav-link" href="#for-smaht-network-members">
+        <a class="nav-link" target="_self" href="#for-smaht-network-members">
             <i class="icon icon-globe fas"> </i>
             <span class="nav-link-title">Non-SMaHT Network Members</span>
             <span class="nav-link-subtitle">Self-Registration</span>
 
         </a>
-        <a class="nav-link" href="#for-non-smaht-network-members">
+        <a class="nav-link" target="_self" href="#for-non-smaht-network-members">
             <i class="icon icon-users fas"></i>
             <span class="nav-link-title">SMaHT Network Members</span>
             <span class="nav-link-subtitle">Membership Verification</span>
@@ -87,35 +87,6 @@ Once your account request to DAC is processed (Step 2), you will be able to log 
 	
 
 If you are already logged into this account elsewhere on your computer, you may be able to simply select the account on the “Choose an account” pop-up. Otherwise, you will need to sign in with your institutional email and Google account password.
-
-
-
-
-FAQ and Troubleshooting
------------------------
-
-
-**I already have a Google account set up with my institutional email address used for other data portals (e.g. 4DN). Can I sign into the SMaHT Portal using that Google account?**
-
-Yes, as long as the institutional email you provided to SMaHT OC and DAC is the primary email address on the account, this should work without any issues.
-
-|
-
-**I tried to create a Google account, but it said “That username is taken. Try another.” What should I do?**
-
-Looks like your institutional email is already used as the primary email on a different Google Account. You should be able to recover the account by going to the Google Accounts password change page. There, enter your institutional email, and Google will send a recovery email to the email address on file.
-
-|
-
-**I tried to log in with my Google account, but the portal says: “Account Unauthorized: An account associated with the email address does not exist in the system.” What should I do?**
-
-This means that SMaHT DAC hasn't finished setting up your account. If you have not requested access yet, please return to Step 2 above. You can also click the “Help Desk” button on the top right corner of the SMaHT data portal homepage (`https://data.smaht.org <https://data.smaht.org>`__) or the “Request Access” button in the “Account Unauthorized” popup to start an email request to DAC in your computer's default email client.
-|
-
-**I tried to log in with my Google account, but the portal says: “Something went wrong.” What should I do?**
-
-This sounds like a technical error on our end. Please submit a bug report to `smhelp@hms-dbmi.atlassian.net <mailto:smhelp@hms-dbmi.atlassian.net>`_ and include information about the operating system and web browser you are using. Also include the email address that you used to sign in.
-
 
 
 
@@ -198,8 +169,7 @@ After you have created the SMaHT Data Portal account, the next time when you log
 
 
 FAQ and Troubleshooting
------------------------
-
+=======================
 
 **I already have a Google account set up with my institutional email address used for other data portals (e.g. 4DN). Can I sign into the SMaHT Portal using that Google account?**
 
@@ -211,6 +181,11 @@ Yes, as long as the institutional email you provided to SMaHT OC and DAC is the 
 
 Looks like your institutional email is already used as the primary email on a different Google Account. You should be able to recover the account by going to the Google Accounts password change page. There, enter your institutional email, and Google will send a recovery email to the email address on file.
 
+|
+
+**I tried to log in with my Google account, but the portal says: “Account Unauthorized: An account associated with the email address does not exist in the system.” What should I do?**
+
+This means that SMaHT DAC hasn't finished setting up your account. If you have not requested access yet, please return to Step 2 above. You can also click the “Help Desk” button on the top right corner of the SMaHT data portal homepage (`https://data.smaht.org <https://data.smaht.org>`__) or the “Request Access” button in the “Account Unauthorized” popup to start an email request to DAC in your computer's default email client.
 |
 
 **I tried to log in with my Google account, but the portal says: “Something went wrong.” What should I do?**
