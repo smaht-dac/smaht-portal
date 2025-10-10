@@ -1,8 +1,8 @@
 import { cypressVisitHeaders } from '../.';
 import { navUserAcctLoginBtnSelector } from '../selectorVars';
 
-export function gotoHome() {
-    cy.visit('/', { headers: cypressVisitHeaders });
+export function gotoUrl(url = '/') {
+    cy.visit(url, { headers: cypressVisitHeaders });
 
     // if navUserAcctLoginBtnSelector is visible then it should not have disabled attribute
     cy.get('body').then(($body) => {

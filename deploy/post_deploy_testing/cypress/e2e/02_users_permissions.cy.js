@@ -1,7 +1,7 @@
 // cypress/e2e/home_profile_access.spec.js
 import { cypressVisitHeaders, ROLE_TYPES } from '../support';
 import { navUserAcctDropdownBtnSelector } from '../support/selectorVars';
-import { gotoHome } from '../support/utils/basicUtils';
+import { gotoUrl } from '../support/utils/basicUtils';
 
 const PROFILE_URL = '/me';
 const NO_VIEW_PERMISSIONS_TEXT = 'no view permissions';
@@ -176,7 +176,7 @@ describe('Impersonate / Profile smoke by role', () => {
         context(`${label} → profile capabilities`, () => {
 
             before(() => {
-                gotoHome();
+                gotoUrl();
                 loginIfNeeded(roleKey);
             });
 

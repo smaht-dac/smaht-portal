@@ -1,7 +1,7 @@
 // cypress/e2e/homepage_by_role.cy.js
 import { cypressVisitHeaders } from '../support';
 import { ROLE_TYPES } from '../support';
-import { gotoHome } from '../support/utils/basicUtils';
+import { gotoUrl } from '../support/utils/basicUtils';
 
 const HEADER1_TEXT = 'Somatic Mosaicism across Human Tissues Data Portal';
 const HEADER2_TEXT = 'A platform to search, visualize, and download somatic mosaic variants in normal tissues.';
@@ -297,10 +297,8 @@ describe('Home Page by role', () => {
 
         context(`${label} → homepage capabilities`, () => {
             before(() => {
-                gotoHome();
+                gotoUrl();
                 loginIfNeeded(roleKey);
-                // If login redirects away from home, you can revisit home:
-                // if (caps.isAuthenticated) gotoHome();
             });
 
             after(() => {
