@@ -5,13 +5,13 @@ How to Create a SMaHT Data Portal Account
 .. raw:: html
 
     <div class="account-creation-nav">
-        <a class="nav-link" target="_self" href="#for-smaht-network-members">
+        <a class="nav-link" target="" href="#for-smaht-network-members">
             <i class="icon icon-globe fas"> </i>
             <span class="nav-link-title">Non-SMaHT Network Members</span>
             <span class="nav-link-subtitle">Self-Registration</span>
 
         </a>
-        <a class="nav-link" target="_self" href="#for-non-smaht-network-members">
+        <a class="nav-link" target="" href="#for-non-smaht-network-members">
             <i class="icon icon-users fas"></i>
             <span class="nav-link-title">SMaHT Network Members</span>
             <span class="nav-link-subtitle">Membership Verification</span>
@@ -135,7 +135,7 @@ Now it is time to connect to the portal. The SMaHT Data Portal uses the OAuth au
 
 Please note that if you think that you may potentially apply to obtain protected-access data (under dbGaP), we *strongly encourage you to use your Google account linked to your institutional e-mail address, or the e-mail address* that you plan to use when you apply for dbGaP access.
 
-To create a Google account linked your institutional email (not your Gmail!), you can find the instructions **here (LINK NEEDED)**.
+To create a Google account linked your institutional email (not your Gmail!), you can find the instructions `here <https://support.google.com/accounts/answer/27441?hl=en&co=GENIE.Platform%3DAndroid#:~:text=Google%20Play-,Use%20an%20existing%20email%20address,-You%20don%27t%20need>`__.
 
 
 Step 3: Registering yourself as a non-SMaHT Network member
@@ -150,7 +150,7 @@ Step 3: Registering yourself as a non-SMaHT Network member
 
 If you are not a SMaHT Network member, choose “No, I am not a member of the SMaHT Network” to proceed to the rest of the self-registration steps.
 
-**NOTE for SMaHT Network members**: If you are a new member, instead of choosing “No”, please choose “Yes” and follow the instructions for creating a network member account **here (LINK NEEDED)**.
+**NOTE for SMaHT Network members**: If you are a new member, instead of choosing “No”, please choose “Yes” and follow the instructions for creating a network member account `here </docs/access/creating-an-account#for-non-smaht-network-members>`__.
 
 
 Step 4: Complete the Self-Registration Form
