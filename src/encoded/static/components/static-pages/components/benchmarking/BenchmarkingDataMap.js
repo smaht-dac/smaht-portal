@@ -66,7 +66,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=colo829t&sort=-file_status_tracking.released_date',
+                    '&dataset=colo829t&sort=-file_status_tracking.released',
             },
             {
                 eventKey: '#BL',
@@ -74,7 +74,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=colo829bl&sort=-file_status_tracking.released_date',
+                    '&dataset=colo829bl&sort=-file_status_tracking.released',
             },
             {
                 eventKey: '#150',
@@ -82,7 +82,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=colo829blt_50to1&sort=-file_status_tracking.released_date',
+                    '&dataset=colo829blt_50to1&sort=-file_status_tracking.released',
             },
             {
                 eventKey: '#silico',
@@ -90,7 +90,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=colo829blt_in_silico&sort=-file_status_tracking.released_date',
+                    '&dataset=colo829blt_in_silico&sort=-file_status_tracking.released',
             },
             {
                 eventKey: '#truthset',
@@ -98,7 +98,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=colo829_snv_indel_challenge_data&tags=truth_set&sort=-file_status_tracking.released_date',
+                    '&dataset=colo829_snv_indel_challenge_data&tags=truth_set&sort=-file_status_tracking.released',
                 facetsToHide: [
                     'dataset',
                     'file_sets.libraries.analytes.samples.sample_sources.code',
@@ -179,7 +179,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=hapmap&sort=-file_status_tracking.released_date',
+                    '&dataset=hapmap&sort=-file_status_tracking.released',
             },
             {
                 eventKey: '#hapmap-downsampled',
@@ -187,7 +187,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=mei_detection_challenge_data&sort=-file_status_tracking.released_date',
+                    '&dataset=mei_detection_challenge_data&sort=-file_status_tracking.released',
             },
             {
                 eventKey: '#hapmap-truthset',
@@ -226,7 +226,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=lb_fibroblast&sort=-file_status_tracking.released_date',
+                    '&dataset=lb_fibroblast&sort=-file_status_tracking.released',
             },
             {
                 eventKey: '#lb_ipsc_1',
@@ -234,7 +234,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=lb_ipsc_1&sort=-file_status_tracking.released_date',
+                    '&dataset=lb_ipsc_1&sort=-file_status_tracking.released',
             },
             {
                 eventKey: '#lb_ipsc_2',
@@ -242,7 +242,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=lb_ipsc_2&sort=-file_status_tracking.released_date',
+                    '&dataset=lb_ipsc_2&sort=-file_status_tracking.released',
             },
             {
                 eventKey: '#lb_ipsc_4',
@@ -250,7 +250,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=lb_ipsc_4&sort=-file_status_tracking.released_date',
+                    '&dataset=lb_ipsc_4&sort=-file_status_tracking.released',
             },
             {
                 eventKey: '#lb_ipsc_52',
@@ -258,7 +258,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=lb_ipsc_52&sort=-file_status_tracking.released_date',
+                    '&dataset=lb_ipsc_52&sort=-file_status_tracking.released',
             },
             {
                 eventKey: '#lb_ipsc_60',
@@ -266,7 +266,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=lb_ipsc_60&sort=-file_status_tracking.released_date',
+                    '&dataset=lb_ipsc_60&sort=-file_status_tracking.released',
             },
             {
                 eventKey: '#lb_ipsc_truthset',
@@ -290,7 +290,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&sort=-file_status_tracking.released_date',
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&sort=-file_status_tracking.released',
             },
             {
                 eventKey: '#lung',
@@ -298,7 +298,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&sort=-file_status_tracking.released_date',
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&sort=-file_status_tracking.released',
             },
             {
                 eventKey: '#skin',
@@ -306,7 +306,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1K&sort=-file_status_tracking.released_date',
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1K&sort=-file_status_tracking.released',
             },
         ],
     },
@@ -324,7 +324,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&sort=-file_status_tracking.released_date',
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&sort=-file_status_tracking.released',
             },
             {
                 eventKey: '#lung',
@@ -332,7 +332,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&sort=-file_status_tracking.released_date',
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&sort=-file_status_tracking.released',
             },
             {
                 eventKey: '#skin',
@@ -340,7 +340,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1K&sort=-file_status_tracking.released_date',
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1K&sort=-file_status_tracking.released',
             },
         ],
     },
@@ -358,7 +358,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q&sort=-file_status_tracking.released_date',
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q&sort=-file_status_tracking.released',
             },
         ],
     },
@@ -376,7 +376,7 @@ export const BenchmarkingDataMap = {
                 searchHref:
                     '/search/?type=File&' +
                     BENCHMARKING_STATUS_FILTERS +
-                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q&sort=-file_status_tracking.released_date',
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q&sort=-file_status_tracking.released',
             },
         ],
     },

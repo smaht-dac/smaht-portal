@@ -267,7 +267,7 @@
         "identifier": "data.analysis.colo829_snv_indel_detection",
         "title": "Challenge Data: Truth set and other relevant data",
         "file": "/docs/public/colo829_snv_indel_detection.jsx",
-        "status": "released",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -341,7 +341,7 @@
         "uuid": "d78edbe6-9a42-4512-ac8d-b909bc287103",
         "file": "/docs/public/faq.jsx",
         "section_type": "Page Section",
-        "status": "released",
+        "status": "open-network",
         "options": {
             "filetype": "jsx",
             "initial_header_level": 2
@@ -358,7 +358,7 @@
         "uuid": "edf6c0f5-e051-4c4e-8e22-99dfde0b8501",
         "file": "/docs/source/genome_reference_and_related_data.rst",
         "section_type": "Page Section",
-        "status": "released",
+        "status": "open",
         "options": {
             "filetype": "rst",
             "initial_header_level": 2
@@ -527,7 +527,7 @@
         "identifier": "qc_visualizations",
         "title": "QC Metric Visualizations",
         "file": "/docs/public/qc_visualizations.jsx",
-        "status": "released",
+        "status": "protected-network",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -603,7 +603,7 @@
         "identifier": "submission_data_dictionary",
         "title": "Submission Data Dictionary",
         "file": "/docs/public/submission_data_dictionary.jsx",
-        "status": "released",
+        "status": "open-network",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -622,7 +622,7 @@
         "identifier": "donor_manifest_dictionary",
         "title": "Donor Manifest Dictionary",
         "file": "/docs/public/donor_manifest_dictionary.jsx",
-        "status": "released",
+        "status": "open-network",
         "options": {
             "filetype": "jsx",
             "collapsible": false,

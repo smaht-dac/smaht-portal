@@ -221,7 +221,7 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
 
     useEffect(() => {
         if (session) {
-            const searchURL = `/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.released_date&status=${highestUserAccess}`;
+            const searchURL = `/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.released&status=${highestUserAccess}`;
 
             ajax.load(
                 searchURL,

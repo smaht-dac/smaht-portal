@@ -30,7 +30,7 @@
         "access_status": "Open",
         "annotated_filename": "SMHT001-1A-100A1-F65-X002-test-SMAARNRVZGBE-bwamem_1.2.3_strelka_3.1.1_GRCh38.aligned.sorted.bam",
         "file_size": 1000,
-        "status": "released",
+        "status": "protected-early",
         "dataset": "colo829t"
     },
     {
