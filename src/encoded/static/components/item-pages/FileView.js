@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import url from 'url';
 import _ from 'underscore';
 import queryString from 'query-string';
@@ -13,7 +13,10 @@ import { ShowHideInformationToggle } from './components/file-overview/ShowHideIn
 import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
 import { OverlayTrigger } from 'react-bootstrap';
-import { renderProtectedAccessPopover } from './PublicDonorView';
+import {
+    renderLoginAccessPopover,
+    renderProtectedAccessPopover,
+} from './PublicDonorView';
 import { useUserDownloadAccess } from '../util/hooks';
 import { statusBadgeMap } from './components/file-overview/FileViewDataCards';
 
@@ -180,7 +183,7 @@ const FileViewHeader = (props) => {
         <div className="file-view-header">
             <div className="data-group data-row header">
                 <h1 className="header-text">File Overview</h1>
-                {userDownloadAccess?.[status] ? (
+                {session && userDownloadAccess?.[status] ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         className="btn btn-primary btn-sm me-05 align-items-center"
@@ -195,7 +198,11 @@ const FileViewHeader = (props) => {
                     <OverlayTrigger
                         trigger={['hover', 'focus']}
                         placement="top"
-                        overlay={renderProtectedAccessPopover()}>
+                        overlay={
+                            status === 'open'
+                                ? renderLoginAccessPopover()
+                                : renderProtectedAccessPopover()
+                        }>
                         <button
                             className="download-button btn btn-primary btn-sm me-05 align-items-center pe-auto "
                             disabled={true}>
@@ -320,7 +327,7 @@ const FileViewHeader = (props) => {
 };
 
 /** Top-level component for the File Overview Page */
-const FileView = React.memo(function FileView(props) {
+const FileView = (props) => {
     const { context, session, href } = props;
     const userDownloadAccess = useUserDownloadAccess(session);
 
@@ -338,7 +345,7 @@ const FileView = React.memo(function FileView(props) {
             </div>
         </div>
     );
-});
+};
 
 /**
  * Tab object for the FileView component, provides necessary information

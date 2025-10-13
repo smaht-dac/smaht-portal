@@ -337,9 +337,26 @@
         ]
     },
     {
-        "identifier": "faq",
-        "uuid": "d78edbe6-9a42-4512-ac8d-b909bc287103",
-        "file": "/docs/public/faq.jsx",
+        "identifier": "submission_faq",
+        "uuid": "6bea6bcb-8e08-4b56-981a-63caa22a78f2",
+        "file": "/docs/public/submission_faq.jsx",
+        "section_type": "Page Section",
+        "status": "released",
+        "options": {
+            "filetype": "jsx",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "pipeline_faq",
+        "uuid": "6c096d6a-d9ff-43ec-b6f6-10ebf8e55c5d",
+        "file": "/docs/public/pipeline_faq.jsx",
         "section_type": "Page Section",
         "status": "open-network",
         "options": {
@@ -633,6 +650,44 @@
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
         "uuid": "abb80b35-61ac-4433-b6e3-55be1ba15e18",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data_availability_and_access",
+        "title": "SMaHT Data Availability and Access",
+        "file": "/docs/source/data_availability_and_access.rst",
+        "status": "open",
+        "options": {
+            "filetype": "rst",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "550230b3-34fe-42cf-8fb8-72fad10b9861",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "getting_dbgap_access",
+        "title": "Getting dbGAP Access - Coming Soon",
+        "file": "/docs/source/getting_dbgap_access.rst",
+        "status": "open",
+        "options": {
+            "filetype": "rst",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "f8b1b363-5530-4109-83c2-7b94acbc0e18",
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]

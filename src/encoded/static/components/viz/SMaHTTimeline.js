@@ -8,7 +8,7 @@ import Card from 'react-bootstrap/esm/Card';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import ReactTooltip from 'react-tooltip';
 import { RightArrowIcon } from '../util/icon';
-
+import { BROWSE_LINKS } from '../../components/browse/BrowseView';
 const TimelineItem = ({
     currentTier,
     setCurrentTier,
@@ -117,7 +117,9 @@ function ContextAwareToggle({
                 </button>
             )}
             {link ? (
-                <a href={link} className="card-header-link">
+                <a
+                    href={link === '/browse' ? BROWSE_LINKS.file : link}
+                    className="card-header-link">
                     <RightArrowIcon
                         fill={currentTier === tier ? '#74CFB2' : '#9CC7EF'}
                     />

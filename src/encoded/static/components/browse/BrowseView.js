@@ -213,11 +213,14 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
     const userDownloadAccess = useUserDownloadAccess(session);
 
     // Get the highest access level the user has
-    const highestUserAccess = userDownloadAccess?.['protected-early']
-        ? 'protected-early'
+    // There will be access levels of 'open', 'protected', and 'protected-network'
+    const highestUserAccess = userDownloadAccess?.['protected-network']
+        ? 'protected-network'
         : userDownloadAccess?.['protected']
         ? 'protected'
-        : 'open';
+        : session
+        ? 'open'
+        : null;
 
     useEffect(() => {
         if (session) {
