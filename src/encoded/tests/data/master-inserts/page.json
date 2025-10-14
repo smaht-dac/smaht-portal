@@ -139,7 +139,6 @@
         "children": [
             "39cbfcb1-ba80-4968-85e0-b668b4b04f9f",
             "6523af8e-34e5-40eb-9e09-710a41b824a4",
-            "f8513cd6-f7ae-43b6-9a7d-b6966ab505ca",
             "1ada4fca-af4b-4304-947d-59e2918ab728"
         ],
         "table-of-contents": {
@@ -411,12 +410,13 @@
     {
         "identifier": "docs/additional-resources",
         "uuid": "1ada4fca-af4b-4304-947d-59e2918ab728",
-        "title": "Additional Resources",
+        "title": "Analysis & Additional Resources",
         "status": "open",
         "children": [
+            "b3e754fd-be49-4998-bd05-040623617cdf",
+            "5e64b78a-58c1-48c3-b031-e8837a19b4a4",
             "27d149b5-164a-4351-9095-7be11d6371f7",
-            "389b52ce-5161-4f08-b49b-b1b3b18f09e2",
-            "5e64b78a-58c1-48c3-b031-e8837a19b4a4"
+            "389b52ce-5161-4f08-b49b-b1b3b18f09e2"
         ],
         "table-of-contents": {
             "enabled": true
