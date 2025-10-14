@@ -56,8 +56,8 @@ const AlluvialPlotHeader = ({ legendRef }) => {
             <ShowHideInformationToggle
                 useToggle={true}
                 defaultShow={true}
-                expandedText="Hide Legend"
-                collapsedText="Show Legend"
+                expandedText="Hide Category Legend"
+                collapsedText="Show Category Legend"
                 expandedIcon="minus"
                 collapsedIcon="plus">
                 <div ref={legendRef}></div>
@@ -218,6 +218,9 @@ export const Alluvial = () => {
             // Legend rows for GCC/TTD Column
             legend_row('GCC', [color_schemes.data_generator('GCC')], 0, 0);
             legend_row('TTD', [color_schemes.data_generator('TTD')], 20, 0);
+
+            // Legend rows for Sequencing Platform Column
+            legend_row('N/A', ['transparent'], 0, 352);
 
             // Legend rows for Assay Groups
             legend_row(
