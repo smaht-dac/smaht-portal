@@ -65,7 +65,7 @@ Now it is time to connect to the portal. The SMaHT Data Portal uses the OAuth au
 
 Please note that if you think that you may potentially apply to obtain protected-access data (under dbGaP), we *strongly encourage you to use your Google account linked to your institutional e-mail address, or the e-mail address* that you plan to use when you apply for dbGaP access.
 
-To create a Google account linked your institutional email (not your Gmail!), you can find the instructions `here <https://support.google.com/accounts/answer/27441?hl=en&co=GENIE.Platform%3DAndroid#:~:text=Google%20Play-,Use%20an%20existing%20email%20address,-You%20don%27t%20need>`__.
+To create a Google account linked your institutional email (not your Gmail!), you can find the instructions `here <https://support.google.com/accounts/answer/27441?hl=en&ref_topic=3382296&sjid=121446348511371159-NA>`__.
 
 
 Step 3: Registering yourself as a non-SMaHT Network member
