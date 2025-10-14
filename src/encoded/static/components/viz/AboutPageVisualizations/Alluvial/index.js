@@ -220,7 +220,7 @@ export const Alluvial = () => {
             legend_row('TTD', [color_schemes.data_generator('TTD')], 20, 0);
 
             // Legend rows for Sequencing Platform Column
-            legend_row('N/A', ['transparent'], 0, 352);
+            legend_row('No Category', ['transparent'], 0, 405);
 
             // Legend rows for Assay Groups
             legend_row(
