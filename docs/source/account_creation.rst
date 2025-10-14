@@ -159,10 +159,8 @@ Once your account request to DAC is processed (Step 2), you will be able to log 
 
 |
 
-.. image:: /static/img/docs/account_creation_login_button.png
-    :target: /static/img/docs/account_creation_login_button.png
-    :alt: Google Account Log In Image
-
+.. image:: /static/img/docs/account_creation/login-modal.png
+   :alt: SMaHT Data Portal Login Modal
 
 |
 	
