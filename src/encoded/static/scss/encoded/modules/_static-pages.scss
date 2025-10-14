@@ -3416,6 +3416,26 @@ FAQ page styles
 }
 
 
+// SMaHT Data Account Creation 
+[data-at-type="DocsAccessCreating-an-accountPage"] {
+	h3#for-non-smaht-network-members, h3#for-smaht-network-members, h3#faq-and-troubleshooting {
+		border-bottom: 1px solid #f4f4f4;
+		padding-bottom: 15px;
+		font-size: 1.5rem;
+	}
+
+	.static-section-entry {
+		.rst-container {
+			h4 {
+				font-size: 1.25rem;
+			}
+			h5 {
+				font-size: 1.125rem;
+			}
+		}
+	}
+}
+
 // SMaHT Data Availability and Access page
 [data-at-type="DocsAccessData-availability-and-accessPage"] {
 	h2#what-are-smaht-data, h2#smaht-data-access {
