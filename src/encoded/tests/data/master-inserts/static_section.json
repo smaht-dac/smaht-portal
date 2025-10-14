@@ -235,7 +235,8 @@
         "status": "open",
         "options": {
             "filetype": "rst",
-            "initial_header_level": 2
+            "initial_header_level": 2,
+            "convert_ext_links": false
         },
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
