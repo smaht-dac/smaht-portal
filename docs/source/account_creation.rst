@@ -80,7 +80,7 @@ Step 3: Registering yourself as a non-SMaHT Network member
 
 If you are not a SMaHT Network member, choose “No, I am not a member of the SMaHT Network” to proceed to the rest of the self-registration steps.
 
-**NOTE for SMaHT Network members**: If you are a new member, instead of choosing “No”, please choose “Yes” and follow the instructions for creating a network member account `here </docs/access/creating-an-account#for-non-smaht-network-members>`__.
+**NOTE for SMaHT Network members**: If you are a new member, instead of choosing “No”, please choose “Yes” and follow the instructions for creating a network member account `here </docs/access/creating-an-account#for-smaht-network-members-membership-verification-account-creation>`__.
 
 
 Step 4: Complete the Self-Registration Form
