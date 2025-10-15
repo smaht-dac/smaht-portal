@@ -221,25 +221,6 @@
         ]
     },
     {
-        "email": "dominika_maziec@hms.harvard.edu",
-        "uuid": "bc8e5ecd-4f3e-430a-97e7-d27f66a3e74f",
-        "groups": [
-            "admin"
-        ],
-        "consortia": [
-            "358aed10-9b9d-4e26-ab84-4bd162da182b"
-        ],
-        "submits_for": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ],
-        "submission_centers": [
-            "9626d82e-8110-4213-ac75-0a50adf890ff"
-        ],
-        "time_zone": "US/Eastern",
-        "last_name": "Maziec",
-        "first_name": "Dominika"
-    },
-    {
         "email": "cypress-main-scientist@cypress.hms.harvard.edu",
         "first_name": "Cypress",
         "last_name": "Dbgap",
