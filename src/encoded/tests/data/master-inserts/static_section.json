@@ -583,7 +583,7 @@
         "identifier": "retracted-files",
         "title": "List of Retracted Files",
         "file": "/docs/public/retracted_files.jsx",
-        "status": "in review",
+        "status": "protected-network",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -602,7 +602,7 @@
         "identifier": "data_matrix_comparison",
         "title": "SMaHT Data Matrix",
         "file": "/docs/public/data_matrix_comparison.jsx",
-        "status": "in review",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
