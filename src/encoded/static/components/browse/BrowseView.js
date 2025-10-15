@@ -48,11 +48,11 @@ import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
 import { useUserDownloadAccess } from '../util/hooks';
 
 export const BROWSE_STATUS_FILTERS =
-    'status=public&status=public-restricted&status=restricted&status=released';
+    'status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network';
 
 export const BROWSE_LINKS = {
     file:
-        '/browse/?type=File&sample_summary.studies=Production&donors.tags=has_released_files&' +
+        '/browse/?type=File&sample_summary.studies=Production&' +
         BROWSE_STATUS_FILTERS,
     donor:
         '/browse/?type=Donor&study=Production&tags=has_released_files&' +
@@ -69,7 +69,10 @@ export default function BrowseView(props) {
 const BrowseFileBody = (props) => {
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
     const { session, href, windowWidth, windowHeight, isFullscreen } = props;
-    const initialFields = ['sample_summary.tissues', 'sequencing.sequencer.display_title'];
+    const initialFields = [
+        'sample_summary.tissues',
+        'sequencing.sequencer.display_title',
+    ];
     return (
         <>
             <h2 className="browse-summary-header">SMaHT Data Summary</h2>
@@ -87,7 +90,9 @@ const BrowseFileBody = (props) => {
                     />
                 </div>
                 <div className="col ps-0">
-                    <div id="facet-charts-container" className="container ps-4">
+                    <div
+                        id="facet-charts-container"
+                        className="container ps-0 ps-xl-4">
                         <FacetCharts
                             {..._.pick(
                                 props,
@@ -205,11 +210,21 @@ export class BrowseViewBody extends React.PureComponent {
  */
 export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
     const [downloadLink, setDownloadLink] = useState(null);
+    const userDownloadAccess = useUserDownloadAccess(session);
+
+    // Get the highest access level the user has
+    // There will be access levels of 'open', 'protected', and 'protected-network'
+    const highestUserAccess = userDownloadAccess?.['protected-network']
+        ? 'protected-network'
+        : userDownloadAccess?.['protected']
+        ? 'protected'
+        : session
+        ? 'open'
+        : null;
 
     useEffect(() => {
         if (session) {
-            const searchURL =
-                '/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.released_date';
+            const searchURL = `/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.released&status=${highestUserAccess}`;
 
             ajax.load(
                 searchURL,
@@ -233,7 +248,7 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
         } else {
             setDownloadLink(null);
         }
-    }, [session]);
+    }, [session, highestUserAccess]);
 
     return downloadLink ? (
         <a
@@ -277,6 +292,7 @@ export const BrowseFileSearchTable = (props) => {
         selectedItems,
         onSelectItem,
         onResetSelectedItems,
+        userDownloadAccess,
     } = props;
     const facets = transformedFacets(context, currentAction, schemas);
     const tableColumnClassName = 'results-column col';
@@ -298,11 +314,11 @@ export const BrowseFileSearchTable = (props) => {
             }>
             <div className="d-flex gap-2">
                 <DonorMetadataDownloadButton session={session} />
-                {session ? (
+                {userDownloadAccess?.['protected'] ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
-                        className="btn btn-primary btn-sm me-05 align-items-center"
+                        className="download-button has-access btn btn-primary btn-sm me-05 align-items-center"
                         {...{ selectedItems, session }}
                         analyticsAddItemsToCart>
                         <i className="icon icon-download fas me-03" />
@@ -314,7 +330,7 @@ export const BrowseFileSearchTable = (props) => {
                         placement="top"
                         overlay={renderProtectedAccessPopover()}>
                         <button
-                            className="btn btn-primary btn-sm me-05 align-items-center download-button"
+                            className="download-button btn btn-primary btn-sm me-05 align-items-center"
                             disabled={true}>
                             <i className="icon icon-download fas me-03" />
                             Download {selectedItems.size} Selected Files
@@ -345,7 +361,6 @@ export const BrowseFileSearchTable = (props) => {
             hideStickyFooter
             isFullscreen={false}
             toggleFullScreen={() => {}}
-            currentAction={'multiselect'}
             renderDetailPane={null}
             termTransformFxn={Schemas.Term.toName}
             separateSingleTermFacets={false}
@@ -583,9 +598,8 @@ export function createBrowseFileColumnExtensionMap({
                     <a
                         target="_blank"
                         href={
-                            (userDownloadAccess?.['restricted'] ||
-                                userDownloadAccess?.['public-restricted']) &&
-                            protected_donor
+                            userDownloadAccess?.['protected'] &&
+                            protected_donor?.['@id']
                                 ? protected_donor?.['@id']
                                 : donorLink
                         }>

@@ -14,7 +14,7 @@ import {
     SelectedItemsDownloadButton,
 } from '../../../static-pages/components/SelectAllAboveTableComponent';
 import { EmbeddedItemSearchTable } from '../EmbeddedItemSearchTable';
-import { renderProtectedAccessPopover } from '../../PublicDonorView';
+import { renderLoginAccessPopover } from '../../PublicDonorView';
 
 /**
  * Wraps the File Overview Table in a SelectedItemsController component, which
@@ -55,7 +55,6 @@ export const FileOverviewTableController = (props) => {
  */
 export const FileOverviewTable = (props) => {
     const {
-        context,
         href,
         searchHref,
         schemas,
@@ -326,19 +325,7 @@ export const FileOverviewTable = (props) => {
  */
 const FileOverviewAboveTableComponent = (props) => {
     const {
-        href,
-        searchHref,
         context,
-        onFilter,
-        schemas,
-        isContextLoading = false, // Present only on embedded search views,
-        navigate,
-        sortBy,
-        sortColumns,
-        hiddenColumns,
-        addHiddenColumn,
-        removeHiddenColumn,
-        columnDefinitions,
         session,
         selectedItems, // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
@@ -379,7 +366,7 @@ const FileOverviewAboveTableComponent = (props) => {
                     <OverlayTrigger
                         trigger={['hover', 'focus']}
                         placement="top"
-                        overlay={renderProtectedAccessPopover()}>
+                        overlay={renderLoginAccessPopover()}>
                         <button
                             className="btn btn-primary btn-sm me-05 align-items-center pe-auto"
                             disabled={true}>

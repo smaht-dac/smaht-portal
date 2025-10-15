@@ -791,6 +791,7 @@ const BrowseDonorSearchTable = (props) => {
         selectedItems,
         onSelectItem,
         onResetSelectedItems,
+        userDownloadAccess,
     } = props;
 
     const facets = transformedFacets(context, currentAction, schemas);
@@ -855,7 +856,6 @@ const BrowseDonorSearchTable = (props) => {
             renderDetailPane={customRenderDetailPane}
             useCustomSelectionController
             hideStickyFooter
-            currentAction={'multiselect'}
             termTransformFxn={Schemas.Term.toName}
             separateSingleTermFacets={false}
             rowHeight={31}
@@ -864,13 +864,36 @@ const BrowseDonorSearchTable = (props) => {
     );
 };
 
+// Banner Component to allow redirect to ProtectedDonor view after login
+const RedirectBanner = ({ href }) => {
+    return href ? (
+        <div className="callout data-available">
+            <span className="callout-text">
+                <i className="icon icon-users fas"></i> Welcome to the SMaHT
+                Data Portal! Please{' '}
+                <a href={href?.replace('type=Donor', 'type=ProtectedDonor')}>
+                    click here
+                </a>{' '}
+                to load complete donor data.
+            </span>
+        </div>
+    ) : null;
+};
+
 // Browse Donor Body Component
 export const BrowseDonorBody = (props) => {
-    const { alerts } = props;
+    const [showRedirectBanner, setShowRedirectBanner] = useState(false);
+    const { session, userDownloadAccess } = props;
+
+    useEffect(() => {
+        if (session && userDownloadAccess?.['protected']) {
+            setShowRedirectBanner(true);
+        }
+    }, [session, userDownloadAccess]);
 
     return (
         <>
-            <Alerts alerts={alerts} className="mt-2" />
+            {showRedirectBanner && <RedirectBanner href={props?.href} />}
             <BrowseDonorVizWrapper {...props} mapping="donor" />
             <hr />
             <BrowseViewControllerWithSelections {...props}>

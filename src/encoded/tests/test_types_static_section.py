@@ -16,7 +16,7 @@ def static_section(
     item = {
         "identifier": "some-static-section",
         "consortia": [test_consortium["uuid"]],
-        "status": "public",
+        "status": "open",
         "section_type": "Page Section",
     }
     return post_item(testapp, item, "StaticSection")
