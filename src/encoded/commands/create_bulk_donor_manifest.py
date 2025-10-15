@@ -2,17 +2,18 @@
 Bulk Donor Manifest Generator
 =============================
 
-This script retrieves donor metadata from the portal and generates a bulk
-donor manifest in TSV format. The manifest can be tailored using donor
+This script retrieves donor metadata from the portal and generates bulk
+donor manifests in TSV format. The manifest can be tailored using donor
 identifiers, a donor search query, or (if neither is provided) a default
-search. 
+search.
 
 Only TPC-submitted Benchmarking and Production donors are included in the
 output, even if other donors are supplied via search or identifiers.
 
 By default, the manifest includes protected donor properties for open donors. Use the
 --public/p flag to restrict the output to public donor properties only and the
---network/n flag to include network-released donors (including protected properties)
+--restricted/r flag to include network-released donors (including protected properties)
+--open-network flag to include network-released donors with public properties only.
 
 Usage
 -----
@@ -41,15 +42,26 @@ Optional Arguments
 
 
     --public, -p
-        Generate a manifest containing only **public donor properties**
-        (derived from the "Donor" item type).
-        Mutually exclusive with --restricted.
+        Generate a manifest containing only public properties from Donors with status 'open'.
+        Mutually exclusive with --restricted and --open-network.
 
     --restricted, -r
-        Generate a manifest containing **Donors with the status 'open-early'**
-        Mutually exclusive with --public.
+        Generate a manifest for network members with dbgap group containing protected metadata
+        from ProtectedDonors having the statuses 'protected' and 'protected-early'
+        Mutually exclusive with --public and --open-network.
         WARNING: This option has no effect when --search or --donors are
         provided, since those explicitly control which donors are included.
+
+    --open-network
+        Generate a manifest for network members without dbgap group containing open metadata
+        from Donors having the statuses 'open' and 'open-early'
+        Mutually exclusive with --public and --restricted.
+        WARNING: This option has no effect when --search or --donors are
+        provided, since those explicitly control which donors are included.
+
+    NOTE: The default if none of the above optional arguments are provided
+    is to generate a manifest containing protected metadata from ProtectedDonors
+    having the status 'protected'.
 
 Behavior
 --------
@@ -57,13 +69,13 @@ Behavior
     * If only one of --search or --donors is provided, that source is used.
     * If neither is provided, a default search query is constructed:
     * The --public option restricts the manifest to public donor properties only,
-        however, if a search or donor IDs are provided the public metadata for those
+        however, if this option is used with a search or donor IDs the public metadata for those
         donors will be added to the manifest regardless of the status of those donors.
 
 Output
 ------
     The output is a tab-separated values (TSV) file containing donor metadata,
-    with columns determined by the selected mode (public vs restricted).
+    with columns determined by the selected mode.
     Some property names are adjusted for clarity (e.g.,
     "MedicalHistory.height" becomes "MedicalHistory.height_m").
 
@@ -105,6 +117,7 @@ log = structlog.getLogger(__name__)
 DEFAULT_STATUS = "protected"
 PUBLIC_STATUS = "open"
 RESTRICTED_STATUS = "protected-early"
+OPEN_NETWORK_STATUS = "open-early"
 DEFAULT_SEARCH_STEM = "search/?study=Benchmarking&study=Production"
 PUBLIC_ITEM_TYPES = ["Donor"]  # Top level item must be first - i.e. Donor
 PROTECTED_ITEM_TYPES = [  # Top level item must be first - i.e. ProtectedDonor
@@ -445,20 +458,33 @@ def main() -> None:
         default=False,
         help="Create restricted manifest (includes restricted donors) WARNING: Has no effect when --search or --donors are provided."
     )
+    group.add_argument(
+        "--open-network",
+        action="store_true",
+        default=False,
+        help="Create open-network manifest (only public donor properties including network-released donors)",
+    )
     args = parser.parse_args()
     auth_key = get_auth_key(args.env)
     # support providing both search and donors, but if only one is provided
     # use that preferentially and if neither use default search based on public or not
-    if args.restricted and (args.search or args.donors):
-        log.warning("WARNING: --restricted has no effect when --search or --donors are provided.")
+    if ((args.restricted or args.open_network) and
+            (args.search or args.donors)):
+        log.warning("WARNING: when --search or --donors is provided protected metadata "
+                    "will be generated unless you pass --public."
+                    "The --restricted and --open-network flags have no effect")
     if args.donors:
         if not args.search:
             search_query = None
     elif not args.search:
         # default to default search based on public or not
         search_query = DEFAULT_SEARCH_STEM
-        if args.public:
+        # import pdb; pdb.set_trace()
+        if args.public or args.open_network:
             search_query += f"&type={PUBLIC_ITEM_TYPES[0]}&status={PUBLIC_STATUS}"
+            if args.open_network:
+                args.public = True
+                search_query += f"&status={OPEN_NETWORK_STATUS}"
         else:
             search_query += f"&type={PROTECTED_ITEM_TYPES[0]}&status={DEFAULT_STATUS}"
             if args.restricted:
