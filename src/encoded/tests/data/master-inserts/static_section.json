@@ -235,7 +235,8 @@
         "status": "open",
         "options": {
             "filetype": "rst",
-            "initial_header_level": 2
+            "initial_header_level": 2,
+            "convert_ext_links": false
         },
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
@@ -341,7 +342,7 @@
         "uuid": "6bea6bcb-8e08-4b56-981a-63caa22a78f2",
         "file": "/docs/public/submission_faq.jsx",
         "section_type": "Page Section",
-        "status": "released",
+        "status": "open-network",
         "options": {
             "filetype": "jsx",
             "initial_header_level": 2
@@ -358,7 +359,7 @@
         "uuid": "6c096d6a-d9ff-43ec-b6f6-10ebf8e55c5d",
         "file": "/docs/public/pipeline_faq.jsx",
         "section_type": "Page Section",
-        "status": "open-network",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "initial_header_level": 2
@@ -639,7 +640,7 @@
         "identifier": "donor_manifest_dictionary",
         "title": "Donor Manifest Dictionary",
         "file": "/docs/public/donor_manifest_dictionary.jsx",
-        "status": "open-network",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,

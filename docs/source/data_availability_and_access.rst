@@ -1,5 +1,5 @@
 What are SMaHT Data?
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 The Somatic Mosaicism across Human Tissues (SMaHT) Network aims to create a reference catalog of somatic mutations and their patterns across a full spectrum of tissue types from 150 non-diseased donors, applying multiple state-of-the-art experimental assays and computational methods. 
 
@@ -9,8 +9,7 @@ The primary molecular assays of the SMaHT Network include bulk whole genome sequ
 
 
 SMaHT Data Access
------------------
-
+^^^^^^^^^^^^^^^^^
 All data/metadata files generated from the SMaHT Network are available for download. 
 
 **Open Access**: The open-access data/metadata files are available for download after a login as a SMaHT Network member or a self-registered SMaHT Data Portal user who is not part of the Network. 
