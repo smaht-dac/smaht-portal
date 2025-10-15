@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import _ from 'underscore';
-
-import {
-    SelectAllFilesButton,
-    SelectedItemsDownloadButton,
-} from '../../static-pages/components/SelectAllAboveTableComponent';
+import { SelectAllFilesButton } from '../../static-pages/components/SelectAllAboveTableComponent';
 import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 import { Schemas } from '../../util';
@@ -13,23 +9,13 @@ import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/
 import { BrowseViewControllerWithSelections } from '../../static-pages/components/TableControllerWithSelections';
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
-import {
-    BROWSE_STATUS_FILTERS,
-    BROWSE_LINKS,
-    DonorMetadataDownloadButton,
-} from '../BrowseView';
+import { BROWSE_STATUS_FILTERS, BROWSE_LINKS } from '../BrowseView';
 import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
 import { BrowseDonorVizWrapper } from './BrowseDonorVizWrapper';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import {
-    Popover,
-    PopoverHeader,
-    PopoverBody,
-    OverlayTrigger,
-} from 'react-bootstrap';
-import { renderProtectedAccessPopover } from '../../item-pages/PublicDonorView';
+import { DonorMetadataDownloadButton } from '../../shared/DonorMetadataDownloadButton';
 
 /**
  * Format tissue data by grouping it into predefined categories.

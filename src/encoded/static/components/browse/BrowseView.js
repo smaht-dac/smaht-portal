@@ -1,18 +1,10 @@
 'use strict';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import memoize from 'memoize-one';
 import _ from 'underscore';
-import { OverlayTrigger, Popover, Table } from 'react-bootstrap';
-
-import ReactTooltip from 'react-tooltip';
-
-import {
-    schemaTransforms,
-    analytics,
-    valueTransforms,
-    ajax,
-} from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { OverlayTrigger, Popover } from 'react-bootstrap';
+import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 
 import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
@@ -41,11 +33,11 @@ import { navigate } from '../util/navigate';
 import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import { transformedFacets } from './SearchView';
-
 import { BrowseDonorBody } from './browse-view/BrowseDonor';
 import { BrowseProtectedDonorBody } from './browse-view/BrowseProtectedDonor';
 import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
 import { useUserDownloadAccess } from '../util/hooks';
+import { DonorMetadataDownloadButton } from '../shared/DonorMetadataDownloadButton';
 
 export const BROWSE_STATUS_FILTERS =
     'status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network';
@@ -199,89 +191,6 @@ export class BrowseViewBody extends React.PureComponent {
         );
     }
 }
-
-/**
- * Button to download the bulk donor metadata for all SMaHT donors.
- * @param {Object} props - The component props.
- * @param {Object} props.session - The session object.
- * @returns {JSX.Element} The download button.
- *
- * Note: this component only renders for logged-in users.
- */
-export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
-    const [downloadLink, setDownloadLink] = useState(null);
-    const userDownloadAccess = useUserDownloadAccess(session);
-
-    // Get the highest access level the user has
-    // There will be access levels of 'open', 'protected', and 'protected-network'
-    const highestUserAccess = userDownloadAccess?.['protected-network']
-        ? 'protected-network'
-        : userDownloadAccess?.['protected']
-        ? 'protected'
-        : session
-        ? 'open'
-        : null;
-
-    useEffect(() => {
-        if (session) {
-            const searchURL = `/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.released&status=${highestUserAccess}`;
-
-            ajax.load(
-                searchURL,
-                (resp) => {
-                    // Use the first item in the response
-                    const latest_file = resp?.['@graph']?.[0];
-
-                    if (latest_file?.href) {
-                        // Update the download link
-                        setDownloadLink(latest_file?.href);
-
-                        // Rebuild the tooltip after the component mounts
-                        ReactTooltip.rebuild();
-                    }
-                },
-                'GET',
-                () => {
-                    console.log('Error loading Bulk Donor Metadata button');
-                }
-            );
-        } else {
-            setDownloadLink(null);
-        }
-    }, [session, highestUserAccess]);
-
-    return downloadLink ? (
-        <a
-            data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
-            className={
-                'donor-metadata btn btn-sm btn-outline-secondary ' + className
-            }
-            href={downloadLink}
-            download>
-            <span>
-                <i className="icon icon-fw icon-users fas me-1" />
-                Download Bulk Donor Metadata
-            </span>
-        </a>
-    ) : (
-        <OverlayTrigger
-            trigger={['hover', 'focus']}
-            placement="top"
-            overlay={renderProtectedAccessPopover()}>
-            <button
-                className={
-                    'donor-metadata btn btn-sm btn-outline-secondary ' +
-                    className
-                }
-                disabled>
-                <span>
-                    <i className="icon icon-fw icon-users fas me-1" />
-                    Download Bulk Donor Metadata
-                </span>
-            </button>
-        </OverlayTrigger>
-    );
-};
 
 export const BrowseFileSearchTable = (props) => {
     const {
