@@ -308,11 +308,9 @@ function CustomStaticLinks({ pathName, href, session }) {
                                 </div>
                             }
                             className="primary-big-link">
-                            <h4 className="text-large">
-                                Truthset & Benchmarking Analysis
-                            </h4>
+                            <h4 className="text-large">Somatic Variants</h4>
                             <div className="description text-medium">
-                                COLO829 SNV/Indel Detection Challenge
+                                Reference Somatic SNV/Indel, SV, MEI Call Sets
                             </div>
                         </BigDropdownBigLink>
                     </div>

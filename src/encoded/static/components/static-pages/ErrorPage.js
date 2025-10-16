@@ -103,7 +103,7 @@ const HTTPForbiddenView = React.memo(function HTTPForbiddenView(props) {
             </h4>
             <p className="mb-0 mt-0">
                 If you have an account, please try{' '}
-                <LoginButtonWrapper customId="http-forbidden-login-popover">
+                <LoginButtonWrapper showPopover={false}>
                     <a onClick={onAlertLoginClick} href="#loginbtn" className="link-underline-hover">logging in</a>
                 </LoginButtonWrapper> or return to the{' '}
                 <a href="/" className="link-underline-hover">

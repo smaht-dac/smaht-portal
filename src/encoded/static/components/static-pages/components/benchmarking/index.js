@@ -36,7 +36,7 @@ export const COLO829Data = (props) => {
             callout={BenchmarkingDataMap.COLO829?.callout}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
-                deniedAccessPopoverType={session ? null : 'login'}
+                deniedAccessPopoverType="login"
                 controllerId="COLO829-Tab-Renderer"
                 tabMapArray={colo829TabMapArray}
             />
@@ -54,7 +54,7 @@ export const HapMapData = ({ schemas, session, facets, href, context }) => {
             description={BenchmarkingDataMap.HapMap?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
-                deniedAccessPopoverType={session ? null : 'login'}
+                deniedAccessPopoverType="login"
                 controllerId="HapMap-Tab-Renderer"
                 tabMapArray={hapMapTabMapArray}
             />
@@ -81,9 +81,7 @@ export const IPSCFibroblastData = ({
             callout={BenchmarkingDataMap.iPScFibroblasts?.callout}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
-                deniedAccessPopoverType={
-                    hasRestrictedAccess ? null : 'protected'
-                }
+                deniedAccessPopoverType={'protected'}
                 controllerId="IPSC-Tab-Renderer"
                 tabMapArray={iPSCTabMapArray}
             />
@@ -103,9 +101,7 @@ export const Donor1Data = ({ schemas, session, facets, href, context }) => {
             description={BenchmarkingDataMap.Donor1?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
-                deniedAccessPopoverType={
-                    hasRestrictedAccess ? null : 'protected'
-                }
+                deniedAccessPopoverType={'protected'}
                 controllerId="Donor1-Tab-Renderer"
                 tabMapArray={donor1TabMapArray}
             />
@@ -125,9 +121,7 @@ export const Donor2Data = ({ schemas, session, facets, href, context }) => {
             description={BenchmarkingDataMap.Donor2?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
-                deniedAccessPopoverType={
-                    hasRestrictedAccess ? null : 'protected'
-                }
+                deniedAccessPopoverType={'protected'}
                 controllerId="Donor2-Tab-Renderer"
                 tabMapArray={donor2TabMapArray}
             />
@@ -147,9 +141,7 @@ export const Donor3Data = ({ schemas, session, facets, href, context }) => {
             description={BenchmarkingDataMap.Donor3?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
-                deniedAccessPopoverType={
-                    hasRestrictedAccess ? null : 'protected'
-                }
+                deniedAccessPopoverType={'protected'}
                 controllerId="Donor3-Tab-Renderer"
                 tabMapArray={donor3TabMapArray}
             />

@@ -23,8 +23,9 @@ SEARCH_QUERY_QC = (
     "&field=uuid"
     "&type=FileSet"
     "&limit=10000"
-    #"&limit=10&from=600"  # for testing
+    #"&limit=50&from=800"  # for testing
     #"&accession=SMAFS9V294F9"
+    #"&accession=SMAFSRUZ6AX4"
 )
 
 
@@ -373,7 +374,7 @@ class FileStats:
                 continue
 
             # Search the aligned BAM and extract quality metrics from it
-            final_ouput_file = self.get_final_ouput_file(mwfr, assay)
+            final_ouput_file = self.get_final_output_file(mwfr, assay)
 
             if not final_ouput_file:
                 self.warnings.append(
@@ -381,7 +382,16 @@ class FileStats:
                 )
                 continue
 
-            if final_ouput_file[STATUS] not in ["uploaded", "released"]:
+            if final_ouput_file[STATUS] not in [
+                "uploaded",
+                "released",
+                "open",
+                "protected",
+                "open-early",
+                "open-network",
+                "protected-early",
+                "protected-network",
+            ]:
                 self.warnings.append(
                     f"Warning: Fileset {fileset[ACCESSION]} has no uploaded or released output file. Status: {final_ouput_file[STATUS]}"
                 )
@@ -625,7 +635,10 @@ class FileStats:
             for mwfr in mwfrs_sorted
             if mwfr[STATUS] != DELETED
             and mwfr["final_status"] == COMPLETED
-            and "Alignment" in mwfr["meta_workflow"]["category"]
+            and (
+                "Alignment" in mwfr["meta_workflow"]["category"]
+                or mwfr["meta_workflow"]["name"] == "bam_to_cram"
+            )
         ]
         if len(alignment_mwfrs) > 1:
             self.warnings.append(
@@ -634,18 +647,38 @@ class FileStats:
 
         return get_item(alignment_mwfrs[0][UUID]) if alignment_mwfrs else None
 
-    def get_final_ouput_file(self, mwfr, assay):
+    def get_final_output_file(self, mwfr, assay):
         workflow_runs = mwfr["workflow_runs"]
         mode = "RNA" if assay == RNA_SEQ else WGS
+        mwf = mwfr["meta_workflow"]
 
-        for workflow_run in workflow_runs:
-            if (mode == "WGS" and workflow_run["name"] == "samtools_merge") or (
-                mode == "RNA" and workflow_run["name"] == "sentieon_Dedup"
-            ):
-                file_uuid = workflow_run["output"][0]["file"][UUID]
+        if mode == "RNA":
+            for workflow_run in workflow_runs:
+                if (workflow_run["name"] == "sentieon_Dedup"):
+                    file_uuid = workflow_run["output"][0]["file"][UUID]
+                    file = get_item(file_uuid)
+                    if file["output_status"] == "Final Output":
+                        return file
+        elif mode == "WGS":
+            if mwf["name"] == "bam_to_cram":
+                file_uuid = workflow_runs[0]["output"][0]["file"][UUID]
                 file = get_item(file_uuid)
                 if file["output_status"] == "Final Output":
                     return file
+            elif mwf["version"] == "0.3.1":
+                for workflow_run in workflow_runs:
+                    if workflow_run["name"] == "bam_to_cram":
+                        file_uuid = workflow_run["output"][0]["file"][UUID]
+                        file = get_item(file_uuid)
+                        if file["output_status"] == "Final Output":
+                            return file
+            else:
+                for workflow_run in workflow_runs:
+                    if (workflow_run["name"] == "samtools_merge"):
+                        file_uuid = workflow_run["output"][0]["file"][UUID]
+                        file = get_item(file_uuid)
+                        if file["output_status"] == "Final Output":
+                            return file
 
     def get_all_tissues(self):
         query = (

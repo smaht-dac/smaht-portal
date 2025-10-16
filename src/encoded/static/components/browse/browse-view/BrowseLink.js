@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowseLinkIcon } from './BrowseLinkIcon';
-import { BROWSE_LINKS } from '../BrowseView';
+import { BROWSE_LINKS, BROWSE_STATUS_FILTERS } from '../BrowseView';
 
 export const BrowseLink = (props) => {
     const { type, disabled, session = false, userDownloadAccess = {} } = props;
@@ -32,11 +32,7 @@ export const BrowseLink = (props) => {
     // Set href based on the type of file
     if (type === 'Donor') {
         // Protected link for consortium members
-        if (
-            session &&
-            (userDownloadAccess?.['restricted'] ||
-                userDownloadAccess?.['public-restricted'])
-        ) {
+        if (userDownloadAccess?.['protected']) {
             // Only include released files (assume ProtectedDonor items should not be public)
             hrefToUse = BROWSE_LINKS.protected_donor;
         } else {
@@ -50,7 +46,7 @@ export const BrowseLink = (props) => {
         <a
             href={
                 hrefToUse ||
-                `/browse/?type=${type}&${studyField}=Production&status=released${
+                `/browse/?type=${type}&${studyField}=Production&${BROWSE_STATUS_FILTERS}${
                     additionalFilters || ''
                 }`
             }

@@ -7,7 +7,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "WASHU OC",
         "uuid": "32c6c9dc-7a8b-461b-b51a-0ac723ad8f18",
-        "status": "public"
+        "status": "open"
     },
     {
         "identifier": "ndri_tpc",
@@ -17,7 +17,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "NDRI TPC",
         "uuid": "e00ca5a4-bbd6-4c3b-9044-8c3e35490984",
-        "status": "public"
+        "status": "open"
     },
     {
         "identifier": "wcnygc_ttd",
@@ -27,7 +27,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "WCNYGC TTD",
         "uuid": "5c2a7846-4d99-4e99-a2c9-b4dd67cf1d00",
-        "status": "public"
+        "status": "open"
     },
     {
         "identifier": "uutah_ttd",
@@ -37,7 +37,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "UUTAH TTD",
         "uuid": "619c9fab-4685-44f6-90f5-a4ace93b1932",
-        "status": "public"
+        "status": "open"
     },
     {
         "identifier": "umass_ttd",
@@ -47,7 +47,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "UMASS TTD",
         "uuid": "23972a38-a728-42ad-8b3a-2fda39653af3",
-        "status": "public"
+        "status": "open"
     },
     {
         "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
@@ -62,7 +62,7 @@
             "modified_by": "0d565156-00db-4948-82fe-021d151a5daf"
         },
         "uuid": "a7fd0f47-304b-421f-a7fa-545b8af91244",
-        "status": "public"
+        "status": "open"
     },
     {
         "identifier": "nyu_ttd",
@@ -72,7 +72,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "NYU TTD",
         "uuid": "acecf232-404e-4341-9e8d-f065f9e3961f",
-        "status": "public"
+        "status": "open"
     },
     {
         "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
@@ -83,7 +83,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "MAYO TTD",
         "uuid": "d530e9b9-04bd-481f-bf2f-c53e351fa0aa",
-        "status": "public"
+        "status": "open"
     },
     {
         "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
@@ -94,7 +94,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "CWRU TTD",
         "uuid": "47a1e892-5542-416c-b9cc-c93f4afd643d",
-        "status": "public"
+        "status": "open"
     },
     {
         "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
@@ -105,7 +105,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "BROAD1 TTD",
         "uuid": "c927d398-a9cf-4603-ad28-8ddfe88c7ffd",
-        "status": "public"
+        "status": "open"
     },
     {
         "identifier": "dfci_ttd",
@@ -115,7 +115,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "DFCI TTD",
         "uuid": "4d453907-8a18-474e-85d0-8d8158e5a9ff",
-        "status": "public"
+        "status": "open"
     },
     {
         "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
@@ -126,7 +126,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "BCH2 TTD",
         "uuid": "7bc5691a-8720-45a1-ae9b-4d9d80b43e6a",
-        "status": "public"
+        "status": "open"
     },
     {
         "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
@@ -137,7 +137,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "BCH1 TTD",
         "uuid": "230e6fed-df21-4371-b630-f0dce63aefca",
-        "status": "public"
+        "status": "open"
     },
     {
         "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
@@ -148,7 +148,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "BCM2 TTD",
         "uuid": "61ab7548-b13b-4b62-ae0e-f9c19119af21",
-        "status": "public"
+        "status": "open"
     },
     {
         "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
@@ -159,7 +159,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "BCM1 TTD",
         "uuid": "3c0a5056-a253-472c-a313-18c3f4a9b554",
-        "status": "public"
+        "status": "open"
     },
     {
         "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
@@ -170,7 +170,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "BCM GCC",
         "uuid": "f8da20ff-1b39-4a8f-af46-1c82ee601374",
-        "status": "public"
+        "status": "open"
     },
     {
         "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
@@ -181,7 +181,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "WASHU GCC",
         "uuid": "055cfde3-f82c-4d32-851d-b8061c7e2b95",
-        "status": "public"
+        "status": "open"
     },
     {
         "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
@@ -192,7 +192,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "NYGC GCC",
         "uuid": "e4af0e4b-0217-4624-8715-9a8942201dcd",
-        "status": "public"
+        "status": "open"
     },
     {
         "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
@@ -203,7 +203,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "BROAD GCC",
         "uuid": "51e0ae88-8ff9-40c2-ae59-c8ca3c085717",
-        "status": "public"
+        "status": "open"
     },
     {
         "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
@@ -214,7 +214,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "UMICH TTD",
         "uuid": "66352171-aba7-4847-8f94-a017700dc627",
-        "status": "public"
+        "status": "open"
     },
     {
         "leader": "986b362f-4eb6-4a9c-8173-3ab267226992",
@@ -225,7 +225,7 @@
         "submitted_by": "986b362f-4eb6-4a9c-8173-3ab267226992",
         "title": "UWSC GCC",
         "uuid": "36a0af89-35a9-4fe1-9a8e-d6c5833b0b7d",
-        "status": "public"
+        "status": "open"
     },
     {
         "identifier": "smaht_dac",
@@ -239,6 +239,6 @@
             "modified_by": "3202fd57-44d2-44fb-a131-afb1e43d8ae5"
         },
         "uuid": "9626d82e-8110-4213-ac75-0a50adf890ff",
-        "status": "public"
+        "status": "open"
     }
 ]

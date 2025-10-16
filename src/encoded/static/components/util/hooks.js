@@ -2,6 +2,24 @@
 import { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
+const defaultDownloadAccessObject = {
+    open: false,
+    'open-early': false,
+    'open-network': false,
+    protected: false,
+    'protected-early': false,
+    'protected-network': false,
+    released: false,
+    uploading: false,
+    uploaded: false,
+    retracted: false,
+    'upload failed': false,
+    'to be uploaded by workflow': false,
+    'in review': false,
+    obsolete: false,
+    archived: false,
+    deleted: false,
+};
 /**
  * Checks the session-properties endpoint to determine the statuses that a user
  * has access to. Ultimately used to determine whether to disable the download
@@ -11,22 +29,35 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
  * @param {*} session
  * @returns {Object} An object representing downloadable access statuses
  */
-export const useUserDownloadAccess = (session = false) => {
-    const [downloadAccessObject, setDownloadAccessObject] = useState({
-        public: session,
-        'public-restricted': false,
-        restricted: false,
-    });
+export const useUserDownloadAccess = (session) => {
+    const [downloadAccessObject, setDownloadAccessObject] = useState(
+        defaultDownloadAccessObject
+    );
 
     useEffect(() => {
-        let isCancelled = false;
-
         if (session) {
+            const userDownloadAccessObj = { ...defaultDownloadAccessObject };
+
+            // If session exists, user has access to the following statuses
+            userDownloadAccessObj['open'] = true;
+
+            // Default to true when user is logged in. If it is visible, user
+            // can likely download. Otherwise let backend enforce download
+            // access.
+            userDownloadAccessObj['released'] = true;
+            userDownloadAccessObj['uploading'] = true;
+            userDownloadAccessObj['uploaded'] = true;
+            userDownloadAccessObj['retracted'] = true;
+            userDownloadAccessObj['upload failed'] = true;
+            userDownloadAccessObj['to be uploaded by workflow'] = true;
+            userDownloadAccessObj['in review'] = true;
+            userDownloadAccessObj['obsolete'] = true;
+            userDownloadAccessObj['archived'] = true;
+            userDownloadAccessObj['deleted'] = true;
+
             ajax.load(
                 '/session-properties',
                 (resp) => {
-                    if (isCancelled) return;
-
                     // Get consortia associated with user
                     const userConsortia = resp?.details?.consortia || [];
 
@@ -37,24 +68,24 @@ export const useUserDownloadAccess = (session = false) => {
                     // Get groups associated with user
                     const userGroups = resp?.details?.groups || [];
 
-                    const userDownloadAccessObj = { ...downloadAccessObject };
-
                     if (isMember) {
+                        // User is a member of SMaHT
+                        userDownloadAccessObj['open-early'] = true;
+                        userDownloadAccessObj['open-network'] = true;
+
                         // User is either admin or dbgap member of SMaHT
                         if (
                             userGroups?.includes('admin') ||
                             userGroups?.includes('dbgap')
                         ) {
-                            userDownloadAccessObj['public-restricted'] = true;
-                            userDownloadAccessObj['restricted'] = true;
+                            userDownloadAccessObj['protected'] = true;
+                            userDownloadAccessObj['protected-early'] = true;
+                            userDownloadAccessObj['protected-network'] = true;
                         }
                     } else {
                         // User is not a member of SMaHT
                         if (userGroups?.includes('public-dbgap')) {
-                            userDownloadAccessObj['public-restricted'] = true;
-                        }
-                        if (userGroups?.includes('dbgap')) {
-                            userDownloadAccessObj['restricted'] = true;
+                            userDownloadAccessObj['protected'] = true;
                         }
                     }
 
@@ -62,8 +93,6 @@ export const useUserDownloadAccess = (session = false) => {
                 },
                 'GET',
                 (err) => {
-                    if (isCancelled) return;
-
                     if (err?.notification !== 'No results found') {
                         console.error(
                             'ERROR determining user access statuses:',
@@ -72,11 +101,9 @@ export const useUserDownloadAccess = (session = false) => {
                     }
                 }
             );
+        } else {
+            setDownloadAccessObject(defaultDownloadAccessObject);
         }
-
-        return () => {
-            isCancelled = true; // Prevent setting state if unmounted or session changes
-        };
     }, [session]);
 
     return downloadAccessObject;
