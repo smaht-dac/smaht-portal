@@ -55,7 +55,7 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
 
     return (
         <React.Fragment>
-            <LoginButtonWrapper>
+            <LoginButtonWrapper showPopover={false}>
                 <a
                     role="button"
                     href="#"
@@ -79,12 +79,7 @@ export const LoginNavItem = React.memo(function LoginNavItem(props) {
                     )}
                 </a>
             </LoginButtonWrapper>
-            {/* {unverifiedUserEmail ? <UserRegistrationModal {...props} /> : null} */}{' '}
-            {/* // COMMENT OUT AFTER PORTAL REOPENS -- */}
-            {unverifiedUserEmail ? (
-                <PortalShutdownWarningModal {...props} />
-            ) : null}{' '}
-            {/* // TO REMOVE AFTER PORTAL REOPENS -- */}
+            {unverifiedUserEmail ? <UserRegistrationModal {...props} /> : null}{' '}
         </React.Fragment>
     );
 });
@@ -141,36 +136,49 @@ export const PortalShutdownPopover = React.forwardRef(
     )
 );
 
-export const LoginButtonWrapper = function ({
+export const LoginButtonWrapper = ({
     children,
-    popoverId,
     showPopover = true,
-}) {
+    popover = <PortalShutdownPopover />, // can be an element or a component
+    trigger = ["hover", "focus"],
+    placement = "top",
+}) => {
     const [mounted, setMounted] = React.useState(false);
     React.useEffect(() => setMounted(true), []);
 
-    if (!showPopover || !mounted) {
+    // Skip popover rendering if disabled, missing, or not mounted yet
+    if (!showPopover || !popover || !mounted) {
         return children;
     }
 
+    // OverlayTrigger injects special props (e.g., ref, style, placement) into overlay
+    // We need to pass them to our popover component via {...overlayProps}
+    const renderOverlay = (overlayProps) => {
+        // Case 1: popover is a valid React element -> clone it with extra props
+        if (React.isValidElement(popover)) {
+            return React.cloneElement(popover, { ...overlayProps });
+        }
+
+        // Case 2: popover is a component (function/class) -> instantiate it
+        const PopoverComponent = popover;
+        return <PopoverComponent {...overlayProps} />;
+    };
+
     return (
         <OverlayTrigger
-            trigger={['hover', 'focus']}
-            overlay={(props) => (
-                <PortalShutdownPopover customId={popoverId} {...props} />
-            )}
-            placement="top"
+            trigger={trigger}
+            placement={placement}
+            overlay={renderOverlay}
             flip
             popperConfig={{
                 modifiers: [
                     {
-                        name: 'flip',
-                        options: {
-                            fallbackPlacements: ['bottom', 'top', 'left'],
-                        },
+                        name: "flip",
+                        options: { fallbackPlacements: ["bottom", "top", "left", "right"] },
                     },
                 ],
-            }}>
+            }}
+        >
             {children}
         </OverlayTrigger>
     );
@@ -182,7 +190,7 @@ export const NotLoggedInAlert = {
         <span>
             You are currently browsing as guest, please{' '}
             {
-                <LoginButtonWrapper customId="alert-login-popover">
+                <LoginButtonWrapper showPopover={false}>
                     <a onClick={onAlertLoginClick} href="#loginbtn" className="link-underline-hover">
                         login
                     </a>

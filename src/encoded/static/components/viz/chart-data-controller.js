@@ -103,13 +103,11 @@ let reduxSubscription = null;
  *
  * @todo Perhaps move initialize() call from facetcharts.js to app.js.
  * @private
- * @type {boolean}
+ * @type {object}
  */
-let isInitialized = false;
+const isInitialized = {};
 
 let isInitialLoadComplete = false;
-
-let recentMapping = null;
 
 /**
  * @private
@@ -246,7 +244,7 @@ export const ChartDataController = {
         //override
         // TODO: keep aligned "status" field with BROWSE_STATUS_FILTERS in BrowseView.js and also other fields should match with BROWSE_LINKS
         fileFilters.type = ['File'];
-        fileFilters.status = ['public', 'restricted', 'public-restricted', 'released'];
+        fileFilters.status = ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'];
 
         return fileFilters;
     },
@@ -326,9 +324,7 @@ export const ChartDataController = {
             }
         });
 
-        isInitialized = true;
-
-        recentMapping = mapping;
+        isInitialized[mapping] = true;
 
         ChartDataController.sync(mapping, function(){
             isInitialLoadComplete = true;
@@ -350,9 +346,9 @@ export const ChartDataController = {
      * @returns {boolean} True if initialized.
      */
     isInitialized: function (mapping) {
-        if (mapping && mapping !== recentMapping) isInitialized = false;
+        if (mapping && typeof isInitialized[mapping] !== 'undefined') return isInitialized[mapping];
 
-        return isInitialized;
+        return false;
     },
 
     /**
@@ -482,7 +478,7 @@ export const ChartDataController = {
      * @returns {void} Nothing
      */
     sync : function(mapping = 'all', callback = null, syncOpts = {}){
-        if (!isInitialized) throw Error("Not initialized.");
+        if (!isInitialized[mapping]) throw Error("Not initialized.");
         lastTimeSyncCalled = Date.now();
         if (!syncOpts.fromSync) syncOpts.fromSync = true;
         ChartDataController.setState({ 'isLoadingChartData' : true }, function(){
@@ -536,7 +532,7 @@ export const ChartDataController = {
 
         });
 
-        let baseSearchParams = navigate.getBrowseBaseParams(opts.browseBaseState || null, mapping);
+        const baseSearchParams = navigate.getBrowseBaseParams(opts.browseBaseState || null, mapping);
         if (mapping !== 'all' && forceToFile) {
             ChartDataController.transformFilterDonorToFile(baseSearchParams, mapping);
         }

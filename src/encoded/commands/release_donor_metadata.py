@@ -37,8 +37,8 @@ pp = pprint.PrettyPrinter(indent=2)
 ##################################################################
 ##################################################################
 
-PUBLIC_DONOR_RELEASE_STATUS = "released" ## When portal becomes public, this will be "public"
-PROTECTED_DONOR_RELEASE_STATUS = "released" ## When portal becomes public, this will be "public-restricted"
+PUBLIC_DONOR_RELEASE_STATUS = "released" ## When portal becomes public, this will be "open"
+PROTECTED_DONOR_RELEASE_STATUS = "released" ## When portal becomes public, this will be "protected"
 
 class DonorRelease:
 

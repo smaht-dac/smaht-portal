@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-
 import * as _ from 'underscore';
-
-import {
-    SelectAllFilesButton,
-    SelectedItemsDownloadButton,
-} from '../../static-pages/components/SelectAllAboveTableComponent';
+import { SelectAllFilesButton } from '../../static-pages/components/SelectAllAboveTableComponent';
 import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 import { Schemas } from '../../util';
@@ -14,25 +9,14 @@ import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/
 import { BrowseViewControllerWithSelections } from '../../static-pages/components/TableControllerWithSelections';
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
-import {
-    BROWSE_STATUS_FILTERS,
-    BROWSE_LINKS,
-    DonorMetadataDownloadButton,
-} from '../BrowseView';
+import { BROWSE_STATUS_FILTERS, BROWSE_LINKS } from '../BrowseView';
 import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { BrowseDonorVizWrapper } from './BrowseDonorVizWrapper';
-
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { renderProtectedAccessPopover } from '../../item-pages/PublicDonorView';
-import {
-    Popover,
-    PopoverHeader,
-    PopoverBody,
-    OverlayTrigger,
-} from 'react-bootstrap';
+import { DonorMetadataDownloadButton } from '../../shared/DonorMetadataDownloadButton';
 
 /**
  * Format tissue data by grouping it into predefined categories.
@@ -791,6 +775,7 @@ const BrowseDonorSearchTable = (props) => {
         selectedItems,
         onSelectItem,
         onResetSelectedItems,
+        userDownloadAccess,
     } = props;
 
     const facets = transformedFacets(context, currentAction, schemas);
@@ -855,7 +840,6 @@ const BrowseDonorSearchTable = (props) => {
             renderDetailPane={customRenderDetailPane}
             useCustomSelectionController
             hideStickyFooter
-            currentAction={'multiselect'}
             termTransformFxn={Schemas.Term.toName}
             separateSingleTermFacets={false}
             rowHeight={31}
@@ -864,13 +848,36 @@ const BrowseDonorSearchTable = (props) => {
     );
 };
 
+// Banner Component to allow redirect to ProtectedDonor view after login
+const RedirectBanner = ({ href }) => {
+    return href ? (
+        <div className="callout data-available">
+            <span className="callout-text">
+                <i className="icon icon-users fas"></i> Welcome to the SMaHT
+                Data Portal! Please{' '}
+                <a href={href?.replace('type=Donor', 'type=ProtectedDonor')}>
+                    click here
+                </a>{' '}
+                to load complete donor data.
+            </span>
+        </div>
+    ) : null;
+};
+
 // Browse Donor Body Component
 export const BrowseDonorBody = (props) => {
-    const { alerts } = props;
+    const [showRedirectBanner, setShowRedirectBanner] = useState(false);
+    const { session, userDownloadAccess } = props;
+
+    useEffect(() => {
+        if (session && userDownloadAccess?.['protected']) {
+            setShowRedirectBanner(true);
+        }
+    }, [session, userDownloadAccess]);
 
     return (
         <>
-            <Alerts alerts={alerts} className="mt-2" />
+            {showRedirectBanner && <RedirectBanner href={props?.href} />}
             <BrowseDonorVizWrapper {...props} mapping="donor" />
             <hr />
             <BrowseViewControllerWithSelections {...props}>

@@ -1,18 +1,10 @@
 'use strict';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import memoize from 'memoize-one';
 import _ from 'underscore';
-import { OverlayTrigger, Popover, Table } from 'react-bootstrap';
-
-import ReactTooltip from 'react-tooltip';
-
-import {
-    schemaTransforms,
-    analytics,
-    valueTransforms,
-    ajax,
-} from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { OverlayTrigger, Popover } from 'react-bootstrap';
+import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 
 import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
@@ -41,18 +33,18 @@ import { navigate } from '../util/navigate';
 import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import { transformedFacets } from './SearchView';
-
 import { BrowseDonorBody } from './browse-view/BrowseDonor';
 import { BrowseProtectedDonorBody } from './browse-view/BrowseProtectedDonor';
 import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
 import { useUserDownloadAccess } from '../util/hooks';
+import { DonorMetadataDownloadButton } from '../shared/DonorMetadataDownloadButton';
 
 export const BROWSE_STATUS_FILTERS =
-    'status=public&status=public-restricted&status=restricted&status=released';
+    'status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network';
 
 export const BROWSE_LINKS = {
     file:
-        '/browse/?type=File&sample_summary.studies=Production&donors.tags=has_released_files&' +
+        '/browse/?type=File&sample_summary.studies=Production&' +
         BROWSE_STATUS_FILTERS,
     donor:
         '/browse/?type=Donor&study=Production&tags=has_released_files&' +
@@ -69,7 +61,10 @@ export default function BrowseView(props) {
 const BrowseFileBody = (props) => {
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
     const { session, href, windowWidth, windowHeight, isFullscreen } = props;
-    const initialFields = ['sample_summary.tissues', 'sequencing.sequencer.display_title'];
+    const initialFields = [
+        'sample_summary.tissues',
+        'sequencing.sequencer.display_title',
+    ];
     return (
         <>
             <h2 className="browse-summary-header">SMaHT Data Summary</h2>
@@ -87,7 +82,9 @@ const BrowseFileBody = (props) => {
                     />
                 </div>
                 <div className="col ps-0">
-                    <div id="facet-charts-container" className="container ps-4">
+                    <div
+                        id="facet-charts-container"
+                        className="container ps-0 ps-xl-4">
                         <FacetCharts
                             {..._.pick(
                                 props,
@@ -195,79 +192,6 @@ export class BrowseViewBody extends React.PureComponent {
     }
 }
 
-/**
- * Button to download the bulk donor metadata for all SMaHT donors.
- * @param {Object} props - The component props.
- * @param {Object} props.session - The session object.
- * @returns {JSX.Element} The download button.
- *
- * Note: this component only renders for logged-in users.
- */
-export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
-    const [downloadLink, setDownloadLink] = useState(null);
-
-    useEffect(() => {
-        if (session) {
-            const searchURL =
-                '/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.released_date';
-
-            ajax.load(
-                searchURL,
-                (resp) => {
-                    // Use the first item in the response
-                    const latest_file = resp?.['@graph']?.[0];
-
-                    if (latest_file?.href) {
-                        // Update the download link
-                        setDownloadLink(latest_file?.href);
-
-                        // Rebuild the tooltip after the component mounts
-                        ReactTooltip.rebuild();
-                    }
-                },
-                'GET',
-                () => {
-                    console.log('Error loading Bulk Donor Metadata button');
-                }
-            );
-        } else {
-            setDownloadLink(null);
-        }
-    }, [session]);
-
-    return downloadLink ? (
-        <a
-            data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
-            className={
-                'donor-metadata btn btn-sm btn-outline-secondary ' + className
-            }
-            href={downloadLink}
-            download>
-            <span>
-                <i className="icon icon-fw icon-users fas me-1" />
-                Download Bulk Donor Metadata
-            </span>
-        </a>
-    ) : (
-        <OverlayTrigger
-            trigger={['hover', 'focus']}
-            placement="top"
-            overlay={renderProtectedAccessPopover()}>
-            <button
-                className={
-                    'donor-metadata btn btn-sm btn-outline-secondary ' +
-                    className
-                }
-                disabled>
-                <span>
-                    <i className="icon icon-fw icon-users fas me-1" />
-                    Download Bulk Donor Metadata
-                </span>
-            </button>
-        </OverlayTrigger>
-    );
-};
-
 export const BrowseFileSearchTable = (props) => {
     const {
         session,
@@ -277,6 +201,7 @@ export const BrowseFileSearchTable = (props) => {
         selectedItems,
         onSelectItem,
         onResetSelectedItems,
+        userDownloadAccess,
     } = props;
     const facets = transformedFacets(context, currentAction, schemas);
     const tableColumnClassName = 'results-column col';
@@ -298,11 +223,11 @@ export const BrowseFileSearchTable = (props) => {
             }>
             <div className="d-flex gap-2">
                 <DonorMetadataDownloadButton session={session} />
-                {session ? (
+                {userDownloadAccess?.['protected'] ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
-                        className="btn btn-primary btn-sm me-05 align-items-center"
+                        className="download-button has-access btn btn-primary btn-sm me-05 align-items-center"
                         {...{ selectedItems, session }}
                         analyticsAddItemsToCart>
                         <i className="icon icon-download fas me-03" />
@@ -314,7 +239,7 @@ export const BrowseFileSearchTable = (props) => {
                         placement="top"
                         overlay={renderProtectedAccessPopover()}>
                         <button
-                            className="btn btn-primary btn-sm me-05 align-items-center download-button"
+                            className="download-button btn btn-primary btn-sm me-05 align-items-center"
                             disabled={true}>
                             <i className="icon icon-download fas me-03" />
                             Download {selectedItems.size} Selected Files
@@ -345,7 +270,6 @@ export const BrowseFileSearchTable = (props) => {
             hideStickyFooter
             isFullscreen={false}
             toggleFullScreen={() => {}}
-            currentAction={'multiselect'}
             renderDetailPane={null}
             termTransformFxn={Schemas.Term.toName}
             separateSingleTermFacets={false}
@@ -583,9 +507,8 @@ export function createBrowseFileColumnExtensionMap({
                     <a
                         target="_blank"
                         href={
-                            (userDownloadAccess?.['restricted'] ||
-                                userDownloadAccess?.['public-restricted']) &&
-                            protected_donor
+                            userDownloadAccess?.['protected'] &&
+                            protected_donor?.['@id']
                                 ? protected_donor?.['@id']
                                 : donorLink
                         }>

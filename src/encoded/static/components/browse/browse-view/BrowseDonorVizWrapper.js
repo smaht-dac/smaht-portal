@@ -3,24 +3,23 @@ import React, { useState, useEffect, useMemo } from 'react';
 import url from 'url';
 import memoize from 'memoize-one';
 import _ from 'underscore';
+import { Popover } from 'react-bootstrap';
 
 import { BrowseSummaryStatsViewer } from './BrowseSummaryStatController';
 import { FacetCharts } from '../components/FacetCharts';
 import { ChartDataController } from '../../viz/chart-data-controller';
 import DonorCohortViewChart from '../components/DonorCohortViewChart';
 import { renderHardyScaleDescriptionPopover } from '../../item-pages/components/donor-overview/PublicDonorViewDataCards';
+import { useUserDownloadAccess } from '../../util/hooks';
 
 import { IconToggle } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Toggle';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { Popover } from 'react-bootstrap';
-import { set } from 'date-fns';
-
 
 /**
  * Donor self-reported ethnicity data
  * This data is used to visualize the distribution of self-reported ethnicities among donors.
  */
-export const donorSelfReportedEthnicityData = memoize(() =>
+export const getDonorSelfReportedEthnicityData = memoize(() =>
     _.chain([
         { group: 'American Indian or Alaska Native', value1: 1, value2: 0, total: 10 },
         // { group: 'Asian', value1: 8, value2: 0, total: 83 },
@@ -80,10 +79,6 @@ export const renderEthnicityPopover = (customId) => (
 );
 
 export const BrowseDonorVizWrapper = (props) => {
-    const [toggleViewIndex, setToggleViewIndex] = useState(1);
-    const [donorAgeGroupData, setDonorAgeGroupData] = useState();
-    const [donorHardyScaleData, setDonorHardyScaleData] = useState();
-    const [loading, setLoading] = useState(false);
     const {
         alerts,
         windowWidth,
@@ -94,6 +89,12 @@ export const BrowseDonorVizWrapper = (props) => {
         session,
         mapping
     } = props;
+    const [toggleViewIndex, setToggleViewIndex] = useState(1);
+    const [donorAgeGroupData, setDonorAgeGroupData] = useState();
+    const [donorHardyScaleData, setDonorHardyScaleData] = useState();
+    const [loading, setLoading] = useState(false);
+    const userDownloadAccess = useUserDownloadAccess(session);
+
     const initialFields = ['sample_summary.tissues', 'sequencing.sequencer.display_title'];
 
     const fileFilters = useMemo(() => {
@@ -116,7 +117,7 @@ export const BrowseDonorVizWrapper = (props) => {
                 ff[`${d.field}.to`] = d.to;
         }
         return url.format({ pathname: '/browse/', query: ff });
-    }
+    };
 
     const donorFilters = useMemo(() => {
         const hrefParts = url.parse(href, true);
@@ -136,7 +137,7 @@ export const BrowseDonorVizWrapper = (props) => {
                 ff[`${d.field.replace('donors.', '')}.to`] = d.to;
         }
         return url.format({ pathname: '/browse/', query: ff });
-    }
+    };
 
     useEffect(() => {
         const dataUrl = '/bar_plot_aggregations/';
@@ -285,7 +286,7 @@ export const BrowseDonorVizWrapper = (props) => {
                 {toggleViewIndex === 0 ? (
                     <div
                         id="facet-charts-container"
-                        className="container ps-4">
+                        className="container ps-0 ps-xl-4">
                         <FacetCharts
                             {..._.pick(
                                 props,
@@ -349,7 +350,7 @@ export const BrowseDonorVizWrapper = (props) => {
 
                         <DonorCohortViewChart
                             title="Self-Reported Ethnicity"
-                            data={donorSelfReportedEthnicityData()}
+                            data={userDownloadAccess?.['open-early'] ? getDonorSelfReportedEthnicityData() : []}
                             chartWidth="auto"
                             chartHeight={420}
                             chartType="horizontal"
@@ -359,6 +360,7 @@ export const BrowseDonorVizWrapper = (props) => {
                             showYAxisTitle={false}
                             popover={renderEthnicityPopover()}
                             session={session}
+                            loading={loading}
                         />
                     </div>
                 )}

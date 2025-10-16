@@ -40,16 +40,19 @@ export const SelectAllAboveTableComponent = (props) => {
         selectedItems, // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
-        deniedAccessPopoverType,
+        deniedAccessPopoverType = 'login', // default to login popover
     } = props;
     const { filters: ctxFilters = null, total: totalResultCount = 0 } =
         context || {};
 
     // Get user download access
     const userDownloadAccess = useUserDownloadAccess(session);
-    const hasDownloadAccess =
-        userDownloadAccess['restricted'] ||
-        userDownloadAccess['public-restricted'];
+
+    // Determine if a user can download this table's files
+    const canDownloadFiles =
+        (deniedAccessPopoverType === 'protected' &&
+            userDownloadAccess['protected']) ||
+        (deniedAccessPopoverType === 'login' && userDownloadAccess['open']);
 
     const selectedFileProps = {
         selectedItems, // From SelectedItemsController
@@ -67,12 +70,12 @@ export const SelectAllAboveTableComponent = (props) => {
             </div>
             <div className="ms-auto col-auto me-0 d-flex pe-0">
                 <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
-                {/* Show popover if needed */}
-                {hasDownloadAccess ? (
+                {/* Show popover if user has the access needed for this table */}
+                {canDownloadFiles ? (
                     <SelectedItemsDownloadButton
                         id="download_tsv_multiselect"
                         disabled={selectedItems.size === 0}
-                        className="btn btn-primary btn-sm me-05 align-items-center"
+                        className="download-button has-access btn btn-primary btn-sm me-05 align-items-center"
                         {...{ selectedItems, session }}
                         analyticsAddItemsToCart>
                         <i className="icon icon-download fas me-03" />
@@ -92,7 +95,7 @@ export const SelectAllAboveTableComponent = (props) => {
                             )
                         }>
                         <button
-                            className="btn btn-primary btn-sm me-05 align-items-center pe-auto download-button"
+                            className="download-button btn btn-primary btn-sm me-05 align-items-center pe-auto download-button"
                             disabled={true}>
                             <i className="icon icon-download fas me-03" />
                             Download {selectedItems.size} Selected Files
