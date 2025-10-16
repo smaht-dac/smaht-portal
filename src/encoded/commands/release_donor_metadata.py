@@ -1,7 +1,7 @@
 """
 Script to release donor and related records to open or protected statuses in SMaHT portal.
 
-This script if for the release of donor metadata and associated
+This script is for the release of donor metadata and associated
 items in the SMaHT data portal. It transitions Donor and related
 linked records (e.g., ProtectedDonor, MedicalHistory, Demographic,
 FamilyHistory, Exposures, Treatments, Tissues, TissueSamples) from their
@@ -15,7 +15,7 @@ Core behavior:
 - Updates the donor item to the chosen open release status.
 - Updates the associated protected donor and related items to the protected
   release status.
-- Optionally updates linked Tissue and TissueSample records.
+- Optionally skips updates linked Tissue and TissueSample records.
 - Validates and patches metadata on the target server.
 - Provides an interactive prompt for confirmation before patching.
 
@@ -33,7 +33,7 @@ Options:
 
     --dry-run
         If provided, patch dictionaries will be prepared and displayed but
-        not executed to allow review prior to updating the metadata.        you to preview the changes before committing them.
+        not executed to allow review prior to updating the metadata.
 
     --exclude-tissues
         If provided, Tissue and TissueSample items associated with the donor
