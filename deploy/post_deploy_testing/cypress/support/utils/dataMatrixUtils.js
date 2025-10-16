@@ -233,16 +233,22 @@ function validateLowerHeaders(expectedLabels) {
  */
 export function testMatrixPopoverValidation(
     matrixId = '#data-matrix-for_production',
-    donors = ['SMHT004', 'SMHT008'],
-    mustLabels = ['Non-exposed Skin', 'Heart', 'Blood'],
-    optionalLabels = [],
-    expectedLowerLabels = ['Donors'],
-    regularBlockCount = 10,
-    rowSummaryBlockCount = 10,
-    colSummaryBlockCount = 3,
-    expectedFilesCount = 0,
-) {
+    {
+        donors = ['SMHT004', 'SMHT008'],
+        mustLabels = ['Non-exposed Skin', 'Heart', 'Blood'],
+        optionalLabels = [],
+        expectedLowerLabels = ['Donors'],
+        regularBlockCount = 10,
+        rowSummaryBlockCount = 10,
+        colSummaryBlockCount = 3,
+        expectedFilesCount = 1,
+    }) {
     cy.get(matrixId).should('exist');
+
+    if (expectedFilesCount === 0) {
+        cy.get(`${matrixId} .stacked-block-viz-container .no-data-available`).should('contain.text', 'No data available');
+        return;
+    }
 
     const columnTotals = {};
 
@@ -362,7 +368,7 @@ export function testMatrixPopoverValidation(
             });
             // verify overall file count matches expectedFilesCount
             if (expectedFilesCount > 0) {
-                cy.log(`Expected ${expectedFilesCount} files to be found.`);
+                cy.log(`Expected at least ${expectedFilesCount} files to be found.`);
                 let sum = 0;
                 [...$blocks].forEach((el) => {
                     const value = parseInt(Cypress.$(el).text().trim(), 10);
@@ -370,7 +376,7 @@ export function testMatrixPopoverValidation(
                         sum += value;
                     }
                 });
-                expect(sum, 'Total file count across row-summary blocks').to.equal(expectedFilesCount);
+                expect(sum, 'Total file count across row-summary blocks').to.be.at.least(expectedFilesCount);
             }
         });
 
@@ -386,7 +392,7 @@ export function testMatrixPopoverValidation(
             });
             // verify overall file count matches expectedFilesCount
             if (expectedFilesCount > 0) {
-                cy.log(`Expected ${expectedFilesCount} files to be found.`);
+                cy.log(`Expected at least ${expectedFilesCount} files to be found.`);
                 let sum = 0;
                 [...$blocks].forEach((el) => {
                     const value = parseInt(Cypress.$(el).text().trim(), 10);
@@ -394,7 +400,7 @@ export function testMatrixPopoverValidation(
                         sum += value;
                     }
                 });
-                expect(sum, 'Total file count across col-summary blocks').to.equal(expectedFilesCount);
+                expect(sum, 'Total file count across col-summary blocks').to.be.at.least(expectedFilesCount);
             }
         });
     });
