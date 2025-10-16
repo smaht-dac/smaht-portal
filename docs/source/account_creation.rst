@@ -65,7 +65,7 @@ Now it is time to connect to the portal. The SMaHT Data Portal uses the OAuth au
 
 Please note that if you think that you may potentially apply to obtain protected-access data (under dbGaP), we *strongly encourage you to use your Google account linked to your institutional e-mail address, or the e-mail address* that you plan to use when you apply for dbGaP access.
 
-To create a Google account linked your institutional email (not your Gmail!), you can find the instructions `here <https://support.google.com/accounts/answer/27441?hl=en&co=GENIE.Platform%3DAndroid#:~:text=Google%20Play-,Use%20an%20existing%20email%20address,-You%20don%27t%20need>`__.
+To create a Google account linked your institutional email (not your Gmail!), you can find the instructions `here <https://support.google.com/accounts/answer/27441?hl=en&ref_topic=3382296&sjid=121446348511371159-NA>`__.
 
 
 Step 3: Registering yourself as a non-SMaHT Network member
@@ -80,7 +80,7 @@ Step 3: Registering yourself as a non-SMaHT Network member
 
 If you are not a SMaHT Network member, choose “No, I am not a member of the SMaHT Network” to proceed to the rest of the self-registration steps.
 
-**NOTE for SMaHT Network members**: If you are a new member, instead of choosing “No”, please choose “Yes” and follow the instructions for creating a network member account `here </docs/access/creating-an-account#for-non-smaht-network-members>`__.
+**NOTE for SMaHT Network members**: If you are a new member, instead of choosing “No”, please choose “Yes” and follow the instructions for creating a network member account `here </docs/access/creating-an-account#for-smaht-network-members-membership-verification-account-creation>`__.
 
 
 Step 4: Complete the Self-Registration Form
@@ -159,10 +159,8 @@ Once your account request to DAC is processed (Step 2), you will be able to log 
 
 |
 
-.. image:: /static/img/docs/account_creation_login_button.png
-    :target: /static/img/docs/account_creation_login_button.png
-    :alt: Google Account Log In Image
-
+.. image:: /static/img/docs/account_creation/login-modal.png
+   :alt: SMaHT Data Portal Login Modal
 
 |
 	

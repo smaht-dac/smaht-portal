@@ -5,10 +5,10 @@ import _ from 'underscore';
 import { ProtectedDonorViewDataCards } from './components/donor-overview/ProtectedDonorViewDataCards';
 import DefaultItemView from './DefaultItemView';
 import { ShowHideInformationToggle } from './components/file-overview/ShowHideInformationToggle';
-import { DonorMetadataDownloadButton } from '../browse/BrowseView';
 import DataMatrix from '../viz/Matrix/DataMatrix';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { BROWSE_STATUS_FILTERS } from '../browse/BrowseView';
+import { DonorMetadataDownloadButton } from '../shared/DonorMetadataDownloadButton';
 
 // Page containing the details of Items of type File
 export default class ProtectedDonorOverview extends DefaultItemView {
