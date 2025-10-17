@@ -109,17 +109,17 @@ function DocsNavItem(props) {
                 <BigDropdownPageTreeMenu
                     disableLinksOnLevel1Titles
                     childrenToHide={[
-                        'docs/analysis/fastq_files',
-                        'docs/analysis/short-read_illumina_paired-end',
-                        'docs/analysis/long-read_pacbio_hifi',
-                        'docs/analysis/long-read_oxford_nanopore',
-                        'docs/analysis/short-read_rna-seq_paired-end',
-                        'docs/analysis/long-read_rna-seq_pacbio_kinnex',
-                        'docs/analysis/genome_builds',
-                        'docs/analysis/genome_annotations',
-                        'docs/analysis/variant_catalogs',
-                        'docs/analysis/software_specific',
-                        'docs/analysis/release_changelog',
+                        'docs/additional-resources/fastq_files',
+                        'docs/additional-resources/short-read_illumina_paired-end',
+                        'docs/additional-resources/long-read_pacbio_hifi',
+                        'docs/additional-resources/long-read_oxford_nanopore',
+                        'docs/additional-resources/short-read_rna-seq_paired-end',
+                        'docs/additional-resources/long-read_rna-seq_pacbio_kinnex',
+                        'docs/additional-resources/genome_builds',
+                        'docs/additional-resources/genome_annotations',
+                        'docs/additional-resources/variant_catalogs',
+                        'docs/additional-resources/software_specific',
+                        'docs/additional-resources/release_changelog',
                     ]}
                 />
             </BigDropdownNavItem>
