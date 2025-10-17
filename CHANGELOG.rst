@@ -9,16 +9,6 @@ Change Log
 
 
 1.4.1
-=======
-`PR 495: SN bulk donor metadata script <http://github.com/smaht-dac/smaht-portal/pull/495>`_
-
-* Creates a script `commands/create_bulk_donor_manifest.py` that can take a list of Donor accession IDs or a search query on Donor and generates the Bulk Donor Manifest file containing the full protected donor metadata for the selected donors
-
-
-=======
-=======
-
-1.4.1
 =====
 
 `PR 495 Script for Bulk Donor Manifests <https://github.com/smaht-dac/smaht-portal/pull/495>`_
