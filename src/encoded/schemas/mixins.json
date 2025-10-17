@@ -893,13 +893,17 @@
             "permission": "restricted_fields",
             "enum": [
                 "public",
+                "open",
+                "open-early",
                 "draft",
                 "released",
+                "open-network",
                 "in review",
                 "obsolete",
                 "deleted",
-                "restricted",
-                "public-restricted"
+                "protected-network",
+                "protected",
+                "protected-early"
             ]
         }
     },

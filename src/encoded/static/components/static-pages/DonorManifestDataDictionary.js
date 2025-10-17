@@ -248,6 +248,11 @@ export const DonorManifestDataDictionary = () => {
                     &lt;item&gt;.&lt;property&gt; (e.g.{' '}
                     <i>familyhistory.disease</i>).
                 </p>
+                <p className="mb-2">
+                    Note: Everything other than age, sex, hardy scale are
+                    protected under dbGaP. No protected data is contained in
+                    this page.
+                </p>
             </div>
             <hr className="my-4"></hr>
             <Select

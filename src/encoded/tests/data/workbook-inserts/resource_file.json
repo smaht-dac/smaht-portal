@@ -15,7 +15,7 @@
             "Clinical Information"
         ],
         "access_status": "Protected",
-        "status": "restricted",
+        "status": "protected-network",
         "filename": "metadata.tsv"
     }
 ]

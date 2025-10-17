@@ -53,15 +53,15 @@ navigate.getBrowseBaseParams.mappings = {
         'parameters': {
             'type': ['File'],
             'sample_summary.studies': ['Production'],
-            'status': ['public', 'public-restricted', 'restricted', 'released'],
-            'donors.tags': ['has_released_files'],
+            'status': ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'],
+            //'donors.tags': ['has_released_files'],
         }
     },
     'donor' : {
         'parameters': {
             'type': ['Donor'],
             'study': ['Production'],
-            // 'status': ['public', 'public-restricted', 'restricted', 'released'],
+            // 'status': ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'],
             'tags': ['has_released_files']
         }
     },
@@ -69,7 +69,7 @@ navigate.getBrowseBaseParams.mappings = {
         'parameters': {
             'type': ['ProtectedDonor'],
             'study': ['Production'],
-            // 'status': ['public', 'public-restricted', 'restricted', 'released'],
+            // 'status': ['open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'],
             'tags': ['has_released_files']
         }
     }

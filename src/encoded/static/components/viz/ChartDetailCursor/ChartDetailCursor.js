@@ -156,10 +156,12 @@ class Body extends React.PureComponent {
                 <Crumbs path={path} schemas={schemas} primaryCount={primaryCount} />
                 <h6 className="field-title row px-0">
                     <span className="col-7">
-                        {
-                            includeTitleDescendentPrefix && props.path.length > 1 ?
-                                <small className="descendent-prefix"> &gt; </small> : null
-                        }{leafNodeFieldTitle}
+                        <small>
+                            {
+                                includeTitleDescendentPrefix && props.path.length > 1 ?
+                                    <small className="descendent-prefix"> &gt; </small> : null
+                            }{leafNodeFieldTitle}
+                        </small>
                     </span>
                     <span className="col-5 text-end">
                         {this.primaryCountLabel()}
