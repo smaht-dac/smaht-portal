@@ -67,10 +67,12 @@ Behavior
 --------
     * If both --search and --donors are provided, donors from both are included.
     * If only one of --search or --donors is provided, that source is used.
-    * If neither is provided, a default search query is constructed:
+    * If neither is provided, a search query is constructed based on the selected mode.
     * The --public option restricts the manifest to public donor properties only,
         however, if this option is used with a search or donor IDs the public metadata for those
         donors will be added to the manifest regardless of the status of those donors.
+    If no option is provided, the manifest includes protected donor properties for open donors only
+    using the default search: 'study=Benchmarking&study=Production&type=ProtectedDonor&status=protected'
 
 Output
 ------
@@ -173,7 +175,6 @@ def create_bulk_donor_manifest(
     """Create bulk donor manifest file for given donors."""
 
     request_handler = RequestHandler(auth_key=auth_key)
-    # import pdb; pdb.set_trace()
     donors = get_donors(request_handler, search, identifiers)
     log.info(f"Found {len(donors)} Benchmarking and Production donors to process")
     schemas = ff_utils.get_schemas(key=auth_key)
@@ -220,7 +221,7 @@ def get_items_from_search_query(
 
 
 def filter_donors(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Get Benchmarking and Productino donors from given items."""
+    """Get Benchmarking and Production donors from given items."""
     return [item for item in items if donor_utils.is_abstract_donor(item) and donor_utils.get_study(item)]
 
 
@@ -240,7 +241,8 @@ def get_bulk_donor_manifest(
 ) -> pd.DataFrame:
     """Generate dataframe of bulk donor manifest from list of donors."""
     kept_properties = get_kept_properties(schemas, public)
-    donor_manifest = pd.DataFrame(columns=kept_properties)
+    donor_manifest = pd.DataFrame(
+        columns=modify_properties(kept_properties))
     external_ids = [item_utils.get_external_id(donor) for donor in donors]
     medical_histories = get_medical_histories(external_ids, request_handler)
     for idx, donor in enumerate(donors):
@@ -251,10 +253,17 @@ def get_bulk_donor_manifest(
     return donor_manifest
 
 
+def modify_properties(properties: List[str]) -> List[str]:
+    """Modify property names based on CHANGED_COLUMNS mapping."""
+    modified_properties = [
+        CHANGED_COLUMNS[prop] if prop in CHANGED_COLUMNS.keys()
+        else prop for prop in properties]
+    return modified_properties
+
+
 def get_kept_properties(schemas: Dict[str, Any], public: bool = False) -> List[str]:
     """Get properties that are included in the bulk manifest from the schema."""
     all_kept_properties = []
-    # import pdb; pdb.set_trace()
     item_types = PROTECTED_ITEM_TYPES
     if public:
         item_types = PUBLIC_ITEM_TYPES
@@ -270,10 +279,7 @@ def get_kept_properties(schemas: Dict[str, Any], public: bool = False) -> List[s
             and 'linkTo' not in schemas[item_type]['properties'][prop]
         ]
         all_kept_properties += kept_properties
-    modified_properties = [
-        CHANGED_COLUMNS[prop] if prop in CHANGED_COLUMNS.keys()
-        else prop for prop in all_kept_properties]
-    return modified_properties
+    return all_kept_properties
 
 
 def get_medical_histories(
@@ -462,7 +468,7 @@ def main() -> None:
         "--open-network",
         action="store_true",
         default=False,
-        help="Create open-network manifest (only public donor properties including network-released donors)",
+        help="Create open-network manifest (only public donor properties including network-released donors) WARNING: Has no effect when --search or --donors are provided.",
     )
     args = parser.parse_args()
     auth_key = get_auth_key(args.env)
@@ -479,7 +485,6 @@ def main() -> None:
     elif not args.search:
         # default to default search based on public or not
         search_query = DEFAULT_SEARCH_STEM
-        # import pdb; pdb.set_trace()
         if args.public or args.open_network:
             search_query += f"&type={PUBLIC_ITEM_TYPES[0]}&status={PUBLIC_STATUS}"
             if args.open_network:
@@ -492,7 +497,6 @@ def main() -> None:
         log.info(f"Using default search {search_query} to get donors")
     else:
         search_query = args.search
-    # import pdb; pdb.set_trace()
     create_bulk_donor_manifest(
         args.output,
         auth_key,
