@@ -31,7 +31,7 @@ export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
 
     useEffect(() => {
         if (session && highestUserAccess) {
-            const searchURL = `/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.released&status=${highestUserAccess}`;
+            const searchURL = `/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.${highestUserAccess}&status=${highestUserAccess}`;
 
             ajax.load(
                 searchURL,
