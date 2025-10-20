@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.4.1
+=====
+
+`PR 539: fix: update sort field to get latest manifest <https://github.com/smaht-dac/smaht-portal/pull/539>`_
+
+* Updates search query for donor manifest file
+
+
 1.4.0
 =====
 
