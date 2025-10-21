@@ -307,7 +307,6 @@ describe("Data Overview by role", () => {
 
         // override caps.expectedDataMatrixProductionOpts for devtest since it has limited data whereas prod has none
         const baseUrl = Cypress.config().baseUrl || "";
-        console.log(`Base URL: ${baseUrl}`);
         if (baseUrl.includes("devtest.smaht.org") && _.isEqual(caps.expectedDataMatrixProductionOpts, EMPTY_DM_PROD_OPTS)) {
             caps.expectedDataMatrixProductionOpts = BASE_DM_PROD_OPTS;
         }
