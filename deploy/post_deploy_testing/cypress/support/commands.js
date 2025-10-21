@@ -165,6 +165,13 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
         message: 'Attempting to login as role ' + role
     });
 
+    //ensure user is logged out first
+    cy.get('body').then(($body) => {
+        if ($body.find(navUserAcctDropdownBtnSelector + '#account-menu-item').length > 0) {
+            cy.logoutSMaHT().end();
+        }
+    });
+
     function performLogin(token, userDisplayName = '') {
         return cy
             .window()
@@ -265,7 +272,7 @@ Cypress.Commands.add('validateUser', function (userDisplayName = '') {
 
 Cypress.Commands.add('logoutSMaHT', function (options = { useEnvToken: true }) {
     return cy.get(navUserAcctDropdownBtnSelector)
-        .scrollIntoView()
+        .scrollIntoView().wait(100)
         .click()
         .end()
         .get('#logoutbtn')
