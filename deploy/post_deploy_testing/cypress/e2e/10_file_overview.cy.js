@@ -4,48 +4,68 @@ import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 /* ----------------------------- ROLE MATRIX -----------------------------
    Toggle which roles run this suite. Adjust per your access model.
 
-   - runReleasedFilesWithQC: visit OutputFiles (with QC) and
-     validate 3 items end-to-end.
+   - runOutputFilesWithQC: visit OutputFiles (with QC) and validate 3 items end-to-end.
+   - runAccessForbiddenStatusCheck: verify that files with specific statuses are not accessible (404) for the role.
 ------------------------------------------------------------------------- */
 const ROLE_MATRIX = {
     UNAUTH: {
         label: "Unauthenticated",
         isAuthenticated: false,
-        runReleasedFilesWithQC: true,
+        runOutputFilesWithQC: true,
+        runAccessForbiddenStatusCheck: true,
 
-        expectedDownloadButtonStatus: "disabled",
+        expectedCanDownloadFile: false,
+        expectedCanDownloadProtectedFile: false,
+        expectedQCOverviewTabVisible: false,
+        expectedShouldNotVisibleStatus: ["open-early", "open-network", "protected-early", "protected-network", "in review"],
     },
 
     [ROLE_TYPES.SMAHT_DBGAP]: {
         label: "SMAHT_DBGAP",
         isAuthenticated: true,
-        runReleasedFilesWithQC: true,
+        runOutputFilesWithQC: true,
+        runAccessForbiddenStatusCheck: false,
 
-        expectedDownloadButtonStatus: "enabled",
+        expectedCanDownloadFile: true,
+        expectedCanDownloadProtectedFile: true,
+        expectedQCOverviewTabVisible: true,
+        expectedShouldNotVisibleStatus: ["in review"],
     },
 
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
         label: "SMAHT_NON_DBGAP",
         isAuthenticated: true,
-        runReleasedFilesWithQC: true,
+        runOutputFilesWithQC: true,
+        runAccessForbiddenStatusCheck: true,
 
-        expectedDownloadButtonStatus: "enabled",
+        expectedCanDownloadFile: true,
+        expectedCanDownloadProtectedFile: false,
+        expectedQCOverviewTabVisible: false,
+        expectedShouldNotVisibleStatus: ["protected-early", "protected-network", "in review"],
     },
 
     [ROLE_TYPES.PUBLIC_DBGAP]: {
         label: "PUBLIC_DBGAP",
         isAuthenticated: true,
-        runReleasedFilesWithQC: true,
+        runOutputFilesWithQC: true,
+        runAccessForbiddenStatusCheck: true,
 
-        expectedDownloadButtonStatus: "enabled",
+        expectedCanDownloadFile: true,
+        expectedCanDownloadProtectedFile: true,
+        expectedQCOverviewTabVisible: true,
+        expectedShouldNotVisibleStatus: ["open-early", "open-network", "protected-early", "protected-network", "in review"],
     },
 
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
         label: "PUBLIC_NON_DBGAP",
         isAuthenticated: true,
-        runReleasedFilesWithQC: true,
+        runOutputFilesWithQC: true,
+        runAccessForbiddenStatusCheck: true,
 
-        expectedDownloadButtonStatus: "enabled",
+        expectedCanDownloadFile: true,
+        expectedCanDownloadProtectedFile: false,
+        expectedQCOverviewTabVisible: false,
+        expectedShouldNotVisibleStatus: ["open-early", "open-network", "protected-early", "protected-network", "in review"],
     },
 };
 
@@ -67,12 +87,12 @@ function logoutIfNeeded(roleKey) {
 
 /* ----------------------------- STEP HELPERS ----------------------------- */
 
-/** Verify Random 3 Open Files with QC Metrics (original flow preserved) */
-function stepReleasedFilesWithQC() {
+/** Verify Random 3 Open Files with QC Metrics */
+function stepOutputFilesWithQC(caps) {
     const TEST_FILE_COUNT = 3;
 
     cy.visit(
-        "/search/?type=OutputFile&status=open&donors.external_id%21=No+value&quality_metrics%21=No+value&sample_summary.studies%21=No+value&sort=-file_status_tracking.released",
+        "/search/?type=OutputFile&donors.external_id%21=No+value&quality_metrics%21=No+value&sample_summary.studies%21=No+value&sort=-file_status_tracking.released",
         { headers: cypressVisitHeaders }
     )
         .get("#slow-load-container")
@@ -147,8 +167,6 @@ function stepReleasedFilesWithQC() {
                                     });
                             }
 
-                            // --- Usage examples ---
-
                             // Sample Information: these fields must always have valid values
                             checkFields('Sample Information', ['Donor ID', 'Study']);
 
@@ -159,7 +177,7 @@ function stepReleasedFilesWithQC() {
                                 ['Genome Coverage', 'Target Genome Coverage'] // allowed to contain 'N/A'
                             );
 
-                            // File Properties: extract the "Size" value for later comparison in modal validation
+                            // File Properties: extract the "Size" and "Accession" value for later comparison in modal validation
                             cy.get('.data-card .header-text')
                                 .contains('File Properties')
                                 .parent()
@@ -172,7 +190,20 @@ function stepReleasedFilesWithQC() {
                                 .as('fileSize');
 
                             // File Properties: ensure both fields have valid values
-                            checkFields('File Properties', ['Size', 'MD5 Checksum']);
+                            checkFields('File Properties', ['Access','Size', 'MD5 Checksum']);
+
+                            // fileSize must be in KB, MB, GB or TB format
+                            cy.get('@fileSize').should((sizeText) => {
+                                expect(sizeText).to.match(/^\d+(\.\d+)?\s*(KB|MB|GB|TB)$/i);
+                            });
+
+                            cy.get('.datum-value .file-status')
+                                .then(($el) => {
+                                    const textNode = [...$el[0].childNodes]
+                                        .find((node) => node.nodeType === Node.TEXT_NODE)
+                                        ?.textContent.trim();
+                                    cy.wrap(textNode).as('status');
+                                });
 
                             // Public Release Date: must always contain a valid date (not empty or 'N/A')
                             cy.get('.data-card .datum-title span')
@@ -216,108 +247,141 @@ function stepReleasedFilesWithQC() {
                                 .parents('button')
                                 .click();
 
-                            // 1. QC Overview Status must have a value
-                            cy.get('#file-overview\\.qc-overview .header.top')
-                                .should('contain.text', 'QC Overview Status:')
-                                .within(() => {
-                                    cy.get('.badge').invoke('text').should((status) => {
-                                        expect(status.trim()).to.not.be.empty;
-                                    });
-                                });
-
-                            // 2. "View Relatedness Chart" button params under Critical QC
-                            cy.get('#file-overview\\.qc-overview h2.header.mb-2')
-                                .contains('Critical QC')
-                                .parent()
-                                .within(() => {
-                                    cy.get('a.btn-outline-secondary')
-                                        .should('exist')
-                                        .should((a) => {
-                                            const url = a[0].getAttribute('href');
-                                            expect(url).to.include('tab=');
-                                            expect(url).to.include('file=');
-                                            const match = url.match(/[?&]file=([^&]+)/);
-                                            expect(match, 'file param should exist').to.not.be.null;
-                                            const fileParamValue = decodeURIComponent(match[1]);
-                                            expect(fileParamValue).to.equal(fileAccession);
+                            if (caps.expectedQCOverviewTabVisible === true) {
+                                // 1. QC Overview Status must have a value
+                                cy.get('#file-overview .qc-overview-tab .header.top')
+                                    .should('contain.text', 'QC Overview Status:')
+                                    .within(() => {
+                                        cy.get('.badge').invoke('text').should((status) => {
+                                            expect(status.trim()).to.not.be.empty;
                                         });
-                                });
+                                    });
 
-                            // 3. "Visualize Quality Metrics" button params
-                            cy.get('#file-overview\\.qc-overview .header.top')
-                                .find('a.btn-primary')
-                                .should('exist')
-                                .should((a) => {
-                                    const url = a[0].getAttribute('href');
-                                    expect(url).to.include('tab=');
-                                    expect(url).to.include('file=');
-                                    const match = url.match(/[?&]file=([^&]+)/);
-                                    expect(match, 'file param should exist').to.not.be.null;
-                                    const fileParamValue = decodeURIComponent(match[1]);
-                                    expect(fileParamValue).to.equal(fileAccession);
-                                });
-
-                            // 4. General QC table must have at least one row
-                            cy.get('#file-overview\\.qc-overview h2.header.mb-2')
-                                .contains('General QC')
-                                .parent()
-                                .within(() => {
-                                    cy.get('table.qc-overview-tab-table').should('exist');
-                                    cy.get('tbody tr').its('length').should('be.gte', 1);
-                                });
-
-                            // --- Download Modal checks ---
-                            cy.get('#download_tsv_multiselect')
-                                .should('be.visible')
-                                .and('not.be.disabled')
-                                .click();
-
-                            cy.get('.modal').should('be.visible').within(() => {
-                                // Two radio buttons exist
-                                cy.get('input[type="radio"][name="curl"]').should('exist');
-                                cy.get('input[type="radio"][name="aws_cli"]').should('exist');
-                                cy.get('input[type="radio"]').should('have.length', 2);
-
-                                // Default: cURL active
-                                cy.get('button.nav-link.active').should('contain.text', 'cURL');
-                                cy.get('input[type="radio"][name="curl"]').should('be.checked');
-                                cy.get('.tab-pane.active.show').within(() => {
-                                    cy.get('.curl-command').should('be.visible');
-                                    cy.get('.aws_cli-command').should('not.exist');
-                                });
-
-                                // Switch to AWS CLI
-                                cy.get('button.nav-link').contains('AWS CLI').click();
-                                cy.get('button.nav-link.active').should('contain.text', 'AWS CLI');
-                                cy.get('input[type="radio"][name="aws_cli"]').should('be.checked');
-                                cy.get('.tab-pane.active.show').within(() => {
-                                    cy.get('.aws_cli-command').should('be.visible');
-                                    cy.get('.curl-command').should('not.exist');
-                                });
-
-                                // Download button text reflects selection
-                                cy.get('button').contains(/Download AWS CLI File Manifest/i).should('be.visible');
-                                cy.get('button.nav-link').contains('cURL').click();
-                                cy.get('button.nav-link.active').should('contain.text', 'cURL');
-                                cy.get('input[type="radio"][name="curl"]').should('be.checked');
-                                cy.get('button').contains(/Download cURL File Manifest/i).should('be.visible');
-
-                                // Additional metadata buttons
-                                cy.contains('Download Additional Metadata Files')
+                                // 2. "View Relatedness Chart" button params under Critical QC
+                                cy.get('#file-overview .qc-overview-tab h2.header.mb-2')
+                                    .contains('Critical QC')
                                     .parent()
                                     .within(() => {
-                                        ['Biosample', 'Analyte', 'Sequencing'].forEach((type) => {
-                                            cy.get('button')
-                                                .contains(type)
-                                                .should('be.visible')
-                                                .and('not.be.disabled');
-                                        });
+                                        cy.get('a.btn-outline-secondary')
+                                            .should('exist')
+                                            .should((a) => {
+                                                const url = a[0].getAttribute('href');
+                                                expect(url).to.include('tab=');
+                                                expect(url).to.include('file=');
+                                                const match = url.match(/[?&]file=([^&]+)/);
+                                                expect(match, 'file param should exist').to.not.be.null;
+                                                const fileParamValue = decodeURIComponent(match[1]);
+                                                expect(fileParamValue).to.equal(fileAccession);
+                                            });
                                     });
 
-                                // Close modal
-                                cy.get('.btn-close, [aria-label="Close"], button:contains("Close")').first().click({ force: true });
-                            });
-                            cy.get('.modal').should('not.exist');
+                                // 3. "Visualize Quality Metrics" button params
+                                cy.get('#file-overview .qc-overview-tab .header.top')
+                                    .find('a.btn-primary')
+                                    .should('exist')
+                                    .should((a) => {
+                                        const url = a[0].getAttribute('href');
+                                        expect(url).to.include('tab=');
+                                        expect(url).to.include('file=');
+                                        const match = url.match(/[?&]file=([^&]+)/);
+                                        expect(match, 'file param should exist').to.not.be.null;
+                                        const fileParamValue = decodeURIComponent(match[1]);
+                                        expect(fileParamValue).to.equal(fileAccession);
+                                    });
+
+                                // 4. General QC table must have at least one row
+                                cy.get('#file-overview .qc-overview-tab h2.header.mb-2')
+                                    .contains('General QC')
+                                    .parent()
+                                    .within(() => {
+                                        cy.get('table.qc-overview-tab-table').should('exist');
+                                        cy.get('tbody tr').its('length').should('be.gte', 1);
+                                    });
+                            } else {
+                                // QC Overview tab is visible but shows Protected Data message
+                                cy.get('#file-overview #file-overview\\.qc-overview').should('exist').within(() => {
+                                    cy.get('.protected-data h4').should('be.visible').and('contain.text', 'Protected Data');
+                                });
+                            }
+
+                            if (caps.expectedCanDownloadFile === true) {
+
+                                cy.get('@status').then((status) => {
+
+                                    if (status.toLowerCase().includes('protected') && !caps.expectedCanDownloadProtectedFile) {
+                                        // Protected file download not expected to be allowed
+                                        cy.get('.download-button.btn.btn-primary[disabled]').then(($disabledButton) => {
+                                            cy.wrap($disabledButton)
+                                                .trigger('mouseover', { force: true }); // Trigger a hover event
+                                            cy.get('.popover.download-popover').should('be.visible');
+                                            cy.wrap($disabledButton).trigger('mouseout', { force: true });
+                                            cy.get('.popover.download-popover').should('not.exist');
+                                        });
+                                    } else {
+                                        // --- Download Modal checks ---
+                                        cy.get('#download_tsv_multiselect')
+                                            .should('be.visible')
+                                            .and('not.be.disabled')
+                                            .click();
+
+                                        cy.get('.modal').should('be.visible').within(() => {
+                                            // Two radio buttons exist
+                                            cy.get('input[type="radio"][name="curl"]').should('exist');
+                                            cy.get('input[type="radio"][name="aws_cli"]').should('exist');
+                                            cy.get('input[type="radio"]').should('have.length', 2);
+
+                                            // Default: cURL active
+                                            cy.get('button.nav-link.active').should('contain.text', 'cURL');
+                                            cy.get('input[type="radio"][name="curl"]').should('be.checked');
+                                            cy.get('.tab-pane.active.show').within(() => {
+                                                cy.get('.curl-command').should('be.visible');
+                                                cy.get('.aws_cli-command').should('not.exist');
+                                            });
+
+                                            // Switch to AWS CLI
+                                            cy.get('button.nav-link').contains('AWS CLI').click();
+                                            cy.get('button.nav-link.active').should('contain.text', 'AWS CLI');
+                                            cy.get('input[type="radio"][name="aws_cli"]').should('be.checked');
+                                            cy.get('.tab-pane.active.show').within(() => {
+                                                cy.get('.aws_cli-command').should('be.visible');
+                                                cy.get('.curl-command').should('not.exist');
+                                            });
+
+                                            // Download button text reflects selection
+                                            cy.get('button').contains(/Download AWS CLI File Manifest/i).should('be.visible');
+                                            cy.get('button.nav-link').contains('cURL').click();
+                                            cy.get('button.nav-link.active').should('contain.text', 'cURL');
+                                            cy.get('input[type="radio"][name="curl"]').should('be.checked');
+                                            cy.get('button').contains(/Download cURL File Manifest/i).should('be.visible');
+
+                                            // Additional metadata buttons
+                                            cy.contains('Download Additional Metadata Files')
+                                                .parent()
+                                                .within(() => {
+                                                    ['Biosample', 'Analyte', 'Sequencing'].forEach((type) => {
+                                                        cy.get('button')
+                                                            .contains(type)
+                                                            .should('be.visible')
+                                                            .and('not.be.disabled');
+                                                    });
+                                                });
+
+                                            // Close modal
+                                            cy.get('.btn-close, [aria-label="Close"], button:contains("Close")').first().click({ force: true });
+                                        });
+                                        cy.get('.modal').should('not.exist');
+                                    }
+                                });
+                            } else if (caps.expectedCanDownloadFile === "disabled") {
+                                // Handle the case where the download button is disabled
+                                cy.get('.download-button.btn.btn-primary[disabled]').then(($disabledButton) => {
+                                    cy.wrap($disabledButton)
+                                        .trigger('mouseover', { force: true }); // Trigger a hover event
+                                    cy.get('.popover.download-popover').should('be.visible');
+                                    cy.wrap($disabledButton).trigger('mouseout', { force: true });
+                                    cy.get('.popover.download-popover').should('not.exist');
+                                });
+                            }
 
                             // Back to the list and continue
                             cy.go('back');
@@ -333,6 +397,25 @@ function stepReleasedFilesWithQC() {
             // Kick off the loop
             testVisit(0);
         });
+}
+
+// Verify user should not list any files having status in expectedShouldNotVisibleStatus array and get 404 code in /search page
+function stepAccessForbiddenStatusCheck(caps) {
+    // override caps.expectedShouldNotVisibleStatus for devtest has still "released" files that need to be replaced with "open-network"
+    const baseUrl = Cypress.config().baseUrl || "";
+    const clonedStatus = [...caps.expectedShouldNotVisibleStatus];
+    if (baseUrl.includes("devtest.smaht.org") && caps.expectedShouldNotVisibleStatus.includes("open-network")) {
+        clonedStatus.push("released");
+    }
+
+    const params = clonedStatus.map((status) => `status=${encodeURIComponent(status)}`).join('&');
+    cy.request({
+        url: `/search/?type=File&${params}`,
+        headers: cypressVisitHeaders,
+        failOnStatusCode: false,
+    }).then((response) => {
+        expect(response.status).to.eq(404);
+    });
 }
 
 /* ----------------------------- PARAMETERIZED SUITE ----------------------------- */
@@ -351,18 +434,23 @@ describe("File Overview by role — 3 released files with QC", () => {
         const label = caps.label || String(roleKey);
 
         context(`${label} → released files with QC`, () => {
-            beforeEach(() => {
+            before(() => {
                 goto("/");
                 loginIfNeeded(roleKey);
             });
 
-            afterEach(() => {
+            after(() => {
                 logoutIfNeeded(roleKey);
             });
 
-            it("verifies random 3 released files with QC (if enabled)", () => {
-                if (!caps.runReleasedFilesWithQC) return;
-                stepReleasedFilesWithQC();
+            it(`verifies random 3 released files with QC (enabled: ${caps.runOutputFilesWithQC})`, () => {
+                if (!caps.runOutputFilesWithQC) return;
+                stepOutputFilesWithQC(caps);
+            });
+
+            it(`verifies access forbidden for specific file statuses (enabled: ${caps.runAccessForbiddenStatusCheck})`, () => {
+                if (!caps.runAccessForbiddenStatusCheck) return;
+                stepAccessForbiddenStatusCheck(caps);
             });
         });
     });
