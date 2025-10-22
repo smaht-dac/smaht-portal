@@ -596,7 +596,7 @@ export function createBrowseProtectedDonorColumnExtensionMap({
                     return fileCount ? (
                         <a
                             className="value text-center"
-                            href={`/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${result?.display_title}`}>
+                            href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${result?.display_title}`}>
                             {fileCount} File{fileCount > 1 ? 's' : ''}
                         </a>
                     ) : null;
