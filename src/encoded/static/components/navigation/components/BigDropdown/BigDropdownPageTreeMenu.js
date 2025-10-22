@@ -297,7 +297,12 @@ function CustomStaticLinks({ pathName, href, session }) {
                             </div>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
-                            href="/data/analysis/colo829-snv-indel-detection"
+                            disabled={!session}
+                            href={
+                                session
+                                    ? '/data/analysis/colo829-snv-indel-detection'
+                                    : ''
+                            }
                             titleIcon={
                                 <div>
                                     <img
@@ -307,10 +312,18 @@ function CustomStaticLinks({ pathName, href, session }) {
                                     />
                                 </div>
                             }
-                            className="primary-big-link">
-                            <h4 className="text-large">Somatic Variants</h4>
+                            className="primary-big-link is-fa-icon">
+                            <h4 className="text-large">
+                                Published Somatic Variant Sets
+                                <br />
+                                <span className="text-300 fst-italic text-medium">
+                                    {' '}
+                                    - Coming Soon
+                                </span>
+                            </h4>
                             <div className="description text-medium">
-                                Reference Somatic SNV/Indel, SV, MEI Call Sets
+                                Somatic SNV/Indel, SV, MEI Call Sets published
+                                in SMaHT Network Papers
                             </div>
                         </BigDropdownBigLink>
                     </div>
