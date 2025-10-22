@@ -385,7 +385,7 @@ export default class DataMatrix extends React.PureComponent {
     }
 
     componentDidMount() {
-        this.setState({ "mounted": true });
+        this.setState({ "mounted": true, "totalFiles": "N/A" });
         this.loadSearchQueryResults();
     }
 
@@ -448,6 +448,14 @@ export default class DataMatrix extends React.PureComponent {
             });
 
             updatedState[resultKey] = transformedData;
+            // sum files in transformedData array
+            let totalFiles = 0;
+            _.forEach(transformedData, (r) => {
+                if (r.files && typeof r.files === 'number') {
+                    totalFiles += r.files;
+                }
+            });
+            updatedState['totalFiles'] = totalFiles;
 
             this.setState(updatedState, () => ReactTooltip.rebuild());
         };
@@ -632,7 +640,7 @@ export default class DataMatrix extends React.PureComponent {
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
             colorRanges, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor,
-            defaultOpen = false
+            defaultOpen = false, totalFiles
         } = this.state;
 
         const isLoading =
@@ -712,7 +720,7 @@ export default class DataMatrix extends React.PureComponent {
             </div>
         );
         return (
-            <div id={`data-matrix-for_${idLabel}`} className="data-matrix">
+            <div id={`data-matrix-for_${idLabel}`} className="data-matrix" data-files-count={totalFiles}>
                 <div className="row">
                     {body}
                 </div>

@@ -1426,7 +1426,10 @@ body[data-path="/statistics"] {
                 .header {
                     border-top-color: #9C9CFF;
                 }
-
+                display: none;
+                &:has(.data-matrix:not([data-files-count="0"])) {
+                    display: unset;
+                }
             }
         }
     }
