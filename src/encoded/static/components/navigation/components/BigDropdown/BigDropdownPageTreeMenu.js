@@ -7,12 +7,14 @@ import url from 'url';
 import _ from 'underscore';
 import {
     console,
+    JWT,
     memoizedUrlParse,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { BigDropdownIntroductionWrapper } from './BigDropdownIntroductionWrapper';
 import { BigDropdownBigLink } from './BigDropdownBigLink';
 
 import { BROWSE_LINKS } from '../../../browse/BrowseView';
+import { useUserDownloadAccess } from '../../../util/hooks';
 
 export function BigDropdownPageTreeMenuIntroduction(props) {
     const {
@@ -228,6 +230,9 @@ function Level1Title({ childPageItem, active, disableLinks }) {
 }
 
 function CustomStaticLinks({ pathName, href, session }) {
+    const isConsortiumMember = JWT.getUserDetails()?.consortia?.includes(
+        '358aed10-9b9d-4e26-ab84-4bd162da182b'
+    );
     switch (pathName) {
         case 'data':
             return (
@@ -297,33 +302,25 @@ function CustomStaticLinks({ pathName, href, session }) {
                             </div>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
-                            disabled={!session}
+                            disabled={!isConsortiumMember}
                             href={
-                                session
+                                isConsortiumMember
                                     ? '/data/analysis/colo829-snv-indel-detection'
                                     : ''
                             }
-                            titleIcon={
-                                <div>
-                                    <img
-                                        className="big-link-icon-svg"
-                                        src="/static/img/misc-icons/Analysis Bench.svg"
-                                        alt={`Analysis icon`}
-                                    />
-                                </div>
-                            }
+                            titleIcon="diagram-project"
                             className="primary-big-link is-fa-icon">
                             <h4 className="text-large">
-                                Published Somatic Variant Sets
-                                <br />
-                                <span className="text-300 fst-italic text-medium">
-                                    {' '}
-                                    - Coming Soon
-                                </span>
+                                Somatic Variant Sets
+                                {!isConsortiumMember ? (
+                                    <span className="text-300 fst-italic text-medium">
+                                        {' '}
+                                        - Coming Soon
+                                    </span>
+                                ) : null}
                             </h4>
                             <div className="description text-medium">
-                                Somatic SNV/Indel, SV, MEI Call Sets published
-                                in SMaHT Network Papers
+                                Published Somatic SNV/Indel, SV, MEI Call Sets
                             </div>
                         </BigDropdownBigLink>
                     </div>
