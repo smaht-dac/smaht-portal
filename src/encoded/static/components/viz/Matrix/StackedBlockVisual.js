@@ -100,7 +100,7 @@ export class VisualBody extends React.PureComponent {
             query: { url: queryUrl, columnAggFields },
             fieldChangeMap, valueChangeMap, titleMap,
             groupingProperties, columnGrouping, compositeValueSeparator,
-            rowGroupsExtended, additionalPopoverData = {}
+            rowGroupsExtended, additionalPopoverData = {}, baseBrowseFilesPath
         } = this.props;
         const { depth, blockType = null, popoverPrimaryTitle, rowGroups, rowGroupKey } = blockProps;
         const isGroup = (Array.isArray(data) && data.length >= 1) || false;
@@ -221,7 +221,7 @@ export class VisualBody extends React.PureComponent {
             });
 
             //override path
-            hrefParts.pathname = '/search/';
+            hrefParts.pathname = baseBrowseFilesPath;
             delete hrefQuery.limit;
             delete hrefQuery.field;
             _.extend(hrefQuery, currentFilteringPropertiesVals);

@@ -249,6 +249,7 @@ export default class DataMatrix extends React.PureComponent {
             "sample_summary.studies",
             "dataset",
         ],
+        "baseBrowseFilesPath": "/browse/",
     };
 
     static propTypes = {
@@ -291,6 +292,7 @@ export default class DataMatrix extends React.PureComponent {
         'disableConfigurator': PropTypes.bool,
         'idLabel': PropTypes.string,
         'allowedFields': PropTypes.arrayOf(PropTypes.string),
+        'baseBrowseFilesPath': PropTypes.string
     };
 
     static parseQuery(queryString) {
@@ -621,7 +623,8 @@ export default class DataMatrix extends React.PureComponent {
     render() {
         const {
             headerFor, valueChangeMap, allowedFields, compositeValueSeparator,
-            disableConfigurator = false, idLabel = '', additionalPopoverData = {}
+            disableConfigurator = false, idLabel = '', additionalPopoverData = {},
+            baseBrowseFilesPath
         } = this.props;
         const {
             query, fieldChangeMap, columnGrouping, groupingProperties,
@@ -652,6 +655,7 @@ export default class DataMatrix extends React.PureComponent {
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, additionalPopoverData,
             summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary, compositeValueSeparator,
+            baseBrowseFilesPath
         };
 
         const colAgg = Array.isArray(query.columnAggFields) ? query.columnAggFields : [query.columnAggFields];
