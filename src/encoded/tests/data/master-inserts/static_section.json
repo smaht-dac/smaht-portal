@@ -268,7 +268,7 @@
         "identifier": "data.analysis.colo829_snv_indel_detection",
         "title": "Challenge Data: Truth set and other relevant data",
         "file": "/docs/public/colo829_snv_indel_detection.jsx",
-        "status": "open",
+        "status": "open-network",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -602,7 +602,7 @@
         "identifier": "data_matrix_comparison",
         "title": "SMaHT Data Matrix",
         "file": "/docs/public/data_matrix_comparison.jsx",
-        "status": "open",
+        "status": "protected-network",
         "options": {
             "filetype": "jsx",
             "collapsible": false,

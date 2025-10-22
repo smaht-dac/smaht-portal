@@ -1236,7 +1236,7 @@
     {
         "identifier": "data/analysis/colo829-snv-indel-detection",
         "title": "COLO829 SNV/Indel Detection Challenge",
-        "status": "open",
+        "status": "open-network",
         "content": [
             "6843c6e7-7b47-457d-96c3-387af3c07207"
         ],
@@ -1410,7 +1410,7 @@
     {
         "identifier": "data-matrix",
         "uuid": "3e10a2a2-a918-4a4a-95d5-db032dff1321",
-        "status": "open",
+        "status": "protected-network",
         "content": [
             "2851ec1b-ecdb-479a-b88e-deedaa1886ef"
         ],
