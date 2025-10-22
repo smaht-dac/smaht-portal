@@ -1520,45 +1520,6 @@ function isSummaryBlock(blockType) {
     return blockType === 'row-summary' || blockType === 'col-summary';
 }
 
-/**
- * Not used in the current code, but could be used to fetch estimated coverage data.
- * @param {*} props 
- * @returns 
- */
-// function EstimatedCoverage({ browseUrl }) {
-//     const [estimatedCoverage, setEstimatedCoverage] = React.useState('--');
-
-//     useEffect(() => {
-//         // convert browse_url (e.g. /search/?field=quality_metrics&donors.display_title=SMHT004&format=json&file_sets.libraries.assay.display_title=WGS&sample_summary.studies=Production&sequencing.sequencer.platform=Illumina&status=released&type=File&limit=all) params to payload
-//         const urlParams = new URLSearchParams(browseUrl.split('?')[1]);
-//         const params = Object.fromEntries(urlParams.entries());
-
-//         const payload = {
-//             'search_query_params': params,
-//             'limit': 1000, // Limit the number of files to fetch
-//         };
-//         ajax.load(
-//             '/estimated_coverage/',
-//             (resp) => {
-//                 if (resp.error) {
-//                     console.error(resp.error);
-//                     return;
-//                 }
-//                 setEstimatedCoverage(resp.estimated_coverage);
-//             },
-//             'POST',
-//             (errResp, xhr) => console.error(errResp),
-//             JSON.stringify(payload)
-//         );
-//     }, []);
-
-//     return (
-//         <div className="estimated-coverage">
-//             {estimatedCoverage}
-//         </div>
-//     );
-// }
-
 // Icons for sorting
 function FaIcon(props) {
     const { icon, iconClass } = props;
