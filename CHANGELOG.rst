@@ -15,6 +15,15 @@ Change Log
 * Add Pipeline documentation to the portal as static pages
 
 
+1.4.1
+=====
+
+`PR 495 Script for Bulk Donor Manifests <https://github.com/smaht-dac/smaht-portal/pull/495>`_
+
+* Add script to generate bulk donor metadata manifests - can generate the 4 different files containing
+  public or protected donor metadata for production or benchmarking donors that have been publicly released
+  or are only available to network members.
+
 1.4.0
 =====
 
@@ -131,6 +140,7 @@ Change Log
 * Show placeholder for QC Tab when user does not have access to related QC Items for that file
 
 
+>>>>>>> main
 1.1.0
 =====
 `PR 508: SN Fibroblast tissue type  <https://github.com/smaht-dac/smaht-portal/pull/508>`_
