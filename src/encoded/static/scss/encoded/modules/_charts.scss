@@ -1428,7 +1428,7 @@ body[data-path="/statistics"] {
                 }
                 display: none;
                 &:has(.data-matrix:not([data-files-count="0"])) {
-                    display: unset;
+                    display: flex;
                 }
             }
         }
