@@ -479,6 +479,7 @@ class File(Item, CoreFile):
         'open'
     ]
     STATUS_TO_CHECK_NETWORK_RELEASE_DATE = [
+        'released',
         'open-network',
         'open-early',
         'protected-network',
