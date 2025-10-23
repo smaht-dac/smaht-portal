@@ -101,8 +101,8 @@ def parse_structured_data(file: str,
         "HistologyImage"
     ]
 
-    no_diff_items = get_no_diff_items(structured_data)    
-    for object_type in structured_data.data:        
+    no_diff_items = get_no_diff_items(structured_data)
+    for object_type in structured_data.data:
         structured_data.data[object_type] = [
             item for item in structured_data.data[object_type]
             if item.get('submitted_id') not in no_diff_items or object_type in submittable_file_item_types

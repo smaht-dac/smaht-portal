@@ -11,6 +11,7 @@ Change Log
 =====
 
 * Bug fix - repair missing s3 encryption key in select validation scenarios
+* Update diff check during submission to exclude SubmittedFile items
 
 
 1.4.1
