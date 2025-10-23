@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+1.4.2
+=====
+
+* Bug fix - repair missing s3 encryption key in select validation scenarios
+
 
 1.4.1
 =====
@@ -47,7 +52,7 @@ Change Log
 `PR 527: feat: homepage announcement for portal shutdown <https://github.com/smaht-dac/smaht-portal/pull/527>`_
 
 * Implement announcement in homepage banner for portal shutdown
-* Prevent non-admins from seeing the user registration modal during portal shutdown 
+* Prevent non-admins from seeing the user registration modal during portal shutdown
 
 
 1.3.0
@@ -60,7 +65,7 @@ Change Log
 1.2.1
 =====
 
-* Correct link in submission doc page 
+* Correct link in submission doc page
 
 
 1.2.0
