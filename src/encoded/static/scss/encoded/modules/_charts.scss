@@ -1520,6 +1520,7 @@ body[data-path="/statistics"] {
                 color: #fff;
                 cursor: pointer;
                 border: 1px solid #0003;
+                line-height: 1.65rem;
 
                 &[data-block-value="0"] {
                     cursor: default !important;
