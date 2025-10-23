@@ -369,7 +369,6 @@ class CalcPropConstants:
     }
 
 
-
 def show_upload_credentials(
     request: Optional[Request] = None,
     context: Optional[str] = None,
@@ -471,7 +470,23 @@ class File(Item, CoreFile):
     ]
     STATUS_TO_REVISION_DATE_CONVERSION = [
         'retracted',
-        'released'
+        'released',
+        'protected',
+        'open-network',
+        'open-early',
+        'protected-network',
+        'protected-early',
+        'open'
+    ]
+    STATUS_TO_CHECK_NETWORK_RELEASE_DATE = [
+        'open-network',
+        'open-early',
+        'protected-network',
+        'protected-early'
+    ]
+    STATUS_TO_CHECK_PUBLIC_RELEASE_DATE = [
+        'open',
+        'protected'
     ]
 
     Item.SUBMISSION_CENTER_STATUS_ACL.update({
@@ -573,62 +588,86 @@ class File(Item, CoreFile):
             "title": "File Status Tracking",
             "type": "object",
             "properties": {
-                "uploading": {
-                    "type": "string",
-                    "format": "date-time"
+                "status_tracking": {
+                    "type": "object",
+                    "properties": {
+                        "uploading": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "uploaded": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "retracted": {
+                            "title": "Retracted Date",
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "retracted_date": {
+                            "title": "Retracted Date",
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "in review": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "released": {
+                            "title": "Release Date",
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "released_date": {
+                            "title": "Release Date",
+                            "type": "string",
+                            "format": "date",
+                        },
+                        "open": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "protected-network": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "protected": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "open-network": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "open-early": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "protected-early": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                    }
                 },
-                "uploaded": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "retracted": {
-                    "title": "Retracted Date",
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "retracted_date": {
-                    "title": "Retracted Date",
-                    "type": "string",
-                    "format": "date"
-                },
-                "in review": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "released": {
-                    "title": "Release Date",
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "released_date": {
-                    "title": "Release Date",
-                    "type": "string",
-                    "format": "date",
-                },
-                "open": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "protected-network": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "protected": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "open-network": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "open-early": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "protected-early": {
-                    "type": "string",
-                    "format": "date-time"
-                },
+                "release_dates": {
+                    "type": "object",
+                    "properties": {
+                        "public_release": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "network_release": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        # This is either the network_release or the public_release,
+                        # whichever is earlier
+                        "initial_release": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                }
             }
         }
     )
@@ -637,8 +676,8 @@ class File(Item, CoreFile):
             of the file changed - from this we can determine several things:
                 1. When metadata for this file was submitted (status = uploading or in review)
                 2. When the file was uploaded (status = uploaded)
-                3. When the file was released to consortia (status = released)
-                4. When the file was made public (status = released)
+                3. When the file was released to consortia 
+                4. When the file was made public 
                 5. If protected data, when it was made released (status = restricted)
 
             To make this reasonably efficient, we assume the following ordering:
@@ -658,27 +697,84 @@ class File(Item, CoreFile):
         current_status = self.properties['status']
         if current_status in ['uploading', 'in review']:
             return {
-                current_status: self.properties['date_created']
+                "status_tracking": {
+                    current_status: self.properties['date_created']
+                }
             }
-        else:  # we need the revision history
-            result = {}
-            revision_history = request.embed(f'/{self.uuid}/@@revision-history', as_user='IMPORT')
-            for revision in revision_history['revisions']:
-                status = revision.get('status')
-                if status and status not in result and status in self.STATUS_TO_CHECK_REVISIONS:
-                    if status in ['uploading', 'in review']:  # these are initial statuses
-                        result[status] = revision['date_created']
-                    else:
-                        last_modified = revision.get('last_modified')
-                        if last_modified:
-                            result[status] = last_modified['date_modified']
 
-            # add date converted values for selected status
-            for status in self.STATUS_TO_REVISION_DATE_CONVERSION:
-                if status in result:
-                    result[status + "_date"] = self.get_date_from_datetime(result[status])
+        # we need the revision history
+        status_tracking = {}
+        release_dates = {}
+        revision_history = request.embed(
+            f"/{self.uuid}/@@revision-history", as_user="IMPORT"
+        )
+        for revision in revision_history["revisions"]:
+            status = revision.get("status")
+            if (
+                status
+                and status not in status_tracking
+                and status in self.STATUS_TO_CHECK_REVISIONS
+            ):
 
-            return result
+                if status in [
+                    "uploading",
+                    "in review",
+                ]:  # these are initial statuses
+                    status_tracking[status] = revision["date_created"]
+                else:
+                    last_modified = revision.get("last_modified")
+                    if last_modified:
+                        status_tracking[status] = last_modified["date_modified"]
+
+        network_release_dates = [
+            status_tracking[status] 
+            for status in self.STATUS_TO_CHECK_NETWORK_RELEASE_DATE 
+            if status in status_tracking
+        ]
+        network_release_date = min(network_release_dates) if network_release_dates else None
+
+        public_release_dates = [
+            status_tracking[status] 
+            for status in self.STATUS_TO_CHECK_PUBLIC_RELEASE_DATE 
+            if status in status_tracking
+        ]
+        public_release_date = min(public_release_dates) if public_release_dates else None
+
+        # Get the earliest date as initial release date
+        available_dates = [date for date in [network_release_date, public_release_date] if date]
+        initial_release_date = min(available_dates) if available_dates else None
+
+        # Build release_dates object
+        release_dates = {}
+        if network_release_date:
+            release_dates["network_release"] = network_release_date
+            release_dates["network_release_date"] = self.get_date_from_datetime(
+                network_release_date
+            )
+        if public_release_date:
+            release_dates["public_release"] = public_release_date
+            release_dates["public_release_date"] = self.get_date_from_datetime(
+                public_release_date
+            )
+        if initial_release_date:
+            release_dates["initial_release"] = initial_release_date
+            release_dates["initial_release_date"] = self.get_date_from_datetime(
+                initial_release_date
+            )
+
+        # add date converted values for selected status
+        for status in self.STATUS_TO_REVISION_DATE_CONVERSION:
+            if status in status_tracking:
+                status_tracking[status + "_date"] = self.get_date_from_datetime(
+                    status_tracking[status]
+                )
+
+        result = {}
+        if status_tracking:
+            result["status_tracking"] = status_tracking
+        if release_dates:
+            result["release_dates"] = release_dates
+        return result if result else None
 
     @staticmethod
     def get_date_from_datetime(datetime_str: str) -> str:
