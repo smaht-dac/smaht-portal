@@ -627,25 +627,49 @@ class File(Item, CoreFile):
                             "type": "string",
                             "format": "date-time"
                         },
+                        "open_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
                         "protected-network": {
                             "type": "string",
                             "format": "date-time"
+                        },
+                        "protected-network_date": {
+                            "type": "string",
+                            "format": "date"
                         },
                         "protected": {
                             "type": "string",
                             "format": "date-time"
                         },
+                        "protected_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
                         "open-network": {
                             "type": "string",
                             "format": "date-time"
+                        },
+                        "open-network_date": {
+                            "type": "string",
+                            "format": "date"
                         },
                         "open-early": {
                             "type": "string",
                             "format": "date-time"
                         },
+                        "open-early_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
                         "protected-early": {
                             "type": "string",
                             "format": "date-time"
+                        },
+                        "protected-early_date": {
+                            "type": "string",
+                            "format": "date"
                         },
                     }
                 },
@@ -656,15 +680,27 @@ class File(Item, CoreFile):
                             "type": "string",
                             "format": "date-time"
                         },
+                        "public_release_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
                         "network_release": {
                             "type": "string",
                             "format": "date-time"
+                        },
+                        "network_release_date": {
+                            "type": "string",
+                            "format": "date"
                         },
                         # This is either the network_release or the public_release,
                         # whichever is earlier
                         "initial_release": {
                             "type": "string",
                             "format": "date-time"
+                        },
+                        "initial_release_date": {
+                            "type": "string",
+                            "format": "date"
                         }
                     }
                 }
