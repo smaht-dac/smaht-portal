@@ -82,7 +82,7 @@ class SmahtSubmissionFolio:
                     self.submission.s3_client.upload_file(Filename=datafile,
                                                           Bucket=self.submission.bucket,
                                                           Key=self.submission.object_name,
-                                                          ExtraArgs=extra_kwargs_for_s3_encrypt_key_id(
+                                                          **extra_kwargs_for_s3_encrypt_key_id(
                                                               self.s3_encrypt_key_id, 'SubmissionFolio'
                                                           ))
         # TODO: what do we actually do with the consortium and submission_center?
