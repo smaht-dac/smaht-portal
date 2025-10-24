@@ -92,12 +92,20 @@ def parse_structured_data(file: str,
                                              progress=structured_data_set_progress,
                                              debug_sleep=submission.debug_sleep if submission else None)
 
-    # Check for diffs and remove any items without any substantial changes
-    no_diff_items = get_no_diff_items(structured_data)    
+    # Check for diffs and remove any items (excluding SubmittedFile items) without any substantial changes
+    submittable_file_item_types = [
+        "AlignedReads",
+        "UnalignedReads",
+        "VariantCalls",
+        "SupplementaryFile",
+        "HistologyImage"
+    ]
+
+    no_diff_items = get_no_diff_items(structured_data)
     for object_type in structured_data.data:
         structured_data.data[object_type] = [
             item for item in structured_data.data[object_type]
-            if item.get('submitted_id') not in no_diff_items
+            if item.get('submitted_id') not in no_diff_items or object_type in submittable_file_item_types
         ]
 
     ingestion_status.update({PROGRESS_INGESTER.PARSE_LOAD_DONE: PROGRESS_INGESTER.NOW()})
