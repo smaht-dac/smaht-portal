@@ -176,7 +176,7 @@ const fieldToTransformationDict = memoize(function () {
         date_created: returnLocalizedTime,
         'last_modified.date_modified': returnLocalizedTime,
         date_modified: returnLocalizedTime,
-        public_release: returnLocalizedTime,
+        // public_release: returnLocalizedTime,
         project_release: returnLocalizedTime,
         approved_date: returnLocalizedTime,
         accession: returnTerm,
