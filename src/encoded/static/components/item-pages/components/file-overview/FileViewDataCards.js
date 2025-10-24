@@ -168,7 +168,7 @@ const default_file_properties = [
         getProp: (context = {}) => context?.content_md5sum || context?.md5sum,
     },
     {
-        title: 'Public Release Date',
+        title: 'Release Date',
         getProp: (context = {}) => {
             return context?.file_status_tracking?.release_dates?.initial_release ? (
                 <LocalizedTime

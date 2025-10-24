@@ -114,9 +114,9 @@ describe('File Overview - Verify Random 3 Files That are Released, Having QC Met
                                         });
                                 });
 
-                                // Check Public Release Date is valid
+                                // Check Release Date is valid
                                 cy.get('.data-card .datum-title span')
-                                    .contains('Public Release Date')
+                                    .contains('Release Date')
                                     .parent()
                                     .siblings('.datum-value')
                                     .find('.localized-date-time')
