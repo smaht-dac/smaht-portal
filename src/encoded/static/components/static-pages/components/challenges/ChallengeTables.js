@@ -151,7 +151,7 @@ const ChallengeTable = (props) => {
                 'display_title',
                 'sequencing_center.display_title', // Seq. Center
                 'file_sets.libraries.assay.display_title', // Assay
-                'file_status_tracking.released_date', // Release Date
+                'file_status_tracking.release_dates.initial_release_date', // Release Date
                 'file_sets.sequencing.sequencer.display_title', // Platform
                 'software.display_title', // Method
                 'date_created', // Submission Date

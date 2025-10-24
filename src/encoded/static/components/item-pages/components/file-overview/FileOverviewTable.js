@@ -235,7 +235,7 @@ export const FileOverviewTable = (props) => {
             widthMap: { lg: 180, md: 160, sm: 140 },
             colTitle: 'Release Date',
             render: function (result) {
-                const value = result?.file_status_tracking?.released;
+                const value = result?.file_status_tracking?.release_dates?.initial_release;
                 return value ? (
                     <span className="value">
                         <LocalizedTime

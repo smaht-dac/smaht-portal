@@ -423,7 +423,9 @@ def get_submitted_files_info(files_metadata):
     date_uploaded = None
     if is_upload_complete and len(submitted_files) > 0:
         for file in submitted_files:
-            file_status_tracking = file.get("file_status_tracking")
+            file_status_tracking = file.get("file_status_tracking", {}).get(
+                "status_tracking"
+            )
             if file_status_tracking and UPLOADED in file_status_tracking:
                 date_uploaded_current = file_status_tracking[UPLOADED]
                 if not date_uploaded:

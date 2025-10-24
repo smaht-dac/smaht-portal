@@ -156,8 +156,8 @@ function parseDateUTC(dateString) {
  *
  * This function uses a reduce method to process the filters in a single pass and extract:
  * - An array of all "status" terms.
- * - The first occurrence of the "file_status_tracking.released.from" term as the start date.
- * - The first occurrence of the "file_status_tracking.released.to" term as the end date.
+ * - The first occurrence of the "file_status_tracking.release_dates.initial_release.from" term as the start date.
+ * - The first occurrence of the "file_status_tracking.release_dates.initial_release.to" term as the end date.
  *
  * It then performs the following validations:
  * 1. There is at least one "status" filter, and all "status" filters must have the term "released".
@@ -187,9 +187,9 @@ const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(prop
         (acc, filter) => {
             if (filter.field === 'status') {
                 acc.statuses.push(filter.term);
-            } else if (filter.field === 'file_status_tracking.released.from' && !acc.from) {
+            } else if (filter.field === 'file_status_tracking.release_dates.initial_release.from' && !acc.from) {
                 acc.from = filter.term;
-            } else if (filter.field === 'file_status_tracking.released.to' && !acc.to) {
+            } else if (filter.field === 'file_status_tracking.release_dates.initial_release.to' && !acc.to) {
                 acc.to = filter.term;
             }
             return acc;
@@ -198,7 +198,7 @@ const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(prop
     );
 
     // Check that there is at least one "status" filter and that all status values are "released".
-    if (statuses.length === 0 || statuses.some(term => term !== 'released')) {
+    if (statuses.length === 0 || statuses.some(term => term !== 'released')) { // Frontend: Please check
         return fallbackTitle;
     }
 

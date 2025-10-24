@@ -757,7 +757,7 @@ recent_files_summary_raw_results = {
         "software.display_title": {
             "title": "Method"
         },
-        "file_status_tracking.released_date": {
+        "file_status_tracking.release_dates.initial_release_date": {
             "title": "Release Date"
         },
         "file_size": {

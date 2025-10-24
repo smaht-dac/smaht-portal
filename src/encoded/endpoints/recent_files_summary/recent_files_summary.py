@@ -78,7 +78,7 @@ def recent_files_summary(request: PyramidRequest,
     by default, info for files released withing the past three months grouped by release-date,
     cell-line or donor, and file-description. The specific fields used for these groupings are:
 
-    - release-date: file_status_tracking.released
+    - release-date: file_status_tracking.release_dates.initial_release
     - cell-line: file_sets.libraries.analytes.samples.sample_sources.cell_line.code
     - donor: donors.display_title
     - file-dsecription: release_tracker_description
@@ -94,7 +94,7 @@ def recent_files_summary(request: PyramidRequest,
 
     A specific date range can also be passed in e.g. using from_date=2024-08-01 and thru_date=2024-10-31.
 
-    For testing purposes, a date field other than the default file_status_tracking.released can
+    For testing purposes, a date field other than the default file_status_tracking.release_dates.initial_release can
     also be specified using the date_property_name query argument. And file statuses other than
     released can be queried for using one or more status query arguments, e.g. status=uploaded.
     """
