@@ -85,13 +85,13 @@ from encoded.item_utils.utils import RequestHandler
 pp = pprint.PrettyPrinter(indent=2)
 
 
-NETWORK_DONOR_RELEASE_STATUS = "open-early"
-NETWORK_PROTECTED_DONOR_RELEASE_STATUS = "protected-early"
+NETWORK_DONOR_RELEASE_STATUS = item_constants.STATUS_OPEN_EARLY
+NETWORK_PROTECTED_DONOR_RELEASE_STATUS = item_constants.STATUS_PROTECTED_EARLY
 
 
 class DonorRelease:
     def __init__(self, auth_key: dict, donor_identifier: str, verbose: bool = True, exclude_tissues: bool = False,
-                 open_release_status: str = NETWORK_DONOR_RELEASE_STATUS, 
+                 open_release_status: str = NETWORK_DONOR_RELEASE_STATUS,
                  protected_release_status: str = NETWORK_PROTECTED_DONOR_RELEASE_STATUS,
                  force_status_change: bool = False) -> None:
         self.key = auth_key
@@ -278,13 +278,13 @@ class DonorRelease:
     ) -> None:
         self.validate_donor()
         # The main donor needs to be the first patchdict.
-        self.add_release_donor_patchdict(self.donor, self.open_release_status, self.force_status_change)
+        self.add_release_item_to_patchdict(self.donor, "Donor", self.open_release_status, self.force_status_change)
         if self.exclude_tissues:
             self.add_warning(
                 f"Not changing status of Tissue and TissueSample for Donor {self.donor_accession}."
             )
         else:
-            self.add_public_release_items_to_patchdict(
+            self.add_release_items_to_patchdict(
                 self.tissues, "Tissue",
                 self.open_release_status,
                 self.force_status_change
@@ -294,7 +294,7 @@ class DonorRelease:
                     f"Donor {self.donor_accession} does not have linked Tissues - skipping TissueSamples."
                 )
             else:
-                self.add_public_release_items_to_patchdict(
+                self.add_release_items_to_patchdict(
                     self.tissue_samples, "TissueSample",
                     self.open_release_status,
                     self.force_status_change
@@ -305,31 +305,31 @@ class DonorRelease:
                 f"Donor {self.donor_accession} does not have a linked ProtectedDonor."
             )
         else:
-            self.add_protected_release_item_to_patchdict(
+            self.add_release_item_to_patchdict(
                 self.protected_donor, "ProtectedDonor", self.protected_release_status,
                 self.force_status_change)
-            self.add_protected_release_items_to_patchdict(
+            self.add_release_items_to_patchdict(
                 self.demographic, "Demographic", self.protected_release_status,
                 self.force_status_change)
-            self.add_protected_release_items_to_patchdict(
+            self.add_release_items_to_patchdict(
                 self.death_circumstances, "DeathCircumstances", self.protected_release_status,
                 self.force_status_change)
-            self.add_protected_release_items_to_patchdict(
+            self.add_release_items_to_patchdict(
                 self.family_histories, "FamilyHistory", self.protected_release_status,
                 self.force_status_change)
-            self.add_protected_release_items_to_patchdict(
+            self.add_release_items_to_patchdict(
                 self.tissue_collection, "TissueCollection", self.protected_release_status,
                 self.force_status_change)
-            self.add_protected_release_item_to_patchdict(
+            self.add_release_item_to_patchdict(
                 self.medical_history, "MedicalHistory", self.protected_release_status,
                 self.force_status_change)
-            self.add_protected_release_items_to_patchdict(
+            self.add_release_items_to_patchdict(
                 self.diagnoses, "Diagnosis", self.protected_release_status,
                 self.force_status_change)
-            self.add_protected_release_items_to_patchdict(
+            self.add_release_items_to_patchdict(
                 self.exposures, "Exposure", self.protected_release_status,
                 self.force_status_change)
-            self.add_protected_release_items_to_patchdict(
+            self.add_release_items_to_patchdict(
                 self.medical_treatments, "MedicalTreatment", self.protected_release_status,
                 self.force_status_change)
 
@@ -402,21 +402,26 @@ class DonorRelease:
             return True
         return False
 
-    def add_public_release_item_to_patchdict(self, item: dict, item_desc: str,
-                                             status: str = NETWORK_DONOR_RELEASE_STATUS,
-                                             force_status_change: bool = False) -> None:
-        """Sets the status of the item to PUBLIC_DONOR_RELEASED_STATUS and
-        adds the corresponding patch dict
+    def add_release_item_to_patchdict(
+        self,
+        item: dict,
+        item_desc: str,
+        status: str,
+        force_status_change: bool = False,
+    ) -> None:
+        """
+        Sets the status of the item to the specified release status and
+        adds the corresponding patch dict.
 
         Args:
             item (dict): Portal item
-            item_desc (str): Just used for generating more usefuls patch infos
-            status (str): Status to set the item to
+            item_desc (str): Just used for generating more useful patch infos
+            status (str): Status to set the item to.
+            force_status_change (bool): If True, patch even if item already has same or terminal status.
         """
         identifier_to_report = self.get_identifier_to_report(item)
         self.patch_infos.append(f"\n{item_desc} ({identifier_to_report}):")
 
-        # Don't patch if current item has same or terminal status unless force
         if not force_status_change and self.item_has_same_or_terminal_status(item, status):
             return
 
@@ -424,32 +429,10 @@ class DonorRelease:
             item_constants.UUID: item_utils.get_uuid(item),
             item_constants.STATUS: status,
         }
+
         self.add_okay_message(item_constants.STATUS, status)
         self.patch_dicts.append(patch_body)
 
-    def add_protected_release_item_to_patchdict(self, item: dict, item_desc: str,
-                                                status: str = NETWORK_PROTECTED_DONOR_RELEASE_STATUS,
-                                                force_status_change: bool = False) -> None:
-        """Sets the status of the item to PROTECTED_DONOR_RELEASE_STATUS and
-        adds the corresponding patch dict
-
-        Args:
-            item (dict): Portal item
-            item_desc (str): Just used for generating more usefuls patch infos
-            status (str): Status to set the item to
-        """
-        identifier_to_report = self.get_identifier_to_report(item)
-        self.patch_infos.append(f"\n{item_desc} ({identifier_to_report}):")
-
-        if not force_status_change and self.item_has_same_or_terminal_status(item, status):
-            return
-
-        patch_body = {
-            item_constants.UUID: item_utils.get_uuid(item),
-            item_constants.STATUS: status
-        }
-        self.add_okay_message(item_constants.STATUS, status)
-        self.patch_dicts.append(patch_body)
 
     def get_identifier_to_report(self, item: Dict[str, Any]) -> str:
         if submitted_id := item_utils.get_submitted_id(item):
@@ -458,60 +441,27 @@ class DonorRelease:
             return identifier
         return item_utils.get_accession(item)
 
-    def add_public_release_items_to_patchdict(self, items: list, item_desc: str,
-                                              status: str = NETWORK_DONOR_RELEASE_STATUS,
-                                              force_status_change: bool = False) -> None:
-        """Sets the status to PUBLIC_DONOR_RELEASE_STATUS in all items in the list and
+
+    def add_release_items_to_patchdict(self, items: list, item_desc: str,
+                                       status: str, force_status_change: bool = False) -> None:
+        """Sets the status to provided status in all items in the list and
         adds the corresponding patch dict
 
         Args:
             items (list): List of portal item
             item_desc (str): Just used for generating more usefuls patch infos
+            status (str): Status to set the items to.
+            force_status_change (bool): If True, patch even if items already have
+            same or terminal status.
         """
         for item in items:
-            self.add_public_release_item_to_patchdict(item, item_desc, status, force_status_change)
-
-    def add_protected_release_items_to_patchdict(self, items: list, item_desc: str,
-                                                 status: str = NETWORK_PROTECTED_DONOR_RELEASE_STATUS,
-                                                 force_status_change: bool = False) -> None:
-        """Sets the status to PROTECTED_DONOR_RELEASE_STATUS in all items in the list and
-        adds the corresponding patch dict
-
-        Args:
-            items (list): List of portal item
-            item_desc (str): Just used for generating more usefuls patch infos
-        """
-        for item in items:
-            self.add_protected_release_item_to_patchdict(item, item_desc, status, force_status_change)
-
-    def add_release_donor_patchdict(
-        self, donor: dict, status: str = NETWORK_DONOR_RELEASE_STATUS,
-        force_status_change: bool = False
-    ) -> None:
-        if not force_status_change and self.item_has_same_or_terminal_status(donor, status):
-            return
-        patch_body = {
-            item_constants.UUID: item_utils.get_uuid(donor),
-            item_constants.STATUS: status
-        }
-        self.patch_infos.extend(
-            [
-                f"\nDonor ({self.donor_accession}):",
-                self.get_okay_message(item_constants.STATUS, status),
-            ]
-        )
-        self.patch_infos_minimal.extend(
-            [
-                f"Donor {warning_text(self.donor_accession)} will have status set to {status}.",
-            ]
-        )
-        self.patch_dicts.append(patch_body)
+            self.add_release_item_to_patchdict(item, item_desc, status, force_status_change)
 
     def validate_donor(self) -> None:
-        self.validate_donor_output_status()
+        self.validate_donor_type()
         self.validate_donor_status()
 
-    def validate_donor_output_status(self) -> None:
+    def validate_donor_type(self) -> None:
         if item_utils.get_type(
             self.donor
         ) != "Donor":
@@ -647,10 +597,9 @@ def main() -> None:
         open_release_status = NETWORK_DONOR_RELEASE_STATUS
         protected_release_status = NETWORK_PROTECTED_DONOR_RELEASE_STATUS
     donors_to_release = args.donor
-    # verbose = mode == 'single'  # Print more information in single mode
     if args.force_status_change:
         print(warning_text("Forcing status change even if item is already released or in terminal status."))
-    verbose = mode == 'single' # Print more information in single mode
+    verbose = mode == 'single'  # Print more information in single mode
     donor_releases: List[DonorRelease] = []
     for donor_identifier in donors_to_release:
         donor_release = DonorRelease(auth_key=auth_key, donor_identifier=donor_identifier, verbose=verbose,
