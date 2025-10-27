@@ -275,11 +275,8 @@
     },
     {
         "identifier": "docs/analysis",
-        "title": "Analysis",
+        "title": "Analysis - deprecated",
         "status": "in review",
-        "children": [
-            "b3e754fd-be49-4998-bd05-040623617cdf"
-        ],
         "table-of-contents": {
             "enabled": true,
             "header-depth": 4
