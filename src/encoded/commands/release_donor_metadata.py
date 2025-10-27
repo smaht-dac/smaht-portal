@@ -66,10 +66,9 @@ Examples:
 import argparse
 import pprint
 from functools import cached_property
-from typing import Callable, Dict, List, Any
+from typing import Dict, List, Any
 
 from dcicutils import ff_utils  # noqa
-from dcicutils.creds_utils import SMaHTKeyManager  # noqa
 
 from encoded.commands.utils import get_auth_key
 from encoded.item_utils import (
@@ -361,7 +360,7 @@ class DonorRelease:
         if self.verbose:
             print("Validation done. Patching...")
         try:
-            for patch_dict in self.patch_dicts:  #[1:]:
+            for patch_dict in self.patch_dicts:
                 self.patch_metadata(patch_dict)
         except Exception as e:
             print(str(e))
@@ -433,14 +432,12 @@ class DonorRelease:
         self.add_okay_message(item_constants.STATUS, status)
         self.patch_dicts.append(patch_body)
 
-
     def get_identifier_to_report(self, item: Dict[str, Any]) -> str:
         if submitted_id := item_utils.get_submitted_id(item):
             return submitted_id
         if identifier := item_utils.get_identifier(item):
             return identifier
         return item_utils.get_accession(item)
-
 
     def add_release_items_to_patchdict(self, items: list, item_desc: str,
                                        status: str, force_status_change: bool = False) -> None:

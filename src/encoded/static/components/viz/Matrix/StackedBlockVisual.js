@@ -146,7 +146,10 @@ export class VisualBody extends React.PureComponent {
         const yAxisGroupingValue = isGroup ? data[0][columnGrouping] : data[columnGrouping];
 
         function generateBrowseUrl() {
-            const currentFilteringProperties = groupingProperties.slice(0, depth + 1).concat([columnGrouping]);
+            let currentFilteringProperties = groupingProperties.slice(0, depth + 1);
+            if (blockType !== 'row-summary') {
+                currentFilteringProperties = currentFilteringProperties.concat([columnGrouping]);
+            }
             const currentFilteringPropertiesPairs = _.map(currentFilteringProperties, function (property) {
                 let facetField = fieldChangeMap[property] || property;
                 let facetTerm = aggrData[property];
