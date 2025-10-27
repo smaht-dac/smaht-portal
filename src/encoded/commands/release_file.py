@@ -82,6 +82,10 @@ MODE_EARLY_ACCESS = "early-access"
 MODE_PUBLIC = "public"
 MODE_NETWORK = "network"
 
+# Studies
+BENCHMARKING = "Benchmarking"
+PRODUCTION = "Production"
+
 
 class FileRelease:
 
@@ -232,6 +236,16 @@ class FileRelease:
         return self.get_items(
             self.get_links(self.donors, donor_utils.get_protected_donor)
         )
+
+    @cached_property
+    def study(self) -> str:
+        studies = [d.get("study") for d in self.donors if d.get("study")]
+        studies = list(set(studies))
+        if len(studies) > 1:
+            self.print_error_and_exit(
+                f"Multiple studies found for file {self.file_accession}"
+            )
+        return studies[0] if studies else None
 
     @cached_property
     def tissues(self) -> List[dict]:
@@ -598,7 +612,7 @@ class FileRelease:
             item_status,
         ]:
             self.add_okay_message(
-                item_constants.STATUS, current_item_status, "Not patching."
+                item_constants.STATUS, current_item_status, "Not patching - same status."
             )
             return
         
@@ -799,7 +813,7 @@ class FileRelease:
         patch_body = caf.get_patch_body(annotated_filename, self.key)
         return AnnotatedFilenameInfo(str(annotated_filename), patch_body)
 
-    def get_access_status(self, dataset: str) -> str:
+    def get_access_status(self, dataset: str, study: str) -> str:
         """
         Currently applied mapping from dataset to access_status.
         MAPPING IS NOT IMPLEMENTED FOR EPIGENETIC DATA YET
@@ -818,7 +832,7 @@ class FileRelease:
             CRAM, BAM, FASTQ = Protected
             Files with somatic variants = Protected
             Files with germline variants = Protected
-            Files with expression or epigenetic data = Open
+            Files with expression or epigenetic data = Protected
         Tissues
             CRAM, BAM, FASTQ = Protected
             Files with somatic variants = Protected (until confident no germline variants are present)
@@ -833,15 +847,17 @@ class FileRelease:
         # function internal dataset categories:
         COLO829_HAPMAP = "colo829_hapmap"
         IPSC = "ipsc"
+        BENCHMARKING_TISSUE = "benchmarking_tissue"
+        PRODUCTION_TISSUE = "production_tissue"
 
         access_status_mapping = {
             COLO829_HAPMAP: {
                 file_constants.DATA_CATEGORY_SEQUENCING_READS: (
                     file_constants.ACCESS_STATUS_OPEN
                 ),
-                # file_constants.DATA_CATEGORY_CONSENSUS_READS: (
-                #     file_constants.ACCESS_STATUS_OPEN
-                # ),
+                file_constants.DATA_CATEGORY_CONSENSUS_READS: (
+                    file_constants.ACCESS_STATUS_OPEN
+                ),
                 file_constants.DATA_CATEGORY_GERMLINE_VARIANT_CALLS: (
                     file_constants.ACCESS_STATUS_OPEN
                 ),
@@ -878,7 +894,7 @@ class FileRelease:
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
             },
-            self.TISSUE: {
+            BENCHMARKING_TISSUE: {
                 file_constants.DATA_CATEGORY_SEQUENCING_READS: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
@@ -896,6 +912,26 @@ class FileRelease:
                 ),
                 file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
                     file_constants.ACCESS_STATUS_PROTECTED
+                ),
+            },
+            PRODUCTION_TISSUE: {
+                file_constants.DATA_CATEGORY_SEQUENCING_READS: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_GERMLINE_VARIANT_CALLS: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_SOMATIC_VARIANT_CALLS: (
+                    file_constants.ACCESS_STATUS_OPEN
+                ),
+                file_constants.DATA_CATEGORY_GENOME_ASSEMBLY: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_GENOME_CONVERSION: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
+                    file_constants.ACCESS_STATUS_OPEN
                 ),
             },
         }
@@ -926,8 +962,10 @@ class FileRelease:
             "ipsc_snv_indel_challenge_data",
         ]:
             dataset_category = IPSC
-        elif dataset == self.TISSUE:
-            dataset_category = self.TISSUE
+        elif dataset == self.TISSUE and study == BENCHMARKING:
+            dataset_category = BENCHMARKING_TISSUE
+        elif dataset == self.TISSUE and study == PRODUCTION:
+            dataset_category = PRODUCTION_TISSUE
         else:
             self.print_error_and_exit(
                 f"Cannot get access_status from dataset {dataset}. Unknown dataset."
