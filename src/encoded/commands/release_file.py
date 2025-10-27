@@ -57,7 +57,7 @@ pp = pprint.PrettyPrinter(indent=2)
 ##    includes FileSet, Sequencing, Library, LibraryPreparation, Assay,
 ##    Analyte, AnalytePreparation, PreparationKit, Treatment, Sample,
 ##    SampleSource, CellCulture, CellLine, Tissue, TissueSample, Donor
-##  - All other protected associated metadata is set to `protected-early` 
+##  - All other protected associated metadata is set to `protected-early`
 ##    or `protected` depending on whether the release is an early-access release or not.
 ##    This currently includes ProtectedDonor, Demographic, DeathCircumstances
 ##    FamilyHistory, TissueCollection, MedicalHistory, Diagnosis, Exposure,
@@ -104,7 +104,6 @@ class FileRelease:
         self.warnings = []
         self.verbose = verbose
         self.mode = mode
-        self.access_status = None
         self.target_file_status = None
 
     @cached_property
@@ -415,8 +414,8 @@ class FileRelease:
         self, dataset: str, obsolete_file_identifier: str = None, **kwargs: Any
     ) -> None:
         self.validate_file()
-        self.access_status = self.get_access_status(dataset)
-        self.target_file_status = self.get_target_file_status(self.access_status)
+        access_status = self.get_access_status(self.file, dataset, self.study)
+        self.target_file_status = self.get_target_file_status(access_status)
 
         # The main file needs to be the first patchdict. See execute_initial()
         self.add_release_file_patchdict(self.file, dataset, patch_status=False)
@@ -615,7 +614,7 @@ class FileRelease:
                 item_constants.STATUS, current_item_status, "Not patching - same status."
             )
             return
-        
+
         # Open/Protected are terminal statuses. Don't patch if already open/protected
         if current_item_status in [
             item_constants.STATUS_OPEN,
@@ -627,7 +626,7 @@ class FileRelease:
                 item_constants.STATUS, current_item_status, "Not patching - terminal status."
             )
             return
-        
+
         # In case of a network release, don't alter temporary statuses
         if current_item_status in [
             item_constants.STATUS_OPEN_EARLY,
@@ -733,18 +732,21 @@ class FileRelease:
         ]
         file_accession = item_utils.get_accession(file)
         annotated_filename_info = self.get_annotated_filename_info(file)
+        access_status = self.get_access_status(file, dataset, self.study)
+        target_file_status = self.get_target_file_status(access_status)
+
         # Add file to file set
         patch_body = {
             item_constants.UUID: item_utils.get_uuid(file),
             file_constants.DATASET: dataset,
-            file_constants.ACCESS_STATUS: self.access_status,
+            file_constants.ACCESS_STATUS: access_status,
             file_constants.ANNOTATED_FILENAME: annotated_filename_info.filename,
         }
         self.patch_infos.extend(
             [
                 f"\nFile ({file_accession}):",
                 self.get_okay_message(file_constants.DATASET, dataset),
-                self.get_okay_message(file_constants.ACCESS_STATUS, self.access_status),
+                self.get_okay_message(file_constants.ACCESS_STATUS, access_status),
                 self.get_okay_message(
                     file_constants.ANNOTATED_FILENAME, annotated_filename_info.filename
                 ),
@@ -768,11 +770,11 @@ class FileRelease:
             )
 
         if patch_status:
-            patch_body[item_constants.STATUS] = self.target_file_status
+            patch_body[item_constants.STATUS] = target_file_status
             self.patch_infos.extend(
                 [
                     self.get_okay_message(
-                        item_constants.STATUS, self.target_file_status
+                        item_constants.STATUS, target_file_status
                     ),
                 ]
             )
@@ -813,7 +815,7 @@ class FileRelease:
         patch_body = caf.get_patch_body(annotated_filename, self.key)
         return AnnotatedFilenameInfo(str(annotated_filename), patch_body)
 
-    def get_access_status(self, dataset: str, study: str) -> str:
+    def get_access_status(self, file: dict, dataset: str, study: str) -> str:
         """
         Currently applied mapping from dataset to access_status.
         MAPPING IS NOT IMPLEMENTED FOR EPIGENETIC DATA YET
@@ -972,19 +974,20 @@ class FileRelease:
             )
 
         access_status = self.get_access_status_from_data_categories(
-            access_status_mapping.get(dataset_category, {})
+            file, access_status_mapping.get(dataset_category, {})
         )
         return access_status
 
     def get_access_status_from_data_categories(
-        self, data_category_to_access_status: Dict[str, str]
+        self, file, data_category_to_access_status: Dict[str, str]
     ) -> str:
+        file_accession = item_utils.get_accession(file)
         missing_data_categories = []
         access_statuses = set()
-        data_categories = file_utils.get_data_category(self.file)
+        data_categories = file_utils.get_data_category(file)
         if not data_categories:
             self.print_error_and_exit(
-                f"File {self.file_accession} does not have any data category."
+                f"File {file_accession} does not have any data category."
             )
         for data_category in data_categories:
             access_status = data_category_to_access_status.get(data_category)
