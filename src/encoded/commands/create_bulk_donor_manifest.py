@@ -233,6 +233,23 @@ def get_donors_from_identifiers(
     return filter_donors(items)
 
 
+def map_public_accessions_to_protected_donors(donors, request_handler):
+    """Return a dict mapping ProtectedDonor external_id -> public Donor accession."""
+    external_ids = [item_utils.get_external_id(d) for d in donors]
+    # Search for all Donor items with matching external_ids
+    query = "search/?type=Donor"
+    for ext_id in external_ids:
+        query += f"&external_id={ext_id}"
+    results = ff_utils.search_metadata(query, key=request_handler.auth_key)
+
+    # Build map external_id -> public accession
+    mapping = {}
+    for donor in results:
+        ext_id = item_utils.get_external_id(donor)
+        mapping[ext_id] = item_utils.get_accession(donor)
+    return mapping
+
+
 def get_bulk_donor_manifest(
         donors: List[Dict[str, Any]],
         schemas: Dict[str, Any],
@@ -245,11 +262,24 @@ def get_bulk_donor_manifest(
         columns=modify_properties(kept_properties))
     external_ids = [item_utils.get_external_id(donor) for donor in donors]
     medical_histories = get_medical_histories(external_ids, request_handler)
+
+    public_accession_map = {}
+    if not public:
+        # map external_id → public Donor accession if we’re in protected mode
+        public_accession_map = map_public_accessions_to_protected_donors(donors, request_handler)
+        # Add an extra column to manifest for it
+        donor_manifest["Donor.accession"] = ""
+
     for idx, donor in enumerate(donors):
         medical_history = medical_histories[idx]
         donor_manifest = generate_manifest_row(
             donor_manifest, idx, donor, medical_history, kept_properties, request_handler, public
         )
+
+        # Add the public accession (if applicable)
+        if not public:
+            ext_id = item_utils.get_external_id(donor)
+            donor_manifest.at[idx, "Donor.accession"] = public_accession_map.get(ext_id, "NA")
     return donor_manifest
 
 
@@ -317,6 +347,7 @@ def generate_manifest_row(
 ):
     """Generate row for manifest."""
     donor_type = "ProtectedDonor"
+    # have to do some gymnastics to add the public donor accession to protected donor manifest
     if public:
         donor_type = "Donor"
     donor_external_id = item_utils.get_external_id(donor)
@@ -332,6 +363,7 @@ def generate_manifest_row(
         "Diagnosis": f"search/?type=Diagnosis&medical_history={mh_submitted_id}&frame=raw",
         "MedicalTreatment": f"search/?type=MedicalTreatment&medical_history={mh_submitted_id}&frame=raw",
     }
+
     donor_manifest = add_row_from_item(donor_manifest, idx, donor_type, [donor], kept_properties)
     donor_manifest = add_row_from_item(donor_manifest, idx, "MedicalHistory", [medical_history], kept_properties)
     donor_manifest = add_row_from_search(donor_manifest, idx, donor_search_dict, kept_properties, request_handler)
@@ -420,7 +452,11 @@ def write_bulk_donor_manifest(
     donor_manifest: pd.DataFrame,
     output: Path
 ) -> None:
-    """Write out TSV containing the bulk donor manifest to output file."""
+    """Write out TSV containing the bulk donor manifest to output file.
+        and ensure that Donor.accession is the first column"""
+    # Move Donor.accession to the first position
+    cols = ["Donor.accession"] + [c for c in donor_manifest.columns if c != "Donor.accession"]
+    donor_manifest = donor_manifest[cols]
     donor_manifest.to_csv(output, sep='\t', index=False)
     log.info(f"Workbook written to: {output}")
 
