@@ -679,11 +679,11 @@ export function createBrowseDonorColumnExtensionMap({
             },
         },
         // Released
-        'file_status_tracking.released_date': {
+        'file_status_tracking.release_dates.initial_release_date': {
             colTitle: 'Released',
             widthMap: { lg: 115, md: 115, sm: 115 },
             render: function (result, parentProps) {
-                const value = result?.file_status_tracking?.released_date;
+                const value = result?.file_status_tracking?.release_dates?.initial_release_date;
                 if (!value) return null;
                 return <span className="value text-end">{value}</span>;
             },

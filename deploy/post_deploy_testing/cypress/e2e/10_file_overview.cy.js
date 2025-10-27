@@ -12,7 +12,7 @@ describe('File Overview - Verify Random 3 Files That are Released, Having QC Met
 
     it('Verify Random 3 Released Files with QC Metrics', function () {
 
-        cy.visit('/search/?type=OutputFile&status=released&quality_metrics%21=No+value&sort=-file_status_tracking.released_date', { headers: cypressVisitHeaders })
+        cy.visit('/search/?type=OutputFile&status=released&quality_metrics%21=No+value&sort=-file_status_tracking.release_dates.initial_release', { headers: cypressVisitHeaders })
             .get('#slow-load-container')
             .should('not.have.class', 'visible')
             .end()
@@ -114,9 +114,9 @@ describe('File Overview - Verify Random 3 Files That are Released, Having QC Met
                                         });
                                 });
 
-                                // Check Public Release Date is valid
+                                // Check Release Date is valid
                                 cy.get('.data-card .datum-title span')
-                                    .contains('Public Release Date')
+                                    .contains('Release Date')
                                     .parent()
                                     .siblings('.datum-value')
                                     .find('.localized-date-time')

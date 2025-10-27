@@ -57,14 +57,23 @@ def date_histogram_aggregations(context, request):
     '''PREDEFINED aggregations which run against type=File'''
 
     # Defaults - may be overriden in URI params
-    date_histogram_fields = ['file_status_tracking.uploading', 'file_status_tracking.uploaded', 'file_status_tracking.released']
+    date_histogram_fields = [
+        "file_status_tracking.status_tracking.uploading",
+        "file_status_tracking.status_tracking.uploaded",
+        "file_status_tracking.release_dates.initial_release",
+    ]
     group_by_fields = [
-        'data_generation_summary.submission_centers', 'data_generation_summary.sequencing_center',
-        'data_generation_summary.data_type', 'data_generation_summary.data_category', 'file_format.display_title',
-        'data_generation_summary.assays',
-        'data_generation_summary.sequencing_platforms', 'dataset', 'software.display_title'
-        ]
-    date_histogram_intervals = ['weekly']
+        "data_generation_summary.submission_centers",
+        "data_generation_summary.sequencing_center",
+        "data_generation_summary.data_type",
+        "data_generation_summary.data_category",
+        "file_format.display_title",
+        "data_generation_summary.assays",
+        "data_generation_summary.sequencing_platforms",
+        "dataset",
+        "software.display_title",
+    ]
+    date_histogram_intervals = ["weekly"]
 
     # Mapping of 'date_histogram_interval' options we accept to ElasticSearch interval vocab term.
     interval_to_es_interval = {

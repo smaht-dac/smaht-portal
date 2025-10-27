@@ -4,7 +4,7 @@
 # FYI FWIW: There is also file_sets.libraries.analytes.samples.sample_sources.display_title;
 # and that sometimes file_sets.libraries.analytes.samples.sample_sources.code does not exist.
 
-AGGREGATION_FIELD_RELEASE_DATE = "file_status_tracking.released"
+AGGREGATION_FIELD_RELEASE_DATE = "file_status_tracking.release_dates.initial_release"
 AGGREGATION_FIELD_CELL_MIXTURE = "file_sets.libraries.analytes.samples.sample_sources.code"
 AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE = "release_tracker_title"  # 2025-02-21: new/default (if NOT legacy=true)
 AGGREGATION_FIELD_DONOR = "donors.display_title"

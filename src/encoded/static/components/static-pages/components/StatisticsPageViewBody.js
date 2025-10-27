@@ -411,7 +411,7 @@ const aggregationsToChartData = {
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             const { interval: [interval], from_date, to_date } = resp;
-            const agg = interval + "_interval_file_status_tracking.uploaded";
+            const agg = interval + "_interval_file_status_tracking.status_tracking.uploaded";
             const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
@@ -425,7 +425,7 @@ const aggregationsToChartData = {
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             const { interval: [interval], from_date, to_date } = resp;
-            const agg = interval + "_interval_file_status_tracking.uploaded";
+            const agg = interval + "_interval_file_status_tracking.status_tracking.uploaded";
             const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
@@ -439,7 +439,7 @@ const aggregationsToChartData = {
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             const { interval: [interval], from_date, to_date } = resp;
-            const agg = interval + "_interval_file_status_tracking.released";
+            const agg = interval + "_interval_file_status_tracking.release_dates.initial_release";
             const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
@@ -453,7 +453,7 @@ const aggregationsToChartData = {
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             const { interval: [interval], from_date, to_date } = resp;
-            const agg = interval + "_interval_file_status_tracking.released";
+            const agg = interval + "_interval_file_status_tracking.release_dates.initial_release";
             const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
