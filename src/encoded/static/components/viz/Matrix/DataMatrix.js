@@ -69,7 +69,7 @@ export default class DataMatrix extends React.PureComponent {
 
     static defaultProps = {
         "query": {
-            "url": "/data_matrix_aggregations/?type=File&status=released&limit=all",
+            "url": "/data_matrix_aggregations/?type=File&status=open&limit=all",
             "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"],
             "rowAggFields": ["donors.display_title", "sample_summary.tissues"]
         },

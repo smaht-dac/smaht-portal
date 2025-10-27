@@ -28,3 +28,7 @@ def get_exposures(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]
 def get_medical_treatments(properties: Dict[str, Any]) -> List[Union[str, Dict[str, Any]]]:
     """Get medical treatments from properties."""
     return properties.get("medical_treatments", [])
+
+def get_donor(properties: Dict[str, Any]):
+    """Get donor from properties."""
+    return properties.get("donor","")

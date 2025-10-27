@@ -41,3 +41,59 @@ body .__react_component_tooltip {
         opacity: 1;
     }
 }
+
+
+// Styles for Popovers shared across the portal
+
+/*************
+Popover Styles
+**************/
+.popover {
+	&.description-definitions-popover {
+		max-width: 600px;
+
+		thead > tr > th {
+			background-color: #F1F9FF;
+		}
+
+		.popover-header {
+			font-weight: 600;
+			background-color: #F1F9FF;
+		}
+	}
+
+	&.download-popover {
+		width: 300px;
+		max-width: 400px;
+		color: #343741;
+
+		.popover-header {
+			margin: 0px;
+			background-color: #F1F9FF;
+			font-weight: 500;
+            padding: 8px 12px;
+		}
+
+		.popover-body {
+			padding: 12px 12px;
+		}
+
+        // Styles for login popover
+        &.login {
+            .popover-header {
+                background-color: #DCFCEA;
+            }
+        }
+        // Styles for protected popover
+        &.protected {
+            .popover-header {
+                background-color: #FDDCDC;
+            }
+        }
+        &.coming-soon {
+            .popover-header {
+                background-color: #F1F9FF;
+            }
+        }
+	}
+}

@@ -81,9 +81,13 @@
                 "obsolete",
                 "archived",
                 "deleted",
+                "open",
+                "protected-network",
+                "protected",
                 "public",
-                "restricted",
-                "public-restricted"
+                "open-early",
+                "protected-early",
+                "open-network"
             ]
         },
         "external_quality_metrics": {
@@ -294,8 +298,7 @@
         },
         "donors.display_title": {
             "title": "Donor",
-            "search_type": "sayt",
-            "sayt_item_type": "Donor"
+            "search_type": "basic"
         },
         "donors.age": {
             "title": "Donor Age",
@@ -307,20 +310,32 @@
                     "to": 30
                 },
                 {
-                    "from": 30,
+                    "from": 31,
                     "to": 55
                 },
                 {
-                    "from": 55,
+                    "from": 56,
                     "to": 65
                 },
                 {
-                    "from": 65
+                    "from": 66,
+                    "to": 75
+                },
+                {
+                    "from": 76,
+                    "to": 85
+                },
+                {
+                    "from": 86
                 }
             ]
         },
         "donors.sex": {
             "title": "Donor Sex"
+        },
+        "donors.hardy_scale": {
+            "title": "Donor Hardy Scale",
+            "aggregation_type": "stats"
         },
         "sample_summary.tissues": {
             "title": "Tissue"

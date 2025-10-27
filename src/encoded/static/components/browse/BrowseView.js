@@ -1,18 +1,10 @@
 'use strict';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import memoize from 'memoize-one';
 import _ from 'underscore';
 import { OverlayTrigger, Popover } from 'react-bootstrap';
-
-import ReactTooltip from 'react-tooltip';
-
-import {
-    schemaTransforms,
-    analytics,
-    valueTransforms,
-    ajax,
-} from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 
 import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
@@ -35,15 +27,153 @@ import {
 } from '../static-pages/components/SelectAllAboveTableComponent';
 import { BrowseViewControllerWithSelections } from '../static-pages/components/TableControllerWithSelections';
 import { BrowseLink } from './browse-view/BrowseLink';
-import { BrowseSummaryStatController } from './browse-view/BrowseSummaryStatController';
+import { BrowseSummaryStatsViewer } from './browse-view/BrowseSummaryStatController';
+import { FacetCharts } from './components/FacetCharts';
+import { navigate } from '../util/navigate';
 import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import { transformedFacets } from './SearchView';
+import { BrowseDonorBody } from './browse-view/BrowseDonor';
+import { BrowseProtectedDonorBody } from './browse-view/BrowseProtectedDonor';
+import { renderProtectedAccessPopover } from '../item-pages/PublicDonorView';
+import { useUserDownloadAccess } from '../util/hooks';
+import { DonorMetadataDownloadButton } from '../shared/DonorMetadataDownloadButton';
+
+export const BROWSE_STATUS_FILTERS =
+    'status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network';
+
+export const BROWSE_LINKS = {
+    file:
+        '/browse/?type=File&sample_summary.studies=Production&' +
+        BROWSE_STATUS_FILTERS,
+    donor:
+        '/browse/?type=Donor&study=Production&tags=has_released_files&' +
+        BROWSE_STATUS_FILTERS,
+    protected_donor:
+        '/browse/?type=ProtectedDonor&study=Production&tags=has_released_files&' +
+        BROWSE_STATUS_FILTERS,
+};
 
 export default function BrowseView(props) {
-    const { session } = props;
-    return <BrowseViewBody {...props} key={session} />;
+    return <BrowseViewBody {...props} />;
 }
+
+const BrowseFileBody = (props) => {
+    const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
+    const { session, href, windowWidth, windowHeight, isFullscreen } = props;
+    const initialFields = [
+        'sample_summary.tissues',
+        'sequencing.sequencer.display_title',
+    ];
+    return (
+        <>
+            <h2 className="browse-summary-header">SMaHT Data Summary</h2>
+            <Alerts alerts={props.alerts} className="mt-2" />
+            <div className="row browse-viz-container">
+                <div className="stats-column col-auto">
+                    <BrowseSummaryStatsViewer
+                        {...{
+                            session,
+                            href,
+                            windowWidth,
+                            useCompactFor,
+                            mapping: 'all',
+                        }}
+                    />
+                </div>
+                <div className="col ps-0">
+                    <div
+                        id="facet-charts-container"
+                        className="container ps-0 ps-xl-4">
+                        <FacetCharts
+                            {..._.pick(
+                                props,
+                                'context',
+                                'href',
+                                'session',
+                                'schemas',
+                                'browseBaseState'
+                            )}
+                            {...{
+                                windowWidth,
+                                windowHeight,
+                                navigate,
+                                isFullscreen,
+                                initialFields,
+                                mapping: 'all',
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
+            <hr />
+            <BrowseViewControllerWithSelections {...props}>
+                <BrowseFileSearchTable
+                    userDownloadAccess={props.userDownloadAccess}
+                />
+            </BrowseViewControllerWithSelections>
+        </>
+    );
+};
+
+const renderBrowseBody = (props) => {
+    switch (props.context['@type'][0]) {
+        case 'FileSearchResults':
+            return <BrowseFileBody {...props} />;
+        case 'DonorSearchResults':
+            return <BrowseDonorBody {...props} />;
+        case 'ProtectedDonorSearchResults':
+            return <BrowseProtectedDonorBody {...props} />;
+        // case 'TissueSearchResults':
+        //     return <BrowseTissueBody {...props} />;
+        // case 'AssaySearchResults':
+        //     return <BrowseAssayBody {...props} />;
+        default:
+            null;
+    }
+};
+
+/**
+ * Component for rendering the content on the Browse page, checking for user permissions and
+ * displaying the appropriate content.
+ * @param {Object} props
+ * @returns
+ */
+const BrowseViewContent = (props) => {
+    const { context, session } = props;
+    const userDownloadAccess = useUserDownloadAccess(session);
+
+    // Include `userDownloadAccess` in the props passed to child components
+    const passProps = {
+        ...props,
+        context: {
+            ...context,
+            clear_filters: BROWSE_LINKS.file,
+        },
+        userDownloadAccess,
+    };
+
+    return (
+        <SlidingSidebarLayout openByDefault={false}>
+            <div className="sidebar-nav-body">
+                <h3 className="browse-links-header">
+                    Browse Production Data By
+                </h3>
+                <div className="browse-links">
+                    <BrowseLink type="File" />
+                    <BrowseLink
+                        type="Donor"
+                        userDownloadAccess={userDownloadAccess}
+                        session={session}
+                    />
+                    <BrowseLink type="Tissue" disabled />
+                    <BrowseLink type="Assay" disabled />
+                </div>
+            </div>
+            <div className="browse-body">{renderBrowseBody(passProps)}</div>
+        </SlidingSidebarLayout>
+    );
+};
 
 export class BrowseViewBody extends React.PureComponent {
     constructor(props) {
@@ -54,120 +184,15 @@ export class BrowseViewBody extends React.PureComponent {
     }
 
     render() {
-        const { alerts } = this.props;
-
-        // We don't need full screen btn on SMaHT
-        const passProps = _.omit(
-            this.props,
-            'isFullscreen',
-            'toggleFullScreen'
-        );
-
         return (
             <div className="search-page-outer-container" id="content">
-                <SlidingSidebarLayout openByDefault={false}>
-                    <div className="sidebar-nav-body">
-                        <h3 className="browse-links-header">
-                            Browse Production Data By
-                        </h3>
-                        <div className="browse-links">
-                            <BrowseLink type="File" />
-                            <BrowseLink type="Donor" disabled />
-                            <BrowseLink type="Tissue" disabled />
-                            <BrowseLink type="Assay" disabled />
-                        </div>
-                    </div>
-                    <div className="browse-body">
-                        <h2 className="browse-summary-header">
-                            SMaHT Data Summary
-                        </h2>
-                        <Alerts alerts={alerts} className="mt-2" />
-                        <div>
-                            <div className="browse-summary d-flex flex-row mt-2 mb-3 flex-wrap">
-                                <BrowseSummaryStatController type="File" />
-                                <BrowseSummaryStatController type="Donor" />
-                                <BrowseSummaryStatController type="Tissue" />
-                                <BrowseSummaryStatController type="Assay" />
-                                <BrowseSummaryStatController
-                                    type="File Size"
-                                    additionalSearchQueries="&additional_facet=file_size"
-                                />
-                            </div>
-                        </div>
-                        <hr />
-                        <BrowseViewControllerWithSelections {...passProps}>
-                            <BrowseViewSearchTable />
-                        </BrowseViewControllerWithSelections>
-                    </div>
-                </SlidingSidebarLayout>
+                <BrowseViewContent {...this.props} />
             </div>
         );
     }
 }
 
-/**
- * Button to download the bulk donor metadata for all SMaHT donors.
- * @param {Object} props - The component props.
- * @param {Object} props.session - The session object.
- * @returns {JSX.Element} The download button.
- *
- * Note: this component only renders for logged-in users.
- */
-export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
-    const [downloadLink, setDownloadLink] = useState(null);
-
-    useEffect(() => {
-        const searchURL =
-            '/search/?type=ResourceFile&tags=clinical_manifest&sort=-file_status_tracking.released_date';
-
-        if (session) {
-            ajax.load(
-                searchURL,
-                (resp) => {
-                    // Use the first item in the response
-                    const latest_file = resp?.['@graph']?.[0];
-
-                    if (latest_file?.href) {
-                        // Update the download link
-                        setDownloadLink(latest_file?.href);
-
-                        // Rebuild the tooltip after the component mounts
-                        ReactTooltip.rebuild();
-                    }
-                },
-                'GET',
-                () => {
-                    console.log('Error loading Bulk Donor Metadata button');
-                }
-            );
-        }
-    }, [session]);
-
-    return downloadLink ? (
-        <a
-            data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
-            className={'btn btn-sm btn-outline-secondary ' + className}
-            href={downloadLink}
-            download>
-            <span>
-                <i className="icon icon-fw icon-users fas me-1" />
-                Donor Metadata
-            </span>
-        </a>
-    ) : (
-        <button
-            data-tip="Click to download the metadata for all SMaHT donors for both benchmarking and production studies."
-            className={'btn btn-sm btn-outline-secondary ' + className}
-            disabled>
-            <span>
-                <i className="icon icon-fw icon-users fas me-1" />
-                Donor Metadata
-            </span>
-        </button>
-    );
-};
-
-export const BrowseViewSearchTable = (props) => {
+export const BrowseFileSearchTable = (props) => {
     const {
         session,
         context,
@@ -176,6 +201,7 @@ export const BrowseViewSearchTable = (props) => {
         selectedItems,
         onSelectItem,
         onResetSelectedItems,
+        userDownloadAccess,
     } = props;
     const facets = transformedFacets(context, currentAction, schemas);
     const tableColumnClassName = 'results-column col';
@@ -195,21 +221,37 @@ export const BrowseViewSearchTable = (props) => {
             topLeftChildren={
                 <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
             }>
-            {session && <DonorMetadataDownloadButton session={session} />}
-            <SelectedItemsDownloadButton
-                id="download_tsv_multiselect"
-                disabled={selectedItems.size === 0}
-                className="btn btn-primary btn-sm me-05 align-items-center"
-                {...{ selectedItems, session }}
-                analyticsAddItemsToCart>
-                <i className="icon icon-download fas me-03" />
-                Download {selectedItems.size} Selected Files
-            </SelectedItemsDownloadButton>
+            <div className="d-flex gap-2">
+                <DonorMetadataDownloadButton session={session} />
+                {userDownloadAccess?.['protected'] ? (
+                    <SelectedItemsDownloadButton
+                        id="download_tsv_multiselect"
+                        disabled={selectedItems.size === 0}
+                        className="download-button has-access btn btn-primary btn-sm me-05 align-items-center"
+                        {...{ selectedItems, session }}
+                        analyticsAddItemsToCart>
+                        <i className="icon icon-download fas me-03" />
+                        Download {selectedItems.size} Selected Files
+                    </SelectedItemsDownloadButton>
+                ) : (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="top"
+                        overlay={renderProtectedAccessPopover()}>
+                        <button
+                            className="download-button btn btn-primary btn-sm me-05 align-items-center"
+                            disabled={true}>
+                            <i className="icon icon-download fas me-03" />
+                            Download {selectedItems.size} Selected Files
+                        </button>
+                    </OverlayTrigger>
+                )}
+            </div>
         </BrowseViewAboveSearchTableControls>
     );
 
     const { columnExtensionMap, columns, hideFacets } =
-        createBrowseColumnExtensionMap(selectedFileProps);
+        createBrowseFileColumnExtensionMap(selectedFileProps);
 
     return (
         <CommonSearchView
@@ -226,7 +268,8 @@ export const BrowseViewSearchTable = (props) => {
             }}
             useCustomSelectionController
             hideStickyFooter
-            currentAction={'multiselect'}
+            isFullscreen={false}
+            toggleFullScreen={() => {}}
             renderDetailPane={null}
             termTransformFxn={Schemas.Term.toName}
             separateSingleTermFacets={false}
@@ -260,6 +303,18 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
 
     const commonCls = 'col-12';
 
+    let BrowseType = null;
+    switch (context['@type'][0]) {
+        case 'FileSearchResults':
+            BrowseType = 'File';
+            break;
+        case 'DonorSearchResults':
+            BrowseType = 'Donor';
+            break;
+        default:
+            break;
+    }
+
     return (
         <PageTitleContainer
             alerts={[]}
@@ -285,7 +340,9 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
                         className="static-breadcrumb nonclickable"
                         data-name="Production"
                         key="/browse">
-                        <span>Browse By File</span>
+                        <span>
+                            {BrowseType ? `Browse By ${BrowseType}` : 'Browse'}
+                        </span>
                     </div>
                 </div>
                 <OnlyTitle className={commonCls + ' mx-0 px-0'}>
@@ -339,7 +396,7 @@ const TypeColumnTitlePopover = function (props) {
 /**
  *  A column extension map specifically for browse view file tables.
  */
-export function createBrowseColumnExtensionMap({
+export function createBrowseFileColumnExtensionMap({
     selectedItems,
     onSelectItem,
     onResetSelectedItems,
@@ -434,6 +491,8 @@ export function createBrowseColumnExtensionMap({
         donors: {
             widthMap: { lg: 102, md: 102, sm: 102 },
             render: function (result, parentProps) {
+                // Get user download access from parent props
+                const { userDownloadAccess = {} } = parentProps || {};
                 const {
                     donors: {
                         0: {
@@ -447,7 +506,12 @@ export function createBrowseColumnExtensionMap({
                 return donorLink ? (
                     <a
                         target="_blank"
-                        href={protected_donor?.['@id'] ?? donorLink}>
+                        href={
+                            userDownloadAccess?.['protected'] &&
+                            protected_donor?.['@id']
+                                ? protected_donor?.['@id']
+                                : donorLink
+                        }>
                         {display_title}
                     </a>
                 ) : null;
@@ -591,6 +655,7 @@ export function createBrowseColumnExtensionMap({
         'sample_summary.studies',
         'submission_centers.display_title',
         'software.display_title',
+        'donors.tags',
     ];
 
     return { columnExtensionMap, columns, hideFacets };

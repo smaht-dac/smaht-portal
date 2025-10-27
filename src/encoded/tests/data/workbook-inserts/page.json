@@ -2,7 +2,7 @@
     {
         "identifier": "about",
         "title": "About",
-        "status": "public",
+        "status": "open",
         "children": [
             "d2d042e7-09e5-4a34-a8c5-530ba9c9cdec",
             "af03023c-1ce0-49a1-b85b-20f5abd8cc30"
@@ -22,7 +22,7 @@
     {
         "identifier": "aboutTODOSLASHconsortium",
         "title": "SMaHT Consortium Information",
-        "status": "public",
+        "status": "open",
         "children": [
             "6da98599-12a7-456f-8598-da510a88c7e8",
             "1ef242a4-954c-4c77-9193-3ec3b1a8e7d7"
@@ -44,7 +44,7 @@
     {
         "identifier": "aboutTODOSLASHjoin",
         "title": "How to Join SMaHt",
-        "status": "public",
+        "status": "open",
         "children": [
             "fd79ef6d-bbb3-4318-b1e0-9b108a57cccd"
         ],
@@ -65,7 +65,7 @@
     {
         "identifier": "aboutTODOSLASHconsortiumTODOSLASHawardees",
         "title": "SMaHT Awardees",
-        "status": "public",
+        "status": "open",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -83,7 +83,7 @@
     {
         "identifier": "aboutTODOSLASHconsortiumTODOSLASHdata",
         "title": "SMaHT Data",
-        "status": "public",
+        "status": "open",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],
@@ -101,7 +101,7 @@
     {
         "identifier": "aboutTODOSLASHjoinTODOSLASHpolicy",
         "title": "Associate Membership policy",
-        "status": "public",
+        "status": "open",
         "content": [
             "10d45e8c-aeab-4e07-9257-1d78f3329de5"
         ],

@@ -102,7 +102,24 @@ const AnnouncementCard = ({
     );
 };
 
-const DataReleaseItem = ({ data, releaseItemIndex }) => {
+// Warning to include in the data release item for September 2025
+const ReleaseItemWarning = () => {
+    return (
+        <div className="announcement-container cram-conversion">
+            <div className="header">
+                <i className="icon fas icon-database"></i>
+                <span>CRAM CONVERSION</span>
+            </div>
+            <div className="body">
+                As of September 15, 2025, all released BAMs have been converted
+                to CRAMs for optimal file storage at the DAC. The data release
+                tracker will start to announce new CRAMs as they are released.
+            </div>
+        </div>
+    );
+};
+
+const DataReleaseItem = ({ data, callout = null }) => {
     const [isExpanded, setIsExpanded] = useState(true);
     const { count, items: sample_groups, query, value } = data;
 
@@ -129,18 +146,20 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                                 isExpanded ? 'minus' : 'plus'
                             }`}></i>
                     </button>
-                    <a className="header-link" href={query}>
+                    <a className="header-link" href={count > 0 ? query : null}>
                         <span>
-                            {releaseItemIndex === 0 ? 'Latest: ' : ''}
                             {month} {year}
                         </span>
-                        <span className="count">
-                            {count} {count > 1 ? 'Files' : 'File'}
-                            <i className="icon icon-arrow-right"></i>
-                        </span>
+                        {count > 0 ? (
+                            <span className="count">
+                                {count} {count > 1 ? 'Files' : 'File'}
+                                <i className="icon icon-arrow-right"></i>
+                            </span>
+                        ) : null}
                     </a>
                 </div>
                 <div className="body">
+                    {callout ? <div className="callout">{callout}</div> : null}
                     {sample_groups.map((sample_group, i) => {
                         let sample_group_title = sample_group.value;
 
@@ -188,20 +207,20 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
 export const NotificationsPanel = () => {
     const [data, setData] = useState(null);
 
-    useEffect(() => {
-        ajax.load(
-            '/recent_files_summary?format=json&nmonths=3',
-            (resp) => {
-                setData(resp?.items ?? []);
-            },
-            'GET',
-            (err) => {
-                if (err.notification !== 'No results found') {
-                    console.log('ERROR NotificationsPanel resp', err);
-                }
-            }
-        );
-    }, []);
+    // useEffect(() => {
+    //     ajax.load(
+    //         '/recent_files_summary?format=json&nmonths=3',
+    //         (resp) => {
+    //             setData(resp?.items ?? []);
+    //         },
+    //         'GET',
+    //         (err) => {
+    //             if (err.notification !== 'No results found') {
+    //                 console.log('ERROR NotificationsPanel resp', err);
+    //             }
+    //         }
+    //     );
+    // }, []);
 
     return (
         <div className="notifications-panel container">
@@ -210,21 +229,36 @@ export const NotificationsPanel = () => {
                 <div className="section-body-container">
                     <div className="section-body">
                         <div className="section-body-items-container">
-                            {data === null ? (
+                            <ReleaseItemWarning />
+                            {/* {data === null ? (
                                 <i className="icon fas icon-spinner icon-spin"></i>
                             ) : data.length === 0 ? (
-                                <div className="text-center text-muted py-3">
-                                    No recent data releases found.
-                                </div>
+                                <DataReleaseItem
+                                    data={{
+                                        name: 'file_status_tracking.released',
+                                        value: '2025-09',
+                                        count: 0,
+                                        items: [],
+                                        query: '',
+                                    }}
+                                    callout={<ReleaseItemWarning />}
+                                />
                             ) : (
-                                data.map((releaseItem, i) => (
-                                    <DataReleaseItem
-                                        data={releaseItem}
-                                        key={i}
-                                        releaseItemIndex={i}
-                                    />
-                                ))
-                            )}
+                                data.map((releaseItem, i) => {
+                                    return releaseItem?.value === '2025-09' ? (
+                                        <DataReleaseItem
+                                            data={releaseItem}
+                                            key={i}
+                                            callout={<ReleaseItemWarning />}
+                                        />
+                                    ) : (
+                                        <DataReleaseItem
+                                            data={releaseItem}
+                                            key={i}
+                                        />
+                                    );
+                                })
+                            )} */}
                         </div>
                     </div>
                 </div>

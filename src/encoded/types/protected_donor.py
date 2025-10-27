@@ -11,7 +11,7 @@ from .abstract_donor import AbstractDonor
 def _build_protected_donor_embedded_list():
     """Embeds for search on protected donor."""
     return [
-        # Embeds for donor manifest and Donor Overview page 
+        # Embeds for donor manifest and Donor Overview page
         'demographic.international_military_base',
         'demographic.international_military_base_details',
         'demographic.military_association',
@@ -102,7 +102,9 @@ def _build_protected_donor_embedded_list():
         'medical_history.exposures.quantity',
         'medical_history.exposures.quantity_unit',
         'medical_history.exposures.route',
-        'medical_history.exposures.substance'
+        'medical_history.exposures.substance',
+
+        'donor.tissues.tissue_type'
     ]
 
 
@@ -124,17 +126,20 @@ class ProtectedDonor(AbstractDonor):
         "death_circumstances": ("DeathCircumstances", "donor"),
         "family_history": ("FamilyHistory", "donor"),
         "tissue_collection": ("TissueCollection", "donor"),
+        "donor": ("Donor", "protected_donor"),
     }
 
     SUBMISSION_CENTER_STATUS_ACL = deepcopy(AbstractDonor.SUBMISSION_CENTER_STATUS_ACL)
     SUBMISSION_CENTER_STATUS_ACL.update({
-        'restricted': ONLY_DBGAP_VIEW_ACL,
-        'public-restricted': ONLY_PUBLIC_DBGAP_VIEW_ACL
+        'protected-early': ONLY_DBGAP_VIEW_ACL,
+        'protected-network': ONLY_DBGAP_VIEW_ACL,
+        'protected': ONLY_PUBLIC_DBGAP_VIEW_ACL
     })
     CONSORTIUM_STATUS_ACL = deepcopy(AbstractDonor.CONSORTIUM_STATUS_ACL)
     CONSORTIUM_STATUS_ACL.update({
-        'restricted': ONLY_DBGAP_VIEW_ACL,
-        'public-restricted': ONLY_PUBLIC_DBGAP_VIEW_ACL
+        'protected-early': ONLY_DBGAP_VIEW_ACL,
+        'protected-network': ONLY_DBGAP_VIEW_ACL,
+        'protected': ONLY_PUBLIC_DBGAP_VIEW_ACL
     })
 
     @calculated_property(
@@ -205,4 +210,18 @@ class ProtectedDonor(AbstractDonor):
     )
     def tissue_collection(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "tissue_collection")
+        return result or None
+
+    @calculated_property(
+        schema={
+            "title": "Donor",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "Donor",
+            },
+        },
+    )
+    def donor(self, request: Request) -> Union[List[str], None]:
+        result = self.rev_link_atids(request, "donor")
         return result or None

@@ -2,7 +2,7 @@
     "FileFormat": [
         {
             "identifier": "vcf_gz_tbi",
-            "status": "public",
+            "status": "open",
             "description": "Tabix index file of vcf compressed",
             "consortia": [
                 "358aed10-9b9d-4e26-ab84-4bd162da182b"
@@ -14,7 +14,7 @@
         },
         {
             "identifier": "txt",
-            "status": "public",
+            "status": "open",
             "description": "This format is used for aligned reads",
             "consortia": [
                 "358aed10-9b9d-4e26-ab84-4bd162da182b"
@@ -26,7 +26,7 @@
         },
         {
             "identifier": "vcf",
-            "status": "public",
+            "status": "open",
             "description": "vcf compressed",
             "consortia": [
                 "358aed10-9b9d-4e26-ab84-4bd162da182b"

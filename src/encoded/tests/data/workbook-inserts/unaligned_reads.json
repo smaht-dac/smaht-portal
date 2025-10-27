@@ -18,7 +18,7 @@
         ],
         "read_pair_number": "R1",
         "file_size": 10000,
-        "status": "released",
+        "status": "open-early",
         "dataset": "colo829t",
         "flow_cell_barcode": "HAWT3ADXX",
         "flow_cell_lane": 1
@@ -86,7 +86,7 @@
         ],
         "read_pair_number": "R1",
         "file_size": 20000,
-        "status": "released",
+        "status": "open-early",
         "sequencing_center": "smaht",
         "annotated_filename": "SMHTHELA-X-X-F65-B102-test-SMAURV9YIJWF-X.fastq.gz",
         "dataset": "colo829t",
@@ -139,7 +139,7 @@
             "TEST_FILE-SET_HELA-RNA"
         ],
         "file_size": 30000,
-        "status": "released",
+        "status": "open-early",
         "dataset": "colo829t"
     }
 ]
