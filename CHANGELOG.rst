@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+1.4.3
+=====
+
+* Updates to the load-users-from-oc script to account for DUA status
+
+
 1.4.2
 =====
 
