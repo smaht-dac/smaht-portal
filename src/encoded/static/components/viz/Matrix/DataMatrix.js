@@ -411,32 +411,30 @@ export default class DataMatrix extends React.PureComponent {
             const resultKey = "_results";
             const updatedState = {};
 
-            updatedState[resultKey] = result;
-            const transformedData = [];
+            const transformedData = { all: [], row_totals: [] };
             const populatedRowGroups = {}; // not implemented yet
-            _.forEach(updatedState[resultKey], (r) => {
+            const processResultRow = (r, transformed) => {
                 let cloned = _.clone(r);
                 if (fieldChangeMap) {
-                    _.forEach(_.pairs(fieldChangeMap), function ([fieldToMapTo, fieldToMapFrom]) {
-                        if (typeof cloned[fieldToMapFrom] !== 'undefined' && fieldToMapTo !== fieldToMapFrom) { // If present
+                    _.forEach(_.pairs(fieldChangeMap), ([fieldToMapTo, fieldToMapFrom]) => {
+                        if (typeof cloned[fieldToMapFrom] !== 'undefined' && fieldToMapTo !== fieldToMapFrom) {
                             cloned[fieldToMapTo] = cloned[fieldToMapFrom];
                             delete cloned[fieldToMapFrom];
                         }
-                    }, {});
+                    });
                 }
                 if (resultPostProcessFuncKey && typeof DataMatrix.resultPostProcessFuncs[resultPostProcessFuncKey] === 'function') {
                     cloned = DataMatrix.resultPostProcessFuncs[resultPostProcessFuncKey](cloned);
                 }
                 if (cloned.files && cloned.files > 0) {
-                    // Change values (e.g. shorten some):
                     if (valueChangeMap) {
-                        _.forEach(_.pairs(valueChangeMap), function ([field, changeMap]) {
-                            if (typeof cloned[field] === "string") { // If present
+                        _.forEach(_.pairs(valueChangeMap), ([field, changeMap]) => {
+                            if (typeof cloned[field] === 'string') {
                                 cloned[field] = changeMap[cloned[field]] || cloned[field];
                             }
                         });
                     }
-                    transformedData.push(cloned);
+                    transformed.push(cloned);
                 }
                 if (autoPopulateRowGroupsProperty && cloned[autoPopulateRowGroupsProperty]) {
                     const rowGroupKey = cloned[autoPopulateRowGroupsProperty];
@@ -445,12 +443,15 @@ export default class DataMatrix extends React.PureComponent {
                     }
                     populatedRowGroups[rowGroupKey].push(cloned[groupingProperties[0]]);
                 }
-            });
+            };
+
+            _.forEach(result.data, (r) => processResultRow(r, transformedData.all));
+            _.forEach(result.row_totals, (r) => processResultRow(r, transformedData.row_totals));
 
             updatedState[resultKey] = transformedData;
             // sum files in transformedData array
             let totalFiles = 0;
-            _.forEach(transformedData, (r) => {
+            _.forEach(transformedData.row_totals, (r) => {
                 if (r.files && typeof r.files === 'number') {
                     totalFiles += r.files;
                 }
@@ -735,14 +736,16 @@ DataMatrix.resultPostProcessFuncs = {
             result.donor = result.dataset;
             result.primary_field_override = "dataset";
 
-            if (result.assay.indexOf('Hi-C - ') !== -1 && result.platform !== 'Illumina') {
-                result.files = 0;
-            }
-            if (result.assay.indexOf('Fiber-seq - ') !== -1 && result.platform !== 'PacBio') {
-                result.files = 0;
-            }
-            if (result.assay.indexOf('Ultra-Long WGS - ') !== -1 && result.platform !== 'ONT') {
-                result.files = 0;
+            if (typeof result.assay !== 'undefined' && typeof result.platform !== 'undefined') {
+                if (result.assay.indexOf('Hi-C - ') !== -1 && result.platform !== 'Illumina') {
+                    result.files = 0;
+                }
+                if (result.assay.indexOf('Fiber-seq - ') !== -1 && result.platform !== 'PacBio') {
+                    result.files = 0;
+                }
+                if (result.assay.indexOf('Ultra-Long WGS - ') !== -1 && result.platform !== 'ONT') {
+                    result.files = 0;
+                }
             }
         }
         return result;
