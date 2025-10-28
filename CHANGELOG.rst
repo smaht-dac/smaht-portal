@@ -7,15 +7,31 @@ smaht-portal
 Change Log
 ----------
 
+1.4.3
+=====
+`PR 540 Refactor file status tracking structure <https://github.com/smaht-dac/smaht-portal/pull/540>`_
+
+* The `file_status_tracking` calc prop now contains the dictionaries `status_tracking` and `release_dates`. 
+  `status_tracking` contains timestamps and dates when the file switched status. 
+  `release_dates` evaluates these status changes and provides timestamps and dates for 
+  `initial_release`, `public_release`, `network_release`.
+
+
+1.4.2
+=====
+
+* Bug fix - repair missing s3 encryption key in select validation scenarios
+* Update diff check during submission to exclude SubmittedFile items
+
 
 1.4.1
 =====
-
 `PR 495 Script for Bulk Donor Manifests <https://github.com/smaht-dac/smaht-portal/pull/495>`_
 
 * Add script to generate bulk donor metadata manifests - can generate the 4 different files containing
   public or protected donor metadata for production or benchmarking donors that have been publicly released
   or are only available to network members.
+
 
 1.4.0
 =====
@@ -47,7 +63,7 @@ Change Log
 `PR 527: feat: homepage announcement for portal shutdown <https://github.com/smaht-dac/smaht-portal/pull/527>`_
 
 * Implement announcement in homepage banner for portal shutdown
-* Prevent non-admins from seeing the user registration modal during portal shutdown 
+* Prevent non-admins from seeing the user registration modal during portal shutdown
 
 
 1.3.0
@@ -60,7 +76,7 @@ Change Log
 1.2.1
 =====
 
-* Correct link in submission doc page 
+* Correct link in submission doc page
 
 
 1.2.0
