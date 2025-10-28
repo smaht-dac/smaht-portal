@@ -7,7 +7,6 @@ import url from 'url';
 import _ from 'underscore';
 import {
     console,
-    JWT,
     memoizedUrlParse,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { BigDropdownIntroductionWrapper } from './BigDropdownIntroductionWrapper';
