@@ -173,7 +173,7 @@ export class VisualBody extends React.PureComponent {
                         return [[facetField, facetTerm], [columnAggFields[1], extendedFacetTerm]];
                     } else if (Array.isArray(facetTerm) && _.all(_.map(facetTerm, (term) => typeof term === 'string' && term.indexOf(compositeValueSeparator) > -1))) {
                         // If facetTerm is an array, we assume all elements are strings with the same format.
-                        return [[facetField, facetTerm[0].split(compositeValueSeparator)[0]], [columnAggFields[1], _.map(facetTerm, (term) => term.split(compositeValueSeparator)[1])]];
+                        return [[facetField, _.uniq(_.map(facetTerm, (term) => term.split(compositeValueSeparator)[0]))], [columnAggFields[1], _.uniq(_.map(facetTerm, (term) => term.split(compositeValueSeparator)[1]))]];
                     }
                 }
 
