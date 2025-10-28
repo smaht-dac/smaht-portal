@@ -332,6 +332,42 @@ $facetlist-excluding: #450000;
 			width: 33% !important;
 		}
 	}
+
+	// Styles for download button
+	.download-button {
+		height: 31px;
+		font-size: 0.875rem;
+		font-weight: 500;
+		display: flex;
+		align-items: center;
+		gap: 5px;
+
+		i {
+			margin-right: 10px;
+		}
+
+		&:disabled {
+			background-color: #C0C7D2;
+			border: 1px solid #B6C1D1;
+			pointer-events: auto;
+
+			&:hover {
+				cursor: default;
+			}
+			&:active {
+				color: white;
+				background-color: #C0C7D2;
+				border-color: #B6C1D1;
+			}
+		}
+
+		&.has-access {
+			&:disabled {
+				background-color: #0E74D2;
+				border-color: #0E74D2;
+			}
+		}
+	}
 }
 
 /************************************************
@@ -885,43 +921,6 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 ***************************************************/
 
 body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-current-action="edit"]):not([data-at-type*="Error"]) {
-
-	// Styles for donwload button
-	.download-button {
-		height: 31px;
-		font-size: 0.875rem;
-		font-weight: 500;
-		display: flex;
-		align-items: center;
-		gap: 5px;
-
-		i {
-			margin-right: 10px;
-		}
-
-		&:disabled {
-			background-color: #C0C7D2;
-			border: 1px solid #B6C1D1;
-			pointer-events: auto;
-
-			&:hover {
-				cursor: default;
-			}
-			&:active {
-				color: white;
-				background-color: #C0C7D2;
-				border-color: #B6C1D1;
-			}
-		}
-
-		&.has-access {
-			&:disabled {
-				background-color: #0E74D2;
-				border-color: #0E74D2;
-			}
-		}
-	}
-
 	// Donor Browse specific styles
 	&[data-at-type="DonorSearchResults"],
 	&[data-at-type="ProtectedDonorSearchResults"] {

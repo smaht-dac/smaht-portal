@@ -38,6 +38,7 @@
                         headerFor={null}
                         showColumnSummary={false}
                         idLabel="benchmarking"
+                        baseBrowseFilesPath="/search/"
                     />
                 </div>
             </div>

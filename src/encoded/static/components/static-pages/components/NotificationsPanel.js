@@ -235,7 +235,7 @@ export const NotificationsPanel = () => {
                             ) : data.length === 0 ? (
                                 <DataReleaseItem
                                     data={{
-                                        name: 'file_status_tracking.released',
+                                        name: 'file_status_tracking.release_dates.initial_release',
                                         value: '2025-09',
                                         count: 0,
                                         items: [],

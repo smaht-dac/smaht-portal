@@ -7,6 +7,33 @@ smaht-portal
 Change Log
 ----------
 
+1.4.5
+=====
+
+`PR 516: Update Donor release script <https://github.com/smaht-dac/smaht-portal/pull/532>`_
+
+* Add/update donor release script to reflect new release statuses and default to network statuses for initial releases
+
+
+1.4.4
+=====
+`PR 544 Data matrix and file search view permission updates <https://github.com/smaht-dac/smaht-portal/pull/544>`_
+
+* Improved data matrix row summary file count calculation and fix browse files links in popover
+* Added access control and download functionality in file search view based on user roles
+* Hide production data matrix in Data Matrix page if no data available
+
+
+1.4.3
+=====
+`PR 540 Refactor file status tracking structure <https://github.com/smaht-dac/smaht-portal/pull/540>`_
+
+* The `file_status_tracking` calc prop now contains the dictionaries `status_tracking` and `release_dates`. 
+  `status_tracking` contains timestamps and dates when the file switched status. 
+  `release_dates` evaluates these status changes and provides timestamps and dates for 
+  `initial_release`, `public_release`, `network_release`.
+
+
 1.4.2
 =====
 
@@ -16,12 +43,12 @@ Change Log
 
 1.4.1
 =====
-
 `PR 495 Script for Bulk Donor Manifests <https://github.com/smaht-dac/smaht-portal/pull/495>`_
 
 * Add script to generate bulk donor metadata manifests - can generate the 4 different files containing
   public or protected donor metadata for production or benchmarking donors that have been publicly released
   or are only available to network members.
+
 
 1.4.0
 =====
