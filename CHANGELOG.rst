@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+1.4.4
+=====
+`PR 544 Data matrix and file search view permission updates <https://github.com/smaht-dac/smaht-portal/pull/544>`_
+
+* Improved data matrix row summary file count calculation and fix browse files links in popover
+* Added access control and download functionality in file search view based on user roles
+* Hide production data matrix in Data Matrix page if no data available
+
+
 1.4.3
 =====
 `PR 540 Refactor file status tracking structure <https://github.com/smaht-dac/smaht-portal/pull/540>`_
