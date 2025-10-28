@@ -754,7 +754,7 @@ class FileRelease:
         )
         self.patch_infos_minimal.extend(
             [
-                f"File {warning_text(file_accession)} will be released as {warning_text(annotated_filename_info.filename)}"
+                f"File {warning_text(file_accession)} will be released as {warning_text(annotated_filename_info.filename)} with status {warning_text(target_file_status)}.",   
             ]
         )
         if submitted_file_utils.is_submitted_file(self.file):
@@ -835,9 +835,14 @@ class FileRelease:
             Files with somatic variants = Protected
             Files with germline variants = Protected
             Files with expression or epigenetic data = Protected
-        Tissues
+        Tissues (Benchmarking)
             CRAM, BAM, FASTQ = Protected
-            Files with somatic variants = Protected (until confident no germline variants are present)
+            Files with somatic variants = Protected
+            Files with germline variants = Protected
+            Files with expression or epigenetic data = Protected
+        Tissues (Production)
+            CRAM, BAM, FASTQ = Protected
+            Files with somatic variants = Open
             Files with germline variants = Protected
             Files with expression or epigenetic data = Open
 
@@ -982,7 +987,6 @@ class FileRelease:
         self, file, data_category_to_access_status: Dict[str, str]
     ) -> str:
         file_accession = item_utils.get_accession(file)
-        missing_data_categories = []
         access_statuses = set()
         data_categories = file_utils.get_data_category(file)
         if not data_categories:
@@ -991,19 +995,18 @@ class FileRelease:
             )
         for data_category in data_categories:
             access_status = data_category_to_access_status.get(data_category)
-            if not access_status:
-                missing_data_categories.append(data_category)
-            else:
-                access_statuses.add(access_status)
-        if missing_data_categories:
+            if access_status:
+               access_statuses.add(access_status)
+
+        # The assigned data categories must map to exactly one access status. We do allow
+        # data categories that are not in the mapping if there are others that are mapped.
+        if len(access_statuses) == 0:
             self.print_error_and_exit(
-                f"Cannot get access_status for data_categories:"
-                f" {missing_data_categories}."
-                f" Please add them to access_status_mapping."
-            )
-        if len(access_statuses) > 1:
+                f"Cannot get access_status for file {file_accession} with data_categories: {data_categories}."
+            )    
+        elif len(access_statuses) > 1:
             self.print_error_and_exit(
-                f"Cannot get access_status for data_categories: {data_categories}."
+                f"Cannot get access_status for file {file_accession} with data_categories: {data_categories}."
                 f" Multiple access_statuses found: {access_statuses}."
             )
         return access_statuses.pop()
