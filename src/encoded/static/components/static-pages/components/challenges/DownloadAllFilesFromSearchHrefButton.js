@@ -74,7 +74,7 @@ export const DownloadAllFilesFromSearchHrefButton = ({
         return null; // Maybe replace with disabled button with load spinner
     }
 
-    return (
+    return session ? (
         <SelectedItemsDownloadButton
             id="download_tsv_from_search"
             disabled={selectedItems.size === 0}
@@ -84,5 +84,5 @@ export const DownloadAllFilesFromSearchHrefButton = ({
             <i className="icon icon-download fas me-03" />
             {children ? children : `Download ${selectedItems.size} Files`}
         </SelectedItemsDownloadButton>
-    );
+    ) : null;
 };
