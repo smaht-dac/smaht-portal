@@ -358,7 +358,7 @@
         "data_type": {
             "title": "Data Type"
         },
-        "file_status_tracking.released": {
+        "file_status_tracking.release_dates.initial_release": {
             "title" : "Release Date",
             "aggregation_type" : "stats"
         },
@@ -406,7 +406,7 @@
         "software.display_title": {
             "title": "Method"
         },
-        "file_status_tracking.released_date": {
+        "file_status_tracking.release_dates.initial_release_date": {
             "title": "Release Date"
         },
         "file_size": {
