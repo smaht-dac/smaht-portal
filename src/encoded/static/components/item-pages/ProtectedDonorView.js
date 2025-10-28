@@ -138,6 +138,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
     });
 
     const { context, session, href } = props;
+    const { study } = context || {};
 
     // Load the files from the search URL and calculate statistics
     useEffect(() => {
@@ -232,6 +233,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                     idLabel="donor"
                                     session={session}
                                     yAxisLabel="Tissue" // Only one donor, so y-axis is Tissue
+                                    baseBrowseFilesPath={study === 'Production' ? "/browse/" : "/search/"}
                                 />
                             </div>
                         ) : (

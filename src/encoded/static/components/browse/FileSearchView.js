@@ -11,38 +11,85 @@ import { navigate, Schemas } from './../util';
 import { columnExtensionMap as originalColExtMap } from './columnExtensionMap';
 import { transformedFacets, SearchViewPageTitle } from './SearchView';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
-import { SelectAllFilesButton, SelectedItemsDownloadButton } from '../static-pages/components/SelectAllAboveTableComponent';
+import {
+    SelectAllFilesButton,
+    SelectedItemsDownloadButton,
+} from '../static-pages/components/SelectAllAboveTableComponent';
 import { createBrowseFileColumnExtensionMap } from './BrowseView';
-import { pageTitleViews, PageTitleContainer, TitleAndSubtitleBeside } from '../PageTitleSection';
+import {
+    pageTitleViews,
+    PageTitleContainer,
+    TitleAndSubtitleBeside,
+} from '../PageTitleSection';
+import { useUserDownloadAccess } from '../util/hooks';
 
-
-
-export default function FileSearchView (props){
+export default function FileSearchView(props) {
     const { schemas, session, facets, href, context } = props;
     if (!context.facets) return null;
     return (
         <div className="search-page-container container-wide" id="content">
-            <SelectedItemsController {...{ context, href }} currentAction={'multiselect'}>
-                <FileTableWithSelectedFilesCheckboxes {...{ schemas, facets, session, href, context }} />
+            <SelectedItemsController
+                {...{ context, href }}
+                currentAction={'multiselect'}>
+                <FileTableWithSelectedFilesCheckboxes
+                    {...{ schemas, facets, session, href, context }}
+                />
             </SelectedItemsController>
         </div>
     );
 }
 
+// Download button for admin users only
+const SearchViewDownloadButton = ({ session, selectedItems }) => {
+    const userDownloadAccess = useUserDownloadAccess(session);
 
-function FileTableWithSelectedFilesCheckboxes(props){
+    return userDownloadAccess?.['protected-network'] ? (
+        <SelectedItemsDownloadButton
+            id="download_tsv_multiselect"
+            disabled={selectedItems.size === 0}
+            className="btn btn-primary btn-sm me-05 align-items-center"
+            {...{ selectedItems, session }}
+            analyticsAddItemsToCart>
+            <i className="icon icon-download fas me-03" />
+            Download {selectedItems.size} Selected Files
+        </SelectedItemsDownloadButton>
+    ) : (
+        <SelectedItemsDownloadButton
+            id="download_tsv_multiselect"
+            disabled={true}
+            className="download-button btn btn-primary btn-sm me-05 align-items-center">
+            <i className="icon icon-download fas me-03" />
+            Download {selectedItems.size} Selected Files
+        </SelectedItemsDownloadButton>
+    );
+};
+
+function FileTableWithSelectedFilesCheckboxes(props) {
     const {
-        context, href, schemas, navigate: propNavigate = navigate,
-        windowHeight, windowWidth, registerWindowOnScrollHandler,
-        toggleFullScreen, isFullscreen, session,
-        selectedItems, onSelectItem, selectItem, onResetSelectedItems,
+        context,
+        href,
+        schemas,
+        navigate: propNavigate = navigate,
+        windowHeight,
+        windowWidth,
+        registerWindowOnScrollHandler,
+        toggleFullScreen,
+        isFullscreen,
+        session,
+        selectedItems,
+        onSelectItem,
+        selectItem,
+        onResetSelectedItems,
         columnExtensionMap: propColumnExtensionMap = originalColExtMap,
-        currentAction
+        currentAction,
     } = props;
- 
-    const facets = useMemo(function(){
-        return transformedFacets(context, currentAction, schemas);
-    }, [ context, currentAction, session, schemas ]);
+
+    const facets = useMemo(
+        function () {
+            return transformedFacets(context, currentAction, schemas);
+        },
+        [context, currentAction, session, schemas]
+    );
 
     const selectedFileProps = {
         selectedItems, // From SelectedItemsController
@@ -50,87 +97,110 @@ function FileTableWithSelectedFilesCheckboxes(props){
         onResetSelectedItems, // From SelectedItemsController
     };
 
-    const { columnExtensionMap, columns, hideFacets } = useMemo(function () {
-        let { columnExtensionMap, columns, hideFacets } = createBrowseFileColumnExtensionMap(selectedFileProps);
-        columnExtensionMap = _.extend({}, propColumnExtensionMap, columnExtensionMap);
-        return { columnExtensionMap, columns, hideFacets };
-    }, [propColumnExtensionMap, selectedFileProps]);
+    const { columnExtensionMap, columns, hideFacets } = useMemo(
+        function () {
+            let { columnExtensionMap, columns, hideFacets } =
+                createBrowseFileColumnExtensionMap(selectedFileProps);
+            columnExtensionMap = _.extend(
+                {},
+                propColumnExtensionMap,
+                columnExtensionMap
+            );
+            return { columnExtensionMap, columns, hideFacets };
+        },
+        [propColumnExtensionMap, selectedFileProps]
+    );
 
     const tableColumnClassName = 'results-column col';
     const facetColumnClassName = 'facets-column col-auto';
 
     const aboveTableComponent = (
-            <BrowseViewAboveSearchTableControls
-                topLeftChildren={
-                    <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
-                }>
-                <SelectedItemsDownloadButton
-                    id="download_tsv_multiselect"
-                    disabled={selectedItems.size === 0}
-                    className="btn btn-primary btn-sm me-05 align-items-center"
-                    {...{ selectedItems, session }}
-                    analyticsAddItemsToCart>
-                    <i className="icon icon-download fas me-03" />
-                    Download {selectedItems.size} Selected Files
-                </SelectedItemsDownloadButton>
-            </BrowseViewAboveSearchTableControls>
-        );
-    const aboveFacetListComponent = <AboveFacetList {...{ context, currentAction }} />;
+        <BrowseViewAboveSearchTableControls
+            topLeftChildren={
+                <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
+            }>
+            {<SearchViewDownloadButton {...{ session, selectedItems }} />}
+        </BrowseViewAboveSearchTableControls>
+    );
+    const aboveFacetListComponent = (
+        <AboveFacetList {...{ context, currentAction }} />
+    );
 
     const passProps = {
-        href, context, facets,
-        session, schemas,
-        windowHeight, windowWidth, registerWindowOnScrollHandler,
-        aboveTableComponent, aboveFacetListComponent,
-        tableColumnClassName, facetColumnClassName,
+        href,
+        context,
+        facets,
+        session,
+        schemas,
+        windowHeight,
+        windowWidth,
+        registerWindowOnScrollHandler,
+        aboveTableComponent,
+        aboveFacetListComponent,
+        tableColumnClassName,
+        facetColumnClassName,
         columnExtensionMap,
         navigate: propNavigate,
-        toggleFullScreen, isFullscreen, // todo: remove maybe, pass only to AboveTableControls
+        toggleFullScreen,
+        isFullscreen, // todo: remove maybe, pass only to AboveTableControls
         keepSelectionInStorage: true,
         separateSingleTermFacets: false,
-        columns, hideFacets,
+        columns,
+        hideFacets,
         rowHeight: 31,
-        openRowHeight: 40
+        openRowHeight: 40,
     };
 
-    return <CommonSearchView {...passProps} termTransformFxn={Schemas.Term.toName} />;
+    return (
+        <CommonSearchView
+            {...passProps}
+            termTransformFxn={Schemas.Term.toName}
+        />
+    );
 }
 FileTableWithSelectedFilesCheckboxes.propTypes = {
     // Props' type validation based on contents of this.props during render.
-    'href'                      : PropTypes.string.isRequired,
-    'columnExtensionMap'        : PropTypes.object,
-    'context'                   : PropTypes.shape({
-        'columns'                   : PropTypes.objectOf(PropTypes.object).isRequired,
-        'total'                     : PropTypes.number.isRequired
+    href: PropTypes.string.isRequired,
+    columnExtensionMap: PropTypes.object,
+    context: PropTypes.shape({
+        columns: PropTypes.objectOf(PropTypes.object).isRequired,
+        total: PropTypes.number.isRequired,
     }).isRequired,
-    'facets'                    : PropTypes.arrayOf(PropTypes.shape({
-        'title'                     : PropTypes.string.isRequired
-    })),
-    'schemas'                   : PropTypes.object,
-    'selectItem'                : PropTypes.func,
-    'selectedItems'             : PropTypes.objectOf(PropTypes.object),
+    facets: PropTypes.arrayOf(
+        PropTypes.shape({
+            title: PropTypes.string.isRequired,
+        })
+    ),
+    schemas: PropTypes.object,
+    selectItem: PropTypes.func,
+    selectedItems: PropTypes.objectOf(PropTypes.object),
 };
 
-function AboveFacetList({ context, currentAction }){
+function AboveFacetList({ context, currentAction }) {
     const { total = 0, actions = [] } = context;
     let totalResults = null;
     if (total > 0) {
         totalResults = (
             <div>
                 <span id="results-count" className="text-500">
-                    { total }
-                </span> Results
+                    {total}
+                </span>{' '}
+                Results
             </div>
         );
     }
 
     let addButton = null;
     if (!currentAction) {
-        const addAction = _.findWhere(actions, { 'name': 'add' });
+        const addAction = _.findWhere(actions, { name: 'add' });
         if (addAction && typeof addAction.href === 'string') {
             addButton = (
-                <a className="btn btn-primary btn-xs ms-1" href={addAction.href} data-skiprequest="true">
-                    <i className="icon icon-fw icon-plus fas me-03 fas" />Create New&nbsp;
+                <a
+                    className="btn btn-primary btn-xs ms-1"
+                    href={addAction.href}
+                    data-skiprequest="true">
+                    <i className="icon icon-fw icon-plus fas me-03 fas" />
+                    Create New&nbsp;
                 </a>
             );
         }
@@ -138,8 +208,8 @@ function AboveFacetList({ context, currentAction }){
 
     return (
         <div className="above-results-table-row text-truncate d-flex align-items-center justify-content-end">
-            { totalResults }
-            { addButton }
+            {totalResults}
+            {addButton}
         </div>
     );
 }
@@ -172,11 +242,13 @@ function parseDateUTC(dateString) {
  * @param {Array} filters - An array of filter objects, each containing a 'field', 'term', and 'remove' property.
  * @returns The generated title or the fallback title if validations fail.
  */
-const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(props) {
+const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(
+    props
+) {
     const { context, alerts } = props;
     const { filters = [] } = context || {};
 
-    const fallbackTitle = (<SearchViewPageTitle {...props} />);
+    const fallbackTitle = <SearchViewPageTitle {...props} />;
 
     if (!Array.isArray(filters) || filters.length === 0) {
         return fallbackTitle;
@@ -217,7 +289,9 @@ const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(prop
     }
 
     // Calculate the last day of the month for fromDate using UTC.
-    const lastDayOfMonth = new Date(Date.UTC(fromDate.getUTCFullYear(), fromDate.getUTCMonth() + 1, 0)).getUTCDate();
+    const lastDayOfMonth = new Date(
+        Date.UTC(fromDate.getUTCFullYear(), fromDate.getUTCMonth() + 1, 0)
+    ).getUTCDate();
 
     // Validate that toDate is the last day of the same month and year (using UTC).
     if (
@@ -229,10 +303,14 @@ const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(prop
     }
 
     // Get the month name in short format using UTC.
-    const monthName = fromDate.toLocaleString('default', { month: 'short', timeZone: 'UTC' });
+    const monthName = fromDate.toLocaleString('default', {
+        month: 'short',
+        timeZone: 'UTC',
+    });
     const subtitle = (
         <span>
-            <small className="text-300">in</small> {`${monthName} ${fromDate.getUTCFullYear()}`}
+            <small className="text-300">in</small>{' '}
+            {`${monthName} ${fromDate.getUTCFullYear()}`}
         </span>
     );
 
@@ -251,7 +329,10 @@ const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(prop
                         </a>
                         <i className="icon icon-fw icon-angle-right fas" />
                     </div>
-                    <div className="static-breadcrumb nonclickable" data-name="Search" key="/search">
+                    <div
+                        className="static-breadcrumb nonclickable"
+                        data-name="Search"
+                        key="/search">
                         <span>Search</span>
                     </div>
                 </div>
@@ -263,8 +344,8 @@ const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(prop
     );
 });
 FileSearchViewPageTitle.propTypes = {
-    'context': PropTypes.object.isRequired,
-    'alerts': PropTypes.array
+    context: PropTypes.object.isRequired,
+    alerts: PropTypes.array,
 };
 
 pageTitleViews.register(FileSearchViewPageTitle, 'FileSearchResults');
