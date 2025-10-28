@@ -5,6 +5,7 @@ import { gotoUrl } from '../support/utils/basicUtils';
 
 const PROFILE_URL = '/me';
 const NO_VIEW_PERMISSIONS_TEXT = 'no view permissions';
+const DEFAULT_CONSORTIA_NAME = 'SMaHT';
 
 const ROLE_MATRIX = {
     UNAUTH: {
@@ -24,8 +25,8 @@ const ROLE_MATRIX = {
         canSeeProfile: true,
         canManageAccessKeys: true,
 
-        expectedConsortia: NO_VIEW_PERMISSIONS_TEXT,
-        expectedSubmissionCenter: NO_VIEW_PERMISSIONS_TEXT,
+        expectedConsortia: DEFAULT_CONSORTIA_NAME,
+        expectedSubmissionCenter: null,
     },
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
         label: 'SMAHT_NON_DBGAP',
@@ -34,7 +35,7 @@ const ROLE_MATRIX = {
         canSeeProfile: true,
         canManageAccessKeys: true,
 
-        expectedConsortia: NO_VIEW_PERMISSIONS_TEXT,
+        expectedConsortia: DEFAULT_CONSORTIA_NAME,
         expectedSubmissionCenter: null,
     },
     [ROLE_TYPES.PUBLIC_DBGAP]: {
