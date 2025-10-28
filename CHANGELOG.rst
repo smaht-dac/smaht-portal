@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.4.5
+=====
+
+`PR 516: Update Donor release script <https://github.com/smaht-dac/smaht-portal/pull/532>`_
+
+* Add/update donor release script to reflect new release statuses and default to network statuses for initial releases
+
+
 1.4.4
 =====
 `PR 544 Data matrix and file search view permission updates <https://github.com/smaht-dac/smaht-portal/pull/544>`_
