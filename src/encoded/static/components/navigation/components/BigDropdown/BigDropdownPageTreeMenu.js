@@ -14,7 +14,6 @@ import { BigDropdownIntroductionWrapper } from './BigDropdownIntroductionWrapper
 import { BigDropdownBigLink } from './BigDropdownBigLink';
 
 import { BROWSE_LINKS } from '../../../browse/BrowseView';
-import { useUserDownloadAccess } from '../../../util/hooks';
 
 export function BigDropdownPageTreeMenuIntroduction(props) {
     const {
@@ -230,9 +229,6 @@ function Level1Title({ childPageItem, active, disableLinks }) {
 }
 
 function CustomStaticLinks({ pathName, href, session }) {
-    const isConsortiumMember = JWT.getUserDetails()?.consortia?.includes(
-        '358aed10-9b9d-4e26-ab84-4bd162da182b'
-    );
     switch (pathName) {
         case 'data':
             return (
