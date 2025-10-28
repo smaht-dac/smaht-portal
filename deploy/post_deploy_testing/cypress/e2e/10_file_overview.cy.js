@@ -92,7 +92,7 @@ function stepOutputFilesWithQC(caps) {
     const TEST_FILE_COUNT = 3;
 
     cy.visit(
-        "/search/?type=OutputFile&donors.external_id%21=No+value&quality_metrics%21=No+value&sample_summary.studies%21=No+value&sort=-file_status_tracking.released",
+        "/search/?type=OutputFile&donors.external_id%21=No+value&quality_metrics%21=No+value&sample_summary.studies%21=No+value&sort=-file_status_tracking.release_dates.initial_release",
         { headers: cypressVisitHeaders }
     )
         .get("#slow-load-container")
