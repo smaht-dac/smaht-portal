@@ -302,22 +302,16 @@ function CustomStaticLinks({ pathName, href, session }) {
                             </div>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
-                            disabled={!isConsortiumMember}
-                            href={
-                                isConsortiumMember
-                                    ? '/data/analysis/colo829-snv-indel-detection'
-                                    : ''
-                            }
+                            disabled={true}
+                            href={''}
                             titleIcon="diagram-project"
                             className="primary-big-link is-fa-icon">
                             <h4 className="text-large">
                                 Somatic Variant Sets
-                                {!isConsortiumMember ? (
-                                    <span className="text-300 fst-italic text-medium">
-                                        {' '}
-                                        - Coming Soon
-                                    </span>
-                                ) : null}
+                                <span className="text-300 fst-italic text-medium">
+                                    {' '}
+                                    - Coming Soon
+                                </span>
                             </h4>
                             <div className="description text-medium">
                                 Published Somatic SNV/Indel, SV, MEI Call Sets
