@@ -113,12 +113,15 @@ function verifyTabContent(tabKey, expectedText) {
 }
 
 /* ----------------------------- STEP HELPERS ----------------------------- */
-/** 1) Navigation + page redirection + tab checks (your original flow) */
+/** 1) Navigation + page redirection + tab checks */
 function stepNavAndRedirection(caps) {
     cy.get(dataNavBarItemSelectorStr)
         .should("have.class", "dropdown-toggle")
         .click()
         .should("have.class", "dropdown-open-for")
+        .get('.big-dropdown-menu-background', { timeout: 10000 })
+        .should('have.class', 'big-dropdown-menu-transition-enter-done')
+        .and('have.css', 'opacity', '1')
         .then(() => {
             cy.get(
                 ".big-dropdown-menu .no-level-2-children .custom-static-links > div.col-12:nth-child(2) a.primary-big-link"
