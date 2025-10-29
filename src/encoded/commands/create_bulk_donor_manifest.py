@@ -248,6 +248,8 @@ def map_public_accessions_to_protected_donors(donors, request_handler):
     for ext_id in external_ids:
         query += f"&external_id={ext_id}"
     results = ff_utils.search_metadata(query, key=request_handler.auth_key)
+    # quick check that the number of results matches number of donors/external_ids
+    assert len(results) == len(donors), f"external_id Donor query result mismatch: Donors: {len(donors)} != Results{len(results)}"
 
     # Build map external_id -> public accession
     mapping = {}
