@@ -12,11 +12,18 @@ const EMPTY_DM_PROD_OPTS = {
     expectedFilesCount: 0,
 };
 const BASE_DM_PROD_OPTS = {
-    donors: ["SMHT007", "SMHT022"],
-    mustLabels: ["Non-exposed Skin", "Liver", "Blood"],
+    donors: ["SMHT004", "SMHT008", "SMHT009"],
+    mustLabels: ["Non-exposed Skin", "Heart", "Blood"],
     optionalLabels: [],
     expectedLowerLabels: ["Donors"],
     expectedFilesCount: 40,
+};
+const BASE_DM_BENCHMARKING_OPTS = {
+    donors: ["ST001", "ST002", "ST003", "ST004"],
+    mustLabels: [],
+    optionalLabels: ["Non-exposed Skin", "Lung", "Brain", "Liver", "Ascending Colon"],
+    expectedLowerLabels: ["Cell Lines", "Donors"],
+    expectedFilesCount: 50,
 };
 
 /* ----------------------------- ROLE MATRIX -----------------------------
@@ -31,16 +38,16 @@ const ROLE_MATRIX = {
         label: "Unauthenticated",
         isAuthenticated: false,
 
-        runRetractedFilesList: false,      // usually protected
-        runDataMatrixProduction: true,     // flip based on your rules
-        runDataMatrixBenchmarking: true,   // flip based on your rules
+        runRetractedFilesList: false,
+        runDataMatrixProduction: true,
+        runDataMatrixBenchmarking: true,
 
         expectedRetractedFilesMenuVisible: false,
         expectedRetractedFilesResponseCode: 403,
         expectedRetractedFilesCount: 5,
         expectedDataMatrixMenuVisible: true,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
-        expectedDataMatrixBenchmarkingOpts: {}, // use defaults in step function
+        expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
 
     [ROLE_TYPES.SMAHT_DBGAP]: {
@@ -55,8 +62,8 @@ const ROLE_MATRIX = {
         expectedRetractedFilesResponseCode: 200,
         expectedRetractedFilesCount: 5,
         expectedDataMatrixMenuVisible: true,
-        expectedDataMatrixProductionOpts: {}, // use defaults in step function
-        expectedDataMatrixBenchmarkingOpts: {}, // use defaults in step function
+        expectedDataMatrixProductionOpts: BASE_DM_PROD_OPTS,
+        expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
 
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
@@ -71,8 +78,8 @@ const ROLE_MATRIX = {
         expectedRetractedFilesResponseCode: 200,
         expectedRetractedFilesCount: 0,
         expectedDataMatrixMenuVisible: true,
-        expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
-        expectedDataMatrixBenchmarkingOpts: {}, // use defaults in step function
+        expectedDataMatrixProductionOpts: BASE_DM_PROD_OPTS,
+        expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
 
     [ROLE_TYPES.PUBLIC_DBGAP]: {
@@ -88,7 +95,7 @@ const ROLE_MATRIX = {
         expectedRetractedFilesCount: 0,
         expectedDataMatrixMenuVisible: true,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
-        expectedDataMatrixBenchmarkingOpts: {}, // use defaults in step function
+        expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
 
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
@@ -104,7 +111,7 @@ const ROLE_MATRIX = {
         expectedRetractedFilesCount: 0,
         expectedDataMatrixMenuVisible: true,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
-        expectedDataMatrixBenchmarkingOpts: {}, // use defaults in step function
+        expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
 };
 
@@ -215,17 +222,28 @@ function stepDataMatrixProduction(caps) {
             cy.contains("div#page-title-container h1.page-title", "Data Matrix")
                 .should("be.visible");
 
-            // Reuse your helper as-is (IDs/labels per your original)
-            testMatrixPopoverValidation(
-                "#data-matrix-for_production",
-                _.extend(
-                    {
-                        donors: ["SMHT004", "SMHT008", "SMHT009"],
-                        mustLabels: ["Non-exposed Skin", "Heart", "Blood"],
-                        optionalLabels: [],
-                        expectedLowerLabels: ["Donors"]
-                    }, caps.expectedDataMatrixProductionOpts)
-            );
+            cy.get('#data-matrix-for_production').then(($el) => {
+                const fileCount = $el.attr('data-files-count');
+
+                if (fileCount === '0') {
+                    // When data-files-count is 0, the tab should be hidden (display: none)
+                    cy.wrap($el)
+                        .parents('.tab-card')
+                        .should('have.css', 'display', 'none');
+
+                    expect(caps.expectedDataMatrixProductionOpts.expectedFilesCount).to.equal(0);
+
+                    // Stop the test here since the tab is not visible
+                    cy.log('Tab is hidden because data-files-count=0. Test stopped here.');
+                    return; // exit early
+                }
+
+                // If we reach this point, the tab should be visible
+                testMatrixPopoverValidation(
+                    "#data-matrix-for_production",
+                    caps.expectedDataMatrixProductionOpts
+                );
+            });    
         })
         .end();
 }
@@ -250,13 +268,7 @@ function stepDataMatrixBenchmarking(caps) {
 
             testMatrixPopoverValidation(
                 "#data-matrix-for_benchmarking",
-                _.extend(
-                    {
-                        donors: ["ST001", "ST002", "ST003", "ST004"],
-                        mustLabels: [],
-                        optionalLabels: ["Non-exposed Skin", "Lung", "Brain", "Liver", "Ascending Colon"],
-                        expectedLowerLabels: ["Cell Lines", "Donors"]
-                    }, caps.expectedDataMatrixBenchmarkingOpts)
+                caps.expectedDataMatrixBenchmarkingOpts
             );
         })
         .end();
@@ -306,18 +318,18 @@ describe("Data Overview by role", () => {
         const label = caps.label || String(roleKey);
 
         // override caps.expectedDataMatrixProductionOpts for devtest since it has limited data whereas prod has none
-        const baseUrl = Cypress.config().baseUrl || "";
-        if (baseUrl.includes("devtest.smaht.org") && _.isEqual(caps.expectedDataMatrixProductionOpts, EMPTY_DM_PROD_OPTS)) {
-            caps.expectedDataMatrixProductionOpts = BASE_DM_PROD_OPTS;
-        }
+        // const baseUrl = Cypress.config().baseUrl || "";
+        // if (baseUrl.includes("devtest.smaht.org") && _.isEqual(caps.expectedDataMatrixProductionOpts, EMPTY_DM_PROD_OPTS)) {
+        //     caps.expectedDataMatrixProductionOpts = BASE_DM_PROD_OPTS;
+        // }
 
         context(`${label} → data overview capabilities`, () => {
-            beforeEach(() => {
+            before(() => {
                 goto("/");
                 loginIfNeeded(roleKey);
             });
 
-            afterEach(() => {
+            after(() => {
                 logoutIfNeeded(roleKey);
             });
 
