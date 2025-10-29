@@ -447,7 +447,7 @@ Cypress.Commands.add("getQuickInfoBar", () => {
                         result[iconType] = 0;
                     } else if (iconType === "file-size") {
                         // e.g. "14.18 TB"
-                        const match = trimmed.match(/^([\d.,]+)\s*(TB|GB|MB|KB)?$/i);
+                        const match = trimmed.match(/^([\d.,]+)\s*(TB|GB|MB|KB|Bytes)?$/i);
                         if (match) {
                             const number = parseFloat(match[1].replace(",", ""));
                             const unit = match[2] ? match[2].toUpperCase() : "B";
