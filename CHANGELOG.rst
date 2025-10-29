@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.4.6
+=====
+`PR 542: Update bulk donor manifest script <https://github.com/smaht-dac/smaht-portal/pull/542>`_
+
+* For those bulk-donor-manifest files generated from ProtectedDonors (i.e. contain protected data) add the public Donor accession as the first column.
+
+
 1.4.5
 =====
 
