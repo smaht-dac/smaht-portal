@@ -1,0 +1,166 @@
+{
+    "title": "Publication",
+    "description": "Consortium publications",
+    "$id": "/profiles/publication.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "external_id"
+    ],
+    "anyOf": [
+        {
+            "required": [
+                "submission_centers"
+            ]
+        },
+        {
+            "required": [
+                "consortia"
+            ]
+        }
+    ],
+    "identifyingProperties": [
+        "ID",
+        "aliases",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/static_embeds"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {   
+            "$ref": "mixins.json#/uuid"
+        }
+    ],
+    "properties": {
+        "schema_version": {
+            "default": "1"
+        },
+        "ID":{
+            "title": "Publication Identifier",
+            "description": "PMID or doi for the publication.",
+            "type": "string",
+            "pattern": "^PMID:[0-9]+$|^doi:10\\.[0-9]{4}[\\d\\S\\:\\.]+$",
+            "comment": "Please provide either in the form of PMID:12345678 or doi:10.1234/abc123"
+        },
+        "files_of_pub": {
+            "title": "Files of Publication",
+            "description": "List of files associated with this publication.",
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+                "title": "File",
+                "type": "string",
+                "linkTo": "File"
+            }
+        },
+        "title": {
+            "title": "Title",
+            "description": "Title of the article",
+            "type": "string",
+            "permission": "restricted_fields"
+        },
+        "abstract": {
+            "title": "Abstract",
+            "description": "Abstract of the publication.",
+            "type": "string",
+            "permission": "restricted_fields",
+            "formInput": "textarea"
+        },
+        "journal": {
+            "title": "Journal",
+            "description": "Name of the journal in which the article was published.",
+            "type": "string",
+            "permission": "restricted_fields"
+        },
+        "authors": {
+            "title": "Authors",
+            "description": "All authors, with format Bernstein BE, Birney E, Dunham I,...",
+            "type": "array",
+            "items": {
+                "title": "Author",
+                "type": "string"
+            },
+            "permission": "restricted_fields"
+        },
+        "date_published": {
+            "title": "Publication Date",
+            "type": "string",
+            "permission": "restricted_fields"
+        },
+        "version": {
+            "title": "Version",
+            "description": "Version of the record as is appears in the external database (e.g. bioRxiv version)",
+            "type": "string",
+            "permission": "restricted_fields"
+        },
+        "journal_url": {
+            "title": "Journal URL",
+            "description": "Link to the publishing journal web site.",
+            "type": "string",
+            "format": "uri",
+            "permission": "restricted_fields"
+        },
+        "repository_url": {
+            "title": "Repository URL",
+            "description": "Link to the repository (e.g. bioRxiv, PubMed) web site.",
+            "type": "string",
+            "format": "uri",
+            "permission": "restricted_fields"
+        }
+    },
+    "facets": {
+        "journal": {
+            "title": "Journal"
+        }
+    },
+    "columns": {
+        "display_title": {
+            "title": "Title",
+            "sort_fields": [
+                {
+                    "field": "title",
+                    "title": "Publication Title"
+                },
+                {
+                    "field": "display_title",
+                    "title": "Author Name"
+                }
+            ]
+        },
+        "date_published": {
+            "title": "Year"
+        },
+        "journal": {
+            "title": "Journal"
+        },
+        "number_of_files": {
+            "title": "# Experiment Sets"
+        }
+    }
+}
