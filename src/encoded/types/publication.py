@@ -1,4 +1,4 @@
-from snovault import collection, load_schema
+from snovault import collection, load_schema, calculated_property
 
 from .acl import ONLY_ADMIN_VIEW_ACL
 from .base import (
