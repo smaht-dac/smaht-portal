@@ -327,8 +327,8 @@ function stepFileSelectionSuite(caps) {
 
     if (caps.expectedDownloadButtonStatus === "enabled") {
         // 3.2 Selected badge should match selected count
-        cy.get("#download_tsv_multiselect").then(($selectedIndexCount) => {
-            const selectedFileText = $selectedIndexCount.text();
+        cy.get("#download_tsv_multiselect").then(($downloadButton) => {
+            const selectedFileText = $downloadButton.text();
             const selectedFileCount = parseInt(selectedFileText.match(/\d+/)[0]);
             expect(selectedCheckFileNumberCount).to.equal(selectedFileCount);
         });
