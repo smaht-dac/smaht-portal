@@ -1,342 +1,311 @@
-import _ from 'underscore';
-import { cypressVisitHeaders, ROLE_TYPES } from '../support';
+// cypress/e2e/deployment_ci_search_by_role.cy.js
+import { cypressVisitHeaders, ROLE_TYPES, BROWSE_STATUS_PARAMS } from '../support';
 
-describe('Deployment/CI Search View Tests', function () {
-    before(function () {
-        cy.visit('/', { headers: cypressVisitHeaders });
-        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .end();
-    });
+/* ----------------------------- ROLE MATRIX -----------------------------
+   Toggle each scenario per role. Keep steps few and meaningful.
 
-    after(function () {
-        cy.logoutSMaHT();
-    });
+   Scenarios:
+   - runItemSearchFlow:   General search page (type=Item) → filter to File, basic table config,
+                          open a File detail & do essential checks (modal, tabs, status, notes icon)
+   - runPageSearchFlow:   Pages listing redirect + has enough results
+   - runFileSearchFlow:   Files redirect + expected columns exist
+------------------------------------------------------------------------- */
+const ROLE_MATRIX = {
+    UNAUTH: {
+        label: 'Unauthenticated',
+        isAuthenticated: false,
 
-    context('/search/?type=Item', function () {
-        before(function () {
-            cy.visit('/search/', { headers: cypressVisitHeaders });
-        });
+        runItemSearchFlow: true,
+        runPageSearchFlow: true,
+        runFileSearchFlow: true,
 
-        it('Has at least 50 results for /search/?type=Item', function () {
-            cy.location('search')
-                .should('include', 'type=Item')
-                .end()
-                .get('div.search-result-row.loading')
-                .should('not.exist')
-                .end()
-                .get('.search-results-container .search-result-row')
-                .then(($searchResultElems) => {
-                    expect($searchResultElems.length).to.be.at.least(10);
-                })
-                .end()
-                .searchPageTotalResultCount()
-                .should('be.greaterThan', 50);
-        });
+        expectedDownloadButtonStatus: 'disabled',
+    },
 
-        it('Search `File` from dropdown and verify link selection', function () {
-            // Type "File" in the search input
-            cy.get(
-                '.facets-column .facets-container .expandable-list .form-control[type="search"]'
-            ).type('File');
+    [ROLE_TYPES.SMAHT_DBGAP]: {
+        label: 'SMAHT_DBGAP',
+        isAuthenticated: true,
 
-            // Verify that all facet list elements contain "File"
-            cy.get(
-                'div.facet.open[data-field="type"] .facet-list-element[data-key]'
-            ).each(($el) => {
-                cy.wrap($el).should('contain.text', 'File'); // Check each element for the text "File"
-            });
+        runItemSearchFlow: true,
+        runPageSearchFlow: true,
+        runFileSearchFlow: true,
 
-            // Verify that unwanted results are not visible
-            cy.get('.facet-list-element[data-key]').should(
-                'not.contain.text',
-                'Item'
-            ); // Ensure unwanted result is absent
+        expectedDownloadButtonStatus: 'enabled',
+    },
 
-            // Click on the "File" link
-            cy.get('li[data-key="File"] a').click();
+    [ROLE_TYPES.SMAHT_NON_DBGAP]: {
+        label: 'SMAHT_NON_DBGAP',
+        isAuthenticated: true,
 
-            // Verify the page title contains "File"
-            cy.get('#page-title-container .page-title').should(
-                'contain',
-                'File'
-            );
-        });
+        runItemSearchFlow: true,
+        runPageSearchFlow: true,
+        runFileSearchFlow: true,
 
-        it('Should show/hide columns and ensure correct behavior in the results table', function () {
-            cy.get(
-                '.above-results-table-row button[data-tip="Configure visible columns"]'
-            )
-                .click({ force: true })
-                .should('have.class', 'active');
-            cy.get('.search-result-config-panel').should('have.class', 'show');
-            // since all columns selected, unselect one of them (currently, 3rd one)
-            cy.get(
-                '.search-result-config-panel .row .column-option:nth-child(4) .checkbox.clickable.is-active'
-            )
-                .first()
-                .scrollIntoView()
-                .click()
-                .should('have.not.class', 'is-active')
-                .find('label input')
-                .invoke('val')
-                .then((value) => {
-                    cy.get(
-                        `.search-results-container .search-headers-row div[data-field="${value}"]`
-                    ).should('not.exist');
+        expectedDownloadButtonStatus: 'enabled',
+    },
 
-                    cy.get(
-                        `.search-result-config-panel .row .checkbox.clickable:not(.is-active) input[value="${value}"]`
-                    )
-                        .click()
-                        .should('not.have.class', 'is-active')
-                        .then(() => {
-                            cy.get(
-                                `.search-results-container .search-headers-row div[data-field="${value}"]`
-                            ).should('not.exist');
-                        });
-                });
-            // re-select it
-            cy.get(
-                '.search-result-config-panel .row .checkbox.clickable:not(.is-active)'
-            )
-                .first()
-                .scrollIntoView()
-                .click()
-                .should('have.class', 'is-active')
-                .find('label input')
-                .invoke('val')
-                .then((value) => {
-                    cy.get(
-                        `.search-results-container .search-headers-row div[data-field="${value}"]`
-                    )
-                        .should('exist')
-                        .then(($div) => {
-                            expect($div).to.have.attr('data-field', value);
-                        });
+    [ROLE_TYPES.PUBLIC_DBGAP]: {
+        label: 'PUBLIC_DBGAP',
+        isAuthenticated: true,
 
-                    cy.get(
-                        `.search-result-config-panel .row .checkbox.clickable.is-active input[value="${value}"]`
-                    )
-                        .click()
-                        .should('not.have.class', 'is-active')
-                        .then(() => {
-                            cy.get(
-                                `.search-results-container .search-headers-row div[data-field="${value}"]`
-                            ).should('not.exist');
-                        });
-                });
+        runItemSearchFlow: true,
+        runPageSearchFlow: true,
+        runFileSearchFlow: true,
 
-            cy.get('.search-result-config-panel .close-button')
-                .click({ force: true })
-                .get('.search-result-config-panel')
-                .should('not.have.class', 'active');
-        });
+        expectedDownloadButtonStatus: 'enabled',
+    },
 
-        it('Should redirect to detail view and check if the title matches data-tip', function () {
-            cy.visit(
-                '/search/?type=File&status=released&data_generation_summary.assays!=No+value',
-                { headers: cypressVisitHeaders }
-            );
+    [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
+        label: 'PUBLIC_NON_DBGAP',
+        isAuthenticated: true,
 
-            cy.get(
-                '.results-column .result-table-row div.search-result-column-block[data-field="annotated_filename"] .value a'
-            )
-                .first()
-                .scrollIntoView()
-                .then(($element) => {
-                    const textContent = $element.text();
-                    cy.wrap($element)
-                        .invoke('removeAttr', 'target') // we prevent new tab display since cypress not supports multi-tab testing
-                        .click({ force: true });
+        runItemSearchFlow: true,
+        runPageSearchFlow: true,
+        runFileSearchFlow: true,
 
-                    cy.get('.view-title h1.view-title-text')
-                        .invoke('text')
-                        .then((text) => {
-                            expect(text.trim()).to.eq(textContent);
-                        });
-                });
-        });
+        expectedDownloadButtonStatus: 'enabled',
+    },
+};
 
-        it('Should trigger batch files download modal and close it successfully', function () {
-            let fileSize;
+/* ----------------------------- SESSION HELPERS ----------------------------- */
+function goto(url = '/', headers = cypressVisitHeaders) {
+    cy.visit(url, { headers });
+}
+function loginIfNeeded(roleKey) {
+    const caps = ROLE_MATRIX[roleKey];
+    if (caps.isAuthenticated) cy.loginSMaHT(roleKey).end();
+}
+function logoutIfNeeded(roleKey) {
+    const caps = ROLE_MATRIX[roleKey];
+    if (caps.isAuthenticated) cy.logoutSMaHT();
+}
 
-            cy.get('.datum').each(($el) => {
-                if ($el.find('.datum-title').text().trim() === 'Size') {
-                    cy.wrap($el)
-                        .find('.datum-value')
-                        .invoke('text')
-                        .then((text) => {
-                            fileSize = text.trim();
-                        });
-                }
-            });
+/* ----------------------------- STEP HELPERS ----------------------------- */
 
-            cy.get('#download_tsv_multiselect')
-                .click({ force: true })
-                .get('div.modal.batch-files-download-modal')
-                .should('have.class', 'show');
+/**
+ *  Search works, can narrow to ‘File’, columns can be configured,
+ *  and a chosen file detail page behaves correctly (modal, tabs, status, notes icons).
+ */
+function stepItemSearchFlow(caps) {
+    // 1) Land on /search/?type=Item and ensure there is plenty of data
+    cy.visit('/search/', { headers: cypressVisitHeaders });
+    cy.location('search').should('include', 'type=Item').end();
+    cy.get('div.search-result-row.loading').should('not.exist').end();
+    cy.get('.search-results-container .search-result-row')
+        .its('length')
+        .should('be.at.least', 10);
+    cy.searchPageTotalResultCount().should('be.greaterThan', 50);
 
-            cy.get('.tsv-metadata-stat .icon-circle-notch')
-                .should('not.exist')
-                .get('.tsv-metadata-stat-title')
-                .each(($title) => {
-                    if ($title.text().trim() === 'Selected Files Size') {
-                        cy.wrap($title)
-                            .next('.tsv-metadata-stat')
-                            .invoke('text')
-                            .then((selectedSize) => {
-                                selectedSize = selectedSize.trim();
+    // 2) Filter the "type" facet to File using the facet search box
+    cy.get('.facets-column .facets-container .expandable-list .form-control[type="search"]')
+        .type('File');
+    cy.get('div.facet.open[data-field="type"] .facet-list-element[data-key]')
+        .each(($el) => cy.wrap($el).should('contain.text', 'File'));
+    cy.get('.facet-list-element[data-key]').should('not.contain.text', 'Item');
+    cy.get('li[data-key="File"] a').click();
+    cy.get('#page-title-container .page-title').should('contain', 'File');
 
-                                expect(selectedSize).to.equal(fileSize);
-                            });
-                    }
-                });
+    // 3) Columns panel: hide a column → verify removed; then show it back → verify re-appears
+    cy.get('.above-results-table-row button[data-tip="Configure visible columns"]')
+        .click({ force: true })
+        .should('have.class', 'active');
+    cy.get('.search-result-config-panel').should('have.class', 'show');
 
-            cy.get('.modal-header > .btn-close')
-                .should('be.visible')
-                .click()
-                .get('div.modal.batch-files-download-modal')
+    // Unselect one visible column (take first active)
+    cy.get('.search-result-config-panel .row .column-option .checkbox.clickable.is-active')
+        .first()
+        .as('activeCol')
+        .scrollIntoView()
+        .click()
+        .should('not.have.class', 'is-active')
+        .find('label input')
+        .invoke('val')
+        .then((field) => {
+            cy.get(`.search-results-container .search-headers-row div[data-field="${field}"]`)
                 .should('not.exist');
+
+            // Re-select it
+            cy.get(`.search-result-config-panel .row .checkbox.clickable:not(.is-active) input[value="${field}"]`)
+                .click();
+            cy.get(`.search-results-container .search-headers-row div[data-field="${field}"]`)
+                .should('exist')
+                .and('have.attr', 'data-field', field);
         });
 
-        it('Should switch between tabs and apply active class', function () {
-            cy.get(
-                '.tabs-bar-outer > .tabs-bar > a.tab-item[data-tab-for="details"]'
-            )
-                .click({ force: true })
-                .should('have.class', 'active')
-                .end()
-                .get(
-                    '.tabs-bar-outer > .tabs-bar > a.tab-item[data-tab-for="file-overview"]'
-                )
-                .click({ force: true })
-                .should('have.class', 'active')
-                .end();
-        });
+    cy.get('.search-result-config-panel .close-button')
+        .click({ force: true });
+    cy.get('.search-result-config-panel').should('not.have.class', 'active');
 
-        it('Verifies that the data-status of the status indicator dot and status group are equal', function () {
-            cy.get('.status-indicator-dot')
-                .invoke('data', 'status')
-                .then((indicatorStatus) => {
-                    cy.get('.status-group i.status-indicator-dot')
-                        .invoke('data', 'status')
-                        .then((groupStatus) => {
-                            expect(indicatorStatus).to.equal(groupStatus);
-                        });
+    // 4) Navigate to a File detail and validate essential UI bits
+    cy.visit(
+        `/search/?type=File&data_generation_summary.assays!=No+value&sample_summary.studies!=No+value&${BROWSE_STATUS_PARAMS}`,
+        { headers: cypressVisitHeaders }
+    );
+
+    // Open first file detail
+    cy.get('.results-column .result-table-row div.search-result-column-block[data-field="annotated_filename"] .value a')
+        .first()
+        .scrollIntoView()
+        .then(($a) => {
+            const expectedTitle = $a.text().trim();
+            cy.wrap($a).invoke('removeAttr', 'target').click({ force: true });
+            cy.get('.view-title h1.view-title-text')
+                .invoke('text')
+                .then((title) => {
+                    expect(title.trim()).to.eq(expectedTitle);
                 });
         });
 
-        it('Checks for the exclamation icon in the tab navigation and verifies its presence in the content if it exists', function () {
-            // Check that loading icons do not exist
-            cy.get('.benchmarking-layout .icon-circle-notch').should(
-                'not.exist'
-            );
-            cy.get('.search-results-container .icon-circle-notch').should(
-                'not.exist'
-            );
+    // Remember file size to compare in batch download modal
+    let fileSize;
+    cy.get('.datum').each(($el) => {
+        if ($el.find('.datum-title').text().trim() === 'Size') {
+            fileSize = $el.find('.datum-value').text().trim();
+        }
+    });
 
-            cy.document().then((doc) => {
-                const iconExists =
-                    doc.querySelectorAll(
-                        '.tab-router .dot-tab-nav-list i.icon-exclamation-triangle'
-                    ).length > 0;
-
-                let dataExists = false;
-                const resultCountElem = doc.querySelector('#results-count');
-                if (
-                    resultCountElem &&
-                    parseInt(resultCountElem.textContent) > 0
-                ) {
-                    dataExists = true;
-                }
-
-                if (iconExists && dataExists) {
-                    cy.get(
-                        'div.tab-router-contents > div.content i.icon-exclamation-triangle'
-                    )
-                        .should('exist')
-                        .scrollIntoView()
-                        .end();
-
-                    cy.get(
-                        '.search-result-column-block[data-field="tsv_notes"] .btn.btn-link'
-                    ).each(($button) => {
-                        cy.wrap($button)
-                            .click({ force: true })
-                            .get('.popover.show')
-                            .should('exist');
-
-                        cy.wrap($button)
-                            .click({ force: true })
-                            .get('.popover.show')
-                            .should('not.exist');
+    if (caps.expectedDownloadButtonStatus === "enabled") {
+        // Open batch download modal and verify selected size equals the file size
+        cy.get('#download_tsv_multiselect').click({ force: true });
+        cy.get('div.modal.batch-files-download-modal').should('have.class', 'show');
+        cy.get('.tsv-metadata-stat .icon-circle-notch').should('not.exist');
+        cy.get('.tsv-metadata-stat-title').each(($title) => {
+            if ($title.text().trim() === 'Selected Files Size') {
+                cy.wrap($title)
+                    .next('.tsv-metadata-stat')
+                    .invoke('text')
+                    .then((selectedSize) => {
+                        expect(selectedSize.trim()).to.equal(fileSize);
                     });
-                } else {
-                    cy.log(
-                        'The exclamation icon is not present in the tab navigation list.'
-                    );
-                }
-            });
+            }
         });
-    });
+        cy.get('.modal-header > .btn-close').click();
+        cy.get('div.modal.batch-files-download-modal').should('not.exist');
+    } else if (caps.expectedDownloadButtonStatus === "disabled") {
+        // Handle the case where the download button is disabled
+        cy.get('.download-button.btn.btn-primary[disabled]').then(($downloadButton) => {
+            const selectedFileText = $downloadButton.text();
+            expect(selectedFileText).to.equal('Download File');
 
-    context('/search/?type=Page', function () {
-        before(function () {
-            cy.visit('/pages', { headers: cypressVisitHeaders }); // We should get redirected to ?type=Page
+            cy.wrap($downloadButton).trigger('mouseover', { force: true }); // Trigger a hover event
+            cy.get('.popover.download-popover').should('exist').and('be.visible');
+            cy.wrap($downloadButton).trigger('mouseout', { force: true });
+            cy.get('.popover.download-popover').should('not.exist');
         });
+    }
 
-        beforeEach(function () {
-            // Ensure we preserve search session cookie for proper ordering.
-            cy.session('preserveCookies', () => {
-                // Ensure we preserve search session cookie for proper ordering.
-                cy.getCookie('searchSessionID').then((cookie) => {
-                    if (cookie) {
-                        cy.setCookie('searchSessionID', cookie.value);
-                    }
+    // Tabs can be switched and become active
+    cy.get('.tabs-bar-outer > .tabs-bar > a.tab-item[data-tab-for="details"]')
+        .click({ force: true })
+        .should('have.class', 'active');
+    cy.get('.tabs-bar-outer > .tabs-bar > a.tab-item[data-tab-for="file-overview"]')
+        .click({ force: true })
+        .should('have.class', 'active');
+
+    // Status indicator consistency (dot vs group)
+    cy.get('.status-indicator-dot')
+        .invoke('data', 'status')
+        .then((indicatorStatus) => {
+            cy.get('.status-group i.status-indicator-dot')
+                .invoke('data', 'status')
+                .then((groupStatus) => {
+                    expect(indicatorStatus).to.equal(groupStatus);
                 });
-            });
         });
 
-        it('Should redirect to /search/?type=Page correctly', function () {
-            cy.location('search')
-                .should('include', 'type=Page')
-                .end()
-                .location('pathname')
-                .should('include', '/search/');
-        });
+    // If the warning icon exists in the tab header AND we have results, it should also be present in content;
+    // and the “TSV notes” popovers should open/close on click.
+    cy.get('.benchmarking-layout .icon-circle-notch').should('not.exist');
+    cy.get('.search-results-container .icon-circle-notch').should('not.exist');
+    cy.document().then((doc) => {
+        const iconExists =
+            doc.querySelectorAll('.tab-router .dot-tab-nav-list i.icon-exclamation-triangle').length > 0;
+        const rc = doc.querySelector('#results-count');
+        const hasData = rc && parseInt(rc.textContent) > 0;
 
-        it('Should have at least 10 results.', function () {
-            cy.get('.search-results-container .search-result-row').then(
-                ($searchResultElems) => {
-                    expect($searchResultElems.length).to.be.greaterThan(10);
-                }
-            );
-        });
+        if (iconExists && hasData) {
+            cy.get('div.tab-router-contents > div.content i.icon-exclamation-triangle')
+                .should('exist')
+                .scrollIntoView();
+
+            cy.get('.search-result-column-block[data-field="tsv_notes"] .btn.btn-link')
+                .each(($btn) => {
+                    cy.wrap($btn).click({ force: true });
+                    cy.get('.popover.show').should('exist');
+                    cy.wrap($btn).click({ force: true });
+                    cy.get('.popover.show').should('not.exist');
+                });
+        } else {
+            cy.log('No warning icon in tab navigation (or no data).');
+        }
     });
+}
 
-    context('/search/?type=File', function () {
-        before(function () {
-            cy.visit('/pages', { headers: cypressVisitHeaders }).end();
-            cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-                .end();
-        });
+/**
+ *  Going to /pages sends me to the Page search, and there are plenty of results.
+ */
+function stepPageSearchFlow(caps) {
+    cy.visit('/pages', { headers: cypressVisitHeaders }); // should redirect to ?type=Page
+    cy.location('search').should('include', 'type=Page').end();
+    cy.location('pathname').should('include', '/search/');
+    cy.get('.search-results-container .search-result-row')
+        .its('length')
+        .should('be.greaterThan', 10);
+}
 
-        it('/files/ should redirect to /search/?type=File', function () {
-            cy.visit('/files/', { headers: cypressVisitHeaders })
-                .location('search')
-                .should('include', 'type=File')
-                .end()
-                .location('pathname')
-                .should('include', '/search/');
-        });
+/**
+ *  “/files/ redirects to File search, and key columns are visible.
+ */
+function stepFileSearchFlow(caps) {
+    cy.visit('/files/', { headers: cypressVisitHeaders });
+    cy.location('search').should('include', 'type=File').end();
+    cy.location('pathname').should('include', '/search/');
 
-        it('Should have columns for data category, format', function () {
-            cy.get(
-                '.headers-columns-overflow-container .columns .search-headers-column-block[data-field="data_type"]'
-            ).contains('Data Type');
-            cy.get(
-                '.headers-columns-overflow-container .columns .search-headers-column-block[data-field="file_format.display_title"]'
-            ).contains('Format');
+    cy.get('.headers-columns-overflow-container .columns .search-headers-column-block[data-field="data_type"]')
+        .contains('Data Type');
+    cy.get('.headers-columns-overflow-container .columns .search-headers-column-block[data-field="file_format.display_title"]')
+        .contains('Format');
+}
+
+/* ----------------------------- PARAMETERIZED SUITE ----------------------------- */
+
+const ROLES_TO_TEST = [
+    'UNAUTH',
+    ROLE_TYPES.SMAHT_DBGAP,
+    ROLE_TYPES.SMAHT_NON_DBGAP,
+    ROLE_TYPES.PUBLIC_DBGAP,
+    ROLE_TYPES.PUBLIC_NON_DBGAP,
+];
+
+describe('Search View by role', () => {
+    ROLES_TO_TEST.forEach((roleKey) => {
+        const caps = ROLE_MATRIX[roleKey];
+        const label = caps.label || String(roleKey);
+
+        context(`${label} → search flows`, () => {
+            before(() => {
+                goto('/');
+                loginIfNeeded(roleKey);
+            });
+
+            after(() => {
+                logoutIfNeeded(roleKey);
+            });
+
+            it(`General search works end-to-end (filter to File, open detail, basic UI checks) (enabled: ${caps.runItemSearchFlow})`, () => {
+                if (!caps.runItemSearchFlow) return;
+                stepItemSearchFlow(caps);
+            });
+
+            it(`Pages listing redirects and shows enough results (enabled: ${caps.runPageSearchFlow})`, () => {
+                if (!caps.runPageSearchFlow) return;
+                stepPageSearchFlow(caps);
+            });
+
+            it(`Files listing redirects and shows key columns (enabled: ${caps.runFileSearchFlow})`, () => {
+                if (!caps.runFileSearchFlow) return;
+                stepFileSearchFlow(caps);
+            });
         });
     });
 });
