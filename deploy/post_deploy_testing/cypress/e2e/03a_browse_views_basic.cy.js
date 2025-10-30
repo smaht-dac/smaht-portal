@@ -1,5 +1,5 @@
 // cypress/e2e/browse_by_role.cy.js
-import { cypressVisitHeaders, ROLE_TYPES } from '../support';
+import { cypressVisitHeaders, ROLE_TYPES, BROWSE_STATUS_PARAMS } from '../support';
 import { navBrowseBtnSelector, dataNavBarItemSelectorStr } from '../support/selectorVars';
 
 /* ----------------------------- ROLE MATRIX -----------------------------
@@ -132,20 +132,24 @@ function logoutIfNeeded(roleKey) {
 
 /** From Home → open "Data" dropdown → click "Browse" → lands on Production Data */
 function stepNavigateFromHomeToBrowse(caps) {
-    visitBrowseByFile()
-        .then(() => {
-            cy.get('#page-title-container .page-title')
-                .should('contain', 'SMaHT Production Data');
-            cy.location('search')
-                .should('include', 'type=File')
-                .and('include', 'sample_summary.studies=Production')
-                .and('include', 'status=open')
-                .and('include', 'status=open-early')
-                .and('include', 'status=open-network')
-                .and('include', 'status=protected')
-                .and('include', 'status=protected-early')
-                .and('include', 'status=protected-network');
+
+    visitBrowseByFile().then(() => {
+        cy.get('#page-title-container .page-title')
+            .should('contain', 'SMaHT Production Data');
+
+        cy.location('search').then((search) => {
+            // Base query parameters that should always be included
+            const baseParams = ['type=File', 'sample_summary.studies=Production'];
+
+            // Split dynamic status parameters and merge them with base ones
+            const allParams = [...baseParams, ...BROWSE_STATUS_PARAMS.split('&')];
+
+            // Assert that each expected query parameter is present in the URL search string
+            allParams.forEach((param) => {
+                expect(search).to.include(param);
+            });
         });
+    });
 }
 
 /** Visit /browse/ (no params) → redirected to Production browse query */
