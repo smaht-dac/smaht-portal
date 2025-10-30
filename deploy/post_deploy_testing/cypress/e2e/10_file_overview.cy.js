@@ -372,7 +372,7 @@ function stepOutputFilesWithQC(caps) {
                                         cy.get('.modal').should('not.exist');
                                     }
                                 });
-                            } else if (caps.expectedCanDownloadFile === "disabled") {
+                            } else if (caps.expectedCanDownloadFile === false) {
                                 // Handle the case where the download button is disabled
                                 cy.get('.download-button.btn.btn-primary[disabled]').then(($disabledButton) => {
                                     cy.wrap($disabledButton)
