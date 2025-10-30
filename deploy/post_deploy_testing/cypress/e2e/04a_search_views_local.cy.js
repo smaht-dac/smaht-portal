@@ -19,7 +19,9 @@ const ROLE_MATRIX = {
         runPageSearchFlow: true,
         runFileSearchFlow: true,
 
-        expectedDownloadButtonStatus: 'disabled',
+        expectedCanDownloadFile: false,
+        expectedCanDownloadProtectedFile: false,
+        expectedNotLoggedInAlert: true,
     },
 
     [ROLE_TYPES.SMAHT_DBGAP]: {
@@ -30,7 +32,9 @@ const ROLE_MATRIX = {
         runPageSearchFlow: true,
         runFileSearchFlow: true,
 
-        expectedDownloadButtonStatus: 'enabled',
+        expectedCanDownloadFile: true,
+        expectedCanDownloadProtectedFile: true,
+        expectedNotLoggedInAlert: false,
     },
 
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
@@ -41,7 +45,9 @@ const ROLE_MATRIX = {
         runPageSearchFlow: true,
         runFileSearchFlow: true,
 
-        expectedDownloadButtonStatus: 'enabled',
+        expectedCanDownloadFile: true,
+        expectedCanDownloadProtectedFile: false,
+        expectedNotLoggedInAlert: false,
     },
 
     [ROLE_TYPES.PUBLIC_DBGAP]: {
@@ -52,7 +58,9 @@ const ROLE_MATRIX = {
         runPageSearchFlow: true,
         runFileSearchFlow: true,
 
-        expectedDownloadButtonStatus: 'enabled',
+        expectedCanDownloadFile: true,
+        expectedCanDownloadProtectedFile: true,
+        expectedNotLoggedInAlert: false,
     },
 
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
@@ -63,7 +71,9 @@ const ROLE_MATRIX = {
         runPageSearchFlow: true,
         runFileSearchFlow: true,
 
-        expectedDownloadButtonStatus: 'enabled',
+        expectedCanDownloadFile: true,
+        expectedCanDownloadProtectedFile: false,
+        expectedNotLoggedInAlert: false,
     },
 };
 
@@ -71,15 +81,51 @@ const ROLE_MATRIX = {
 function goto(url = '/', headers = cypressVisitHeaders) {
     cy.visit(url, { headers });
 }
+
 function loginIfNeeded(roleKey) {
     const caps = ROLE_MATRIX[roleKey];
     if (caps.isAuthenticated) cy.loginSMaHT(roleKey).end();
 }
+
 function logoutIfNeeded(roleKey) {
     const caps = ROLE_MATRIX[roleKey];
     if (caps.isAuthenticated) cy.logoutSMaHT();
 }
 
+function checkNotLoggedInAlert(caps) {
+    // Wait until the main alert container is rendered (retry-safe)
+    cy.get('#full-alerts-container').should('exist');
+
+    // Verify the "Not Logged In" warning alert
+    cy.get('#full-alerts-container .alerts .alert.alert-warning.show')
+        .should('exist')       // Ensure alert exists in DOM
+        .and('be.visible')     // Ensure it’s visible (handles fade/transition)
+        .within(() => {
+            // Check the alert heading text
+            cy.contains('h4.alert-heading', 'Not Logged In').should('be.visible');
+
+            // Verify the main message text
+            cy.contains(
+                '.mb-0',
+                'You are currently browsing as guest, please'
+            ).should('be.visible');
+
+            // Verify the login link and its target
+            cy.contains('a.link-underline-hover', 'login')
+                .should('have.attr', 'href', '#loginbtn');
+        });
+
+    // Optionally test closing the alert
+    cy.get('#full-alerts-container .alerts .alert.alert-warning.show')
+        .within(() => {
+            // Click the close (×) button
+            cy.get('button.btn-close').click();
+        });
+
+    // Verify the alert is dismissed
+    cy.get('#full-alerts-container .alerts .alert.alert-warning.show')
+        .should('not.exist');
+}
 /* ----------------------------- STEP HELPERS ----------------------------- */
 
 /**
@@ -138,11 +184,11 @@ function stepItemSearchFlow(caps) {
 
     // 4) Navigate to a File detail and validate essential UI bits
     cy.visit(
-        `/search/?type=File&data_generation_summary.assays!=No+value&sample_summary.studies!=No+value&${BROWSE_STATUS_PARAMS}`,
+        `/search/?type=File&donors.display_title%21=No+value&file_status_tracking.release_dates.initial_release%21=No+value&${BROWSE_STATUS_PARAMS}&sort=-file_status_tracking.release_dates.initial_release`,
         { headers: cypressVisitHeaders }
     );
 
-    // Open first file detail
+    // Open random file detail
     cy.get('.results-column .result-table-row div.search-result-column-block[data-field="annotated_filename"] .value a')
         .first()
         .scrollIntoView()
@@ -156,6 +202,11 @@ function stepItemSearchFlow(caps) {
                 });
         });
 
+    if (caps.isAuthenticated === false && caps.expectedNotLoggedInAlert === true) {
+        // Verify the "Not Logged In" alert
+        checkNotLoggedInAlert(caps);
+    }   
+
     // Remember file size to compare in batch download modal
     let fileSize;
     cy.get('.datum').each(($el) => {
@@ -164,24 +215,45 @@ function stepItemSearchFlow(caps) {
         }
     });
 
-    if (caps.expectedDownloadButtonStatus === "enabled") {
-        // Open batch download modal and verify selected size equals the file size
-        cy.get('#download_tsv_multiselect').click({ force: true });
-        cy.get('div.modal.batch-files-download-modal').should('have.class', 'show');
-        cy.get('.tsv-metadata-stat .icon-circle-notch').should('not.exist');
-        cy.get('.tsv-metadata-stat-title').each(($title) => {
-            if ($title.text().trim() === 'Selected Files Size') {
-                cy.wrap($title)
-                    .next('.tsv-metadata-stat')
-                    .invoke('text')
-                    .then((selectedSize) => {
-                        expect(selectedSize.trim()).to.equal(fileSize);
-                    });
+    cy.get('.datum-value .file-status')
+        .then(($el) => {
+            const textNode = [...$el[0].childNodes]
+                .find((node) => node.nodeType === Node.TEXT_NODE)
+                ?.textContent.trim();
+            cy.wrap(textNode).as('status');
+        });
+
+    if (caps.expectedCanDownloadFile === true) {
+        cy.get('@status').then((status) => {
+            if (status.toLowerCase().includes('protected') && !caps.expectedCanDownloadProtectedFile) {
+                // Protected file download not expected to be allowed
+                cy.get('.download-button.btn.btn-primary[disabled]').then(($disabledButton) => {
+                    cy.wrap($disabledButton)
+                        .trigger('mouseover', { force: true }); // Trigger a hover event
+                    cy.get('.popover.download-popover').should('be.visible');
+                    cy.wrap($disabledButton).trigger('mouseout', { force: true });
+                    cy.get('.popover.download-popover').should('not.exist');
+                });
+            } else {
+                // Open batch download modal and verify selected size equals the file size
+                cy.get('#download_tsv_multiselect').should('not.be.disabled').click({ force: true });
+                cy.get('div.modal.batch-files-download-modal').should('have.class', 'show');
+                cy.get('.tsv-metadata-stat .icon-circle-notch').should('not.exist');
+                cy.get('.tsv-metadata-stat-title').each(($title) => {
+                    if ($title.text().trim() === 'Selected Files Size') {
+                        cy.wrap($title)
+                            .next('.tsv-metadata-stat')
+                            .invoke('text')
+                            .then((selectedSize) => {
+                                expect(selectedSize.trim()).to.equal(fileSize);
+                            });
+                    }
+                });
+                cy.get('.modal-header > .btn-close').click();
+                cy.get('div.modal.batch-files-download-modal').should('not.exist');
             }
         });
-        cy.get('.modal-header > .btn-close').click();
-        cy.get('div.modal.batch-files-download-modal').should('not.exist');
-    } else if (caps.expectedDownloadButtonStatus === "disabled") {
+    } else if (caps.expectedCanDownloadFile === false) {
         // Handle the case where the download button is disabled
         cy.get('.download-button.btn.btn-primary[disabled]').then(($downloadButton) => {
             const selectedFileText = $downloadButton.text();
