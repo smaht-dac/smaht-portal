@@ -7,10 +7,18 @@ smaht-portal
 Change Log
 ----------
 
-1.4.7
+1.4.8
 =====
 
 * Updates to the load-users-from-oc script to account for DUA status
+
+1.4.7
+=====
+
+`PR 507: Adjust file release for public portal <https://github.com/smaht-dac/smaht-portal/pull/507>`_
+
+* Adapt file release script to new statuses
+* In release script distinguish between benchmarking and production tissue when getting access status
 
 
 1.4.6
