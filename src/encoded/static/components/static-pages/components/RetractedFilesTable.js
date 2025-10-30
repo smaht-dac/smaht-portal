@@ -12,7 +12,7 @@ export default function RetractedFilesTable(props) {
     const { schemas, session, searchHref: propSearchHref } = props;
     const searchHref =
         propSearchHref ||
-        '/search/?type=File&status=retracted&file_status_tracking.released_date!=No+value&sort=-file_status_tracking.retracted_date';
+        '/search/?type=File&status=retracted&file_status_tracking.release_dates.initial_release_date!=No+value&sort=-file_status_tracking.status_tracking.retracted_date';
 
     const columnExtensionMap = {
         access_status: {
@@ -36,7 +36,7 @@ export default function RetractedFilesTable(props) {
                 );
             },
         },
-        'file_status_tracking.retracted_date': {
+        'file_status_tracking.status_tracking.retracted_date': {
             widthMap: { lg: 140, md: 90, sm: 90 },
         },
         accession: {
@@ -131,7 +131,7 @@ export default function RetractedFilesTable(props) {
         access_status: {
             title: 'Access',
         },
-        'file_status_tracking.retracted_date': {
+        'file_status_tracking.status_tracking.retracted_date': {
             title: 'Retracted On',
         },
         accession: {

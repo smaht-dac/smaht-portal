@@ -249,6 +249,7 @@ export default class DataMatrix extends React.PureComponent {
             "sample_summary.studies",
             "dataset",
         ],
+        "baseBrowseFilesPath": "/browse/",
     };
 
     static propTypes = {
@@ -291,6 +292,7 @@ export default class DataMatrix extends React.PureComponent {
         'disableConfigurator': PropTypes.bool,
         'idLabel': PropTypes.string,
         'allowedFields': PropTypes.arrayOf(PropTypes.string),
+        'baseBrowseFilesPath': PropTypes.string
     };
 
     static parseQuery(queryString) {
@@ -383,7 +385,7 @@ export default class DataMatrix extends React.PureComponent {
     }
 
     componentDidMount() {
-        this.setState({ "mounted": true });
+        this.setState({ "mounted": true, "totalFiles": "N/A" });
         this.loadSearchQueryResults();
     }
 
@@ -409,32 +411,30 @@ export default class DataMatrix extends React.PureComponent {
             const resultKey = "_results";
             const updatedState = {};
 
-            updatedState[resultKey] = result;
-            const transformedData = [];
+            const transformedData = { all: [], row_totals: [] };
             const populatedRowGroups = {}; // not implemented yet
-            _.forEach(updatedState[resultKey], (r) => {
+            const processResultRow = (r, transformed) => {
                 let cloned = _.clone(r);
                 if (fieldChangeMap) {
-                    _.forEach(_.pairs(fieldChangeMap), function ([fieldToMapTo, fieldToMapFrom]) {
-                        if (typeof cloned[fieldToMapFrom] !== 'undefined' && fieldToMapTo !== fieldToMapFrom) { // If present
+                    _.forEach(_.pairs(fieldChangeMap), ([fieldToMapTo, fieldToMapFrom]) => {
+                        if (typeof cloned[fieldToMapFrom] !== 'undefined' && fieldToMapTo !== fieldToMapFrom) {
                             cloned[fieldToMapTo] = cloned[fieldToMapFrom];
                             delete cloned[fieldToMapFrom];
                         }
-                    }, {});
+                    });
                 }
                 if (resultPostProcessFuncKey && typeof DataMatrix.resultPostProcessFuncs[resultPostProcessFuncKey] === 'function') {
                     cloned = DataMatrix.resultPostProcessFuncs[resultPostProcessFuncKey](cloned);
                 }
                 if (cloned.files && cloned.files > 0) {
-                    // Change values (e.g. shorten some):
                     if (valueChangeMap) {
-                        _.forEach(_.pairs(valueChangeMap), function ([field, changeMap]) {
-                            if (typeof cloned[field] === "string") { // If present
+                        _.forEach(_.pairs(valueChangeMap), ([field, changeMap]) => {
+                            if (typeof cloned[field] === 'string') {
                                 cloned[field] = changeMap[cloned[field]] || cloned[field];
                             }
                         });
                     }
-                    transformedData.push(cloned);
+                    transformed.push(cloned);
                 }
                 if (autoPopulateRowGroupsProperty && cloned[autoPopulateRowGroupsProperty]) {
                     const rowGroupKey = cloned[autoPopulateRowGroupsProperty];
@@ -443,9 +443,20 @@ export default class DataMatrix extends React.PureComponent {
                     }
                     populatedRowGroups[rowGroupKey].push(cloned[groupingProperties[0]]);
                 }
-            });
+            };
+
+            _.forEach(result.data, (r) => processResultRow(r, transformedData.all));
+            _.forEach(result.row_totals, (r) => processResultRow(r, transformedData.row_totals));
 
             updatedState[resultKey] = transformedData;
+            // sum files in transformedData array
+            let totalFiles = 0;
+            _.forEach(transformedData.row_totals, (r) => {
+                if (r.files && typeof r.files === 'number') {
+                    totalFiles += r.files;
+                }
+            });
+            updatedState['totalFiles'] = totalFiles;
 
             this.setState(updatedState, () => ReactTooltip.rebuild());
         };
@@ -621,7 +632,8 @@ export default class DataMatrix extends React.PureComponent {
     render() {
         const {
             headerFor, valueChangeMap, allowedFields, compositeValueSeparator,
-            disableConfigurator = false, idLabel = '', additionalPopoverData = {}
+            disableConfigurator = false, idLabel = '', additionalPopoverData = {},
+            baseBrowseFilesPath
         } = this.props;
         const {
             query, fieldChangeMap, columnGrouping, groupingProperties,
@@ -629,7 +641,7 @@ export default class DataMatrix extends React.PureComponent {
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
             colorRanges, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor,
-            defaultOpen = false
+            defaultOpen = false, totalFiles
         } = this.state;
 
         const isLoading =
@@ -652,6 +664,7 @@ export default class DataMatrix extends React.PureComponent {
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, additionalPopoverData,
             summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary, compositeValueSeparator,
+            baseBrowseFilesPath
         };
 
         const colAgg = Array.isArray(query.columnAggFields) ? query.columnAggFields : [query.columnAggFields];
@@ -708,7 +721,7 @@ export default class DataMatrix extends React.PureComponent {
             </div>
         );
         return (
-            <div id={`data-matrix-for_${idLabel}`} className="data-matrix">
+            <div id={`data-matrix-for_${idLabel}`} className="data-matrix" data-files-count={totalFiles}>
                 <div className="row">
                     {body}
                 </div>
@@ -723,14 +736,16 @@ DataMatrix.resultPostProcessFuncs = {
             result.donor = result.dataset;
             result.primary_field_override = "dataset";
 
-            if (result.assay.indexOf('Hi-C - ') !== -1 && result.platform !== 'Illumina') {
-                result.files = 0;
-            }
-            if (result.assay.indexOf('Fiber-seq - ') !== -1 && result.platform !== 'PacBio') {
-                result.files = 0;
-            }
-            if (result.assay.indexOf('Ultra-Long WGS - ') !== -1 && result.platform !== 'ONT') {
-                result.files = 0;
+            if (typeof result.assay !== 'undefined' && typeof result.platform !== 'undefined') {
+                if (result.assay.indexOf('Hi-C - ') !== -1 && result.platform !== 'Illumina') {
+                    result.files = 0;
+                }
+                if (result.assay.indexOf('Fiber-seq - ') !== -1 && result.platform !== 'PacBio') {
+                    result.files = 0;
+                }
+                if (result.assay.indexOf('Ultra-Long WGS - ') !== -1 && result.platform !== 'ONT') {
+                    result.files = 0;
+                }
             }
         }
         return result;

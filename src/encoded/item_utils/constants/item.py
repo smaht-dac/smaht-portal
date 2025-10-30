@@ -1,6 +1,13 @@
 STATUS = "status"
 STATUS_OBSOLETE = "obsolete"
-STATUS_RELEASED = "released"
+STATUS_RELEASED = "released"  # Status is being removed in the future
+STATUS_PUBLIC = "public"  # Status is being removed in the future - use OPEN instead
+STATUS_OPEN = "open"
+STATUS_OPEN_EARLY = "open-early"
+STATUS_OPEN_NETWORK = "open-network"
+STATUS_PROTECTED = "protected"
+STATUS_PROTECTED_EARLY = "protected-early"
+STATUS_PROTECTED_NETWORK = "protected-network"
 STATUS_UPLOADED = "uploaded"
 SUBMITTED_ID = "submitted_id"
 UUID = "uuid"
