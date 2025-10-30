@@ -7,8 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.4.8
+=====
+
+* Updates to the load-users-from-oc script to account for DUA status
+
 1.4.7
 =====
+
 `PR 507: Adjust file release for public portal <https://github.com/smaht-dac/smaht-portal/pull/507>`_
 
 * Adapt file release script to new statuses
@@ -91,7 +97,7 @@ Change Log
 
 
 1.3.1
-=======
+=====
 `PR 527: feat: homepage announcement for portal shutdown <https://github.com/smaht-dac/smaht-portal/pull/527>`_
 
 * Implement announcement in homepage banner for portal shutdown
@@ -123,7 +129,7 @@ Change Log
 
 
 1.1.8
-======
+=====
 `PR 524: fix: update uuids to match prod <https://github.com/smaht-dac/smaht-portal/pull/524>`_
 
 * Fix uuids for the pages and static sections below in order to prevent uuid mismatches causing reindex crash
@@ -181,7 +187,6 @@ Change Log
 * Show placeholder for QC Tab when user does not have access to related QC Items for that file
 
 
->>>>>>> main
 1.1.0
 =====
 `PR 508: SN Fibroblast tissue type  <https://github.com/smaht-dac/smaht-portal/pull/508>`_
