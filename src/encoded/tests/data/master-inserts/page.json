@@ -311,8 +311,8 @@
         "identifier": "docs/additional-resources/pipeline-docs",
         "title": "Pipeline Documentation",
         "status": "open-network",
-        "content": [
-            "10d45e8c-aeab-4e07-9257-1d78f3329de5"
+        "children" : [
+            "379e3032-a0fe-45d6-8277-b373b52d3a79"
         ],
         "uuid": "6e144832-6abc-47e2-bea5-f720598cf61a",
         "consortia": [
@@ -323,7 +323,7 @@
         ]
     },
     {
-        "identifier": "docs/additional-resources/fastq_files",
+        "identifier": "docs/additional-resources/pipeline-docs/fastq_files",
         "title": "FASTQ Files",
         "status": "open-network",
         "table-of-contents": {
@@ -639,7 +639,6 @@
             "5e64b78a-58c1-48c3-b031-e8837a19b4a4",
             "27d149b5-164a-4351-9095-7be11d6371f7",
             "389b52ce-5161-4f08-b49b-b1b3b18f09e2",
-            "379e3032-a0fe-45d6-8277-b373b52d3a79",
             "1756229d-7498-444f-b574-983d3020f948",
             "ab58ce07-b8f9-4807-aa8a-d651b6cd733d",
             "041ca9a2-2b67-409c-ac50-4705f995fb99",
