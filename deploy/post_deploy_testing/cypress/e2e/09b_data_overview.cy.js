@@ -15,7 +15,6 @@ describe('Data Overview - QC Metrics', function () {
         cy.visit('/', { headers: cypressVisitHeaders });
 
         cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM')
             .get(dataNavBarItemSelectorStr)
             .should('have.class', 'dropdown-toggle')
             .click()

@@ -2,7 +2,7 @@ const { defineConfig } = require('cypress');
 
 module.exports = defineConfig({
     projectId: '5p1xo7',
-    defaultCommandTimeout: 60000,
+    defaultCommandTimeout: 15000,
     pageLoadTimeout: 120000,
     requestTimeout: 40000,
     responseTimeout: 120000,

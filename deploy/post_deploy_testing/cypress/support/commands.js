@@ -160,7 +160,19 @@ Cypress.Commands.add('signJWT', (auth0secret, email, sub) => {
  * This emulates login.js. Perhaps we should adjust login.js somewhat to match this better re: navigate.then(...) .
  */
 Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: false }) {
-    function performLogin(token) {
+    Cypress.log({
+        name: 'Login SMaHT',
+        message: 'Attempting to login as role ' + role
+    });
+
+    //ensure user is logged out first
+    cy.get('body').then(($body) => {
+        if ($body.find(navUserAcctDropdownBtnSelector + '#account-menu-item').length > 0) {
+            cy.logoutSMaHT().end();
+        }
+    });
+
+    function performLogin(token, userDisplayName = '') {
         return cy
             .window()
             .then((w) => {
@@ -200,6 +212,7 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
                     })
                     .end();
             })
+            .validateUser(userDisplayName)
             .end();
     }
 
@@ -213,11 +226,11 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
     }
 
     cy.fixture('roles.json').then((roles) => {
-        let email, auth0UserId;
+        let email, auth0UserId, shortname;
         if (roles && roles[role] && roles[role].email && roles[role].auth0UserId) {
-            ({ email, auth0UserId } = roles[role]);
+            ({ email, auth0UserId, shortname } = roles[role]);
         } else {
-            ({ email = options.user || Cypress.env('LOGIN_AS_USER'), auth0UserId } = options);
+            ({ email = options.user || Cypress.env('LOGIN_AS_USER'), auth0UserId, shortname } = options);
         }
 
         const auth0secret = Cypress.env('Auth0Secret');
@@ -240,28 +253,33 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
                 name: 'Login SMaHT',
                 message: 'Generated own JWT with length ' + token.length,
             });
-            return performLogin(token);
+            return performLogin(token, shortname);
         });
     });
 });
 
-Cypress.Commands.add('validateUser', function (userDisplayName = 'SCM') {
+Cypress.Commands.add('validateUser', function (userDisplayName = '') {
     return cy.get(navUserAcctDropdownBtnSelector)
-        .should('not.contain.text', 'Login')
+        .should('not.contain.text', 'Login / Register')
         .then((accountListItem) => {
+            Cypress.log({
+                name: 'Validate User',
+                message: 'Validating user is ' + userDisplayName,
+            });
             expect(accountListItem.text()).to.contain(userDisplayName);
         }).end();
 });
 
 Cypress.Commands.add('logoutSMaHT', function (options = { useEnvToken: true }) {
-    cy.get(navUserAcctDropdownBtnSelector)
+    return cy.get(navUserAcctDropdownBtnSelector)
+        .scrollIntoView().wait(100)
         .click()
         .end()
         .get('#logoutbtn')
         .click()
         .end()
         .get(navUserAcctLoginBtnSelector)
-        .should('contain', 'Login')
+        .should('contain', 'Login / Register')
         .end()
         .get('#slow-load-container')
         .should('not.have.class', 'visible')
@@ -429,7 +447,7 @@ Cypress.Commands.add("getQuickInfoBar", () => {
                         result[iconType] = 0;
                     } else if (iconType === "file-size") {
                         // e.g. "14.18 TB"
-                        const match = trimmed.match(/^([\d.,]+)\s*(TB|GB|MB|KB)?$/i);
+                        const match = trimmed.match(/^([\d.,]+)\s*(TB|GB|MB|KB|Bytes)?$/i);
                         if (match) {
                             const number = parseFloat(match[1].replace(",", ""));
                             const unit = match[2] ? match[2].toUpperCase() : "B";
