@@ -1,5 +1,6 @@
 // cypress/e2e/deployment_ci_search_by_role.cy.js
 import { cypressVisitHeaders, ROLE_TYPES, BROWSE_STATUS_PARAMS } from '../support';
+import { dataNavBarItemSelectorStr } from "../support/selectorVars";
 
 /* ----------------------------- ROLE MATRIX -----------------------------
    Toggle each scenario per role. Keep steps few and meaningful.
@@ -212,6 +213,10 @@ function stepItemSearchFlow(caps) {
     cy.get('.datum').each(($el) => {
         if ($el.find('.datum-title').text().trim() === 'Size') {
             fileSize = $el.find('.datum-value').text().trim();
+
+            if (fileSize === 'N/A') {
+                fileSize = '0 Bytes';
+            }
         }
     });
 
@@ -226,14 +231,24 @@ function stepItemSearchFlow(caps) {
     if (caps.expectedCanDownloadFile === true) {
         cy.get('@status').then((status) => {
             if (status.toLowerCase().includes('protected') && !caps.expectedCanDownloadProtectedFile) {
-                // Protected file download not expected to be allowed
-                cy.get('.download-button.btn.btn-primary[disabled]').then(($disabledButton) => {
-                    cy.wrap($disabledButton)
-                        .trigger('mouseover', { force: true }); // Trigger a hover event
-                    cy.get('.popover.download-popover').should('be.visible');
-                    cy.wrap($disabledButton).trigger('mouseout', { force: true });
-                    cy.get('.popover.download-popover').should('not.exist');
-                });
+                cy.get(dataNavBarItemSelectorStr)
+                    .should("have.class", "dropdown-toggle")
+                    .then(($el) => {
+                        // very hacky - workaround to verify the page is loaded completely by checking navigation bar arrow icon
+                        const win = $el[0].ownerDocument.defaultView;
+                        const after = win.getComputedStyle($el[0], '::after');
+                        // Assert the pseudo-element exists (content is not 'none')
+                        expect(after.content).to.not.equal('none');
+
+                        // Protected file download not expected to be allowed
+                        cy.get('.download-button.btn.btn-primary[disabled]').then(($disabledButton) => {
+                            cy.wrap($disabledButton)
+                                .trigger('mouseover', { force: true }); // Trigger a hover event
+                            cy.get('.popover.download-popover').should('be.visible');
+                            cy.wrap($disabledButton).trigger('mouseout', { force: true });
+                            cy.get('.popover.download-popover').should('not.exist');
+                        });
+                    });           
             } else {
                 // Open batch download modal and verify selected size equals the file size
                 cy.get('#download_tsv_multiselect').should('not.be.disabled').click({ force: true });
