@@ -312,7 +312,17 @@
         "title": "Pipeline Documentation",
         "status": "open-network",
         "children" : [
-            "379e3032-a0fe-45d6-8277-b373b52d3a79"
+            "379e3032-a0fe-45d6-8277-b373b52d3a79",
+            "1756229d-7498-444f-b574-983d3020f948",
+            "ab58ce07-b8f9-4807-aa8a-d651b6cd733d",
+            "041ca9a2-2b67-409c-ac50-4705f995fb99",
+            "582c7cab-bd68-4e86-aa29-6d0e6718b62a",
+            "3f503a50-8646-4b4d-b870-73eabc8106a2",
+            "1ac937fa-8057-44da-ae9d-869d1cc56a1b",
+            "01f81cd2-5423-4c26-afd2-5e31f6eef6b6",
+            "f873a9df-a511-4e02-af8c-d6e050980b4e",
+            "078a29b1-3cb8-4bcf-bf76-865b66afaa74",
+            "45445bef-a513-4236-a013-baeecb3e9e25"
         ],
         "uuid": "6e144832-6abc-47e2-bea5-f720598cf61a",
         "consortia": [
@@ -342,7 +352,7 @@
         ]
     },
     {
-        "identifier": "docs/additional-resources/short-read_illumina_paired-end",
+        "identifier": "docs/additional-resources/pipeline-docs/short-read_illumina_paired-end",
         "title": "Short-Read Illumina Paired-End",
         "table-of-contents": {
             "enabled": true,
@@ -361,7 +371,7 @@
         ]
     },
     {
-        "identifier": "docs/additional-resources/long-read_pacbio_hifi",
+        "identifier": "docs/additional-resources/pipeline-docs/long-read_pacbio_hifi",
         "title": "Long-Read PacBio HiFi",
         "table-of-contents": {
             "enabled": true,
@@ -380,7 +390,7 @@
         ]
     },
     {
-        "identifier": "docs/additional-resources/long-read_oxford_nanopore",
+        "identifier": "docs/additional-resources/pipeline-docs/long-read_oxford_nanopore",
         "title": "Long-Read Oxford Nanopore",
         "table-of-contents": {
             "enabled": true,
@@ -399,7 +409,7 @@
         ]
     },
     {
-        "identifier": "docs/additional-resources/short-read_rna-seq_paired-end",
+        "identifier": "docs/additional-resources/pipeline-docs/short-read_rna-seq_paired-end",
         "title": "Short-Read RNA-seq Paired-End",
         "table-of-contents": {
             "enabled": true,
@@ -418,7 +428,7 @@
         ]
     },
     {
-        "identifier": "docs/additional-resources/long-read_rna-seq_pacbio_kinnex",
+        "identifier": "docs/additional-resources/pipeline-docs/long-read_rna-seq_pacbio_kinnex",
         "title": "Long-Read RNA-seq PacBio Kinnex",
         "table-of-contents": {
             "enabled": true,
@@ -437,7 +447,7 @@
         ]
     },
     {
-        "identifier": "docs/additional-resources/genome_builds",
+        "identifier": "docs/additional-resources/pipeline-docs/genome_builds",
         "title": "Genome Builds",
         "table-of-contents": {
             "enabled": true,
@@ -456,7 +466,7 @@
         ]
     },
     {
-        "identifier": "docs/additional-resources/genome_annotations",
+        "identifier": "docs/additional-resources/pipeline-docs/genome_annotations",
         "title": "Genome Annotations",
         "table-of-contents": {
             "enabled": true,
@@ -475,7 +485,7 @@
         ]
     },
     {
-        "identifier": "docs/additional-resources/variant_catalogs",
+        "identifier": "docs/additional-resources/pipeline-docs/variant_catalogs",
         "title": "Variant Catalogs",
         "table-of-contents": {
             "enabled": true,
@@ -494,7 +504,7 @@
         ]
     },
     {
-        "identifier": "docs/additional-resources/software_specific",
+        "identifier": "docs/additional-resources/pipeline-docs/software_specific",
         "title": "Software Specific",
         "table-of-contents": {
             "enabled": true,
@@ -513,7 +523,7 @@
         ]
     },
     {
-        "identifier": "docs/additional-resources/release_changelog",
+        "identifier": "docs/additional-resources/pipeline-docs/release_changelog",
         "title": "Release Changelog",
         "table-of-contents": {
             "enabled": true,
@@ -638,17 +648,7 @@
             "b3e754fd-be49-4998-bd05-040623617cdf",
             "5e64b78a-58c1-48c3-b031-e8837a19b4a4",
             "27d149b5-164a-4351-9095-7be11d6371f7",
-            "389b52ce-5161-4f08-b49b-b1b3b18f09e2",
-            "1756229d-7498-444f-b574-983d3020f948",
-            "ab58ce07-b8f9-4807-aa8a-d651b6cd733d",
-            "041ca9a2-2b67-409c-ac50-4705f995fb99",
-            "582c7cab-bd68-4e86-aa29-6d0e6718b62a",
-            "3f503a50-8646-4b4d-b870-73eabc8106a2",
-            "1ac937fa-8057-44da-ae9d-869d1cc56a1b",
-            "01f81cd2-5423-4c26-afd2-5e31f6eef6b6",
-            "f873a9df-a511-4e02-af8c-d6e050980b4e",
-            "078a29b1-3cb8-4bcf-bf76-865b66afaa74",
-            "45445bef-a513-4236-a013-baeecb3e9e25"
+            "389b52ce-5161-4f08-b49b-b1b3b18f09e2"
         ],
         "table-of-contents": {
             "enabled": true
