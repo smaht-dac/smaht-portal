@@ -5,7 +5,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "external_id"
+        "ID"
     ],
     "anyOf": [
         {
@@ -26,9 +26,6 @@
     ],
     "additionalProperties": false,
     "mixinProperties": [
-        {
-            "$ref": "mixins.json#/accession"
-        },
         {
             "$ref": "mixins.json#/aliases"
         },
