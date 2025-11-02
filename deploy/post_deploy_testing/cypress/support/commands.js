@@ -272,18 +272,27 @@ Cypress.Commands.add('validateUser', function (userDisplayName = '') {
 
 Cypress.Commands.add('logoutSMaHT', function (options = { useEnvToken: true }) {
     return cy.get(navUserAcctDropdownBtnSelector)
-        .scrollIntoView().wait(100)
-        .click()
-        .end()
-        .get('#logoutbtn')
-        .click()
-        .end()
-        .get(navUserAcctLoginBtnSelector)
-        .should('contain', 'Login / Register')
-        .end()
-        .get('#slow-load-container')
-        .should('not.have.class', 'visible')
-        .end();
+        .scrollIntoView()
+        .should("have.class", "dropdown-toggle")
+        .then(($el) => {
+            // very hacky - workaround to verify the page is loaded completely by checking navigation bar arrow icon
+            const win = $el[0].ownerDocument.defaultView;
+            const after = win.getComputedStyle($el[0], '::after');
+            // Assert the pseudo-element exists (content is not 'none')
+            expect(after.content).to.not.equal('none');
+
+            cy.wrap($el).click({ force: true })
+                .end()
+                .get('#logoutbtn')
+                .click()
+                .end()
+                .get(navUserAcctLoginBtnSelector)
+                .should('contain', 'Login / Register')
+                .end()
+                .get('#slow-load-container')
+                .should('not.have.class', 'visible')
+                .end();
+        });
 });
 
 /** Session Caching */
@@ -473,4 +482,73 @@ Cypress.Commands.add("getQuickInfoBar", () => {
         }
     }).then(() => result);
 });
+
+/*** Popover Utils ****/
+Cypress.Commands.add('waitForPopoverShow', (popoverSelector = '#jap-popover, .popover', timeout = 10000) => {
+    return cy.window().then((win) => new Cypress.Promise((resolve, reject) => {
+        const start = Date.now();
+
+        const matchesShow = (el) =>
+            el &&
+            el.isConnected &&
+            (el.matches(popoverSelector) || el.closest(popoverSelector)) &&
+            (el.classList?.contains('show') || el.closest('.show'));
+
+        // Fast path: if already visible, resolve immediately
+        const existing = Array.from(win.document.querySelectorAll(popoverSelector))
+            .find(el => el.classList?.contains('show'));
+        if (existing) return resolve(existing);
+
+        // Observe class and DOM changes to detect when popover becomes visible
+        const observer = new win.MutationObserver((mutations) => {
+            for (const m of mutations) {
+                // Check for class attribute changes
+                if (m.type === 'attributes' && matchesShow(m.target)) {
+                    cleanup(); return resolve(m.target);
+                }
+                // Check for new elements added to DOM
+                if (m.type === 'childList') {
+                    for (const n of m.addedNodes) {
+                        if (n.nodeType === 1 && matchesShow(n)) {
+                            cleanup(); return resolve(n);
+                        }
+                        if (n.nodeType === 1) {
+                            const found = n.querySelector?.(popoverSelector);
+                            if (found && found.classList?.contains('show')) {
+                                cleanup(); return resolve(found);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Timeout guard
+            if (Date.now() - start > timeout) {
+                cleanup();
+                const dbg = Array.from(win.document.querySelectorAll(popoverSelector))
+                    .map(el => `[id="${el.id}" class="${el.className}"]`).join('\n');
+                reject(new Error(`Popover .show not detected (timeout ${timeout}ms). Candidates:\n${dbg || '(none)'}`));
+            }
+        });
+
+        const cleanup = () => observer.disconnect();
+
+        // Observe the entire document body for class changes and new elements
+        observer.observe(win.document.body, {
+            attributes: true,
+            attributeFilter: ['class'],
+            subtree: true,
+            childList: true
+        });
+
+        // Final fallback timeout
+        setTimeout(() => {
+            if (Date.now() - start > timeout) {
+                cleanup();
+                reject(new Error(`Popover .show not detected (timeout ${timeout}ms)`));
+            }
+        }, timeout + 5);
+    }));
+});
+
 
