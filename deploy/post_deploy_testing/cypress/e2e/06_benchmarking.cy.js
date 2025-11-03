@@ -114,7 +114,7 @@ function verifyTabContent(tabKey, expectedText) {
 
 /* ----------------------------- STEP HELPERS ----------------------------- */
 /** 1) Navigation + page redirection + tab checks */
-function stepNavAndRedirection(caps) {
+function stepNavAndRedirection(caps, roleKey) {
     cy.get(dataNavBarItemSelectorStr)
         .should("have.class", "dropdown-toggle")
         .click()
@@ -164,7 +164,7 @@ function stepNavAndRedirection(caps) {
                         failOnStatusCode: false,
                         headers: cypressVisitHeaders,
                     }).then((resp) => {
-                        expect(resp.status).to.equal(403);
+                        expect(resp.status).to.equal(roleKey !== ROLE_TYPES.SMAHT_DBGAP ? 403 : 200);
                     });
 
                     let prevTitle = "";
@@ -619,7 +619,7 @@ describe("Benchmarking by role", () => {
 
             it(`nav → benchmarking pages → tab checks (enabled: ${caps.runNavAndRedirection})`, () => {
                 if (!caps.runNavAndRedirection) return;
-                stepNavAndRedirection(caps);
+                stepNavAndRedirection(caps, roleKey);
             });
 
             it(`sidebar toggle (enabled: ${caps.runSidebarToggle})`, () => {
