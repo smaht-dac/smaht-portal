@@ -153,9 +153,9 @@ const verifyDonorSummary = (expectedDonorId) => {
             .to.include(text);
     });
 
-    // Hardy Scale: integer between 0 and 4 inclusive (COLO829 is N/A)
+    // Hardy Scale: integer between 0 and 4 inclusive (COLO829 and DONOR_LB are N/A)
     getOverviewValue("Hardy Scale").then(({ text }) => {
-        if (expectedDonorId !== "COLO829") {
+        if (expectedDonorId !== "COLO829" && expectedDonorId !== "DONOR_LB") {
             const n = Number(text);
             expect(
                 Number.isInteger(n),
