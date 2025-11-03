@@ -316,7 +316,7 @@ describe('Documentation Page & Content Tests', function () {
             .click()
             .should('have.class', 'dropdown-open-for').then(() => {
 
-                cy.get('.big-dropdown-menu.is-open a.level-2-title[href="/docs/submission/faq"]')
+                cy.get('.big-dropdown-menu.is-open a.level-2-title[href="/docs/submission/submission_faq"]')
                     .click({ force: true }).then(function ($linkElem) {
                         cy.get('#slow-load-container').should('not.have.class', 'visible').end();
                         const linkHref = $linkElem.attr('href');
