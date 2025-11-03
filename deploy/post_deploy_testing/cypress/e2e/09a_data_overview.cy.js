@@ -46,6 +46,7 @@ const ROLE_MATRIX = {
         expectedRetractedFilesResponseCode: 403,
         expectedRetractedFilesCount: 5,
         expectedDataMatrixMenuVisible: true,
+        expectedDataMatrixResponseCode: 200,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
         expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
@@ -62,6 +63,7 @@ const ROLE_MATRIX = {
         expectedRetractedFilesResponseCode: 200,
         expectedRetractedFilesCount: 5,
         expectedDataMatrixMenuVisible: true,
+        expectedDataMatrixResponseCode: 200,
         expectedDataMatrixProductionOpts: BASE_DM_PROD_OPTS,
         expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
@@ -78,6 +80,7 @@ const ROLE_MATRIX = {
         expectedRetractedFilesResponseCode: 200,
         expectedRetractedFilesCount: 0,
         expectedDataMatrixMenuVisible: true,
+        expectedDataMatrixResponseCode: 200,
         expectedDataMatrixProductionOpts: BASE_DM_PROD_OPTS,
         expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
@@ -94,6 +97,7 @@ const ROLE_MATRIX = {
         expectedRetractedFilesResponseCode: 403,
         expectedRetractedFilesCount: 0,
         expectedDataMatrixMenuVisible: true,
+        expectedDataMatrixResponseCode: 200,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
         expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
@@ -110,6 +114,7 @@ const ROLE_MATRIX = {
         expectedRetractedFilesResponseCode: 403,
         expectedRetractedFilesCount: 0,
         expectedDataMatrixMenuVisible: true,
+        expectedDataMatrixResponseCode: 200,
         expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
         expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
     },
@@ -302,6 +307,20 @@ function assertCannotAccessRetractedFilesPage(caps) {
     });
 }
 
+function assertCannotAccessDataMatrixPage(caps) {
+    goto({ url: "/data-matrix", failOnStatusCode: false });
+
+    cy.contains("h1.page-title", "Forbidden").should("be.visible");
+
+    cy.request({
+        url: "/data-matrix",
+        failOnStatusCode: false,
+        headers: cypressVisitHeaders,
+    }).then((resp) => {
+        expect(resp.status).to.equal(caps.expectedDataMatrixResponseCode);
+    });
+}
+
 /* ----------------------------- PARAMETERIZED SUITE ----------------------------- */
 
 const ROLES_TO_TEST = [
@@ -317,11 +336,13 @@ describe("Data Overview by role", () => {
         const caps = ROLE_MATRIX[roleKey];
         const label = caps.label || String(roleKey);
 
-        // override caps.expectedDataMatrixProductionOpts for devtest since it has limited data whereas prod has none
-        // const baseUrl = Cypress.config().baseUrl || "";
-        // if (baseUrl.includes("devtest.smaht.org") && _.isEqual(caps.expectedDataMatrixProductionOpts, EMPTY_DM_PROD_OPTS)) {
-        //     caps.expectedDataMatrixProductionOpts = BASE_DM_PROD_OPTS;
-        // }
+        // override caps for data/staging environment
+        const baseUrl = Cypress.config().baseUrl || "";
+        if ((baseUrl.includes("data.smaht.org") || baseUrl.includes("staging.smaht.org")) && ['UNAUTH', ROLE_TYPES.SMAHT_PUBLIC_DBGAP, ROLE_TYPES.SMAHT_PUBLIC_NON_DBGAP].includes(roleKey)) {
+            caps.runDataMatrixBenchmarking = false;
+            caps.runDataMatrixProduction = false;
+            caps.expectedDataMatrixResponseCode = 403;
+        }
 
         context(`${label} → data overview capabilities`, () => {
             before(() => {
@@ -343,12 +364,18 @@ describe("Data Overview by role", () => {
             });
 
             it(`Data Matrix — Production (enabled: ${caps.runDataMatrixProduction})`, () => {
-                if (!caps.runDataMatrixProduction) return;
+                if (!caps.runDataMatrixProduction) {
+                    assertCannotAccessDataMatrixPage(caps);
+                    return;
+                }
                 stepDataMatrixProduction(caps);
             });
 
             it(`Data Matrix — Benchmarking (enabled: ${caps.runDataMatrixBenchmarking})`, () => {
-                if (!caps.runDataMatrixBenchmarking) return;
+                if (!caps.runDataMatrixBenchmarking) {
+                    assertCannotAccessDataMatrixPage(caps);
+                    return;
+                }
                 stepDataMatrixBenchmarking(caps);
             });
         });
