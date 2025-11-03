@@ -130,10 +130,25 @@ function stepNavAndRedirection(caps) {
                 .then(($listItems) => {
                     expect($listItems).to.have.length(3);
 
-                    const allLinkElementHREFs = Cypress._.map($listItems, (a) => {
-                        const path = new URL(a.href, window.location.origin).pathname;
-                        return path;
-                    }).reverse();
+
+                    //filter out item that contains Somatic Variants text for now
+                    const allLinkElementHREFs = Cypress._.chain($listItems)
+                        .filter((a) => !a.textContent.includes("Somatic Variants"))
+                        .map((a) => {
+                            const path = new URL(a.href, window.location.origin).pathname;
+                            return path;
+                        })
+                        .reverse()
+                        .value();
+
+                    // test Somatic Variants separately verify it is forbidden for now
+                    cy.request({
+                        url: "/data/analysis/colo829-snv-indel-detection",
+                        failOnStatusCode: false,
+                        headers: cypressVisitHeaders,
+                    }).then((resp) => {
+                        expect(resp.status).to.equal(403);
+                    });
 
                     let prevTitle = "";
                     let count = 0;
@@ -222,7 +237,7 @@ function stepNavAndRedirection(caps) {
                                             });
                                     });
                                 } else {
-                                    // COLO829 challenge: different layout
+                                    // COLO829 challenge: different layout - currently not allowed to display this page
                                     cy.get(".search-results-container.fully-loaded")
                                         .should("be.visible")
                                         .end()
@@ -254,7 +269,7 @@ function stepNavAndRedirection(caps) {
                             });
                     }
 
-                    // Start with the last item (per original)
+                    // Start with the last item
                     cy.wrap($listItems.last())
                         .scrollIntoView()
                         .should("be.visible")
