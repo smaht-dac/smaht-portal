@@ -52,9 +52,6 @@ const BASE_BROWSE_URL =
 const BASE_DONOR_SEARCH_URL = "/search/?type=Donor";
 const BROWSE_BY_DONOR_URL = `/browse/?type=Donor&study=Production&tags=has_released_files&${BROWSE_STATUS_PARAMS}`;
 
-// Prefer env override if provided
-const getBaseUrl = () => Cypress.env("BASE_BROWSE_URL") ?? BASE_BROWSE_URL;
-
 // Safe query param append (handles both bare and existing query string)
 const appendParam = (base, key, value) =>
     `${base}${base.includes("?") ? "&" : "?"}${key}=${encodeURIComponent(value)}`;
@@ -422,7 +419,7 @@ function stepPublicDonorFlow(caps) {
                         // Exposures: protected sections absent
                         verifyExposures();
 
-                        // Data Matrix: basic popover checks on donor matrix
+                        // Donor-level Data Matrix
                         getNumericStatByLabel("Files").then((n) => {
                             testMatrixPopoverValidation(
                                 "#data-matrix-for_donor",
