@@ -110,12 +110,6 @@
             "type": "string",
             "permission": "restricted_fields"
         },
-        "version": {
-            "title": "Version",
-            "description": "Version of the record as is appears in the external database (e.g. bioRxiv version)",
-            "type": "string",
-            "permission": "restricted_fields"
-        },
         "journal_url": {
             "title": "Journal URL",
             "description": "Link to the publishing journal web site.",
@@ -128,6 +122,12 @@
             "description": "Link to the repository (e.g. bioRxiv, PubMed) web site.",
             "type": "string",
             "format": "uri",
+            "permission": "restricted_fields"
+        },
+        "version": {
+            "title": "Version",
+            "description": "Version of the record as it appears in the external database (e.g. bioRxiv version)",
+            "type": "string",
             "permission": "restricted_fields"
         },
         "is_preprint": {

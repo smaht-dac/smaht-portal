@@ -41,6 +41,6 @@ class Publication(Item):
         "description": "The number of files on the portal included in this publication.",
         "type": "integer"
     })
-    def number_of_files(self, request, files_of_pub=None):
+    def number_of_files(self, files_of_pub=None):
         if files_of_pub:
             return len(files_of_pub)
