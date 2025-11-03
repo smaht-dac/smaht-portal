@@ -1,0 +1,13 @@
+[
+    {
+        "uuid": "f0a11111-aaaa-4444-bbbb-cccccccccccc",
+        "title": "The SMaHT Initiative Overview",
+        "authors": ["Jane Doe", "John Smith", "Alice Brown"],
+        "date_published": "2023-09-01",
+        "journal": "Nature Methods",
+        "pmid": "345678901",
+        "files_of_pub": [
+            "f0a22222-bbbb-4444-cccc-dddddddddddd"
+        ]
+    }
+]
