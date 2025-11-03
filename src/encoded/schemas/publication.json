@@ -129,6 +129,12 @@
             "type": "string",
             "format": "uri",
             "permission": "restricted_fields"
+        },
+        "is_preprint": {
+            "title": "Is Preprint",
+            "description": "Indicates whether the publication is a preprint.",
+            "type": "boolean",
+            "permission": "restricted_fields"
         }
     },
     "facets": {
