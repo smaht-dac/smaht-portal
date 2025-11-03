@@ -207,7 +207,7 @@ function stepOutputFilesWithQC(caps) {
 
                             // Public Release Date: must always contain a valid date (not empty or 'N/A')
                             cy.get('.data-card .datum-title span')
-                                .contains('Public Release Date')
+                                .contains('Release Date')
                                 .parent()
                                 .siblings('.datum-value')
                                 .find('.localized-date-time')
