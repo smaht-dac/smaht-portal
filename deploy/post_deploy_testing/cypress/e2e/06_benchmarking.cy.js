@@ -130,14 +130,31 @@ function stepNavAndRedirection(caps) {
                 .then(($listItems) => {
                     expect($listItems).to.have.length(3);
 
+                    const items = Array.from($listItems);
 
-                    //filter out item that contains Somatic Variants text for now
-                    const allLinkElementHREFs = Cypress._.chain($listItems)
-                        .filter((a) => !a.textContent.includes("Somatic Variants"))
-                        .map((a) => {
-                            const path = new URL(a.href, window.location.origin).pathname;
-                            return path;
-                        })
+                    // Filter out disabled items, javascript: hrefs, and anything that mentions "Somatic Variant(s)"
+                    const filteredListItems = items.filter((a) => {
+                        // Prefer innerText for rendered text; fallback to textContent
+                        const text = (a.innerText || a.textContent || "").toLowerCase();
+
+                        // Robust disabled checks
+                        const isDisabled = a.hasAttribute("data-disabled") && a.getAttribute("data-disabled") === "true";
+
+                        // Exclude javascript: or empty hrefs
+                        const rawHref = a.getAttribute("href") || "";
+                        const isBadHref = !rawHref || rawHref.startsWith("javascript:");
+
+                        // Match "somatic variant", "somatic variants", and allow trailing words like "sets"
+                        const isSomaticVariant = /somatic\s+variants?\b/i.test(text);
+
+                        return !isDisabled && !isBadHref && !isSomaticVariant;
+                    });
+
+                    expect(filteredListItems).to.have.length(2);
+
+                    // Sonra href'leri çıkart
+                    const allLinkElementHREFs = Cypress._.chain(filteredListItems)
+                        .map((a) => new URL(a.href, window.location.origin).pathname)
                         .reverse()
                         .value();
 
@@ -248,7 +265,7 @@ function stepNavAndRedirection(caps) {
                                 }
 
                                 count++;
-                                if (count < $listItems.length) {
+                                if (count < filteredListItems.length) {
                                     cy.get(dataNavBarItemSelectorStr)
                                         .click()
                                         .should("have.class", "dropdown-open-for")
@@ -270,7 +287,7 @@ function stepNavAndRedirection(caps) {
                     }
 
                     // Start with the last item
-                    cy.wrap($listItems.last())
+                    cy.wrap(filteredListItems[filteredListItems.length - 1])
                         .scrollIntoView()
                         .should("be.visible")
                         .click({ force: true })
