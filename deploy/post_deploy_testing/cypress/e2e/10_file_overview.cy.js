@@ -41,7 +41,7 @@ const ROLE_MATRIX = {
         expectedCanDownloadFile: true,
         expectedCanDownloadProtectedFile: false,
         expectedQCOverviewTabVisible: false,
-        expectedShouldNotVisibleStatus: ["protected-early", "protected-network", "in review"],
+        expectedShouldNotVisibleStatus: ["in review"],
     },
 
     [ROLE_TYPES.PUBLIC_DBGAP]: {
@@ -404,9 +404,9 @@ function stepAccessForbiddenStatusCheck(caps) {
     // override caps.expectedShouldNotVisibleStatus for devtest has still "released" files that need to be replaced with "open-network"
     const baseUrl = Cypress.config().baseUrl || "";
     const clonedStatus = [...caps.expectedShouldNotVisibleStatus];
-    if (baseUrl.includes("devtest.smaht.org") && caps.expectedShouldNotVisibleStatus.includes("open-network")) {
-        clonedStatus.push("released");
-    }
+    // if (baseUrl.includes("devtest.smaht.org") && caps.expectedShouldNotVisibleStatus.includes("open-network")) {
+    //     clonedStatus.push("released");
+    // }
 
     const params = clonedStatus.map((status) => `status=${encodeURIComponent(status)}`).join('&');
     cy.request({
