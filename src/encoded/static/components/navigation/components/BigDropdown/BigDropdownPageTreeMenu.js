@@ -297,20 +297,19 @@ function CustomStaticLinks({ pathName, href, session }) {
                             </div>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
-                            href="/data/analysis/colo829-snv-indel-detection"
-                            titleIcon={
-                                <div>
-                                    <img
-                                        className="big-link-icon-svg"
-                                        src="/static/img/misc-icons/Analysis Bench.svg"
-                                        alt={`Analysis icon`}
-                                    />
-                                </div>
-                            }
-                            className="primary-big-link">
-                            <h4 className="text-large">Somatic Variants</h4>
+                            disabled={true}
+                            href={''}
+                            titleIcon="diagram-project"
+                            className="primary-big-link is-fa-icon">
+                            <h4 className="text-large">
+                                Somatic Variant Sets
+                                <span className="text-300 fst-italic text-medium">
+                                    {' '}
+                                    - Coming Soon
+                                </span>
+                            </h4>
                             <div className="description text-medium">
-                                Reference Somatic SNV/Indel, SV, MEI Call Sets
+                                Published Somatic SNV/Indel, SV, MEI Call Sets
                             </div>
                         </BigDropdownBigLink>
                     </div>

@@ -218,6 +218,7 @@ const PublicDonorViewHeader = (props) => {
 /** Top-level component for the Donor Overview Page */
 const PublicDonorView = React.memo(function PublicDonorView(props) {
     const { context, session, href } = props;
+    const { study } = context || {};
 
     const [isLoading, setIsLoading] = useState(true);
     const [statisticValues, setStatisticValues] = useState({
@@ -319,6 +320,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                     idLabel="donor"
                                     session={session}
                                     yAxisLabel="Tissue" // Only one donor, so y-axis is Tissue
+                                    baseBrowseFilesPath={study === 'Production' ? "/browse/" : "/search/"}
                                 />
                             </div>
                         ) : (
