@@ -39,7 +39,7 @@ const ROLE_MATRIX = {
         isAuthenticated: true,
         canViewQCMetrics: false,
 
-        expectedQCMetricsMenuVisible: false,
+        expectedQCMetricsMenuVisible: true,
         expectedQCMetricsResponseCode: 403,
     },
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
@@ -47,7 +47,7 @@ const ROLE_MATRIX = {
         isAuthenticated: true,
         canViewQCMetrics: false,
 
-        expectedQCMetricsMenuVisible: false,
+        expectedQCMetricsMenuVisible: true,
         expectedQCMetricsResponseCode: 403,
     }
 };
