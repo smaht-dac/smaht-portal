@@ -166,7 +166,7 @@ function stepAllDocsToCAndPreBlocks() {
                             });
                             if (count < $listItems.length) {
                                 cy.get(documentationNavBarItemSelectorStr)
-                                    .click()
+                                    .click({ force: true })
                                     .should("have.class", "dropdown-open-for")
                                     .then(() => {
                                         cy.get(
