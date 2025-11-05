@@ -63,9 +63,41 @@ def session_properties(context, request):
             }
         else:
             raise LoginDenied(domain=request.domain)
-            
+
     namespace, userid = principal.split('.', 1)
     properties = get_basic_properties_for_user(request, userid)
+    details = properties.get('details', {})
+    if 'admin' in details.get('groups', []):
+        download_perms = {  # admins get everything
+            'open': True,
+            'open-early': True,
+            'open-network': True,
+            'protected': True,
+            'protected-early': True,
+            'protected-network': True,
+            'released': True
+        }
+    else:  # add perms as we can deduce from user props
+        download_perms = {
+            'open': True,
+            'open-early': False,
+            'open-network': False,
+            'protected': False,
+            'protected-early': False,
+            'protected-network': False,
+            'released': False
+        }
+    if 'submission_centers' in details:
+        download_perms['open-early'] = True
+        download_perms['open-network'] = True
+    if 'dbgap' in details.get('groups', []):
+        download_perms['protected'] = True
+        download_perms['protected-early'] = True
+        download_perms['protected-network'] = True
+    if 'public-dbgap' in details.get('groups', []):
+        download_perms['protected'] = True
+    properties['download_perms'] = download_perms
+    print(properties)
     return properties
 
 

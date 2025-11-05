@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+1.4.9
+=====
+
+* Update `/session-properties` to include download permission information
+
+
 1.4.8
 =====
 
@@ -49,9 +55,9 @@ Change Log
 =====
 `PR 540 Refactor file status tracking structure <https://github.com/smaht-dac/smaht-portal/pull/540>`_
 
-* The `file_status_tracking` calc prop now contains the dictionaries `status_tracking` and `release_dates`. 
-  `status_tracking` contains timestamps and dates when the file switched status. 
-  `release_dates` evaluates these status changes and provides timestamps and dates for 
+* The `file_status_tracking` calc prop now contains the dictionaries `status_tracking` and `release_dates`.
+  `status_tracking` contains timestamps and dates when the file switched status.
+  `release_dates` evaluates these status changes and provides timestamps and dates for
   `initial_release`, `public_release`, `network_release`.
 
 
