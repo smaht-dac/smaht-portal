@@ -166,6 +166,8 @@ function stepAllDocsToCAndPreBlocks() {
                             });
                             if (count < $listItems.length) {
                                 cy.get(documentationNavBarItemSelectorStr)
+                                    .scrollIntoView()
+                                    .should("have.class", "dropdown-toggle")
                                     .click({ force: true })
                                     .should("have.class", "dropdown-open-for")
                                     .then(() => {
