@@ -124,7 +124,7 @@
             "format": "uri",
             "permission": "restricted_fields"
         },
-        "version": {
+        "biorxiv_version": {
             "title": "Version",
             "description": "Version of the record as it appears in the external database (e.g. bioRxiv version)",
             "type": "string",
@@ -135,6 +135,18 @@
             "description": "Indicates whether the publication is a preprint.",
             "type": "boolean",
             "permission": "restricted_fields"
+        },
+        "study": {
+            "title": "Study",
+            "description": "Study associated with this publication.",
+            "type": "string",
+            "enum": ["Benchmarking", "Production"]
+        },
+        "scope": {
+            "title": "Scope",
+            "description": "Scope of the publication.",
+            "type": "string",
+            "enum": ["Working group", "Network", "Individual Lab"]
         }
     },
     "facets": {
@@ -154,16 +166,20 @@
                     "field": "display_title",
                     "title": "Author Name"
                 }
-            ]
+            ],
+            "default_hidden": true
         },
         "date_published": {
-            "title": "Year"
+            "title": "Year",
+            "default_hidden": true
         },
         "journal": {
-            "title": "Journal"
+            "title": "Journal",
+            "default_hidden": true
         },
         "number_of_files": {
-            "title": "Number of Files"
+            "title": "Number of Files",
+            "default_hidden": true
         }
     }
 }

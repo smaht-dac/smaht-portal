@@ -24,7 +24,7 @@ class Publication(Item):
         "description": "Short string containing <= 2 authors & year published.",
         "type": "string"
     })
-    def short_attribution(self, authors=None, date_published=None):
+    def short_citation(self, authors=None, date_published=None):
         minipub = ''
         if authors:
             minipub = authors[0]
@@ -42,5 +42,8 @@ class Publication(Item):
         "type": "integer"
     })
     def number_of_files(self, files_of_pub=None):
-        if files_of_pub:
-            return len(files_of_pub)
+        ''' 
+            How this will be calculated or if it will we depend on how we decide to implement and
+            report on files associated with a publication.
+        '''
+        pass
