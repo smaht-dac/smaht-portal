@@ -168,20 +168,29 @@ function stepAllDocsToCAndPreBlocks() {
                                 cy.get(documentationNavBarItemSelectorStr)
                                     .scrollIntoView()
                                     .should("have.class", "dropdown-toggle")
-                                    .click({ force: true })
-                                    .should("have.class", "dropdown-open-for")
-                                    .then(() => {
-                                        cy.get(
-                                            `div.big-dropdown-menu a#${escapeElementWithNumericId(
-                                                allLinkElementIDs[count]
-                                            )}`
-                                        )
-                                            .wait(1000) // retain small wait from original to avoid race
-                                            .click()
-                                            .then(($nextListItem) => {
-                                                const linkHref = $nextListItem.attr("href");
-                                                cy.location("pathname").should("equal", linkHref);
-                                                drill();
+                                    .then(($el) => {
+                                        // very hacky - workaround to verify the page is loaded completely by checking navigation bar arrow icon
+                                        const win = $el[0].ownerDocument.defaultView;
+                                        const after = win.getComputedStyle($el[0], '::after');
+                                        // Assert the pseudo-element exists (content is not 'none')
+                                        expect(after.content).to.not.equal('none');
+
+                                        cy.wrap($el)
+                                            .click({ force: true })
+                                            .should("have.class", "dropdown-open-for")
+                                            .then(() => {
+                                                cy.get(
+                                                    `div.big-dropdown-menu a#${escapeElementWithNumericId(
+                                                        allLinkElementIDs[count]
+                                                    )}`
+                                                )
+                                                    .wait(1000) // retain small wait from original to avoid race
+                                                    .click()
+                                                    .then(($nextListItem) => {
+                                                        const linkHref = $nextListItem.attr("href");
+                                                        cy.location("pathname").should("equal", linkHref);
+                                                        drill();
+                                                    });
                                             });
                                     });
                             }
