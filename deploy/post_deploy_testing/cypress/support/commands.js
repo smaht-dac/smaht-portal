@@ -229,16 +229,18 @@ Cypress.Commands.add('validateUser', function (userDisplayName = '') {
 Cypress.Commands.add('logoutSMaHT', function (options = { useEnvToken: true }) {
     cy.getLoadedMenuItem(navUserAcctDropdownBtnSelector)
         .click({ force: true })
-        .end()
-        .get('#logoutbtn')
-        .click()
-        .end()
-        .getLoadedMenuItem(navUserAcctLoginBtnSelector)
-        .should('contain', 'Login / Register')
-        .end()
-        .get('#slow-load-container')
-        .should('not.have.class', 'visible')
-        .end();
+        .should("have.class", "dropdown-open-for")
+        .then(() => {
+            cy.get('#logoutbtn')
+                .click()
+                .end()
+                .get(navUserAcctLoginBtnSelector)
+                .should('contain', 'Login / Register')
+                .end()
+                .get('#slow-load-container')
+                .should('not.have.class', 'visible')
+                .end();
+        });
 });
 
 /** Session Caching */
