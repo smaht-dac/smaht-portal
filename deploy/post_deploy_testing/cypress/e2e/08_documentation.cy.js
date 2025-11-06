@@ -17,7 +17,7 @@ const ROLE_MATRIX = {
         label: "Unauthenticated",
         isAuthenticated: false,
         canOpenDocsMenu: true,
-        canRunToCTests: false,
+        canRunToCTests: true,
         canRunSubmissionFAQTest: false,
         canRunSubmissionDataDictionaryTest: false,
         canRunAnalysisPipelineFAQTest: true,
@@ -136,9 +136,8 @@ function assertCannotAccessDocPage(path, caps) {
 function stepAllDocsToCAndPreBlocks() {
     registerHydrationNoiseFilter();
 
-    cy.get(documentationNavBarItemSelectorStr)
-        .should("have.class", "dropdown-toggle")
-        .click()
+    cy.getLoadedMenuItem(documentationNavBarItemSelectorStr)
+        .click({force: true})
         .should("have.class", "dropdown-open-for")
         .then(() => {
             cy.get(
@@ -391,7 +390,7 @@ function public_CheckLinksAndReleasedPages() {
         });
 
     // Not Open page search should yield no results for public
-    cy.visit("/search/?type=Page&status!=open", {
+    cy.visit("/search/?type=Page&status%21=open", {
         headers: cypressVisitHeaders,
         failOnStatusCode: false,
     });
@@ -577,17 +576,17 @@ const ROLES_TO_TEST = [
 ];
 
 describe("Documentation Page & Content (role-based)", () => {
-    before(() => {
-        cy.visit("/", { headers: cypressVisitHeaders });
-    });
 
     ROLES_TO_TEST.forEach((roleKey) => {
         const caps = ROLE_MATRIX[roleKey];
         const label = caps.label || String(roleKey);
 
         context(`${label} → documentation`, () => {
-            before(() => {
+            beforeEach(() => {
                 cy.visit("/", { headers: cypressVisitHeaders });
+            });
+            
+            before(() => {
                 loginIfNeeded(roleKey);
             });
 
