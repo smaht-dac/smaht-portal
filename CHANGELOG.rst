@@ -7,10 +7,19 @@ smaht-portal
 Change Log
 ----------
 
+1.4.9
+=====
+`PR 538: feat: updates to documentation pages <https://github.com/smaht-dac/smaht-portal/pull/538>`_
+
+* Updates image on the account creation page
+* Fix typos/spacing
+
+
 1.4.8
 =====
 
 * Updates to the load-users-from-oc script to account for DUA status
+
 
 1.4.7
 =====
