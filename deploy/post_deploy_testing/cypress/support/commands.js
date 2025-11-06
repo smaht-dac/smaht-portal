@@ -227,28 +227,18 @@ Cypress.Commands.add('validateUser', function (userDisplayName = '') {
 });
 
 Cypress.Commands.add('logoutSMaHT', function (options = { useEnvToken: true }) {
-    return cy.get(navUserAcctDropdownBtnSelector)
-        .scrollIntoView()
-        .should("have.class", "dropdown-toggle")
-        .then(($el) => {
-            // very hacky - workaround to verify the page is loaded completely by checking navigation bar arrow icon
-            const win = $el[0].ownerDocument.defaultView;
-            const after = win.getComputedStyle($el[0], '::after');
-            // Assert the pseudo-element exists (content is not 'none')
-            expect(after.content).to.not.equal('none');
-
-            cy.wrap($el).click({ force: true })
-                .end()
-                .get('#logoutbtn')
-                .click()
-                .end()
-                .get(navUserAcctLoginBtnSelector)
-                .should('contain', 'Login / Register')
-                .end()
-                .get('#slow-load-container')
-                .should('not.have.class', 'visible')
-                .end();
-        });
+    cy.getLoadedMenuItem(navUserAcctDropdownBtnSelector)
+        .click({ force: true })
+        .end()
+        .get('#logoutbtn')
+        .click()
+        .end()
+        .getLoadedMenuItem(navUserAcctLoginBtnSelector)
+        .should('contain', 'Login / Register')
+        .end()
+        .get('#slow-load-container')
+        .should('not.have.class', 'visible')
+        .end();
 });
 
 /** Session Caching */
