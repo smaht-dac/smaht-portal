@@ -781,7 +781,8 @@ function testMetricsByFileTab(caps) {
                         // Re-query inside the loop so we always click the current first chip
                         cy.get('div[role="button"][aria-label^="Remove"]')
                             .first()
-                            .click({ scrollBehavior: false }); // {force:true} gerekiyorsa ekleyin
+                            .scrollIntoView()
+                            .click({ force: false });
 
                         const expected = total - (idx + 1);
 
