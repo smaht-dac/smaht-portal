@@ -1,9 +1,8 @@
-// cypress/e2e/browse_by_role.cy.js
 import { cypressVisitHeaders, ROLE_TYPES, BROWSE_STATUS_PARAMS } from '../support';
 import { navBrowseBtnSelector, dataNavBarItemSelectorStr } from '../support/selectorVars';
 
 /* ----------------------------- ROLE MATRIX -----------------------------
-   Toggle each step per role. Adjust per your access model.
+   Toggle each step per role:
 
    - runNavFromHome:           From Home → open "Data" menu → click "Browse"
    - runDirectBrowseRedirect:  Visit /browse/ (no params) → redirected to Production

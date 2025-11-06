@@ -1,4 +1,3 @@
-// cypress/e2e/about_by_role.cy.js
 import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 
 /* ----------------------------- ROLE MATRIX -----------------------------

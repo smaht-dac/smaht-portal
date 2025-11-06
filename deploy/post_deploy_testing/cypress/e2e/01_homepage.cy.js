@@ -1,4 +1,3 @@
-// cypress/e2e/homepage_by_role.cy.js
 import { cypressVisitHeaders } from '../support';
 import { ROLE_TYPES } from '../support';
 import { gotoUrl } from '../support/utils/basicUtils';

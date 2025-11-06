@@ -1,4 +1,3 @@
-// cypress/e2e/home_profile_access.spec.js
 import { cypressVisitHeaders, ROLE_TYPES } from '../support';
 import { navUserAcctDropdownBtnSelector } from '../support/selectorVars';
 import { gotoUrl } from '../support/utils/basicUtils';

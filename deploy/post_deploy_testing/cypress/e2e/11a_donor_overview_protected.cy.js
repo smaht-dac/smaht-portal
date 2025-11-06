@@ -1,4 +1,3 @@
-// cypress/e2e/protected_donor_overview_by_role.cy.js
 import { cypressVisitHeaders, ROLE_TYPES, BROWSE_STATUS_PARAMS } from "../support";
 import { testMatrixPopoverValidation } from "../support/utils/dataMatrixUtils";
 

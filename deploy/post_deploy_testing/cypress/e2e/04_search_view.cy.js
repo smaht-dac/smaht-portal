@@ -1,4 +1,3 @@
-// cypress/e2e/deployment_ci_search_by_role.cy.js
 import { cypressVisitHeaders, ROLE_TYPES, BROWSE_STATUS_PARAMS } from '../support';
 import { dataNavBarItemSelectorStr } from "../support/selectorVars";
 

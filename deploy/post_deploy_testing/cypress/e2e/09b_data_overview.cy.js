@@ -1,13 +1,10 @@
-// cypress/e2e/data_overview_qc_metrics_by_role.cy.js
 import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 import { dataNavBarItemSelectorStr } from "../support/selectorVars";
 
 /**
  * Role capability matrix.
  * - isAuthenticated: we should call cy.loginSMaHT(role) for this role
- * - canViewQCMetrics: this role is allowed to open `/qc-metrics`
- *
- * Adjust this to your portal auth rules.
+ * - canViewQCMetrics: this role is allowed to open `/qc-metrics` page
  */
 const ROLE_MATRIX = {
     UNAUTH: {

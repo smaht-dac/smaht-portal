@@ -1,4 +1,3 @@
-// cypress/e2e/documentation_pages_role_based.cy.js
 import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 import { navUserAcctDropdownBtnSelector } from "../support/selectorVars";
 

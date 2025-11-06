@@ -1,4 +1,3 @@
-// cypress/e2e/data_overview_by_role.cy.js
 import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 import { dataNavBarItemSelectorStr } from "../support/selectorVars";
 import { testMatrixPopoverValidation } from "../support/utils/dataMatrixUtils";
@@ -27,7 +26,7 @@ const BASE_DM_BENCHMARKING_OPTS = {
 };
 
 /* ----------------------------- ROLE MATRIX -----------------------------
-   Toggle each step per role. Adjust per your app's access model.
+   Toggle each step per role:
 
    - runRetractedFilesList:     "Retracted Files" page + detail checks
    - runDataMatrixProduction:   Data Matrix (Production) + popover checks

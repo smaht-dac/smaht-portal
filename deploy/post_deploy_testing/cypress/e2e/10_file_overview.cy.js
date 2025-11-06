@@ -1,8 +1,7 @@
-// cypress/e2e/file_overview_by_role.cy.js
 import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 
 /* ----------------------------- ROLE MATRIX -----------------------------
-   Toggle which roles run this suite. Adjust per your access model.
+   Toggle which roles run this suite's steps:
 
    - runOutputFilesWithQC: visit OutputFiles (with QC) and validate 3 items end-to-end.
    - runAccessForbiddenStatusCheck: verify that files with specific statuses are not accessible (404) for the role.

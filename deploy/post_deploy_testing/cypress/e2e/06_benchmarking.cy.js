@@ -1,4 +1,3 @@
-// cypress/e2e/benchmarking_by_role.cy.js
 import { ca } from "date-fns/locale";
 import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 import { dataNavBarItemSelectorStr } from "../support/selectorVars";
