@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.5.0
+=====
+
+`PR 545: Refactor Cypress tests for role-based testing <https://github.com/smaht-dac/smaht-portal/pull/545>`
+
+* Refactor Cypress tests to add role-based testing capabilities
+* Add new Cypress tests for Documentation page, Data Overview page, and File Overview page
+
 1.4.8
 =====
 

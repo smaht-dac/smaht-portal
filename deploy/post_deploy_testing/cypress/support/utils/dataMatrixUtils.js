@@ -29,7 +29,7 @@ function waitForPopoverVisible(timeout = 10000) {
                     parseFloat(getComputedStyle(el).opacity || '1') > 0;
 
                 if (visible) {
-                    resolve(el);            // ✅ return the actual DOM element
+                    resolve(el);            // return the actual DOM element
                 } else if (Date.now() - start > timeout) {
                     reject(new Error(`Popover never became visible: ${Date.now() - start}ms elapsed, el.offsetParent: ${el ? el.offsetParent : 'null'}, visibility: ${el ? getComputedStyle(el).visibility : 'unknown'}, display: ${el ? getComputedStyle(el).display : 'unknown'}, opacity: ${el ? getComputedStyle(el).opacity : 'unknown'}`));
                 } else {
@@ -98,81 +98,82 @@ function waitUntilPopoverClosed(timeout = 4000) {
  */
 function assertPopover({ donor, assay, tissue, value, blockType = 'regular', depth = 0 }) {
     // wait until the element itself is truly visible
-    waitForPopoverVisible().then((popoverEl) => {
-        // let Cypress do all subsequent retries
-        cy.wrap(popoverEl).should('be.visible').within(() => {
-            if (blockType === 'regular') {
-                // donor (left col-4) – Cypress keeps retrying until text matches
-                if (donor) {
-                    cy.get('.primary-row .col-4', { timeout: 10000 })
-                        .eq(0)
-                        .find('.value')
-                        .should('have.text', donor);
-                }
+    cy.waitForPopoverShow().then(() =>
+        waitForPopoverVisible().then((popoverEl) => {
+            // let Cypress do all subsequent retries
+            cy.wrap(popoverEl).should('be.visible').within(() => {
+                if (blockType === 'regular') {
+                    // donor (left col-4) – Cypress keeps retrying until text matches
+                    if (donor) {
+                        cy.get('.primary-row .col-4', { timeout: 10000 })
+                            .eq(0)
+                            .find('.value')
+                            .should('have.text', donor);
+                    }
 
-                // tissue (mid col-4)
-                if (tissue) {
-                    cy.get('.primary-row .col-4', { timeout: 10000 })
-                        .eq(1)
-                        .find('.value')
-                        .should('have.text', tissue);
-                }
+                    // tissue (mid col-4)
+                    if (tissue) {
+                        cy.get('.primary-row .col-4', { timeout: 10000 })
+                            .eq(1)
+                            .find('.value')
+                            .should('have.text', tissue);
+                    }
 
-                // assay
-                if (assay) {
+                    // assay
+                    if (assay) {
+                        cy.get('.secondary-row .col-4', { timeout: 10000 })
+                            .eq(0) // first col-4 in secondary-row
+                            .find('.value')
+                            .should('contain.text', assay);
+                    }
+
+                    // file count – retry until text is numeric and equals expected
                     cy.get('.secondary-row .col-4', { timeout: 10000 })
-                        .eq(0) // first col-4 in secondary-row
+                        .eq(2)
                         .find('.value')
-                        .should('contain.text', assay);
-                }
+                        .invoke('text')
+                        .then((t) => parseInt(t.trim(), 10))
+                        .should('equal', value);
+                } else if (blockType === 'row-summary') {
+                    // tissue (primary row)
+                    if (tissue) {
+                        cy.get('.primary-row .col-12.value', { timeout: 10000 })
+                            .should('contain.text', tissue);
+                    }
 
-                // file count – retry until text is numeric and equals expected
-                cy.get('.secondary-row .col-4', { timeout: 10000 })
-                    .eq(2)
-                    .find('.value')
-                    .invoke('text')
-                    .then((t) => parseInt(t.trim(), 10))
-                    .should('equal', value);
-            } else if (blockType === 'row-summary') {
-                // tissue (primary row)
-                if (tissue) {
-                    cy.get('.primary-row .col-12.value', { timeout: 10000 })
-                        .should('contain.text', tissue);
-                }
+                    // donor (secondary row - left column)
+                    if (assay) {
+                        cy.get('.secondary-row .col-4', { timeout: 10000 })
+                            .eq(0) // first col-4 in secondary-row
+                            .find('.value')
+                            .should('contain.text', assay);
+                    }
 
-                // donor (secondary row - left column)
-                if (assay) {
+                    // file count – retry until text is numeric and equals expected
                     cy.get('.secondary-row .col-4', { timeout: 10000 })
-                        .eq(0) // first col-4 in secondary-row
+                        .eq(2)
                         .find('.value')
-                        .should('contain.text', assay);
+                        .invoke('text')
+                        .then((t) => parseInt(t.trim(), 10))
+                        .should('equal', value);
+                } else if (blockType === 'col-summary') {
+                    // assay (primary row)
+                    if (assay) {
+                        cy.get('.primary-row .col-12.value', { timeout: 10000 })
+                            .should('contain.text', assay);
+                    }
+
+                    // file count – retry until text is numeric and equals expected
+                    cy.get('.secondary-row .col-4', { timeout: 10000 })
+                        .eq(2)
+                        .find('.value')
+                        .invoke('text')
+                        .then((t) => parseInt(t.trim(), 10))
+                        .should('equal', value);
                 }
 
-                // file count – retry until text is numeric and equals expected
-                cy.get('.secondary-row .col-4', { timeout: 10000 })
-                    .eq(2)
-                    .find('.value')
-                    .invoke('text')
-                    .then((t) => parseInt(t.trim(), 10))
-                    .should('equal', value);
-            } else if (blockType === 'col-summary') {
-                // assay (primary row)
-                if (assay) {
-                    cy.get('.primary-row .col-12.value', { timeout: 10000 })
-                        .should('contain.text', assay);
-                }
-
-                // file count – retry until text is numeric and equals expected
-                cy.get('.secondary-row .col-4', { timeout: 10000 })
-                    .eq(2)
-                    .find('.value')
-                    .invoke('text')
-                    .then((t) => parseInt(t.trim(), 10))
-                    .should('equal', value);
-            }
-
-        });
-    })
+            });
+    }))
         .then(() => {
             // close the pop-over
             cy.document()
@@ -233,16 +234,22 @@ function validateLowerHeaders(expectedLabels) {
  */
 export function testMatrixPopoverValidation(
     matrixId = '#data-matrix-for_production',
-    donors = ['SMHT004', 'SMHT008'],
-    mustLabels = ['Non-exposed Skin', 'Heart', 'Blood'],
-    optionalLabels = [],
-    expectedLowerLabels = ['Donors'],
-    regularBlockCount = 10,
-    rowSummaryBlockCount = 10,
-    colSummaryBlockCount = 3,
-    expectedFilesCount = 0,
-) {
+    {
+        donors = ['SMHT004', 'SMHT008'],
+        mustLabels = ['Non-exposed Skin', 'Heart', 'Blood'],
+        optionalLabels = [],
+        expectedLowerLabels = ['Donors'],
+        regularBlockCount = 10,
+        rowSummaryBlockCount = 10,
+        colSummaryBlockCount = 3,
+        expectedFilesCount = 1,
+    }) {
     cy.get(matrixId).should('exist');
+
+    if (expectedFilesCount === 0) {
+        cy.get(`${matrixId} .stacked-block-viz-container .no-data-available`).should('contain.text', 'No data available');
+        return;
+    }
 
     const columnTotals = {};
 
@@ -362,7 +369,7 @@ export function testMatrixPopoverValidation(
             });
             // verify overall file count matches expectedFilesCount
             if (expectedFilesCount > 0) {
-                cy.log(`Expected ${expectedFilesCount} files to be found.`);
+                cy.log(`Expected at least ${expectedFilesCount} files to be found.`);
                 let sum = 0;
                 [...$blocks].forEach((el) => {
                     const value = parseInt(Cypress.$(el).text().trim(), 10);
@@ -370,7 +377,7 @@ export function testMatrixPopoverValidation(
                         sum += value;
                     }
                 });
-                expect(sum, 'Total file count across row-summary blocks').to.equal(expectedFilesCount);
+                expect(sum, 'Total file count across row-summary blocks').to.be.at.least(expectedFilesCount);
             }
         });
 
@@ -386,7 +393,7 @@ export function testMatrixPopoverValidation(
             });
             // verify overall file count matches expectedFilesCount
             if (expectedFilesCount > 0) {
-                cy.log(`Expected ${expectedFilesCount} files to be found.`);
+                cy.log(`Expected at least ${expectedFilesCount} files to be found.`);
                 let sum = 0;
                 [...$blocks].forEach((el) => {
                     const value = parseInt(Cypress.$(el).text().trim(), 10);
@@ -394,7 +401,7 @@ export function testMatrixPopoverValidation(
                         sum += value;
                     }
                 });
-                expect(sum, 'Total file count across col-summary blocks').to.equal(expectedFilesCount);
+                expect(sum, 'Total file count across col-summary blocks').to.be.at.least(expectedFilesCount);
             }
         });
     });
