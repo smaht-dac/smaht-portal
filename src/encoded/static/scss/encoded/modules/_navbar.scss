@@ -834,7 +834,7 @@ body[data-current-action="multiselect"] {
         body.scrolled-past-top &,
         body.is-select-page &,
         body.is-item-view &,
-        body.is-full-screen {
+        body.is-full-screen & {
             top: $navbar-small-height;
 
             @include media-breakpoint-down(lg) {

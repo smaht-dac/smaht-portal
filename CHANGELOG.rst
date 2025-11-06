@@ -7,6 +7,79 @@ smaht-portal
 Change Log
 ----------
 
+1.4.9
+=====
+`PR 538: feat: updates to documentation pages <https://github.com/smaht-dac/smaht-portal/pull/538>`_
+
+* Updates image on the account creation page
+* Fix typos/spacing
+
+
+1.4.8
+=====
+
+* Updates to the load-users-from-oc script to account for DUA status
+
+
+1.4.7
+=====
+
+`PR 507: Adjust file release for public portal <https://github.com/smaht-dac/smaht-portal/pull/507>`_
+
+* Adapt file release script to new statuses
+* In release script distinguish between benchmarking and production tissue when getting access status
+
+
+1.4.6
+=====
+`PR 542: Update bulk donor manifest script <https://github.com/smaht-dac/smaht-portal/pull/542>`_
+
+* For those bulk-donor-manifest files generated from ProtectedDonors (i.e. contain protected data) add the public Donor accession as the first column.
+
+
+1.4.5
+=====
+
+`PR 516: Update Donor release script <https://github.com/smaht-dac/smaht-portal/pull/532>`_
+
+* Add/update donor release script to reflect new release statuses and default to network statuses for initial releases
+
+
+1.4.4
+=====
+`PR 544 Data matrix and file search view permission updates <https://github.com/smaht-dac/smaht-portal/pull/544>`_
+
+* Improved data matrix row summary file count calculation and fix browse files links in popover
+* Added access control and download functionality in file search view based on user roles
+* Hide production data matrix in Data Matrix page if no data available
+
+
+1.4.3
+=====
+`PR 540 Refactor file status tracking structure <https://github.com/smaht-dac/smaht-portal/pull/540>`_
+
+* The `file_status_tracking` calc prop now contains the dictionaries `status_tracking` and `release_dates`. 
+  `status_tracking` contains timestamps and dates when the file switched status. 
+  `release_dates` evaluates these status changes and provides timestamps and dates for 
+  `initial_release`, `public_release`, `network_release`.
+
+
+1.4.2
+=====
+
+* Bug fix - repair missing s3 encryption key in select validation scenarios
+* Update diff check during submission to exclude SubmittedFile items
+
+
+1.4.1
+=====
+`PR 495 Script for Bulk Donor Manifests <https://github.com/smaht-dac/smaht-portal/pull/495>`_
+
+* Add script to generate bulk donor metadata manifests - can generate the 4 different files containing
+  public or protected donor metadata for production or benchmarking donors that have been publicly released
+  or are only available to network members.
+
+
 1.4.0
 =====
 
@@ -33,11 +106,11 @@ Change Log
 
 
 1.3.1
-=======
+=====
 `PR 527: feat: homepage announcement for portal shutdown <https://github.com/smaht-dac/smaht-portal/pull/527>`_
 
 * Implement announcement in homepage banner for portal shutdown
-* Prevent non-admins from seeing the user registration modal during portal shutdown 
+* Prevent non-admins from seeing the user registration modal during portal shutdown
 
 
 1.3.0
@@ -50,7 +123,7 @@ Change Log
 1.2.1
 =====
 
-* Correct link in submission doc page 
+* Correct link in submission doc page
 
 
 1.2.0
@@ -65,7 +138,7 @@ Change Log
 
 
 1.1.8
-======
+=====
 `PR 524: fix: update uuids to match prod <https://github.com/smaht-dac/smaht-portal/pull/524>`_
 
 * Fix uuids for the pages and static sections below in order to prevent uuid mismatches causing reindex crash
