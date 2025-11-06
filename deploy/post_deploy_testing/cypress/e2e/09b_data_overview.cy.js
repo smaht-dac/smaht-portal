@@ -787,12 +787,19 @@ function testMetricsByFileTab(caps) {
                         cy.get(".qc-metrics-facets-container + div")
                             .scrollIntoView()
                             .end();
-                        cy.get('.qc-boxplot-title', { timeout: 25000 })
-                            .filter(':visible')
-                            .should('have.length', expected);
-                        cy.get('.boxplot-svg', { timeout: 25000 })
-                            .filter(':visible')
-                            .should('have.length', expected);
+                        if (expected > 0) {
+                            cy.get('.qc-boxplot-title', { timeout: 25000 })
+                                .filter(':visible')
+                                .should('have.length', expected);
+                            cy.get('.boxplot-svg', { timeout: 25000 })
+                                .filter(':visible')
+                                .should('have.length', expected);
+                        } else {
+                            cy.get('.qc-boxplot-title', { timeout: 25000 })
+                                .should('not.exist');
+                            cy.get('.boxplot-svg', { timeout: 25000 })
+                                .should('not.exist');
+                        }
                     }
                 });
             });
