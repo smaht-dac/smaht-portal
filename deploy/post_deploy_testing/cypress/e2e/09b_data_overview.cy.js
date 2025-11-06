@@ -780,9 +780,9 @@ function testMetricsByFileTab(caps) {
                     for (let idx = 0; idx < total; idx++) {
                         // Re-query inside the loop so we always click the current first chip
                         cy.get('div[role="button"][aria-label^="Remove"]')
-                            .first()
-                            .scrollIntoView()
-                            .click({ force: false });
+                            .eq(0)
+                            .click({ force: true })
+                            .should("not.exist");
 
                         const expected = total - (idx + 1);
 
