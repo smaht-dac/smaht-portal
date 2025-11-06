@@ -33,6 +33,32 @@ Cypress.Commands.add('scrollToCenterElement', { prevSubject: true }, (subject, o
 }
 );
 
+export const escapeElementWithNumericId = (selector) =>
+    /^#\d/.test(selector) ? `[id="${selector.substring(1)}"]` : selector;
+
+Cypress.Commands.add('getLoadedMenuItem', (selector) => {
+    // 1) Scroll separately (may trigger layout / rerender)
+    cy.get(selector).scrollIntoView();
+
+    // 2) Do all assertions inside .should(($el) => {...})
+    //    This makes them retry-safe if the element detaches / rerenders.
+    return cy.get(selector, { timeout: 20000 }).should(($el) => {
+        // visible + class check
+        expect($el, 'menu item is visible').to.be.visible;
+        expect($el, 'has dropdown-toggle class').to.have.class('dropdown-toggle');
+
+        // verify pseudo-element ::after rendered
+        const el = $el[0];
+        const win = el.ownerDocument.defaultView || window;
+        const after = win.getComputedStyle(el, '::after');
+
+        // Some browsers return quoted strings (e.g. '"▼"'), we just care it's not 'none'
+        expect(after && after.content, '::after content exists').to.not.equal('none');
+    })
+        // 3) Hand back a fresh, attached subject for further chaining
+        .then(() => cy.get(selector));
+});
+
 Cypress.Commands.add('clickEvent', { prevSubject: true }, function (subject, options) {
     expect(subject.length).to.equal(1);
 
