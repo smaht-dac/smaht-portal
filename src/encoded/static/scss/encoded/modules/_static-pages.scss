@@ -3464,3 +3464,16 @@ FAQ page styles
 		font-size: 1.3rem;
 	}
 }
+
+// Pages under Pipeline Documentation
+[data-at-type^="DocsAdditional-resourcesPipeline-docs"] {
+	.table-of-contents {
+		.parent-entry {
+			display: flex;
+			
+			.expand-button-container {
+				display: none;
+			}
+		}
+	}
+}
