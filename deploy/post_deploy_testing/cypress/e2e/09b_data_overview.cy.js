@@ -773,17 +773,25 @@ function testMetricsByFileTab(caps) {
         // Finally, remove all chips and ensure charts disappear
         cy.contains("div.fw-bold", "QC metric")
             .parent()
-            .find('div[role="button"][aria-label^="Remove"]')
-            .then(($btns) => {
-                for (let i = $btns.length; i > 0; i--) {
-                    cy.contains("div.fw-bold", "QC metric")
-                        .parent()
-                        .find('div[role="button"][aria-label^="Remove"]')
-                        .first()
-                        .click();
-                    cy.get(".qc-boxplot-title").should("have.length", i - 1);
-                    cy.get(".boxplot-svg").should("have.length", i - 1);
-                }
+            .within(() => {
+                cy.get('div[role="button"][aria-label^="Remove"]').then(($btns) => {
+                    const total = $btns.length;
+
+                    for (let idx = 0; idx < total; idx++) {
+                        // Re-query inside the loop so we always click the current first chip
+                        cy.get('div[role="button"][aria-label^="Remove"]')
+                            .first()
+                            .click({ scrollBehavior: false }); // {force:true} gerekiyorsa ekleyin
+
+                        const expected = total - (idx + 1);
+
+                        // Count only VISIBLE titles and svgs to avoid hidden remnants
+                        cy.get('.qc-boxplot-title:visible', { timeout: 25000 })
+                            .should('have.length', expected);
+                        cy.get('.boxplot-svg:visible', { timeout: 25000 })
+                            .should('have.length', expected);
+                    }
+                });
             });
     });
 }
