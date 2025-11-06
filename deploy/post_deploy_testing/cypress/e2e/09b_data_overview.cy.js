@@ -784,6 +784,9 @@ function testMetricsByFileTab(caps) {
                         const expected = total - (idx + 1);
 
                         // Count only VISIBLE titles and svgs to avoid hidden remnants
+                        cy.get(".qc-metrics-facets-container + div")
+                            .scrollIntoView()
+                            .end();
                         cy.get('.qc-boxplot-title', { timeout: 25000 })
                             .filter(':visible')
                             .should('have.length', expected);
