@@ -22,108 +22,41 @@ Cypress.Commands.add('scrollToBottom', function (options) {
     });
 });
 
-Cypress.Commands.add(
-    'scrollToCenterElement',
-    { prevSubject: true },
-    (subject, options) => {
-        expect(subject.length).to.equal(1);
-        const subjectElem = subject[0];
-        var bounds = subjectElem.getBoundingClientRect();
-        return cy.window().then((w) => {
-            w.scrollBy(0, bounds.top - w.innerHeight / 2);
-            return cy.wrap(subjectElem);
-        });
-    }
+Cypress.Commands.add('scrollToCenterElement', { prevSubject: true }, (subject, options) => {
+    expect(subject.length).to.equal(1);
+    const subjectElem = subject[0];
+    var bounds = subjectElem.getBoundingClientRect();
+    return cy.window().then((w) => {
+        w.scrollBy(0, bounds.top - w.innerHeight / 2);
+        return cy.wrap(subjectElem);
+    });
+}
 );
 
-/* Hovering */
-Cypress.Commands.add(
-    'hoverIn',
-    { prevSubject: true },
-    function (subject, options) {
-        expect(subject.length).to.equal(1);
+Cypress.Commands.add('clickEvent', { prevSubject: true }, function (subject, options) {
+    expect(subject.length).to.equal(1);
 
-        var subjElem = subject[0];
+    var subjElem = subject[0];
 
-        var bounds = subjElem.getBoundingClientRect();
-        var cursorPos = {
-            clientX: bounds.left + bounds.width / 2,
-            clientY: bounds.top + bounds.height / 2,
-        };
-        var commonEventVals = _.extend(
-            { bubbles: true, cancelable: true },
-            cursorPos
-        );
+    var bounds = subjElem.getBoundingClientRect();
+    var cursorPos = {
+        clientX: bounds.left + bounds.width / 2,
+        clientY: bounds.top + bounds.height / 2,
+    };
+    var commonEventValsIn = _.extend(
+        { bubbles: true, cancelable: true },
+        cursorPos
+    );
 
-        subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventVals));
-        subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventVals));
-        subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventVals));
+    subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventValsIn));
+    subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn));
+    subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn));
+    subjElem.dispatchEvent(new MouseEvent('mousedown', commonEventValsIn));
+    subjElem.dispatchEvent(new MouseEvent('mouseup', commonEventValsIn));
+    //subjElem.dispatchEvent(new MouseEvent('mouseleave', _.extend({ 'relatedTarget' : subjElem }, commonEventValsIn, { 'clientX' : bounds.left - 5, 'clientY' : bounds.top - 5 }) ) );
 
-        return subject;
-    }
-);
-
-Cypress.Commands.add(
-    'hoverOut',
-    { prevSubject: true },
-    function (subject, options) {
-        expect(subject.length).to.equal(1);
-
-        var subjElem = subject[0];
-
-        var bounds = subjElem.getBoundingClientRect();
-        var cursorPos = {
-            clientX: Math.max(bounds.left - bounds.width / 2, 0),
-            clientY: Math.max(bounds.top - bounds.height / 2, 0),
-        };
-        var commonEventValsIn = _.extend(
-            { bubbles: true, cancelable: true },
-            cursorPos
-        );
-
-        subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn));
-        subjElem.dispatchEvent(
-            new MouseEvent(
-                'mouseleave',
-                _.extend({ relatedTarget: subjElem }, commonEventValsIn, {
-                    clientX: bounds.left - 5,
-                    clientY: bounds.top - 5,
-                })
-            )
-        );
-
-        return subject;
-    }
-);
-
-Cypress.Commands.add(
-    'clickEvent',
-    { prevSubject: true },
-    function (subject, options) {
-        expect(subject.length).to.equal(1);
-
-        var subjElem = subject[0];
-
-        var bounds = subjElem.getBoundingClientRect();
-        var cursorPos = {
-            clientX: bounds.left + bounds.width / 2,
-            clientY: bounds.top + bounds.height / 2,
-        };
-        var commonEventValsIn = _.extend(
-            { bubbles: true, cancelable: true },
-            cursorPos
-        );
-
-        subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mousedown', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mouseup', commonEventValsIn));
-        //subjElem.dispatchEvent(new MouseEvent('mouseleave', _.extend({ 'relatedTarget' : subjElem }, commonEventValsIn, { 'clientX' : bounds.left - 5, 'clientY' : bounds.top - 5 }) ) );
-
-        return subject;
-    }
+    return subject;
+}
 );
 
 Cypress.Commands.add('signJWT', (auth0secret, email, sub) => {
@@ -156,9 +89,6 @@ Cypress.Commands.add('signJWT', (auth0secret, email, sub) => {
     });
 });
 
-/**
- * This emulates login.js. Perhaps we should adjust login.js somewhat to match this better re: navigate.then(...) .
- */
 Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: false }) {
     Cypress.log({
         name: 'Login SMaHT',
@@ -338,96 +268,87 @@ Cypress.Commands.add('clearBrowserSession', function (options = {}) {
  ** (Yes, these are truly not included in Cypress by default
  ** @see: https://docs.cypress.io/api/commands/hover)
  */
-Cypress.Commands.add(
-    'hoverIn',
-    { prevSubject: true },
-    function (subject, options) {
-        expect(subject.length).to.equal(1);
+Cypress.Commands.add('hoverIn', { prevSubject: true }, function (subject, options) {
+    expect(subject.length).to.equal(1);
 
-        var subjElem = subject[0];
+    var subjElem = subject[0];
 
-        var bounds = subjElem.getBoundingClientRect();
-        var cursorPos = {
-            clientX: bounds.left + bounds.width / 2,
-            clientY: bounds.top + bounds.height / 2,
-        };
-        var commonEventVals = _.extend(
-            { bubbles: true, cancelable: true },
-            cursorPos
-        );
+    var bounds = subjElem.getBoundingClientRect();
+    var cursorPos = {
+        clientX: bounds.left + bounds.width / 2,
+        clientY: bounds.top + bounds.height / 2,
+    };
+    var commonEventVals = _.extend(
+        { bubbles: true, cancelable: true },
+        cursorPos
+    );
 
-        subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventVals));
-        subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventVals));
-        subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventVals));
+    subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventVals));
+    subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventVals));
+    subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventVals));
 
-        return subject;
-    }
+    return subject;
+}
 );
 
-Cypress.Commands.add(
-    'hoverOut',
-    { prevSubject: true },
-    function (subject, options) {
-        expect(subject.length).to.equal(1);
+Cypress.Commands.add('hoverOut', { prevSubject: true }, function (subject, options) {
+    expect(subject.length).to.equal(1);
 
-        var subjElem = subject[0];
+    var subjElem = subject[0];
 
-        var bounds = subjElem.getBoundingClientRect();
-        var cursorPos = {
-            clientX: Math.max(bounds.left - bounds.width / 2, 0),
-            clientY: Math.max(bounds.top - bounds.height / 2, 0),
-        };
-        var commonEventValsIn = _.extend(
-            { bubbles: true, cancelable: true },
-            cursorPos
-        );
+    var bounds = subjElem.getBoundingClientRect();
+    var cursorPos = {
+        clientX: Math.max(bounds.left - bounds.width / 2, 0),
+        clientY: Math.max(bounds.top - bounds.height / 2, 0),
+    };
+    var commonEventValsIn = _.extend(
+        { bubbles: true, cancelable: true },
+        cursorPos
+    );
 
-        subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn));
-        subjElem.dispatchEvent(
-            new MouseEvent(
-                'mouseleave',
-                _.extend({ relatedTarget: subjElem }, commonEventValsIn, {
-                    clientX: bounds.left - 5,
-                    clientY: bounds.top - 5,
-                })
-            )
-        );
+    subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn));
+    subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn));
+    subjElem.dispatchEvent(
+        new MouseEvent(
+            'mouseleave',
+            _.extend({ relatedTarget: subjElem }, commonEventValsIn, {
+                clientX: bounds.left - 5,
+                clientY: bounds.top - 5,
+            })
+        )
+    );
 
-        return subject;
-    }
+    return subject;
+}
 );
 
 /**
  * Not 100% sure this is still necessary? Seems like cy.click() might do the job...
  * Remove if not in use after 2024 (it'll probably still be in fourfront)
  */
-Cypress.Commands.add(
-    'clickEvent',
-    { prevSubject: true },
-    function (subject, options) {
-        expect(subject.length).to.equal(1);
+Cypress.Commands.add('clickEvent', { prevSubject: true }, function (subject, options) {
+    expect(subject.length).to.equal(1);
 
-        var subjElem = subject[0];
+    var subjElem = subject[0];
 
-        var bounds = subjElem.getBoundingClientRect();
-        var cursorPos = {
-            clientX: bounds.left + bounds.width / 2,
-            clientY: bounds.top + bounds.height / 2,
-        };
-        var commonEventValsIn = _.extend(
-            { bubbles: true, cancelable: true },
-            cursorPos
-        );
+    var bounds = subjElem.getBoundingClientRect();
+    var cursorPos = {
+        clientX: bounds.left + bounds.width / 2,
+        clientY: bounds.top + bounds.height / 2,
+    };
+    var commonEventValsIn = _.extend(
+        { bubbles: true, cancelable: true },
+        cursorPos
+    );
 
-        subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mousedown', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mouseup', commonEventValsIn));
+    subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventValsIn));
+    subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn));
+    subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn));
+    subjElem.dispatchEvent(new MouseEvent('mousedown', commonEventValsIn));
+    subjElem.dispatchEvent(new MouseEvent('mouseup', commonEventValsIn));
 
-        return subject;
-    }
+    return subject;
+}
 );
 
 /*** Browse View Utils ****/
