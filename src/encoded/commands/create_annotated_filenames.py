@@ -10,6 +10,7 @@ from dcicutils import ff_utils
 from encoded.commands.utils import get_auth_key
 from encoded.item_utils import (
     constants,
+    assay as assay_utils,
     cell_culture_mixture as cell_culture_mixture_utils,
     cell_line as cell_line_utils,
     donor as donor_utils,
@@ -40,6 +41,8 @@ DSA_INFO_VALUE = "DSA"
 RNA_DATA_CATEGORY = "RNA Quantification"
 GENE_DATA_TYPE = "Gene Expression"
 ISOFORM_DATA_TYPE = "Transcript Expression"
+CONSENSUS_DATA_CATEGORY = "Consensus Reads"
+DUPLEX_ASSAY_CATEGORY = "Duplex-seq WGS"
 
 DEFAULT_PROJECT_ID = constants.PRODUCTION_PREFIX
 DEFAULT_ABSENT_FIELD = "X"
@@ -852,6 +855,7 @@ def get_accession(file: Dict[str, Any]) -> FilenamePart:
 
 def get_analysis(
     file: Dict[str, Any],
+    assays: List[Dict[str], Any],
     software: List[Dict[str, Any]],
     reference_genome: Dict[str, Any],
     gene_annotations: Dict[str, Any],
@@ -870,6 +874,7 @@ def get_analysis(
     gene_annotation_code = get_annotations_and_versions(gene_annotations)
     transcript_info_code = get_rna_seq_tsv_value(file, file_extension)
     haplotype_code = get_haplotype_value(file, file_extension, donor_specific_assembly)
+    consensus_read_flag = get_consensus_value(file, assays)
     chain_code = get_chain_file_value(file, target_assembly, source_assembly, file_extension)
     value = get_analysis_value(
         software_and_versions,
@@ -877,7 +882,8 @@ def get_analysis(
         gene_annotation_code,
         transcript_info_code,
         chain_code,
-        haplotype_code
+        haplotype_code,
+        consensus_read_flag
     )
     errors = get_analysis_errors(
         file,
@@ -887,6 +893,7 @@ def get_analysis(
         chain_code,
         haplotype_code,
         file_extension,
+        assays,
     )
     if errors:
         return get_filename_part(errors=errors)
@@ -904,7 +911,8 @@ def get_analysis_errors(
     transcript_info_code:  str,
     chain_code: str,
     haplotype_code: str,
-    file_extension: Dict[str, Any]
+    file_extension: Dict[str, Any],
+    assays: List[Dict[str], Any],
 ) -> List[str]:
     """Get analysis errors for file by file type."""
     errors = []
@@ -924,7 +932,12 @@ def get_analysis_errors(
             errors.append("No gene or isoform code found")
     if file_format_utils.is_chain_file(file_extension):
         if not chain_code:
-            errors.append("No target or source assembly found for chain conversion ")
+            errors.append("No target or source assembly found for chain conversion")
+    if CONSENSUS_DATA_CATEGORY in file_utils.get_data_category(file):
+        if len(get_assay_categories(assays)) == 0:
+            errors.append("No assay categories found.")
+        elif len(get_assay_categories(assays)) > 0:
+            errors.append("Multiple assay categories found.")
     return errors
 
 
@@ -935,11 +948,12 @@ def get_analysis_value(
     transcript_info_code: str,
     chain_code: str,
     haplotype_code: str,
+    consensus_read_flag: str,
 ) -> str:
     """Get analysis value for filename."""
     to_write = [
         string
-        for string in [software_and_versions, reference_genome_code, gene_annotation_code, transcript_info_code, chain_code, haplotype_code]
+        for string in [software_and_versions, reference_genome_code, gene_annotation_code, transcript_info_code, chain_code, haplotype_code, consensus_read_flag]
         if string
     ]
     return ANALYSIS_INFO_SEPARATOR.join(to_write)
@@ -1095,6 +1109,21 @@ def get_rna_seq_tsv_value(file: Dict[str, Any], file_extension: Dict[str, Any]) 
             return "isoform"
     else:
         return ""
+    
+
+def get_consensus_value(file: Dict[str, Any], assays: List[Dict[str], Any]) -> str:
+    """Get consensus from data_category for Duplex-Seq files."""
+    assay_cats = get_assay_categories(assays)
+
+    if CONSENSUS_DATA_CATEGORY in file_utils.get_data_category(file) and DUPLEX_ASSAY_CATEGORY in assay_cats:
+        return "consensus"
+    else:
+        return ""
+
+
+def get_assay_categories(assays: List[Dict[str], Any]) -> List[str]:
+    """Get assay category for assays."""
+    return list(set([assay_utils.get_category(assay) for assay in assays]))
 
 
 def get_file_extension(
