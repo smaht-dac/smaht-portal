@@ -770,7 +770,7 @@ function testMetricsByFileTab(caps) {
         // Finally, remove all chips and ensure charts disappear
         cy.contains("div.fw-bold", "QC metric")
             .parent()
-            .within(() => {
+            .then(() => {
                 cy.get('div[role="button"][aria-label^="Remove"]').then(($btns) => {
                     const total = $btns.length;
 
