@@ -477,6 +477,7 @@ def get_annotated_filename(
     file_extension = get_file_extension(file, associated_items.file_format)
     analysis_info = get_analysis(
         file,
+        associated_items.assays,
         associated_items.software,
         associated_items.reference_genome,
         associated_items.gene_annotations,
@@ -572,9 +573,9 @@ def get_filename_part_for_values(
 
 
 def get_project_id(
-    cell_culture_mixtures: List[Dict[str], Any],
-    cell_lines: List[Dict[str], Any],
-    tissues: List[Dict[str], Any],
+    cell_culture_mixtures: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    tissues: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get project ID for file.
 
@@ -599,10 +600,10 @@ def get_project_id_from_tissues(tissues: List[Dict[str, Any]]) -> FilenamePart:
 
 
 def get_sample_source_id(
-    sample_sources: List[Dict[str], Any],
-    cell_culture_mixtures: List[Dict[str], Any],
-    cell_lines: List[Dict[str], Any],
-    tissues: List[Dict[str], Any],
+    sample_sources: List[Dict[str, Any]],
+    cell_culture_mixtures: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    tissues: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get sample source ID for file.
 
@@ -621,7 +622,7 @@ def get_sample_source_id(
     return get_exclusive_filename_part(parts, "sample source ID")
 
 
-def is_only_cell_culture_mixture_derived(sample_sources: List[Dict[str], Any]) -> bool:
+def is_only_cell_culture_mixture_derived(sample_sources: List[Dict[str, Any]]) -> bool:
     """Check if only cell culture mixture-derived."""
     return all(
         cell_culture_mixture_utils.is_cell_culture_mixture(source)
@@ -630,7 +631,7 @@ def is_only_cell_culture_mixture_derived(sample_sources: List[Dict[str], Any]) -
 
 
 def get_cell_culture_mixture_code(
-    cell_culture_mixtures: List[Dict[str], Any],
+    cell_culture_mixtures: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get mixture code for file naming."""
     codes = [
@@ -643,7 +644,7 @@ def get_cell_culture_mixture_code(
 
 
 def get_cell_line_id(
-    cell_lines: List[Dict[str], Any],
+    cell_lines: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get cell line ID for file naming."""
     codes = [item_utils.get_code(cell_line) for cell_line in cell_lines]
@@ -652,7 +653,7 @@ def get_cell_line_id(
     )
 
 
-def get_donor_kit_id(tissues: List[Dict[str], Any]) -> FilenamePart:
+def get_donor_kit_id(tissues: List[Dict[str, Any]]) -> FilenamePart:
     """Get donor kit ID for file naming."""
     donor_kit_ids = [tissue_utils.get_donor_kit_id(tissue) for tissue in tissues]
     return get_filename_part_for_values(
@@ -661,9 +662,9 @@ def get_donor_kit_id(tissues: List[Dict[str], Any]) -> FilenamePart:
 
 
 def get_protocol_id(
-    cell_culture_mixtures: List[Dict[str], Any],
-    cell_lines: List[Dict[str], Any],
-    tissues: List[Dict[str], Any],
+    cell_culture_mixtures: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    tissues: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get protocol ID for file."""
     parts = []
@@ -674,7 +675,7 @@ def get_protocol_id(
     return get_exclusive_filename_part(parts, "protocol ID")
 
 
-def get_protocol_id_from_tissues(tissues: List[Dict[str], Any]) -> FilenamePart:
+def get_protocol_id_from_tissues(tissues: List[Dict[str, Any]]) -> FilenamePart:
     """Get protocol ID from tissue items."""
     protocol_ids = [tissue_utils.get_protocol_id(tissue) for tissue in tissues]
     return get_filename_part_for_values(
@@ -683,9 +684,9 @@ def get_protocol_id_from_tissues(tissues: List[Dict[str], Any]) -> FilenamePart:
 
 
 def get_aliquot_id(
-    cell_culture_mixtures: List[Dict[str], Any],
-    cell_lines: List[Dict[str], Any],
-    tissue_samples: List[Dict[str], Any],
+    cell_culture_mixtures: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    tissue_samples: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get tissue aliquot ID for file."""
 
@@ -697,7 +698,7 @@ def get_aliquot_id(
     return get_exclusive_filename_part(parts, "tissue aliquot ID")
 
 
-def get_aliquot_id_from_samples(tissue_samples: List[Dict[str], Any]) -> FilenamePart:
+def get_aliquot_id_from_samples(tissue_samples: List[Dict[str, Any]]) -> FilenamePart:
     """Get aliquot ID from sample items.
 
     Some special handling required to transform aliquot ID from
@@ -750,8 +751,8 @@ def get_aliquot_id_from_tissue_sample(tissue_sample: Dict[str, Any]) -> str:
 
 
 def get_donor_sex_and_age(
-    donors: List[Dict[str], Any],
-    sample_sources: List[Dict[str], Any],
+    donors: List[Dict[str, Any]],
+    sample_sources: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get donor sex and age for file.
 
@@ -807,8 +808,8 @@ def get_sex_abbreviation(sex: str) -> str:
 
 def get_sequencing_and_assay_codes(
     file: Dict[str, Any],
-    sequencers: List[Dict[str], Any],
-    assays: List[Dict[str], Any],
+    sequencers: List[Dict[str, Any]],
+    assays: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get sequencing and assay codes for file.
     
@@ -832,12 +833,12 @@ def get_sequencing_and_assay_codes(
     return get_filename_part(errors=errors)
 
 
-def get_sequencing_codes(sequencers: List[Dict[str], Any]) -> List[str]:
+def get_sequencing_codes(sequencers: List[Dict[str, Any]]) -> List[str]:
     """Get sequencing code for file."""
     return list(set([item_utils.get_code(sequencer) for sequencer in sequencers]))
 
 
-def get_assay_codes(assays: List[Dict[str], Any]) -> List[str]:
+def get_assay_codes(assays: List[Dict[str, Any]]) -> List[str]:
     """Get assay code for file."""
     return list(set([item_utils.get_code(assay) for assay in assays]))
 
@@ -860,7 +861,7 @@ def get_accession(file: Dict[str, Any]) -> FilenamePart:
 
 def get_analysis(
     file: Dict[str, Any],
-    assays: List[Dict[str], Any],
+    assay: List[Dict[str, Any]],
     software: List[Dict[str, Any]],
     reference_genome: Dict[str, Any],
     gene_annotations: Dict[str, Any],
@@ -879,8 +880,8 @@ def get_analysis(
     gene_annotation_code = get_annotations_and_versions(gene_annotations)
     transcript_info_code = get_rna_seq_tsv_value(file, file_extension)
     haplotype_code = get_haplotype_value(file, file_extension, donor_specific_assembly)
-    kinnex_info_code = get_kinnex_value(file, assays)
-    consensus_read_flag = get_consensus_value(file, assays)
+    kinnex_info_code = get_kinnex_value(file, assay)
+    consensus_read_flag = get_consensus_value(file, assay)
     chain_code = get_chain_file_value(file, target_assembly, source_assembly, file_extension)
     value = get_analysis_value(
         software_and_versions,
@@ -900,7 +901,7 @@ def get_analysis(
         chain_code,
         haplotype_code,
         file_extension,
-        assays,
+        assay,
     )
     if errors:
         return get_filename_part(errors=errors)
@@ -919,7 +920,7 @@ def get_analysis_errors(
     chain_code: str,
     haplotype_code: str,
     file_extension: Dict[str, Any],
-    assays: List[Dict[str], Any],
+    assays: List[Dict[str, Any]],
 ) -> List[str]:
     """Get analysis errors for file by file type."""
     errors = []
@@ -1119,17 +1120,17 @@ def get_rna_seq_tsv_value(file: Dict[str, Any], file_extension: Dict[str, Any]) 
         return ""
     
 
-def get_assay_categories(assays: List[Dict[str], Any]) -> List[str]:
+def get_assay_categories(assays: List[Dict[str, Any]]) -> List[str]:
     """Get assay category for assays."""
     return list(set([assay_utils.get_category(assay) for assay in assays]))
 
 
-def get_assay_ids(assays: List[Dict[str], Any]) -> List[str]:
+def get_assay_ids(assays: List[Dict[str, Any]]) -> List[str]:
     """Get assay ids for assays."""
     return list(set([item_utils.get_identifier(assay) for assay in assays]))
 
 
-def get_consensus_value(file: Dict[str, Any], assays: List[Dict[str], Any]) -> str:
+def get_consensus_value(file: Dict[str, Any], assays: List[Dict[str, Any]]) -> str:
     """Get consensus from data_category for Duplex-Seq files."""
     assay_cats = get_assay_categories(assays)
 
@@ -1139,7 +1140,7 @@ def get_consensus_value(file: Dict[str, Any], assays: List[Dict[str], Any]) -> s
         return ""
 
 
-def get_kinnex_value(file: Dict[str, Any], assays: List[Dict[str], Any]) -> str:
+def get_kinnex_value(file: Dict[str, Any], assays: List[Dict[str, Any]]) -> str:
     "Get suffixes for Kinnex files"
     assay_ids = get_assay_ids(assays)
     if KINNEX_ASSAY_ID in assay_ids:
