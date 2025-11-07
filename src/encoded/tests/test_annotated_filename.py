@@ -539,12 +539,19 @@ DSA_CODE = "Hela_DSA"
 DSA_VALUE = "DSA"
 HAPLOTYPE_CODE = "hapX"
 
+KINNEX_ASSAY_CODE = "102"
+KINNEX_ASSAY = {"code": KINNEX_ASSAY_CODE, "identifier": "bulk_mas_iso_seq", "category": "Bulk RNA-seq"}
+DUPLEX_ASSAY_CODE = "007"
+DUPLEX_ASSAY = {"code": DUPLEX_ASSAY_CODE, "identifier": "codec", "category": "Duplex-seq WGS"}
+SOME_DUPLEX_ASSAY_CODE = "017"
+SOME_DUPLEX_ASSAY = {"code": SOME_DUPLEX_ASSAY_CODE, "identifier": "compduplex_seq", "category": "Duplex-seq WGS"}
+
 GENE_ANNOTATION_CODE = "gencode"
 GENE_ANNOTATION_VERSION = "v45"
 SOME_REFERENCE_GENOME = {"code": REFERENCE_GENOME_CODE}
 SOME_GENE_ANNOTATION = [{"code": GENE_ANNOTATION_CODE, "version": GENE_ANNOTATION_VERSION}]
 SOME_UNALIGNED_READS = {"data_type": ["Unaligned Reads"]}
-SOME_ALIGNED_READS = {"data_type": ["Aligned Reads"]}
+SOME_ALIGNED_READS = {"data_cateogory": "Sequencing Reads", "data_type": ["Aligned Reads"]}
 RNA_ALIGNED_READS = {"data_type": ["Aligned Reads"], "data_category": ["RNA Quantification"]}
 
 SOME_TARGET_ASSEMBLY = {
@@ -573,20 +580,36 @@ ANOTHER_FASTA_FILE = {
     "data_type": ["Reference Sequence"],
 }
 SOME_TSV_FILE = {
+    "data_category": ["RNA Quantification"],
     "data_type": ["Gene Expression"],
-    "data_category": ["RNA Quantification"]
 }
 SOME_OTHER_FILE = {
     "data_category": ["RNA Quantification"]
 }
 SOME_ISOFORM_TSV_FILE = {
+    "data_category": ["RNA Quantification"],
     "data_type": ["Transcript Expression"],
-    "data_category": ["RNA Quantification"]
 }
 SOME_SOMATIC_VARIANT_CALLS = {"data_category": ["Somatic Variant Calls"]}
 SOME_VARIANT_CALLS = {
     "data_category": ["Somatic Variant Calls"],
     "data_type": ["SNV", "CNV", "MEI", "SV", "Indel"],
+}
+SOME_CONSENSUS_BAM_FILE = {
+    "data_category": ["Consensus Reads"],
+    "data_type": ["Aligned Reads"],
+}
+SOME_ISOFORM_FASTA_FILE = {
+    "data_category": ["RNA Quantification"],
+    "data_type": ["Transcript Sequence"],
+}
+SOME_KINNEX_FILE = {
+    "data_category": ["RNA Quantification"],
+    "data_type": ["Transcript Expression"],
+}
+SOME_JUNCTION_ANNOTATIONS_TXT_FILE = {
+    "data_category": ["RNA Quantification"],
+    "data_type": ["Transcript Model"],
 }
 SOME_FILE_EXTENSION = {
     "identifier": "BAM",
@@ -634,11 +657,11 @@ TSV_FILE_EXTENSION = {
             False,
         ),
         (SOME_UNALIGNED_READS, [SOME_ASSAY], [SOME_SOFTWARE], SOME_REFERENCE_GENOME, {}, SOME_FILE_EXTENSION,  {}, {}, {}, "", True),
-        (SOME_ALIGNED_READS, [SOME_ASSAY], [], {}, {}, {}, {}, {}, {}, "", True),
+        (SOME_ALIGNED_READS, [], [], {}, {}, {}, {}, {}, {}, "", True),
         (SOME_ALIGNED_READS, [SOME_ASSAY], [SOME_SOFTWARE], {}, {}, SOME_FILE_EXTENSION, {}, {}, {}, "", True),
         (
             SOME_ALIGNED_READS,
-            [SOME_ASSAY],
+            [],
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             {},
@@ -651,7 +674,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_SOMATIC_VARIANT_CALLS,
-            [SOME_ASSAY],
+            [],
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             {},
@@ -664,7 +687,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_VARIANT_CALLS,
-            [SOME_ASSAY],
+            [],
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             {},
@@ -677,7 +700,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_ALIGNED_READS,
-            [SOME_ASSAY],
+            [],
             [SOME_SOFTWARE, ANOTHER_SOFTWARE],
             SOME_REFERENCE_GENOME,
             {},
@@ -690,7 +713,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_ALIGNED_READS,
-            [SOME_ASSAY],
+            [],
             [SOME_SOFTWARE, SOME_ITEM],
             SOME_REFERENCE_GENOME,
             {},
@@ -703,7 +726,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_CHAIN_FILE,
-            [SOME_ASSAY],
+            [],
             [SOME_SOFTWARE, SOME_ITEM],
             {},
             {},
@@ -716,7 +739,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_CHAIN_FILE,
-            [SOME_ASSAY],
+            [],
             [SOME_SOFTWARE, SOME_ITEM],
             {},
             {},
@@ -729,7 +752,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_FASTA_FILE,
-            [SOME_ASSAY],
+            [],
             [SOME_SOFTWARE, SOME_ITEM],
             {},
             {},
@@ -742,7 +765,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             ANOTHER_FASTA_FILE,
-            [SOME_ASSAY],
+            [],
             [SOME_SOFTWARE, SOME_ITEM],
             {},
             {},
@@ -755,7 +778,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_TSV_FILE,
-            [SOME_ASSAY],
+            [],
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             SOME_GENE_ANNOTATION,
@@ -768,7 +791,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_ISOFORM_TSV_FILE,
-            [SOME_ASSAY],
+            [],
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             SOME_GENE_ANNOTATION,
@@ -781,7 +804,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_OTHER_FILE,
-            [SOME_ASSAY],
+            [],
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             SOME_GENE_ANNOTATION,
@@ -794,7 +817,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_ALIGNED_READS,
-            [SOME_ASSAY],
+            [],
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             SOME_GENE_ANNOTATION,
@@ -817,7 +840,85 @@ TSV_FILE_EXTENSION = {
             {},
             "",
             True
-        )
+        ),
+        (
+            SOME_CONSENSUS_BAM_FILE,
+            [KINNEX_ASSAY],
+            [SOME_SOFTWARE],
+            SOME_REFERENCE_GENOME,
+            {},
+            SOME_FILE_EXTENSION,
+            {},
+            {},
+            {},
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}",
+            False
+        ), # Kinnex aligned transcripts BAM
+        (
+            SOME_ISOFORM_FASTA_FILE,
+            [KINNEX_ASSAY],
+            [SOME_SOFTWARE],
+            SOME_REFERENCE_GENOME,
+            {},
+            FASTA_FILE_EXTENSION,
+            {},
+            {},
+            {},
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_isoform",
+            False
+        ), # Kinnex FASTA with isoform sequences
+        (
+            SOME_KINNEX_FILE,
+            [KINNEX_ASSAY],
+            [SOME_SOFTWARE],
+            SOME_REFERENCE_GENOME,
+            SOME_GENE_ANNOTATION,
+            FASTA_FILE_EXTENSION,
+            {},
+            {},
+            {},
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}_isoform",
+            False
+        ), # Kinnex per-isoform classification results
+        (
+            SOME_JUNCTION_ANNOTATIONS_TXT_FILE,
+            [KINNEX_ASSAY],
+            [SOME_SOFTWARE],
+            SOME_REFERENCE_GENOME,
+            SOME_GENE_ANNOTATION,
+            {},
+            {},
+            {},
+            {},
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}_junction",
+            False
+        ), # Kinnex junction annotations
+        (
+            SOME_KINNEX_FILE,
+            [KINNEX_ASSAY],
+            [SOME_SOFTWARE],
+            SOME_REFERENCE_GENOME,
+            SOME_GENE_ANNOTATION,
+            {},
+            {},
+            {},
+            {},
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}_isoform",
+            False
+        ), # Kinnex exonic structure gff file
+        (
+            SOME_ALIGNED_READS,
+            [KINNEX_ASSAY],
+            [SOME_SOFTWARE],
+            SOME_REFERENCE_GENOME,
+            {},
+            SOME_FILE_EXTENSION,
+            {},
+            {},
+            {},
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}_flnc",
+            False
+        ), # Kinnex aligned raw FLNC reads
     ],
 )
 def test_get_analysis(
