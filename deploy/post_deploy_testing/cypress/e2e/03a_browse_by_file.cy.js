@@ -38,6 +38,7 @@ const ROLE_MATRIX = {
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
+        runFacetChartBarPlotTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
     },
@@ -52,6 +53,7 @@ const ROLE_MATRIX = {
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
+        runFacetChartBarPlotTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
     },
@@ -66,6 +68,7 @@ const ROLE_MATRIX = {
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
+        runFacetChartBarPlotTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
     },
@@ -80,6 +83,7 @@ const ROLE_MATRIX = {
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
+        runFacetChartBarPlotTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
     },
@@ -94,6 +98,7 @@ const ROLE_MATRIX = {
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
+        runFacetChartBarPlotTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
     },
@@ -106,8 +111,7 @@ function goto(url = '/', headers = cypressVisitHeaders) {
 }
 
 function visitBrowseByFile(){
-    return cy.get(dataNavBarItemSelectorStr)
-        .should('have.class', 'dropdown-toggle')
+    return cy.getLoadedMenuItem(dataNavBarItemSelectorStr)
         .click()
         .should('have.class', 'dropdown-open-for')
         .end()
@@ -357,6 +361,57 @@ function stepFacetExcludeGrouping(caps) {
         .end();
 }
 
+/** Chart Bar Plot Tests */
+function stepFacetChartBarPlotTests(caps) {
+    if (caps.expectedStatsSummaryOpts.totalFiles > 0) {
+        visitBrowseByFile().then(() => {
+            cy.get('#select-barplot-field-1')
+                .should('contain', 'Sequencer')
+                .end()
+                .get('#select-barplot-field-0')
+                .should('contain', 'Tissue')
+                .end();
+
+            cy.window().scrollTo(0, 0).end()
+                // A likely-to-be-here Bar Section - Brain x Illumina NovaSeq X Plus
+                .get('.bar-plot-chart .chart-bar[data-term="Brain"] .bar-part[data-term="Illumina NovaSeq X Plus"]').then(($barPart) => {
+                    const expectedFilteredResults = parseInt($barPart.attr('data-count'));
+                    expect(expectedFilteredResults).to.be.greaterThan(50);
+                    expect(expectedFilteredResults).to.be.lessThan(500);
+                    return cy.window().scrollTo('top').end()
+                        .get('.bar-plot-chart .chart-bar[data-term="Blood"] .bar-part[data-term="ONT PromethION 24"]').should('have.attr', 'data-count').end()
+                        .wrap($barPart).hoverIn().end()
+                        .get('.cursor-component-root .details-title').should('contain', 'Illumina NovaSeq X Plus').end()
+                        .get('.cursor-component-root .detail-crumbs .crumb').should('contain', 'Brain').end()
+                        .get('.cursor-component-root .details .text-end').invoke('text').then(text => {
+                            const number = parseInt(text, 10);
+                            expect(number).to.eq(expectedFilteredResults);
+                        }).getQuickInfoBar().then(function (origCount) {
+                            // `{ force: true }` is used a bunch here to prevent Cypress from attempting to scroll browser up/down during the test -- which may interfere w. mouse hover events.
+                            // See https://github.com/cypress-io/cypress/issues/2353#issuecomment-413347535
+                            return cy.window().then((w) => { 
+                                w.scrollTo(0, 0); }).end()
+                                .wrap($barPart, { force: true }).scrollToCenterElement().trigger('mouseover', { force: true }).trigger('mousemove', { force: true }).wait(300).click({ force: true }).end()
+                                .get('.cursor-component-root .actions.buttons-container .btn-primary').should('contain', "Explore").click({ force: true }).end() // Browser will scroll after click itself (e.g. triggered by app)
+                                .location('search')
+                                .should('include', 'sequencing.sequencer.display_title=Illumina+NovaSeq+X+Plus')
+                                .should('include', 'sample_summary.tissues=Brain').end()
+                                .get('#slow-load-container').should('not.have.class', 'visible').end()
+                                .searchPageTotalResultCount().then((totalCount) => {
+                                    expect(totalCount).to.equal(expectedFilteredResults);
+                                    cy.get('.bar-plot-chart .chart-bar .bar-part').should('have.length', 1).end();
+                                });
+                        });
+                });
+        });
+    } else {
+        visitBrowseByFile().then(() => {
+            cy.get('#facet-charts-container').invoke('text').should('be.empty');
+            cy.log('Skipping stepFacetChartBarPlotTests since no data is accessible for this role.');
+        });
+    }
+};
+
 /* ----------------------------- PARAMETERIZED SUITE ----------------------------- */
 
 const ROLES_TO_TEST = [
@@ -367,12 +422,12 @@ const ROLES_TO_TEST = [
     ROLE_TYPES.PUBLIC_NON_DBGAP,
 ];
 
-describe('Browse by role — File (Basic)', () => {
+describe('Browse by role — File', () => {
     ROLES_TO_TEST.forEach((roleKey) => {
         const caps = ROLE_MATRIX[roleKey];
         const label = caps.label || String(roleKey);
 
-        context(`${label} → browse capabilities`, () => {
+        context(`${label} → browse by file capabilities`, () => {
             before(() => {
                 goto('/');
                 loginIfNeeded(roleKey);
@@ -410,6 +465,11 @@ describe('Browse by role — File (Basic)', () => {
             it(`Facet exclude grouping → sub-terms omitted (enabled: ${caps.runFacetExcludeGrouping})`, () => {
                 if (!caps.runFacetExcludeGrouping) return;
                 stepFacetExcludeGrouping(caps);
+            });
+
+            it(`Facet chart bar plot tests → X-axis grouping and hover over & click "Illumina NovaSeq X Plus, Brain" bar part + popover button --> matching filtered /browse/ results (enabled: ${caps.runFacetChartBarPlotTests})`, () => {
+                if (!caps.runFacetChartBarPlotTests) return;
+                stepFacetChartBarPlotTests(caps);
             });
         });
     });
