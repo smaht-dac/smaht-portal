@@ -43,6 +43,11 @@ GENE_DATA_TYPE = "Gene Expression"
 ISOFORM_DATA_TYPE = "Transcript Expression"
 CONSENSUS_DATA_CATEGORY = "Consensus Reads"
 DUPLEX_ASSAY_CATEGORY = "Duplex-seq WGS"
+KINNEX_ASSAY_ID = "bulk_mas_iso_seq"
+TRANSCRIPT_SEQUENCE_DATA_TYPE = "Transcript Sequence"
+TRANSCRIPT_MODEL_DATA_TYPE = "Transcript Model"
+SEQUENCING_READS_DATA_CATEGORY = "Sequencing Reads"
+ALIGNED_READS_DATA_TYPE = "Aligned Reads"
 
 DEFAULT_PROJECT_ID = constants.PRODUCTION_PREFIX
 DEFAULT_ABSENT_FIELD = "X"
@@ -874,6 +879,7 @@ def get_analysis(
     gene_annotation_code = get_annotations_and_versions(gene_annotations)
     transcript_info_code = get_rna_seq_tsv_value(file, file_extension)
     haplotype_code = get_haplotype_value(file, file_extension, donor_specific_assembly)
+    kinnex_info_code = get_kinnex_value(file, assays)
     consensus_read_flag = get_consensus_value(file, assays)
     chain_code = get_chain_file_value(file, target_assembly, source_assembly, file_extension)
     value = get_analysis_value(
@@ -883,7 +889,8 @@ def get_analysis(
         transcript_info_code,
         chain_code,
         haplotype_code,
-        consensus_read_flag
+        consensus_read_flag,
+        kinnex_info_code
     )
     errors = get_analysis_errors(
         file,
@@ -949,11 +956,12 @@ def get_analysis_value(
     chain_code: str,
     haplotype_code: str,
     consensus_read_flag: str,
+    kinnex_info_code: str,
 ) -> str:
     """Get analysis value for filename."""
     to_write = [
         string
-        for string in [software_and_versions, reference_genome_code, gene_annotation_code, transcript_info_code, chain_code, haplotype_code, consensus_read_flag]
+        for string in [software_and_versions, reference_genome_code, gene_annotation_code, transcript_info_code, chain_code, haplotype_code, consensus_read_flag, kinnex_info_code]
         if string
     ]
     return ANALYSIS_INFO_SEPARATOR.join(to_write)
@@ -1111,6 +1119,16 @@ def get_rna_seq_tsv_value(file: Dict[str, Any], file_extension: Dict[str, Any]) 
         return ""
     
 
+def get_assay_categories(assays: List[Dict[str], Any]) -> List[str]:
+    """Get assay category for assays."""
+    return list(set([assay_utils.get_category(assay) for assay in assays]))
+
+
+def get_assay_ids(assays: List[Dict[str], Any]) -> List[str]:
+    """Get assay ids for assays."""
+    return list(set([item_utils.get_identifier(assay) for assay in assays]))
+
+
 def get_consensus_value(file: Dict[str, Any], assays: List[Dict[str], Any]) -> str:
     """Get consensus from data_category for Duplex-Seq files."""
     assay_cats = get_assay_categories(assays)
@@ -1121,9 +1139,21 @@ def get_consensus_value(file: Dict[str, Any], assays: List[Dict[str], Any]) -> s
         return ""
 
 
-def get_assay_categories(assays: List[Dict[str], Any]) -> List[str]:
-    """Get assay category for assays."""
-    return list(set([assay_utils.get_category(assay) for assay in assays]))
+def get_kinnex_value(file: Dict[str, Any], assays: List[Dict[str], Any]) -> str:
+    "Get suffixes for Kinnex files"
+    assay_ids = get_assay_ids(assays)
+    if KINNEX_ASSAY_ID in assay_ids:
+        data_categories = file_utils.get_data_category(file)
+        data_types = file_utils.get_data_type(file)
+
+        if TRANSCRIPT_SEQUENCE_DATA_TYPE in data_types:
+            return "isoform"
+        elif TRANSCRIPT_MODEL_DATA_TYPE in data_types:
+            return "junction"
+        elif SEQUENCING_READS_DATA_CATEGORY in data_categories and ALIGNED_READS_DATA_TYPE in data_types:
+            return "flnc"
+    
+    return ""
 
 
 def get_file_extension(
