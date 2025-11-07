@@ -551,7 +551,7 @@ GENE_ANNOTATION_VERSION = "v45"
 SOME_REFERENCE_GENOME = {"code": REFERENCE_GENOME_CODE}
 SOME_GENE_ANNOTATION = [{"code": GENE_ANNOTATION_CODE, "version": GENE_ANNOTATION_VERSION}]
 SOME_UNALIGNED_READS = {"data_type": ["Unaligned Reads"]}
-SOME_ALIGNED_READS = {"data_cateogory": "Sequencing Reads", "data_type": ["Aligned Reads"]}
+SOME_ALIGNED_READS = {"data_category": "Sequencing Reads", "data_type": ["Aligned Reads"]}
 RNA_ALIGNED_READS = {"data_type": ["Aligned Reads"], "data_category": ["RNA Quantification"]}
 
 SOME_TARGET_ASSEMBLY = {
@@ -916,7 +916,7 @@ TSV_FILE_EXTENSION = {
             {},
             {},
             {},
-            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}_flnc",
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_flnc",
             False
         ), # Kinnex aligned raw FLNC reads
     ],

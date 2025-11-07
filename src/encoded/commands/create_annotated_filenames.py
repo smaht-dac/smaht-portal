@@ -944,7 +944,7 @@ def get_analysis_errors(
     if CONSENSUS_DATA_CATEGORY in file_utils.get_data_category(file):
         if len(get_assay_categories(assays)) == 0:
             errors.append("No assay categories found.")
-        elif len(get_assay_categories(assays)) > 0:
+        elif len(get_assay_categories(assays)) > 1:
             errors.append("Multiple assay categories found.")
     return errors
 
@@ -1111,7 +1111,7 @@ def get_haplotype_value(
 
 def get_rna_seq_tsv_value(file: Dict[str, Any], file_extension: Dict[str, Any]) -> str:
     """Get isoform or gene from data type for RNA-seq tsv files."""
-    if file_format_utils.is_tsv_file(file_extension) and RNA_DATA_CATEGORY in file_utils.get_data_category(file):
+    if RNA_DATA_CATEGORY in file_utils.get_data_category(file):
         if GENE_DATA_TYPE in file_utils.get_data_type(file):
             return "gene"
         elif ISOFORM_DATA_TYPE in file_utils.get_data_type(file):
