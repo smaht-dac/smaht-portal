@@ -933,7 +933,7 @@ def get_analysis_errors(
         if not reference_genome_code:
             errors.append("No reference genome code found")
     if RNA_DATA_CATEGORY in file_utils.get_data_category(file):
-        if not gene_annotation_code:
+        if not gene_annotation_code and KINNEX_ASSAY_ID not in get_assay_ids(assays):
             errors.append("No gene annotation code found")
         elif file_format_utils.is_tsv_file(file_extension) and not transcript_info_code:
             errors.append("No gene or isoform code found")
