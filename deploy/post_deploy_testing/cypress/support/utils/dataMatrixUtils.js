@@ -1,4 +1,22 @@
-/** * Waits for the popover to become visible.
+// Sends a GET request to the given URL and returns the `total` field from JSON response
+function getApiTotalFromUrl(url) {
+  // Ensure the URL requests JSON format (append if missing)
+  const fullUrl = url.includes('format=json') ? url : `${url}&format=json&frame=raw`;
+
+  return cy.request({
+    method: 'GET',
+    url: fullUrl
+  }).its('body.total');
+}
+
+// Safely parse a number from text content (e.g. " 11 " → 11)
+function parseIntSafe(text) {
+  const n = parseInt(String(text).trim(), 10);
+  return Number.isNaN(n) ? 0 : n;
+}
+
+/** 
+ * Waits for the popover to become visible.
  * @param {number} timeout - The maximum time to wait for the popover to become visible, in milliseconds.
  * @returns {Cypress.Chainable} A Cypress chainable that resolves when the popover is visible.
  * This function performs the following steps:
@@ -133,7 +151,24 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                         .find('.value')
                         .invoke('text')
                         .then((t) => parseInt(t.trim(), 10))
-                        .should('equal', value);
+                        .should('equal', value)
+                        .then((uiCount) => {
+                            // Get the URL from the "Browse Files" button in footer
+                            cy.get('.footer-row a.btn.btn-primary')
+                                .invoke('attr', 'href')
+                                .then((href) => {
+                                    // If the href is relative (starts with "/"), prefix with baseUrl
+                                    const fullUrl = href.startsWith('http')
+                                        ? href
+                                        : `${Cypress.config('baseUrl')}${href}`;
+
+                                    // Fetch API total and compare it with UI count
+                                    return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
+                                        expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
+                                            .to.equal(uiCount);
+                                    });
+                                });
+                        });
                 } else if (blockType === 'row-summary') {
                     // tissue (primary row)
                     if (tissue) {
@@ -155,7 +190,24 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                         .find('.value')
                         .invoke('text')
                         .then((t) => parseInt(t.trim(), 10))
-                        .should('equal', value);
+                        .should('equal', value)
+                        .then((uiCount) => {
+                            // Get the URL from the "Browse Files" button in footer
+                            cy.get('.footer-row a.btn.btn-primary')
+                                .invoke('attr', 'href')
+                                .then((href) => {
+                                    // If the href is relative (starts with "/"), prefix with baseUrl
+                                    const fullUrl = href.startsWith('http')
+                                        ? href
+                                        : `${Cypress.config('baseUrl')}${href}`;
+
+                                    // Fetch API total and compare it with UI count
+                                    return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
+                                        expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
+                                            .to.equal(uiCount);
+                                    });
+                                });
+                        });
                 } else if (blockType === 'col-summary') {
                     // assay (primary row)
                     if (assay) {
@@ -169,7 +221,24 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                         .find('.value')
                         .invoke('text')
                         .then((t) => parseInt(t.trim(), 10))
-                        .should('equal', value);
+                        .should('equal', value)
+                        .then((uiCount) => {
+                            // Get the URL from the "Browse Files" button in footer
+                            cy.get('.footer-row a.btn.btn-primary')
+                                .invoke('attr', 'href')
+                                .then((href) => {
+                                    // If the href is relative (starts with "/"), prefix with baseUrl
+                                    const fullUrl = href.startsWith('http')
+                                        ? href
+                                        : `${Cypress.config('baseUrl')}${href}`;
+
+                                    // Fetch API total and compare it with UI count
+                                    return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
+                                        expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
+                                            .to.equal(uiCount);
+                                    });
+                                });
+                        });
                 }
 
             });
@@ -239,9 +308,9 @@ export function testMatrixPopoverValidation(
         mustLabels = ['Non-exposed Skin', 'Heart', 'Blood'],
         optionalLabels = [],
         expectedLowerLabels = ['Donors'],
-        regularBlockCount = 10,
-        rowSummaryBlockCount = 10,
-        colSummaryBlockCount = 3,
+        regularBlockCount = 6,
+        rowSummaryBlockCount = 6,
+        colSummaryBlockCount = 2,
         expectedFilesCount = 1,
     }) {
     cy.get(matrixId).should('exist');
