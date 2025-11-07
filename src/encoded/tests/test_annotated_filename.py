@@ -847,7 +847,7 @@ TSV_FILE_EXTENSION = {
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             {},
-            SOME_FILE_EXTENSION,
+            {},
             {},
             {},
             {},
@@ -919,6 +919,32 @@ TSV_FILE_EXTENSION = {
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_flnc",
             False
         ), # Kinnex aligned raw FLNC reads
+        (
+            SOME_CONSENSUS_BAM_FILE,
+            [DUPLEX_ASSAY],
+            [],
+            SOME_REFERENCE_GENOME,
+            {},
+            {},
+            {},
+            {},
+            {},
+            f"{REFERENCE_GENOME_CODE}_consensus",
+            False
+        ), # Duplex-seq consensus BAM
+        (
+            SOME_CONSENSUS_BAM_FILE,
+            [],
+            [],
+            SOME_REFERENCE_GENOME,
+            {},
+            {},
+            {},
+            {},
+            {},
+            "",
+            True
+        ), # Consensus BAM without assay
     ],
 )
 def test_get_analysis(
