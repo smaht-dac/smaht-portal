@@ -479,8 +479,8 @@ SEQUENCER_CODE = "A"
 SOME_SEQUENCER = {"code": SEQUENCER_CODE}
 ANOTHER_SEQUENCER = {"code": "B"}
 ASSAY_CODE = "001"
-SOME_ASSAY = {"code": ASSAY_CODE}
-ANOTHER_ASSAY = {"code": "002"}
+SOME_ASSAY = {"code": ASSAY_CODE, "identifier": "bulk_wgs_pcr_free", "category": "Bulk WGS"}
+ANOTHER_ASSAY = {"code": "002", "identifier": "bulk_wgs", "category": "Bulk WGS"}
 
 
 @pytest.mark.parametrize(
@@ -616,12 +616,13 @@ TSV_FILE_EXTENSION = {
 
 
 @pytest.mark.parametrize(
-    "file,software,reference_genome,annotation,file_extension,target_assembly,source_assembly,dsa,expected,errors",
+    "file,assay,software,reference_genome,annotation,file_extension,target_assembly,source_assembly,dsa,expected,errors",
     [
-        ({}, [], {}, {}, {}, {}, {}, {}, "" , True),
-        (SOME_UNALIGNED_READS, [], {}, {}, SOME_FILE_EXTENSION,  {}, {}, {}, DEFAULT_ABSENT_FIELD, False),
+        ({}, [], [], {}, {}, {}, {}, {}, {}, "" , True),
+        (SOME_UNALIGNED_READS, [], [], {}, {}, SOME_FILE_EXTENSION,  {}, {}, {}, DEFAULT_ABSENT_FIELD, False),
         (
             SOME_UNALIGNED_READS,
+            [SOME_ASSAY],
             [SOME_SOFTWARE],
             {},
             {},
@@ -632,11 +633,12 @@ TSV_FILE_EXTENSION = {
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}",
             False,
         ),
-        (SOME_UNALIGNED_READS, [SOME_SOFTWARE], SOME_REFERENCE_GENOME, {}, SOME_FILE_EXTENSION,  {}, {}, {}, "", True),
-        (SOME_ALIGNED_READS, [], {}, {}, {}, {}, {}, {}, "", True),
-        (SOME_ALIGNED_READS, [SOME_SOFTWARE], {}, {}, SOME_FILE_EXTENSION, {}, {}, {}, "", True),
+        (SOME_UNALIGNED_READS, [SOME_ASSAY], [SOME_SOFTWARE], SOME_REFERENCE_GENOME, {}, SOME_FILE_EXTENSION,  {}, {}, {}, "", True),
+        (SOME_ALIGNED_READS, [SOME_ASSAY], [], {}, {}, {}, {}, {}, {}, "", True),
+        (SOME_ALIGNED_READS, [SOME_ASSAY], [SOME_SOFTWARE], {}, {}, SOME_FILE_EXTENSION, {}, {}, {}, "", True),
         (
             SOME_ALIGNED_READS,
+            [SOME_ASSAY],
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             {},
@@ -649,6 +651,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_SOMATIC_VARIANT_CALLS,
+            [SOME_ASSAY],
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             {},
@@ -661,6 +664,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_VARIANT_CALLS,
+            [SOME_ASSAY],
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             {},
@@ -673,6 +677,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_ALIGNED_READS,
+            [SOME_ASSAY],
             [SOME_SOFTWARE, ANOTHER_SOFTWARE],
             SOME_REFERENCE_GENOME,
             {},
@@ -685,6 +690,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_ALIGNED_READS,
+            [SOME_ASSAY],
             [SOME_SOFTWARE, SOME_ITEM],
             SOME_REFERENCE_GENOME,
             {},
@@ -697,6 +703,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_CHAIN_FILE,
+            [SOME_ASSAY],
             [SOME_SOFTWARE, SOME_ITEM],
             {},
             {},
@@ -709,6 +716,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_CHAIN_FILE,
+            [SOME_ASSAY],
             [SOME_SOFTWARE, SOME_ITEM],
             {},
             {},
@@ -721,6 +729,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_FASTA_FILE,
+            [SOME_ASSAY],
             [SOME_SOFTWARE, SOME_ITEM],
             {},
             {},
@@ -733,6 +742,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             ANOTHER_FASTA_FILE,
+            [SOME_ASSAY],
             [SOME_SOFTWARE, SOME_ITEM],
             {},
             {},
@@ -745,6 +755,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_TSV_FILE,
+            [SOME_ASSAY],
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             SOME_GENE_ANNOTATION,
@@ -757,6 +768,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_ISOFORM_TSV_FILE,
+            [SOME_ASSAY],
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             SOME_GENE_ANNOTATION,
@@ -769,6 +781,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_OTHER_FILE,
+            [SOME_ASSAY],
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             SOME_GENE_ANNOTATION,
@@ -781,6 +794,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             SOME_ALIGNED_READS,
+            [SOME_ASSAY],
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             SOME_GENE_ANNOTATION,
@@ -793,6 +807,7 @@ TSV_FILE_EXTENSION = {
         ),
         (
             RNA_ALIGNED_READS,
+            [SOME_ASSAY],
             [SOME_SOFTWARE],
             SOME_REFERENCE_GENOME,
             {},
@@ -807,6 +822,7 @@ TSV_FILE_EXTENSION = {
 )
 def test_get_analysis(
     file: Dict[str, Any],
+    assay: List[Dict[str, Any]],
     software: List[Dict[str, Any]],
     reference_genome: Dict[str, Any],
     annotation: Dict[str, Any],
@@ -818,7 +834,7 @@ def test_get_analysis(
     errors: bool,
 ) -> None:
     """Test analysis info retrieval for annotated filenames."""
-    result = get_analysis(file, software, reference_genome, annotation, file_extension, target_assembly, source_assembly, dsa)
+    result = get_analysis(file, assay, software, reference_genome, annotation, file_extension, target_assembly, source_assembly, dsa)
     assert_filename_part_matches(result, expected, errors)
 
 
