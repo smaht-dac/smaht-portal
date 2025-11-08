@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 import pytest
 from dcicutils import schema_utils
 from webtest.app import TestApp
+from unittest import mock
 
 from .utils import (
     get_item, get_search, patch_item, post_item, post_item_and_return_location
@@ -127,22 +128,25 @@ def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_f
     """
     assert not reference_file.get('file_status_tracking')  # should be absent
     res = output_file['file_status_tracking']
-    assert 'in review' in res
-    assert 'released' not in res
-    assert 'released_date' not in res
-    assert 'public' not in res
+    status_tracking = res["status_tracking"]
+    assert 'in review' in status_tracking
+    assert 'released' not in status_tracking
+    assert 'released_date' not in status_tracking
+    assert 'open' not in status_tracking
     res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
                                      {'status': 'released'}).json['@graph'][0]['file_status_tracking']
-    assert 'in review' in res
-    assert 'released' in res
-    assert 'released_date' in res
-    assert 'public' not in res
+    status_tracking = res["status_tracking"]
+    assert 'in review' in status_tracking
+    assert 'released' in status_tracking
+    assert 'released_date' in status_tracking
+    assert 'open' not in status_tracking
     res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
-                                     {'status': 'public'}).json['@graph'][0]['file_status_tracking']
-    assert 'in review' in res
-    assert 'released' in res
-    assert 'released_date' in res
-    assert 'public' in res
+                                     {'status': 'open'}).json['@graph'][0]['file_status_tracking']
+    status_tracking = res["status_tracking"]
+    assert 'in review' in status_tracking
+    assert 'released' in status_tracking
+    assert 'released_date' in status_tracking
+    assert 'open' in status_tracking
 
 
 @pytest.mark.parametrize(
@@ -153,7 +157,7 @@ def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_f
         ("archived", False),
         ("in review", True),
         ("obsolete", False),
-        ("public", False),
+        ("open", False),
     ]
 )
 def test_upload_credentials(
@@ -179,8 +183,8 @@ def test_upload_credentials(
     "status,expected",
     [
         ("released", "Open"),
-        ("public", "Open"),
-        ("restricted", "Protected"),
+        ("open", "Open"),
+        ("protected-network", "Protected"),
         ("deleted", None),  # test just one additional since there is significant setup cost
     ]
 )
@@ -762,7 +766,7 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
     assert submitted_file_with_sample_sources_search
     for submitted_file in submitted_file_with_sample_sources_search:
         assert_sample_sources_calcprop_matches_embeds(submitted_file)
-    
+
     output_file_with_sample_sources_search = search_type_for_key(
         es_testapp, "OutputFile", search_key
     )
@@ -827,7 +831,7 @@ def assert_cell_line_donors_match_calcprop(
     file: Dict[str, Any],
     cell_lines: List[Dict[str, Any]],
 ) -> None:
-    """Ensure cell line donors match calcprop.""" 
+    """Ensure cell line donors match calcprop."""
     donor_ids = get_property_values_from_identifiers(
         request_handler, cell_lines, functools.partial(cell_line_utils.get_source_donor, request_handler)
     )
@@ -843,7 +847,7 @@ def assert_donors_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     analytes = get_unique_values(libraries, library_utils.get_analytes)
     samples = get_unique_values(analytes, analyte_utils.get_samples)
     sample_sources = get_unique_values(samples, sample_utils.get_sample_sources)
-    donors = get_unique_values(sample_sources, tissue_utils.get_donor)     
+    donors = get_unique_values(sample_sources, tissue_utils.get_donor)
     assert_items_match(donors_from_calcprop, donors)
 
 
@@ -1003,21 +1007,21 @@ def assert_data_generation_summary_matches_expected(
     if (override_coverage := file_utils.get_override_group_coverage(file)):
         expected_target_coverage = [override_coverage]
     else:
-        expected_target_coverage = [ target_coverage 
-            for sequencing in sequencings  
+        expected_target_coverage = [ target_coverage
+            for sequencing in sequencings
             if (target_coverage := sequencing_utils.get_target_coverage(
                 get_item(es_testapp, item_utils.get_uuid(sequencing))
             ))
         ] if sequencings else []
     if (override_average_coverage := file_utils.get_override_average_coverage(file)):
         expected_average_coverage = [override_average_coverage]
-    else: 
-        expected_average_coverage = [ coverage 
+    else:
+        expected_average_coverage = [ coverage
             for quality_metric in quality_metrics
             if (coverage := qm_utils.get_coverage(quality_metric))
         ] if quality_metrics else []
-    expected_target_read_count = [ target_coverage 
-        for sequencing in sequencings                     
+    expected_target_read_count = [ target_coverage
+        for sequencing in sequencings
         if (target_coverage := sequencing_utils.get_target_read_count(
                 get_item(es_testapp, item_utils.get_uuid(sequencing))
             ))
@@ -1102,13 +1106,15 @@ def assert_sample_summary_matches_expected(
     )
     expected_category = expected_tissues = get_unique_values(
         [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
-        tissue_utils.get_category
+        functools.partial(
+            tissue_utils.get_category, request_handler=request_handler
+        )
     )
     expected_tissues = get_unique_values(
         [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
         functools.partial(
-            tissue_utils.get_grouping_term_from_tag, request_handler=request_handler, tag="tissue_type"
-        ),
+            tissue_utils.get_tissue_type, request_handler=request_handler
+        )
     )
     expected_tissue_subtypes = get_unique_values(
         [tissue_utils.get_uberon_id(
@@ -1244,7 +1250,7 @@ def test_release_tracker(es_testapp: TestApp, workbook: None) -> None:
 
     Checks fields present on inserts match values expected by parsing tags.
     """
-    
+
     search = "tags=test_release_tracker"
     files_with_release_tracker_description = get_search(es_testapp, search)
     for file in files_with_release_tracker_description:

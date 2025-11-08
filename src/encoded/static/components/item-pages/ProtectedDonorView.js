@@ -5,9 +5,10 @@ import _ from 'underscore';
 import { ProtectedDonorViewDataCards } from './components/donor-overview/ProtectedDonorViewDataCards';
 import DefaultItemView from './DefaultItemView';
 import { ShowHideInformationToggle } from './components/file-overview/ShowHideInformationToggle';
-import { DonorMetadataDownloadButton } from '../browse/BrowseView';
 import DataMatrix from '../viz/Matrix/DataMatrix';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { BROWSE_STATUS_FILTERS } from '../browse/BrowseView';
+import { DonorMetadataDownloadButton } from '../shared/DonorMetadataDownloadButton';
 
 // Page containing the details of Items of type File
 export default class ProtectedDonorOverview extends DefaultItemView {
@@ -137,13 +138,14 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
     });
 
     const { context, session, href } = props;
+    const { study } = context || {};
 
     // Load the files from the search URL and calculate statistics
     useEffect(() => {
         // load value from searchUrl if not provided
         setIsLoading(true);
         ajax.load(
-            `/search/?type=File&status=released&donors.display_title=${context?.display_title}`,
+            `/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${context?.display_title}`,
             (resp) => {
                 setStatisticValues({
                     tissues: resp?.facets?.find(
@@ -216,7 +218,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                 <DataMatrix
                                     key="data-matrix-donor"
                                     query={{
-                                        url: `/data_matrix_aggregations/?type=File&limit=all&status=released&donors.display_title=${context.display_title}`,
+                                        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${context.display_title}&limit=all`,
                                         columnAggFields: [
                                             'file_sets.libraries.assay.display_title',
                                             'sequencing.sequencer.platform',
@@ -231,6 +233,7 @@ const ProtectedDonorView = React.memo(function ProtectedDonorView(props) {
                                     idLabel="donor"
                                     session={session}
                                     yAxisLabel="Tissue" // Only one donor, so y-axis is Tissue
+                                    baseBrowseFilesPath={study === 'Production' ? "/browse/" : "/search/"}
                                 />
                             </div>
                         ) : (

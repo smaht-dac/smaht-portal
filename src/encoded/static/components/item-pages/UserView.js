@@ -703,7 +703,7 @@ const ProfileWorkFields = React.memo(function ProfileWorkFields({ user }) {
             </div>
             <div className="card-body">
                 <ul className="list-group list-group-flush list-unstyled border-bottom-0">
-                    <div className="list-group-item pt-0">
+                    <li className="list-group-item pt-0">
                         <div className="row consortia">
                             <div className="col-md-3 text-start text-md-end">
                                 <label htmlFor="consortia" className="text-500">
@@ -711,22 +711,24 @@ const ProfileWorkFields = React.memo(function ProfileWorkFields({ user }) {
                                 </label>
                             </div>
                             <div id="consortia" className="col-md-9">
-                                {consortia.map((consortium) => (
-                                    <li
-                                        key={consortium?.atId}
-                                        id={consortium?.atId}
-                                        className="value text-500">
-                                        {object.itemUtil.generateLink(
-                                            consortium
-                                        )}
-                                    </li>
-                                ))}
+                                <ul className="list-unstyled mb-0">
+                                    {consortia.map((consortium) => (
+                                        <li
+                                            key={consortium?.atId}
+                                            id={consortium?.atId}
+                                            className="value text-500">
+                                            {object.itemUtil.generateLink(
+                                                consortium
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
                         </div>
-                    </div>
+                    </li>
                 </ul>
                 <ul className="list-group list-group-flush list-unstyled border-top-0 mt-0">
-                    <div className="list-group-item">
+                    <li className="list-group-item">
                         <div className="row submission-centers">
                             <div className="col-md-3 text-start text-md-end">
                                 <label
@@ -736,19 +738,21 @@ const ProfileWorkFields = React.memo(function ProfileWorkFields({ user }) {
                                 </label>
                             </div>
                             <div id="submission_centers" className="col-md-9">
-                                {submissionCenters.map((submissionCenter) => (
-                                    <li
-                                        key={submissionCenter?.atId}
-                                        id={submissionCenter?.atId}
-                                        className="value text-500">
-                                        {object.itemUtil.generateLink(
-                                            submissionCenter
-                                        )}
-                                    </li>
-                                ))}
+                                <ul className="list-unstyled mb-0">
+                                    {submissionCenters.map((submissionCenter) => (
+                                        <li
+                                            key={submissionCenter?.atId}
+                                            id={submissionCenter?.atId}
+                                            className="value text-500">
+                                            {object.itemUtil.generateLink(
+                                                submissionCenter
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
                         </div>
-                    </div>
+                    </li>
                 </ul>
             </div>
         </div>

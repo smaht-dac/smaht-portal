@@ -78,10 +78,11 @@
             "default": "1"
         },
         "status": {
-            "default": "released",
+            "default": "open",
             "enum": [
                 "released",
-                "current",
+                "open",
+                "in review",
                 "obsolete",
                 "deleted"
             ]

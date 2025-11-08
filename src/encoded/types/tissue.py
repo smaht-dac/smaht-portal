@@ -66,20 +66,25 @@ class Tissue(SampleSource):
     )
     def category(self, request: Request):
         """Get category of tissue type (either germ layer from OntologyTerm, Germ Cells, or Clinically Accessible).
-        
         Special case for Fibroblasts (3AC) as they are mostly Mesoderm but OntologyTerm links to Ectoderm for Skin.
         """
-        request_handler = RequestHandler(request = request)
-        tissue_type = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="tissue_type")
-        if tissue_type in ["Testis", "Ovary"]:
-            return "Germ Cells"
-        elif tissue_type in ["Blood", "Buccal Swab"]:
-            return "Clinically Accessible"
-        elif tissue_utils.get_protocol_id(self.properties) == "3AC":
-            return "Mesoderm"
-        else:
-            germ_layer = tissue_utils.get_grouping_term_from_tag(self.properties, request_handler=request_handler, tag="germ_layer")
-            return germ_layer or None
+        request_handler = RequestHandler(request=request)
+        category = tissue_utils.get_category(self.properties, request_handler=request_handler)
+        return category or None
+
+    @calculated_property(
+        schema={
+            "title": "Tissue Type",
+            "description": "Tissue type",
+            "type": "string"
+        }
+    )
+    def tissue_type(self, request: Request):
+        """Get the tissue type from the properties.
+        """
+        request_handler = RequestHandler(request=request)
+        tissue_type = tissue_utils.get_tissue_type(self.properties, request_handler=request_handler)
+        return tissue_type or None
 
 
 @link_related_validator

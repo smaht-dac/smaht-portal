@@ -796,6 +796,34 @@ body[data-path="/"]>#application>#layout {
 						}
 					}
 
+					.content {
+						.body {
+							.callout {
+								.announcement-container.warning {
+									border-radius: 5px;
+									margin-top: 5px;
+									padding: 10px;
+									font-size: 12px;
+									border-color: #D5DFF2;
+		
+									div.header {
+										color: #485983;
+										background-color: transparent;
+										justify-content: flex-start;
+										align-items: center;
+										
+										i {
+											color: #485983;
+											margin-right: 5px;
+										}
+									}
+		
+								}
+							}
+						}
+					}
+
+
 					&.data-release-tracker {
 						display: flex;
 
@@ -939,12 +967,13 @@ body[data-path="/"]>#application>#layout {
 												}
 	
 												&:hover {
-													display: flex;
+													display: inline;
 													cursor: pointer;
 													color: #3C71F9;
 	
 													svg {
-														display: flex;
+														display: inline-flex;
+														vertical-align: text-top;
 														fill: #3C71F9;
 														width: 12px;
 														margin-left: 4px;
@@ -1072,81 +1101,6 @@ body[data-path="/"]>#application>#layout {
 								background-color: #D5DFF2;
 								box-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
 							}
-							
-							.announcement-container {
-								background-color: rgba(255, 255, 255, 0.8);
-								border: 1px solid #b4c1f7;
-								padding: 12px;
-								border-radius: 9px;
-								
-								.header {
-									font-size: 0.75rem;
-									color: #485983;
-									margin-top: 0px;
-									margin-bottom: 5px;
-									text-transform: uppercase;
-
-									.localized-date-time {
-										text-transform: none;
-										font-weight: 500;
-										margin-left: 8px;
-										font-size: 0.65rem;
-										color: #90a2cd;
-										float: right !important;
-									}
-								}
-								.body {
-									font-size: 0.75rem;
-									margin-top: 0px;
-									color: #485983;
-
-									ul {
-										padding-left: 16px;
-
-										li {
-											margin-top: 5px;
-										}
-									}
-								}
-								.footer {
-									margin-top: 10px;
-									padding-top: 10px;
-									border-top: 1px solid #b4c1f733;
-									a {
-										display: flex;
-										color: #485983;
-										font-size: 0.75rem;
-										font-weight: 500;
-										
-										svg {
-											display: none;
-										}
-
-										&:hover {
-											cursor: pointer;
-											color: #3C71F9;
-
-											svg {
-												display: flex;
-												fill: #3C71F9;
-												width: 12px;
-												margin-left: 4px;
-											}
-										}
-									}
-								}
-
-								&.warning {
-									.header {
-										color: #b13535;
-									}
-								}
-								&.feature {
-									.header {
-										color: #3E97EA;
-									}
-								}
-							}
 						}
 					}
 					&.about-consortium {
@@ -1217,6 +1171,102 @@ body[data-path="/"]>#application>#layout {
 							}
 						}
 						
+					}
+
+					.announcement-container {
+						background-color: #fcfdfe;
+						border: 1px solid #b4c1f7;
+						padding: 12px;
+						border-radius: 9px;
+						
+						.header {
+							font-size: 0.75rem;
+							color: #485983;
+							margin-top: 0px;
+							margin-bottom: 5px;
+							text-transform: uppercase;
+
+							.localized-date-time {
+								text-transform: none;
+								font-weight: 500;
+								margin-left: 8px;
+								font-size: 0.65rem;
+								color: #90a2cd;
+								float: right !important;
+							}
+						}
+						.body {
+							font-size: 0.75rem;
+							margin-top: 0px;
+							color: #485983;
+
+							ul {
+								padding-left: 16px;
+
+								li {
+									margin-top: 5px;
+								}
+							}
+						}
+						.footer {
+							margin-top: 10px;
+							padding-top: 10px;
+							border-top: 1px solid #b4c1f733;
+							a {
+								display: flex;
+								color: #485983;
+								font-size: 0.75rem;
+								font-weight: 500;
+								
+								svg {
+									display: none;
+								}
+
+								&:hover {
+									cursor: pointer;
+									color: #3C71F9;
+
+									svg {
+										display: flex;
+										fill: #3C71F9;
+										width: 12px;
+										margin-left: 4px;
+									}
+								}
+							}
+						}
+
+						&.warning {
+
+							.header {
+								color: #b13535;
+								background-color: transparent;
+								justify-content: flex-start;
+								align-items: center;
+								
+								i {
+									color: #485983;
+									margin-right: 5px;
+								}
+							}
+						}
+						&.cram-conversion {
+							color: #485983;
+							font-size: 12px;
+							margin: 0px;
+							border-radius: 8px;
+							padding: 10px;
+							border-color: transparent;
+
+							.header {
+								font-weight: 600;
+							}
+
+							i {
+								color: #485983;
+								margin-right: 5px;
+							}
+						}
 					}
 
 				}
@@ -1353,7 +1403,7 @@ body[data-path="/"]>#application>#layout {
 						}
 
 						&.data-release-tracker {
-							flex: 2;
+							flex: none;
 						}
 
 						&.about-consortium {
@@ -1784,7 +1834,7 @@ div#popover-consortium-map {
 			border-bottom: 1px solid #E8EDF2;
 		}
 		.show-hide-information-toggle {
-			padding: 5px 11% 5px 6%;
+			padding: 5px 6% 5px 1%;
 			display: flex;
 			flex-direction: column-reverse;
 			
@@ -2636,6 +2686,42 @@ body[data-pathname^="/data/benchmarking"]:not([data-at-type*="Error"]) {
 					>div {
 						flex-direction: column;
 					}
+
+					// Download button styling
+					.download-button {
+						height: 31px;
+						font-size: 0.875rem;
+						font-weight: 500;
+						display: flex;
+						align-items: center;
+						gap: 5px;
+
+						i {
+							margin-right: 10px;
+						}
+
+						&:disabled {
+							background-color: #C0C7D2;
+							border: 1px solid #B6C1D1;
+							pointer-events: auto;
+
+							&:hover {
+								cursor: default;
+							}
+							&:active {
+								color: white;
+								background-color: #C0C7D2;
+								border-color: #B6C1D1;
+							}
+						}
+						
+						&.has-access {
+							&:disabled {
+								background-color: #0E74D2;
+								border-color: #0E74D2;
+							}
+						}
+					}
 				}
 			}
 	
@@ -3213,3 +3299,146 @@ FAQ page styles
 }
 
 
+// Schema Reference pages (Data Dictionary)
+.static-section-entry#donor_manifest_dictionary {
+	.schema-reference-page {
+		.example {
+			color: $gray-70;
+		}
+	}
+}
+
+// Data Availability and Access page
+.data-availability-table {
+	width: max-content;
+	border: 1px solid #DBDBDB;
+
+	thead {
+		th {
+			padding: 10px 15px;
+			max-width: 150px;
+			text-wrap: wrap;
+			text-align: center;
+			font-weight: 400;
+			background-color: #f1f9ff;
+			border-right: 1px solid #DBDBDB;
+			line-height: 1.25rem;
+		}
+	}
+
+	tr {
+		border-bottom: 1px solid #DBDBDB;
+
+		td {
+			border-right: 1px solid #DBDBDB;
+			line-height: 1.25rem;
+		}
+	}
+
+	.row-label {
+		width: 200px;
+		text-align: left;
+		padding: 15px 10px;
+	}
+
+	.open {
+		background-color: #DBFFEE;
+		color: #028105;
+	}
+	.protected {
+		background-color: #F3F1FF;
+		color: #745BEE;
+	}
+	.not-applicable {
+		background-color: #F6F8FA;
+		color: #5A5B5B;
+	}
+}
+
+
+.account-creation-nav {
+	display: flex;
+	justify-content: center;
+	gap: 20px;
+
+	.nav-link {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		justify-content: center;
+		padding: 25px 15px;
+		background-color: #EDF6FE;
+		border: 1px solid #E4F0FA;
+		color: #343741;
+		font-family: Inter;
+		border-radius: 10px;
+		text-align: center;
+
+
+		i {
+			color: #BDCEDE;
+			font-size: 1.75rem;
+			margin-bottom: 5px;
+		}
+
+		.nav-link-title, .nav-link-subtitle {
+			color: #343741;
+			font-family: Inter;
+
+			&:hover {
+				text-decoration: none;
+			}
+		}
+
+		.nav-link-title {
+			font-size: 1.5rem;
+			font-weight: 600;
+			line-height: 1.75rem;
+			margin: 5px 0px;
+			padding: 0px;
+			border-bottom: none;
+		}
+
+		.nav-link-subtitle {
+			color: #383A45;
+			font-size: 1rem;
+			font-weight: 400;
+		}
+
+		&:hover {
+			text-decoration: none;
+			background-color: #dbebf8;
+		}
+		&:active {
+			background-color: #d5e8f7
+		}
+	}
+}
+
+
+// SMaHT Data Account Creation 
+[data-at-type="DocsAccessCreating-an-accountPage"] {
+	h3#for-non-smaht-network-members-self-registration, h3#for-smaht-network-members-membership-verification-account-creation, h3#faq-and-troubleshooting {
+		border-bottom: 1px solid #f4f4f4;
+		padding-bottom: 15px;
+		font-size: 1.5rem;
+	}
+
+	.static-section-entry {
+		.rst-container {
+			h4 {
+				font-size: 1.25rem;
+			}
+			h5 {
+				font-size: 1.125rem;
+			}
+		}
+	}
+}
+
+// SMaHT Data Availability and Access page
+[data-at-type="DocsAccessData-availability-and-accessPage"] {
+	h2#what-are-smaht-data, h2#smaht-data-access {
+		font-size: 1.3rem;
+	}
+}

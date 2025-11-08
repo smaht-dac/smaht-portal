@@ -12,6 +12,8 @@ import {
 import { BigDropdownIntroductionWrapper } from './BigDropdownIntroductionWrapper';
 import { BigDropdownBigLink } from './BigDropdownBigLink';
 
+import { BROWSE_LINKS } from '../../../browse/BrowseView';
+
 export function BigDropdownPageTreeMenuIntroduction(props) {
     const {
         linkToTopLevelDirPage = true,
@@ -53,6 +55,7 @@ export function BigDropdownPageTreeMenu(props) {
         href,
         childrenToHide = [],
         disableLinksOnLevel1Titles = false,
+        session,
     } = props;
     const {
         display_title,
@@ -186,7 +189,7 @@ export function BigDropdownPageTreeMenu(props) {
     return (
         <div className={cls}>
             {topLeftMenuCol}
-            <CustomStaticLinks {...{ pathName, href }} />
+            <CustomStaticLinks {...{ pathName, href, session }} />
             {childItems}
         </div>
     );
@@ -224,8 +227,7 @@ function Level1Title({ childPageItem, active, disableLinks }) {
     );
 }
 
-function CustomStaticLinks({ pathName, href }) {
-    console.log('href, pathName', href, pathName, href.includes(pathName));
+function CustomStaticLinks({ pathName, href, session }) {
     switch (pathName) {
         case 'data':
             return (
@@ -236,23 +238,18 @@ function CustomStaticLinks({ pathName, href }) {
                         </h3>
                         <hr className="mb-0" />
                         <BigDropdownBigLink
-                            href="/browse"
+                            href={BROWSE_LINKS.file}
                             titleIcon="file fas"
                             className="primary-big-link is-fa-icon">
                             <h4 className="text-large">Browse By File</h4>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
-                            disabled
-                            href=""
+                            session={session}
+                            href={BROWSE_LINKS.donor}
+                            protectedHref={BROWSE_LINKS.protected_donor}
                             titleIcon="users fas"
                             className="primary-big-link is-fa-icon">
-                            <h4 className="text-large">
-                                Browse By Donor
-                                <span className="text-300 fst-italic text-medium">
-                                    {' '}
-                                    - Coming Soon
-                                </span>
-                            </h4>
+                            <h4 className="text-large">Browse By Donor</h4>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
                             disabled
@@ -267,19 +264,6 @@ function CustomStaticLinks({ pathName, href }) {
                                 </span>
                             </h4>
                         </BigDropdownBigLink>
-                        {/* <BigDropdownBigLink
-                            disabled
-                            href=""
-                            titleIcon="dna fas"
-                            className="primary-big-link is-fa-icon bottom-edge-child">
-                            <h4 className="text-large">
-                                Browse By Assay
-                                <span className="text-300 fst-italic text-medium">
-                                    {' '}
-                                    - Coming Soon
-                                </span>
-                            </h4>
-                        </BigDropdownBigLink> */}
                     </div>
                     <div className="col-12 col-xl gx-0 mt-md-2 mt-lg-0">
                         <h3 className="mt-2 text-400 text-larger">
@@ -313,22 +297,19 @@ function CustomStaticLinks({ pathName, href }) {
                             </div>
                         </BigDropdownBigLink>
                         <BigDropdownBigLink
-                            href="/data/analysis/colo829-snv-indel-detection"
-                            titleIcon={
-                                <div>
-                                    <img
-                                        className="big-link-icon-svg"
-                                        src="/static/img/misc-icons/Analysis Bench.svg"
-                                        alt={`Analysis icon`}
-                                    />
-                                </div>
-                            }
-                            className="primary-big-link">
+                            disabled={true}
+                            href={''}
+                            titleIcon="diagram-project"
+                            className="primary-big-link is-fa-icon">
                             <h4 className="text-large">
-                                Truthset & Benchmarking Analysis
+                                Somatic Variant Sets
+                                <span className="text-300 fst-italic text-medium">
+                                    {' '}
+                                    - Coming Soon
+                                </span>
                             </h4>
                             <div className="description text-medium">
-                                COLO829 SNV/Indel Detection Challenge
+                                Published Somatic SNV/Indel, SV, MEI Call Sets
                             </div>
                         </BigDropdownBigLink>
                     </div>
@@ -343,20 +324,24 @@ function CustomStaticLinks({ pathName, href }) {
                             className="primary-big-link">
                             <h4 className="text-large">Data Matrix</h4>
                         </BigDropdownBigLink>
-                        <BigDropdownBigLink
-                            href="/qc-metrics"
-                            titleIcon="magnifying-glass-chart fas"
-                            className="primary-big-link">
-                            <h4 className="text-large">Data QC</h4>
-                        </BigDropdownBigLink>
-                        <BigDropdownBigLink
-                            href="/retracted-files"
-                            titleIcon="file-circle-xmark fas"
-                            className="primary-big-link">
-                            <h4 className="text-large">
-                                Data Retraction
-                            </h4>
-                        </BigDropdownBigLink>
+                        {session && (
+                            <>
+                                <BigDropdownBigLink
+                                    href="/qc-metrics"
+                                    titleIcon="magnifying-glass-chart fas"
+                                    className="primary-big-link">
+                                    <h4 className="text-large">Data QC</h4>
+                                </BigDropdownBigLink>
+                                <BigDropdownBigLink
+                                    href="/retracted-files"
+                                    titleIcon="file-circle-xmark fas"
+                                    className="primary-big-link">
+                                    <h4 className="text-large">
+                                        Data Retraction
+                                    </h4>
+                                </BigDropdownBigLink>
+                            </>
+                        )}
                     </div>
                 </div>
             );

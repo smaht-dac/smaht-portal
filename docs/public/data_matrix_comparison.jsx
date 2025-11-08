@@ -12,7 +12,7 @@
                         key="data-matrix-benchmarking" // Required to prevent re-instantiation of component upon window resize & similar.
                         session={session} // Required - hooks in 'session' (boolean) from App.
                         query={{
-                            "url": "/data_matrix_aggregations/?type=File&sample_summary.studies=Benchmarking&dataset!=colo829blt_in_silico&dataset!=colo829_snv_indel_challenge_data&dataset!=mei_detection_challenge_data&dataset!=ipsc_snv_indel_challenge_data&status=public&status=released&status=restricted&limit=all",
+                            "url": "/data_matrix_aggregations/?type=File&sample_summary.studies=Benchmarking&dataset!=colo829blt_in_silico&dataset!=colo829_snv_indel_challenge_data&dataset!=mei_detection_challenge_data&dataset!=ipsc_snv_indel_challenge_data&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&limit=all",
                             "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
                             "rowAggFields": ["donors.display_title", "sample_summary.tissues", "dataset"], //multiple column
                         }}
@@ -38,6 +38,7 @@
                         headerFor={null}
                         showColumnSummary={false}
                         idLabel="benchmarking"
+                        baseBrowseFilesPath="/search/"
                     />
                 </div>
             </div>
@@ -52,7 +53,7 @@
                         key="data-matrix-production" // Required to prevent re-instantiation of component upon window resize & similar.
                         session={session} // Required - hooks in 'session' (boolean) from App.
                         query={{
-                            "url": "/data_matrix_aggregations/?type=File&sample_summary.studies=Production&status=released&limit=all",
+                            "url": "/data_matrix_aggregations/?type=File&sample_summary.studies=Production&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&limit=all",
                             "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
                             "rowAggFields": ["donors.display_title", "sample_summary.tissues"], //multiple column
                         }}

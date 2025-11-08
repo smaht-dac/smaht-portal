@@ -5,7 +5,6 @@ import _ from 'underscore';
 import { PublicDonorViewDataCards } from './components/donor-overview/PublicDonorViewDataCards';
 import DefaultItemView from './DefaultItemView';
 import { ShowHideInformationToggle } from './components/file-overview/ShowHideInformationToggle';
-import { DonorMetadataDownloadButton } from '../browse/BrowseView';
 import DataMatrix from '../viz/Matrix/DataMatrix';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import {
@@ -14,6 +13,8 @@ import {
     PopoverHeader,
     PopoverBody,
 } from 'react-bootstrap';
+import { BROWSE_STATUS_FILTERS } from '../browse/BrowseView';
+import { useUserDownloadAccess } from '../util/hooks';
 
 // Page containing the details of Items of type File
 export default class PublicDonorOverview extends DefaultItemView {
@@ -63,20 +64,52 @@ const PublicDonorViewTitle = (props) => {
     );
 };
 
+export const renderLoginAccessPopover = () => {
+    return (
+        <Popover className="popover download-popover login">
+            <PopoverHeader as="h3">
+                Open Data - Log in to Download
+            </PopoverHeader>
+            <PopoverBody>
+                Login/Create a SMaHT portal account to download open data.
+            </PopoverBody>
+        </Popover>
+    );
+};
+export const renderProtectedAccessPopover = () => {
+    return (
+        <Popover className={'popover download-popover protected'}>
+            <PopoverHeader as="h3">
+                Protected Data - Access Needed
+            </PopoverHeader>
+            <PopoverBody>
+                This data is protected. To download this data, you must apply to
+                for access to SMaHT protected data on dbGaP.
+            </PopoverBody>
+        </Popover>
+    );
+};
+
 // Donor Manifest button with warning Popover
-const PublicDonorDownloadButton = () => {
+const PublicDonorDownloadButton = ({ session }) => {
     return (
         <OverlayTrigger
-            trigger="hover"
+            trigger={['hover', 'focus']}
             placement="top"
             overlay={
-                <Popover className="public-donor-download-popover">
-                    <PopoverHeader as="h3">Data Access Needed</PopoverHeader>
-                    <PopoverBody>
-                        This data is protected. To download this data, you must
-                        have access to SMaHT protected access data on dbGaP.
-                    </PopoverBody>
-                </Popover>
+                session ? (
+                    <Popover className={'popover download-popover coming-soon'}>
+                        <PopoverHeader as="h3">
+                            Donor Manifest Coming Soon
+                        </PopoverHeader>
+                        <PopoverBody>
+                            Individual Donor manifests are coming soon in future
+                            portal releases.
+                        </PopoverBody>
+                    </Popover>
+                ) : (
+                    renderProtectedAccessPopover()
+                )
             }>
             <div className="d-flex gap-2 flex-wrap mt-1 mt-xl-0">
                 <div className="col-md-auto col-12">
@@ -92,64 +125,100 @@ const PublicDonorDownloadButton = () => {
     );
 };
 
+// Banner component to redirect user to ProtectedDonor page if they have access
+const ProtectedDonorRedirectBanner = ({ href }) => {
+    return href ? (
+        <div className="callout data-available">
+            <span className="callout-text">
+                <i className="icon icon-users fas"></i> Welcome to the SMaHT
+                Data Portal! Please <a href={href}>click here</a> to load
+                protected donor data.
+            </span>
+        </div>
+    ) : null;
+};
+
 // Header component containing high-level information for the file item
 const PublicDonorViewHeader = (props) => {
     const { context = {}, session, title = null } = props;
     const { notes_to_tsv } = context;
+    const [showRedirectBanner, setShowRedirectBanner] = useState(false);
+    const userDownloadAccess = useUserDownloadAccess(session);
+
+    useEffect(() => {
+        if (
+            context?.protected_donor?.['@id'] &&
+            session &&
+            userDownloadAccess?.['protected']
+        ) {
+            setShowRedirectBanner(true);
+        }
+    }, [session, userDownloadAccess, context]);
 
     return (
-        <div className="view-header">
-            <div className="d-flex flex-row align-items-center">
-                <div className="d-none d-md-flex">
-                    <img src="/static/img/misc-icons/donor_profile.svg" />
-                </div>
-                <div className="d-flex flex-column flex-grow-1 ms-md-2">
-                    <div className="data-group data-row header">
-                        {title}
-                        <PublicDonorDownloadButton />
+        <>
+            {showRedirectBanner && (
+                <ProtectedDonorRedirectBanner
+                    href={context?.protected_donor?.['@id']}
+                />
+            )}
+            <div className="view-header">
+                <div className="d-flex flex-row align-items-center">
+                    <div className="d-none d-md-flex">
+                        <img src="/static/img/misc-icons/donor_profile.svg" />
                     </div>
-                    <div className="callout d-inline px-3 py-2 mt-1">
-                        <i className="icon icon-file-shield fas"></i>{' '}
-                        <span>
-                            <b>Donor Privacy:</b> Only select info from the
-                            donor manifest will be shown on the data portal,
-                            download the manifest for complete donor metadata
-                        </span>
+                    <div className="d-flex flex-column flex-grow-1 ms-md-2">
+                        <div className="data-group data-row header">
+                            {title}
+                            <PublicDonorDownloadButton session={session} />
+                        </div>
+                        <div className="callout d-inline px-3 py-2 mt-1">
+                            <i className="icon icon-file-shield fas"></i>{' '}
+                            <span>
+                                <b>Donor Privacy:</b> Only select info from the
+                                donor manifest will be shown on the data portal,
+                                download the manifest for complete donor
+                                metadata
+                            </span>
+                        </div>
                     </div>
                 </div>
+                {notes_to_tsv && notes_to_tsv.length > 0 ? (
+                    <div className="data-group data-row">
+                        <div className="datum description">
+                            <span className="datum-title">Notes </span>
+                            <span className="vertical-divider">|</span>
+                            <ShowHideInformationToggle
+                                id="show-hide-tsv-notes"
+                                useToggle={notes_to_tsv.length > 1}>
+                                <ul className="list-unstyled">
+                                    {notes_to_tsv.map((note, i) => (
+                                        <li
+                                            key={note}
+                                            className={
+                                                'datum-value-notes-to-tsv text-gray ' +
+                                                (i > 0 ? 'mt-1' : '')
+                                            }>
+                                            {note
+                                                .substring(0, 1)
+                                                .toUpperCase() +
+                                                note.substring(1)}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </ShowHideInformationToggle>
+                        </div>
+                    </div>
+                ) : null}
             </div>
-            {notes_to_tsv && notes_to_tsv.length > 0 ? (
-                <div className="data-group data-row">
-                    <div className="datum description">
-                        <span className="datum-title">Notes </span>
-                        <span className="vertical-divider">|</span>
-                        <ShowHideInformationToggle
-                            id="show-hide-tsv-notes"
-                            useToggle={notes_to_tsv.length > 1}>
-                            <ul className="list-unstyled">
-                                {notes_to_tsv.map((note, i) => (
-                                    <li
-                                        key={note}
-                                        className={
-                                            'datum-value-notes-to-tsv text-gray ' +
-                                            (i > 0 ? 'mt-1' : '')
-                                        }>
-                                        {note.substring(0, 1).toUpperCase() +
-                                            note.substring(1)}
-                                    </li>
-                                ))}
-                            </ul>
-                        </ShowHideInformationToggle>
-                    </div>
-                </div>
-            ) : null}
-        </div>
+        </>
     );
 };
 
 /** Top-level component for the Donor Overview Page */
 const PublicDonorView = React.memo(function PublicDonorView(props) {
     const { context, session, href } = props;
+    const { study } = context || {};
 
     const [isLoading, setIsLoading] = useState(true);
     const [statisticValues, setStatisticValues] = useState({
@@ -163,7 +232,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
         // load value from searchUrl if not provided
         setIsLoading(true);
         ajax.load(
-            `/search/?type=File&status=released&donors.display_title=${context?.display_title}`,
+            `/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${context?.display_title}`,
             (resp) => {
                 setStatisticValues({
                     tissues: resp?.facets?.find(
@@ -236,7 +305,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                 <DataMatrix
                                     key="data-matrix-donor"
                                     query={{
-                                        url: `/data_matrix_aggregations/?type=File&limit=all&status=released&donors.display_title=${context.display_title}`,
+                                        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${context.display_title}&limit=all`,
                                         columnAggFields: [
                                             'file_sets.libraries.assay.display_title',
                                             'sequencing.sequencer.platform',
@@ -251,6 +320,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                     idLabel="donor"
                                     session={session}
                                     yAxisLabel="Tissue" // Only one donor, so y-axis is Tissue
+                                    baseBrowseFilesPath={study === 'Production' ? "/browse/" : "/search/"}
                                 />
                             </div>
                         ) : (

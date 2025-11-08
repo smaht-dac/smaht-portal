@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-1.1.0
+1.6.0
 =====
 
 * Open Data URL support for SMaHT
@@ -16,6 +16,218 @@ Change Log
 * Redirect with no auth will be processed for public files, otherwise
   a redirect with auth will be sent
 * Requires update to permissions for S3 Federation user
+
+  
+1.5.0
+=====
+
+`PR 545: Refactor Cypress tests for role-based testing <https://github.com/smaht-dac/smaht-portal/pull/545>`
+
+* Refactor Cypress tests to add role-based testing capabilities
+* Add new Cypress tests for Documentation page, Data Overview page, and File Overview page
+
+1.4.8
+=====
+
+* Updates to the load-users-from-oc script to account for DUA status
+
+1.4.7
+=====
+
+`PR 507: Adjust file release for public portal <https://github.com/smaht-dac/smaht-portal/pull/507>`_
+
+* Adapt file release script to new statuses
+* In release script distinguish between benchmarking and production tissue when getting access status
+
+
+1.4.6
+=====
+`PR 542: Update bulk donor manifest script <https://github.com/smaht-dac/smaht-portal/pull/542>`_
+
+* For those bulk-donor-manifest files generated from ProtectedDonors (i.e. contain protected data) add the public Donor accession as the first column.
+
+
+1.4.5
+=====
+
+`PR 516: Update Donor release script <https://github.com/smaht-dac/smaht-portal/pull/532>`_
+
+* Add/update donor release script to reflect new release statuses and default to network statuses for initial releases
+
+
+1.4.4
+=====
+`PR 544 Data matrix and file search view permission updates <https://github.com/smaht-dac/smaht-portal/pull/544>`_
+
+* Improved data matrix row summary file count calculation and fix browse files links in popover
+* Added access control and download functionality in file search view based on user roles
+* Hide production data matrix in Data Matrix page if no data available
+
+
+1.4.3
+=====
+`PR 540 Refactor file status tracking structure <https://github.com/smaht-dac/smaht-portal/pull/540>`_
+
+* The `file_status_tracking` calc prop now contains the dictionaries `status_tracking` and `release_dates`. 
+  `status_tracking` contains timestamps and dates when the file switched status. 
+  `release_dates` evaluates these status changes and provides timestamps and dates for 
+  `initial_release`, `public_release`, `network_release`.
+
+
+1.4.2
+=====
+
+* Bug fix - repair missing s3 encryption key in select validation scenarios
+* Update diff check during submission to exclude SubmittedFile items
+
+
+1.4.1
+=====
+`PR 495 Script for Bulk Donor Manifests <https://github.com/smaht-dac/smaht-portal/pull/495>`_
+
+* Add script to generate bulk donor metadata manifests - can generate the 4 different files containing
+  public or protected donor metadata for production or benchmarking donors that have been publicly released
+  or are only available to network members.
+
+
+1.4.0
+=====
+
+`PR 516: feat: Browse By Donor + Visualizations + User Registration Form <https://github.com/smaht-dac/smaht-portal/pull/516>`_
+
+* New browse by donor (and protected donor) view
+* Visualizations for donor demographics including age, sex, and, hardy scale and self-reported ethnicity
+* New user registration form with email verification and reCAPTCHA
+* Updates "status" for browse views, data matrix and misc. filters
+
+
+1.3.3
+=====
+`PR 515: feat: sort tables by date_released <https://github.com/smaht-dac/smaht-portal/pull/515>`_
+
+* Sort benchmarking tables by date_released instead of date_created
+
+
+1.3.2
+=====
+`PR 514: fix: correct assay counts for browse by file page <https://github.com/smaht-dac/smaht-portal/pull/514>`_
+
+* Fix assay counts on File Browse Data Summary Statistics
+
+
+1.3.1
+=====
+`PR 527: feat: homepage announcement for portal shutdown <https://github.com/smaht-dac/smaht-portal/pull/527>`_
+
+* Implement announcement in homepage banner for portal shutdown
+* Prevent non-admins from seeing the user registration modal during portal shutdown
+
+
+1.3.0
+=====
+`PR 523: feat: Donor Metadata Dictionary <https://github.com/smaht-dac/smaht-portal/pull/523>`_
+
+* Implement Donor Metadata Dictionary page
+
+
+1.2.1
+=====
+
+* Correct link in submission doc page
+
+
+1.2.0
+=====
+
+* Adjusts the user schema to replicate the attributions without
+  serverDefault for submission center, ensuring attribution is not given
+  erroneously to non-affiliated users
+* Regression test for the above
+* Change data release tracker to direct users to /browse, include only
+  production files, update tests as needed
+
+
+1.1.8
+=====
+`PR 524: fix: update uuids to match prod <https://github.com/smaht-dac/smaht-portal/pull/524>`_
+
+* Fix uuids for the pages and static sections below in order to prevent uuid mismatches causing reindex crash
+
+
+1.1.7
+=====
+`PR 511: SN Sample Nomenclature doc <https://github.com/smaht-dac/smaht-portal/pull/511>`_
+
+* Update page to match newest version of the documentation
+* Add newest version of the pdf document to the page
+
+
+1.1.6
+=====
+`PR 526: feat: release tracker CRAM warning callout <https://github.com/smaht-dac/smaht-portal/pull/526>`_
+
+* Add support for CRAM warning in release tracker items
+
+
+1.1.5
+=====
+`PR 525: Fix: Re-include ingestion_processors in app config <https://github.com/smaht-dac/smaht-portal/pull/525>`_
+
+* Re-include ingestion_processors in app config
+
+
+1.1.4
+=====
+`PR 521: Modify production tissues in Submission Status page <https://github.com/smaht-dac/smaht-portal/pull/521>`_
+
+* Adjust production tissues in Submission Status page
+
+
+1.1.3
+=====
+`PR 499: WF Fix ingesting identical items <https://github.com/smaht-dac/smaht-portal/pull/499>`_
+
+* Add diff check for ingested metadata
+
+
+1.1.2
+=====
+`PR 520: Add tag filtering for release tracker and improve notifications panel UX <https://github.com/smaht-dac/smaht-portal/pull/520>`_
+
+* Released files can now be excluded from the release tracker by adding the tag `exclude_from_release_tracker`
+* Only show the last 3 months in the release tracker
+* In the notification panel UX, handle the case correctly when there are no released files.
+
+
+1.1.1
+=====
+`PR 513: feat: QC Tab update <https://github.com/smaht-dac/smaht-portal/pull/513>`_
+
+* Show placeholder for QC Tab when user does not have access to related QC Items for that file
+
+
+1.1.0
+=====
+`PR 508: SN Fibroblast tissue type  <https://github.com/smaht-dac/smaht-portal/pull/508>`_
+
+* Update the `get_sample_summary` function in File to return "Fibroblast" for `sample_summary.tissues` if the linked tissues have a 3AC protocol ID, otherwise use the linked OntologyTerms
+
+
+1.0.2
+=====
+`PR 517: Improve Submission Status page file display logic <https://github.com/smaht-dac/smaht-portal/pull/517>`_
+
+* Show CRAM file on the Submission Status page if they were generated from a BAM to CRAM conversion workflow.
+* Hide obsolete files from the Submission Status page.
+* Make sure MetaWorkflowRuns are sorted by date created (oldest first) on the Submission Status page.
+
+
+1.0.1
+=====
+`PR 498: SN Update manifest documentation <https://github.com/smaht-dac/smaht-portal/pull/498>`_
+
+* Update the Interpreting Manifest Files page to include new columns added to the File Manifest and information on the multiple manifest files containing full file metadata.
+
 
 1.0.0
 =====

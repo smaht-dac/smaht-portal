@@ -40,9 +40,10 @@ from snovault.search.search_utils import make_search_subreq as snovault_make_sea
 QUERY_FILE_TYPES = ["OutputFile", "SubmittedFile"]
 QUERY_FILE_STATUSES = ["released"]
 QUERY_FILE_CATEGORIES = ["!Quality Control"]
+QUERY_FILE_TAGS = ["!exclude_from_release_tracker"]
 QUERY_RECENT_MONTHS = 3
 QUERY_INCLUDE_CURRENT_MONTH = True
-BASE_SEARCH_QUERY = "/search/"
+BASE_SEARCH_QUERY = "/browse/"
 LEGACY_DEFAULT = False
 
 
@@ -77,7 +78,7 @@ def recent_files_summary(request: PyramidRequest,
     by default, info for files released withing the past three months grouped by release-date,
     cell-line or donor, and file-description. The specific fields used for these groupings are:
 
-    - release-date: file_status_tracking.released
+    - release-date: file_status_tracking.release_dates.initial_release
     - cell-line: file_sets.libraries.analytes.samples.sample_sources.cell_line.code
     - donor: donors.display_title
     - file-dsecription: release_tracker_description
@@ -93,7 +94,7 @@ def recent_files_summary(request: PyramidRequest,
 
     A specific date range can also be passed in e.g. using from_date=2024-08-01 and thru_date=2024-10-31.
 
-    For testing purposes, a date field other than the default file_status_tracking.released can
+    For testing purposes, a date field other than the default file_status_tracking.release_dates.initial_release can
     also be specified using the date_property_name query argument. And file statuses other than
     released can be queried for using one or more status query arguments, e.g. status=uploaded.
     """
@@ -132,12 +133,13 @@ def recent_files_summary(request: PyramidRequest,
 
     def create_base_query_arguments(request: PyramidRequest) -> dict:
 
-        global QUERY_FILE_CATEGORIES, QUERY_FILE_STATUSES, QUERY_FILE_TYPES
+        global QUERY_FILE_CATEGORIES, QUERY_FILE_STATUSES, QUERY_FILE_TYPES, QUERY_FILE_TAGS
         nonlocal exclude_submitted_file
 
         types = request_args(request, "type", QUERY_FILE_TYPES)
         statuses = request_args(request, "status", QUERY_FILE_STATUSES)
         categories = request_args(request, "category", QUERY_FILE_CATEGORIES)
+        tags = request_args(request, "tag", QUERY_FILE_TAGS)
 
         if exclude_submitted_file and ("SubmittedFile" in types):
             types.remove("SubmittedFile")
@@ -145,7 +147,9 @@ def recent_files_summary(request: PyramidRequest,
         base_query_arguments = {
             "type": types if types else None,
             "status": statuses if statuses else None,
-            "data_category": categories if categories else None
+            "data_category": categories if categories else None,
+            'sample_summary.studies': ['Production'],
+            "tags": tags if tags else None
         }
 
         return {key: value for key, value in base_query_arguments.items() if value is not None}
@@ -218,7 +222,7 @@ def recent_files_summary(request: PyramidRequest,
                     if_or_else_if = "if" if aggregation_field_grouping_index == 0 else "else if"
                     # Note that if there are multiple values for the aggregation field just the "first" one will be chosen;
                     # where "first" means which was indexed first, which from an application POV is kind of arbitrary.
-                    # If we want to make it more deterministic we could order the results (say) alphabetically like so: 
+                    # If we want to make it more deterministic we could order the results (say) alphabetically like so:
                     #   def value = doc['embedded.{aggregation_field}.raw'].stream().min((a, b) -> a.compareTo(b)).get();
                     #   return '{aggregation_field}:' + value;
                     # OR, if we actually want to aggregation on ALL values we could collect the results and return all like so:

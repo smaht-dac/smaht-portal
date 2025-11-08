@@ -10,12 +10,16 @@ import colorsys
 # Portal constants
 FILESET = "FileSet"
 UPLOADED = "uploaded"
-RELEASED = "released"
-PUBLIC = "public"
 UPLOADING = "uploading"
 ARCHIVED = "archived"
-DELTED = "deleted"
-RESTRICTED = "restricted"
+DELETED = "deleted"
+OBSOLETE = "obsolete"
+OPEN = "open"
+OPEN_EARLY = "open-early"
+OPEN_NETWORK = "open-network"
+PROTECTED = "protected"
+PROTECTED_EARLY = "protected-early"
+PROTECTED_NETWORK = "protected-network"
 STATUS = "status"
 O2_PATH = "o2_path"
 SUBMITTED_FILE = "SubmittedFile"
@@ -213,10 +217,17 @@ def get_submission_status(context, request):
         for res in search_res:
             file_set = res
             files = res.get("files", [])
-            meta_workflow_runs = res.get("meta_workflow_runs", [])
+            # This determines the order of the MetaWorkflowRuns shown on the submission status page
+            file_set["meta_workflow_runs"] = sorted(
+                res.get("meta_workflow_runs", []),
+                key=lambda d: d["date_created"],
+                reverse=False,  # Oldest first
+            )
+            meta_workflow_runs = file_set["meta_workflow_runs"]
             latest_alignment_mwfr = get_latest_alignment_mwfr_for_fileset(
                 meta_workflow_runs, all_alignment_mwfrs
             )
+
             file_set["submitted_files"] = get_submitted_files_info(files)
             file_set["output_files"] = get_output_files_info(
                 files, meta_workflow_runs, all_alignment_mwfrs
@@ -299,8 +310,10 @@ def add_submission_status_search_filters(
     if not filter:
         return
     if "fileset_status" in filter:
-        if filter["fileset_status"] == "released":
-            search_params[STATUS] = [RESTRICTED, RELEASED, PUBLIC]
+        if filter["fileset_status"] == "released-network":
+            search_params[STATUS] = [OPEN_EARLY, OPEN_NETWORK]
+        elif filter["fileset_status"] == "released-public-network":
+            search_params[STATUS] = [OPEN, OPEN_EARLY, OPEN_NETWORK]
         elif filter["fileset_status"] != "all":
             search_params[STATUS] = filter["fileset_status"]
     if "submission_center" in filter:
@@ -356,6 +369,8 @@ def get_output_files_info(files, mwfrs, all_alignment_mwfrs):
 
     # Get the output files that are on the file set
     for file in output_files:
+        if file[STATUS] in [DELETED, OBSOLETE]:
+            continue
         qc_result = get_qc_result(file, is_output_file=True)
         output_files_with_qc.append(qc_result)
 
@@ -372,6 +387,8 @@ def get_output_files_info(files, mwfrs, all_alignment_mwfrs):
                     continue
                 file = output["file"]
                 if QUALITY_METRICS not in file:
+                    continue
+                if file[STATUS] in [DELETED, OBSOLETE]:
                     continue
                 qc_result = get_qc_result(file, is_output_file=True)
                 output_files_with_qc.append(qc_result)
@@ -406,7 +423,9 @@ def get_submitted_files_info(files_metadata):
     date_uploaded = None
     if is_upload_complete and len(submitted_files) > 0:
         for file in submitted_files:
-            file_status_tracking = file.get("file_status_tracking")
+            file_status_tracking = file.get("file_status_tracking", {}).get(
+                "status_tracking"
+            )
             if file_status_tracking and UPLOADED in file_status_tracking:
                 date_uploaded_current = file_status_tracking[UPLOADED]
                 if not date_uploaded:
@@ -427,7 +446,7 @@ def get_submitted_files_info(files_metadata):
     unaligned_reads_statuses = list(set(unaligned_reads_statuses))
     if len(unaligned_reads_statuses) == 1 and unaligned_reads_statuses[0] in [
         ARCHIVED,
-        DELTED,
+        DELETED,
     ]:
         overall_status_unaligned_reads = unaligned_reads_statuses[0]
 
@@ -471,17 +490,24 @@ def get_all_alignments_mwfrs(context, request, filesets_from_search):
         mwfrs_fs = fs.get("meta_workflow_runs", [])
         for mwfr in mwfrs_fs:
             final_status = mwfr.get("final_status")
-            mwf_categories = mwfr.get("meta_workflow", {}).get("category", [])
-            if final_status != "completed" or "Alignment" not in mwf_categories:
+            mwf = mwfr.get("meta_workflow", {})
+            if not mwf:
                 continue
-            uuids_to_get.append(mwfr[UUID])
+            mwf_categories = mwf.get("category", [])
+            # Explicitly include bam to cram conversions here. These are typically run on final output BAM files
+            # and we want to show the CRAMs on the submission status page
+            is_bam_to_cram = (mwf.get("name", "") == "bam_to_cram")
+            if final_status == "completed" and (
+                ("Alignment" in mwf_categories) or is_bam_to_cram
+            ):
+                uuids_to_get.append(mwfr[UUID])
 
     if not uuids_to_get:
         return mwfrs
 
     # Get all MetaWorkflowRun items at once via search
     search_params = [("type", "MetaWorkflowRun")]
-    search_params = [("limit", 2 * MAX_FILESETS)]
+    search_params = [("limit", 3 * MAX_FILESETS)]
     for uuid in uuids_to_get:
         search_params.append(("uuid", uuid))
     subreq = make_search_subreq(

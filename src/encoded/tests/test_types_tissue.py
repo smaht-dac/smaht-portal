@@ -76,27 +76,3 @@ def test_validate_external_id_on_add(
         'submission_centers': item_utils.get_submission_centers(insert),
     }
     post_item(es_testapp, post_body, 'tissue', status=expected_status)
-
-
-@pytest.mark.workbook
-@pytest.mark.parametrize(
-    "submitted_id,expected", [
-        ("TEST_TISSUE_LUNG", "Endoderm"),
-        ("TEST_TISSUE_BLOOD", "Clinically Accessible"),
-        ("TEST_TISSUE_BRAIN", "Ectoderm"),
-        ("TEST_TISSUE_FIBROBLAST", "Mesoderm")
-    ]
-)
-def test_category_calc_prop(
-    es_testapp: TestApp,
-    workbook: None,
-    submitted_id: str,
-    expected: str
-) -> None:
-    """Ensure the category calculated property works as expected."""
-    insert = get_item(
-        es_testapp,
-        submitted_id,
-        collection="Tissue"
-    )
-    assert insert.get("category","") == expected

@@ -117,6 +117,18 @@
         "preservation_type": "Snap Frozen"
     },
     {
+        "uuid": "b2271fea-1820-45e4-a86b-d03374b8c507",
+         "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE-SAMPLE_FIBROBLAST",
+        "external_id": "SMHT001-3AC-001X",
+        "category": "Cells",
+        "sample_sources": [
+            "TEST_TISSUE_FIBROBLAST"
+        ]
+    },
+    {
         "uuid": "3b22bab3-ebd8-438b-9631-5c90f51bb3b6",
         "submission_centers": [
             "smaht"
