@@ -256,6 +256,28 @@
 		}	
 	}
 
+	.section-content {
+		pre.code-block.copy-wrapper {
+			position: relative;
+			background-color: #F7F8FA;
+			transition: transform 0.4s; 
+			transform-origin: 50% 50%; 
+			transform: translate3d(0px, 0px, 0px);
+			padding: 15px;
+			border-radius: 5px;
+
+			.icon {
+				position: absolute;
+				top: 15px;
+				right: 15px;
+			}
+
+			&:hover {
+				cursor: pointer;
+			}
+		}
+	}
+
 	a {
 		text-decoration: none;
 
@@ -3440,5 +3462,45 @@ FAQ page styles
 [data-at-type="DocsAccessData-availability-and-accessPage"] {
 	h2#what-are-smaht-data, h2#smaht-data-access {
 		font-size: 1.3rem;
+	}
+}
+
+// Pages under Pipeline Documentation
+[data-at-type^="DocsAdditional-resourcesPipeline-docs"] {
+	.table-of-contents {
+		.parent-entry {
+			display: flex;
+			
+			.expand-button-container {
+				display: none;
+			}
+		}
+	}
+
+	.dropdown {
+		.parent-link {
+			display: flex;
+			align-items: center;
+			gap: 5px;
+		}
+
+		.sublinks {
+			display: flex;
+			&.closed {
+				display: none;
+			}
+		}
+		&-toggle {
+			display: flex;
+			justify-content: center;
+			background-color: transparent;
+			border: none;
+			padding: 0px;
+
+			&:after {
+				display: none;
+			}
+		}
+
 	}
 }
