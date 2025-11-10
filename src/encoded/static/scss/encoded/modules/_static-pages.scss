@@ -3476,4 +3476,31 @@ FAQ page styles
 			}
 		}
 	}
+
+	.dropdown {
+		.parent-link {
+			display: flex;
+			align-items: center;
+			gap: 5px;
+		}
+
+		.sublinks {
+			display: flex;
+			&.closed {
+				display: none;
+			}
+		}
+		&-toggle {
+			display: flex;
+			justify-content: center;
+			background-color: transparent;
+			border: none;
+			padding: 0px;
+
+			&:after {
+				display: none;
+			}
+		}
+
+	}
 }
