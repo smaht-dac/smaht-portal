@@ -1,5 +1,5 @@
 // Sends a GET request to the given URL and returns the `total` field from JSON response
-function getApiTotalFromUrl(url) {
+export function getApiTotalFromUrl(url) {
   // Ensure the URL requests JSON format (append if missing)
   const fullUrl = url.includes('format=json') ? url : `${url}&format=json&frame=raw`;
 
@@ -10,7 +10,7 @@ function getApiTotalFromUrl(url) {
 }
 
 // Safely parse a number from text content (e.g. " 11 " → 11)
-function parseIntSafe(text) {
+export function parseIntSafe(text) {
   const n = parseInt(String(text).trim(), 10);
   return Number.isNaN(n) ? 0 : n;
 }
