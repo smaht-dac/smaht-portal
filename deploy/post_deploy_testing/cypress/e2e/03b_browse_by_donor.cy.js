@@ -1,5 +1,6 @@
 import { cypressVisitHeaders, ROLE_TYPES, BROWSE_STATUS_PARAMS } from '../support';
 import { navBrowseByDonorBtnSelector, dataNavBarItemSelectorStr } from '../support/selectorVars';
+import { getApiTotalFromUrl, parseIntSafe } from '../support/utils/dataMatrixUtils';
 
 /* ----------------------------- ROLE MATRIX -----------------------------
    Toggle each step per role:
@@ -256,28 +257,45 @@ function stepFacetChartBarPlotTests(caps) {
                     const expectedFilteredResults = parseInt($barPart.attr('data-count'));
                     expect(expectedFilteredResults).to.be.greaterThan(3);
                     expect(expectedFilteredResults).to.be.lessThan(25);
-                    return cy.window().scrollTo('top').end()
-                        .get('.bar-plot-chart .chart-bar[data-term="Blood"] .bar-part[data-term="ONT PromethION 24"]').should('have.attr', 'data-count').end()
+                    cy.window().scrollTo('top').end()
                         .wrap($barPart).hoverIn().end()
                         .get('.cursor-component-root .details-title').should('contain', 'Illumina NovaSeq X Plus').end()
                         .get('.cursor-component-root .detail-crumbs .crumb').should('contain', 'Brain').end()
                         .get('.cursor-component-root .details-title .primary-count').invoke('text').then(text => {
                             const number = parseInt(text, 10);
                             expect(number).to.eq(expectedFilteredResults);
-                        }).getQuickInfoBar().then(function (origCount) {
-                            // `{ force: true }` is used a bunch here to prevent Cypress from attempting to scroll browser up/down during the test -- which may interfere w. mouse hover events.
-                            // See https://github.com/cypress-io/cypress/issues/2353#issuecomment-413347535
-                            return cy.window().then((w) => { 
-                                w.scrollTo(0, 0); }).end()
-                                .wrap($barPart, { force: true }).scrollToCenterElement().trigger('mouseover', { force: true }).trigger('mousemove', { force: true }).wait(300).click({ force: true }).end()
-                                .get('.cursor-component-root .actions.buttons-container .btn-primary').should('contain', "Explore").click({ force: true }).end() // Browser will scroll after click itself (e.g. triggered by app)
-                                .location('search')
-                                .should('include', 'external_id=').end()
-                                .get('#slow-load-container').should('not.have.class', 'visible').end()
-                                .searchPageTotalResultCount().then((totalCount) => {
-                                    expect(totalCount).to.equal(expectedFilteredResults);
-                                    // cy.get('.bar-plot-chart .chart-bar .bar-part').should('have.length', 1).end();
-                                });
+                        })
+                        // file count – retry until text is numeric and equals expected
+                        .get('.cursor-component-root .details a') // Adjust selector if needed
+                        .should('contain.text', 'Files') // Ensure the correct link
+                        .then(($a) => {
+                            const text = $a.text();      // e.g. "39 Files"
+                            const href = $a.attr('href');
+                            const fullUrl = href.startsWith('http')
+                                ? href
+                                : `${Cypress.config('baseUrl')}${href}`;
+
+                            // Extract number before "Files"
+                            const uiCount = parseIntSafe(text);
+
+                            // Compare UI count with API total
+                            getApiTotalFromUrl(fullUrl).then((apiTotal) => {
+                                expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
+                                    .to.equal(uiCount);
+                            });
+                        });
+                    // `{ force: true }` is used a bunch here to prevent Cypress from attempting to scroll browser up/down during the test -- which may interfere w. mouse hover events.
+                    // See https://github.com/cypress-io/cypress/issues/2353#issuecomment-413347535
+                    cy.window().then((w) => {
+                        w.scrollTo(0, 0);
+                    }).end()
+                        .wrap($barPart, { force: true }).scrollToCenterElement().trigger('mouseover', { force: true }).trigger('mousemove', { force: true }).wait(300).click({ force: true }).end()
+                        .get('.cursor-component-root .actions.buttons-container .btn-primary').should('contain', "Explore").click({ force: true }).end() // Browser will scroll after click itself (e.g. triggered by app)
+                        .location('search')
+                        .should('include', 'external_id=').end()
+                        .get('#slow-load-container').should('not.have.class', 'visible').end()
+                        .searchPageTotalResultCount().then((totalCount) => {
+                            expect(totalCount).to.equal(expectedFilteredResults);
                         });
                 });
         });
