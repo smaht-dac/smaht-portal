@@ -33,9 +33,6 @@ Cypress.Commands.add('scrollToCenterElement', { prevSubject: true }, (subject, o
 }
 );
 
-export const escapeElementWithNumericId = (selector) =>
-    /^#\d/.test(selector) ? `[id="${selector.substring(1)}"]` : selector;
-
 Cypress.Commands.add('getLoadedMenuItem', (selector) => {
     // 1) Scroll separately (may trigger layout / rerender)
     cy.get(selector).scrollIntoView();
@@ -58,32 +55,6 @@ Cypress.Commands.add('getLoadedMenuItem', (selector) => {
         // 3) Hand back a fresh, attached subject for further chaining
         .then(() => cy.get(selector));
 });
-
-Cypress.Commands.add('clickEvent', { prevSubject: true }, function (subject, options) {
-    expect(subject.length).to.equal(1);
-
-    var subjElem = subject[0];
-
-    var bounds = subjElem.getBoundingClientRect();
-    var cursorPos = {
-        clientX: bounds.left + bounds.width / 2,
-        clientY: bounds.top + bounds.height / 2,
-    };
-    var commonEventValsIn = _.extend(
-        { bubbles: true, cancelable: true },
-        cursorPos
-    );
-
-    subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventValsIn));
-    subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn));
-    subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn));
-    subjElem.dispatchEvent(new MouseEvent('mousedown', commonEventValsIn));
-    subjElem.dispatchEvent(new MouseEvent('mouseup', commonEventValsIn));
-    //subjElem.dispatchEvent(new MouseEvent('mouseleave', _.extend({ 'relatedTarget' : subjElem }, commonEventValsIn, { 'clientX' : bounds.left - 5, 'clientY' : bounds.top - 5 }) ) );
-
-    return subject;
-}
-);
 
 Cypress.Commands.add('signJWT', (auth0secret, email, sub) => {
     cy.request({
@@ -370,7 +341,6 @@ Cypress.Commands.add('clickEvent', { prevSubject: true }, function (subject, opt
 );
 
 /*** Browse View Utils ****/
-
 Cypress.Commands.add("getQuickInfoBar", () => {
     const infoTypes = ["file", "donor", "tissue", "assay", "file-size"];
     const result = {};
@@ -490,4 +460,23 @@ Cypress.Commands.add('waitForPopoverShow', (popoverSelector = '#jap-popover, .po
     }));
 });
 
+/** Toggles between Donor View and Cohort View */
+Cypress.Commands.add('toggleView', (targetView) => {
+    return cy.get('.icon-toggle.view-toggle').within(() => {
+        cy.get('button').then(($buttons) => {
+            const activeBtn = [...$buttons].find(btn => btn.classList.contains('active'));
+            const activeText = activeBtn?.innerText?.trim();
 
+            if (targetView) {
+                // Explicit toggle: go to specific target view
+                cy.contains('button', targetView, { matchCase: false }).click({ force: true });
+            } else {
+                // Implicit toggle: click inactive button
+                const inactiveBtn = [...$buttons].find(btn => !btn.classList.contains('active'));
+                cy.wrap(inactiveBtn).click({ force: true });
+            }
+
+            cy.log(`Toggled from "${activeText}" view.`);
+        });
+    });
+});
