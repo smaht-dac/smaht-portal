@@ -297,6 +297,20 @@ function stepFacetChartBarPlotTests(caps) {
                         .searchPageTotalResultCount().then((totalCount) => {
                             expect(totalCount).to.equal(expectedFilteredResults);
                         });
+
+                    // Clear filters → back to initial
+                    cy.getQuickInfoBar().then((info) => {
+                        cy
+                            .get('.properties-controls button[data-tip="Clear all filters"]')
+                            .click({ force: true })
+                            .get(".facet[data-field=\"external_id\"] .facet-list-element.selected .facet-item").should('not.exist').end()
+                            .get("div.above-facets-table-row #results-count")
+                            .invoke("text")
+                            .then((count) => {
+                                expect(info.donor).to.equal(parseInt(count));
+                            })
+                            .end();
+                    });
                 });
         });
     } else {
