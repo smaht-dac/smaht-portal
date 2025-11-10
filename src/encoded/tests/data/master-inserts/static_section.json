@@ -641,8 +641,9 @@
         "uuid": "b78b2ebb-d01c-4635-8a67-76a98ab81772",
         "section_type": "Page Section",
         "status": "in review",
+        "file": "/docs/public/pipeline_docs_navigation.jsx",
         "options": {
-            "filetype": "md",
+            "filetype": "jsx",
             "initial_header_level": 2
         },
         "consortia": [
