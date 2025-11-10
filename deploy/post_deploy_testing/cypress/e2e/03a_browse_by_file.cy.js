@@ -1,5 +1,5 @@
 import { cypressVisitHeaders, ROLE_TYPES, BROWSE_STATUS_PARAMS } from '../support';
-import { navBrowseBtnSelector, dataNavBarItemSelectorStr } from '../support/selectorVars';
+import { navBrowseByFileBtnSelector, dataNavBarItemSelectorStr } from '../support/selectorVars';
 
 /* ----------------------------- ROLE MATRIX -----------------------------
    Toggle each step per role:
@@ -115,7 +115,7 @@ function visitBrowseByFile(){
         .click()
         .should('have.class', 'dropdown-open-for')
         .end()
-        .get(navBrowseBtnSelector)
+        .get(navBrowseByFileBtnSelector)
         .click()
         .get('#slow-load-container').should('not.have.class', 'visible').end()
         .get('.facet-charts.loading').should('not.exist');
