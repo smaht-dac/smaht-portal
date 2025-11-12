@@ -54,7 +54,9 @@ def validate_external_id_on_add(context, request):
     """
     Check that `external_id` is valid.
 
-    Check is consistent with `category` nomenclature if the sample_source.donor is a Benchmarking or Production tissue on add (TPC-submitted items only for now).
+    Check is consistent with `category` nomenclature if the sample_source.donor 
+    is a Benchmarking or Production tissue on add 
+    NB: enforcing on all tissue_samples - was previously restricted to TPC-submitted.
     Check that `external_id` matches linked tissue `external_id` if Benchmarking or Production tissue sample on add.
     """
     if 'force_pass' in request.query_string:
