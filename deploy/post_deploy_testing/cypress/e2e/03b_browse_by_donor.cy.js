@@ -85,7 +85,7 @@ const ROLE_MATRIX = {
         runCohortViewChartTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
-        expectedType: 'Donor',
+        expectedType: 'ProtectedDonor',
     },
 
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
