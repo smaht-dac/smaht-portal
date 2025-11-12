@@ -86,18 +86,20 @@ Cypress.Commands.add('signJWT', (auth0secret, email, sub) => {
     });
 });
 
-Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: false }) {
+Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: false, forceLogout: true }) {
     Cypress.log({
         name: 'Login SMaHT',
         message: 'Attempting to login as role ' + role
     });
 
     //ensure user is logged out first
-    cy.get('body').then(($body) => {
-        if ($body.find(navUserAcctDropdownBtnSelector + '#account-menu-item').length > 0) {
-            cy.logoutSMaHT().end();
-        }
-    });
+    if (options.forceLogout) {
+        cy.get('body').then(($body) => {
+            if ($body.find(navUserAcctDropdownBtnSelector + '#account-menu-item').length > 0) {
+                cy.logoutSMaHT().end();
+            }
+        });
+    }
 
     function performLogin(token, userDisplayName = '') {
         return cy
