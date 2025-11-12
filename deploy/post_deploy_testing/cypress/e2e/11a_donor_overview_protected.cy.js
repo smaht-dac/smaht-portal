@@ -521,7 +521,7 @@ function stepProtectedDonorFlow(caps) {
                                     regularBlockCount: 5, // regularBlockCount
                                     rowSummaryBlockCount: 5, // rowSummaryBlockCount
                                     colSummaryBlockCount: 1, // colSummaryBlockCount
-                                    expectedFilesCount: n  // totalCountExpected (<=0 → skip strict total check)
+                                    expectedFilesCount: n  // totalCountExpected (null → skip strict total check)
                                 }
                             );
                         });

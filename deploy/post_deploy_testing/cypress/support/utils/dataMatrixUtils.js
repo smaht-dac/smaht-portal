@@ -315,7 +315,7 @@ export function testMatrixPopoverValidation(
     }) {
     cy.get(matrixId).should('exist');
 
-    if (expectedFilesCount === 0) {
+    if (typeof expectedFilesCount === 'number' && expectedFilesCount === 0) {
         cy.get(`${matrixId} .stacked-block-viz-container .no-data-available`).should('contain.text', 'No data available');
         return;
     }
@@ -437,7 +437,7 @@ export function testMatrixPopoverValidation(
                 }
             });
             // verify overall file count matches expectedFilesCount
-            if (expectedFilesCount > 0) {
+            if (typeof expectedFilesCount === 'number' && expectedFilesCount > 0) {
                 cy.log(`Expected at least ${expectedFilesCount} files to be found.`);
                 let sum = 0;
                 [...$blocks].forEach((el) => {
@@ -461,7 +461,7 @@ export function testMatrixPopoverValidation(
                 }
             });
             // verify overall file count matches expectedFilesCount
-            if (expectedFilesCount > 0) {
+            if (typeof expectedFilesCount === 'number' && expectedFilesCount > 0) {
                 cy.log(`Expected at least ${expectedFilesCount} files to be found.`);
                 let sum = 0;
                 [...$blocks].forEach((el) => {
