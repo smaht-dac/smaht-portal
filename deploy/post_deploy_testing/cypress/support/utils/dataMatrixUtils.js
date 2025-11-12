@@ -114,7 +114,7 @@ function waitUntilPopoverClosed(timeout = 4000) {
  * 4. Waits until the popover is fully closed.
  * 5. Logs the assertion details.
  */
-function assertPopover({ donor, assay, tissue, value, blockType = 'regular', depth = 0 }) {
+function assertPopover({ donor, assay, tissue, value, blockType = 'regular', depth = 0, verifyTotalFromApi = true }) {
     // wait until the element itself is truly visible
     cy.waitForPopoverShow().then(() =>
         waitForPopoverVisible().then((popoverEl) => {
@@ -223,21 +223,28 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                         .then((t) => parseInt(t.trim(), 10))
                         .should('equal', value)
                         .then((uiCount) => {
-                            // Get the URL from the "Browse Files" button in footer
-                            cy.get('.footer-row a.btn.btn-primary')
-                                .invoke('attr', 'href')
-                                .then((href) => {
-                                    // If the href is relative (starts with "/"), prefix with baseUrl
-                                    const fullUrl = href.startsWith('http')
-                                        ? href
-                                        : `${Cypress.config('baseUrl')}${href}`;
+                            if (verifyTotalFromApi) {
+                                // Get the URL from the "Browse Files" button in footer
+                                cy.get('.footer-row a.btn.btn-primary')
+                                    .invoke('attr', 'href')
+                                    .then((href) => {
+                                        // If the href is relative (starts with "/"), prefix with baseUrl
+                                        const fullUrl = href.startsWith('http')
+                                            ? href
+                                            : `${Cypress.config('baseUrl')}${href}`;
 
-                                    // Fetch API total and compare it with UI count
-                                    return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
-                                        expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
-                                            .to.equal(uiCount);
+                                        // Fetch API total and compare it with UI count
+                                        return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
+                                            expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
+                                                .to.equal(uiCount);
+                                        });
                                     });
+                            } else {
+                                Cypress.log({
+                                    name: 'Skipping API total check',
+                                    message: `UI count is ${uiCount}, but API check is skipped as per parameters.`,
                                 });
+                            }
                         });
                 }
 
@@ -292,7 +299,8 @@ function validateLowerHeaders(expectedLabels) {
  * @param {number} regularBlockCount - The number of regular blocks to test popovers for.
  * @param {number} rowSummaryBlockCount - The number of row summary blocks to test popovers for.
  * @param {number} colSummaryBlockCount - The number of column summary blocks to test popovers for.
- * @param {number} expectedFilesCount - The expected number of files to be found.
+ * @param {number|null} expectedFilesCount - The expected number of files to be found, set "null" to skip strict total check.
+ * @param {boolean} verifyTotalFromApi - Whether to cross-check the total file count from the API.
  * @returns {void}
  * This function performs the following validations:
  * 1. Asserts that the popover is visible.
@@ -312,6 +320,7 @@ export function testMatrixPopoverValidation(
         rowSummaryBlockCount = 6,
         colSummaryBlockCount = 2,
         expectedFilesCount = 1,
+        verifyTotalFromApi = true,
     }) {
     cy.get(matrixId).should('exist');
 
@@ -421,7 +430,7 @@ export function testMatrixPopoverValidation(
             testCases.forEach(({ el, donor, tissue, assay, value }) => {
                 if (value > 0) {
                     cy.wrap(el).scrollIntoView().click({ force: true });
-                    assertPopover({ donor, assay, tissue, value });
+                    assertPopover({ donor, assay, tissue, value, verifyTotalFromApi });
                 }
             });
         });
@@ -433,7 +442,7 @@ export function testMatrixPopoverValidation(
                 if (value > 0) {
                     const donor = Cypress.$(el).closest('.grouping.depth-0').find('h4 .inner').eq(0).text().trim();
                     cy.wrap(el).scrollIntoView().click({ force: true });
-                    assertPopover({ donor, assay: '', value, blockType: 'row-summary' });
+                    assertPopover({ donor, assay: '', value, blockType: 'row-summary', verifyTotalFromApi });
                 }
             });
             // verify overall file count matches expectedFilesCount
@@ -457,7 +466,7 @@ export function testMatrixPopoverValidation(
                 if (value > 0) {
                     const assay = Cypress.$(el).parent().attr('data-group-key');
                     cy.wrap(el).scrollIntoView().click({ force: true });
-                    assertPopover({ donor: '', assay: assay, value, blockType: 'col-summary' });
+                    assertPopover({ donor: '', assay: assay, value, blockType: 'col-summary', verifyTotalFromApi });
                 }
             });
             // verify overall file count matches expectedFilesCount
