@@ -137,12 +137,57 @@ export class SelectAllFilesButton extends React.PureComponent {
         super(props);
         this.isAllSelected = this.isAllSelected.bind(this);
         this.handleSelectAll = this.handleSelectAll.bind(this);
-        this.state = { selecting: false };
+        this.state = {
+            selecting: false,
+            userDownloadAccess: {},
+        };
+    }
+
+    componentDidMount() {
+        if (Object.keys(this.state.userDownloadAccess ?? {})?.length === 0) {
+            ajax.load('/session-properties', (resp) => {
+                const accessObj = resp?.download_perms || {};
+                this.setState({
+                    ...this.state,
+                    userDownloadAccess: { ...accessObj },
+                });
+            });
+        }
+    }
+
+    getDownloadableFileCount() {
+        // TODO: check the total downloadable files against selected Files
+        // if (Object.keys(this.props?.userDownloadAccess ?? {})?.length > 0) {
+        // } else {
+        //     return this.props.context?.total || 0;
+        // }
+        const statusFacetTermCounts =
+            this.props.context?.facets?.find(
+                (facet) => facet.field === 'status'
+            )?.terms || [];
+        // Map through the terms to get count for downloadable files
+        const totalDownloadableFileCount = statusFacetTermCounts?.reduce(
+            (acc, term) => {
+                const userCanDownload =
+                    this.state.userDownloadAccess?.[term.key];
+                return acc + (userCanDownload ? term.doc_count : 0);
+            },
+            0
+        );
+        return totalDownloadableFileCount;
     }
 
     isEnabled() {
         const { context } = this.props;
         const { total } = context || {};
+
+        // Only enable once userDownloadAccess is populated
+        if (
+            this.props?.userDownloadAccess &&
+            Object.keys(this.props?.userDownloadAccess ?? {})?.length === 0
+        ) {
+            return false;
+        }
 
         if (!total) return true;
         if (total > SELECT_ALL_LIMIT) return false;
@@ -153,11 +198,30 @@ export class SelectAllFilesButton extends React.PureComponent {
         const { selectedItems, context } = this.props;
         const { total } = context || {};
 
-        if (!total) return false;
-        if (total === selectedItems.size) {
-            return true;
-        }
-        return false;
+        const downloadableFileCount = this.getDownloadableFileCount();
+
+        // if (
+        //     total > 0 &&
+        //     downloadableFileCount > 0 &&
+        //     downloadableFileCount <= total
+        // ) {
+        //     return selectedItems.size === this.getDownloadableFileCount();
+        // } else {
+        //     return false;
+        // }
+
+        // if (selectedItems.size === this.getDownloadableFileCount()) {
+        //     return true;
+        // }
+        // if (!total) return false;
+        // return false;
+
+        /**
+         * All files are selected if the number of selected items equals the total downloadable file count
+         */
+        return total !== 0
+            ? selectedItems.size === downloadableFileCount
+            : false;
     }
 
     handleSelectAll(evt) {
@@ -179,6 +243,18 @@ export class SelectAllFilesButton extends React.PureComponent {
             );
         }
 
+        const userDownloadAccess = this.state.userDownloadAccess;
+
+        // Apply a filter to selected items if userDownloadAccess provided
+        const statusFilters = [];
+        if (Object.keys(userDownloadAccess).length > 0) {
+            for (const status in userDownloadAccess) {
+                if (userDownloadAccess[status]) {
+                    statusFilters.push(status);
+                }
+            }
+        }
+
         this.setState({ selecting: true }, () => {
             if (!this.isAllSelected()) {
                 const currentHrefParts = memoizedUrlParse(searchHref);
@@ -188,7 +264,11 @@ export class SelectAllFilesButton extends React.PureComponent {
                 const reqHref =
                     currentHrefParts.pathname +
                     '?' +
-                    queryString.stringify(currentHrefQuery);
+                    queryString.stringify(currentHrefQuery) +
+                    // Add status filters if any
+                    statusFilters
+                        ?.map((status) => `&status=${status}`)
+                        .join('');
 
                 ajax.load(reqHref, (resp) => {
                     const filesToSelect = resp['@graph'] || [];
@@ -240,6 +320,7 @@ export class SelectAllFilesButton extends React.PureComponent {
 
         const isAllSelected = this.isAllSelected();
         const isEnabled = this.isEnabled();
+
         const iconClassName =
             'me-05 icon icon-fw icon-' +
             (selecting
@@ -259,7 +340,9 @@ export class SelectAllFilesButton extends React.PureComponent {
             return (
                 <input
                     type="checkbox"
-                    disabled={selecting || (!isAllSelected && !isEnabled)}
+                    disabled={
+                        Object.keys(this.state.userDownloadAccess).length === 0
+                    }
                     checked={isAllSelected}
                     onChange={this.handleSelectAll}
                 />
@@ -830,7 +913,6 @@ const DataDownloadOverviewStats = React.memo(function DataDownloadOverviewStats(
     });
 
     const fallbackFxn = useCallback((resp) => {
-        console.log('DataDownloadOverviewStats error', resp);
         setLoading(false);
         setError(true);
     });

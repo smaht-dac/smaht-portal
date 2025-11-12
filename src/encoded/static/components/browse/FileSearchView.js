@@ -84,6 +84,8 @@ function FileTableWithSelectedFilesCheckboxes(props) {
         currentAction,
     } = props;
 
+    const userDownloadAccess = useUserDownloadAccess(session);
+
     const facets = useMemo(
         function () {
             return transformedFacets(context, currentAction, schemas);
@@ -149,6 +151,7 @@ function FileTableWithSelectedFilesCheckboxes(props) {
         hideFacets,
         rowHeight: 31,
         openRowHeight: 40,
+        userDownloadAccess,
     };
 
     return (
@@ -259,9 +262,17 @@ const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(
         (acc, filter) => {
             if (filter.field === 'status') {
                 acc.statuses.push(filter.term);
-            } else if (filter.field === 'file_status_tracking.release_dates.initial_release.from' && !acc.from) {
+            } else if (
+                filter.field ===
+                    'file_status_tracking.release_dates.initial_release.from' &&
+                !acc.from
+            ) {
                 acc.from = filter.term;
-            } else if (filter.field === 'file_status_tracking.release_dates.initial_release.to' && !acc.to) {
+            } else if (
+                filter.field ===
+                    'file_status_tracking.release_dates.initial_release.to' &&
+                !acc.to
+            ) {
                 acc.to = filter.term;
             }
             return acc;
@@ -270,7 +281,8 @@ const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(
     );
 
     // Check that there is at least one "status" filter and that all status values are "released".
-    if (statuses.length === 0 || statuses.some(term => term !== 'released')) { // Frontend: Please check
+    if (statuses.length === 0 || statuses.some((term) => term !== 'released')) {
+        // Frontend: Please check
         return fallbackTitle;
     }
 
