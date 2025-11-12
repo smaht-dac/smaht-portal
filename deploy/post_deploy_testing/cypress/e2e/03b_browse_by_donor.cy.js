@@ -144,6 +144,34 @@ function visitBrowseByDonor(caps) {
         .should('not.exist');
 }
 
+// Helper function to check total donor count for a given chart title.
+// Prefers series (white) labels; falls back to category totals (dark) labels.
+// Excludes axis tick labels (gray).
+function checkChartTotal(title, expectedTotal) {
+  cy.contains('.donor-cohort-view-chart h3', title)
+    .closest('.donor-cohort-view-chart')
+    .find('svg text')
+    .then(($texts) => {
+      // Collect only numeric texts
+      const numeric = Array.from($texts)
+        .map(el => ({ el, txt: el.textContent.trim(), style: el.getAttribute('style') || '' }))
+        .filter(o => /^\d+$/.test(o.txt));
+
+      // Exclude axis ticks (gray labels)
+      const notAxis = numeric.filter(o => !o.style.includes('rgb(107, 114, 128)'));
+
+      // Prefer series labels (white on bars); else fallback to category totals (dark)
+      const whites = notAxis.filter(o => o.style.includes('rgb(255, 255, 255)')).map(o => Number(o.txt));
+      const darks  = notAxis.filter(o => o.style.includes('rgb(17, 24, 39)')).map(o => Number(o.txt));
+
+      const picked = whites.length ? whites : darks;
+      const total = picked.reduce((s, n) => s + n, 0);
+
+      cy.log(`${title} -> counted labels:`, picked.join(', '));
+      expect(total, `${title} total`).to.eq(expectedTotal);
+    });
+}
+
 function loginIfNeeded(roleKey) {
     const caps = ROLE_MATRIX[roleKey];
     if (caps.isAuthenticated) cy.loginSMaHT(roleKey).end();
@@ -333,6 +361,19 @@ const chartTitles = [
 function stepCohortViewChartTests(caps) {
     if (caps.expectedStatsSummaryOpts.totalFiles > 0) {
         visitBrowseByDonor(caps).toggleView('Cohort').then(() => {
+            cy.getQuickInfoBar().then((info) => {
+                const totalDonors = info.donor;
+
+                chartTitles.forEach((title) => {
+                    if (title === 'Self-Reported Ethnicity') {
+                        const expectedMax = min([10, totalDonors]);
+                        cy.log(`Adjusting expected max for ${title} chart to: ${expectedMax}`);
+                        checkChartTotal(title, expectedMax);
+                    } else {
+                        checkChartTotal(title, totalDonors);
+                    }
+                });
+            });
         });
     } else {
         visitBrowseByDonor(caps).toggleView('Cohort').then(() => {
