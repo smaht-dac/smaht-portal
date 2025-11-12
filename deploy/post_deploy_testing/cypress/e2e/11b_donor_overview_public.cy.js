@@ -430,7 +430,8 @@ function stepPublicDonorFlow(caps) {
                                     regularBlockCount: 5, // rowRegularBlockCount
                                     rowSummaryBlockCount: 5, // rowSummaryBlockCount
                                     colSummaryBlockCount: 1, // colSummaryBlockCount
-                                    expectedFilesCount: donorID != "COLO829" ? n : null // totalCountExpected (null → skip strict total check)
+                                    expectedFilesCount: n, // totalCountExpected (null → skip strict total check)
+                                    verifyTotalFromApi: donorID !== "COLO829", // COLO829 has special file access rules
                                 }
                             );
                         });
