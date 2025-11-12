@@ -20,7 +20,7 @@ class Publication(Item):
     embedded_list = []
 
     @calculated_property(schema={
-        "title": "Short Attribution",
+        "title": "Short Citation",
         "description": "Short string containing <= 2 authors & year published.",
         "type": "string"
     })

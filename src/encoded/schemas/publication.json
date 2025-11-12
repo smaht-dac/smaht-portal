@@ -65,17 +65,6 @@
             "pattern": "^PMID:[0-9]+$|^doi:10\\.[0-9]{4}[\\d\\S\\:\\.]+$",
             "comment": "Please provide either in the form of PMID:12345678 or doi:10.1234/abc123"
         },
-        "files_of_pub": {
-            "title": "Files of Publication",
-            "description": "List of files associated with this publication.",
-            "type": "array",
-            "uniqueItems": true,
-            "items": {
-                "title": "File",
-                "type": "string",
-                "linkTo": "File"
-            }
-        },
         "title": {
             "title": "Title",
             "description": "Title of the article",
