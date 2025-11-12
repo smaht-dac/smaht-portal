@@ -1,3 +1,4 @@
+import { min } from 'underscore';
 import { cypressVisitHeaders, ROLE_TYPES, BROWSE_STATUS_PARAMS } from '../support';
 import { navBrowseByDonorBtnSelector, dataNavBarItemSelectorStr } from '../support/selectorVars';
 import { getApiTotalFromUrl, parseIntSafe } from '../support/utils/dataMatrixUtils';
@@ -35,9 +36,8 @@ const ROLE_MATRIX = {
         runDirectBrowseRedirect: false,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
-        runFacetIncludeGrouping: true,
-        runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runCohortViewChartTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedType: 'Donor',
@@ -51,9 +51,8 @@ const ROLE_MATRIX = {
         runDirectBrowseRedirect: false,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
-        runFacetIncludeGrouping: true,
-        runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runCohortViewChartTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
         expectedType: 'ProtectedDonor',
@@ -67,9 +66,8 @@ const ROLE_MATRIX = {
         runDirectBrowseRedirect: false,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
-        runFacetIncludeGrouping: true,
-        runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runCohortViewChartTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
         expectedType: 'Donor',
@@ -83,9 +81,8 @@ const ROLE_MATRIX = {
         runDirectBrowseRedirect: false,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
-        runFacetIncludeGrouping: true,
-        runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runCohortViewChartTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedType: 'Donor',
@@ -99,9 +96,8 @@ const ROLE_MATRIX = {
         runDirectBrowseRedirect: false,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
-        runFacetIncludeGrouping: true,
-        runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runCohortViewChartTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedType: 'Donor',
@@ -240,6 +236,12 @@ function stepSidebarToggle(caps) {
         .end();
 }
 
+const tissueSeqencerPairs = [
+    { tissue: 'Brain', sequencer: 'Illumina NovaSeq X Plus', min: 4, max: 25 },
+    { tissue: 'Blood', sequencer: 'ONT PromethION 24', min: 2, max: 25 },
+    { tissue: 'Liver', sequencer: 'PacBio Revio', min: 2, max: 25 },
+];
+
 /** Chart Bar Plot Tests */
 function stepFacetChartBarPlotTests(caps) {
     if (caps.expectedStatsSummaryOpts.totalFiles > 0) {
@@ -251,72 +253,97 @@ function stepFacetChartBarPlotTests(caps) {
                 .should('contain', 'Tissue')
                 .end();
 
-            cy.window().scrollTo(0, 0).end()
-                // A likely-to-be-here Bar Section - Brain x Illumina NovaSeq X Plus
-                .get('.bar-plot-chart .chart-bar[data-term="Brain"] .bar-part[data-term="Illumina NovaSeq X Plus"]').then(($barPart) => {
-                    const expectedFilteredResults = parseInt($barPart.attr('data-count'));
-                    expect(expectedFilteredResults).to.be.greaterThan(3);
-                    expect(expectedFilteredResults).to.be.lessThan(25);
-                    cy.window().scrollTo('top').end()
-                        .wrap($barPart).hoverIn().end()
-                        .get('.cursor-component-root .details-title').should('contain', 'Illumina NovaSeq X Plus').end()
-                        .get('.cursor-component-root .detail-crumbs .crumb').should('contain', 'Brain').end()
-                        .get('.cursor-component-root .details-title .primary-count').invoke('text').then(text => {
-                            const number = parseInt(text, 10);
-                            expect(number).to.eq(expectedFilteredResults);
-                        })
-                        // file count – retry until text is numeric and equals expected
-                        .get('.cursor-component-root .details a') // Adjust selector if needed
-                        .should('contain.text', 'Files') // Ensure the correct link
-                        .then(($a) => {
-                            const text = $a.text();      // e.g. "39 Files"
-                            const href = $a.attr('href');
-                            const fullUrl = href.startsWith('http')
-                                ? href
-                                : `${Cypress.config('baseUrl')}${href}`;
-
-                            // Extract number before "Files"
-                            const uiCount = parseIntSafe(text);
-
-                            // Compare UI count with API total
-                            getApiTotalFromUrl(fullUrl).then((apiTotal) => {
-                                expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
-                                    .to.equal(uiCount);
-                            });
-                        });
-                    // `{ force: true }` is used a bunch here to prevent Cypress from attempting to scroll browser up/down during the test -- which may interfere w. mouse hover events.
-                    // See https://github.com/cypress-io/cypress/issues/2353#issuecomment-413347535
-                    cy.window().then((w) => {
-                        w.scrollTo(0, 0);
-                    }).end()
-                        .wrap($barPart, { force: true }).scrollToCenterElement().trigger('mouseover', { force: true }).trigger('mousemove', { force: true }).wait(300).click({ force: true }).end()
-                        .get('.cursor-component-root .actions.buttons-container .btn-primary').should('contain', "Explore").click({ force: true }).end() // Browser will scroll after click itself (e.g. triggered by app)
-                        .location('search')
-                        .should('include', 'external_id=').end()
-                        .get('#slow-load-container').should('not.have.class', 'visible').end()
-                        .searchPageTotalResultCount().then((totalCount) => {
-                            expect(totalCount).to.equal(expectedFilteredResults);
-                        });
-
-                    // Clear filters → back to initial
-                    cy.getQuickInfoBar().then((info) => {
-                        cy
-                            .get('.properties-controls button[data-tip="Clear all filters"]')
-                            .click({ force: true })
-                            .get(".facet[data-field=\"external_id\"] .facet-list-element.selected .facet-item").should('not.exist').end()
-                            .get("div.above-facets-table-row #results-count")
-                            .invoke("text")
-                            .then((count) => {
-                                expect(info.donor).to.equal(parseInt(count));
+            tissueSeqencerPairs.forEach(({ tissue, sequencer, min, max }) => {
+                cy.log(`Testing bar part: Tissue = ${tissue}, Sequencer = ${sequencer}`);
+                
+                cy.window().scrollTo(0, 0).end()
+                    // A likely-to-be-here Bar Section - Brain x Illumina NovaSeq X Plus
+                    .get(`.bar-plot-chart .chart-bar[data-term="${tissue}"] .bar-part[data-term="${sequencer}"]`).then(($barPart) => {
+                        const expectedFilteredResults = parseInt($barPart.attr('data-count'));
+                        expect(expectedFilteredResults).to.be.greaterThan(min);
+                        expect(expectedFilteredResults).to.be.lessThan(max);
+                        cy.window().scrollTo('top').end()
+                            .wrap($barPart).hoverIn().end()
+                            .get('.cursor-component-root .details-title').should('contain', sequencer).end()
+                            .get('.cursor-component-root .detail-crumbs .crumb').should('contain', tissue).end()
+                            .get('.cursor-component-root .details-title .primary-count').invoke('text').then(text => {
+                                const number = parseInt(text, 10);
+                                expect(number).to.eq(expectedFilteredResults);
                             })
-                            .end();
+                            // file count – retry until text is numeric and equals expected
+                            .get('.cursor-component-root .details a') // Adjust selector if needed
+                            .should('contain.text', 'Files') // Ensure the correct link
+                            .then(($a) => {
+                                const text = $a.text();      // e.g. "39 Files"
+                                const href = $a.attr('href');
+                                const fullUrl = href.startsWith('http')
+                                    ? href
+                                    : `${Cypress.config('baseUrl')}${href}`;
+
+                                // Extract number before "Files"
+                                const uiCount = parseIntSafe(text);
+
+                                // Compare UI count with API total
+                                getApiTotalFromUrl(fullUrl).then((apiTotal) => {
+                                    expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
+                                        .to.equal(uiCount);
+                                });
+                            });
+                        // `{ force: true }` is used a bunch here to prevent Cypress from attempting to scroll browser up/down during the test -- which may interfere w. mouse hover events.
+                        // See https://github.com/cypress-io/cypress/issues/2353#issuecomment-413347535
+                        cy.window().then((w) => {
+                            w.scrollTo(0, 0);
+                        }).end()
+                            .wrap($barPart, { force: true }).scrollToCenterElement().trigger('mouseover', { force: true }).trigger('mousemove', { force: true }).wait(300).click({ force: true }).end()
+                            .get('.cursor-component-root .actions.buttons-container .btn-primary').should('contain', "Explore").click({ force: true }).end() // Browser will scroll after click itself (e.g. triggered by app)
+                            .location('search')
+                            .should('include', 'external_id=')
+                            .get('#slow-load-container').should('not.have.class', 'visible')
+                            .searchPageTotalResultCount().then((totalCount) => {
+                                expect(totalCount).to.equal(expectedFilteredResults);
+                            })
+                            .getQuickInfoBar().then((info) => {
+                                cy
+                                    .get('.properties-controls button[data-tip="Clear all filters"]')
+                                    .click({ force: true })
+                                    .get(".facet[data-field=\"external_id\"] .facet-list-element.selected .facet-item").should('not.exist').end()
+                                    .get("div.above-facets-table-row #results-count")
+                                    .invoke("text")
+                                    .then((count) => {
+                                        expect(info.donor).to.equal(parseInt(count));
+                                    }).wait(500); // wait to ensure chart animation completes before next iteration
+                            });
                     });
-                });
+            });            
         });
     } else {
         visitBrowseByDonor(caps).toggleView('Donor').then(() => {
             cy.get('#facet-charts-container').invoke('text').should('be.empty');
             cy.log('Skipping stepFacetChartBarPlotTests since no data is accessible for this role.');
+        });
+    }
+};
+
+const chartTitles = [
+    'Age Groups',
+    'Hardy Scale',
+    'Self-Reported Ethnicity'
+];
+
+function stepCohortViewChartTests(caps) {
+    if (caps.expectedStatsSummaryOpts.totalFiles > 0) {
+        visitBrowseByDonor(caps).toggleView('Cohort').then(() => {
+        });
+    } else {
+        visitBrowseByDonor(caps).toggleView('Cohort').then(() => {
+            chartTitles.forEach((title) => {
+                cy.contains('.donor-cohort-view-chart h3', title)
+                    .closest('.donor-cohort-view-chart')
+                    .find('.no-data span.text-secondary')
+                    .should('be.visible')
+                    .and('contain.text', 'No data available');
+            });
+            cy.log('Skipping stepCohortViewChartTests since no data is accessible for this role.');
         });
     }
 };
@@ -366,9 +393,14 @@ describe('Browse by role — Donor', () => {
                 stepSidebarToggle(caps);
             });
 
-            it(`Facet chart bar plot tests → X-axis grouping and hover over & click "Illumina NovaSeq X Plus, Brain" bar part + popover button --> matching filtered /browse/ results (enabled: ${caps.runFacetChartBarPlotTests})`, () => {
+            it(`Facet chart bar plot tests → X-axis grouping and hover over & click Tissue x Sequencer pairs bar part + popover button --> matching filtered /browse/ results (enabled: ${caps.runFacetChartBarPlotTests})`, () => {
                 if (!caps.runFacetChartBarPlotTests) return;
                 stepFacetChartBarPlotTests(caps);
+            });
+
+            it(`Cohort View Chart Tests (enabled: ${caps.runCohortViewChartTests})`, () => {
+                if (!caps.runCohortViewChartTests) return;
+                stepCohortViewChartTests(caps);
             });
         });
     });
