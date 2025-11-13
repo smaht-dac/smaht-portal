@@ -87,8 +87,8 @@ class QualityMetric(Item):
     def qc_notes(self, request, qc_values: List[Dict[str, Any]]) -> str:
         notes = []
         for qc in qc_values:
-            if flag := qc.get("flag","") in FLAG_STATES:
-                flag = self.map_warn_to_flagged(flag)
+            if qc.get("flag","") in FLAG_STATES:
+                flag = self.map_warn_to_flagged(qc.get("flag",""))
                 notes.append(f"{flag}: {qc['key']} has value {qc['value']}")
         if notes:
             return (";").join(notes)
