@@ -5,7 +5,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "ID"
+        "identifier"
     ],
     "anyOf": [
         {
@@ -20,7 +20,7 @@
         }
     ],
     "identifyingProperties": [
-        "ID",
+        "identifier",
         "aliases",
         "uuid"
     ],
@@ -58,11 +58,10 @@
         "schema_version": {
             "default": "1"
         },
-        "ID":{
+        "identifier":{
             "title": "Publication Identifier",
             "description": "PMID or doi for the publication.",
             "type": "string",
-            "pattern": "^PMID:[0-9]+$|^doi:10\\.[0-9]{4}[\\d\\S\\:\\.]+$",
             "comment": "Please provide either in the form of PMID:12345678 or doi:10.1234/abc123"
         },
         "title": {

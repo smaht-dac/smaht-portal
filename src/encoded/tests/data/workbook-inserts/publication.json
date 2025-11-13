@@ -1,16 +1,54 @@
 [
     {
-        "uuid": "f0a11111-aaaa-4444-bbbb-cccccccccccc",
-        "title": "The SMaHT Initiative Overview",
-        "authors": ["Jane Doe", "John Smith", "Alice Brown"],
+        "uuid": "a87f640f-710c-4405-9965-b0e2e0d0573e",
+        "identifier": "PMID:11111111",
+        "title": "Test Publication One",
+        "authors": ["Author One", "Author Two", "Author Three"],
         "abstract": "lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-        "date_published": "2023-09-01",
-        "journal": "Nature Methods",
-        "repository_url": "https://pubmed.ncbi.nlm.nih.gov/35501320/",
-        "journal_url": "https://www.nature.com/articles/s41467-022-29697-4",
-        "pmid": "345678901",
+        "date_published": "2025-01-01",
+        "journal": "Test Journal",
+        "repository_url": "https://example.com",
+        "journal_url": "https://examplejournal.com",
         "scope": "Network",
         "study": "Production",
-        "is_preprint": false
+        "is_preprint": false,
+        "consortia": [
+            "smaht"
+        ]
+    },
+    {
+        "uuid": "b98f640f-710c-4405-9965-b0e2e0d0574f",
+        "identifier": "TESTID",
+        "title": "Test Publication Two",
+        "authors": ["Author One", "Author Two"],
+        "abstract": "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "date_published": "2023-06-15",
+        "journal": "Another Journal",
+        "repository_url": "https://anotherexample.com",
+        "journal_url": "https://anotherjournal.com",
+        "scope": "Individual Lab",
+        "study": "Benchmarking",
+        "is_preprint": true,
+        "biorxiv_version": "2",
+        "consortia": [
+            "smaht"
+        ]
+    },
+    {
+        "uuid": "c09f640f-710c-4405-9965-b0e2e0d0575f",
+        "identifier": "PMID:33333333",
+        "title": "Test Publication Three",
+        "authors": ["Author One"],
+        "abstract": "ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+        "date_published": "2024-11-30",
+        "journal": "Sample Journal",
+        "repository_url": "https://sampleexample.com",
+        "journal_url": "https://samplejournal.com",
+        "scope": "Working group",
+        "study": "Production",
+        "is_preprint": false,
+        "consortia": [
+            "smaht"
+        ]
     }
 ]

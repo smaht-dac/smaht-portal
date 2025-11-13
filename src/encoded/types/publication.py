@@ -9,6 +9,7 @@ from .base import (
 @collection(
     name="publications",
     acl=ONLY_ADMIN_VIEW_ACL,
+    unique_key="publication:identifier",
     properties={
         "title": "SMaHT Publications",
         "description": "Listing of SMaHT Publications",
@@ -35,15 +36,3 @@ class Publication(Item):
         if date_published:
             minipub = minipub + ' (' + date_published[0:4] + ')'
         return minipub
-
-    @calculated_property(schema={
-        "title": "Number of Files in Publication",
-        "description": "The number of files on the portal included in this publication.",
-        "type": "integer"
-    })
-    def number_of_files(self, files_of_pub=None):
-        ''' 
-            How this will be calculated or if it will we depend on how we decide to implement and
-            report on files associated with a publication.
-        '''
-        pass
