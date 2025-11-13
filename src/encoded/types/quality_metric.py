@@ -58,6 +58,23 @@ class QualityMetric(Item):
         for qc in qc_values:
             if qc.get("derived_from","") == COVERAGE_DERIVED_FROM:
                 return qc["value"]
+            
+
+    def map_warn_to_flagged(self, status: str) -> str:
+        if status == "Warn":
+            return "Flagged"
+        return status
+
+
+    @calculated_property(
+        schema={
+            "title": "Overall Quality for public display",
+            "type": "string",
+            "description": "Overall QC decision",
+        }
+    )
+    def overall_quality_status_display(self, request, overall_quality_status : str = None) -> str:
+        return self.map_warn_to_flagged(overall_quality_status)
 
 
     @calculated_property(
@@ -70,8 +87,9 @@ class QualityMetric(Item):
     def qc_notes(self, request, qc_values: List[Dict[str, Any]]) -> str:
         notes = []
         for qc in qc_values:
-            if qc.get("flag","") in FLAG_STATES:
-                notes.append(f"{qc['flag']}: {qc['key']} has value {qc['value']}")
+            if flag := qc.get("flag","") in FLAG_STATES:
+                flag = self.map_warn_to_flagged(qc["flag"])
+                notes.append(f"{flag}: {qc['key']} has value {qc['value']}")
         if notes:
             return (";").join(notes)
 
