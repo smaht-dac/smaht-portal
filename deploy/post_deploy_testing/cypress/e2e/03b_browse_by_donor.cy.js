@@ -479,27 +479,33 @@ function stepSearchTableRowsTests(caps) {
             randomIndices.forEach((rowIndex) => {
                 const $rowEl = $rows.eq(rowIndex); // jQuery element for this row
 
-                // Tissues
+                // We store these counts to later compare with the detail panel content.
+                let tissuesCount;
+                let assaysCount;
+
+                // --- Tissues (read & store count from cell label) ---
                 cy.wrap($rowEl)
                     .find('.search-result-column-block[data-field="tissues"] .icon-container')
                     .should('exist')
                     .invoke('text')
                     .then((text) => {
                         const count = parseCountFromLabel(text);
+                        tissuesCount = count;
                         expect(count, `Row ${rowIndex}: Tissues count must be > 0`).to.be.greaterThan(0);
                     });
 
-                // Assays
+                // --- Assays (read & store count from cell label) ---
                 cy.wrap($rowEl)
                     .find('.search-result-column-block[data-field="assays"] .icon-container')
                     .should('exist')
                     .invoke('text')
                     .then((text) => {
                         const count = parseCountFromLabel(text);
+                        assaysCount = count;
                         expect(count, `Row ${rowIndex}: Assays count must be > 0`).to.be.greaterThan(0);
                     });
 
-                // iles: UI vs API
+                // --- Files: UI vs API ---
                 cy.wrap($rowEl)
                     .find('.search-result-column-block[data-field="files"] a')
                     .should('exist')
@@ -512,30 +518,68 @@ function stepSearchTableRowsTests(caps) {
                         expect(href, `Row ${rowIndex}: Files href must exist`).to.be.a('string').and.not.be.empty;
 
                         getApiTotalFromUrl(href).then((apiCount) => {
-                            expect(apiCount, `Row ${rowIndex}: Could not determine file count from API response`).to.be.a('number');
+                            expect(
+                                apiCount,
+                                `Row ${rowIndex}: Could not determine file count from API response`
+                            ).to.be.a('number');
                             expect(apiCount, `Row ${rowIndex}: API file count must match UI`).to.equal(uiCount);
                         });
                     });
 
-                // Toggle detail for Tissues ---
+                // --- Tissues detail: open panel and verify header + list count ---
                 cy.wrap($rowEl)
                     .find('.search-result-column-block[data-field="tissues"] .toggle-detail-button')
                     .should('exist')
                     .click();
 
-                cy.wrap($rowEl).should('not.have.class', 'detail-closed');
+                cy.wrap($rowEl)
+                    .find('.result-table-detail-container')
+                    .should('have.class', 'detail-open')
+                    .within(() => {
+                        // Header <b>14 </b> should match the tissuesCount we parsed from the cell
+                        cy.get('.detail-header b')
+                            .invoke('text')
+                            .then((headerCountText) => {
+                                const headerCount = Number(headerCountText.trim());
+                                expect(
+                                    headerCount,
+                                    `Row ${rowIndex}: Tissues header count should match tissues cell count`
+                                ).to.equal(tissuesCount);
+                            });
 
-                // Toggle detail for Assays ---
+                        // Sum of all <li> across all tissue categories must equal tissuesCount
+                        cy.get('.detail-body .tissue-list-container ul li')
+                            .its('length')
+                            .should('eq', tissuesCount);
+                    });
+
+                // --- Assays detail: open panel and verify header + list count ---
                 cy.wrap($rowEl)
                     .find('.search-result-column-block[data-field="assays"] .toggle-detail-button')
                     .should('exist')
                     .click();
 
-                cy.wrap($rowEl).should('not.have.class', 'detail-closed');
+                cy.wrap($rowEl)
+                    .find('.result-table-detail-container')
+                    .should('have.class', 'detail-open')
+                    .within(() => {
+                        // Header <b>N </b> should match the assaysCount we parsed from the cell
+                        cy.get('.detail-header b')
+                            .invoke('text')
+                            .then((headerCountText) => {
+                                const headerCount = Number(headerCountText.trim());
+                                expect(
+                                    headerCount,
+                                    `Row ${rowIndex}: Assays header count should match assays cell count`
+                                ).to.equal(assaysCount);
+                            });
 
-                // TODO: When inner panel DOM is available:
-                // - Select tissues/assays list in detail container
-                // - Assert that list length equals the parsed counts
+                        // Only real assays have <ul><li> entries; N/A sections have spans.
+                        // Total <li> count must equal assaysCount.
+                        cy.get('.detail-body .tissue-list-container ul li')
+                            .its('length')
+                            .should('eq', assaysCount);
+                    });
             });
         });
 }
