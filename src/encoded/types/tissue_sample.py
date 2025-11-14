@@ -146,7 +146,7 @@ def run_external_id_validation(request, tissue, external_id, category):
         )
         return request.errors.add("body", "TissueSample: invalid link", msg)
 
-    request.validated.update({})
+    return request.validated.update({})
 
 
 def run_sample_metadata_validation(context, request, data, mode):
@@ -178,7 +178,7 @@ def run_sample_metadata_validation(context, request, data, mode):
     tpc_sample_search = make_search_subreq(request, tpc_ts_search_url)
     tpc_sample_search_resp = request.invoke_subrequest(tpc_sample_search, True)
     if tpc_sample_search_resp.status_int >= 400:
-        request.errors.add(
+        return request.errors.add(
             "body",
             f"TissueSample: No TPC Tissue Sample found for {submitted_id} Sample with external_id {external_id}"
         )
@@ -188,7 +188,7 @@ def run_sample_metadata_validation(context, request, data, mode):
     tpc_sample_source_uid = tpc_sample["sample_sources"][0]["uuid"]
     gcc_uuid = item_utils.get_uuid(sample_source)
     if tpc_sample_source_uid != gcc_uuid:
-        request.errors.add(
+        return request.errors.add(
             "body",
             f"TissueSample: metadata mismatch, sample_sources {gcc_uuid} "
             f"does not match TPC Tissue Sample {found} sample_sources {tpc_sample_source_uid}",
@@ -197,7 +197,7 @@ def run_sample_metadata_validation(context, request, data, mode):
     tpc_sample_search = make_search_subreq(request, tpc_ts_search_url)
     tpc_sample_search_resp = request.invoke_subrequest(tpc_sample_search, True)
     if tpc_sample_search_resp.status_int >= 400:
-        request.errors.add(
+        return request.errors.add(
             "body",
             f"TissueSample: No TPC Tissue Sample found for {submitted_id} Sample with external_id {external_id}"
         )
@@ -207,13 +207,13 @@ def run_sample_metadata_validation(context, request, data, mode):
         gcc_value = get_property_value(prop, context, request, mode, data)
         if gcc_value and prop in tpc_sample and tpc_sample[prop] != gcc_value:
             # NB: the tissue sample should always have these properties but just in case
-            request.errors.add(
+            return request.errors.add(
                 "body",
                 f"TissueSample: metadata mismatch, {prop} {gcc_value} "
                 f"does not match value {tpc_sample[prop]} in TPC Tissue Sample {found}",
             )
 
-    request.validated.update({})
+    return request.validated.update({})
 
 
 @link_related_validator
