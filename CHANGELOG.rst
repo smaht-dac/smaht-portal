@@ -7,10 +7,19 @@ smaht-portal
 Change Log
 ----------
 
+1.4.9
+=====
+
+`PR 546: WF annotated file name update <https://github.com/smaht-dac/smaht-portal/pull/546>`_
+
+* Update annotated file names script for Kinnex and Duplex-Seq files
+
+
 1.4.8
 =====
 
 * Updates to the load-users-from-oc script to account for DUA status
+
 
 1.4.7
 =====
