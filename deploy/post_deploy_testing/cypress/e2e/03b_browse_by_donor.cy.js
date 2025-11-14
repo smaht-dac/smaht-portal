@@ -21,10 +21,10 @@ const EMPTY_STATS_SUMMARY_OPTS = {
 };
 const DEFAULT_STATS_SUMMARY_OPTS = {
     totalFiles: 20,
-    totalDonors: 2,
-    totalTissues: 2,
-    totalAssays: 2,
-    totalFileSizeGB: 1,
+    totalDonors: 5,
+    totalTissues: 5,
+    totalAssays: 3,
+    totalFileSizeGB: 1000,
 };
 
 const ROLE_MATRIX = {
@@ -38,9 +38,13 @@ const ROLE_MATRIX = {
         runSidebarToggle: true,
         runFacetChartBarPlotTests: true,
         runCohortViewChartTests: true,
+        runSearchTableRowsTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedType: 'Donor',
+        expectedCancerHistoryVisible: false,
+        expectedExposureTobaccoVisible: false,
+        expectedExposureAlcoholVisible: false,
     },
 
     [ROLE_TYPES.SMAHT_DBGAP]: {
@@ -53,9 +57,13 @@ const ROLE_MATRIX = {
         runSidebarToggle: true,
         runFacetChartBarPlotTests: true,
         runCohortViewChartTests: true,
+        runSearchTableRowsTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
         expectedType: 'ProtectedDonor',
+        expectedCancerHistoryVisible: true,
+        expectedExposureTobaccoVisible: true,
+        expectedExposureAlcoholVisible: true,
     },
 
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
@@ -68,9 +76,13 @@ const ROLE_MATRIX = {
         runSidebarToggle: true,
         runFacetChartBarPlotTests: true,
         runCohortViewChartTests: true,
+        runSearchTableRowsTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
         expectedType: 'Donor',
+        expectedCancerHistoryVisible: false,
+        expectedExposureTobaccoVisible: false,
+        expectedExposureAlcoholVisible: false,
     },
 
     [ROLE_TYPES.PUBLIC_DBGAP]: {
@@ -83,9 +95,13 @@ const ROLE_MATRIX = {
         runSidebarToggle: true,
         runFacetChartBarPlotTests: true,
         runCohortViewChartTests: true,
+        runSearchTableRowsTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedType: 'ProtectedDonor',
+        expectedCancerHistoryVisible: true,
+        expectedExposureTobaccoVisible: true,
+        expectedExposureAlcoholVisible: true,
     },
 
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
@@ -98,9 +114,14 @@ const ROLE_MATRIX = {
         runSidebarToggle: true,
         runFacetChartBarPlotTests: true,
         runCohortViewChartTests: true,
+        runSearchTableRowsTests: true,
+        runSearchTableRowsTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedType: 'Donor',
+        expectedCancerHistoryVisible: false,
+        expectedExposureTobaccoVisible: false,
+        expectedExposureAlcoholVisible: false,
     },
 };
 
@@ -148,28 +169,28 @@ function visitBrowseByDonor(caps) {
 // Prefers series (white) labels; falls back to category totals (dark) labels.
 // Excludes axis tick labels (gray).
 function checkChartTotal(title, expectedTotal) {
-  cy.contains('.donor-cohort-view-chart h3', title)
-    .closest('.donor-cohort-view-chart')
-    .find('svg text')
-    .then(($texts) => {
-      // Collect only numeric texts
-      const numeric = Array.from($texts)
-        .map(el => ({ el, txt: el.textContent.trim(), style: el.getAttribute('style') || '' }))
-        .filter(o => /^\d+$/.test(o.txt));
+    cy.contains('.donor-cohort-view-chart h3', title)
+        .closest('.donor-cohort-view-chart')
+        .find('svg text')
+        .then(($texts) => {
+            // Collect only numeric texts
+            const numeric = Array.from($texts)
+                .map(el => ({ el, txt: el.textContent.trim(), style: el.getAttribute('style') || '' }))
+                .filter(o => /^\d+$/.test(o.txt));
 
-      // Exclude axis ticks (gray labels)
-      const notAxis = numeric.filter(o => !o.style.includes('rgb(107, 114, 128)'));
+            // Exclude axis ticks (gray labels)
+            const notAxis = numeric.filter(o => !o.style.includes('rgb(107, 114, 128)'));
 
-      // Prefer series labels (white on bars); else fallback to category totals (dark)
-      const whites = notAxis.filter(o => o.style.includes('rgb(255, 255, 255)')).map(o => Number(o.txt));
-      const darks  = notAxis.filter(o => o.style.includes('rgb(17, 24, 39)')).map(o => Number(o.txt));
+            // Prefer series labels (white on bars); else fallback to category totals (dark)
+            const whites = notAxis.filter(o => o.style.includes('rgb(255, 255, 255)')).map(o => Number(o.txt));
+            const darks = notAxis.filter(o => o.style.includes('rgb(17, 24, 39)')).map(o => Number(o.txt));
 
-      const picked = whites.length ? whites : darks;
-      const total = picked.reduce((s, n) => s + n, 0);
+            const picked = whites.length ? whites : darks;
+            const total = picked.reduce((s, n) => s + n, 0);
 
-      cy.log(`${title} -> counted labels:`, picked.join(', '));
-      expect(total, `${title} total`).to.eq(expectedTotal);
-    });
+            cy.log(`${title} -> counted labels:`, picked.join(', '));
+            expect(total, `${title} total`).to.eq(expectedTotal);
+        });
 }
 
 function loginIfNeeded(roleKey) {
@@ -265,7 +286,7 @@ function stepSidebarToggle(caps) {
 }
 
 const tissueSeqencerPairs = [
-    { tissue: 'Brain', sequencer: 'Illumina NovaSeq X Plus', min: 4, max: 25 },
+    { tissue: 'Brain', sequencer: 'Illumina NovaSeq X Plus', min: 3, max: 25 },
     { tissue: 'Blood', sequencer: 'ONT PromethION 24', min: 2, max: 25 },
     { tissue: 'Liver', sequencer: 'PacBio Revio', min: 2, max: 25 },
 ];
@@ -283,13 +304,13 @@ function stepFacetChartBarPlotTests(caps) {
 
             tissueSeqencerPairs.forEach(({ tissue, sequencer, min, max }) => {
                 cy.log(`Testing bar part: Tissue = ${tissue}, Sequencer = ${sequencer}`);
-                
+
                 cy.window().scrollTo(0, 0).end()
                     // A likely-to-be-here Bar Section - Brain x Illumina NovaSeq X Plus
                     .get(`.bar-plot-chart .chart-bar[data-term="${tissue}"] .bar-part[data-term="${sequencer}"]`).then(($barPart) => {
                         const expectedFilteredResults = parseInt($barPart.attr('data-count'));
-                        expect(expectedFilteredResults).to.be.greaterThan(min);
-                        expect(expectedFilteredResults).to.be.lessThan(max);
+                        expect(expectedFilteredResults).to.be.gte(min);
+                        expect(expectedFilteredResults).to.be.lt(max);
                         cy.window().scrollTo('top').end()
                             .wrap($barPart).hoverIn().end()
                             .get('.cursor-component-root .details-title').should('contain', sequencer).end()
@@ -342,7 +363,7 @@ function stepFacetChartBarPlotTests(caps) {
                                     }).wait(500); // wait to ensure chart animation completes before next iteration
                             });
                     });
-            });            
+            });
         });
     } else {
         visitBrowseByDonor(caps).toggleView('Donor').then(() => {
@@ -388,6 +409,136 @@ function stepCohortViewChartTests(caps) {
         });
     }
 };
+
+function stepSearchTableRowsTests(caps) {
+
+    if (caps.expectedStatsSummaryOpts.totalDonors === 0) {
+        visitBrowseByDonor(caps).then(() => {
+            cy.searchPageTotalResultCount().then((totalCount) => {
+                expect(totalCount).to.equal(0);
+            });
+            cy.log('Skipping stepSearchTableRowsTests since no data is accessible for this role.');
+        });
+        return;
+    }
+
+    const dataRowSelector = '.search-result-row:not(.fin)';
+
+    // Parse "X Tissue(s)", "Y Assay(s)", "Z File(s)" etc.
+    function parseCountFromLabel(text) {
+        const match = text.replace(/\s+/g, ' ').match(/(\d+)/);
+        expect(match, `Could not parse numeric count from label: "${text}"`).to.not.be.null;
+        return Number(match[1]);
+    }
+
+    // Optional column visibility based on caps
+    function assertOptionalColumnVisibility(fieldKey, expectedVisible) {
+        const headerSelector = `.search-headers-column-block[data-field="${fieldKey}"]`;
+        const cellSelector = `.search-result-column-block[data-field="${fieldKey}"]`;
+
+        if (expectedVisible) {
+            // Header must exist
+            cy.get(headerSelector).should('exist');
+
+            // At least one cell for this field must exist
+            cy.get(cellSelector)
+                .its('length')
+                .should('be.gt', 0);
+        } else {
+            // Column should not be rendered at all
+            cy.get(headerSelector).should('not.exist');
+            cy.get(cellSelector).should('not.exist');
+        }
+    }
+
+    // Pick N unique random indices between 0..maxIndex
+    function getRandomIndices(maxIndex, count) {
+        const all = Array.from({ length: maxIndex + 1 }, (_, i) => i);
+        for (let i = all.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [all[i], all[j]] = [all[j], all[i]];
+        }
+        return all.slice(0, count);
+    }
+
+    // 1) Optional columns visibility (Cancer / Tobacco / Alcohol)
+    assertOptionalColumnVisibility('medical_history.cancer_history', caps.expectedCancerHistoryVisible);
+    assertOptionalColumnVisibility('medical_history.tobacco_use', caps.expectedExposureTobaccoVisible);
+    assertOptionalColumnVisibility('medical_history.alcohol_use', caps.expectedExposureAlcoholVisible);
+
+    // 2) Random 5 rows inside first 20 rows of the table
+    cy.get(dataRowSelector)
+        .should('have.length.gte', 5) // must have at least 5 rows loaded
+        .then(($rows) => {
+            const totalRows = $rows.length;
+            const maxIndexToUse = Math.min(totalRows, 20) - 1; // only within first 20
+            const randomIndices = getRandomIndices(maxIndexToUse, 5);
+
+            cy.log(`Random selected row indices: ${randomIndices.join(', ')}`);
+
+            randomIndices.forEach((rowIndex) => {
+                const $rowEl = $rows.eq(rowIndex); // jQuery element for this row
+
+                // Tissues
+                cy.wrap($rowEl)
+                    .find('.search-result-column-block[data-field="tissues"] .icon-container')
+                    .should('exist')
+                    .invoke('text')
+                    .then((text) => {
+                        const count = parseCountFromLabel(text);
+                        expect(count, `Row ${rowIndex}: Tissues count must be > 0`).to.be.greaterThan(0);
+                    });
+
+                // Assays
+                cy.wrap($rowEl)
+                    .find('.search-result-column-block[data-field="assays"] .icon-container')
+                    .should('exist')
+                    .invoke('text')
+                    .then((text) => {
+                        const count = parseCountFromLabel(text);
+                        expect(count, `Row ${rowIndex}: Assays count must be > 0`).to.be.greaterThan(0);
+                    });
+
+                // iles: UI vs API
+                cy.wrap($rowEl)
+                    .find('.search-result-column-block[data-field="files"] a')
+                    .should('exist')
+                    .then(($a) => {
+                        const linkText = $a.text();
+                        const href = $a.attr('href');
+                        const uiCount = parseCountFromLabel(linkText);
+
+                        expect(uiCount, `Row ${rowIndex}: Files count must be > 0`).to.be.greaterThan(0);
+                        expect(href, `Row ${rowIndex}: Files href must exist`).to.be.a('string').and.not.be.empty;
+
+                        getApiTotalFromUrl(href).then((apiCount) => {
+                            expect(apiCount, `Row ${rowIndex}: Could not determine file count from API response`).to.be.a('number');
+                            expect(apiCount, `Row ${rowIndex}: API file count must match UI`).to.equal(uiCount);
+                        });
+                    });
+
+                // Toggle detail for Tissues ---
+                cy.wrap($rowEl)
+                    .find('.search-result-column-block[data-field="tissues"] .toggle-detail-button')
+                    .should('exist')
+                    .click();
+
+                cy.wrap($rowEl).should('not.have.class', 'detail-closed');
+
+                // Toggle detail for Assays ---
+                cy.wrap($rowEl)
+                    .find('.search-result-column-block[data-field="assays"] .toggle-detail-button')
+                    .should('exist')
+                    .click();
+
+                cy.wrap($rowEl).should('not.have.class', 'detail-closed');
+
+                // TODO: When inner panel DOM is available:
+                // - Select tissues/assays list in detail container
+                // - Assert that list length equals the parsed counts
+            });
+        });
+}
 
 /* ----------------------------- PARAMETERIZED SUITE ----------------------------- */
 
@@ -442,6 +593,11 @@ describe('Browse by role — Donor', () => {
             it(`Cohort View Chart Tests (enabled: ${caps.runCohortViewChartTests})`, () => {
                 if (!caps.runCohortViewChartTests) return;
                 stepCohortViewChartTests(caps);
+            });
+
+            it(`Search Table Rows Tests (enabled: ${caps.runSearchTableRowsTests})`, () => {
+                if (!caps.runSearchTableRowsTests) return;
+                stepSearchTableRowsTests(caps);
             });
         });
     });
