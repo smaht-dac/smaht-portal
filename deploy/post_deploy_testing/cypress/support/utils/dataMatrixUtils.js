@@ -1,18 +1,18 @@
 // Sends a GET request to the given URL and returns the `total` field from JSON response
 export function getApiTotalFromUrl(url) {
-  // Ensure the URL requests JSON format (append if missing)
-  const fullUrl = url.includes('format=json') ? url : `${url}&format=json&frame=raw`;
+    // Ensure the URL requests JSON format (append if missing)
+    const fullUrl = url.includes('format=json') ? url : `${url}&format=json&frame=raw`;
 
-  return cy.request({
-    method: 'GET',
-    url: fullUrl
-  }).its('body.total');
+    return cy.request({
+        method: 'GET',
+        url: fullUrl
+    }).its('body.total');
 }
 
 // Safely parse a number from text content (e.g. " 11 " → 11)
 export function parseIntSafe(text) {
-  const n = parseInt(String(text).trim(), 10);
-  return Number.isNaN(n) ? 0 : n;
+    const n = parseInt(String(text).trim(), 10);
+    return Number.isNaN(n) ? 0 : n;
 }
 
 /** 
@@ -153,21 +153,28 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                         .then((t) => parseInt(t.trim(), 10))
                         .should('equal', value)
                         .then((uiCount) => {
-                            // Get the URL from the "Browse Files" button in footer
-                            cy.get('.footer-row a.btn.btn-primary')
-                                .invoke('attr', 'href')
-                                .then((href) => {
-                                    // If the href is relative (starts with "/"), prefix with baseUrl
-                                    const fullUrl = href.startsWith('http')
-                                        ? href
-                                        : `${Cypress.config('baseUrl')}${href}`;
+                            if (verifyTotalFromApi) {
+                                // Get the URL from the "Browse Files" button in footer
+                                cy.get('.footer-row a.btn.btn-primary')
+                                    .invoke('attr', 'href')
+                                    .then((href) => {
+                                        // If the href is relative (starts with "/"), prefix with baseUrl
+                                        const fullUrl = href.startsWith('http')
+                                            ? href
+                                            : `${Cypress.config('baseUrl')}${href}`;
 
-                                    // Fetch API total and compare it with UI count
-                                    return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
-                                        expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
-                                            .to.equal(uiCount);
+                                        // Fetch API total and compare it with UI count
+                                        return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
+                                            expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
+                                                .to.equal(uiCount);
+                                        });
                                     });
+                            } else {
+                                Cypress.log({
+                                    name: 'Skipping API total check for regular block',
+                                    message: `UI count is ${uiCount}, but API check is skipped as per parameters.`,
                                 });
+                            }
                         });
                 } else if (blockType === 'row-summary') {
                     // tissue (primary row)
@@ -192,21 +199,28 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                         .then((t) => parseInt(t.trim(), 10))
                         .should('equal', value)
                         .then((uiCount) => {
-                            // Get the URL from the "Browse Files" button in footer
-                            cy.get('.footer-row a.btn.btn-primary')
-                                .invoke('attr', 'href')
-                                .then((href) => {
-                                    // If the href is relative (starts with "/"), prefix with baseUrl
-                                    const fullUrl = href.startsWith('http')
-                                        ? href
-                                        : `${Cypress.config('baseUrl')}${href}`;
+                            if (verifyTotalFromApi) {
+                                // Get the URL from the "Browse Files" button in footer
+                                cy.get('.footer-row a.btn.btn-primary')
+                                    .invoke('attr', 'href')
+                                    .then((href) => {
+                                        // If the href is relative (starts with "/"), prefix with baseUrl
+                                        const fullUrl = href.startsWith('http')
+                                            ? href
+                                            : `${Cypress.config('baseUrl')}${href}`;
 
-                                    // Fetch API total and compare it with UI count
-                                    return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
-                                        expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
-                                            .to.equal(uiCount);
+                                        // Fetch API total and compare it with UI count
+                                        return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
+                                            expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
+                                                .to.equal(uiCount);
+                                        });
                                     });
+                            } else {
+                                Cypress.log({
+                                    name: 'Skipping API total check for row-summary',
+                                    message: `UI count is ${uiCount}, but API check is skipped as per parameters.`,
                                 });
+                            }
                         });
                 } else if (blockType === 'col-summary') {
                     // assay (primary row)
@@ -241,7 +255,7 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                                     });
                             } else {
                                 Cypress.log({
-                                    name: 'Skipping API total check',
+                                    name: 'Skipping API total check for col-summary',
                                     message: `UI count is ${uiCount}, but API check is skipped as per parameters.`,
                                 });
                             }
@@ -249,7 +263,7 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
                 }
 
             });
-    }))
+        }))
         .then(() => {
             // close the pop-over
             cy.document()
@@ -262,7 +276,7 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
         .then(() => {
             Cypress.log({
                 name: 'assertPopover',
-                message: `value: ${value}, donor: ${donor}, tissue: ${tissue}, assay: ${assay}`,
+                message: `value: ${value}, donor: ${donor}, tissue: ${tissue}, assay: ${assay}, verifyTotalFromApi: ${verifyTotalFromApi}`,
             });
         });
 }
