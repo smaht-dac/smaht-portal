@@ -124,7 +124,7 @@ def run_external_id_validation(request, tissue, external_id, category):
 
     tissue_category_match = assert_tissue_category_match(category, external_id)
 
-    if assert_external_id_category_match(external_id, category):
+    if not assert_external_id_category_match(external_id, category):
         msg = (
             f"external_id {external_id} does not match {study} nomenclature "
             f"for {category} samples."
@@ -168,6 +168,13 @@ def run_sample_metadata_validation(context, request, data, mode):
     if ELASTIC_SEARCH not in request.registry:
         return
 
+    # check if sample_source is Benchmarking or Production and ignore if not
+    # and if so first check for TPC sample source
+    sample_source_ids = get_property_value("sample_sources", context, request, mode, data)
+    sample_source = get_item_or_none(request, sample_source_ids[0], "sample-sources")
+    if not (tissue_utils.get_study(sample_source) in ["Benchmarking", "Production"]):
+        return
+
     tpc_sample_search = make_search_subreq(request, tpc_ts_search_url)
     tpc_sample_search_resp = request.invoke_subrequest(tpc_sample_search, True)
     if tpc_sample_search_resp.status_int >= 400:
@@ -178,6 +185,22 @@ def run_sample_metadata_validation(context, request, data, mode):
 
     tpc_sample = tpc_sample_search_resp.json_body["@graph"][0]
     found = tpc_sample["accession"]  # for error message
+    tpc_sample_source_uid = tpc_sample["sample_sources"][0]["uuid"]
+    gcc_uuid = item_utils.get_uuid(sample_source)
+    if tpc_sample_source_uid != gcc_uuid:
+        request.errors.add(
+            "body",
+            f"TissueSample: metadata mismatch, sample_sources {gcc_uuid} "
+            f"does not match TPC Tissue Sample {found} sample_sources {tpc_sample_source_uid}",
+        )
+
+    tpc_sample_search = make_search_subreq(request, tpc_ts_search_url)
+    tpc_sample_search_resp = request.invoke_subrequest(tpc_sample_search, True)
+    if tpc_sample_search_resp.status_int >= 400:
+        request.errors.add(
+            "body",
+            f"TissueSample: No TPC Tissue Sample found for {submitted_id} Sample with external_id {external_id}"
+        )
 
     # Compare core properties
     for prop in check_properties:
@@ -189,19 +212,6 @@ def run_sample_metadata_validation(context, request, data, mode):
                 f"TissueSample: metadata mismatch, {prop} {gcc_value} "
                 f"does not match value {tpc_sample[prop]} in TPC Tissue Sample {found}",
             )
-
-    # Compare sample_sources linkage
-    sample_source_ids = get_property_value("sample_sources", context, request, mode, data)
-    tpc_sample_source_uid = tpc_sample["sample_sources"][0]["uuid"]
-    gcc_uuid = item_utils.get_uuid(
-        get_item_or_none(request, sample_source_ids[0], "sample-sources")
-    )
-    if tpc_sample_source_uid != gcc_uuid:
-        request.errors.add(
-            "body",
-            f"TissueSample: metadata mismatch, sample_sources {gcc_uuid} "
-            f"does not match TPC Tissue Sample {found} sample_sources {tpc_sample_source_uid}",
-        )
 
     request.validated.update({})
 
