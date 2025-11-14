@@ -475,7 +475,7 @@ describe("Public Donor Overview (by role)", () => {
                 logoutIfNeeded(roleKey);
             });
 
-            it(`Browse 3 public donors (plus COLO829 and STO001) from Production → open donor details → verify public-only fields and protected sections (enabled: ${caps.runPublicDonorFlow})`, () => {
+            it(`Browse 3 public donors (plus COLO829 and ST001) from Production → open donor details → verify public-only fields and protected sections (enabled: ${caps.runPublicDonorFlow})`, () => {
                 if (!caps.runPublicDonorFlow) return;
                 stepPublicDonorFlow(caps);
             });
