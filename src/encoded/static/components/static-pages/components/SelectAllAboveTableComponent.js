@@ -137,6 +137,9 @@ export class SelectAllFilesButton extends React.PureComponent {
         super(props);
         this.isAllSelected = this.isAllSelected.bind(this);
         this.handleSelectAll = this.handleSelectAll.bind(this);
+        this.getDownloadableFileCount =
+            this.getDownloadableFileCount.bind(this);
+        this.isEnabled = this.isEnabled.bind(this);
         this.state = {
             selecting: false,
             userDownloadAccess: {},
@@ -155,12 +158,26 @@ export class SelectAllFilesButton extends React.PureComponent {
         }
     }
 
+    // Update user download access if session changes
+    componentDidUpdate(prevProps, prevState) {
+        console.log(
+            'SelectAllFilesButton componentDidUpdate called',
+            this.props,
+            this.state
+        );
+        if (prevProps.session !== this.props.session) {
+            ajax.load('/session-properties', (resp) => {
+                const accessObj = resp?.download_perms || {};
+                this.setState({
+                    ...this.state,
+                    userDownloadAccess: { ...accessObj },
+                });
+            });
+        }
+    }
+
     getDownloadableFileCount() {
         // TODO: check the total downloadable files against selected Files
-        // if (Object.keys(this.props?.userDownloadAccess ?? {})?.length > 0) {
-        // } else {
-        //     return this.props.context?.total || 0;
-        // }
         const statusFacetTermCounts =
             this.props.context?.facets?.find(
                 (facet) => facet.field === 'status'
@@ -178,20 +195,23 @@ export class SelectAllFilesButton extends React.PureComponent {
     }
 
     isEnabled() {
-        const { context } = this.props;
+        const { context, session } = this.props;
         const { total } = context || {};
 
-        // Only enable once userDownloadAccess is populated
-        if (
-            this.props?.userDownloadAccess &&
-            Object.keys(this.props?.userDownloadAccess ?? {})?.length === 0
-        ) {
-            return false;
-        }
+        // Too many items to select all
+        if (!session || total > SELECT_ALL_LIMIT) return false;
 
-        if (!total) return true;
-        if (total > SELECT_ALL_LIMIT) return false;
-        return true;
+        // Only enable when downloadable file count exists
+        const downloadableFileCount = this.getDownloadableFileCount();
+
+        console.log(
+            'downloadableFileCount',
+            downloadableFileCount,
+            total,
+            total > 0 && downloadableFileCount > 0
+        );
+
+        return total > 0 && downloadableFileCount > 0;
     }
 
     isAllSelected() {
@@ -200,28 +220,21 @@ export class SelectAllFilesButton extends React.PureComponent {
 
         const downloadableFileCount = this.getDownloadableFileCount();
 
-        // if (
-        //     total > 0 &&
-        //     downloadableFileCount > 0 &&
-        //     downloadableFileCount <= total
-        // ) {
-        //     return selectedItems.size === this.getDownloadableFileCount();
-        // } else {
-        //     return false;
-        // }
-
-        // if (selectedItems.size === this.getDownloadableFileCount()) {
-        //     return true;
-        // }
-        // if (!total) return false;
-        // return false;
-
-        /**
-         * All files are selected if the number of selected items equals the total downloadable file count
-         */
-        return total !== 0
-            ? selectedItems.size === downloadableFileCount
-            : false;
+        // No items selected
+        if (total === 0) {
+            return false;
+        } else {
+            // All files are selected if the number of selected items equals the total downloadable file count
+            console.log(
+                'all selcted?',
+                downloadableFileCount > 0 &&
+                    selectedItems.size === downloadableFileCount
+            );
+            return (
+                downloadableFileCount > 0 &&
+                selectedItems.size === downloadableFileCount
+            );
+        }
     }
 
     handleSelectAll(evt) {
@@ -316,7 +329,7 @@ export class SelectAllFilesButton extends React.PureComponent {
 
     render() {
         const { selecting } = this.state;
-        const { type } = this.props;
+        const { type, session } = this.props;
 
         const isAllSelected = this.isAllSelected();
         const isEnabled = this.isEnabled();
@@ -340,9 +353,7 @@ export class SelectAllFilesButton extends React.PureComponent {
             return (
                 <input
                     type="checkbox"
-                    disabled={
-                        Object.keys(this.state.userDownloadAccess).length === 0
-                    }
+                    disabled={!isEnabled}
                     checked={isAllSelected}
                     onChange={this.handleSelectAll}
                 />

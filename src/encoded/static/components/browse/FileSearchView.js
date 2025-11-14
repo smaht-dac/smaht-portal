@@ -41,23 +41,13 @@ export default function FileSearchView(props) {
 
 // Download button for admin users only
 const SearchViewDownloadButton = ({ session, selectedItems }) => {
-    const userDownloadAccess = useUserDownloadAccess(session);
-
-    return userDownloadAccess?.['protected-network'] ? (
+    return (
         <SelectedItemsDownloadButton
             id="download_tsv_multiselect"
             disabled={selectedItems.size === 0}
             className="btn btn-primary btn-sm me-05 align-items-center"
             {...{ selectedItems, session }}
             analyticsAddItemsToCart>
-            <i className="icon icon-download fas me-03" />
-            Download {selectedItems.size} Selected Files
-        </SelectedItemsDownloadButton>
-    ) : (
-        <SelectedItemsDownloadButton
-            id="download_tsv_multiselect"
-            disabled={true}
-            className="download-button btn btn-primary btn-sm me-05 align-items-center">
             <i className="icon icon-download fas me-03" />
             Download {selectedItems.size} Selected Files
         </SelectedItemsDownloadButton>
@@ -119,7 +109,10 @@ function FileTableWithSelectedFilesCheckboxes(props) {
     const aboveTableComponent = (
         <BrowseViewAboveSearchTableControls
             topLeftChildren={
-                <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
+                <SelectAllFilesButton
+                    {...selectedFileProps}
+                    {...{ session, context }}
+                />
             }>
             {<SearchViewDownloadButton {...{ session, selectedItems }} />}
         </BrowseViewAboveSearchTableControls>
