@@ -530,7 +530,7 @@ function stepSearchTableRowsTests(caps) {
                 cy.wrap($rowEl)
                     .find('.search-result-column-block[data-field="tissues"] .toggle-detail-button')
                     .should('exist')
-                    .click();
+                    .click({ force: true });
 
                 cy.wrap($rowEl)
                     .find('.result-table-detail-container')
@@ -557,7 +557,7 @@ function stepSearchTableRowsTests(caps) {
                 cy.wrap($rowEl)
                     .find('.search-result-column-block[data-field="assays"] .toggle-detail-button')
                     .should('exist')
-                    .click();
+                    .click({ force: true });
 
                 cy.wrap($rowEl)
                     .find('.result-table-detail-container')
