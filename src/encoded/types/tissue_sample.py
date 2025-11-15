@@ -252,7 +252,6 @@ def validate_tissue_sample_metadata_on_edit(context, request):
     return run_sample_metadata_validation(context, request, data, "edit")
 
 
-
 TISSUE_SAMPLE_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
     validate_external_id_on_add,
     validate_tissue_sample_metadata_on_add,

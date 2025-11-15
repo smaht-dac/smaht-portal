@@ -166,6 +166,8 @@ def test_submitted_id_validated_on_post_and_patch(testapp: TestApp) -> None:
         if item_type == "submission_center":
             continue  # Already POSTed relevant SubmissionCenter
         if item_type in submitted_item_types:
+            #if item_type == 'tissue_sample':
+            #    import pdb; pdb.set_trace()
             assert_submitted_id_validation_on_post_and_patch(
                 testapp, item_type, item_properties_to_test
             )
