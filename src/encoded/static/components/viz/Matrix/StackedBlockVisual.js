@@ -100,7 +100,8 @@ export class VisualBody extends React.PureComponent {
             query: { url: queryUrl, columnAggFields },
             fieldChangeMap, valueChangeMap, titleMap,
             groupingProperties, columnGrouping, compositeValueSeparator,
-            rowGroupsExtended, additionalPopoverData = {}, baseBrowseFilesPath
+            rowGroupsExtended, additionalPopoverData = {}, baseBrowseFilesPath,
+            browseFilteringTransformFunc
         } = this.props;
         const { depth, blockType = null, popoverPrimaryTitle, rowGroups, rowGroupKey } = blockProps;
         const isGroup = (Array.isArray(data) && data.length >= 1) || false;
@@ -207,7 +208,11 @@ export class VisualBody extends React.PureComponent {
                 return result;
             };
 
-            const currentFilteringPropertiesVals = convertPairsToObject(currentFilteringPropertiesPairs);
+            let currentFilteringPropertiesVals = convertPairsToObject(currentFilteringPropertiesPairs);
+
+            if (typeof browseFilteringTransformFunc === 'function') {
+                currentFilteringPropertiesVals = browseFilteringTransformFunc(currentFilteringPropertiesVals);
+            }
 
             let initialHref = queryUrl;
             if (rowGroups && rowGroupKey && rowGroups[rowGroupKey]?.customUrlParams && blockType === 'col-summary') {
