@@ -24,6 +24,7 @@ Change Log
 * Refactor Cypress tests to add role-based testing capabilities
 * Add new Cypress tests for Documentation page, Data Overview page, and File Overview page
 
+
 1.4.8
 =====
 
