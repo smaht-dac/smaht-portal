@@ -8,6 +8,21 @@ import {
     PopoverBody,
 } from 'react-bootstrap';
 
+// Renders a table cell with a value or a dash if no value is present
+const TableCell = ({ value, isCode = false }) => {
+    const hasValue =
+        value !== undefined &&
+        value !== null &&
+        value !== '' &&
+        !(Array.isArray(value) && value.length === 0);
+
+    return (
+        <td className={`text-left ${!hasValue ? 'text-secondary' : ''}`}>
+            {hasValue ? isCode ? <code>{value}</code> : value : '-'}
+        </td>
+    );
+};
+
 // Renders a table of schema properties
 const SchemaPropertiesTable = ({
     selectedProperty = null,
@@ -91,10 +106,31 @@ const SchemaPropertiesTable = ({
                                 )?.description;
                         }
 
+                        // Build enum/suggested enum cell content
+                        const hasEnum = item?.enum?.length > 0;
+                        const hasSuggested = item?.suggested_enum?.length > 0;
+
+                        const valuesContent =
+                            hasEnum || hasSuggested ? (
+                                <>
+                                    {hasEnum && (
+                                        <p>
+                                            <b>Options:</b>{' '}
+                                            {item.enum.join(', ')}
+                                        </p>
+                                    )}
+                                    {hasSuggested && (
+                                        <p>
+                                            <b>Examples:</b>{' '}
+                                            {item.suggested_enum.join(', ')}
+                                        </p>
+                                    )}
+                                </>
+                            ) : null;
+
                         return (
                             <tr key={i}>
                                 {/* Title */}
-
                                 <td
                                     className={`text-left ${
                                         item?.is_required
@@ -104,92 +140,30 @@ const SchemaPropertiesTable = ({
                                     {item?.title ?? propertyKey}
                                 </td>
                                 {/* Description */}
-                                {item?.description ? (
-                                    <td className="text-left">
-                                        {item.description}
-                                    </td>
-                                ) : description_from_map ? (
-                                    <td className="text-left">
-                                        {description_from_map}
-                                    </td>
-                                ) : (
-                                    <td className="text-left text-secondary">
-                                        -
-                                    </td>
-                                )}
+                                <TableCell
+                                    value={
+                                        item?.description ??
+                                        description_from_map
+                                    }
+                                />
                                 {/* Type */}
-                                {item?.type ? (
-                                    <td className="text-left">
-                                        <code>{item.type}</code>
-                                    </td>
-                                ) : (
-                                    <td className="text-left text-secondary">
-                                        -
-                                    </td>
-                                )}
+                                <TableCell value={item?.type} isCode />
                                 {/* Pattern */}
-                                {item?.pattern ? (
-                                    <td className="text-left">
-                                        {item.pattern}
-                                    </td>
-                                ) : (
-                                    <td className="text-left text-secondary">
-                                        -
-                                    </td>
-                                )}
+                                <TableCell value={item?.pattern} />
                                 {/* Values */}
-                                {item?.enum?.length || item?.suggested_enum ? (
-                                    <td className="text-left">
-                                        {/* If enums/suggested enums are present, display them */}
-                                        {item?.enum?.length > 0 && (
-                                            <p>
-                                                <b>Options:</b>{' '}
-                                                {item.enum.join(', ')}
-                                            </p>
-                                        )}
-                                        {item?.suggested_enum?.length > 0 && (
-                                            <p>
-                                                <b>Examples:</b>{' '}
-                                                {item.suggested_enum.join(', ')}
-                                            </p>
-                                        )}
-                                    </td>
-                                ) : (
-                                    <td className="text-left text-secondary">
-                                        -
-                                    </td>
-                                )}
+                                <TableCell value={valuesContent} />
                                 {/* Also Requires */}
-                                {item?.also_requires ? (
-                                    <td className="text-left">
-                                        {item.also_requires.join(', ')}
-                                    </td>
-                                ) : (
-                                    <td className="text-left text-secondary">
-                                        -
-                                    </td>
-                                )}
+                                <TableCell
+                                    value={
+                                        item?.also_requires?.length
+                                            ? item.also_requires.join(', ')
+                                            : null
+                                    }
+                                />
                                 {/* LinkTo */}
-                                {item?.items?.linkTo ? (
-                                    <td className="text-left">
-                                        {item?.items?.linkTo}
-                                    </td>
-                                ) : (
-                                    <td className="text-left text-secondary">
-                                        -
-                                    </td>
-                                )}
+                                <TableCell value={item?.items?.linkTo} />
                                 {/* Note */}
-                                {item?.submissionComment ? (
-                                    <td className="text-left">
-                                        {' '}
-                                        {item.submissionComment}
-                                    </td>
-                                ) : (
-                                    <td className="text-left text-secondary">
-                                        -
-                                    </td>
-                                )}
+                                <TableCell value={item?.submissionComment} />
                             </tr>
                         );
                     })}
