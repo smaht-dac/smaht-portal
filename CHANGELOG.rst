@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.5.2
+=====
+
+`PR 551: feat: disable download button on search page for non-admin users <https://github.com/smaht-dac/smaht-portal/pull/551>`_
+
+* Disable download button on search page for non-admin users
+
+
 1.5.1
 =====
 
