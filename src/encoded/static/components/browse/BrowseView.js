@@ -219,7 +219,10 @@ export const BrowseFileSearchTable = (props) => {
     const aboveTableComponent = (
         <BrowseViewAboveSearchTableControls
             topLeftChildren={
-                <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
+                <SelectAllFilesButton
+                    {...selectedFileProps}
+                    {...{ session, context }}
+                />
             }>
             <div className="d-flex gap-2">
                 <DonorMetadataDownloadButton session={session} />

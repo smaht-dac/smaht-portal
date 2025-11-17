@@ -143,6 +143,7 @@ export class SelectAllFilesButton extends React.PureComponent {
         this.state = {
             selecting: false,
             userDownloadAccess: {},
+            downloadableFileCount: 0,
         };
     }
 
@@ -153,6 +154,8 @@ export class SelectAllFilesButton extends React.PureComponent {
                 this.setState({
                     ...this.state,
                     userDownloadAccess: { ...accessObj },
+                    downloadableFileCount:
+                        this.getDownloadableFileCount(accessObj),
                 });
             });
         }
@@ -160,23 +163,20 @@ export class SelectAllFilesButton extends React.PureComponent {
 
     // Update user download access if session changes
     componentDidUpdate(prevProps, prevState) {
-        console.log(
-            'SelectAllFilesButton componentDidUpdate called',
-            this.props,
-            this.state
-        );
         if (prevProps.session !== this.props.session) {
             ajax.load('/session-properties', (resp) => {
                 const accessObj = resp?.download_perms || {};
                 this.setState({
                     ...this.state,
                     userDownloadAccess: { ...accessObj },
+                    downloadableFileCount:
+                        this.getDownloadableFileCount(accessObj),
                 });
             });
         }
     }
 
-    getDownloadableFileCount() {
+    getDownloadableFileCount(userDownloadAccessObj) {
         // TODO: check the total downloadable files against selected Files
         const statusFacetTermCounts =
             this.props.context?.facets?.find(
@@ -185,8 +185,7 @@ export class SelectAllFilesButton extends React.PureComponent {
         // Map through the terms to get count for downloadable files
         const totalDownloadableFileCount = statusFacetTermCounts?.reduce(
             (acc, term) => {
-                const userCanDownload =
-                    this.state.userDownloadAccess?.[term.key];
+                const userCanDownload = userDownloadAccessObj?.[term.key];
                 return acc + (userCanDownload ? term.doc_count : 0);
             },
             0
@@ -195,44 +194,27 @@ export class SelectAllFilesButton extends React.PureComponent {
     }
 
     isEnabled() {
-        const { context, session } = this.props;
+        const { context } = this.props;
         const { total } = context || {};
 
         // Too many items to select all
-        if (!session || total > SELECT_ALL_LIMIT) return false;
+        if (total > SELECT_ALL_LIMIT) return false;
 
-        // Only enable when downloadable file count exists
-        const downloadableFileCount = this.getDownloadableFileCount();
-
-        console.log(
-            'downloadableFileCount',
-            downloadableFileCount,
-            total,
-            total > 0 && downloadableFileCount > 0
-        );
-
-        return total > 0 && downloadableFileCount > 0;
+        return total > 0 && this.state.downloadableFileCount > 0;
     }
 
     isAllSelected() {
         const { selectedItems, context } = this.props;
         const { total } = context || {};
 
-        const downloadableFileCount = this.getDownloadableFileCount();
-
         // No items selected
         if (total === 0) {
             return false;
         } else {
             // All files are selected if the number of selected items equals the total downloadable file count
-            console.log(
-                'all selcted?',
-                downloadableFileCount > 0 &&
-                    selectedItems.size === downloadableFileCount
-            );
             return (
-                downloadableFileCount > 0 &&
-                selectedItems.size === downloadableFileCount
+                this.state.downloadableFileCount > 0 &&
+                selectedItems.size === this.state.downloadableFileCount
             );
         }
     }
@@ -332,7 +314,7 @@ export class SelectAllFilesButton extends React.PureComponent {
         const { type, session } = this.props;
 
         const isAllSelected = this.isAllSelected();
-        const isEnabled = this.isEnabled();
+        const isEnabled = session && this.isEnabled();
 
         const iconClassName =
             'me-05 icon icon-fw icon-' +
@@ -364,7 +346,7 @@ export class SelectAllFilesButton extends React.PureComponent {
             <button
                 type="button"
                 id="select-all-files-button"
-                disabled={selecting || (!isAllSelected && !isEnabled)}
+                disabled={!isEnabled}
                 className={cls}
                 onClick={this.handleSelectAll}
                 data-tip={tooltip}>
