@@ -50,6 +50,8 @@ export default class UserRegistrationForm extends React.PureComponent {
         this.formRef = React.createRef();
         this.recaptchaContainerRef = React.createRef();
 
+        this.isInstitutionalEmail = this.isInstitutionalEmail.bind(this);
+
         this.state = {
             captchaSiteKey: this.props.captchaSiteKey,
             captchaResponseToken: null,
@@ -249,6 +251,30 @@ export default class UserRegistrationForm extends React.PureComponent {
         window.open(e.target.href);
     }
 
+    isInstitutionalEmail(email) {
+        const lower = email.toLowerCase();
+
+        const genericProviders = [
+            "gmail.com",
+            "yahoo.com",
+            "outlook.com",
+            "hotmail.com",
+            "protonmail.com",
+            "icloud.com",
+            "aol.com",
+            "yandex.com",
+        ];
+
+        const domain = lower.split("@")[1];
+
+        const isEdu = domain.endsWith(".edu") || domain.includes(".edu.");
+        const isOrg = domain.endsWith(".org") || domain.includes(".org.");
+
+        const isGeneric = genericProviders.includes(domain);
+
+        return (isEdu || isOrg) && !isGeneric;
+    }
+
     render() {
         const { schemas, heading, unverifiedUserEmail, onExitLinkClick } = this.props;
         const {
@@ -294,6 +320,8 @@ export default class UserRegistrationForm extends React.PureComponent {
             );
         }
 
+        const isInstitutional = this.isInstitutionalEmail(unverifiedUserEmail);
+
         return (
             <div className="user-registration-form-container position-relative">
                 {errorIndicator}
@@ -333,16 +361,30 @@ export default class UserRegistrationForm extends React.PureComponent {
                             <i className="icon icon-fw icon-user fas text-secondary fs-4" aria-hidden="true" />
                             <h3 className="section-title m-0">Open Data: Self Registration</h3>
                         </div>
-                        
+
                         <div className="form-group d-flex flex-column flex-lg-row align-items-lg-center gap-0 gap-lg-3 mt-2">
-                            <label htmlFor="email-address" className="mb-1 text-500">
+                            <label htmlFor="email-address" className="text-500">
                                 Primary Email:
                             </label>
-                            <span id="email-address" className="text-300 fs-5">
-                                {object.itemUtil.User.gravatar(unverifiedUserEmail, 36, { 'style': { 'borderRadius': '50%', 'marginRight': 20 } }, 'mm')}
+
+                            <span id="email-address" className={`text-300 fs-5 ${!isInstitutional ? "warning" : ""}`}>
+                                {!isInstitutional ? (
+                                    <span className="icon icon-warning" style={{ marginRight: 15, fontSize: 20, color: '#856404' }}></span>
+                                ) : (object.itemUtil.User.gravatar(unverifiedUserEmail, 36, { 'style': { 'borderRadius': '50%', 'marginRight': 20 } }, 'mm'))}
                                 {unverifiedUserEmail}
                             </span>
+
+                            <button type="button" className="btn btn-link btn-sm ms-1 p-0 change-email-link" onClick={onExitLinkClick}>
+                                Change
+                            </button>
                         </div>
+
+                        {!isInstitutional && (
+                            <div className="email-warning-message mt-1 mb-1">
+                                <strong>Please use your institutional or organizational email address.</strong><br />
+                                Free email providers may reduce verification options and access levels.
+                            </div>
+                        )}
 
                         <div className="row mt-2">
                             <div className="col-12 col-lg-6">

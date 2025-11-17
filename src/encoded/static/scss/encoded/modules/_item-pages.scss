@@ -1355,7 +1355,31 @@ body[data-pathname^="/users/"] {
 		background: #f1f9ff;
 		box-shadow: none;
 		padding: 5px 15px;
+		align-items: center;
+
+		&.warning {
+  			background: #fff3cd !important;
+  			border: 1px solid #ffeeba !important;
+		}
 	}
+	.email-warning-message {
+  		background: #fff8e1;
+  		border-left: 4px solid #ffc107;
+  		padding: 8px 12px;
+  		border-radius: 4px;
+  		font-size: 0.9rem;
+  		color: #7a5b00;
+	}
+
+	.change-email-link {
+  		font-size: 0.9rem;
+  		text-decoration: none;
+
+		&:hover {
+  			text-decoration: underline;
+		}
+	}
+
 	div.alert-danger {
 		color: #DD999A;
 		background-color: #fdf2f2;
