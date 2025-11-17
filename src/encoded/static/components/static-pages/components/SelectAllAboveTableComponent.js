@@ -95,7 +95,7 @@ export const SelectAllAboveTableComponent = (props) => {
                             )
                         }>
                         <button
-                            className="download-button btn btn-primary btn-sm me-05 align-items-center pe-auto download-button"
+                            className="download-button btn btn-primary btn-sm me-05 align-items-center pe-auto"
                             disabled={true}>
                             <i className="icon icon-download fas me-03" />
                             Download {selectedItems.size} Selected Files
