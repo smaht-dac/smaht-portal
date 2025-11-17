@@ -6,7 +6,7 @@ import _ from 'underscore';
 import memoize from 'memoize-one';
 import queryString from 'query-string';
 import * as d3 from 'd3';
-import { sub, add, startOfMonth, startOfDay, endOfMonth, endOfDay, toDate, format as formatDate } from 'date-fns';
+import { sub, add, startOfMonth, startOfDay, endOfMonth, endOfDay, format as formatDate, parse as parseDate } from 'date-fns';
 import DropdownItem from 'react-bootstrap/esm/DropdownItem';
 import DropdownButton from 'react-bootstrap/esm/DropdownButton';
 import Modal from 'react-bootstrap/esm/Modal';
@@ -327,7 +327,7 @@ export const commonParsingFxn = {
             const targetWeekday = firstExistingDate.getDay();
             currentDate = getNextWeekday(startDate, targetWeekday);
         } else {
-            currentDate = new Date(fromDate);
+            currentDate = parseDate(fromDate, "yyyy-MM-dd", new Date()); // new Date(fromDate);
         }
 
         // Copy the existing data to a new array
