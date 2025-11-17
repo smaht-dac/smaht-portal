@@ -208,7 +208,6 @@ export const DonorManifestDataDictionary = () => {
         }
     }, []);
 
-    // Inlclude entry for each item type and its properties
     const options = ([...fieldsToDisplay] || []).flatMap((schemaItem) => {
         const [schemaKey, properties] = schemaItem;
 
@@ -246,7 +245,7 @@ export const DonorManifestDataDictionary = () => {
                     (e.g. <i>disease</i>).
                     <br />
                     <b>Specific property in an item: </b> type
-                    &lt;item&gt;.&lt;property&gt; (e.g.{' '}
+                    &lt;item&gt;.&lt;property&gt; (e.g.
                     <i>familyhistory.disease</i>).
                 </p>
                 <p className="mb-2">
