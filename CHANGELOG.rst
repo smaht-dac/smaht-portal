@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+1.5.1
+=====
+
+`PR 538: feat: updates to documentation pages <https://github.com/smaht-dac/smaht-portal/pull/538>`_
+
+* Updates image on the account creation page
+* Fix typos/spacing
+
+
 1.5.0
 =====
 
@@ -15,10 +24,12 @@ Change Log
 * Refactor Cypress tests to add role-based testing capabilities
 * Add new Cypress tests for Documentation page, Data Overview page, and File Overview page
 
+
 1.4.8
 =====
 
 * Updates to the load-users-from-oc script to account for DUA status
+
 
 1.4.7
 =====
