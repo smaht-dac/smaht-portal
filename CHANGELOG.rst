@@ -7,14 +7,6 @@ smaht-portal
 Change Log
 ----------
 
-1.5.2
-=====
-
-`PR 548: feat: Submission Data Dictionary Update <https://github.com/smaht-dac/smaht-portal/pull/548>`_
-
-* Support search by property in submission data dictionary
-
-
 1.5.1
 =====
 
