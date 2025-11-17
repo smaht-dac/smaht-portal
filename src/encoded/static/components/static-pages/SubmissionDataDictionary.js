@@ -204,7 +204,6 @@ const SchemaPropertiesTable = ({
 export const SubmissionDataDictionary = () => {
     const [schemaData, setSchemaData] = React.useState(null);
     const [selectedSchema, setSelectedSchema] = React.useState(null);
-    // console.log('schemaData', schemaData);
 
     useEffect(() => {
         ajax.load(
@@ -223,12 +222,10 @@ export const SubmissionDataDictionary = () => {
 
     const options = Object.keys(schemaData || {}).flatMap((schemaItemName) => {
         const schemaProperties = schemaData[schemaItemName]?.properties || {};
-        // console.log('schemaItem', schemaItemName, schemaProperties);
 
         return [
             { value: schemaItemName, label: schemaItemName },
             ...Object.keys(schemaProperties)?.map((propertyName) => {
-                // console.log(propertyName, schemaProperties[propertyName]);
                 const value = `${schemaItemName}.${propertyName}`;
                 return { value: value, label: value?.toLowerCase() };
             }),
@@ -241,8 +238,6 @@ export const SubmissionDataDictionary = () => {
     const selectedSchemaItem = selectedSchema?.value?.split('.')?.[0] || null;
     const selectedSchemaProperty =
         selectedSchema?.value?.split('.')?.[1] || null;
-
-    // console.log('options', options);
 
     return schemaData ? (
         <div className="schema-reference-page">
