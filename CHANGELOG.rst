@@ -7,6 +7,12 @@ smaht-portal
 Change Log
 ----------
 
+1.5.2
+=====
+
+* Disable download button on search page for non-admin users
+
+
 1.5.1
 =====
 
