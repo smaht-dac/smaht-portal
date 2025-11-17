@@ -137,27 +137,104 @@ export class SelectAllFilesButton extends React.PureComponent {
         super(props);
         this.isAllSelected = this.isAllSelected.bind(this);
         this.handleSelectAll = this.handleSelectAll.bind(this);
-        this.state = { selecting: false };
+        this.getDownloadableFileCount =
+            this.getDownloadableFileCount.bind(this);
+        this.isEnabled = this.isEnabled.bind(this);
+        this.state = {
+            selecting: false,
+            userDownloadAccess: {},
+        };
+    }
+
+    componentDidMount() {
+        if (Object.keys(this.state.userDownloadAccess ?? {})?.length === 0) {
+            ajax.load('/session-properties', (resp) => {
+                const accessObj = resp?.download_perms || {};
+                this.setState({
+                    ...this.state,
+                    userDownloadAccess: { ...accessObj },
+                });
+            });
+        }
+    }
+
+    // Update user download access if session changes
+    componentDidUpdate(prevProps, prevState) {
+        console.log(
+            'SelectAllFilesButton componentDidUpdate called',
+            this.props,
+            this.state
+        );
+        if (prevProps.session !== this.props.session) {
+            ajax.load('/session-properties', (resp) => {
+                const accessObj = resp?.download_perms || {};
+                this.setState({
+                    ...this.state,
+                    userDownloadAccess: { ...accessObj },
+                });
+            });
+        }
+    }
+
+    getDownloadableFileCount() {
+        // TODO: check the total downloadable files against selected Files
+        const statusFacetTermCounts =
+            this.props.context?.facets?.find(
+                (facet) => facet.field === 'status'
+            )?.terms || [];
+        // Map through the terms to get count for downloadable files
+        const totalDownloadableFileCount = statusFacetTermCounts?.reduce(
+            (acc, term) => {
+                const userCanDownload =
+                    this.state.userDownloadAccess?.[term.key];
+                return acc + (userCanDownload ? term.doc_count : 0);
+            },
+            0
+        );
+        return totalDownloadableFileCount;
     }
 
     isEnabled() {
-        const { context } = this.props;
+        const { context, session } = this.props;
         const { total } = context || {};
 
-        if (!total) return true;
-        if (total > SELECT_ALL_LIMIT) return false;
-        return true;
+        // Too many items to select all
+        if (!session || total > SELECT_ALL_LIMIT) return false;
+
+        // Only enable when downloadable file count exists
+        const downloadableFileCount = this.getDownloadableFileCount();
+
+        console.log(
+            'downloadableFileCount',
+            downloadableFileCount,
+            total,
+            total > 0 && downloadableFileCount > 0
+        );
+
+        return total > 0 && downloadableFileCount > 0;
     }
 
     isAllSelected() {
         const { selectedItems, context } = this.props;
         const { total } = context || {};
 
-        if (!total) return false;
-        if (total === selectedItems.size) {
-            return true;
+        const downloadableFileCount = this.getDownloadableFileCount();
+
+        // No items selected
+        if (total === 0) {
+            return false;
+        } else {
+            // All files are selected if the number of selected items equals the total downloadable file count
+            console.log(
+                'all selcted?',
+                downloadableFileCount > 0 &&
+                    selectedItems.size === downloadableFileCount
+            );
+            return (
+                downloadableFileCount > 0 &&
+                selectedItems.size === downloadableFileCount
+            );
         }
-        return false;
     }
 
     handleSelectAll(evt) {
@@ -179,6 +256,18 @@ export class SelectAllFilesButton extends React.PureComponent {
             );
         }
 
+        const userDownloadAccess = this.state.userDownloadAccess;
+
+        // Apply a filter to selected items if userDownloadAccess provided
+        const statusFilters = [];
+        if (Object.keys(userDownloadAccess).length > 0) {
+            for (const status in userDownloadAccess) {
+                if (userDownloadAccess[status]) {
+                    statusFilters.push(status);
+                }
+            }
+        }
+
         this.setState({ selecting: true }, () => {
             if (!this.isAllSelected()) {
                 const currentHrefParts = memoizedUrlParse(searchHref);
@@ -188,7 +277,11 @@ export class SelectAllFilesButton extends React.PureComponent {
                 const reqHref =
                     currentHrefParts.pathname +
                     '?' +
-                    queryString.stringify(currentHrefQuery);
+                    queryString.stringify(currentHrefQuery) +
+                    // Add status filters if any
+                    statusFilters
+                        ?.map((status) => `&status=${status}`)
+                        .join('');
 
                 ajax.load(reqHref, (resp) => {
                     const filesToSelect = resp['@graph'] || [];
@@ -236,10 +329,11 @@ export class SelectAllFilesButton extends React.PureComponent {
 
     render() {
         const { selecting } = this.state;
-        const { type } = this.props;
+        const { type, session } = this.props;
 
         const isAllSelected = this.isAllSelected();
         const isEnabled = this.isEnabled();
+
         const iconClassName =
             'me-05 icon icon-fw icon-' +
             (selecting
@@ -259,7 +353,7 @@ export class SelectAllFilesButton extends React.PureComponent {
             return (
                 <input
                     type="checkbox"
-                    disabled={selecting || (!isAllSelected && !isEnabled)}
+                    disabled={!isEnabled}
                     checked={isAllSelected}
                     onChange={this.handleSelectAll}
                 />
@@ -830,7 +924,6 @@ const DataDownloadOverviewStats = React.memo(function DataDownloadOverviewStats(
     });
 
     const fallbackFxn = useCallback((resp) => {
-        console.log('DataDownloadOverviewStats error', resp);
         setLoading(false);
         setError(true);
     });

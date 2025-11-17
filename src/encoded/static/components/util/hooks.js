@@ -58,6 +58,19 @@ export const useUserDownloadAccess = (session) => {
             ajax.load(
                 '/session-properties',
                 (resp) => {
+                    // console.log('Fetched session properties:', resp);
+
+                    const downloadPerms = resp?.downloadPerms || {};
+
+                    // // Use downloadPerms from response if exists
+                    // if (Object.keys(downloadPerms).length > 0) {
+                    //     userDownloadAccessObj = {
+                    //         ...userDownloadAccessObj,
+                    //         ...downloadPerms,
+                    //     };
+                    // } else {
+                    // }
+                    // Manually determine access based on consortia and groups
                     // Get consortia associated with user
                     const userConsortia = resp?.details?.consortia || [];
 
