@@ -190,7 +190,7 @@ export default class DataMatrix extends React.PureComponent {
                 "textColor": "#ffffff"
             },
             "DSA": {
-                "values": ['DSA, Chain File'],
+                "values": ['DSA'],
                 "backgroundColor": "#cccccc",
                 "textColor": "#000000",
                 "shortName": "DSA"
@@ -459,8 +459,8 @@ export default class DataMatrix extends React.PureComponent {
                 ...row,
                 // If we have a diff for this group, use it; otherwise keep original value
                 files: typeof diffFiles === 'number' ? diffFiles : row.files,
-                // Overwrite the columnGrouping field with "DSA, Chain File"
-                [columnGrouping]: 'DSA, Chain File',
+                // Overwrite the columnGrouping field with "DSA"
+                [columnGrouping]: 'DSA',
             };
         });
 
@@ -887,7 +887,7 @@ DataMatrix.resultTransformedPostProcessFuncs = {
 };
 DataMatrix.browseFilteringTransformFuncs = {
     "dsaChainFile": function (filteringProperties) {
-        if (filteringProperties['file_sets.libraries.assay.display_title'] === 'DSA, Chain File') {
+        if (filteringProperties['file_sets.libraries.assay.display_title'] === 'DSA') {
             filteringProperties['data_type'] = ['DSA', 'Chain File'];
             delete filteringProperties['file_sets.libraries.assay.display_title'];
         }
