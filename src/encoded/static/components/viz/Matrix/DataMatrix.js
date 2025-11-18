@@ -889,7 +889,7 @@ DataMatrix.browseFilteringTransformFuncs = {
     "dsaChainFile": function (filteringProperties) {
         if (filteringProperties['file_sets.libraries.assay.display_title'] === 'DSA') {
             // extend data_type filter to include Chain File along with DSA
-            filteringProperties['data_type'] = [...filteringProperties['data_type'] || [], 'DSA', 'Chain File'];
+            filteringProperties['data_type'] = [...(filteringProperties['data_type'] || []), 'DSA', 'Chain File'];
             delete filteringProperties['file_sets.libraries.assay.display_title'];
         }
         return filteringProperties;
