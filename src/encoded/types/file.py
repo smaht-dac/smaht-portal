@@ -718,8 +718,8 @@ class File(Item, CoreFile):
             of the file changed - from this we can determine several things:
                 1. When metadata for this file was submitted (status = uploading or in review)
                 2. When the file was uploaded (status = uploaded)
-                3. When the file was released to consortia 
-                4. When the file was made public 
+                3. When the file was released to consortia
+                4. When the file was made public
                 5. If protected data, when it was made released (status = restricted)
 
             To make this reasonably efficient, we assume the following ordering:
@@ -769,15 +769,15 @@ class File(Item, CoreFile):
                         status_tracking[status] = last_modified["date_modified"]
 
         network_release_dates = [
-            status_tracking[status] 
-            for status in self.STATUS_TO_CHECK_NETWORK_RELEASE_DATE 
+            status_tracking[status]
+            for status in self.STATUS_TO_CHECK_NETWORK_RELEASE_DATE
             if status in status_tracking
         ]
         network_release_date = min(network_release_dates) if network_release_dates else None
 
         public_release_dates = [
-            status_tracking[status] 
-            for status in self.STATUS_TO_CHECK_PUBLIC_RELEASE_DATE 
+            status_tracking[status]
+            for status in self.STATUS_TO_CHECK_PUBLIC_RELEASE_DATE
             if status in status_tracking
         ]
         public_release_date = min(public_release_dates) if public_release_dates else None
@@ -1435,8 +1435,7 @@ class File(Item, CoreFile):
         """ Helper for below method containing core functionality. """
         if not filename:
             return None
-        if status in ['released', 'archived', 'restricted', 'public-restricted', 'public']:
-            # TODO: ensure these bucket names are accurate
+        if status in ['public', 'protected', 'protected-network', 'protected-early']:
             open_data_public_bucket = 'smaht-open-data-public'
             open_data_protected_bucket = 'smaht-open-data-protected'
             bucket_type = 'wfoutput'  # almost always going to be wfoutput
