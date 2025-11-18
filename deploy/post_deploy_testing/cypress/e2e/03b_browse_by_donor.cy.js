@@ -115,7 +115,6 @@ const ROLE_MATRIX = {
         runFacetChartBarPlotTests: true,
         runCohortViewChartTests: true,
         runSearchTableRowsTests: true,
-        runSearchTableRowsTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedType: 'Donor',
@@ -175,15 +174,15 @@ function checkChartTotal(title, expectedTotal) {
         .then(($texts) => {
             // Collect only numeric texts
             const numeric = Array.from($texts)
-                .map(el => ({ el, txt: el.textContent.trim(), style: el.getAttribute('style') || '' }))
-                .filter(o => /^\d+$/.test(o.txt));
+                .map((el) => { return { el, txt: el.textContent.trim(), style: el.getAttribute('style') || '' }; })
+                .filter((o) => /^\d+$/.test(o.txt));
 
             // Exclude axis ticks (gray labels)
-            const notAxis = numeric.filter(o => !o.style.includes('rgb(107, 114, 128)'));
+            const notAxis = numeric.filter((o) => !o.style.includes('rgb(107, 114, 128)'));
 
             // Prefer series labels (white on bars); else fallback to category totals (dark)
-            const whites = notAxis.filter(o => o.style.includes('rgb(255, 255, 255)')).map(o => Number(o.txt));
-            const darks = notAxis.filter(o => o.style.includes('rgb(17, 24, 39)')).map(o => Number(o.txt));
+            const whites = notAxis.filter((o) => o.style.includes('rgb(255, 255, 255)')).map((o) => Number(o.txt));
+            const darks = notAxis.filter((o) => o.style.includes('rgb(17, 24, 39)')).map((o) => Number(o.txt));
 
             const picked = whites.length ? whites : darks;
             const total = picked.reduce((s, n) => s + n, 0);
@@ -315,7 +314,7 @@ function stepFacetChartBarPlotTests(caps) {
                             .wrap($barPart).hoverIn().end()
                             .get('.cursor-component-root .details-title').should('contain', sequencer).end()
                             .get('.cursor-component-root .detail-crumbs .crumb').should('contain', tissue).end()
-                            .get('.cursor-component-root .details-title .primary-count').invoke('text').then(text => {
+                            .get('.cursor-component-root .details-title .primary-count').invoke('text').then((text) => {
                                 const number = parseInt(text, 10);
                                 expect(number).to.eq(expectedFilteredResults);
                             })
