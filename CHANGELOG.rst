@@ -13,6 +13,7 @@ Change Log
 `PR 546: WF annotated file name update <https://github.com/smaht-dac/smaht-portal/pull/546>`_
 
 * Update annotated file names script for Kinnex and Duplex-Seq files
+* Update suggested enums for supplementary_file.haplotype
 
 
 1.5.2
