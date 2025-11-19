@@ -43,7 +43,8 @@ export default function FileSearchView(props) {
 const SearchViewDownloadButton = ({ session, selectedItems }) => {
     const userDownloadAccess = useUserDownloadAccess(session);
 
-    return userDownloadAccess?.['protected-network'] ? (
+    // Enable if user has admin access (aka all true in userDownloadAccess)
+    return Object.values(userDownloadAccess).every((v) => v) ? (
         <SelectedItemsDownloadButton
             id="download_tsv_multiselect"
             disabled={selectedItems.size === 0}
@@ -259,9 +260,17 @@ const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(
         (acc, filter) => {
             if (filter.field === 'status') {
                 acc.statuses.push(filter.term);
-            } else if (filter.field === 'file_status_tracking.release_dates.initial_release.from' && !acc.from) {
+            } else if (
+                filter.field ===
+                    'file_status_tracking.release_dates.initial_release.from' &&
+                !acc.from
+            ) {
                 acc.from = filter.term;
-            } else if (filter.field === 'file_status_tracking.release_dates.initial_release.to' && !acc.to) {
+            } else if (
+                filter.field ===
+                    'file_status_tracking.release_dates.initial_release.to' &&
+                !acc.to
+            ) {
                 acc.to = filter.term;
             }
             return acc;
@@ -270,7 +279,8 @@ const FileSearchViewPageTitle = React.memo(function FileSearchViewPageTitle(
     );
 
     // Check that there is at least one "status" filter and that all status values are "released".
-    if (statuses.length === 0 || statuses.some(term => term !== 'released')) { // Frontend: Please check
+    if (statuses.length === 0 || statuses.some((term) => term !== 'released')) {
+        // Frontend: Please check
         return fallbackTitle;
     }
 
