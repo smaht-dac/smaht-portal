@@ -600,7 +600,7 @@ SOME_CONSENSUS_BAM_FILE = {
     "data_type": ["Aligned Reads"],
 }
 SOME_ISOFORM_FASTA_FILE = {
-    "data_category": ["RNA Quantification"],
+    "data_category": ["Consensus Reads"],
     "data_type": ["Transcript Sequence"],
 }
 SOME_KINNEX_FILE = {
