@@ -109,6 +109,25 @@ def reference_file(
     return res.json['@graph'][0]
 
 
+@pytest.fixture
+def public_reference_file(
+    testapp: TestApp, file_formats: Dict[str, dict], test_consortium: Dict[str, Any]
+) -> Dict[str, Any]:
+    """ Reference File for testing the open data interaction """
+    item = {
+        'file_format': file_formats.get('BAM').get('uuid'),
+        'md5sum': '00000000000000000000000000000000',
+        'content_md5sum': '00000000000000000000000000000000',
+        'filename': 'my.bam',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
+        'status': 'public',
+        'consortia': [test_consortium['uuid']],
+    }
+    res = testapp.post_json('/reference_file', item)
+    return res.json['@graph'][0]
+
+
 def test_href(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any]]) -> None:
     """Ensure download link formatted as expected."""
     expected = (
@@ -1291,6 +1310,40 @@ def get_expected_release_tracker_title(file: Dict[str, Any]) -> List[str]:
         tag for tag in tags if tag.startswith(expected_release_tracker_title_tag_start)
     ]
     return expected_title_tags[0].split(expected_release_tracker_title_tag_start)[1]
+
+
+def test_files_open_data_url_not_released(testapp, output_file):
+    """ Test S3 Open Data URL when a file has not been flagged as released/open etc """
+    # 1. check that initial download works
+    download_link = output_file['href']
+    direct_res = testapp.get(download_link, status=307)
+    # 2. check that the bucket in the redirect is the SMaHT test bucket, not open data
+    non_open_data_bucket = 'smaht-unit-testing-wfout.s3.amazonaws.com'
+    assert non_open_data_bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+
+def test_files_open_data_url_released_not_transferred(testapp, public_reference_file):
+    """ Test S3 Open Data URL when a file has been released but not transferred to Open Data
+        Same as the above test but we don't even check for open data if not in a released status
+    """
+    # 1. check that initial download works
+    download_link = public_reference_file['href']
+    direct_res = testapp.get(download_link, status=307)
+    # 2. check that the bucket in the redirect is the SMaHT test bucket, not open data
+    non_open_data_bucket = 'smaht-unit-testing-files.s3.amazonaws.com'
+    assert non_open_data_bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+
+def test_files_open_data_url_released_and_transferred(testapp, public_reference_file):
+    """ Test S3 Open Data URL when a file has been released and been transferred to Open Data"""
+    with mock.patch('encoded.types.file.File._head_s3', return_value=None):
+        updated = testapp.patch_json(f"/{public_reference_file['uuid']}", {})  # empty patch to regenerate calc prop
+        bucket = 'smaht-open-data-public'  # the Open Data bucket, not the SMaHT test bucket
+        # 1. check that initial download works
+        download_link = updated.json['@graph'][0]['href']
+        direct_res = testapp.get(download_link, status=307)
+        # 2. check that the bucket in the redirect is the open data bucket, not 4DN test
+        assert bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
 
 
 @pytest.mark.workbook

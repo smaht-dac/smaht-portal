@@ -1,13 +1,17 @@
+import datetime
+import os
+import pytz
+import structlog
+from typing import Any, Dict, List, Optional, Union
+from pyramid.httpexceptions import (
+    HTTPForbidden,
+    HTTPTemporaryRedirect,
+    HTTPNotFound,
+)
 from boto3 import client as boto_client
-from botocore.exceptions import ClientError
 from datetime import datetime
 import functools
-from pyramid.exceptions import HTTPForbidden
 from pyramid.request import Request
-from pyramid.response import Response
-from pyramid.view import view_config
-from typing import Any, Dict, List, Optional, Union
-import os
 from botocore.exceptions import ClientError
 from dcicutils.secrets_utils import assume_identity
 from dcicutils.misc_utils import override_environ
@@ -20,8 +24,12 @@ from encoded_core.types.file import (
 from encoded_core.file_views import (
     validate_file_filename,
     validate_extra_file_format,
+    is_file_to_download,
+    get_submitter_title,
+    get_experiment_or_assay_type,
+    get_file_type,
+    update_google_analytics,
     drs as CoreDRS,
-    download as CoreDownload,
     post_upload as CorePostUpload,
     get_upload as CoreGetUpload,
     download_cli as CoreDownloadCli,
@@ -32,19 +40,7 @@ from snovault import (
     load_schema,
     abstract_collection,
 )
-from snovault.elasticsearch import ELASTIC_SEARCH
-from snovault.schema_utils import schema_validator
-from snovault.search.search_utils import make_search_subreq
-from snovault.util import debug_log, get_item_or_none
-from snovault.validators import (
-    validate_item_content_post,
-    validate_item_content_put,
-    validate_item_content_patch,
-    validate_item_content_in_place,
-    no_validate_item_content_post,
-    no_validate_item_content_put,
-    no_validate_item_content_patch
-)
+from snovault.util import get_item_or_none
 from snovault.server_defaults import add_last_modified
 
 from . import acl
@@ -69,6 +65,33 @@ from ..item_utils.utils import (
     get_property_values_from_identifiers,
     get_unique_values,
     RequestHandler,
+)
+from pyramid.response import Response
+from pyramid.settings import asbool
+from pyramid.view import view_config
+from snovault.elasticsearch import ELASTIC_SEARCH
+from snovault.schema_utils import schema_validator
+from snovault.util import debug_log
+from snovault.validators import (
+    validate_item_content_post,
+    validate_item_content_put,
+    validate_item_content_patch,
+    validate_item_content_in_place,
+    no_validate_item_content_post,
+    no_validate_item_content_put,
+    no_validate_item_content_patch
+)
+from urllib.parse import (
+    parse_qs,
+    urlparse,
+)
+from snovault.authentication import session_properties
+from snovault.search.search import make_search_subreq
+from snovault.util import check_user_is_logged_in, make_s3_client
+from snovault.types.base import (
+    get_item_or_none,
+    collection_add,
+    item_edit,
 )
 
 
@@ -1545,7 +1568,115 @@ def download(context, request):
             validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
         raise HTTPForbidden('This is a protected file and is not available through download without'
                             'dbGaP approval. Please check with the DAC/your PI about your status.')
-    return CoreDownload(context, request)
+
+    # Download implementation, which requires non-trivial overrides follows
+    check_user_is_logged_in(request)
+
+    # first check for restricted status
+    try:
+        user_props = session_properties(context, request)
+    except Exception as e:
+        user_props = {'error': str(e)}
+
+    user_uuid = user_props.get('details', {}).get('uuid', None)
+    user_groups = user_props.get('details', {}).get('groups', None)
+    if user_groups:
+        user_groups.sort()
+
+    tracking_values = {'user_agent': request.user_agent, 'remote_ip': request.remote_addr,
+                       'user_uuid': user_props.get('details', {}).get('uuid', 'anonymous'),
+                       'request_path': request.path_info, 'request_headers': str(dict(request.headers))}
+
+    # proxy triggers if we should use Axel-redirect, useful for s3 range byte queries
+    try:
+        use_download_proxy = request.client_addr not in request.registry['aws_ipset']
+    except TypeError:
+        # this fails in testing due to testapp not having ip
+        use_download_proxy = False
+
+    # with extra_files the user may be trying to download the main file
+    # or one of the files in extra files, the following logic will
+    # search to find the "right" file and redirect to a download link for that one
+    properties = context.upgrade_properties()
+    file_format = get_item_or_none(request, properties.get('file_format'), 'file-formats')
+    _filename = None
+    if request.subpath:
+        _filename, = request.subpath
+    filename = is_file_to_download(properties, file_format, _filename)
+    if not filename:
+        found = False
+        for extra in properties.get('extra_files', []):
+            eformat = get_item_or_none(request, extra.get('file_format'), 'file-formats')
+            filename = is_file_to_download(extra, eformat, _filename)
+            if filename:
+                found = True
+                properties = extra
+                external = context.propsheets.get('external' + eformat.get('uuid'))
+                if eformat is not None:
+                    tracking_values['file_format'] = eformat.get('file_format')
+                break
+        if not found:
+            raise HTTPNotFound(_filename)
+    else:
+        external = context.propsheets.get('external', {})
+        if file_format is not None:
+            tracking_values['file_format'] = file_format.get('file_format')
+    tracking_values['filename'] = filename
+
+    # Calculate bytes downloaded from Range header
+    file_size_downloaded = properties.get('file_size', 0)
+    if request.range:
+        file_size_downloaded = 0
+        # Assume range unit is bytes
+        if hasattr(request.range, "ranges"):
+            for (range_start, range_end) in request.range.ranges:
+                file_size_downloaded += (
+                        (range_end or properties.get('file_size', 0)) -
+                        (range_start or 0)
+                )
+        else:
+            file_size_downloaded = (
+                    (request.range.end or properties.get('file_size', 0)) -
+                    (request.range.start or 0)
+            )
+
+    request_datastore_is_database = (request.datastore == 'database')
+    if not external:
+        external = context.build_external_creds(request.registry, context.uuid, properties)
+    if external.get('service') == 's3':
+        location = context.get_open_data_url_or_presigned_url_location(external, request, filename,
+                                                                       request_datastore_is_database)
+    else:
+        raise ValueError(external.get('service'))
+
+    # Analytics Stuff
+    ga_config = request.registry.settings.get('ga_config')
+
+    if ga_config:
+        submitter_title = get_submitter_title(request, context, properties)
+        exp_or_assay_type = get_experiment_or_assay_type(request, context, properties)
+        file_type = get_file_type(request, context, properties)
+        file_at_id = context.jsonld_id(request)
+        dataset = properties.get('dataset')
+        update_google_analytics(context, request, ga_config, filename, file_size_downloaded, file_at_id,
+                                submitter_title,
+                                user_uuid, user_groups, exp_or_assay_type, dataset, file_type)
+
+    if asbool(request.params.get('soft')):
+        expires = int(parse_qs(urlparse(location).query)['Expires'][0])
+        return {
+            '@type': ['SoftRedirect'],
+            'location': location,
+            'expires': datetime.datetime.fromtimestamp(expires, pytz.utc).isoformat(),
+        }
+
+    # We don't use X-Accel-Redirect here so that client behaviour is similar for
+    # both aws and non-aws users.
+    if use_download_proxy:
+        location = request.registry.settings.get('download_proxy', '') + str(location)
+
+    # 307 redirect specifies to keep original method
+    raise HTTPTemporaryRedirect(location=location)
 
 
 # This /files/upload_file_size endpoint was added specifically (2024-08-22) for smaht-submitr to
