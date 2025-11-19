@@ -1086,7 +1086,7 @@ export class SubmissionStatsViewController extends React.PureComponent {
                 return SubmissionStatsViewController.createFileSearchUri(props, 'file_status_tracking.uploaded');
             },
             'FileReleased' : function(props) {
-                return SubmissionStatsViewController.createFileSearchUri(props, 'file_status_tracking.released', 'File');
+                return SubmissionStatsViewController.createFileSearchUri(props, 'file_status_tracking.release_dates.initial_release', 'File');
             },
         },
         'shouldRefetchAggs' : function(pastProps, nextProps){
