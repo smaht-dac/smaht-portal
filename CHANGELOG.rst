@@ -7,10 +7,18 @@ smaht-portal
 Change Log
 ----------
 
+1.5.5
+=====
+
+`PR 554: Display DSA, chain files in a separate column in data matrix <https://github.com/smaht-dac/smaht-portal/pull/554>`_
+
+* Added a new "DSA" column group, enabling explicit visualization and grouping of DSA and Chain File data entries
+
+
 1.5.4
 =====
 
-`PR: 553: Cypress - browse by donor updates + data matrix file count verification <https://github.com/smaht-dac/smaht-portal/pull/553>`
+`PR: 553: Cypress - browse by donor updates + data matrix file count verification <https://github.com/smaht-dac/smaht-portal/pull/553>`_
 
 * Updates to Cypress tests for browse by donor page
 * Verification of file counts in data matrix popover using search file requests
