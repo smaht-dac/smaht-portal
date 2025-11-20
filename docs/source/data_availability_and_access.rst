@@ -10,11 +10,11 @@ The primary molecular assays of the SMaHT Network include bulk whole genome sequ
 
 SMaHT Data Access
 ^^^^^^^^^^^^^^^^^
-All data/metadata files generated from the SMaHT Network are available for download. 
+All data/metadata files generated from the SMaHT Network are available for download from the SMaHT Data Portal to the portal users with appropriate access. For self-registered Data Portal users who are not part of the SMaHT Network, the data are available after official data releases.
 
 **Open Access**: The open-access data/metadata files are available for download after a login as a SMaHT Network member as well as a self-registered Data Portal user who is not part of the SMaHT Network.
 
-**Protected Access**: All sequence data (DNA and RNA), inherited germline variant data, and full donor metadata files are protected-access data under dbGaP. Please see our [Protected Data Access page](https://data.smaht.org/docs/access/getting-dbgap-access) for instructions on how to request access for the protected-access SMaHT data under dbGaP.
+**Protected Access**: All sequence data (DNA and RNA), inherited germline variant data, and full donor metadata files are protected-access data under dbGaP. Please see our `Protected Data Access page <https://data.smaht.org/docs/access/getting-dbgap-access>`_ for instructions on how to request access for the protected-access SMaHT data under dbGaP.
 
 .. raw:: html
 
