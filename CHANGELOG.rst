@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+1.5.6
+=====
+
+`PR 555: Bug fix: statistics page submission and usage tabs rendering <https://github.com/smaht-dac/smaht-portal/pull/555>`_
+
+* Corrected the file release date key in submission statistics tab
+* Fixed date handling in usage statistics tab to ensure proper rendering
+
+
 1.5.5
 =====
 
