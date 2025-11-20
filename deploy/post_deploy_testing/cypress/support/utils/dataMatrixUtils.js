@@ -496,5 +496,18 @@ export function testMatrixPopoverValidation(
                 expect(sum, 'Total file count across col-summary blocks').to.be.at.least(expectedFilesCount);
             }
         });
+
+        // Check sum of regular blocks in a row equals to the row summary
+        cy.get('.grouping.depth-0').each(($row) => {
+            const rowSummaryText = $row.find('[data-block-type="row-summary"] span').text().trim();
+            const expectedRowSummary = parseInt(rowSummaryText, 10);
+
+            cy.wrap($row)
+                .find('.child-blocks [data-block-type="regular"] span')
+                .then(($spans) => {
+                    const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
+                    expect(sum, `Row summary for ${$row.find('.grouping-row h4 .inner').first().text().trim()}`).to.equal(expectedRowSummary);
+                });
+        });
     });
 }
