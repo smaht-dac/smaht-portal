@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.5.7
+=====
+
+`PR 557: feat: update Data Availability and Access page <https://github.com/smaht-dac/smaht-portal/pull/557>`_
+
+* Update text and table in data availability and access doc page
+
+
 1.5.6
 =====
 
