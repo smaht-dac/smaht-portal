@@ -430,7 +430,8 @@ function stepPublicDonorFlow(caps) {
                                     regularBlockCount: 5, // rowRegularBlockCount
                                     rowSummaryBlockCount: 5, // rowSummaryBlockCount
                                     colSummaryBlockCount: 1, // colSummaryBlockCount
-                                    expectedFilesCount: n // totalCountExpected (<=0 → skip strict total check)
+                                    expectedFilesCount: n, // totalCountExpected (null → skip strict total check)
+                                    verifyTotalFromApi: donorID !== "COLO829", // COLO829 has special file access rules
                                 }
                             );
                         });
@@ -474,7 +475,7 @@ describe("Public Donor Overview (by role)", () => {
                 logoutIfNeeded(roleKey);
             });
 
-            it(`Browse 3 public donors (plus COLO829 and STO001) from Production → open donor details → verify public-only fields and protected sections (enabled: ${caps.runPublicDonorFlow})`, () => {
+            it(`Browse 3 public donors (plus COLO829 and ST001) from Production → open donor details → verify public-only fields and protected sections (enabled: ${caps.runPublicDonorFlow})`, () => {
                 if (!caps.runPublicDonorFlow) return;
                 stepPublicDonorFlow(caps);
             });

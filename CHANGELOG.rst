@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+1.5.4
+=====
+
+`PR: 553: Cypress - browse by donor updates + data matrix file count verification <https://github.com/smaht-dac/smaht-portal/pull/553>`
+
+* Updates to Cypress tests for browse by donor page
+* Verification of file counts in data matrix popover using search file requests
+
+
 1.5.3
 =====
 
