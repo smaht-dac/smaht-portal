@@ -211,7 +211,7 @@ export class VisualBody extends React.PureComponent {
             let currentFilteringPropertiesVals = convertPairsToObject(currentFilteringPropertiesPairs);
 
             if (typeof browseFilteringTransformFunc === 'function') {
-                currentFilteringPropertiesVals = browseFilteringTransformFunc(currentFilteringPropertiesVals);
+                currentFilteringPropertiesVals = browseFilteringTransformFunc(currentFilteringPropertiesVals, blockType);
             }
 
             let initialHref = queryUrl;
