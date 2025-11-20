@@ -14,9 +14,11 @@
                         query={{
                             "url": "/data_matrix_aggregations/?type=File&sample_summary.studies=Benchmarking&dataset!=colo829blt_in_silico&dataset!=colo829_snv_indel_challenge_data&dataset!=mei_detection_challenge_data&dataset!=ipsc_snv_indel_challenge_data&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&limit=all",
                             "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"], //composite column
-                            "rowAggFields": ["donors.display_title", "sample_summary.tissues", "dataset"], //multiple column
+                            "rowAggFields": ["donors.display_title", "sample_summary.tissues", "dataset", "data_type"], //multiple column
                         }}
-                        resultPostProcessFuncKey="cellLinePostProcess"
+                        resultItemPostProcessFuncKey="cellLinePostProcess"
+                        resultTransformedPostProcessFuncKey="dsaChainFile"
+                        browseFilteringTransformFuncKey="dsaChainFile"
                         rowGroups={{
                             "Cell Line": {
                                 "values": ['COLO829T', 'COLO829BL', 'COLO829BLT50', 'In silico BLT50', 'Truth Set', 'HapMap Mixture', 'Downsampled', 'LB-LA2 Fibroblast', 'LB-LA2 iPSC-1', 'LB-LA2 iPSC-2', 'LB-LA2 iPSC-4', 'LB-LA2 iPSC-52', 'LB-LA2 iPSC-60'],
