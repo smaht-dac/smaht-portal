@@ -498,16 +498,32 @@ export function testMatrixPopoverValidation(
         });
 
         // Check sum of regular blocks in a row equals to the row summary
-        cy.get('.grouping.depth-0').each(($row) => {
-            const rowSummaryText = $row.find('[data-block-type="row-summary"] span').text().trim();
-            const expectedRowSummary = parseInt(rowSummaryText, 10);
+        // Note: collapse all to a fresh start
+        cy.get('.grouping.depth-0').then(($rows) => {
+            // filter only open rows
+            const openRows = $rows.filter('.may-collapse.open');
 
-            cy.wrap($row)
-                .find('.child-blocks [data-block-type="regular"] span')
-                .then(($spans) => {
-                    const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
-                    expect(sum, `Row summary for ${$row.find('.grouping-row h4 .inner').first().text().trim()}`).to.equal(expectedRowSummary);
+            openRows.each((index, row) => {
+                const $icon = Cypress.$(row).find('i.icon-minus');
+                if ($icon.length) {
+                    cy.wrap($icon).click();
+                }
+            });
+
+            cy.get('.grouping.depth-0').each(($row) => {
+
+                cy.wrap($row).within(() => {
+                    const rowSummaryText = $row.find('.blocks-container [data-block-type="row-summary"] span').text().trim();
+                    const expectedRowSummary = parseInt(rowSummaryText, 10);
+
+                    cy.wrap($row)
+                        .find('.blocks-container [data-block-type="regular"] span')
+                        .then(($spans) => {
+                            const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
+                            expect(sum, `Row summary for ${$row.find('.grouping-row h4 .inner').first().text().trim()}`).to.equal(expectedRowSummary);
+                        });
                 });
+            });
         });
     });
 }
