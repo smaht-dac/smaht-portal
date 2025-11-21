@@ -2,13 +2,10 @@
 Data Release Status
 ===================
 
-Data releases for the SMaHT Data Portal are controlled by the ``status`` field on objects.
-Users have access to metadata objects in the system based on their ``consortia`` and ``submission_center`` fields.
+Data releases for the SMaHT Data Portal are controlled by the ``status`` field on objects. Users have access to metadata objects in the system based on their ``consortia`` and ``submission_center`` fields.
 
 
-Metadata objects tagged under certain ``status`` values become viewable by users based on the value.
-A description of important ``status`` values most
-relevant to users is below.
+Metadata objects tagged under certain ``status`` values become viewable by users based on the value. A description of important ``status`` values most relevant to users is below.
 
 * ``open``, ``protected`` status is used to denote open or protected data that is accessible to all SMaHT Data Portal users with appropriate portal registration or data access (e.g. dbGaP).
 * ``open-network``, ``protected-network`` status is used to denote data that is accessible only to SMaHT Consortium users.

@@ -288,6 +288,7 @@
                         "description": "The number of dimensions of input files",
                         "type": "integer",
                         "enum": [
+                            0,
                             1,
                             2
                         ]
