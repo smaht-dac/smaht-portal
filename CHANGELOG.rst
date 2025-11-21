@@ -7,6 +7,57 @@ smaht-portal
 Change Log
 ----------
 
+1.5.7
+=====
+
+`PR 557: feat: update Data Availability and Access page <https://github.com/smaht-dac/smaht-portal/pull/557>`_
+
+* Update text and table in data availability and access doc page
+
+
+1.5.6
+=====
+
+`PR 555: Bug fix: statistics page submission and usage tabs rendering <https://github.com/smaht-dac/smaht-portal/pull/555>`_
+
+* Corrected the file release date key in submission statistics tab
+* Fixed date handling in usage statistics tab to ensure proper rendering
+
+
+1.5.5
+=====
+
+`PR 554: Display DSA, chain files in a separate column in data matrix <https://github.com/smaht-dac/smaht-portal/pull/554>`_
+
+* Added a new "DSA" column group, enabling explicit visualization and grouping of DSA and Chain File data entries
+
+
+1.5.4
+=====
+
+`PR: 553: Cypress - browse by donor updates + data matrix file count verification <https://github.com/smaht-dac/smaht-portal/pull/553>`_
+
+* Updates to Cypress tests for browse by donor page
+* Verification of file counts in data matrix popover using search file requests
+
+
+1.5.3
+=====
+
+`PR 546: WF annotated file name update <https://github.com/smaht-dac/smaht-portal/pull/546>`_
+
+* Update annotated file names script for Kinnex and Duplex-Seq files
+* Update suggested enums for supplementary_file.haplotype
+
+
+1.5.2
+=====
+
+`PR 551: feat: disable download button on search page for non-admin users <https://github.com/smaht-dac/smaht-portal/pull/551>`_
+
+* Disable download button on search page for non-admin users
+
+
 1.5.1
 =====
 

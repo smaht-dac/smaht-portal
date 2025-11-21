@@ -9,6 +9,7 @@ const EMPTY_DM_PROD_OPTS = {
     optionalLabels: [],
     expectedLowerLabels: [],
     expectedFilesCount: 0,
+    verifyTotalFromApi: true,
 };
 const BASE_DM_PROD_OPTS = {
     donors: ["SMHT004", "SMHT008", "SMHT009"],
@@ -16,6 +17,7 @@ const BASE_DM_PROD_OPTS = {
     optionalLabels: [],
     expectedLowerLabels: ["Donors"],
     expectedFilesCount: 40,
+    verifyTotalFromApi: true,
 };
 const BASE_DM_BENCHMARKING_OPTS = {
     donors: ["ST001", "ST002", "ST003", "ST004"],
@@ -23,6 +25,7 @@ const BASE_DM_BENCHMARKING_OPTS = {
     optionalLabels: ["Non-exposed Skin", "Lung", "Brain", "Liver", "Ascending Colon"],
     expectedLowerLabels: ["Cell Lines", "Donors"],
     expectedFilesCount: 50,
+    verifyTotalFromApi: true,
 };
 
 /* ----------------------------- ROLE MATRIX -----------------------------
