@@ -53,5 +53,5 @@ def test_qc_notes_calc_prop(es_testapp: TestApp, workbook: None) -> None:
         collection='QualityMetric',
         frame="object"
     )
-    assert qm.get("qc_notes","") == "Warn: foo has value bar"
+    assert qm.get("qc_notes","") == "Flagged: foo has value bar"
     
