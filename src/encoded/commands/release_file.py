@@ -737,6 +737,8 @@ class FileRelease:
             item_utils.get_accession(file_set) for file_set in self.file_sets
         ]
         file_accession = item_utils.get_accession(file)
+        file_data_category = file_utils.get_data_category(file)
+        file_data_type = file_utils.get_data_type(file)
         annotated_filename_info = self.get_annotated_filename_info(file)
         access_status = self.get_access_status(file, dataset, self.study)
         target_file_status = self.get_target_file_status(access_status)
@@ -744,20 +746,29 @@ class FileRelease:
         # Add file to file set
         patch_body = {
             item_constants.UUID: item_utils.get_uuid(file),
-            file_constants.DATASET: dataset,
             file_constants.ACCESS_STATUS: access_status,
             file_constants.ANNOTATED_FILENAME: annotated_filename_info.filename,
         }
         self.patch_infos.extend(
             [
                 f"\nFile ({file_accession}):",
-                self.get_okay_message(file_constants.DATASET, dataset),
                 self.get_okay_message(file_constants.ACCESS_STATUS, access_status),
                 self.get_okay_message(
                     file_constants.ANNOTATED_FILENAME, annotated_filename_info.filename
                 ),
             ]
         )
+
+        # Setting the dataset property brings these files to the Benchmarking/Production tables
+        # We want to exclude pure QC files from this.
+        if not ("Quality Control" in file_data_category and "Statistics" in file_data_type):
+            patch_body[file_constants.DATASET] = dataset
+            self.patch_infos.extend(
+                [
+                    self.get_okay_message(file_constants.DATASET, dataset),
+                ]
+            )
+
         self.patch_infos_minimal.extend(
             [
                 f"File {warning_text(file_accession)} will be released as {warning_text(annotated_filename_info.filename)} with status {warning_text(target_file_status)}.",   
