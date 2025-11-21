@@ -1343,8 +1343,11 @@ def test_files_open_data_url_released_and_transferred(testapp, public_reference_
         # 1. check that initial download works
         download_link = updated.json['@graph'][0]['href']
         direct_res = testapp.get(download_link, status=307)
-        # 2. check that the bucket in the redirect is the open data bucket, not 4DN test
+        # 2. check that the bucket in the redirect is the open data bucket, not SMaHT test
         assert bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+        # 3. No credential needed
+        assert 'AWSAccessKeyId' not in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
 
 
 def test_files_open_data_url_released_and_transferred_protected(testapp, public_reference_file):
@@ -1368,12 +1371,13 @@ def test_files_open_data_url_released_and_transferred_protected(testapp, public_
         return None
 
     with mock.patch("encoded.types.reference_file.ReferenceFile._head_s3",
-                    side_effect=head_s3_se) as mock_head_s3:
+                    side_effect=head_s3_se):
         updated = testapp.patch_json(f"/{public_reference_file['uuid']}", {})
         bucket = 'smaht-open-data-protected'
         download_link = updated.json['@graph'][0]['href']
         direct_res = testapp.get(f'{download_link}?datastore=database', status=307)
         assert bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+        assert 'AWSAccessKeyId' in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
 
 
 @pytest.mark.workbook
