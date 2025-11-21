@@ -76,6 +76,11 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_SEQUENCING_[A-Z0-9-_.]{4,}$"
         },
+        "additional_notes": {
+            "title": "Additional Notes",
+            "description": "Additional notes related to the sequencing",
+            "type": "string"
+        },
         "flow_cell": {
             "title": "Flow Cell",
             "description": "Flow cell used for sequencing",
@@ -111,7 +116,7 @@
         },
         "target_coverage": {
             "title": "Target Coverage",
-            "description": "Expected coverage for the sequencing",
+            "description": "Expected coverage for the sequencing. For Duplex sequencing, this applies to the target duplex coverage for sequencing",
             "type": "number",
             "minimum": 0
         },
@@ -150,6 +155,16 @@
                 "type": "string",
                 "linkTo": "PreparationKit"
             }
+        }
+    },
+    "columns": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        }
+    },
+    "facets": {
+        "submission_centers.display_title": {
+            "title": "Submitted By"
         }
     }
 }

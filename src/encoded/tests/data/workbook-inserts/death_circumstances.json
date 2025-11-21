@@ -5,9 +5,23 @@
         "submission_centers": [
             "smaht"
         ],
-        "donor": "TEST_DONOR_FEMALE",
+        "donor": "TEST_PROTECTED-DONOR_FEMALE",
+        "blood_transfusion": "Yes",
         "blood_transfusion_products": [
             "Platelets"
-        ]
+        ],
+        "cause_of_death_immediate": "Cardiac arrest",
+        "cause_of_death_immediate_interval": 0.13,
+        "cause_of_death_initial": "Cardiac arrest",
+        "cause_of_death_last_underlying": "Pulmonary valve disorder",
+        "circumstances_of_death": "Natural",
+        "death_pronounced_interval": 0,
+        "donor_stream": "Postmortem",
+        "place_of_death": "Hospital",
+        "region_of_death": "Northeast: New England",
+        "season_of_death": "Fall",
+        "sepsis_at_death": "No",
+        "ventilator_at_death": "Yes",
+        "ventilator_time": 10
     }
 ]

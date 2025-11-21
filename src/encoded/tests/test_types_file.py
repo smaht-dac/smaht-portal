@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 import pytest
 from dcicutils import schema_utils
 from webtest.app import TestApp
+from unittest import mock
 
 from .utils import (
     get_item, get_search, patch_item, post_item, post_item_and_return_location
@@ -16,6 +17,7 @@ from ..item_utils import (
     file_set as file_set_utils,
     item as item_utils,
     library as library_utils,
+    quality_metric as qm_utils,
     sample as sample_utils,
     sequencing as sequencing_utils,
     software as software_utils,
@@ -126,22 +128,25 @@ def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_f
     """
     assert not reference_file.get('file_status_tracking')  # should be absent
     res = output_file['file_status_tracking']
-    assert 'in review' in res
-    assert 'released' not in res
-    assert 'released_date' not in res
-    assert 'public' not in res
+    status_tracking = res["status_tracking"]
+    assert 'in review' in status_tracking
+    assert 'released' not in status_tracking
+    assert 'released_date' not in status_tracking
+    assert 'open' not in status_tracking
     res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
                                      {'status': 'released'}).json['@graph'][0]['file_status_tracking']
-    assert 'in review' in res
-    assert 'released' in res
-    assert 'released_date' in res
-    assert 'public' not in res
+    status_tracking = res["status_tracking"]
+    assert 'in review' in status_tracking
+    assert 'released' in status_tracking
+    assert 'released_date' in status_tracking
+    assert 'open' not in status_tracking
     res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
-                                     {'status': 'public'}).json['@graph'][0]['file_status_tracking']
-    assert 'in review' in res
-    assert 'released' in res
-    assert 'released_date' in res
-    assert 'public' in res
+                                     {'status': 'open'}).json['@graph'][0]['file_status_tracking']
+    status_tracking = res["status_tracking"]
+    assert 'in review' in status_tracking
+    assert 'released' in status_tracking
+    assert 'released_date' in status_tracking
+    assert 'open' in status_tracking
 
 
 @pytest.mark.parametrize(
@@ -152,7 +157,7 @@ def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_f
         ("archived", False),
         ("in review", True),
         ("obsolete", False),
-        ("public", False),
+        ("open", False),
     ]
 )
 def test_upload_credentials(
@@ -178,8 +183,8 @@ def test_upload_credentials(
     "status,expected",
     [
         ("released", "Open"),
-        ("public", "Open"),
-        ("restricted", "Protected"),
+        ("open", "Open"),
+        ("protected-network", "Protected"),
         ("deleted", None),  # test just one additional since there is significant setup cost
     ]
 )
@@ -761,7 +766,7 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
     assert submitted_file_with_sample_sources_search
     for submitted_file in submitted_file_with_sample_sources_search:
         assert_sample_sources_calcprop_matches_embeds(submitted_file)
-    
+
     output_file_with_sample_sources_search = search_type_for_key(
         es_testapp, "OutputFile", search_key
     )
@@ -826,7 +831,7 @@ def assert_cell_line_donors_match_calcprop(
     file: Dict[str, Any],
     cell_lines: List[Dict[str, Any]],
 ) -> None:
-    """Ensure cell line donors match calcprop.""" 
+    """Ensure cell line donors match calcprop."""
     donor_ids = get_property_values_from_identifiers(
         request_handler, cell_lines, functools.partial(cell_line_utils.get_source_donor, request_handler)
     )
@@ -842,7 +847,7 @@ def assert_donors_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     analytes = get_unique_values(libraries, library_utils.get_analytes)
     samples = get_unique_values(analytes, analyte_utils.get_samples)
     sample_sources = get_unique_values(samples, sample_utils.get_sample_sources)
-    donors = get_unique_values(sample_sources, tissue_utils.get_donor)     
+    donors = get_unique_values(sample_sources, tissue_utils.get_donor)
     assert_items_match(donors_from_calcprop, donors)
 
 
@@ -989,6 +994,7 @@ def assert_data_generation_summary_matches_expected(
         file_set_utils.get_sequencing(file_set)
         for file_set in file_utils.get_file_sets(file)
     ]
+    quality_metrics = file_utils.get_quality_metrics(file)
     expected_platforms = [
         item_utils.get_display_title(
             get_item(
@@ -1001,16 +1007,21 @@ def assert_data_generation_summary_matches_expected(
     if (override_coverage := file_utils.get_override_group_coverage(file)):
         expected_target_coverage = [override_coverage]
     else:
-        expected_target_coverage = [ target_coverage 
+        expected_target_coverage = [ target_coverage
             for sequencing in sequencings
-                
             if (target_coverage := sequencing_utils.get_target_coverage(
-                    get_item(es_testapp, item_utils.get_uuid(sequencing))
-                ))
-
-            ] if sequencings else []
-    expected_target_read_count = [ target_coverage 
-        for sequencing in sequencings                     
+                get_item(es_testapp, item_utils.get_uuid(sequencing))
+            ))
+        ] if sequencings else []
+    if (override_average_coverage := file_utils.get_override_average_coverage(file)):
+        expected_average_coverage = [override_average_coverage]
+    else:
+        expected_average_coverage = [ coverage
+            for quality_metric in quality_metrics
+            if (coverage := qm_utils.get_coverage(quality_metric))
+        ] if quality_metrics else []
+    expected_target_read_count = [ target_coverage
+        for sequencing in sequencings
         if (target_coverage := sequencing_utils.get_target_read_count(
                 get_item(es_testapp, item_utils.get_uuid(sequencing))
             ))
@@ -1033,6 +1044,9 @@ def assert_data_generation_summary_matches_expected(
     )
     assert_values_match_if_present(
         data_generation_summary,"target_group_coverage",expected_target_coverage
+    )
+    assert_values_match_if_present(
+        data_generation_summary,"average_coverage",expected_average_coverage
     )
     assert_values_match_if_present(
         data_generation_summary,"target_read_count",expected_target_read_count
@@ -1090,7 +1104,25 @@ def assert_sample_summary_matches_expected(
         [get_item(es_testapp, item_utils.get_uuid(analyte)) for analyte in analytes],
         analyte_utils.get_molecule,
     )
+    expected_category = expected_tissues = get_unique_values(
+        [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
+        functools.partial(
+            tissue_utils.get_category, request_handler=request_handler
+        )
+    )
     expected_tissues = get_unique_values(
+        [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
+        functools.partial(
+            tissue_utils.get_tissue_type, request_handler=request_handler
+        )
+    )
+    expected_tissue_subtypes = get_unique_values(
+        [tissue_utils.get_uberon_id(
+            get_item(es_testapp, item_utils.get_uuid(tissue)))
+                      for tissue in tissues],
+        item_utils.get_display_title
+    )
+    expected_tissue_details = get_unique_values(
         [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
         tissue_utils.get_location,
     )
@@ -1123,7 +1155,16 @@ def assert_sample_summary_matches_expected(
         sample_summary, "sample_names", expected_sample_names
     )
     assert_values_match_if_present(
+        sample_summary, "category", expected_category
+    )
+    assert_values_match_if_present(
         sample_summary, "tissues", expected_tissues
+    )
+    assert_values_match_if_present(
+        sample_summary, "tissue_subtypes", expected_tissue_subtypes
+    )
+    assert_values_match_if_present(
+        sample_summary, "tissue_details", expected_tissue_details
     )
     assert_values_match_if_present(
         sample_summary, "donor_ids", expected_donor_ids
@@ -1203,48 +1244,53 @@ def assert_analysis_software_matches_expected(
 
 
 @pytest.mark.workbook
-def test_release_tracker_description(es_testapp: TestApp, workbook: None) -> None:
-    """Ensure 'release_tracker_description' calcprop fields correct for inserts.
+def test_release_tracker(es_testapp: TestApp, workbook: None) -> None:
+    """
+    Ensure  `release_tracker_title` and 'release_tracker_description' calcprops field correct for inserts.
 
-    Checks fields present on inserts and as expected by parsing
-    properties/embeds."""
-    
-    search_key = "release_tracker_description"
-    file_without_release_tracker_description = search_type_for_key(
-        es_testapp, "File", search_key, exists=False
-    )
-    assert file_without_release_tracker_description  # Not expected for Reference Files
+    Checks fields present on inserts match values expected by parsing tags.
+    """
 
-    files_with_release_tracker_description = search_type_for_key(
-        es_testapp, "File", search_key
-    )
+    search = "tags=test_release_tracker"
+    files_with_release_tracker_description = get_search(es_testapp, search)
     for file in files_with_release_tracker_description:
+        assert_release_tracker_title_matches_expected(file, es_testapp)
         assert_release_tracker_description_matches_expected(file, es_testapp)
+
 
 
 def assert_release_tracker_description_matches_expected(file: Dict[str, Any], es_testapp: TestApp):
     """Assert release_tracker_description calcprop matches expected."""
+    release_tracker_description = file_utils.get_release_tracker_description(file)
+    description_from_tags = get_expected_release_tracker_description(file)
+    assert release_tracker_description.replace(" ", "") == description_from_tags
 
-    release_tracker_description = file_utils. get_release_tracker_description(file)
 
-    assay_from_calcprop = item_utils.get_display_title(
-        file_utils.get_assays(file)[0]
-    )
-    sequencer_from_calcprop = item_utils.get_display_title(
-        sequencing_utils.get_sequencer(
-            file_utils.get_sequencings(file)[0]
-        )
-    )
-    file_format = item_utils.get_display_title(
-        file_utils.get_file_format(file)
-    )                          
-    description_from_calcprops=f"{assay_from_calcprop} {sequencer_from_calcprop} {file_format}"
-    assert release_tracker_description == description_from_calcprops
-   
-    
+def get_expected_release_tracker_description(sample: Dict[str, Any]) -> List[str]:
+    """Get expected release_tracker_description from the file from tags."""
+    expected_release_tracker_description_tag_start = "release_tracker_description-"
+    tags = item_utils.get_tags(sample)
+    expected_description_tags = [
+        tag for tag in tags if tag.startswith(expected_release_tracker_description_tag_start)
+    ]
+    return expected_description_tags[0].split(expected_release_tracker_description_tag_start)[1]
 
-    
 
+def assert_release_tracker_title_matches_expected(file: Dict[str, Any], request_handler: RequestHandler):
+    """Assert release_tracker_title calcprop matches expected."""
+    release_tracker_title = file_utils.get_release_tracker_title(file)
+    title_from_tags = get_expected_release_tracker_title(file)
+    assert release_tracker_title.replace(" ", "") == title_from_tags
+
+
+def get_expected_release_tracker_title(file: Dict[str, Any]) -> List[str]:
+    """Get expected release_tracker_title from the file from tags."""
+    expected_release_tracker_title_tag_start = "release_tracker_title-"
+    tags = item_utils.get_tags(file)
+    expected_title_tags = [
+        tag for tag in tags if tag.startswith(expected_release_tracker_title_tag_start)
+    ]
+    return expected_title_tags[0].split(expected_release_tracker_title_tag_start)[1]
 
 
 @pytest.mark.workbook

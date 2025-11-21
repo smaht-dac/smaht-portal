@@ -3,7 +3,7 @@
         "identifier": "coming-soon",
         "title": "Coming Soon",
         "body": "Coming soon!",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "md",
             "collapsible": false,
@@ -19,7 +19,7 @@
         "identifier": "about-introduction",
         "title": "Introduction",
         "file": "/docs/public/about_introduction.md",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "md",
             "collapsible": false,

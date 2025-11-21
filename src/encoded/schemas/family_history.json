@@ -70,18 +70,38 @@
                 "type": "string",
                 "enum": [
                     "Aunt",
+                    "Aunts",
                     "Brother",
+                    "Brothers",
+                    "Child",
+                    "Children",
                     "Cousin",
+                    "Cousins",
                     "Daughter",
+                    "Daughters",
                     "Father",
                     "Grandfather",
+                    "Grandfathers",
                     "Grandmother",
+                    "Grandmothers",
+                    "Grandparent",
+                    "Grandparents",
                     "Mother",
                     "Nephew",
+                    "Nephews",
                     "Niece",
+                    "Nieces",
+                    "Parent",
+                    "Parents",
                     "Son",
+                    "Sons",
+                    "Sibling",
+                    "Siblings",
                     "Sister",
-                    "Uncle"
+                    "Sisters",
+                    "Uncle",
+                    "Uncles",
+                    "Unspecified"
                 ]
             }
         },
@@ -89,7 +109,7 @@
             "title": "Donor",
             "description": "The donor of the family history",
             "type": "string",
-            "linkTo": "Donor"
+            "linkTo": "AbstractDonor"
         }
     }
 }

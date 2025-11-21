@@ -181,11 +181,10 @@ body {
 	@include make-wide-container;
 }
 
-/* Potentially deprecated in this project */
 body.is-full-screen {
 
 	/** Make body non-scrollable for pages which aren't search. **/
-	&:not([data-pathname="/browse/"]):not([data-pathname="/search/"]){
+	&:not([data-pathname="/browse/"]):not([data-pathname="/search/"]):not([data-pathname="/data-matrix"]) {
 		overflow: hidden;
 		&::-webkit-scrollbar { 
 			display: none; 
@@ -211,13 +210,24 @@ body.is-full-screen {
 Styling of page title container for static pages, user profiles, 
 **/
 body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-current-action="edit"]):not([data-at-type*="Error"]) #page-title-container,
+body[data-pathname^="/search"]:not([data-current-action="add"]):not([data-current-action="edit"]):not([data-at-type*="Error"]) #page-title-container,
 body.is-item-view[data-pathname^="/users/"]:not([data-at-type*='Error']) #page-title-container,
+body.is-item-view[data-pathname="/me"]:not([data-at-type*='Error']) #page-title-container,
 body:not([data-at-type*='Error']) #page-title-container.static-page-title {
 	background: $ss-title-background;
 	background-size: cover;
 	border: 1px solid #E7F0F3;
 	border-left: none;
 	border-right: none;
+}
+
+// Render page title for donor browse pages
+body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-current-action="edit"]):not([data-at-type*="Error"]) {
+	&[data-at-type="DonorSearchResults"] #page-title-container,
+	&[data-at-type="ProtectedDonorSearchResults"] #page-title-container {
+		background: url('/static/img/polygon-bg-header-donor.svg'), linear-gradient(175deg, rgba(240, 251, 255, 0.5), rgba(165, 158, 240, 0.25)), #F5F9FD;
+		background-size: cover;
+	}
 }
 
 #page-title-container {
@@ -268,13 +278,12 @@ body:not([data-at-type*='Error']) #page-title-container.static-page-title {
 		}
 	
 		> .subtitle.prominent {
-			/* Subtitles which are part of the title, e.g. Experiment Set <.subtitle>4324ADADF</.subtitle> */
+			/* Subtitles which are part of the title, e.g. Search for <.subtitle>File</.subtitle> */
 	
-			font-weight: 400;
-			font-size : 0.75em;
+			font-weight: 600;
+			font-size : 1.5rem;
 			display: inline-block;
 			margin-left: 9px;
-			vertical-align: middle;
 	
 			body[data-pathname="/search/"] & {
 				margin-left: 6px;
@@ -319,7 +328,7 @@ Layout
 			.sliding-sidebar-nav {
 				width: 100%;
 				position: relative;
-				padding: 25px 0px 0px 0px;
+				padding: 25px 20px 0px 0px;
 
 				.toggle-button {
 					position: absolute;
@@ -356,6 +365,18 @@ Layout
 				max-width: 275px;
 				border-right: 1px solid #dee2e6;
 				transition: width 100ms ease-in-out;
+
+				.sidebar-nav-body {
+					overflow: hidden;
+
+					.browse-links-header {
+						animation: widthSet 100ms ease-in;
+					}
+
+					.browse-link {
+						animation: widthSet 100ms ease-in;
+					}
+				}
 			}
 			.sliding-sidebar-layout-container {
 				width: 80%;
@@ -379,6 +400,20 @@ Layout
 				}
 			}
 		}
+	}
+}
+
+// Prevents text-wrap in side nav section content during reveal
+@keyframes widthSet {
+	0% {
+		opacity: 0;
+		width: 300px;
+	}
+	80% {
+		width: 100%;
+	}
+	100% {
+		opacity: 1;
 	}
 }
 

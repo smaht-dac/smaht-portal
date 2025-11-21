@@ -13,10 +13,13 @@
         "ph": 6.7,
         "sample_count": 7,
         "weight": 3.4,
+        "pathology_notes": "Sclerosis",
+        "prosector_notes": "Some note",
         "preservation_type": "Fixed",
         "preservation_medium": "Formalin",
         "size": 2.3,
-        "size_unit" : "cm^2"
+        "size_unit" : "cm^2",
+        "status": "open-early"
     },
     {
         "uuid": "4e92d8b9-e0ad-4469-8e8c-01a0a5d7b313",
@@ -26,9 +29,56 @@
         "submitted_id": "TEST_TISSUE_LUNG",
         "external_id": "ST001-1D",
         "donor": "TEST_DONOR_MALE",
-        "uberon_id": "UBERON:0002108",
+        "uberon_id": "UBERON:0008952",
         "anatomical_location": "Lung: Left Lobe",
         "weight": 3.4,
         "preservation_type": "Snap Frozen"
+    },
+    {
+        "uuid": "ec2b7218-c931-453e-b79c-33edd24ef190",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE_BLOOD",
+        "external_id": "SMHT001-3A",
+        "uberon_id": "UBERON:0000178",
+        "donor": "TEST_DONOR_FEMALE",
+        "volume": 20
+    },
+    {
+        "uuid": "6facfca7-ac0e-4577-963a-496435aa0bcd",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE_BRAIN",
+        "external_id": "SMHT001-3AJ",
+        "donor": "TEST_DONOR_FEMALE",
+        "uberon_id": "UBERON:0000955",
+        "anatomical_location": "Brain",
+        "weight": 3.4,
+        "preservation_type": "Fresh",
+        "status": "open"
+    },
+    {
+        "uuid": "9d23bfb8-07ae-4dad-999e-4cc45f68af29",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE_LUNG_ALT1",
+        "external_id": "T12",
+        "donor": "TEST_DONOR_ALT1",
+        "uberon_id": "UBERON:0008952",
+        "anatomical_location": "Lung: Left Lobe"
+    },
+    {
+        "uuid": "685657ef-3f71-45b3-9ad9-19eafaa26540",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_TISSUE_FIBROBLAST",
+        "external_id": "SMHT001-3AC",
+        "donor": "TEST_DONOR_FEMALE",
+        "uberon_id": "UBERON:0004264",
+        "anatomical_location": "Fibroblast"
     }
 ]

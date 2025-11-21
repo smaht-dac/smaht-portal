@@ -1,16 +1,18 @@
 from pyramid.view import view_config
 from snovault.util import debug_log
-from dcicutils.misc_utils import ignored
 from snovault.search.search import search
 from snovault.search.search_utils import make_search_subreq
-from .schema_formats import is_accession_for_server
 from urllib.parse import urlencode
 from boto3 import client as boto_client
 import json
 
+# This refers to the version of the JSON file that contains the QC overview data.
+# This needs to be bumped when there is a breaking change in the Front/Backend
+JSON_VERSION = "v3"
 
 # Portal constants
 REFERENCE_FILE = "ReferenceFile"
+METAWORKFLOW_RUN = "MetaWorkflowRun"
 
 
 def includeme(config):
@@ -28,7 +30,8 @@ def get_qc_overview(context, request):
         search_params["type"] = REFERENCE_FILE
         search_params["limit"] = 1
         search_params["sort"] = "-date_created"
-        search_params["tags"] = "qc_overview_data"
+        search_params["tags"] = "qc_metrics_data"
+        search_params["version"] = JSON_VERSION
 
         subreq = make_search_subreq(
             request, f"/search?{urlencode(search_params, True)}", inherit_user=True
@@ -42,10 +45,12 @@ def get_qc_overview(context, request):
         reference_file = search_res[0]
         reference_file_upload_key = reference_file["upload_key"]
 
+        #For local testing purposes
+        # reference_file_upload_key = (
+        #     "25d09e18-2f77-4541-a32c-0f1d99defbd3/SMAFILZCEQ1X.json"
+        # )
+
         upload_bucket = request.registry.settings.get("file_upload_bucket")
-        # print("------------------------------------")
-        print(upload_bucket)
-        # upload_bucket = "aveit-tibanna-wolf"
 
         if upload_bucket:
             s3 = boto_client("s3")
@@ -58,12 +63,12 @@ def get_qc_overview(context, request):
                 response["data"] = json.loads(content)
                 response["error"] = False
                 return response
-            
+
             except Exception:
                 response["error_msg"] = "Reference file could not be loaded from S3."
                 return response
 
     except Exception as e:
         response["error_msg"] = f"Error when trying to get QC overview data: {str(e)}"
+        request.response.status_code = 500
         return response
-        

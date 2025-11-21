@@ -8,7 +8,10 @@
         "sample_sources": [
             "TEST_CELL-CULTURE_HELA"
         ],
+        "external_id": "SMHTHELA",
+        "description": "Sample 1 of Hela",
         "preservation_type": "Frozen",
+        "preservation_medium": "DMSO",
         "tags": [
             "test_sample_names",
             "sample_names-SMHTHELA",
@@ -68,6 +71,9 @@
         "sample_sources": [
             "TEST_CELL-CULTURE_IPSC_FIBROBLAST"
         ],
-        "preservation_type": "Fresh"
+        "preservation_type": "Fresh",
+        "cell_count": 10000,
+        "cell_density": 100,
+        "volume": 10
     }
 ]

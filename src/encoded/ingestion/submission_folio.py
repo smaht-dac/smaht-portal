@@ -8,7 +8,7 @@ from dcicutils.misc_utils import VirtualApp
 from dcicutils.portal_utils import Portal
 from snovault.ingestion.common import get_parameter
 from snovault.types.ingestion import SubmissionFolio
-from snovault.util import s3_local_file
+from snovault.util import s3_local_file, SettingsKey, extra_kwargs_for_s3_encrypt_key_id
 
 
 class SmahtSubmissionFolio:
@@ -32,6 +32,11 @@ class SmahtSubmissionFolio:
         self.ref_nocache = get_parameter(submission.parameters, "ref_nocache", as_type=bool, default=False)
         self.autoadd = get_parameter(submission.parameters, "autoadd", as_type=str, default=None)
         self.merge = get_parameter(submission.parameters, "merge", as_type=bool, default=False)
+        # N.B. 2025-02-11: We no longer assume consortia is passed throught to the ingester smaht-submitr;
+        # so if not then we get it elsewhere from the autoadd field; which we will pickup below if not set here.
+        # This came up with permission problems for non-admin users using submitr.
+        # Went back/forth on this; in the end removed restricted_fields designation for consortia in mixins.json;
+        # so actually as of now (2025-02-12) consortia is coming through from smaht-submitr.
         self.consortium = get_parameter(submission.parameters, "consortium", as_type=str, default=None)
         self.submission_center = get_parameter(submission.parameters, "submission_center", as_type=str, default=None)
         self.user = get_parameter(submission.parameters, "user", as_type=str, default=None)
@@ -39,6 +44,12 @@ class SmahtSubmissionFolio:
         if self.autoadd:
             try:
                 self.autoadd = json.loads(self.autoadd)
+                if not self.consortium:
+                    # 2025-02-11: If consortia is not coming through then pick it up from smaht-submitr
+                    # then get it from autoadd, and then delete it from autoadd; see comments above.
+                    if isinstance(consortia := self.autoadd.get("consortia"), list):
+                        self.consortium = consortia[0]
+                        del self.autoadd["consortia"]
             except Exception:
                 self.autoadd = None
         if self.user:
@@ -46,6 +57,8 @@ class SmahtSubmissionFolio:
                 self.user = json.loads(self.user)
             except Exception:
                 self.user = None
+        self.portal_vapp = submission.vapp
+        self.s3_encrypt_key_id = self.portal_vapp.app.registry.settings.get(SettingsKey.S3_ENCRYPT_KEY_ID, None)
         if not self.validate_only and self.data_file_name == "null":
             validation_uuid = get_parameter(submission.parameters, "validation_uuid", as_type=str, default=None)
             if (validation_uuid and
@@ -68,13 +81,15 @@ class SmahtSubmissionFolio:
                                    local_filename=validation_datafile) as datafile:
                     self.submission.s3_client.upload_file(Filename=datafile,
                                                           Bucket=self.submission.bucket,
-                                                          Key=self.submission.object_name)
-        # TODO: what do we actually do we the consortium and submission_center?
+                                                          Key=self.submission.object_name,
+                                                          **extra_kwargs_for_s3_encrypt_key_id(
+                                                              self.s3_encrypt_key_id, 'SubmissionFolio'
+                                                          ))
+        # TODO: what do we actually do with the consortium and submission_center?
         # Should we validate that each submitted object, if specified, contains
         # values for these which match these values here in the submission folio?
-        self.consortium = get_parameter(submission.parameters, "consortium")
+        self.consortium = get_parameter(submission.parameters, "consortium", default=None)
         self.submission_center = get_parameter(submission.parameters, "submission_center")
-        self.portal_vapp = submission.vapp
         # Prevent non-admin things; currently just no validation skipping allowed.
         if not self.is_admin_user(self.user, self.portal_vapp):
             self.validate_skip = False

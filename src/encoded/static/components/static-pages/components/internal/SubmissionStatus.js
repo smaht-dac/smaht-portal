@@ -15,7 +15,9 @@ import {
     getQcResults,
     getQcResultsSummary,
     getCommentsList,
-    getTargetCoverage
+    getTargetCoverage,
+    isReleasedExternally,
+    isReleasedInternally
 } from './submissionStatusUtils';
 
 import {
@@ -382,12 +384,12 @@ class SubmissionStatusComponent extends React.PureComponent {
         this.patchFileset(fs_uuid, filesets, payload);
     };
 
-    toggleFileGroupQc = (fs, reload=false) => {
+    toggleFileGroupQc = (fs, reload = false) => {
         if (this.state.modal) {
             this.setState({
                 modal: null,
             });
-            if(reload){
+            if (reload) {
                 this.refresh();
             }
             return;
@@ -405,15 +407,19 @@ class SubmissionStatusComponent extends React.PureComponent {
     getSubmissionTableBody = () => {
         const tbody = this.state.fileSets.map((fs) => {
             const sequencer = fs.sequencing?.sequencer;
+            const tissueTypes = fs.tissue_types && fs.tissue_types.length
+                ? '(' + fs.tissue_types.join(', ') + ')'
+                : null;
             const targetCoverage = getTargetCoverage(fs.sequencing);
             const status_badge_type =
-                fs.status == 'released' ? 'success' : 'warning';
+                isReleasedExternally(fs.status) ? 'success' : 'warning';
             const status = createBadge(status_badge_type, fs.status);
             let fs_details = [
                 <li className="ss-line-height-140">Status: {status}</li>,
                 <li className="ss-line-height-140">
                     Sequencer:{' '}
-                    {getLink(sequencer?.uuid, sequencer?.display_title)} ({targetCoverage})
+                    {getLink(sequencer?.uuid, sequencer?.display_title)} (
+                    {targetCoverage})
                 </li>,
             ];
 
@@ -423,19 +429,30 @@ class SubmissionStatusComponent extends React.PureComponent {
                         Library: {getLink(lib.uuid, lib.display_title)}
                     </li>
                 );
+                const rin_number = [];
                 lib.analytes?.forEach((analyte) => {
+                    if (analyte.rna_integrity_number) {
+                        rin_number.push(analyte.rna_integrity_number);
+                    }
                     analyte.samples?.forEach((sample) => {
+                        
                         fs_details.push(
                             <li className="ss-line-height-140">
                                 Sample:{' '}
-                                {getLink(sample.uuid, sample.display_title)}
+                                {getLink(sample.uuid, sample.display_title)} {tissueTypes}
                             </li>
                         );
                     });
                 });
+                
+                const rin_details =
+                    rin_number.length > 0
+                        ? `– RIN: ${rin_number.join(', ')}`
+                        : '';
+
                 fs_details.push(
                     <li className="ss-line-height-140">
-                        Assay: {lib.assay?.display_title}
+                        Assay: {lib.assay?.display_title} {rin_details}
                     </li>
                 );
             });
@@ -445,7 +462,12 @@ class SubmissionStatusComponent extends React.PureComponent {
                     <ul>
                         {fs_details}
                         {this.getCommentInputField(fs)}
-                        {getCommentsList(fs.uuid, fs.comments, this.state.isUserAdmin, this.removeComment)}
+                        {getCommentsList(
+                            fs.uuid,
+                            fs.comments,
+                            this.state.isUserAdmin,
+                            this.removeComment
+                        )}
                     </ul>
                 </small>
             );
@@ -469,6 +491,14 @@ class SubmissionStatusComponent extends React.PureComponent {
                             mwfr.accession,
                             mwfr.meta_workflow?.display_title
                         )}
+                        <object.CopyWrapper
+                            value={mwfr.accession}
+                            className=""
+                            data-tip={'Click to copy accession'}
+                            wrapperElement="span"
+                            iconProps={{
+                                style: { fontSize: '0.875rem', marginLeft: 3 },
+                            }}></object.CopyWrapper>
                         <small className="d-block ss-line-height-140">
                             Created: {formatDate(mwfr.date_created)}. Status:{' '}
                             {mwfr_badge}
@@ -521,6 +551,29 @@ class SubmissionStatusComponent extends React.PureComponent {
 
             const outputFilesQc = getQcResults(fs.output_files.qc_infos, true);
 
+            let unaligned_reads_badge = '';
+            const status_unaligned_reads =
+                fs.submitted_files.overall_status_unaligned_reads;
+            if (status_unaligned_reads === 'archived') {
+                const tooltip =
+                    fs.submitted_files.num_unaligned_reads_files +
+                    ' submitted Unaligned Reads files have been archived';
+                unaligned_reads_badge = createBadge(
+                    'warning',
+                    status_unaligned_reads,
+                    tooltip
+                );
+            } else if (status_unaligned_reads === 'deleted') {
+                const tooltip =
+                    fs.submitted_files.num_unaligned_reads_files +
+                    ' submitted Unaligned Reads files have been deleted';
+                unaligned_reads_badge = createBadge(
+                    'danger',
+                    status_unaligned_reads,
+                    tooltip
+                );
+            }
+
             return (
                 <tr key={fs.accession}>
                     <td
@@ -554,7 +607,8 @@ class SubmissionStatusComponent extends React.PureComponent {
                             ? formatDate(fs.submitted_files.date_uploaded)
                             : createBadge('warning', 'in progress')}
                         <small className="d-block ss-line-height-140">
-                            {fs.submitted_files.num_submitted_files} files
+                            {fs.submitted_files.num_submitted_files} files{' '}
+                            {unaligned_reads_badge}
                         </small>
                         <small className="d-block ss-line-height-140">
                             {fs.submitted_files.file_formats}
@@ -588,7 +642,7 @@ class SubmissionStatusComponent extends React.PureComponent {
 
                         <small className="d-block text-secondary ss-line-height-140 mt-2">
                             <div
-                                className='ss-link'
+                                className="ss-link"
                                 onClick={() => this.toggleFileGroupQc(fs)}>
                                 Review File Group QC
                             </div>
@@ -646,7 +700,24 @@ class SubmissionStatusComponent extends React.PureComponent {
                                 className="text-start ss-fileset-column"
                                 colSpan={2}>
                                 <div className="d-flex flex-row flex-wrap justify-content-between">
-                                    <div className="flex-fill">File Set</div>
+                                    <div className="flex-fill">
+                                        File Set
+                                        <object.CopyWrapper
+                                            value={this.state.fileSets
+                                                .map((fs) => fs.accession)
+                                                .join(' -f ')}
+                                            className=""
+                                            data-tip={
+                                                'Copy file set accessions for use in magma'
+                                            }
+                                            wrapperElement="span"
+                                            iconProps={{
+                                                style: {
+                                                    fontSize: '0.875rem',
+                                                    marginLeft: 3,
+                                                },
+                                            }}></object.CopyWrapper>
+                                    </div>
                                     <div className="flex-fill">
                                         <input
                                             type="text"
@@ -663,7 +734,25 @@ class SubmissionStatusComponent extends React.PureComponent {
                                 </div>
                             </th>
                             <th className="text-start">Submission</th>
-                            <th className="text-start">QC status</th>
+                            <th className="text-start">
+                                QC status
+                                <object.CopyWrapper
+                                    value={this.state.fileSets
+                                        .filter((fs) => fs.final_output_file_accession)
+                                        .map((fs) => fs.final_output_file_accession)
+                                        .join(' -f ')}
+                                    className=""
+                                    data-tip={
+                                        'Copy accessions of processed files for release'
+                                    }
+                                    wrapperElement="span"
+                                    iconProps={{
+                                        style: {
+                                            fontSize: '0.875rem',
+                                            marginLeft: 3,
+                                        },
+                                    }}></object.CopyWrapper>
+                            </th>
                             <th className="text-start">MetaWorkflowRuns</th>
                             <th className="text-start">
                                 Tags{' '}

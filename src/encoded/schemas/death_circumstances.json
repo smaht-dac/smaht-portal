@@ -128,13 +128,6 @@
                 "Postmortem"
             ]
         },
-        "hardy_scale": {
-            "title": "Hardy Scale",
-            "description": "Death classification based on the 4-point Hardy Scale",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 4
-        },
         "place_of_death": {
             "title": "Place Of Death",
             "description": "Place of death of the donor",
@@ -203,7 +196,7 @@
             "title": "Donor",
             "description": "Link to the associated donor",
             "type": "string",
-            "linkTo": "Donor"
+            "linkTo": "AbstractDonor"
         }
     }
 }

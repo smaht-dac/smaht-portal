@@ -103,5 +103,13 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_CELL-CULTURE-MIXTURE_[A-Z0-9-_.]{4,}$"
         }
+    },
+    "columns": {
+        "submitted_id": {
+            "title": "Submitted ID"
+        },
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        }
     }
 }

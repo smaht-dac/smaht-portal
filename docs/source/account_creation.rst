@@ -1,40 +1,140 @@
-===================================
-How to Create a Data Portal Account
-===================================
+#########################################
+How to Create a SMaHT Data Portal Account
+#########################################
 
-.. IMPORTANT::
-    Please read the entire document before creating your Google account!
+.. raw:: html
+
+    <div class="account-creation-nav mb-4">
+        <a class="nav-link" target="" href="#for-non-smaht-network-members-self-registration">
+            <i class="icon icon-globe fas"> </i>
+            <span class="nav-link-title">Non-SMaHT Network Members</span>
+            <span class="nav-link-subtitle">Self-Registration</span>
+
+        </a>
+        <a class="nav-link" target="" href="#for-smaht-network-members-membership-verification-account-creation">
+            <i class="icon icon-users fas"></i>
+            <span class="nav-link-title">SMaHT Network Members</span>
+            <span class="nav-link-subtitle">Membership Verification & Account Creation</span>
+        </a>
+    </div>
+
+
+
+************************************************
+For Non-SMaHT Network Members: Self Registration
+************************************************
+
+Overview
+========
+
+For non-SMaHT Network members, you can create a data portal account through self-registration. Registering yourself at the SMaHT Data Portal will allow you to log into the portal to explore and download **open-access data** generated from the SMaHT Network.
+
+|
+
+NOTE: Due to the nature of our donor consent agreement, raw data and other data/metadata that might be considered as self-identifying information are protected under the dbGaP access. To learn about what are open- vs protected-access data from the SMaHT Network, as well as the instructions on how to obtain access to the protected data, please see our documentation `here <https://data.smaht.org/docs/access/data-availability-and-access>`__.
+
+
+Instructions
+============
+
+
+Step 1: Click the Login / Register Button to Start
+--------------------------------------------------
+
+|
+
+.. image:: /static/img/docs/account_creation/login-button.png
+   :alt: SMaHT Data Portal Login Button
+
+|
+
+On the SMaHT Data Portal `homepage <https://data.smaht.org>`__, click the blue Login / Register button, which will connect you to the Google-based authentication interface (known as “OAuth”).
+
+
+Step 2: Connecting via Google's “OAuth” authentication system
+-------------------------------------------------------------
+
+|
+
+.. image:: /static/img/docs/account_creation/login-modal.png
+   :alt: SMaHT Data Portal Login Modal
+
+|
+
+Now it is time to connect to the portal. The SMaHT Data Portal uses the OAuth authentication system, which will allow you to login using a Google account linked to your personal or institutional email address.
+
+Please note that if you think that you may potentially apply to obtain protected-access data (under dbGaP), we *strongly encourage you to use your Google account linked to your institutional e-mail address, or the e-mail address* that you plan to use when you apply for dbGaP access.
+
+To create a Google account linked your institutional email (not your Gmail!), you can find the instructions `here <https://support.google.com/accounts/answer/27441?hl=en&ref_topic=3382296&sjid=121446348511371159-NA>`__.
+
+
+Step 3: Registering yourself as a non-SMaHT Network member
+----------------------------------------------------------
+
+|
+
+.. image:: /static/img/docs/account_creation/self-registration-modal.png
+   :alt: SMaHT Data Portal Self-Registration Modal
+
+|
+
+If you are not a SMaHT Network member, choose “No, I am not a member of the SMaHT Network” to proceed to the rest of the self-registration steps.
+
+**NOTE for SMaHT Network members**: If you are a new member, instead of choosing “No”, please choose “Yes” and follow the instructions for creating a network member account `here </docs/access/creating-an-account#for-smaht-network-members-membership-verification-account-creation>`__.
+
+
+Step 4: Complete the Self-Registration Form
+-------------------------------------------
+
+|
+
+.. image:: /static/img/docs/account_creation/self-registration-form.png
+   :alt: SMaHT Data Portal Self-Registration Form
+
+|
+
+Once you have reached this form, please double-check that you created a Google account with the email address shown in “Primary email”. Then, enter your first and last name and the name of your primary or affiliated institution. Finally, click "Sign Up" and you will have created a SMaHT Data Portal account!
+
+After you have created the SMaHT Data Portal account, the next time when you log in you will be directed straight to our OAuth authentication system with Google to log in. We hope you enjoy using the SMaHT Data Portal!
+
+
+
+*********************************************************************
+For SMaHT Network Members: Membership Verification & Account Creation
+*********************************************************************
 
 .. NOTE::
-    Currently, the data access is granted to the Network members with an account to the data portal.
+    SMaHT Network members have early access to the data generated by the SMaHT Network. Before creating the SMaHT Data Portal account, a Network member must be verified by the SMaHT Organization Center (OC) at Washington University at St. Louis.
 
 
 
-Step 1: (for SMaHT Network Members) Get Registered with SMaHT OC
-----------------------------------------------------------------
-
-Currently, portal access is granted only to SMaHT network members registered and verified by the Network Organization Center (OC). Please email the OC at `smahtsupport@gowustl.onmicrosoft.com <mailto:smahtsupport@gowustl.onmicrosoft.com>`_ to be registered. Please CC your PI in this e-mail for the verification process.
-
-To complete registration, Network members should provide **their institutional email address** in the SMaHT Network Directory from the OC, which you need to use to log into the SMaHT Data Portal. In order to be verified, users need to put complete information in the SMaHT Network Directory.
+Instructions
+============
 
 
+Step 1: Network membership needs to be verified by  SMaHT OC
+------------------------------------------------------------
 
-Step 2: Ask SMaHT DAC to set up your portal account
----------------------------------------------------
+SMaHT Network membership is verified by the Organization Center (OC). If you are a new Network member or an associate Network member, please email the OC at `smahtsupport@gowustl.onmicrosoft.com <mailto:smahtsupport@gowustl.onmicrosoft.com>`_ to be verified before contacting DAC about creating the portal access. When contacting OC,  the new Network members should cc their PIs and provide their institutional email address. Upon the Network membership verification, the institutional e-mail addresses added to the SMaHT Network Directory will be used  to log into the SMaHT Data Portal (see **Step 2**).
 
-Please email DAC Data Wranglers at `smhelp@hms-dbmi.atlassian.net <mailto:smhelp@hms-dbmi.atlassian.net>`_ to have a portal account created.
+
+
+Step 2: Contact  SMaHT DAC to set up your portal account
+--------------------------------------------------------
+
+Please email the SMaHT Data Analysis Center (DAC) at `smhelp@hms-dbmi.atlassian.net <mailto:smhelp@hms-dbmi.atlassian.net>`_ to have a portal account created as a Network member. Network members have early access to the SMaHT data, and their accounts have different privileges than those who self-register at the portal.
 
 *	When you contact DAC, provide your full name and institutional email address in the SMaHT Network Directory (*very important!*).
-*	Also, indicate the name of your PI and institution and whether or not you have been verified by OC.
+*	Also, indicate the name of your PI and institution and your membership verification with the OC.
 
-We will notify you once you are in our database. In the meantime, you can move on to Step 3.
+We will notify you once your account is created. In the meantime, please complete Step 3.
 
 
 
-Step 3: Create a Google Account using Your Institutional Email
---------------------------------------------------------------
+Step 3: Create a Google Account using Your Institutional Email Address
+----------------------------------------------------------------------
 
-The DAC uses the `OAuth authentication system <https://auth0.com/intro-to-iam/what-is-oauth-2>`_ which will allow you to login using a Google account linked to your institutional email address in the SMaHT Network Directory. To use your institutional email address to log into the portal, you will need a Google Account registered with that email address.
+The DAC uses the `OAuth authentication system <https://auth0.com/intro-to-iam/what-is-oauth-2>`_ which allows you to login using a Google account. Please create a Google Account that must be linked to your institutional email address in the SMaHT Network Directory (*DO NOT use your Gmail* or other personal e-mail address!).
 
 .. IMPORTANT::
     You will create and USE A GOOGLE ACCOUNT, NOT A GMAIL ACCOUNT. Learn more about setting up Google Accounts `here <https://support.google.com/google-ads/answer/1722060?hl=en>`_.
@@ -48,36 +148,29 @@ The DAC uses the `OAuth authentication system <https://auth0.com/intro-to-iam/wh
 
 |
 
-To create the Google Account linked to your institutional email (not your Gmail!), you can set it up by visiting the `Google account creation page <https://accounts.google.com/SignUpWithoutGmail>`_ with the non-gmail option. Register this account with your institutional email address.
+To create the Google Account linked to your institutional email (not your Gmail!), you can set it up by visiting the `Google account creation page <https://accounts.google.com/SignUpWithoutGmail>`_ with the non-Gmail option. Register this account with your institutional email address.
 
 
-.. TIP::
-    Do not use your Gmail email address for this purpose. You will not be able to log in if your personal Gmail is linked to the Google Account.
-
-
-Step 4: Sign In with Your Google Account
-----------------------------------------
+Step 4: Sign In with Your Google Account linked to your institutional e-mail address
+------------------------------------------------------------------------------------
 
 Once your account request to DAC is processed (Step 2), you will be able to log into the SMaHT portal via the “Sign in with Google” option and your Google account.
 
 |
 
-.. image:: /static/img/docs/account_creation_login_button.png
-    :target: /static/img/docs/account_creation_login_button.png
-    :alt: Google Account Log In Image
-
+.. image:: /static/img/docs/account_creation/login-modal.png
+   :alt: SMaHT Data Portal Login Modal
 
 |
 	
 
-If you are already logged into this account elsewhere on your computer, you may be able to simply select the account on the “Choose an account” popup. Otherwise, you will need to sign in with your institutional email and Google account password.
+If you are already logged into this account elsewhere on your computer, you may be able to simply select the account on the “Choose an account” pop-up. Otherwise, you will need to sign in with your institutional email and Google account password.
 
 
 
-=======================
-FAQ and Troublsehooting
-=======================
-
+***********************
+FAQ and Troubleshooting
+***********************
 
 **I already have a Google account set up with my institutional email address used for other data portals (e.g. 4DN). Can I sign into the SMaHT Portal using that Google account?**
 
@@ -93,8 +186,7 @@ Looks like your institutional email is already used as the primary email on a di
 
 **I tried to log in with my Google account, but the portal says: “Account Unauthorized: An account associated with the email address does not exist in the system.” What should I do?**
 
-This means that SMaHT DAC hasn’t finished setting up your account. If you have not requested access yet, please return to Step 2 above. You can also click the “Help Desk” button on the top right corner of the SMaHT data portal homepage (`https://data.smaht.org <https://data.smaht.org>`_) or the “Request Access” button in the “Account Unauthorized” popup to start an email request to DAC in your computer’s default email client.
-
+This means that SMaHT DAC hasn't finished setting up your account. If you have not requested access yet, please return to Step 2 above. You can also click the “Help Desk” button on the top right corner of the SMaHT data portal homepage (`https://data.smaht.org <https://data.smaht.org>`__) or the “Request Access” button in the “Account Unauthorized” popup to start an email request to DAC in your computer's default email client.
 |
 
 **I tried to log in with my Google account, but the portal says: “Something went wrong.” What should I do?**

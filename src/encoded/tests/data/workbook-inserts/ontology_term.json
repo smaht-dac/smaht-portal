@@ -1,10 +1,147 @@
 [
     {
         "uuid": "69ac1b9e-b76d-4d41-90b9-aec992024929",
-        "identifier": "MONDO:0016668",
-        "title": "sickle cell-beta-thalassemia disease syndrome",
-        "submission_centers": [
+        "identifier": "UBERON:0002107",
+        "ontologies": ["UBERON"],
+        "title": "liver",
+        "grouping_term": "UBERON:0000925",
+        "consortia": [
             "smaht"
+        ],
+        "preferred_name": "Liver",
+        "tags":[
+            "tissue_type"
+        ]
+    },
+    {
+        "uuid": "f2f84da1-59db-41f3-8268-81d415146815",
+        "identifier": "UBERON:0002048",
+        "ontologies": ["UBERON"],
+        "title": "lung",
+        "grouping_term": "UBERON:0000925",
+        "consortia": [
+            "smaht"
+        ],
+        "preferred_name": "Lung",
+        "tags": [
+            "tissue_type"
+        ]
+    },
+    {
+        "uuid": "8cb0c4e5-af9e-44c6-b625-ea489c715dc6",
+        "identifier": "UBERON:0008952",
+        "ontologies": ["UBERON"],
+        "title": "upper lobe of left lung",
+        "url": "http://purl.obolibrary.org/obo/UBERON_0008952",
+        "description": "The lobe of the left lung that is closest to the head.",
+        "grouping_term": "UBERON:0002048",
+        "consortia": [
+            "smaht"
+        ],
+        "valid_protocol_ids": ["3Q","3R","1D"]
+    },
+    {
+        "uuid": "0e6a892a-2740-42bb-9bf7-7c8d577d60fa",
+        "identifier": "UBERON:0000955",
+        "ontologies": ["UBERON"],
+        "title": "brain",
+        "consortia": [
+            "smaht"
+        ],
+        "preferred_name": "Brain",
+        "valid_protocol_ids": ["3AJ"],
+        "grouping_term":  "UBERON:0000924",
+        "tags": [
+            "tissue_type"
+        ]
+    },
+    {
+        "uuid": "29c6ee19-e4e7-46c5-90b6-95b102fda5c7",
+        "identifier": "UBERON:0013756",
+        "ontologies": ["UBERON"],
+        "title": "venous blood",
+        "grouping_term": "UBERON:0000178",   
+        "consortia": [
+            "smaht"
+        ],
+        "preferred_name": "Venous Blood",
+        "valid_protocol_ids": ["3A"]
+    },
+    {
+        "uuid": "5e29be07-5cd0-4194-b614-87cdc48e8f1f",
+        "identifier": "UBERON:0000178",
+        "ontologies": ["UBERON"],
+        "title": "blood",
+        "grouping_term": "UBERON:0000926",   
+        "consortia": [
+            "smaht"
+        ],
+        "preferred_name": "Blood",
+        "valid_protocol_ids": ["3A"],
+        "tags": [
+            "tissue_type"
+        ]
+    },
+    {
+        "uuid": "8e636f6c-96af-4cd2-b2b4-4b327b37c658",
+        "identifier": "UBERON:0004264",
+        "ontologies": ["UBERON"],
+        "title": "lower leg skin",
+        "grouping_term": "UBERON:0002097",
+        "consortia": [
+            "smaht"
+        ]
+    },
+    {
+        "uuid": "b5d19f76-5d0c-4b19-b84c-2b64ea11522b",
+        "identifier": "UBERON:0002097",
+        "ontologies": ["UBERON"],
+        "title": "skin of body",
+        "grouping_term": "UBERON:0000924",
+        "consortia": [
+            "smaht"
+        ],
+        "tags": [
+            "tissue_type"
+        ]
+    },
+    {
+        "uuid": "b20b2257-1d5b-4015-8182-cce79e4f6235",
+        "identifier": "UBERON:0000925",
+        "ontologies": ["UBERON"],
+        "title": "endoderm",
+        "consortia": [
+            "smaht"
+        ],
+        "preferred_name": "Endoderm",
+        "tags": [
+            "germ_layer"
+        ]
+    },
+    {
+        "uuid": "92606b58-a240-4797-a2f1-9dc6cef9be69",
+        "identifier": "UBERON:0000926",
+        "ontologies": ["UBERON"],
+        "title": "mesoderm",
+        "consortia": [
+            "smaht"
+        ],
+        "preferred_name": "Mesoderm",
+        "tags": [
+            "germ_layer"
+        ]
+    },
+    {
+        "uuid": "253bf517-2603-480a-b750-5f7adb7b44fb",
+        "identifier": "UBERON:0000924",
+        "ontologies": ["UBERON"],
+        "title": "ectoderm",
+        "consortia": [
+            "smaht"
+        ],
+        "preferred_name": "Ectoderm",
+        "tags": [
+            "germ_layer"
         ]
     }
 ]

@@ -82,7 +82,7 @@
             "description": "Type of tissue sample",
             "type": "string",
             "enum": [
-                "Aliquot",
+                "Tissue Aliquot",
                 "Cells",
                 "Core",
                 "Homogenate",
@@ -146,6 +146,9 @@
         }
     },
     "columns": {
+        "submitted_id": {
+            "title": "Submitted ID"
+        },
         "category": {
             "title": "Sample Type"
         },

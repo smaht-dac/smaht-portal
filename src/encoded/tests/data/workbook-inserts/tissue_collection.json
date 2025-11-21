@@ -5,13 +5,17 @@
             "smaht"
         ],
         "submitted_id": "TEST_TISSUE-COLLECTION_FEMALE",
-        "donor": "TEST_DONOR_FEMALE",
+        "donor": "TEST_PROTECTED-DONOR_FEMALE",
+        "collection_site": "TPC7",
         "ischemic_time": 3.5,
         "organ_transplant": "Yes",
         "organs_transplanted": [
             "Heart",
             "Liver"
         ],
-        "recovery_interval": 1440
+        "recovery_datetime": "2024-10-01",
+        "recovery_interval": 1440,
+        "refrigeration_prior_to_procurement": "Yes",
+        "refrigeration_prior_to_procurement_time": 10
     }
 ]

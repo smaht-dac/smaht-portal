@@ -947,7 +947,6 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         line-height: 1.45rem;
     }
     th{
-        white-space: nowrap;
         font-size: 0.75rem;
         text-align: left;
         padding: 0.3rem 0.25rem;
@@ -965,6 +964,56 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
         cursor: pointer;
         color: #343741;
     }
+    .width-100{
+        width: 100px;
+        white-space: wrap;
+    }
+}
+
+.qc-key-metrics-header{
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.qc-key-metrics-header.blue{
+    background-color: #e5eef5;
+}
+.qc-key-metrics-header.purple{
+    background-color: #e5e9f5;
+}
+.qc-key-metrics-header.orange{
+    background-color: #f5e5e6;
+}
+.qc-key-metrics-header.darkblue{
+    background-color: #d3e5f2;
+}
+.qc-key-metrics-header.yellow{
+    background-color: #f5f1e5;
+}
+.qc-key-metrics-header.brown{
+    background-color: #f5ece5;
+}
+
+.qc-boxplot-title{
+    font-size: 1rem;
+    text-align: center;
+    background-color: #F6F7F9;
+    font-weight: 600;
+}
+
+.qc-metrics-threshold-warning {
+    background-color: #fef7f3ff;
+    color: #75170fff;
+    border: 1px solid #f9ddd4ff;
+    font-size: 0.8rem;
+    line-height: 1.25rem;
+    padding: 0rem 0.2rem;
+    border-radius: 4px;
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .qc-metrics-facets-container {
@@ -990,6 +1039,30 @@ Note: Colors for borders and backgrounds are defined in _tokens.scss.
 .qc-link:hover {
     color: #2a6496;
     text-decoration: underline;
+}
+.qc-metrics-sticky-facet {
+    position: sticky;        
+    z-index: 200;
+    @include media-breakpoint-up(lg) {
+		top: 40px; 
+	} 
+    @include media-breakpoint-down(lg) {
+        top: 0px; 
+    }
+}
+
+.qc-metrics-alert-success{
+    background-color: #F0FBF0;
+    border-color: #BCDCBC;
+
+}
+.qc-metrics-alert-warning{
+    background-color: #FFF8D0;
+    border-color: #E7D890;
+    color: #723E02;
+}
+.qc-metrics-alert-danger{
+    background-color: #FFE7E2;
 }
 
 .boxplot-canvas,

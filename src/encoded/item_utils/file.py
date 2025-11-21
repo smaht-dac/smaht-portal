@@ -210,6 +210,17 @@ def get_tissues(
     ]
 
 
+def get_uberon_ids(
+    properties: Dict[str, Any], request_handler: RequestHandler
+) -> List[Union[str, Dict[str, Any]]]:
+    """Get uberon_ids from tissues associated with file."""
+    return get_property_values_from_identifiers(
+        request_handler,
+        get_tissues(properties, request_handler),
+        tissue.get_uberon_id  
+    )
+
+
 def get_cell_culture_mixtures(
     properties: Dict[str, Any], request_handler: Optional[RequestHandler] = None
 ) -> List[Union[str, Dict[str, Any]]]:
@@ -422,6 +433,56 @@ def get_override_group_coverage(file: Dict[str, Any]) -> str:
     return file.get("override_group_coverage","")
 
 
+def get_override_average_coverage(file: Dict[str, Any]) -> str:
+    """Get override average coverage from properties."""
+    return file.get("override_average_coverage","")
+
+
+def get_override_release_tracker_description(file: Dict[str, Any]) -> str:
+    """Get override release tracker description from properties."""
+    return file.get("override_release_tracker_description","")
+
+
+def get_override_release_tracker_title(file: Dict[str, Any]) -> str:
+    """Get override release tracker title from properties."""
+    return file.get("override_release_tracker_title","")
+
+
 def get_release_tracker_description(file: Dict[str, Any]) -> str:
     """Get release tracker description from properties."""
     return file.get("release_tracker_description","")
+
+
+def get_release_tracker_title(file: Dict[str, Any]) -> str:
+    """Get release tracker title from properties."""
+    return file.get("release_tracker_title","")
+
+
+def get_tissue_type(file: Dict[str, Any], request_handler: RequestHandler) -> List[str]:
+    """
+    Get tissue type from ontology term.
+    
+    Special handling of fibroblast (3AC).
+    """
+    return get_property_values_from_identifiers(
+        request_handler,
+        get_tissues(file, request_handler),
+        partial(
+            tissue.get_tissue_type, request_handler=request_handler
+        )
+    )
+
+
+def get_tissue_category(file: Dict[str, Any], request_handler: RequestHandler) -> List[str]:
+    """
+    Get tissue category from ontology term.
+    
+    Special handling of fibroblast, ovary, testis, blood, and buccal swab.
+    """
+    return get_property_values_from_identifiers(
+        request_handler,
+        get_tissues(file, request_handler),
+        partial(
+            tissue.get_category, request_handler=request_handler
+        )
+    )

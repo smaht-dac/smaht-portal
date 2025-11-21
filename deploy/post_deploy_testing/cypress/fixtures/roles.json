@@ -1,0 +1,26 @@
+{
+  "smaht-dbgap": {
+    "email": "cypress-main-scientist@cypress.hms.harvard.edu",
+    "auth0UserId": "auth0|6536c07ac994c9180dba80d5",
+    "description": "SMaHT network user with dbGAP access",
+    "shortname": "CD"
+  },
+  "smaht-non-dbgap": {
+    "email": "cypress-main-non-dbgap@cypress.hms.harvard.edu",
+    "auth0UserId": "auth0|68dd3792d8769b063ba7a6b6",
+    "description":"SMaHT network user without dbGAP access",
+    "shortname": "CN"
+  },
+  "public-dbgap": {
+    "email": "cypress-main-public-dbgap@cypress.hms.harvard.edu",
+    "auth0UserId": "auth0|68dd37edbf7a0c9a5404bbcb",
+    "description":"Public user with dbGAP access",
+    "shortname": "CPD"
+  },
+  "public-non-dbgap": {
+    "email": "cypress-main-public-non-dbgap@cypress.hms.harvard.edu",
+    "auth0UserId": "auth0|68dd397c8086d79def08f302",
+    "description":"Public user without dbGAP access",
+    "shortname": "CPN"
+  }
+}

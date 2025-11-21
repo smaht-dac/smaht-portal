@@ -1,0 +1,35 @@
+[
+    {
+        "uuid": "d263fb0c-5476-4b16-bcfa-48623a2b8b0b",
+        "identifier": "eqm_column_mappings",
+        "tags": [
+            "external_quality_metrics"
+        ],
+        "version": "1",
+        "body": {
+            "version": "2.0.0",
+            "sheet_mappings": {
+                "DuplexSeq_ExternalQualityMetric": "duplexseq_external_quality_metric",
+                "DSA_ExternalQualityMetric": "dsa_external_quality_metric"
+            },
+            "column_mappings": {
+                "duplexseq_external_quality_metric": {
+                    "total_raw_reads_sequenced": {
+                        "qc_values#.derived_from": "{name}",
+                        "qc_values#.value": "{value:integer}",
+                        "qc_values#.key": "Total Raw Reads Sequenced",
+                        "qc_values#.tooltip": "# of reads (150bp)"
+                    }
+                },
+                "dsa_external_quality_metric": {
+                    "contig_l50": {
+                        "qc_values#.derived_from": "{name}",
+                        "qc_values#.value": "{value: integer}",
+                        "qc_values#.key": "Contig L50",
+                        "qc_values#.tooltip": "L50 of contigs: the count of the smallest number of contigs whose total length makes up 50% of the assembly size"
+                    }
+                }
+            }
+        }
+    }
+]

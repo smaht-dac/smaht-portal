@@ -14,6 +14,21 @@
         ]
     },
     {
+        "uuid": "799ca2e9-f24a-4517-bb35-88945ed41047",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_FILE-SET_LIVER-DNA_2",
+        "libraries": [
+            "TEST_LIBRARY_LIVER-DNA"
+        ],
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X-DNA",
+        "samples": [
+            "TEST_CELL-SAMPLE_LIVER-CELL"
+        ],
+        "group_tag": "group1"
+    },
+    {
         "uuid": "6b6531f3-7512-4ed4-8d88-b0807579f883",
         "submission_centers": [
             "smaht"
@@ -76,6 +91,28 @@
         "submitted_id": "TEST_FILE-SET_IPSC_FIBROBLAST-DNA",
         "libraries": [
             "TEST_LIBRARY_IPSC_FIBROBLAST-DNA"
+        ],
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X-DNA"
+    },
+    {
+        "uuid": "149773c9-3c1c-48fd-8ac8-6466ab1dbcc7",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_FILE-SET_LIVER-CELL-DNA",
+        "libraries": [
+            "TEST_LIBRARY_LIVER-CELL-DNA"
+        ],
+        "sequencing": "TEST_SEQUENCING_NOVASEQ-500X-DNA"
+    },
+    {
+        "uuid": "625dac9e-9a0d-453a-ba95-2d83898fe2f1",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_FILE-SET_FIBROBLAST",
+        "libraries": [
+            "TEST_LIBRARY_FIBROBLAST"
         ],
         "sequencing": "TEST_SEQUENCING_NOVASEQ-500X-DNA"
     }

@@ -1,0 +1,27 @@
+[
+    {
+        "uuid": "35dae4c5-c50e-4eb3-a240-4e62749eaa2b",
+        "submitted_id": "TEST_PROTECTED-DONOR_FEMALE",
+        "external_id": "SMHT001",
+        "submission_centers": [
+            "smaht"
+        ],
+        "age": 65,
+        "sex": "Female",
+        "hardy_scale": 3,
+        "tpc_submitted": "True",
+        "status": "protected"
+    },
+    {
+        "uuid": "102098db-ff81-4a4a-b4d5-8df329e26982",
+        "submitted_id": "TEST_PROTECTED-DONOR_MALE",
+        "external_id": "ST001",
+        "submission_centers": [
+            "smaht"
+        ],
+        "age": 45,
+        "sex": "Male",
+        "tpc_submitted": "True",
+        "status": "protected"
+    }
+]

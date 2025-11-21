@@ -96,7 +96,7 @@ def restricted_file(testapp, fastq_format, test_protected_consortium):
         'filename': 'my.fastq.gz',
         'data_category': ['Sequencing Reads'],
         'data_type': ['Unaligned Reads'],
-        'status': 'restricted',  # this status is important as this will make it viewable by consortium but
+        'status': 'protected-network',  # this status is important as this will make it viewable by consortium but
                                  # only downloadable by those with group.dbgap
         'consortia': [
             test_protected_consortium['uuid']
@@ -297,8 +297,8 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
         'obsolete',
         'archived',
         'deleted',
-        'public',
-        'restricted'
+        'open',
+        'protected-network'
     ])
     def test_submission_center_cannot_edit_file(test_submission_center, submission_center_user_app, released_file,
                                                 testapp, new_status):
@@ -324,13 +324,17 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
             'age': 37,
             'sex': 'Female',
             'submission_centers': [test_submission_center['uuid']],
-            'submitted_id': 'TEST_DONOR_ABCD'
+            'submitted_id': 'TEST_DONOR_ABCD',
+            "tpc_submitted": "False",
+            "external_id": "ABCD"
         }, status=403)
         submission_center_user_app.post_json('/Donor', {  # cannot submit a donor under a diferrent center
             'age': 37,
             'sex': 'Female',
             'submission_centers': [test_second_submission_center['uuid']],
-            'submitted_id': 'SECONDTEST_DONOR_ABCD'
+            'submitted_id': 'SECONDTEST_DONOR_ABCD',
+            "tpc_submitted": "False",
+            "external_id": "ABCD"
         }, status=403)
         submission_center_user_app.post_json('/AccessKey', {  # can still create an access key
             'user': smaht_gcc_user['@id'],
@@ -345,13 +349,17 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
             'age': 37,
             'sex': 'Female',
             'submission_centers': [test_second_submission_center['uuid']],
-            'submitted_id': 'SECONDTEST_DONOR_ABCD'
+            'submitted_id': 'SECONDTEST_DONOR_ABCD',
+            "tpc_submitted": "False",
+            "external_id": "ABCD"
         }, status=403)
         submission_center2_user_app.post_json('/Donor', {  # cannot submit a donor on opposing center
             'age': 37,
             'sex': 'Female',
             'submission_centers': [test_submission_center['uuid']],
-            'submitted_id': 'TEST_DONOR_ABCD'
+            'submitted_id': 'TEST_DONOR_ABCD',
+            "tpc_submitted": "False",
+            "external_id": "ABCD"
         }, status=403)
 
     @staticmethod
@@ -378,8 +386,8 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
     @staticmethod
     @pytest.mark.parametrize('new_status', [
         'released',
-        'public',
-        'restricted'
+        'open',
+        'protected-network'
     ])
     def test_mixed_submission_center_can_view_but_not_edit(test_submission_center, test_second_submission_center,
                                                            submission_center_user_app, submission_center2_user_app,
@@ -395,10 +403,11 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
     @staticmethod
     def test_dbgap_group_with_restricted_status(submission_center_user_app, submission_center2_user_app, testapp,
                                                 protected_consortium_user_app, released_file, anontestapp,
+                                                smaht_public_dbgap_app,
                                                 authenticated_testapp):
         """ Tests that users with the dbgap group can download protected data while others cannot """
         atid = released_file['@id']
-        testapp.patch_json(f'/{atid}', {'status': 'restricted'})
+        testapp.patch_json(f'/{atid}', {'status': 'protected-network'})
         # all consortia members can view metadata
         submission_center_user_app.get(f'/{atid}', status=200)
         submission_center2_user_app.get(f'/{atid}', status=200)
@@ -410,7 +419,32 @@ class TestSubmissionCenterPermissions(TestPermissionsHelper):
         submission_center2_user_app.get(f'/{atid}@@download', status=403)
         anontestapp.get(f'/{atid}@@download', status=403)
         authenticated_testapp.get(f'/{atid}@@download', status=403)
+        smaht_public_dbgap_app.get(f'/{atid}@@download', status=403)  # public dbGaP user can't aaccess
         protected_consortium_user_app.get(f'/{atid}@@download', status=307)
+        testapp.get(f'/{atid}@@download', status=307)  # admin as well
+
+    @staticmethod
+    def test_dbgap_group_with_public_restricted_status(submission_center_user_app, submission_center2_user_app, testapp,
+                                                protected_consortium_user_app, released_file, anontestapp,
+                                                smaht_public_dbgap_app,
+                                                authenticated_testapp):
+        """ Tests that users with the public-dbgap and dbgap group can download
+            public-protected data while others cannot """
+        atid = released_file['@id']
+        testapp.patch_json(f'/{atid}', {'status': 'protected'})
+        # all can view
+        submission_center_user_app.get(f'/{atid}', status=200)
+        submission_center2_user_app.get(f'/{atid}', status=200)
+        protected_consortium_user_app.get(f'/{atid}', status=200)
+        anontestapp.get(f'/{atid}', status=200)
+        authenticated_testapp.get(f'/{atid}', status=200)
+        # but only dbGaP + public dbGaP + admin can download
+        submission_center_user_app.get(f'/{atid}@@download', status=403)
+        submission_center2_user_app.get(f'/{atid}@@download', status=403)
+        anontestapp.get(f'/{atid}@@download', status=403)
+        authenticated_testapp.get(f'/{atid}@@download', status=403)
+        protected_consortium_user_app.get(f'/{atid}@@download', status=307)
+        smaht_public_dbgap_app.get(f'/{atid}@@download', status=307)  # public dbGaP user can access
         testapp.get(f'/{atid}@@download', status=307)  # admin as well
 
 
@@ -507,8 +541,8 @@ class TestConsortiumPermissions(TestPermissionsHelper):
         "obsolete",
         "archived",
         "deleted",
-        "public",
-        "restricted"
+        "open",
+        "protected-network"
     ])
     def test_consortium_user_cannot_edit_submission_center_data(submission_center_file, new_status, testapp,
                                                                 consortium_user_app):
@@ -523,15 +557,15 @@ class TestConsortiumPermissions(TestPermissionsHelper):
                                                                     testapp):
         """ Tests that a consortium user can view a public file tagged witha submission center """
         atid = submission_center_file['@id']
-        testapp.patch_json(f'/{atid}', {'status': 'public'})
+        testapp.patch_json(f'/{atid}', {'status': 'open'})
         consortium_user_app.get(f'/{atid}', status=200)
 
     @staticmethod
     @pytest.mark.parametrize('new_status', [
         "released",
         "obsolete",
-        "public",
-        "restricted"
+        "open",
+        "protected-network"
     ])
     def test_consortium_user_can_view_dual_tagged_data(released_file, consortium_user_app, new_status,
                                                        testapp):
@@ -570,7 +604,7 @@ class TestAnonUserPermissions:
     def test_public_user_can_view_public_data(released_file, testapp, anontestapp, unassociated_user_app):
         """ Tests that public users can view data with status = public """
         atid = released_file['@id']
-        testapp.patch_json(f'/{atid}', {'status': 'public'})
+        testapp.patch_json(f'/{atid}', {'status': 'open'})
         anontestapp.get(f'/{atid}', status=200)
         anontestapp.patch_json(f'/{atid}', {}, status=403)  # always fail
         unassociated_user_app.get(f'/{atid}', status=200)
@@ -679,7 +713,7 @@ class TestProtectedDataPermissions:
         "in review",
         "archived",
         "released",
-        "public"
+        "open"
     ])
     def test_submitter_user_can_access_submitter_data(testapp, released_file, protected_consortium_submitter_app,
                                                       new_status):
@@ -735,13 +769,14 @@ class TestUserSubmissionConsistency:
 
 
 @pytest.mark.parametrize(
-    "donor_status", ["public", "draft", "released", "in review", "obsolete", "deleted"]
+    "donor_status", ["open", "draft", "released", "in review", "obsolete", "deleted"]
 )
 def test_link_to_another_submission_center_item(
     donor_status: str,
     submission_center_user_app: TestApp,
     testapp: TestApp,
     donor: Dict[str, Any],
+    test_ontology_term: Dict[str, Any],
     test_submission_center: Dict[str, Any],
     test_second_submission_center: Dict[str, Any],
 ) -> None:
@@ -764,7 +799,7 @@ def test_link_to_another_submission_center_item(
         "donor": donor["uuid"],
         "submitted_id": "TEST_TISSUE_WXYZ",
         "external_id": "ST-WXYZ",
-        "uberon_id": "UBERON:0001111",
+        "uberon_id": test_ontology_term["uuid"],
     }
     post_item(submission_center_user_app, tissue_properties, "Tissue", status=201)
 
@@ -1103,3 +1138,148 @@ def test_authenticated_user_can_delete_access_key(
         assert access_key["status"] == "current"
         patch_body = {"status": "deleted"}
         patch_item(user_app, patch_body, access_key["uuid"], status=403)
+
+
+@pytest.fixture
+def protected_donor(testapp, test_submission_center):
+    item = {
+        "uuid": "35dae4c5-c50e-4eb3-a240-4e62749eaa2b",
+        "submitted_id": "TEST_PROTECTED-DONOR_FEMALE",
+        "external_id": "SMHT001",
+        "submission_centers": [
+            test_submission_center['uuid']
+        ],
+        "age": 65,
+        "sex": "Female",
+        "hardy_scale": 3,
+        "tpc_submitted": "True",
+        "status": "protected-network"
+    }
+    res = testapp.post_json('/ProtectedDonor', item)
+    return res.json['@graph'][0]
+
+
+@pytest.fixture
+def protected_donor_restricted_medical_history(testapp, protected_donor, test_submission_center):
+    item = {
+        "uuid": "14557335-dc8f-417f-8e3e-c0624f795897",
+        "submitted_id": "TEST_MEDICAL-HISTORY_FEMALE",
+        "submission_centers": [
+            test_submission_center['uuid']
+        ],
+        "donor": "TEST_PROTECTED-DONOR_FEMALE",
+        "height": 3.2,
+        "weight": 45,
+        "body_mass_index": 21.5,
+        "cancer_history": "Yes",
+        "cancer_type": ["Ovarian Cancer"],
+        "family_ovarian_pancreatic_prostate_cancer": "Yes",
+        "tobacco_use": "No",
+        "alcohol_use": "Yes",
+        "hiv_nat": "Reactive",
+        "status": "protected-network"
+    }
+    res = testapp.post_json('/MedicalHistory', item)
+    return res.json['@graph'][0]
+
+
+def test_protected_donor_restricted_view(
+    protected_donor, protected_donor_restricted_medical_history,
+    unassociated_user_app: TestApp,
+    submission_center_user_app: TestApp,
+    consortium_user_app: TestApp,
+    smaht_dbgap_app: TestApp,
+    smaht_public_dbgap_app: TestApp
+) -> None:
+    """ Tests that users without the dbGaP group cannot view restricted items """
+    donor_uuid = protected_donor['uuid']
+    medical_history_uuid = protected_donor_restricted_medical_history['uuid']
+    for user_app in [
+        unassociated_user_app,
+        submission_center_user_app,
+        consortium_user_app,
+        smaht_public_dbgap_app
+    ]:
+        user_app.get(f'/protected-donors/{donor_uuid}/', status=403)
+        user_app.get(f'/medical-histories/{medical_history_uuid}/', status=403)
+
+    # dbGaP group user can
+    smaht_dbgap_app.get(f'/protected-donors/{donor_uuid}/', status=200)
+    smaht_dbgap_app.get(f'/medical-histories/{medical_history_uuid}/', status=200)
+
+
+@pytest.fixture
+def public_protected_donor(testapp, test_submission_center):
+    item = {
+        "uuid": "35dae4c5-c50e-4eb3-a240-4e62749eaa2b",
+        "submitted_id": "TEST_PROTECTED-DONOR_FEMALE",
+        "external_id": "SMHT001",
+        "submission_centers": [
+            test_submission_center['uuid']
+        ],
+        "age": 65,
+        "sex": "Female",
+        "hardy_scale": 3,
+        "tpc_submitted": "True",
+        "status": "protected"
+    }
+    res = testapp.post_json('/ProtectedDonor', item)
+    return res.json['@graph'][0]
+
+
+@pytest.fixture
+def protected_donor_public_restricted_medical_history(testapp, public_protected_donor, test_submission_center):
+    item = {
+        "uuid": "14557335-dc8f-417f-8e3e-c0624f795897",
+        "submitted_id": "TEST_MEDICAL-HISTORY_FEMALE",
+        "submission_centers": [
+            test_submission_center['uuid']
+        ],
+        "donor": "TEST_PROTECTED-DONOR_FEMALE",
+        "height": 3.2,
+        "weight": 45,
+        "body_mass_index": 21.5,
+        "cancer_history": "Yes",
+        "cancer_type": ["Ovarian Cancer"],
+        "family_ovarian_pancreatic_prostate_cancer": "Yes",
+        "tobacco_use": "No",
+        "alcohol_use": "Yes",
+        "hiv_nat": "Reactive",
+        "status": "protected"
+    }
+    res = testapp.post_json('/MedicalHistory', item)
+    return res.json['@graph'][0]
+
+
+def test_protected_donor_public_restricted_view(
+    public_protected_donor, protected_donor_public_restricted_medical_history,
+    unassociated_user_app: TestApp,
+    submission_center_user_app: TestApp,
+    consortium_user_app: TestApp,
+    smaht_dbgap_app: TestApp,
+    smaht_public_dbgap_app: TestApp
+) -> None:
+    """ Tests that users without the dbGaP group cannot view restricted items """
+    donor_uuid = public_protected_donor['uuid']
+    public_protected_medical_history = protected_donor_public_restricted_medical_history['uuid']
+    for user_app in [
+        unassociated_user_app,
+        submission_center_user_app,
+        consortium_user_app,
+    ]:
+        user_app.get(f'/protected-donors/{donor_uuid}/', status=403)
+        user_app.get(f'/medical-histories/{public_protected_medical_history}/', status=403)
+
+    # dbGaP group users can
+    smaht_public_dbgap_app.get(f'/protected-donors/{donor_uuid}/', status=200)
+    smaht_public_dbgap_app.get(f'/medical-histories/{public_protected_medical_history}/', status=200)
+    smaht_dbgap_app.get(f'/protected-donors/{donor_uuid}/', status=200)
+    smaht_dbgap_app.get(f'/medical-histories/{public_protected_medical_history}/', status=200)
+
+
+def test_public_user_retains_submission_center_on_patch(testapp, blank_user):
+    """ This test tests that the server default for submission_centers does not populate when patching users """
+    item = testapp.patch_json(f'/{blank_user["uuid"]}', {
+        'status': 'current'  # empty patch in effect
+    }).json['@graph'][0]
+    assert 'submission_centers' not in item

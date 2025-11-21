@@ -29,7 +29,10 @@ import StaticSectionView from './item-pages/StaticSectionView';
 import SMaHTSubmissionView from './forms/SMaHTSubmissionView';
 import SearchView from './browse/SearchView';
 import BrowseView from './browse/BrowseView';
+import FileSearchView from './browse/FileSearchView';
 import FileView from './item-pages/FileView';
+import PublicDonorView from './item-pages/PublicDonorView';
+import ProtectedDonorView from './item-pages/ProtectedDonorView';
 
 /**
  * These content_view.register actions occur in this index.js as otherwise
@@ -52,6 +55,8 @@ content_views.register(UserView, 'User');
 content_views.register(ImpersonateUserForm, 'User', 'impersonate-user');
 content_views.register(StaticSectionView, 'StaticSection');
 content_views.register(FileView, 'File');
+content_views.register(PublicDonorView, 'Donor');
+content_views.register(ProtectedDonorView, 'ProtectedDonor');
 
 content_views.register(SMaHTSubmissionView, 'Item', 'edit');
 content_views.register(SMaHTSubmissionView, 'Item', 'create');
@@ -65,6 +70,9 @@ content_views.register(SearchView, 'Search', 'multiselect');
 content_views.register(BrowseView, 'Browse');
 content_views.register(BrowseView, 'Browse', 'selection');
 content_views.register(BrowseView, 'Browse', 'multiselect');
+
+content_views.register(FileSearchView, 'FileSearchResults');
+content_views.register(FileSearchView, 'SubmittedFileSearchResults');
 
 // Fallback for anything we haven't registered
 content_views.fallback = function () {

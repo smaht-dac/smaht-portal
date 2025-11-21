@@ -8,7 +8,10 @@ import {
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 import { FileOverviewTableController } from './FileOverviewTable';
+import { VcfAnalysisOverview } from './VcfAnalysisOverview';
+import { QcOverviewTabContent } from './QcOverviewTabContent';
 import ReactTooltip from 'react-tooltip';
+import { useUserDownloadAccess } from '../../../util/hooks';
 
 /**
  * DotRouterTab content for displaying the files in the same file set as the
@@ -19,14 +22,14 @@ const AssociatedFilesTab = (props) => {
     const { context = {} } = props;
     const fileSets = context?.file_sets || [];
 
-    // Create a search href for retrieving BAM files in the same file set
+    // Create a search href for retrieving BAM/CRAM files in the same file set
     let DACGeneratedFilesHref, ExternallyGeneratedFilesHref;
 
     if (fileSets.length > 0) {
         const fileSetUuids = context?.file_sets
             ?.map((fs) => fs.uuid)
             ?.join('&file_sets.uuid=');
-        const associatedFilesSearchHref = `/search/?type=File&file_format.display_title=bam&uuid!=${props.context.uuid}&file_sets.uuid=${fileSetUuids}`;
+        const associatedFilesSearchHref = `/search/?type=File&file_format.display_title=cram&file_format.display_title=bam&uuid!=${props.context.uuid}&file_sets.uuid=${fileSetUuids}`;
 
         DACGeneratedFilesHref =
             associatedFilesSearchHref +
@@ -59,7 +62,7 @@ const AssociatedFilesTab = (props) => {
                         <h3 className="header">No Associated Files Found</h3>
                         <span className="subheader">
                             There are no DAC generated or externally generated
-                            BAM files associated with this file
+                            files associated with this file
                         </span>
                     </div>
                 </div>
@@ -69,35 +72,69 @@ const AssociatedFilesTab = (props) => {
 };
 
 // DotRouterTab content for displaying Analysis information for the current file.
-const AnalysisInformationTab = ({ context }) => {
-    return (
-        <div className="no-results">
-            <div className="no-results-content">
-                <i className="icon icon-network-wired fas"></i>
-                <h3 className="header">Analysis Information Coming Soon</h3>
-                <span className="subheader">
-                    Check back for updates on Analysis Information development
-                    with future portal releases
-                </span>
+const AnalysisInformationTab = (props) => {
+    if (
+        props?.context?.file_summary?.file_format === 'vcf' ||
+        props?.context?.file_summary?.file_format === 'vcf_gz'
+    ) {
+        return <VcfAnalysisOverview {...props} />;
+    } else {
+        // no results
+        return (
+            <div className="no-results">
+                <div className="no-results-content">
+                    <i className="icon icon-network-wired fas"></i>
+                    <h3 className="header">Analysis Information Coming Soon</h3>
+                    <span className="subheader">
+                        Check back for updates on Analysis Information
+                        development with future portal releases
+                    </span>
+                </div>
             </div>
-        </div>
-    );
+        );
+    }
 };
 
 // DotRouterTab content for displaying QC information for the current file.
-const QCOverviewTab = ({ context }) => {
-    return (
-        <div className="no-results">
-            <div className="no-results-content">
-                <i className="icon icon-chart-area fas"></i>
-                <h3 className="header">QC Overview Coming Soon</h3>
-                <span className="subheader">
-                    Check back for updates on QC Overview development with
-                    future portal releases
+const QCOverviewTab = ({ session, context }) => {
+    const userDownloadAccess = useUserDownloadAccess(session);
+
+    // Check if quality metrics exist and are valid
+    const fileHasQualityMetrics =
+        context?.quality_metrics && context?.quality_metrics?.length > 0;
+
+    // Check if user has permission to view quality metrics
+    const userHasPermission = !context?.quality_metrics?.[0]?.error;
+
+    // If quality metrics exist and user has access, show QCOverviewTabContent
+    // Otherwise, show appropriate message
+    if (fileHasQualityMetrics) {
+        return userHasPermission ? (
+            <QcOverviewTabContent session={session} context={context} />
+        ) : (
+            <div className="protected-data callout-card">
+                <i className="icon icon-user-lock fas"></i>
+                <h4>Protected Data</h4>
+                <span>
+                    To view this data, you must have access
+                    <br /> to SMaHT protected access data on dbGaP.
                 </span>
             </div>
-        </div>
-    );
+        );
+    } else {
+        return (
+            <div className="no-results">
+                <div className="no-results-content">
+                    <i className="icon icon-chart-area fas"></i>
+                    <h3 className="header">QC Overview Coming Soon</h3>
+                    <span className="subheader">
+                        Check back for updates on QC Overview development with
+                        future portal releases
+                    </span>
+                </div>
+            </div>
+        );
+    }
 };
 
 export const FileViewTabs = (props) => {
@@ -145,23 +182,26 @@ export const FileViewTabs = (props) => {
                 isActive={true}
                 prependDotPath="file-overview">
                 <DotRouterTab
-                    dotPath=".associated-files"
-                    tabTitle={associatedFilesTitle}
-                    arrowTabs={false}
-                    default>
-                    <AssociatedFilesTab {...props} />
-                </DotRouterTab>
-                <DotRouterTab
                     dotPath=".analysis-information"
                     tabTitle="Analysis Information"
-                    arrowTabs={false}>
-                    <AnalysisInformationTab />
+                    arrowTabs={false}
+                    cache={true}
+                    default>
+                    <AnalysisInformationTab {...props} />
                 </DotRouterTab>
                 <DotRouterTab
                     dotPath=".qc-overview"
                     tabTitle="QC Overview"
-                    arrowTabs={false}>
-                    <QCOverviewTab />
+                    arrowTabs={false}
+                    cache={true}>
+                    <QCOverviewTab {...props} />
+                </DotRouterTab>
+                <DotRouterTab
+                    dotPath=".associated-files"
+                    tabTitle="Associated Files"
+                    arrowTabs={false}
+                    cache={true}>
+                    <AssociatedFilesTab {...props} />
                 </DotRouterTab>
             </DotRouter>
         </div>

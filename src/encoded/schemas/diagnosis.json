@@ -56,15 +56,17 @@
         },
         "age_at_diagnosis": {
             "title": "Age At Diagnosis",
-            "description": "Age when the disease was diagnosed (years)",
+            "description": "Age when the disease was diagnosed (years). Note: age above 89 is represented as 89 to remove identifiable information.",
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 89
         },
         "age_at_resolution": {
             "title": "Age At Resolution",
-            "description": "Age when the disease was determined to have resolved (years)",
+            "description": "Age when the disease was determined to have resolved (years). Note: age above 89 is represented as 89 to remove identifiable information.",
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 89
         },
         "comments": {
             "title": "Comments",

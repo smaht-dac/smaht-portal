@@ -33,25 +33,39 @@ SUBMITTER_ROLE = 'group.submitter'
 # beyond view, the name is kept for cross comparison across portal repos
 # Note that ACLs are ordered!
 ONLY_ADMIN_VIEW_ACL: Acl = [
-    (Allow, 'group.admin', ['view', 'edit']),
-    (Allow, 'group.read-only-admin', ['view']),
-    (Allow, 'remoteuser.INDEXER', ['view']),
-    (Allow, 'remoteuser.EMBED', ['view']),
-    (Deny, Everyone, ['view', 'edit'])
+    (Allow, 'group.admin', ['view', 'view_raw', 'edit']),
+    (Allow, 'group.read-only-admin', ['view', 'view_raw']),
+    (Allow, 'remoteuser.INDEXER', ['view', 'view_raw']),
+    (Allow, 'remoteuser.EMBED', ['view', 'view_raw']),
+    (Deny, Everyone, ['view', 'view_raw', 'edit'])
 ]
+
+
+# This ACL allows only those who have the dbGaP group to view
+ONLY_DBGAP_VIEW_ACL: Acl = [
+    (Allow, 'group.dbgap', ['view', 'view_raw'])
+] + ONLY_ADMIN_VIEW_ACL
+
+
+# Use this to denote data that can be accessed by users of the public who
+# have the dbGaP permission (and those with the internal dbgap group)
+ONLY_PUBLIC_DBGAP_VIEW_ACL: Acl = [
+    (Allow, 'group.public-dbgap', ['view', 'view_raw'])
+] + ONLY_DBGAP_VIEW_ACL
 
 
 # User ACLs
 ONLY_ADMIN_VIEW_USER_DETAILS_ACL = [
-    (Allow, 'group.admin', ['view', 'view_details', 'edit']),
-    (Allow, 'remoteuser.INDEXER', ['view']),
-    (Allow, 'remoteuser.EMBED', ['view']),
-    (Deny, Everyone, ['view', 'view_details', 'edit']),
+    (Allow, 'group.admin', ['view', 'view_raw', 'view_details', 'edit']),
+    (Allow, 'remoteuser.INDEXER', ['view', 'view_raw']),
+    (Allow, 'remoteuser.EMBED', ['view', 'view_raw']),
+    (Deny, Everyone, ['view', 'view_raw', 'view_details', 'edit']),
 ]
 
 
 ONLY_OWNER_VIEW_PROFILE_ACL = [
     (Allow, 'role.owner', 'view'),
+    (Allow, 'role.owner', 'view_raw'),
     # (Allow, 'role.owner', 'edit'),
     # (Allow, 'role.owner', 'view_details'),
 ] + ONLY_ADMIN_VIEW_USER_DETAILS_ACL
@@ -109,17 +123,17 @@ ALLOW_SUBMISSION_CENTER_CREATE_ACL: Acl = SUBMISSION_CENTER_MEMBER_CREATE_ACL + 
 
 # This gives item owners expanded permissions
 ALLOW_OWNER_EDIT_ACL: Acl = [
-    (Allow, OWNER_ROLE, ['edit', 'view', 'view_details']),
+    (Allow, OWNER_ROLE, ['edit', 'view', 'view_raw', 'view_details']),
 ] + ONLY_ADMIN_VIEW_ACL
 
 # These two ACLs allow item editing
 SUBMISSION_CENTER_MEMBER_EDIT_ACL: Acl = [
     # Note that only submitters can edit
     (Allow, SUBMITTER_ROLE, ['edit']),
-    (Allow, SUBMISSION_CENTER_RW, ['view'])
+    (Allow, SUBMISSION_CENTER_RW, ['view', 'view_raw'])
 ]
 CONSORTIUM_MEMBER_EDIT_ACL: Acl = [
-    (Allow, CONSORTIUM_MEMBER_RW, ['view', 'edit'])
+    (Allow, CONSORTIUM_MEMBER_RW, ['view', 'view_raw', 'edit'])
 ]
 
 
@@ -138,22 +152,22 @@ ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL: Acl = SUBMISSION_CENTER_MEMBER_EDIT_ACL
 
 # The everyone view ACL allows all everyone to view, as it states
 ALLOW_EVERYONE_VIEW_ACL: Acl = [
-    (Allow, Everyone, ['view']),
+    (Allow, Everyone, ['view', 'view_raw']),
 ] + ONLY_ADMIN_VIEW_ACL
 
 
 # The authenticated view ACL allows only authenticated users to view
 ALLOW_AUTHENTICATED_VIEW_ACL: Acl = [
-    (Allow, Authenticated, ['view']),
+    (Allow, Authenticated, ['view', 'view_raw']),
 ] + ONLY_ADMIN_VIEW_ACL
 
 
 # These two ACLs allow item viewing
 SUBMISSION_CENTER_MEMBER_VIEW_ACL: Acl = [
-    (Allow, SUBMISSION_CENTER_RW, ['view'])
+    (Allow, SUBMISSION_CENTER_RW, ['view', 'view_raw'])
 ]
 CONSORTIUM_MEMBER_VIEW_ACL: Acl = [
-    (Allow, CONSORTIUM_MEMBER_RW, ['view'])
+    (Allow, CONSORTIUM_MEMBER_RW, ['view', 'view_raw'])
 ]
 
 # Consortium is a subset of submission centers, so both can view
@@ -161,5 +175,3 @@ ALLOW_CONSORTIUM_MEMBER_VIEW_ACL: Acl = SUBMISSION_CENTER_MEMBER_VIEW_ACL + CONS
 
 # Submission centers can be restricted to only those folks for view
 ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL: Acl = SUBMISSION_CENTER_MEMBER_VIEW_ACL + ONLY_ADMIN_VIEW_ACL
-
-

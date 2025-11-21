@@ -37,9 +37,6 @@
             "$ref": "mixins.json#/attribution"
         },
         {
-            "$ref": "mixins.json#/code"
-        },
-        {
             "$ref": "mixins.json#/description"
         },
         {
@@ -47,6 +44,9 @@
         },
         {
             "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/preferred_name"
         },
         {
             "$ref": "mixins.json#/schema_version"
@@ -78,7 +78,11 @@
             "accessionType": "RG"
         },
         "code": {
-            "pattern": "^[A-Za-z0-9]{3,}$"
+            "title": "Code",
+            "description": "Code used in file naming scheme",
+            "type": "string",
+            "permission": "restricted_fields",
+            "pattern": "^[A-Za-z0-9_]{2,}$"
         },
         "schema_version": {
             "default": "1"

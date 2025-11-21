@@ -54,10 +54,11 @@ from ..item_utils import (
     analyte as analyte_utils,
     file as file_utils,
     item as item_utils,
+    quality_metric as qm_utils,
     sample as sample_utils,
     software as software_utils,
     tissue as tissue_utils,
-    sequencing as sequencing_utils
+    sequencing as sequencing_utils,
 )
 from ..item_utils.utils import (
     get_property_value_from_identifier,
@@ -193,6 +194,7 @@ class CalcPropConstants:
     DATA_GENERATION_SEQUENCING_PLATFORMS = "sequencing_platforms"
     DATA_GENERATION_TARGET_COVERAGE = "target_group_coverage"
     DATA_GENERATION_TARGET_READ_COUNT = "target_read_count"
+    DATA_GENERATION_AVERAGE_COVERAGE = "average_coverage"
     DATA_GENERATION_SCHEMA = {
         "title": "Data Generation Summary",
         "description": "Summary of data generation",
@@ -244,6 +246,13 @@ class CalcPropConstants:
                     "type": "string"
                 }
             },
+            DATA_GENERATION_AVERAGE_COVERAGE: {
+                "title": "Per BAM Coverage",
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+             },
             DATA_GENERATION_TARGET_READ_COUNT: {
                 "title": "Target Read Count",
                 "type": "array",
@@ -257,8 +266,15 @@ class CalcPropConstants:
         "title": "Release Tracker Description",
         "type": "string",
     }
+    RELEASE_TRACKER_TITLE = {
+        "title": "Release Tracker Title",
+        "type": "string",
+    }
     SAMPLE_SUMMARY_DONOR_IDS = "donor_ids"
+    SAMPLE_SUMMARY_CATEGORY = "category"
     SAMPLE_SUMMARY_TISSUES = "tissues"
+    SAMPLE_SUMMARY_TISSUE_SUBTYPES = "tissue_subtypes"
+    SAMPLE_SUMMARY_TISSUE_DETAILS = "tissue_details"
     SAMPLE_SUMMARY_SAMPLE_NAMES = "sample_names"
     SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS = "sample_descriptions"
     SAMPLE_SUMMARY_ANALYTES = "analytes"
@@ -274,8 +290,29 @@ class CalcPropConstants:
                     "type": "string",
                 },
             },
+            SAMPLE_SUMMARY_CATEGORY: {
+                "title": "Tissue Category",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
             SAMPLE_SUMMARY_TISSUES: {
                 "title": "Tissue",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_TISSUE_SUBTYPES: {
+                "title": "Tissue Subtype",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_TISSUE_DETAILS: {
+                "title": "Tissue Details",
                 "type": "array",
                 "items": {
                     "type": "string",
@@ -347,6 +384,7 @@ def _build_file_embedded_list() -> List[str]:
     return [
         # Facets + Data generation summary + Link calcprops
         "file_sets.libraries.assay",
+        "file_sets.libraries.assay.category",
         "file_sets.sequencing.sequencer",
         "file_sets.sequencing.target_coverage",
         "file_sets.sequencing.target_read_count",
@@ -354,6 +392,7 @@ def _build_file_embedded_list() -> List[str]:
         # Sample summary + Link calcprops
         "file_sets.libraries.analytes.molecule",
         "file_sets.libraries.analytes.samples.sample_sources.code",
+        "file_sets.libraries.analytes.samples.sample_sources.uberon_id",
         "file_sets.libraries.analytes.samples.sample_sources.description",
         "file_sets.libraries.analytes.samples.sample_sources.donor",
         "file_sets.libraries.analytes.samples.sample_sources.cell_line.code",
@@ -363,11 +402,20 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.samples.sample_sources.donor",
 
         "quality_metrics.overall_quality_status",
+        "quality_metrics.coverage",
+        "quality_metrics.qc_notes",
         # For manifest
+        "file_sets.accession",
+        "file_sets.libraries.analytes.accession",
+        "file_sets.libraries.analytes.samples.accession",
+        "file_sets.libraries.analytes.samples.sample_sources.donor.accession",
         "sequencing.sequencer.display_title",
+        "sequencing.sequencer.platform",
 
         # Include file groups tags
         "file_sets.file_group.*",
+
+        "meta_workflow_run_inputs.meta_workflow.name",
 
         # Analysis summary
         "software.code",
@@ -376,11 +424,16 @@ def _build_file_embedded_list() -> List[str]:
 
         # For browse search columns
         "donors.display_title",
+        "donors.protected_donor",
         "sample_summary.tissues",
+        "sample_summary.category",
 
         # For facets
+        "donors.external_id",
         "donors.age",
-        "donors.sex"
+        "donors.sex",
+        "donors.hardy_scale",
+        "donors.tags",
     ]
 
 
@@ -407,10 +460,36 @@ class File(Item, CoreFile):
     STATUS_TO_CHECK_REVISIONS = [
         'uploading',
         'uploaded',
+        'retracted',
         'in review',
         'released',
-        'restricted',
-        'public'
+        'protected',
+        'open-network',
+        'open-early',
+        'protected-network',
+        'protected-early',
+        'open'
+    ]
+    STATUS_TO_REVISION_DATE_CONVERSION = [
+        'retracted',
+        'released',
+        'protected',
+        'open-network',
+        'open-early',
+        'protected-network',
+        'protected-early',
+        'open'
+    ]
+    STATUS_TO_CHECK_NETWORK_RELEASE_DATE = [
+        'released',
+        'open-network',
+        'open-early',
+        'protected-network',
+        'protected-early'
+    ]
+    STATUS_TO_CHECK_PUBLIC_RELEASE_DATE = [
+        'open',
+        'protected'
     ]
 
     Item.SUBMISSION_CENTER_STATUS_ACL.update({
@@ -501,9 +580,9 @@ class File(Item, CoreFile):
         ]
     })
     def file_access_status(self, status: str = 'in review') -> Optional[str]:
-        if status in ['public', 'released']:
+        if status in ['open', 'released']:
             return self.OPEN
-        elif status == 'restricted':
+        elif status == 'protected-network':
             return self.PROTECTED
         return None
 
@@ -512,33 +591,119 @@ class File(Item, CoreFile):
             "title": "File Status Tracking",
             "type": "object",
             "properties": {
-                "uploading": {
-                    "type": "string",
-                    "format": "date-time"
+                "status_tracking": {
+                    "type": "object",
+                    "properties": {
+                        "uploading": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "uploaded": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "retracted": {
+                            "title": "Retracted Date",
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "retracted_date": {
+                            "title": "Retracted Date",
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "in review": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "released": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "released_date": {
+                            "type": "string",
+                            "format": "date",
+                        },
+                        "open": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "open_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "protected-network": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "protected-network_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "protected": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "protected_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "open-network": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "open-network_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "open-early": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "open-early_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "protected-early": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "protected-early_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                    }
                 },
-                "uploaded": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "in review": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "released": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "released_date": {
-                    "type": "string",
-                    "format": "date",
-                },
-                "public": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "restricted": {
-                    "type": "string",
-                    "format": "date-time"
+                "release_dates": {
+                    "type": "object",
+                    "properties": {
+                        "public_release": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "public_release_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "network_release": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "network_release_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        # This is either the network_release or the public_release,
+                        # whichever is earlier
+                        "initial_release": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "initial_release_date": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
                 }
             }
         }
@@ -548,8 +713,8 @@ class File(Item, CoreFile):
             of the file changed - from this we can determine several things:
                 1. When metadata for this file was submitted (status = uploading or in review)
                 2. When the file was uploaded (status = uploaded)
-                3. When the file was released to consortia (status = released)
-                4. When the file was made public (status = released)
+                3. When the file was released to consortia 
+                4. When the file was made public 
                 5. If protected data, when it was made released (status = restricted)
 
             To make this reasonably efficient, we assume the following ordering:
@@ -569,25 +734,84 @@ class File(Item, CoreFile):
         current_status = self.properties['status']
         if current_status in ['uploading', 'in review']:
             return {
-                current_status: self.properties['date_created']
+                "status_tracking": {
+                    current_status: self.properties['date_created']
+                }
             }
-        else:  # we need the revision history
-            result = {}
-            revision_history = request.embed(f'/{self.uuid}/@@revision-history', as_user='IMPORT')
-            for revision in revision_history['revisions']:
-                status = revision.get('status')
-                if status and status not in result and status in self.STATUS_TO_CHECK_REVISIONS:
-                    if status in ['uploading', 'in review']:  # these are initial statuses
-                        result[status] = revision['date_created']
-                    else:
-                        last_modified = revision.get('last_modified')
-                        if last_modified:
-                            result[status] = last_modified['date_modified']
-            if "released" in result:
-                result["released_date"] = self.get_date_from_datetime(
-                    result["released"]
+
+        # we need the revision history
+        status_tracking = {}
+        release_dates = {}
+        revision_history = request.embed(
+            f"/{self.uuid}/@@revision-history", as_user="IMPORT"
+        )
+        for revision in revision_history["revisions"]:
+            status = revision.get("status")
+            if (
+                status
+                and status not in status_tracking
+                and status in self.STATUS_TO_CHECK_REVISIONS
+            ):
+
+                if status in [
+                    "uploading",
+                    "in review",
+                ]:  # these are initial statuses
+                    status_tracking[status] = revision["date_created"]
+                else:
+                    last_modified = revision.get("last_modified")
+                    if last_modified:
+                        status_tracking[status] = last_modified["date_modified"]
+
+        network_release_dates = [
+            status_tracking[status] 
+            for status in self.STATUS_TO_CHECK_NETWORK_RELEASE_DATE 
+            if status in status_tracking
+        ]
+        network_release_date = min(network_release_dates) if network_release_dates else None
+
+        public_release_dates = [
+            status_tracking[status] 
+            for status in self.STATUS_TO_CHECK_PUBLIC_RELEASE_DATE 
+            if status in status_tracking
+        ]
+        public_release_date = min(public_release_dates) if public_release_dates else None
+
+        # Get the earliest date as initial release date
+        available_dates = [date for date in [network_release_date, public_release_date] if date]
+        initial_release_date = min(available_dates) if available_dates else None
+
+        # Build release_dates object
+        release_dates = {}
+        if network_release_date:
+            release_dates["network_release"] = network_release_date
+            release_dates["network_release_date"] = self.get_date_from_datetime(
+                network_release_date
+            )
+        if public_release_date:
+            release_dates["public_release"] = public_release_date
+            release_dates["public_release_date"] = self.get_date_from_datetime(
+                public_release_date
+            )
+        if initial_release_date:
+            release_dates["initial_release"] = initial_release_date
+            release_dates["initial_release_date"] = self.get_date_from_datetime(
+                initial_release_date
+            )
+
+        # add date converted values for selected status
+        for status in self.STATUS_TO_REVISION_DATE_CONVERSION:
+            if status in status_tracking:
+                status_tracking[status + "_date"] = self.get_date_from_datetime(
+                    status_tracking[status]
                 )
-            return result
+
+        result = {}
+        if status_tracking:
+            result["status_tracking"] = status_tracking
+        if release_dates:
+            result["release_dates"] = release_dates
+        return result if result else None
 
     @staticmethod
     def get_date_from_datetime(datetime_str: str) -> str:
@@ -606,7 +830,18 @@ class File(Item, CoreFile):
     def meta_workflow_run_inputs(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "meta_workflow_run_inputs")
         if result:
-            return result
+            if self.type_info.name == "ReferenceFile":
+                return
+            request_handler = RequestHandler(request = request)
+            mwfrs=[
+                mwfr for mwfr in result
+                if get_property_value_from_identifier(
+                    request_handler,
+                    mwfr,
+                    item_utils.get_status
+                ) != "deleted"
+            ]
+            return mwfrs if mwfrs else None
         return
 
     @calculated_property(
@@ -622,7 +857,16 @@ class File(Item, CoreFile):
     def meta_workflow_run_outputs(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "meta_workflow_run_outputs")
         if result:
-            return result
+            request_handler = RequestHandler(request = request)
+            mwfrs=[
+                mwfr for mwfr in result
+                if get_property_value_from_identifier(
+                    request_handler,
+                    mwfr,
+                    item_utils.get_status
+                ) != "deleted"
+            ]
+            return mwfrs if mwfrs else None
         return
     
     @calculated_property(schema={
@@ -742,14 +986,26 @@ class File(Item, CoreFile):
         file_sets: Optional[List[str]] = None
     ) -> Union[str, None]:
         """Get file release tracker description for display on home page."""
-        result = None
-        if file_sets:
-            request_handler = RequestHandler(request=request)
-            result = self._get_release_tracker_description(
-                request_handler,
-                file_properties=self.properties
-            )
-        return result     
+        request_handler = RequestHandler(request=request)
+        result = self._get_release_tracker_description(
+            request_handler,
+            file_properties=self.properties
+        )
+        return result
+
+    @calculated_property(schema=CalcPropConstants.RELEASE_TRACKER_TITLE)
+    def release_tracker_title(
+        self,
+        request: Request,
+        file_sets: Optional[List[str]] = None
+    ) -> Union[str, None]:
+        """Get file release tracker title for display on home page."""
+        request_handler = RequestHandler(request=request)
+        result = self._get_release_tracker_title(
+            request_handler,
+            file_properties=self.properties
+        )
+        return result
 
     def _get_libraries(
         self, request: Request, file_sets: Optional[List[str]] = None
@@ -915,6 +1171,9 @@ class File(Item, CoreFile):
             constants.DATA_GENERATION_TARGET_COVERAGE: (
                 self._get_group_coverage(request_handler, file_properties)
             ),
+            constants.DATA_GENERATION_AVERAGE_COVERAGE: (
+                self._get_average_coverage(request_handler, file_properties)
+            ),
             constants.DATA_GENERATION_TARGET_READ_COUNT: (
                 get_property_values_from_identifiers(
                     request_handler,
@@ -926,12 +1185,12 @@ class File(Item, CoreFile):
         return {
             key: value for key, value in to_include.items() if value
         }
-    
+
     def _get_group_coverage(
         self, request_handler: Request, file_properties: Optional[List[str]] = None
     ) -> Union[List[str], None]:
         """"Get group coverage for display on file overview page.
-        
+
         Use override_group_coverage if present, otherwise grab target_coverage from sequencing."""
         if (override_group_coverage := file_utils.get_override_group_coverage(file_properties)):
             return [override_group_coverage]
@@ -939,6 +1198,20 @@ class File(Item, CoreFile):
             request_handler,
             file_utils.get_sequencings(file_properties, request_handler),
             sequencing_utils.get_target_coverage
+        )
+
+    def _get_average_coverage(
+        self, request_handler, file_properties: Optional[List[str]] = None
+    ) -> Union[List[str], None]:
+        """"Get average coverage from quality_metrics for display on file overview page.
+
+        Use override_average_coverage if present, otherwise grab coverage from quality metrics."""
+        if (override_average_coverage := file_utils.get_override_average_coverage(file_properties)):
+            return [override_average_coverage]
+        return get_property_values_from_identifiers(
+            request_handler,
+            file_utils.get_quality_metrics(file_properties),
+            qm_utils.get_coverage
         )
 
     def _get_sample_summary(
@@ -964,7 +1237,14 @@ class File(Item, CoreFile):
                 file_utils.get_donors(file_properties, request_handler),
                 item_utils.get_external_id,
             ),
-            constants.SAMPLE_SUMMARY_TISSUES: get_property_values_from_identifiers(
+            constants.SAMPLE_SUMMARY_CATEGORY: file_utils.get_tissue_category(file_properties, request_handler),
+            constants.SAMPLE_SUMMARY_TISSUES: file_utils.get_tissue_type(file_properties, request_handler),
+            constants.SAMPLE_SUMMARY_TISSUE_SUBTYPES: get_property_values_from_identifiers(
+                request_handler,
+                file_utils.get_uberon_ids(file_properties, request_handler),
+                item_utils.get_display_title,
+            ),
+            constants.SAMPLE_SUMMARY_TISSUE_DETAILS: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_tissues(file_properties, request_handler),
                 tissue_utils.get_location,
@@ -1035,39 +1315,74 @@ class File(Item, CoreFile):
             ),
         }
         return {key: value for key, value in to_include.items() if value}
-    
+
+    def _get_release_tracker_title(
+            self,
+            request_handler: RequestHandler,
+            file_properties: Dict[str, Any],
+        ) -> Union[str, None]:
+        """Get release tracker title for display on the home page."""
+        to_include = None
+        if "file_sets" in file_properties:
+            if (cell_culture_mixture_title := get_unique_values(
+                request_handler.get_items(
+                    file_utils.get_cell_culture_mixtures(file_properties, request_handler)),
+                    item_utils.get_code,
+            )):
+                to_include = None if len(cell_culture_mixture_title) > 1 else cell_culture_mixture_title[0]
+            elif (cell_line_title := request_handler.get_items(
+                file_utils.get_cell_lines(file_properties, request_handler)
+            )):
+                to_include = None if len(cell_line_title) > 1 else item_utils.get_code(cell_line_title[0])
+            elif (tissue_title := request_handler.get_items(
+                file_utils.get_tissues(file_properties, request_handler)
+            )):
+                to_include = None if len(tissue_title) > 1 else item_utils.get_display_title(tissue_title[0])
+        if "override_release_tracker_title" in file_properties:
+            to_include = file_utils.get_override_release_tracker_title(file_properties)
+        return to_include
+
     def _get_release_tracker_description(
             self,
             request_handler: RequestHandler,
             file_properties: Dict[str, Any],
         ) -> Union[str, None]:
         """Get release tracker description for display on the home page."""
-        assay_title= get_unique_values(
-            request_handler.get_items(file_utils.get_assays(file_properties, request_handler)),
-            item_utils.get_display_title,
-            )
-        sequencer_title = get_unique_values(
-            request_handler.get_items(
-            file_utils.get_sequencers(file_properties, request_handler)),
-            item_utils.get_display_title,
-            )
+        to_include = None
         file_format_title = get_property_value_from_identifier(
-                request_handler,
-                file_utils.get_file_format(file_properties),
+            request_handler,
+            file_utils.get_file_format(file_properties),
+            item_utils.get_display_title,
+        )
+        if "override_release_tracker_description" in file_properties:
+            to_include = [
+                file_utils.get_override_release_tracker_description(file_properties),
+                file_format_title
+            ]
+            return " ".join(to_include)
+        if "file_sets" in file_properties:
+            assay_title= get_unique_values(
+                request_handler.get_items(file_utils.get_assays(file_properties, request_handler)),
                 item_utils.get_display_title,
-            )
-        if len(assay_title) > 1 or len(sequencer_title) > 1:
-            # More than one unique assay or sequencer
-            return ""
-        elif len(assay_title) == 0 or len(sequencer_title) == 0:
-            # No assay or sequencer
-            return ""
-        to_include = [
-            assay_title[0],
-            sequencer_title[0],
-            file_format_title
-        ]
-        return " ".join(to_include)
+                )
+            sequencer_title = get_unique_values(
+                request_handler.get_items(
+                file_utils.get_sequencers(file_properties, request_handler)),
+                item_utils.get_display_title,
+                )
+            if len(assay_title) > 1 or len(sequencer_title) > 1:
+                # More than one unique assay or sequencer
+                return None
+            elif len(assay_title) == 0 or len(sequencer_title) == 0:
+                # No assay or sequencer
+                return None
+            to_include = [
+                assay_title[0],
+                sequencer_title[0],
+                file_format_title
+            ]
+        if to_include:
+            return " ".join(to_include)
 
 
 @view_config(name='drs', context=File, request_method='GET',
@@ -1090,19 +1405,6 @@ def post_upload(context, request):
     return CorePostUpload(context, request)
 
 
-@view_config(name='download_cli', context=File, permission='view', request_method=['GET'])
-@debug_log
-def download_cli(context, request):
-    """ Creates download credentials for files intended for use with awscli/rclone """
-    # 2024-11-05/dmichaels - limit to dbgap users like download
-    # Noticeed this endpoint lacked appropriate checking for dbgap
-    # group users which should be exactly like the download endpoint.
-    if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
-        raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
-                            'Please check with DAC/your PI about your status.')
-    return CoreDownloadCli(context, request)
-
-
 def validate_user_has_protected_access(request):
     """ Validates that the user who executed the request context either is
         an admin or has the dbgap group
@@ -1113,12 +1415,44 @@ def validate_user_has_protected_access(request):
     return False
 
 
+def validate_user_has_public_protected_access(request):
+    """ Validates that the user who executed the request context either is
+        an admin or has the dbgap group
+    """
+    principals = request.effective_principals
+    if 'group.admin' in principals or 'group.public-dbgap' in principals:
+        return True
+    return False
+
+
+@view_config(name='download_cli', context=File, permission='view', request_method=['GET'])
+@debug_log
+def download_cli(context, request):
+    """ Creates download credentials for files intended for use with awscli/rclone """
+    # Download restriction for restricted status
+    if context.properties.get('status') in ['protected-network', 'protected-early'] and not validate_user_has_protected_access(request):
+        raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
+                            'Please check with DAC/your PI about your status.')
+    # Download restriction for protected
+    if context.properties.get('status') in ['protected'] and not (
+            validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
+        raise HTTPForbidden('This is a protected file and is not available through download_cli without'
+                            'dbGaP approval. Please check with the DAC/your PI about your status.')
+    return CoreDownloadCli(context, request)
+
+
 @view_config(name='download', context=File, request_method='GET',
              permission='view', subpath_segments=[0, 1])
 def download(context, request):
-    if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
+    # Download restriction for protected
+    if context.properties.get('status') in ['protected-network', 'protected-early'] and not validate_user_has_protected_access(request):
         raise HTTPForbidden('This is a restricted file not available for download without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
+    # Download restriction for protected
+    if context.properties.get('status') in ['protected'] and not (
+            validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
+        raise HTTPForbidden('This is a protected file and is not available through download without'
+                            'dbGaP approval. Please check with the DAC/your PI about your status.')
     return CoreDownload(context, request)
 
 

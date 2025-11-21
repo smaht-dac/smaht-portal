@@ -6,7 +6,7 @@ import _ from 'underscore';
 import memoize from 'memoize-one';
 import queryString from 'query-string';
 import * as d3 from 'd3';
-import { sub, add, startOfMonth, startOfDay, endOfMonth, endOfDay, toDate, format as formatDate } from 'date-fns';
+import { sub, add, startOfMonth, startOfDay, endOfMonth, endOfDay, format as formatDate, parse as parseDate } from 'date-fns';
 import DropdownItem from 'react-bootstrap/esm/DropdownItem';
 import DropdownButton from 'react-bootstrap/esm/DropdownButton';
 import Modal from 'react-bootstrap/esm/Modal';
@@ -44,10 +44,10 @@ export const commonParsingFxn = {
         const subTotals = {};
 
         parsedBuckets.forEach(function(bkt, index){
-            if (cumulativeSum) { 
-                total += bkt.count; 
-            } else { 
-                total = bkt.count; 
+            if (cumulativeSum) {
+                total += bkt.count;
+            } else {
+                total = bkt.count;
             }
             bkt.total = total;
             if (excludeChildren || !Array.isArray(bkt.children)) return;
@@ -187,12 +187,12 @@ export const commonParsingFxn = {
             const { google_analytics : {
                 reports : {
                     [reportName] : currentReport = []
-                } = {}, // `currentReport` => List of JSON objects (report entries, 1 per unique dimension value) - Note: 1 per unique dimension may not be valid for post processing report items in smaht-foursight 
+                } = {}, // `currentReport` => List of JSON objects (report entries, 1 per unique dimension value) - Note: 1 per unique dimension may not be valid for post processing report items in smaht-foursight
                 for_date
             } } = trackingItem;
 
             const termsInCurrenItem = new Set();
-            
+
             // Unique-fy
             // group terms by term since terms are repeated while ga4 to tracking-item conversion done
             // (note that aggregated values won't work if the aggregated field is already an avg, min, max may field)
@@ -212,10 +212,10 @@ export const commonParsingFxn = {
                     termsInAllItems.add(term);
                     termsInCurrenItem.add(term);
                 }
-                totalSessions += trackingItemItem[countKey]
+                totalSessions += trackingItemItem[countKey];
                 return { groupedTermsObj, totalSessions };
             }, { groupedTermsObj: {}, totalSessions: 0 });
-            
+
             totalSessionsToDate += totalSessions;
 
             const currentItem = {
@@ -239,7 +239,7 @@ export const commonParsingFxn = {
 
             // add missing children for cumulative view
             if (cumulativeSum) {
-                termsInAllItems.forEach(term => {
+                termsInAllItems.forEach((term) => {
                     if (!termsInCurrenItem.has(term)) {
                         currentItem.children.push({
                             'term': term,
@@ -266,8 +266,8 @@ export const commonParsingFxn = {
         const filterZeroTotalTerms = (list) => {
             const termTotals = {};
 
-            list.forEach(item => {
-                item.children.forEach(child => {
+            list.forEach((item) => {
+                item.children.forEach((child) => {
                     if (!termTotals[child.term]) {
                         termTotals[child.term] = 0;
                     }
@@ -275,17 +275,19 @@ export const commonParsingFxn = {
                 });
             });
 
-            return list.map(item => ({
-                ...item,
-                children: item.children.filter(child => termTotals[child.term] !== 0),
-            }));
+            return list.map((item) => {
+                return {
+                    ...item,
+                    children: item.children.filter((child) => termTotals[child.term] !== 0),
+                };
+            });
         };
 
         return filterZeroTotalTerms(aggsList);
     },
     'add_missing_dates': function (data, fromDate, untilDate, dateIncrement = "daily", type = "google_analytics") {
         const forAnalytics = type === "google_analytics";
-        
+
         const sortedData = data; // Already sorted, skip re-sorting again
         // // Sort the data by ascending order of date
         // const sortedData = data.sort(
@@ -293,7 +295,7 @@ export const commonParsingFxn = {
         // );
 
         // Collect all existing dates into a Set for quick lookup
-        const existingDates = new Set(sortedData.map(d => forAnalytics ? d.google_analytics.for_date : d.date ));
+        const existingDates = new Set(sortedData.map((d) => forAnalytics ? d.google_analytics.for_date : d.date ));
 
         // Utility function to add days to a date
         const addDays = function (date, days) {
@@ -325,7 +327,7 @@ export const commonParsingFxn = {
             const targetWeekday = firstExistingDate.getDay();
             currentDate = getNextWeekday(startDate, targetWeekday);
         } else {
-            currentDate = new Date(fromDate);
+            currentDate = parseDate(fromDate, "yyyy-MM-dd", new Date()); // new Date(fromDate);
         }
 
         // Copy the existing data to a new array
@@ -411,7 +413,7 @@ const aggregationsToChartData = {
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             const { interval: [interval], from_date, to_date } = resp;
-            const agg = interval + "_interval_file_status_tracking.uploaded";
+            const agg = interval + "_interval_file_status_tracking.status_tracking.uploaded";
             const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
@@ -425,7 +427,7 @@ const aggregationsToChartData = {
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             const { interval: [interval], from_date, to_date } = resp;
-            const agg = interval + "_interval_file_status_tracking.uploaded";
+            const agg = interval + "_interval_file_status_tracking.status_tracking.uploaded";
             const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
@@ -439,7 +441,7 @@ const aggregationsToChartData = {
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             const { interval: [interval], from_date, to_date } = resp;
-            const agg = interval + "_interval_file_status_tracking.released";
+            const agg = interval + "_interval_file_status_tracking.release_dates.initial_release";
             const buckets = resp && resp.aggregations && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
@@ -453,7 +455,7 @@ const aggregationsToChartData = {
         'function'  : function(resp, props){
             if (!resp || !resp.aggregations) return null;
             const { interval: [interval], from_date, to_date } = resp;
-            const agg = interval + "_interval_file_status_tracking.released";
+            const agg = interval + "_interval_file_status_tracking.release_dates.initial_release";
             const buckets = resp && resp.aggregations[agg] && resp.aggregations[agg].buckets;
             if (!Array.isArray(buckets)) return null;
 
@@ -516,7 +518,8 @@ const aggregationsToChartData = {
             if (!resp || !resp['@graph']) return null;
             const { countBy : { file_downloads : countBy } } = props;
 
-            let useReport, groupingKey, countKey = 'downloads_count';
+            let useReport, groupingKey;
+            const countKey = 'downloads_count';
             switch (countBy) {
                 case 'filetype':
                     useReport = 'file_downloads_by_filetype';
@@ -551,7 +554,8 @@ const aggregationsToChartData = {
             if (!resp || !resp['@graph']) return null;
             const { countBy : { file_downloads_volume : countBy } } = props;
 
-            let useReport, groupingKey, countKey = 'downloads_size';
+            let useReport, groupingKey;
+            const countKey = 'downloads_size';
             switch (countBy) {
                 case 'filetype':
                     useReport = 'file_downloads_by_filetype';
@@ -599,8 +603,8 @@ const aggregationsToChartData = {
             if (!resp || !resp['@graph']) return null;
             const { countBy : { top_file_downloads : countBy } } = props;
 
-            let useReport = 'top_files_downloaded';
-            let groupingKey = 'file_set'; // File
+            const useReport = 'top_files_downloaded';
+            const groupingKey = 'file_set'; // File
             const countKey = 'downloads_count'; // Download Count
             let topCount = 0; // all
 
@@ -622,7 +626,7 @@ const aggregationsToChartData = {
                     break;
             }
 
-            const termDisplayAsFunc = function(item){ return item.file_title ? item.file_title : (item.file_type ? `${item.term} (${item.file_type})` : item.term) };
+            const termDisplayAsFunc = function(item){ return item.file_title ? item.file_title : (item.file_type ? `${item.term} (${item.file_type})` : item.term); };
 
             return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, props.currentGroupBy, termDisplayAsFunc, topCount);
         }
@@ -656,8 +660,8 @@ const aggregationsToChartData = {
                     break;
             }
 
-            const termDisplayAsFunc = function(item){ return item.file_type && item.file_title ? `${item.file_title} (${item.file_type})` : item.term };
-            
+            const termDisplayAsFunc = function(item){ return item.file_type && item.file_title ? `${item.file_title} (${item.file_type})` : item.term; };
+
             //convert volume to GB
             const gigabyte = 1024 * 1024 * 1024;
             const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, props.currentGroupBy, termDisplayAsFunc, topCount);
@@ -682,8 +686,8 @@ const aggregationsToChartData = {
             if (!resp || !resp['@graph']) return null;
             const { countBy : { top_file_downloads : countBy } } = props;
 
-            let useReport = 'top_files_downloaded';
-            let groupingKey = 'file_item_id'; // File
+            const useReport = 'top_files_downloaded';
+            const groupingKey = 'file_item_id'; // File
             const countKey = 'downloads_count'; // Download Count
             let topCount = 0; // all
 
@@ -705,7 +709,7 @@ const aggregationsToChartData = {
                     break;
             }
 
-            const termDisplayAsFunc = function(item){ return item.file_title ? item.file_title : (item.file_type ? `${item.term} (${item.file_type})` : item.term) };
+            const termDisplayAsFunc = function(item){ return item.file_title ? item.file_title : (item.file_type ? `${item.term} (${item.file_type})` : item.term); };
 
             return commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, props.currentGroupBy, termDisplayAsFunc, topCount);
         }
@@ -739,8 +743,8 @@ const aggregationsToChartData = {
                     break;
             }
 
-            const termDisplayAsFunc = function(item){ return item.file_type && item.file_title ? `${item.file_title} (${item.file_type})` : item.term };
-            
+            const termDisplayAsFunc = function(item){ return item.file_type && item.file_title ? `${item.file_title} (${item.file_type})` : item.term; };
+
             //convert volume to GB
             const gigabyte = 1024 * 1024 * 1024;
             const result = commonParsingFxn.analytics_to_buckets(resp, useReport, groupingKey, countKey, props.cumulativeSum, props.currentGroupBy, termDisplayAsFunc, topCount);
@@ -960,15 +964,15 @@ export class UsageStatsViewController extends React.PureComponent {
 
         const format = function (value1, value2) {
             if (value1 && value2 && value1 !== "None" && value2 !== "None") {
-                return `${value1} (${value2})`
+                return `${value1} (${value2})`;
             } else if (value1 && value1 !== "None") {
                 return value1;
             } else if (value2 && value2 !== "None") {
                 return `N/A (${value2})`;
             }
             return 'N/A';
-        }
-        
+        };
+
         result['@graph'].forEach(function (resultItem) {
             const {
                 google_analytics: {
@@ -1014,11 +1018,12 @@ export class UsageStatsViewController extends React.PureComponent {
     }
 
     render() {
-        return <StatsViewController {...this.props} {...this.state}
-            changeCountByForChart={this.changeCountByForChart} transformResultItems={this.transformResultItems} />;
+        return (
+            <StatsViewController {...this.props} {...this.state}
+                changeCountByForChart={this.changeCountByForChart} transformResultItems={this.transformResultItems} />
+        );
     }
 }
-
 
 export class SubmissionStatsViewController extends React.PureComponent {
 
@@ -1027,7 +1032,7 @@ export class SubmissionStatsViewController extends React.PureComponent {
             currentGroupBy, currentSingleSelectFilter, currentDateHistogramInterval,
             currentDateRangePreset, currentDateRangeFrom, currentDateRangeTo
         } = props;
-        
+
         const params = { 'type': itemType };
         if (currentGroupBy) {
             params.group_by = currentGroupBy;
@@ -1081,7 +1086,7 @@ export class SubmissionStatsViewController extends React.PureComponent {
                 return SubmissionStatsViewController.createFileSearchUri(props, 'file_status_tracking.uploaded');
             },
             'FileReleased' : function(props) {
-                return SubmissionStatsViewController.createFileSearchUri(props, 'file_status_tracking.released', 'File');
+                return SubmissionStatsViewController.createFileSearchUri(props, 'file_status_tracking.release_dates.initial_release', 'File');
             },
         },
         'shouldRefetchAggs' : function(pastProps, nextProps){
@@ -1096,18 +1101,9 @@ export class SubmissionStatsViewController extends React.PureComponent {
         }
     };
 
-    constructor(props){
-        super(props);
+    render() {
+        return <StatsViewController {...this.props} {...this.state} />;
     }
-
-    componentDidMount(){
-    }
-
-    componentDidUpdate(pastProps){
-    }
-
-    render(){ return <StatsViewController {...this.props} {...this.state} />; }
-
 }
 
 
@@ -1175,9 +1171,9 @@ class UsageChartsCountByDropdown extends React.PureComponent {
             default:
                 menuOptions.set('views',    <React.Fragment><i className="icon icon-fw fas icon-eye me-1"/>Views</React.Fragment>);
                 menuOptions.set('sessions', <React.Fragment><i className="icon icon-fw fas icon-user me-1"/>Unique Users</React.Fragment>);
-            break;
+                break;
         }
-        
+
         const dropdownTitle = menuOptions.get(currCountBy);
 
         return (
@@ -1265,12 +1261,12 @@ export function UsageStatsView(props){
     let enableDetail = false;
     const userGroups = (session && JWT.getUserGroups()) || null;
     if (userGroups && userGroups.indexOf('admin') !== -1) {
-        enableDetail = true
+        enableDetail = true;
     }
 
     const isSticky = true; //!_.any(_.values(tableToggle), (v)=> v === true);
     const commonTableProps = { windowWidth, href, session, schemas, transposed, dateIncrement, cumulativeSum, hideEmptyColumns, chartToggles, enableDetail };
-    
+
     let topFileSetLimit = 0;
     if (countBy.top_file_set_downloads && countBy.top_file_set_downloads.indexOf('top_files_') === 0) {
         topFileSetLimit = parseInt(countBy.top_file_set_downloads.substring('top_files_'.length));
@@ -1323,7 +1319,7 @@ export function UsageStatsView(props){
             { file_downloads ?
 
                 <ColorScaleProvider resetScalesWhenChange={file_downloads} highContrast={highContrast}>
-                
+
                     <div className="clearfix">
                         <div className="pull-right mt-05">
                             <UsageChartsCountByDropdown {...countByDropdownProps} chartID="file_downloads" />
@@ -1400,7 +1396,7 @@ export function UsageStatsView(props){
                             limit={topFileSetLimit} excludeNones={true} />
                     }
 
-                    <AreaChartContainer {...commonContainerProps} id="top_file_set_downloads_volume" key="top_file_set_downloads_volume" 
+                    <AreaChartContainer {...commonContainerProps} id="top_file_set_downloads_volume" key="top_file_set_downloads_volume"
                         defaultHeight={350} title={<h5 className="text-400 mt-0">Total Size for Daily Downloads (GB)</h5>}>
                         {chartToggles.chart?.top_file_set_downloads_volume ?
                             <AreaChart {...commonChartProps} data={top_file_set_downloads_volume} showTooltipOnHover yAxisLabel="GB" />
@@ -1425,7 +1421,7 @@ export function UsageStatsView(props){
             { top_file_downloads && false ?
 
                 <ColorScaleProvider resetScalesWhenChange={top_file_downloads} highContrast={highContrast}>
-                
+
                     <div className="clearfix">
                         <div className="pull-right mt-05">
                             <UsageChartsCountByDropdown {...countByDropdownProps} chartID="top_file_downloads" />
@@ -1443,7 +1439,8 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.top_file_downloads &&
-                        <StatisticsTable data={top_file_downloads} 
+                        <StatisticsTable
+                            data={top_file_downloads}
                             key={'dt_top_file_downloads'}
                             {...commonTableProps}
                             termColHeader="File"
@@ -1462,7 +1459,8 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.top_file_downloads_volume &&
-                        <StatisticsTable data={top_file_downloads_volume} 
+                        <StatisticsTable
+                            data={top_file_downloads_volume}
                             key={'dt_top_file_downloads_volume'}
                             valueLabel="GB"
                             {...commonTableProps}
@@ -1471,7 +1469,7 @@ export function UsageStatsView(props){
                             limit={topFilesLimit} excludeNones={true} />
                     }
 
-                    <p className='fst-italic mt-2'>* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
+                    <p className="fst-italic mt-2">* File downloads before June 10th, 2024, only include browser-initiated ones and may not be accurate.</p>
 
                 </ColorScaleProvider>
 
@@ -1494,7 +1492,8 @@ export function UsageStatsView(props){
                     </AreaChartContainer>
 
                     {chartToggles.table?.file_views &&
-                        <StatisticsTable data={file_views} 
+                        <StatisticsTable
+                            data={file_views}
                             key={'dt_file_views'}
                             {...commonTableProps}
                             termColHeader={termColHeader('file_views')}
@@ -1509,7 +1508,10 @@ export function UsageStatsView(props){
 
                 <ColorScaleProvider resetScaleLegendWhenChange={sessions_by_country} highContrast={highContrast}>
 
-                    <AreaChartContainer {...commonContainerProps} id="sessions_by_country" key="sessions_by_country"
+                    <AreaChartContainer
+                        {...commonContainerProps}
+                        id="sessions_by_country"
+                        key="sessions_by_country"
                         title={<ChartContainerTitle {...{ 'titleMap': UsageStatsView.titleMap, countBy, 'chartKey': 'sessions_by_country' }} />}
                         subTitle={enableSessionByCountryChartTooltipItemClick && <h4 className="fw-normal text-secondary">Click bar to view details</h4>}
                         extraButtons={[
@@ -1525,7 +1527,8 @@ export function UsageStatsView(props){
 
 
                     {chartToggles.table?.sessions_by_country &&
-                        <StatisticsTable data={sessions_by_country} 
+                        <StatisticsTable
+                            data={sessions_by_country}
                             key={'dt_sessions_by_country'}
                             {...commonTableProps}
                             termColHeader={termColHeader('sessions_by_country')}
@@ -1750,7 +1753,7 @@ const today = new Date();
 const month = today.getMonth();
 
 const DATE_RANGE_PRESETS = {
-    'thismonth': (from, to) => { return [from, to]},
+    'thismonth': (from, to) => [from, to],
     'previousmonth': (from, to) => {
         from.setMonth(month - 1);
         to = new Date(today.getFullYear(), month, 1);
@@ -1799,7 +1802,7 @@ const DATE_RANGE_PRESETS = {
 
 const convertDataRangeToXDomain = memoize(function (rangePreset = 'all', rangeFrom, rangeTo) {
     const rangeLower = (rangePreset || '').toLowerCase();
-    
+
     let from = new Date(today.getFullYear(), month, 1);
     let to = null;
 
@@ -1836,18 +1839,18 @@ const ChartContainerTitle = function ({ titleMap, countBy, chartKey }) {
             }
         </h3>
     );
-}
+};
 
 /**
  * converts aggregates to SearchView-compatible context objects and displays in table
  */
 export const StatisticsTable = React.memo((props) => {
     const {
-        data, termColHeader = null, valueLabel = null, schemas, containerId = '', 
+        data, termColHeader = null, valueLabel = null, schemas, containerId = '',
         href, dateIncrement, transposed = false, cumulativeSum, hideEmptyColumns,
         session, enableDetail = false, limit = 0, excludeNones = false, // limit and excludeNones are evaluated for only transposed data
         windowWidth
-     } = props;
+    } = props;
     const [columns, setColumns] = useState({});
     const [columnDefinitions, setColumnDefinitions] = useState([]);
     const [graph, setGraph] = useState([]);
@@ -1883,7 +1886,7 @@ export const StatisticsTable = React.memo((props) => {
         if (value === 0) return value;
         const roundedValue = (value >= threshold && value % 1 > 0) ? Math.round(value * 100) / 100 : (value >= threshold ? value : ('<' + threshold));
         return label ? roundedValue + ' ' + label : roundedValue;
-    }
+    };
 
     useEffect(() => {
         if (!Array.isArray(data) || data.length === 0) {
@@ -1909,15 +1912,15 @@ export const StatisticsTable = React.memo((props) => {
                             {result.display_title} <strong>({overallSum})</strong>
                         </span>
                     ) : (
-                            <a href="#"
-                                onClick={(e) => {
-                                    setModalForDate(result.display_title);
-                                    setShowModal(true);
-                                    e.preventDefault();
-                                }}
-                                data-tip="Show details">
-                                {result.display_title} <strong>({overallSum})</strong>
-                            </a>
+                        <a href="#"
+                            onClick={(e) => {
+                                setModalForDate(result.display_title);
+                                setShowModal(true);
+                                e.preventDefault();
+                            }}
+                            data-tip="Show details">
+                            {result.display_title} <strong>({overallSum})</strong>
+                        </a>
                     );
                 }
             }
@@ -1938,7 +1941,7 @@ export const StatisticsTable = React.memo((props) => {
                     title: dataKey,
                     type: 'integer',
                     noSort: true,
-                    widthMap: { 'lg': 140, 'md': 120, 'sm': 120 },                  
+                    widthMap: { 'lg': 140, 'md': 120, 'sm': 120 },
                     render: function (result) {
                         if (result[dataKey] !== 0) {
                             return enableDetail ? (
@@ -1954,7 +1957,7 @@ export const StatisticsTable = React.memo((props) => {
                                 </a>
                             ) : (<span className="value text-end">{roundValue(result[dataKey], valueLabel)}</span>);
                         } else {
-                            return <span className="value text-end">0</span>
+                            return (<span className="value text-end">0</span>);
                         }
                     }
                 };
@@ -1963,7 +1966,7 @@ export const StatisticsTable = React.memo((props) => {
         }
 
         setColumns(cols);
-        const colDefs = _.map(_.pairs(cols), function (p) { return { field: p[0], ...p[1] } });
+        const colDefs = _.map(_.pairs(cols), function (p) { return { field: p[0], ...p[1] }; });
         setColumnDefinitions(colDefs);
 
         // create @graph
@@ -1976,7 +1979,7 @@ export const StatisticsTable = React.memo((props) => {
                     return memo2;
                 }, {}),
                 '@type': ['Item'],
-                'overall_sum': !cumulativeSum ? (d.total || 0) : _.reduce(d.children, (memo, c) => memo + c.count, 0),
+                'overall_sum': !cumulativeSum ? (d.total || 0) : _.reduce(d.children, (memo, c) => memo + c.count, 0),
                 'date_created': transposed ? d.term : d.date
             };
         });
@@ -2053,7 +2056,7 @@ export const TrackingItemViewer = React.memo(function (props) {
     const [isLoading, setIsLoading] = useState(true);
     const [trackingItem, setTrackingItem] = useState();
     const href=`/search/?type=TrackingItem&google_analytics.for_date=${forDate}&google_analytics.date_increment=${dateIncrement}`;
-    
+
     useEffect(() => {
         ajax.load(
             href,
@@ -2096,7 +2099,7 @@ TrackingItemViewer.propTypes = {
     dateIncrement: PropTypes.oneOf(['daily', 'monthly', 'yearly']),
     onHide: PropTypes.func.isRequired,
     schemas: PropTypes.object
-}
+};
 
 export const AxisScale = React.memo(function ({ scale, power, onChange, label = 'N/A' }) {
     const labelPairs = _.pairs(AxisScale.labels);
@@ -2106,7 +2109,12 @@ export const AxisScale = React.memo(function ({ scale, power, onChange, label = 
             <div className="d-md-flex align-items-center w-100">
                 <span className="text-500 me-1">{label}:</span>
                 <div>
-                    <DropdownButton size="sm" title={(scale && AxisScale.labels[scale]) || '-'} onSelect={(e) => onChange(e, defaultPower)} variant="outline-secondary">
+                    <DropdownButton
+                        size="sm"
+                        title={(scale && AxisScale.labels[scale]) || '-'}
+                        onSelect={(e) => onChange(e, defaultPower)}
+                        variant="outline-secondary"
+                    >
                         {
                             labelPairs.map(([key, val]) => (
                                 <DropdownItem eventKey={key} key={key}>{val}</DropdownItem>
@@ -2115,10 +2123,10 @@ export const AxisScale = React.memo(function ({ scale, power, onChange, label = 
                     </DropdownButton>
                 </div>
                 <div className={"ms-md-15" + (showRange ? " d-block d-md-inline-block" : " d-none")}>
-                    <input type="range" id="input_range_scale_power" className='w-75'
+                    <input type="range" id="input_range_scale_power" className="w-75"
                         min={rangeMin} max={rangeMax} step={rangeStep} value={power} data-tip={rangeTooltip}
                         onChange={(e) => onChange(scale, e.target.valueAsNumber)} />
-                    <span className='ms-05'>{power}</span>
+                    <span className="ms-05">{power}</span>
                 </div>
             </div>
         </div>

@@ -24,16 +24,20 @@ const primaryTissuePageDescription = (
             benchmarking donors:
         </p>
         <ul>
-            <li>Donor ST001: Liver and lung</li>
-            <li>Donor ST002: Colon and lung</li>
-            <li>Donor ST003: Brain</li>
-            <li>Donor ST004: Brain</li>
+            <li>Donor ST001: Liver 1A, Lung 1D, and Skin 1K</li>
+            <li>Donor ST002: Colon 1G, Lung 1D, and Skin 1K</li>
+            <li>Donor ST003: Brain 1Q</li>
+            <li>Donor ST004: Brain 1Q</li>
         </ul>
     </>
 );
 
+const BENCHMARKING_STATUS_FILTERS =
+    'status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network';
+
 export const BenchmarkingDataMap = {
     COLO829: {
+        deniedAccessPopoverType: 'login',
         navBarTitle: 'COLO829',
         title: 'COLO829 Cell Line Data',
         description: (
@@ -47,7 +51,7 @@ export const BenchmarkingDataMap = {
                 </p>
                 <p>
                     <span className="fst-italic">In silico</span> COLO829BLT50
-                    BAM files were created by sampling and merging COLO829T and
+                    files were created by sampling and merging COLO829T and
                     COLO829BL Illumina WGS data at a mixture ratio of 1:50 at
                     varying sequencing depths (100 - 500X).
                 </p>
@@ -60,31 +64,41 @@ export const BenchmarkingDataMap = {
                 eventKey: '#main',
                 title: 'COLO829T',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829t',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=colo829t&sort=-file_status_tracking.release_dates.initial_release',
             },
             {
                 eventKey: '#BL',
                 title: 'COLO829BL',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829bl',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=colo829bl&sort=-file_status_tracking.release_dates.initial_release',
             },
             {
                 eventKey: '#150',
                 title: 'COLO829BLT50',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829blt_50to1',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=colo829blt_50to1&sort=-file_status_tracking.release_dates.initial_release',
             },
             {
                 eventKey: '#silico',
                 title: 'In silico BLT50',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829blt_in_silico',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=colo829blt_in_silico&sort=-file_status_tracking.release_dates.initial_release',
             },
             {
                 eventKey: '#truthset',
                 title: 'Truth Set',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=colo829_snv_indel_challenge_data&tags=truth_set',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=colo829_snv_indel_challenge_data&tags=truth_set&sort=-file_status_tracking.release_dates.initial_release',
                 facetsToHide: [
                     'dataset',
                     'file_sets.libraries.analytes.samples.sample_sources.code',
@@ -116,35 +130,9 @@ export const BenchmarkingDataMap = {
                 },
             },
         ],
-        callout: (
-            <div className="callout warning">
-                <p className="callout-text">
-                    <span className="flag">Attention: </span>
-                    The{' '}
-                    <a
-                        href="/SMAFI557D2E7"
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        className="link-underline-hover">
-                        original BAM file
-                    </a>{' '}
-                    of COLO829-T standard ONT WGS data{' '}
-                    <strong>
-                        was retracted due to missing methylation tags
-                    </strong>
-                    . The replacement BAM with proper tags is made{' '}
-                    <a
-                        href="/SMAFIB6EQLZM"
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        className="link-underline-hover">
-                        available here.
-                    </a>
-                </p>
-            </div>
-        ),
     },
     HapMap: {
+        deniedAccessPopoverType: 'login',
         navBarTitle: 'HapMap',
         title: 'HapMap Cell Line Data',
         description: (
@@ -189,23 +177,28 @@ export const BenchmarkingDataMap = {
                 eventKey: '#hapmap-mixture',
                 title: 'HapMap mixture',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=hapmap',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=hapmap&sort=-file_status_tracking.release_dates.initial_release',
             },
             {
                 eventKey: '#hapmap-downsampled',
                 title: 'Downsampled',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=mei_detection_challenge_data',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=mei_detection_challenge_data&sort=-file_status_tracking.release_dates.initial_release',
             },
             {
                 eventKey: '#hapmap-truthset',
                 title: 'Truth Set',
                 // searchHref:
-                //     '/search/?type=File&status=released&status=restricted&status=public&dataset=hapmap_snv_indel_challenge_data',
+                //     '/search/?type=File&' + BENCHMARKING_STATUS_FILTERS + '&dataset=hapmap_snv_indel_challenge_data',
             },
         ],
     },
     iPScFibroblasts: {
+        deniedAccessPopoverType: 'protected',
         navBarTitle: 'iPSC and Fibroblasts',
         title: 'iPSC Cell Line Data',
         description: (
@@ -231,47 +224,60 @@ export const BenchmarkingDataMap = {
                 eventKey: '#lb-fibroblast',
                 title: 'LB-LA2',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_fibroblast',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=lb_fibroblast&sort=-file_status_tracking.release_dates.initial_release',
             },
             {
                 eventKey: '#lb_ipsc_1',
                 title: 'LB-LA2 iPSC-1',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_1',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=lb_ipsc_1&sort=-file_status_tracking.release_dates.initial_release',
             },
             {
                 eventKey: '#lb_ipsc_2',
                 title: 'LB-LA2 iPSC-2',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_2',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=lb_ipsc_2&sort=-file_status_tracking.release_dates.initial_release',
             },
             {
                 eventKey: '#lb_ipsc_4',
                 title: 'LB-LA2 iPSC-4',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_4',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=lb_ipsc_4&sort=-file_status_tracking.release_dates.initial_release',
             },
             {
                 eventKey: '#lb_ipsc_52',
                 title: 'LB-LA2 iPSC-52',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_52',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=lb_ipsc_52&sort=-file_status_tracking.release_dates.initial_release',
             },
             {
                 eventKey: '#lb_ipsc_60',
                 title: 'LB-LA2 iPSC-60',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=lb_ipsc_60',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=lb_ipsc_60&sort=-file_status_tracking.release_dates.initial_release',
             },
             {
                 eventKey: '#lb_ipsc_truthset',
                 title: 'Truth Set',
                 // searchHref:
-                //     '/search/?type=File&status=released&status=restricted&status=public&dataset=ipsc_snv_indel_challenge_data',
+                //     '/search/?type=File&'+BENCHMARKING_STATUS_FILTERS + '&dataset=ipsc_snv_indel_challenge_data',
             },
         ],
     },
     Donor1: {
+        deniedAccessPopoverType: 'protected',
         navBarTitle: 'Donor ST001',
         title: 'Donor ST001 : Benchmarking Tissue Data',
         description: primaryTissuePageDescription,
@@ -280,19 +286,32 @@ export const BenchmarkingDataMap = {
         tabMapArray: [
             {
                 eventKey: '#liver',
-                title: 'Liver',
+                title: 'Liver 1A',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1A&sort=-file_status_tracking.release_dates.initial_release',
             },
             {
                 eventKey: '#lung',
-                title: 'Lung',
+                title: 'Lung 1D',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1D&sort=-file_status_tracking.release_dates.initial_release',
+            },
+            {
+                eventKey: '#skin',
+                title: 'Skin 1K',
+                searchHref:
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST001-1K&sort=-file_status_tracking.release_dates.initial_release',
             },
         ],
     },
     Donor2: {
+        deniedAccessPopoverType: 'protected',
         navBarTitle: 'Donor ST002',
         title: 'Donor ST002 : Benchmarking Tissue Data',
         description: primaryTissuePageDescription,
@@ -301,19 +320,32 @@ export const BenchmarkingDataMap = {
         tabMapArray: [
             {
                 eventKey: '#colon',
-                title: 'Colon',
+                title: 'Colon 1G',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1G&sort=-file_status_tracking.release_dates.initial_release',
             },
             {
                 eventKey: '#lung',
-                title: 'Lung',
+                title: 'Lung 1D',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1D&sort=-file_status_tracking.release_dates.initial_release',
+            },
+            {
+                eventKey: '#skin',
+                title: 'Skin 1K',
+                searchHref:
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST002-1K&sort=-file_status_tracking.release_dates.initial_release',
             },
         ],
     },
     Donor3: {
+        deniedAccessPopoverType: 'protected',
         navBarTitle: 'Donor ST003',
         title: 'Donor ST003 : Benchmarking Tissue Data',
         description: primaryTissuePageDescription,
@@ -322,13 +354,16 @@ export const BenchmarkingDataMap = {
         tabMapArray: [
             {
                 eventKey: '#brain',
-                title: 'Brain',
+                title: 'Brain 1Q',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST003-1Q&sort=-file_status_tracking.release_dates.initial_release',
             },
         ],
     },
     Donor4: {
+        deniedAccessPopoverType: 'protected',
         navBarTitle: 'Donor ST004',
         title: 'Donor ST004 : Benchmarking Tissue Data',
         description: primaryTissuePageDescription,
@@ -337,9 +372,11 @@ export const BenchmarkingDataMap = {
         tabMapArray: [
             {
                 eventKey: '#brain',
-                title: 'Brain',
+                title: 'Brain 1Q',
                 searchHref:
-                    '/search/?type=File&status=released&status=restricted&status=public&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q',
+                    '/search/?type=File&' +
+                    BENCHMARKING_STATUS_FILTERS +
+                    '&dataset=tissue&file_sets.libraries.analytes.samples.sample_sources.code=ST004-1Q&sort=-file_status_tracking.release_dates.initial_release',
             },
         ],
     },

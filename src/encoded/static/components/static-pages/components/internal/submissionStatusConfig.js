@@ -15,3 +15,35 @@ export const DEFAULT_FILTER = {
     include_tags: [],
     exclude_tags: [],
 };
+
+export const EXTERNAL_RELEASE_STATUSES = ['open', 'protected'];
+export const INTERNAL_RELEASE_STATUSES = [
+    'open-early',
+    'open-network',
+    'protected-early',
+    'protected-network'
+];
+
+// There is currently no good way to get these from the portal.
+// Since this is a set list, we will hardcode them for now.
+export const PRIMARY_PRODUCTION_TISSUES = [
+    'Adrenal Gland',
+    'Aorta',
+    'Blood',
+    'Brain',
+    'Buccal Swab',
+    'Colon',
+    'Ascending Colon',
+    'Descending Colon',
+    'Esophagus',
+    'Heart',
+    'Liver',
+    'Lung',
+    'Muscle',
+    'Ovary',
+    'Non-exposed Skin',
+    'Sun-exposed Skin',
+    'Testis',
+];
+
+export const CELL_CULTURE_MIXTURES = ['HAPMAP6', 'COLO829BLT50'];

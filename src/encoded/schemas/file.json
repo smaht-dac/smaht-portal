@@ -81,8 +81,13 @@
                 "obsolete",
                 "archived",
                 "deleted",
+                "open",
+                "protected-network",
+                "protected",
                 "public",
-                "restricted"
+                "open-early",
+                "protected-early",
+                "open-network"
             ]
         },
         "external_quality_metrics": {
@@ -129,6 +134,7 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "Consensus Reads",
                     "Genome Annotation",
                     "Genome Region",
                     "Germline Variant Calls",
@@ -139,7 +145,9 @@
                     "Reference Transcriptome",
                     "RNA Quantification",
                     "Sequencing Reads",
-                    "Somatic Variant Calls"
+                    "Sequencing Supplement",
+                    "Somatic Variant Calls",
+                    "Transcriptome Annotation"
                 ]
             }
         },
@@ -168,7 +176,10 @@
                     "Indel",
                     "MEI",
                     "SNV",
-                    "SV"
+                    "SV",
+                    "Transcript Sequence",
+                    "Transcript Model",
+                    "Sequencing information"
                 ]
             }
         },
@@ -216,11 +227,68 @@
                 "type": "string"
             }
         },
+        "override_average_coverage": {
+            "title": "Average Coverage Override",
+            "desciption": "An override count for estimated average coverage from sequencing that is used in the File Overview page if present, particularly for downsampled files",
+            "type": "number",
+            "minimum": 0,
+            "permission": "restricted_fields"
+        },
         "override_group_coverage": {
             "title": "Group Coverage Override",
             "desciption": "An override count for expected group coverage from sequencing that is used in the File Overview page if present, particularly for downsampled files",
             "type": "number",
-            "minimum": 0
+            "minimum": 0,
+            "permission": "restricted_fields"
+        },
+        "override_release_tracker_description": {
+            "title": "Release Tracker Description Override",
+            "desciption": "An override value for release tracker description that is used in the File Release Tracker on the home page if present, particularly for supplementary files",
+            "type": "string",
+            "minimum": 0,
+            "permission": "restricted_fields"
+        },
+        "override_release_tracker_title": {
+            "title": "Release Tracker Title Override",
+            "desciption": "An override value for release tracker title that is used in the File Release Tracker on the home page if present, particularly for supplementary files",
+            "type": "string",
+            "minimum": 0,
+            "permission": "restricted_fields"
+        },
+        "qc_comments": {
+            "title": "Notable QC Comments",
+            "desciption": "Comments on quality control that are worth noting but did not warrant retraction",
+            "type": "string",
+            "suggested_enum": [
+                "High Duplication Rate",
+                "Low Mapping Rate",
+                "Small Insert Size",
+                "Human Contamination",
+                "Microbial Contamination"
+            ],
+            "minimum": 0,
+            "permission": "restricted_fields"
+        },
+        "retraction_reason": {
+            "title": "Retraction Reason",
+            "desciption": "Reason for retraction of the file - for files that are retracted",
+            "type": "string",
+            "suggested_enum": [
+                "Failed Quality Control",
+                "Incorrect File Format",
+                "Sample Mislabel",
+                "Sample Swap",
+                "Human Contamination"
+            ],
+            "minimum": 0,
+            "permission": "restricted_fields"
+        },
+        "replaced_by": {
+            "title": "Replaced By",
+            "desciption": "Link to a file that was submitted as a replacement - for files that are retracted or obsolete",
+            "type": "string",
+            "linkTo": "File",
+            "permission": "restricted_fields"
         },
         "version": {
             "type": "string",
@@ -233,8 +301,7 @@
         },
         "donors.display_title": {
             "title": "Donor",
-            "search_type": "sayt",
-            "sayt_item_type": "Donor"
+            "search_type": "basic"
         },
         "donors.age": {
             "title": "Donor Age",
@@ -246,28 +313,41 @@
                     "to": 30
                 },
                 {
-                    "from": 30,
+                    "from": 31,
                     "to": 55
                 },
                 {
-                    "from": 55,
+                    "from": 56,
                     "to": 65
                 },
                 {
-                    "from": 65
+                    "from": 66,
+                    "to": 75
+                },
+                {
+                    "from": 76,
+                    "to": 85
+                },
+                {
+                    "from": 86
                 }
             ]
         },
-        "file_sets.libraries.analytes.samples.sample_sources.donor.sex": {
+        "donors.sex": {
             "title": "Donor Sex"
+        },
+        "donors.hardy_scale": {
+            "title": "Donor Hardy Scale",
+            "aggregation_type": "stats"
         },
         "sample_summary.tissues": {
             "title": "Tissue"
         },
         "file_sets.libraries.assay.display_title": {
             "title": "Experimental Assay",
-            "search_type": "sayt",
-            "sayt_item_type": "Donor"
+            "search_type": "basic",
+            "sayt_item_type": "Assay",
+            "group_by_field": "file_sets.libraries.assay.category"
         },
         "file_sets.sequencing.sequencer.display_title": {
             "title": "Sequencing Platform"
@@ -281,7 +361,7 @@
         "data_type": {
             "title": "Data Type"
         },
-        "date_created": {
+        "file_status_tracking.release_dates.initial_release": {
             "title" : "Release Date",
             "aggregation_type" : "stats"
         },
@@ -293,6 +373,9 @@
         },
         "software.display_title": {
             "title": "Analysis Method"
+        },
+        "status": {
+            "title": "Release Status"
         },
         "version": {
             "title": "Release Version"
@@ -326,7 +409,7 @@
         "software.display_title": {
             "title": "Method"
         },
-        "file_status_tracking.released_date": {
+        "file_status_tracking.release_dates.initial_release_date": {
             "title": "Release Date"
         },
         "file_size": {

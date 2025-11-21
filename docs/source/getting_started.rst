@@ -76,7 +76,7 @@ An example of a filled out workbook ready for submission can be found |example_w
    <a href="https://docs.google.com/spreadsheets/d/1bnPIH6f3biLBL9R8mEgvBemLP3nbsyyCrJQuOstcm_I/edit?usp=sharing" target="_blank">here</a>
 
 .. TIP::
-   The submission template is in flux. Please double check with DAC about getting the most up-to-date template before starting metadata submission!
+   The submission template is in flux. Please double check with DAC about getting the most up-to-date template before starting metadata submission! Changes to the template by version can be found `here <https://docs.google.com/document/d/1wDrr1hhk8JP9Eii5Qti7URV6vBy00a4Rse6WAIeiUWA/edit?usp=sharing>`__.
 
 |
 
@@ -163,7 +163,7 @@ It is important to know that the ``smaht-submitr`` tool and SMaHT data portal wi
 
 You can view all of the supported SMaHT objects and their identifying (and required) properties, as well as reference data here:
 
-* https://staging.smaht.org/docs/user-guide/referencing-data
+* https://data.smaht.org/docs/user-guide/referencing-data
 * https://submitr.readthedocs.io/en/draft/object_model.html
 
 Implicit Properties
@@ -180,6 +180,29 @@ Property Deletions
 ~~~~~~~~~~~~~~~~~~
 
 A column value within a (non-header) data row may be empty, but this only means that the value will be ignored when creating or updating the associated object. Though uncommon, the `deletion` of a property from an object is supported. Please see the more extensive documentation here: `Property Deletions <https://submitr.readthedocs.io/en/draft/usage.html#property-deletions>`_
+
+Validation
+==========
+
+Using the ``--submit`` option with the  ``submit-metadata-bundle`` command will perform validation of your metadata before submitting it (after prompting you to do so). But if you want to `only` run validation `without` submitting the metadata to SMaHT data portal, then invoke ``submit-metadata-bundle`` with the ``--validate`` option as follows::
+
+   submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --validate
+
+.. TIP::
+   This feature basically constitutes a sort of "**dry run**" facility.
+
+|
+
+To be more specific about the the validation checks, they include the following:
+
+#. Ensures the basic integrity of the format of the metadata submission file.
+#. Validates that objects defined within the metadata submission file conform to the corresponding SMaHT data portal schemas for these objects.
+#. Confirms that any objects referenced within the submission file can be resolved, i.e. either they already exist within SMaHT data portal or are defined within the metadata submission file itself.
+#. Verifies that referenced files (to be subsequently uploaded) actually exist on the file system.
+
+|
+
+**Note**: If you try to resubmit your metadata sheet after fixing your validation errors, it is possible that you will get new, additional errors. Not all validation errors will be comprehensively reported at once. This is because there are two kinds (or phases) of validation: local client-side and remote server-side. You can learn more about the details of the validation process in the `Advanced Usage <https://submitr.readthedocs.io/en/draft/advanced_usage.html#more-on-validation>`_ section.
 
 Submission
 ==========
@@ -210,29 +233,6 @@ If you belong to multiple consortia and/or submission centers, you can also add 
 
 .. TIP::
    You may wonder: Is it okay to submit the same metadata file more than once? The answer is: Yes. If any changes were made to the file, updates will be applied as expected.
-
-Validation
-==========
-
-As mentioned in the previous section, using the ``--submit`` option `will` perform validation of your metadata before submitting it (after prompting you to do so). But if you want to `only` run validation `without` submitting the metadata to SMaHT data portal, then invoke ``submit-metadata-bundle`` with the ``--validate`` option as follows::
-
-   submit-metadata-bundle your_metadata_file.xlsx --env <environment-name> --validate
-
-.. TIP::
-   This feature basically constitutes a sort of "**dry run**" facility.
-
-|
-
-To be more specific about the the validation checks, they include the following:
-
-#. Ensures the basic integrity of the format of the metadata submission file.
-#. Validates that objects defined within the metadata submission file conform to the corresponding SMaHT data portal schemas for these objects.
-#. Confirms that any objects referenced within the submission file can be resolved, i.e. either they already exist within SMaHT data portal or are defined within the metadata submission file itself.
-#. Verifies that referenced files (to be subsequently uploaded) actually exist on the file system.
-
-|
-
-**Note**: If you try to resubmit your metadata sheet after fixing your validation errors, it is possible that you will get new, additional errors. Not all validation errors will be comprehensively reported at once. This is because there are two kinds (or phases) of validation: local client-side and remote server-side. You can learn more about the details of the validation process in the `Advanced Usage <https://submitr.readthedocs.io/en/draft/advanced_usage.html#more-on-validation>`_ section.
 
 Getting Submission Info
 =======================

@@ -1,9 +1,16 @@
 from typing import List, Union
 
 from pyramid.request import Request
-from snovault import calculated_property, collection, load_schema
+from snovault import collection, load_schema, calculated_property
 
-from .submitted_item import SubmittedItem
+from .abstract_donor import AbstractDonor
+
+
+def _build_donor_embedded_list():
+    """Embeds for search on donor."""
+    return [
+        "tissues.tissue_type",
+    ]
 
 
 @collection(
@@ -13,12 +20,13 @@ from .submitted_item import SubmittedItem
         "title": "Donors",
         "description": "Individuals who donated tissues",
     })
-class Donor(SubmittedItem):
+class Donor(AbstractDonor):
     item_type = "donor"
     schema = load_schema("encoded:schemas/donor.json")
-    embedded_list = []
+    embedded_list = _build_donor_embedded_list()
+
     rev = {
-        "tissues": ("Tissue", "donor"),
+        "tissues": ("Tissue", "donor")
     }
 
     @calculated_property(

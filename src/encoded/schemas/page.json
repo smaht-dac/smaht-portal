@@ -70,8 +70,13 @@
                 "deleted",
                 "inactive",
                 "in review",
+                "open",
                 "public",
-                "shared"
+                "shared",
+                "released",
+                "protected",
+                "open-network",
+                "protected-network"
             ]
         },
         "children": {

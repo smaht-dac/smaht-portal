@@ -1,5 +1,6 @@
 import re
 from typing import Optional
+from dcicutils.submitr.custom_excel import CustomExcel
 from dcicutils.submitr.progress_constants import PROGRESS_INGESTER
 from dcicutils.structured_data import Portal, StructuredDataSet
 from snovault.ingestion.ingestion_processors import ingestion_processor
@@ -87,8 +88,25 @@ def parse_structured_data(file: str,
                                              ref_lookup_nocache=ref_nocache,
                                              order=ITEM_INDEX_ORDER, prune=prune,
                                              merge=submission.merge,
+                                             excel_class=CustomExcel,
                                              progress=structured_data_set_progress,
                                              debug_sleep=submission.debug_sleep if submission else None)
+
+    # Check for diffs and remove any items (excluding SubmittedFile items) without any substantial changes
+    submittable_file_item_types = [
+        "AlignedReads",
+        "UnalignedReads",
+        "VariantCalls",
+        "SupplementaryFile",
+        "HistologyImage"
+    ]
+
+    no_diff_items = get_no_diff_items(structured_data)
+    for object_type in structured_data.data:
+        structured_data.data[object_type] = [
+            item for item in structured_data.data[object_type]
+            if item.get('submitted_id') not in no_diff_items or object_type in submittable_file_item_types
+        ]
 
     ingestion_status.update({PROGRESS_INGESTER.PARSE_LOAD_DONE: PROGRESS_INGESTER.NOW()})
 
@@ -98,6 +116,20 @@ def parse_structured_data(file: str,
         ingestion_status.update({PROGRESS_INGESTER.VALIDATE_LOAD_DONE: PROGRESS_INGESTER.NOW()})
 
     return structured_data
+
+
+def get_no_diff_items(structured_data: StructuredDataSet) -> set:
+    '''
+    Return a set of items that are not being changed in a given StructuredDataSet
+    '''
+    diffs = structured_data.compare()
+    no_diff_items = set()
+    for object_type in diffs:
+        for object_info in diffs[object_type]:
+            if object_info.uuid:
+                if not object_info.diffs:
+                    no_diff_items.add(object_info.path.split("/")[2])
+    return no_diff_items
 
 
 def _summarize_errors(structured_data: StructuredDataSet, submission: SmahtSubmissionFolio) -> dict:

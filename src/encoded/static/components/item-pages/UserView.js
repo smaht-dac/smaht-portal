@@ -703,7 +703,7 @@ const ProfileWorkFields = React.memo(function ProfileWorkFields({ user }) {
             </div>
             <div className="card-body">
                 <ul className="list-group list-group-flush list-unstyled border-bottom-0">
-                    <div className="list-group-item pt-0">
+                    <li className="list-group-item pt-0">
                         <div className="row consortia">
                             <div className="col-md-3 text-start text-md-end">
                                 <label htmlFor="consortia" className="text-500">
@@ -711,22 +711,24 @@ const ProfileWorkFields = React.memo(function ProfileWorkFields({ user }) {
                                 </label>
                             </div>
                             <div id="consortia" className="col-md-9">
-                                {consortia.map((consortium) => (
-                                    <li
-                                        key={consortium?.atId}
-                                        id={consortium?.atId}
-                                        className="value text-500">
-                                        {object.itemUtil.generateLink(
-                                            consortium
-                                        )}
-                                    </li>
-                                ))}
+                                <ul className="list-unstyled mb-0">
+                                    {consortia.map((consortium) => (
+                                        <li
+                                            key={consortium?.atId}
+                                            id={consortium?.atId}
+                                            className="value text-500">
+                                            {object.itemUtil.generateLink(
+                                                consortium
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
                         </div>
-                    </div>
+                    </li>
                 </ul>
                 <ul className="list-group list-group-flush list-unstyled border-top-0 mt-0">
-                    <div className="list-group-item">
+                    <li className="list-group-item">
                         <div className="row submission-centers">
                             <div className="col-md-3 text-start text-md-end">
                                 <label
@@ -736,19 +738,21 @@ const ProfileWorkFields = React.memo(function ProfileWorkFields({ user }) {
                                 </label>
                             </div>
                             <div id="submission_centers" className="col-md-9">
-                                {submissionCenters.map((submissionCenter) => (
-                                    <li
-                                        key={submissionCenter?.atId}
-                                        id={submissionCenter?.atId}
-                                        className="value text-500">
-                                        {object.itemUtil.generateLink(
-                                            submissionCenter
-                                        )}
-                                    </li>
-                                ))}
+                                <ul className="list-unstyled mb-0">
+                                    {submissionCenters.map((submissionCenter) => (
+                                        <li
+                                            key={submissionCenter?.atId}
+                                            id={submissionCenter?.atId}
+                                            className="value text-500">
+                                            {object.itemUtil.generateLink(
+                                                submissionCenter
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
                         </div>
-                    </div>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -807,32 +811,36 @@ export function ImpersonateUserForm({ updateAppSessionState }) {
     );
 
     return (
-        <div className="mt-3 container" id="content">
-            <h2 className="text-400 mt-5">Impersonate a User</h2>
-            <div className="row">
-                <div className="col-12 col-lg-6">
-                    <form onSubmit={onSubmit}>
-                        <input
-                            type="text"
-                            className="mt-08 form-control"
-                            placeholder="Enter an email to impersonate..."
-                            name="impersonate-user-email"
-                            ref={inputFieldRef}
-                        />
-                        <a
-                            href="/search/?type=User"
-                            target="_blank"
-                            className="btn btn-secondary btn-md mt-2 me-2">
-                            <i className="icon icon-fw icon-users fas me-08" />
-                            View Users
-                        </a>
-                        <button
-                            type="submit"
-                            className="btn btn-primary btn-md mt-2">
-                            <i className="icon icon-fw icon-user-ninja fas me-08" />
-                            Impersonate
-                        </button>
-                    </form>
+        <div className='user-profile-page bg-light'>
+            <div id="content" className="container card mt-36 col-12 col-lg-6">
+                <div className="card-body mt-3">
+                    {/* <h2 className="text-400 mt-5">Impersonate a User</h2> */}
+                    <div className="row">
+                        <div className="col-12 text-end">
+                            <form onSubmit={onSubmit}>
+                                <input
+                                    type="text"
+                                    className="mt-08 form-control"
+                                    placeholder="Enter an email to impersonate..."
+                                    name="impersonate-user-email"
+                                    ref={inputFieldRef}
+                                />
+                                <a
+                                    href="/search/?type=User"
+                                    target="_blank"
+                                    className="btn btn-secondary btn-md mt-2 me-2">
+                                    <i className="icon icon-fw icon-users fas me-08" />
+                                    View Users
+                                </a>
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary btn-md mt-2">
+                                    <i className="icon icon-fw icon-user-ninja fas me-08" />
+                                    Impersonate
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -851,14 +859,32 @@ const UserViewPageTitle = React.memo(function UserViewPageTitle({
     const myEmail = myDetails && myDetails.email;
     let titleStr;
     if (myEmail && context && context.email && myEmail === context.email) {
-        titleStr = 'My Profile';
+        titleStr = currentAction === 'impersonate-user' ? 'Impersonate User' : 'My Profile';
     } else {
         titleStr = object.itemUtil.getTitleStringFromContext(context);
     }
 
     return (
-        <PageTitleContainer alerts={[]} className="container-fluid pb-55">
-            <div className="container">
+        <PageTitleContainer
+            alerts={[]}
+            className="container-wide pb-2"
+            alertsBelowTitleContainer>
+            <div className="container-wide m-auto p-xl-0">
+                {/* Using static breadcrumbs here, but will likely need its own component in future */}
+                <div className="static-page-breadcrumbs clearfix mx-0 px-0">
+                    <div className="static-breadcrumb" data-name="Home" key="/">
+                        <a href="/" className="link-underline-hover">
+                            Home
+                        </a>
+                        <i className="icon icon-fw icon-angle-right fas" />
+                    </div>
+                    <div
+                        className="static-breadcrumb nonclickable"
+                        data-name="User"
+                        key="/me">
+                        <span>Profile</span>
+                    </div>
+                </div>
                 <OnlyTitle>{titleStr}</OnlyTitle>
             </div>
         </PageTitleContainer>
@@ -866,3 +892,4 @@ const UserViewPageTitle = React.memo(function UserViewPageTitle({
 });
 
 pageTitleViews.register(UserViewPageTitle, 'User');
+pageTitleViews.register(UserViewPageTitle, 'User', 'impersonate-user');

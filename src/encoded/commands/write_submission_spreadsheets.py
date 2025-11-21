@@ -124,6 +124,7 @@ GCC_SUBMISSION_ITEMS = [
     "UnalignedReads",
     "AlignedReads",
     "VariantCalls",
+    "SupplementaryFile",
     "Software"
 ]
 
@@ -1371,10 +1372,11 @@ def get_comment_search(property_: Property, indent: str) -> List[str]:
     
     If property is file_format, include query for specific File type
     """
+    search_text = "Use URL to search for the submitted_id or identifer of relevant items"
     if property_.search:
         if property_.name == "file_format":
-            return [f"Search:{indent}{property_.search}&valid_item_types={property_.item}"]
-        return [f"Search:{indent}{property_.search}"]
+            return [f"{search_text}:{indent}{property_.search}&valid_item_types={property_.item}"]
+        return [f"{search_text}:{indent}{property_.search}"]
     return []
 
 

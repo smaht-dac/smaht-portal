@@ -35,7 +35,7 @@
             "$ref": "mixins.json#/attribution"
         },
         {
-            "$ref": "mixins.json#/code"
+            "$ref": "mixins.json#/comments"
         },
         {
             "$ref": "mixins.json#/description"
@@ -67,6 +67,10 @@
             "accessionType": "SR"
         },
         "code": {
+            "title": "Code",
+            "description": "Code used in file naming scheme",
+            "type": "string",
+            "permission": "restricted_fields",
             "pattern": "^[A-Z]{1}$"
         },
         "schema_version": {
@@ -108,6 +112,9 @@
         },
         "code": {
             "title": "Code"
+        },
+        "comments": {
+            "title": "Comments"
         }
     }
 }
