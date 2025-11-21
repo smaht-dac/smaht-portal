@@ -1482,8 +1482,8 @@ class File(Item, CoreFile):
                         open_data_bucket=open_data_bucket, open_data_key=key,
                     )
                     return location
-                else:
-                    return None  # got client error for both possibilities
+            else:
+                return None  # got client error for both possibilities
         else:
             return None
 
