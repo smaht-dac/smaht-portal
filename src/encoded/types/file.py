@@ -1458,7 +1458,7 @@ class File(Item, CoreFile):
         """ Helper for below method containing core functionality. """
         if not filename:
             return None
-        if status in ['public', 'protected', 'protected-network', 'protected-early']:
+        if status in ['open', 'protected', 'protected-network', 'protected-early']:
             open_data_public_bucket = 'smaht-open-data-public'
             open_data_protected_bucket = 'smaht-open-data-protected'
             bucket_type = 'wfoutput'  # almost always going to be wfoutput
