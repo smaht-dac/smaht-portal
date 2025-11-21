@@ -15,6 +15,7 @@ from .utils import (
     is_submitted_item,
     patch_item,
     post_identifying_insert,
+    fix_sample_submitted_ids_for_tests,
 )
 from ..project.loadxl import ITEM_INDEX_ORDER as loadxl_order
 from ..types.submitted_item import (
@@ -166,8 +167,6 @@ def test_submitted_id_validated_on_post_and_patch(testapp: TestApp) -> None:
         if item_type == "submission_center":
             continue  # Already POSTed relevant SubmissionCenter
         if item_type in submitted_item_types:
-            #if item_type == 'tissue_sample':
-            #    import pdb; pdb.set_trace()
             assert_submitted_id_validation_on_post_and_patch(
                 testapp, item_type, item_properties_to_test
             )
@@ -228,6 +227,7 @@ def assert_submitted_id_validation_on_post_and_patch(
     inserts_to_post = item_properties_to_test.get(item_type)
     assert inserts_to_post, f"No workbook inserts found for {item_type}"
     for idx, insert in enumerate(inserts_to_post):
+        insert = fix_sample_submitted_ids_for_tests(insert)
         if idx == 0:
             assert_invalid_submitted_id_post(testapp, insert, item_type)
             post_identifying_insert(testapp, insert, collection=item_type)

@@ -16,11 +16,7 @@ from .submitted_item import (
     SUBMITTED_ITEM_EDIT_PUT_VALIDATORS,
 )
 
-from .base import (
-    collection_add,
-    item_edit,
-    Item
-)
+from .base import collection_add, item_edit, Item
 from .utils import (
     get_properties,
     get_property_for_validation,
@@ -28,7 +24,7 @@ from .utils import (
 from ..item_utils import (
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
-    item as item_utils
+    item as item_utils,
 )
 
 
@@ -112,7 +108,8 @@ def is_tpc_submission(request, submission_centers):
     return any(
         item_utils.get_identifier(
             get_item_or_none(request, center, "submission-centers")
-        ) == "ndri_tpc"
+        )
+        == "ndri_tpc"
         for center in submission_centers
     )
 
@@ -153,7 +150,9 @@ def run_sample_metadata_validation(context, request, data, mode):
     """Logic for comparing GCC sample metadata with TPC records."""
     submitted_id = get_property_value("submitted_id", context, request, mode, data)
     external_id = get_property_value("external_id", context, request, mode, data)
-    submission_centers = get_property_value("submission_centers", context, request, mode, data)
+    submission_centers = get_property_value(
+        "submission_centers", context, request, mode, data
+    )
 
     if "force_pass" in request.query_string:
         return
@@ -161,26 +160,47 @@ def run_sample_metadata_validation(context, request, data, mode):
         return
 
     check_properties = ["category", "preservation_type"]
-    tpc_ts_search_url = (
-        f"/search/?type=TissueSample&submission_centers.display_title=NDRI+TPC&external_id={external_id}"
-    )
+    tpc_ts_search_url = f"/search/?type=TissueSample&submission_centers.display_title=NDRI+TPC&external_id={external_id}"
+
+    duplicate_ts_search_url = f"/search/?type=TissueSample&submission_centers.display_title!=NDRI+TPC&external_id={external_id}"
 
     if ELASTIC_SEARCH not in request.registry:
         return
 
     # check if sample_source is Benchmarking or Production and ignore if not
     # and if so first check for TPC sample source
-    sample_source_ids = get_property_value("sample_sources", context, request, mode, data)
+    sample_source_ids = get_property_value(
+        "sample_sources", context, request, mode, data
+    )
     sample_source = get_item_or_none(request, sample_source_ids[0], "sample-sources")
     if not (tissue_utils.get_study(sample_source) in ["Benchmarking", "Production"]):
         return
-
     tpc_sample_search = make_search_subreq(request, tpc_ts_search_url)
     tpc_sample_search_resp = request.invoke_subrequest(tpc_sample_search, True)
     if tpc_sample_search_resp.status_int >= 400:
         return request.errors.add(
             "body",
-            f"TissueSample: No TPC Tissue Sample found for {submitted_id} Sample with external_id {external_id}"
+            f"TissueSample: No TPC Tissue Sample found for {submitted_id} Sample with external_id {external_id}",
+        )
+
+    # Check for duplicate non-TPC samples with same external_id
+    duplicate_sample_search = make_search_subreq(request, duplicate_ts_search_url)
+    duplicate_sample_search_resp = request.invoke_subrequest(
+        duplicate_sample_search, True
+    )
+    if mode == "add" and duplicate_sample_search_resp.status_int == 200:
+        return request.errors.add(
+            "body",
+            f"TissueSample: Error a non-TPC sample with external_id {external_id} already exists",
+        )
+    elif (
+        mode == "edit"
+        and duplicate_sample_search_resp.status_int == 200
+        and len(duplicate_sample_search_resp.json_body > 1)
+    ):
+        return request.errors.add(
+            "body",
+            f"TissueSample: Error multiple non-TPC samples with external_id {external_id} exist",
         )
 
     tpc_sample = tpc_sample_search_resp.json_body["@graph"][0]
@@ -192,14 +212,6 @@ def run_sample_metadata_validation(context, request, data, mode):
             "body",
             f"TissueSample: metadata mismatch, sample_sources {gcc_uuid} "
             f"does not match TPC Tissue Sample {found} sample_sources {tpc_sample_source_uid}",
-        )
-
-    tpc_sample_search = make_search_subreq(request, tpc_ts_search_url)
-    tpc_sample_search_resp = request.invoke_subrequest(tpc_sample_search, True)
-    if tpc_sample_search_resp.status_int >= 400:
-        return request.errors.add(
-            "body",
-            f"TissueSample: No TPC Tissue Sample found for {submitted_id} Sample with external_id {external_id}"
         )
 
     # Compare core properties
@@ -233,11 +245,13 @@ def validate_external_id_on_edit(context, request):
     if "force_pass" in request.query_string:
         return
     data = get_request_data_for_edit(context, request)
-    sample_sources = get_property_value("sample_sources", context, request, "edit", data)
+    sample_sources = get_property_value(
+        "sample_sources", context, request, "edit", data
+    )
     category = get_property_value("category", context, request, "edit", data)
     external_id = get_property_value("external_id", context, request, "edit", data)
     tissue = get_item_or_none(request, sample_sources[0], "sample-sources")
-    return run_external_id_validation(request, tissue, external_id, category )
+    return run_external_id_validation(request, tissue, external_id, category)
 
 
 @link_related_validator
@@ -257,10 +271,11 @@ TISSUE_SAMPLE_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
     validate_tissue_sample_metadata_on_add,
 ]
 
+
 @view_config(
     context=TissueSample.Collection,
-    permission='add',
-    request_method='POST',
+    permission="add",
+    request_method="POST",
     validators=TISSUE_SAMPLE_ADD_VALIDATORS,
 )
 @debug_log
@@ -278,16 +293,17 @@ TISSUE_SAMPLE_EDIT_PUT_VALIDATORS = SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [
     validate_tissue_sample_metadata_on_edit,
 ]
 
+
 @view_config(
     context=TissueSample,
-    permission='edit',
-    request_method='PUT',
+    permission="edit",
+    request_method="PUT",
     validators=TISSUE_SAMPLE_EDIT_PUT_VALIDATORS,
 )
 @view_config(
     context=TissueSample,
-    permission='edit',
-    request_method='PATCH',
+    permission="edit",
+    request_method="PATCH",
     validators=TISSUE_SAMPLE_EDIT_PATCH_VALIDATORS,
 )
 @debug_log

@@ -622,7 +622,6 @@ def test_ontology_term(
     return post_item_and_return_location(testapp, item, 'ontology_term')
 
 
-
 @pytest.fixture
 def test_cell_line(
     testapp,
