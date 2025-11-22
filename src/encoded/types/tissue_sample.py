@@ -16,11 +16,7 @@ from .submitted_item import (
     SUBMITTED_ITEM_EDIT_PUT_VALIDATORS,
 )
 
-from .base import (
-    collection_add,
-    item_edit,
-    Item
-)
+from .base import collection_add, item_edit, Item
 from .utils import (
     get_properties,
     get_property_for_validation,
@@ -28,7 +24,7 @@ from .utils import (
 from ..item_utils import (
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
-    item as item_utils
+    item as item_utils,
 )
 
 
@@ -49,69 +45,12 @@ class TissueSample(Sample):
         pass
 
 
-@link_related_validator
-def validate_external_id_on_add(context, request):
-    """
-    Check that `external_id` is valid.
-
-    Check is consistent with `category` nomenclature if the sample_source.donor is a Benchmarking or Production tissue on add (TPC-submitted items only for now).
-    Check that `external_id` matches linked tissue `external_id` if Benchmarking or Production tissue sample on add.
-    """
-    if 'force_pass' in request.query_string:
-        return
-    data = request.json
-    external_id = data['external_id']
-    sample_sources = data["sample_sources"]
-    category = data['category']
-    tissue = get_item_or_none(request, sample_sources[0], 'sample-sources')
-    submission_centers = data['submission_centers']
-    is_tpc_submitted = "ndri_tpc" in [ item_utils.get_identifier(get_item_or_none(request, submission_center, 'submission-centers')) for submission_center in submission_centers ]
-    if (study := tissue_utils.get_study(tissue)):
-        tissue_category_match =  assert_tissue_category_match(category, external_id)
-        if is_tpc_submitted and not assert_external_id_category_match(external_id, category):
-            msg = f"external_id {external_id} does not match {study} nomenclature for {category} samples."
-            return request.errors.add('body', 'TissueSample: invalid property', msg)
-        elif not tissue_category_match[0]:
-            msg = f"category {category} should be {tissue_category_match[1]} for TissueSample items with protocol ID: {tissue_sample_utils.get_protocol_id_from_external_id(external_id)}."
-            return request.errors.add('body', 'TissueSample: invalid property', msg)
-        elif not assert_external_id_tissue_match(external_id, tissue):
-            msg = f"external_id {external_id} does not match Tissue external_id {item_utils.get_external_id(tissue)}."
-            return request.errors.add('body', 'TissueSample: invalid link', msg)
-        else:
-            return request.validated.update({})
-
-
-@link_related_validator
-def validate_external_id_on_edit(context, request):
-    """
-    Check that `external_id` is valid.
-
-    Check that `external_id` is consistent with `category` nomenclature if the sample_source is a Benchmarking or Production tissue on edit (TPC-submitted items only for now).
-    Check that `external_id` matches linked tissue `external_id` if Benchmarking or Production tissue sample on edit.
-    """
-    if 'force_pass' in request.query_string:
-        return
-    existing_properties = get_properties(context)
-    properties_to_update = get_properties(request)
-    sample_sources = get_property_for_validation('sample_sources',existing_properties,properties_to_update)
-    category = get_property_for_validation('category',existing_properties,properties_to_update)
-    external_id = get_property_for_validation('external_id',existing_properties,properties_to_update)
-    tissue = get_item_or_none(request, sample_sources[0], 'sample-sources')
-    submission_centers = get_property_for_validation('submission_centers', existing_properties, properties_to_update)
-    is_tpc_submitted = "ndri_tpc" in [ item_utils.get_identifier(get_item_or_none(request, submission_center, 'submission-centers')) for submission_center in submission_centers ]
-    if (study:=tissue_utils.get_study(tissue)):
-        tissue_category_match =  assert_tissue_category_match(category, external_id)
-        if is_tpc_submitted and not assert_external_id_category_match(external_id, category):
-            msg = f"external_id {external_id} does not match {study} nomenclature for {category} samples."
-            return request.errors.add('body', 'TissueSample: invalid property', msg)
-        elif not tissue_category_match[0]:
-            msg = f"category {category} should be {tissue_category_match[1]} for TissueSample items with protocol ID: {tissue_sample_utils.get_protocol_id_from_external_id(external_id)}."
-            return request.errors.add('body', 'TissueSample: invalid property', msg)
-        elif not assert_external_id_tissue_match(external_id, tissue):
-            msg = f"external_id {external_id} does not match Tissue external_id {item_utils.get_external_id(tissue)}."
-            return request.errors.add('body', 'TissueSample: invalid link', msg)
-        else:
-            return request.validated.update({})
+def get_request_data_for_edit(context, request):
+    """Return properties ."""
+    existing = get_properties(context)
+    to_update = get_properties(request)
+    # Merge (with `to_update` taking precedence)
+    return {**existing, **to_update}
 
 
 def assert_external_id_category_match(external_id: str, category: str):
@@ -153,96 +92,178 @@ def assert_external_id_tissue_match(external_id: str, tissue: Dict[str, Any]):
     return tissue_id == tissue_kit_id
 
 
+def get_property_value(name, context, request, mode, data=None):
+    """Get property value unified for add/edit."""
+    # think about modifying to use dictionary merging approach?
+    if mode == "add":
+        return data.get(name)
+    else:
+        existing = get_properties(context)
+        to_update = get_properties(request)
+        return get_property_for_validation(name, existing, to_update)
+
+
+def is_tpc_submission(request, submission_centers):
+    """Check if this submission is from NDRI TPC."""
+    return any(
+        item_utils.get_identifier(
+            get_item_or_none(request, center, "submission-centers")
+        )
+        == "ndri_tpc"
+        for center in submission_centers
+    )
+
+
+def run_external_id_validation(request, tissue, external_id, category):
+    """Core logic for external_id validation."""
+    if not (study := tissue_utils.get_study(tissue)):
+        return
+
+    tissue_category_match = assert_tissue_category_match(category, external_id)
+
+    if not assert_external_id_category_match(external_id, category):
+        msg = (
+            f"external_id {external_id} does not match {study} nomenclature "
+            f"for {category} samples."
+        )
+        return request.errors.add("body", "TissueSample: invalid property", msg)
+
+    if not tissue_category_match[0]:
+        msg = (
+            f"category {category} should be {tissue_category_match[1]} for TissueSample "
+            f"items with protocol ID: "
+            f"{tissue_sample_utils.get_protocol_id_from_external_id(external_id)}."
+        )
+        return request.errors.add("body", "TissueSample: invalid property", msg)
+
+    if not assert_external_id_tissue_match(external_id, tissue):
+        msg = (
+            f"external_id {external_id} does not match Tissue external_id "
+            f"{item_utils.get_external_id(tissue)}."
+        )
+        return request.errors.add("body", "TissueSample: invalid link", msg)
+
+    return request.validated.update({})
+
+
+def run_sample_metadata_validation(context, request, data, mode):
+    """Logic for comparing GCC sample metadata with TPC records."""
+    submitted_id = get_property_value("submitted_id", context, request, mode, data)
+    external_id = get_property_value("external_id", context, request, mode, data)
+    submission_centers = get_property_value(
+        "submission_centers", context, request, mode, data
+    )
+
+    if "force_pass" in request.query_string:
+        return
+    if is_tpc_submission(request, submission_centers):
+        return
+
+    check_properties = ["category", "preservation_type"]
+    tpc_ts_search_url = f"/search/?type=TissueSample&submission_centers.display_title=NDRI+TPC&external_id={external_id}"
+
+    duplicate_ts_search_url = f"/search/?type=TissueSample&submission_centers.display_title!=NDRI+TPC&external_id={external_id}"
+
+    if ELASTIC_SEARCH not in request.registry:
+        return
+
+    # check if sample_source is Benchmarking or Production and ignore if not
+    # and if so first check for TPC sample source
+    sample_source_ids = get_property_value(
+        "sample_sources", context, request, mode, data
+    )
+    sample_source = get_item_or_none(request, sample_source_ids[0], "sample-sources")
+    if not (tissue_utils.get_study(sample_source) in ["Benchmarking", "Production"]):
+        return
+    tpc_sample_search = make_search_subreq(request, tpc_ts_search_url)
+    tpc_sample_search_resp = request.invoke_subrequest(tpc_sample_search, True)
+    if tpc_sample_search_resp.status_int >= 400:
+        return request.errors.add(
+            "body",
+            f"TissueSample: No TPC Tissue Sample found for {submitted_id} Sample with external_id {external_id}",
+        )
+
+    # Check for duplicate non-TPC samples with same external_id
+    duplicate_sample_search = make_search_subreq(request, duplicate_ts_search_url)
+    duplicate_sample_search_resp = request.invoke_subrequest(
+        duplicate_sample_search, True
+    )
+    if mode == "add" and duplicate_sample_search_resp.status_int == 200:
+        return request.errors.add(
+            "body",
+            f"TissueSample: Error a non-TPC sample with external_id {external_id} already exists",
+        )
+    elif (
+        mode == "edit"
+        and duplicate_sample_search_resp.status_int == 200
+        and len(duplicate_sample_search_resp.json_body > 1)
+    ):
+        return request.errors.add(
+            "body",
+            f"TissueSample: Error multiple non-TPC samples with external_id {external_id} exist",
+        )
+
+    tpc_sample = tpc_sample_search_resp.json_body["@graph"][0]
+    found = tpc_sample["accession"]  # for error message
+    tpc_sample_source_uid = tpc_sample["sample_sources"][0]["uuid"]
+    gcc_uuid = item_utils.get_uuid(sample_source)
+    if tpc_sample_source_uid != gcc_uuid:
+        return request.errors.add(
+            "body",
+            f"TissueSample: metadata mismatch, sample_sources {gcc_uuid} "
+            f"does not match TPC Tissue Sample {found} sample_sources {tpc_sample_source_uid}",
+        )
+
+    # Compare core properties
+    for prop in check_properties:
+        gcc_value = get_property_value(prop, context, request, mode, data)
+        if gcc_value and prop in tpc_sample and tpc_sample[prop] != gcc_value:
+            # NB: the tissue sample should always have these properties but just in case
+            return request.errors.add(
+                "body",
+                f"TissueSample: metadata mismatch, {prop} {gcc_value} "
+                f"does not match value {tpc_sample[prop]} in TPC Tissue Sample {found}",
+            )
+
+    return request.validated.update({})
+
+
 @link_related_validator
-def validate_tissue_sample_metadata_on_edit(context, request):
-    """Check that metadata matches with TPC-submitted tissue sample items with the same external_id, unless you tell it not to, on edit
-    """
-    existing_properties = get_properties(context)
-    properties_to_update = get_properties(request)
-    external_id = get_property_for_validation('external_id', existing_properties, properties_to_update)
-    submission_centers = get_property_for_validation('submission_centers', existing_properties, properties_to_update)
-    is_tpc_submitted = "ndri_tpc" in [ item_utils.get_identifier(get_item_or_none(request, submission_center, 'submission-centers')) for submission_center in submission_centers ]
-    check_properties = [
-        "category",
-        "preservation_type",
-        "core_size"
-    ]
-    if 'force_pass' in request.query_string:
+def validate_external_id_on_add(context, request):
+    if "force_pass" in request.query_string:
         return
-    if is_tpc_submitted:
+    data = request.json
+    sample_sources = data["sample_sources"]
+    category = data["category"]
+    external_id = data["external_id"]
+    tissue = get_item_or_none(request, sample_sources[0], "sample-sources")
+    return run_external_id_validation(request, tissue, external_id, category)
+
+
+@link_related_validator
+def validate_external_id_on_edit(context, request):
+    if "force_pass" in request.query_string:
         return
-    search_url = f"/search/?type=TissueSample&submission_centers.display_title=NDRI+TPC&external_id={external_id}"
-    if ELASTIC_SEARCH in request.registry:
-        search = make_search_subreq(request, search_url)
-        search_resp = request.invoke_subrequest(search, True)
-        conn = request.registry['connection']
-        if search_resp.status_int >= 400:
-            # No TPC item in database with matching external_id
-            return
-        else:  # find it in the database
-            for check_property in check_properties:
-                gcc_property = get_property_for_validation(check_property,existing_properties,properties_to_update)
-                if gcc_property:
-                    res = search_resp.json_body['@graph'][0]
-                    if check_property in res:
-                        if res[check_property] != gcc_property:
-                        # property does not match
-                            found = res['accession']
-                            request.errors.add('body', f"TissueSample: metadata mismatch, {check_property}{gcc_property} does not match TPC Tissue Sample {found}")
-            sample_source_ids = get_property_for_validation('sample_sources', existing_properties, properties_to_update)
-            sample_source_res = search_resp.json_body['@graph'][0]['sample_sources'][0]['uuid']
-            gcc_uuid = item_utils.get_uuid(get_item_or_none(request, sample_source_ids[0], 'sample-sources'))
-            if sample_source_res != gcc_uuid:
-                # property does not match
-                found = res['accession']
-                request.errors.add('body', f"TissueSample: metadata mismatch, sample_sources {gcc_uuid} does not match TPC Tissue Sample {found}sample_sources {sample_source_res}")
-            return request.validated.update({})
+    data = get_request_data_for_edit(context, request)
+    sample_sources = get_property_value(
+        "sample_sources", context, request, "edit", data
+    )
+    category = get_property_value("category", context, request, "edit", data)
+    external_id = get_property_value("external_id", context, request, "edit", data)
+    tissue = get_item_or_none(request, sample_sources[0], "sample-sources")
+    return run_external_id_validation(request, tissue, external_id, category)
 
 
 @link_related_validator
 def validate_tissue_sample_metadata_on_add(context, request):
-    """Check that metadata matches with TPC-submitted tissue sample items with the same external_id, unless you tell it not to, on add
-    """
     data = request.json
-    external_id = data['external_id']
-    submission_centers = data['submission_centers']
-    is_tpc_submitted = "ndri_tpc" in [ item_utils.get_identifier(get_item_or_none(request, submission_center, 'submission-centers')) for submission_center in submission_centers ]
-    check_properties = [
-        "category",
-        "preservation_type",
-        "core_size"
-    ]
-    if 'force_pass' in request.query_string:
-        return
-    if is_tpc_submitted:
-        return
-    search_url = f"/search/?type=TissueSample&submission_centers.display_title=NDRI+TPC&external_id={external_id}"
-    if ELASTIC_SEARCH in request.registry:
-        search = make_search_subreq(request, search_url)
-        search_resp = request.invoke_subrequest(search, True)
-        conn = request.registry['connection']
-        if search_resp.status_int >= 400:
-            # No TPC item in database with matching external_id
-            return
-        else:  # find it in the database
-            for check_property in check_properties:
-                if check_property in data:
-                    gcc_property = data[check_property]
-                    res = search_resp.json_body['@graph'][0]
-                    if check_property in res:
-                        if res[check_property] != gcc_property:
-                        # property does not match
-                            found = res['accession']
-                            request.errors.add('body', f"TissueSample: metadata mismatch, {check_property} {gcc_property} does not match TPC Tissue Sample {found}")
-            sample_source_ids = data['sample_sources']
-            sample_source_res = search_resp.json_body['@graph'][0]['sample_sources'][0]['uuid']
-            gcc_uuid = item_utils.get_uuid(get_item_or_none(request, sample_source_ids[0], 'sample-sources'))
-            if sample_source_res != gcc_uuid:
-                # property does not match
-                found = res['accession']
-                request.errors.add('body', f"TissueSample: metadata mismatch, sample_sources {gcc_uuid} does not match TPC Tissue Sample {found} sample_sources {sample_source_res}")
-            return request.validated.update({})
+    return run_sample_metadata_validation(context, request, data, "add")
 
+
+@link_related_validator
+def validate_tissue_sample_metadata_on_edit(context, request):
+    data = get_request_data_for_edit(context, request)
+    return run_sample_metadata_validation(context, request, data, "edit")
 
 
 TISSUE_SAMPLE_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
@@ -250,10 +271,11 @@ TISSUE_SAMPLE_ADD_VALIDATORS = SUBMITTED_ITEM_ADD_VALIDATORS + [
     validate_tissue_sample_metadata_on_add,
 ]
 
+
 @view_config(
     context=TissueSample.Collection,
-    permission='add',
-    request_method='POST',
+    permission="add",
+    request_method="POST",
     validators=TISSUE_SAMPLE_ADD_VALIDATORS,
 )
 @debug_log
@@ -271,16 +293,17 @@ TISSUE_SAMPLE_EDIT_PUT_VALIDATORS = SUBMITTED_ITEM_EDIT_PUT_VALIDATORS + [
     validate_tissue_sample_metadata_on_edit,
 ]
 
+
 @view_config(
     context=TissueSample,
-    permission='edit',
-    request_method='PUT',
+    permission="edit",
+    request_method="PUT",
     validators=TISSUE_SAMPLE_EDIT_PUT_VALIDATORS,
 )
 @view_config(
     context=TissueSample,
-    permission='edit',
-    request_method='PATCH',
+    permission="edit",
+    request_method="PATCH",
     validators=TISSUE_SAMPLE_EDIT_PATCH_VALIDATORS,
 )
 @debug_log

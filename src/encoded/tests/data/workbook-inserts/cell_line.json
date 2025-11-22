@@ -30,7 +30,7 @@
         "submitted_id": "TEST_CELL-LINE_FIBROBLAST",
         "source": "ATCC",
         "title": "LB_LA2 Fibroblast",
-        "tissue_samples": ["TEST_TISSUE-SAMPLE_LIVER"],
+        "tissue_samples": ["NDRITEST_TISSUE-SAMPLE_LIVER_TPC"],
         "code": "LBLA2"
     },
     {

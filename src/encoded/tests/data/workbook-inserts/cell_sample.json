@@ -15,7 +15,7 @@
         ],
         "cell_count": 50,
         "parent_samples": [
-            "TEST_TISSUE-SAMPLE_LIVER"
+            "NDRITEST_TISSUE-SAMPLE_LIVER_TPC"
         ],
         "tags": [
             "test_sample_names",

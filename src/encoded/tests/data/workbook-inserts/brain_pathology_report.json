@@ -64,6 +64,6 @@
         "neuropathology_onset": "Acute",
         "vascular_neuropathology_infarct_type": "Microinfarcts",
         "vascular_neuropathology_details": "Accute Hemorrhage",
-        "tissue_samples": ["TEST_TISSUE-SAMPLE_BRAIN"]
+        "tissue_samples": ["NDRITEST_TISSUE-SAMPLE_BRAIN_TPC"]
     }
 ]

@@ -8,6 +8,7 @@
     {
         "identifier": "smaht",
         "title": "SMaHT Test Center",
-        "code": "test"
+        "code": "test",
+        "uuid": "e552c462-9b65-43ed-a5f8-8aa56aa3ebf4"
     }
 ]
