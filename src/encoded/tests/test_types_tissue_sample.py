@@ -375,7 +375,6 @@ def test_tissue_sample_with_dup_external_id_sample_on_add(
             to_snake_case("TissueSample")
         )
     )
-    import pdb; pdb.set_trace()
     for item_type, posts in items_to_post_for_setup.items():
         for post_body in posts:
             post_item(testapp, post_body, item_type, status=201)
@@ -396,6 +395,5 @@ def test_tissue_sample_with_dup_external_id_sample_on_add(
 
     # post second non-TPC tissue sample with same external_id and expect error
     item['submitted_id'] = SECOND_TEST_ITEM_ID
-    # import pdb; pdb.set_trace()
     res = post_item(testapp, item, collection, status=422)
     assert_validation_error_as_expected(res, location='body', name_start="TissueSample: Error a non-TPC sample")
