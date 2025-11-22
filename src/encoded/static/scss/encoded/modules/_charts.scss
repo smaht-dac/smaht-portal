@@ -943,6 +943,16 @@ $workflow-node-color-type-global-context: #ffb3b3;
             min-width: 90%
         }
 
+        #select_charts_date_range {
+            @media screen and (min-width: 1500px) {
+                min-width: 80% !important;
+            }
+            min-width: 100%;
+        }
+        #select_charts_date_histogram_interval {
+            min-width: 90%
+        }
+
         .btn-primary {
             border: 1px solid #0B62BA;
         }

@@ -10,6 +10,8 @@ import DefaultItemView from './DefaultItemView';
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SelectedItemsDownloadButton } from '../static-pages/components/SelectAllAboveTableComponent';
 import { ShowHideInformationToggle } from './components/file-overview/ShowHideInformationToggle';
+import { ProvenanceGraphStepsFetchingController } from './components/Workflow/ProvenanceGraphStepsFetchingController';
+import { ProvenanceGraphTabView } from './components/Workflow/ProvenanceGraphTabView';
 import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
 
 import { OverlayTrigger } from 'react-bootstrap';
@@ -24,10 +26,40 @@ import { BROWSE_LINKS } from '../browse/BrowseView';
 
 // Page containing the details of Items of type File
 export default class FileOverview extends DefaultItemView {
-    getTabViewContents() {
+    constructor(props){
+        super(props);
+        this.shouldGraphExist = this.shouldGraphExist.bind(this);
+    }
+
+    shouldGraphExist(){
+        const { context: { meta_workflow_run_outputs = [] } } = this.props;
+        return (
+            (meta_workflow_run_outputs.length > 0)
+            // We can uncomment below line once do permissions checking on backend for graphing
+            //&& _.any(context.meta_workflow_run_outputs, object.itemUtil.atId)
+        );
+    }
+
+    getControllers(){
+        return [<ProvenanceGraphStepsFetchingController key={0} shouldGraphExist={this.shouldGraphExist} />];
+    }
+
+    getTabViewContents(controllerProps){
         const initTabs = [];
         initTabs.push(FileView.getTabObject(this.props));
-        return initTabs.concat(this.getCommonTabs()); // Add remainder of common tabs (Details, Attribution)
+
+
+        if (this.shouldGraphExist()){
+            initTabs.push(ProvenanceGraphTabView.getTabObject({
+                ...this.props,
+                ...controllerProps,
+                isNodeCurrentContext
+            }));
+        }
+
+        initTabs.push(...this.getCommonTabs()); // Add remainder of common tabs (Details, Attribution)
+
+        return initTabs;
     }
 }
 
@@ -358,3 +390,13 @@ FileView.getTabObject = function (props) {
         content: <FileView {...props} />,
     };
 };
+
+export function isNodeCurrentContext(node, context){
+    if (node.nodeType !== 'input' && node.nodeType !== 'output') return false;
+    return (
+        context && typeof context.accession === 'string' && node.meta.run_data && node.meta.run_data.file
+        && typeof node.meta.run_data.file !== 'string' && !Array.isArray(node.meta.run_data.file)
+        && typeof node.meta.run_data.file.accession === 'string'
+        && node.meta.run_data.file.accession === context.accession
+    ) || false;
+}
