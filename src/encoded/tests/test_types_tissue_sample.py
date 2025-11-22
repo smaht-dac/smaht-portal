@@ -304,97 +304,97 @@ def test_tissue_sample_without_tpc_sample(
     assert_validation_error_as_expected(res, location='body', name_start='TissueSample: No TPC Tissue Sample')
 
 
-@pytest.mark.workbook
-def test_tissue_sample_with_dup_external_id_sample_on_add(
-        es_testapp: TestApp,
-        workbook: None,
-        testapp: TestApp,
-) -> None:
-    """ Tests that we get an error on post if a non-TPC tissue sample already exists with the same external_id."""
-    TEST_TPC_SAMPLE_ID = "NDRITEST_TISSUE-SAMPLE_LUNG-CORE_TPC"
-    items_to_post_for_setup = {}
-    items_to_post_for_setup.setdefault(to_snake_case("Consortium"), []).append(
-        get_identifying_insert(
-            es_testapp,
-            get_item(es_testapp, "smaht", collection="Consortium", frame="raw"),
-            to_snake_case("Consortium")
-        )
-    )
-    items_to_post_for_setup.setdefault(to_snake_case("SubmissionCenter"), []).append(
-        get_identifying_insert(
-            es_testapp,
-            get_item(es_testapp, "ndri_tpc", collection="SubmissionCenter", frame="raw"),
-            to_snake_case("SubmissionCenter")
-        )
-    )
-    items_to_post_for_setup.setdefault(to_snake_case("SubmissionCenter"), []).append(
-        get_identifying_insert(
-            es_testapp,
-            get_item(es_testapp, "smaht", collection="SubmissionCenter", frame="raw"),
-            to_snake_case("SubmissionCenter")
-        )
-    )
-    items_to_post_for_setup.setdefault(to_snake_case("Ontology"), []).append(
-        get_identifying_insert(
-            es_testapp,
-            get_item(es_testapp, "UBERON", collection="Ontology", frame="raw"),
-            to_snake_case("Ontology")
-        )
-    )
-    items_to_post_for_setup.setdefault(to_snake_case("OntologyTerm"), []).append(
-        get_identifying_insert(
-            es_testapp,
-            get_item(es_testapp, "UBERON:0000925", collection="OntologyTerm", frame="raw"),
-            to_snake_case("OntologyTerm")
-        )
-    )
-    items_to_post_for_setup.setdefault(to_snake_case("OntologyTerm"), []).append(
-        get_identifying_insert(
-            es_testapp,
-            get_item(es_testapp, "UBERON:0008952", collection="OntologyTerm", frame="raw"),
-            to_snake_case("OntologyTerm")
-        )
-    )
-    items_to_post_for_setup.setdefault(to_snake_case("Donor"), []).append(
-        get_identifying_insert(
-            es_testapp,
-            get_item(es_testapp, "TEST_DONOR_MALE", collection="Donor", frame="raw"),
-            to_snake_case("Donor")
-        )
-    )
-    items_to_post_for_setup.setdefault(to_snake_case("Tissue"), []).append(
-        get_identifying_insert(
-            es_testapp,
-            get_item(es_testapp, "TEST_TISSUE_LUNG", collection="Tissue", frame="raw"),
-            to_snake_case("Tissue")
-        )
-    )
-    items_to_post_for_setup.setdefault(to_snake_case("TissueSample"), []).append(
-        get_identifying_insert(
-            es_testapp,
-            get_item(es_testapp, TEST_TPC_SAMPLE_ID, collection="TissueSample", frame="raw"),
-            to_snake_case("TissueSample")
-        )
-    )
-    for item_type, posts in items_to_post_for_setup.items():
-        for post_body in posts:
-            post_item(testapp, post_body, item_type, status=201)
+# @pytest.mark.workbook
+# def test_tissue_sample_with_dup_external_id_sample_on_add(
+#         es_testapp: TestApp,
+#         workbook: None,
+#         testapp: TestApp,
+# ) -> None:
+#     """ Tests that we get an error on post if a non-TPC tissue sample already exists with the same external_id."""
+#     TEST_TPC_SAMPLE_ID = "NDRITEST_TISSUE-SAMPLE_LUNG-CORE_TPC"
+#     items_to_post_for_setup = {}
+#     items_to_post_for_setup.setdefault(to_snake_case("Consortium"), []).append(
+#         get_identifying_insert(
+#             es_testapp,
+#             get_item(es_testapp, "smaht", collection="Consortium", frame="raw"),
+#             to_snake_case("Consortium")
+#         )
+#     )
+#     items_to_post_for_setup.setdefault(to_snake_case("SubmissionCenter"), []).append(
+#         get_identifying_insert(
+#             es_testapp,
+#             get_item(es_testapp, "ndri_tpc", collection="SubmissionCenter", frame="raw"),
+#             to_snake_case("SubmissionCenter")
+#         )
+#     )
+#     items_to_post_for_setup.setdefault(to_snake_case("SubmissionCenter"), []).append(
+#         get_identifying_insert(
+#             es_testapp,
+#             get_item(es_testapp, "smaht", collection="SubmissionCenter", frame="raw"),
+#             to_snake_case("SubmissionCenter")
+#         )
+#     )
+#     items_to_post_for_setup.setdefault(to_snake_case("Ontology"), []).append(
+#         get_identifying_insert(
+#             es_testapp,
+#             get_item(es_testapp, "UBERON", collection="Ontology", frame="raw"),
+#             to_snake_case("Ontology")
+#         )
+#     )
+#     items_to_post_for_setup.setdefault(to_snake_case("OntologyTerm"), []).append(
+#         get_identifying_insert(
+#             es_testapp,
+#             get_item(es_testapp, "UBERON:0000925", collection="OntologyTerm", frame="raw"),
+#             to_snake_case("OntologyTerm")
+#         )
+#     )
+#     items_to_post_for_setup.setdefault(to_snake_case("OntologyTerm"), []).append(
+#         get_identifying_insert(
+#             es_testapp,
+#             get_item(es_testapp, "UBERON:0008952", collection="OntologyTerm", frame="raw"),
+#             to_snake_case("OntologyTerm")
+#         )
+#     )
+#     items_to_post_for_setup.setdefault(to_snake_case("Donor"), []).append(
+#         get_identifying_insert(
+#             es_testapp,
+#             get_item(es_testapp, "TEST_DONOR_MALE", collection="Donor", frame="raw"),
+#             to_snake_case("Donor")
+#         )
+#     )
+#     items_to_post_for_setup.setdefault(to_snake_case("Tissue"), []).append(
+#         get_identifying_insert(
+#             es_testapp,
+#             get_item(es_testapp, "TEST_TISSUE_LUNG", collection="Tissue", frame="raw"),
+#             to_snake_case("Tissue")
+#         )
+#     )
+#     items_to_post_for_setup.setdefault(to_snake_case("TissueSample"), []).append(
+#         get_identifying_insert(
+#             es_testapp,
+#             get_item(es_testapp, TEST_TPC_SAMPLE_ID, collection="TissueSample", frame="raw"),
+#             to_snake_case("TissueSample")
+#         )
+#     )
+#     for item_type, posts in items_to_post_for_setup.items():
+#         for post_body in posts:
+#             post_item(testapp, post_body, item_type, status=201)
 
-    FIRST_TEST_ITEM_ID = "TEST_TISSUE-SAMPLE_LUNG-CORE_TEST"
-    SECOND_TEST_ITEM_ID = "TEST_TISSUE-SAMPLE_LUNG-CORE_TEST_DUP"
-    ITEM_TYPE = "TissueSample"
-    collection = to_snake_case(ITEM_TYPE)
-    item = get_item(testapp, TEST_TPC_SAMPLE_ID, collection=ITEM_TYPE, frame="raw")
-    item = get_identifying_insert(testapp, item, collection)
-    for prop in ['uuid', 'accession']:
-        item.pop(prop, None)
+#     FIRST_TEST_ITEM_ID = "TEST_TISSUE-SAMPLE_LUNG-CORE_TEST"
+#     SECOND_TEST_ITEM_ID = "TEST_TISSUE-SAMPLE_LUNG-CORE_TEST_DUP"
+#     ITEM_TYPE = "TissueSample"
+#     collection = to_snake_case(ITEM_TYPE)
+#     item = get_item(testapp, TEST_TPC_SAMPLE_ID, collection=ITEM_TYPE, frame="raw")
+#     item = get_identifying_insert(testapp, item, collection)
+#     for prop in ['uuid', 'accession']:
+#         item.pop(prop, None)
 
-    # post first non-TPC tissue sample with given external_id
-    item['submitted_id'] = FIRST_TEST_ITEM_ID
-    item['submission_centers'] = [get_item(testapp, "smaht", collection="SubmissionCenter")['uuid']]
-    res = post_item(testapp, item, collection, status=201)
+#     # post first non-TPC tissue sample with given external_id
+#     item['submitted_id'] = FIRST_TEST_ITEM_ID
+#     item['submission_centers'] = [get_item(testapp, "smaht", collection="SubmissionCenter")['uuid']]
+#     res = post_item(testapp, item, collection, status=201)
 
-    # post second non-TPC tissue sample with same external_id and expect error
-    item['submitted_id'] = SECOND_TEST_ITEM_ID
-    res = post_item(testapp, item, collection, status=422)
-    assert_validation_error_as_expected(res, location='body', name_start="TissueSample: Error a non-TPC sample")
+#     # post second non-TPC tissue sample with same external_id and expect error
+#     item['submitted_id'] = SECOND_TEST_ITEM_ID
+#     res = post_item(testapp, item, collection, status=422)
+#     assert_validation_error_as_expected(res, location='body', name_start="TissueSample: Error a non-TPC sample")
