@@ -7,6 +7,22 @@ smaht-portal
 Change Log
 ----------
 
+1.5.9
+=====
+
+`PR 548: feat: Submission Data Dictionary Update <https://github.com/smaht-dac/smaht-portal/pull/548>`_
+
+* Support search by property in submission data dictionary
+
+
+1.5.8
+=====
+
+`PR 552: Replace Warn with Flagged as QC status for public display <https://github.com/smaht-dac/smaht-portal/pull/552>`_
+
+* Replace Warn with Flagged as QC status for public display
+
+
 1.5.7
 =====
 
