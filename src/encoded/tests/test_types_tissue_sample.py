@@ -304,6 +304,7 @@ def test_tissue_sample_without_tpc_sample(
     assert_validation_error_as_expected(res, location='body', name_start='TissueSample: No TPC Tissue Sample')
 
 
+@pytest.mark.workbook
 def test_tissue_sample_with_dup_external_id_sample_on_add(
         es_testapp: TestApp,
         workbook: None,
