@@ -273,6 +273,12 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
         </h1>
     );
 
+    // additional filter for benchmarking data matrix
+    const additionalFilter =
+        study === 'Benchmarking' ?
+            '&dataset!=colo829blt_in_silico&dataset!=colo829_snv_indel_challenge_data&dataset!=mei_detection_challenge_data&dataset!=ipsc_snv_indel_challenge_data'
+            : '';
+
     return (
         <div className="donor-view">
             <PublicDonorViewTitle
@@ -305,7 +311,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                 <DataMatrix
                                     key="data-matrix-donor"
                                     query={{
-                                        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${context.display_title}&limit=all`,
+                                        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${context.display_title}${additionalFilter}&limit=all`,
                                         columnAggFields: [
                                             'file_sets.libraries.assay.display_title',
                                             'sequencing.sequencer.platform',
