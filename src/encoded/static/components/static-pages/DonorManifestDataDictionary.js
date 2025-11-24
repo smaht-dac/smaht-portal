@@ -208,6 +208,7 @@ export const DonorManifestDataDictionary = () => {
         }
     }, []);
 
+    // Inlclude entry for each item type and its properties
     const options = ([...fieldsToDisplay] || []).flatMap((schemaItem) => {
         const [schemaKey, properties] = schemaItem;
 
