@@ -275,7 +275,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
 
     // additional filter for benchmarking data matrix
     const additionalFilter =
-        study === 'Benchmarking' ?
+        study === 'Benchmarking' || context?.display_title === 'COLO829' ?
             '&dataset!=colo829blt_in_silico&dataset!=colo829_snv_indel_challenge_data&dataset!=mei_detection_challenge_data&dataset!=ipsc_snv_indel_challenge_data'
             : '';
 
