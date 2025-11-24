@@ -402,6 +402,7 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.samples.sample_sources.donor",
 
         "quality_metrics.overall_quality_status",
+        "quality_metrics.overall_quality_status_display",
         "quality_metrics.coverage",
         "quality_metrics.qc_notes",
         # For manifest

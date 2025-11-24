@@ -76,7 +76,9 @@ class AnnotatedFilenameInfo:
 # dataset is required but comes in through input args for now
 REQUIRED_FILE_PROPS = [file_constants.SEQUENCING_CENTER, "release_tracker_description", "release_tracker_title"]
 # This lists the MWFs that need to have run in addition to the regular Alignment and QC run
-REQUIRED_ADDITIONAL_QC_RUNS = ["sample_identity_check"]
+SAMPLE_IDENTITY_CHECK = "sample_identity_check"
+REQUIRED_ADDITIONAL_QC_RUNS = [SAMPLE_IDENTITY_CHECK]
+EXCLUDED_ASSAYS_FROM_SAMPLE_IDENTITY_CHECK = ["bulk_mas_iso_seq"]
 
 MODE_EARLY_ACCESS = "early-access"
 MODE_PUBLIC = "public"
@@ -85,6 +87,10 @@ MODE_NETWORK = "network"
 # Studies
 BENCHMARKING = "Benchmarking"
 PRODUCTION = "Production"
+
+# Metaworkflows that requrie special handling
+MWF_RNA_SEQ = "RNA-seq_bulk_short_reads_GRCh38"
+MWF_KINNEX = "RNA-seq_kinnex_long_reads_GRCh38"
 
 
 class FileRelease:
@@ -710,10 +716,10 @@ class FileRelease:
 
         associated_files = []
         # For RNA-Seq data, collect all of the Final Output files from the MWFR (without the file to release)
-        if (
-            self.output_meta_workflow_run["meta_workflow"]["name"]
-            == "RNA-seq_bulk_short_reads_GRCh38"
-        ):
+        if self.output_meta_workflow_run["meta_workflow"]["name"] in [
+            MWF_RNA_SEQ,
+            MWF_KINNEX,
+        ]:
             additional_filter = (
                 f"output_status=Final Output&accession!={self.file_accession}"
             )
@@ -905,6 +911,9 @@ class FileRelease:
                 file_constants.DATA_CATEGORY_SEQUENCING_READS: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
+                file_constants.DATA_CATEGORY_CONSENSUS_READS: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
                 file_constants.DATA_CATEGORY_GERMLINE_VARIANT_CALLS: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
@@ -923,6 +932,9 @@ class FileRelease:
             },
             PRODUCTION_TISSUE: {
                 file_constants.DATA_CATEGORY_SEQUENCING_READS: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
+                file_constants.DATA_CATEGORY_CONSENSUS_READS: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
                 file_constants.DATA_CATEGORY_GERMLINE_VARIANT_CALLS: (
@@ -996,7 +1008,7 @@ class FileRelease:
         for data_category in data_categories:
             access_status = data_category_to_access_status.get(data_category)
             if access_status:
-               access_statuses.add(access_status)
+                access_statuses.add(access_status)
 
         # The assigned data categories must map to exactly one access status. We do allow
         # data categories that are not in the mapping if there are others that are mapped.
@@ -1042,6 +1054,14 @@ class FileRelease:
                 additional_runs.append(mwfr_input["meta_workflow"]["name"])
 
             for mwf_name in REQUIRED_ADDITIONAL_QC_RUNS:
+                if mwf_name == SAMPLE_IDENTITY_CHECK:
+                    assay_identifiers = [a['identifier'] for a in self.assays]
+                    if not set(assay_identifiers).isdisjoint(EXCLUDED_ASSAYS_FROM_SAMPLE_IDENTITY_CHECK):
+                        self.add_warning(
+                            f"The sample identity check has not been run on {self.file_accession}."
+                            " This is intentional for this assay."
+                        )
+                        continue
                 if mwf_name not in additional_runs:
                     self.print_error_and_exit(
                         f"File {self.file_accession} is missing the required additional QC run {mwf_name}."

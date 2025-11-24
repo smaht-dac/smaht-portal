@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
-import { getBadge, removeToolName } from './utils';
+import { getBadge, removeToolName, isReleased } from './utils';
 
 import {
     capitalize,
@@ -100,7 +100,7 @@ export const DataTable = ({
     const filteredDataFormatted = filteredData.map((d) => {
         const result = {};
         result['File'] = d['file_accession'];
-        result['Released'] = d['file_status'] == 'released' ? 'Yes' : 'No';
+        result['Released'] = isReleased(d['file_status']) ? 'Yes' : 'No';
         result['Overall QC status'] = d.quality_metrics?.overall_quality_status;
         qcFields.forEach((qcField, i) => {
             const { flag = "NA", value } = d.quality_metrics?.qc_values[qcField];
