@@ -219,7 +219,10 @@ export const BrowseFileSearchTable = (props) => {
     const aboveTableComponent = (
         <BrowseViewAboveSearchTableControls
             topLeftChildren={
-                <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
+                <SelectAllFilesButton
+                    {...selectedFileProps}
+                    {...{ session, context }}
+                />
             }>
             <div className="d-flex gap-2">
                 <DonorMetadataDownloadButton session={session} />
@@ -420,10 +423,20 @@ export function createBrowseFileColumnExtensionMap({
             noSort: true,
             widthMap: { lg: 60, md: 60, sm: 60 },
             render: (result, parentProps) => {
-                return (
+                const userHasDownloadAccess =
+                    parentProps?.userDownloadAccess?.[result?.status];
+
+                return userHasDownloadAccess ? (
                     <SelectionItemCheckbox
                         {...{ selectedItems, onSelectItem, result }}
                         isMultiSelect={true}
+                    />
+                ) : (
+                    <input
+                        type="checkbox"
+                        data-tip="You do not have access to download this item"
+                        disabled="disabled"
+                        className="me-2"
                     />
                 );
             },
@@ -568,7 +581,9 @@ export function createBrowseFileColumnExtensionMap({
             colTitle: 'Released',
             widthMap: { lg: 115, md: 115, sm: 115 },
             render: function (result, parentProps) {
-                const value = result?.file_status_tracking?.release_dates?.initial_release_date;
+                const value =
+                    result?.file_status_tracking?.release_dates
+                        ?.initial_release_date;
                 if (!value) return null;
                 return <span className="value text-end">{value}</span>;
             },
