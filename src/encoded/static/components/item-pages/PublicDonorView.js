@@ -274,10 +274,32 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
     );
 
     // additional filter for benchmarking data matrix
-    const additionalFilter =
-        study === 'Benchmarking' || context?.display_title === 'COLO829' ?
-            '&dataset!=colo829blt_in_silico&dataset!=colo829_snv_indel_challenge_data&dataset!=mei_detection_challenge_data&dataset!=ipsc_snv_indel_challenge_data'
-            : '';
+    const isBenchmarkingDonor =
+        study === 'Benchmarking' || context?.display_title === 'COLO829';
+
+    const baseDataMatrixQuery = {
+        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${context.display_title}&limit=all`,
+        columnAggFields: [
+            'file_sets.libraries.assay.display_title',
+            'sequencing.sequencer.platform',
+        ],
+        rowAggFields: ['donors.display_title', 'sample_summary.tissues'],
+    };
+
+    const dataMatrixProps = isBenchmarkingDonor
+        ? {
+            query: {
+                ...baseDataMatrixQuery,
+                rowAggFields: [...baseDataMatrixQuery.rowAggFields, 'data_type'],
+            },
+            resultTransformedPostProcessFuncKey: 'dsaChainFile',
+            browseFilteringTransformFuncKey: 'dsaChainFile',
+            baseBrowseFilesPath: "/search/",
+        } :
+        {
+            query: baseDataMatrixQuery,
+            baseBrowseFilesPath: "/browse/"
+        };
 
     return (
         <div className="donor-view">
@@ -310,23 +332,12 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                             <div className="body d-flex justify-content-center overflow-scroll">
                                 <DataMatrix
                                     key="data-matrix-donor"
-                                    query={{
-                                        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${context.display_title}${additionalFilter}&limit=all`,
-                                        columnAggFields: [
-                                            'file_sets.libraries.assay.display_title',
-                                            'sequencing.sequencer.platform',
-                                        ],
-                                        rowAggFields: [
-                                            'donors.display_title',
-                                            'sample_summary.tissues',
-                                        ],
-                                    }}
+                                    {...dataMatrixProps}
                                     headerFor={null}
                                     defaultOpen={true}
                                     idLabel="donor"
                                     session={session}
                                     yAxisLabel="Tissue" // Only one donor, so y-axis is Tissue
-                                    baseBrowseFilesPath={study === 'Production' ? "/browse/" : "/search/"}
                                 />
                             </div>
                         ) : (
