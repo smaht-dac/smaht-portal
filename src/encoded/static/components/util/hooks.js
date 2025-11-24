@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
-const defaultDownloadAccessObject = {
+// Default download access object for non-logged in users
+export const defaultDownloadAccessObject = {
     open: false,
     'open-early': false,
     'open-network': false,
@@ -10,16 +11,17 @@ const defaultDownloadAccessObject = {
     'protected-early': false,
     'protected-network': false,
     released: false,
-    uploading: false,
-    uploaded: false,
-    retracted: false,
-    'upload failed': false,
-    'to be uploaded by workflow': false,
-    'in review': false,
-    obsolete: false,
-    archived: false,
-    deleted: false,
+    uploading: true,
+    uploaded: true,
+    retracted: true,
+    'upload failed': true,
+    'to be uploaded by workflow': true,
+    'in review': true,
+    obsolete: true,
+    archived: true,
+    deleted: true,
 };
+
 /**
  * Checks the session-properties endpoint to determine the statuses that a user
  * has access to. Ultimately used to determine whether to disable the download
@@ -36,7 +38,9 @@ export const useUserDownloadAccess = (session) => {
 
     useEffect(() => {
         if (session) {
-            const userDownloadAccessObj = { ...defaultDownloadAccessObject };
+            const userDownloadAccessObj = {
+                ...defaultDownloadAccessObject,
+            };
 
             // If session exists, user has access to the following statuses
             userDownloadAccessObj['open'] = true;
@@ -44,7 +48,6 @@ export const useUserDownloadAccess = (session) => {
             // Default to true when user is logged in. If it is visible, user
             // can likely download. Otherwise let backend enforce download
             // access.
-            userDownloadAccessObj['released'] = true;
             userDownloadAccessObj['uploading'] = true;
             userDownloadAccessObj['uploaded'] = true;
             userDownloadAccessObj['retracted'] = true;
@@ -58,51 +61,16 @@ export const useUserDownloadAccess = (session) => {
             ajax.load(
                 '/session-properties',
                 (resp) => {
-                    // console.log('Fetched session properties:', resp);
+                    const downloadPerms = {
+                        ...userDownloadAccessObj,
+                        ...(resp?.download_perms || {}),
+                    };
 
-                    const downloadPerms = resp?.downloadPerms || {};
+                    console.log('User download permissions:', downloadPerms); // DEBUG
 
-                    // // Use downloadPerms from response if exists
-                    // if (Object.keys(downloadPerms).length > 0) {
-                    //     userDownloadAccessObj = {
-                    //         ...userDownloadAccessObj,
-                    //         ...downloadPerms,
-                    //     };
-                    // } else {
-                    // }
-                    // Manually determine access based on consortia and groups
-                    // Get consortia associated with user
-                    const userConsortia = resp?.details?.consortia || [];
-
-                    // Check if user is a member of SMaHT consortium
-                    const smaht_uuid = '358aed10-9b9d-4e26-ab84-4bd162da182b'; // SMaHT consortium UUID
-                    const isMember = userConsortia?.includes(smaht_uuid);
-
-                    // Get groups associated with user
-                    const userGroups = resp?.details?.groups || [];
-
-                    if (isMember) {
-                        // User is a member of SMaHT
-                        userDownloadAccessObj['open-early'] = true;
-                        userDownloadAccessObj['open-network'] = true;
-
-                        // User is either admin or dbgap member of SMaHT
-                        if (
-                            userGroups?.includes('admin') ||
-                            userGroups?.includes('dbgap')
-                        ) {
-                            userDownloadAccessObj['protected'] = true;
-                            userDownloadAccessObj['protected-early'] = true;
-                            userDownloadAccessObj['protected-network'] = true;
-                        }
-                    } else {
-                        // User is not a member of SMaHT
-                        if (userGroups?.includes('public-dbgap')) {
-                            userDownloadAccessObj['protected'] = true;
-                        }
+                    if (Object.keys(downloadPerms).length > 0) {
+                        setDownloadAccessObject(downloadPerms);
                     }
-
-                    setDownloadAccessObject(userDownloadAccessObj);
                 },
                 'GET',
                 (err) => {

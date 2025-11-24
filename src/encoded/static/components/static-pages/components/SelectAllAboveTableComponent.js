@@ -2,7 +2,14 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import queryString from 'query-string';
 import _ from 'underscore';
-import { Modal, Tabs, Tab, OverlayTrigger } from 'react-bootstrap';
+import {
+    Modal,
+    Tabs,
+    Tab,
+    OverlayTrigger,
+    Overlay,
+    Popover,
+} from 'react-bootstrap';
 import ReactTooltip from 'react-tooltip';
 
 import {
@@ -19,7 +26,10 @@ import {
     valueTransforms,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { display as dateTimeDisplay } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
-import { useUserDownloadAccess } from '../../util/hooks';
+import {
+    defaultDownloadAccessObject,
+    useUserDownloadAccess,
+} from '../../util/hooks';
 
 export const SelectAllAboveTableComponent = (props) => {
     const {
@@ -142,20 +152,25 @@ export class SelectAllFilesButton extends React.PureComponent {
         this.isEnabled = this.isEnabled.bind(this);
         this.state = {
             selecting: false,
-            userDownloadAccess: {},
+            userDownloadAccess: defaultDownloadAccessObject,
             downloadableFileCount: 0,
         };
     }
 
     componentDidMount() {
-        if (Object.keys(this.state.userDownloadAccess ?? {})?.length === 0) {
+        if (Object.keys(this.state.userDownloadAccess)?.includes('open')) {
             ajax.load('/session-properties', (resp) => {
                 const accessObj = resp?.download_perms || {};
+                const newUserDownloadAccessObj = {
+                    ...defaultDownloadAccessObject,
+                    ...accessObj,
+                };
                 this.setState({
                     ...this.state,
-                    userDownloadAccess: { ...accessObj },
-                    downloadableFileCount:
-                        this.getDownloadableFileCount(accessObj),
+                    userDownloadAccess: newUserDownloadAccessObj,
+                    downloadableFileCount: this.getDownloadableFileCount(
+                        newUserDownloadAccessObj
+                    ),
                 });
             });
         }
@@ -163,21 +178,18 @@ export class SelectAllFilesButton extends React.PureComponent {
 
     // Update user download access if session changes
     componentDidUpdate(prevProps, prevState) {
-        if (prevProps.session !== this.props.session) {
-            ajax.load('/session-properties', (resp) => {
-                const accessObj = resp?.download_perms || {};
-                this.setState({
-                    ...this.state,
-                    userDownloadAccess: { ...accessObj },
-                    downloadableFileCount:
-                        this.getDownloadableFileCount(accessObj),
-                });
+        const currentDownloadableFileCount = this.getDownloadableFileCount(
+            this.state.userDownloadAccess
+        );
+        if (prevState.downloadableFileCount !== currentDownloadableFileCount) {
+            this.setState({
+                ...this.state,
+                downloadableFileCount: currentDownloadableFileCount,
             });
         }
     }
 
     getDownloadableFileCount(userDownloadAccessObj) {
-        // TODO: check the total downloadable files against selected Files
         const statusFacetTermCounts =
             this.props.context?.facets?.find(
                 (facet) => facet.field === 'status'
@@ -189,6 +201,10 @@ export class SelectAllFilesButton extends React.PureComponent {
                 return acc + (userCanDownload ? term.doc_count : 0);
             },
             0
+        );
+        console.log(
+            'Total downloadable file count:',
+            totalDownloadableFileCount
         );
         return totalDownloadableFileCount;
     }
@@ -311,10 +327,10 @@ export class SelectAllFilesButton extends React.PureComponent {
 
     render() {
         const { selecting } = this.state;
-        const { type, session } = this.props;
+        const { type, session, context } = this.props;
 
         const isAllSelected = this.isAllSelected();
-        const isEnabled = session && this.isEnabled();
+        const isEnabled = this.isEnabled();
 
         const iconClassName =
             'me-05 icon icon-fw icon-' +
@@ -335,10 +351,45 @@ export class SelectAllFilesButton extends React.PureComponent {
             return (
                 <input
                     type="checkbox"
-                    disabled={!isEnabled}
+                    disabled={!this.isEnabled()}
                     checked={isAllSelected}
                     onChange={this.handleSelectAll}
                 />
+            );
+        }
+
+        if (
+            !isAllSelected &&
+            isEnabled &&
+            this.state.downloadableFileCount !== context?.total
+        ) {
+            return (
+                <OverlayTrigger
+                    trigger={['hover', 'focus']}
+                    placement="top"
+                    overlay={
+                        <Popover>
+                            <Popover.Header>Downloadable Files</Popover.Header>
+                            <Popover.Body>
+                                Select {this.state.downloadableFileCount} of{' '}
+                                {context?.total} Files
+                            </Popover.Body>
+                        </Popover>
+                    }>
+                    <button
+                        type="button"
+                        id="select-all-files-button"
+                        disabled={!isEnabled}
+                        className={cls}
+                        onClick={this.handleSelectAll}
+                        data-tip={tooltip}>
+                        <i className={iconClassName} />
+                        <span className="d-none d-md-inline text-400">
+                            {isAllSelected ? 'Deselect' : 'Select'}{' '}
+                        </span>
+                        <span className="text-600">All</span>
+                    </button>
+                </OverlayTrigger>
             );
         }
 
@@ -879,7 +930,6 @@ const DataDownloadOverviewStats = React.memo(function DataDownloadOverviewStats(
     };
 
     const callbackFxn = useCallback((resp) => {
-        // console.log('BenchmarkingDataDownloadOverviewStats resp', resp);
         const facets = resp || [];
 
         // Figure out which ones are the facets we need
