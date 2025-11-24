@@ -5,6 +5,11 @@ import * as d3 from 'd3';
 import { BoxPlotWithFacets } from './BoxPlotWithFacets';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
+export const isReleased = (status) => {
+    const releasedStatuses = ['released', 'open', 'open-early', 'open-network', 'protected', 'protected-early', 'protected-network'];
+    return releasedStatuses.includes(status.toLowerCase());
+}
+
 export const getBoxPlot = (
     qcData,
     title,
@@ -103,10 +108,11 @@ export const getBadge = (
             </span>
         );
     } else if (flag === 'Warn') {
+        // For public display, change 'Warn' to 'Flagged'
         return (
             <span className="badge text-white bg-warning">
-                {withIcon && <i className="icon icon-warning fas"></i>}
-                {flag}
+                {withIcon && <i className="icon icon-flag fas"></i>}
+                Flagged
             </span>
         );
     } else if (flag === 'Fail' || flag === 'No') {

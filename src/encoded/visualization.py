@@ -377,6 +377,10 @@ def data_matrix_aggregations(context, request):
     MAX_BUCKET_COUNT = 30  # Max grouping in a data matrix.
     DEFAULT_SEARCH_PARAM_LISTS = {'type': ['File']}
     DEFAULT_COMPOSITE_VALUE_SEPARATOR = ' '
+    ARRAY_FIELDS_TO_JOIN = {
+        # Array field whose values should be concatenated into a single bucket key.
+        'data_type'
+    }
     SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION = {
         "total_coverage": {
             "sum": {
@@ -427,8 +431,11 @@ def data_matrix_aggregations(context, request):
     row_totals_es_agg_start_index = len(remaining_columns)
 
     # obsolete soon
+    def is_array_concat_field(field):
+        return isinstance(field, str) and field in ARRAY_FIELDS_TO_JOIN
+
     def get_es_key(field_or_field_list):
-        return "script" if isinstance(field_or_field_list, list) and len(field_or_field_list) > 1 else "field"
+        return "script" if (is_array_concat_field(field_or_field_list) or (isinstance(field_or_field_list, list) and len(field_or_field_list) > 1)) else "field"
 
     # obsolete soon
     def get_es_value(field_or_field_list):
@@ -438,8 +445,23 @@ def data_matrix_aggregations(context, request):
                 "source": f" + '{composite_value_separator}' + ".join(["doc['embedded." + field + ".raw'].value" for field in field_or_field_list]),
                 "lang": "painless"
             }
-        else:
-            return "embedded." + (field_or_field_list[0] if isinstance(field_or_field_list, list) else field_or_field_list) + '.raw'
+        if is_array_concat_field(field_or_field_list):
+            field = field_or_field_list
+            return {
+                "source": (
+                    "def values = doc['embedded." + field + ".raw'];"
+                    "if (values == null || values.size() == 0) { return params.missing; }"
+                    "def sorted = new ArrayList(values);"
+                    "Collections.sort(sorted);"
+                    "return String.join(params.sep, sorted);"
+                ),
+                "lang": "painless",
+                "params": {
+                    "missing": TERM_NAME_FOR_NO_VALUE,
+                    "sep": ' | '
+                }
+            }
+        return "embedded." + (field_or_field_list[0] if isinstance(field_or_field_list, list) else field_or_field_list) + '.raw'
 
     primary_agg = {
         "field_0": {

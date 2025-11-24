@@ -41,7 +41,10 @@ export default function FileSearchView(props) {
 
 // Download button for admin users only
 const SearchViewDownloadButton = ({ session, selectedItems }) => {
-    return (
+    const userDownloadAccess = useUserDownloadAccess(session);
+
+    // Enable if user has admin access (aka all true in userDownloadAccess)
+    return Object.values(userDownloadAccess).every((v) => v) ? (
         <SelectedItemsDownloadButton
             id="download_tsv_multiselect"
             disabled={selectedItems.size === 0}

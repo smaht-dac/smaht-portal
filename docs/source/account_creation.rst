@@ -115,8 +115,7 @@ Instructions
 Step 1: Network membership needs to be verified by  SMaHT OC
 ------------------------------------------------------------
 
-SMaHT Network membership is verified by the Organization Center (OC). If you are a new Network member or an associate Network member, please email the OC at `smahtsupport@gowustl.onmicrosoft.com <mailto:smahtsupport@gowustl.onmicrosoft.com>`_ to be verified before contacting DAC about creating the portal access.
-When contacting OC,  the new Network members should cc their PIs and provide their institutional email address. Upon the Network membership verification, the institutional e-mail addresses added to the SMaHT Network Directory will be used  to log into the SMaHT Data Portal (see **Step 2**).
+SMaHT Network membership is verified by the Organization Center (OC). If you are a new Network member or an associate Network member, please email the OC at `smahtsupport@gowustl.onmicrosoft.com <mailto:smahtsupport@gowustl.onmicrosoft.com>`_ to be verified before contacting DAC about creating the portal access. When contacting OC,  the new Network members should cc their PIs and provide their institutional email address. Upon the Network membership verification, the institutional e-mail addresses added to the SMaHT Network Directory will be used  to log into the SMaHT Data Portal (see **Step 2**).
 
 
 
