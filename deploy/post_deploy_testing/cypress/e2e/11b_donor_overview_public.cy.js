@@ -327,7 +327,7 @@ function stepPublicDonorFlow(caps) {
         });
         return;
     }
-    
+
     if (caps.expectedDonorsHavingReleasedFilesCount === 0) {
         cy.request({
             url: BROWSE_BY_DONOR_URL,
