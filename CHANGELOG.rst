@@ -11,6 +11,7 @@ Change Log
 =====
 
 * Update `/session-properties` to include download permission information
+* Implement file selection permission checks
 
 
 1.5.10
