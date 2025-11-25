@@ -9,6 +9,7 @@ const EMPTY_DM_PROD_OPTS = {
     optionalLabels: [],
     expectedLowerLabels: [],
     expectedFilesCount: 0,
+    expectedTissuesCount: null,
     verifyTotalFromApi: true,
 };
 const BASE_DM_PROD_OPTS = {
@@ -17,6 +18,7 @@ const BASE_DM_PROD_OPTS = {
     optionalLabels: [],
     expectedLowerLabels: ["Donors"],
     expectedFilesCount: 40,
+    expectedTissuesCount: null,
     verifyTotalFromApi: true,
 };
 const BASE_DM_BENCHMARKING_OPTS = {
@@ -25,6 +27,7 @@ const BASE_DM_BENCHMARKING_OPTS = {
     optionalLabels: ["Non-exposed Skin", "Lung", "Brain", "Liver", "Ascending Colon"],
     expectedLowerLabels: ["Cell Lines", "Donors"],
     expectedFilesCount: 50,
+    expectedTissuesCount: null,
     verifyTotalFromApi: true,
 };
 
@@ -250,7 +253,7 @@ function stepDataMatrixProduction(caps) {
                     "#data-matrix-for_production",
                     caps.expectedDataMatrixProductionOpts
                 );
-            });    
+            });
         })
         .end();
 }

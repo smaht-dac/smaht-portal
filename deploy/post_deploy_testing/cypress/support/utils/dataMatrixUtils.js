@@ -334,6 +334,7 @@ export function testMatrixPopoverValidation(
         rowSummaryBlockCount = 6,
         colSummaryBlockCount = 2,
         expectedFilesCount = 1,
+        expectedTissuesCount = null,
         verifyTotalFromApi = true,
     }) {
     cy.get(matrixId).should('exist');
@@ -496,6 +497,31 @@ export function testMatrixPopoverValidation(
                 expect(sum, 'Total file count across col-summary blocks').to.be.at.least(expectedFilesCount);
             }
         });
+
+        // Check total unique tissues in the matrix
+        if (typeof expectedTissuesCount === 'number' && expectedTissuesCount > 0) {
+            // expand all tissues to ensure we capture all unique tissues
+            cy.get('.grouping.depth-0.may-collapse').each(($row) => {
+                const expandIcon = $row.find('i.icon-plus');
+                if (expandIcon.length > 0) {
+                    cy.wrap(expandIcon).click();
+                }
+            });
+
+            const uniqueTissues = new Set();
+
+            cy.get('.grouping.depth-1 .grouping-row .inner').then(($labels) => {
+                $labels.each((index, label) => {
+                    const tissue = Cypress.$(label).text().trim();
+                    if (tissue && tissue !== 'N/A') {
+                        uniqueTissues.add(tissue);
+                    }
+                });
+
+                const tissueCount = uniqueTissues.size;
+                expect(tissueCount, 'Total unique tissues in matrix').to.equal(expectedTissuesCount);
+            });
+        }
 
         // Check sum of regular blocks in a row equals to the row summary
         // Note: collapse all to a fresh start
