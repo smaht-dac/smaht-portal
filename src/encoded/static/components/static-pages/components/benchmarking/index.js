@@ -12,7 +12,6 @@ import { useUserDownloadAccess } from '../../../util/hooks';
  */
 
 export const BenchmarkingUI = (props) => {
-    console.log('BenchmarkingUI props:', props);
     const [showNav, setShowNav] = useState(true);
     const { children, href, session } = props;
 
