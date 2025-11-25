@@ -181,18 +181,16 @@ def run_sample_metadata_validation(context, request, data, mode):
     samples = ts_resp.json_body.get("@graph", [])
 
     tpc_samples = [
-        s for s in samples
-        if NDRI_TPC_DT in [
-            sc.get("display_title")
-            for sc in item_utils.get_submission_centers(s)
-        ]
+        s
+        for s in samples
+        if NDRI_TPC_DT
+        in [sc.get("display_title") for sc in item_utils.get_submission_centers(s)]
     ]
     non_tpc_samples = [
-        s for s in samples
-        if NDRI_TPC_DT not in [
-            sc.get("display_title")
-            for sc in item_utils.get_submission_centers(s)
-        ]
+        s
+        for s in samples
+        if NDRI_TPC_DT
+        not in [sc.get("display_title") for sc in item_utils.get_submission_centers(s)]
     ]
 
     check_properties = ["category", "preservation_type"]
@@ -204,8 +202,8 @@ def run_sample_metadata_validation(context, request, data, mode):
             "body",
             f"TissueSample: No TPC Tissue Sample found with external_id {external_id}",
         )
-    
-    # At this point we know this is a non-TPC submission and we have exactly one TPC sample    
+
+    # At this point we know this is a non-TPC submission and we have exactly one TPC sample
     if mode == "add" and non_tpc_samples:
         return request.errors.add(
             "body",
