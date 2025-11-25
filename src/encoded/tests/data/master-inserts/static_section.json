@@ -655,6 +655,7 @@
     },
     {
         "identifier": "fastq_files",
+        "title": "FASTQ Files",
         "uuid": "439034da-bad5-42c5-8124-3be68276d6cc",
         "section_type": "Page Section",
         "status": "in review",
@@ -671,6 +672,7 @@
     },
     {
         "identifier": "short-read_illumina_paired-end",
+        "title": "Short-Read Illumina, Paired-End",
         "uuid": "ce182c42-4f0e-4c1b-b325-213f730a0b42",
         "section_type": "Page Section",
         "status": "in review",
@@ -687,6 +689,7 @@
     },
     {
         "identifier": "long-read_pacbio_hifi",
+        "title": "Long-Read PacBio HiFi",
         "uuid": "23bd319b-19eb-4408-869b-eda806da56a5",
         "section_type": "Page Section",
         "status": "in review",
@@ -703,6 +706,7 @@
     },
     {
         "identifier": "long-read_oxford_nanopore",
+        "title": "Long-Read Oxford Nanopore",
         "uuid": "9cc46136-477d-4f6e-8751-94d41e6fb5cf",
         "section_type": "Page Section",
         "status": "in review",
@@ -719,6 +723,7 @@
     },
     {
         "identifier": "short-read_rna-seq_paired-end",
+        "title": "Short-Read RNA-seq, Paired-End",
         "uuid": "e1ee7924-99cf-4584-9c89-1e023436c797",
         "section_type": "Page Section",
         "status": "in review",
@@ -735,6 +740,7 @@
     },
     {
         "identifier": "long-read_rna-seq_pacbio_kinnex",
+        "title": "Long-Read RNA-seq, PacBio Kinnex",
         "uuid": "22b22be8-8380-4407-a952-c8106d70c4bc",
         "section_type": "Page Section",
         "status": "in review",
@@ -751,6 +757,7 @@
     },
     {
         "identifier": "genome_builds",
+        "title": "Genome Builds",
         "uuid": "455af80f-2dbd-40c7-b7b0-451783dc87ef",
         "section_type": "Page Section",
         "status": "in review",
@@ -767,6 +774,7 @@
     },
     {
         "identifier": "genome_annotations",
+        "title": "Genome Annotations",
         "uuid": "1dc93422-bed2-45c5-8f98-ee57414d4c4a",
         "section_type": "Page Section",
         "status": "in review",
@@ -783,6 +791,7 @@
     },
     {
         "identifier": "variant_catalogs",
+        "title": "Variant Catalogs",
         "uuid": "2112c809-bca7-46cc-b700-a5280cb2cdee",
         "section_type": "Page Section",
         "status": "in review",
@@ -799,6 +808,7 @@
     },
     {
         "identifier": "software_specific",
+        "title": "Software Specific",
         "uuid": "45e37138-0988-4f31-be2a-acec7605bf3d",
         "section_type": "Page Section",
         "status": "in review",
@@ -815,6 +825,7 @@
     },
     {
         "identifier": "release_changelog",
+        "title": "Release Changelog",
         "uuid": "408bc595-868c-43a6-a8f0-105c22ded302",
         "section_type": "Page Section",
         "status": "in review",
