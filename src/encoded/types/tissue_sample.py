@@ -27,6 +27,9 @@ from ..item_utils import (
     item as item_utils,
 )
 
+NDRI_TPC_ID = "ndri_tpc"
+NDRI_TPC_DT = "NDRI TPC"
+
 
 @collection(
     name="tissue-samples",
@@ -109,7 +112,7 @@ def is_tpc_submission(request, submission_centers):
         item_utils.get_identifier(
             get_item_or_none(request, center, "submission-centers")
         )
-        == "ndri_tpc"
+        == NDRI_TPC_ID
         for center in submission_centers
     )
 
@@ -153,57 +156,64 @@ def run_sample_metadata_validation(context, request, data, mode):
     submission_centers = get_property_value(
         "submission_centers", context, request, mode, data
     )
-
     if "force_pass" in request.query_string:
         return
-    if is_tpc_submission(request, submission_centers):
-        return
 
-    check_properties = ["category", "preservation_type"]
-    tpc_ts_search_url = f"/search/?type=TissueSample&submission_centers.display_title=NDRI+TPC&external_id={external_id}"
-
-    duplicate_ts_search_url = f"/search/?type=TissueSample&submission_centers.display_title!=NDRI+TPC&external_id={external_id}"
-
-    if ELASTIC_SEARCH not in request.registry:
-        return
-
-    # check if sample_source is Benchmarking or Production and ignore if not
-    # and if so first check for TPC sample source
     sample_source_ids = get_property_value(
         "sample_sources", context, request, mode, data
     )
     sample_source = get_item_or_none(request, sample_source_ids[0], "sample-sources")
     if not (tissue_utils.get_study(sample_source) in ["Benchmarking", "Production"]):
         return
-    tpc_sample_search = make_search_subreq(request, tpc_ts_search_url)
-    tpc_sample_search_resp = request.invoke_subrequest(tpc_sample_search, True)
-    if tpc_sample_search_resp.status_int >= 400:
+
+    """
+    NOTE: there is non-standard validation that depends on ELASTICSEARCH and therefore
+    there could be inconsistency with the database state. This generally should be avoided
+    but in this case we need to compare against existing TPC TissueSample records with search.
+    """
+    if ELASTIC_SEARCH not in request.registry:
+        return
+
+    # search for all tissue samples with this external_id
+    ts_search_url = f"/search/?type=TissueSample&external_id={external_id}"
+    ts_req = make_search_subreq(request, ts_search_url)
+    ts_resp = request.invoke_subrequest(ts_req, True)
+    samples = ts_resp.json_body.get("@graph", [])
+
+    tpc_samples = [
+        s for s in samples
+        if NDRI_TPC_DT in [
+            sc.get("display_title")
+            for sc in item_utils.get_submission_centers(s)
+        ]
+    ]
+    non_tpc_samples = [
+        s for s in samples
+        if NDRI_TPC_DT not in [
+            sc.get("display_title")
+            for sc in item_utils.get_submission_centers(s)
+        ]
+    ]
+
+    check_properties = ["category", "preservation_type"]
+    from_tpc = is_tpc_submission(request, submission_centers)
+    if from_tpc:
+        return
+    elif len(tpc_samples) == 0:
         return request.errors.add(
             "body",
-            f"TissueSample: No TPC Tissue Sample found for {submitted_id} Sample with external_id {external_id}",
+            f"TissueSample: No TPC Tissue Sample found with external_id {external_id}",
+        )
+    
+    # At this point we know this is a non-TPC submission and we have exactly one TPC sample    
+    if mode == "add" and non_tpc_samples:
+        return request.errors.add(
+            "body",
+            f"TissueSample: A non-TPC sample with external_id {external_id} already exists",
         )
 
-    # Check for duplicate non-TPC samples with same external_id
-    duplicate_sample_search = make_search_subreq(request, duplicate_ts_search_url)
-    duplicate_sample_search_resp = request.invoke_subrequest(
-        duplicate_sample_search, True
-    )
-    if mode == "add" and duplicate_sample_search_resp.status_int == 200:
-        return request.errors.add(
-            "body",
-            f"TissueSample: Error a non-TPC sample with external_id {external_id} already exists",
-        )
-    elif (
-        mode == "edit"
-        and duplicate_sample_search_resp.status_int == 200
-        and len(duplicate_sample_search_resp.json_body > 1)
-    ):
-        return request.errors.add(
-            "body",
-            f"TissueSample: Error multiple non-TPC samples with external_id {external_id} exist",
-        )
-
-    tpc_sample = tpc_sample_search_resp.json_body["@graph"][0]
+    # now we check against TPC sample as we know we have one of each
+    tpc_sample = tpc_samples[0]
     found = tpc_sample["accession"]  # for error message
     tpc_sample_source_uid = tpc_sample["sample_sources"][0]["uuid"]
     gcc_uuid = item_utils.get_uuid(sample_source)
