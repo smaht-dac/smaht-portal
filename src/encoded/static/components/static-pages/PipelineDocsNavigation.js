@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { RightArrowIcon } from '../util/icon';
 
 export const Dropdown = (props) => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -6,29 +7,32 @@ export const Dropdown = (props) => {
 
     return (
         <div className="dropdown">
-            <div className="parent-link">
-                <button
-                    className="dropdown-toggle btn"
+            <div className="header">
+                <div
+                    className="toggle d-flex align-items-center"
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isExpanded}
                     onClick={() => setIsExpanded(!isExpanded)}>
                     <i
                         className={`icon ${
-                            isExpanded ? 'icon-caret-up' : 'icon-caret-down'
-                        } fas`}></i>
-                </button>{' '}
-                <a href={parentLink}>
-                    <b>{parentTitle}</b>
+                            isExpanded ? 'icon-minus' : 'icon-plus'
+                        } fas me-1`}></i>
+                    <span>{parentTitle}</span>
+                </div>
+                <a className="header-link" href={parentLink}>
+                    <RightArrowIcon />
                 </a>
             </div>
-            <div className={`sublinks ${isExpanded ? 'open' : 'closed'}`}>
-                <ul>
+            {isExpanded && <hr className="my-auto" />}
+            <div className={`body ${isExpanded ? 'open' : 'closed'}`}>
+                <ul className="sublinks">
                     {subLinks.map((sublink, i) => {
                         return (
                             <li key={i} className="sublink-item">
-                                <div>
-                                    <a href={parentLink + sublink.href}>
-                                        {sublink.title}
-                                    </a>
-                                </div>
+                                <a href={parentLink + sublink.href}>
+                                    {sublink.title}
+                                </a>
                             </li>
                         );
                     })}
@@ -41,16 +45,13 @@ export const Dropdown = (props) => {
 export const PipelineDocsNavigation = (props) => {
     return (
         <div>
-            <h2>SMaHT Pipelines Documentation</h2>
             <p>
                 Welcome to the documentation for SMaHT analysis pipelines and
                 associated resources.
             </p>
 
-            <h3>CONTENTS</h3>
-
-            <div className="nav-group mb-2">
-                <h6>PREPROCESSING</h6>
+            <div className="nav-group">
+                <h6>Preprocessing</h6>
                 <Dropdown
                     parentTitle="FASTQ Files"
                     parentLink="/docs/additional-resources/pipeline-docs/fastq_files"
@@ -62,7 +63,7 @@ export const PipelineDocsNavigation = (props) => {
                     ]}
                 />
             </div>
-            <div className="nav-group mb-2">
+            <div className="nav-group">
                 <h6>ALIGNMENT</h6>
                 <Dropdown
                     parentTitle="Short-Read Illumina, Paired-End"
@@ -132,7 +133,7 @@ export const PipelineDocsNavigation = (props) => {
                 />
             </div>
 
-            <div className="nav-group mb-2">
+            <div className="nav-group">
                 <h6>ANALYSIS</h6>
                 <Dropdown
                     parentTitle="Short-Read RNA-seq, Paired-End"
@@ -183,7 +184,7 @@ export const PipelineDocsNavigation = (props) => {
                     ]}
                 />
             </div>
-            <div className="nav-group mb-2">
+            <div className="nav-group">
                 <h6>REFERENCE FILES</h6>
                 <Dropdown
                     parentTitle="Genome Builds"
@@ -239,7 +240,7 @@ export const PipelineDocsNavigation = (props) => {
                 />
             </div>
 
-            <div className="nav-group mb-2">
+            <div className="nav-group">
                 <h6>
                     <a href="/docs/additional-resources/pipeline-docs/release_changelog">
                         <span>Release CHANGELOG</span>

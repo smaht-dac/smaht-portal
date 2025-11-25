@@ -3467,40 +3467,156 @@ FAQ page styles
 
 // Pages under Pipeline Documentation
 [data-at-type^="DocsAdditional-resourcesPipeline-docs"] {
+	// Custom header sizing
+	h2 {
+		font-size: 28px;
+
+		&.section-title {
+			margin: 30px auto 40px auto;
+		}
+	}
+	h3 {
+		font-size: 22px;
+	}
+	h4 {
+		font-size: 20px;
+	}
+	h5 {
+		font-size: 16px;
+	}
+
+	// Custom table styling
+	table {
+		border: 1px solid #dee2e6;
+		border-left: none;
+		width: 100%;
+
+		thead > tr > th {
+			background-color: $baby-20;
+		}
+
+		tr {
+			border-bottom: 1px solid #dee2e6;
+		}
+		
+		tbody tr:nth-child(even) > td {
+			background-color: #f9f9f9;
+		}
+
+		td, th {
+			padding: 0.75rem 0.75rem 0.75rem 1rem;
+			text-align: left;
+			border-left: 1px solid #dee2e6;
+		}
+	}
+
+	hr {
+		margin: 60px 0px;
+	}
+
 	.table-of-contents {
 		.parent-entry {
 			display: flex;
 			
+			div.row > div.col > a {
+				background-color: $primary;
+				color: $pure-white;
+				font-weight: 500;
+				padding: 8px 16px;
+				border-radius: 5px;
+				margin-left: 0px;
+
+				&:hover {
+					background-color: darken($primary, 5%);
+				}
+				&:active {
+					background-color: darken($primary, 10%);
+				}
+			}
+
 			.expand-button-container {
 				display: none;
 			}
 		}
 	}
 
-	.dropdown {
-		.parent-link {
-			display: flex;
-			align-items: center;
-			gap: 5px;
-		}
+	.section-content {
+		.nav-group {
+			margin-bottom: 3rem;
 
-		.sublinks {
-			display: flex;
-			&.closed {
-				display: none;
+			h6, h6 > a {
+				color: $homepage-header-text-color;
+				font-size: 0.875rem;
 			}
 		}
-		&-toggle {
-			display: flex;
-			justify-content: center;
-			background-color: transparent;
-			border: none;
-			padding: 0px;
+		
+		.dropdown {
+			background-color: $pure-white;
+			border: 1px solid $homepage-timeline-bg-color-inactive;
+			border-radius: 8px;
+			margin-bottom: 0.5rem;
 
-			&:after {
-				display: none;
+			.header {
+				position: relative;
+				display: flex;
+				align-items: center;
+				gap: 5px;
+				justify-content: space-between;
+				font-size: 1.125rem;
+				
+				.toggle {
+					display: flex;
+					flex: 1;
+					padding: 15px;
+
+					span {
+						font-weight: 600;
+						color: $homepage-card-text-color;
+					}
+
+					i {
+						color: $homepage-timeline-bg-color-inactive;
+					}
+
+					&:after {
+						display: none;
+					}
+				}
+
+				.header-link {
+					position: absolute;
+					right: 20px;
+					top: 50%;
+					transform: translateY(-50%);
+				}
+				svg {
+					fill: $homepage-timeline-bg-color-inactive;
+					&:hover {
+						fill: $homepage-card-text-color;
+						cursor: pointer;
+					}
+				}
+			}
+
+			hr {
+				opacity: 1;
+				color: $homepage-timeline-bg-color-inactive;
+			}
+
+			.body {
+				padding: 15px;
+
+				.sublinks {
+					.sublink-item > a {
+						color: $homepage-card-text-color;
+						font-size: 1rem;
+					}
+				}
+
+				&.closed {
+					display: none;
+				}
 			}
 		}
-
 	}
 }
