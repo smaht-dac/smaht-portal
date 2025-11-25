@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+1.5.11
+======
+
+`PR 560: Data matrix dataset filtering <https://github.com/smaht-dac/smaht-portal/pull/560>`_
+
+* Filter-out 'No value' datasets from data matrix views for both Benchmarking, Production and Donor
+* Update Cypress tests accordingly
+
+
 1.5.10
 ======
 
