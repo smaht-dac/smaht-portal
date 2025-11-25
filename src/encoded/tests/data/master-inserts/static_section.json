@@ -638,7 +638,7 @@
     },
     {
         "identifier": "donor_manifest_dictionary",
-        "title": "Donor Manifest Dictionary",
+        "title": "Donor/ProtectedDonor Metadata Dictionary",
         "file": "/docs/public/donor_manifest_dictionary.jsx",
         "status": "open",
         "options": {
