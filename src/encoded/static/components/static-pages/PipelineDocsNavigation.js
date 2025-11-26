@@ -18,7 +18,9 @@ export const Dropdown = (props) => {
                         className={`icon ${
                             isExpanded ? 'icon-minus' : 'icon-plus'
                         } fas me-1`}></i>
-                    <span>{parentTitle}</span>
+                    <a className="parent-link" href={parentLink}>
+                        {parentTitle}
+                    </a>
                 </div>
                 <a className="header-link" href={parentLink}>
                     <RightArrowIcon />
@@ -26,7 +28,7 @@ export const Dropdown = (props) => {
             </div>
             {isExpanded && <hr className="my-auto" />}
             <div className={`body ${isExpanded ? 'open' : 'closed'}`}>
-                <ul className="sublinks">
+                <ol className="sublinks">
                     {subLinks.map((sublink, i) => {
                         return (
                             <li key={i} className="sublink-item">
@@ -36,7 +38,7 @@ export const Dropdown = (props) => {
                             </li>
                         );
                     })}
-                </ul>
+                </ol>
             </div>
         </div>
     );
@@ -45,7 +47,7 @@ export const Dropdown = (props) => {
 export const PipelineDocsNavigation = (props) => {
     return (
         <div>
-            <p>
+            <p className="introduction md-2">
                 Welcome to the documentation for SMaHT analysis pipelines and
                 associated resources.
             </p>
@@ -56,6 +58,10 @@ export const PipelineDocsNavigation = (props) => {
                     parentTitle="FASTQ Files"
                     parentLink="/docs/additional-resources/pipeline-docs/fastq_files"
                     subLinks={[
+                        {
+                            title: 'Overview',
+                            href: '#overview',
+                        },
                         {
                             title: 'polyG Artifacts Removal',
                             href: '#polyg-artifacts-removal',
@@ -69,6 +75,10 @@ export const PipelineDocsNavigation = (props) => {
                     parentTitle="Short-Read Illumina, Paired-End"
                     parentLink="/docs/additional-resources/pipeline-docs/short-read_illumina_paired-end"
                     subLinks={[
+                        {
+                            title: 'Overview',
+                            href: '#overview',
+                        },
                         {
                             title: 'Alignment',
                             href: '#alignment-with-bwa-mem',
@@ -100,6 +110,10 @@ export const PipelineDocsNavigation = (props) => {
                     parentLink="/docs/additional-resources/pipeline-docs/long-read_pacbio_hifi"
                     subLinks={[
                         {
+                            title: 'Overview',
+                            href: '#overview',
+                        },
+                        {
                             title: 'Alignment',
                             href: '#alignment-with-pbmm2',
                         },
@@ -117,6 +131,10 @@ export const PipelineDocsNavigation = (props) => {
                     parentTitle="Long-Read Oxford Nanopore"
                     parentLink="/docs/additional-resources/pipeline-docs/long-read_oxford_nanopore"
                     subLinks={[
+                        {
+                            title: 'Overview',
+                            href: '#overview',
+                        },
                         {
                             title: 'Alignment',
                             href: '#alignment-with-minimap2',
@@ -140,6 +158,10 @@ export const PipelineDocsNavigation = (props) => {
                     parentLink="/docs/additional-resources/pipeline-docs/short-read_rna-seq_paired-end"
                     subLinks={[
                         {
+                            title: 'Overview',
+                            href: '#overview',
+                        },
+                        {
                             title: 'Alignment',
                             href: '#alignment-with-star',
                         },
@@ -161,6 +183,10 @@ export const PipelineDocsNavigation = (props) => {
                     parentTitle="Long-Read RNA-seq, PacBio Kinnex"
                     parentLink="/docs/additional-resources/pipeline-docs/long-read_rna-seq_pacbio_kinnex"
                     subLinks={[
+                        {
+                            title: 'Overview',
+                            href: '#overview',
+                        },
                         {
                             title: 'Read Clustering',
                             href: '#read-clustering',
@@ -191,6 +217,10 @@ export const PipelineDocsNavigation = (props) => {
                     parentLink="/docs/additional-resources/pipeline-docs/genome_builds"
                     subLinks={[
                         {
+                            title: 'Overview',
+                            href: '#overview',
+                        },
+                        {
                             title: 'Build GRCh38',
                             href: '#build-grch38',
                         },
@@ -201,6 +231,10 @@ export const PipelineDocsNavigation = (props) => {
                     parentLink="/docs/additional-resources/pipeline-docs/genome_annotations"
                     subLinks={[
                         {
+                            title: 'Overview',
+                            href: '#overview',
+                        },
+                        {
                             title: 'GENCODE',
                             href: '#gencode',
                         },
@@ -210,6 +244,10 @@ export const PipelineDocsNavigation = (props) => {
                     parentTitle="Variant Catalogs"
                     parentLink="/docs/additional-resources/pipeline-docs/variant_catalogs"
                     subLinks={[
+                        {
+                            title: 'Overview',
+                            href: '#overview',
+                        },
                         {
                             title: 'Single Nucleotide Polymorphism Database',
                             href: '#single-nucleotide-polymorphism-database',
@@ -241,11 +279,11 @@ export const PipelineDocsNavigation = (props) => {
             </div>
 
             <div className="nav-group">
-                <h6>
+                <h5 className="changelog">
                     <a href="/docs/additional-resources/pipeline-docs/release_changelog">
                         <span>Release CHANGELOG</span>
                     </a>
-                </h6>
+                </h5>
             </div>
         </div>
     );
