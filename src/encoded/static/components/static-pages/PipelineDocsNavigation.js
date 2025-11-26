@@ -51,7 +51,7 @@ export const PipelineDocsNavigation = (props) => {
             </p>
 
             <div className="nav-group">
-                <h6>Preprocessing</h6>
+                <h6>PREPROCESSING</h6>
                 <Dropdown
                     parentTitle="FASTQ Files"
                     parentLink="/docs/additional-resources/pipeline-docs/fastq_files"
