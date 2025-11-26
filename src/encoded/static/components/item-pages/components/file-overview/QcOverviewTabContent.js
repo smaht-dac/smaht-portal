@@ -102,7 +102,7 @@ const QCOverviewTable = ({
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        if (session && qcItems?.length > 0) {
+        if (qcItems?.length > 0) {
             setIsLoading(true);
             const searchUrl = `/search/?${qcItems
                 .map((item) => `uuid=${item.uuid}`)

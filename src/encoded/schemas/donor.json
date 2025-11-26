@@ -68,15 +68,51 @@
         }
     },
     "facets": {
-        "sex": {
-            "title": "Sex"
+        "external_id": {
+            "title": "Donor ID"
         },
         "age": {
-            "title": "Age",
-            "aggregation_type": "stats"
+            "title": "Donor Age",
+            "aggregation_type": "range",
+            "number_step": 1,
+            "ranges": [
+                {
+                    "from": 18,
+                    "to": 30
+                },
+                {
+                    "from": 31,
+                    "to": 55
+                },
+                {
+                    "from": 56,
+                    "to": 65
+                },
+                {
+                    "from": 66,
+                    "to": 75
+                },
+                {
+                    "from": 76,
+                    "to": 85
+                },
+                {
+                    "from": 86
+                }
+            ]
+        },
+        "sex": {
+            "title": "Donor Sex"
+        },
+        "tissue.display_title": {
+            "title": "Tissue"
         },
         "submission_centers.display_title": {
             "title": "Submitted By"
+        },
+        "hardy_scale": {
+            "title": "Hardy Scale",
+            "aggregation_type": "terms"
         }
     },
     "columns": {

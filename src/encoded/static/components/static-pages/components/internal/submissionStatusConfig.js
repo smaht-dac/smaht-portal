@@ -16,6 +16,14 @@ export const DEFAULT_FILTER = {
     exclude_tags: [],
 };
 
+export const EXTERNAL_RELEASE_STATUSES = ['open', 'protected'];
+export const INTERNAL_RELEASE_STATUSES = [
+    'open-early',
+    'open-network',
+    'protected-early',
+    'protected-network'
+];
+
 // There is currently no good way to get these from the portal.
 // Since this is a set list, we will hardcode them for now.
 export const PRIMARY_PRODUCTION_TISSUES = [
@@ -38,7 +46,4 @@ export const PRIMARY_PRODUCTION_TISSUES = [
     'Testis',
 ];
 
-export const CELL_CULTURE_MIXTURES = [
-    'HAPMAP6',
-    'COLO829BLT50',
-];
+export const CELL_CULTURE_MIXTURES = ['HAPMAP6', 'COLO829BLT50'];

@@ -128,22 +128,25 @@ def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_f
     """
     assert not reference_file.get('file_status_tracking')  # should be absent
     res = output_file['file_status_tracking']
-    assert 'in review' in res
-    assert 'released' not in res
-    assert 'released_date' not in res
-    assert 'public' not in res
+    status_tracking = res["status_tracking"]
+    assert 'in review' in status_tracking
+    assert 'released' not in status_tracking
+    assert 'released_date' not in status_tracking
+    assert 'open' not in status_tracking
     res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
                                      {'status': 'released'}).json['@graph'][0]['file_status_tracking']
-    assert 'in review' in res
-    assert 'released' in res
-    assert 'released_date' in res
-    assert 'public' not in res
+    status_tracking = res["status_tracking"]
+    assert 'in review' in status_tracking
+    assert 'released' in status_tracking
+    assert 'released_date' in status_tracking
+    assert 'open' not in status_tracking
     res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
-                                     {'status': 'public'}).json['@graph'][0]['file_status_tracking']
-    assert 'in review' in res
-    assert 'released' in res
-    assert 'released_date' in res
-    assert 'public' in res
+                                     {'status': 'open'}).json['@graph'][0]['file_status_tracking']
+    status_tracking = res["status_tracking"]
+    assert 'in review' in status_tracking
+    assert 'released' in status_tracking
+    assert 'released_date' in status_tracking
+    assert 'open' in status_tracking
 
 
 @pytest.mark.parametrize(
@@ -154,7 +157,7 @@ def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_f
         ("archived", False),
         ("in review", True),
         ("obsolete", False),
-        ("public", False),
+        ("open", False),
     ]
 )
 def test_upload_credentials(
@@ -180,8 +183,8 @@ def test_upload_credentials(
     "status,expected",
     [
         ("released", "Open"),
-        ("public", "Open"),
-        ("restricted", "Protected"),
+        ("open", "Open"),
+        ("protected-network", "Protected"),
         ("deleted", None),  # test just one additional since there is significant setup cost
     ]
 )

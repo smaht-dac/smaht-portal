@@ -8,7 +8,7 @@ import Card from 'react-bootstrap/esm/Card';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import ReactTooltip from 'react-tooltip';
 import { RightArrowIcon } from '../util/icon';
-
+import { BROWSE_LINKS } from '../../components/browse/BrowseView';
 const TimelineItem = ({
     currentTier,
     setCurrentTier,
@@ -117,8 +117,12 @@ function ContextAwareToggle({
                 </button>
             )}
             {link ? (
-                <a href={link} className="card-header-link">
-                    <RightArrowIcon fill={currentTier === tier ? '#74CFB2' : '#9CC7EF'} />
+                <a
+                    href={link === '/browse' ? BROWSE_LINKS.file : link}
+                    className="card-header-link">
+                    <RightArrowIcon
+                        fill={currentTier === tier ? '#74CFB2' : '#9CC7EF'}
+                    />
                 </a>
             ) : null}
         </div>
@@ -304,8 +308,8 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
         <div className="container timeline-container">
             <div id="timeline" className={`tier-${currentTier}`}>
                 <span className="latest-release">
-                    <b>Latest Release: </b>
-                    {data.release_date ?? (
+                    <b>Latest Official Release: </b> October 11, 2025
+                    {/* {data.release_date ?? (
                         <>
                             {isLoading && (
                                 <span className="spinner">
@@ -319,7 +323,7 @@ export default function SMaHTTimeline({ currentTier, setCurrentTier }) {
                                 />
                             )}
                         </>
-                    )}
+                    )} */}
                 </span>
 
                 {data.timeline_content.map((d, i) => {

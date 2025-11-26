@@ -157,16 +157,16 @@ const TissueGroup = ({ tissue_group, items }) => {
 // Warning to include in the data release item for September 2025
 const ReleaseItemWarning = () => {
     return (
-        <div className="announcement-container warning">
+        <div className="announcement-container cram-conversion">
             <div className="header">
                 <i className="icon fas icon-database"></i>
                 <span>CRAM CONVERSION</span>
             </div>
-            <span>
+            <div className="body">
                 As of September 15, 2025, all released BAMs have been converted
                 to CRAMs for optimal file storage at the DAC. The data release
                 tracker will start to announce new CRAMs as they are released.
-            </span>
+            </div>
         </div>
     );
 };
@@ -260,18 +260,18 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
     return (
         <div
             className={`data-release-item-container ${
-                isToggled ? 'expanded' : 'collapsed'
+                isExpanded ? 'expanded' : 'collapsed'
             }`}>
             <div className="content">
                 <div className="header">
                     <button
                         className="toggle-button"
                         onClick={() => {
-                            toggle();
+                            setIsExpanded(!isExpanded);
                         }}>
                         <i
                             className={`icon icon-${
-                                isToggled ? 'minus' : 'plus'
+                                isExpanded ? 'minus' : 'plus'
                             }`}></i>
                     </button>
                     <a className="header-link" href={count > 0 ? query : null}>
@@ -426,12 +426,13 @@ export const NotificationsPanel = () => {
                 <div className="section-body-container">
                     <div className="section-body">
                         <div className="section-body-items-container">
+                            {/* <ReleaseItemWarning /> */}
                             {data === null ? (
                                 <i className="icon fas icon-spinner icon-spin"></i>
                             ) : data.length === 0 ? (
                                 <DataReleaseItem
                                     data={{
-                                        name: 'file_status_tracking.released',
+                                        name: 'file_status_tracking.release_dates.initial_release',
                                         value: '2025-09',
                                         count: 0,
                                         items: [],

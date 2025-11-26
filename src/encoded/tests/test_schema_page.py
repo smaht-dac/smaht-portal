@@ -11,7 +11,7 @@ def page(testapp: TestApp, test_consortium: Dict[str, Any]) -> Dict[str, Any]:
     item = {
         "identifier": "some-page",
         "consortia": [test_consortium["uuid"]],
-        "status": "public",
+        "status": "open",
         "table-of-contents": {
             "enabled": True,
             "header-depth": 3,

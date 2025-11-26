@@ -1,13 +1,16 @@
 from typing import List, Union
 
 from pyramid.request import Request
-from snovault import  collection, load_schema, calculated_property
+from snovault import collection, load_schema, calculated_property
 
 from .abstract_donor import AbstractDonor
 
+
 def _build_donor_embedded_list():
     """Embeds for search on donor."""
-    return []
+    return [
+        "tissues.tissue_type",
+    ]
 
 
 @collection(

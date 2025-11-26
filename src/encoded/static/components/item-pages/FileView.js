@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import url from 'url';
 import _ from 'underscore';
 import queryString from 'query-string';
@@ -11,6 +11,16 @@ import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/comp
 import { SelectedItemsDownloadButton } from '../static-pages/components/SelectAllAboveTableComponent';
 import { ShowHideInformationToggle } from './components/file-overview/ShowHideInformationToggle';
 import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
+
+import { OverlayTrigger } from 'react-bootstrap';
+import {
+    renderLoginAccessPopover,
+    renderProtectedAccessPopover,
+} from './PublicDonorView';
+import { useUserDownloadAccess } from '../util/hooks';
+import { statusBadgeMap } from './components/file-overview/FileViewDataCards';
+
+import { BROWSE_LINKS } from '../browse/BrowseView';
 
 // Page containing the details of Items of type File
 export default class FileOverview extends DefaultItemView {
@@ -68,8 +78,7 @@ const FileViewTitle = (props) => {
         )
     ) {
         currentBreadcrumb.display_title = 'Browse by File';
-        currentBreadcrumb.href =
-            '/browse/?type=File&sample_summary.studies=Production&status=released';
+        currentBreadcrumb.href = BROWSE_LINKS.file;
         breadcrumbs = [...breadcrumbs, currentBreadcrumb];
     } else if (
         context?.sample_summary?.studies?.some(
@@ -110,7 +119,7 @@ const FileViewTitle = (props) => {
 
 // Header component containing high-level information for the file item
 const FileViewHeader = (props) => {
-    const { context = {}, session } = props;
+    const { context = {}, session, userDownloadAccess } = props;
     const {
         accession,
         status,
@@ -167,20 +176,41 @@ const FileViewHeader = (props) => {
         );
     }
 
+    const { statusTitle = capitalizeSentence(status), badge = null } =
+        statusBadgeMap?.[status] || {};
+
     return (
         <div className="file-view-header">
             <div className="data-group data-row header">
                 <h1 className="header-text">File Overview</h1>
-                <SelectedItemsDownloadButton
-                    id="download_tsv_multiselect"
-                    className="btn btn-primary btn-sm me-05 align-items-center download-file-button"
-                    session={session}
-                    selectedItems={selectedFile}
-                    disabled={false}
-                    analyticsAddItemsToCart>
-                    <i className="icon icon-download fas me-07" />
-                    Download File
-                </SelectedItemsDownloadButton>
+                {session && userDownloadAccess?.[status] ? (
+                    <SelectedItemsDownloadButton
+                        id="download_tsv_multiselect"
+                        className="btn btn-primary btn-sm me-05 align-items-center"
+                        session={session}
+                        selectedItems={selectedFile}
+                        disabled={false}
+                        analyticsAddItemsToCart>
+                        <i className="icon icon-download fas me-07" />
+                        Download File
+                    </SelectedItemsDownloadButton>
+                ) : (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="top"
+                        overlay={
+                            status === 'open'
+                                ? renderLoginAccessPopover()
+                                : renderProtectedAccessPopover()
+                        }>
+                        <button
+                            className="download-button btn btn-primary btn-sm me-05 align-items-center pe-auto "
+                            disabled={true}>
+                            <i className="icon icon-download fas me-03" />
+                            Download File
+                        </button>
+                    </OverlayTrigger>
+                )}
             </div>
 
             {!accessionsOfInterest.includes(accession) &&
@@ -230,12 +260,18 @@ const FileViewHeader = (props) => {
                 </div>
                 <div className="datum right-group">
                     <div className="status-group">
-                        <i
-                            className="status-indicator-dot"
-                            data-status={status}></i>
-                        <span className="status">
-                            {capitalizeSentence(status)}
-                        </span>
+                        <div className={`file-status ${status}`}>
+                            <i
+                                className="status-indicator-dot me-07"
+                                data-status={status}
+                            />
+                            {statusTitle ?? status}
+                            {badge && (
+                                <span className={`ms-1 badge ${status}`}>
+                                    {badge}
+                                </span>
+                            )}
+                        </div>
                     </div>
                     <span className="vertical-divider">|</span>
                     <ViewJSONAction href={context['@id']}>
@@ -291,19 +327,25 @@ const FileViewHeader = (props) => {
 };
 
 /** Top-level component for the File Overview Page */
-const FileView = React.memo(function FileView(props) {
+const FileView = (props) => {
     const { context, session, href } = props;
+    const userDownloadAccess = useUserDownloadAccess(session);
+
     return (
         <div className="file-view">
             <FileViewTitle context={context} session={session} href={href} />
             <div className="view-content">
-                <FileViewHeader context={context} session={session} />
+                <FileViewHeader
+                    context={context}
+                    session={session}
+                    userDownloadAccess={userDownloadAccess}
+                />
                 <FileViewDataCards context={context} />
                 <FileViewTabs {...props} />
             </div>
         </div>
     );
-});
+};
 
 /**
  * Tab object for the FileView component, provides necessary information

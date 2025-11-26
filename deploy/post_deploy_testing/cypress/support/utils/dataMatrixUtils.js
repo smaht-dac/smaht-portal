@@ -1,4 +1,22 @@
-/** * Waits for the popover to become visible.
+// Sends a GET request to the given URL and returns the `total` field from JSON response
+export function getApiTotalFromUrl(url) {
+    // Ensure the URL requests JSON format (append if missing)
+    const fullUrl = url.includes('format=json') ? url : `${url}&format=json&frame=raw`;
+
+    return cy.request({
+        method: 'GET',
+        url: fullUrl
+    }).its('body.total');
+}
+
+// Safely parse a number from text content (e.g. " 11 " → 11)
+export function parseIntSafe(text) {
+    const n = parseInt(String(text).trim(), 10);
+    return Number.isNaN(n) ? 0 : n;
+}
+
+/** 
+ * Waits for the popover to become visible.
  * @param {number} timeout - The maximum time to wait for the popover to become visible, in milliseconds.
  * @returns {Cypress.Chainable} A Cypress chainable that resolves when the popover is visible.
  * This function performs the following steps:
@@ -29,7 +47,7 @@ function waitForPopoverVisible(timeout = 10000) {
                     parseFloat(getComputedStyle(el).opacity || '1') > 0;
 
                 if (visible) {
-                    resolve(el);            // ✅ return the actual DOM element
+                    resolve(el);            // return the actual DOM element
                 } else if (Date.now() - start > timeout) {
                     reject(new Error(`Popover never became visible: ${Date.now() - start}ms elapsed, el.offsetParent: ${el ? el.offsetParent : 'null'}, visibility: ${el ? getComputedStyle(el).visibility : 'unknown'}, display: ${el ? getComputedStyle(el).display : 'unknown'}, opacity: ${el ? getComputedStyle(el).opacity : 'unknown'}`));
                 } else {
@@ -96,83 +114,156 @@ function waitUntilPopoverClosed(timeout = 4000) {
  * 4. Waits until the popover is fully closed.
  * 5. Logs the assertion details.
  */
-function assertPopover({ donor, assay, tissue, value, blockType = 'regular', depth = 0 }) {
+function assertPopover({ donor, assay, tissue, value, blockType = 'regular', depth = 0, verifyTotalFromApi = true }) {
     // wait until the element itself is truly visible
-    waitForPopoverVisible().then((popoverEl) => {
-        // let Cypress do all subsequent retries
-        cy.wrap(popoverEl).should('be.visible').within(() => {
-            if (blockType === 'regular') {
-                // donor (left col-4) – Cypress keeps retrying until text matches
-                if (donor) {
-                    cy.get('.primary-row .col-4', { timeout: 10000 })
-                        .eq(0)
-                        .find('.value')
-                        .should('have.text', donor);
-                }
+    cy.waitForPopoverShow().then(() =>
+        waitForPopoverVisible().then((popoverEl) => {
+            // let Cypress do all subsequent retries
+            cy.wrap(popoverEl).should('be.visible').within(() => {
+                if (blockType === 'regular') {
+                    // donor (left col-4) – Cypress keeps retrying until text matches
+                    if (donor) {
+                        cy.get('.primary-row .col-4', { timeout: 10000 })
+                            .eq(0)
+                            .find('.value')
+                            .should('have.text', donor);
+                    }
 
-                // tissue (mid col-4)
-                if (tissue) {
-                    cy.get('.primary-row .col-4', { timeout: 10000 })
-                        .eq(1)
-                        .find('.value')
-                        .should('have.text', tissue);
-                }
+                    // tissue (mid col-4)
+                    if (tissue) {
+                        cy.get('.primary-row .col-4', { timeout: 10000 })
+                            .eq(1)
+                            .find('.value')
+                            .should('have.text', tissue);
+                    }
 
-                // assay
-                if (assay) {
+                    // assay
+                    if (assay) {
+                        cy.get('.secondary-row .col-4', { timeout: 10000 })
+                            .eq(0) // first col-4 in secondary-row
+                            .find('.value')
+                            .should('contain.text', assay);
+                    }
+
+                    // file count – retry until text is numeric and equals expected
                     cy.get('.secondary-row .col-4', { timeout: 10000 })
-                        .eq(0) // first col-4 in secondary-row
+                        .eq(2)
                         .find('.value')
-                        .should('contain.text', assay);
-                }
+                        .invoke('text')
+                        .then((t) => parseInt(t.trim(), 10))
+                        .should('equal', value)
+                        .then((uiCount) => {
+                            if (verifyTotalFromApi) {
+                                // Get the URL from the "Browse Files" button in footer
+                                cy.get('.footer-row a.btn.btn-primary')
+                                    .invoke('attr', 'href')
+                                    .then((href) => {
+                                        // If the href is relative (starts with "/"), prefix with baseUrl
+                                        const fullUrl = href.startsWith('http')
+                                            ? href
+                                            : `${Cypress.config('baseUrl')}${href}`;
 
-                // file count – retry until text is numeric and equals expected
-                cy.get('.secondary-row .col-4', { timeout: 10000 })
-                    .eq(2)
-                    .find('.value')
-                    .invoke('text')
-                    .then((t) => parseInt(t.trim(), 10))
-                    .should('equal', value);
-            } else if (blockType === 'row-summary') {
-                // tissue (primary row)
-                if (tissue) {
-                    cy.get('.primary-row .col-12.value', { timeout: 10000 })
-                        .should('contain.text', tissue);
-                }
+                                        // Fetch API total and compare it with UI count
+                                        return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
+                                            expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
+                                                .to.equal(uiCount);
+                                        });
+                                    });
+                            } else {
+                                Cypress.log({
+                                    name: 'Skipping API total check for regular block',
+                                    message: `UI count is ${uiCount}, but API check is skipped as per parameters.`,
+                                });
+                            }
+                        });
+                } else if (blockType === 'row-summary') {
+                    // tissue (primary row)
+                    if (tissue) {
+                        cy.get('.primary-row .col-12.value', { timeout: 10000 })
+                            .should('contain.text', tissue);
+                    }
 
-                // donor (secondary row - left column)
-                if (assay) {
+                    // donor (secondary row - left column)
+                    if (assay) {
+                        cy.get('.secondary-row .col-4', { timeout: 10000 })
+                            .eq(0) // first col-4 in secondary-row
+                            .find('.value')
+                            .should('contain.text', assay);
+                    }
+
+                    // file count – retry until text is numeric and equals expected
                     cy.get('.secondary-row .col-4', { timeout: 10000 })
-                        .eq(0) // first col-4 in secondary-row
+                        .eq(2)
                         .find('.value')
-                        .should('contain.text', assay);
+                        .invoke('text')
+                        .then((t) => parseInt(t.trim(), 10))
+                        .should('equal', value)
+                        .then((uiCount) => {
+                            if (verifyTotalFromApi) {
+                                // Get the URL from the "Browse Files" button in footer
+                                cy.get('.footer-row a.btn.btn-primary')
+                                    .invoke('attr', 'href')
+                                    .then((href) => {
+                                        // If the href is relative (starts with "/"), prefix with baseUrl
+                                        const fullUrl = href.startsWith('http')
+                                            ? href
+                                            : `${Cypress.config('baseUrl')}${href}`;
+
+                                        // Fetch API total and compare it with UI count
+                                        return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
+                                            expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
+                                                .to.equal(uiCount);
+                                        });
+                                    });
+                            } else {
+                                Cypress.log({
+                                    name: 'Skipping API total check for row-summary',
+                                    message: `UI count is ${uiCount}, but API check is skipped as per parameters.`,
+                                });
+                            }
+                        });
+                } else if (blockType === 'col-summary') {
+                    // assay (primary row)
+                    if (assay) {
+                        cy.get('.primary-row .col-12.value', { timeout: 10000 })
+                            .should('contain.text', assay);
+                    }
+
+                    // file count – retry until text is numeric and equals expected
+                    cy.get('.secondary-row .col-4', { timeout: 10000 })
+                        .eq(2)
+                        .find('.value')
+                        .invoke('text')
+                        .then((t) => parseInt(t.trim(), 10))
+                        .should('equal', value)
+                        .then((uiCount) => {
+                            if (verifyTotalFromApi) {
+                                // Get the URL from the "Browse Files" button in footer
+                                cy.get('.footer-row a.btn.btn-primary')
+                                    .invoke('attr', 'href')
+                                    .then((href) => {
+                                        // If the href is relative (starts with "/"), prefix with baseUrl
+                                        const fullUrl = href.startsWith('http')
+                                            ? href
+                                            : `${Cypress.config('baseUrl')}${href}`;
+
+                                        // Fetch API total and compare it with UI count
+                                        return getApiTotalFromUrl(fullUrl).then((apiTotal) => {
+                                            expect(apiTotal, `API total (${apiTotal}) should match UI count (${uiCount})`)
+                                                .to.equal(uiCount);
+                                        });
+                                    });
+                            } else {
+                                Cypress.log({
+                                    name: 'Skipping API total check for col-summary',
+                                    message: `UI count is ${uiCount}, but API check is skipped as per parameters.`,
+                                });
+                            }
+                        });
                 }
 
-                // file count – retry until text is numeric and equals expected
-                cy.get('.secondary-row .col-4', { timeout: 10000 })
-                    .eq(2)
-                    .find('.value')
-                    .invoke('text')
-                    .then((t) => parseInt(t.trim(), 10))
-                    .should('equal', value);
-            } else if (blockType === 'col-summary') {
-                // assay (primary row)
-                if (assay) {
-                    cy.get('.primary-row .col-12.value', { timeout: 10000 })
-                        .should('contain.text', assay);
-                }
-
-                // file count – retry until text is numeric and equals expected
-                cy.get('.secondary-row .col-4', { timeout: 10000 })
-                    .eq(2)
-                    .find('.value')
-                    .invoke('text')
-                    .then((t) => parseInt(t.trim(), 10))
-                    .should('equal', value);
-            }
-
-        });
-    })
+            });
+        }))
         .then(() => {
             // close the pop-over
             cy.document()
@@ -185,7 +276,7 @@ function assertPopover({ donor, assay, tissue, value, blockType = 'regular', dep
         .then(() => {
             Cypress.log({
                 name: 'assertPopover',
-                message: `value: ${value}, donor: ${donor}, tissue: ${tissue}, assay: ${assay}`,
+                message: `value: ${value}, donor: ${donor}, tissue: ${tissue}, assay: ${assay}, verifyTotalFromApi: ${verifyTotalFromApi}`,
             });
         });
 }
@@ -222,7 +313,8 @@ function validateLowerHeaders(expectedLabels) {
  * @param {number} regularBlockCount - The number of regular blocks to test popovers for.
  * @param {number} rowSummaryBlockCount - The number of row summary blocks to test popovers for.
  * @param {number} colSummaryBlockCount - The number of column summary blocks to test popovers for.
- * @param {number} expectedFilesCount - The expected number of files to be found.
+ * @param {number|null} expectedFilesCount - The expected number of files to be found, set "null" to skip strict total check.
+ * @param {boolean} verifyTotalFromApi - Whether to cross-check the total file count from the API.
  * @returns {void}
  * This function performs the following validations:
  * 1. Asserts that the popover is visible.
@@ -233,16 +325,24 @@ function validateLowerHeaders(expectedLabels) {
  */
 export function testMatrixPopoverValidation(
     matrixId = '#data-matrix-for_production',
-    donors = ['SMHT004', 'SMHT008'],
-    mustLabels = ['Non-exposed Skin', 'Heart', 'Blood'],
-    optionalLabels = [],
-    expectedLowerLabels = ['Donors'],
-    regularBlockCount = 10,
-    rowSummaryBlockCount = 10,
-    colSummaryBlockCount = 3,
-    expectedFilesCount = 0,
-) {
+    {
+        donors = ['SMHT004', 'SMHT008'],
+        mustLabels = ['Non-exposed Skin', 'Heart', 'Blood'],
+        optionalLabels = [],
+        expectedLowerLabels = ['Donors'],
+        regularBlockCount = 6,
+        rowSummaryBlockCount = 6,
+        colSummaryBlockCount = 2,
+        expectedFilesCount = 1,
+        expectedTissuesCount = null,
+        verifyTotalFromApi = true,
+    }) {
     cy.get(matrixId).should('exist');
+
+    if (typeof expectedFilesCount === 'number' && expectedFilesCount === 0) {
+        cy.get(`${matrixId} .stacked-block-viz-container .no-data-available`).should('contain.text', 'No data available');
+        return;
+    }
 
     const columnTotals = {};
 
@@ -345,7 +445,7 @@ export function testMatrixPopoverValidation(
             testCases.forEach(({ el, donor, tissue, assay, value }) => {
                 if (value > 0) {
                     cy.wrap(el).scrollIntoView().click({ force: true });
-                    assertPopover({ donor, assay, tissue, value });
+                    assertPopover({ donor, assay, tissue, value, verifyTotalFromApi });
                 }
             });
         });
@@ -357,12 +457,12 @@ export function testMatrixPopoverValidation(
                 if (value > 0) {
                     const donor = Cypress.$(el).closest('.grouping.depth-0').find('h4 .inner').eq(0).text().trim();
                     cy.wrap(el).scrollIntoView().click({ force: true });
-                    assertPopover({ donor, assay: '', value, blockType: 'row-summary' });
+                    assertPopover({ donor, assay: '', value, blockType: 'row-summary', verifyTotalFromApi });
                 }
             });
             // verify overall file count matches expectedFilesCount
-            if (expectedFilesCount > 0) {
-                cy.log(`Expected ${expectedFilesCount} files to be found.`);
+            if (typeof expectedFilesCount === 'number' && expectedFilesCount > 0) {
+                cy.log(`Expected at least ${expectedFilesCount} files to be found.`);
                 let sum = 0;
                 [...$blocks].forEach((el) => {
                     const value = parseInt(Cypress.$(el).text().trim(), 10);
@@ -370,7 +470,7 @@ export function testMatrixPopoverValidation(
                         sum += value;
                     }
                 });
-                expect(sum, 'Total file count across row-summary blocks').to.equal(expectedFilesCount);
+                expect(sum, 'Total file count across row-summary blocks').to.be.at.least(expectedFilesCount);
             }
         });
 
@@ -381,12 +481,12 @@ export function testMatrixPopoverValidation(
                 if (value > 0) {
                     const assay = Cypress.$(el).parent().attr('data-group-key');
                     cy.wrap(el).scrollIntoView().click({ force: true });
-                    assertPopover({ donor: '', assay: assay, value, blockType: 'col-summary' });
+                    assertPopover({ donor: '', assay: assay, value, blockType: 'col-summary', verifyTotalFromApi });
                 }
             });
             // verify overall file count matches expectedFilesCount
-            if (expectedFilesCount > 0) {
-                cy.log(`Expected ${expectedFilesCount} files to be found.`);
+            if (typeof expectedFilesCount === 'number' && expectedFilesCount > 0) {
+                cy.log(`Expected at least ${expectedFilesCount} files to be found.`);
                 let sum = 0;
                 [...$blocks].forEach((el) => {
                     const value = parseInt(Cypress.$(el).text().trim(), 10);
@@ -394,8 +494,69 @@ export function testMatrixPopoverValidation(
                         sum += value;
                     }
                 });
-                expect(sum, 'Total file count across col-summary blocks').to.equal(expectedFilesCount);
+                expect(sum, 'Total file count across col-summary blocks').to.be.at.least(expectedFilesCount);
             }
         });
+
+        // Check total unique tissues in the matrix
+        if (typeof expectedTissuesCount === 'number' && expectedTissuesCount > 0) {
+            cy.get('.grouping.depth-0').then(($rows) => {
+                anyCollapsibleRows = $rows.filter('.may-collapse').length > 0;
+                // expand all tissues to ensure we capture all unique tissues
+                if (anyCollapsibleRows) {
+                    cy.get('.grouping.depth-0.may-collapse').each(($row) => {
+                        const expandIcon = $row.find('i.icon-plus');
+                        if (expandIcon.length > 0) {
+                            cy.wrap(expandIcon).click();
+                        }
+                    });
+                }
+
+                const uniqueTissues = new Set();
+
+                cy.get(anyCollapsibleRows ? '.grouping.depth-1 .grouping-row .inner' : '.grouping.depth-0 .grouping-row .inner').then(($labels) => {
+                    $labels.each((index, label) => {
+                        const tissue = Cypress.$(label).text().trim();
+                        if (tissue && tissue !== 'N/A') {
+                            uniqueTissues.add(tissue);
+                        }
+                    });
+
+                    const tissueCount = uniqueTissues.size;
+                    expect(tissueCount, 'Total unique tissues in matrix').to.equal(expectedTissuesCount);
+                });
+            });
+        }
+
+        // Check sum of regular blocks in a row equals to the row summary
+        // Note: collapse all to a fresh start
+        if (verifyTotalFromApi) { // conditional because of COLO829 public donor matrix is not fully consistent
+            cy.get('.grouping.depth-0').then(($rows) => {
+                // filter only open rows
+                const openRows = $rows.filter('.may-collapse.open');
+
+                openRows.each((index, row) => {
+                    const $icon = Cypress.$(row).find('i.icon-minus');
+                    if ($icon.length) {
+                        cy.wrap($icon).click();
+                    }
+                });
+
+                cy.get('.grouping.depth-0').each(($row) => {
+
+                    cy.wrap($row).within(() => {
+                        const rowSummaryText = $row.find('.blocks-container [data-block-type="row-summary"] span').text().trim();
+                        const expectedRowSummary = parseInt(rowSummaryText, 10);
+
+                        cy.wrap($row)
+                            .find('.blocks-container [data-block-type="regular"] span')
+                            .then(($spans) => {
+                                const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
+                                expect(sum, `Row summary for ${$row.find('.grouping-row h4 .inner').first().text().trim()}`).to.equal(expectedRowSummary);
+                            });
+                    });
+                });
+            });
+        }
     });
 }

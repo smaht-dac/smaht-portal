@@ -31,12 +31,12 @@ def test_create_elasticsearch_aggregation_query_a():
         aggregations, create_field_aggregation=create_field_aggregation)
 
     assert aggregation_query ==  {
-      "file_status_tracking.released": {
-        "meta": {"field_name": "file_status_tracking.released"},
+      "file_status_tracking.release_dates.initial_release": {
+        "meta": {"field_name": "file_status_tracking.release_dates.initial_release"},
         "filter": {
           "bool": {
             "must": [
-              {"exists": {"field": "embedded.file_status_tracking.released.raw"}},
+              {"exists": {"field": "embedded.file_status_tracking.release_dates.initial_release.raw"}},
               {"exists": {"field": "embedded.file_sets.libraries.analytes.samples.sample_sources.cell_line.code.raw"}},
               {"exists": {"field": "embedded.release_tracker_description.raw"}}
             ]
@@ -45,7 +45,7 @@ def test_create_elasticsearch_aggregation_query_a():
         "aggs": {
           "dummy_date_histogram": {
             "date_histogram": {
-              "field": "embedded.file_status_tracking.released",
+              "field": "embedded.file_status_tracking.release_dates.initial_release",
               "calendar_interval": "month", "format": "yyyy-MM",
               "missing": "1970-01", "order": { "_key": "desc" }
             },
@@ -96,10 +96,10 @@ def test_create_elasticsearch_aggregation_query_b():
         aggregations, create_field_aggregation=create_field_aggregation, include_missing=True)
 
     assert aggregation_query == {
-        "file_status_tracking.released": {
-          "meta": {"field_name": "file_status_tracking.released"},
+        "file_status_tracking.release_dates.initial_release": {
+          "meta": {"field_name": "file_status_tracking.release_dates.initial_release"},
           "date_histogram": {
-            "field": "embedded.file_status_tracking.released",
+            "field": "embedded.file_status_tracking.release_dates.initial_release",
             "calendar_interval": "month", "format": "yyyy-MM",
             "missing": "1970-01", "order": {"_key": "desc"}
           },

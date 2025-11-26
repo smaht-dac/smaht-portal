@@ -369,7 +369,6 @@ class CalcPropConstants:
     }
 
 
-
 def show_upload_credentials(
     request: Optional[Request] = None,
     context: Optional[str] = None,
@@ -403,6 +402,7 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.samples.sample_sources.donor",
 
         "quality_metrics.overall_quality_status",
+        "quality_metrics.overall_quality_status_display",
         "quality_metrics.coverage",
         "quality_metrics.qc_notes",
         # For manifest
@@ -430,9 +430,11 @@ def _build_file_embedded_list() -> List[str]:
         "sample_summary.category",
 
         # For facets
+        "donors.external_id",
         "donors.age",
         "donors.sex",
-
+        "donors.hardy_scale",
+        "donors.tags",
     ]
 
 
@@ -460,12 +462,33 @@ class File(Item, CoreFile):
         'retracted',
         'in review',
         'released',
-        'restricted',
-        'public'
+        'protected',
+        'open-network',
+        'open-early',
+        'protected-network',
+        'protected-early',
+        'open'
     ]
     STATUS_TO_REVISION_DATE_CONVERSION = [
         'retracted',
-        'released'
+        'released',
+        'protected',
+        'open-network',
+        'open-early',
+        'protected-network',
+        'protected-early',
+        'open'
+    ]
+    STATUS_TO_CHECK_NETWORK_RELEASE_DATE = [
+        'released',
+        'open-network',
+        'open-early',
+        'protected-network',
+        'protected-early'
+    ]
+    STATUS_TO_CHECK_PUBLIC_RELEASE_DATE = [
+        'open',
+        'protected'
     ]
 
     Item.SUBMISSION_CENTER_STATUS_ACL.update({
@@ -556,9 +579,9 @@ class File(Item, CoreFile):
         ]
     })
     def file_access_status(self, status: str = 'in review') -> Optional[str]:
-        if status in ['public', 'released']:
+        if status in ['open', 'released']:
             return self.OPEN
-        elif status == 'restricted':
+        elif status == 'protected-network':
             return self.PROTECTED
         return None
 
@@ -567,45 +590,119 @@ class File(Item, CoreFile):
             "title": "File Status Tracking",
             "type": "object",
             "properties": {
-                "uploading": {
-                    "type": "string",
-                    "format": "date-time"
+                "status_tracking": {
+                    "type": "object",
+                    "properties": {
+                        "uploading": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "uploaded": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "retracted": {
+                            "title": "Retracted Date",
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "retracted_date": {
+                            "title": "Retracted Date",
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "in review": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "released": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "released_date": {
+                            "type": "string",
+                            "format": "date",
+                        },
+                        "open": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "open_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "protected-network": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "protected-network_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "protected": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "protected_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "open-network": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "open-network_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "open-early": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "open-early_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "protected-early": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "protected-early_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                    }
                 },
-                "uploaded": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "retracted": {
-                    "title": "Retracted Date",
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "retracted_date": {
-                    "title": "Retracted Date",
-                    "type": "string",
-                    "format": "date"
-                },
-                "in review": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "released": {
-                    "title": "Release Date",
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "released_date": {
-                    "title": "Release Date",
-                    "type": "string",
-                    "format": "date",
-                },
-                "public": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "restricted": {
-                    "type": "string",
-                    "format": "date-time"
+                "release_dates": {
+                    "type": "object",
+                    "properties": {
+                        "public_release": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "public_release_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "network_release": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "network_release_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        # This is either the network_release or the public_release,
+                        # whichever is earlier
+                        "initial_release": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "initial_release_date": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
                 }
             }
         }
@@ -615,8 +712,8 @@ class File(Item, CoreFile):
             of the file changed - from this we can determine several things:
                 1. When metadata for this file was submitted (status = uploading or in review)
                 2. When the file was uploaded (status = uploaded)
-                3. When the file was released to consortia (status = released)
-                4. When the file was made public (status = released)
+                3. When the file was released to consortia 
+                4. When the file was made public 
                 5. If protected data, when it was made released (status = restricted)
 
             To make this reasonably efficient, we assume the following ordering:
@@ -636,27 +733,84 @@ class File(Item, CoreFile):
         current_status = self.properties['status']
         if current_status in ['uploading', 'in review']:
             return {
-                current_status: self.properties['date_created']
+                "status_tracking": {
+                    current_status: self.properties['date_created']
+                }
             }
-        else:  # we need the revision history
-            result = {}
-            revision_history = request.embed(f'/{self.uuid}/@@revision-history', as_user='IMPORT')
-            for revision in revision_history['revisions']:
-                status = revision.get('status')
-                if status and status not in result and status in self.STATUS_TO_CHECK_REVISIONS:
-                    if status in ['uploading', 'in review']:  # these are initial statuses
-                        result[status] = revision['date_created']
-                    else:
-                        last_modified = revision.get('last_modified')
-                        if last_modified:
-                            result[status] = last_modified['date_modified']
 
-            # add date converted values for selected status
-            for status in self.STATUS_TO_REVISION_DATE_CONVERSION:
-                if status in result:
-                    result[status + "_date"] = self.get_date_from_datetime(result[status])
+        # we need the revision history
+        status_tracking = {}
+        release_dates = {}
+        revision_history = request.embed(
+            f"/{self.uuid}/@@revision-history", as_user="IMPORT"
+        )
+        for revision in revision_history["revisions"]:
+            status = revision.get("status")
+            if (
+                status
+                and status not in status_tracking
+                and status in self.STATUS_TO_CHECK_REVISIONS
+            ):
 
-            return result
+                if status in [
+                    "uploading",
+                    "in review",
+                ]:  # these are initial statuses
+                    status_tracking[status] = revision["date_created"]
+                else:
+                    last_modified = revision.get("last_modified")
+                    if last_modified:
+                        status_tracking[status] = last_modified["date_modified"]
+
+        network_release_dates = [
+            status_tracking[status] 
+            for status in self.STATUS_TO_CHECK_NETWORK_RELEASE_DATE 
+            if status in status_tracking
+        ]
+        network_release_date = min(network_release_dates) if network_release_dates else None
+
+        public_release_dates = [
+            status_tracking[status] 
+            for status in self.STATUS_TO_CHECK_PUBLIC_RELEASE_DATE 
+            if status in status_tracking
+        ]
+        public_release_date = min(public_release_dates) if public_release_dates else None
+
+        # Get the earliest date as initial release date
+        available_dates = [date for date in [network_release_date, public_release_date] if date]
+        initial_release_date = min(available_dates) if available_dates else None
+
+        # Build release_dates object
+        release_dates = {}
+        if network_release_date:
+            release_dates["network_release"] = network_release_date
+            release_dates["network_release_date"] = self.get_date_from_datetime(
+                network_release_date
+            )
+        if public_release_date:
+            release_dates["public_release"] = public_release_date
+            release_dates["public_release_date"] = self.get_date_from_datetime(
+                public_release_date
+            )
+        if initial_release_date:
+            release_dates["initial_release"] = initial_release_date
+            release_dates["initial_release_date"] = self.get_date_from_datetime(
+                initial_release_date
+            )
+
+        # add date converted values for selected status
+        for status in self.STATUS_TO_REVISION_DATE_CONVERSION:
+            if status in status_tracking:
+                status_tracking[status + "_date"] = self.get_date_from_datetime(
+                    status_tracking[status]
+                )
+
+        result = {}
+        if status_tracking:
+            result["status_tracking"] = status_tracking
+        if release_dates:
+            result["release_dates"] = release_dates
+        return result if result else None
 
     @staticmethod
     def get_date_from_datetime(datetime_str: str) -> str:
@@ -1249,13 +1403,13 @@ def validate_user_has_public_protected_access(request):
 def download_cli(context, request):
     """ Creates download credentials for files intended for use with awscli/rclone """
     # Download restriction for restricted status
-    if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
+    if context.properties.get('status') in ['protected-network', 'protected-early'] and not validate_user_has_protected_access(request):
         raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
-    # Download restriction for public-restricted
-    if context.properties.get('status') == 'public-restricted' and not (
+    # Download restriction for protected
+    if context.properties.get('status') in ['protected'] and not (
             validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
-        raise HTTPForbidden('This is a public-restricted file and is not available through download_cli without'
+        raise HTTPForbidden('This is a protected file and is not available through download_cli without'
                             'dbGaP approval. Please check with the DAC/your PI about your status.')
     return CoreDownloadCli(context, request)
 
@@ -1263,14 +1417,14 @@ def download_cli(context, request):
 @view_config(name='download', context=File, request_method='GET',
              permission='view', subpath_segments=[0, 1])
 def download(context, request):
-    # Download restriction for public-restricted
-    if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
-        raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
+    # Download restriction for protected
+    if context.properties.get('status') in ['protected-network', 'protected-early'] and not validate_user_has_protected_access(request):
+        raise HTTPForbidden('This is a restricted file not available for download without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
-    # Download restriction for public-restricted
-    if context.properties.get('status') == 'public-restricted' and not (
+    # Download restriction for protected
+    if context.properties.get('status') in ['protected'] and not (
             validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
-        raise HTTPForbidden('This is a public-restricted file and is not available through download_cli without'
+        raise HTTPForbidden('This is a protected file and is not available through download without'
                             'dbGaP approval. Please check with the DAC/your PI about your status.')
     return CoreDownload(context, request)
 

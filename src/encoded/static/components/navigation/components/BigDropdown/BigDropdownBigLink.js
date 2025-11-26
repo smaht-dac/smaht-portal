@@ -1,18 +1,30 @@
 'use strict';
 
-import React from 'react';
-import { console } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import React, { useState, useEffect } from 'react';
 
-export function BigDropdownBigLink(props) {
+import { useUserDownloadAccess } from '../../../util/hooks';
+
+export const BigDropdownBigLink = (props) => {
     const {
         children,
         titleIcon = null,
         className = null,
         isActive = false,
         disabled,
+        protectedHref,
         href,
         ...passProps // Contains: `href`, `rel`, `onClick`, etc.
     } = props;
+
+    // Allow users with protected access to see protected links
+    const userDownloadAccess = useUserDownloadAccess(props.session);
+
+    // Determine proper href to send users to
+    const hrefToUse = disabled
+        ? 'javascript:void(0)'
+        : userDownloadAccess?.['protected']
+        ? protectedHref || href
+        : href;
 
     if (!children) return null;
 
@@ -38,7 +50,7 @@ export function BigDropdownBigLink(props) {
 
     return (
         <a
-            href={disabled ? 'javascript:void(0)' : href}
+            href={hrefToUse}
             data-disabled={disabled ? 'true' : ''}
             aria-disabled={disabled ? 'true' : 'false'}
             {...passProps}
@@ -53,4 +65,4 @@ export function BigDropdownBigLink(props) {
             </div>
         </a>
     );
-}
+};

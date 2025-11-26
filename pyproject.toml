@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "1.2.1"
+version = "1.5.11"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -180,6 +180,7 @@ update-inserts-from-server = "snovault.commands.update_inserts_from_server:main"
 wipe-test-indices = "snovault.commands.wipe_test_indices:main"
 # encoded commands
 create-annotated-filenames = "encoded.commands.create_annotated_filenames:main"
+create-bulk-donor-manifest = "encoded.commands.create_bulk_donor_manifest:main"
 flatten-structured-data = "encoded.commands.flatten_structured_data:main"  # For dev/testing only
 load-users-from-oc = "encoded.commands.load_users_from_oc:main"
 parse-structured-data= "encoded.commands.parse_structured_data:main"  # For dev/testing only
