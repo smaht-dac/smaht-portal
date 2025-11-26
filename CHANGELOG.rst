@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-1.5.10
+1.5.12
 =====
 
 `PR 547: Update tissue_sample validators <https://github.com/smaht-dac/smaht-portal/pull/547>`_
