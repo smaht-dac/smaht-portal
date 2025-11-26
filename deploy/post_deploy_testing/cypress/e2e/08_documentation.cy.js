@@ -425,15 +425,22 @@ function stepSubmissionDataDictionary() {
             cy.get('[role="listbox"]', { timeout: 5000 }).should("be.visible");
 
             cy.get("[role='option']").then(($options) => {
+                const nonFieldOptions = $options.filter((_, option) => option.innerText.indexOf(".") === -1);
+                cy.get(".schema-item").should("have.length", nonFieldOptions.length);
+
                 const optionCount = $options.length;
-                cy.get(".schema-item").should("have.length", optionCount);
 
                 const randomIndex = Math.floor(Math.random() * optionCount);
                 const selectedOptionText = $options[randomIndex].innerText;
 
                 cy.wrap($options[randomIndex]).click();
 
-                cy.get(".schema-item").first().should("contain.text", selectedOptionText);
+                cy.get(".schema-item h3")
+                    .first()
+                    .invoke("text")
+                    .should((text) => {
+                        expect(text.toLowerCase()).to.include(selectedOptionText.toLowerCase());
+                    });
             });
         })
         .end();
@@ -584,7 +591,7 @@ describe("Documentation Page & Content (role-based)", () => {
             beforeEach(() => {
                 cy.visit("/", { headers: cypressVisitHeaders });
             });
-            
+
             before(() => {
                 loginIfNeeded(roleKey);
             });
