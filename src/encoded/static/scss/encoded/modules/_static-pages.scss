@@ -3512,6 +3512,11 @@ FAQ page styles
 			text-align: left;
 			border-left: 1px solid #dee2e6;
 
+		}
+	}
+
+	h3#pipelines + table {
+		td, th {
 			&:first-of-type {
 				width: 350px;
 			}
