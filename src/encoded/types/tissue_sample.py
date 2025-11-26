@@ -217,6 +217,11 @@ def run_sample_metadata_validation(context, request, data, mode):
             "body",
             f"TissueSample: A non-TPC sample with external_id {external_id} already exists",
         )
+    elif mode == "edit" and len(non_tpc_samples) > 1:
+        return request.errors.add(
+            "body",
+            f"TissueSample: Multiple non-TPC samples with external_id {external_id} exist",
+        )
 
     # now we check against TPC sample as we know we have one of each
     tpc_sample = tpc_samples[0]
