@@ -3467,22 +3467,26 @@ FAQ page styles
 
 // Pages under Pipeline Documentation
 [data-at-type^="DocsAdditional-resourcesPipeline-docs"] {
+
 	// Custom header sizing
 	h2 {
-		font-size: 28px;
+		font-size: 24px;
 
 		&.section-title {
 			margin: 30px auto 40px auto;
 		}
 	}
 	h3 {
-		font-size: 22px;
+		font-size: 20px;
 	}
 	h4 {
 		font-size: 20px;
 	}
 	h5 {
 		font-size: 16px;
+	}
+	h6 {
+		font-size: 0.95rem;
 	}
 
 	// Custom table styling
@@ -3507,11 +3511,11 @@ FAQ page styles
 			padding: 0.75rem 0.75rem 0.75rem 1rem;
 			text-align: left;
 			border-left: 1px solid #dee2e6;
-		}
-	}
 
-	hr {
-		margin: 60px 0px;
+			&:first-of-type {
+				width: 350px;
+			}
+		}
 	}
 
 	.table-of-contents {
@@ -3541,83 +3545,137 @@ FAQ page styles
 		}
 	}
 
-	.section-content {
-		.nav-group {
-			margin-bottom: 3rem;
-
-			h6, h6 > a {
-				color: $homepage-header-text-color;
-				font-size: 0.875rem;
-			}
-		}
-		
-		.dropdown {
-			background-color: $pure-white;
-			border: 1px solid $homepage-timeline-bg-color-inactive;
-			border-radius: 8px;
-			margin-bottom: 0.5rem;
-
-			.header {
-				position: relative;
-				display: flex;
-				align-items: center;
-				gap: 5px;
-				justify-content: space-between;
-				font-size: 1.125rem;
-				
-				.toggle {
-					display: flex;
-					flex: 1;
-					padding: 15px;
-
-					span {
-						font-weight: 600;
-						color: $homepage-card-text-color;
-					}
-
-					i {
-						color: $homepage-timeline-bg-color-inactive;
-					}
-
-					&:after {
-						display: none;
-					}
-				}
-
-				.header-link {
-					position: absolute;
-					right: 20px;
-					top: 50%;
-					transform: translateY(-50%);
-				}
-				svg {
-					fill: $homepage-timeline-bg-color-inactive;
-					&:hover {
-						fill: $homepage-card-text-color;
-						cursor: pointer;
-					}
-				}
+	.static-section-entry {
+		.section-content {
+			.introduction {
+				margin-bottom: 2rem;
+				color: #343741;
 			}
 
 			hr {
-				opacity: 1;
-				color: $homepage-timeline-bg-color-inactive;
+				margin: 50px 0px;
 			}
+	
+			.nav-group {
+				margin-bottom: 3rem;
+	
+				h6 {
+					margin: 0.75rem auto;
+				}
+	
+				h6, h6 > a {
+					color: $homepage-header-text-color;
+					font-size: 0.875rem;
+				}
 
-			.body {
-				padding: 15px;
+				.changelog > a {
+					color: #428bca;
+					text-decoration: underline;
 
-				.sublinks {
-					.sublink-item > a {
-						color: $homepage-card-text-color;
-						font-size: 1rem;
+					&:hover {
+						color: #173b5d;
+					};
+				}
+			}
+			
+			.dropdown {
+				background-color: #f4faffa1;;
+				border: 1px solid #b9d0eb;
+				border-radius: 8px;
+				margin-bottom: 0.5rem;
+	
+				.header {
+					position: relative;
+					display: flex;
+					align-items: center;
+					gap: 5px;
+					justify-content: space-between;
+					font-size: 1.125rem;
+					border-radius: inherit;
+					
+					.toggle {
+						display: flex;
+						flex: 1;
+						padding: 15px;
+	
+						.parent-link {
+							font-weight: 600;
+							color: $homepage-card-text-color;
+							
+							&:hover {
+								color: #173b5d;
+								text-decoration: none;
+							}
+						}
+	
+						i {
+							color: #84a6ce;
+							&:hover {
+								color: #416485;
+							}
+						}
+	
+						&:after {
+							display: none;
+						}
+					}
+	
+					.header-link {
+						position: absolute;
+						right: 20px;
+						top: 50%;
+						transform: translateY(-50%);
+
+						&:hover {
+							color: #173b5d;
+							text-decoration: none;
+						}
+					}
+					svg {
+						fill: #84a6ce;
+						&:hover {
+							fill: #416485;
+							cursor: pointer;
+						}
+					}
+
+					&:hover {
+						background-color: #e9f4fc;
 					}
 				}
+	
+				hr {
+					opacity: 1;
+					color: $homepage-timeline-bg-color-inactive;
+				}
+	
+				.body {
+					padding: 15px;
+	
+					.sublinks {
+						padding-left: 3rem;
+						color: #416485;
 
-				&.closed {
-					display: none;
+						.sublink-item > a {
+							color: $homepage-card-text-color;
+							font-size: 1.05rem;
+							margin-left: 5px;
+
+							&:hover {
+								color: #173b5d;
+							}
+						}
+					}
+	
+					&.closed {
+						display: none;
+					}
 				}
 			}
+		}
+
+		&.help-entry#pipeline_docs {
+			margin-top: 50px;
 		}
 	}
 }
