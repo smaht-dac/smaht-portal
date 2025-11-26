@@ -380,7 +380,7 @@ def test_validate_tissue_category_on_edit(
         (
             {
                 "sample_sources": ["TEST_TISSUE_BLOOD"],
-                "external_id": "SMHT001-3A-001X",
+                "external_id": "SMHT001-3A-00",
                 "category": "Liquid",
             },
             201,
@@ -389,7 +389,7 @@ def test_validate_tissue_category_on_edit(
         (
             {
                 "sample_sources": ["TEST_TISSUE_BLOOD"],
-                "external_id": "SMHT001-3A-001X",
+                "external_id": "SMHT001-3A-00",
                 "category": "Specimen",
             },
             422,
@@ -408,11 +408,13 @@ def test_validate_tissue_category_on_add(
     insert = get_item(
         es_testapp, "NDRITEST_TISSUE-SAMPLE_BLOOD_TPC", collection="TissueSample"
     )
+    test_submitted_id = item_utils.get_submitted_id(insert).lstrip("NDRI")
     post_body = {
         **patch_body,
-        "submitted_id": f"{item_utils.get_submitted_id(insert)}_{index}",
-        "submission_centers": item_utils.get_submission_centers(insert),
+        "submitted_id": f"{test_submitted_id}_{index}",
+        "submission_centers": ["smaht"],
     }
+    post_body["external_id"] = post_body["external_id"] + f"{index}X"
     post_item(es_testapp, post_body, "tissue_sample", status=expected_status)
 
 

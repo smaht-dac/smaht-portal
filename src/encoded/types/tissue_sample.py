@@ -169,7 +169,7 @@ def run_sample_metadata_validation(context, request, data, mode):
     """
     NOTE: there is non-standard validation that depends on ELASTICSEARCH and therefore
     there could be inconsistency with the database state. This generally should be avoided
-    but in this case we need to compare against existing TPC TissueSample records with search.
+    but in this case we need to compare against existing TissueSample records with search.
     """
     if ELASTIC_SEARCH not in request.registry:
         return
@@ -196,7 +196,15 @@ def run_sample_metadata_validation(context, request, data, mode):
     check_properties = ["category", "preservation_type"]
     from_tpc = is_tpc_submission(request, submission_centers)
     if from_tpc:
-        return
+        if (mode == "edit" and len(tpc_samples) <= 1) or (
+            mode == "add" and len(tpc_samples) == 0
+        ):
+            return
+        else:
+            return request.errors.add(
+                "body",
+                f"TissueSample: TPC Tissue Sample with external_id {external_id} already exists",
+            )
     elif len(tpc_samples) == 0:
         return request.errors.add(
             "body",
