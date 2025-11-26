@@ -13,7 +13,11 @@ export const Dropdown = (props) => {
                     role="button"
                     tabIndex={0}
                     aria-expanded={isExpanded}
-                    onClick={() => setIsExpanded(!isExpanded)}>
+                    onClick={(e) => {
+                        if (e.target.localName !== 'a') {
+                            setIsExpanded(!isExpanded);
+                        }
+                    }}>
                     <i
                         className={`icon ${
                             isExpanded ? 'icon-minus' : 'icon-plus'
