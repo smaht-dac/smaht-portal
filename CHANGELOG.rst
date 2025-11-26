@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.6.0
+=====
+
+`PR 522: feat: Release Tracker Restructuring <https://github.com/smaht-dac/smaht-portal/pull/522>`_
+
+* Restructure to Release Tracker
+
+
 1.5.11
 ======
 
