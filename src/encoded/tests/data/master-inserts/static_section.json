@@ -638,6 +638,7 @@
     },
     {
         "identifier": "pipeline_docs",
+        "title": "Pipeline Documentation",
         "uuid": "b78b2ebb-d01c-4635-8a67-76a98ab81772",
         "section_type": "Page Section",
         "status": "in review",
