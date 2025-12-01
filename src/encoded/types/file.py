@@ -1424,9 +1424,11 @@ class File(Item, CoreFile):
         # Redirect with no auth
         if open_data_url and 'smaht-open-data-public' in open_data_url:
             return open_data_url
-        # Redirect with auth
+        # Redirect with auth, note this is somewhat fragile if they ever change the
+        # URL for s3 (not likely) - Will 30 Nov 2025
         elif open_data_url and 'smaht-open-data-protected' in open_data_url:
-            open_data_key = open_data_url[open_data_url.index('https://smaht-open-data-protected.s3.amazonaws.com/'):]
+            base = "https://smaht-open-data-protected.s3.amazonaws.com/"
+            open_data_key = open_data_url[len(base):]
             open_data_external = {
                 'bucket': 'smaht-open-data-protected',
                 'key': open_data_key
