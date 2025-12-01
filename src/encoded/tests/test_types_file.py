@@ -122,7 +122,7 @@ def public_reference_file(
         'filename': 'my.bam',
         'data_category': ['Sequencing Reads'],
         'data_type': ['Unaligned Reads'],
-        'status': 'public',
+        'status': 'open',
         'consortia': [test_consortium['uuid']],
     }
     res = testapp.post_json('/reference_file', item)
