@@ -217,11 +217,21 @@ def run_sample_metadata_validation(context, request, data, mode):
             "body",
             f"TissueSample: A non-TPC sample with external_id {external_id} already exists",
         )
-    elif mode == "edit" and len(non_tpc_samples) > 1:
-        return request.errors.add(
-            "body",
-            f"TissueSample: Multiple non-TPC samples with external_id {external_id} exist",
-        )
+    elif mode == "edit":
+        if len(non_tpc_samples) > 1:
+            return request.errors.add(
+                "body",
+                f"TissueSample: Multiple non-TPC samples with external_id {external_id} exist",
+            )
+        elif len(non_tpc_samples) == 1:
+            # check to see if external_id is included in the patch body
+            update_props = get_properties(request)
+            if "external_id" in update_props:
+                if non_tpc_samples[0]["submitted_id"] != submitted_id:
+                    return request.errors.add(
+                        "body",
+                        f"TissueSample: A non-TPC sample with external_id {external_id} already exists",
+                    )
 
     # now we check against TPC sample as we know we have one of each
     tpc_sample = tpc_samples[0]
