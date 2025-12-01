@@ -215,13 +215,26 @@ export class VisualBody extends React.PureComponent {
             }
 
             let initialHref = queryUrl;
-            if (rowGroups && rowGroupKey && rowGroups[rowGroupKey]?.customUrlParams && blockType === 'col-summary') {
+            const customUrlParams = rowGroups && rowGroupKey ? rowGroups[rowGroupKey]?.customUrlParams : null;
+            let customUrlParamsPositiveKeys = null;
+
+            if (customUrlParams && blockType === 'col-summary') {
                 // If rowGroups is defined and rowGroupKey is set, we use customUrlParams from rowGroups
-                initialHref += '&' + rowGroups[rowGroupKey].customUrlParams;
+                initialHref += '&' + customUrlParams;
+                customUrlParamsPositiveKeys = new Set(
+                    Object.keys(queryString.parse(customUrlParams)).filter((key) => !key.endsWith('!'))
+                );
             }
 
             const hrefParts = url.parse(initialHref, true);
             const hrefQuery = _.clone(hrefParts.query);
+
+            if (customUrlParamsPositiveKeys) {
+                customUrlParamsPositiveKeys.forEach((key) => {
+                    const negativeKey = key + '!';
+                    if (hrefQuery[negativeKey]) delete hrefQuery[negativeKey];
+                });
+            }
 
             _.forEach(currentFilteringPropertiesPairs, ([field]) => {
                 if (hrefQuery[field]) delete hrefQuery[field];
