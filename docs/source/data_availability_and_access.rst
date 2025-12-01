@@ -17,6 +17,11 @@ All data/metadata files generated from the SMaHT Network are available for downl
 
 **Protected Access**: All sequence data (DNA and RNA), inherited germline variant data, and full donor metadata files are protected-access data under dbGaP. Please see our `Protected Data Access page <https://data.smaht.org/docs/access/getting-dbgap-access>`_ for instructions on how to request access for the protected-access SMaHT data under dbGaP.
 
+.. TIP::
+   Tip about public releases here.
+
+|
+
 .. raw:: html
 
     <br />
