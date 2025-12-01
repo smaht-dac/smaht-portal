@@ -20,12 +20,16 @@
         }
     ],
     "identifyingProperties": [
-        "identifier",
+        "accession",
         "aliases",
-        "uuid"
+        "identifier",   
+        "uuid"        
     ],
     "additionalProperties": false,
     "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
         {
             "$ref": "mixins.json#/aliases"
         },
@@ -58,6 +62,9 @@
         "schema_version": {
             "default": "1"
         },
+        "accession": {
+            "accessionType": "PB"
+        },
         "identifier":{
             "title": "Publication Identifier",
             "description": "PMID or doi for the publication.",
@@ -77,12 +84,6 @@
             "permission": "restricted_fields",
             "formInput": "textarea"
         },
-        "journal": {
-            "title": "Journal",
-            "description": "Name of the journal in which the article was published.",
-            "type": "string",
-            "permission": "restricted_fields"
-        },
         "authors": {
             "title": "Authors",
             "description": "All authors, with format Bernstein BE, Birney E, Dunham I,...",
@@ -93,8 +94,29 @@
             },
             "permission": "restricted_fields"
         },
+        "code_repositories": {
+            "title": "Code Repositories",
+            "description": "Links to code repositories associated with this publication.",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "format": "uri"
+            }
+        },
         "date_published": {
             "title": "Publication Date",
+            "type": "string",
+            "permission": "restricted_fields"
+        },
+        "is_preprint": {
+            "title": "Is Preprint",
+            "description": "Indicates whether the publication is a preprint.",
+            "type": "boolean",
+            "permission": "restricted_fields"
+        },        
+        "journal": {
+            "title": "Journal",
+            "description": "Name of the journal in which the article was published.",
             "type": "string",
             "permission": "restricted_fields"
         },
@@ -112,16 +134,20 @@
             "format": "uri",
             "permission": "restricted_fields"
         },
-        "biorxiv_version": {
+        "preprint_version": {
             "title": "Version",
             "description": "Version of the record as it appears in the external database (e.g. bioRxiv version)",
             "type": "string",
             "permission": "restricted_fields"
         },
-        "is_preprint": {
-            "title": "Is Preprint",
-            "description": "Indicates whether the publication is a preprint.",
-            "type": "boolean",
+        "previous_repository_urls": {
+            "title": "Previous Repository URLs",
+            "description": "Links to previous versions of the publication in external repositories.",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "format": "uri"
+            },
             "permission": "restricted_fields"
         },
         "study": {
