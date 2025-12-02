@@ -1090,7 +1090,7 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 						}
 
 						&.detail-tissue {
-							[data-field="sample_summary.tissues"] {
+							[data-field="tissues"] {
 								.inner {
 									.inner-value-container.detail-open {
 										color: #B75200;
