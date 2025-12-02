@@ -221,7 +221,7 @@ def run_sample_metadata_validation(context, request, data, mode):
         if len(non_tpc_samples) > 1:
             return request.errors.add(
                 "body",
-                f"TissueSample: Multiple non-TPC samples with external_id {external_id} exist",
+                f"TissueSample: Multiple non-TPC samples with external_id {external_id} exist. Please report this error to the DAC.",
             )
         elif len(non_tpc_samples) == 1:
             # check to see if external_id is included in the patch body
@@ -241,8 +241,8 @@ def run_sample_metadata_validation(context, request, data, mode):
     if tpc_sample_source_uid != gcc_uuid:
         return request.errors.add(
             "body",
-            f"TissueSample: metadata mismatch, sample_sources {gcc_uuid} "
-            f"does not match TPC Tissue Sample {found} sample_sources {tpc_sample_source_uid}",
+            f"TissueSample: metadata mismatch, sample_source {gcc_uuid} "
+            f"does not match TPC Tissue Sample {found} sample_source {tpc_sample_source_uid}",
         )
 
     # Compare core properties
