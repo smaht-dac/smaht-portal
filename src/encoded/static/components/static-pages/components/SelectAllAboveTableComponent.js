@@ -181,12 +181,27 @@ export class SelectAllFilesButton extends React.PureComponent {
         const currentDownloadableFileCount = this.getDownloadableFileCount(
             this.state.userDownloadAccess
         );
-        if (prevState.downloadableFileCount !== currentDownloadableFileCount) {
-            this.setState({
-                ...this.state,
-                downloadableFileCount: currentDownloadableFileCount,
+        if (
+            prevProps?.session !== this.props?.session ||
+            prevState.downloadableFileCount !== currentDownloadableFileCount
+        ) {
+            ajax.load('/session-properties', (resp) => {
+                const accessObj = resp?.download_perms || {};
+                const newUserDownloadAccessObj = {
+                    ...defaultDownloadAccessObject,
+                    ...accessObj,
+                };
+                this.setState({
+                    ...this.state,
+                    userDownloadAccess: newUserDownloadAccessObj,
+                    downloadableFileCount: this.getDownloadableFileCount(
+                        newUserDownloadAccessObj
+                    ),
+                });
             });
         }
+
+        console.log('SelectAllFilesButton componentDidUpdate');
     }
 
     getDownloadableFileCount(userDownloadAccessObj) {
@@ -201,10 +216,6 @@ export class SelectAllFilesButton extends React.PureComponent {
                 return acc + (userCanDownload ? term.doc_count : 0);
             },
             0
-        );
-        console.log(
-            'Total downloadable file count:',
-            totalDownloadableFileCount
         );
         return totalDownloadableFileCount;
     }
@@ -332,6 +343,10 @@ export class SelectAllFilesButton extends React.PureComponent {
         const isAllSelected = this.isAllSelected();
         const isEnabled = this.isEnabled();
 
+        const hasLimitedAccess =
+            this.state.downloadableFileCount < context?.total &&
+            this.state.userDownloadAccess['protected'] === false;
+
         const iconClassName =
             'me-05 icon icon-fw icon-' +
             (selecting
@@ -369,10 +384,9 @@ export class SelectAllFilesButton extends React.PureComponent {
                     placement="top"
                     overlay={
                         <Popover>
-                            <Popover.Header>Downloadable Files</Popover.Header>
+                            <Popover.Header>Select Open Files</Popover.Header>
                             <Popover.Body>
-                                Select {this.state.downloadableFileCount} of{' '}
-                                {context?.total} Files
+                                Locked Files require dbGaP access
                             </Popover.Body>
                         </Popover>
                     }>
@@ -385,9 +399,12 @@ export class SelectAllFilesButton extends React.PureComponent {
                         data-tip={tooltip}>
                         <i className={iconClassName} />
                         <span className="d-none d-md-inline text-400">
-                            {isAllSelected ? 'Deselect' : 'Select'}{' '}
+                            {isAllSelected ? 'Deselect' : 'Select'} All{' '}
                         </span>
-                        <span className="text-600">All</span>
+                        <span className="text-600">
+                            {hasLimitedAccess ? 'Open' : ''}
+                        </span>{' '}
+                        Files
                     </button>
                 </OverlayTrigger>
             );
@@ -403,9 +420,12 @@ export class SelectAllFilesButton extends React.PureComponent {
                 data-tip={tooltip}>
                 <i className={iconClassName} />
                 <span className="d-none d-md-inline text-400">
-                    {isAllSelected ? 'Deselect' : 'Select'}{' '}
+                    {isAllSelected ? 'Deselect' : 'Select'} All{' '}
                 </span>
-                <span className="text-600">All</span>
+                <span className="text-600">
+                    {hasLimitedAccess ? 'Open' : ''}
+                </span>{' '}
+                Files
             </button>
         );
     }
