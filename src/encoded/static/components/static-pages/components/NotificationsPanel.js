@@ -260,18 +260,18 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
     return (
         <div
             className={`data-release-item-container ${
-                isExpanded ? 'expanded' : 'collapsed'
+                isToggled ? 'expanded' : 'collapsed'
             }`}>
             <div className="content">
                 <div className="header">
                     <button
                         className="toggle-button"
                         onClick={() => {
-                            setIsExpanded(!isExpanded);
+                            toggle(!isToggled);
                         }}>
                         <i
                             className={`icon icon-${
-                                isExpanded ? 'minus' : 'plus'
+                                isToggled ? 'minus' : 'plus'
                             }`}></i>
                     </button>
                     <a className="header-link" href={count > 0 ? query : null}>
