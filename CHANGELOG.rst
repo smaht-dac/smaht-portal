@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.5.12
+======
+
+`PR 561: fix: update styles for dropdown toggle <https://github.com/smaht-dac/smaht-portal/pull/561>`_
+
+* Fix incorrect CSS selector
+
+
 1.5.11
 ======
 
