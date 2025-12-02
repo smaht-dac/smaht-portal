@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+1.5.12
+=====
+
+`PR 547: Update tissue_sample validators <https://github.com/smaht-dac/smaht-portal/pull/547>`_
+
+* Refactored the tissue_sample validators to enforce rules for non-TPC sample submissions
+  - There must be an existing TPC tissue_sample with the same external_id as the submitted one
+  - If a non-TPC sample already exists with the same external_id fail validation
+
+
 1.5.11
 ======
 
