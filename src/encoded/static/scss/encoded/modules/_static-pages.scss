@@ -3686,6 +3686,20 @@ FAQ page styles
 						display: none;
 					}
 
+					@include media-breakpoint-down(md) {
+						flex-direction: column;
+
+						.sublinks {
+							margin-bottom: 15px;
+						}
+
+						.overview-text {
+							margin-left: 0px;
+							border-left: none;
+							padding: 20px 30px;
+							border-top: 1px solid #4164852e;
+						}
+					}
 				}
 			}
 		}
