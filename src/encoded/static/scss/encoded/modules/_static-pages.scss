@@ -3655,10 +3655,13 @@ FAQ page styles
 				}
 	
 				.body {
+					display: flex;
+					justify-content: space-between;
 					padding: 15px;
 					color: $homepage-card-text-color;
 	
 					.sublinks {
+						flex: 1;
 						padding-left: 3rem;
 						color: #416485;
 
@@ -3672,10 +3675,17 @@ FAQ page styles
 							}
 						}
 					}
+					.overview-text {
+						flex: 2;
+						padding: 0px 40px;
+						margin-left: 40px;
+						border-left: 1px solid #4164852e;
+					}
 	
 					&.closed {
 						display: none;
 					}
+
 				}
 			}
 		}
