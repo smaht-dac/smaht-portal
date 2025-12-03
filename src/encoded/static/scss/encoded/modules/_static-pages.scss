@@ -3580,7 +3580,7 @@ FAQ page styles
 					font-size: 0.875rem;
 				}
 
-				p {
+				& > p {
 					color: #343741;
 					margin: 0px 0px 10px 0px;
 				}
@@ -3692,6 +3692,7 @@ FAQ page styles
 						padding: 0px 40px;
 						margin-left: 40px;
 						border-left: 1px solid #4164852e;
+						color: #416485;
 					}
 	
 					&.closed {
