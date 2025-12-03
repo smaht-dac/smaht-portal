@@ -3563,14 +3563,26 @@ FAQ page styles
 	
 			.nav-group {
 				margin-bottom: 3rem;
+
+				h3 {
+					color: #343741;
+					padding-bottom: 15px;
+					margin-bottom: 25px;
+					border-bottom: 1px solid #f4f4f4;
+				}
 	
 				h6 {
-					margin: 0.75rem auto;
+					margin-top: 25px;
 				}
 	
 				h6, h6 > a {
 					color: $homepage-header-text-color;
 					font-size: 0.875rem;
+				}
+
+				p {
+					color: #343741;
+					margin: 0px 0px 10px 0px;
 				}
 
 				.changelog > a {

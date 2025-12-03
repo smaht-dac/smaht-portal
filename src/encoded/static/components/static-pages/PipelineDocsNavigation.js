@@ -54,11 +54,20 @@ export const PipelineDocsNavigation = (props) => {
         <div>
             <p className="introduction md-2">
                 Welcome to the documentation for SMaHT analysis pipelines and
-                associated resources.
+                associated resources. SMaHT runs a set of standardized workflows
+                for processing genomic data. The documentation is organized
+                around the major sequencing data types and the stages involved
+                in their analysis.
             </p>
 
             <div className="nav-group">
+                <h3>Whole Genome Sequencing</h3>
+                <p>
+                    WGS workflows are structured according to the main
+                    processing steps:
+                </p>
                 <h6>PREPROCESSING</h6>
+                <p>Technology-specific pre-processing steps</p>
                 <Dropdown
                     parentTitle="FASTQ Files"
                     parentLink="/docs/additional-resources/pipeline-docs/fastq_files"
@@ -87,9 +96,8 @@ export const PipelineDocsNavigation = (props) => {
                         </p>
                     }
                 />
-            </div>
-            <div className="nav-group">
                 <h6>ALIGNMENT</h6>
+                <p>Technology-specific alignment pipelines for:</p>
                 <Dropdown
                     parentTitle="Short-Read Illumina, Paired-End"
                     parentLink="/docs/additional-resources/pipeline-docs/short-read_illumina_paired-end"
@@ -201,9 +209,12 @@ export const PipelineDocsNavigation = (props) => {
                     }
                 />
             </div>
-
             <div className="nav-group">
-                <h6>ANALYSIS</h6>
+                <h3>RNA-seq</h3>
+                <p>
+                    RNA-seq workflows include alignment and downstream analysis
+                    for:
+                </p>
                 <Dropdown
                     parentTitle="Short-Read RNA-seq, Paired-End"
                     parentLink="/docs/additional-resources/pipeline-docs/short-read_rna-seq_paired-end"
@@ -292,7 +303,7 @@ export const PipelineDocsNavigation = (props) => {
                 />
             </div>
             <div className="nav-group">
-                <h6>REFERENCE FILES</h6>
+                <h3>Reference Files</h3>
                 <Dropdown
                     parentTitle="Genome Builds"
                     parentLink="/docs/additional-resources/pipeline-docs/genome_builds"
