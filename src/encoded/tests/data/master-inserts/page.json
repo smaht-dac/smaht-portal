@@ -337,7 +337,7 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs/fastq_files",
-        "title": "FASTQ Files",
+        "title": "FASTQ",
         "status": "open-network",
         "table-of-contents": {
             "enabled": true,
@@ -356,7 +356,7 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs/short-read_illumina_paired-end",
-        "title": "Short-Read Illumina Paired-End",
+        "title": "Illumina (short-read)",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 2
@@ -375,7 +375,7 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs/long-read_pacbio_hifi",
-        "title": "Long-Read PacBio HiFi",
+        "title": "PacBio HiFi (long-read)",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 2
@@ -394,7 +394,7 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs/long-read_oxford_nanopore",
-        "title": "Long-Read Oxford Nanopore",
+        "title": "Oxford Nanopore (long-read)",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 2
@@ -413,7 +413,7 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs/short-read_rna-seq_paired-end",
-        "title": "Short-Read RNA-seq Paired-End",
+        "title": "Bulk Total RNA (short-read)",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 2
@@ -432,7 +432,7 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs/long-read_rna-seq_pacbio_kinnex",
-        "title": "Long-Read RNA-seq PacBio Kinnex",
+        "title": "PacBio Kinnex (long-read)",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 2
@@ -470,7 +470,7 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs/genome_annotations",
-        "title": "Genome Annotations",
+        "title": "Gene and Transcript Annotations",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 2
@@ -489,7 +489,7 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs/variant_catalogs",
-        "title": "Variant Catalogs",
+        "title": "Variant Databases",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 2
@@ -508,7 +508,7 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs/software_specific",
-        "title": "Software Specific",
+        "title": "Software-specific Reference Files",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 2

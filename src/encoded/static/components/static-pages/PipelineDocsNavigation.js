@@ -69,7 +69,7 @@ export const PipelineDocsNavigation = (props) => {
                 <h6>PREPROCESSING</h6>
                 <p>Technology-specific pre-processing steps</p>
                 <Dropdown
-                    parentTitle="FASTQ Files"
+                    parentTitle="FASTQ"
                     parentLink="/docs/additional-resources/pipeline-docs/fastq_files"
                     subLinks={[
                         {
@@ -99,7 +99,7 @@ export const PipelineDocsNavigation = (props) => {
                 <h6>ALIGNMENT</h6>
                 <p>Technology-specific alignment pipelines for:</p>
                 <Dropdown
-                    parentTitle="Short-Read Illumina, Paired-End"
+                    parentTitle="Illumina (short-read)"
                     parentLink="/docs/additional-resources/pipeline-docs/short-read_illumina_paired-end"
                     subLinks={[
                         {
@@ -145,7 +145,7 @@ export const PipelineDocsNavigation = (props) => {
                     }
                 />
                 <Dropdown
-                    parentTitle="Long-Read PacBio HiFi"
+                    parentTitle="PacBio HiFi (long-read)"
                     parentLink="/docs/additional-resources/pipeline-docs/long-read_pacbio_hifi"
                     subLinks={[
                         {
@@ -177,7 +177,7 @@ export const PipelineDocsNavigation = (props) => {
                     }
                 />
                 <Dropdown
-                    parentTitle="Long-Read Oxford Nanopore"
+                    parentTitle="Oxford Nanopore (long-read)"
                     parentLink="/docs/additional-resources/pipeline-docs/long-read_oxford_nanopore"
                     subLinks={[
                         {
@@ -216,7 +216,7 @@ export const PipelineDocsNavigation = (props) => {
                     for:
                 </p>
                 <Dropdown
-                    parentTitle="Short-Read RNA-seq, Paired-End"
+                    parentTitle="Bulk Total RNA (short-read)"
                     parentLink="/docs/additional-resources/pipeline-docs/short-read_rna-seq_paired-end"
                     subLinks={[
                         {
@@ -258,7 +258,7 @@ export const PipelineDocsNavigation = (props) => {
                     }
                 />
                 <Dropdown
-                    parentTitle="Long-Read RNA-seq, PacBio Kinnex"
+                    parentTitle="PacBio Kinnex (long-read)"
                     parentLink="/docs/additional-resources/pipeline-docs/long-read_rna-seq_pacbio_kinnex"
                     subLinks={[
                         {
@@ -329,7 +329,7 @@ export const PipelineDocsNavigation = (props) => {
                     }
                 />
                 <Dropdown
-                    parentTitle="Genome Annotations"
+                    parentTitle="Gene and Transcript Annotations"
                     parentLink="/docs/additional-resources/pipeline-docs/genome_annotations"
                     subLinks={[
                         {
@@ -356,7 +356,7 @@ export const PipelineDocsNavigation = (props) => {
                     }
                 />
                 <Dropdown
-                    parentTitle="Variant Catalogs"
+                    parentTitle="Variant Databases"
                     parentLink="/docs/additional-resources/pipeline-docs/variant_catalogs"
                     subLinks={[
                         {
@@ -387,7 +387,7 @@ export const PipelineDocsNavigation = (props) => {
                     }
                 />
                 <Dropdown
-                    parentTitle="Software Specific"
+                    parentTitle="Software-specific Reference Files"
                     parentLink="/docs/additional-resources/pipeline-docs/software_specific"
                     subLinks={[
                         {
