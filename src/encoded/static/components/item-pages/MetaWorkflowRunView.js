@@ -374,7 +374,7 @@ export function transformMetaWorkflowRunToSteps (metaWorkflowRunItem) {
  * @todo Improve if needed.
  * @todo Move into ReactWorkflowViz project.
  */
-function identifiersToIntegers(steps){
+export function identifiersToIntegers(steps){
     const nameDict = {};
 
     function convertNameToInt(name){

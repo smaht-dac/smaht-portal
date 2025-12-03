@@ -78,7 +78,7 @@ export class WorkflowGraphSection extends React.PureComponent {
             ...graphData,
             rowSpacingType,
             legendItems,
-            scale: includeAllRunsInSteps === false ? 1.0 : 0.85,
+            scale: includeAllRunsInSteps ? 0.85 : 1.0,
             renderDetailPane: this.renderDetailPane,
             renderNodeElement: this.renderNodeElement
         };
