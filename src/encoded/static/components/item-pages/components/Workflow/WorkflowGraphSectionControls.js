@@ -57,7 +57,7 @@ export class WorkflowGraphSection extends React.PureComponent {
     }
 
     commonGraphProps(){
-        const { steps } = this.props;
+        const { steps, includeAllRunsInSteps } = this.props;
         const { showParameters, showReferenceFiles, rowSpacingType } = this.state;
         const graphData = this.parseAnalysisSteps(steps);
 
@@ -78,7 +78,7 @@ export class WorkflowGraphSection extends React.PureComponent {
             ...graphData,
             rowSpacingType,
             legendItems,
-            scale: 0.85,
+            scale: includeAllRunsInSteps === false ? 1.0 : 0.85,
             renderDetailPane: this.renderDetailPane,
             renderNodeElement: this.renderNodeElement
         };
@@ -156,7 +156,7 @@ export class WorkflowGraphSection extends React.PureComponent {
                 <h3 className="tab-section-title container-wide">
                     <span>Graph</span>
                     <WorkflowGraphSectionControls
-                        {..._.pick(this.props, 'context', 'href', 'windowWidth')}
+                        {..._.pick(this.props, 'context', 'href', 'windowWidth', 'includeAllRunsInSteps', 'toggleAllRuns', 'isLoadingGraphSteps')}
                         showChartType={showChart}
                         rowSpacingType={rowSpacingType}
                         // Parameters are available but not visualized because of high number of them

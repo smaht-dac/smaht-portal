@@ -114,12 +114,15 @@ export class WorkflowNodeElement extends React.PureComponent {
         if (nodeType === 'input-group' || nodeType === 'output-group'){
             iconClass = 'folder-open fas';
         } else if (nodeType === 'input' || nodeType === 'output'){
-            // By file_format
-            if (fileFormatAsString === 'zip' || fileFormatAsString === 'tar' || fileFormatAsString === 'gz') {
+            const runDataFile = node.meta && node.meta.run_data && node.meta.run_data.file;
+            const hasGroupedFiles = Array.isArray(runDataFile) ?
+                runDataFile.some(function(f){ return f && f.grouped_files; }) :
+                runDataFile && runDataFile.grouped_files;
+            if (hasGroupedFiles) {
+                iconClass = 'folder-open fas';
+            } else if (fileFormatAsString === 'zip' || fileFormatAsString === 'tar' || fileFormatAsString === 'gz') {
                 iconClass = 'file-archive far';
-            }
-            // By meta.type & ioType
-            else if (typeof ioType === 'undefined'){
+            } else if (typeof ioType === 'undefined'){
                 iconClass = 'question fas';
             } else if (typeof ioType === 'string') {
                 if (isNodeQCMetric(node)) {

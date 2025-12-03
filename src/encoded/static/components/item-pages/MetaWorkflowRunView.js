@@ -11,6 +11,7 @@ import { WorkflowDetailPane } from './components/Workflow/WorkflowDetailPane';
 import { WorkflowNodeElement } from './components/Workflow/WorkflowNodeElement';
 import { WorkflowGraphSection } from './components/Workflow/WorkflowGraphSectionControls';
 import DefaultItemView from './DefaultItemView';
+import { groupSimilarProvenanceSteps } from './components/Workflow/ProvenanceGraphStepsFetchingController';
 
 
 export function checkIfIndirectOrReferenceNodesExist(steps){
@@ -37,7 +38,16 @@ export function commonGraphPropsFromProps(props){
             return <WorkflowNodeElement {...graphProps} {..._.pick(props, 'schemas', 'windowWidth')} node={node}/>;
         },
         'rowSpacingType'    : 'wide',
-        'nodeClassName'     : null,
+        'nodeClassName'     : function(node){
+            const runDataFile = node.meta && node.meta.run_data && node.meta.run_data.file;
+            const hasGroupedFiles = Array.isArray(runDataFile) ?
+                runDataFile.some(function(f){ return f && f.grouped_files; }) :
+                runDataFile && runDataFile.grouped_files;
+            if (hasGroupedFiles || (node.nodeType && node.nodeType.indexOf('group') > -1)) {
+                return 'node-grouped';
+            }
+            return '';
+        },
         'onNodeClick'       : typeof props.onNodeClick !== 'undefined' ? props.onNodeClick : null,
         'windowWidth'       : props.windowWidth
     };
@@ -52,8 +62,10 @@ export default class MetaWorkflowRunView extends DefaultItemView {
         super(props);
         this.getTabViewContents = this.getTabViewContents.bind(this);
         this.state = {
-            'mounted' : false
+            'mounted' : false,
+            'includeAllRunsInSteps' : false
         };
+        this.toggleAllRuns = _.throttle(this.toggleAllRuns.bind(this), 1000, { trailing: false });
     }
 
     componentDidMount(){
@@ -62,7 +74,7 @@ export default class MetaWorkflowRunView extends DefaultItemView {
 
     getTabViewContents(){
         const { context, windowHeight, windowWidth } = this.props;
-        const { mounted } = this.state;
+        const { mounted, includeAllRunsInSteps } = this.state;
         const width = windowWidth - 60;
 
 
@@ -76,8 +88,14 @@ export default class MetaWorkflowRunView extends DefaultItemView {
                 tab : <span><i className="icon icon-sitemap icon-rotate-90 fas icon-fw"/> Graph</span>,
                 key : 'graph',
                 content : (
-                    <MetaWorkflowRunDataTransformer {...{ context }}>
-                        <WorkflowGraphSection {...this.props} mounted={this.state.mounted} width={width} />
+                    <MetaWorkflowRunDataTransformer {...{ context, includeAllRunsInSteps }}>
+                        <WorkflowGraphSection
+                            {...this.props}
+                            mounted={this.state.mounted}
+                            width={width}
+                            includeAllRunsInSteps={includeAllRunsInSteps}
+                            toggleAllRuns={this.toggleAllRuns}
+                        />
                     </MetaWorkflowRunDataTransformer>
                 )
             }
@@ -97,6 +115,12 @@ export default class MetaWorkflowRunView extends DefaultItemView {
             
         return tabContents;
 
+    }
+
+    toggleAllRuns(){
+        this.setState(function({ includeAllRunsInSteps }){
+            return { 'includeAllRunsInSteps' : !includeAllRunsInSteps };
+        });
     }
 
 }
@@ -387,12 +411,14 @@ function identifiersToIntegers(steps){
 
 
 function MetaWorkflowRunDataTransformer(props){
-    const { context, children } = props;
+    const { context, children, includeAllRunsInSteps } = props;
     // TODO: parse context.workflow_runs, context.meta_workflow, context.input, etc...
 
     const steps = useMemo(function(){
-        return identifiersToIntegers(transformMetaWorkflowRunToSteps(context));
-    }, [ context ]);
+        const baseSteps = transformMetaWorkflowRunToSteps(context);
+        const stepsToUse = includeAllRunsInSteps ? baseSteps : groupSimilarProvenanceSteps(baseSteps);
+        return identifiersToIntegers(stepsToUse);
+    }, [ context, includeAllRunsInSteps ]);
 
     return React.cloneElement(children, { steps });
 }

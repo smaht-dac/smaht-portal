@@ -11,6 +11,11 @@
             .node {
                 font-size: 0.9rem;
             }
+            .node-grouped .node-visible-element {
+                background-color: #c1c7d6;
+                border-color: #8a95b2;
+                color: #0f1423;
+            }
         }
 
         @include media-breakpoint-up(md){
@@ -75,5 +80,17 @@
         box-shadow: none !important;
         -webkit-box-shadow: none !important;
         -moz-box-shadow: none !important;
+    }
+    .grouped-files-table {
+        a {
+            display: inline-block;
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        td.text-truncate {
+            max-width: 940px;
+        }
     }
 }
