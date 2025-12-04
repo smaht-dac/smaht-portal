@@ -61,13 +61,13 @@ export const PipelineDocsNavigation = (props) => {
             </p>
 
             <div className="nav-group">
-                <h3>Whole Genome Sequencing</h3>
+                <h3>Whole Genome Sequencing (WGS)</h3>
                 <p>
                     WGS workflows are structured according to the main
                     processing steps:
                 </p>
                 <h6>PREPROCESSING</h6>
-                <p>Technology-specific pre-processing steps</p>
+                <p>Technology-specific pre-processing steps for:</p>
                 <Dropdown
                     parentTitle="FASTQ"
                     parentLink="/docs/additional-resources/pipeline-docs/fastq_files"
@@ -304,6 +304,10 @@ export const PipelineDocsNavigation = (props) => {
             </div>
             <div className="nav-group">
                 <h3>Reference Files</h3>
+                <p>
+                    All workflows share a set of common reference resources,
+                    organized into:
+                </p>
                 <Dropdown
                     parentTitle="Genome Builds"
                     parentLink="/docs/additional-resources/pipeline-docs/genome_builds"
