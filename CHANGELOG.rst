@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+
+1.5.13
+=====
+
+`PR : Add enum value for target_tissues.target_tissue_percentage in pathology_report <https://github.com/smaht-dac/smaht-portal/pull/>`_
+
+* TPC wants to be able to specify 0% for target_tissue_percentage in pathology_report when there is no target tissue present in the sample.
+
+
 1.5.12
 =====
 
