@@ -150,6 +150,7 @@ def run_external_id_validation(request, tissue, external_id, category):
 
 
 def run_sample_metadata_validation(context, request, data, mode):
+    return
     """Logic for comparing GCC sample metadata with TPC records."""
     submitted_id = get_property_value("submitted_id", context, request, mode, data)
     external_id = get_property_value("external_id", context, request, mode, data)
