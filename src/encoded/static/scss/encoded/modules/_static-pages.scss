@@ -3312,6 +3312,10 @@ FAQ page styles
 // SMaHT Data Availability and Access page
 [data-at-type="DocsAccessData-availability-and-accessPage"] {
 	// Data Availability and Access page
+	.table-responsive {
+		margin-top: -35px;
+	}
+
 	.data-availability-table {
 		width: 100%;
 		border: 1px solid #DBDBDB;
