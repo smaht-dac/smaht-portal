@@ -20,7 +20,7 @@ All data/metadata files generated from the SMaHT Network are available for downl
 
 .. TIP::
    Production Data are currently only available to members of the SMaHT Consortium. Please check back for more information on the first official release of SMaHT Production Donor data.
-
+   
 |
 
 .. raw:: html
