@@ -12,7 +12,6 @@ The primary molecular assays of the SMaHT Network include bulk whole genome sequ
     
     <h3>SMaHT Data Access</h3>
 
-
 All data/metadata files generated from the SMaHT Network are available for download from the SMaHT Data Portal to the portal users with appropriate access. For self-registered Data Portal users who are not part of the SMaHT Network, the data are available after official data releases.
 
 **Open Access**: The open-access data/metadata files are available for download after a login as a SMaHT Network member as well as a self-registered Data Portal user who is not part of the SMaHT Network.
