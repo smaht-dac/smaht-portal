@@ -64,10 +64,9 @@ export const PipelineDocsNavigation = (props) => {
                 <h3>Whole Genome Sequencing (WGS)</h3>
                 <p>
                     WGS workflows are structured according to the main
-                    processing steps:
+                    processing steps, preprocessing and alignment:
                 </p>
                 <h6>PREPROCESSING</h6>
-                <p>Technology-specific pre-processing steps for:</p>
                 <Dropdown
                     parentTitle="FASTQ"
                     parentLink="/docs/additional-resources/pipeline-docs/fastq_files"
@@ -97,7 +96,6 @@ export const PipelineDocsNavigation = (props) => {
                     }
                 />
                 <h6>ALIGNMENT</h6>
-                <p>Technology-specific alignment pipelines for:</p>
                 <Dropdown
                     parentTitle="Illumina (short-read)"
                     parentLink="/docs/additional-resources/pipeline-docs/short-read_illumina_paired-end"
