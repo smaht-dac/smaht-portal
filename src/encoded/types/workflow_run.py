@@ -117,4 +117,4 @@ class WorkflowRun(Item, CoreWorkflowRun):
 
     @calculated_property(schema=workflow_run_steps_property_schema, category='page')
     def steps(self, request):
-        return CoreWorkflowRun.steps(self)
+        return CoreWorkflowRun.steps(self, request)
