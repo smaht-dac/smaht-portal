@@ -67,10 +67,18 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
 
     if (!tabConfigs.length) return null;
 
-    const visibleTabs = tabConfigs.filter((tab) => tabDataState[tab.key]?.hasData !== false);
-    const activeTab = visibleTabs.find((tab) => tab.key === activeKey) || visibleTabs[0];
     const allLoaded = tabConfigs.length > 0 && tabConfigs.every((tab) => typeof tabDataState[tab.key]?.hasData === 'boolean');
     const isLoading = tabConfigs.length > 0 && !allLoaded;
+
+    const tabIsVisible = (tab) => {
+        // During load, keep all tabs visible; after load, hide ones with no data.
+        if (!allLoaded) return true;
+        return tabDataState[tab.key]?.hasData !== false;
+    };
+
+    const visibleTabs = tabConfigs.filter(tabIsVisible);
+    const renderTabs = allLoaded ? visibleTabs : tabConfigs;
+    const activeTab = visibleTabs.find((tab) => tab.key === activeKey) || renderTabs[0];
 
     return (
         <div key="data-matrix-tabs" className="data-matrix-container container">
@@ -82,14 +90,15 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                         </div>
                     ) : null}
                     <div className="tab-headers d-flex flex-wrap gap-3">
-                        {visibleTabs.map((tab) => {
+                        {renderTabs.map((tab) => {
                             const isActive = tab.key === activeTab?.key;
-                            const dataHasContent = tabDataState[tab.key]?.hasData === false ? 'false' : 'true';
+                            const hasDataFlag = tabDataState[tab.key]?.hasData;
+                            const dataHasContent = hasDataFlag === false && allLoaded ? 'false' : 'true';
                             return (
                                 <button
                                     key={tab.key}
                                     type="button"
-                                    className={`tab-header ${tab.className || ''} ${isActive ? 'is-active' : 'is-inactive'}`}
+                                    className={`tab-header ${tab.className || ''} ${isActive ? 'is-active' : 'is-inactive'} ${!allLoaded ? 'is-loading' : ''}`}
                                     data-has-data={dataHasContent}
                                     onClick={() => setActiveKey(tab.key)}
                                     aria-pressed={isActive}
@@ -109,7 +118,7 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                         </div>
                     ) : (
                         <div className="tab-panels-wrapper position-relative">
-                            {visibleTabs.map((tab) => {
+                            {renderTabs.map((tab) => {
                                 const isActive = tab.key === activeTab?.key;
                                 const dataMatrixKey = (tab.matrixProps && tab.matrixProps.key) || tab.key;
                                 return (

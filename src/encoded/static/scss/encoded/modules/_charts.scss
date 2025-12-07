@@ -1449,7 +1449,7 @@ body[data-path="/statistics"] {
             background: white;
             z-index: 5;
             font-size: 2rem;
-            pointer-events: none;
+            pointer-events: all;
         }
     }
 }
