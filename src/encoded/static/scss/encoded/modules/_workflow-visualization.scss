@@ -1,0 +1,96 @@
+@import "./../../../../../../node_modules/@hms-dbmi-bgm/react-workflow-viz/src/styles";
+
+.workflow-chart-outer-container {
+
+    .workflow-chart-inner-container {
+
+        overflow-x: initial !important;
+        //overflow-y: initial !important;
+
+        .nodes-layer {
+            .node {
+                font-size: 0.9rem;
+            }
+            .node-grouped .node-visible-element {
+                background-color: #c1c7d6;
+                border-color: #8a95b2;
+                color: #0f1423;
+            }
+        }
+
+        @include media-breakpoint-up(md){
+            .state-container {
+                display: flex;
+                > .scroll-container-wrapper {
+                    flex: 1 0;
+                }
+                > .detail-pane-container {
+                    &[data-is-open="true"] {
+                        border-left-color: #ddd !important;
+                    }
+                }
+            }
+        }
+
+        .state-container {
+            @include visualization-detail-pane;
+        }
+
+    }
+}
+
+.meta-workflow-view-container .workflow-chart-outer-container .workflow-chart-inner-container {
+    .zoom-controls-container {
+        z-index:unset;
+    }
+    .scroll-container {
+        height: calc(100vh - 214px) !important; // Need to override styles from react-workflow-viz graph
+    }
+}
+
+.workflow-chart-detail-pane-modal-header {
+    .modal-title {
+        overflow: hidden;
+    }
+    .title-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        label {
+            font-weight: 400;
+            margin-bottom: 1px;
+            color: #777;
+            white-space: nowrap;
+        }
+
+        h3 {
+            font-weight: 300;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: $body-color;
+        }
+    }
+}
+
+.workflow-chart-detail-pane-modal-body {
+    .detail-pane-container {
+        box-shadow: none !important;
+        -webkit-box-shadow: none !important;
+        -moz-box-shadow: none !important;
+    }
+    .grouped-files-table {
+        a {
+            display: inline-block;
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        td.text-truncate {
+            max-width: 940px;
+        }
+    }
+}
