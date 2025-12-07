@@ -1373,63 +1373,67 @@ body[data-path="/statistics"] {
     .tabs-container {
         margin-top: 40px;
 
+        .tab-headers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            z-index: 999;
+        }
+
+        .tab-header {
+            cursor: pointer;
+            background-color: white;
+            padding: 0;
+            text-align: left;
+            display: flex;
+            border: 1px solid #E7F0F3;
+            border-top: 4px solid #E99415;
+            border-bottom: 1px solid #E7F0F3;
+            border-radius: 4px 4px 0px 0px;
+            color: #343741;
+            font-weight: 600;
+            min-width: 220px;
+
+            .title {
+                padding: 10px 15px;
+                margin-bottom: -2px;
+                // background-color: white;
+                z-index: 0;
+            }
+
+            &.benchmarking-tab { border-top-color: #2746CA; }
+            &.production-tab { border-top-color: #9C9CFF; }
+
+            &[data-has-data="false"] {
+                display: none;
+            }
+
+            &.is-inactive {
+                opacity: 0.7;
+                border-top-color: #fff;
+                border-left-color: #fff;
+                border-right-color: #fff;
+            }
+
+            &.is-active {
+                border-bottom: 1px solid white;
+            }
+        }
+
         .tab-card {
             position: relative;
-            display: flex;
             overflow: hidden;
-            min-width: 300px;
+            min-width: 100%;
             flex-direction: column;
-
-            @include media-breakpoint-up(xxl) {
-                &.column-grow-3 { flex: 3; }
-                &.column-grow-2 { flex: 2; }
-            }
-
-            .header {
-                display: flex;
-                width: max-content;
-                border: 1px solid #E7F0F3;
-                border-top: 4px solid #E99415;
-                border-bottom: 1px solid white;
-                border-radius: 4px 4px 0px 0px;
-                color: #343741;
-                font-weight: 600;
-                background-color: white;
-                z-index: 1;
-
-                .title {
-                    padding: 10px 15px;
-                    margin-bottom: -2px;
-                    background-color: white;
-                    z-index: 0;
-                }
-            }
+            margin-top: -1px; // Pull up to meet active header
 
             .body {
                 position: relative;
                 overflow: hidden;
                 display: flex;
-                flex: 1;
                 min-height: 600px;
                 border: 1px solid #E7F0F3;
-            }
-
-            &.benchmarking-tab {
-
-                .header {
-                    border-top-color: #2746CA;
-                }
-            }
-
-            &.production-tab {
-
-                .header {
-                    border-top-color: #9C9CFF;
-                }
-                display: none;
-                &:has(.data-matrix:not([data-files-count="0"])) {
-                    display: flex;
-                }
+                padding-top: 20px;
             }
         }
     }
