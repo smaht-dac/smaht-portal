@@ -69,11 +69,18 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
 
     const visibleTabs = tabConfigs.filter((tab) => tabDataState[tab.key]?.hasData !== false);
     const activeTab = visibleTabs.find((tab) => tab.key === activeKey) || visibleTabs[0];
+    const allLoaded = tabConfigs.length > 0 && tabConfigs.every((tab) => typeof tabDataState[tab.key]?.hasData === 'boolean');
+    const isLoading = tabConfigs.length > 0 && !allLoaded;
 
     return (
         <div key="data-matrix-tabs" className="data-matrix-container container">
             <div className="row">
-                <div className="tabs-container d-flex flex-column">
+                <div className="tabs-container d-flex flex-column" aria-busy={isLoading}>
+                    {isLoading ? (
+                        <div className="tabs-loading-overlay d-flex align-items-center justify-content-center">
+                            <i className="icon icon-spin icon-circle-notch fas" />
+                        </div>
+                    ) : null}
                     <div className="tab-headers d-flex flex-wrap gap-3">
                         {visibleTabs.map((tab) => {
                             const isActive = tab.key === activeTab?.key;
@@ -92,7 +99,7 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                             );
                         })}
                     </div>
-                    {visibleTabs.length === 0 ? (
+                    {!isLoading && visibleTabs.length === 0 ? (
                         <div className="tab-card w-100">
                             <div className="body d-flex align-items-center justify-content-center">
                                 <span className="text-secondary">
@@ -100,20 +107,32 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                                 </span>
                             </div>
                         </div>
-                    ) : activeTab ? (
-                        <div className={`tab-card ${activeTab.className || ''} is-active`}>
-                            <div
-                                className="body d-flex justify-content-start justify-content-lg-center overflow-auto"
-                                id={`data-matrix-panel-${activeTab.key}`}>
-                                <DataMatrix
-                                    {...(activeTab.matrixProps || {})}
-                                    key={(activeTab.matrixProps && activeTab.matrixProps.key) || activeTab.key}
-                                    session={session}
-                                    onDataLoaded={handleDataLoaded(activeTab.key)}
-                                />
-                            </div>
+                    ) : (
+                        <div className="tab-panels-wrapper position-relative">
+                            {visibleTabs.map((tab) => {
+                                const isActive = tab.key === activeTab?.key;
+                                const dataMatrixKey = (tab.matrixProps && tab.matrixProps.key) || tab.key;
+                                return (
+                                    <div
+                                        key={tab.key}
+                                        className={`tab-card ${tab.className || ''} ${isActive ? 'is-active' : 'is-inactive'}`}
+                                        style={{ display: isActive ? 'flex' : 'none' }}
+                                        aria-hidden={!isActive}>
+                                        <div
+                                            className="body d-flex justify-content-start justify-content-lg-center overflow-auto"
+                                            id={`data-matrix-panel-${tab.key}`}>
+                                            <DataMatrix
+                                                {...(tab.matrixProps || {})}
+                                                key={dataMatrixKey}
+                                                session={session}
+                                                onDataLoaded={handleDataLoaded(tab.key)}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
-                    ) : null}
+                    )}
                 </div>
             </div>
         </div>

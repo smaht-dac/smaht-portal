@@ -1372,12 +1372,14 @@ body[data-path="/statistics"] {
 
     .tabs-container {
         margin-top: 40px;
+        position: relative;
+        min-height: 200px;
 
         .tab-headers {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
-            z-index: 999;
+            z-index: 1;
         }
 
         .tab-header {
@@ -1435,6 +1437,19 @@ body[data-path="/statistics"] {
                 border: 1px solid #E7F0F3;
                 padding-top: 20px;
             }
+        }
+
+        .tab-panels-wrapper {
+            position: relative;
+        }
+
+        .tabs-loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: white;
+            z-index: 5;
+            font-size: 2rem;
+            pointer-events: none;
         }
     }
 }
