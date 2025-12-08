@@ -6,10 +6,11 @@ import DataMatrix from '../../viz/Matrix/DataMatrix';
 
 export function DataMatrixComparisonTabs({ session, tabs }) {
     const tabConfigs = useMemo(() => tabs || [], [tabs]);
+    const tabKeySignature = useMemo(() => (tabConfigs || []).map((t) => t.key).join('|'), [tabConfigs]);
 
     const [tabDataState, setTabDataState] = useState(() => (
         tabConfigs.reduce((acc, tab) => {
-            acc[tab.key] = { hasData: null, totalFiles: null };
+            acc[tab.key] = { hasData: null, totalFiles: null, loaded: false };
             return acc;
         }, {})
     ));
@@ -20,12 +21,15 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
     });
 
     useEffect(() => {
-        setTabDataState(
-            tabConfigs.reduce((acc, tab) => {
-                acc[tab.key] = { hasData: null, totalFiles: null };
+        // Only reset when the tab set actually changes (by keys).
+        setTabDataState((prev) => {
+            const next = tabConfigs.reduce((acc, tab) => {
+                const existing = prev[tab.key];
+                acc[tab.key] = existing ? existing : { hasData: null, totalFiles: null, loaded: false };
                 return acc;
-            }, {})
-        );
+            }, {});
+            return next;
+        });
 
         if (!tabConfigs.length) return;
         if (activeKey && tabConfigs.some((tab) => tab.key === activeKey)) return;
@@ -33,7 +37,7 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
         setActiveKey(preferred ? preferred.key : null);
         // activeKey intentionally omitted from deps to avoid clobbering user selection on data reload.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tabConfigs]);
+    }, [tabKeySignature, tabConfigs, session]);
 
     useEffect(() => {
         if (!tabConfigs.length) return;
@@ -54,25 +58,44 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
         if (nextActive !== activeKey) {
             setActiveKey(nextActive);
         }
-    }, [activeKey, tabConfigs, tabDataState]);
+    }, [activeKey, tabConfigs, tabDataState, session]);
 
     const handleDataLoaded = useCallback((tabKey) => (payload = {}) => {
         const totalFiles = typeof payload.totalFiles === 'number' ? payload.totalFiles : 0;
         const hasData = typeof payload.hasData === 'boolean' ? payload.hasData : totalFiles > 0;
         setTabDataState((prev) => ({
             ...prev,
-            [tabKey]: { hasData, totalFiles }
+            [tabKey]: { hasData, totalFiles, loaded: true }
         }));
     }, []);
 
+    const hasAnyLoaded = tabConfigs.some((tab) => tabDataState[tab.key]?.loaded);
+    const allLoaded = tabConfigs.length > 0 && tabConfigs.every((tab) => tabDataState[tab.key]?.loaded);
+    const isLoading = tabConfigs.length > 0 && !hasAnyLoaded;
+
+    useEffect(() => {
+        if (hasAnyLoaded || !tabConfigs.length) return;
+        const timeout = setTimeout(() => {
+            setTabDataState((prev) => {
+                let changed = false;
+                const next = { ...prev };
+                tabConfigs.forEach((tab) => {
+                    if (!next[tab.key]?.loaded) {
+                        next[tab.key] = { hasData: false, totalFiles: 0, loaded: true };
+                        changed = true;
+                    }
+                });
+                return changed ? next : prev;
+            });
+        }, 10000);
+        return () => clearTimeout(timeout);
+    }, [hasAnyLoaded, tabConfigs, session]);
+
     if (!tabConfigs.length) return null;
 
-    const allLoaded = tabConfigs.length > 0 && tabConfigs.every((tab) => typeof tabDataState[tab.key]?.hasData === 'boolean');
-    const isLoading = tabConfigs.length > 0 && !allLoaded;
-
     const tabIsVisible = (tab) => {
-        // During load, keep all tabs visible; after load, hide ones with no data.
-        if (!allLoaded) return true;
+        // During initial load, keep all tabs visible; after load, hide ones with no data.
+        if (!allLoaded && !hasAnyLoaded) return true;
         return tabDataState[tab.key]?.hasData !== false;
     };
 

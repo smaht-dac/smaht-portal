@@ -57,10 +57,10 @@ const placeholders = {
     DownloadAllFilesFromSearchHrefButton,
     ChallengeTableWrapper,
     RetractedFilesTable,
+    DataMatrixComparisonTabs,
     DataMatrix,
     SubmissionDataDictionary,
     DonorManifestDataDictionary,
-    DataMatrixComparisonTabs,
 };
 
 export const replaceString = memoize(
