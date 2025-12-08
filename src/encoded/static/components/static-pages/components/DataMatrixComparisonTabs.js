@@ -100,6 +100,8 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
     };
 
     const visibleTabs = tabConfigs.filter(tabIsVisible);
+    // Always render all panels so they can refetch when session changes, even if hidden.
+    const panelsToRender = tabConfigs;
     const renderTabs = allLoaded ? visibleTabs : tabConfigs;
     const activeTab = visibleTabs.find((tab) => tab.key === activeKey) || renderTabs[0];
 
@@ -141,14 +143,16 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                         </div>
                     ) : (
                         <div className="tab-panels-wrapper position-relative">
-                            {renderTabs.map((tab) => {
+                            {panelsToRender.map((tab) => {
                                 const isActive = tab.key === activeTab?.key;
+                                const headerVisible = visibleTabs.some((t) => t.key === tab.key);
                                 const dataMatrixKey = (tab.matrixProps && tab.matrixProps.key) || tab.key;
+                                const displayStyle = isActive && headerVisible ? 'flex' : 'none';
                                 return (
                                     <div
                                         key={tab.key}
                                         className={`tab-card ${tab.className || ''} ${isActive ? 'is-active' : 'is-inactive'}`}
-                                        style={{ display: isActive ? 'flex' : 'none' }}
+                                        style={{ display: displayStyle }}
                                         aria-hidden={!isActive}>
                                         <div
                                             className="body d-flex justify-content-start justify-content-lg-center overflow-auto"
