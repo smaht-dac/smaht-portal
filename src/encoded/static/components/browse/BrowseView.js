@@ -121,15 +121,21 @@ const BrowseFileBody = (props) => {
                         show={showModal}
                         onHide={() => setShowModal(false)}
                         centered>
-                        <Modal.Header closeButton>
-                            <Modal.Title>Download Access Required</Modal.Title>
-                        </Modal.Header>
                         <Modal.Body>
-                            <p>
-                                You do not have access to view any protected
-                                data in this browse view. Please contact support
-                                to request access.
-                            </p>
+                            <div className="callout-card protected-data">
+                                <img
+                                    src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
+                                    alt="SMaHT Logo"
+                                />
+                                <h4>
+                                    Browse by File:
+                                    <br /> Public Release Coming Soon
+                                </h4>
+                                <span>
+                                    Check back for updates on the first official
+                                    release of SMaHT Production Data.
+                                </span>
+                            </div>
                         </Modal.Body>
                     </Modal>
                 )}

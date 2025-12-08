@@ -1147,6 +1147,14 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 	}
 }
 
+// Popover used in Donor pages
+#download-access-required-modal {
+	.modal-content {
+		border-radius: 20px;
+		padding: 0px;
+	}
+}
+
 
 h2.browse-summary-header {
 	font-size: 1.5rem;
