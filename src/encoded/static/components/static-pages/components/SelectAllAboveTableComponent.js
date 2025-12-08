@@ -128,6 +128,86 @@ const manifest_enum_map = [
     'sequencing',
 ];
 
+/**
+ * Popover component to show above select all button. Uses manual trigger
+ * to control show/hide with mouse enters/leaves the button and the popover
+ * itself.
+ */
+const SelectAllButtonPopover = ({
+    isAllSelected,
+    isEnabled,
+    cls,
+    handleSelectAll,
+    hasLimitedAccess,
+    iconClassName,
+}) => {
+    const [showPopover, setShowPopover] = useState(false);
+    const hideTimeoutRef = React.useRef(null);
+
+    const handleMouseEnter = () => {
+        clearTimeout(hideTimeoutRef.current);
+        setShowPopover(true);
+    };
+
+    const handleMouseLeave = () => {
+        // Start a delay before hiding
+        hideTimeoutRef.current = setTimeout(() => {
+            setShowPopover(false);
+        }, 100);
+    };
+
+    const handlePopoverMouseEnter = () => {
+        clearTimeout(hideTimeoutRef.current);
+    };
+
+    const handlePopoverMouseLeave = () => {
+        setShowPopover(false);
+    };
+
+    const renderPopover = (props) => (
+        <Popover
+            id="select-all-files-popover"
+            {...props}
+            onMouseEnter={handlePopoverMouseEnter}
+            onMouseLeave={handlePopoverMouseLeave}>
+            <Popover.Header>Select Open Files</Popover.Header>
+            <Popover.Body>
+                Locked Files require dbGaP access. For more information, see the{' '}
+                <a href="/docs/access/data-availability-and-access">
+                    Data Availability and Access
+                </a>{' '}
+                page.
+            </Popover.Body>
+        </Popover>
+    );
+
+    return (
+        <OverlayTrigger
+            trigger="manual"
+            placement="top"
+            show={showPopover}
+            overlay={renderPopover}>
+            <button
+                type="button"
+                id="select-all-files-button"
+                disabled={!isEnabled}
+                className={cls}
+                onClick={handleSelectAll}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}>
+                <i className={iconClassName} />
+                <span className="d-none d-md-inline text-400">
+                    {isAllSelected ? 'Deselect' : 'Select'} All{' '}
+                </span>
+                <span className="text-600">
+                    {hasLimitedAccess ? 'Open' : ''}
+                </span>{' '}
+                Files
+            </button>
+        </OverlayTrigger>
+    );
+};
+
 export class SelectAllFilesButton extends React.PureComponent {
     /** These are fields included when "Select All" button is clicked to AJAX all files in */
     static fieldsToRequest = [
@@ -200,8 +280,6 @@ export class SelectAllFilesButton extends React.PureComponent {
                 });
             });
         }
-
-        console.log('SelectAllFilesButton componentDidUpdate');
     }
 
     getDownloadableFileCount(userDownloadAccessObj) {
@@ -373,40 +451,16 @@ export class SelectAllFilesButton extends React.PureComponent {
             );
         }
 
-        if (
-            !isAllSelected &&
-            isEnabled &&
-            this.state.downloadableFileCount !== context?.total
-        ) {
+        if (hasLimitedAccess && !isAllSelected && isEnabled && session) {
             return (
-                <OverlayTrigger
-                    trigger={['hover', 'focus']}
-                    placement="top"
-                    overlay={
-                        <Popover>
-                            <Popover.Header>Select Open Files</Popover.Header>
-                            <Popover.Body>
-                                Locked Files require dbGaP access
-                            </Popover.Body>
-                        </Popover>
-                    }>
-                    <button
-                        type="button"
-                        id="select-all-files-button"
-                        disabled={!isEnabled}
-                        className={cls}
-                        onClick={this.handleSelectAll}
-                        data-tip={tooltip}>
-                        <i className={iconClassName} />
-                        <span className="d-none d-md-inline text-400">
-                            {isAllSelected ? 'Deselect' : 'Select'} All{' '}
-                        </span>
-                        <span className="text-600">
-                            {hasLimitedAccess ? 'Open' : ''}
-                        </span>{' '}
-                        Files
-                    </button>
-                </OverlayTrigger>
+                <SelectAllButtonPopover
+                    isAllSelected={isAllSelected}
+                    isEnabled={isEnabled}
+                    cls={cls}
+                    handleSelectAll={this.handleSelectAll}
+                    hasLimitedAccess={hasLimitedAccess}
+                    iconClassName={iconClassName}
+                />
             );
         }
 
@@ -484,6 +538,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
         const { modalOpen } = this.state;
         const isDisabled =
             typeof disabled === 'boolean' ? disabled : fileCountWithDupes === 0;
+
         btnProps.className =
             'btn ' + (modalOpen ? 'active ' : '') + btnProps.className;
         return (
@@ -491,7 +546,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
                 <button
                     type="button"
                     {...btnProps}
-                    disabled={isDisabled}
+                    disabled={!session || isDisabled}
                     onClick={this.showModal}>
                     {children}
                 </button>
