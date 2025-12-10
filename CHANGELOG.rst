@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-1.6.0
+1.7.0
 =====
 
 * Open Data URL support for SMaHT
@@ -16,6 +16,24 @@ Change Log
 * Redirect with no auth will be processed for public files, otherwise
   a redirect with auth will be sent
 * Requires update to permissions for S3 Federation user
+
+1.5.13
+=====
+
+`PR 562: Add enum value for target_tissues.target_tissue_percentage in pathology_report <https://github.com/smaht-dac/smaht-portal/pull/562>`_
+
+* TPC wants to be able to specify 0% for target_tissue_percentage in pathology_report when there is no target tissue present in the sample.
+
+
+1.5.12
+=====
+
+`PR 547: Update tissue_sample validators <https://github.com/smaht-dac/smaht-portal/pull/547>`_
+
+* Refactored the tissue_sample validators to enforce rules for non-TPC sample submissions
+  - There must be an existing TPC tissue_sample with the same external_id as the submitted one
+  - If a non-TPC sample already exists with the same external_id fail validation
+
 
 1.5.11
 ======
