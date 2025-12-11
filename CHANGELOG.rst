@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+
+1.5.13
+=====
+
+`PR 567: Add flag for local deployment so es validator can be turned off <https://github.com/smaht-dac/smaht-portal/pull/567>`_
+
+* Add 'skip_es_validation' flag to development.ini.template to allow local deployments to skip ES validation if needed
+  NB: This flag should not be used in production deployments and is set to false - change to true if needed for local deployments
+* added code in tissue_sample validator to skip ES validation if the flag is set to true
+
 1.5.12
 =====
 
