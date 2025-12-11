@@ -243,6 +243,7 @@ export default class DataMatrix extends React.PureComponent {
         "compositeValueSeparator": " - ",
         "disableConfigurator": true,
         "idLabel": "",
+        "onDataLoaded": null,
         // allowedFields is for the configurator
         "allowedFields": [
             "donors.display_title",
@@ -301,6 +302,7 @@ export default class DataMatrix extends React.PureComponent {
         'compositeValueSeparator': PropTypes.string,
         'disableConfigurator': PropTypes.bool,
         'idLabel': PropTypes.string,
+        'onDataLoaded': PropTypes.func,
         'allowedFields': PropTypes.arrayOf(PropTypes.string),
         'baseBrowseFilesPath': PropTypes.string
     };
@@ -510,7 +512,7 @@ export default class DataMatrix extends React.PureComponent {
     loadSearchQueryResults() {
 
         const commonCallback = (result) => {
-            const { valueChangeMap, resultItemPostProcessFuncKey, resultTransformedPostProcessFuncKey } = this.props;
+            const { valueChangeMap, resultItemPostProcessFuncKey, resultTransformedPostProcessFuncKey, onDataLoaded } = this.props;
             const { fieldChangeMap, groupingProperties, columnGrouping, autoPopulateRowGroupsProperty } = this.state;
             const resultKey = "_results";
             const updatedState = {};
@@ -570,13 +572,32 @@ export default class DataMatrix extends React.PureComponent {
             updatedState['totalFiles'] = totalFiles;
 
             this.setState(updatedState, () => ReactTooltip.rebuild());
+            if (typeof onDataLoaded === 'function') {
+                onDataLoaded({
+                    hasData: totalFiles > 0,
+                    totalFiles,
+                    query: this.state.query,
+                    results: transformedData
+                });
+            }
         };
 
         const commonFallback = (result) => {
+            const { onDataLoaded } = this.props;
+
             const resultKey = "_results";
             const updatedState = {};
             updatedState[resultKey] = false;
             this.setState(updatedState);
+            if (typeof onDataLoaded === 'function') {
+                onDataLoaded({
+                    hasData: false,
+                    totalFiles: 0,
+                    query: this.state.query,
+                    results: null,
+                    error: result
+                });
+            }
         };
 
         const {
@@ -897,4 +918,3 @@ DataMatrix.browseFilteringTransformFuncs = {
         return filteringProperties;
     }
 };
-

@@ -232,23 +232,32 @@ function stepDataMatrixProduction(caps) {
             cy.contains("div#page-title-container h1.page-title", "Data Matrix")
                 .should("be.visible");
 
-            cy.get('#data-matrix-for_production').then(($el) => {
-                const fileCount = $el.attr('data-files-count');
+            cy.get(".tabs-loading-overlay", { timeout: 20000 }).should("not.exist");
 
-                if (fileCount === '0') {
-                    // When data-files-count is 0, the tab should be hidden (display: none)
-                    cy.wrap($el)
-                        .parents('.tab-card')
-                        .should('have.css', 'display', 'none');
+            cy.get("body").then(($body) => {
+                const $titleEl = Cypress.$($body)
+                    .find(".tab-header .title")
+                    .filter((_, el) => Cypress.$(el).text().trim() === "Production Data");
 
+                if ($titleEl.length === 0) {
+                    // Header hidden: production matrix should be hidden and no data expected.
+                    cy.get("#data-matrix-for_production")
+                        .parents(".tab-card")
+                        .should("have.css", "display", "none");
                     expect(caps.expectedDataMatrixProductionOpts.expectedFilesCount).to.equal(0);
-
-                    // Stop the test here since the tab is not visible
-                    cy.log('Tab is hidden because data-files-count=0. Test stopped here.');
-                    return; // exit early
+                    cy.log("Production tab hidden (no data).");
+                    return;
                 }
 
-                // If we reach this point, the tab should be visible
+                const $headerBtn = $titleEl.closest(".tab-header");
+                cy.wrap($headerBtn)
+                    .should("be.visible")
+                    .click();
+
+                cy.get("#data-matrix-for_production")
+                    .parents(".tab-card")
+                    .should("have.css", "display", "flex");
+
                 testMatrixPopoverValidation(
                     "#data-matrix-for_production",
                     caps.expectedDataMatrixProductionOpts
@@ -275,6 +284,17 @@ function stepDataMatrixBenchmarking(caps) {
 
             cy.contains("div#page-title-container h1.page-title", "Data Matrix")
                 .should("be.visible");
+
+            cy.get(".tabs-loading-overlay", { timeout: 20000 }).should("not.exist");
+
+            cy.contains(".tab-header .title", "Benchmarking Data")
+                .closest(".tab-header")
+                .should("be.visible")
+                .click();
+
+            cy.get("#data-matrix-for_benchmarking")
+                .parents(".tab-card")
+                .should("have.css", "display", "flex");
 
             testMatrixPopoverValidation(
                 "#data-matrix-for_benchmarking",
