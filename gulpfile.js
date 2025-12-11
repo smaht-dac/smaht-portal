@@ -112,6 +112,31 @@ function getLinkedSharedComponentsPath() {
     };
 }
 
+function getLinkedReactWorkflowVizPath() {
+    let workflowVizPath = path.resolve(
+        __dirname,
+        'node_modules/@hms-dbmi-bgm/react-workflow-viz'
+    );
+    const origPath = workflowVizPath;
+
+    // Follow any symlinks to get to real path.
+    workflowVizPath = fs.realpathSync(workflowVizPath);
+
+    const isLinked = origPath !== workflowVizPath;
+
+    console.log(
+        '`@hms-dbmi-bgm/react-workflow-viz` directory is',
+        isLinked
+            ? 'sym-linked to `' + workflowVizPath + '`.'
+            : 'NOT sym-linked.'
+    );
+
+    return {
+        isLinked,
+        workflowVizPath: isLinked ? workflowVizPath : null,
+    };
+}
+
 function buildSharedPortalComponents(done) {
     const { isLinked, sharedComponentPath } = getLinkedSharedComponentsPath();
 
@@ -143,6 +168,38 @@ function buildSharedPortalComponents(done) {
         console.log(
             `buildSharedPortalComponents process exited with code ${code}`
         );
+        done();
+    });
+}
+
+function buildReactWorkflowViz(done) {
+    const { isLinked, workflowVizPath } = getLinkedReactWorkflowVizPath();
+
+    if (!isLinked) {
+        // Exit
+        done();
+        return;
+    }
+
+    const subP = spawn(
+        path.join(workflowVizPath, 'node_modules/.bin/babel'),
+        [
+            path.join(workflowVizPath, 'src'),
+            '--out-dir',
+            path.join(workflowVizPath, 'es'),
+            '--env-name',
+            'esm',
+        ],
+        { stdio: 'inherit' }
+    );
+
+    subP.on('error', (err) => {
+        console.log(`buildReactWorkflowViz errored - ${err}`);
+        return;
+    });
+
+    subP.on('close', (code) => {
+        console.log(`buildReactWorkflowViz process exited with code ${code}`);
         done();
     });
 }
@@ -179,6 +236,39 @@ function watchSharedPortalComponents(done) {
         console.log(
             `watchSharedPortalComponents process exited with code ${code}`
         );
+        done();
+    });
+}
+
+function watchReactWorkflowViz(done) {
+    const { isLinked, workflowVizPath } = getLinkedReactWorkflowVizPath();
+
+    if (!isLinked) {
+        // Exit
+        done();
+        return;
+    }
+
+    const subP = spawn(
+        path.join(workflowVizPath, 'node_modules/.bin/babel'),
+        [
+            path.join(workflowVizPath, 'src'),
+            '--out-dir',
+            path.join(workflowVizPath, 'es'),
+            '--env-name',
+            'esm',
+            '--watch',
+        ],
+        { stdio: 'inherit' }
+    );
+
+    subP.on('error', (err) => {
+        console.log(`watchReactWorkflowViz errored - ${err}`);
+        return;
+    });
+
+    subP.on('close', (code) => {
+        console.log(`watchReactWorkflowViz process exited with code ${code}`);
         done();
     });
 }
@@ -276,13 +366,14 @@ const devQuick = gulp.series(
     cleanBuildDirectory,
     setQuick,
     doWebpack,
-    gulp.parallel(watch, watchSharedPortalComponents)
+    gulp.parallel(watch, watchSharedPortalComponents, watchReactWorkflowViz)
 );
 
 const devAnalyzed = gulp.series(
     cleanBuildDirectory,
     setDevelopment,
     buildSharedPortalComponents,
+    buildReactWorkflowViz,
     doWebpack
 );
 
@@ -307,3 +398,33 @@ gulp.task('build-scss-dev', (done) => {
         { outputStyle: 'expanded' }
     );
 });
+
+function watchScss() {
+    const runBuild = gulp.series((cb) =>
+        doSassBuild(cb, {
+            outputStyle: 'expanded',
+        })
+    );
+    const watchers = [
+        gulp.watch('./src/encoded/static/scss/**/*.scss', runBuild),
+    ];
+    const { isLinked, workflowVizPath } = getLinkedReactWorkflowVizPath();
+    if (isLinked && workflowVizPath) {
+        watchers.push(
+            gulp.watch(
+                path.join(workflowVizPath, 'src/**/*.scss'),
+                runBuild
+            )
+        );
+    }
+    return Promise.all(
+        watchers.map(
+            (watcher) =>
+                new Promise((resolve) =>
+                    watcher.on('close', resolve).on('error', resolve)
+                )
+        )
+    );
+}
+
+gulp.task('watch-scss', gulp.series((done) => doSassBuild(done, { outputStyle: 'expanded' }), watchScss));
