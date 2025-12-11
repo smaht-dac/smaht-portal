@@ -8,6 +8,14 @@ Change Log
 ----------
 
 
+1.5.15
+=====
+
+`PR 568: feat: add data retraction announcement <https://github.com/smaht-dac/smaht-portal/pull/568>`_
+
+* Add data retraction announcement
+
+
 1.5.14
 ======
 
