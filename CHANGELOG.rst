@@ -8,6 +8,14 @@ Change Log
 ----------
 
 
+1.5.16
+======
+
+`PR 564: Add react-workflow-viz build and watch tasks to Gulp <https://github.com/smaht-dac/smaht-portal/pull/564>`_
+
+* adds support for linking, building, and watching the @hms-dbmi-bgm/react-workflow-viz package in the development workflow
+
+
 1.5.15
 =====
 
