@@ -6,7 +6,6 @@ import DataMatrix from '../../viz/Matrix/DataMatrix';
 
 export function DataMatrixComparisonTabs({ session, tabs }) {
     const tabConfigs = useMemo(() => tabs || [], [tabs]);
-    const tabKeySignature = useMemo(() => (tabConfigs || []).map((t) => t.key).join('|'), [tabConfigs]);
 
     const [tabDataState, setTabDataState] = useState(() => (
         tabConfigs.reduce((acc, tab) => {
@@ -17,7 +16,7 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
 
     const [activeKey, setActiveKey] = useState(() => {
         const hasProduction = tabConfigs.find((tab) => tab.key === 'production');
-        return hasProduction ? 'production' : (tabConfigs[0] && tabConfigs[0].key) || null;
+        return hasProduction ? 'production' : tabConfigs[0]?.key ?? null;
     });
 
     useEffect(() => {
@@ -25,7 +24,7 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
         setTabDataState((prev) => {
             const next = tabConfigs.reduce((acc, tab) => {
                 const existing = prev[tab.key];
-                acc[tab.key] = existing ? existing : { hasData: null, totalFiles: null, loaded: false };
+                acc[tab.key] = existing ?? { hasData: null, totalFiles: null, loaded: false };
                 return acc;
             }, {});
             return next;
@@ -34,10 +33,10 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
         if (!tabConfigs.length) return;
         if (activeKey && tabConfigs.some((tab) => tab.key === activeKey)) return;
         const preferred = tabConfigs.find((tab) => tab.key === 'production') || tabConfigs[0];
-        setActiveKey(preferred ? preferred.key : null);
+        setActiveKey(preferred?.key ?? null);
         // activeKey intentionally omitted from deps to avoid clobbering user selection on data reload.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tabKeySignature, tabConfigs, session]);
+    }, [tabConfigs, session]);
 
     useEffect(() => {
         if (!tabConfigs.length) return;
