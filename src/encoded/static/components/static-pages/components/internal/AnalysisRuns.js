@@ -12,11 +12,7 @@ import {
     getLink,
     createBadge,
     createWarningIcon,
-    getQcResults,
-    getQcResultsSummary,
     getCommentsList,
-    isReleasedExternally,
-    isReleasedInternally,
     getCommentInputField,
     getPagination,
 } from './utils';
@@ -138,7 +134,7 @@ class AnalysisRunsComponent extends React.PureComponent {
                 this.getData();
             }
         );
-    }
+    };
 
     handleSearchById = (id) => {
         this.setState(
@@ -151,7 +147,7 @@ class AnalysisRunsComponent extends React.PureComponent {
                 this.getData();
             }
         );
-    }
+    };
 
     refresh = () => {
         this.setState(
@@ -162,7 +158,7 @@ class AnalysisRunsComponent extends React.PureComponent {
                 this.getData();
             }
         );
-    }
+    };
 
     handleCommentInput = (ar, comment) => {
         const newComments = JSON.parse(JSON.stringify(this.state.newComments));
@@ -176,15 +172,16 @@ class AnalysisRunsComponent extends React.PureComponent {
         this.setState((prevState) => ({
             loading: true,
         }));
-        const analysisRuns = JSON.parse(JSON.stringify(this.state.analysisRuns));
+        const analysisRuns = JSON.parse(
+            JSON.stringify(this.state.analysisRuns)
+        );
         let newComments = [];
         analysisRuns.forEach((fileset) => {
             if (fileset.uuid === arUuid) {
                 newComments = fileset.comments ?? [];
-                newComments =
-                    newComments.filter(function (e) {
-                        return e !== comment;
-                    });
+                newComments = newComments.filter(function (e) {
+                    return e !== comment;
+                });
                 fileset['comments'] = newComments;
             }
         });
@@ -202,7 +199,9 @@ class AnalysisRunsComponent extends React.PureComponent {
             return;
         }
         this.toggleCommentInputField(ar.uuid);
-        const analysisRuns = JSON.parse(JSON.stringify(this.state.analysisRuns));
+        const analysisRuns = JSON.parse(
+            JSON.stringify(this.state.analysisRuns)
+        );
         let newComments = [];
 
         analysisRuns.forEach((analysisRun) => {
@@ -259,43 +258,33 @@ class AnalysisRunsComponent extends React.PureComponent {
                 const payload = {
                     tags: fileset.tags ?? null,
                 };
-                this.patchAnalysisRun(fileset.uuid, this.state.analysisRuns, payload);
+                this.patchAnalysisRun(
+                    fileset.uuid,
+                    this.state.analysisRuns,
+                    payload
+                );
             }
         );
     };
-
 
     getAnalysisRunTableBody = () => {
         const tbody = this.state.analysisRuns.map((ar) => {
             let tissues = [];
             let donors = [];
             ar.tissues?.forEach((tissue) => {
-                                // if (analyte.rna_integrity_number) {
-                                //     rin_number.push(analyte.rna_integrity_number);
-                                // }
-                                // analyte.samples?.forEach((sample) => {
-                                //     fs_details.push(
-                                //         <li className="ss-line-height-140">
-                                //             Sample:{' '}
-                                //             {getLink(sample.uuid, sample.display_title)}{' '}
-                                //             {tissueTypes}
-                                //         </li>
-                                //     );
-                                // });
                 tissues.push(tissue.tissue_type);
                 donors.push(tissue.donor.display_title);
             });
             donors = [...new Set(donors)].sort();
-            
-            let details = [
-                <li className="ss-line-height-140">
-                    Donors: {donors}
-                </li>,
-                 <li className="ss-line-height-140">
-                    Tissues: {tissues.join(', ')}
-                </li>
-            ];
+            const donorsString = donors.join(', ');
+            const tissuesString = tissues.join(', ');
 
+            let details = [
+                <li className="ss-line-height-140">Donors: {donorsString}</li>,
+                <li className="ss-line-height-140">
+                    Tissues: {tissuesString}
+                </li>,
+            ];
 
             const commentHandlers = {
                 handleToggleCommentInputField:
@@ -393,11 +382,10 @@ class AnalysisRunsComponent extends React.PureComponent {
                 }
             });
 
-            
             return (
                 <tr key={ar.accession}>
                     <td className="text-start ss-fileset-column">
-                        {getLink(ar.accession, ar.accession)}
+                        {getLink(ar.accession, ar.analysis_type)}
                         <object.CopyWrapper
                             value={ar.accession}
                             className=""
@@ -487,9 +475,7 @@ class AnalysisRunsComponent extends React.PureComponent {
                                 </div>
                             </th>
                             <th className="text-start">MetaWorkflowRuns</th>
-                            <th className="text-start">
-                                Tags
-                            </th>
+                            <th className="text-start">Tags</th>
                         </tr>
                     </thead>
                     <tbody>{this.getAnalysisRunTableBody()}</tbody>
