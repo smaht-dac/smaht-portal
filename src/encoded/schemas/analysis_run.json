@@ -57,8 +57,7 @@
             "type": "string",
             "enum": [
                 "SNV calling",
-                "SV calling",
-                "Methylation analysis"
+                "SV calling"
             ]
         },
         "tissues": {

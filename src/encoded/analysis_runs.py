@@ -49,7 +49,7 @@ def get_analysis_runs(context, request):
 
         for res in search_res:
             analysis_run = res
-            # This determines the order of the MetaWorkflowRuns shown on the submission status page
+            # This determines the order of the MetaWorkflowRuns shown on the analysis status page
             analysis_run["meta_workflow_runs"] = sorted(
                 res.get("meta_workflow_runs", []),
                 key=lambda d: d["date_created"],
