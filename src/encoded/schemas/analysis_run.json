@@ -9,12 +9,16 @@
     ],
     "identifyingProperties": [
         "accession",
+        "aliases",
         "uuid"
     ],
     "additionalProperties": false,
     "mixinProperties": [
         {
             "$ref": "mixins.json#/accession"
+        },
+         {
+            "$ref": "mixins.json#/aliases"
         },
         {
             "$ref": "mixins.json#/attribution"
