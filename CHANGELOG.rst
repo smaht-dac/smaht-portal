@@ -8,6 +8,15 @@ Change Log
 ----------
 
 
+1.5.17
+======
+
+`PR 565: Data matrix tab control <https://github.com/smaht-dac/smaht-portal/pull/565>`_
+
+* Introduced the new DataMatrixComparisonTabs component that replaces the previous static tab layout
+* Refactored Cypress tests for data matrix overview to interact with the new tab-based UI
+
+
 1.5.16
 ======
 
