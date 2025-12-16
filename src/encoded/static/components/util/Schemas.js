@@ -256,7 +256,7 @@ export const Field = {
         'file_format.display_title': 'File Format',
         'data_category': 'Data Category',
         'software.display_title': 'Software',
-        'sample_summary.tissue_subtypes': 'Tissue Subtype',
+        'sample_summary.tissue_subtypes': 'Subtype',
         '@id': 'Link',
         display_title: 'Title',
     },

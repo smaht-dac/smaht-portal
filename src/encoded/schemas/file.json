@@ -340,6 +340,9 @@
         "sample_summary.tissues": {
             "title": "Tissue"
         },
+        "sample_summary.tissue_subtypes": {
+            "title": "Tissue Subtype"
+        },
         "file_sets.libraries.assay.display_title": {
             "title": "Experimental Assay",
             "search_type": "basic",
