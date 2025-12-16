@@ -51,6 +51,9 @@
             "$ref": "mixins.json#/status"
         },
         {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
             "$ref": "mixins.json#/tags"
         },
         {
