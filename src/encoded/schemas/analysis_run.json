@@ -5,7 +5,8 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "analysis_type"
+        "analysis_type",
+        "identifier"
     ],
     "anyOf": [
         {
@@ -20,7 +21,7 @@
         }
     ],
     "identifyingProperties": [
-        "accession",
+        "identifier",
         "aliases",
         "uuid"
     ],
@@ -29,8 +30,11 @@
         {
             "$ref": "mixins.json#/accession"
         },
-         {
+        {
             "$ref": "mixins.json#/aliases"
+        },
+        {
+            "$ref": "mixins.json#/identifier"
         },
         {
             "$ref": "mixins.json#/attribution"

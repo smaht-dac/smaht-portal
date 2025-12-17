@@ -4,38 +4,10 @@ import functools
 from pyramid.view import view_config
 from pyramid.request import Request
 from snovault import calculated_property, collection, load_schema
-from snovault.util import debug_log, get_item_or_none
-from encoded.validator_decorators import link_related_validator
 import structlog
 
-from .submitted_item import (
-    SUBMITTED_ITEM_ADD_VALIDATORS,
-    SUBMITTED_ITEM_EDIT_PATCH_VALIDATORS,
-    SUBMITTED_ITEM_EDIT_PUT_VALIDATORS,
-    SubmittedItem,
-)
-from ..item_utils import (
-    assay as assay_utils,
-    file_set as file_set_utils,
-    item as item_utils,
-    library as library_utils,
-    sequencing as sequencing_utils,
-    analyte as analyte_utils,
-    sample as sample_utils,
-    tissue_sample as tissue_sample_utils,
-    tissue as tissue_utils,
-)
-from ..item_utils.utils import (
-    RequestHandler,
-    get_property_value_from_identifier,
-    get_property_values_from_identifiers,
-)
-from ..utils import load_extended_descriptions_in_schemas
-
-
-from .base import collection_add, item_edit, Item
-
-from .utils import get_properties, get_property_for_validation
+from .acl import ONLY_ADMIN_VIEW_ACL
+from .base import Item
 
 log = structlog.getLogger(__name__)
 
@@ -56,6 +28,7 @@ def _build_analysis_run_embedded_list():
 
 @collection(
     name="analysis-runs",
+    acl=ONLY_ADMIN_VIEW_ACL,
     unique_key="analysis_run:identifier",
     properties={
         "title": "Analysis Runs",
