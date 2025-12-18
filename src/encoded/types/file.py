@@ -9,6 +9,7 @@ from pyramid.httpexceptions import (
     HTTPNotFound,
 )
 from boto3 import client as boto_client
+from botocore.config import Config
 from datetime import datetime
 import functools
 from pyramid.request import Request
@@ -1441,16 +1442,18 @@ class File(Item, CoreFile):
     @staticmethod
     def setup_unified_s3_client():
         """ Creates an S3 client using credentials from the secrets manager """
+        config = Config(signature_version='s3v4')
         if 'IDENTITY' in os.environ:
             identity = assume_identity()
             with override_environ(**identity):
                 return boto_client(
                     's3',
                     aws_access_key_id=os.environ.get('S3_AWS_ACCESS_KEY_ID'),
-                    aws_secret_access_key=os.environ.get('S3_AWS_SECRET_ACCESS_KEY')
+                    aws_secret_access_key=os.environ.get('S3_AWS_SECRET_ACCESS_KEY'),
+                    config=config
                 )
         log.error(f'No identity found! Bucket resolution likely to fail')
-        return boto_client('s3')  # this fallback will throw permission errors downstream
+        return boto_client('s3', config=config)  # this fallback will throw permission errors downstream
 
     @staticmethod
     def _head_s3(client, bucket, key):
