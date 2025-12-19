@@ -481,11 +481,23 @@ def test_meta_workflow_run_inputs_rev_link(
     file_with_inputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_inputs.uuid!=No+value"
     )
-    assert file_with_inputs_search
-    file_without_inputs_search = get_search(
-        es_testapp, "/search/?type=File&meta_workflow_run_inputs.uuid=No+value"
+    assert len(file_with_inputs_search) == 1
+    files_without_inputs_search = get_search(
+        es_testapp, ""
     )
-    assert file_without_inputs_search
+    assert files_without_inputs_search
+    # why aren't the reference files returned with the get_search call above?
+    # make sure the reference file in meta_workflow_run as input in workbook
+    # has no meta_workflow_run_inputs
+    uid_file_search = get_search(
+        es_testapp, "/search/?type=File&uuid=49690fb8-7680-4034-ae3b-4f28222d5db8"
+    )
+    assert 'meta_workflow_run_inputs' not in uid_file_search[0]
+    print(len(uid_file_search))
+    ref_file_search = get_search(
+        es_testapp, "/search/?type=ReferenceFile"
+    )
+    assert "49690fb8-7680-4034-ae3b-4f28222d5db8" in [rf.get('uuid') for rf in ref_file_search]
 
 
 @pytest.mark.workbook
@@ -497,7 +509,7 @@ def test_meta_workflow_run_outputs_rev_link(
     file_with_outputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_outputs.uuid!=No+value"
     )
-    assert file_with_outputs_search
+    assert len(file_with_outputs_search) == 1
     file_without_outputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_outputs.uuid=No+value"
     )
