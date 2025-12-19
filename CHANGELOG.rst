@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+1.6.0
+=====
+
+* Open Data URL support for SMaHT
+* New calc-prop 'open_data_url' which will show the location
+  of files in open data buckets
+* Redirect with no auth will be processed for public files, otherwise
+  a redirect with auth will be sent
+* Requires update to permissions for S3 Federation user
 
 1.5.17
 ======
@@ -207,9 +216,9 @@ Change Log
 =====
 `PR 540 Refactor file status tracking structure <https://github.com/smaht-dac/smaht-portal/pull/540>`_
 
-* The `file_status_tracking` calc prop now contains the dictionaries `status_tracking` and `release_dates`. 
-  `status_tracking` contains timestamps and dates when the file switched status. 
-  `release_dates` evaluates these status changes and provides timestamps and dates for 
+* The `file_status_tracking` calc prop now contains the dictionaries `status_tracking` and `release_dates`.
+  `status_tracking` contains timestamps and dates when the file switched status.
+  `release_dates` evaluates these status changes and provides timestamps and dates for
   `initial_release`, `public_release`, `network_release`.
 
 
