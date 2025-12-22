@@ -1,5 +1,6 @@
-What are SMaHT Data?
-^^^^^^^^^^^^^^^^^^^^
+.. raw:: html
+    
+    <h3>What are SMaHT Data?</h3>
 
 The Somatic Mosaicism across Human Tissues (SMaHT) Network aims to create a reference catalog of somatic mutations and their patterns across a full spectrum of tissue types from 150 non-diseased donors, applying multiple state-of-the-art experimental assays and computational methods. 
 
@@ -7,14 +8,23 @@ The data generated from the SMaHT Network provides a comprehensive and rich publ
 
 The primary molecular assays of the SMaHT Network include bulk whole genome sequencing (WGS) using both Illumina-based short-read, and PacBio- or ONT-based long-read sequencing platforms, as well as bulk whole transcriptome sequencing on Illumina (total RNA-Seq) and PacBio (Kinnex) platforms.
 
+.. raw:: html
+    
+    <h3>SMaHT Data Access</h3>
 
-SMaHT Data Access
-^^^^^^^^^^^^^^^^^
 All data/metadata files generated from the SMaHT Network are available for download from the SMaHT Data Portal to the portal users with appropriate access. For self-registered Data Portal users who are not part of the SMaHT Network, the data are available after official data releases.
 
 **Open Access**: The open-access data/metadata files are available for download after a login as a SMaHT Network member as well as a self-registered Data Portal user who is not part of the SMaHT Network.
 
 **Protected Access**: All sequence data (DNA and RNA), inherited germline variant data, and full donor metadata files are protected-access data under dbGaP. Please see our `Protected Data Access page <https://data.smaht.org/docs/access/getting-dbgap-access>`_ for instructions on how to request access for the protected-access SMaHT data under dbGaP.
+
+
+.. admonition:: Data Release
+   :class: tip
+
+   Production Data are only available to members of the SMaHT Consortium at this time. Please check back for upcoming releases.
+
+|
 
 .. raw:: html
 
@@ -83,9 +93,9 @@ All data/metadata files generated from the SMaHT Network are available for downl
                 </tr>
                 <tr>
                     <td class="row-label"><b>Full Donor Metadata</b><br/> &lpar;e.g., smoking status, environmental exposure, prior clinical history&rpar;</td>
-                    <td class="protected">protected</td>
-                    <td class="protected">protected</td>
-                    <td class="protected">protected</td>
+                    <td class="not-applicable">N/A</td>
+                    <td class="not-applicable">N/A</td>
+                    <td class="not-applicable">N/A</td>
                     <td class="protected">protected</td>
                     <td class="protected">protected</td>
                 </tr>

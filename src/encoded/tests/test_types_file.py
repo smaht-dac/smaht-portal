@@ -1366,7 +1366,7 @@ def test_files_open_data_url_released_and_transferred(testapp, public_reference_
         assert bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
 
         # 3. No credential needed
-        assert 'AWSAccessKeyId' not in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+        assert 'X-Amz-Signature' not in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
 
 
 def test_files_open_data_url_released_and_transferred_protected(testapp, public_reference_file):
@@ -1396,7 +1396,7 @@ def test_files_open_data_url_released_and_transferred_protected(testapp, public_
         download_link = updated.json['@graph'][0]['href']
         direct_res = testapp.get(f'{download_link}?datastore=database', status=307)
         assert bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
-        assert 'AWSAccessKeyId' in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+        assert 'X-Amz-Signature' in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
 
 
 @pytest.mark.workbook
