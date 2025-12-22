@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+
+1.6.1
+=====
+
+`PR 549: feat: Update download functionality on search and browse pages <https://github.com/smaht-dac/smaht-portal/pull/549>`_
+
+* Update `/session-properties` to include download permission information
+* Implement file selection permission checks
+
+
 1.6.0
 =====
 
