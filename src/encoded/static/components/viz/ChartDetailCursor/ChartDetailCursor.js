@@ -148,7 +148,9 @@ class Body extends React.PureComponent {
         if (Array.isArray(path) && path.length === 0){
             return null;
         }
-        const leafNode = path[path.length - 1];
+
+        // see workaround in Crumbs component why we do this for length 3
+        const leafNode = path[path.length === 3 ? 1 : path.length - 1];
         const leafNodeFieldTitle = Schemas.Field.toName(leafNode.field, schemas);
 
         return (
@@ -198,10 +200,18 @@ const Crumbs = React.memo(function Crumbs({ path, schemas, primaryCount }){
     if (isEmpty) return null;
     //var maxSkewOffset = (this.props.path.length - 2) * offsetPerCrumb;
 
+    //workaround: if path has three elemennts, swap the second and the third to fix the order (clone the path first)
+    const clonedPath = path.slice();
+    if (path.length === 3) {
+        const temp = clonedPath[1];
+        clonedPath[1] = clonedPath[2];
+        clonedPath[2] = temp;
+    }
+
     return (
         <div className={'detail-crumbs' + (isEmpty ? ' no-children' : '')}>
             {
-                path.slice(0,-1).map(function(n, i){
+                clonedPath.slice(0,-1).map(function(n, i){
                     return (
                         <div
                             data-depth={i}

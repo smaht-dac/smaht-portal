@@ -130,7 +130,13 @@ export default class CursorViewBounds extends React.PureComponent {
             actions
         };
 
-        if (node.parent) newCursorDetailState.path.push(node.parent);
+        let current = node && node.parent;
+        const ancestors = [];
+        while (current){
+            ancestors.unshift(current);
+            current = current.parent;
+        }
+        newCursorDetailState.path = newCursorDetailState.path.concat(ancestors);
         if (typeof aggregateType === 'string') {
             newCursorDetailState.primaryCount = aggregateType;
         }
