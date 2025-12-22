@@ -44,7 +44,7 @@ export const BROWSE_STATUS_FILTERS =
 
 export const BROWSE_LINKS = {
     file:
-        '/browse/?type=File&sample_summary.studies=Production&' +
+        '/browse/?type=File&sample_summary.studies=Production&dataset!=No+value&' +
         BROWSE_STATUS_FILTERS,
     donor:
         '/browse/?type=Donor&study=Production&tags=has_released_files&' +

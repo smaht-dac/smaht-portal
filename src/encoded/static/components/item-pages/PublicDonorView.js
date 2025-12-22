@@ -232,7 +232,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
         // load value from searchUrl if not provided
         setIsLoading(true);
         ajax.load(
-            `/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${context?.display_title}`,
+            `/search/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${context?.display_title}`,
             (resp) => {
                 setStatisticValues({
                     tissues: resp?.facets?.find(
@@ -305,7 +305,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                 <DataMatrix
                                     key="data-matrix-donor"
                                     query={{
-                                        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${context.display_title}&limit=all`,
+                                        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${context.display_title}&limit=all`,
                                         columnAggFields: [
                                             'file_sets.libraries.assay.display_title',
                                             'sequencing.sequencer.platform',
