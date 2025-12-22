@@ -9,7 +9,11 @@ import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/
 import { BrowseViewControllerWithSelections } from '../../static-pages/components/TableControllerWithSelections';
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
-import { BROWSE_STATUS_FILTERS, BROWSE_LINKS } from '../BrowseView';
+import {
+    BROWSE_STATUS_FILTERS,
+    BROWSE_LINKS,
+    NoResultsBrowseModal,
+} from '../BrowseView';
 import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
@@ -890,7 +894,7 @@ const BrowseProtectedDonorSearchTable = (props) => {
 
 // Browse Protected Donor Body Component
 export const BrowseProtectedDonorBody = (props) => {
-    const { alerts } = props;
+    const { context, alerts } = props;
 
     return (
         <>
@@ -900,6 +904,7 @@ export const BrowseProtectedDonorBody = (props) => {
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseProtectedDonorSearchTable />
             </BrowseViewControllerWithSelections>
+            {context?.total === 0 && <NoResultsBrowseModal type="donor" />}
         </>
     );
 };

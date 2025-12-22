@@ -58,8 +58,37 @@ export default function BrowseView(props) {
     return <BrowseViewBody {...props} />;
 }
 
-const BrowseFileBody = (props) => {
+// Modal for empty Donor and ProtectedDonor Browse
+export const NoResultsBrowseModal = ({ type }) => {
     const [showModal, setShowModal] = useState(true);
+    return (
+        <Modal
+            id="download-access-required-modal"
+            show={showModal}
+            onHide={() => setShowModal(false)}
+            centered>
+            <Modal.Body>
+                <div className="callout-card protected-data">
+                    <img
+                        src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
+                        alt="SMaHT Logo"
+                    />
+                    <h4>
+                        SMaHT {type === 'file' ? 'Production' : 'Donor'} Data:{' '}
+                        <br />
+                        Official Release - Coming Soon
+                    </h4>
+                    <span>
+                        Check back for updates on the official
+                        <br /> release of SMaHT Production Data.
+                    </span>
+                </div>
+            </Modal.Body>
+        </Modal>
+    );
+};
+
+const BrowseFileBody = (props) => {
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
     const { context, session, href, windowWidth, windowHeight, isFullscreen } =
         props;
@@ -114,31 +143,7 @@ const BrowseFileBody = (props) => {
                     userDownloadAccess={props.userDownloadAccess}
                 />
             </BrowseViewControllerWithSelections>
-            {context?.total === 0 &&
-                props.userDownloadAccess['protected'] === false && (
-                    <Modal
-                        id="download-access-required-modal"
-                        show={showModal}
-                        onHide={() => setShowModal(false)}
-                        centered>
-                        <Modal.Body>
-                            <div className="callout-card protected-data">
-                                <img
-                                    src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
-                                    alt="SMaHT Logo"
-                                />
-                                <h4>
-                                    Browse by File:
-                                    <br /> Public Release Coming Soon
-                                </h4>
-                                <span>
-                                    Check back for updates on the first official
-                                    release of SMaHT Production Data.
-                                </span>
-                            </div>
-                        </Modal.Body>
-                    </Modal>
-                )}
+            {context?.total === 0 && <NoResultsBrowseModal type="file" />}
         </>
     );
 };
