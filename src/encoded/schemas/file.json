@@ -337,11 +337,10 @@
             "title": "Donor Hardy Scale",
             "aggregation_type": "stats"
         },
-        "sample_summary.tissues": {
-            "title": "Tissue"
-        },
-        "sample_summary.tissue_subtypes": {
-            "title": "Tissue Subtype"
+        "sample_summary.tissue_protocol_id_and_names": {
+            "title": "Tissue",
+            "search_type": "basic",
+            "group_by_field": "sample_summary.tissues"
         },
         "file_sets.libraries.assay.display_title": {
             "title": "Experimental Assay",
