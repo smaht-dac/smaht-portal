@@ -1,9 +1,9 @@
 'use strict';
 
-import React from 'react';
+import React, { useState } from 'react';
 import memoize from 'memoize-one';
 import _ from 'underscore';
-import { OverlayTrigger, Popover } from 'react-bootstrap';
+import { Modal, OverlayTrigger, Popover } from 'react-bootstrap';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 
@@ -58,9 +58,40 @@ export default function BrowseView(props) {
     return <BrowseViewBody {...props} />;
 }
 
+// Modal for empty Donor and ProtectedDonor Browse
+export const NoResultsBrowseModal = ({ type }) => {
+    const [showModal, setShowModal] = useState(true);
+    return (
+        <Modal
+            id="download-access-required-modal"
+            show={showModal}
+            onHide={() => setShowModal(false)}
+            centered>
+            <Modal.Body>
+                <div className="callout-card protected-data">
+                    <img
+                        src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
+                        alt="SMaHT Logo"
+                    />
+                    <h4>
+                        SMaHT {type === 'file' ? 'Production' : 'Donor'} Data:{' '}
+                        <br />
+                        Official Release - Coming Soon
+                    </h4>
+                    <span>
+                        Check back for updates on the official
+                        <br /> release of SMaHT Production Data.
+                    </span>
+                </div>
+            </Modal.Body>
+        </Modal>
+    );
+};
+
 const BrowseFileBody = (props) => {
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
-    const { session, href, windowWidth, windowHeight, isFullscreen } = props;
+    const { context, session, href, windowWidth, windowHeight, isFullscreen } =
+        props;
     const initialFields = [
         'sample_summary.tissues',
         'sequencing.sequencer.display_title',
@@ -112,6 +143,7 @@ const BrowseFileBody = (props) => {
                     userDownloadAccess={props.userDownloadAccess}
                 />
             </BrowseViewControllerWithSelections>
+            {context?.total === 0 && <NoResultsBrowseModal type="file" />}
         </>
     );
 };
@@ -568,7 +600,9 @@ export function createBrowseFileColumnExtensionMap({
             colTitle: 'Released',
             widthMap: { lg: 115, md: 115, sm: 115 },
             render: function (result, parentProps) {
-                const value = result?.file_status_tracking?.release_dates?.initial_release_date;
+                const value =
+                    result?.file_status_tracking?.release_dates
+                        ?.initial_release_date;
                 if (!value) return null;
                 return <span className="value text-end">{value}</span>;
             },
