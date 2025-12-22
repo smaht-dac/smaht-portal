@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union, List
+from typing import Any, Dict, Union, Optional
 
 from dcicutils.misc_utils import exported
 from pyramid.request import Request
@@ -18,15 +18,17 @@ def get_properties(properties_container: Union[Request, Item]) -> Dict[str, Any]
     )
 
 
-def  get_property_for_validation(
-    validate_property: str, existing_properties: Dict[str, Any], update_properties: Dict[str, Any]
-) -> List[str]:
-    """Get property for validation.
-
-    If property is being updated, use the updated value.
-    Otherwise, use the existing value. Currently does not handle default null values.
+def get_property_for_validation(
+    key: str,
+    existing: Dict[str, Any],
+    update: Dict[str, Any],
+) -> Optional[Any]:
+    """Return the value of the given property key for validation purposes
+    from the update data if present, otherwise use the existing or None by default
     """
-    return update_properties.get(validate_property) or existing_properties.get(validate_property)
+    if key in update:
+        return update[key]
+    return existing.get(key)
 
 
 def map_warn_to_flagged(flag: str) -> str:
