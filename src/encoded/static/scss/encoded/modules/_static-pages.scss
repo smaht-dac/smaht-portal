@@ -3308,50 +3308,59 @@ FAQ page styles
 	}
 }
 
-// Data Availability and Access page
-.data-availability-table {
-	width: max-content;
-	border: 1px solid #DBDBDB;
 
-	thead {
-		th {
-			padding: 10px 15px;
-			max-width: 150px;
-			text-wrap: wrap;
-			text-align: center;
-			font-weight: 400;
-			background-color: #f1f9ff;
-			border-right: 1px solid #DBDBDB;
-			line-height: 1.25rem;
+// SMaHT Data Availability and Access page
+[data-at-type="DocsAccessData-availability-and-accessPage"] {
+	// Data Availability and Access page
+	.table-responsive {
+		margin-top: -35px;
+	}
+
+	.data-availability-table {
+		width: 100%;
+		border: 1px solid #DBDBDB;
+	
+		thead {
+			th {
+				padding: 10px 15px;
+				max-width: 150px;
+				text-wrap: wrap;
+				text-align: center;
+				font-weight: 400;
+				background-color: #f1f9ff;
+				border-right: 1px solid #DBDBDB;
+				line-height: 1.25rem;
+			}
 		}
-	}
-
-	tr {
-		border-bottom: 1px solid #DBDBDB;
-
-		td {
-			border-right: 1px solid #DBDBDB;
-			line-height: 1.25rem;
+	
+		tr {
+			border-bottom: 1px solid #DBDBDB;
+	
+			td {
+				border-right: 1px solid #DBDBDB;
+				line-height: 1.25rem;
+			}
 		}
-	}
-
-	.row-label {
-		width: 200px;
-		text-align: left;
-		padding: 15px 10px;
-	}
-
-	.open {
-		background-color: #DBFFEE;
-		color: #028105;
-	}
-	.protected {
-		background-color: #F3F1FF;
-		color: #745BEE;
-	}
-	.not-applicable {
-		background-color: #F6F8FA;
-		color: #5A5B5B;
+	
+		.row-label {
+			min-width: 150px;
+			width: 350px;
+			text-align: left;
+			padding: 15px 10px;
+		}
+	
+		.open {
+			background-color: #DBFFEE;
+			color: #028105;
+		}
+		.protected {
+			background-color: #F3F1FF;
+			color: #745BEE;
+		}
+		.not-applicable {
+			background-color: #F6F8FA;
+			color: #5A5B5B;
+		}
 	}
 }
 
@@ -3433,12 +3442,5 @@ FAQ page styles
 				font-size: 1.125rem;
 			}
 		}
-	}
-}
-
-// SMaHT Data Availability and Access page
-[data-at-type="DocsAccessData-availability-and-accessPage"] {
-	h2#what-are-smaht-data, h2#smaht-data-access {
-		font-size: 1.3rem;
 	}
 }
