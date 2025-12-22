@@ -505,26 +505,14 @@ def test_meta_workflow_run_inputs_rev_link(
     files_without_inputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_inputs.uuid=No+value"
     )
+    assert files_without_inputs_search
+    # why aren't the reference files returned with the get_search call above?
     reference_files_lacking_mwfrs_search = get_search(
         es_testapp, "/search/?type=ReferenceFile&meta_workflow_run_inputs.uuid=No+value"
     )
-    fuuids = [rf.get('uuid') for rf in files_without_inputs_search]
-    f2uuids = [rf.get('uuid') for rf in reference_files_lacking_mwfrs_search]
-    assert "49690fb8-7680-4034-ae3b-4f28222d5db8" in fuuids
-    assert "49690fb8-7680-4034-ae3b-4f28222d5db8" in f2uuids
-    assert files_without_inputs_search
-    # why aren't the reference files returned with the get_search call above?
-    # make sure the reference file in meta_workflow_run as input in workbook
-    # has no meta_workflow_run_inputs
-    # uid_file_search = get_search(
-    #     es_testapp, "/search/?type=File&uuid=49690fb8-7680-4034-ae3b-4f28222d5db8"
-    # )
-    # assert 'meta_workflow_run_inputs' not in uid_file_search[0]
-    # print(len(uid_file_search))
-    # ref_file_search = get_search(
-    #     es_testapp, "/search/?type=ReferenceFile"
-    # )
-    # assert "49690fb8-7680-4034-ae3b-4f28222d5db8" in [rf.get('uuid') for rf in ref_file_search]
+    rf_uuids = [rf.get('uuid') for rf in reference_files_lacking_mwfrs_search]
+    # this uuid is for the reference file that was added as input to a meta workflow run insert
+    assert "49690fb8-7680-4034-ae3b-4f28222d5db8" in rf_uuids
 
 
 @pytest.mark.workbook
