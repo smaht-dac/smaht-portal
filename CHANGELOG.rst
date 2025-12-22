@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.6.1
+=====
+
+`PR 572: feat: Browse Page Modals <https://github.com/smaht-dac/smaht-portal/pull/572>`_
+
+* Implement Modal for empty browse pages
+
+
 1.6.0
 =====
 
@@ -16,6 +24,7 @@ Change Log
 * Redirect with no auth will be processed for public files, otherwise
   a redirect with auth will be sent
 * Requires update to permissions for S3 Federation user
+
 
 1.5.17
 ======
