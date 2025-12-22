@@ -88,6 +88,8 @@ function FileTableWithSelectedFilesCheckboxes(props) {
         selectedItems, // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
+        session, // track user login
+        context,
     };
 
     const { columnExtensionMap, columns, hideFacets } = useMemo(

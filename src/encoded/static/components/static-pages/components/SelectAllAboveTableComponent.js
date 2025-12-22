@@ -170,9 +170,11 @@ const SelectAllButtonPopover = ({
             {...props}
             onMouseEnter={handlePopoverMouseEnter}
             onMouseLeave={handlePopoverMouseLeave}>
-            <Popover.Header>Select Open Files</Popover.Header>
+            <Popover.Header>Select Open Access Files</Popover.Header>
             <Popover.Body>
-                Locked Files require dbGaP access. For more information, see the{' '}
+                Protected Access Files (shown as:{' '}
+                <i className="icon icon-lock fas"></i>) require dbGaP access.
+                For more information, see the{' '}
                 <a href="/docs/access/data-availability-and-access">
                     Data Availability and Access
                 </a>{' '}
@@ -197,10 +199,10 @@ const SelectAllButtonPopover = ({
                 onMouseLeave={handleMouseLeave}>
                 <i className={iconClassName} />
                 <span className="d-none d-md-inline text-400">
-                    {isAllSelected ? 'Deselect' : 'Select'} All{' '}
-                </span>
+                    {isAllSelected ? 'Deselect' : 'Select'}
+                </span>{' '}
                 <span className="text-600">
-                    {hasLimitedAccess ? 'Open' : ''}
+                    {hasLimitedAccess ? 'Open Access' : 'All'}
                 </span>{' '}
                 Files
             </button>
@@ -237,7 +239,7 @@ export class SelectAllFilesButton extends React.PureComponent {
         };
     }
 
-    componentDidMount() {
+    componentDidMount(prevProps, prevState) {
         if (Object.keys(this.state.userDownloadAccess)?.includes('open')) {
             ajax.load('/session-properties', (resp) => {
                 const accessObj = resp?.download_perms || {};
@@ -258,6 +260,7 @@ export class SelectAllFilesButton extends React.PureComponent {
 
     // Update user download access if session changes
     componentDidUpdate(prevProps, prevState) {
+        console.log('component updated');
         const currentDownloadableFileCount = this.getDownloadableFileCount(
             this.state.userDownloadAccess
         );
@@ -282,6 +285,10 @@ export class SelectAllFilesButton extends React.PureComponent {
         }
     }
 
+    /**
+     * Note: facets may include obsolete items, which should not be considered when determining the
+     * downloadable file count
+     */
     getDownloadableFileCount(userDownloadAccessObj) {
         const statusFacetTermCounts =
             this.props.context?.facets?.find(
@@ -299,21 +306,27 @@ export class SelectAllFilesButton extends React.PureComponent {
     }
 
     isEnabled() {
-        const { context } = this.props;
+        const { session, context } = this.props;
         const { total } = context || {};
 
         // Too many items to select all
         if (total > SELECT_ALL_LIMIT) return false;
 
-        return total > 0 && this.state.downloadableFileCount > 0;
+        console.log(
+            'enabled?',
+            session,
+            total,
+            this.state.downloadableFileCount
+        );
+        return session && total > 0 && this.state.downloadableFileCount > 0;
     }
 
     isAllSelected() {
-        const { selectedItems, context } = this.props;
+        const { session, selectedItems, context } = this.props;
         const { total } = context || {};
 
         // No items selected
-        if (total === 0) {
+        if (!session || total === 0) {
             return false;
         } else {
             // All files are selected if the number of selected items equals the total downloadable file count
@@ -443,9 +456,10 @@ export class SelectAllFilesButton extends React.PureComponent {
         if (type === 'checkbox') {
             return (
                 <input
+                    id="select-all-checkbox"
                     type="checkbox"
                     disabled={!this.isEnabled()}
-                    checked={isAllSelected}
+                    checked={this.isAllSelected()}
                     onChange={this.handleSelectAll}
                 />
             );

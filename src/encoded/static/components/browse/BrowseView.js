@@ -211,6 +211,8 @@ export const BrowseFileSearchTable = (props) => {
         selectedItems, // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
+        session,
+        context,
     };
 
     const passProps = _.omit(props, 'isFullscreen', 'toggleFullScreen');
@@ -396,6 +398,35 @@ const TypeColumnTitlePopover = function (props) {
     );
 };
 
+const CustomColTitle = ({
+    session, // pass down session information
+    selectedItems,
+    onSelectItem,
+    onResetSelectedItems,
+    context,
+}) => {
+    console.log('customColTitle', {
+        session, // pass down session information
+        selectedItems,
+        onSelectItem,
+        onResetSelectedItems,
+        context,
+    });
+    // Context now passed in from HeadersRowColumn (for file count)
+    return (
+        <SelectAllFilesButton
+            {...{
+                session, // pass down session information
+                selectedItems,
+                onSelectItem,
+                onResetSelectedItems,
+                context,
+            }}
+            type="checkbox"
+        />
+    );
+};
+
 /**
  *  A column extension map specifically for browse view file tables.
  */
@@ -403,6 +434,8 @@ export function createBrowseFileColumnExtensionMap({
     selectedItems,
     onSelectItem,
     onResetSelectedItems,
+    session,
+    context,
 }) {
     const columnExtensionMap = {
         ...originalColExtMap, // Pull in defaults for all tables
@@ -413,10 +446,12 @@ export function createBrowseFileColumnExtensionMap({
         // Select all button
         '@type': {
             colTitle: (
-                // Context now passed in from HeadersRowColumn (for file count)
-                <SelectAllFilesButton
-                    {...{ selectedItems, onSelectItem, onResetSelectedItems }}
-                    type="checkbox"
+                <CustomColTitle
+                    selectedItems={selectedItems}
+                    onSelectItem={onSelectItem}
+                    onResetSelectedItems={onResetSelectedItems}
+                    session={session}
+                    context={context}
                 />
             ),
             hideTooltip: true,
@@ -676,6 +711,5 @@ export function createBrowseFileColumnExtensionMap({
     return { columnExtensionMap, columns, hideFacets };
 }
 
-pageTitleViews.register(BrowseViewPageTitle, 'Browse');
 pageTitleViews.register(BrowseViewPageTitle, 'Browse', 'selection');
 pageTitleViews.register(BrowseViewPageTitle, 'Browse', 'add');
