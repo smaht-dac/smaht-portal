@@ -61,7 +61,7 @@ export const PipelineDocsNavigation = (props) => {
             </p>
 
             <div className="nav-group">
-                <h3>Whole Genome Sequencing (WGS)</h3>
+                <h3>Whole Genome Sequencing (WGS) and Hi-C</h3>
                 <p>
                     WGS workflows are structured according to the main
                     processing steps, preprocessing and alignment:
