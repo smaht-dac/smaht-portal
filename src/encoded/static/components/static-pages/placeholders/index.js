@@ -32,6 +32,7 @@ import RetractedFilesTable from '../components/RetractedFilesTable';
 import { SubmissionDataDictionary } from '../SubmissionDataDictionary';
 import { DonorManifestDataDictionary } from '../DonorManifestDataDictionary';
 import { PipelineDocsNavigation } from '../PipelineDocsNavigation';
+import { DataMatrixComparisonTabs } from '../components/DataMatrixComparisonTabs';
 
 /**
  * Any placeholder(s) used in a StaticSection _must_ get imported here
@@ -57,6 +58,7 @@ const placeholders = {
     DownloadAllFilesFromSearchHrefButton,
     ChallengeTableWrapper,
     RetractedFilesTable,
+    DataMatrixComparisonTabs,
     DataMatrix,
     SubmissionDataDictionary,
     DonorManifestDataDictionary,

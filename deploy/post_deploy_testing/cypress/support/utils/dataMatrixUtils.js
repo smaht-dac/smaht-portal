@@ -500,26 +500,31 @@ export function testMatrixPopoverValidation(
 
         // Check total unique tissues in the matrix
         if (typeof expectedTissuesCount === 'number' && expectedTissuesCount > 0) {
-            // expand all tissues to ensure we capture all unique tissues
-            cy.get('.grouping.depth-0.may-collapse').each(($row) => {
-                const expandIcon = $row.find('i.icon-plus');
-                if (expandIcon.length > 0) {
-                    cy.wrap(expandIcon).click();
+            cy.get('.grouping.depth-0').then(($rows) => {
+                anyCollapsibleRows = $rows.filter('.may-collapse').length > 0;
+                // expand all tissues to ensure we capture all unique tissues
+                if (anyCollapsibleRows) {
+                    cy.get('.grouping.depth-0.may-collapse').each(($row) => {
+                        const expandIcon = $row.find('i.icon-plus');
+                        if (expandIcon.length > 0) {
+                            cy.wrap(expandIcon).click();
+                        }
+                    });
                 }
-            });
 
-            const uniqueTissues = new Set();
+                const uniqueTissues = new Set();
 
-            cy.get('.grouping.depth-1 .grouping-row .inner').then(($labels) => {
-                $labels.each((index, label) => {
-                    const tissue = Cypress.$(label).text().trim();
-                    if (tissue && tissue !== 'N/A') {
-                        uniqueTissues.add(tissue);
-                    }
+                cy.get(anyCollapsibleRows ? '.grouping.depth-1 .grouping-row .inner' : '.grouping.depth-0 .grouping-row .inner').then(($labels) => {
+                    $labels.each((index, label) => {
+                        const tissue = Cypress.$(label).text().trim();
+                        if (tissue && tissue !== 'N/A') {
+                            uniqueTissues.add(tissue);
+                        }
+                    });
+
+                    const tissueCount = uniqueTissues.size;
+                    expect(tissueCount, 'Total unique tissues in matrix').to.equal(expectedTissuesCount);
                 });
-
-                const tissueCount = uniqueTissues.size;
-                expect(tissueCount, 'Total unique tissues in matrix').to.equal(expectedTissuesCount);
             });
         }
 
