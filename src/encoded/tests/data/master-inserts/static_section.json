@@ -580,6 +580,25 @@
         "uuid": "7550cf0e-367b-4b38-85e3-54cd0c12c6bd"
     },
     {
+        "body": "<AnalysisRuns />",
+        "title": "Analysis Runs",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "analysis-status.0",
+        "section_type": "Page Section",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "uuid": "3560bb87-7635-4d75-8ff7-08758352e5af"
+    },
+    {
         "identifier": "retracted-files",
         "title": "List of Retracted Files",
         "file": "/docs/public/retracted_files.jsx",

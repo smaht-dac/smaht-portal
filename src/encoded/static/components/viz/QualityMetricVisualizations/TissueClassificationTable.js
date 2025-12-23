@@ -11,6 +11,15 @@ export const TissueClassificationTable = ({
     //const filteredData = JSON.parse(JSON.stringify(data['results']));
     const formatPercent = d3.format('.0%');
 
+    // Special cases for mapping submitted tissue labels to predicted tissue labels
+    const submittedToPredictedTissueMap = {
+        'Aorta': 'Blood Vessel', // Aorta is a blood vessel in GTEX
+        'Non-exposed Skin': 'Skin',
+        'Sun-exposed Skin': 'Skin',
+        'Ascending Colon': 'Colon',
+        'Descending Colon': 'Colon',
+    };
+
     let filteredData = data.qc_results.filter(
         (r) =>
             r.assay == 'RNA-seq' &&
@@ -41,6 +50,7 @@ export const TissueClassificationTable = ({
         result['Submission Center'] = d.submission_center;
 
         const submittedTissue = d.sample_source_display;
+        const submittedTissueMapped = submittedToPredictedTissueMap[submittedTissue] || submittedTissue;
         const qc_values = d['quality_metrics']['qc_values'];
         const predictedTissues = [];
         const predictedTissuesProbabilities = [];
@@ -51,15 +61,8 @@ export const TissueClassificationTable = ({
                 qc_values[keyProbabilityPredictedTissue(i)]['value'];
             predictedTissues.push(predictedTissue);
             predictedTissuesProbabilities.push(predictedTissueProbability);
-            let printBold = predictedTissue === submittedTissue;
-            if (
-                predictedTissue === 'Blood Vessel' &&
-                submittedTissue === 'Aorta'
-            ) {
-                // Special case for Aorta, which is a blood vessel in GTEX
-                printBold = true;
-            }
-
+            let printBold = predictedTissue === submittedTissueMapped;
+            
             predictedTissueDisplay.push(
                 <span className={printBold ? 'fw-bold' : ''}>
                     {predictedTissue} (
@@ -80,12 +83,7 @@ export const TissueClassificationTable = ({
                 result['hasMatch'] = null;
             }
         } else {
-            if (submittedTissue === 'Aorta') {
-                // Aorta is a special case, as GTEX only has 'Blood Vessel' in their tissue datasets
-                result['hasMatch'] = predictedTissues.includes('Blood Vessel');
-            } else {
-                result['hasMatch'] = predictedTissues.includes(submittedTissue);
-            }
+            result['hasMatch'] = predictedTissues.includes(submittedTissueMapped);
         }
 
         const yesBadge = <div className="text-center">{getBadge('Yes')}</div>;

@@ -4,6 +4,7 @@ import React from 'react';
 import JsxParser from 'react-jsx-parser';
 import { ConsortiumMap } from '../../viz/AboutPageVisualizations/ConsortiumMap';
 import { SubmissionStatus } from '../components/internal/SubmissionStatus';
+import { AnalysisRuns } from '../components/internal/AnalysisRuns';
 import { Alluvial } from '../../viz/AboutPageVisualizations/Alluvial';
 import { StackRowTable } from '../../viz/AboutPageVisualizations/StackRowTable';
 import { QualityMetricVisualizations } from '../../viz/QualityMetricVisualizations';
@@ -45,6 +46,7 @@ const placeholders = {
     Alluvial,
     QualityMetricVisualizations,
     SubmissionStatus,
+    AnalysisRuns,
     StackRowTable,
     BenchmarkingUI,
     COLO829Data,

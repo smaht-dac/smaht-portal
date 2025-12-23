@@ -1,12 +1,10 @@
 'use strict';
 import { object } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import React from 'react';
 import * as d3 from 'd3';
 
-import {
-    EXTERNAL_RELEASE_STATUSES,
-    INTERNAL_RELEASE_STATUSES,
-} from './submissionStatusConfig';
+import { EXTERNAL_RELEASE_STATUSES, INTERNAL_RELEASE_STATUSES, PAGE_SIZE } from './config';
 
 export const formatDate = (date_str) => {
     if (!date_str) {
@@ -20,6 +18,107 @@ export const formatDate = (date_str) => {
     const date = new Date(date_str);
 
     return date.toLocaleDateString('en-US', date_options);
+};
+
+/**
+ * Fetch items from the portal API and format them for display
+ * @param {string} type - Item type to search for
+ * @param {string} filter - Additional query parameters
+ * @param {number} limit - Maximum number of items to return
+ * @param {function} callback - Callback function to handle the results
+ * @param {function} errorCallback - Error callback function
+ */
+export const getItemsFromPortal = (
+    type,
+    filter = '',
+    limit = 100,
+    callback,
+    errorCallback = fallbackCallback
+) => {
+    ajax.load(
+        `/search/?type=${type}${filter}&limit=${limit}`,
+        (resp) => {
+            const items = resp['@graph'].map((item) => ({
+                title: item.display_title,
+                uuid: item.uuid,
+                ...item,
+            }));
+
+            items.sort((a, b) => a.title.localeCompare(b.title));
+            callback(items);
+        },
+        'GET',
+        errorCallback
+    );
+};
+
+export const getSelect = (options, defaultValue, filterName, onChange) => {
+    return (
+        <React.Fragment>
+            <select
+                className="form-select"
+                defaultValue={defaultValue}
+                onChange={(e) => onChange(filterName, e.target.value)}>
+                {options}
+            </select>
+        </React.Fragment>
+    );
+};
+
+export const getPagination = (
+    type,
+    state,
+    numResults,
+    onChangePage,
+    onRefresh
+) => {
+    let message = 'No results found';
+    if (numResults > 0) {
+        message = `Displaying ${type} ${
+            state.tablePage * PAGE_SIZE + 1
+        }-${Math.min(
+            (state.tablePage + 1) * PAGE_SIZE,
+            numResults
+        )} of ${numResults}`;
+    }
+
+    const navButtons = [];
+    if (
+        numResults > PAGE_SIZE &&
+        (state.tablePage + 1) * PAGE_SIZE <= numResults
+    ) {
+        navButtons.push(
+            <button
+                className="btn btn-primary btn-sm"
+                onClick={() => onChangePage(1)}>
+                Next
+            </button>
+        );
+    }
+
+    if (state.tablePage > 0) {
+        navButtons.push(
+            <button
+                className="btn btn-primary btn-sm mx-2"
+                onClick={() => onChangePage(-1)}>
+                Previous
+            </button>
+        );
+    }
+
+    const syncIconClass = state.loading
+        ? 'icon fas icon-spinner icon-spin'
+        : 'icon fas icon-sync-alt clickable';
+
+    return (
+        <div className="d-flex flex-row-reverse">
+            <div className="ms-1 ss-padding-top-3">
+                <i className={syncIconClass} onClick={() => onRefresh()}></i>
+            </div>
+            {navButtons}
+            <div className="mx-2 ss-padding-top-3">{message}</div>
+        </div>
+    );
 };
 
 export const getLink = (identifier, title) => {
@@ -129,9 +228,13 @@ export const getQcResults = (qc_results, showCopyBtn = false) => {
         });
         const href = '/' + qc_info.uuid;
         const retracted =
-            qc_info.status === 'retracted'
-                ? <span className="ps-1">{createBadge('danger', 'Retracted')}</span>
-                : '';
+            qc_info.status === 'retracted' ? (
+                <span className="ps-1">
+                    {createBadge('danger', 'Retracted')}
+                </span>
+            ) : (
+                ''
+            );
         const copyBtn = showCopyBtn ? (
             <object.CopyWrapper
                 value={qc_info.accession}
@@ -230,3 +333,59 @@ export function shortenStringKeepBothEnds(str, maxLength) {
 
     return start + '...' + end;
 }
+
+export const getCommentInputField = (
+    fs,
+    isUserAdmin,
+    visibleCommentInputs,
+    handlers
+) => {
+    const commentInputClass = visibleCommentInputs.includes(fs.uuid)
+        ? 'input-group input-group-sm mb-1'
+        : 'collapse';
+
+    const commentInputField = isUserAdmin ? (
+        <React.Fragment>
+            <a
+                href="#"
+                className="link-underline-hover"
+                onClick={(e) =>
+                    handlers.handleToggleCommentInputField(e, fs.uuid)
+                }>
+                <i className="icon fas icon-plus-circle icon-fw"></i>
+                Add
+            </a>
+            <div className={commentInputClass}>
+                <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Your comment"
+                    onChange={(e) =>
+                        handlers.handleCommentInput(fs, e.target.value)
+                    }
+                />
+                <div className="input-group">
+                    <div className="input-group-text">
+                        <i
+                            className="fas icon icon-save clickable"
+                            onClick={() => handlers.addComment(fs)}></i>
+                    </div>
+                </div>
+            </div>
+        </React.Fragment>
+    ) : (
+        ''
+    );
+
+    return (
+        <li className="ss-line-height-140">Comments: {commentInputField}</li>
+    );
+};
+
+export const DEFAULT_SELECT = (
+    <React.Fragment>
+        <select className="form-select" defaultValue="all">
+            <option value="all">All</option>
+        </select>
+    </React.Fragment>
+);
