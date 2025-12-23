@@ -112,7 +112,7 @@
     {
         "x": 561,
         "y": 250,
-        "pis": ["Wang, Ting", "Fulton, Robert Scott", "Shen, Hui"],
+        "pis": ["Wang, Ting", "Fulton, Robert S", "Shen, Hui"],
         "institution": "Washington University",
         "code": "WASHU GCC",
         "table_institution_name": "Washington University at St. Louis and Van Andel Institute",
@@ -129,7 +129,7 @@
     {
         "x": 645,
         "y": 156,
-        "pis": ["Wang, Ting", "Fulton, Robert Scott", "Shen, Hui"],
+        "pis": ["Wang, Ting", "Fulton, Robert S", "Shen, Hui"],
         "institution": "Van Andel Institute",
         "center-type": "Genome Characterization Center",
         "center-type-short": "GCC",
