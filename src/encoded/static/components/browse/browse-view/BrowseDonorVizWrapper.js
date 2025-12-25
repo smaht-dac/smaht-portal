@@ -9,6 +9,7 @@ import { BrowseSummaryStatsViewer } from './BrowseSummaryStatController';
 import { FacetCharts } from '../components/FacetCharts';
 import { ChartDataController } from '../../viz/chart-data-controller';
 import DonorCohortViewChart from '../components/DonorCohortViewChart';
+import DonorSequencingProgressChart from '../components/DonorSequencingProgressChart';
 import { renderHardyScaleDescriptionPopover } from '../../item-pages/components/donor-overview/PublicDonorViewDataCards';
 import { useUserDownloadAccess } from '../../util/hooks';
 
@@ -78,6 +79,21 @@ export const renderEthnicityPopover = (customId) => (
     </Popover>
 );
 
+const DONOR_SEQUENCING_TARGET = 150;
+
+export const renderDonorSequencingPopover = (customId) => (
+    <Popover id={customId || 'chart-info-popover-donor-progress'} style={{ maxWidth: 340 }} className="w-auto description-definitions-popover">
+        <Popover.Body className="p-0">
+            <div className="p-3">
+                <strong>Donor sequencing progress</strong>
+                <div className="mt-2">
+                    Shows the number of donors that have completed sequencing against the program target. Values update with applied filters.
+                </div>
+            </div>
+        </Popover.Body>
+    </Popover>
+);
+
 export const BrowseDonorVizWrapper = (props) => {
     const {
         alerts,
@@ -92,6 +108,7 @@ export const BrowseDonorVizWrapper = (props) => {
     const [toggleViewIndex, setToggleViewIndex] = useState(1);
     const [donorAgeGroupData, setDonorAgeGroupData] = useState();
     const [donorHardyScaleData, setDonorHardyScaleData] = useState();
+    const [donorSequencingProgress, setDonorSequencingProgress] = useState({ complete: 0, target: DONOR_SEQUENCING_TARGET });
     const [loading, setLoading] = useState(false);
     const userDownloadAccess = useUserDownloadAccess(session);
 
@@ -217,6 +234,10 @@ export const BrowseDonorVizWrapper = (props) => {
 
             setDonorAgeGroupData(updatedDonorAgeGroupData);
             setDonorHardyScaleData(updatedDonorHardyScaleData);
+            setDonorSequencingProgress({
+                complete: rawData?.total?.donors || 0,
+                target: DONOR_SEQUENCING_TARGET
+            });
             setLoading(false);
         };
         const commonFallback = (r) => {
@@ -307,7 +328,8 @@ export const BrowseDonorVizWrapper = (props) => {
                         />
                     </div>
                 ) : (
-                    <div className="donor-cohort-view-chart-container">
+                    <div className="donor-cohort-view-chart-container">                      
+
                         <DonorCohortViewChart
                             title="Age Groups"
                             data={donorAgeGroupData}
@@ -348,20 +370,29 @@ export const BrowseDonorVizWrapper = (props) => {
                             buildExploreDonorsHref={buildExploreDonorsHref}
                         />
 
-                        <DonorCohortViewChart
-                            title="Self-Reported Ethnicity"
-                            data={userDownloadAccess?.['open-early'] ? getDonorSelfReportedEthnicityData() : []}
-                            chartWidth="auto"
-                            chartHeight={420}
-                            chartType="horizontal"
-                            topStackColor="#17C0CC"
-                            xAxisTitle="# of Donors"
-                            yAxisTitle="Ethnicity"
-                            showYAxisTitle={false}
-                            popover={renderEthnicityPopover()}
-                            session={session}
+                        <DonorSequencingProgressChart
+                            complete={donorSequencingProgress.complete}
+                            target={donorSequencingProgress.target}
+                            popover={renderDonorSequencingPopover()}
                             loading={loading}
                         />
+
+                        <div style={{ display: 'none' }} aria-hidden>
+                            <DonorCohortViewChart
+                                title="Self-Reported Ethnicity"
+                                data={userDownloadAccess?.['open-early'] ? getDonorSelfReportedEthnicityData() : []}
+                                chartWidth="auto"
+                                chartHeight={420}
+                                chartType="horizontal"
+                                topStackColor="#17C0CC"
+                                xAxisTitle="# of Donors"
+                                yAxisTitle="Ethnicity"
+                                showYAxisTitle={false}
+                                popover={renderEthnicityPopover()}
+                                session={session}
+                                loading={loading}
+                            />
+                        </div>
                     </div>
                 )}
             </div>
