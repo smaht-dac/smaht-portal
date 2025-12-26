@@ -34,19 +34,27 @@ export function DonorSequencingProgressChart(props) {
 
     const outerRef = React.useRef(null);
     const measuredWidth = useParentWidth(outerRef);
+    const frameWidth = React.useMemo(
+        () => Math.max(260, measuredWidth || 0),
+        [measuredWidth]
+    );
+    const frameHeight = chartHeight || 420;
+
+    // ringSize fits within frame in both dimensions (leave small inset for border)
     const size = React.useMemo(() => {
-        const availableW = measuredWidth ? measuredWidth - 32 : 0; // padding for border radius + title
-        const target = Math.min(Math.max(260, availableW || chartHeight), 420);
+        const usableW = frameWidth - 12;
+        const usableH = frameHeight - 40; // leave room for title band
+        const target = Math.min(Math.max(260, Math.min(usableW, usableH)), 420);
         return Number.isFinite(target) && target > 0 ? target : 320;
-    }, [measuredWidth, chartHeight]);
+    }, [frameWidth, frameHeight]);
 
     const safeTarget = Math.max(target || 1, 1);
     const clampedComplete = Math.max(0, Math.min(complete, safeTarget));
     const progressRatio = clampedComplete / safeTarget;
 
     const center = size / 2;
-    const radius = Math.max(85, Math.min(size * 0.3, 130));
-    const strokeWidth = Math.max(14, Math.min(size * 0.06, 22));
+    const radius = Math.max(90, Math.min(size * 0.32, 135));
+    const strokeWidth = Math.max(14, Math.min(size * 0.06, 20));
     const circumference = 2 * Math.PI * radius;
 
     const dashOffset = circumference * (1 - progressRatio);
@@ -74,7 +82,9 @@ export function DonorSequencingProgressChart(props) {
 
     const markerPos = polarToCartesian(clampedComplete);
 
-    const ringOffsetY = 16;
+    const ringOffsetY = 8;
+    const ringOffsetX = Math.max(0, (frameWidth - size) / 2);
+    const ringOffsetVertical = Math.max(0, (frameHeight - size) / 2) + ringOffsetY;
 
     return (
         <div ref={outerRef} className="donor-cohort-view-chart donor-sequencing-progress" style={{ height: chartHeight }}>
@@ -86,12 +96,12 @@ export function DonorSequencingProgressChart(props) {
                 ) : null}
                 <svg
                     className="dsp-ring"
-                    viewBox={`0 0 ${size} ${size}`}
+                    viewBox={`0 0 ${frameWidth} ${frameHeight}`}
                     role="img"
                     aria-label={`${clampedComplete} of ${safeTarget} donors complete`}
                     preserveAspectRatio="xMidYMid meet"
-                    width={size}
-                    height={size}
+                    width={frameWidth}
+                    height={frameHeight}
                 >
                     <defs>
                         <linearGradient id="dsp-progress-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -102,13 +112,13 @@ export function DonorSequencingProgressChart(props) {
                     <rect
                         x="10"
                         y="10"
-                        width={size - 20}
-                        height={size - 20}
+                        width={frameWidth - 20}
+                        height={frameHeight - 20}
                         rx="14"
                         fill="#FFFFFF"
                         stroke="#A3C4ED"
                     />
-                    <g transform={`translate(0, ${ringOffsetY})`}>
+                    <g transform={`translate(${ringOffsetX}, ${ringOffsetVertical})`}>
                         <circle
                             cx={center}
                             cy={center}
