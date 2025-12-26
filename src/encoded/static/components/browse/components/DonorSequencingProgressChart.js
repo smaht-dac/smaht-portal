@@ -152,8 +152,9 @@ export function DonorSequencingProgressChart(props) {
                             transform={`rotate(-90 ${center} ${center})`}
                         />
                         {tickValues.map((val) => {
-                            const start = polarToCartesian(val, radius + 10);
-                            const end = polarToCartesian(val, radius - 10);
+                            const isBoundary = val === 0 || val === safeTarget;
+                            const start = polarToCartesian(val, radius + (isBoundary ? 30 : 14));
+                            const end = polarToCartesian(val, radius - 14);
                             return (
                                 <line
                                     key={`tick-${val}`}
@@ -161,8 +162,8 @@ export function DonorSequencingProgressChart(props) {
                                     y1={start.y}
                                     x2={end.x}
                                     y2={end.y}
-                                    stroke={val === 0 || val === safeTarget ? '#7D8FB0' : '#C8D3E5'}
-                                    strokeWidth={val === 0 || val === safeTarget ? 2.2 : 1.8}
+                                    stroke={'#C8D3E5'}
+                                    strokeWidth={1.8}
                                     opacity={1}
                                 />
                             );

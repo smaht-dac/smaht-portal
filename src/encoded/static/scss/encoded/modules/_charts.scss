@@ -2207,13 +2207,14 @@ body[data-path="/statistics"] {
         .dsp-tick-label {
             fill: #6b7280;
             font-size: 12px;
+            font-weight: 500;
             text-anchor: middle;
             dominant-baseline: middle;
 
             &.dsp-tick-label-strong {
-                font-size: 13px;
-                font-weight: 700;
-                fill: #495776;
+                // font-size: 13px;
+                font-weight: 550;
+                // fill: #495776;
             }
         }
 

@@ -235,7 +235,7 @@ export const BrowseDonorVizWrapper = (props) => {
             setDonorAgeGroupData(updatedDonorAgeGroupData);
             setDonorHardyScaleData(updatedDonorHardyScaleData);
             setDonorSequencingProgress({
-                complete: rawData?.total?.donors || 0,
+                complete: 25,//rawData?.total?.donors || 0,
                 target: DONOR_SEQUENCING_TARGET
             });
             setLoading(false);
