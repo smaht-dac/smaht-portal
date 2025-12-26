@@ -84,12 +84,20 @@ const DONOR_SEQUENCING_TARGET = 150;
 export const renderDonorSequencingPopover = (customId) => (
     <Popover id={customId || 'chart-info-popover-donor-progress'} style={{ maxWidth: 340 }} className="w-auto description-definitions-popover">
         <Popover.Body className="p-0">
-            <div className="p-3">
-                <strong>Donor sequencing progress</strong>
-                <div className="mt-2">
-                    Shows the number of donors that have completed sequencing against the program target. Values update with applied filters.
-                </div>
-            </div>
+            <table className="table">
+                <thead>
+                    <tr>
+                        <th className="text-left">Donor Sequencing Progress</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td className="text-left">
+                            Shows the number of donors that have completed sequencing against the program target.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </Popover.Body>
     </Popover>
 );
