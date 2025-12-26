@@ -53,8 +53,8 @@ export function DonorSequencingProgressChart(props) {
     const progressRatio = clampedComplete / safeTarget;
 
     const center = size / 2;
-    const radius = Math.max(90, Math.min(size * 0.32, 135));
-    const strokeWidth = Math.max(14, Math.min(size * 0.06, 20));
+    const strokeWidth = Math.max(22, Math.min(size * 0.08, 28));
+    const radius = Math.max(105, Math.min(size * 0.34, 150));
     const circumference = 2 * Math.PI * radius;
 
     const dashOffset = circumference * (1 - progressRatio);
@@ -82,7 +82,7 @@ export function DonorSequencingProgressChart(props) {
 
     const markerPos = polarToCartesian(clampedComplete);
 
-    const ringOffsetY = 8;
+    const ringOffsetY = 18;
     const ringOffsetX = Math.max(0, (frameWidth - size) / 2);
     const ringOffsetVertical = Math.max(0, (frameHeight - size) / 2) + ringOffsetY;
 
