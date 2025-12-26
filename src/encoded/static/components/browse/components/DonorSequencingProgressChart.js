@@ -75,8 +75,8 @@ export function DonorSequencingProgressChart(props) {
     };
 
     const labelOffset = (value) => {
-        if (value === 0) return { dx: 12, dy: -6 };
-        if (value === safeTarget) return { dx: -12, dy: -6 };
+        if (value === 0) return { dx: 12, dy: 0 };
+        if (value === safeTarget) return { dx: -18, dy: 0 };
         return { dx: 0, dy: 0 };
     };
 
@@ -169,14 +169,15 @@ export function DonorSequencingProgressChart(props) {
                             );
                         })}
                         {tickValues.map((val) => {
-                            const pos = polarToCartesian(val, radius + 26);
+                            const isBoundary = val === 0 || val === safeTarget;
+                            const pos = polarToCartesian(val, radius + (isBoundary ? 34 : 26));
                             const { dx, dy } = labelOffset(val);
                             return (
                                 <text
                                     key={`label-${val}`}
                                     x={pos.x + dx}
                                     y={pos.y + dy}
-                                    className={`dsp-tick-label${val === 0 || val === safeTarget ? ' dsp-tick-label-strong' : ''}`}
+                                    className={`dsp-tick-label${isBoundary ? ' dsp-tick-label-strong' : ''}`}
                                 >
                                     {val}
                                 </text>
