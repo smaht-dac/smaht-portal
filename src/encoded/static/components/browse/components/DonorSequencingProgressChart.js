@@ -148,7 +148,7 @@ export function DonorSequencingProgressChart(props) {
                             strokeWidth={strokeWidth}
                             strokeDasharray={circumference}
                             strokeDashoffset={dashOffset}
-                            strokeLinecap="round"
+                            strokeLinecap="butt"
                             transform={`rotate(-90 ${center} ${center})`}
                         />
                         {tickValues.map((val) => {
