@@ -281,6 +281,7 @@ export const BrowseDonorVizWrapper = (props) => {
 
             const fallbackFxn = (resp) => {
                 setCspLoading(false);
+                setDonorSequencingProgress({ complete: 0, target: DONOR_SEQUENCING_TARGET });
             };
 
             const searchUrl = navigate.getBrowseBaseHref(null, 'all');
