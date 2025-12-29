@@ -89,11 +89,6 @@ export function DonorSequencingProgressChart(props) {
     return (
         <div ref={outerRef} className="donor-cohort-view-chart donor-sequencing-progress" style={{ height: chartHeight }}>
             <div className="dsp-body">
-                {loading ? (
-                    <div className="dsp-loading">
-                        <i className="icon icon-circle-notch icon-spin fas" aria-hidden />
-                    </div>
-                ) : null}
                 <svg
                     className="dsp-ring"
                     viewBox={`0 0 ${frameWidth} ${frameHeight}`}
@@ -118,83 +113,101 @@ export function DonorSequencingProgressChart(props) {
                         fill="#FFFFFF"
                         stroke="#A3C4ED"
                     />
-                    <g transform={`translate(${ringOffsetX}, ${ringOffsetVertical})`}>
-                        <circle
-                            cx={center}
-                            cy={center}
-                            r={radius}
-                            fill="none"
-                            stroke="#F4F7FB"
-                            strokeWidth={strokeWidth}
-                        />
-                        <circle
-                            className="dsp-progress-track"
-                            cx={center}
-                            cy={center}
-                            r={radius}
-                            fill="none"
-                            stroke="#E4EAF5"
-                            strokeWidth={strokeWidth}
-                            strokeDasharray={circumference}
-                            strokeLinecap="round"
-                        />
-                        <circle
-                            className="dsp-progress-arc"
-                            cx={center}
-                            cy={center}
-                            r={radius}
-                            fill="none"
-                            stroke="url(#dsp-progress-gradient)"
-                            strokeWidth={strokeWidth}
-                            strokeDasharray={circumference}
-                            strokeDashoffset={dashOffset}
-                            strokeLinecap="butt"
-                            transform={`rotate(-90 ${center} ${center})`}
-                        />
-                        {tickValues.map((val) => {
-                            const isBoundary = val === 0 || val === safeTarget;
-                            const start = polarToCartesian(val, radius + (isBoundary ? 30 : 14));
-                            const end = polarToCartesian(val, radius - 14);
-                            return (
-                                <line
-                                    key={`tick-${val}`}
-                                    x1={start.x}
-                                    y1={start.y}
-                                    x2={end.x}
-                                    y2={end.y}
-                                    stroke={'#C8D3E5'}
-                                    strokeWidth={1.8}
-                                    opacity={1}
-                                />
-                            );
-                        })}
-                        {tickValues.map((val) => {
-                            const isBoundary = val === 0 || val === safeTarget;
-                            const pos = polarToCartesian(val, radius + (isBoundary ? 34 : 26));
-                            const { dx, dy } = labelOffset(val);
-                            return (
-                                <text
-                                    key={`label-${val}`}
-                                    x={pos.x + dx}
-                                    y={pos.y + dy}
-                                    className={`dsp-tick-label${isBoundary ? ' dsp-tick-label-strong' : ''}`}
-                                >
-                                    {val}
-                                </text>
-                            );
-                        })}
-                        <g className="dsp-marker" transform={`translate(${markerPos.x}, ${markerPos.y})`}>
-                            <circle r="14" fill="#FFFFFF" stroke="#D4E3F7" strokeWidth="2" />
-                            <circle r="6" fill="#14B3BB" />
+                    {!loading && complete > 0 &&
+                        <g transform={`translate(${ringOffsetX}, ${ringOffsetVertical})`}>
+                            <circle
+                                cx={center}
+                                cy={center}
+                                r={radius}
+                                fill="none"
+                                stroke="#F4F7FB"
+                                strokeWidth={strokeWidth}
+                            />
+                            <circle
+                                className="dsp-progress-track"
+                                cx={center}
+                                cy={center}
+                                r={radius}
+                                fill="none"
+                                stroke="#E4EAF5"
+                                strokeWidth={strokeWidth}
+                                strokeDasharray={circumference}
+                                strokeLinecap="round"
+                            />
+                            <circle
+                                className="dsp-progress-arc"
+                                cx={center}
+                                cy={center}
+                                r={radius}
+                                fill="none"
+                                stroke="url(#dsp-progress-gradient)"
+                                strokeWidth={strokeWidth}
+                                strokeDasharray={circumference}
+                                strokeDashoffset={dashOffset}
+                                strokeLinecap="butt"
+                                transform={`rotate(-90 ${center} ${center})`}
+                            />
+                            {tickValues.map((val) => {
+                                const isBoundary = val === 0 || val === safeTarget;
+                                const start = polarToCartesian(val, radius + (isBoundary ? 30 : 14));
+                                const end = polarToCartesian(val, radius - 14);
+                                return (
+                                    <line
+                                        key={`tick-${val}`}
+                                        x1={start.x}
+                                        y1={start.y}
+                                        x2={end.x}
+                                        y2={end.y}
+                                        stroke={'#C8D3E5'}
+                                        strokeWidth={1.8}
+                                        opacity={1}
+                                    />
+                                );
+                            })}
+                            {tickValues.map((val) => {
+                                const isBoundary = val === 0 || val === safeTarget;
+                                const pos = polarToCartesian(val, radius + (isBoundary ? 34 : 26));
+                                const { dx, dy } = labelOffset(val);
+                                return (
+                                    <text
+                                        key={`label-${val}`}
+                                        x={pos.x + dx}
+                                        y={pos.y + dy}
+                                        className={`dsp-tick-label${isBoundary ? ' dsp-tick-label-strong' : ''}`}
+                                    >
+                                        {val}
+                                    </text>
+                                );
+                            })}
+                            <g className="dsp-marker" transform={`translate(${markerPos.x}, ${markerPos.y})`}>
+                                <circle r="14" fill="#FFFFFF" stroke="#D4E3F7" strokeWidth="2" />
+                                <circle r="6" fill="#14B3BB" />
+                            </g>
                         </g>
-                    </g>
+                    }
                 </svg>
                 <div className="dsp-center">
-                    <div className="dsp-count">
-                        <span className="dsp-count-current">{clampedComplete}</span>
-                        <span className="dsp-count-target">/{safeTarget}</span>
-                    </div>
-                    <div className="dsp-subtitle">Donors Complete</div>
+                    {loading ? (
+                        <div className="loading">
+                            <i className="icon icon-spin icon-circle-notch fas" />
+                            {/* screen-reader only text */}
+                            <span className="visually-hidden">
+                                Loading
+                            </span>
+                        </div>
+                    ) : !complete ? (
+                        <div className="no-data">
+                            <span className="text-secondary">No data available</span>
+                        </div>
+                    ) : (
+                        <React.Fragment>
+                            <div className="dsp-count">
+                                <span className="dsp-count-current">{clampedComplete}</span>
+                                <span className="dsp-count-target">/{safeTarget}</span>
+                            </div>
+                            <div className="dsp-subtitle">Donors Complete</div>
+                        </React.Fragment>
+                    )}
                 </div>
             </div>
 
