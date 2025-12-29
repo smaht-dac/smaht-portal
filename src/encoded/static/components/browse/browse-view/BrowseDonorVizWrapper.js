@@ -118,6 +118,7 @@ export const BrowseDonorVizWrapper = (props) => {
     const [donorHardyScaleData, setDonorHardyScaleData] = useState();
     const [donorSequencingProgress, setDonorSequencingProgress] = useState({ complete: 0, target: DONOR_SEQUENCING_TARGET });
     const [loading, setLoading] = useState(false);
+    const [cspLoading, setCspLoading] = useState(false);
     const userDownloadAccess = useUserDownloadAccess(session);
 
     const initialFields = ['sample_summary.tissues', 'sequencing.sequencer.display_title'];
@@ -164,6 +165,7 @@ export const BrowseDonorVizWrapper = (props) => {
         return url.format({ pathname: '/browse/', query: ff });
     };
 
+    /* Fetch donor-related data on component mount or when href changes */
     useEffect(() => {
         const dataUrl = '/bar_plot_aggregations/';
 
@@ -242,10 +244,6 @@ export const BrowseDonorVizWrapper = (props) => {
 
             setDonorAgeGroupData(updatedDonorAgeGroupData);
             setDonorHardyScaleData(updatedDonorHardyScaleData);
-            setDonorSequencingProgress({
-                complete: 25,//rawData?.total?.donors || 0,
-                target: DONOR_SEQUENCING_TARGET
-            });
             setLoading(false);
         };
         const commonFallback = (r) => {
@@ -270,6 +268,46 @@ export const BrowseDonorVizWrapper = (props) => {
             null
         );
     }, [session, href]);
+
+    /* Fetch donor sequencing progress data on component mount */
+    useEffect(
+        () => {
+            if (!loading) setCspLoading(true);
+
+            const callbackFxn = (resp) => {
+                setCspLoading(false);
+                setDonorSequencingProgress({ complete: resp.total.donors, target: DONOR_SEQUENCING_TARGET });
+            };
+
+            const fallbackFxn = (resp) => {
+                setCspLoading(false);
+            };
+
+            const searchUrl = navigate.getBrowseBaseHref(null, 'all');
+
+            const hrefParts = url.parse(searchUrl, true);
+            let hrefQuery = _.clone(hrefParts.query);
+
+            delete hrefQuery.limit;
+            delete hrefQuery.field;
+
+            const requestBody = {
+                search_query_params: hrefQuery,
+                fields_to_aggregate_for: ['sample_summary.tissues'],
+            };
+
+            ajax.load(
+                '/bar_plot_aggregations/',
+                callbackFxn,
+                'POST',
+                fallbackFxn,
+                JSON.stringify(requestBody),
+                {},
+                null
+            );
+        },
+        [session]
+    );
 
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
 
@@ -382,7 +420,7 @@ export const BrowseDonorVizWrapper = (props) => {
                             complete={donorSequencingProgress.complete}
                             target={donorSequencingProgress.target}
                             popover={renderDonorSequencingPopover()}
-                            loading={loading}
+                            loading={cspLoading}
                         />
 
                         <div style={{ display: 'none' }} aria-hidden>
