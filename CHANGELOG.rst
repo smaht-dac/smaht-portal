@@ -7,12 +7,20 @@ smaht-portal
 Change Log
 ----------
 
-1.6.3
+1.6.4
 =====
 
 `PR 572: feat: Browse Page Modals <https://github.com/smaht-dac/smaht-portal/pull/572>`_
 
 * Implement Modal for empty browse pages
+
+
+1.6.3
+======
+
+`PR 574: feat: updates to Awardees page <https://github.com/smaht-dac/smaht-portal/pull/574>`_
+
+* Update Availability and Access Doc table
 
 
 1.6.2
