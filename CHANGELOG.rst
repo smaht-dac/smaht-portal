@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.6.4
+======
+
+`PR 577: feat: updates to Donor Metadata Dictionary page <https://github.com/smaht-dac/smaht-portal/pull/577>`_
+
+* Update Availability and Access Doc table
+
+
 1.6.3
 ======
 
