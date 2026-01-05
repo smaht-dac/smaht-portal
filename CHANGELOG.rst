@@ -7,12 +7,20 @@ smaht-portal
 Change Log
 ----------
 
+1.6.4
+======
+
+`PR 576: feat: reorder browse table columns <https://github.com/smaht-dac/smaht-portal/pull/576>`_
+
+* Reorders table columns for browse view
+
+
 1.6.3
 ======
 
 `PR 574: feat: updates to Awardees page <https://github.com/smaht-dac/smaht-portal/pull/574>`_
 
-* Update Availability and Access Doc table
+* Update Awardees page content
 
 
 1.6.2
