@@ -32,49 +32,9 @@ Schema Documentation
                             <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
                         </a>
                     </td>
-                    <td>2.0</td>
-                    <td>09/19/2025</td>
+                    <td>2.1 (latest)</td>
+                    <td>01/02/2026</td>
                     <td><a href="/static/files/SMaHT Sample and File Nomenclature v2.1.pdf" download>SMaHT Sample and File Nomenclature v2.1.pdf</a></td>
-                </tr>
-                <tr>
-                    <td>
-                        <a href="/static/files/SMaHT Sample and File Nomenclature v2.0.pdf" download>
-                            <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
-                        </a>
-                    </td>
-                    <td>2.0</td>
-                    <td>09/19/2025</td>
-                    <td><a href="/static/files/SMaHT Sample and File Nomenclature v2.0.pdf" download>SMaHT Sample and File Nomenclature v2.0.pdf</a></td>
-                </tr>
-                <tr>
-                    <td>
-                        <a href="/static/files/SMaHT Sample and File Nomenclature v1.2.pdf" download>
-                            <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
-                        </a>
-                    </td>
-                    <td>1.2</td>
-                    <td>11/01/2024</td>
-                    <td><a href="/static/files/SMaHT Sample and File Nomenclature v1.2.pdf" download>SMaHT Sample and File Nomenclature v1.2.pdf</a></td>
-                </tr>
-                <tr>
-                    <td>
-                        <a href="/static/files/SMaHT Sample and File Nomenclature v1.1.pdf" download>
-                            <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
-                        </a>
-                    </td>
-                    <td>1.1</td>
-                    <td>06/20/2024</td>
-                    <td><a href="/static/files/SMaHT Sample and File Nomenclature v1.1.pdf" download>SMaHT Sample and File Nomenclature v1.1.pdf</a></td>
-                </tr>
-                <tr>
-                    <td>
-                        <a href="/static/files/SMaHT Sample and File Nomenclature v1.0.pdf" download>
-                            <i class="icon fas icon-file-pdf text-danger icon-lg"></i>
-                        </a>
-                    </td>
-                    <td>1.0</td>
-                    <td>03/01/2024</td>
-                    <td><a href="/static/files/SMaHT Sample and File Nomenclature v1.0.pdf" download>SMaHT Sample and File Nomenclature v1.0.pdf</a></td>
                 </tr>
             </tbody>
         </table>
