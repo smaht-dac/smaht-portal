@@ -251,15 +251,11 @@ export const DonorManifestDataDictionary = () => {
                     format <i>category.field</i> (e.g.{' '}
                     <i>familyhistory.disease</i>).
                 </p>
-                <p className="mb-2">
-                    Note: All information fields except age, sex, and Hardy
-                    scale are protected data under dbGaP. No protected
-                    information is shown on this page.
-                </p>
+
                 <div className="diagram d-flex flex-column align-items-start">
                     <p className="mb-1">
                         Column Name Breakdown:{' '}
-                        <span className="category p-1">Category</span>:
+                        <span className="category p-1">Category</span>.
                         <span className="field p-1">Field</span>
                     </p>
                     <img
@@ -267,6 +263,11 @@ export const DonorManifestDataDictionary = () => {
                         alt="Donor Manifest Breakdown"
                     />
                 </div>
+                <p className="mb-2">
+                    Note: All information fields except age, sex, and Hardy
+                    scale are protected data under dbGaP. No protected
+                    information is shown on this page.
+                </p>
             </div>
             <hr className="my-4"></hr>
             <Select
