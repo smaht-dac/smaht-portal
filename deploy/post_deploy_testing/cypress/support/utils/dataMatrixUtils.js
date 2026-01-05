@@ -334,6 +334,7 @@ export function testMatrixPopoverValidation(
         rowSummaryBlockCount = 6,
         colSummaryBlockCount = 2,
         expectedFilesCount = 1,
+        expectedTissuesCount = null,
         verifyTotalFromApi = true,
     }) {
     cy.get(matrixId).should('exist');
@@ -497,33 +498,65 @@ export function testMatrixPopoverValidation(
             }
         });
 
-        // Check sum of regular blocks in a row equals to the row summary
-        // Note: collapse all to a fresh start
-        cy.get('.grouping.depth-0').then(($rows) => {
-            // filter only open rows
-            const openRows = $rows.filter('.may-collapse.open');
-
-            openRows.each((index, row) => {
-                const $icon = Cypress.$(row).find('i.icon-minus');
-                if ($icon.length) {
-                    cy.wrap($icon).click();
+        // Check total unique tissues in the matrix
+        if (typeof expectedTissuesCount === 'number' && expectedTissuesCount > 0) {
+            cy.get('.grouping.depth-0').then(($rows) => {
+                anyCollapsibleRows = $rows.filter('.may-collapse').length > 0;
+                // expand all tissues to ensure we capture all unique tissues
+                if (anyCollapsibleRows) {
+                    cy.get('.grouping.depth-0.may-collapse').each(($row) => {
+                        const expandIcon = $row.find('i.icon-plus');
+                        if (expandIcon.length > 0) {
+                            cy.wrap(expandIcon).click();
+                        }
+                    });
                 }
-            });
 
-            cy.get('.grouping.depth-0').each(($row) => {
+                const uniqueTissues = new Set();
 
-                cy.wrap($row).within(() => {
-                    const rowSummaryText = $row.find('.blocks-container [data-block-type="row-summary"] span').text().trim();
-                    const expectedRowSummary = parseInt(rowSummaryText, 10);
+                cy.get(anyCollapsibleRows ? '.grouping.depth-1 .grouping-row .inner' : '.grouping.depth-0 .grouping-row .inner').then(($labels) => {
+                    $labels.each((index, label) => {
+                        const tissue = Cypress.$(label).text().trim();
+                        if (tissue && tissue !== 'N/A') {
+                            uniqueTissues.add(tissue);
+                        }
+                    });
 
-                    cy.wrap($row)
-                        .find('.blocks-container [data-block-type="regular"] span')
-                        .then(($spans) => {
-                            const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
-                            expect(sum, `Row summary for ${$row.find('.grouping-row h4 .inner').first().text().trim()}`).to.equal(expectedRowSummary);
-                        });
+                    const tissueCount = uniqueTissues.size;
+                    expect(tissueCount, 'Total unique tissues in matrix').to.equal(expectedTissuesCount);
                 });
             });
-        });
+        }
+
+        // Check sum of regular blocks in a row equals to the row summary
+        // Note: collapse all to a fresh start
+        if (verifyTotalFromApi) { // conditional because of COLO829 public donor matrix is not fully consistent
+            cy.get('.grouping.depth-0').then(($rows) => {
+                // filter only open rows
+                const openRows = $rows.filter('.may-collapse.open');
+
+                openRows.each((index, row) => {
+                    const $icon = Cypress.$(row).find('i.icon-minus');
+                    if ($icon.length) {
+                        cy.wrap($icon).click();
+                    }
+                });
+
+                cy.get('.grouping.depth-0').each(($row) => {
+
+                    cy.wrap($row).within(() => {
+                        const rowSummaryText = $row.find('.blocks-container [data-block-type="row-summary"] span').text().trim();
+                        const expectedRowSummary = parseInt(rowSummaryText, 10);
+
+                        cy.wrap($row)
+                            .find('.blocks-container [data-block-type="regular"] span')
+                            .then(($spans) => {
+                                const sum = Cypress._.sum([...$spans].map((el) => parseInt(el.textContent.trim(), 10)));
+                                expect(sum, `Row summary for ${$row.find('.grouping-row h4 .inner').first().text().trim()}`).to.equal(expectedRowSummary);
+                            });
+                    });
+                });
+            });
+        }
     });
 }

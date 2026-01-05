@@ -510,21 +510,24 @@ function stepProtectedDonorFlow(caps) {
                         verifyExposures();
 
                         // Donor-level Data Matrix
-                        getNumericStatByLabel("Files").then((n) => {
-                            testMatrixPopoverValidation(
-                                "#data-matrix-for_donor",
-                                {
-                                    donors: [donorID],
-                                    mustLabels: [],
-                                    optionalLabels: [],
-                                    expectedLowerLabels: ["Tissues"],
-                                    regularBlockCount: 5, // regularBlockCount
-                                    rowSummaryBlockCount: 5, // rowSummaryBlockCount
-                                    colSummaryBlockCount: 1, // colSummaryBlockCount
-                                    expectedFilesCount: n,  // totalCountExpected (null → skip strict total check)
-                                    verifyTotalFromApi: true,
-                                }
-                            );
+                        getNumericStatByLabel("Files").then((filesCount) => {
+                            getNumericStatByLabel("Tissues").then((tissuesCount) => {
+                                testMatrixPopoverValidation(
+                                    "#data-matrix-for_donor",
+                                    {
+                                        donors: [donorID],
+                                        mustLabels: [],
+                                        optionalLabels: [],
+                                        expectedLowerLabels: ["Tissues"],
+                                        regularBlockCount: 5, // regularBlockCount
+                                        rowSummaryBlockCount: 5, // rowSummaryBlockCount
+                                        colSummaryBlockCount: 1, // colSummaryBlockCount
+                                        expectedFilesCount: filesCount,  // totalCountExpected (null → skip strict total check)
+                                        expectedTissuesCount: tissuesCount,
+                                        verifyTotalFromApi: true,
+                                    }
+                                );
+                            });
                         });
                     }).end();
 

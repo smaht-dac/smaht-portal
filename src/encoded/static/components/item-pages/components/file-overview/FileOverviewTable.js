@@ -94,7 +94,7 @@ export const FileOverviewTable = (props) => {
         },
         // Access
         access_status: {
-            widthMap: { lg: 70, md: 70, sm: 70 },
+            widthMap: { lg: 80, md: 80, sm: 80 },
             colTitle: <i className="icon icon-lock fas" data-tip="Access" />,
             render: function (result, parentProps) {
                 const { access_status } = result || {};
@@ -235,7 +235,9 @@ export const FileOverviewTable = (props) => {
             widthMap: { lg: 180, md: 160, sm: 140 },
             colTitle: 'Release Date',
             render: function (result) {
-                const value = result?.file_status_tracking?.release_dates?.initial_release;
+                const value =
+                    result?.file_status_tracking?.release_dates
+                        ?.initial_release;
                 return value ? (
                     <span className="value">
                         <LocalizedTime
