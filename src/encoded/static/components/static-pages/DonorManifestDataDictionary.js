@@ -256,10 +256,17 @@ export const DonorManifestDataDictionary = () => {
                     scale are protected data under dbGaP. No protected
                     information is shown on this page.
                 </p>
-                <img
-                    src="/static/img/docs/donor_manifest_breakdown.png"
-                    alt="Donor Manifest Breakdown"
-                />
+                <div className="diagram d-flex flex-column align-items-start">
+                    <p className="mb-1">
+                        Column Name Breakdown:{' '}
+                        <span className="category p-1">Category</span>:
+                        <span className="field p-1">Field</span>
+                    </p>
+                    <img
+                        src="/static/img/docs/donor_manifest_breakdown.png"
+                        alt="Donor Manifest Breakdown"
+                    />
+                </div>
             </div>
             <hr className="my-4"></hr>
             <Select
