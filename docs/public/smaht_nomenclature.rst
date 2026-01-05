@@ -466,6 +466,31 @@ Table 2B. Protocol IDs for SMaHT production tissues.
                     <td>Hippocampus, Brain, Right hemisphere</td>
                     <td>Snap Frozen</td>
                 </tr>
+                <tr>
+                    <td>3AP</td>
+                    <td>Frontal Lobe, Brain, Left hemisphere</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3AQ</td>
+                    <td>Temporal Lobe, Brain, Left hemisphere</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3AR</td>
+                    <td>Cerebellum, Brain, Left hemisphere</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3AS</td>
+                    <td>Hippocampus, Brain, Left hemisphere</td>
+                    <td>Fixed</td>
+                </tr>
+                <tr>
+                    <td>3AT</td>
+                    <td>Hippocampus, Brain, Right hemisphere</td>
+                    <td>Fixed</td>
+                </tr>
             </tbody>
         </table>
     </div>
