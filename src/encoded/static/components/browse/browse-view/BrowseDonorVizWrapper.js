@@ -118,7 +118,7 @@ export const BrowseDonorVizWrapper = (props) => {
     const [donorHardyScaleData, setDonorHardyScaleData] = useState();
     const [donorSequencingProgress, setDonorSequencingProgress] = useState({ complete: 0, target: DONOR_SEQUENCING_TARGET });
     const [loading, setLoading] = useState(false);
-    const [cspLoading, setCspLoading] = useState(false);
+    const [dspLoading, setDspLoading] = useState(false);
     const userDownloadAccess = useUserDownloadAccess(session);
 
     const initialFields = ['sample_summary.tissues', 'sequencing.sequencer.display_title'];
@@ -272,15 +272,15 @@ export const BrowseDonorVizWrapper = (props) => {
     /* Fetch donor sequencing progress data on component mount */
     useEffect(
         () => {
-            if (!loading) setCspLoading(true);
+            if (!loading) setDspLoading(true);
 
             const callbackFxn = (resp) => {
-                setCspLoading(false);
+                setDspLoading(false);
                 setDonorSequencingProgress({ complete: resp.total.donors, target: DONOR_SEQUENCING_TARGET });
             };
 
             const fallbackFxn = (resp) => {
-                setCspLoading(false);
+                setDspLoading(false);
                 setDonorSequencingProgress({ complete: 0, target: DONOR_SEQUENCING_TARGET });
             };
 
@@ -421,7 +421,7 @@ export const BrowseDonorVizWrapper = (props) => {
                             complete={donorSequencingProgress.complete}
                             target={donorSequencingProgress.target}
                             popover={renderDonorSequencingPopover()}
-                            loading={cspLoading}
+                            loading={dspLoading}
                         />
 
                         <div style={{ display: 'none' }} aria-hidden>
