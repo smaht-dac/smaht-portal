@@ -385,13 +385,13 @@ export const BrowseDonorVizWrapper = (props) => {
                             chartType="stacked"
                             topStackColor="#4567CF"
                             bottomStackColor="#9892F5"
-                            xAxisTitle="Age Group"
+                            xAxisTitle="Age groups (years)"
                             yAxisTitle="# of Donors"
                             legendTitle="Donor Sex"
                             showLegend
                             showBarTooltip={true}
                             tooltipTitles={{ crumb: 'Age Group', left: 'Donor Sex', right: '# of Donors' }}
-                            showXAxisTitle={false}
+                            showXAxisTitle={true}
                             session={session}
                             loading={loading}
                             buildFilesHref={buildFilesHref}
@@ -405,9 +405,9 @@ export const BrowseDonorVizWrapper = (props) => {
                             chartHeight={420}
                             chartType="single"
                             topStackColor="#56A9F5"
-                            xAxisTitle="Hardy Scale"
+                            xAxisTitle="Hardy scale"
                             yAxisTitle="# of Donors"
-                            showXAxisTitle={false}
+                            showXAxisTitle={true}
                             popover={renderHardyScaleDescriptionPopover()}
                             showBarTooltip={true}
                             tooltipTitles={{ crumb: null, left: 'Hardy Scale', right: '# of Donors' }}
