@@ -97,23 +97,11 @@ export function DonorSequencingProgressChart(props) {
                     preserveAspectRatio="xMidYMid meet"
                     width={frameWidth}
                     height={frameHeight}
-                    // xmlnsXlink="http://www.w3.org/1999/xlink"
                 >
                     <defs>
-                        {/* <symbol id="dsp-logo" viewBox="0 0 368 588">
-                            <g fill="none" fillRule="evenodd">
-                                <g opacity="0.51" fill="#64BDFF">
-                                    <polygon points="186 429 100 412 45 492 92 389" />
-                                </g>
-                                <g opacity="0.74" fill="#64BDFF">
-                                    <polygon points="151 340 126 309 191 233 98 310" />
-                                </g>
-                                <g opacity="0.47" fill="#FFF">
-                                    <polygon points="79 214 107 275 242 191 97 310" />
-                                </g>
-                                <circle fill="#2746CB" cx="175" cy="44" r="44" />
-                            </g>
-                        </symbol> */}
+                        <filter id="dsp-marker-shadow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#A3C4ED" floodOpacity="1" />
+                        </filter>
                         <linearGradient id="dsp-progress-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
                             <stop offset="0%" stopColor="#14B3BB" />
                             <stop offset="100%" stopColor="#1FC8D3" />
@@ -194,7 +182,7 @@ export function DonorSequencingProgressChart(props) {
                                     </text>
                                 );
                             })}
-                            <g className="dsp-marker" transform={`translate(${markerPos.x}, ${markerPos.y})`}>
+                            <g className="dsp-marker" transform={`translate(${markerPos.x}, ${markerPos.y})`} filter="url(#dsp-marker-shadow)">
                                 <circle r="18" fill="#FFFFFF" stroke="#D4E3F7" strokeWidth="2" />
                                 <g transform="translate(-12 -14) scale(0.13)">
                                     <image href="/static/img/SMaHT_Logo_Solo.svg" width="200" height="200" />
