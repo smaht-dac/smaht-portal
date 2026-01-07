@@ -75,7 +75,7 @@ const ConsortiumTable = () => {
                     <td className="align-middle">
                         {c['project']} <br />
                         <small>
-                            Project number:{' '}
+                            Award number:{' '}
                             <a
                                 href={c['url']}
                                 target="_blank"
