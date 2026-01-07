@@ -57,7 +57,6 @@ export const hardyScaleRange = [0, 1, 2, 3, 4];
 export const renderEthnicityPopover = (customId) => (
     <Popover
         id={customId || 'chart-info-popover-ethnicity'}
-        style={{ maxWidth: 400 }}
         className="w-auto description-definitions-popover">
         <Popover.Body className="p-0">
             <table className="table">
@@ -82,7 +81,9 @@ export const renderEthnicityPopover = (customId) => (
 const DONOR_SEQUENCING_TARGET = 150;
 
 export const renderDonorSequencingPopover = (customId) => (
-    <Popover id={customId || 'chart-info-popover-donor-progress'} style={{ maxWidth: 340 }} className="w-auto description-definitions-popover">
+    <Popover
+        id={customId || 'chart-info-popover-donor-progress'}
+        className="w-auto description-definitions-popover">
         <Popover.Body className="p-0">
             <table className="table">
                 <thead>
