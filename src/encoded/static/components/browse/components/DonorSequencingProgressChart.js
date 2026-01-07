@@ -35,7 +35,7 @@ export function DonorSequencingProgressChart(props) {
     const outerRef = React.useRef(null);
     const measuredWidth = useParentWidth(outerRef);
     const frameWidth = React.useMemo(
-        () => Math.max(260, measuredWidth || 0),
+        () => Math.max(/*260*/0, measuredWidth || 0),
         [measuredWidth]
     );
     const frameHeight = chartHeight || 420;
@@ -53,7 +53,7 @@ export function DonorSequencingProgressChart(props) {
     const progressRatio = clampedComplete / safeTarget;
 
     const center = size / 2;
-    const strokeWidth = Math.max(22, Math.min(size * 0.08, 28));
+    const strokeWidth = Math.max(32, Math.min(size * 0.12, 38));
     const radius = Math.max(105, Math.min(size * 0.34, 150));
     const circumference = 2 * Math.PI * radius;
 
@@ -149,8 +149,8 @@ export function DonorSequencingProgressChart(props) {
                             />
                             {tickValues.map((val) => {
                                 const isBoundary = val === 0 || val === safeTarget;
-                                const start = polarToCartesian(val, radius + (isBoundary ? 30 : 14));
-                                const end = polarToCartesian(val, radius - 14);
+                                const start = polarToCartesian(val, radius + (isBoundary ? 40 : 19));
+                                const end = polarToCartesian(val, radius - 19);
                                 return (
                                     <line
                                         key={`tick-${val}`}
@@ -166,7 +166,7 @@ export function DonorSequencingProgressChart(props) {
                             })}
                             {tickValues.map((val) => {
                                 const isBoundary = val === 0 || val === safeTarget;
-                                const pos = polarToCartesian(val, radius + (isBoundary ? 34 : 26));
+                                const pos = polarToCartesian(val, radius + (isBoundary ? 40 : 36));
                                 const { dx, dy } = labelOffset(val);
                                 return (
                                     <text
@@ -180,8 +180,8 @@ export function DonorSequencingProgressChart(props) {
                                 );
                             })}
                             <g className="dsp-marker" transform={`translate(${markerPos.x}, ${markerPos.y})`}>
-                                <circle r="14" fill="#FFFFFF" stroke="#D4E3F7" strokeWidth="2" />
-                                <circle r="6" fill="#14B3BB" />
+                                <circle r="18" fill="#FFFFFF" stroke="#D4E3F7" strokeWidth="2" />
+                                <circle r="10" fill="#14B3BB" />
                             </g>
                         </g>
                     }
