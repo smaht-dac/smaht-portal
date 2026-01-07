@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+1.6.4
+=====
+
+`PR 571: update calcprops for revlinks of meta_workflow_runs <https://github.com/smaht-dac/smaht-portal/pull/571>`_
+
+* filter out deleted items from being retrieved as revlinks
+* simplified calcprops that got file revlinks for meta_workflow_runs (No longer need to explicitly filter out deleted items)
+* updated tests
+
 1.6.3
 ======
 
