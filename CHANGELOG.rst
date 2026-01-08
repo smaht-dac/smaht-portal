@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+
+1.6.5
+=====
+
+`PR 573: exclude deleted tissue_samples from validation <https://github.com/smaht-dac/smaht-portal/pull/573>`_
+
+* filter out deleted tissue_samples from validator checks
+
+
 1.6.4
 =====
 
