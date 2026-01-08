@@ -347,7 +347,7 @@ const DonorCohortViewChart = ({
                 : barStackType === 'secondary'
                     ? THEME.hoverStroke.female
                     : THEME.hoverStroke.hardy;
-            d3.select(_pinnedSelection).attr('stroke', strokeColor).attr('stroke-width', 3);
+            insetStroke(d3.select(_pinnedSelection), strokeColor);
 
             const left = e.pageX + 12;
             const top = e.pageY - 12;
@@ -377,7 +377,7 @@ const DonorCohortViewChart = ({
         function unpinTooltip() {
             if (!_isPinned) return;
             if (_pinnedSelection) {
-                d3.select(_pinnedSelection).attr('stroke', 'none');
+                clearStroke(d3.select(_pinnedSelection));
                 _pinnedSelection = null;
             }
             _isPinned = false;
@@ -573,6 +573,54 @@ const DonorCohortViewChart = ({
             .nice()
             .range([height, 0]);
 
+        const hoverStrokeWidth = 3;
+        const baseDimMap = new WeakMap();
+
+        const baseDims = {
+            female: (d) => ({
+                x: x(d.group),
+                y: y(d.value2 || 0),
+                width: x.bandwidth(),
+                height: y(0) - y(d.value2 || 0)
+            }),
+            male: (d) => ({
+                x: x(d.group),
+                y: y((d.value1 || 0) + (d.value2 || 0)),
+                width: x.bandwidth(),
+                height: y(0) - y(d.value1 || 0)
+            }),
+            single: (d) => ({
+                x: x(d.group),
+                y: y(d.value1 || 0),
+                width: x.bandwidth(),
+                height: y(0) - y(d.value1 || 0)
+            })
+        };
+
+        const insetStroke = (selection, color) => {
+            const dims = baseDimMap.get(selection.node());
+            if (!dims) return;
+            selection
+                .attr('stroke', color)
+                .attr('stroke-width', hoverStrokeWidth)
+                .attr('x', dims.x + hoverStrokeWidth / 2)
+                .attr('y', dims.y + hoverStrokeWidth / 2)
+                .attr('width', Math.max(0, dims.width - hoverStrokeWidth))
+                .attr('height', Math.max(0, dims.height - hoverStrokeWidth));
+        };
+
+        const clearStroke = (selection) => {
+            const dims = baseDimMap.get(selection.node());
+            if (!dims) return;
+            selection
+                .attr('stroke', 'none')
+                .attr('stroke-width', null)
+                .attr('x', dims.x)
+                .attr('y', dims.y)
+                .attr('width', dims.width)
+                .attr('height', dims.height);
+        };
+
         // --- Vertical GRID (keep Y-axis ticks; remove only top gridline) ---
         const intTicks = (max) => {
             if (max <= 10) return d3.range(0, max + 1, 1);
@@ -629,14 +677,15 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', femaleColor)
                 .attr('stroke', 'none')
+                .each(function (d) { baseDimMap.set(this, baseDims.female(d)); })
                 .on('mouseover', (e, d) => {
-                    d3.select(e.currentTarget).attr('stroke', femaleHoverStroke).attr('stroke-width', 3);
+                    insetStroke(d3.select(e.currentTarget), femaleHoverStroke);
                     showTip(e, d, 'secondary');
                 })
                 .on('mousemove', moveTip)
                 .on('mouseout', function () {
                     if (_pinnedSelection !== this) {
-                        d3.select(this).attr('stroke', 'none');
+                        clearStroke(d3.select(this));
                     }
                     hideTip();
                 })
@@ -650,14 +699,15 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', maleColor)
                 .attr('stroke', 'none')
+                .each(function (d) { baseDimMap.set(this, baseDims.male(d)); })
                 .on('mouseover', (e, d) => {
-                    d3.select(e.currentTarget).attr('stroke', maleHoverStroke).attr('stroke-width', 3);
+                    insetStroke(d3.select(e.currentTarget), maleHoverStroke);
                     showTip(e, d, 'primary');
                 })
                 .on('mousemove', moveTip)
                 .on('mouseout', function () {
                     if (_pinnedSelection !== this) {
-                        d3.select(this).attr('stroke', 'none');
+                        clearStroke(d3.select(this));
                     }
                     hideTip();
                 })
@@ -709,16 +759,17 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', color)
                 .attr('stroke', 'none')
+                .each(function (d) { baseDimMap.set(this, baseDims.single(d)); })
                 .on('mouseover', (e, d) => {
                     if ((d.value1 || 0) > 0) {
-                        d3.select(e.currentTarget).attr('stroke', hardyHoverStroke).attr('stroke-width', 3);
+                        insetStroke(d3.select(e.currentTarget), hardyHoverStroke);
                         showTip(e, d, null);
                     }
                 })
                 .on('mousemove', moveTip)
                 .on('mouseout', function () {
                     if (_pinnedSelection !== this) {
-                        d3.select(this).attr('stroke', 'none');
+                        clearStroke(d3.select(this));
                     }
                     hideTip();
                 })
