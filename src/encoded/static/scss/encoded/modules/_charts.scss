@@ -2229,6 +2229,7 @@ body[data-path="/statistics"] {
         .dsp-center {
             position: absolute;
             inset: 0;
+            margin-top: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -2242,13 +2243,13 @@ body[data-path="/statistics"] {
             display: flex;
             align-items: baseline;
             justify-content: center;
-            gap: 6px;
+            gap: 3px;
             color: #111827;
         }
 
         .dsp-count-current {
-            font-size: 44px;
-            font-weight: 700;
+            font-size: 40px;
+            font-weight: 600;
         }
 
         .dsp-count-target {
@@ -2258,7 +2259,7 @@ body[data-path="/statistics"] {
         }
 
         .dsp-subtitle {
-            margin-top: 4px;
+            margin-top: -8px;
             font-size: 14px;
             color: #6b7280;
         }

@@ -699,7 +699,7 @@ const DonorCohortViewChart = ({
         if (showXAxisTitle && xAxisTitle) {
             g.append('text')
                 .attr('x', (width / 2) - 14)
-                .attr('y', height + 53)
+                .attr('y', height + 48)
                 .attr('text-anchor', 'middle')
                 .style('font-size', 12)
                 .style('fill', THEME.axis.tick)

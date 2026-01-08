@@ -75,8 +75,8 @@ export function DonorSequencingProgressChart(props) {
     };
 
     const labelOffset = (value) => {
-        if (value === 0) return { dx: 12, dy: 0 };
-        if (value === safeTarget) return { dx: -18, dy: 0 };
+        if (value === 0) return { dx: 12, dy: 9.5 };
+        if (value === safeTarget) return { dx: -18, dy: 9.5 };
         return { dx: 0, dy: 0 };
     };
 
@@ -123,7 +123,7 @@ export function DonorSequencingProgressChart(props) {
                                 cy={center}
                                 r={radius}
                                 fill="none"
-                                stroke="#F4F7FB"
+                                stroke="#F2F5FB"
                                 strokeWidth={strokeWidth}
                             />
                             <circle
@@ -162,7 +162,7 @@ export function DonorSequencingProgressChart(props) {
                                         x2={end.x}
                                         y2={end.y}
                                         stroke={'#C8D3E5'}
-                                        strokeWidth={1.8}
+                                        strokeWidth={1}
                                         opacity={1}
                                     />
                                 );
@@ -183,9 +183,9 @@ export function DonorSequencingProgressChart(props) {
                                 );
                             })}
                             <g className="dsp-marker" transform={`translate(${markerPos.x}, ${markerPos.y})`} filter="url(#dsp-marker-shadow)">
-                                <circle r="18" fill="#FFFFFF" stroke="#D4E3F7" strokeWidth="2" />
+                                <circle r="21" fill="#FFFFFF" stroke="#D4E3F7" strokeWidth="0" />
                                 <g transform="translate(-12 -14) scale(0.13)">
-                                    <image href="/static/img/SMaHT_Logo_Solo.svg" width="200" height="200" />
+                                    <image href="/static/img/SMaHT_Logo_Solo.svg" width="215" height="215" />
                                 </g>
                             </g>
                         </g>
@@ -210,7 +210,7 @@ export function DonorSequencingProgressChart(props) {
                                 <span className="dsp-count-current">{clampedComplete}</span>
                                 <span className="dsp-count-target">/{safeTarget}</span>
                             </div>
-                            <div className="dsp-subtitle">Donors Complete</div>
+                            <div className="dsp-subtitle">Donors</div>
                         </React.Fragment>
                     )}
                 </div>
