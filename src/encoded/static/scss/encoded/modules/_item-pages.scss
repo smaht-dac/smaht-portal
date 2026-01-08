@@ -2537,6 +2537,65 @@ Popover Styles for Item Pages
 			font-weight: 600;
 			background-color: #F1F9FF;
 		}
+
+		&#description-definitions-popover-hardy {
+			border-radius: 12px;
+			max-width: 730px;
+
+			.popover-body {
+				border-radius: inherit;
+			}
+			
+			.table {
+				border-radius: inherit;
+				overflow: hidden;
+			}
+
+			thead > tr > th {
+				border-radius: 12px 12px 0px 0px;
+			}
+
+			tbody {
+				border-radius: 0px 0px 12px 12px;
+				& > tr > td {
+					padding-right: 30px;
+
+					b {
+						font-weight: 600;
+					}
+
+					&.index-cell {
+						width: 120px;
+						padding-right: 12px;
+					}
+					&.footnote-cell {
+						font-size: 0.75rem;
+						color: #787A7E;
+
+						a {
+							display: inline-flex;
+							align-items: center;
+						}
+
+						.icon {
+							font-size: 0.625rem;
+							margin-left: 5px;
+						}
+					}
+				}
+				
+				& > tr:last-child {
+					border-radius: 0px 0px 12px 12px;
+
+					> td {
+						border-radius: inherit;
+					}
+				}
+				
+			}
+
+			
+		}
 	}
 
 	&.public-donor-download-popover {

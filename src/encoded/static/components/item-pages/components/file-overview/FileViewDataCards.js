@@ -170,9 +170,13 @@ const default_file_properties = [
     {
         title: 'Release Date',
         getProp: (context = {}) => {
-            return context?.file_status_tracking?.release_dates?.initial_release ? (
+            return context?.file_status_tracking?.release_dates
+                ?.initial_release ? (
                 <LocalizedTime
-                    timestamp={context?.file_status_tracking.release_dates?.initial_release}
+                    timestamp={
+                        context?.file_status_tracking.release_dates
+                            ?.initial_release
+                    }
                     formatType="date-md"
                     dateTimeSeparator=" "
                 />
