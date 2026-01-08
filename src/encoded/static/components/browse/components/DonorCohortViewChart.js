@@ -192,6 +192,7 @@ const DonorCohortViewChart = ({
 
         let _isPinned = false;
         let _pinnedData = null;
+        let _pinnedSelection = null;
 
         /**
             * Build tooltip card HTML matching the provided popover structure.
@@ -334,8 +335,19 @@ const DonorCohortViewChart = ({
                 unpinTooltip();
                 return;
             }
+            if (_pinnedSelection) {
+                d3.select(_pinnedSelection).attr('stroke', 'none');
+                _pinnedSelection = null;
+            }
             _isPinned = true;
             _pinnedData = d;
+            _pinnedSelection = e.currentTarget;
+            const strokeColor = barStackType === 'primary'
+                ? THEME.hoverStroke.male
+                : barStackType === 'secondary'
+                    ? THEME.hoverStroke.female
+                    : THEME.hoverStroke.hardy;
+            d3.select(_pinnedSelection).attr('stroke', strokeColor).attr('stroke-width', 3);
 
             const left = e.pageX + 12;
             const top = e.pageY - 12;
@@ -364,6 +376,10 @@ const DonorCohortViewChart = ({
         // helper to unpin & hide (reuse the same logic everywhere)
         function unpinTooltip() {
             if (!_isPinned) return;
+            if (_pinnedSelection) {
+                d3.select(_pinnedSelection).attr('stroke', 'none');
+                _pinnedSelection = null;
+            }
             _isPinned = false;
             _pinnedData = null;
             tooltipSel.classed('is-pinned', false).style('opacity', 0);
@@ -619,7 +635,9 @@ const DonorCohortViewChart = ({
                 })
                 .on('mousemove', moveTip)
                 .on('mouseout', function () {
-                    d3.select(this).attr('stroke', 'none');
+                    if (_pinnedSelection !== this) {
+                        d3.select(this).attr('stroke', 'none');
+                    }
                     hideTip();
                 })
                 .on('click', (e,d) => pinTip(e, d, 'secondary'));
@@ -638,7 +656,9 @@ const DonorCohortViewChart = ({
                 })
                 .on('mousemove', moveTip)
                 .on('mouseout', function () {
-                    d3.select(this).attr('stroke', 'none');
+                    if (_pinnedSelection !== this) {
+                        d3.select(this).attr('stroke', 'none');
+                    }
                     hideTip();
                 })
                 .on('click', (e,d) => pinTip(e, d, 'primary'));
@@ -697,7 +717,9 @@ const DonorCohortViewChart = ({
                 })
                 .on('mousemove', moveTip)
                 .on('mouseout', function () {
-                    d3.select(this).attr('stroke', 'none');
+                    if (_pinnedSelection !== this) {
+                        d3.select(this).attr('stroke', 'none');
+                    }
                     hideTip();
                 })
                 .on('click', (e, d) => { if ((d.value1 || 0) > 0) { pinTip(e, d, null); } });
