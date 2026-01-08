@@ -3,7 +3,7 @@ import React from 'react';
 import * as d3 from 'd3';
 import { OverlayTrigger } from 'react-bootstrap';
 
-// --- Theme ---
+// default theme
 const THEME = {
     panel: { radius: 14, stroke: '#A3C4ED', fill: '#FFFFFF' },
     grid: '#FFFFFF',
@@ -15,6 +15,11 @@ const THEME = {
         female: '#B79AEF',
         hardy: '#56A9F5',
         ethnicity: '#14B3BB'
+    },
+    hoverStroke: {
+        male: '#17379D',
+        female: '#5852C2',
+        hardy: '#1672C7'
     }
 };
 
@@ -597,6 +602,8 @@ const DonorCohortViewChart = ({
         if (chartType === 'stacked') {
             const maleColor = topStackColor || THEME.colors.male;
             const femaleColor = bottomStackColor || THEME.colors.female;
+            const maleHoverStroke = THEME.hoverStroke.male;
+            const femaleHoverStroke = THEME.hoverStroke.female;
 
             g.selectAll('.bar-female')
                 .data(data).enter().append('rect')
@@ -606,9 +613,15 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', femaleColor)
                 .attr('stroke', 'none')
-                .on('mouseover', (e, d) => showTip(e, d, 'secondary'))
+                .on('mouseover', (e, d) => {
+                    d3.select(e.currentTarget).attr('stroke', femaleHoverStroke).attr('stroke-width', 3);
+                    showTip(e, d, 'secondary');
+                })
                 .on('mousemove', moveTip)
-                .on('mouseout', hideTip)
+                .on('mouseout', function () {
+                    d3.select(this).attr('stroke', 'none');
+                    hideTip();
+                })
                 .on('click', (e,d) => pinTip(e, d, 'secondary'));
 
             g.selectAll('.bar-male')
@@ -619,9 +632,15 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', maleColor)
                 .attr('stroke', 'none')
-                .on('mouseover', (e, d) => showTip(e, d, 'primary'))
+                .on('mouseover', (e, d) => {
+                    d3.select(e.currentTarget).attr('stroke', maleHoverStroke).attr('stroke-width', 3);
+                    showTip(e, d, 'primary');
+                })
                 .on('mousemove', moveTip)
-                .on('mouseout', hideTip)
+                .on('mouseout', function () {
+                    d3.select(this).attr('stroke', 'none');
+                    hideTip();
+                })
                 .on('click', (e,d) => pinTip(e, d, 'primary'));
 
             if (showLabelOnBar) {
@@ -660,6 +679,7 @@ const DonorCohortViewChart = ({
         } else {
             // Single-series (Hardy)
             const color = topStackColor || THEME.colors.hardy;
+            const hardyHoverStroke = THEME.hoverStroke.hardy;
 
             g.selectAll('.bar-single')
                 .data(data).enter().append('rect')
@@ -669,9 +689,17 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', color)
                 .attr('stroke', 'none')
-                .on('mouseover', (e, d) => { if ((d.value1 || 0) > 0) { showTip(e, d, null); } })
+                .on('mouseover', (e, d) => {
+                    if ((d.value1 || 0) > 0) {
+                        d3.select(e.currentTarget).attr('stroke', hardyHoverStroke).attr('stroke-width', 3);
+                        showTip(e, d, null);
+                    }
+                })
                 .on('mousemove', moveTip)
-                .on('mouseout', hideTip)
+                .on('mouseout', function () {
+                    d3.select(this).attr('stroke', 'none');
+                    hideTip();
+                })
                 .on('click', (e, d) => { if ((d.value1 || 0) > 0) { pinTip(e, d, null); } });
 
             g.selectAll('.label-single')
