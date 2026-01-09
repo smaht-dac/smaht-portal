@@ -38,7 +38,7 @@ from snovault.search.search_utils import make_search_subreq as snovault_make_sea
 # it is still here and even accessible using the "legacy=true" URL query argument to the API.
 
 QUERY_FILE_TYPES = ["OutputFile", "SubmittedFile"]
-QUERY_FILE_STATUSES = ["released"]
+QUERY_FILE_STATUSES = ["open", "open-early", "open-network", "protected", "protected-early", "protected-network", "released"]
 QUERY_FILE_CATEGORIES = ["!Quality Control"]
 QUERY_FILE_TAGS = ["!exclude_from_release_tracker"]
 QUERY_RECENT_MONTHS = 3
@@ -81,7 +81,7 @@ def recent_files_summary(request: PyramidRequest,
     - release-date: file_status_tracking.release_dates.initial_release
     - cell-line: file_sets.libraries.analytes.samples.sample_sources.cell_line.code
     - donor: donors.display_title
-    - file-dsecription: release_tracker_description
+    - file-description: release_tracker_description
 
     Note that release_tracker_description is a newer (2024-12)
     calculated property - see PR-298 (branch: sn_file_release_tracker).
