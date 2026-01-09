@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.7.0
+=====
+
+`PR 570: Add Analysis Status page <https://github.com/smaht-dac/smaht-portal/pull/570>`_
+
+* Add Analysis Status page
+* Add AnalysisRun item
+
 
 1.6.5
 =====
