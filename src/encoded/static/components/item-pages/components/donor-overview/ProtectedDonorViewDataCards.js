@@ -251,13 +251,6 @@ const default_donor_information = [
     },
 ];
 
-const default_data_summary = [
-    {
-        title: 'Donor ID',
-        getProp: (context = {}) => context?.external_id,
-    },
-];
-
 const DonorStatistics = ({ data, isLoading }) => {
     return (
         <div className="data-summary d-flex flex-column gap-3">
