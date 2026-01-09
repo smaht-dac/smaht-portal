@@ -132,7 +132,7 @@ export function DonorSequencingProgressChart(props) {
                                 cy={center}
                                 r={radius}
                                 fill="none"
-                                stroke="#E4EAF5"
+                                stroke="#F2F5FB"
                                 strokeWidth={strokeWidth}
                                 strokeDasharray={circumference}
                                 strokeLinecap="round"
