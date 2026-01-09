@@ -32,6 +32,7 @@ import DataMatrix from '../../viz/Matrix/DataMatrix';
 import RetractedFilesTable from '../components/RetractedFilesTable';
 import { SubmissionDataDictionary } from '../SubmissionDataDictionary';
 import { DonorManifestDataDictionary } from '../DonorManifestDataDictionary';
+import { PipelineDocsNavigation } from '../PipelineDocsNavigation';
 import { DataMatrixComparisonTabs } from '../components/DataMatrixComparisonTabs';
 
 /**
@@ -63,6 +64,7 @@ const placeholders = {
     DataMatrix,
     SubmissionDataDictionary,
     DonorManifestDataDictionary,
+    PipelineDocsNavigation,
 };
 
 export const replaceString = memoize(

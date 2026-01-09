@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.8.0
+=====
+
+`PR 518: feat: Add Pipeline Docs to portal <https://github.com/smaht-dac/smaht-portal/pull/518>`_
+
+* Add Pipeline documentation to the portal as static pages
+
+
 1.7.1
 ======
 
@@ -74,6 +82,7 @@ Change Log
 * Redirect with no auth will be processed for public files, otherwise
   a redirect with auth will be sent
 * Requires update to permissions for S3 Federation user
+
 
 1.5.17
 ======
