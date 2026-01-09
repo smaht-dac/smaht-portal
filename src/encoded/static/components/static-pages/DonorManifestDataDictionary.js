@@ -269,6 +269,7 @@ export const DonorManifestDataDictionary = () => {
                     information is shown on this page.
                 </p>
             </div>
+            {/* Search bar */}
             <hr className="my-4"></hr>
             <div className="d-flex flex-column gap-2 align-items-start w-100">
                 <span className="fw-bold">Search:</span>
