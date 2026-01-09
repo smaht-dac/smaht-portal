@@ -869,8 +869,8 @@ body[data-path="/"]>#application>#layout {
 							}
 
 							.icon-spinner {
-								margin: auto;
-								color: #485983;
+								margin: 10px auto;
+								color: #4859835b;
 							}
 
 							.data-release-item-container {
@@ -881,7 +881,7 @@ body[data-path="/"]>#application>#layout {
 									padding: 5px 5px 0px 25px;
 									padding-bottom: 16px;
 									
-									.header {
+									& > .header {
 										display: flex;
 										justify-content: space-between;
 										background-color: #ecf2fe;
@@ -898,7 +898,7 @@ body[data-path="/"]>#application>#layout {
 											}
 										}
 
-										&-link {
+										.header-link {
 											width: 100%;
 											justify-content: space-between;
 											display: flex;
@@ -1021,7 +1021,6 @@ body[data-path="/"]>#application>#layout {
 													}
 												}
 											}
-											
 
 											.tissue-list {
 												margin-top: 0px;
@@ -1033,15 +1032,12 @@ body[data-path="/"]>#application>#layout {
 												border-radius: 0px 0px 7px 7px;
 												border: 1px solid #B8D3EF;
 												border-top: none;
+
 												svg {
 													display: none;
 												}
 	
 												&:hover {
-													display: inline;
-													cursor: pointer;
-													color: #3C71F9;
-	
 													svg {
 														display: inline-flex;
 														vertical-align: text-top;
@@ -1108,10 +1104,10 @@ body[data-path="/"]>#application>#layout {
 									border-top-left-radius: 9px;
 									border-top-right-radius: 9px;
 									.content {
-										.header {
+										& > .header {
 											background-color: rgba(195 255 219 / 50%);
 											font-size: 0.75rem;
-											&-link {
+											.header-link {
 												color: #014B11;
 												
 												&:hover {
@@ -1337,10 +1333,8 @@ body[data-path="/"]>#application>#layout {
 						&.cram-conversion {
 							color: #485983;
 							font-size: 12px;
-							margin: 0px;
-							border-radius: 8px;
+							margin: 8px 0px 0px 0px;
 							padding: 10px;
-							border-color: transparent;
 
 							.header {
 								font-weight: 600;
@@ -1356,7 +1350,6 @@ body[data-path="/"]>#application>#layout {
 				}
 		
 				.about-consortium {
-
 					&-links {
 						display: flex;
 						flex-direction: row;
