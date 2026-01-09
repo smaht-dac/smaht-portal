@@ -7,12 +7,133 @@ smaht-portal
 Change Log
 ----------
 
-1.6.0
+1.7.2
 =====
 
 `PR 522: feat: Release Tracker Restructuring <https://github.com/smaht-dac/smaht-portal/pull/522>`_
 
 * Restructure to Release Tracker
+
+
+1.7.1
+======
+
+`PR 576: feat: reorder browse table columns <https://github.com/smaht-dac/smaht-portal/pull/576>`_
+
+* Reorders table columns for browse view
+
+
+1.7.0
+=====
+
+`PR 570: Add Analysis Status page <https://github.com/smaht-dac/smaht-portal/pull/570>`_
+
+* Add Analysis Status page
+* Add AnalysisRun item
+
+
+1.6.5
+=====
+
+`PR 573: exclude deleted tissue_samples from validation <https://github.com/smaht-dac/smaht-portal/pull/573>`_
+
+* filter out deleted tissue_samples from validator checks
+
+
+1.6.4
+=====
+
+`PR 571: update calcprops for revlinks of meta_workflow_runs <https://github.com/smaht-dac/smaht-portal/pull/571>`_
+
+* filter out deleted items from being retrieved as revlinks
+* simplified calcprops that got file revlinks for meta_workflow_runs (No longer need to explicitly filter out deleted items)
+* updated tests
+
+1.6.3
+======
+
+`PR 574: feat: updates to Awardees page <https://github.com/smaht-dac/smaht-portal/pull/574>`_
+
+* Update Awardees page content
+
+
+1.6.2
+======
+
+`PR 563: feat: access doc updates <https://github.com/smaht-dac/smaht-portal/pull/563>`_
+
+* Update Availability and Access Doc table
+
+
+1.6.1
+======
+
+`PR 561: fix: update styles for dropdown toggle <https://github.com/smaht-dac/smaht-portal/pull/561>`_
+
+* Fix incorrect CSS selector
+
+
+1.6.0
+=====
+
+* Open Data URL support for SMaHT
+* New calc-prop 'open_data_url' which will show the location
+  of files in open data buckets
+* Redirect with no auth will be processed for public files, otherwise
+  a redirect with auth will be sent
+* Requires update to permissions for S3 Federation user
+
+1.5.17
+======
+
+`PR 565: Data matrix tab control <https://github.com/smaht-dac/smaht-portal/pull/565>`_
+
+* Introduced the new DataMatrixComparisonTabs component that replaces the previous static tab layout
+* Refactored Cypress tests for data matrix overview to interact with the new tab-based UI
+
+
+1.5.16
+======
+
+`PR 564: Add react-workflow-viz build and watch tasks to Gulp <https://github.com/smaht-dac/smaht-portal/pull/564>`_
+
+* adds support for linking, building, and watching the @hms-dbmi-bgm/react-workflow-viz package in the development workflow
+
+
+1.5.15
+=====
+
+`PR 568: feat: add data retraction announcement <https://github.com/smaht-dac/smaht-portal/pull/568>`_
+
+* Add data retraction announcement
+
+
+1.5.14
+======
+
+`PR 567: Add flag for local deployment so es validator can be turned off <https://github.com/smaht-dac/smaht-portal/pull/567>`_
+
+* Add 'skip_es_validation' flag to development.ini.template to allow local deployments to skip ES validation if needed
+  NB: This flag should not be used in production deployments and is set to false - change to true if needed for local deployments
+* added code in tissue_sample validator to skip ES validation if the flag is set to true
+
+
+1.5.13
+======
+
+`PR 562: Add enum value for target_tissues.target_tissue_percentage in pathology_report <https://github.com/smaht-dac/smaht-portal/pull/562>`_
+
+* TPC wants to be able to specify 0% for target_tissue_percentage in pathology_report when there is no target tissue present in the sample.
+
+
+1.5.12
+=====
+
+`PR 547: Update tissue_sample validators <https://github.com/smaht-dac/smaht-portal/pull/547>`_
+
+* Refactored the tissue_sample validators to enforce rules for non-TPC sample submissions
+  - There must be an existing TPC tissue_sample with the same external_id as the submitted one
+  - If a non-TPC sample already exists with the same external_id fail validation
 
 
 1.5.11
@@ -161,9 +282,9 @@ Change Log
 =====
 `PR 540 Refactor file status tracking structure <https://github.com/smaht-dac/smaht-portal/pull/540>`_
 
-* The `file_status_tracking` calc prop now contains the dictionaries `status_tracking` and `release_dates`. 
-  `status_tracking` contains timestamps and dates when the file switched status. 
-  `release_dates` evaluates these status changes and provides timestamps and dates for 
+* The `file_status_tracking` calc prop now contains the dictionaries `status_tracking` and `release_dates`.
+  `status_tracking` contains timestamps and dates when the file switched status.
+  `release_dates` evaluates these status changes and provides timestamps and dates for
   `initial_release`, `public_release`, `network_release`.
 
 

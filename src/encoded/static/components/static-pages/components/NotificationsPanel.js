@@ -14,6 +14,26 @@ const useToggle = (initialState = false) => {
 // Default announcement data
 const announcements = [
     {
+        type: 'warning',
+        title: 'Data Retraction',
+        date: '2025-12-11',
+        body: (
+            <span>
+                Illumina bulk WGS data were retracted for production donor
+                samples; SMHT001-3A, SMHT005-3AF, SMHT007-3A, and SMHT022-3A,
+                due to data duplication.
+            </span>
+        ),
+        footer: (
+            <span>
+                <a href="/retracted-files">
+                    See Full List
+                    <RightArrowIcon />
+                </a>
+            </span>
+        ),
+    },
+    {
         type: 'info',
         title: 'Attention: BAM change',
         date: '2025-07-23',

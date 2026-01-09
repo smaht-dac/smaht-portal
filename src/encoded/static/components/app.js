@@ -2236,9 +2236,9 @@ class BodyElement extends React.PureComponent {
             // TODO: This is a bit of a hack, but we need to ensure that Data-matrixPage
             // is full screen, so we add this class to the body. Another way to do this would be to
             // add field to schema
-            if (context['@type'].indexOf('Data-matrixPage') > -1) {
-                bodyClassList.push('is-full-screen');
-            }
+            // if (context['@type'].indexOf('Data-matrixPage') > -1) {
+            //     bodyClassList.push('is-full-screen');
+            // }
         }
 
         if (bodyClassList.length > 0) {
