@@ -177,7 +177,7 @@ def run_sample_metadata_validation(context, request, data, mode):
         return
 
     # search for all tissue samples with this external_id
-    ts_search_url = f"/search/?type=TissueSample&external_id={external_id}"
+    ts_search_url = f"/search/?type=TissueSample&status!=deleted&external_id={external_id}"
     ts_req = make_search_subreq(request, ts_search_url)
     ts_resp = request.invoke_subrequest(ts_req, True)
     samples = ts_resp.json_body.get("@graph", [])

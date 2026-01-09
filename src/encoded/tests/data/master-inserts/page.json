@@ -1389,6 +1389,21 @@
         "uuid": "1c4da032-cadf-4461-adef-6d4238ee08d9"
     },
     {
+        "title": "Analysis Runs",
+        "status": "in review",
+        "content": [
+            "3560bb87-7635-4d75-8ff7-08758352e5af"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "analysis-status",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "uuid": "5db6067e-3f70-467f-a70a-de16b491be6e"
+    },
+    {
         "identifier": "retracted-files",
         "uuid": "c39ea4df-22c5-4d81-a495-6694c3360447",
         "status": "protected-network",
