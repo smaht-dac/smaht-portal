@@ -46,8 +46,8 @@ FIELDS_TO_DELETE = ['@context', '@id', '@type', '@graph', 'title', 'filters', 'f
 
 def includeme(config):
     config.add_route('date_histogram_aggregations', '/date_histogram_aggregations/')
+    config.add_route('bar_plot_chart', '/bar_plot_aggregations/')
     config.add_route('data_matrix_aggregations', '/data_matrix_aggregations/')
-    # config.add_route('estimated_coverage', '/estimated_coverage/')
     config.scan(__name__)
 
 
@@ -57,14 +57,23 @@ def date_histogram_aggregations(context, request):
     '''PREDEFINED aggregations which run against type=File'''
 
     # Defaults - may be overriden in URI params
-    date_histogram_fields = ['file_status_tracking.uploading', 'file_status_tracking.uploaded', 'file_status_tracking.released']
+    date_histogram_fields = [
+        "file_status_tracking.status_tracking.uploading",
+        "file_status_tracking.status_tracking.uploaded",
+        "file_status_tracking.release_dates.initial_release",
+    ]
     group_by_fields = [
-        'data_generation_summary.submission_centers', 'data_generation_summary.sequencing_center',
-        'data_generation_summary.data_type', 'data_generation_summary.data_category', 'file_format.display_title',
-        'data_generation_summary.assays',
-        'data_generation_summary.sequencing_platforms', 'dataset', 'software.display_title'
-        ]
-    date_histogram_intervals = ['weekly']
+        "data_generation_summary.submission_centers",
+        "data_generation_summary.sequencing_center",
+        "data_generation_summary.data_type",
+        "data_generation_summary.data_category",
+        "file_format.display_title",
+        "data_generation_summary.assays",
+        "data_generation_summary.sequencing_platforms",
+        "dataset",
+        "software.display_title",
+    ]
+    date_histogram_intervals = ["weekly"]
 
     # Mapping of 'date_histogram_interval' options we accept to ElasticSearch interval vocab term.
     interval_to_es_interval = {
@@ -216,6 +225,151 @@ def convert_date_range(date_range_str):
     return [date_from, date_to]
 
 
+@view_config(route_name='bar_plot_chart', request_method=['GET', 'POST'])
+@debug_log
+def bar_plot_chart(context, request):
+
+    MAX_BUCKET_COUNT = 30  # Max amount of bars or bar sections to return, excluding 'other'.
+    DEFAULT_BROWSE_PARAM_LISTS = {
+        'type': ['File'],
+        'sample_summary.studies': ['Production'],
+        'status': ['released']
+    }
+    SUM_AGGREGATION_DEFINITION = {
+        "total_donors": {
+            "cardinality": {
+                "field": "embedded.donors.display_title.raw",
+                "precision_threshold": 10000
+            }
+        },
+        "total_tissues": {
+            "cardinality": {
+                "field": "embedded.sample_summary.tissues.raw",
+                "precision_threshold": 10000
+            }
+        },
+        "total_assays": {
+            "cardinality": {
+                "field": "embedded.file_sets.libraries.assay.display_title.raw",
+                "precision_threshold": 10000
+            }
+        },
+        "total_file_size": {
+            "sum": {
+                "field": "embedded.file_size"
+            }
+        },
+        "all_donors_ids": {
+            "terms": {
+                "field": "embedded.donors.display_title.raw",
+                "size": 10000,
+                "order": { "_key": "asc" }
+            }
+        }
+    }
+
+    isFileTypeSearch = False
+    try:
+        json_body = request.json_body
+        search_param_lists = json_body.get('search_query_params', deepcopy(DEFAULT_BROWSE_PARAM_LISTS))
+        fields_to_aggregate_for = json_body.get('fields_to_aggregate_for', request.params.getall('field'))
+
+        if 'type' in search_param_lists and (
+            (isinstance(search_param_lists['type'], list) and 'File' in search_param_lists['type'] and len(search_param_lists['type']) == 1) or
+            (isinstance(search_param_lists['type'], str) and search_param_lists['type'] == 'File')):
+            isFileTypeSearch = True
+    except json.decoder.JSONDecodeError:
+        search_param_lists = request.GET.dict_of_lists()
+        fields_to_aggregate_for = request.params.getall('field')
+
+    if len(fields_to_aggregate_for) == 0:
+        raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
+
+    primary_agg = {
+        "field_0": {
+            "terms": {
+                "field": "embedded." + fields_to_aggregate_for[0] + '.raw',
+                "missing": TERM_NAME_FOR_NO_VALUE,
+                "size": MAX_BUCKET_COUNT
+            },
+            "aggs": deepcopy(SUM_AGGREGATION_DEFINITION)
+        }
+    }
+
+    primary_agg.update(deepcopy(SUM_AGGREGATION_DEFINITION))
+
+    # Nest in additional fields, if any
+    curr_field_aggs = primary_agg['field_0']['aggs']
+    for field_index, field in enumerate(fields_to_aggregate_for):
+        if field_index == 0:
+            continue
+        curr_field_aggs["field_" + str(field_index)] = {
+            "terms": {
+                "field": "embedded." + field + '.raw',
+                "missing": TERM_NAME_FOR_NO_VALUE,
+                "size": MAX_BUCKET_COUNT
+            },
+            "aggs": deepcopy(SUM_AGGREGATION_DEFINITION)
+        }
+        curr_field_aggs = curr_field_aggs['field_' + str(field_index)]['aggs']
+
+    search_param_lists['limit'] = search_param_lists['from'] = [0]
+    subreq = make_search_subreq(request, '{}?{}'.format('/search/', urlencode(search_param_lists, True)))
+    search_result = perform_search_request(None, subreq, custom_aggregations=primary_agg)
+
+    for field_to_delete in FIELDS_TO_DELETE:
+        if search_result.get(field_to_delete) is None:
+            continue
+        del search_result[field_to_delete]
+
+    ret_result = {  # We will fill up the "terms" here from our search_result buckets and then return this dictionary.
+        "field": fields_to_aggregate_for[0],
+        "terms": {},
+        "total": {
+            "doc_count": search_result['total'],
+            "files": search_result['total'] if isFileTypeSearch else 0,
+            "donors": search_result['aggregations']['total_donors']['value'],
+            "assays": search_result['aggregations']['total_assays']['value'],
+            "tissues": search_result['aggregations']['total_tissues']['value'],
+            "file_size": search_result['aggregations']['total_file_size']['value'],
+            "all_donors_ids": [b["key"] for b in search_result["aggregations"]["all_donors_ids"]["buckets"]]
+        },
+        "other_doc_count": search_result['aggregations']['field_0'].get('sum_other_doc_count', 0),
+        "time_generated": str(datetime.utcnow())
+    }
+
+    def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0):
+
+        curr_bucket_totals = {
+            'doc_count': int(bucket_result['doc_count']),
+            "files": int(bucket_result['doc_count']) if isFileTypeSearch else 0,
+            'donors': int(bucket_result['total_donors']['value']),
+            'all_donors_ids': [b['key'] for b in bucket_result['all_donors_ids']['buckets']]
+        }
+
+        next_field_name = None
+        if len(fields_to_aggregate_for) > curr_field_depth + 1:  # More fields agg results to add
+            next_field_name = fields_to_aggregate_for[curr_field_depth + 1]
+            returned_buckets[bucket_result['key']] = {
+                "term": bucket_result['key'],
+                "field": next_field_name,
+                "total": curr_bucket_totals,
+                "terms": {},
+                "other_doc_count": bucket_result['field_' + str(curr_field_depth + 1)].get('sum_other_doc_count', 0),
+            }
+            for bucket in bucket_result['field_' + str(curr_field_depth + 1)]['buckets']:
+                format_bucket_result(bucket, returned_buckets[bucket_result['key']]['terms'], curr_field_depth + 1)
+
+        else:
+            # Terminal field aggregation -- return just totals, nothing else.
+            returned_buckets[bucket_result['key']] = curr_bucket_totals
+
+    for bucket in search_result['aggregations']['field_0']['buckets']:
+        format_bucket_result(bucket, ret_result['terms'], 0)
+
+    return ret_result
+
+
 @view_config(route_name='data_matrix_aggregations', request_method=['POST'])
 @debug_log
 def data_matrix_aggregations(context, request):
@@ -223,6 +377,10 @@ def data_matrix_aggregations(context, request):
     MAX_BUCKET_COUNT = 30  # Max grouping in a data matrix.
     DEFAULT_SEARCH_PARAM_LISTS = {'type': ['File']}
     DEFAULT_COMPOSITE_VALUE_SEPARATOR = ' '
+    ARRAY_FIELDS_TO_JOIN = {
+        # Array field whose values should be concatenated into a single bucket key.
+        'data_type'
+    }
     SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION = {
         "total_coverage": {
             "sum": {
@@ -270,10 +428,14 @@ def data_matrix_aggregations(context, request):
     # 3. insert the remaining column_agg_fields into the row_agg_fields
     remaining_columns = column_agg_fields_orig[1:]
     row_agg_fields = remaining_columns + row_agg_fields
+    row_totals_es_agg_start_index = len(remaining_columns)
 
     # obsolete soon
+    def is_array_concat_field(field):
+        return isinstance(field, str) and field in ARRAY_FIELDS_TO_JOIN
+
     def get_es_key(field_or_field_list):
-        return "script" if isinstance(field_or_field_list, list) and len(field_or_field_list) > 1 else "field"
+        return "script" if (is_array_concat_field(field_or_field_list) or (isinstance(field_or_field_list, list) and len(field_or_field_list) > 1)) else "field"
 
     # obsolete soon
     def get_es_value(field_or_field_list):
@@ -283,8 +445,23 @@ def data_matrix_aggregations(context, request):
                 "source": f" + '{composite_value_separator}' + ".join(["doc['embedded." + field + ".raw'].value" for field in field_or_field_list]),
                 "lang": "painless"
             }
-        else:
-            return "embedded." + (field_or_field_list[0] if isinstance(field_or_field_list, list) else field_or_field_list) + '.raw'
+        if is_array_concat_field(field_or_field_list):
+            field = field_or_field_list
+            return {
+                "source": (
+                    "def values = doc['embedded." + field + ".raw'];"
+                    "if (values == null || values.size() == 0) { return params.missing; }"
+                    "def sorted = new ArrayList(values);"
+                    "Collections.sort(sorted);"
+                    "return String.join(params.sep, sorted);"
+                ),
+                "lang": "painless",
+                "params": {
+                    "missing": TERM_NAME_FOR_NO_VALUE,
+                    "sep": ' | '
+                }
+            }
+        return "embedded." + (field_or_field_list[0] if isinstance(field_or_field_list, list) else field_or_field_list) + '.raw'
 
     primary_agg = {
         "field_0": {
@@ -294,26 +471,56 @@ def data_matrix_aggregations(context, request):
                 "size": MAX_BUCKET_COUNT
             },
             "aggs": deepcopy(SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION)
-        }
-    }
-
-    primary_agg.update({})
-
-    # Nest in additional fields, if any
-    curr_field_aggs = primary_agg['field_0']['aggs']
-    for field_index, field in enumerate(row_agg_fields):
-        curr_field_aggs["field_" + str(field_index + 1)] = {
+        },
+        "row_totals_0": {
             "terms": {
-                get_es_key(field): get_es_value(field),
+                get_es_key(row_agg_fields[row_totals_es_agg_start_index]): get_es_value(row_agg_fields[row_totals_es_agg_start_index]),
                 "missing": TERM_NAME_FOR_NO_VALUE,
                 "size": MAX_BUCKET_COUNT
             },
-            "aggs": deepcopy(SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION)
+            "aggs": {}
         }
-        curr_field_aggs = curr_field_aggs['field_' + str(field_index + 1)]['aggs']
+    }
+
+    def build_nested_aggs(primary_agg, agg_fields, base_aggregation_def, primary_field_prefix="field_0", field_prefix="field_"):
+        """
+        Dynamically builds nested Elasticsearch aggregations structure.
+
+        Args:
+            primary_agg (dict): Base aggregation dict with initial structure.
+            row_agg_fields (list): List of fields to aggregate by.
+            base_aggregation_def (dict): Template for nested aggregation (e.g., sum or metrics definition).
+            primary_field_prefix (str): Key path in `primary_agg` to start from (default: "field_0").
+            field_prefix (str): Prefix for dynamically generated field names (default: "field_").
+
+        Returns:
+            dict: Updated aggregation dictionary with nested fields.
+        """
+        curr_field_aggs = primary_agg[primary_field_prefix]['aggs']
+
+        for field_index, field in enumerate(agg_fields):
+            field_key = f"{field_prefix}{field_index + 1}"
+            curr_field_aggs[field_key] = {
+                "terms": {
+                    get_es_key(field): get_es_value(field),
+                    "missing": TERM_NAME_FOR_NO_VALUE,
+                    "size": MAX_BUCKET_COUNT
+                },
+                "aggs": deepcopy(base_aggregation_def)
+            }
+            curr_field_aggs = curr_field_aggs[field_key]['aggs']
+
+        return primary_agg
+
+    # Nest in additional fields, if any
+    build_nested_aggs(primary_agg, row_agg_fields, SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION, "field_0", "field_")
+    # Nest row totals aggregation
+    if len(row_agg_fields) > row_totals_es_agg_start_index + 1:
+        build_nested_aggs(primary_agg, row_agg_fields[row_totals_es_agg_start_index + 1:], {}, "row_totals_0", "row_totals_")
 
     search_param_lists['limit'] = search_param_lists['from'] = [0]
     subreq = make_search_subreq(request, '{}?{}'.format('/search/', urlencode(search_param_lists, True)))
+    # import pdb; pdb.set_trace()
     search_result = perform_search_request(None, subreq, custom_aggregations=primary_agg)
 
     for field_to_delete in FIELDS_TO_DELETE:
@@ -327,29 +534,31 @@ def data_matrix_aggregations(context, request):
         "total": {
             "files": search_result['total'],
         },
+        "row_total_field": row_agg_fields[row_totals_es_agg_start_index],
+        "row_total_terms": {},
         "other_doc_count": search_result['aggregations']['field_0'].get('sum_other_doc_count', 0),
         "time_generated": str(datetime.utcnow())
     }
 
-    def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0):
+    def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0, field_key="field", terms_key="terms", field_prefix="field_", agg_fields=row_agg_fields):
 
         curr_bucket_totals = {
             'files': int(bucket_result['doc_count']),
-            'total_coverage': bucket_result['total_coverage']['value'] if bucket_result['total_coverage'] else 0
+            'total_coverage': bucket_result['total_coverage']['value'] if 'total_coverage' in bucket_result and bucket_result['total_coverage'] else 0
         }
 
         next_field_name = None
-        if len(row_agg_fields) > curr_field_depth:  # More fields agg results to add
-            next_field_name = row_agg_fields[curr_field_depth]
+        if len(agg_fields) > curr_field_depth:  # More fields agg results to add
+            next_field_name = agg_fields[curr_field_depth]
             returned_buckets[bucket_result['key']] = {
                 "term": bucket_result['key'],
-                "field": next_field_name[0] if isinstance(next_field_name, list) else next_field_name,
+                field_key: next_field_name[0] if isinstance(next_field_name, list) else next_field_name,
                 "total": curr_bucket_totals,
-                "terms": {},
-                "other_doc_count": bucket_result['field_' + str(curr_field_depth + 1)].get('sum_other_doc_count', 0),
+                terms_key: {},
+                "other_doc_count": bucket_result[field_prefix + str(curr_field_depth + 1)].get('sum_other_doc_count', 0),
             }
-            for bucket in bucket_result['field_' + str(curr_field_depth + 1)]['buckets']:
-                format_bucket_result(bucket, returned_buckets[bucket_result['key']]['terms'], curr_field_depth + 1)
+            for bucket in bucket_result[field_prefix + str(curr_field_depth + 1)]['buckets']:
+                format_bucket_result(bucket, returned_buckets[bucket_result['key']][terms_key], curr_field_depth + 1, field_key, terms_key, field_prefix, agg_fields)
 
         else:
             # Terminal field aggregation -- return just totals, nothing else.
@@ -357,15 +566,17 @@ def data_matrix_aggregations(context, request):
 
     for bucket in search_result['aggregations']['field_0']['buckets']:
         format_bucket_result(bucket, ret_result['terms'], 0)
+    for bucket in search_result['aggregations']['row_totals_0']['buckets']:
+        format_bucket_result(bucket, ret_result['row_total_terms'], 0, "row_total_field", "row_total_terms", "row_totals_", row_agg_fields[row_totals_es_agg_start_index + 1:])
 
-    def flatten_es_terms_aggregation(es_response):
+    def flatten_es_terms_aggregation(es_response, field_key="field", terms_key="terms"):
         result = []
 
         def recurse_terms(level, path, data):
-            if "terms" in data:
+            if terms_key in data:
                 # Get the field name at the current level (or fallback to a generic name)
-                field_name = data.get("field", f"level_{level}")
-                for term_value, term_data in data["terms"].items():
+                field_name = data.get(field_key, f"level_{level}")
+                for term_value, term_data in data[terms_key].items():
                     # Recursively process the next level, appending current field and value to the path
                     recurse_terms(level + 1, path + [(field_name, term_value)], term_data)
             elif "files" in data:
@@ -382,47 +593,37 @@ def data_matrix_aggregations(context, request):
     if flatten_values:
         # Flatten the nested terms aggregation into a list of dictionaries
         # where each dictionary represents a unique combination of terms and their file counts.
-        ret_result = flatten_es_terms_aggregation(ret_result)
+        data = flatten_es_terms_aggregation(ret_result)
+        row_totals = flatten_es_terms_aggregation(ret_result, "row_total_field", "row_total_terms")
+        
+        def make_composite(data_array, skip_column_agg=False):
+            if len(column_agg_fields_orig) > 1 and not skip_column_agg:
+                for item in data_array:
+                    if all(field in item for field in column_agg_fields_orig):
+                        item[column_agg_fields_orig[0]] = composite_value_separator.join(
+                            [item[field] for field in column_agg_fields_orig]
+                    )
+            for item in data_array:
+                for agg_field in row_agg_fields_orig:
+                    if isinstance(agg_field, list):
+                        if all(field in item for field in agg_field):
+                            item[agg_field[0]] = composite_value_separator.join(
+                            [item[field] for field in agg_field]
+                            )
+        
+        make_composite(data)
+        make_composite(row_totals, True)
 
-        if len(column_agg_fields_orig) > 1:
-            for item in ret_result:
-                item[column_agg_fields_orig[0]] = composite_value_separator.join(
-                   [item[field] for field in column_agg_fields_orig]
-                )
-        for agg_field in row_agg_fields_orig:
-            if isinstance(agg_field, list):
-                item[agg_field[0]] = composite_value_separator.join(
-                   [item[field] for field in agg_field]
-                )
-            else:
-                continue
+        ret_result = {
+            "column_agg_fields": column_agg_fields_orig,
+            "row_agg_fields": row_agg_fields_orig,
+            "data": data,
+            "row_totals": row_totals,
+            "total": ret_result["total"],
+            "time_generated": ret_result["time_generated"],
+            "flatten_values": True,
+            "composite_value_separator": composite_value_separator,
+            "search_params": search_param_lists
+        }    
 
     return ret_result
-
-# # Not used in the current code, but could be used to fetch estimated coverage data.
-# @view_config(route_name='estimated_coverage', request_method='POST')
-# @debug_log
-# def estimated_coverage(context, request):
-#     # Extract the necessary parameters from the request
-#     try:
-#         # json_body = request.json_body
-#         # search_params = json_body.get('search_query_params', {})
-#         search_params = {
-#             "type": ["OutputFile"],
-#             "quality_metrics.display_title!": "No+value",
-#         }
-#         search_params["limit"] = "all"
-#         search_params["field"] = ["accession", "quality_metrics.uuid"]
-#     except json.decoder.JSONDecodeError:
-#         raise HTTPBadRequest(detail="missing search_query_params parameter in the request body.")
-
-#     # This one we want consistent with what the user can see
-#     subreq = make_search_subreq(request, f'/search?{urlencode(search_params, True)}', inherit_user=True)
-#     search_result = perform_search_request(None, subreq)
-
-#     coverage = search_result.get('total', -1)
-
-#     return {
-#         "search_query_params": search_params,
-#         "estimated_coverage": coverage
-#     }

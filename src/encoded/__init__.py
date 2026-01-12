@@ -50,6 +50,7 @@ def include_encoded(config):
     config.include('encoded.debugging')
     config.include('encoded.upgrade')
     config.include('encoded.submission_status')
+    config.include('encoded.analysis_runs')
     config.include('encoded.qc_overview')
     config.include('encoded.ingestion.ingestion_status')
     config.include('encoded.ingestion.metadata_template')
@@ -97,14 +98,12 @@ def include_snovault(config: Configurator) -> None:
     config.include('snovault.server_defaults')
     config.include('snovault.renderers')
     config.include('snovault.ingestion.ingestion_listener')
-    config.include('encoded.ingestion.ingestion_processors')
-    config.include('encoded.visualization')
+    config.include('encoded.ingestion.ingestion_processors') # needed by Submitr
     config.include('snovault.ingestion.ingestion_message_handler_default')
     config.include('snovault.routes')
     # configure redis server in production.ini
     if 'redis.server' in config.registry.settings:
         config.include('snovault.redis')
-
     config.commit()
 
 

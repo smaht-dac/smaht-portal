@@ -4,6 +4,7 @@ import React from 'react';
 import JsxParser from 'react-jsx-parser';
 import { ConsortiumMap } from '../../viz/AboutPageVisualizations/ConsortiumMap';
 import { SubmissionStatus } from '../components/internal/SubmissionStatus';
+import { AnalysisRuns } from '../components/internal/AnalysisRuns';
 import { Alluvial } from '../../viz/AboutPageVisualizations/Alluvial';
 import { StackRowTable } from '../../viz/AboutPageVisualizations/StackRowTable';
 import { QualityMetricVisualizations } from '../../viz/QualityMetricVisualizations';
@@ -30,6 +31,9 @@ import { ChallengeTableWrapper } from '../components/challenges/ChallengeTables'
 import DataMatrix from '../../viz/Matrix/DataMatrix';
 import RetractedFilesTable from '../components/RetractedFilesTable';
 import { SubmissionDataDictionary } from '../SubmissionDataDictionary';
+import { DonorManifestDataDictionary } from '../DonorManifestDataDictionary';
+import { PipelineDocsNavigation } from '../PipelineDocsNavigation';
+import { DataMatrixComparisonTabs } from '../components/DataMatrixComparisonTabs';
 
 /**
  * Any placeholder(s) used in a StaticSection _must_ get imported here
@@ -43,6 +47,7 @@ const placeholders = {
     Alluvial,
     QualityMetricVisualizations,
     SubmissionStatus,
+    AnalysisRuns,
     StackRowTable,
     BenchmarkingUI,
     COLO829Data,
@@ -55,8 +60,11 @@ const placeholders = {
     DownloadAllFilesFromSearchHrefButton,
     ChallengeTableWrapper,
     RetractedFilesTable,
+    DataMatrixComparisonTabs,
     DataMatrix,
     SubmissionDataDictionary,
+    DonorManifestDataDictionary,
+    PipelineDocsNavigation,
 };
 
 export const replaceString = memoize(

@@ -16,19 +16,21 @@ import {
     getQcResultsSummary,
     getCommentsList,
     getTargetCoverage,
-} from './submissionStatusUtils';
+    isReleasedExternally,
+    isReleasedInternally,
+    getCommentInputField,
+    getPagination,
+} from './utils';
 
 import {
     PAGE_SIZE,
     SUBMISSION_STATUS_TAGS,
-    DEFAULT_FILTER,
-} from './submissionStatusConfig';
+    SUBMISSION_STATUS_DEFAULT_FILTER,
+} from './config';
 
 import { SubmissionStatusFilter } from './SubmissionStatusFilter';
 
 import { FileGroupQCModal } from './SubmissionStatusFileGroupQcModal';
-
-import * as d3 from 'd3';
 
 class SubmissionStatusComponent extends React.PureComponent {
     constructor(props) {
@@ -42,7 +44,7 @@ class SubmissionStatusComponent extends React.PureComponent {
             fileSets: [],
             hasError: false,
             tablePage: 0,
-            filter: DEFAULT_FILTER,
+            filter: SUBMISSION_STATUS_DEFAULT_FILTER,
             fileSetIdSearch: '',
             numTotalFileSets: 0,
             visibleCommentInputs: [],
@@ -127,7 +129,7 @@ class SubmissionStatusComponent extends React.PureComponent {
         this.applyFilter(filter);
     };
 
-    applyFilter(filter) {
+    applyFilter = (filter) => {
         this.setState(
             (prevState) => ({
                 filter: filter,
@@ -154,7 +156,7 @@ class SubmissionStatusComponent extends React.PureComponent {
         );
     }
 
-    refresh() {
+    refresh = () => {
         this.setState(
             (prevState) => ({
                 loading: true,
@@ -164,106 +166,6 @@ class SubmissionStatusComponent extends React.PureComponent {
             }
         );
     }
-
-    getPageination = () => {
-        let message = 'No FileSets found';
-        if (this.state.numTotalFileSets > 0) {
-            message = `Displaying FileSet ${
-                this.state.tablePage * PAGE_SIZE + 1
-            }-${Math.min(
-                (this.state.tablePage + 1) * PAGE_SIZE,
-                this.state.numTotalFileSets
-            )} of ${this.state.numTotalFileSets}`;
-        }
-
-        const navButtons = [];
-        if (
-            this.state.numTotalFileSets > PAGE_SIZE &&
-            (this.state.tablePage + 1) * PAGE_SIZE <=
-                this.state.numTotalFileSets
-        ) {
-            navButtons.push(
-                <button
-                    className="btn btn-primary btn-sm"
-                    onClick={() => this.changePage(1)}>
-                    Next
-                </button>
-            );
-        }
-
-        if (this.state.tablePage > 0) {
-            navButtons.push(
-                <button
-                    className="btn btn-primary btn-sm mx-2"
-                    onClick={() => this.changePage(-1)}>
-                    Previous
-                </button>
-            );
-        }
-
-        const syncIconClass = this.state.loading
-            ? 'icon fas icon-spinner icon-spin'
-            : 'icon fas icon-sync-alt clickable';
-
-        return (
-            <div className="d-flex flex-row-reverse">
-                <div className="ms-1 ss-padding-top-3">
-                    <i
-                        className={syncIconClass}
-                        onClick={() => this.refresh()}></i>
-                </div>
-                {navButtons}
-                <div className="mx-2 ss-padding-top-3">{message}</div>
-            </div>
-        );
-    };
-
-    getCommentInputField = (fs) => {
-        const commentInputClass = this.state.visibleCommentInputs.includes(
-            fs.uuid
-        )
-            ? 'input-group input-group-sm mb-1'
-            : 'collapse';
-
-        const commentInputField = this.state.isUserAdmin ? (
-            <React.Fragment>
-                <a
-                    href="#"
-                    className="link-underline-hover"
-                    onClick={(e) =>
-                        this.handleToggleCommentInputField(e, fs.uuid)
-                    }>
-                    <i className="icon fas icon-plus-circle icon-fw"></i>
-                    Add
-                </a>
-                <div className={commentInputClass}>
-                    <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Your comment"
-                        onChange={(e) =>
-                            this.handleCommentInput(fs, e.target.value)
-                        }
-                    />
-                    <div className="input-group">
-                        <div className="input-group-text">
-                            <i
-                                className="fas icon icon-save clickable"
-                                onClick={() => this.addComment(fs)}></i>
-                        </div>
-                    </div>
-                </div>
-            </React.Fragment>
-        ) : (
-            ''
-        );
-
-        return (
-            <li className="ss-line-height-140">
-                Comments: {commentInputField}
-            </li>
-        );
-    };
 
     handleCommentInput = (fs, comment) => {
         const newComments = JSON.parse(JSON.stringify(this.state.newComments));
@@ -289,7 +191,9 @@ class SubmissionStatusComponent extends React.PureComponent {
                 fileset['comments'] = newCommentsForRelevantFileset;
             }
         });
-        this.patchComment(fsUuid, filesets, newCommentsForRelevantFileset);
+        this.patchFileset(fsUuid, filesets, {
+            comments: newCommentsForRelevantFileset,
+        });
     };
 
     addComment = (fs) => {
@@ -311,7 +215,9 @@ class SubmissionStatusComponent extends React.PureComponent {
                 fileset['comments'] = newCommentsForRelevantFileset;
             }
         });
-        this.patchComment(fs.uuid, filesets, newCommentsForRelevantFileset);
+        this.patchFileset(fs.uuid, filesets, {
+            comments: newCommentsForRelevantFileset,
+        });
     };
 
     patchFileset = (fs_uuid, filesets, payload) => {
@@ -362,24 +268,14 @@ class SubmissionStatusComponent extends React.PureComponent {
     };
 
     toggleSubmittedFiles = (fileset) => {
-        const sfv = [...this.state.submittedFilesVisibility];
-        if (sfv.includes(fileset.uuid)) {
-            const index = sfv.indexOf(fileset.uuid);
-            sfv.splice(index, 1);
-        } else {
-            sfv.push(fileset.uuid);
-        }
-
         this.setState((prevState) => ({
-            submittedFilesVisibility: sfv,
+            submittedFilesVisibility:
+                prevState.submittedFilesVisibility.includes(fileset.uuid)
+                    ? prevState.submittedFilesVisibility.filter(
+                          (uuid) => uuid !== fileset.uuid
+                      )
+                    : [...prevState.submittedFilesVisibility, fileset.uuid],
         }));
-    };
-
-    patchComment = (fs_uuid, filesets, comments) => {
-        const payload = {
-            comments: comments,
-        };
-        this.patchFileset(fs_uuid, filesets, payload);
     };
 
     toggleFileGroupQc = (fs, reload = false) => {
@@ -405,12 +301,14 @@ class SubmissionStatusComponent extends React.PureComponent {
     getSubmissionTableBody = () => {
         const tbody = this.state.fileSets.map((fs) => {
             const sequencer = fs.sequencing?.sequencer;
-            const tissueTypes = fs.tissue_types && fs.tissue_types.length
-                ? '(' + fs.tissue_types.join(', ') + ')'
-                : null;
+            const tissueTypes =
+                fs.tissue_types && fs.tissue_types.length
+                    ? '(' + fs.tissue_types.join(', ') + ')'
+                    : null;
             const targetCoverage = getTargetCoverage(fs.sequencing);
-            const status_badge_type =
-                fs.status == 'released' ? 'success' : 'warning';
+            const status_badge_type = isReleasedExternally(fs.status)
+                ? 'success'
+                : 'warning';
             const status = createBadge(status_badge_type, fs.status);
             let fs_details = [
                 <li className="ss-line-height-140">Status: {status}</li>,
@@ -433,16 +331,16 @@ class SubmissionStatusComponent extends React.PureComponent {
                         rin_number.push(analyte.rna_integrity_number);
                     }
                     analyte.samples?.forEach((sample) => {
-                        
                         fs_details.push(
                             <li className="ss-line-height-140">
                                 Sample:{' '}
-                                {getLink(sample.uuid, sample.display_title)} {tissueTypes}
+                                {getLink(sample.uuid, sample.display_title)}{' '}
+                                {tissueTypes}
                             </li>
                         );
                     });
                 });
-                
+
                 const rin_details =
                     rin_number.length > 0
                         ? `– RIN: ${rin_number.join(', ')}`
@@ -455,11 +353,23 @@ class SubmissionStatusComponent extends React.PureComponent {
                 );
             });
 
+            const commentHandlers = {
+                handleToggleCommentInputField:
+                    this.handleToggleCommentInputField,
+                handleCommentInput: this.handleCommentInput,
+                addComment: this.addComment,
+            };
+
             fs_details = (
                 <small>
                     <ul>
                         {fs_details}
-                        {this.getCommentInputField(fs)}
+                        {getCommentInputField(
+                            fs,
+                            this.state.isUserAdmin,
+                            this.state.visibleCommentInputs,
+                            commentHandlers
+                        )}
                         {getCommentsList(
                             fs.uuid,
                             fs.comments,
@@ -688,7 +598,13 @@ class SubmissionStatusComponent extends React.PureComponent {
                                 <div className="d-flex">
                                     {loadingSpinner}
                                     <div className="ms-auto p-2">
-                                        {this.getPageination()}
+                                        {getPagination(
+                                            'FileSets',
+                                            this.state,
+                                            this.state.numTotalFileSets,
+                                            this.changePage,
+                                            this.refresh
+                                        )}
                                     </div>
                                 </div>
                             </td>
@@ -736,8 +652,14 @@ class SubmissionStatusComponent extends React.PureComponent {
                                 QC status
                                 <object.CopyWrapper
                                     value={this.state.fileSets
-                                        .filter((fs) => fs.final_output_file_accession)
-                                        .map((fs) => fs.final_output_file_accession)
+                                        .filter(
+                                            (fs) =>
+                                                fs.final_output_file_accession
+                                        )
+                                        .map(
+                                            (fs) =>
+                                                fs.final_output_file_accession
+                                        )
                                         .join(' -f ')}
                                     className=""
                                     data-tip={

@@ -30,7 +30,7 @@
         "access_status": "Open",
         "annotated_filename": "SMHT001-1A-100A1-F65-X002-test-SMAARNRVZGBE-bwamem_1.2.3_strelka_3.1.1_GRCh38.aligned.sorted.bam",
         "file_size": 1000,
-        "status": "released",
+        "status": "protected-early",
         "dataset": "colo829t"
     },
     {
@@ -84,5 +84,27 @@
             "TEST_SOFTWARE_BWA-MEM"
         ],
         "reference_genome": "GRCh38"
+    },
+    {
+        "uuid": "6c2e19e0-6997-4fc6-9e9d-51bfa2269e8c",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_ALIGNED-READS_FIBROBLAST",
+        "data_category": [
+            "Sequencing Reads"
+        ],
+        "data_type": [
+            "Aligned Reads"
+        ],
+        "file_format": "BAM",
+        "filename": "fibroblast_bam.bam",
+        "reference_genome": "GRCh38",
+        "file_sets": [
+            "TEST_FILE-SET_FIBROBLAST"
+        ],
+        "software": [
+            "TEST_SOFTWARE_BWA-MEM"
+        ]
     }
 ]

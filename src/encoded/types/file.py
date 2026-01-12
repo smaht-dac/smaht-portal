@@ -1,12 +1,21 @@
+import datetime
+import os
+import pytz
+import structlog
+from typing import Any, Dict, List, Optional, Union
+from pyramid.httpexceptions import (
+    HTTPForbidden,
+    HTTPTemporaryRedirect,
+    HTTPNotFound,
+)
 from boto3 import client as boto_client
+from botocore.config import Config
 from datetime import datetime
 import functools
-from pyramid.exceptions import HTTPForbidden
 from pyramid.request import Request
-from pyramid.response import Response
-from pyramid.view import view_config
-from typing import Any, Dict, List, Optional, Union
-
+from botocore.exceptions import ClientError
+from dcicutils.secrets_utils import assume_identity
+from dcicutils.misc_utils import override_environ
 from encoded_core.types.file import (
     HREF_SCHEMA,
     UNMAPPED_OBJECT_SCHEMA,
@@ -16,8 +25,12 @@ from encoded_core.types.file import (
 from encoded_core.file_views import (
     validate_file_filename,
     validate_extra_file_format,
+    is_file_to_download,
+    get_submitter_title,
+    get_experiment_or_assay_type,
+    get_file_type,
+    update_google_analytics,
     drs as CoreDRS,
-    download as CoreDownload,
     post_upload as CorePostUpload,
     get_upload as CoreGetUpload,
     download_cli as CoreDownloadCli,
@@ -28,19 +41,7 @@ from snovault import (
     load_schema,
     abstract_collection,
 )
-from snovault.elasticsearch import ELASTIC_SEARCH
-from snovault.schema_utils import schema_validator
-from snovault.search.search_utils import make_search_subreq
-from snovault.util import debug_log, get_item_or_none
-from snovault.validators import (
-    validate_item_content_post,
-    validate_item_content_put,
-    validate_item_content_patch,
-    validate_item_content_in_place,
-    no_validate_item_content_post,
-    no_validate_item_content_put,
-    no_validate_item_content_patch
-)
+from snovault.util import get_item_or_none
 from snovault.server_defaults import add_last_modified
 
 from . import acl
@@ -66,6 +67,36 @@ from ..item_utils.utils import (
     get_unique_values,
     RequestHandler,
 )
+from pyramid.response import Response
+from pyramid.settings import asbool
+from pyramid.view import view_config
+from snovault.elasticsearch import ELASTIC_SEARCH
+from snovault.schema_utils import schema_validator
+from snovault.util import debug_log
+from snovault.validators import (
+    validate_item_content_post,
+    validate_item_content_put,
+    validate_item_content_patch,
+    validate_item_content_in_place,
+    no_validate_item_content_post,
+    no_validate_item_content_put,
+    no_validate_item_content_patch
+)
+from urllib.parse import (
+    parse_qs,
+    urlparse,
+)
+from snovault.authentication import session_properties
+from snovault.search.search import make_search_subreq
+from snovault.util import check_user_is_logged_in, make_s3_client
+from snovault.types.base import (
+    get_item_or_none,
+    collection_add,
+    item_edit,
+)
+
+
+log = structlog.getLogger(__name__)
 
 
 class CalcPropConstants:
@@ -369,7 +400,6 @@ class CalcPropConstants:
     }
 
 
-
 def show_upload_credentials(
     request: Optional[Request] = None,
     context: Optional[str] = None,
@@ -392,7 +422,6 @@ def _build_file_embedded_list() -> List[str]:
 
         # Sample summary + Link calcprops
         "file_sets.libraries.analytes.molecule",
-        "file_sets.libraries.analytes.samples.sample_sources.category",
         "file_sets.libraries.analytes.samples.sample_sources.code",
         "file_sets.libraries.analytes.samples.sample_sources.uberon_id",
         "file_sets.libraries.analytes.samples.sample_sources.description",
@@ -404,6 +433,7 @@ def _build_file_embedded_list() -> List[str]:
         "file_sets.samples.sample_sources.donor",
 
         "quality_metrics.overall_quality_status",
+        "quality_metrics.overall_quality_status_display",
         "quality_metrics.coverage",
         "quality_metrics.qc_notes",
         # For manifest
@@ -428,11 +458,14 @@ def _build_file_embedded_list() -> List[str]:
         "donors.display_title",
         "donors.protected_donor",
         "sample_summary.tissues",
+        "sample_summary.category",
 
         # For facets
+        "donors.external_id",
         "donors.age",
         "donors.sex",
-
+        "donors.hardy_scale",
+        "donors.tags",
     ]
 
 
@@ -460,12 +493,33 @@ class File(Item, CoreFile):
         'retracted',
         'in review',
         'released',
-        'restricted',
-        'public'
+        'protected',
+        'open-network',
+        'open-early',
+        'protected-network',
+        'protected-early',
+        'open'
     ]
     STATUS_TO_REVISION_DATE_CONVERSION = [
         'retracted',
-        'released'
+        'released',
+        'protected',
+        'open-network',
+        'open-early',
+        'protected-network',
+        'protected-early',
+        'open'
+    ]
+    STATUS_TO_CHECK_NETWORK_RELEASE_DATE = [
+        'released',
+        'open-network',
+        'open-early',
+        'protected-network',
+        'protected-early'
+    ]
+    STATUS_TO_CHECK_PUBLIC_RELEASE_DATE = [
+        'open',
+        'protected'
     ]
 
     Item.SUBMISSION_CENTER_STATUS_ACL.update({
@@ -556,9 +610,9 @@ class File(Item, CoreFile):
         ]
     })
     def file_access_status(self, status: str = 'in review') -> Optional[str]:
-        if status in ['public', 'released']:
+        if status in ['open', 'released']:
             return self.OPEN
-        elif status == 'restricted':
+        elif status == 'protected-network':
             return self.PROTECTED
         return None
 
@@ -567,45 +621,119 @@ class File(Item, CoreFile):
             "title": "File Status Tracking",
             "type": "object",
             "properties": {
-                "uploading": {
-                    "type": "string",
-                    "format": "date-time"
+                "status_tracking": {
+                    "type": "object",
+                    "properties": {
+                        "uploading": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "uploaded": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "retracted": {
+                            "title": "Retracted Date",
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "retracted_date": {
+                            "title": "Retracted Date",
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "in review": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "released": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "released_date": {
+                            "type": "string",
+                            "format": "date",
+                        },
+                        "open": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "open_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "protected-network": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "protected-network_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "protected": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "protected_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "open-network": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "open-network_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "open-early": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "open-early_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "protected-early": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "protected-early_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                    }
                 },
-                "uploaded": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "retracted": {
-                    "title": "Retracted Date",
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "retracted_date": {
-                    "title": "Retracted Date",
-                    "type": "string",
-                    "format": "date"
-                },
-                "in review": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "released": {
-                    "title": "Release Date",
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "released_date": {
-                    "title": "Release Date",
-                    "type": "string",
-                    "format": "date",
-                },
-                "public": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "restricted": {
-                    "type": "string",
-                    "format": "date-time"
+                "release_dates": {
+                    "type": "object",
+                    "properties": {
+                        "public_release": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "public_release_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "network_release": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "network_release_date": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        # This is either the network_release or the public_release,
+                        # whichever is earlier
+                        "initial_release": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "initial_release_date": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
                 }
             }
         }
@@ -615,8 +743,8 @@ class File(Item, CoreFile):
             of the file changed - from this we can determine several things:
                 1. When metadata for this file was submitted (status = uploading or in review)
                 2. When the file was uploaded (status = uploaded)
-                3. When the file was released to consortia (status = released)
-                4. When the file was made public (status = released)
+                3. When the file was released to consortia
+                4. When the file was made public
                 5. If protected data, when it was made released (status = restricted)
 
             To make this reasonably efficient, we assume the following ordering:
@@ -636,27 +764,84 @@ class File(Item, CoreFile):
         current_status = self.properties['status']
         if current_status in ['uploading', 'in review']:
             return {
-                current_status: self.properties['date_created']
+                "status_tracking": {
+                    current_status: self.properties['date_created']
+                }
             }
-        else:  # we need the revision history
-            result = {}
-            revision_history = request.embed(f'/{self.uuid}/@@revision-history', as_user='IMPORT')
-            for revision in revision_history['revisions']:
-                status = revision.get('status')
-                if status and status not in result and status in self.STATUS_TO_CHECK_REVISIONS:
-                    if status in ['uploading', 'in review']:  # these are initial statuses
-                        result[status] = revision['date_created']
-                    else:
-                        last_modified = revision.get('last_modified')
-                        if last_modified:
-                            result[status] = last_modified['date_modified']
 
-            # add date converted values for selected status
-            for status in self.STATUS_TO_REVISION_DATE_CONVERSION:
-                if status in result:
-                    result[status + "_date"] = self.get_date_from_datetime(result[status])
+        # we need the revision history
+        status_tracking = {}
+        release_dates = {}
+        revision_history = request.embed(
+            f"/{self.uuid}/@@revision-history", as_user="IMPORT"
+        )
+        for revision in revision_history["revisions"]:
+            status = revision.get("status")
+            if (
+                status
+                and status not in status_tracking
+                and status in self.STATUS_TO_CHECK_REVISIONS
+            ):
 
-            return result
+                if status in [
+                    "uploading",
+                    "in review",
+                ]:  # these are initial statuses
+                    status_tracking[status] = revision["date_created"]
+                else:
+                    last_modified = revision.get("last_modified")
+                    if last_modified:
+                        status_tracking[status] = last_modified["date_modified"]
+
+        network_release_dates = [
+            status_tracking[status]
+            for status in self.STATUS_TO_CHECK_NETWORK_RELEASE_DATE
+            if status in status_tracking
+        ]
+        network_release_date = min(network_release_dates) if network_release_dates else None
+
+        public_release_dates = [
+            status_tracking[status]
+            for status in self.STATUS_TO_CHECK_PUBLIC_RELEASE_DATE
+            if status in status_tracking
+        ]
+        public_release_date = min(public_release_dates) if public_release_dates else None
+
+        # Get the earliest date as initial release date
+        available_dates = [date for date in [network_release_date, public_release_date] if date]
+        initial_release_date = min(available_dates) if available_dates else None
+
+        # Build release_dates object
+        release_dates = {}
+        if network_release_date:
+            release_dates["network_release"] = network_release_date
+            release_dates["network_release_date"] = self.get_date_from_datetime(
+                network_release_date
+            )
+        if public_release_date:
+            release_dates["public_release"] = public_release_date
+            release_dates["public_release_date"] = self.get_date_from_datetime(
+                public_release_date
+            )
+        if initial_release_date:
+            release_dates["initial_release"] = initial_release_date
+            release_dates["initial_release_date"] = self.get_date_from_datetime(
+                initial_release_date
+            )
+
+        # add date converted values for selected status
+        for status in self.STATUS_TO_REVISION_DATE_CONVERSION:
+            if status in status_tracking:
+                status_tracking[status + "_date"] = self.get_date_from_datetime(
+                    status_tracking[status]
+                )
+
+        result = {}
+        if status_tracking:
+            result["status_tracking"] = status_tracking
+        if release_dates:
+            result["release_dates"] = release_dates
+        return result if result else None
 
     @staticmethod
     def get_date_from_datetime(datetime_str: str) -> str:
@@ -677,17 +862,7 @@ class File(Item, CoreFile):
         if result:
             if self.type_info.name == "ReferenceFile":
                 return
-            request_handler = RequestHandler(request = request)
-            mwfrs=[
-                mwfr for mwfr in result
-                if get_property_value_from_identifier(
-                    request_handler,
-                    mwfr,
-                    item_utils.get_status
-                ) != "deleted"
-            ]
-            return mwfrs if mwfrs else None
-        return
+        return result or None
 
     @calculated_property(
         schema={
@@ -701,18 +876,7 @@ class File(Item, CoreFile):
     )
     def meta_workflow_run_outputs(self, request: Request) -> Union[List[str], None]:
         result = self.rev_link_atids(request, "meta_workflow_run_outputs")
-        if result:
-            request_handler = RequestHandler(request = request)
-            mwfrs=[
-                mwfr for mwfr in result
-                if get_property_value_from_identifier(
-                    request_handler,
-                    mwfr,
-                    item_utils.get_status
-                ) != "deleted"
-            ]
-            return mwfrs if mwfrs else None
-        return
+        return result or None
 
     @calculated_property(schema=CalcPropConstants.LIBRARIES_SCHEMA)
     def libraries(
@@ -1056,19 +1220,8 @@ class File(Item, CoreFile):
                 file_utils.get_donors(file_properties, request_handler),
                 item_utils.get_external_id,
             ),
-            constants.SAMPLE_SUMMARY_CATEGORY: get_property_values_from_identifiers(
-                request_handler,
-                file_utils.get_tissues(file_properties, request_handler),
-                tissue_utils.get_category
-            ),
-            constants.SAMPLE_SUMMARY_TISSUES: get_property_values_from_identifiers(
-                request_handler,
-                file_utils.get_tissues(file_properties, request_handler),
-                functools.partial(
-                    tissue_utils.get_grouping_term_from_tag, request_handler=request_handler,
-                    tag="tissue_type"
-                ),
-            ),
+            constants.SAMPLE_SUMMARY_CATEGORY: file_utils.get_tissue_category(file_properties, request_handler),
+            constants.SAMPLE_SUMMARY_TISSUES: file_utils.get_tissue_type(file_properties, request_handler),
             constants.SAMPLE_SUMMARY_TISSUE_SUBTYPES: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_uberon_ids(file_properties, request_handler),
@@ -1191,7 +1344,7 @@ class File(Item, CoreFile):
             ]
             return " ".join(to_include)
         if "file_sets" in file_properties:
-            assay_title= get_unique_values(
+            assay_title = get_unique_values(
                 request_handler.get_items(file_utils.get_assays(file_properties, request_handler)),
                 item_utils.get_display_title,
                 )
@@ -1213,6 +1366,123 @@ class File(Item, CoreFile):
             ]
         if to_include:
             return " ".join(to_include)
+
+    @staticmethod
+    def get_presigned_url_location(client, external, request, filename) -> str:
+        """ Opens an S3 boto3 client and returns a presigned url for the requested file to be downloaded"""
+        param_get_object = {
+            'Bucket': external['bucket'],
+            'Key': external['key'],
+            'ResponseContentDisposition': "attachment; filename=" + filename
+        }
+        if request.range:
+            param_get_object.update({'Range': request.headers.get('Range')})
+            del param_get_object['ResponseContentDisposition']
+        location = client.generate_presigned_url(
+            ClientMethod='get_object',
+            Params=param_get_object,
+            ExpiresIn=36*60*60
+        )
+        return location
+
+    def get_open_data_url_or_presigned_url_location(self, external, request, filename, datastore_is_database) -> str:
+        """ This function differs materially from fourfront - we have three possibilities, one where we are
+            directing to truly public data, another where we are directing to protected data in the open
+            data account (with auth) and another where we are directing to data we hold in our buckets (with auth) """
+        open_data_url = None
+        s3_client = self.setup_unified_s3_client()
+        if datastore_is_database:  # view model came from DB - must compute calc prop
+            open_data_url = self._open_data_url(s3_client, self.properties['status'], filename=filename)
+        else:  # view model came from elasticsearch - calc props should be here
+            if hasattr(self.model, 'source'):
+                es_model_props = self.model.source['embedded']
+                open_data_url = es_model_props.get('open_data_url', '')
+                if filename not in open_data_url:  # we requested an extra_file, so recompute with correct filename
+                    open_data_url = self._open_data_url(s3_client, self.properties['status'], filename=filename)
+            if not open_data_url:  # fallback to DB
+                open_data_url = self._open_data_url(s3_client, self.properties['status'], filename=filename)
+
+        # Redirect with no auth
+        if open_data_url and 'smaht-open-data-public' in open_data_url:
+            return open_data_url
+        # Redirect with auth, note this is somewhat fragile if they ever change the
+        # URL for s3 (not likely) - Will 30 Nov 2025
+        elif open_data_url and 'smaht-open-data-protected' in open_data_url:
+            base = "https://smaht-open-data-protected.s3.amazonaws.com/"
+            open_data_key = open_data_url[len(base):]
+            open_data_external = {
+                'bucket': 'smaht-open-data-protected',
+                'key': open_data_key
+            }
+            return self.get_presigned_url_location(s3_client, open_data_external, request, filename)
+        else:
+            return self.get_presigned_url_location(s3_client, external, request, filename)
+
+    @staticmethod
+    def setup_unified_s3_client():
+        """ Creates an S3 client using credentials from the secrets manager """
+        config = Config(signature_version='s3v4')
+        if 'IDENTITY' in os.environ:
+            identity = assume_identity()
+            with override_environ(**identity):
+                return boto_client(
+                    's3',
+                    aws_access_key_id=os.environ.get('S3_AWS_ACCESS_KEY_ID'),
+                    aws_secret_access_key=os.environ.get('S3_AWS_SECRET_ACCESS_KEY'),
+                    config=config
+                )
+        log.error(f'No identity found! Bucket resolution likely to fail')
+        return boto_client('s3', config=config)  # this fallback will throw permission errors downstream
+
+    @staticmethod
+    def _head_s3(client, bucket, key):
+        """ Helper for below method for mocking purposes. """
+        return client.head_object(Bucket=bucket, Key=key)
+
+    def _open_data_url(self, s3_client, status, filename):
+        """ Helper for below method containing core functionality. """
+        if not filename:
+            return None
+        if status in ['open', 'protected', 'protected-network', 'protected-early']:
+            open_data_public_bucket = 'smaht-open-data-public'
+            open_data_protected_bucket = 'smaht-open-data-protected'
+            bucket_type = 'wfoutput'  # almost always going to be wfoutput
+            open_data_key = 'smaht-production/{bucket_type}/{uuid}/{filename}'.format(
+                bucket_type=bucket_type, uuid=self.uuid, filename=filename,
+            )
+            extra_open_data_key = 'smaht-production/{bucket_type}/{uuid}/{filename}'.format(
+                bucket_type='files', uuid=self.uuid, filename=filename,
+            )
+            # Check if the file exists in the Open Data S3 bucket under both wfoutput and files paths
+            # Requires assuming identity to _head_object
+            for open_data_bucket in [open_data_public_bucket, open_data_protected_bucket]:
+                for key in [open_data_key, extra_open_data_key]:
+                    # If the file exists in the Open Data S3 bucket, client.head_object will succeed (not throw ClientError)
+                    # Returning a valid S3 URL to the public url of the file
+                    try:
+                        self._head_s3(s3_client, open_data_bucket, key)
+                    except ClientError:
+                        continue  # try the other key
+                    location = 'https://{open_data_bucket}.s3.amazonaws.com/{open_data_key}'.format(
+                        open_data_bucket=open_data_bucket, open_data_key=key,
+                    )
+                    return location
+            else:
+                return None  # got client error for both possibilities
+        else:
+            return None
+
+    @calculated_property(schema={
+        "title": "Open Data URL",
+        "description": "Location of file on Open Data Bucket, if it exists",
+        "type": "string"
+    })
+    def open_data_url(self, request, accession, file_format, status=None):
+        """ Computes the open data URL and checks if it exists. """
+        fformat = get_item_or_none(request, file_format, frame='raw')  # no calc props needed
+        filename = "{}.{}".format(accession, fformat.get('standard_file_extension', ''))
+        s3_client = self.setup_unified_s3_client()
+        return self._open_data_url(s3_client, status, filename)
 
 
 @view_config(name='drs', context=File, request_method='GET',
@@ -1260,13 +1530,13 @@ def validate_user_has_public_protected_access(request):
 def download_cli(context, request):
     """ Creates download credentials for files intended for use with awscli/rclone """
     # Download restriction for restricted status
-    if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
+    if context.properties.get('status') in ['protected-network', 'protected-early'] and not validate_user_has_protected_access(request):
         raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
-    # Download restriction for public-restricted
-    if context.properties.get('status') == 'public-restricted' and not (
+    # Download restriction for protected
+    if context.properties.get('status') in ['protected'] and not (
             validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
-        raise HTTPForbidden('This is a public-restricted file and is not available through download_cli without'
+        raise HTTPForbidden('This is a protected file and is not available through download_cli without'
                             'dbGaP approval. Please check with the DAC/your PI about your status.')
     return CoreDownloadCli(context, request)
 
@@ -1274,16 +1544,124 @@ def download_cli(context, request):
 @view_config(name='download', context=File, request_method='GET',
              permission='view', subpath_segments=[0, 1])
 def download(context, request):
-    # Download restriction for public-restricted
-    if context.properties.get('status') == 'restricted' and not validate_user_has_protected_access(request):
-        raise HTTPForbidden('This is a restricted file not available for download_cli without dbGAP approval. '
+    # Download restriction for protected
+    if context.properties.get('status') in ['protected-network', 'protected-early'] and not validate_user_has_protected_access(request):
+        raise HTTPForbidden('This is a restricted file not available for download without dbGAP approval. '
                             'Please check with DAC/your PI about your status.')
-    # Download restriction for public-restricted
-    if context.properties.get('status') == 'public-restricted' and not (
+    # Download restriction for protected
+    if context.properties.get('status') in ['protected'] and not (
             validate_user_has_public_protected_access(request) or validate_user_has_protected_access(request)):
-        raise HTTPForbidden('This is a public-restricted file and is not available through download_cli without'
+        raise HTTPForbidden('This is a protected file and is not available through download without'
                             'dbGaP approval. Please check with the DAC/your PI about your status.')
-    return CoreDownload(context, request)
+
+    # Download implementation, which requires non-trivial overrides follows
+    check_user_is_logged_in(request)
+
+    # first check for restricted status
+    try:
+        user_props = session_properties(context, request)
+    except Exception as e:
+        user_props = {'error': str(e)}
+
+    user_uuid = user_props.get('details', {}).get('uuid', None)
+    user_groups = user_props.get('details', {}).get('groups', None)
+    if user_groups:
+        user_groups.sort()
+
+    tracking_values = {'user_agent': request.user_agent, 'remote_ip': request.remote_addr,
+                       'user_uuid': user_props.get('details', {}).get('uuid', 'anonymous'),
+                       'request_path': request.path_info, 'request_headers': str(dict(request.headers))}
+
+    # proxy triggers if we should use Axel-redirect, useful for s3 range byte queries
+    try:
+        use_download_proxy = request.client_addr not in request.registry['aws_ipset']
+    except TypeError:
+        # this fails in testing due to testapp not having ip
+        use_download_proxy = False
+
+    # with extra_files the user may be trying to download the main file
+    # or one of the files in extra files, the following logic will
+    # search to find the "right" file and redirect to a download link for that one
+    properties = context.upgrade_properties()
+    file_format = get_item_or_none(request, properties.get('file_format'), 'file-formats')
+    _filename = None
+    if request.subpath:
+        _filename, = request.subpath
+    filename = is_file_to_download(properties, file_format, _filename)
+    if not filename:
+        found = False
+        for extra in properties.get('extra_files', []):
+            eformat = get_item_or_none(request, extra.get('file_format'), 'file-formats')
+            filename = is_file_to_download(extra, eformat, _filename)
+            if filename:
+                found = True
+                properties = extra
+                external = context.propsheets.get('external' + eformat.get('uuid'))
+                if eformat is not None:
+                    tracking_values['file_format'] = eformat.get('file_format')
+                break
+        if not found:
+            raise HTTPNotFound(_filename)
+    else:
+        external = context.propsheets.get('external', {})
+        if file_format is not None:
+            tracking_values['file_format'] = file_format.get('file_format')
+    tracking_values['filename'] = filename
+
+    # Calculate bytes downloaded from Range header
+    file_size_downloaded = properties.get('file_size', 0)
+    if request.range:
+        file_size_downloaded = 0
+        # Assume range unit is bytes
+        if hasattr(request.range, "ranges"):
+            for (range_start, range_end) in request.range.ranges:
+                file_size_downloaded += (
+                        (range_end or properties.get('file_size', 0)) -
+                        (range_start or 0)
+                )
+        else:
+            file_size_downloaded = (
+                    (request.range.end or properties.get('file_size', 0)) -
+                    (request.range.start or 0)
+            )
+
+    request_datastore_is_database = (request.datastore == 'database')
+    if not external:
+        external = context.build_external_creds(request.registry, context.uuid, properties)
+    if external.get('service') == 's3':
+        location = context.get_open_data_url_or_presigned_url_location(external, request, filename,
+                                                                       request_datastore_is_database)
+    else:
+        raise ValueError(external.get('service'))
+
+    # Analytics Stuff
+    ga_config = request.registry.settings.get('ga_config')
+
+    if ga_config:
+        submitter_title = get_submitter_title(request, context, properties)
+        exp_or_assay_type = get_experiment_or_assay_type(request, context, properties)
+        file_type = get_file_type(request, context, properties)
+        file_at_id = context.jsonld_id(request)
+        dataset = properties.get('dataset')
+        update_google_analytics(context, request, ga_config, filename, file_size_downloaded, file_at_id,
+                                submitter_title,
+                                user_uuid, user_groups, exp_or_assay_type, dataset, file_type)
+
+    if asbool(request.params.get('soft')):
+        expires = int(parse_qs(urlparse(location).query)['Expires'][0])
+        return {
+            '@type': ['SoftRedirect'],
+            'location': location,
+            'expires': datetime.datetime.fromtimestamp(expires, pytz.utc).isoformat(),
+        }
+
+    # We don't use X-Accel-Redirect here so that client behaviour is similar for
+    # both aws and non-aws users.
+    if use_download_proxy:
+        location = request.registry.settings.get('download_proxy', '') + str(location)
+
+    # 307 redirect specifies to keep original method
+    raise HTTPTemporaryRedirect(location=location)
 
 
 # This /files/upload_file_size endpoint was added specifically (2024-08-22) for smaht-submitr to

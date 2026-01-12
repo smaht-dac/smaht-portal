@@ -1,10 +1,12 @@
 import functools
 from dataclasses import dataclass
+from botocore.exceptions import ClientError
 from typing import Any, Dict, List, Optional
 
 import pytest
 from dcicutils import schema_utils
 from webtest.app import TestApp
+from unittest import mock
 
 from .utils import (
     get_item, get_search, patch_item, post_item, post_item_and_return_location
@@ -27,7 +29,7 @@ from ..item_utils.utils import (
     get_unique_values,
     RequestHandler,
 )
-from ..types.file import CalcPropConstants
+from ..types.file import CalcPropConstants, File
 
 
 OUTPUT_FILE_FORMAT = "FASTQ"
@@ -108,6 +110,25 @@ def reference_file(
     return res.json['@graph'][0]
 
 
+@pytest.fixture
+def public_reference_file(
+    testapp: TestApp, file_formats: Dict[str, dict], test_consortium: Dict[str, Any]
+) -> Dict[str, Any]:
+    """ Reference File for testing the open data interaction """
+    item = {
+        'file_format': file_formats.get('BAM').get('uuid'),
+        'md5sum': '00000000000000000000000000000000',
+        'content_md5sum': '00000000000000000000000000000000',
+        'filename': 'my.bam',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
+        'status': 'open',
+        'consortia': [test_consortium['uuid']],
+    }
+    res = testapp.post_json('/reference_file', item)
+    return res.json['@graph'][0]
+
+
 def test_href(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any]]) -> None:
     """Ensure download link formatted as expected."""
     expected = (
@@ -127,22 +148,25 @@ def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_f
     """
     assert not reference_file.get('file_status_tracking')  # should be absent
     res = output_file['file_status_tracking']
-    assert 'in review' in res
-    assert 'released' not in res
-    assert 'released_date' not in res
-    assert 'public' not in res
+    status_tracking = res["status_tracking"]
+    assert 'in review' in status_tracking
+    assert 'released' not in status_tracking
+    assert 'released_date' not in status_tracking
+    assert 'open' not in status_tracking
     res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
                                      {'status': 'released'}).json['@graph'][0]['file_status_tracking']
-    assert 'in review' in res
-    assert 'released' in res
-    assert 'released_date' in res
-    assert 'public' not in res
+    status_tracking = res["status_tracking"]
+    assert 'in review' in status_tracking
+    assert 'released' in status_tracking
+    assert 'released_date' in status_tracking
+    assert 'open' not in status_tracking
     res = smaht_admin_app.patch_json(f'{output_file["@id"]}',
-                                     {'status': 'public'}).json['@graph'][0]['file_status_tracking']
-    assert 'in review' in res
-    assert 'released' in res
-    assert 'released_date' in res
-    assert 'public' in res
+                                     {'status': 'open'}).json['@graph'][0]['file_status_tracking']
+    status_tracking = res["status_tracking"]
+    assert 'in review' in status_tracking
+    assert 'released' in status_tracking
+    assert 'released_date' in status_tracking
+    assert 'open' in status_tracking
 
 
 @pytest.mark.parametrize(
@@ -153,7 +177,7 @@ def test_output_file_status_tracking_calcprop(smaht_admin_app: TestApp, output_f
         ("archived", False),
         ("in review", True),
         ("obsolete", False),
-        ("public", False),
+        ("open", False),
     ]
 )
 def test_upload_credentials(
@@ -179,8 +203,8 @@ def test_upload_credentials(
     "status,expected",
     [
         ("released", "Open"),
-        ("public", "Open"),
-        ("restricted", "Protected"),
+        ("open", "Open"),
+        ("protected-network", "Protected"),
         ("deleted", None),  # test just one additional since there is significant setup cost
     ]
 )
@@ -477,11 +501,21 @@ def test_meta_workflow_run_inputs_rev_link(
     file_with_inputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_inputs.uuid!=No+value"
     )
-    assert file_with_inputs_search
-    file_without_inputs_search = get_search(
+    assert len(file_with_inputs_search) == 1
+    files_without_inputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_inputs.uuid=No+value"
     )
-    assert file_without_inputs_search
+    assert files_without_inputs_search
+    # why aren't the reference files returned with the get_search call above?
+    reference_files_lacking_mwfrs_search = get_search(
+        es_testapp, "/search/?type=ReferenceFile&meta_workflow_run_inputs.uuid=No+value"
+    )
+    rf_uuids = [rf.get('uuid') for rf in reference_files_lacking_mwfrs_search]
+    # this uuid is for the reference file that was added as input to a meta workflow run insert
+    # because meta_workflow_runs are not revlinked we explicitly check that a reference file that
+    # was added as an input doesn't get the calcprop value even though we would expect it to be returned
+    # for the files_without_inputs_search and it is not
+    assert "49690fb8-7680-4034-ae3b-4f28222d5db8" in rf_uuids
 
 
 @pytest.mark.workbook
@@ -493,7 +527,7 @@ def test_meta_workflow_run_outputs_rev_link(
     file_with_outputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_outputs.uuid!=No+value"
     )
-    assert file_with_outputs_search
+    assert len(file_with_outputs_search) == 1
     file_without_outputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_outputs.uuid=No+value"
     )
@@ -762,7 +796,7 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
     assert submitted_file_with_sample_sources_search
     for submitted_file in submitted_file_with_sample_sources_search:
         assert_sample_sources_calcprop_matches_embeds(submitted_file)
-    
+
     output_file_with_sample_sources_search = search_type_for_key(
         es_testapp, "OutputFile", search_key
     )
@@ -827,7 +861,7 @@ def assert_cell_line_donors_match_calcprop(
     file: Dict[str, Any],
     cell_lines: List[Dict[str, Any]],
 ) -> None:
-    """Ensure cell line donors match calcprop.""" 
+    """Ensure cell line donors match calcprop."""
     donor_ids = get_property_values_from_identifiers(
         request_handler, cell_lines, functools.partial(cell_line_utils.get_source_donor, request_handler)
     )
@@ -843,7 +877,7 @@ def assert_donors_calcprop_matches_embeds(file: Dict[str, Any]) -> None:
     analytes = get_unique_values(libraries, library_utils.get_analytes)
     samples = get_unique_values(analytes, analyte_utils.get_samples)
     sample_sources = get_unique_values(samples, sample_utils.get_sample_sources)
-    donors = get_unique_values(sample_sources, tissue_utils.get_donor)     
+    donors = get_unique_values(sample_sources, tissue_utils.get_donor)
     assert_items_match(donors_from_calcprop, donors)
 
 
@@ -1003,21 +1037,21 @@ def assert_data_generation_summary_matches_expected(
     if (override_coverage := file_utils.get_override_group_coverage(file)):
         expected_target_coverage = [override_coverage]
     else:
-        expected_target_coverage = [ target_coverage 
-            for sequencing in sequencings  
+        expected_target_coverage = [ target_coverage
+            for sequencing in sequencings
             if (target_coverage := sequencing_utils.get_target_coverage(
                 get_item(es_testapp, item_utils.get_uuid(sequencing))
             ))
         ] if sequencings else []
     if (override_average_coverage := file_utils.get_override_average_coverage(file)):
         expected_average_coverage = [override_average_coverage]
-    else: 
-        expected_average_coverage = [ coverage 
+    else:
+        expected_average_coverage = [ coverage
             for quality_metric in quality_metrics
             if (coverage := qm_utils.get_coverage(quality_metric))
         ] if quality_metrics else []
-    expected_target_read_count = [ target_coverage 
-        for sequencing in sequencings                     
+    expected_target_read_count = [ target_coverage
+        for sequencing in sequencings
         if (target_coverage := sequencing_utils.get_target_read_count(
                 get_item(es_testapp, item_utils.get_uuid(sequencing))
             ))
@@ -1102,13 +1136,15 @@ def assert_sample_summary_matches_expected(
     )
     expected_category = expected_tissues = get_unique_values(
         [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
-        tissue_utils.get_category
+        functools.partial(
+            tissue_utils.get_category, request_handler=request_handler
+        )
     )
     expected_tissues = get_unique_values(
         [get_item(es_testapp, item_utils.get_uuid(tissue)) for tissue in tissues],
         functools.partial(
-            tissue_utils.get_grouping_term_from_tag, request_handler=request_handler, tag="tissue_type"
-        ),
+            tissue_utils.get_tissue_type, request_handler=request_handler
+        )
     )
     expected_tissue_subtypes = get_unique_values(
         [tissue_utils.get_uberon_id(
@@ -1244,7 +1280,7 @@ def test_release_tracker(es_testapp: TestApp, workbook: None) -> None:
 
     Checks fields present on inserts match values expected by parsing tags.
     """
-    
+
     search = "tags=test_release_tracker"
     files_with_release_tracker_description = get_search(es_testapp, search)
     for file in files_with_release_tracker_description:
@@ -1285,6 +1321,73 @@ def get_expected_release_tracker_title(file: Dict[str, Any]) -> List[str]:
         tag for tag in tags if tag.startswith(expected_release_tracker_title_tag_start)
     ]
     return expected_title_tags[0].split(expected_release_tracker_title_tag_start)[1]
+
+
+def test_files_open_data_url_not_released(testapp, output_file):
+    """ Test S3 Open Data URL when a file has not been flagged as released/open etc """
+    # 1. check that initial download works
+    download_link = output_file['href']
+    direct_res = testapp.get(download_link, status=307)
+    # 2. check that the bucket in the redirect is the SMaHT test bucket, not open data
+    non_open_data_bucket = 'smaht-unit-testing-wfout.s3.amazonaws.com'
+    assert non_open_data_bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+
+def test_files_open_data_url_released_not_transferred(testapp, public_reference_file):
+    """ Test S3 Open Data URL when a file has been released but not transferred to Open Data
+        Same as the above test but we don't even check for open data if not in a released status
+    """
+    # 1. check that initial download works
+    download_link = public_reference_file['href']
+    direct_res = testapp.get(download_link, status=307)
+    # 2. check that the bucket in the redirect is the SMaHT test bucket, not open data
+    non_open_data_bucket = 'smaht-unit-testing-files.s3.amazonaws.com'
+    assert non_open_data_bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+
+def test_files_open_data_url_released_and_transferred(testapp, public_reference_file):
+    """ Test S3 Open Data URL when a file has been released and been transferred to Open Data"""
+    with mock.patch('encoded.types.file.File._head_s3', return_value=None):
+        updated = testapp.patch_json(f"/{public_reference_file['uuid']}", {})  # empty patch to regenerate calc prop
+        bucket = 'smaht-open-data-public'  # the Open Data bucket, not the SMaHT test bucket
+        # 1. check that initial download works
+        download_link = updated.json['@graph'][0]['href']
+        direct_res = testapp.get(download_link, status=307)
+        # 2. check that the bucket in the redirect is the open data bucket, not SMaHT test
+        assert bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+        # 3. No credential needed
+        assert 'X-Amz-Signature' not in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+
+def test_files_open_data_url_released_and_transferred_protected(testapp, public_reference_file):
+    """ More complicated mocking necessary in order to simulate a sequence based call mock for
+        mock_s3.
+
+        If you look at the code for the open_data_url, it can make up to 4 calls to head_s3,
+        the first two for the public bucket, second two for the protected bucket. In this test
+        We simulate a success of the third call ie: wfoutput file in the protected bucket.
+    """
+    def raise_client_error(*args, **kwargs):
+        raise ClientError({"Error": {}}, "HeadObject")
+
+    call_idx = 0
+    def head_s3_se(*args, **kwargs):
+        nonlocal call_idx
+        # increment then decide
+        call_idx += 1
+        if call_idx in (1, 2, 4, 5):
+            raise_client_error()
+        return None
+
+    with mock.patch("encoded.types.reference_file.ReferenceFile._head_s3",
+                    side_effect=head_s3_se):
+        updated = testapp.patch_json(f"/{public_reference_file['uuid']}", {})
+        bucket = 'smaht-open-data-protected'
+        download_link = updated.json['@graph'][0]['href']
+        direct_res = testapp.get(f'{download_link}?datastore=database', status=307)
+        assert bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+        assert 'X-Amz-Signature' in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
 
 
 @pytest.mark.workbook

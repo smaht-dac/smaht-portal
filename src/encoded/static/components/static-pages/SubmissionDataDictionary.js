@@ -8,8 +8,27 @@ import {
     PopoverBody,
 } from 'react-bootstrap';
 
+// Renders a table cell with a value or a dash if no value is present
+const TableCell = ({ value, isCode = false }) => {
+    const hasValue =
+        value !== undefined &&
+        value !== null &&
+        value !== '' &&
+        !(Array.isArray(value) && value.length === 0);
+
+    return (
+        <td className={`text-left ${!hasValue ? 'text-secondary' : ''}`}>
+            {hasValue ? isCode ? <code>{value}</code> : value : '-'}
+        </td>
+    );
+};
+
 // Renders a table of schema properties
-const SchemaPropertiesTable = ({ data = {} }) => {
+const SchemaPropertiesTable = ({
+    selectedProperty = null,
+    schemaKey = '',
+    data = {},
+}) => {
     // sort the keys based on requirement
     const sortedPropertyKeys = Object.keys(data).sort((a, b) => {
         return data[a]?.is_required ? -1 : 1;
@@ -68,93 +87,86 @@ const SchemaPropertiesTable = ({ data = {} }) => {
                 </tr>
             </thead>
             <tbody>
-                {sortedPropertyKeys.map((propertyKey, i) => {
-                    const item = data[propertyKey];
-                    return (
-                        <tr key={i}>
-                            {/* Title */}
-                            {item?.title ? (
-                                <td
-                                    className={`text-left ${
-                                        item.is_required
-                                            ? 'text-danger fw-bold'
-                                            : ''
-                                    }`}>
-                                    {item.title}
-                                </td>
-                            ) : (
-                                <td className="text-left text-secondary">-</td>
-                            )}
-                            {/* Description */}
-                            {item?.description ? (
-                                <td className="text-left">
-                                    {item.description}
-                                </td>
-                            ) : (
-                                <td className="text-left text-secondary">-</td>
-                            )}
-                            {/* Type */}
-                            {item?.type ? (
-                                <td className="text-left">
-                                    <code>{item.type}</code>
-                                </td>
-                            ) : (
-                                <td className="text-left text-secondary">-</td>
-                            )}
-                            {/* Pattern */}
-                            {item?.pattern ? (
-                                <td className="text-left">{item.pattern}</td>
-                            ) : (
-                                <td className="text-left text-secondary">-</td>
-                            )}
-                            {/* Also Requires */}
-                            {item?.enum?.length || item?.suggested_enum ? (
-                                <td className="text-left">
-                                    {/* If enums/suggested enums are present, display them */}
-                                    {item?.enum?.length > 0 && (
+                {sortedPropertyKeys
+                    .filter((property) => {
+                        return selectedProperty
+                            ? property === selectedProperty
+                            : true;
+                    })
+                    .map((propertyKey, i) => {
+                        const item = data[propertyKey];
+
+                        // Get a backup description from backup_property_values if needed
+                        let description_from_map;
+                        if (!item?.description) {
+                            description_from_map = backup_property_values
+                                ?.get(schemaKey)
+                                ?.find(
+                                    ({ title }) => title === propertyKey
+                                )?.description;
+                        }
+
+                        // Build enum/suggested enum cell content
+                        const hasEnum = item?.enum?.length > 0;
+                        const hasSuggested = item?.suggested_enum?.length > 0;
+
+                        const valuesContent =
+                            hasEnum || hasSuggested ? (
+                                <>
+                                    {hasEnum && (
                                         <p>
                                             <b>Options:</b>{' '}
                                             {item.enum.join(', ')}
                                         </p>
                                     )}
-                                    {item?.suggested_enum?.length > 0 && (
+                                    {hasSuggested && (
                                         <p>
                                             <b>Examples:</b>{' '}
                                             {item.suggested_enum.join(', ')}
                                         </p>
                                     )}
+                                </>
+                            ) : null;
+
+                        return (
+                            <tr key={i}>
+                                {/* Title */}
+                                <td
+                                    className={`text-left ${
+                                        item?.is_required
+                                            ? 'text-danger fw-bold'
+                                            : ''
+                                    }`}>
+                                    {item?.title ?? propertyKey}
                                 </td>
-                            ) : (
-                                <td className="text-left text-secondary">-</td>
-                            )}
-                            {/* Also Requires */}
-                            {item?.also_requires ? (
-                                <td className="text-left">
-                                    {item.also_requires.join(', ')}
-                                </td>
-                            ) : (
-                                <td className="text-left text-secondary">-</td>
-                            )}
-                            {/* LinkTo */}
-                            {item?.items?.linkTo ? (
-                                <td className="text-left">
-                                    {item?.items?.linkTo}
-                                </td>
-                            ) : (
-                                <td className="text-left text-secondary">-</td>
-                            )}
-                            {/* Note */}
-                            {item?.submissionComment ? (
-                                <td className="text-left">
-                                    {' '}
-                                    {item.submissionComment}
-                                </td>
-                            ) : (
-                                <td className="text-left text-secondary">-</td>
-                            )}
-                        </tr>
-                    );
-                })}
+                                {/* Description */}
+                                <TableCell
+                                    value={
+                                        item?.description ??
+                                        description_from_map
+                                    }
+                                />
+                                {/* Type */}
+                                <TableCell value={item?.type} isCode />
+                                {/* Pattern */}
+                                <TableCell value={item?.pattern} />
+                                {/* Values */}
+                                <TableCell value={valuesContent} />
+                                {/* Also Requires */}
+                                <TableCell
+                                    value={
+                                        item?.also_requires?.length
+                                            ? item.also_requires.join(', ')
+                                            : null
+                                    }
+                                />
+                                {/* LinkTo */}
+                                <TableCell value={item?.items?.linkTo} />
+                                {/* Note */}
+                                <TableCell value={item?.submissionComment} />
+                            </tr>
+                        );
+                    })}
             </tbody>
         </table>
     ) : (
@@ -182,13 +194,53 @@ export const SubmissionDataDictionary = () => {
         );
     }, []);
 
-    const options = Object.keys(schemaData || {}).map((schemaKey) => ({
-        value: schemaKey,
-        label: schemaKey,
-    }));
+    const options = Object.keys(schemaData || {}).flatMap((schemaItemName) => {
+        const schemaProperties = schemaData[schemaItemName]?.properties || {};
+
+        return [
+            { value: schemaItemName, label: schemaItemName },
+            ...Object.keys(schemaProperties)?.map((propertyName) => {
+                const value = `${schemaItemName}.${propertyName}`;
+                return { value: value, label: value?.toLowerCase() };
+            }),
+        ];
+    });
+
+    // Split selected schema into item type and property
+    // E.g. AlignedReads.read_length -> [AlignedReads, read_length]
+    // If only item type is selected, property will be null
+    const selectedSchemaItem = selectedSchema?.value?.split('.')?.[0] || null;
+    const selectedSchemaProperty =
+        selectedSchema?.value?.split('.')?.[1] || null;
 
     return schemaData ? (
         <div className="schema-reference-page">
+            <div className="callout mt-2 mb-2">
+                <p className="mb-2">
+                    The <b>Submission Data Dictionary</b> provides a reference
+                    of metadata items and properties included in the Submission
+                    Spreadsheet. You can search for specific metadata items or
+                    properties using the dropdown below.
+                </p>
+                <p>
+                    Search by: <br />
+                    <b>Item: </b> type in the name of the item in the search bar
+                    below (e.g. <i>FamilyHistory</i>).
+                    <br />
+                    <b>Property: </b> type in the name of the property (e.g.{' '}
+                    <i>disease</i>).
+                    <br />
+                    <b>Specific property in an item: </b> type
+                    &lt;item&gt;.&lt;property&gt; (e.g.{' '}
+                    <i>familyhistory.disease</i>).
+                </p>
+                <p className="mb-2">
+                    Note: Everything other than age, sex, hardy scale are
+                    protected under dbGaP. No protected data is contained in
+                    this page.
+                </p>
+            </div>
+            <hr className="my-4"></hr>
             <Select
                 value={selectedSchema}
                 placeholder="Select a tab/item type from the Submission Spreadsheet (e.g. AlignedReads or Analyte)..."
@@ -208,12 +260,13 @@ export const SubmissionDataDictionary = () => {
                 <div
                     className={`selected-schema schema-item ${selectedSchema.value} table-responsive`}>
                     <h3 className="fs-4">{selectedSchema.value}</h3>
-                    {selectedSchema.value && (
+                    {selectedSchemaItem && (
                         <>
                             <SchemaPropertiesTable
                                 data={
-                                    schemaData[selectedSchema.value]?.properties
+                                    schemaData[selectedSchemaItem]?.properties
                                 }
+                                selectedProperty={selectedSchemaProperty}
                             />
                             <hr className="my-5"></hr>
                         </>
@@ -229,6 +282,7 @@ export const SubmissionDataDictionary = () => {
                             key={i}>
                             <h3 className="fs-4">{schemaKey}</h3>
                             <SchemaPropertiesTable
+                                schemaKey={schemaKey}
                                 data={schemaData[schemaKey]?.properties}
                             />
                         </div>
@@ -242,3 +296,42 @@ export const SubmissionDataDictionary = () => {
         </div>
     );
 };
+
+const backup_property_values = new Map([
+    [
+        'Donor',
+        [
+            {
+                title: 'external_id',
+                description: 'External ID for the item provided by submitter',
+            },
+        ],
+    ],
+    [
+        'ProtectedDonor',
+        [
+            {
+                title: 'external_id',
+                description: 'External ID for the item provided by submitter',
+            },
+        ],
+    ],
+    [
+        'AlignedReads',
+        [
+            {
+                title: 'data_type',
+                description: 'Detailed type of information in the file',
+            },
+        ],
+    ],
+    [
+        'DeathCircumstances',
+        [
+            {
+                title: 'circumstances_of_death',
+                description: 'The manner or context in which death occurred',
+            },
+        ],
+    ],
+]);

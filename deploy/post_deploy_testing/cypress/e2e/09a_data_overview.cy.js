@@ -1,145 +1,408 @@
 import { cypressVisitHeaders, ROLE_TYPES } from "../support";
 import { dataNavBarItemSelectorStr } from "../support/selectorVars";
 import { testMatrixPopoverValidation } from "../support/utils/dataMatrixUtils";
+import * as _ from "underscore";
 
-describe('Data Overview - Retracted Files, Data Matrix for Production, Data Matrix for Benchmarking', function () {
+const EMPTY_DM_PROD_OPTS = {
+    donors: [],
+    mustLabels: [],
+    optionalLabels: [],
+    expectedLowerLabels: [],
+    expectedFilesCount: 0,
+    expectedTissuesCount: null,
+    verifyTotalFromApi: true,
+};
+const BASE_DM_PROD_OPTS = {
+    donors: ["SMHT004", "SMHT008", "SMHT009"],
+    mustLabels: ["Non-exposed Skin", "Heart", "Blood"],
+    optionalLabels: [],
+    expectedLowerLabels: ["Donors"],
+    expectedFilesCount: 40,
+    expectedTissuesCount: null,
+    verifyTotalFromApi: true,
+};
+const BASE_DM_BENCHMARKING_OPTS = {
+    donors: ["ST001", "ST002", "ST003", "ST004"],
+    mustLabels: [],
+    optionalLabels: ["Non-exposed Skin", "Lung", "Brain", "Liver", "Ascending Colon"],
+    expectedLowerLabels: ["Cell Lines", "Donors"],
+    expectedFilesCount: 50,
+    expectedTissuesCount: null,
+    verifyTotalFromApi: true,
+};
 
-    before(function () {
-        cy.visit('/', { headers: cypressVisitHeaders });
-    });
+/* ----------------------------- ROLE MATRIX -----------------------------
+   Toggle each step per role:
 
-    it('Visit Retracted Files List', function () {
+   - runRetractedFilesList:     "Retracted Files" page + detail checks
+   - runDataMatrixProduction:   Data Matrix (Production) + popover checks
+   - runDataMatrixBenchmarking: Data Matrix (Benchmarking) + popover checks
+------------------------------------------------------------------------- */
+const ROLE_MATRIX = {
+    UNAUTH: {
+        label: "Unauthenticated",
+        isAuthenticated: false,
 
-        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM')
-            .get(dataNavBarItemSelectorStr)
-            .should('have.class', 'dropdown-toggle')
-            .click()
-            .should('have.class', 'dropdown-open-for').then(() => {
+        runRetractedFilesList: false,
+        runDataMatrixProduction: true,
+        runDataMatrixBenchmarking: true,
 
-                cy.get('.big-dropdown-menu.is-open a.big-link[href="/retracted-files"]')
-                    .click({ force: true }).then(function ($linkElem) {
-                        cy.get('#slow-load-container').should('not.have.class', 'visible').end();
-                        const linkHref = $linkElem.attr('href');
-                        cy.location('pathname').should('equal', linkHref);
+        expectedRetractedFilesMenuVisible: false,
+        expectedRetractedFilesResponseCode: 403,
+        expectedRetractedFilesCount: 5,
+        expectedDataMatrixMenuVisible: true,
+        expectedDataMatrixResponseCode: 200,
+        expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
+        expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
+    },
+
+    [ROLE_TYPES.SMAHT_DBGAP]: {
+        label: "SMAHT_DBGAP",
+        isAuthenticated: true,
+
+        runRetractedFilesList: true,
+        runDataMatrixProduction: true,
+        runDataMatrixBenchmarking: true,
+
+        expectedRetractedFilesMenuVisible: true,
+        expectedRetractedFilesResponseCode: 200,
+        expectedRetractedFilesCount: 5,
+        expectedDataMatrixMenuVisible: true,
+        expectedDataMatrixResponseCode: 200,
+        expectedDataMatrixProductionOpts: BASE_DM_PROD_OPTS,
+        expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
+    },
+
+    [ROLE_TYPES.SMAHT_NON_DBGAP]: {
+        label: "SMAHT_NON_DBGAP",
+        isAuthenticated: true,
+
+        runRetractedFilesList: true,
+        runDataMatrixProduction: true,
+        runDataMatrixBenchmarking: true,
+
+        expectedRetractedFilesMenuVisible: true,
+        expectedRetractedFilesResponseCode: 200,
+        expectedRetractedFilesCount: 0,
+        expectedDataMatrixMenuVisible: true,
+        expectedDataMatrixResponseCode: 200,
+        expectedDataMatrixProductionOpts: BASE_DM_PROD_OPTS,
+        expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
+    },
+
+    [ROLE_TYPES.PUBLIC_DBGAP]: {
+        label: "PUBLIC_DBGAP",
+        isAuthenticated: true, // set to false if truly public in your app
+
+        runRetractedFilesList: false,
+        runDataMatrixProduction: true,
+        runDataMatrixBenchmarking: true,
+
+        expectedRetractedFilesMenuVisible: true,
+        expectedRetractedFilesResponseCode: 403,
+        expectedRetractedFilesCount: 0,
+        expectedDataMatrixMenuVisible: true,
+        expectedDataMatrixResponseCode: 200,
+        expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
+        expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
+    },
+
+    [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
+        label: "PUBLIC_NON_DBGAP",
+        isAuthenticated: true, // set to false if not logged in
+
+        runRetractedFilesList: false,
+        runDataMatrixProduction: true,
+        runDataMatrixBenchmarking: true,
+
+        expectedRetractedFilesMenuVisible: true,
+        expectedRetractedFilesResponseCode: 403,
+        expectedRetractedFilesCount: 0,
+        expectedDataMatrixMenuVisible: true,
+        expectedDataMatrixResponseCode: 200,
+        expectedDataMatrixProductionOpts: EMPTY_DM_PROD_OPTS,
+        expectedDataMatrixBenchmarkingOpts: BASE_DM_BENCHMARKING_OPTS,
+    },
+};
+
+/* ----------------------------- SESSION HELPERS ----------------------------- */
+
+function goto({ url = "/", headers = cypressVisitHeaders, failOnStatusCode = true }) {
+    cy.visit(url, { headers, failOnStatusCode });
+}
+
+function loginIfNeeded(roleKey) {
+    const caps = ROLE_MATRIX[roleKey];
+    if (caps.isAuthenticated) cy.loginSMaHT(roleKey).end();
+}
+
+function logoutIfNeeded(roleKey) {
+    const caps = ROLE_MATRIX[roleKey];
+    if (caps.isAuthenticated) cy.logoutSMaHT();
+}
+
+/* ----------------------------- STEP HELPERS ----------------------------- */
+
+/** Retracted Files page + row-by-row detail checks (up to 5 rows) */
+function stepVisitRetractedFilesList(caps) {
+
+    cy.get(dataNavBarItemSelectorStr)
+        .should("have.class", "dropdown-toggle")
+        .click()
+        .should("have.class", "dropdown-open-for")
+        .then(() => {
+            cy.get('.big-dropdown-menu.is-open a.big-link[href="/retracted-files"]')
+                .click({ force: true })
+                .then(($linkElem) => {
+                    cy.get("#slow-load-container").should("not.have.class", "visible").end();
+                    const linkHref = $linkElem.attr("href");
+                    cy.location("pathname").should("equal", linkHref);
+                });
+
+            cy.contains("div#retracted-files h2.section-title", "List of Retracted Files")
+                .should("be.visible");
+
+            function testVisit(index) {
+                if (index >= caps.expectedRetractedFilesCount) return;
+
+                cy.get("@resultRows").eq(index).as("currentRow");
+
+                cy.get("@currentRow")
+                    .find('[data-field="retraction_reason"] .value')
+                    .should("not.be.empty");
+
+                cy.get("@currentRow")
+                    .find('[data-field="accession"] a')
+                    .then(($a) => {
+                        const expectedAccession = $a.text().trim();
+
+                        cy.wrap($a).invoke("removeAttr", "target").click();
+
+                        cy.get(".file-view-header", { timeout: 10000 }).should("be.visible");
+
+                        cy.get(".status-group .file-status")
+                            .should("be.visible")
+                            .and("contain.text", "Retracted");
+
+                        cy.get(".callout.warning .callout-text")
+                            .should("contain.text", "was retracted");
+
+                        cy.get(".accession")
+                            .should("be.visible")
+                            .and("have.text", expectedAccession);
                     });
 
-                // Verify that the page contains the correct header
-                cy.contains('div#retracted-files h2.section-title', 'List of Retracted Files').should('be.visible');
+                cy.go("back");
 
-                cy.get('.search-result-row[data-row-number]').as('resultRows');
+                cy.get(".search-result-row[data-row-number]", { timeout: 10000 })
+                    .should("have.length.at.least", caps.expectedRetractedFilesCount)
+                    .as("resultRows");
 
-                // Ensure at least 5 results exist
-                cy.get('@resultRows').should('have.length.at.least', 5);
+                cy.then(() => testVisit(index + 1));
+            }
 
-                // Define a recursive function to step through rows
-                function testVisit(index) {
-                    // Stop recursion after checking 5 rows
-                    if (index >= 5) return;
+            if (caps.expectedRetractedFilesCount > 0) {
+                cy.get(".search-result-row[data-row-number]").as("resultRows");
+                cy.get("@resultRows").should("have.length.at.least", caps.expectedRetractedFilesCount);
 
-                    // Alias the current search result row
-                    cy.get('@resultRows').eq(index).as('currentRow');
+                testVisit(0);
+            } else if (caps.expectedRetractedFilesCount === 0) {
+                cy.get(".retracted-files-table .search-results-container", { timeout: 10000 })
+                    .should("contain.text", "No Results");
+            }
+        })
+        .end();
+}
 
-                    // Check that the "retraction_reason" field is not empty
-                    cy.get('@currentRow')
-                        .find('[data-field="retraction_reason"] .value')
-                        .should('not.be.empty');
+/** Data Matrix (Production) — expand donors and validate popovers */
+function stepDataMatrixProduction(caps) {
+    cy.get(dataNavBarItemSelectorStr)
+        .should("have.class", "dropdown-toggle")
+        .click()
+        .should("have.class", "dropdown-open-for")
+        .then(() => {
+            cy.get('.big-dropdown-menu.is-open a.big-link[href="/data-matrix"]')
+                .click({ force: true })
+                .then(($linkElem) => {
+                    cy.get("#slow-load-container").should("not.have.class", "visible").end();
+                    const linkHref = $linkElem.attr("href");
+                    cy.location("pathname").should("equal", linkHref);
+                });
 
-                    // Get the <a> tag in the "accession" field and store its text
-                    cy.get('@currentRow')
-                        .find('[data-field="accession"] a')
-                        .then(($a) => {
-                            // Store the accession code (e.g. SMAFICYTBKA5) from the link text
-                            const expectedAccession = $a.text().trim();
+            cy.contains("div#page-title-container h1.page-title", "Data Matrix")
+                .should("be.visible");
 
-                            // Remove target="_blank" so that click stays in same tab
-                            cy.wrap($a)
-                                .invoke('removeAttr', 'target')
-                                .click();
+            cy.get(".tabs-loading-overlay", { timeout: 20000 }).should("not.exist");
 
-                            // Verify the detail page is loaded
-                            cy.get('.file-view-header', { timeout: 10000 }).should('be.visible');
+            cy.get("body").then(($body) => {
+                const $titleEl = Cypress.$($body)
+                    .find(".tab-header .title")
+                    .filter((_, el) => Cypress.$(el).text().trim() === "Production Data");
 
-                            // Check that file status is "Retracted"
-                            cy.get('.status-group .status')
-                                .should('be.visible')
-                                .and('contain.text', 'Retracted');
-
-                            // Check that the callout message contains "was retracted"
-                            // TODO: verify text if retraction reason is available
-                            cy.get('.callout.warning .callout-text')
-                                .should('contain.text', 'was retracted');
-
-                            // Check that the accession value matches the one we clicked on
-                            cy.get('.accession')
-                                .should('be.visible')
-                                .and('have.text', expectedAccession);
-                        });
-
-                    // Go back to the list page
-                    cy.go('back');
-
-                    // Wait for the list page to reload and ensure it has rows again
-                    cy.get('.search-result-row[data-row-number]', { timeout: 10000 })
-                        .should('have.length.at.least', 5)
-                        .as('resultRows'); // Re-alias since DOM was reloaded
-
-                    // Continue with the next row
-                    cy.then(() => testVisit(index + 1));
+                if ($titleEl.length === 0) {
+                    // Header hidden: production matrix should be hidden and no data expected.
+                    cy.get("#data-matrix-for_production")
+                        .parents(".tab-card")
+                        .should("have.css", "display", "none");
+                    expect(caps.expectedDataMatrixProductionOpts.expectedFilesCount).to.equal(0);
+                    cy.log("Production tab hidden (no data).");
+                    return;
                 }
 
-                // Start the recursive check
-                testVisit(0);
-            })
-            .logoutSMaHT();
+                const $headerBtn = $titleEl.closest(".tab-header");
+                cy.wrap($headerBtn)
+                    .should("be.visible")
+                    .click();
+
+                cy.get("#data-matrix-for_production")
+                    .parents(".tab-card")
+                    .should("have.css", "display", "flex");
+
+                testMatrixPopoverValidation(
+                    "#data-matrix-for_production",
+                    caps.expectedDataMatrixProductionOpts
+                );
+            });
+        })
+        .end();
+}
+
+/** Data Matrix (Benchmarking) — expand donors/cell lines and validate popovers */
+function stepDataMatrixBenchmarking(caps) {
+    cy.get(dataNavBarItemSelectorStr)
+        .should("have.class", "dropdown-toggle")
+        .click()
+        .should("have.class", "dropdown-open-for")
+        .then(() => {
+            cy.get('.big-dropdown-menu.is-open a.big-link[href="/data-matrix"]')
+                .click({ force: true })
+                .then(($linkElem) => {
+                    cy.get("#slow-load-container").should("not.have.class", "visible").end();
+                    const linkHref = $linkElem.attr("href");
+                    cy.location("pathname").should("equal", linkHref);
+                });
+
+            cy.contains("div#page-title-container h1.page-title", "Data Matrix")
+                .should("be.visible");
+
+            cy.get(".tabs-loading-overlay", { timeout: 20000 }).should("not.exist");
+
+            cy.contains(".tab-header .title", "Benchmarking Data")
+                .closest(".tab-header")
+                .should("be.visible")
+                .click();
+
+            cy.get("#data-matrix-for_benchmarking")
+                .parents(".tab-card")
+                .should("have.css", "display", "flex");
+
+            testMatrixPopoverValidation(
+                "#data-matrix-for_benchmarking",
+                caps.expectedDataMatrixBenchmarkingOpts
+            );
+        })
+        .end();
+}
+
+function assertCanSeeRetractedFilesMenu(caps) {
+    cy.get(dataNavBarItemSelectorStr)
+        .should("have.class", "dropdown-toggle")
+        .click()
+        .should("have.class", "dropdown-open-for")
+        .then(() => {
+            const menuItem = cy.get('.big-dropdown-menu.is-open a.big-link[href="/retracted-files"]');
+            caps.expectedRetractedFilesMenuVisible
+                ? menuItem.should("be.visible")
+                : menuItem.should("not.exist");
+        })
+        .end();
+}
+
+function assertCannotAccessRetractedFilesPage(caps) {
+    goto({ url: "/retracted-files", failOnStatusCode: false });
+
+    cy.contains("h1.page-title", "Forbidden").should("be.visible");
+
+    cy.request({
+        url: "/retracted-files",
+        failOnStatusCode: false,
+        headers: cypressVisitHeaders,
+    }).then((resp) => {
+        expect(resp.status).to.equal(caps.expectedRetractedFilesResponseCode);
     });
+}
 
-    it('Visit Data Matrix for Production, should expand SMHT004, SMHT008 and validate row/column summaries, popover content', function () {
+function assertCannotAccessDataMatrixPage(caps) {
+    goto({ url: "/data-matrix", failOnStatusCode: false });
 
-        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM')
-            .get(dataNavBarItemSelectorStr)
-            .should('have.class', 'dropdown-toggle')
-            .click()
-            .should('have.class', 'dropdown-open-for').then(() => {
+    cy.contains("h1.page-title", "Forbidden").should("be.visible");
 
-                cy.get('.big-dropdown-menu.is-open a.big-link[href="/data-matrix"]')
-                    .click({ force: true }).then(function ($linkElem) {
-                        cy.get('#slow-load-container').should('not.have.class', 'visible').end();
-                        const linkHref = $linkElem.attr('href');
-                        cy.location('pathname').should('equal', linkHref);
-                    });
-
-                // Verify that the page contains the correct header
-                cy.contains('div#page-title-container h1.page-title', 'Data Matrix').should('be.visible');
-
-                testMatrixPopoverValidation('#data-matrix-for_production', ['SMHT004', 'SMHT008', 'SMHT009'], ['Non-exposed Skin', 'Heart', 'Blood'], [], ['Donors']);
-            })
-            .logoutSMaHT();
+    cy.request({
+        url: "/data-matrix",
+        failOnStatusCode: false,
+        headers: cypressVisitHeaders,
+    }).then((resp) => {
+        expect(resp.status).to.equal(caps.expectedDataMatrixResponseCode);
     });
+}
 
-    it('Visit Data Matrix for Benchmarking, should expand ST001, ST002, ST003, ST004 and validate row/column summaries, popover content', function () {
+/* ----------------------------- PARAMETERIZED SUITE ----------------------------- */
 
-        cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM')
-            .get(dataNavBarItemSelectorStr)
-            .should('have.class', 'dropdown-toggle')
-            .click()
-            .should('have.class', 'dropdown-open-for').then(() => {
+const ROLES_TO_TEST = [
+    "UNAUTH",
+    ROLE_TYPES.SMAHT_DBGAP,
+    ROLE_TYPES.SMAHT_NON_DBGAP,
+    ROLE_TYPES.PUBLIC_DBGAP,
+    ROLE_TYPES.PUBLIC_NON_DBGAP,
+];
 
-                cy.get('.big-dropdown-menu.is-open a.big-link[href="/data-matrix"]')
-                    .click({ force: true }).then(function ($linkElem) {
-                        cy.get('#slow-load-container').should('not.have.class', 'visible').end();
-                        const linkHref = $linkElem.attr('href');
-                        cy.location('pathname').should('equal', linkHref);
-                    });
+describe("Data Overview by role", () => {
+    ROLES_TO_TEST.forEach((roleKey) => {
+        const caps = ROLE_MATRIX[roleKey];
+        const label = caps.label || String(roleKey);
 
-                // Verify that the page contains the correct header
-                cy.contains('div#page-title-container h1.page-title', 'Data Matrix').should('be.visible');
+        // override caps for data/staging environment
+        const baseUrl = Cypress.config().baseUrl || "";
+        if ((baseUrl.includes("data.smaht.org") || baseUrl.includes("staging.smaht.org")) && ['UNAUTH', ROLE_TYPES.PUBLIC_DBGAP, ROLE_TYPES.PUBLIC_NON_DBGAP].includes(roleKey)) {
+            caps.runDataMatrixBenchmarking = false;
+            caps.runDataMatrixProduction = false;
+            caps.expectedDataMatrixResponseCode = 403;
+        }
 
-                testMatrixPopoverValidation('#data-matrix-for_benchmarking', ['ST001', 'ST002', 'ST003', 'ST004'], [], ['Non-exposed Skin', 'Lung', 'Brain', 'Liver', 'Ascending Colon'], ['Cell Lines', 'Donors']);
-            })
-            .logoutSMaHT();
+        context(`${label} → data overview capabilities`, () => {
+            before(() => {
+                goto("/");
+                loginIfNeeded(roleKey);
+            });
+
+            after(() => {
+                logoutIfNeeded(roleKey);
+            });
+
+            it(`Retracted Files list (enabled: ${caps.runRetractedFilesList})`, () => {
+                if (!caps.runRetractedFilesList) {
+                    assertCanSeeRetractedFilesMenu(caps);
+                    assertCannotAccessRetractedFilesPage(caps);
+                    return;
+                }
+                stepVisitRetractedFilesList(caps);
+            });
+
+            it(`Data Matrix — Production (enabled: ${caps.runDataMatrixProduction})`, () => {
+                if (!caps.runDataMatrixProduction) {
+                    assertCannotAccessDataMatrixPage(caps);
+                    return;
+                }
+                stepDataMatrixProduction(caps);
+            });
+
+            it(`Data Matrix — Benchmarking (enabled: ${caps.runDataMatrixBenchmarking})`, () => {
+                if (!caps.runDataMatrixBenchmarking) {
+                    assertCannotAccessDataMatrixPage(caps);
+                    return;
+                }
+                stepDataMatrixBenchmarking(caps);
+            });
+        });
     });
-
 });

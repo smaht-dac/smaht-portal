@@ -22,109 +22,39 @@ Cypress.Commands.add('scrollToBottom', function (options) {
     });
 });
 
-Cypress.Commands.add(
-    'scrollToCenterElement',
-    { prevSubject: true },
-    (subject, options) => {
-        expect(subject.length).to.equal(1);
-        const subjectElem = subject[0];
-        var bounds = subjectElem.getBoundingClientRect();
-        return cy.window().then((w) => {
-            w.scrollBy(0, bounds.top - w.innerHeight / 2);
-            return cy.wrap(subjectElem);
-        });
-    }
+Cypress.Commands.add('scrollToCenterElement', { prevSubject: true }, (subject, options) => {
+    expect(subject.length).to.equal(1);
+    const subjectElem = subject[0];
+    var bounds = subjectElem.getBoundingClientRect();
+    return cy.window().then((w) => {
+        w.scrollBy(0, bounds.top - w.innerHeight / 2);
+        return cy.wrap(subjectElem);
+    });
+}
 );
 
-/* Hovering */
-Cypress.Commands.add(
-    'hoverIn',
-    { prevSubject: true },
-    function (subject, options) {
-        expect(subject.length).to.equal(1);
+Cypress.Commands.add('getLoadedMenuItem', (selector) => {
+    // 1) Scroll separately (may trigger layout / rerender)
+    cy.get(selector).scrollIntoView();
 
-        var subjElem = subject[0];
+    // 2) Do all assertions inside .should(($el) => {...})
+    //    This makes them retry-safe if the element detaches / rerenders.
+    return cy.get(selector, { timeout: 20000 }).should(($el) => {
+        // visible + class check
+        expect($el, 'menu item is visible').to.be.visible;
+        expect($el, 'has dropdown-toggle class').to.have.class('dropdown-toggle');
 
-        var bounds = subjElem.getBoundingClientRect();
-        var cursorPos = {
-            clientX: bounds.left + bounds.width / 2,
-            clientY: bounds.top + bounds.height / 2,
-        };
-        var commonEventVals = _.extend(
-            { bubbles: true, cancelable: true },
-            cursorPos
-        );
+        // verify pseudo-element ::after rendered
+        const el = $el[0];
+        const win = el.ownerDocument.defaultView || window;
+        const after = win.getComputedStyle(el, '::after');
 
-        subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventVals));
-        subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventVals));
-        subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventVals));
-
-        return subject;
-    }
-);
-
-Cypress.Commands.add(
-    'hoverOut',
-    { prevSubject: true },
-    function (subject, options) {
-        expect(subject.length).to.equal(1);
-
-        var subjElem = subject[0];
-
-        var bounds = subjElem.getBoundingClientRect();
-        var cursorPos = {
-            clientX: Math.max(bounds.left - bounds.width / 2, 0),
-            clientY: Math.max(bounds.top - bounds.height / 2, 0),
-        };
-        var commonEventValsIn = _.extend(
-            { bubbles: true, cancelable: true },
-            cursorPos
-        );
-
-        subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn));
-        subjElem.dispatchEvent(
-            new MouseEvent(
-                'mouseleave',
-                _.extend({ relatedTarget: subjElem }, commonEventValsIn, {
-                    clientX: bounds.left - 5,
-                    clientY: bounds.top - 5,
-                })
-            )
-        );
-
-        return subject;
-    }
-);
-
-Cypress.Commands.add(
-    'clickEvent',
-    { prevSubject: true },
-    function (subject, options) {
-        expect(subject.length).to.equal(1);
-
-        var subjElem = subject[0];
-
-        var bounds = subjElem.getBoundingClientRect();
-        var cursorPos = {
-            clientX: bounds.left + bounds.width / 2,
-            clientY: bounds.top + bounds.height / 2,
-        };
-        var commonEventValsIn = _.extend(
-            { bubbles: true, cancelable: true },
-            cursorPos
-        );
-
-        subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mousedown', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mouseup', commonEventValsIn));
-        //subjElem.dispatchEvent(new MouseEvent('mouseleave', _.extend({ 'relatedTarget' : subjElem }, commonEventValsIn, { 'clientX' : bounds.left - 5, 'clientY' : bounds.top - 5 }) ) );
-
-        return subject;
-    }
-);
+        // Some browsers return quoted strings (e.g. '"▼"'), we just care it's not 'none'
+        expect(after && after.content, '::after content exists').to.not.equal('none');
+    })
+        // 3) Hand back a fresh, attached subject for further chaining
+        .then(() => cy.get(selector));
+});
 
 Cypress.Commands.add('signJWT', (auth0secret, email, sub) => {
     cy.request({
@@ -156,11 +86,22 @@ Cypress.Commands.add('signJWT', (auth0secret, email, sub) => {
     });
 });
 
-/**
- * This emulates login.js. Perhaps we should adjust login.js somewhat to match this better re: navigate.then(...) .
- */
-Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: false }) {
-    function performLogin(token) {
+Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: false, forceLogout: true }) {
+    Cypress.log({
+        name: 'Login SMaHT',
+        message: 'Attempting to login as role ' + role
+    });
+
+    //ensure user is logged out first
+    if (options.forceLogout) {
+        cy.get('body').then(($body) => {
+            if ($body.find(navUserAcctDropdownBtnSelector + '#account-menu-item').length > 0) {
+                cy.logoutSMaHT().end();
+            }
+        });
+    }
+
+    function performLogin(token, userDisplayName = '') {
         return cy
             .window()
             .then((w) => {
@@ -200,6 +141,7 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
                     })
                     .end();
             })
+            .validateUser(userDisplayName)
             .end();
     }
 
@@ -213,11 +155,11 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
     }
 
     cy.fixture('roles.json').then((roles) => {
-        let email, auth0UserId;
+        let email, auth0UserId, shortname;
         if (roles && roles[role] && roles[role].email && roles[role].auth0UserId) {
-            ({ email, auth0UserId } = roles[role]);
+            ({ email, auth0UserId, shortname } = roles[role]);
         } else {
-            ({ email = options.user || Cypress.env('LOGIN_AS_USER'), auth0UserId } = options);
+            ({ email = options.user || Cypress.env('LOGIN_AS_USER'), auth0UserId, shortname } = options);
         }
 
         const auth0secret = Cypress.env('Auth0Secret');
@@ -240,32 +182,38 @@ Cypress.Commands.add('loginSMaHT', function (role, options = { useEnvToken: fals
                 name: 'Login SMaHT',
                 message: 'Generated own JWT with length ' + token.length,
             });
-            return performLogin(token);
+            return performLogin(token, shortname);
         });
     });
 });
 
-Cypress.Commands.add('validateUser', function (userDisplayName = 'SCM') {
+Cypress.Commands.add('validateUser', function (userDisplayName = '') {
     return cy.get(navUserAcctDropdownBtnSelector)
-        .should('not.contain.text', 'Login')
+        .should('not.contain.text', 'Login / Register')
         .then((accountListItem) => {
+            Cypress.log({
+                name: 'Validate User',
+                message: 'Validating user is ' + userDisplayName,
+            });
             expect(accountListItem.text()).to.contain(userDisplayName);
         }).end();
 });
 
 Cypress.Commands.add('logoutSMaHT', function (options = { useEnvToken: true }) {
-    cy.get(navUserAcctDropdownBtnSelector)
-        .click()
-        .end()
-        .get('#logoutbtn')
-        .click()
-        .end()
-        .get(navUserAcctLoginBtnSelector)
-        .should('contain', 'Login')
-        .end()
-        .get('#slow-load-container')
-        .should('not.have.class', 'visible')
-        .end();
+    cy.getLoadedMenuItem(navUserAcctDropdownBtnSelector)
+        .click({ force: true })
+        .should("have.class", "dropdown-open-for")
+        .then(() => {
+            cy.get('#logoutbtn')
+                .click()
+                .end()
+                .get(navUserAcctLoginBtnSelector)
+                .should('contain', 'Login / Register')
+                .end()
+                .get('#slow-load-container')
+                .should('not.have.class', 'visible')
+                .end();
+        });
 });
 
 /** Session Caching */
@@ -311,100 +259,90 @@ Cypress.Commands.add('clearBrowserSession', function (options = {}) {
  ** (Yes, these are truly not included in Cypress by default
  ** @see: https://docs.cypress.io/api/commands/hover)
  */
-Cypress.Commands.add(
-    'hoverIn',
-    { prevSubject: true },
-    function (subject, options) {
-        expect(subject.length).to.equal(1);
+Cypress.Commands.add('hoverIn', { prevSubject: true }, function (subject, options) {
+    expect(subject.length).to.equal(1);
 
-        var subjElem = subject[0];
+    var subjElem = subject[0];
 
-        var bounds = subjElem.getBoundingClientRect();
-        var cursorPos = {
-            clientX: bounds.left + bounds.width / 2,
-            clientY: bounds.top + bounds.height / 2,
-        };
-        var commonEventVals = _.extend(
-            { bubbles: true, cancelable: true },
-            cursorPos
-        );
+    var bounds = subjElem.getBoundingClientRect();
+    var cursorPos = {
+        clientX: bounds.left + bounds.width / 2,
+        clientY: bounds.top + bounds.height / 2,
+    };
+    var commonEventVals = _.extend(
+        { bubbles: true, cancelable: true },
+        cursorPos
+    );
 
-        subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventVals));
-        subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventVals));
-        subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventVals));
+    subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventVals));
+    subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventVals));
+    subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventVals));
 
-        return subject;
-    }
+    return subject;
+}
 );
 
-Cypress.Commands.add(
-    'hoverOut',
-    { prevSubject: true },
-    function (subject, options) {
-        expect(subject.length).to.equal(1);
+Cypress.Commands.add('hoverOut', { prevSubject: true }, function (subject, options) {
+    expect(subject.length).to.equal(1);
 
-        var subjElem = subject[0];
+    var subjElem = subject[0];
 
-        var bounds = subjElem.getBoundingClientRect();
-        var cursorPos = {
-            clientX: Math.max(bounds.left - bounds.width / 2, 0),
-            clientY: Math.max(bounds.top - bounds.height / 2, 0),
-        };
-        var commonEventValsIn = _.extend(
-            { bubbles: true, cancelable: true },
-            cursorPos
-        );
+    var bounds = subjElem.getBoundingClientRect();
+    var cursorPos = {
+        clientX: Math.max(bounds.left - bounds.width / 2, 0),
+        clientY: Math.max(bounds.top - bounds.height / 2, 0),
+    };
+    var commonEventValsIn = _.extend(
+        { bubbles: true, cancelable: true },
+        cursorPos
+    );
 
-        subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn));
-        subjElem.dispatchEvent(
-            new MouseEvent(
-                'mouseleave',
-                _.extend({ relatedTarget: subjElem }, commonEventValsIn, {
-                    clientX: bounds.left - 5,
-                    clientY: bounds.top - 5,
-                })
-            )
-        );
+    subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn));
+    subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn));
+    subjElem.dispatchEvent(
+        new MouseEvent(
+            'mouseleave',
+            _.extend({ relatedTarget: subjElem }, commonEventValsIn, {
+                clientX: bounds.left - 5,
+                clientY: bounds.top - 5,
+            })
+        )
+    );
 
-        return subject;
-    }
+    return subject;
+}
 );
 
 /**
  * Not 100% sure this is still necessary? Seems like cy.click() might do the job...
  * Remove if not in use after 2024 (it'll probably still be in fourfront)
  */
-Cypress.Commands.add(
-    'clickEvent',
-    { prevSubject: true },
-    function (subject, options) {
-        expect(subject.length).to.equal(1);
+Cypress.Commands.add('clickEvent', { prevSubject: true }, function (subject, options) {
+    expect(subject.length).to.equal(1);
 
-        var subjElem = subject[0];
+    var subjElem = subject[0];
 
-        var bounds = subjElem.getBoundingClientRect();
-        var cursorPos = {
-            clientX: bounds.left + bounds.width / 2,
-            clientY: bounds.top + bounds.height / 2,
-        };
-        var commonEventValsIn = _.extend(
-            { bubbles: true, cancelable: true },
-            cursorPos
-        );
+    var bounds = subjElem.getBoundingClientRect();
+    var cursorPos = {
+        clientX: bounds.left + bounds.width / 2,
+        clientY: bounds.top + bounds.height / 2,
+    };
+    var commonEventValsIn = _.extend(
+        { bubbles: true, cancelable: true },
+        cursorPos
+    );
 
-        subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mousedown', commonEventValsIn));
-        subjElem.dispatchEvent(new MouseEvent('mouseup', commonEventValsIn));
+    subjElem.dispatchEvent(new MouseEvent('mouseenter', commonEventValsIn));
+    subjElem.dispatchEvent(new MouseEvent('mousemove', commonEventValsIn));
+    subjElem.dispatchEvent(new MouseEvent('mouseover', commonEventValsIn));
+    subjElem.dispatchEvent(new MouseEvent('mousedown', commonEventValsIn));
+    subjElem.dispatchEvent(new MouseEvent('mouseup', commonEventValsIn));
 
-        return subject;
-    }
+    return subject;
+}
 );
 
 /*** Browse View Utils ****/
-
 Cypress.Commands.add("getQuickInfoBar", () => {
     const infoTypes = ["file", "donor", "tissue", "assay", "file-size"];
     const result = {};
@@ -429,7 +367,7 @@ Cypress.Commands.add("getQuickInfoBar", () => {
                         result[iconType] = 0;
                     } else if (iconType === "file-size") {
                         // e.g. "14.18 TB"
-                        const match = trimmed.match(/^([\d.,]+)\s*(TB|GB|MB|KB)?$/i);
+                        const match = trimmed.match(/^([\d.,]+)\s*(TB|GB|MB|KB|Bytes)?$/i);
                         if (match) {
                             const number = parseFloat(match[1].replace(",", ""));
                             const unit = match[2] ? match[2].toUpperCase() : "B";
@@ -456,3 +394,91 @@ Cypress.Commands.add("getQuickInfoBar", () => {
     }).then(() => result);
 });
 
+/*** Popover Utils ****/
+Cypress.Commands.add('waitForPopoverShow', (popoverSelector = '#jap-popover, .popover', timeout = 10000) => {
+    return cy.window().then((win) => new Cypress.Promise((resolve, reject) => {
+        const start = Date.now();
+
+        const matchesShow = (el) =>
+            el &&
+            el.isConnected &&
+            (el.matches(popoverSelector) || el.closest(popoverSelector)) &&
+            (el.classList?.contains('show') || el.closest('.show'));
+
+        // Fast path: if already visible, resolve immediately
+        const existing = Array.from(win.document.querySelectorAll(popoverSelector))
+            .find(el => el.classList?.contains('show'));
+        if (existing) return resolve(existing);
+
+        // Observe class and DOM changes to detect when popover becomes visible
+        const observer = new win.MutationObserver((mutations) => {
+            for (const m of mutations) {
+                // Check for class attribute changes
+                if (m.type === 'attributes' && matchesShow(m.target)) {
+                    cleanup(); return resolve(m.target);
+                }
+                // Check for new elements added to DOM
+                if (m.type === 'childList') {
+                    for (const n of m.addedNodes) {
+                        if (n.nodeType === 1 && matchesShow(n)) {
+                            cleanup(); return resolve(n);
+                        }
+                        if (n.nodeType === 1) {
+                            const found = n.querySelector?.(popoverSelector);
+                            if (found && found.classList?.contains('show')) {
+                                cleanup(); return resolve(found);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Timeout guard
+            if (Date.now() - start > timeout) {
+                cleanup();
+                const dbg = Array.from(win.document.querySelectorAll(popoverSelector))
+                    .map(el => `[id="${el.id}" class="${el.className}"]`).join('\n');
+                reject(new Error(`Popover .show not detected (timeout ${timeout}ms). Candidates:\n${dbg || '(none)'}`));
+            }
+        });
+
+        const cleanup = () => observer.disconnect();
+
+        // Observe the entire document body for class changes and new elements
+        observer.observe(win.document.body, {
+            attributes: true,
+            attributeFilter: ['class'],
+            subtree: true,
+            childList: true
+        });
+
+        // Final fallback timeout
+        setTimeout(() => {
+            if (Date.now() - start > timeout) {
+                cleanup();
+                reject(new Error(`Popover .show not detected (timeout ${timeout}ms)`));
+            }
+        }, timeout + 5);
+    }));
+});
+
+/** Toggles between Donor View and Cohort View */
+Cypress.Commands.add('toggleView', (targetView) => {
+    return cy.get('.icon-toggle.view-toggle').within(() => {
+        cy.get('button').then(($buttons) => {
+            const activeBtn = [...$buttons].find(btn => btn.classList.contains('active'));
+            const activeText = activeBtn?.innerText?.trim();
+
+            if (targetView) {
+                // Explicit toggle: go to specific target view
+                cy.contains('button', targetView, { matchCase: false }).click({ force: true });
+            } else {
+                // Implicit toggle: click inactive button
+                const inactiveBtn = [...$buttons].find(btn => !btn.classList.contains('active'));
+                cy.wrap(inactiveBtn).click({ force: true });
+            }
+
+            cy.log(`Toggled from "${activeText}" view.`);
+        });
+    });
+});

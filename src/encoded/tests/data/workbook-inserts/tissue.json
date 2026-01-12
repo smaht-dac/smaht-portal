@@ -19,7 +19,7 @@
         "preservation_medium": "Formalin",
         "size": 2.3,
         "size_unit" : "cm^2",
-        "status": "released"
+        "status": "open-early"
     },
     {
         "uuid": "4e92d8b9-e0ad-4469-8e8c-01a0a5d7b313",
@@ -57,7 +57,7 @@
         "anatomical_location": "Brain",
         "weight": 3.4,
         "preservation_type": "Fresh",
-        "status": "released"
+        "status": "open"
     },
     {
         "uuid": "9d23bfb8-07ae-4dad-999e-4cc45f68af29",
@@ -76,8 +76,8 @@
             "smaht"
         ],
         "submitted_id": "TEST_TISSUE_FIBROBLAST",
-        "external_id": "ST001-3AC",
-        "donor": "TEST_DONOR_MALE",
+        "external_id": "SMHT001-3AC",
+        "donor": "TEST_DONOR_FEMALE",
         "uberon_id": "UBERON:0004264",
         "anatomical_location": "Fibroblast"
     }

@@ -2,7 +2,7 @@
     {
         "identifier": "about",
         "title": "About",
-        "status": "public",
+        "status": "open",
         "children": [
             "d2d042e7-09e5-4a34-a8c5-530ba9c9cdec",
             "af03023c-1ce0-49a1-b85b-20f5abd8cc30"
@@ -22,7 +22,7 @@
     {
         "identifier": "about/consortium",
         "title": "SMaHT Consortium Information",
-        "status": "public",
+        "status": "open",
         "children": [
             "6da98599-12a7-456f-8598-da510a88c7e8",
             "1ef242a4-954c-4c77-9193-3ec3b1a8e7d7"
@@ -47,7 +47,7 @@
     {
         "identifier": "about/join",
         "title": "How to Join SMaHT",
-        "status": "public",
+        "status": "open",
         "children": [
             "fd79ef6d-bbb3-4318-b1e0-9b108a57cccd"
         ],
@@ -71,7 +71,7 @@
     {
         "identifier": "about/consortium/awardees",
         "title": "SMaHT Consortium Members",
-        "status": "public",
+        "status": "open",
         "content": [
             "f1601ba5-483b-4133-a76b-5bec7caa2dd2"
         ],
@@ -92,7 +92,7 @@
     {
         "identifier": "about/consortium/data",
         "title": "SMaHT Data",
-        "status": "public",
+        "status": "open",
         "content": [
             "d3d9c545-4340-495a-92ea-7ccb7eebc71b",
             "eb1d19d5-5ebe-4e89-a8d7-fc50a8c85a61"
@@ -114,7 +114,7 @@
     {
         "identifier": "about/join/policy",
         "title": "Associate Membership Policy",
-        "status": "public",
+        "status": "open",
         "content": [
             "dd5198bb-72ba-4c5b-9736-3ba785814a20"
         ],
@@ -135,7 +135,7 @@
     {
         "identifier": "docs",
         "title": "Documentation",
-        "status": "public",
+        "status": "open",
         "children": [
             "39cbfcb1-ba80-4968-85e0-b668b4b04f9f",
             "6523af8e-34e5-40eb-9e09-710a41b824a4",
@@ -156,12 +156,14 @@
     {
         "identifier": "docs/access",
         "title": "Access",
-        "status": "public",
+        "status": "open",
         "children": [
             "508b5585-2329-4878-913b-4b70eeea6cb6",
             "9ff656c8-5a17-4531-9198-368d59e0008f",
             "9132c670-83ef-4e35-b4df-ec4a8f9b8692",
-            "d5fcb57f-f405-4991-87f3-549f9cafcc95"
+            "d5fcb57f-f405-4991-87f3-549f9cafcc95",
+            "6c1d10cd-0627-40f5-897c-c96c89023b29",
+            "2a3f6d44-d5cc-43bd-b1c5-480a808a36d0"
         ],
         "table-of-contents": {
             "enabled": true,
@@ -178,7 +180,7 @@
     {
         "identifier": "docs/access/creating-an-account",
         "title": "Creating an Account",
-        "status": "public",
+        "status": "open",
         "content": [
             "442c8aa0-dc6c-43d7-814a-854af460b014"
         ],
@@ -206,7 +208,7 @@
         "table-of-contents": {
             "enabled": true
         },
-        "status": "public",
+        "status": "open",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -225,7 +227,316 @@
             "enabled": true,
             "header-depth": 4
         },
-        "status": "public",
+        "status": "open",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/access/data-availability-and-access",
+        "uuid": "6c1d10cd-0627-40f5-897c-c96c89023b29",
+        "title": "Data Availability and Access",
+        "content": [
+            "550230b3-34fe-42cf-8fb8-72fad10b9861"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "header-depth": 4
+        },
+        "status": "open",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/access/getting-dbgap-access",
+        "uuid": "2a3f6d44-d5cc-43bd-b1c5-480a808a36d0",
+        "title": "Getting dbGAP Access",
+        "content": [
+            "f8b1b363-5530-4109-83c2-7b94acbc0e18"
+        ],
+        "table-of-contents": {
+            "enabled": false,
+            "header-depth": 4
+        },
+        "status": "open",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/analysis",
+        "title": "Analysis - deprecated",
+        "status": "in review",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 4
+        },
+        "uuid": "f8513cd6-f7ae-43b6-9a7d-b6966ab505ca",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline_faq",
+        "uuid": "b3e754fd-be49-4998-bd05-040623617cdf",
+        "title": "Analysis Pipeline FAQ",
+        "content": [
+            "6c096d6a-d9ff-43ec-b6f6-10ebf8e55c5d"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "status": "open",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs",
+        "title": "Analysis Methods",
+        "status": "open-network",
+        "children" : [
+            "379e3032-a0fe-45d6-8277-b373b52d3a79",
+            "1756229d-7498-444f-b574-983d3020f948",
+            "ab58ce07-b8f9-4807-aa8a-d651b6cd733d",
+            "041ca9a2-2b67-409c-ac50-4705f995fb99",
+            "582c7cab-bd68-4e86-aa29-6d0e6718b62a",
+            "3f503a50-8646-4b4d-b870-73eabc8106a2",
+            "1ac937fa-8057-44da-ae9d-869d1cc56a1b",
+            "01f81cd2-5423-4c26-afd2-5e31f6eef6b6",
+            "f873a9df-a511-4e02-af8c-d6e050980b4e",
+            "078a29b1-3cb8-4bcf-bf76-865b66afaa74",
+            "45445bef-a513-4236-a013-baeecb3e9e25"
+        ],
+        "content": [
+            "b78b2ebb-d01c-4635-8a67-76a98ab81772"
+        ],
+        "uuid": "6e144832-6abc-47e2-bea5-f720598cf61a",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs/fastq_files",
+        "title": "FASTQ",
+        "status": "open-network",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 2
+        },
+        "content": [
+            "439034da-bad5-42c5-8124-3be68276d6cc"
+        ],
+        "uuid": "379e3032-a0fe-45d6-8277-b373b52d3a79",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs/short-read_illumina_paired-end",
+        "title": "Illumina (short-read)",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 2
+        },
+        "content": [
+            "ce182c42-4f0e-4c1b-b325-213f730a0b42"
+        ],
+        "status": "open-network",
+        "uuid": "1756229d-7498-444f-b574-983d3020f948",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs/long-read_pacbio_hifi",
+        "title": "PacBio HiFi (long-read)",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 2
+        },
+        "content": [
+            "23bd319b-19eb-4408-869b-eda806da56a5"
+        ],
+        "status": "open-network",
+        "uuid": "ab58ce07-b8f9-4807-aa8a-d651b6cd733d",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs/long-read_oxford_nanopore",
+        "title": "Oxford Nanopore (long-read)",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 2
+        },
+        "content": [
+            "9cc46136-477d-4f6e-8751-94d41e6fb5cf"
+        ],
+        "status": "open-network",
+        "uuid": "041ca9a2-2b67-409c-ac50-4705f995fb99",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs/short-read_rna-seq_paired-end",
+        "title": "Bulk Total RNA (short-read)",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 2
+        },
+        "content": [
+            "e1ee7924-99cf-4584-9c89-1e023436c797"
+        ],
+        "status": "open-network",
+        "uuid": "582c7cab-bd68-4e86-aa29-6d0e6718b62a",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs/long-read_rna-seq_pacbio_kinnex",
+        "title": "PacBio Kinnex (long-read)",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 2
+        },
+        "content": [
+            "22b22be8-8380-4407-a952-c8106d70c4bc"
+        ],
+        "status": "open-network",
+        "uuid": "3f503a50-8646-4b4d-b870-73eabc8106a2",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs/genome_builds",
+        "title": "Genome Builds",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 2
+        },
+        "content": [
+            "455af80f-2dbd-40c7-b7b0-451783dc87ef"
+        ],
+        "status": "open-network",
+        "uuid": "1ac937fa-8057-44da-ae9d-869d1cc56a1b",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs/genome_annotations",
+        "title": "Gene and Transcript Annotations",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 2
+        },
+        "content": [
+            "1dc93422-bed2-45c5-8f98-ee57414d4c4a"
+        ],
+        "status": "open-network",
+        "uuid": "01f81cd2-5423-4c26-afd2-5e31f6eef6b6",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs/variant_catalogs",
+        "title": "Variant Databases",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 2
+        },
+        "content": [
+            "2112c809-bca7-46cc-b700-a5280cb2cdee"
+        ],
+        "status": "open-network",
+        "uuid": "f873a9df-a511-4e02-af8c-d6e050980b4e",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs/software_specific",
+        "title": "Software-specific Reference Files",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 2
+        },
+        "content": [
+            "45e37138-0988-4f31-be2a-acec7605bf3d"
+        ],
+        "status": "open-network",
+        "uuid": "078a29b1-3cb8-4bcf-bf76-865b66afaa74",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/additional-resources/pipeline-docs/release_changelog",
+        "title": "Release Changelog",
+        "table-of-contents": {
+            "enabled": true,
+            "header-depth": 2
+        },
+        "content": [
+            "408bc595-868c-43a6-a8f0-105c22ded302"
+        ],
+        "status": "open-network",
+        "uuid": "45445bef-a513-4236-a013-baeecb3e9e25",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -236,13 +547,13 @@
     {
         "identifier": "docs/submission",
         "title": "Submission",
-        "status": "public",
+        "status": "open",
         "children": [
             "dad6eb69-bdd0-4409-898a-6e95ba420bc0",
             "1a2da742-acc2-44e2-b5d9-249fe3e837e1",
             "2a3b8679-16a7-44be-8676-e4c290bef36e",
             "eb2b9abf-1838-4cf4-81f7-5b8b39c30edb",
-            "0861c711-4728-4e10-9ff1-74b8b3f93676"
+            "00e9634f-8b43-413d-bfe6-0f0eafce4e40"
         ],
         "table-of-contents": {
             "enabled": true,
@@ -266,7 +577,7 @@
         "table-of-contents": {
             "enabled": true
         },
-        "status": "public",
+        "status": "open",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -285,7 +596,7 @@
             "enabled": true,
             "header-depth": 4
         },
-        "status": "public",
+        "status": "open",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -304,7 +615,7 @@
             "enabled": true,
             "header-depth": 4
         },
-        "status": "public",
+        "status": "open",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -322,7 +633,7 @@
         "table-of-contents": {
             "enabled": true
         },
-        "status": "public",
+        "status": "open",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -333,9 +644,12 @@
     {
         "identifier": "docs/additional-resources",
         "uuid": "1ada4fca-af4b-4304-947d-59e2918ab728",
-        "title": "Additional Resources",
-        "status": "public",
+        "title": "Analysis & Additional Resources",
+        "status": "open",
         "children": [
+            "6e144832-6abc-47e2-bea5-f720598cf61a",
+            "b3e754fd-be49-4998-bd05-040623617cdf",
+            "5e64b78a-58c1-48c3-b031-e8837a19b4a4",
             "27d149b5-164a-4351-9095-7be11d6371f7",
             "389b52ce-5161-4f08-b49b-b1b3b18f09e2"
         ],
@@ -356,7 +670,7 @@
         "content": [
             "e88a8a3d-cee8-430e-bfed-5c056bc384ea"
         ],
-        "status": "public",
+        "status": "open",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 4
@@ -379,7 +693,7 @@
             "enabled": true,
             "header-depth": 4
         },
-        "status": "public",
+        "status": "open",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -388,16 +702,34 @@
         ]
     },
     {
-        "identifier": "docs/submission/faq",
-        "uuid": "0861c711-4728-4e10-9ff1-74b8b3f93676",
-        "title": "Frequently Asked Questions",
+        "identifier": "docs/additional-resources/donor-manifest-dictionary",
+        "uuid": "5e64b78a-58c1-48c3-b031-e8837a19b4a4",
+        "status": "open",
         "content": [
-            "d78edbe6-9a42-4512-ac8d-b909bc287103"
+            "abb80b35-61ac-4433-b6e3-55be1ba15e18"
         ],
         "table-of-contents": {
             "enabled": false
         },
-        "status": "released",
+        "title": "Donor Manifest Dictionary",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "docs/submission/submission_faq",
+        "uuid": "00e9634f-8b43-413d-bfe6-0f0eafce4e40",
+        "title": "Submission FAQ",
+        "content": [
+            "6bea6bcb-8e08-4b56-981a-63caa22a78f2"
+        ],
+        "table-of-contents": {
+            "enabled": false
+        },
+        "status": "open-network",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -408,7 +740,7 @@
     {
         "identifier": "docs/submission/submission-data-dictionary",
         "uuid": "eb2b9abf-1838-4cf4-81f7-5b8b39c30edb",
-        "status": "released",
+        "status": "open-network",
         "content": [
             "4aeffcf9-f3bb-40e8-a4de-ac7d1bf4fac4"
         ],
@@ -521,7 +853,7 @@
             "target": "/docs/access/creating-an-account",
             "enabled": true
         },
-        "status": "public",
+        "status": "open",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -538,7 +870,7 @@
             "target": "/docs/submission/getting-started-with-submissions",
             "enabled": true
         },
-        "status": "public",
+        "status": "open",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -555,7 +887,7 @@
             "target": "/docs/access/access-key-generation",
             "enabled": true
         },
-        "status": "public",
+        "status": "open",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -572,7 +904,7 @@
             "target": "/docs/submission/credentials-for-submission",
             "enabled": true
         },
-        "status": "public",
+        "status": "open",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -589,7 +921,7 @@
             "target": "/docs/submission/uploading-files",
             "enabled": true
         },
-        "status": "public",
+        "status": "open",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -606,7 +938,7 @@
             "target": "/docs/additional-resources/troubleshooting",
             "enabled": true
         },
-        "status": "public",
+        "status": "open",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -623,7 +955,7 @@
             "target": "/docs/access/how-to-download-files",
             "enabled": true
         },
-        "status": "public",
+        "status": "open",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -640,7 +972,7 @@
             "target": "/docs/submission/links-to-existing-data",
             "enabled": true
         },
-        "status": "public",
+        "status": "open",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -657,7 +989,7 @@
             "target": "/docs/additional-resources/data-release-status",
             "enabled": true
         },
-        "status": "public",
+        "status": "open",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -674,7 +1006,7 @@
             "target": "/docs/access/interpreting-manifest-files",
             "enabled": true
         },
-        "status": "public",
+        "status": "open",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
@@ -685,7 +1017,7 @@
     {
         "identifier": "data",
         "title": "Data",
-        "status": "public",
+        "status": "open",
         "children": [
             "39deafe0-34ae-4ab8-8261-3661b0c79a38",
             "aa7a1d0f-6638-44a2-891e-95bb96aaa868"
@@ -705,7 +1037,7 @@
     {
         "identifier": "data/benchmarking",
         "title": "Benchmarking Data",
-        "status": "public",
+        "status": "open",
         "children": [
             "63dde5c8-75b7-4335-9fc7-04a25c494148",
             "086fd04b-0098-4138-aa15-0f4affd649a3",
@@ -735,7 +1067,7 @@
     {
         "identifier": "data/benchmarking/COLO829",
         "title": "COLO829",
-        "status": "public",
+        "status": "open",
         "content": [
             "dea41934-619a-4a3b-a2bd-0521d0fffab1"
         ],
@@ -756,7 +1088,7 @@
     {
         "identifier": "data/benchmarking/HapMap",
         "title": "HapMap",
-        "status": "public",
+        "status": "open",
         "content": [
             "5b5d9021-4dca-4023-bc5e-123b5ef66ff2"
         ],
@@ -777,7 +1109,7 @@
     {
         "identifier": "data/benchmarking/iPSC-fibroblasts",
         "title": "iPSC and Fibroblasts",
-        "status": "public",
+        "status": "open",
         "content": [
             "a08bb75d-93e2-455f-9fe2-aa8f4969d233"
         ],
@@ -798,7 +1130,7 @@
     {
         "identifier": "data/benchmarking/donor-st001",
         "title": "Donor ST001",
-        "status": "public",
+        "status": "open",
         "content": [
             "a2cdba5c-9e0e-4064-9ad0-353ade82f62e"
         ],
@@ -819,7 +1151,7 @@
     {
         "identifier": "data/benchmarking/donor-st002",
         "title": "Donor ST002",
-        "status": "public",
+        "status": "open",
         "content": [
             "f5829bad-3604-4bd8-9b40-685bb2f925f5"
         ],
@@ -840,7 +1172,7 @@
     {
         "identifier": "data/benchmarking/donor-st003",
         "title": "Donor ST003",
-        "status": "public",
+        "status": "open",
         "content": [
             "d093f2ec-4c72-4597-aa73-0ba501fb533a"
         ],
@@ -861,7 +1193,7 @@
     {
         "identifier": "data/benchmarking/donor-st004",
         "title": "Donor ST004",
-        "status": "public",
+        "status": "open",
         "content": [
             "185c76c9-fcdc-4ac5-be06-5b3b83c09b90"
         ],
@@ -882,7 +1214,7 @@
     {
         "identifier": "data/analysis",
         "title": "Benchmarking Analysis",
-        "status": "released",
+        "status": "open",
         "children": [
             "b4b2da6b-d5be-4cd3-81da-691ecc1f9308"
         ],
@@ -903,7 +1235,7 @@
     {
         "identifier": "data/analysis/colo829-snv-indel-detection",
         "title": "COLO829 SNV/Indel Detection Challenge",
-        "status": "released",
+        "status": "in review",
         "content": [
             "6843c6e7-7b47-457d-96c3-387af3c07207"
         ],
@@ -924,9 +1256,9 @@
     {
         "identifier": "resources",
         "title": "Resources",
-        "status": "released",
+        "status": "open",
         "children": [
-            "5e7962d0-a218-45ba-8a76-729ef683695b"
+            "5e7962d0-a218-45ba-8a76-729ef683695b"  
         ],
         "uuid": "c546dd8b-cc0d-4a56-abac-d7fd999a81f5",
         "consortia": [
@@ -939,7 +1271,7 @@
     {
         "identifier": "resources/genome-related",
         "title": "Genome Related",
-        "status": "released",
+        "status": "open",
         "children": [
             "192a220e-64c8-4ec3-93d9-4e4218f0a7fe"
         ],
@@ -954,7 +1286,7 @@
     {
         "identifier": "resources/genome-related/genome-reference-and-related-data",
         "title": "Genome Reference and Related Data",
-        "status": "released",
+        "status": "open",
         "content": [
             "edf6c0f5-e051-4c4e-8e22-99dfde0b8501"
         ],
@@ -1026,7 +1358,7 @@
     {
         "identifier": "qc-metrics",
         "uuid": "9069da47-819f-4f49-bd94-2a4cabb0e727",
-        "status": "released",
+        "status": "protected-network",
         "content": [
             "27d09f44-44ca-466e-ade6-6d5a5a81c99c"
         ],
@@ -1057,9 +1389,24 @@
         "uuid": "1c4da032-cadf-4461-adef-6d4238ee08d9"
     },
     {
+        "title": "Analysis Runs",
+        "status": "in review",
+        "content": [
+            "3560bb87-7635-4d75-8ff7-08758352e5af"
+        ],
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "analysis-status",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "uuid": "5db6067e-3f70-467f-a70a-de16b491be6e"
+    },
+    {
         "identifier": "retracted-files",
         "uuid": "c39ea4df-22c5-4d81-a495-6694c3360447",
-        "status": "in review",
+        "status": "protected-network",
         "content": [
             "d523e166-89bf-439d-9770-ee92e4bcb72b"
         ],
@@ -1076,10 +1423,10 @@
     },
     {
         "identifier": "data-matrix",
-        "uuid": "d9a62257-2ad4-416f-89a5-6354807b5f5e",
-        "status": "in review",
+        "uuid": "3e10a2a2-a918-4a4a-95d5-db032dff1321",
+        "status": "protected-network",
         "content": [
-            "ac15e912-543c-4ce5-a16a-1fcdf987181c"
+            "2851ec1b-ecdb-479a-b88e-deedaa1886ef"
         ],
         "table-of-contents": {
             "enabled": false

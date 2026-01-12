@@ -5,6 +5,26 @@ import { RightArrowIcon } from '../../util/icon';
 
 const announcements = [
     {
+        type: 'warning',
+        title: 'Data Retraction',
+        date: '2025-12-11',
+        body: (
+            <span>
+                Illumina bulk WGS data were retracted for production donor
+                samples; SMHT001-3A, SMHT005-3AF, SMHT007-3A, and SMHT022-3A,
+                due to data duplication.
+            </span>
+        ),
+        footer: (
+            <span>
+                <a href="/retracted-files">
+                    See Full List
+                    <RightArrowIcon />
+                </a>
+            </span>
+        ),
+    },
+    {
         type: 'info',
         title: 'Attention: BAM change',
         date: '2025-07-23',
@@ -102,7 +122,24 @@ const AnnouncementCard = ({
     );
 };
 
-const DataReleaseItem = ({ data, releaseItemIndex }) => {
+// Warning to include in the data release item for September 2025
+const ReleaseItemWarning = () => {
+    return (
+        <div className="announcement-container cram-conversion">
+            <div className="header">
+                <i className="icon fas icon-database"></i>
+                <span>CRAM CONVERSION</span>
+            </div>
+            <div className="body">
+                As of September 15, 2025, all released BAMs have been converted
+                to CRAMs for optimal file storage at the DAC. The data release
+                tracker will start to announce new CRAMs as they are released.
+            </div>
+        </div>
+    );
+};
+
+const DataReleaseItem = ({ data, callout = null }) => {
     const [isExpanded, setIsExpanded] = useState(true);
     const { count, items: sample_groups, query, value } = data;
 
@@ -129,18 +166,20 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
                                 isExpanded ? 'minus' : 'plus'
                             }`}></i>
                     </button>
-                    <a className="header-link" href={query}>
+                    <a className="header-link" href={count > 0 ? query : null}>
                         <span>
-                            {releaseItemIndex === 0 ? 'Latest: ' : ''}
                             {month} {year}
                         </span>
-                        <span className="count">
-                            {count} {count > 1 ? 'Files' : 'File'}
-                            <i className="icon icon-arrow-right"></i>
-                        </span>
+                        {count > 0 ? (
+                            <span className="count">
+                                {count} {count > 1 ? 'Files' : 'File'}
+                                <i className="icon icon-arrow-right"></i>
+                            </span>
+                        ) : null}
                     </a>
                 </div>
                 <div className="body">
+                    {callout ? <div className="callout">{callout}</div> : null}
                     {sample_groups.map((sample_group, i) => {
                         let sample_group_title = sample_group.value;
 
@@ -188,20 +227,20 @@ const DataReleaseItem = ({ data, releaseItemIndex }) => {
 export const NotificationsPanel = () => {
     const [data, setData] = useState(null);
 
-    useEffect(() => {
-        ajax.load(
-            '/recent_files_summary?format=json&nmonths=18',
-            (resp) => {
-                setData(resp?.items ?? null);
-            },
-            'GET',
-            (err) => {
-                if (err.notification !== 'No results found') {
-                    console.log('ERROR NotificationsPanel resp', err);
-                }
-            }
-        );
-    }, []);
+    // useEffect(() => {
+    //     ajax.load(
+    //         '/recent_files_summary?format=json&nmonths=3',
+    //         (resp) => {
+    //             setData(resp?.items ?? []);
+    //         },
+    //         'GET',
+    //         (err) => {
+    //             if (err.notification !== 'No results found') {
+    //                 console.log('ERROR NotificationsPanel resp', err);
+    //             }
+    //         }
+    //     );
+    // }, []);
 
     return (
         <div className="notifications-panel container">
@@ -210,19 +249,36 @@ export const NotificationsPanel = () => {
                 <div className="section-body-container">
                     <div className="section-body">
                         <div className="section-body-items-container">
-                            {data ? (
+                            <ReleaseItemWarning />
+                            {/* {data === null ? (
+                                <i className="icon fas icon-spinner icon-spin"></i>
+                            ) : data.length === 0 ? (
+                                <DataReleaseItem
+                                    data={{
+                                        name: 'file_status_tracking.release_dates.initial_release',
+                                        value: '2025-09',
+                                        count: 0,
+                                        items: [],
+                                        query: '',
+                                    }}
+                                    callout={<ReleaseItemWarning />}
+                                />
+                            ) : (
                                 data.map((releaseItem, i) => {
-                                    return (
+                                    return releaseItem?.value === '2025-09' ? (
                                         <DataReleaseItem
                                             data={releaseItem}
                                             key={i}
-                                            releaseItemIndex={i}
+                                            callout={<ReleaseItemWarning />}
+                                        />
+                                    ) : (
+                                        <DataReleaseItem
+                                            data={releaseItem}
+                                            key={i}
                                         />
                                     );
                                 })
-                            ) : (
-                                <i className="icon fas icon-spinner icon-spin"></i>
-                            )}
+                            )} */}
                         </div>
                     </div>
                 </div>
