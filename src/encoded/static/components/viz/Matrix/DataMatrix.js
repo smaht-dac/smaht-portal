@@ -71,12 +71,13 @@ export default class DataMatrix extends React.PureComponent {
         "query": {
             "url": "/data_matrix_aggregations/?type=File&status=open&limit=all",
             "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"],
-            "rowAggFields": ["donors.display_title", "sample_summary.tissue_protocol_id_and_names"]
+            "rowAggFields": ["donors.display_title", "sample_summary.tissues"]
         },
         "fieldChangeMap": {
             "assay": "file_sets.libraries.assay.display_title",
             "donor": "donors.display_title",
-            "tissue": "sample_summary.tissue_protocol_id_and_names",
+            "tissue": "sample_summary.tissue_protocol_ids",
+            // "tissue": "sample_summary.tissues",
             "platform": "sequencing.sequencer.platform",
             "data_type": "data_type",
             "file_format": "file_format.display_title",
@@ -249,7 +250,8 @@ export default class DataMatrix extends React.PureComponent {
             "donors.display_title",
             "sequencing.sequencer.display_title",
             "file_sets.libraries.assay.display_title",
-            "sample_summary.tissue_protocol_id_and_names",
+            "sample_summary.tissues",
+            "sample_summary.tissue_protocol_ids",
             "data_type",
             "file_format.display_title",
             "data_category",
@@ -887,6 +889,10 @@ DataMatrix.resultItemPostProcessFuncs = {
                 if (result.assay.indexOf('Ultra-Long WGS - ') !== -1 && result.platform !== 'ONT') {
                     result.files = 0;
                 }
+            }
+
+            if (result.tissue === 'No value - No value') {
+                result.tissue = 'No value';
             }
         }
         return result;
