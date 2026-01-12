@@ -1,6 +1,6 @@
 {
     "title": "Brain Pathology Report",
-    "description": "A pathology report for a tissue sample",
+    "description": "A pathology report for a neural/brain tissue sample",
     "$id": "/profiles/brain_pathology_report.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -71,278 +71,269 @@
                 "Brain"
             ]
         },
-        "anatomical_sample_location": {
-            "type": "string",
-            "enum": [
-                "Cerebellum Left Hemisphere",
-                "Frontal Lobe Left Hemisphere",
-                "Hippocampus Left Hemisphere",
-                "Hippocampus Right Hemisphere",
-                "Temporal Lobe Left Hemisphere"
-            ]
-        },
-        "target_tissues": {
-            "title": "Target Tissues",
+        "brain_subregions": {
+            "title": "Brain Subregions",
             "type": "array",
             "items": {
                 "type": "object",
                 "additionalProperties": false,
                 "required": [
-                    "target_tissue_subtype",
-                    "target_tissue_present",
-                    "target_tissue_percentage"
+                    "subregion",
+                    "is_present"
                 ],
                 "properties": {
-                    "target_tissue_subtype": {
-                        "$merge": "pathology_report.json#/properties/target_tissues/items/properties/target_tissue_subtype",
+                    "subregion": {
                         "type": "string",
                         "enum": [
-                            "Brain"
+                            "Cerebellum Left Hemisphere",
+                            "Frontal Lobe Left Hemisphere",
+                            "Hippocampus Left Hemisphere",
+                            "Hippocampus Right Hemisphere",
+                            "Temporal Lobe Left Hemisphere"
                         ]
                     },
-                    "target_tissue_present": {
-                        "$merge": "pathology_report.json#/properties/target_tissues/items/properties/target_tissue_present"
+                    "is_present": {
+                        "type": "string",
+                        "enum": [
+                            "Yes",
+                            "No"
+                        ]
                     },
-                    "target_tissue_percentage": {
-                        "$merge": "pathology_report.json#/properties/target_tissues/items/properties/target_tissue_percentage"
-                    },
-                    "target_tissue_autolysis_score": {
-                        "$merge": "pathology_report.json#/properties/target_tissues/items/properties/target_tissue_autolysis_score"
+                    "tissue_autolysis_score": {
+                        "$merge": "pathology_report.json#/properties/target_tissues/items/properties/tissue_autolysis_score"
                     }
                 }
             }
         },
-        "pathologic_findings": {
-            "title": "Pathologic Findings",
-            "type": "array",
-            "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                    "finding_type",
-                    "finding_present"
-                ],
-                "properties": {
-                    "finding_type": {
-                        "$merge": "pathology_report.json#/properties/pathologic_findings/items/properties/finding_type",
-                        "type": "string",
-                        "enum": [
-                            "Other",
-                            "Artifacts",
-                            "Developmental Neuropathology",
-                            "Infectious Neuropathology",
-                            "Inflammatory Neuropathology",
-                            "Metabolic Neuropathology",
-                            "Neoplastic Neuropathology",
-                            "Neurodegenerative Neuropathology",
-                            "Traumatic Brain Injury Neuropathology",
-                            "Vascular Neuropathology"
-                        ]
-                    },
-                    "finding_present": {
-                        "$merge": "pathology_report.json#/properties/pathologic_findings/items/properties/finding_present"
-                    },
-                    "finding_description": {
-                        "$merge": "pathology_report.json#/properties/pathologic_findings/items/properties/finding_description"
-                    },
-                    "finding_percentage": {
-                        "$merge": "pathology_report.json#/properties/pathologic_findings/items/properties/finding_percentage"
-                    }
-                }
-            }
-        },
-        "infectious_neuropathology_infection_type": {
-            "title": "Infection Type",
-            "description": "Infection type of infectious neuropathology in the sample",
+        "developmental_neuropathology_present": {
             "type": "string",
-            "enum": [
-                "Bacterial",
-                "Viral",
-                "Fungal",
-                "Parasitic",
-                "Other"
-            ]
-        },
-        "infectious_neuropathology_pattern_type": {
-            "title": "Pattern Type",
-            "description": "Pattern type of infectiuos neuropathology in the sample",
-            "type": "string",
-            "enum": [
-                "Diffuse",
-                "Focal",
-                "Regional"
-            ]
-        },
-        "inflammatory_neuropathology_type": {
-            "title": "Inflammatory Neuropathology Type",
-            "description": "Type of inflammatory neuropathology in the sample",
-            "type": "string",
-            "enum": [
-                "Multiple Sclerosis.",
-                "Guillain-Barre",
-                "Meningitis",
-                "Encephalitis",
-                "Myelitis",
-                "Other"
-            ]
-        },
-        "metabolic_neuropathology_type": {
-            "title": "Metabolic Neuropathology Type",
-            "description": "Type of metabolic neuropathology in the sample",
-            "type": "string",
-            "enum": [
-                "Hepatic Encephalopathy",
-                "Renal Encephalopathy",
-                "Other"
-            ]
-        },
-        "neoplastic_neuropathology_type": {
-            "title": "Neoplastic Neuropathology Type",
-            "description": "Type of neoplastic neuropathology in the sample",
-            "type": "string",
-            "enum": [
-                "Primary",
-                "Secondary",
-                "Benign",
-                "Malignant"
-            ]
-        },
-        "neoplastic_neuropathology_origin_location": {
-            "title": "Neoplastic Neuropathology Origin Location",
-            "description": "Origin location of neoplastic neuropathology in the sample",
-            "type": "string"
-        },
-        "neoplastic_neuropathology_details": {
-            "title": "Neoplastic Neuropathology Details",
-            "description": "Details of neoplastic neuropathology in the sample",
-            "type": "string",
-            "enum": [
-                "Intra-axial",
-                "Extra-axial",
-                "Other"
-            ]
-        },
-        "neurodegenerative_neuropathology_type": {
-            "title": "Neurodegenerative Neuropathology Type",
-            "description": "Type of neurodegenerative neuropathology in the sample",
-            "type": "string",
-            "enum": [
-                "Primary Age-Related Taupath",
-                "Age-Related Tau Astrogliosis",
-                "Other"
-            ]
-        },
-        "neuropathology_artifact_type": {
-            "title": "Artifact Type",
-            "description": "Type of artifacts present in the sample",
-            "type": "array",
-            "items": {
-                "type": "string",
-                "enum": [
-                    "Decomposition/Autolysis",
-                    "Swiss Cheese",
-                    "Saw Artifact",
-                    "Brainstem Ascension Stress",
-                    "Cerebellum Ascension Stress",
-                    "Underfixed",
-                    "Foreign Body",
-                    "Other"
-                ]
-            }
-        },
-        "neuropathology_onset": {
-            "title": "Neuropathology Onset",
-            "description": "Onset of infectious or vascular neuropathology in the sample",
-            "type": "string",
-            "enum": [
-                "Acute",
-                "Chronic"
-            ]
-        },
-        "tbi_chronic_type": {
-            "title": "Chronic Traumatic Brain Injury Type",
-            "description": "Type of chronic traumatic brain injury in the sample",
-            "type": "string",
-            "enum": [
-                "Chronic Traumatic Brain Injury",
-                "Chronic Traumatic Encephalopathy",
-                "Not Applicable"
-            ]
-        },
-        "tbi_edema_present": {
-            "title": "Edema Present",
-            "description": "Whether edema is present in the sample",
-            "type": "string",
+            "description": "Whether a developmental neuropathologic or unexpected finding was present or absent.",
             "enum": [
                 "Yes",
                 "No"
             ]
         },
-        "tbi_hemorrhage_present": {
-            "title": "Hemorrhage Present",
-            "description": "Whether hemorrage is present in the sample",
+        "developmental_neuropathology_description": {
             "type": "string",
+            "description": "Description of developmental neuropathology."
+        },
+        "infectious_neuropathology_present": {
+            "type": "string",
+            "description": "Whether an infectious neuropathologic or unexpected finding was present or absent.",
             "enum": [
                 "Yes",
                 "No"
             ]
         },
-        "tbi_herniation_present": {
-            "title": "Herniation Present",
-            "description": "Whether herniation is present in the sample",
+        "infectious_neuropathology_description": {
             "type": "string",
+            "description": "Description of infectious neuropathology."
+        },
+        "inflammatory_neuropathology_present": {
+            "type": "string",
+            "description": "Whether an inflammatory neuropathologic or unexpected finding was present or absent.",
             "enum": [
                 "Yes",
                 "No"
             ]
         },
-        "tbi_location": {
-            "title": "Traumatic Brain Injury Location",
-            "description": "Location of traumatic brain injury in the sample",
+        "inflammatory_neuropathology_description": {
             "type": "string",
+            "description": "Description of inflammatory neuropathology."
+        },
+        "neoplastic_neuropathology_present": {
+            "type": "string",
+            "description": "Whether a neoplastic neuropathologic or unexpected finding was present or absent.",
             "enum": [
-                "Lobes",
-                "Brainstem",
-                "Cerebellum"
+                "Yes",
+                "No"
             ]
         },
-        "tbi_stage": {
-            "title": "Traumatic Brain Injury Stage",
-            "description": "Stage of traumatic brain injury in the sample",
+        "neoplastic_neuropathology_description": {
             "type": "string",
+            "description": "Description of neoplastic neuropathology."
+        },
+        "tbi_neuropathology_present": {
+            "type": "string",
+            "description": "Whether a traumatic brain injury finding was present or absent.",
             "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "tbi_neuropathology_description": {
+            "type": "string",
+            "description": "Description of traumatic brain injury."
+        },
+        "vasuclar_neuropathology_present": {
+            "type": "string",
+            "description": "Whether a vascular neuropathologic or unexpected finding was present or absent.",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "vasuclar_neuropathology_description": {
+            "type": "string",
+            "description": "Description of vascular neuropathology."
+        },
+        "neurodegenerative_neuropathology_present": {
+            "type": "string",
+            "description": "Whether a neurodegenerative neuropathologic or unexpected finding was present or absent.",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "neurodegenerative_neuropathology_description": {
+            "type": "string",
+            "description": "Description of neurodegenerative neuropathology."
+        },
+        "metabolic_neuropathology_present": {
+            "type": "string",
+            "description": "Whether a metabolic neuropathologic or unexpected finding was present or absent.",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "metabolic_neuropathology_description": {
+            "type": "string",
+            "description": "Description of metabolic neuropathology."
+        },
+        "artifacts_present": {
+            "type": "string",
+            "description": "Whether artifacts were present or absent.",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "artifacts_description": {
+            "type": "string",
+            "description": "Description of artifacts."
+        },
+        "other_pathology_present": {
+            "type": "string",
+            "description": "Whether any other neuropathologic or unexpected findings were present.",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "other_pathology_description": {
+            "type": "string",
+            "description": "Description of other neuropathology."
+        },
+        "additional_age-related_staining_performed": {
+            "type": "string",
+            "description": "Whether additional dementia-related or age-related staining was conducted.",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "abc_score_A": {
+            "title": "ABC Score A",
+            "type": "integer",
+            "description": "Assesses the distribution of Aβ/amyloid plaques, 0 = none, 3 = severe",
+            "minimum": 0,
+            "maximum": 3
+        },
+        "abc_score_B": {
+            "title": "ABC Score B",
+            "type": "integer",
+            "description": "Stages the distribution of neurofibrillary tangle, 0 = none, 3 = severe",
+            "minimum": 0,
+            "maximum": 3
+        },
+        "abc_score_C": {
+            "title": "ABC Score C",
+            "type": "integer",
+            "description": "Scores the density of neuritic plaques, 0 = none, 1= sparse, 2= moderate, 3 = frequent",
+            "minimum": 0,
+            "maximum": 3
+        },
+        "cerad_score": {
+            "title": "CERAD",
+            "type": "integer",
+            "description": "Consortium to Establish a Registry for Alzheimer's Disease (CERAD) score of neuritic (usually dense-core) plaques.",
+            "minimum": 0,
+            "maximum": 100
+        },
+        "ad_neuropathologic_change_level": {
+            "title": "Level of AD Neuropathologic change",
+            "type": "string",
+            "description": "Amount of Alzheimer's disease-related neuropathologic change observed.",
+            "enum": [
+                "None",
                 "Low",
+                "Intermediate",
                 "High"
-            ] 
-        },
-        "tbi_type": {
-            "title": "Traumatic Brain Injury Type",
-            "description": "Type of traumatic brain injury present in the sample",
-            "type": "string",
-            "enum": [
-                "Blunt",
-                "Penetrating"
             ]
         },
-        "vascular_neuropathology_infarct_type": {
-            "title": "Vascular Neuropathology Infarct Type",
-            "description": "Infarct type of vascular neuropathology in the sample",
+        "braak_pd": {
+            "title": "Braak PD",
+            "type": "integer",
+            "description": "Braak staging of Parkinson's disease.",
+            "minimum": 0,
+            "maximum": 6
+        },
+        "small_vessel_disease": {
+            "title": "Small Vessel Disease",
             "type": "string",
+            "description": "Amount of small vessel disease observed.",
             "enum": [
-                "Macroinfarcts",
-                "Microinfarcts"
+                "None",
+                "Mild",
+                "Moderate",
+                "Severe"
             ]
         },
-        "vascular_neuropathology_details": {
-            "title": "Vascular Neuropathology Details",
-            "description": "Details of vascular neuropathology in the sample",
+        "braak_and_braak_ad": {
+            "$title": "Braak & Braak AD",
             "type": "string",
+            "description": "A semiquantitative measure of distribution and severity of neurofibrillary tangle (NFT) pathology",
             "enum": [
-                "Accute Hemorrhage",
-                "Organizing",
-                "Remote",
-                "Other"
+                "I",
+                "II",
+                "III",
+                "IV",
+                "V",
+                "VI"
             ]
+        },
+        "thal": {
+            "title": "Thal",
+            "type": "integer",
+            "description": "Thal phases refer to any amyloid deposits based on anti-Aβ immunohistochemistry",
+            "minimum": 0,
+            "maximum": 5
+        },
+        "caa_vonsattel": {
+            "title": "CAA VonSattel",
+            "type": "integer",
+            "description": "Cerebral amyloid angiopathy (CAA) using VonSattel system (1= Mild, 2= Moderate, 3 to 4= Severe) ",
+            "minimum": 0,
+            "maximum": 4
+        },
+        "mckeith": {
+            "title": "McKeith",
+            "type": "integer",
+            "description": "McKeith staging system for Lewy body dementia.",
+            "minimum": 0,
+            "maximum": 4
+        },
+        "VonSattel (Huntington's disease)": {
+            "title": "VonSattel (Huntington's disease)",
+            "type": "integer",
+            "description": "Von Sattel grading system for Huntington's disease.",
+            "minimum": 0,
+            "maximum": 4
+        },
+        "final_neuropathological_diagnosis": {
+            "type": "string",
+            "description": "Final summary of neuropathological diagnoses."
         }
     }
 }
