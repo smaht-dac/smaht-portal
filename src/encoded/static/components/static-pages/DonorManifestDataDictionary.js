@@ -271,7 +271,7 @@ export const DonorManifestDataDictionary = () => {
             </div>
             {/* Search bar */}
             <hr className="my-4"></hr>
-            <div className="d-flex flex-column gap-2 align-items-start w-100">
+            <div className="search-bar d-flex flex-column gap-2 align-items-start w-100">
                 <span className="fw-bold">Search:</span>
                 <Select
                     className="w-100"
@@ -283,6 +283,7 @@ export const DonorManifestDataDictionary = () => {
                     options={options}
                 />
             </div>
+            <hr className="my-4"></hr>
             {selectedSchema?.value && (
                 <div
                     className={`selected-schema schema-item ${selectedSchema.value} table-responsive`}>
