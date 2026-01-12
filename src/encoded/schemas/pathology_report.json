@@ -67,11 +67,6 @@
             "description": "Additional notes or other findings related to the sample",
             "type": "string"
         },
-        "anatomical_sample_location": {
-            "title": "Anatomical Sample Location",
-            "description": "Anatomical location from which the sample was taken",
-            "type": "string"
-        },
         "final_review_determination": {
             "title": "Final Review Determination",
             "description": "Whether a final review determination was made for the sample",

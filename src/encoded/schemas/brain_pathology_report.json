@@ -165,7 +165,7 @@
             "type": "string",
             "description": "Description of traumatic brain injury."
         },
-        "vasuclar_neuropathology_present": {
+        "vascular_neuropathology_present": {
             "type": "string",
             "description": "Whether a vascular neuropathologic or unexpected finding was present or absent.",
             "enum": [
@@ -173,7 +173,7 @@
                 "No"
             ]
         },
-        "vasuclar_neuropathology_description": {
+        "vascular_neuropathology_description": {
             "type": "string",
             "description": "Description of vascular neuropathology."
         },
@@ -324,7 +324,7 @@
             "minimum": 0,
             "maximum": 4
         },
-        "VonSattel (Huntington's disease)": {
+        "vonsattel_hd": {
             "title": "VonSattel (Huntington's disease)",
             "type": "integer",
             "description": "Von Sattel grading system for Huntington's disease.",

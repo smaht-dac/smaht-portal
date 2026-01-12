@@ -13,7 +13,6 @@
                 "target_tissue_subtype": "Liver",
                 "target_tissue_present": "Yes",
                 "target_tissue_percentage": "[50-100]",
-                "target_tissue_autolysis_score": 1
             }
         ],
         "non_target_tissues": [

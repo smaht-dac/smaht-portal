@@ -46,6 +46,9 @@
             "$ref": "mixins.json#/tags"
         },
         {
+            "$ref": "mixins.json#/tissue_autolysis_score"
+        },
+        {
             "$ref": "mixins.json#/uuid"
         },
         {
@@ -83,6 +86,8 @@
             ]
         },
         "anatomical_sample_location": {
+            "title": "Anatomical Sample Location",
+            "description": "Anatomical location from which the sample was taken",
             "type": "string",
             "enum": [
                 "Left Adrenal",
@@ -153,8 +158,12 @@
                             "[50-100]"
                         ]
                     },
-                    "tissue_autolysis_score": {
-                        "$merge": "mixins.json#/tissue_autolysis_score/tissue_autolysis_score"
+                    "target_tissue_autolysis_score": {
+                        "title": "Target Tissue Autolysis Score",
+                        "description": "Autolysis score of the target tissue in the sample. 0=None, 1=mild , 2=moderate, 3=severe",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 3
                     }
                 }
             }
