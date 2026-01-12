@@ -99,50 +99,6 @@
                 "Unacceptable"
             ]
         },
-        "pathologic_findings": {
-            "title": "Pathologic Findings",
-            "type": "array",
-            "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                    "finding_type",
-                    "finding_present"
-                ],
-                "properties": {
-                    "finding_type": {
-                        "title": "Pathologic Finding Type",
-                        "description": "Type of pathologic/unexpected finding present in the sample",
-                        "type": "string"
-                    },
-                    "finding_present": {
-                        "title": "Pathologic Finding Present",
-                        "description": "Whether pathologic/unexpected finding is present in the sample",
-                        "type": "string",
-                        "enum": [
-                            "Yes",
-                            "No"
-                        ]
-                    },
-                    "finding_description": {
-                        "title": "Pathologic Finding Description",
-                        "description": "Description of pathologic/unexpected finding",
-                        "type": "string"
-                    },
-                    "finding_percentage": {
-                        "title": "Pathologic Finding Percentage",
-                        "description": "Percentage range of the sample that displayed the pathologic/unexpected finding (%)",
-                        "type": "string",
-                        "enum": [
-                            "[0-10]",
-                            "[11-25]",
-                            "[26-49]",
-                            "[50-100]"
-                        ]
-                    }
-                }
-            }
-        },
         "tissue_autolysis_score": {
             "title": "Overall Tissue Autolysis Score",
             "description": "Overall tissue autolysis score of the sample. 0=None, 1=mild , 2=moderate, 3=severe",
