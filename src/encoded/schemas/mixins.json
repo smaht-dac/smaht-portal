@@ -1021,6 +1021,15 @@
             "minLength": 3
         }
     },
+    "tissue_autolysis_score": {
+        "tissue_autolysis_score": {
+            "title": "Tissue Autolysis Score",
+            "description": "Tissue autolysis score of the sample or region. 0=None, 1=mild , 2=moderate, 3=severe",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+        }
+    },
     "url": {
         "url": {
             "title": "URL",
@@ -1040,25 +1049,6 @@
             "serverDefault": "uuid4",
             "permission": "restricted_fields",
             "requestMethod": "POST"
-        }
-    },
-    "variant_type": {
-        "variant_type": {
-            "title": "Variant Type",
-            "description": "Variant types included in the file",
-            "type": "array",
-            "minItems": 1,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "enum": [
-                    "Copy Number Variant",
-                    "Insertion-deletion",
-                    "Mobile Element Insertion",
-                    "Single Nucleotide Variant",
-                    "Structural Variant"
-                ]
-            }
         }
     },
     "version": {

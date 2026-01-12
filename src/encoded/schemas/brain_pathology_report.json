@@ -100,7 +100,7 @@
                         ]
                     },
                     "tissue_autolysis_score": {
-                        "$merge": "pathology_report.json#/properties/target_tissues/items/properties/tissue_autolysis_score"
+                        "$merge": "mixins.json#/tissue_autolysis_score/tissue_autolysis_score"
                     }
                 }
             }

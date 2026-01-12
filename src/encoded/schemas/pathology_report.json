@@ -99,13 +99,6 @@
                 "Unacceptable"
             ]
         },
-        "tissue_autolysis_score": {
-            "title": "Overall Tissue Autolysis Score",
-            "description": "Overall tissue autolysis score of the sample. 0=None, 1=mild , 2=moderate, 3=severe",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 3
-        },
         "tissue_name": {
             "title": "Tissue Name",
             "description": "Name of the type of tissue the sample was taken from",
