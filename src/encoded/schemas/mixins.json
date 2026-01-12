@@ -1051,6 +1051,25 @@
             "requestMethod": "POST"
         }
     },
+    "variant_type": {
+        "variant_type": {
+            "title": "Variant Type",
+            "description": "Variant types included in the file",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Copy Number Variant",
+                    "Insertion-deletion",
+                    "Mobile Element Insertion",
+                    "Single Nucleotide Variant",
+                    "Structural Variant"
+                ]
+            }
+        }
+    },
     "version": {
         "version": {
             "title": "Version",
