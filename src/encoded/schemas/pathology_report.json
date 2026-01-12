@@ -155,53 +155,6 @@
             "description": "Name of the type of tissue the sample was taken from",
             "type": "string"
         },
-        "target_tissues": {
-            "title": "Target Tissues",
-            "type": "array",
-            "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                    "target_tissue_subtype",
-                    "target_tissue_present",
-                    "target_tissue_percentage"
-                ],
-                "properties": {
-                    "target_tissue_subtype": {
-                        "title": "Target Tissue Subtype",
-                        "description": "Subtype of target tissue in sample",
-                        "type": "string"
-                    },
-                    "target_tissue_present": {
-                        "title": "Target Tissue Present",
-                        "description": "Whether the target tissue subtype was present in the sample",
-                        "type": "string",
-                        "enum": [
-                            "Yes",
-                            "No"
-                        ]
-                    },
-                    "target_tissue_percentage": {
-                        "title": "Target Tissue Subtype Percentage",
-                        "description": "Percentage range of the sample that was the target tissue subtype (%)",
-                        "type": "string",
-                        "enum": [
-                            "[0-10]",
-                            "[11-25]",
-                            "[26-49]",
-                            "[50-100]"
-                        ]
-                    },
-                    "target_tissue_autolysis_score": {
-                        "title": "Target Tissue Autolysis Score",
-                        "description": "Autolysis score of the target tissue in the sample. 0=None, 1=mild , 2=moderate, 3=severe",
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 3
-                    }
-                }
-            }
-        },
         "unacceptable_description": {
             "title": "Unacceptable Description",
             "description": "Description of unacceptable review determination",
