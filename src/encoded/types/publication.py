@@ -20,19 +20,21 @@ class Publication(Item):
     schema = load_schema("encoded:schemas/publication.json")
     embedded_list = []
 
-    @calculated_property(schema={
-        "title": "Short Citation",
-        "description": "Short string containing <= 2 authors & year published.",
-        "type": "string"
-    })
+    @calculated_property(
+        schema={
+            "title": "Short Citation",
+            "description": "Short string containing <= 2 authors & year published.",
+            "type": "string",
+        }
+    )
     def short_citation(self, authors=None, date_published=None):
-        minipub = ''
+        minipub = ""
         if authors:
             minipub = authors[0]
             if len(authors) > 2:
-                minipub = minipub + ' et al.'
+                minipub = minipub + " et al."
             elif len(authors) == 2:
-                minipub = minipub + ' and ' + authors[1]
+                minipub = minipub + " and " + authors[1]
         if date_published:
-            minipub = minipub + ' (' + date_published[0:4] + ')'
+            minipub = minipub + " (" + date_published[0:4] + ")"
         return minipub
