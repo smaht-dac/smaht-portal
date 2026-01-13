@@ -3324,8 +3324,28 @@ FAQ page styles
 // Schema Reference pages (Data Dictionary)
 .static-section-entry#donor_manifest_dictionary {
 	.schema-reference-page {
+		.callout {
+			.diagram {
+				color: black;
+				.category {
+					color: #313232;
+					background-color: #e7e1fe;
+				}
+				.field {
+					color: #313232;
+					background-color: #defed6;
+				}
+				img {
+					width: 65%;
+					max-width: 900px;
+				}
+			}
+		}
 		.example {
 			color: $gray-70;
+		}
+		.search-bar {
+			margin: 30px 0px;
 		}
 	}
 }
