@@ -1,0 +1,1 @@
+<PipelineDocsNavigation href={href} />

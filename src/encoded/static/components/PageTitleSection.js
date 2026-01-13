@@ -416,9 +416,13 @@ export class StaticPageBreadcrumbs extends React.Component {
 
         // Hard-coded link groups to disable
         const breadcrumbsToDisable = ['docs', 'data', 'about', 'resources'];
-        const shouldDisable = ancestor.identifier
-            .split('/')
-            .some((ancestor) => breadcrumbsToDisable.includes(ancestor));
+
+        // Leave pipeline-docs clickable, disable rest
+        const shouldDisable =
+            ancestor.identifier !== 'docs/additional-resources/pipeline-docs' &&
+            ancestor.identifier
+                .split('/')
+                .some((ancestor) => breadcrumbsToDisable.includes(ancestor));
 
         if (ancestor['@id'] === this.props.context['@id']) {
             inner = null; //ancestor.display_title;
@@ -544,7 +548,7 @@ export class StaticPageBreadcrumbs extends React.Component {
 
 /**
  * Hack for associating the /browse/ searches with BrowseView.
- * Otherwise it will use FileSearchView since Registry.lookup checks for first matching view 
+ * Otherwise it will use FileSearchView since Registry.lookup checks for first matching view
  */
 export const toRegistryLookupContext = memoize(function (context) {
     const browseIdx = context?.['@type']?.indexOf('Browse') || -1;

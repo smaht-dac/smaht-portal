@@ -519,10 +519,12 @@ export function createBrowseFileColumnExtensionMap({
         },
         // Assay
         'file_sets.libraries.assay.display_title': {
-            widthMap: { lg: 136, md: 136, sm: 136 },
+            widthMap: { lg: 100, md: 100, sm: 100 },
         },
         // Tissue
-        'sample_summary.tissues': {},
+        'sample_summary.tissues': {
+            widthMap: { lg: 145, md: 145, sm: 145 },
+        },
         // Data Category
         data_category: {
             render: function (result, parentProps) {
@@ -568,7 +570,9 @@ export function createBrowseFileColumnExtensionMap({
             colTitle: 'Released',
             widthMap: { lg: 115, md: 115, sm: 115 },
             render: function (result, parentProps) {
-                const value = result?.file_status_tracking?.release_dates?.initial_release_date;
+                const value =
+                    result?.file_status_tracking?.release_dates
+                        ?.initial_release_date;
                 if (!value) return null;
                 return <span className="value text-end">{value}</span>;
             },
@@ -623,14 +627,14 @@ export function createBrowseFileColumnExtensionMap({
         'file_sets.libraries.assay.display_title': {
             title: 'Assay',
         },
-        file_size: {
-            title: 'File Size',
+        'file_sets.sequencing.sequencer.display_title': {
+            title: 'Platform',
         },
         'file_status_tracking.release_dates.initial_release_date': {
             title: 'Release Date',
         },
-        'file_sets.sequencing.sequencer.display_title': {
-            title: 'Platform',
+        file_size: {
+            title: 'File Size',
         },
         'file_format.display_title': {
             title: 'Format',

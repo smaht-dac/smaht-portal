@@ -17,7 +17,7 @@ import {
     shortenStringKeepBothEnds,
     getCommentsList,
     getTargetCoverage,
-} from './submissionStatusUtils';
+} from './utils';
 
 class FileGroupQCModalComponent extends React.PureComponent {
     constructor(props) {
