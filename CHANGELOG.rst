@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.8.1
+=====
+
+`PR 578: Update Sample and File Nomenclature <https://github.com/smaht-dac/smaht-portal/pull/578>`_
+
+* Update Sample and File Nomenclature page, specifically adding new protocol IDs for fixed brain tissues
+
+
 1.8.0
 =====
 
