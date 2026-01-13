@@ -8,6 +8,14 @@ Change Log
 ----------
 
 1.8.2
+======
+
+`PR 577: feat: updates to Donor Metadata Dictionary page <https://github.com/smaht-dac/smaht-portal/pull/577>`_
+
+* Update Availability and Access Doc table
+
+
+1.8.1
 =====
 
 `PR 579: feat: update hardy scale popover <https://github.com/smaht-dac/smaht-portal/pull/579>`_
