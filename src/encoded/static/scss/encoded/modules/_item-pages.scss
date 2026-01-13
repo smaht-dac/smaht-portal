@@ -2569,8 +2569,6 @@ Popover Styles for Item Pages
 						padding-right: 12px;
 					}
 					&.footnote-cell {
-						font-size: 0.75rem;
-						color: #787A7E;
 
 						a {
 							display: inline-flex;
@@ -2578,7 +2576,7 @@ Popover Styles for Item Pages
 						}
 
 						.icon {
-							font-size: 0.625rem;
+							// font-size: 0.75rem;
 							margin-left: 5px;
 						}
 					}

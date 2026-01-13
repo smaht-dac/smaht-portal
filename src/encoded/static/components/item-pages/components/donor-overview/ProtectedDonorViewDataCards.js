@@ -93,7 +93,7 @@ export function renderHardyScaleDescriptionPopover(customId) {
                         </tr>
                         <tr colSpan={2}>
                             <td
-                                className="text-left w-100 px-4 py-2 footnote-cell"
+                                className="text-left w-100 px-4 py-3 footnote-cell"
                                 colSpan={2}>
                                 For more information, please see Hardy, J. et.
                                 al. (1985) J. Neural Transm.{' '}
