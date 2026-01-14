@@ -5,7 +5,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "required": [
-        "identifier"
+        "doi"
     ],
     "anyOf": [
         {
@@ -65,11 +65,17 @@
         "accession": {
             "accessionType": "PB"
         },
-        "identifier":{
-            "title": "Publication Identifier",
-            "description": "PMID or doi for the publication.",
+        "doi": {
+            "title": "DOI",
+            "description": "DOI for the publication or preprint",
             "type": "string",
-            "comment": "Please provide either in the form of PMID:12345678 or doi:10.1234/abc123"
+            "comment": "Please provide in the form of doi:10.1234/abc123"
+        },
+        "pubmed_id":{
+            "title": "Publication Identifier",
+            "description": "PMID for the publication (if available).",
+            "type": "string",
+            "comment": "Please provide in the form of PMID:12345678"
         },
         "title": {
             "title": "Title",
@@ -161,6 +167,12 @@
             "description": "Scope of the publication.",
             "type": "string",
             "enum": ["Working group", "Network", "Individual Lab"]
+        },
+        "working_group_name": {
+            "title": "Working Group Name",
+            "description": "For publications with scope 'Working group' the name of the WG that produced the publication",
+            "type": "string",
+            "enum": []
         }
     },
     "facets": {

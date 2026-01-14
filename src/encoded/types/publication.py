@@ -20,6 +20,20 @@ class Publication(Item):
     schema = load_schema("encoded:schemas/publication.json")
     embedded_list = []
 
+    """Place holder for citation calc prop.
+        NOTE: may turn into a property if it can be pulled from an external source
+    """
+    @calculated_property(
+    schema={
+            "title": "Citation",
+            "description": "Citation that can be used to cite this paper.",
+            "type": "string",
+        }
+    )
+    def citation(self,):
+        return
+    
+
     @calculated_property(
         schema={
             "title": "Short Citation",
@@ -38,3 +52,5 @@ class Publication(Item):
         if date_published:
             minipub = minipub + " (" + date_published[0:4] + ")"
         return minipub
+    
+    
