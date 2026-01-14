@@ -62,6 +62,7 @@
         "caa_vonsattel": 2,
         "mckeith": 1,
         "vonsattel_hd": 0,
-        "final_neuropathological_diagnosis": "Intermediate Alzheimer’s disease neuropathologic change with moderate small vessel disease and remote traumatic injury."
+        "final_neuropathological_diagnosis": "Intermediate Alzheimer’s disease neuropathologic change with moderate small vessel disease and remote traumatic injury.",
+        "tissue_samples": ["623455cd-40a8-486a-8e79-ed44ee1d36d2"]
     }
 ]
