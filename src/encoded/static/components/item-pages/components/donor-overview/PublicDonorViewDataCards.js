@@ -26,7 +26,8 @@ const default_donor_information = [
     {
         title: 'Hardy Scale',
         getProp: (context = {}) => context?.hardy_scale,
-        titlePopover: renderHardyScaleDescriptionPopover(),
+        titlePopover: (handleShowPopover) =>
+            renderHardyScaleDescriptionPopover(handleShowPopover),
     },
 ];
 const DonorStatistics = ({ data, isLoading }) => {

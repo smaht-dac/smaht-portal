@@ -7,15 +7,26 @@ import { OverlayTrigger, Popover, PopoverBody } from 'react-bootstrap';
  * Bootstrap Popover element for the description field in the sample information
  * data card. Contains a table with definitions for the terms used in the
  * description field.
+ * @param {function} handleShowPopover - function to handle popover visibility
+ * @param {string} customId - custom id for popover
  * @returns {JSX.Element} Popover component with term definitions
  *
  * Note: Use regular function here, as Bootstrap relies on `this`.
  */
-export function renderHardyScaleDescriptionPopover(customId) {
+export function renderHardyScaleDescriptionPopover(
+    handleShowPopover,
+    customId
+) {
     return (
         <Popover
             id={customId ?? 'description-definitions-popover-hardy'}
-            className="w-auto description-definitions-popover">
+            className="w-auto description-definitions-popover"
+            onMouseEnter={() =>
+                handleShowPopover ? handleShowPopover(true) : null
+            }
+            onMouseLeave={() =>
+                handleShowPopover ? handleShowPopover(false) : null
+            }>
             <PopoverBody className="p-0">
                 <table className="table">
                     <thead>
@@ -247,7 +258,8 @@ const default_donor_information = [
     {
         title: 'Hardy Scale',
         getProp: (context = {}) => context?.hardy_scale,
-        titlePopover: renderHardyScaleDescriptionPopover(),
+        titlePopover: (handleShowPopover) =>
+            renderHardyScaleDescriptionPopover(handleShowPopover),
     },
 ];
 

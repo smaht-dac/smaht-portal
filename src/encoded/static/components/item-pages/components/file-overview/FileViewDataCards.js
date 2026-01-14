@@ -1,6 +1,6 @@
 'use strict';
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
     bytesToLargerUnit,
     capitalize,
@@ -20,14 +20,25 @@ export const DataCardRow = ({
     value = null,
     titlePopover = null,
 }) => {
+    const [showPopover, setShowPopover] = useState(false);
+
+    const handleShowPopover = (show) => {
+        setShowPopover(show);
+    };
+
     return (
         <div className="datum">
             <div className="datum-title">
                 <span>{title}</span>
                 {titlePopover && (
                     <OverlayTrigger
-                        trigger={['hover', 'focus']}
-                        overlay={titlePopover}
+                        show={showPopover}
+                        overlay={
+                            // Allow for popover to be a function or a JSX element
+                            typeof titlePopover === 'function'
+                                ? titlePopover(handleShowPopover)
+                                : titlePopover
+                        }
                         placement="left"
                         flip={true}
                         popperConfig={{
@@ -44,7 +55,10 @@ export const DataCardRow = ({
                                 },
                             ],
                         }}>
-                        <i className="icon icon-info-circle fas ms-1"></i>
+                        <i
+                            className="icon icon-info-circle fas ms-1"
+                            onMouseEnter={() => setShowPopover(true)}
+                            onMouseLeave={() => setShowPopover(false)}></i>
                     </OverlayTrigger>
                 )}
             </div>
@@ -292,11 +306,13 @@ const default_data_information = [
  *
  * Note: Use regular function here, as Bootstrap relies on `this`.
  */
-function renderDescriptionPopover() {
+function renderDescriptionPopover(handleShowPopover) {
     return (
         <Popover
             id="description-definitions-popover-sample-description"
-            className="w-auto description-definitions-popover">
+            className="w-auto description-definitions-popover"
+            onMouseEnter={() => handleShowPopover(true)}
+            onMouseLeave={() => handleShowPopover(false)}>
             <PopoverBody className="p-0">
                 <table className="table">
                     <thead>
@@ -375,7 +391,8 @@ const default_sample_information = [
         title: 'Description',
         getProp: (context = {}) =>
             context?.sample_summary?.sample_descriptions?.join(', '),
-        titlePopover: renderDescriptionPopover(),
+        titlePopover: (handleShowPopover) =>
+            renderDescriptionPopover(handleShowPopover),
     },
     {
         title: 'Study',
