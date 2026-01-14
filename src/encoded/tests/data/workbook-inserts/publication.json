@@ -1,7 +1,8 @@
 [
     {
         "uuid": "a87f640f-710c-4405-9965-b0e2e0d0573e",
-        "identifier": "PMID:11111111",
+        "doi": "doi:test_doi_1",
+        "pubmed_id": "PMID:11111111",
         "title": "Test Publication One",
         "authors": ["Author One", "Author Two", "Author Three"],
         "abstract": "lorem ipsum dolor sit amet, consectetur adipiscing elit.",
@@ -18,7 +19,7 @@
     },
     {
         "uuid": "b98f640f-710c-4405-9965-b0e2e0d0574f",
-        "identifier": "TESTID",
+        "doi": "doi:test_doi_2",
         "title": "Test Publication Two",
         "authors": ["Author One", "Author Two"],
         "abstract": "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
@@ -36,7 +37,8 @@
     },
     {
         "uuid": "c09f640f-710c-4405-9965-b0e2e0d0575f",
-        "identifier": "PMID:33333333",
+        "doi": "doi:test_doi_3",
+        "pubmed_id": "PMID:33333333",
         "title": "Test Publication Three",
         "authors": ["Author One"],
         "abstract": "ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",

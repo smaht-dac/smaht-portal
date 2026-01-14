@@ -172,7 +172,15 @@
             "title": "Working Group Name",
             "description": "For publications with scope 'Working group' the name of the WG that produced the publication",
             "type": "string",
-            "enum": []
+            "enum": [
+                "SNV/Indel Working Group",
+                "SV",
+                "MEI",
+                "Genome Assembly",
+                "Duplex-Seq",
+                "Single-cell",
+                "Functional"
+            ]
         }
     },
     "facets": {

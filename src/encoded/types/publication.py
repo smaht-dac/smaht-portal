@@ -32,7 +32,7 @@ class Publication(Item):
     )
     def citation(self,):
         return
-    
+
 
     @calculated_property(
         schema={
