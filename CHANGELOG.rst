@@ -7,6 +7,46 @@ smaht-portal
 Change Log
 ----------
 
+1.8.2
+======
+
+`PR 577: feat: updates to Donor Metadata Dictionary page <https://github.com/smaht-dac/smaht-portal/pull/577>`_
+
+* Update Availability and Access Doc table
+
+
+1.8.1
+=====
+
+`PR 578: Update Sample and File Nomenclature <https://github.com/smaht-dac/smaht-portal/pull/578>`_
+
+* Update Sample and File Nomenclature page, specifically adding new protocol IDs for fixed brain tissues
+
+
+1.8.0
+=====
+
+`PR 518: feat: Add Pipeline Docs to portal <https://github.com/smaht-dac/smaht-portal/pull/518>`_
+
+* Add Pipeline documentation to the portal as static pages
+
+
+1.7.1
+======
+
+`PR 576: feat: reorder browse table columns <https://github.com/smaht-dac/smaht-portal/pull/576>`_
+
+* Reorders table columns for browse view
+
+
+1.7.0
+=====
+
+`PR 570: Add Analysis Status page <https://github.com/smaht-dac/smaht-portal/pull/570>`_
+
+* Add Analysis Status page
+* Add AnalysisRun item
+
 
 1.6.5
 =====
@@ -30,7 +70,7 @@ Change Log
 
 `PR 574: feat: updates to Awardees page <https://github.com/smaht-dac/smaht-portal/pull/574>`_
 
-* Update Availability and Access Doc table
+* Update Awardees page content
 
 
 1.6.2
@@ -58,6 +98,7 @@ Change Log
 * Redirect with no auth will be processed for public files, otherwise
   a redirect with auth will be sent
 * Requires update to permissions for S3 Federation user
+
 
 1.5.17
 ======

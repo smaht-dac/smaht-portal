@@ -9,8 +9,8 @@ import {
 } from 'react-bootstrap';
 
 /**
- * Renders a table of schema properties for columns in Donor Manifest. Not all properties
- * in the submission schema are included in the Donor Manifest, so we use a predefined
+ * Renders a table of schema properties for columns in Donor Metadata. Not all properties
+ * in the submission schema are included in the Donor Metadata, so we use a predefined
  * list of properties to display for each item type.
  *
  * We also provide a default titles and examples and allow them to be overwritten by the
@@ -232,38 +232,58 @@ export const DonorManifestDataDictionary = () => {
         <div className="schema-reference-page">
             <div className="callout mt-2 mb-2">
                 <p className="mb-2">
-                    The <b>Donor Manifest Dictionary</b> provides a reference of
-                    metadata items and properties included in the Donor
-                    Manifest. You can search for specific metadata items or
-                    properties using the dropdown below.
+                    The <b>Donor Metadata Dictionary</b> is a guide that
+                    explains all of the information <i>fields</i> included in
+                    the Donor Metadata file. These fields are organized into{' '}
+                    <i>categories</i> to make related fields easier to find. You
+                    can use the dropdown below to look up any field or category
+                    youre interested in.
                 </p>
                 <p>
                     Search by: <br />
-                    <b>Metadata item: </b> type in the name of the item in the
-                    search bar below (e.g. <i>FamilyHistory</i>).
+                    <b>Category: </b> Type the name of the category in the
+                    search bar (e.g. <i>familyhistory</i>).
                     <br />
-                    <b>Metadata property: </b> type in the name of the property
+                    <b>Field: </b> Type the name of the field you want to find
                     (e.g. <i>disease</i>).
                     <br />
-                    <b>Specific property in an item: </b> type
-                    &lt;item&gt;.&lt;property&gt; (e.g.{' '}
+                    <b>Specific field within a category: </b> Type it in the
+                    format <i>category.field</i> (e.g.{' '}
                     <i>familyhistory.disease</i>).
                 </p>
-                <p className="mb-2">
-                    Note: Everything other than age, sex, hardy scale are
-                    protected under dbGaP. No protected data is contained in
-                    this page.
+
+                <div className="diagram d-flex flex-column align-items-start mt-2">
+                    <p className="mb-1">
+                        Column Name Breakdown:{' '}
+                        <span className="category p-1 fw-bold">Category</span>.
+                        <span className="field p-1 fw-bold">Field</span>
+                    </p>
+                    <img
+                        src="/static/img/docs/donor_manifest_breakdown.png"
+                        alt="Donor Manifest Breakdown"
+                    />
+                </div>
+                <p className="my-3">
+                    Note: All information fields except age, sex, and Hardy
+                    scale are protected data under dbGaP. No protected
+                    information is shown on this page.
                 </p>
             </div>
+            {/* Search bar */}
             <hr className="my-4"></hr>
-            <Select
-                value={selectedSchema}
-                placeholder="Select a item type or property from the Donor Metadata (e.g. Demographic)..."
-                onChange={(selectedItem) => {
-                    setSelectedSchema(selectedItem);
-                }}
-                options={options}
-            />
+            <div className="search-bar d-flex flex-column gap-2 align-items-start w-100">
+                <span className="fw-bold">Search:</span>
+                <Select
+                    className="w-100"
+                    value={selectedSchema}
+                    placeholder="Select a item type or property from the Donor Metadata (e.g. Demographic)..."
+                    onChange={(selectedItem) => {
+                        setSelectedSchema(selectedItem);
+                    }}
+                    options={options}
+                />
+            </div>
+            <hr className="my-4"></hr>
             {selectedSchema?.value && (
                 <div
                     className={`selected-schema schema-item ${selectedSchema.value} table-responsive`}>
