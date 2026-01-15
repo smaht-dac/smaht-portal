@@ -2537,6 +2537,13 @@ Popover Styles for Item Pages
 			font-weight: 600;
 			background-color: #F1F9FF;
 		}
+
+		&#chart-info-popover-donor-progress {
+			max-width: 340px;
+		}
+		&#chart-info-popover-ethnicity {
+			max-width: 400px;
+		}
 	}
 
 	&.public-donor-download-popover {
