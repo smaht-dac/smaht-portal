@@ -97,8 +97,9 @@ const TITLE_BAND = 44;   // vertical space reserved for title
 
 /**
  * Chart Title component with optional popover
- * @param {string} title - title of the chart
- * @param {JSX.Element} popover - popover component to be rendered
+ * @param {object} props - props object containing title and popover
+ * @param {string} props.title - title of the chart
+ * @param {JSX.Element} props.popover - popover component to be rendered
  * @returns {JSX.Element} Chart Title component
  * 
  * Note: Popover is manually triggered to support popover interaction
