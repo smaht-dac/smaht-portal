@@ -375,7 +375,7 @@ function stepFacetChartBarPlotTests(caps) {
 const chartTitles = [
     'Age Groups',
     'Hardy Scale',
-    'Self-Reported Ethnicity'
+    'Donor Sequencing Progress'
 ];
 
 function stepCohortViewChartTests(caps) {
@@ -389,6 +389,11 @@ function stepCohortViewChartTests(caps) {
                         const expectedMax = min([10, totalDonors]);
                         cy.log(`Adjusting expected max for ${title} chart to: ${expectedMax}`);
                         checkChartTotal(title, expectedMax);
+                    } else if (title === 'Donor Sequencing Progress') {
+                        cy.get('.donor-cohort-view-chart.donor-sequencing-progress .dsp-center .dsp-count-current').then(($el) => {
+                            const dspTotal = parseIntSafe($el.text());
+                            expect(dspTotal).to.equal(info.donor);
+                        });
                     } else {
                         checkChartTotal(title, totalDonors);
                     }
