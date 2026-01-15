@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.8.5
+=====
+
+`PR 579: feat: update hardy scale popover <https://github.com/smaht-dac/smaht-portal/pull/579>`_
+
+* Update content of hardy scale popover
+
 
 1.8.5
 ======

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import * as d3 from 'd3';
 import { OverlayTrigger } from 'react-bootstrap';
@@ -94,6 +94,54 @@ function useParentWidth(ref) {
 }
 
 const TITLE_BAND = 44;   // vertical space reserved for title
+
+/**
+ * Chart Title component with optional popover
+ * @param {object} props - props object containing title and popover
+ * @param {string} props.title - title of the chart
+ * @param {JSX.Element} props.popover - popover component to be rendered
+ * @returns {JSX.Element} Chart Title component
+ * 
+ * Note: Popover is manually triggered to support popover interaction
+ */
+const ChartTitle = ({ title = '', popover = null }) => {
+    const [showPopover, setShowPopover] = useState(false);
+
+    const handleShowPopover = (show) => {
+        setShowPopover(show);
+    };
+
+    return (
+        <div className="chart-title-container">
+            <h3>
+                {title}
+                {popover && (
+                    <OverlayTrigger
+                        show={showPopover}
+                        flip
+                        placement="auto"
+                        rootClose
+                        rootCloseEvent="click"
+                        overlay={
+                            // Allow for popover to be a function or a JSX element
+                            typeof popover === 'function'
+                                ? popover(handleShowPopover)
+                                : popover
+                        }
+                    >
+                        <button
+                            onMouseEnter={() => setShowPopover(true)}
+                            onMouseLeave={() => setShowPopover(false)}
+                            type="button" className="info-tooltip" aria-label="More info"
+                        >
+                            <i className="icon icon-info-circle fas" />
+                        </button>
+                    </OverlayTrigger>
+                )}
+            </h3>
+        </div>
+    )
+};
 
 const DonorCohortViewChart = ({
     title = '',
@@ -825,25 +873,7 @@ const DonorCohortViewChart = ({
             <svg ref={svgRef} />
 
             {/* Title + info icon (centered) */}
-            <div className="chart-title-container">
-                <h3>
-                    {title}
-                    {popover && (
-                        <OverlayTrigger
-                            // trigger="click"
-                            flip
-                            placement="auto"
-                            rootClose
-                            rootCloseEvent="click"
-                            overlay={popover}
-                        >
-                            <button type="button" className="info-tooltip" aria-label="More info">
-                                <i className="icon icon-info-circle fas" />
-                            </button>
-                        </OverlayTrigger>
-                    )}
-                </h3>
-            </div>
+            <ChartTitle title={title} popover={popover} />
 
             {/* Loading overlay */}
             {loading && (

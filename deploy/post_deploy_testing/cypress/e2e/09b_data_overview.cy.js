@@ -26,10 +26,10 @@ const ROLE_MATRIX = {
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
         label: "SMAHT_NON_DBGAP",
         isAuthenticated: true,
-        canViewQCMetrics: true,
+        canViewQCMetrics: false,
 
         expectedQCMetricsMenuVisible: true,
-        expectedQCMetricsResponseCode: 200,
+        expectedQCMetricsResponseCode: 403,
     },
     [ROLE_TYPES.PUBLIC_DBGAP]: {
         label: "PUBLIC_DBGAP",
@@ -849,6 +849,14 @@ const ROLES_TO_TEST = [
 describe("Data Overview - QC Metrics (role-based)", () => {
     ROLES_TO_TEST.forEach((roleKey) => {
         const caps = ROLE_MATRIX[roleKey];
+        // override for devtest smaht non-dbgap
+        if (roleKey === ROLE_TYPES.SMAHT_NON_DBGAP) {
+            const baseUrl = Cypress.config().baseUrl || "";
+            if (baseUrl.includes("devtest.smaht.org")) {
+                caps.canViewQCMetrics = true;
+                caps.expectedQCMetricsResponseCode = 200;
+            }
+        }
         const label = caps.label || String(roleKey);
 
         context(`${label} → QC Metrics page`, () => {
