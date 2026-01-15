@@ -94,7 +94,7 @@ export const renderDonorSequencingPopover = (customId) => (
                 <tbody>
                     <tr>
                         <td className="text-left">
-                            Shows the number of donors that have completed sequencing against the program target.
+                            Shows the number of donors that have sequencing data available against the program target.
                         </td>
                     </tr>
                 </tbody>
