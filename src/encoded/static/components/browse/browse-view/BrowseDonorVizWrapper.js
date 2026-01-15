@@ -10,7 +10,7 @@ import { FacetCharts } from '../components/FacetCharts';
 import { ChartDataController } from '../../viz/chart-data-controller';
 import DonorCohortViewChart from '../components/DonorCohortViewChart';
 import DonorSequencingProgressChart from '../components/DonorSequencingProgressChart';
-import { renderHardyScaleDescriptionPopover } from '../../item-pages/components/donor-overview/PublicDonorViewDataCards';
+import { renderHardyScaleDescriptionPopover } from '../../item-pages/components/donor-overview/ProtectedDonorViewDataCards';
 import { useUserDownloadAccess } from '../../util/hooks';
 
 import { IconToggle } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Toggle';
@@ -430,7 +430,7 @@ export const BrowseDonorVizWrapper = (props) => {
                             xAxisTitle="Hardy scale"
                             yAxisTitle="# of Donors"
                             showXAxisTitle={true}
-                            popover={renderHardyScaleDescriptionPopover()}
+                            popover={(handleShowPopover) => renderHardyScaleDescriptionPopover(handleShowPopover)}
                             showBarTooltip={true}
                             tooltipTitles={{
                                 crumb: null,
