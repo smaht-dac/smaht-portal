@@ -379,6 +379,42 @@ const chartTitles = [
 ];
 
 function stepCohortViewChartTests(caps) {
+
+    // Check that info tooltip is working properly
+    visitBrowseByDonor(caps).toggleView('Cohort').then(() => {
+        chartTitles.forEach((title) => {
+            cy.contains('.donor-cohort-view-chart h3', title)
+              .then(($h3) => {
+
+                const $icon = $h3.find('button.info-tooltip i.icon-info-circle')
+
+                // Tooltip does not exist, do nothing
+                if (!$icon.length) {
+                    cy.log('No tooltip icon for this chart')
+                    return
+                }
+
+                // Tooltip exists, hover and assert popover
+                cy.wrap($icon)
+                    .first()
+                    .trigger('mouseover')
+                    .trigger('mouseenter')
+
+                cy.get('div[role="tooltip"]', { timeout: 1000 })
+                    .should('exist')
+                    .and('be.visible')
+
+                cy.wrap($icon)
+                    .first()
+                    .trigger('mouseout')
+                    .trigger('mouseleave')
+
+                cy.get('div[role="tooltip"]', { timeout: 1000 })
+                    .should('not.exist')
+            })
+        });
+    });
+
     if (caps.expectedStatsSummaryOpts.totalFiles > 0) {
         visitBrowseByDonor(caps).toggleView('Cohort').then(() => {
             cy.getQuickInfoBar().then((info) => {
@@ -403,11 +439,14 @@ function stepCohortViewChartTests(caps) {
     } else {
         visitBrowseByDonor(caps).toggleView('Cohort').then(() => {
             chartTitles.forEach((title) => {
+                
+                // Check for a chart title element
                 cy.contains('.donor-cohort-view-chart h3', title)
                     .closest('.donor-cohort-view-chart')
                     .find('.no-data span.text-secondary')
                     .should('be.visible')
                     .and('contain.text', 'No data available');
+                
             });
             cy.log('Skipping stepCohortViewChartTests since no data is accessible for this role.');
         });
