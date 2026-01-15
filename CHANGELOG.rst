@@ -15,6 +15,14 @@ Change Log
 * Update content of hardy scale popover
 
 
+1.8.4
+======
+
+`PR 582: test: cypress updates <https://github.com/smaht-dac/smaht-portal/pull/575>`_
+
+* Update the awardees page cypress tests
+
+
 1.8.3
 ======
 
