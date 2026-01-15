@@ -8,10 +8,18 @@ Change Log
 ----------
 
 
+1.8.5
+======
+
+`PR 581: udate README <https://github.com/smaht-dac/smaht-portal/pull/581>`_
+
+* Update the README page
+
+
 1.8.4
 ======
 
-`PR 582: test: cypress updates <https://github.com/smaht-dac/smaht-portal/pull/575>`_
+`PR 582: test: cypress updates <https://github.com/smaht-dac/smaht-portal/pull/582>`_
 
 * Update the awardees page cypress tests
 
