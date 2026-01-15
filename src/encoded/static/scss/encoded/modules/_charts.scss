@@ -1386,8 +1386,8 @@ body[data-path="/statistics"] {
             cursor: pointer;
             background-color: white;
             padding: 0;
-            text-align: left;
             display: flex;
+            justify-content: center;
             border: 1px solid #E7F0F3;
             border-top: 4px solid #E99415;
             border-bottom: 1px solid #E7F0F3;
@@ -1399,6 +1399,8 @@ body[data-path="/statistics"] {
             .title {
                 padding: 10px 15px;
                 margin-bottom: -2px;
+                text-align: center;
+                width: 100%;
                 // background-color: white;
                 z-index: 0;
             }
