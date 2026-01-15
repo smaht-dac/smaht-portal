@@ -15,6 +15,16 @@ Change Log
 * Update content of hardy scale popover
 
 
+1.8.3
+======
+
+`PR 575: Donor Sequencing Progress Chart <https://github.com/smaht-dac/smaht-portal/pull/575>`_
+
+* Add Donor Sequencing Progress chart to Browse by Donor page
+* Remove Self-Reported Ethnicity chart from Browse by Donor page
+* Add stroke while hovering for Donor Ages and Hardy Scale charts
+
+
 1.8.2
 ======
 

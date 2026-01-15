@@ -136,7 +136,7 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                         <div className="tab-card w-100">
                             <div className="body d-flex align-items-center justify-content-center">
                                 <span className="text-secondary">
-                                    No data is currently available for these tabs.
+                                    No data is currently available
                                 </span>
                             </div>
                         </div>
