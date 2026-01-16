@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.8.6
+=====
+
+`PR 583: Restrict QC metrics endpoint  <https://github.com/smaht-dac/smaht-portal/pull/583>`_
+
+* Restrict QC metrics endpoint to users with dbgap access only
+
+
 1.8.5
 =====
 
