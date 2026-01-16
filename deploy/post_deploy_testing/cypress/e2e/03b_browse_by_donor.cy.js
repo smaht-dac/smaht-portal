@@ -375,10 +375,46 @@ function stepFacetChartBarPlotTests(caps) {
 const chartTitles = [
     'Age Groups',
     'Hardy Scale',
-    'Self-Reported Ethnicity'
+    'Donor Sequencing Progress'
 ];
 
 function stepCohortViewChartTests(caps) {
+
+    // Check that info tooltip is working properly
+    visitBrowseByDonor(caps).toggleView('Cohort').then(() => {
+        chartTitles.forEach((title) => {
+            cy.contains('.donor-cohort-view-chart h3', title)
+              .then(($h3) => {
+
+                const $icon = $h3.find('button.info-tooltip i.icon-info-circle')
+
+                // Tooltip does not exist, do nothing
+                if (!$icon.length) {
+                    cy.log('No tooltip icon for this chart')
+                    return
+                }
+
+                // Tooltip exists, hover and assert popover
+                cy.wrap($icon)
+                    .first()
+                    .trigger('mouseover')
+                    .trigger('mouseenter')
+
+                cy.get('div[role="tooltip"]', { timeout: 1000 })
+                    .should('exist')
+                    .and('be.visible')
+
+                cy.wrap($icon)
+                    .first()
+                    .trigger('mouseout')
+                    .trigger('mouseleave')
+
+                cy.get('div[role="tooltip"]', { timeout: 1000 })
+                    .should('not.exist')
+            })
+        });
+    });
+
     if (caps.expectedStatsSummaryOpts.totalFiles > 0) {
         visitBrowseByDonor(caps).toggleView('Cohort').then(() => {
             cy.getQuickInfoBar().then((info) => {
@@ -389,6 +425,11 @@ function stepCohortViewChartTests(caps) {
                         const expectedMax = min([10, totalDonors]);
                         cy.log(`Adjusting expected max for ${title} chart to: ${expectedMax}`);
                         checkChartTotal(title, expectedMax);
+                    } else if (title === 'Donor Sequencing Progress') {
+                        cy.get('.donor-cohort-view-chart.donor-sequencing-progress .dsp-center .dsp-count-current').then(($el) => {
+                            const dspTotal = parseIntSafe($el.text());
+                            expect(dspTotal).to.equal(info.donor);
+                        });
                     } else {
                         checkChartTotal(title, totalDonors);
                     }
@@ -398,11 +439,14 @@ function stepCohortViewChartTests(caps) {
     } else {
         visitBrowseByDonor(caps).toggleView('Cohort').then(() => {
             chartTitles.forEach((title) => {
+                
+                // Check for a chart title element
                 cy.contains('.donor-cohort-view-chart h3', title)
                     .closest('.donor-cohort-view-chart')
                     .find('.no-data span.text-secondary')
                     .should('be.visible')
                     .and('contain.text', 'No data available');
+                
             });
             cy.log('Skipping stepCohortViewChartTests since no data is accessible for this role.');
         });

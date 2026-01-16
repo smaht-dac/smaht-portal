@@ -69,12 +69,13 @@ export const parseSectionsContent = memoize(function (context) {
                     <div style={{ position: 'relative' }}>
                         <object.CopyWrapper
                             value={children}
-                            className={(className || '') + " mt-2"}
+                            className={(className || '') + ' mt-2'}
                             wrapperElement="pre"
                             whitespace={false}>
                             {children}
                         </object.CopyWrapper>
-                    </div>);
+                    </div>
+                );
             }
         },
     };
@@ -139,7 +140,12 @@ export const StaticEntryContent = React.memo(function StaticEntryContent(
     props
 ) {
     const { section, className } = props;
-    const { content = null, content_as_html = null, options = {}, filetype = null } = section;
+    const {
+        content = null,
+        content_as_html = null,
+        options = {},
+        filetype = null,
+    } = section;
     let renderedContent;
 
     if (!content) return null;
