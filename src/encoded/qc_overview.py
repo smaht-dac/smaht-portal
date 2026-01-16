@@ -2,7 +2,7 @@ from pyramid.view import view_config
 from snovault.util import debug_log
 from snovault.search.search import search
 from snovault.search.search_utils import make_search_subreq
-from src.encoded.types.file import validate_user_has_protected_access
+from encoded.types.file import validate_user_has_protected_access
 from urllib.parse import urlencode
 from boto3 import client as boto_client
 import json
