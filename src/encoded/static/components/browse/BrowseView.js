@@ -59,9 +59,36 @@ export default function BrowseView(props) {
 }
 
 // Modal for empty Donor and ProtectedDonor Browse
-export const NoResultsBrowseModal = ({ type }) => {
+export const NoResultsBrowseModal = ({
+    type,
+    context = { total: 0 },
+    href,
+    userDownloadAccess,
+    isAccessResolved,
+}) => {
     const [showModal, setShowModal] = useState(true);
-    return (
+
+    const userDownloadAccessUpdated = isAccessResolved;
+    const hasProtectedAccess = userDownloadAccess?.['protected'];
+    const hasNoResults = context?.total === 0;
+    const isBaseBrowsePath =
+        new URL(href).pathname + new URL(href).search === BROWSE_LINKS[type];
+
+    /**
+     * Show No results modal if all of the following are true:
+     * - `userDownloadAccess` has reached a stable state (i.e. logged-in users
+     *   have open access; logged-out users have no access)
+     * - The user does not have protected access (i.e. is a public user)
+     * - There are no files in the search results
+     * - The URL is the base browse path (no additional filters applied)
+     */
+    const shouldShowNoResultsModal =
+        userDownloadAccessUpdated &&
+        hasProtectedAccess === false &&
+        hasNoResults &&
+        isBaseBrowsePath;
+
+    return shouldShowNoResultsModal ? (
         <Modal
             id="download-access-required-modal"
             show={showModal}
@@ -85,17 +112,27 @@ export const NoResultsBrowseModal = ({ type }) => {
                 </div>
             </Modal.Body>
         </Modal>
-    );
+    ) : null;
 };
 
 const BrowseFileBody = (props) => {
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
-    const { context, session, href, windowWidth, windowHeight, isFullscreen } =
-        props;
+    const {
+        context,
+        session,
+        href,
+        windowWidth,
+        windowHeight,
+        isFullscreen,
+        userDownloadAccess,
+        isAccessResolved,
+    } = props;
+
     const initialFields = [
         'sample_summary.tissues',
         'sequencing.sequencer.display_title',
     ];
+
     return (
         <>
             <h2 className="browse-summary-header">SMaHT Data Summary</h2>
@@ -140,10 +177,17 @@ const BrowseFileBody = (props) => {
             <hr />
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseFileSearchTable
-                    userDownloadAccess={props.userDownloadAccess}
+                    userDownloadAccess={userDownloadAccess}
                 />
             </BrowseViewControllerWithSelections>
-            {context?.total === 0 && <NoResultsBrowseModal type="file" />}
+            {context?.total === 0 && (
+                <NoResultsBrowseModal
+                    type="file"
+                    href={href}
+                    userDownloadAccess={userDownloadAccess}
+                    isAccessResolved={isAccessResolved}
+                />
+            )}
         </>
     );
 };
@@ -173,7 +217,8 @@ const renderBrowseBody = (props) => {
  */
 const BrowseViewContent = (props) => {
     const { context, session } = props;
-    const userDownloadAccess = useUserDownloadAccess(session);
+    const { userDownloadAccess, isAccessResolved } =
+        useUserDownloadAccess(session);
 
     // Include `userDownloadAccess` in the props passed to child components
     const passProps = {
@@ -183,6 +228,7 @@ const BrowseViewContent = (props) => {
             clear_filters: BROWSE_LINKS.file,
         },
         userDownloadAccess,
+        isAccessResolved,
     };
 
     return (

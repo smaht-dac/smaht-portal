@@ -19,6 +19,7 @@ const defaultDownloadAccessObject = {
     obsolete: false,
     archived: false,
     deleted: false,
+    isAccessObjectResolved: false,
 };
 /**
  * Checks the session-properties endpoint to determine the statuses that a user
@@ -33,8 +34,12 @@ export const useUserDownloadAccess = (session) => {
     const [downloadAccessObject, setDownloadAccessObject] = useState(
         defaultDownloadAccessObject
     );
+    const [isAccessResolved, setIsAccessResolved] = useState(false);
 
     useEffect(() => {
+        let cancelled = false;
+        setIsAccessResolved(false);
+
         if (session) {
             const userDownloadAccessObj = { ...defaultDownloadAccessObject };
 
@@ -58,6 +63,8 @@ export const useUserDownloadAccess = (session) => {
             ajax.load(
                 '/session-properties',
                 (resp) => {
+                    if (cancelled) return; // ignore stale response
+
                     // Get consortia associated with user
                     const userConsortia = resp?.details?.consortia || [];
 
@@ -90,21 +97,32 @@ export const useUserDownloadAccess = (session) => {
                     }
 
                     setDownloadAccessObject(userDownloadAccessObj);
+                    setIsAccessResolved(true);
                 },
                 'GET',
                 (err) => {
-                    if (err?.notification !== 'No results found') {
+                    if (
+                        err?.notification !==
+                        'No session property information found.'
+                    ) {
                         console.error(
-                            'ERROR determining user access statuses:',
+                            'ERROR determining session property information:',
                             err
                         );
+                        setDownloadAccessObject(defaultDownloadAccessObject);
+                        setIsAccessResolved(true);
                     }
                 }
             );
         } else {
             setDownloadAccessObject(defaultDownloadAccessObject);
+            setIsAccessResolved(true);
         }
+
+        return () => {
+            cancelled = true;
+        };
     }, [session]);
 
-    return downloadAccessObject;
+    return { userDownloadAccess: downloadAccessObject, isAccessResolved };
 };

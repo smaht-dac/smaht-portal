@@ -143,7 +143,7 @@ const PublicDonorViewHeader = (props) => {
     const { context = {}, session, title = null } = props;
     const { notes_to_tsv } = context;
     const [showRedirectBanner, setShowRedirectBanner] = useState(false);
-    const userDownloadAccess = useUserDownloadAccess(session);
+    const { userDownloadAccess } = useUserDownloadAccess(session);
 
     useEffect(() => {
         if (
@@ -320,7 +320,11 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                     idLabel="donor"
                                     session={session}
                                     yAxisLabel="Tissue" // Only one donor, so y-axis is Tissue
-                                    baseBrowseFilesPath={study === 'Production' ? "/browse/" : "/search/"}
+                                    baseBrowseFilesPath={
+                                        study === 'Production'
+                                            ? '/browse/'
+                                            : '/search/'
+                                    }
                                 />
                             </div>
                         ) : (

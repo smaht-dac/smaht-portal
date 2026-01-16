@@ -894,8 +894,8 @@ const BrowseProtectedDonorSearchTable = (props) => {
 
 // Browse Protected Donor Body Component
 export const BrowseProtectedDonorBody = (props) => {
-    const { context, alerts } = props;
-
+    const { context, alerts, href, userDownloadAccess, isAccessResolved } =
+        props;
     return (
         <>
             <Alerts alerts={alerts} className="mt-2" />
@@ -904,7 +904,14 @@ export const BrowseProtectedDonorBody = (props) => {
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseProtectedDonorSearchTable />
             </BrowseViewControllerWithSelections>
-            {context?.total === 0 && <NoResultsBrowseModal type="donor" />}
+            {context?.total === 0 && (
+                <NoResultsBrowseModal
+                    type="protected_donor"
+                    href={href}
+                    userDownloadAccess={userDownloadAccess}
+                    isAccessResolved={isAccessResolved}
+                />
+            )}
         </>
     );
 };

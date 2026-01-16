@@ -873,7 +873,10 @@ const RedirectBanner = ({ href }) => {
 // Browse Donor Body Component
 export const BrowseDonorBody = (props) => {
     const [showRedirectBanner, setShowRedirectBanner] = useState(false);
-    const { context, session, userDownloadAccess } = props;
+    const { context, session, href, userDownloadAccess, isAccessResolved } =
+        props;
+
+    console.log('BrowseDonorBody', props);
 
     useEffect(() => {
         if (session && userDownloadAccess?.['protected']) {
@@ -889,7 +892,14 @@ export const BrowseDonorBody = (props) => {
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseDonorSearchTable />
             </BrowseViewControllerWithSelections>
-            {context?.total === 0 && <NoResultsBrowseModal type="donor" />}
+            {context?.total === 0 && (
+                <NoResultsBrowseModal
+                    type="donor"
+                    href={href}
+                    userDownloadAccess={userDownloadAccess}
+                    isAccessResolved={isAccessResolved}
+                />
+            )}
         </>
     );
 };
