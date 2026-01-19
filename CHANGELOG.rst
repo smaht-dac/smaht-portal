@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+
+1.8.7
+=====
+
+`PR 584: Snovault upgrade for range facet improvements <https://github.com/smaht-dac/smaht-portal/pull/584>`_
+
+* Bumped snovault to 11.28.0
+  - Range facet calculations excluded values equal to the upper bound. The intended margin
+    using SMALLEST_NONZERO_IEEE_32 was ineffective due to precision limits. This has now been corrected
+
+
 1.8.6
 =====
 
