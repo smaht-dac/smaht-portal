@@ -10,7 +10,7 @@ import { FacetCharts } from '../components/FacetCharts';
 import { ChartDataController } from '../../viz/chart-data-controller';
 import DonorCohortViewChart from '../components/DonorCohortViewChart';
 import DonorSequencingProgressChart from '../components/DonorSequencingProgressChart';
-import { renderHardyScaleDescriptionPopover } from '../../item-pages/components/donor-overview/PublicDonorViewDataCards';
+import { renderHardyScaleDescriptionPopover } from '../../item-pages/components/donor-overview/ProtectedDonorViewDataCards';
 import { useUserDownloadAccess } from '../../util/hooks';
 
 import { IconToggle } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Toggle';
@@ -22,15 +22,30 @@ import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util'
  */
 export const getDonorSelfReportedEthnicityData = memoize(() =>
     _.chain([
-        { group: 'American Indian or Alaska Native', value1: 1, value2: 0, total: 10 },
+        {
+            group: 'American Indian or Alaska Native',
+            value1: 1,
+            value2: 0,
+            total: 10,
+        },
         // { group: 'Asian', value1: 8, value2: 0, total: 83 },
         // { group: 'Black or African American', value1: 11, value2: 0, total: 83 },
-        { group: 'Hispanic, Latino or Spanish Origin', value1: 1, value2: 0, total: 10 },
+        {
+            group: 'Hispanic, Latino or Spanish Origin',
+            value1: 1,
+            value2: 0,
+            total: 10,
+        },
         // { group: 'Middle Eastern or North African', value1: 15, value2: 0, total: 83 },
         // { group: 'Native Hawaiian or Other Pacific Islander', value1: 10, value2: 0, total: 83 },
         // { group: 'Other', value1: 8, value2: 0, total: 83 },
         { group: 'White', value1: 7, value2: 0, total: 10 },
-        { group: 'More than 1 Race/Ethnicity', value1: 1, value2: 0, total: 10 },
+        {
+            group: 'More than 1 Race/Ethnicity',
+            value1: 1,
+            value2: 0,
+            total: 10,
+        },
     ])
         .sortBy((item) => item.group.toLowerCase()) // #2 group asc
         .sortBy((item) => -item.value1) // #1 value1 desc
@@ -112,7 +127,7 @@ export const BrowseDonorVizWrapper = (props) => {
         isFullscreen,
         href,
         session,
-        mapping
+        mapping,
     } = props;
     const [toggleViewIndex, setToggleViewIndex] = useState(1);
     const [donorAgeGroupData, setDonorAgeGroupData] = useState();
@@ -122,7 +137,10 @@ export const BrowseDonorVizWrapper = (props) => {
     const [dspLoading, setDspLoading] = useState(false);
     const userDownloadAccess = useUserDownloadAccess(session);
 
-    const initialFields = ['sample_summary.tissues', 'sequencing.sequencer.display_title'];
+    const initialFields = [
+        'sample_summary.tissues',
+        'sequencing.sequencer.display_title',
+    ];
 
     const fileFilters = useMemo(() => {
         const hrefParts = url.parse(href, true);
@@ -140,8 +158,7 @@ export const BrowseDonorVizWrapper = (props) => {
         if (d?.field) {
             if (d.from !== null && d.from !== undefined)
                 ff[`${d.field}.from`] = d.from;
-            if (d.to !== null && d.to !== undefined)
-                ff[`${d.field}.to`] = d.to;
+            if (d.to !== null && d.to !== undefined) ff[`${d.field}.to`] = d.to;
         }
         return url.format({ pathname: '/browse/', query: ff });
     };
@@ -172,7 +189,11 @@ export const BrowseDonorVizWrapper = (props) => {
 
         const requestBody = {
             search_query_params: fileFilters,
-            fields_to_aggregate_for: ['donors.hardy_scale', 'donors.sex', 'donors.age'],
+            fields_to_aggregate_for: [
+                'donors.hardy_scale',
+                'donors.sex',
+                'donors.age',
+            ],
         };
         const commonCallback = (rawData) => {
             // Donor Hardy Scale Data
@@ -409,9 +430,13 @@ export const BrowseDonorVizWrapper = (props) => {
                             xAxisTitle="Hardy scale"
                             yAxisTitle="# of Donors"
                             showXAxisTitle={true}
-                            popover={renderHardyScaleDescriptionPopover()}
+                            popover={(handleShowPopover) => renderHardyScaleDescriptionPopover(handleShowPopover)}
                             showBarTooltip={true}
-                            tooltipTitles={{ crumb: null, left: 'Hardy Scale', right: '# of Donors' }}
+                            tooltipTitles={{
+                                crumb: null,
+                                left: 'Hardy Scale',
+                                right: '# of Donors',
+                            }}
                             session={session}
                             loading={loading}
                             buildFilesHref={buildFilesHref}
