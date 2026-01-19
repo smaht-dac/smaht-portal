@@ -4,6 +4,7 @@ import React from 'react';
 import JsxParser from 'react-jsx-parser';
 import { ConsortiumMap } from '../../viz/AboutPageVisualizations/ConsortiumMap';
 import { SubmissionStatus } from '../components/internal/SubmissionStatus';
+import { AnalysisRuns } from '../components/internal/AnalysisRuns';
 import { Alluvial } from '../../viz/AboutPageVisualizations/Alluvial';
 import { StackRowTable } from '../../viz/AboutPageVisualizations/StackRowTable';
 import { QualityMetricVisualizations } from '../../viz/QualityMetricVisualizations';
@@ -31,6 +32,7 @@ import DataMatrix from '../../viz/Matrix/DataMatrix';
 import RetractedFilesTable from '../components/RetractedFilesTable';
 import { SubmissionDataDictionary } from '../SubmissionDataDictionary';
 import { DonorManifestDataDictionary } from '../DonorManifestDataDictionary';
+import { PipelineDocsNavigation } from '../PipelineDocsNavigation';
 import { DataMatrixComparisonTabs } from '../components/DataMatrixComparisonTabs';
 
 /**
@@ -45,6 +47,7 @@ const placeholders = {
     Alluvial,
     QualityMetricVisualizations,
     SubmissionStatus,
+    AnalysisRuns,
     StackRowTable,
     BenchmarkingUI,
     COLO829Data,
@@ -61,6 +64,7 @@ const placeholders = {
     DataMatrix,
     SubmissionDataDictionary,
     DonorManifestDataDictionary,
+    PipelineDocsNavigation,
 };
 
 export const replaceString = memoize(
