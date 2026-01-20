@@ -260,7 +260,6 @@
                         "title": "Default files",
                         "description": "Default file item(s) of the file argument",
                         "type": "array",
-                        "minItems": 1,
                         "items": {
                             "title": "Default Files",
                             "description": "A list of objects describing default input file items",
