@@ -405,13 +405,6 @@ const CustomColTitle = ({
     onResetSelectedItems,
     context,
 }) => {
-    console.log('customColTitle', {
-        session, // pass down session information
-        selectedItems,
-        onSelectItem,
-        onResetSelectedItems,
-        context,
-    });
     // Context now passed in from HeadersRowColumn (for file count)
     return (
         <SelectAllFilesButton

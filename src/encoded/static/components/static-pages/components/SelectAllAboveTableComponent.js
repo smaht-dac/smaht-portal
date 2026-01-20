@@ -260,7 +260,6 @@ export class SelectAllFilesButton extends React.PureComponent {
 
     // Update user download access if session changes
     componentDidUpdate(prevProps, prevState) {
-        console.log('component updated');
         const currentDownloadableFileCount = this.getDownloadableFileCount(
             this.state.userDownloadAccess
         );
@@ -312,12 +311,6 @@ export class SelectAllFilesButton extends React.PureComponent {
         // Too many items to select all
         if (total > SELECT_ALL_LIMIT) return false;
 
-        console.log(
-            'enabled?',
-            session,
-            total,
-            this.state.downloadableFileCount
-        );
         return session && total > 0 && this.state.downloadableFileCount > 0;
     }
 
@@ -362,7 +355,7 @@ export class SelectAllFilesButton extends React.PureComponent {
         const statusFilters = [];
         if (Object.keys(userDownloadAccess).length > 0) {
             for (const status in userDownloadAccess) {
-                if (userDownloadAccess[status]) {
+                if (userDownloadAccess?.[status] === true) {
                     statusFilters.push(status);
                 }
             }
@@ -372,16 +365,19 @@ export class SelectAllFilesButton extends React.PureComponent {
             if (!this.isAllSelected()) {
                 const currentHrefParts = memoizedUrlParse(searchHref);
                 const currentHrefQuery = _.extend({}, currentHrefParts.query);
+
+                // Filter out the current status filters that user can't download
+                currentHrefQuery.status = statusFilters.filter(
+                    (status) => userDownloadAccess?.[status] === true
+                );
+
                 currentHrefQuery.field = SelectAllFilesButton.fieldsToRequest;
                 currentHrefQuery.limit = 'all';
+
                 const reqHref =
                     currentHrefParts.pathname +
                     '?' +
-                    queryString.stringify(currentHrefQuery) +
-                    // Add status filters if any
-                    statusFilters
-                        ?.map((status) => `&status=${status}`)
-                        .join('');
+                    queryString.stringify(currentHrefQuery);
 
                 ajax.load(reqHref, (resp) => {
                     const filesToSelect = resp['@graph'] || [];
