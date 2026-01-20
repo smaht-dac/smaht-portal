@@ -291,7 +291,7 @@
             ]
         },
         "braak_and_braak_ad": {
-            "$title": "Braak & Braak AD",
+            "title": "Braak & Braak AD",
             "type": "string",
             "description": "A semiquantitative measure of distribution and severity of neurofibrillary tangle (NFT) pathology",
             "enum": [
