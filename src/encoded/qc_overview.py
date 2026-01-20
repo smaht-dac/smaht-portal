@@ -2,6 +2,7 @@ from pyramid.view import view_config
 from snovault.util import debug_log
 from snovault.search.search import search
 from snovault.search.search_utils import make_search_subreq
+from encoded.types.file import validate_user_has_protected_access
 from urllib.parse import urlencode
 from boto3 import client as boto_client
 import json
@@ -24,6 +25,12 @@ def includeme(config):
 @debug_log
 def get_qc_overview(context, request):
     response = {"error": True, "error_msg": "", "data": None}
+
+    # We only load the data if the user has access to protected data
+    if not validate_user_has_protected_access(request):
+        response["error_msg"] = "User does not have access to protected data."
+        return response
+    
     try:
         # Search for fileset with same file group
         search_params = {}

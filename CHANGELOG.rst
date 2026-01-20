@@ -7,6 +7,75 @@ smaht-portal
 Change Log
 ----------
 
+
+1.8.7
+=====
+
+`PR 584: Snovault upgrade for range facet improvements <https://github.com/smaht-dac/smaht-portal/pull/584>`_
+
+* Bumped snovault to 11.28.0
+  - Range facet calculations excluded values equal to the upper bound. The intended margin
+    using SMALLEST_NONZERO_IEEE_32 was ineffective due to precision limits. This has now been corrected
+
+
+1.8.6
+=====
+
+`PR 583: Restrict QC metrics endpoint  <https://github.com/smaht-dac/smaht-portal/pull/583>`_
+
+* Restrict QC metrics endpoint to users with dbgap access only
+
+
+1.8.5
+=====
+
+`PR 579: feat: update hardy scale popover <https://github.com/smaht-dac/smaht-portal/pull/579>`_
+
+* Update content of hardy scale popover
+
+
+1.8.5
+======
+
+`PR 581: udate README <https://github.com/smaht-dac/smaht-portal/pull/581>`_
+
+* Update the README page
+
+
+1.8.4
+======
+
+`PR 582: test: cypress updates <https://github.com/smaht-dac/smaht-portal/pull/582>`_
+
+* Update the awardees page cypress tests
+
+
+1.8.3
+======
+
+`PR 575: Donor Sequencing Progress Chart <https://github.com/smaht-dac/smaht-portal/pull/575>`_
+
+* Add Donor Sequencing Progress chart to Browse by Donor page
+* Remove Self-Reported Ethnicity chart from Browse by Donor page
+* Add stroke while hovering for Donor Ages and Hardy Scale charts
+
+
+1.8.2
+======
+
+`PR 577: feat: updates to Donor Metadata Dictionary page <https://github.com/smaht-dac/smaht-portal/pull/577>`_
+
+* Update Availability and Access Doc table
+
+
+1.8.1
+=====
+
+`PR 578: Update Sample and File Nomenclature <https://github.com/smaht-dac/smaht-portal/pull/578>`_
+
+* Update Sample and File Nomenclature page, specifically adding new protocol IDs for fixed brain tissues
+
+
 1.8.0
 =====
 
