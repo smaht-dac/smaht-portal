@@ -151,7 +151,7 @@
                         "description": "Percentage range of the sample that was the target tissue subtype (%)",
                         "type": "string",
                         "enum": [
-                            "[0]",
+                            "0",
                             "[0-10]",
                             "[11-25]",
                             "[26-49]",
