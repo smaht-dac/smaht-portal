@@ -166,8 +166,7 @@ export class VisualBody extends React.PureComponent {
 
                 //TODO: handle composite values in a smart way, this workaround is too hacky
                 if (Array.isArray(columnAggFields) && columnAggFields.length >= 2 && facetTerm &&
-                    compositeValueSeparator && typeof compositeValueSeparator === 'string' &&
-                    facetField !== 'sample_summary.tissue_protocol_id_and_names') {
+                    compositeValueSeparator && typeof compositeValueSeparator === 'string') {
                     // If columnAggFields is an array, we assume the first element is the field and the second is the extended term.
                     if (typeof facetTerm === 'string' && facetTerm.indexOf(compositeValueSeparator) > -1) {
                         let extendedFacetTerm;

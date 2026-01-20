@@ -10,7 +10,7 @@
                 "query": {
                     "url": "/data_matrix_aggregations/?type=File&sample_summary.studies=Benchmarking&dataset!=No+value&dataset!=colo829blt_in_silico&dataset!=colo829_snv_indel_challenge_data&dataset!=mei_detection_challenge_data&dataset!=ipsc_snv_indel_challenge_data&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&limit=all",
                     "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"],
-                    "rowAggFields": ["donors.display_title", ["sample_summary.tissue_protocol_ids", "sample_summary.tissues"], "dataset", "data_type"]
+                    "rowAggFields": ["donors.display_title", "sample_summary.tissue_short_names", "dataset", "data_type"]
                 },
                 "resultItemPostProcessFuncKey": "cellLinePostProcess",
                 "resultTransformedPostProcessFuncKey": "dsaChainFile",
@@ -48,7 +48,7 @@
                 "query": {
                     "url": "/data_matrix_aggregations/?type=File&sample_summary.studies=Production&dataset!=No+value&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&limit=all",
                     "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"],
-                    "rowAggFields": ["donors.display_title", ["sample_summary.tissue_protocol_ids", "sample_summary.tissues"]]
+                    "rowAggFields": ["donors.display_title", "sample_summary.tissue_short_names"]
                 },
                 "headerFor": null,
                 "idLabel": "production"

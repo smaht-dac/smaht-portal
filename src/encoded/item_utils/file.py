@@ -20,6 +20,35 @@ from .utils import (
     get_property_values_from_identifiers,
 )
 
+# temporary mapping for tissue short names
+# to be used in tests until proper metadata implementation is done
+TPC_CODE_TO_FULL_NAME = {
+    "3A": "Blood 3A",
+    "3B": "Buccal Swab 3B",
+    "3C": "Esophagus 3C",
+    "3E": "Colon, Asc 3E",
+    "3G": "Colon, Desc 3G",
+    "3I": "Liver 3I",
+    "3K": "Adrenal Gland, L 3K",
+    "3M": "Adrenal Gland, R 3M",
+    "3O": "Aorta 3O",
+    "3Q": "Lung 3Q",
+    "3S": "Heart 3S",
+    "3U": "Testis, L 3U",
+    "3W": "Testis, R 3W",
+    "3Y": "Ovary, L 3Y",
+    "3AA": "Ovary, R 3AA",
+    "3AC": "Fibroblast 3AC",
+    "3AD": "Skin, SE 3AD",
+    "3AF": "Skin, NE 3AF",
+    "3AH": "Muscle 3AH",
+    "3AK": "Brain, FL 3AK",
+    "3AL": "Brain, TL 3AL",
+    "3AM": "Brain, CB 3AM",
+    "3AN": "Brain, HL 3AN",
+    "3AO": "Brain, HR 3AO",
+}
+
 
 def get_file_format(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
     """Get file format from properties."""
@@ -498,3 +527,17 @@ def get_tissue_protocol_id(file: Dict[str, Any], request_handler: RequestHandler
             tissue.get_protocol_id
         )
     )
+
+def get_tissue_short_name(file: Dict[str, Any], request_handler: RequestHandler) -> List[str]:
+    """
+    Get tissue short name from protocol ID using temporary mapping.
+    """
+    protocol_ids = get_tissue_protocol_id(file, request_handler)
+    short_names = []
+    for pid in protocol_ids:
+        short_name = TPC_CODE_TO_FULL_NAME.get(pid)
+        if short_name:
+            short_names.append(short_name)
+        else:
+            short_names.append(pid)  # Fallback to protocol ID if not found
+    return short_names

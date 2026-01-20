@@ -307,7 +307,7 @@ class CalcPropConstants:
     SAMPLE_SUMMARY_TISSUE_SUBTYPES = "tissue_subtypes"
     SAMPLE_SUMMARY_TISSUE_DETAILS = "tissue_details"
     SAMPLE_SUMMARY_TISSUE_PROTOCOL_IDS = "tissue_protocol_ids"
-    SAMPLE_SUMMARY_TISSUE_PROTOCOL_ID_AND_NAMES = "tissue_protocol_id_and_names"
+    SAMPLE_SUMMARY_TISSUE_SHORT_NAMES = "tissue_short_names"
     SAMPLE_SUMMARY_SAMPLE_NAMES = "sample_names"
     SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS = "sample_descriptions"
     SAMPLE_SUMMARY_ANALYTES = "analytes"
@@ -358,8 +358,8 @@ class CalcPropConstants:
                     "type": "string",
                 },
             },
-            SAMPLE_SUMMARY_TISSUE_PROTOCOL_ID_AND_NAMES: {
-                "title": "Tissue Protocol ID and Tissue Names",
+            SAMPLE_SUMMARY_TISSUE_SHORT_NAMES: {
+                "title": "Tissue Short Name",
                 "type": "array",
                 "items": {
                     "type": "string",
@@ -1249,6 +1249,7 @@ class File(Item, CoreFile):
                 tissue_utils.get_location,
             ),
             constants.SAMPLE_SUMMARY_TISSUE_PROTOCOL_IDS: file_utils.get_tissue_protocol_id(file_properties, request_handler),
+            constants.SAMPLE_SUMMARY_TISSUE_SHORT_NAMES: file_utils.get_tissue_short_name(file_properties, request_handler),
             constants.SAMPLE_SUMMARY_SAMPLE_NAMES: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_samples(file_properties, request_handler),
@@ -1278,15 +1279,6 @@ class File(Item, CoreFile):
                 analyte_utils.get_molecule,
             ),
         }
-        # concatenate tissue protocol ids and tissues for easier display with " - " separator
-        if to_include.get(constants.SAMPLE_SUMMARY_TISSUE_PROTOCOL_IDS) and to_include.get(constants.SAMPLE_SUMMARY_TISSUES):
-            to_include[constants.SAMPLE_SUMMARY_TISSUE_PROTOCOL_ID_AND_NAMES] = [
-                f"{protocol_id} - {tissue}"
-                for protocol_id, tissue in zip(
-                    to_include[constants.SAMPLE_SUMMARY_TISSUE_PROTOCOL_IDS],
-                    to_include[constants.SAMPLE_SUMMARY_TISSUES],
-                )
-            ]
 
         return {key: value for key, value in to_include.items() if value}
 
