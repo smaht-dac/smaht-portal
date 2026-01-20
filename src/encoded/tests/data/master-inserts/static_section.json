@@ -580,6 +580,25 @@
         "uuid": "7550cf0e-367b-4b38-85e3-54cd0c12c6bd"
     },
     {
+        "body": "<AnalysisRuns />",
+        "title": "Analysis Runs",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "analysis-status.0",
+        "section_type": "Page Section",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "uuid": "3560bb87-7635-4d75-8ff7-08758352e5af"
+    },
+    {
         "identifier": "retracted-files",
         "title": "List of Retracted Files",
         "file": "/docs/public/retracted_files.jsx",
@@ -602,7 +621,7 @@
         "identifier": "data_matrix_comparison",
         "title": "SMaHT Data Matrix",
         "file": "/docs/public/data_matrix_comparison.jsx",
-        "status": "open",
+        "status": "protected-network",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -637,8 +656,213 @@
         ]
     },
     {
+        "identifier": "pipeline_docs",
+        "title": "Analysis Methods",
+        "uuid": "b78b2ebb-d01c-4635-8a67-76a98ab81772",
+        "section_type": "Page Section",
+        "status": "in review",
+        "file": "/docs/public/pipeline_docs_navigation.jsx",
+        "options": {
+            "filetype": "jsx",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "fastq_files",
+        "title": "FASTQ",
+        "uuid": "439034da-bad5-42c5-8124-3be68276d6cc",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "short-read_illumina_paired-end",
+        "title": "Illumina (short-read)",
+        "uuid": "ce182c42-4f0e-4c1b-b325-213f730a0b42",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "long-read_pacbio_hifi",
+        "title": "PacBio HiFi (long-read)",
+        "uuid": "23bd319b-19eb-4408-869b-eda806da56a5",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "long-read_oxford_nanopore",
+        "title": "Oxford Nanopore (long-read)",
+        "uuid": "9cc46136-477d-4f6e-8751-94d41e6fb5cf",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "short-read_rna-seq_paired-end",
+        "title": "Bulk Total RNA (short-read)",
+        "uuid": "e1ee7924-99cf-4584-9c89-1e023436c797",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "long-read_rna-seq_pacbio_kinnex",
+        "title": "PacBio Kinnex (long-read)",
+        "uuid": "22b22be8-8380-4407-a952-c8106d70c4bc",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "genome_builds",
+        "title": "Genome Builds",
+        "uuid": "455af80f-2dbd-40c7-b7b0-451783dc87ef",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "genome_annotations",
+        "title": "Gene and Transcript Annotations",
+        "uuid": "1dc93422-bed2-45c5-8f98-ee57414d4c4a",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "variant_catalogs",
+        "title": "Variant Databases",
+        "uuid": "2112c809-bca7-46cc-b700-a5280cb2cdee",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "software_specific",
+        "title": "Software-specific Reference Files",
+        "uuid": "45e37138-0988-4f31-be2a-acec7605bf3d",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "release_changelog",
+        "title": "Release Changelog",
+        "uuid": "408bc595-868c-43a6-a8f0-105c22ded302",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
         "identifier": "donor_manifest_dictionary",
-        "title": "Donor Manifest Dictionary",
+        "title": "Donor/ProtectedDonor Metadata Dictionary",
         "file": "/docs/public/donor_manifest_dictionary.jsx",
         "status": "open",
         "options": {

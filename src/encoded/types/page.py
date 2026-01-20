@@ -185,7 +185,8 @@ class Page(Item, CorePage):
     embedded_list = [
         'content.*',
         'children.*',
-        'children.children.*'
+        'children.children.*',
+        'children.children.children.*'  # allow depth 4
     ]
     ALLOWED_PATH_CHARACTERS = ["/"] + CorePage.ALLOWED_PATH_CHARACTERS
 

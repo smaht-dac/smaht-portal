@@ -501,11 +501,21 @@ def test_meta_workflow_run_inputs_rev_link(
     file_with_inputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_inputs.uuid!=No+value"
     )
-    assert file_with_inputs_search
-    file_without_inputs_search = get_search(
+    assert len(file_with_inputs_search) == 1
+    files_without_inputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_inputs.uuid=No+value"
     )
-    assert file_without_inputs_search
+    assert files_without_inputs_search
+    # why aren't the reference files returned with the get_search call above?
+    reference_files_lacking_mwfrs_search = get_search(
+        es_testapp, "/search/?type=ReferenceFile&meta_workflow_run_inputs.uuid=No+value"
+    )
+    rf_uuids = [rf.get('uuid') for rf in reference_files_lacking_mwfrs_search]
+    # this uuid is for the reference file that was added as input to a meta workflow run insert
+    # because meta_workflow_runs are not revlinked we explicitly check that a reference file that
+    # was added as an input doesn't get the calcprop value even though we would expect it to be returned
+    # for the files_without_inputs_search and it is not
+    assert "49690fb8-7680-4034-ae3b-4f28222d5db8" in rf_uuids
 
 
 @pytest.mark.workbook
@@ -517,7 +527,7 @@ def test_meta_workflow_run_outputs_rev_link(
     file_with_outputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_outputs.uuid!=No+value"
     )
-    assert file_with_outputs_search
+    assert len(file_with_outputs_search) == 1
     file_without_outputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_outputs.uuid=No+value"
     )
