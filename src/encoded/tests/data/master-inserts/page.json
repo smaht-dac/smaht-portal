@@ -309,8 +309,8 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs",
-        "title": "Analysis Methods",
-        "status": "open-network",
+        "title": "Analysis Pipelines",
+        "status": "open",
         "children" : [
             "379e3032-a0fe-45d6-8277-b373b52d3a79",
             "1756229d-7498-444f-b574-983d3020f948",
@@ -338,7 +338,7 @@
     {
         "identifier": "docs/additional-resources/pipeline-docs/fastq_files",
         "title": "FASTQ",
-        "status": "open-network",
+        "status": "open",
         "table-of-contents": {
             "enabled": true,
             "header-depth": 2
@@ -364,7 +364,7 @@
         "content": [
             "ce182c42-4f0e-4c1b-b325-213f730a0b42"
         ],
-        "status": "open-network",
+        "status": "open",
         "uuid": "1756229d-7498-444f-b574-983d3020f948",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
@@ -383,7 +383,7 @@
         "content": [
             "23bd319b-19eb-4408-869b-eda806da56a5"
         ],
-        "status": "open-network",
+        "status": "open",
         "uuid": "ab58ce07-b8f9-4807-aa8a-d651b6cd733d",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
@@ -402,7 +402,7 @@
         "content": [
             "9cc46136-477d-4f6e-8751-94d41e6fb5cf"
         ],
-        "status": "open-network",
+        "status": "open",
         "uuid": "041ca9a2-2b67-409c-ac50-4705f995fb99",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
@@ -421,7 +421,7 @@
         "content": [
             "e1ee7924-99cf-4584-9c89-1e023436c797"
         ],
-        "status": "open-network",
+        "status": "open",
         "uuid": "582c7cab-bd68-4e86-aa29-6d0e6718b62a",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
@@ -440,7 +440,7 @@
         "content": [
             "22b22be8-8380-4407-a952-c8106d70c4bc"
         ],
-        "status": "open-network",
+        "status": "open",
         "uuid": "3f503a50-8646-4b4d-b870-73eabc8106a2",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
@@ -459,7 +459,7 @@
         "content": [
             "455af80f-2dbd-40c7-b7b0-451783dc87ef"
         ],
-        "status": "open-network",
+        "status": "open",
         "uuid": "1ac937fa-8057-44da-ae9d-869d1cc56a1b",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
@@ -478,7 +478,7 @@
         "content": [
             "1dc93422-bed2-45c5-8f98-ee57414d4c4a"
         ],
-        "status": "open-network",
+        "status": "open",
         "uuid": "01f81cd2-5423-4c26-afd2-5e31f6eef6b6",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
@@ -497,7 +497,7 @@
         "content": [
             "2112c809-bca7-46cc-b700-a5280cb2cdee"
         ],
-        "status": "open-network",
+        "status": "open",
         "uuid": "f873a9df-a511-4e02-af8c-d6e050980b4e",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
@@ -516,7 +516,7 @@
         "content": [
             "45e37138-0988-4f31-be2a-acec7605bf3d"
         ],
-        "status": "open-network",
+        "status": "open",
         "uuid": "078a29b1-3cb8-4bcf-bf76-865b66afaa74",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
@@ -530,12 +530,12 @@
         "title": "Release Changelog",
         "table-of-contents": {
             "enabled": true,
-            "header-depth": 2
+            "header-depth": 3
         },
         "content": [
             "408bc595-868c-43a6-a8f0-105c22ded302"
         ],
-        "status": "open-network",
+        "status": "open",
         "uuid": "45445bef-a513-4236-a013-baeecb3e9e25",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
