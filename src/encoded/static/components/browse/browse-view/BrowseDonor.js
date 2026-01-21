@@ -876,8 +876,6 @@ export const BrowseDonorBody = (props) => {
     const { context, session, href, userDownloadAccess, isAccessResolved } =
         props;
 
-    console.log('BrowseDonorBody', props);
-
     useEffect(() => {
         if (session && userDownloadAccess?.['protected']) {
             setShowRedirectBanner(true);
