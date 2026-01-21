@@ -89,11 +89,7 @@ export const NoResultsBrowseModal = ({
         isBaseBrowsePath;
 
     return shouldShowNoResultsModal ? (
-        <Modal
-            id="download-access-required-modal"
-            show={showModal}
-            onHide={() => setShowModal(false)}
-            centered>
+        <Modal id="download-access-required-modal" show={showModal} centered>
             <Modal.Body>
                 <div className="callout-card protected-data">
                     <img
