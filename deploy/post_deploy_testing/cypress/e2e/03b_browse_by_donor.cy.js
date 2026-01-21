@@ -34,6 +34,7 @@ const ROLE_MATRIX = {
 
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
+        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetChartBarPlotTests: true,
@@ -53,6 +54,7 @@ const ROLE_MATRIX = {
 
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
+        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetChartBarPlotTests: true,
@@ -72,6 +74,7 @@ const ROLE_MATRIX = {
 
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
+        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetChartBarPlotTests: true,
@@ -91,6 +94,7 @@ const ROLE_MATRIX = {
 
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
+        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetChartBarPlotTests: true,
@@ -110,6 +114,7 @@ const ROLE_MATRIX = {
 
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
+        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetChartBarPlotTests: true,
@@ -231,6 +236,20 @@ function stepNavigateFromHomeToBrowse(caps) {
 function stepDirectBrowseRedirect(caps) {
     cy.visit('/browse/', { headers: cypressVisitHeaders, failOnStatusCode: false });
     cy.location('search').should('include', 'study=Production');
+}
+
+/** Modal appears when no results found */
+function stepNoResultsModal(caps) {
+    // If no files found, the modal should be visible
+    if (caps.expectedStatsSummaryOpts.totalFiles === 0) {
+        cy.get('#download-access-required-modal').should('exist');
+        // Should be able to close the modal by clicking outside of it
+        cy.get('.modal-backdrop').trigger('click', { force: true });
+    }
+
+    // Make sure the modal is not visible
+    cy.get('#download-access-required-modal').should('not.exist');
+    
 }
 
 /** QuickInfoBar numbers should be present and > 0 (or ≥ threshold for size) */
@@ -660,6 +679,11 @@ describe('Browse by role — Donor', () => {
             it(`Direct /browse/ redirects to Production (enabled: ${caps.runDirectBrowseRedirect})`, () => {
                 if (!caps.runDirectBrowseRedirect) return;
                 stepDirectBrowseRedirect(caps);
+            });
+
+            it(`Modal appears when no results found (enabled: ${caps.runNoResultsModal})`, () => {
+                if (!caps.runNoResultsModal) return;
+                stepNoResultsModal(caps);
             });
 
             it(`QuickInfoBar has non-zero counts (enabled: ${caps.runQuickInfoBarCounts})`, () => {
