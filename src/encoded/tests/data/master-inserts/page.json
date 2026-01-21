@@ -530,7 +530,7 @@
         "title": "Release Changelog",
         "table-of-contents": {
             "enabled": true,
-            "header-depth": 2
+            "header-depth": 3
         },
         "content": [
             "408bc595-868c-43a6-a8f0-105c22ded302"
