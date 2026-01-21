@@ -6,64 +6,63 @@
         ],
         "submitted_id": "TEST_BRAIN-PATHOLOGY-REPORT_SMHT001-3AJ-001S1",
         "tissue_name": "Brain",
-        "anatomical_sample_location": "Cerebellum Left Hemisphere",
         "outcome": "Acceptable",
         "final_review_determination": "Yes",
-        "tissue_autolysis_score": 0,
-        "target_tissues": [
+        "brain_subregions": [
             {
-                "target_tissue_subtype": "Brain",
-                "target_tissue_present": "Yes",
-                "target_tissue_percentage": "[50-100]",
-                "target_tissue_autolysis_score": 0
+            "subregion": "Cerebellum Left Hemisphere",
+            "is_present": "Yes",
+            "tissue_autolysis_score": 1
+            },
+            {
+            "subregion": "Frontal Lobe Left Hemisphere",
+            "is_present": "Yes",
+            "tissue_autolysis_score": 2
+            },
+            {
+            "subregion": "Hippocampus Left Hemisphere",
+            "is_present": "Yes",
+            "tissue_autolysis_score": 2
+            },
+            {
+            "subregion": "Hippocampus Right Hemisphere",
+            "is_present": "Yes",
+            "tissue_autolysis_score": 2
+            },
+            {
+            "subregion": "Temporal Lobe Left Hemisphere",
+            "is_present": "No",
+            "tissue_autolysis_score": 1
             }
         ],
-        "pathologic_findings": [
-            {
-                "finding_type": "Developmental Neuropathology",
-                "finding_present": "No"
-            },
-            {
-                "finding_type": "Infectious Neuropathology",
-                "finding_present": "No"
-            },
-            {
-                "finding_type": "Inflammatory Neuropathology",
-                "finding_present": "No"
-            },
-            {
-                "finding_type": "Metabolic Neuropathology",
-                "finding_present": "No"
-            },
-            {
-                "finding_type": "Neoplastic Neuropathology",
-                "finding_present": "No"
-            },
-            {
-                "finding_type": "Neurodegenerative Neuropathology",
-                "finding_present": "No"
-            },
-            {
-                "finding_type": "Traumatic Brain Injury Neuropathology",
-                "finding_present": "No"
-            },
-            {
-                "finding_type": "Vascular Neuropathology",
-                "finding_present": "Yes",
-                "finding_percentage": "[0-10]"
-            },
-            {
-                "finding_type": "Artifacts",
-                "finding_present": "No"
-            },
-            {
-                "finding_type": "Other",
-                "finding_present": "No"
-            }
-        ],
-        "neuropathology_onset": "Acute",
-        "vascular_neuropathology_infarct_type": "Microinfarcts",
-        "vascular_neuropathology_details": "Accute Hemorrhage",
-        "tissue_samples": ["NDRITEST_TISSUE-SAMPLE_BRAIN_TPC"]
+        "developmental_neuropathology_present": "No",
+        "infectious_neuropathology_present": "No",
+        "inflammatory_neuropathology_present": "Yes",
+        "inflammatory_neuropathology_description": "Mild chronic perivascular inflammation noted in hippocampal sections.",
+        "neoplastic_neuropathology_present": "No",
+        "tbi_neuropathology_present": "Yes",
+        "tbi_neuropathology_description": "Remote contusive changes with focal gliosis in frontal cortex.",
+        "vascular_neuropathology_present": "Yes",
+        "vascular_neuropathology_description": "Moderate arteriolosclerosis affecting small penetrating vessels.",
+        "neurodegenerative_neuropathology_present": "Yes",
+        "neurodegenerative_neuropathology_description": "Findings consistent with Alzheimer-type neurodegenerative changes.",
+        "metabolic_neuropathology_present": "No",
+        "artifacts_present": "No",
+        "other_pathology_present": "No",
+        "additional_age-related_staining_performed": "Yes",
+        "abc_score_A": 2,
+        "abc_score_B": 2,
+        "abc_score_C": 1,
+        "cerad_score": 25,
+        "ad_neuropathologic_change_level": "Intermediate",
+        "braak_pd": 1,
+        "small_vessel_disease": "Moderate",
+        "braak_and_braak_ad": "IV",
+        "thal": 3,
+        "caa_vonsattel": 2,
+        "mckeith": 1,
+        "vonsattel_hd": 0,
+        "final_neuropathological_diagnosis": "Intermediate Alzheimer’s disease neuropathologic change with moderate small vessel disease and remote traumatic injury.",
+        "tissue_samples": ["623455cd-40a8-486a-8e79-ed44ee1d36d2"]
     }
 ]
