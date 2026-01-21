@@ -8,6 +8,14 @@ Change Log
 ----------
 
 
+1.8.9
+=====
+
+`PR 586: feat: update master-inserts to make pipeline docs open <https://github.com/smaht-dac/smaht-portal/pull/586>`_
+
+* Update Page and StaticSection items related to the Analysis Pipeline
+  
+
 1.8.8
 =====
 
