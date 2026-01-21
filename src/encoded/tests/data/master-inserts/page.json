@@ -309,7 +309,7 @@
     },
     {
         "identifier": "docs/additional-resources/pipeline-docs",
-        "title": "Analysis Pipeline",
+        "title": "Analysis Pipelines",
         "status": "open",
         "children" : [
             "379e3032-a0fe-45d6-8277-b373b52d3a79",
