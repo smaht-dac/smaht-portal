@@ -15,6 +15,29 @@ Change Log
 * Implement Modal for empty browse pages
 
 
+1.8.8
+=====
+
+`PR 580: Pathology Report Schema updates <https://github.com/smaht-dac/smaht-portal/pull/580>`_
+
+* Reconfigured the abstract pathology_report schema to accommodate the changes needded for brain_pathology_reports
+* Made corresponding updates to non_brain_pathology_report schema - note that no major property changes were made here, primarily schema structure
+* Updated brain_pathology_report schema to simplify and better reflect the data being collected
+* fixed a couple of pre-existing typos
+* added workbook insert for brain_pathology_report
+* udated enum value from '[0]' to '0' for target_tissue_percentage as submitr was converting former to an array
+  
+
+1.8.7
+=====
+
+`PR 584: Snovault upgrade for range facet improvements <https://github.com/smaht-dac/smaht-portal/pull/584>`_
+
+* Bumped snovault to 11.28.0
+  - Range facet calculations excluded values equal to the upper bound. The intended margin
+    using SMALLEST_NONZERO_IEEE_32 was ineffective due to precision limits. This has now been corrected
+
+
 1.8.6
 =====
 
