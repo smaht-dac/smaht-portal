@@ -156,7 +156,7 @@ def get_tissue_type(properties: Dict[str, Any], request_handler: RequestHandler)
     """
     fibroblast = is_fibroblast(properties)
     if fibroblast:
-        return "Fibroblast"
+        return "3AC - Fibroblast"
     return get_grouping_term_from_tag(
         properties,
         request_handler=request_handler,
