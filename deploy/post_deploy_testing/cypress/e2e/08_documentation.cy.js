@@ -745,7 +745,10 @@ describe("Documentation Page & Content (role-based)", () => {
             });
 
             it(`Analysis Pipeline Docs → collapsible panels, subpage links, and TOC (enabled: ${caps.canRunAnalysisPipelineDocsTest})`, () => {
-                if (!caps.canRunAnalysisPipelineDocsTest) return;
+                if (!caps.canRunAnalysisPipelineDocsTest) {
+                    assertCannotAccessDocPage("/docs/additional-resources/pipeline-docs", caps);
+                    return;
+                }
                 stepAnalysisPipelineDocs();
             });
 
