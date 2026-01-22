@@ -574,6 +574,7 @@ function stepAnalysisPipelineDocs() {
                         sublinks.push({
                             href: headerLink,
                             label: $dropdown.find(".parent-link").text().trim(),
+                            type: "page",
                         });
                     }
 
@@ -582,6 +583,7 @@ function stepAnalysisPipelineDocs() {
                         sublinks.push({
                             href: $link.attr("href"),
                             label: $link.text().trim(),
+                            type: "section",
                         });
                     });
                 });
@@ -597,7 +599,13 @@ function stepAnalysisPipelineDocs() {
                     cy.get("#page-title-container .page-title")
                         .should("be.visible")
                         .and(($title) => {
-                            expect($title.text().trim()).to.not.equal("");
+                            const titleText = $title.text().trim();
+                            expect(titleText).to.not.equal("");
+                            if (link.type === "page") {
+                                expect(titleText.toLowerCase()).to.include(
+                                    link.label.toLowerCase()
+                                );
+                            }
                         });
 
                     const hash = link.href.split("#")[1];
