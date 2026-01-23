@@ -52,7 +52,7 @@ class AnalysisRunFilterComponent extends React.PureComponent {
         getItemsFromPortal(
             'Donor',
             '&submission_centers.display_title=NDRI+TPC',
-            100,
+            200,
             (items) => {
                 this.setState({ donors: items });
             }
@@ -94,7 +94,7 @@ class AnalysisRunFilterComponent extends React.PureComponent {
             options.push(<option value={sc.code}>{sc.code}</option>);
         });
         const defaultValue = 'all';
-        const filterName = 'tissues';
+        const filterName = 'tissue';
         return getSelect(options, defaultValue, filterName, this.setFilter);
     }
 

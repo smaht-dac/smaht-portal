@@ -148,6 +148,16 @@ function isFloat(num) {
     return Number(num) === num && num % 1 !== 0;
 }
 
+export const getStatusBadgeType = (status) => {
+    let badgeType = 'warning';
+    if (['open', 'protected', 'open-early', 'protected-early', 'open-network', 'protected-network'].includes(status)) {
+        badgeType = 'success';
+    } else if (['deleted', 'obsolete', 'retracted'].includes(status)) {
+        badgeType = 'danger';
+    }
+    return badgeType;
+}
+
 export const createBadge = (type, description, tooltip = '') => {
     const cn = 'badge text-white bg-' + type;
     return (
