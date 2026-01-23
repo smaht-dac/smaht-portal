@@ -31,10 +31,12 @@ const ROLE_MATRIX = {
     UNAUTH: {
         label: 'Unauthenticated',
         isAuthenticated: false,
+        
+        expectNoResultsModal: true,
+        runNoResultsModal: true,
 
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
-        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
@@ -47,10 +49,12 @@ const ROLE_MATRIX = {
     [ROLE_TYPES.SMAHT_DBGAP]: {
         label: 'SMAHT_DBGAP',
         isAuthenticated: true,
+        
+        expectNoResultsModal: false,
+        runNoResultsModal: true,
 
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
-        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
@@ -64,9 +68,11 @@ const ROLE_MATRIX = {
         label: 'SMAHT_NON_DBGAP',
         isAuthenticated: true,
 
+        expectNoResultsModal: true,
+        runNoResultsModal: true,
+
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
-        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
@@ -80,9 +86,11 @@ const ROLE_MATRIX = {
         label: 'PUBLIC_DBGAP',
         isAuthenticated: true,
 
+        expectNoResultsModal: false,
+        runNoResultsModal: true,
+
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
-        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
@@ -96,10 +104,12 @@ const ROLE_MATRIX = {
         label: 'PUBLIC_NON_DBGAP',
         isAuthenticated: true,
 
+        expectNoResultsModal: true,
+        runNoResultsModal: true,
+
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
         runQuickInfoBarCounts: true,
-        runNoResultsModal: true,
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
@@ -167,18 +177,79 @@ function stepDirectBrowseRedirect(caps) {
     cy.location('search').should('include', 'sample_summary.studies=Production');
 }
 
-/** Modal appears when no results found */
+/** Modal shuold only appear for users without protected access */
 function stepNoResultsModal(caps) {
-    // If no files found, the modal should be visible
-    if (caps.expectedStatsSummaryOpts.totalFiles === 0) {
-        cy.get('#download-access-required-modal').should('exist');
-        // Should be able to close the modal by clicking outside of it
-        cy.get('.modal-backdrop').trigger('click', { force: true });
+    if (!caps.expectNoResultsModal) {
+        // Make should not appear
+        cy.get('#download-access-required-modal').should('not.exist');
     }
+    if (caps.expectNoResultsModal) {
+        // If no files found, the modal should appear
+        if (caps.expectedStatsSummaryOpts.totalFiles === 0) {
 
-    // Make sure the modal is not visible
-    cy.get('#download-access-required-modal').should('not.exist');
-    
+            cy.get('#download-access-required-modal').should('exist')
+
+            // "No Results" text should be present under the modal
+            cy.get(".search-results-container.fully-loaded h3.text-300").should(
+                "contain.text",
+                "No Results"
+            );
+            cy.get('#download-access-required-modal').should('exist')
+
+            // Clicking just outside the modal should not close it
+            // const { bottom, right } = cy.get('#download-access-required-modal').get(0).getBoundingClientRect();
+            // cy.get('#download-access-required-modal').click(bottom + 10, right + 10);
+            // cy.get($modal).should('exist');
+            
+            // .then(($modal) => {
+            //     const { top, right } = $modal[0].getBoundingClientRect();
+            //     cy.get($modal).click(top + 10, right + 10);
+            //     cy.get($modal).should('exist');
+
+            // Navigation bar is still clickable
+            cy.get('#data-menu-item')
+              .should('have.class', 'dropdown-toggle')
+              .click()
+              .should('have.class', 'dropdown-open-for')
+            // cy.get('#docs-menu-item')
+            //   .should('have.class', 'dropdown-toggle')
+            //   .click()
+            //   .should('have.class', 'dropdown-open-for')
+            // cy.get('#about-menu-item')
+            //   .should('have.class', 'dropdown-toggle')
+            //   .click()
+            //   .should('have.class', 'dropdown-open-for')
+            // cy.get('#resource-menu-item')
+            //   .should('have.class', 'dropdown-toggle')
+            //   .click()
+            //   .should('have.class', 'dropdown-open-for')
+
+            // Login button is still clickable
+            cy.get('#loginbtn')
+              .click();
+
+            cy.get('#auth0-lock-container-2').should('exist');
+
+            // Close login modal
+            cy.get('#auth0-lock-container-2 #undefined-close-button').click();
+
+
+            // Make sure SMaHT logo and text appear correctly
+            cy.get('#download-access-required-modal .callout-card img')
+              .should('have.attr', 'src', '/static/img/SMaHT_Vertical-Logo-Solo_FV.png')
+              .and(($img) => {
+                expect($img[0].naturalWidth).to.be.greaterThan(0);
+              })
+
+            cy.get('#download-access-required-modal .modal-body .callout-card h4')
+              .should('not.be.empty')
+              .and('contain', 'SMaHT Production Data: Official Release - Coming Soon')
+
+            cy.get('#download-access-required-modal .modal-body .callout-card span')
+              .should('not.be.empty')
+              .and('contain', 'Check back for updates on the official release of SMaHT Production Data.')
+        }
+    }
 }
 
 /** QuickInfoBar numbers should be present and > 0 (or ≥ threshold for size) */
@@ -467,35 +538,52 @@ describe('Browse by role — File', () => {
                 stepDirectBrowseRedirect(caps);
             });
 
-            it(`Modal appears when no results found (enabled: ${caps.runNoResultsModal})`, () => {
-                if (!caps.runNoResultsModal) return;
-                stepNoResultsModal(caps);
-            });
+            /**
+             * If modal is expected, do not run the rest of the tests, as the page will not
+             * be accessible under the modal
+             */
+            if (caps.expectNoResultsModal) {
+                it(`Modal appears when no results found (enabled: ${caps.runNoResultsModal})`, () => {
+                    if (!caps.runNoResultsModal) return;
+                    stepNoResultsModal(caps);
+                });
+            }
 
-            it(`QuickInfoBar has non-zero counts (enabled: ${caps.runQuickInfoBarCounts})`, () => {
-                if (!caps.runQuickInfoBarCounts) return;
-                stepQuickInfoBarCounts(caps);
-            });
+            // No modal is expected to appear, so run the following tests
+            if (!caps.expectNoResultsModal) {
+                
+                // Check that the NoResultsModal does not appear
+                it(`Modal does not appear when no results found (enabled: ${caps.runNoResultsModal})`, () => {
+                    if (!caps.runNoResultsModal) return;
+                    stepNoResultsModal(caps);
+                });
 
-            it(`Sidebar toggle expand/collapse (enabled: ${caps.runSidebarToggle})`, () => {
-                if (!caps.runSidebarToggle) return;
-                stepSidebarToggle(caps);
-            });
+                it(`QuickInfoBar has non-zero counts (enabled: ${caps.runQuickInfoBarCounts})`, () => {
+                    if (!caps.runQuickInfoBarCounts) return;
+                    stepQuickInfoBarCounts(caps);
+                });
+    
+                it(`Sidebar toggle expand/collapse (enabled: ${caps.runSidebarToggle})`, () => {
+                    if (!caps.runSidebarToggle) return;
+                    stepSidebarToggle(caps);
+                });
+    
+                it(`Facet include grouping → sub-terms selected (enabled: ${caps.runFacetIncludeGrouping})`, () => {
+                    if (!caps.runFacetIncludeGrouping) return;
+                    stepFacetIncludeGrouping(caps);
+                });
+    
+                it(`Facet exclude grouping → sub-terms omitted (enabled: ${caps.runFacetExcludeGrouping})`, () => {
+                    if (!caps.runFacetExcludeGrouping) return;
+                    stepFacetExcludeGrouping(caps);
+                });
+    
+                it(`Facet chart bar plot tests → X-axis grouping and hover over & click "Illumina NovaSeq X Plus, Brain" bar part + popover button --> matching filtered /browse/ results (enabled: ${caps.runFacetChartBarPlotTests})`, () => {
+                    if (!caps.runFacetChartBarPlotTests) return;
+                    stepFacetChartBarPlotTests(caps);
+                });
+            }
 
-            it(`Facet include grouping → sub-terms selected (enabled: ${caps.runFacetIncludeGrouping})`, () => {
-                if (!caps.runFacetIncludeGrouping) return;
-                stepFacetIncludeGrouping(caps);
-            });
-
-            it(`Facet exclude grouping → sub-terms omitted (enabled: ${caps.runFacetExcludeGrouping})`, () => {
-                if (!caps.runFacetExcludeGrouping) return;
-                stepFacetExcludeGrouping(caps);
-            });
-
-            it(`Facet chart bar plot tests → X-axis grouping and hover over & click "Illumina NovaSeq X Plus, Brain" bar part + popover button --> matching filtered /browse/ results (enabled: ${caps.runFacetChartBarPlotTests})`, () => {
-                if (!caps.runFacetChartBarPlotTests) return;
-                stepFacetChartBarPlotTests(caps);
-            });
         });
     });
 });
