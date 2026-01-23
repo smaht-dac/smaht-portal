@@ -29,36 +29,48 @@ export default class DataMatrix extends React.PureComponent {
      * Deeply merges two objects without mutating the original objects.
      * We don't use deepExtend from @hms-dbmi-bgm/shared-portal-components/es/components/util/object since
      * it doesn't handle arrays and also mutates obj1
+     * @param {Object} obj1 - The first object to merge.
+     * @param {Object} obj2 - The second object to merge.
+     * @param {boolean} ignoreCase - Whether to ignore case when matching keys.
      */
-    static deepExtend(obj1 = {}, obj2 = {}) {
+    static deepExtend(obj1 = {}, obj2 = {}, ignoreCase = true) {
         // Create a full deep copy of obj1 to ensure it is never mutated
         const result = DataMatrix.deepClone(obj1);
+        const lowerKeyMap = ignoreCase ? _.reduce(_.keys(result), (memo, k) => {
+            const lk = k.toLowerCase();
+            // Preserve first-seen key to keep a stable reference
+            if (memo[lk] == null) memo[lk] = k;
+            return memo;
+        }, {}) : null;
 
         _.each(obj2, (value, key) => {
-            const left = result[key];
+            const resolvedKey = (ignoreCase && lowerKeyMap)
+                ? (lowerKeyMap[key.toLowerCase()] || key)
+                : key;
+            const left = result[resolvedKey];
 
             if (DataMatrix.isPlainObject(value) && DataMatrix.isPlainObject(left)) {
                 // If both values are plain objects, merge them recursively
-                result[key] = DataMatrix.deepExtend(left, value);
+                result[resolvedKey] = DataMatrix.deepExtend(left, value, ignoreCase);
             } else if (Array.isArray(value) && Array.isArray(left)) {
                 // Merge arrays, remove duplicates, and ensure a new array reference
-                result[key] = _.uniq([...left, ...value]);
+                result[resolvedKey] = _.uniq([...left, ...value]);
             } else if (Array.isArray(value)) {
                 // Replace with a cloned array to avoid shared references
-                result[key] = [...value];
+                result[resolvedKey] = [...value];
             } else if (DataMatrix.isPlainObject(value)) {
                 // Replace with a deep copy to avoid shared object references
-                result[key] = DataMatrix.deepClone(value);
+                result[resolvedKey] = DataMatrix.deepClone(value);
             } else {
                 // Override primitive values or non-matching types
-                result[key] = value;
+                result[resolvedKey] = value;
             }
         });
 
         return result;
     }
 
-    static DEFAULT_ROW_GROUPS_EXTENDED = DataMatrix.deepExtend(germLayerTissueMapping, {
+    static DEFAULT_ROW_GROUPS_EXTENDED = DataMatrix.deepExtend({}/*germLayerTissueMapping*/, {
         Ectoderm: { backgroundColor: '#367151', textColor: '#ffffff', shortName: 'Ecto' },
         Mesoderm: { backgroundColor: '#30975e', textColor: '#ffffff', shortName: 'Meso' },
         Endoderm: { backgroundColor: '#53b27e', textColor: '#ffffff', shortName: 'Endo' },
@@ -71,12 +83,13 @@ export default class DataMatrix extends React.PureComponent {
         "query": {
             "url": "/data_matrix_aggregations/?type=File&status=open&limit=all",
             "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"],
-            "rowAggFields": ["donors.display_title", "sample_summary.tissues"]
+            "rowAggFields": ["donors.display_title", "sample_summary.tissues", "sample_summary.category"]
         },
         "fieldChangeMap": {
             "assay": "file_sets.libraries.assay.display_title",
             "donor": "donors.display_title",
             "tissue": "sample_summary.tissues",
+            "germLayer": "sample_summary.category",
             "platform": "sequencing.sequencer.platform",
             "data_type": "data_type",
             "file_format": "file_format.display_title",
@@ -215,6 +228,10 @@ export default class DataMatrix extends React.PureComponent {
         "autoPopulateRowGroupsProperty": null,
         "rowGroupsExtended": DataMatrix.DEFAULT_ROW_GROUPS_EXTENDED,
         "showRowGroupsExtended": true,
+        "autoPopulateRowGroupsExtendedMapFields": { 
+            key: "germLayer",
+            value: "tissue"
+        },
         "additionalPopoverData": {
             "COLO829T":{
                 "secondary": "Melanoma",
@@ -293,6 +310,10 @@ export default class DataMatrix extends React.PureComponent {
         'autoPopulateRowGroupsProperty': PropTypes.string,
         'rowGroupsExtended': PropTypes.object,
         'showRowGroupsExtended': PropTypes.bool,
+        'autoPopulateRowGroupsExtendedMapFields': PropTypes.shape({
+            'key': PropTypes.string,
+            'value': PropTypes.string
+        }),
         'additionalPopoverData': PropTypes.object,
         'xAxisLabel': PropTypes.string,
         'yAxisLabel': PropTypes.string,
@@ -512,8 +533,20 @@ export default class DataMatrix extends React.PureComponent {
     loadSearchQueryResults() {
 
         const commonCallback = (result) => {
-            const { valueChangeMap, resultItemPostProcessFuncKey, resultTransformedPostProcessFuncKey, onDataLoaded } = this.props;
-            const { fieldChangeMap, groupingProperties, columnGrouping, autoPopulateRowGroupsProperty } = this.state;
+            const {
+                valueChangeMap,
+                resultItemPostProcessFuncKey,
+                resultTransformedPostProcessFuncKey,
+                onDataLoaded,
+                autoPopulateRowGroupsExtendedMapFields
+            } = this.props;
+            const {
+                fieldChangeMap,
+                groupingProperties,
+                columnGrouping,
+                autoPopulateRowGroupsProperty,
+                rowGroupsExtended
+            } = this.state;
             const resultKey = "_results";
             const updatedState = {};
 
@@ -570,6 +603,30 @@ export default class DataMatrix extends React.PureComponent {
                 }
             });
             updatedState['totalFiles'] = totalFiles;
+
+            //extend existing rowGroupsExtended from transformed data using mapping fields  
+            if (autoPopulateRowGroupsExtendedMapFields && autoPopulateRowGroupsExtendedMapFields.key && autoPopulateRowGroupsExtendedMapFields.value) {
+                //get [key]: [value array] mapping
+                const autoPopulateMap = {};
+                _.forEach(transformedData.all, (r) => {
+                    const mapKey = r[autoPopulateRowGroupsExtendedMapFields.key];
+                    const mapValue = r[autoPopulateRowGroupsExtendedMapFields.value];
+                    if (mapKey && mapValue) {
+                        if (!autoPopulateMap[mapKey]) {
+                            autoPopulateMap[mapKey] = new Set();
+                        }
+                        autoPopulateMap[mapKey].add(mapValue);
+                    }
+                });
+                //convert Set to values array
+                _.forEach(_.keys(autoPopulateMap), (k) => {
+                    autoPopulateMap[k] = {
+                        values: Array.from(autoPopulateMap[k])
+                    };
+                });
+                
+                updatedState['rowGroupsExtended'] = DataMatrix.deepExtend(rowGroupsExtended, autoPopulateMap);
+            }
 
             this.setState(updatedState, () => ReactTooltip.rebuild());
             if (typeof onDataLoaded === 'function') {

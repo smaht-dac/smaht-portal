@@ -884,7 +884,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
     static mergeValues = memoize(function (obj) {
         const merged = [];
         Object.keys(obj).forEach((tier) => {
-            merged.push(...obj[tier].values);
+            if (obj[tier] && Array.isArray(obj[tier].values)) {
+                merged.push(...obj[tier].values);
+            }
         });
         return merged;
     });
@@ -1333,6 +1335,12 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         }
         const hasRowGroupsExtended = showRowGroupsExtended && rowGroupsExtended && _.keys(rowGroupsExtended).length > 0;
         const rowGroupsExtendedKeys = hasRowGroupsExtended ? [..._.keys(rowGroupsExtended), FALLBACK_GROUP_NAME] : null;
+        const rowGroupsExtendedByLowerKey = hasRowGroupsExtended ? _.reduce(_.keys(rowGroupsExtended), (memo, k) => {
+            const lk = k.toLowerCase();
+            if (memo[lk] == null) memo[lk] = k;
+            return memo;
+        }, {}) : null;
+        const fallbackGroupNameLower = FALLBACK_GROUP_NAME.toLowerCase();
 
         const rowHeight = blockHeight + (blockVerticalSpacing * 2) + 1;
         const childBlocks = !open ? StackedBlockGroupedRow.collapsedChildBlocks(data, rowTotals, this.props) : (
@@ -1367,10 +1375,18 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     <div className="child-blocks">
                         {open && childRowsKeys && hasRowGroupsExtended &&
                             _.map(rowGroupsExtendedKeys, function (rgKey, idx) {
-                                const { values, backgroundColor, textColor } = rowGroupsExtended[rgKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
+                                const rgKeyLower = typeof rgKey === 'string' ? rgKey.toLowerCase() : rgKey;
+                                const isFallback = typeof rgKey === 'string' && rgKeyLower === fallbackGroupNameLower;
+                                const resolvedRgKey = (!isFallback && rowGroupsExtendedByLowerKey && typeof rgKey === 'string')
+                                    ? (rowGroupsExtendedByLowerKey[rgKeyLower] || rgKey)
+                                    : rgKey;
+                                const displayKey = isFallback ? FALLBACK_GROUP_NAME : resolvedRgKey;
+                                const { values, backgroundColor, textColor } = (!isFallback && rowGroupsExtended[resolvedRgKey])
+                                    ? rowGroupsExtended[resolvedRgKey]
+                                    : { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
 
                                 let rowGroupChildRowsKeys;
-                                if (rgKey === FALLBACK_GROUP_NAME) { //special case for N/A
+                                if (isFallback) { //special case for N/A
                                     const allValues = StackedBlockGroupedRow.mergeValues(rowGroupsExtended);
                                     // not intersecting childRowsKeys and allValues
                                     rowGroupChildRowsKeys = StackedBlockGroupedRow.difference(childRowsKeys, allValues);
@@ -1381,11 +1397,13 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
                                 if (rowSpan === 0) return null;
 
-                                const label = (rgKey.length > (rowSpan * 4)) && rowGroupsExtended[rgKey].shortName ? rowGroupsExtended[rgKey].shortName : rgKey;
+                                const label = (displayKey.length > (rowSpan * 4)) && rowGroupsExtended[resolvedRgKey]?.shortName
+                                    ? rowGroupsExtended[resolvedRgKey].shortName
+                                    : displayKey;
                                 return (
                                     <div className="vertical-container">
                                         <div className="vertical-container-label" style={{ backgroundColor, color: textColor, height: rowHeight * rowSpan }}>
-                                            <span data-tip={rgKey !== label ? rgKey : null}>{label}</span>
+                                            <span data-tip={displayKey !== label ? displayKey : null}>{label}</span>
                                         </div>
                                         <div className="vertical-container-rows">
                                             {
