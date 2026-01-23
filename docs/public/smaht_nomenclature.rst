@@ -33,7 +33,7 @@ Schema Documentation
                         </a>
                     </td>
                     <td>2.1 (latest)</td>
-                    <td>01/02/2026</td>
+                    <td>01/23/2026</td>
                     <td><a href="/static/files/SMaHT Sample and File Nomenclature v2.1.pdf" download>SMaHT Sample and File Nomenclature v2.1.pdf</a></td>
                 </tr>
             </tbody>

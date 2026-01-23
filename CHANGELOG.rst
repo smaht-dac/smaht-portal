@@ -8,6 +8,14 @@ Change Log
 ----------
 
 
+1.8.9
+=====
+
+`PR 589: WF Sample and File Nomenclature typo fix <https://github.com/smaht-dac/smaht-portal/pull/589>`_
+
+* Fix Sample and File Nomenclature documentation typo
+
+
 1.8.8
 =====
 
