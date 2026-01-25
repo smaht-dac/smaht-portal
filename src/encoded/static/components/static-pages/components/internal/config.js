@@ -59,4 +59,4 @@ export const PRIMARY_PRODUCTION_TISSUES = [
 
 export const CELL_CULTURE_MIXTURES = ['HAPMAP6', 'COLO829BLT50'];
 
-export const ANALYSIS_TYPES = ['SNV calling', 'SV calling'];
+export const ANALYSIS_TYPES = ['Germline SNV calling', 'Somatic SNV calling', 'Somatic SV calling'];
