@@ -130,12 +130,14 @@ def get_associated_items(
     reference_genome = get_reference_genome(file, request_handler)
     gene_annotations = get_gene_annotations(file, request_handler)
     donor_specific_assembly = get_donor_specific_assembly(file, request_handler)
-    target_assembly = get_target_assembly(file, request_handler)
-    source_assembly = get_source_assembly(file, request_handler)
     if donor_specific_assembly:
-        file_sets=get_derived_from_file_sets(file, request_handler)
+        file_sets = get_derived_from_file_sets(file, request_handler)
+        target_assembly = get_target_assembly(file, request_handler)
+        source_assembly = get_source_assembly(file, request_handler)
     else:
         file_sets = get_file_sets(file, request_handler, file_sets=file_sets)
+        target_assembly = []
+        source_assembly = []
     assays = get_assays(file_sets, request_handler)
     sequencers = get_sequencers(file_sets, request_handler)
     samples = get_samples(file_sets, request_handler)
@@ -235,6 +237,20 @@ def get_reference_genome(
     return get_item(file_utils.get_reference_genome(file), request_handler)
 
 
+def get_target_assembly(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> List[Dict[str, Any]]:
+    """Get target assembly for file."""
+    return get_reference_genome_search(supp_file_utils.get_target_assembly(file), request_handler)
+
+
+def get_source_assembly(
+    file: Dict[str, Any], request_handler: RequestHandler
+) -> List[Dict[str, Any]]:
+    """Get source assembly for file."""
+    return get_reference_genome_search(supp_file_utils.get_source_assembly(file), request_handler)
+
+
 def get_reference_genome_search(
         value: str,
         request_handler: RequestHandler
@@ -249,20 +265,6 @@ def get_reference_genome_search(
     title_search = f"/search/?type=ReferenceGenome&title={value}"
     result = ff_utils.search_metadata(code_search, key=request_handler.auth_key) + ff_utils.search_metadata(title_search, key=request_handler.auth_key)
     return result
-
-
-def get_target_assembly(
-    file: Dict[str, Any], request_handler: RequestHandler
-) -> List[Dict[str, Any]]:
-    """Get target assembly for file."""
-    return get_reference_genome_search(supp_file_utils.get_target_assembly(file), request_handler)
-
-
-def get_source_assembly(
-    file: Dict[str, Any], request_handler: RequestHandler
-) -> List[Dict[str, Any]]:
-    """Get source assembly for file."""
-    return get_reference_genome_search(supp_file_utils.get_source_assembly(file), request_handler)
 
 
 def get_gene_annotations(

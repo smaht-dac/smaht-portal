@@ -558,6 +558,16 @@ SOME_TARGET_ASSEMBLY = [{
     "@type": ["ReferenceGenome"],
     "code": REFERENCE_GENOME_CODE
 }]
+MULTIPLE_TARGET_ASSEMBLIES = [
+    {
+    "@type": ["ReferenceGenome"],
+    "code": REFERENCE_GENOME_CODE
+    },
+    {
+    "@type": ["ReferenceGenome"],
+    "code": REFERENCE_GENOME_CODE
+    },
+    ]
 SOME_SOURCE_ASSEMBLY = [{
     "@type": ["DonorSpecificAssembly"],
     "code": DSA_CODE
@@ -732,6 +742,19 @@ TSV_FILE_EXTENSION = {
             {},
             CHAIN_FILE_EXTENSION,
             SOME_TARGET_ASSEMBLY,
+            SOME_SOURCE_ASSEMBLY,
+            SOME_SOURCE_ASSEMBLY,
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}To{REFERENCE_GENOME_CODE}",
+            False,
+        ),
+        (
+            SOME_CHAIN_FILE,
+            [],
+            [SOME_SOFTWARE, SOME_ITEM],
+            {},
+            {},
+            CHAIN_FILE_EXTENSION,
+            MULTIPLE_TARGET_ASSEMBLIES,
             SOME_SOURCE_ASSEMBLY,
             SOME_SOURCE_ASSEMBLY,
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}To{REFERENCE_GENOME_CODE}",
