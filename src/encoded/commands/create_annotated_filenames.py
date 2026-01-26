@@ -130,6 +130,7 @@ def get_associated_items(
     reference_genome = get_reference_genome(file, request_handler)
     gene_annotations = get_gene_annotations(file, request_handler)
     donor_specific_assembly = get_donor_specific_assembly(file, request_handler)
+    import pdb; pdb.set_trace()
     target_assembly = get_target_assembly(file, request_handler)
     source_assembly = get_source_assembly(file, request_handler)
     if donor_specific_assembly:
@@ -1088,6 +1089,7 @@ def get_chain_file_value(
         target_value = ""
         source_value = ""
         if target_assembly and source_assembly:
+            import pdb; pdb.set_trace()
             target_value = DSA_INFO_VALUE if dsa_utils.is_donor_specific_assembly(target_assembly) else item_utils.get_code(target_assembly)
             source_value = DSA_INFO_VALUE if dsa_utils.is_donor_specific_assembly(source_assembly) else item_utils.get_code(source_assembly)
         if target_value and source_value:
