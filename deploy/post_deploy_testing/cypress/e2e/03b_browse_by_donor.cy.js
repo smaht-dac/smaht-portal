@@ -1,7 +1,12 @@
 import { min } from 'underscore';
 import { cypressVisitHeaders, ROLE_TYPES, BROWSE_STATUS_PARAMS } from '../support';
-import { navBrowseByDonorBtnSelector, dataNavBarItemSelectorStr } from '../support/selectorVars';
+import {
+    navBrowseByDonorBtnSelector,
+    dataNavBarItemSelectorStr,
+    navUserAcctLoginBtnSelector,
+} from '../support/selectorVars';
 import { getApiTotalFromUrl, parseIntSafe } from '../support/utils/dataMatrixUtils';
+
 
 /* ----------------------------- ROLE MATRIX -----------------------------
    Toggle each step per role:
@@ -46,6 +51,7 @@ const ROLE_MATRIX = {
         expectedCancerHistoryVisible: false,
         expectedExposureTobaccoVisible: false,
         expectedExposureAlcoholVisible: false,
+        expectedNoResultsModalVisible: true,
     },
 
     [ROLE_TYPES.SMAHT_DBGAP]: {
@@ -66,6 +72,7 @@ const ROLE_MATRIX = {
         expectedCancerHistoryVisible: true,
         expectedExposureTobaccoVisible: true,
         expectedExposureAlcoholVisible: true,
+        expectedNoResultsModalVisible: false,
     },
 
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
@@ -86,6 +93,7 @@ const ROLE_MATRIX = {
         expectedCancerHistoryVisible: false,
         expectedExposureTobaccoVisible: false,
         expectedExposureAlcoholVisible: false,
+        expectedNoResultsModalVisible: false,
     },
 
     [ROLE_TYPES.PUBLIC_DBGAP]: {
@@ -106,6 +114,7 @@ const ROLE_MATRIX = {
         expectedCancerHistoryVisible: true,
         expectedExposureTobaccoVisible: true,
         expectedExposureAlcoholVisible: true,
+        expectedNoResultsModalVisible: true,
     },
 
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
@@ -126,6 +135,7 @@ const ROLE_MATRIX = {
         expectedCancerHistoryVisible: false,
         expectedExposureTobaccoVisible: false,
         expectedExposureAlcoholVisible: false,
+        expectedNoResultsModalVisible: true,
     },
 };
 
@@ -240,16 +250,50 @@ function stepDirectBrowseRedirect(caps) {
 
 /** Modal appears when no results found */
 function stepNoResultsModal(caps) {
-    // If no files found, the modal should be visible
-    if (caps.expectedStatsSummaryOpts.totalFiles === 0) {
-        cy.get('#download-access-required-modal').should('exist');
-        // Should be able to close the modal by clicking outside of it
-        cy.get('.modal-backdrop').trigger('click', { force: true });
-    }
+    visitBrowseByDonor(caps).then(() => {
+        if (caps.expectedNoResultsModalVisible) {
+            cy.get('#download-access-required-modal').should('be.visible');
+            cy.searchPageTotalResultCount().then((totalCountExpected) => {
+                expect(totalCountExpected).to.equal(0);
+            });
 
-    // Make sure the modal is not visible
-    cy.get('#download-access-required-modal').should('not.exist');
-    
+            cy.get('body').then(($body) => {
+                const $loginBtn = $body.find(navUserAcctLoginBtnSelector);
+                const hasLoginText =
+                    $loginBtn.length > 0 &&
+                    $loginBtn.text().replace(/\s+/g, ' ').trim().includes('Login / Register');
+                if (hasLoginText) {
+                    cy.wrap($loginBtn).click({ force: true });
+                    cy.get('[id^="auth0-lock-container"], .auth0-lock')
+                        .should('be.visible')
+                        .then(($lock) => {
+                            const lockZIndex = parseInt($lock.css('z-index') || '0', 10);
+                            const modalZIndex = parseInt(
+                                $body
+                                    .find('#download-access-required-modal')
+                                    .closest('.modal')
+                                    .css('z-index') || '0',
+                                10
+                            );
+                            if (!Number.isNaN(lockZIndex) && !Number.isNaN(modalZIndex)) {
+                                expect(lockZIndex).to.be.greaterThan(modalZIndex);
+                            }
+                        });
+                    cy.get('body').then(($auth0Body) => {
+                        if ($auth0Body.find('.auth0-lock-close-button').length > 0) {
+                            cy.get('.auth0-lock-close-button').click({ force: true });
+                        } else if ($auth0Body.find('.auth0-lock-overlay').length > 0) {
+                            cy.get('.auth0-lock-overlay').click({ force: true });
+                        }
+                    });
+                } else {
+                    cy.log('Skipping Auth0 login popup check; login button not present or not labeled "Login / Register".');
+                }
+            });
+        } else {
+            cy.get('#download-access-required-modal').should('not.exist');
+        }
+    });
 }
 
 /** QuickInfoBar numbers should be present and > 0 (or ≥ threshold for size) */

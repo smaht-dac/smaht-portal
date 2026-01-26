@@ -69,22 +69,21 @@ export const NoResultsBrowseModal = ({
     const [showModal, setShowModal] = useState(true);
 
     const userDownloadAccessUpdated = isAccessResolved;
-    const hasProtectedAccess = userDownloadAccess?.['protected'];
+    const isPublicUser = userDownloadAccess?.['open-network'] === false;
     const hasNoResults = context?.total === 0;
     const isBaseBrowsePath =
         new URL(href).pathname + new URL(href).search === BROWSE_LINKS[type];
 
     /**
      * Show No results modal if all of the following are true:
-     * - `userDownloadAccess` has reached a stable state (i.e. logged-in users
-     *   have open access; logged-out users have no access)
-     * - The user does not have protected access (i.e. is a public user)
+     * - `userDownloadAccess` has reached a stable state
+     * - The user is not a member of the SMaHT consortium
      * - There are no files in the search results
      * - The URL is the base browse path (no additional filters applied)
      */
     const shouldShowNoResultsModal =
         userDownloadAccessUpdated &&
-        hasProtectedAccess === false &&
+        isPublicUser &&
         hasNoResults &&
         isBaseBrowsePath;
 
