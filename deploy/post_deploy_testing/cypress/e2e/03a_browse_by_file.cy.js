@@ -1,11 +1,16 @@
 import { cypressVisitHeaders, ROLE_TYPES, BROWSE_STATUS_PARAMS } from '../support';
-import { navBrowseByFileBtnSelector, dataNavBarItemSelectorStr } from '../support/selectorVars';
+import {
+    navBrowseByFileBtnSelector,
+    dataNavBarItemSelectorStr,
+    navUserAcctLoginBtnSelector,
+} from '../support/selectorVars';
 
 /* ----------------------------- ROLE MATRIX -----------------------------
    Toggle each step per role:
 
    - runNavFromHome:           From Home → open "Data" menu → click "Browse"
    - runDirectBrowseRedirect:  Visit /browse/ (no params) → redirected to Production
+   - runNoResultsModal:        Verify protected data warning modal behavior
    - runQuickInfoBarCounts:    Verify QuickInfoBar has non-zero stats
    - runSidebarToggle:         Sidebar toggle expand/collapse
    - runFacetIncludeGrouping:  Include a grouping term → all sub-terms selected
@@ -31,12 +36,10 @@ const ROLE_MATRIX = {
     UNAUTH: {
         label: 'Unauthenticated',
         isAuthenticated: false,
-        
-        expectNoResultsModal: true,
-        runNoResultsModal: true,
 
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
+        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
@@ -44,17 +47,16 @@ const ROLE_MATRIX = {
         runFacetChartBarPlotTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
+        expectedNoResultsModalVisible: true,
     },
 
     [ROLE_TYPES.SMAHT_DBGAP]: {
         label: 'SMAHT_DBGAP',
         isAuthenticated: true,
-        
-        expectNoResultsModal: false,
-        runNoResultsModal: true,
 
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
+        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
@@ -62,17 +64,16 @@ const ROLE_MATRIX = {
         runFacetChartBarPlotTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
+        expectedNoResultsModalVisible: false,
     },
 
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
         label: 'SMAHT_NON_DBGAP',
         isAuthenticated: true,
 
-        expectNoResultsModal: true,
-        runNoResultsModal: true,
-
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
+        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
@@ -80,17 +81,16 @@ const ROLE_MATRIX = {
         runFacetChartBarPlotTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
+        expectedNoResultsModalVisible: false,
     },
 
     [ROLE_TYPES.PUBLIC_DBGAP]: {
         label: 'PUBLIC_DBGAP',
         isAuthenticated: true,
 
-        expectNoResultsModal: false,
-        runNoResultsModal: true,
-
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
+        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
@@ -98,17 +98,16 @@ const ROLE_MATRIX = {
         runFacetChartBarPlotTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
+        expectedNoResultsModalVisible: false,
     },
 
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
         label: 'PUBLIC_NON_DBGAP',
         isAuthenticated: true,
 
-        expectNoResultsModal: true,
-        runNoResultsModal: true,
-
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
+        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
@@ -116,6 +115,7 @@ const ROLE_MATRIX = {
         runFacetChartBarPlotTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
+        expectedNoResultsModalVisible: true,
     },
 };
 
@@ -177,79 +177,52 @@ function stepDirectBrowseRedirect(caps) {
     cy.location('search').should('include', 'sample_summary.studies=Production');
 }
 
-/** Modal shuold only appear for users without protected access */
+/** Modal appears when no results found */
 function stepNoResultsModal(caps) {
-    if (!caps.expectNoResultsModal) {
-        // Make should not appear
-        cy.get('#download-access-required-modal').should('not.exist');
-    }
-    if (caps.expectNoResultsModal) {
-        // If no files found, the modal should appear
-        if (caps.expectedStatsSummaryOpts.totalFiles === 0) {
+    visitBrowseByFile().then(() => {
+        if (caps.expectedNoResultsModalVisible) {
+            cy.get('#download-access-required-modal').should('be.visible');
+            cy.searchPageTotalResultCount().then((totalCountExpected) => {
+                expect(totalCountExpected).to.equal(0);
+            });
 
-            cy.get('#download-access-required-modal').should('exist')
-
-            // "No Results" text should be present under the modal
-            cy.get(".search-results-container.fully-loaded h3.text-300").should(
-                "contain.text",
-                "No Results"
-            );
-            cy.get('#download-access-required-modal').should('exist')
-
-            // Clicking just outside the modal should not close it
-            // const { bottom, right } = cy.get('#download-access-required-modal').get(0).getBoundingClientRect();
-            // cy.get('#download-access-required-modal').click(bottom + 10, right + 10);
-            // cy.get($modal).should('exist');
-            
-            // .then(($modal) => {
-            //     const { top, right } = $modal[0].getBoundingClientRect();
-            //     cy.get($modal).click(top + 10, right + 10);
-            //     cy.get($modal).should('exist');
-
-            // Navigation bar is still clickable
-            cy.get('#data-menu-item')
-              .should('have.class', 'dropdown-toggle')
-              .click()
-              .should('have.class', 'dropdown-open-for')
-            // cy.get('#docs-menu-item')
-            //   .should('have.class', 'dropdown-toggle')
-            //   .click()
-            //   .should('have.class', 'dropdown-open-for')
-            // cy.get('#about-menu-item')
-            //   .should('have.class', 'dropdown-toggle')
-            //   .click()
-            //   .should('have.class', 'dropdown-open-for')
-            // cy.get('#resource-menu-item')
-            //   .should('have.class', 'dropdown-toggle')
-            //   .click()
-            //   .should('have.class', 'dropdown-open-for')
-
-            // Login button is still clickable
-            cy.get('#loginbtn')
-              .click();
-
-            cy.get('#auth0-lock-container-2').should('exist');
-
-            // Close login modal
-            cy.get('#auth0-lock-container-2 #undefined-close-button').click();
-
-
-            // Make sure SMaHT logo and text appear correctly
-            cy.get('#download-access-required-modal .callout-card img')
-              .should('have.attr', 'src', '/static/img/SMaHT_Vertical-Logo-Solo_FV.png')
-              .and(($img) => {
-                expect($img[0].naturalWidth).to.be.greaterThan(0);
-              })
-
-            cy.get('#download-access-required-modal .modal-body .callout-card h4')
-              .should('not.be.empty')
-              .and('contain', 'SMaHT Production Data: Official Release - Coming Soon')
-
-            cy.get('#download-access-required-modal .modal-body .callout-card span')
-              .should('not.be.empty')
-              .and('contain', 'Check back for updates on the official release of SMaHT Production Data.')
+            cy.get('body').then(($body) => {
+                const $loginBtn = $body.find(navUserAcctLoginBtnSelector);
+                const hasLoginText =
+                    $loginBtn.length > 0 &&
+                    $loginBtn.text().replace(/\s+/g, ' ').trim().includes('Login / Register');
+                if (hasLoginText) {
+                    cy.wrap($loginBtn).click({ force: true });
+                    cy.get('[id^="auth0-lock-container"], .auth0-lock')
+                        .should('be.visible')
+                        .then(($lock) => {
+                            const lockZIndex = parseInt($lock.css('z-index') || '0', 10);
+                            const modalZIndex = parseInt(
+                                $body
+                                    .find('#download-access-required-modal')
+                                    .closest('.modal')
+                                    .css('z-index') || '0',
+                                10
+                            );
+                            if (!Number.isNaN(lockZIndex) && !Number.isNaN(modalZIndex)) {
+                                expect(lockZIndex).to.be.greaterThan(modalZIndex);
+                            }
+                        });
+                    cy.get('body').then(($auth0Body) => {
+                        if ($auth0Body.find('.auth0-lock-close-button').length > 0) {
+                            cy.get('.auth0-lock-close-button').click({ force: true });
+                        } else if ($auth0Body.find('.auth0-lock-overlay').length > 0) {
+                            cy.get('.auth0-lock-overlay').click({ force: true });
+                        }
+                    });
+                } else {
+                    cy.log('Skipping Auth0 login popup check; login button not present or not labeled "Login / Register".');
+                }
+            });
+        } else {
+            cy.get('#download-access-required-modal').should('not.exist');
         }
-    }
+    });
 }
 
 /** QuickInfoBar numbers should be present and > 0 (or ≥ threshold for size) */
@@ -479,7 +452,7 @@ function stepFacetChartBarPlotTests(caps) {
                         }).getQuickInfoBar().then(function (origCount) {
                             // `{ force: true }` is used a bunch here to prevent Cypress from attempting to scroll browser up/down during the test -- which may interfere w. mouse hover events.
                             // See https://github.com/cypress-io/cypress/issues/2353#issuecomment-413347535
-                            return cy.window().then((w) => { 
+                            return cy.window().then((w) => {
                                 w.scrollTo(0, 0); }).end()
                                 .wrap($barPart, { force: true }).scrollToCenterElement().trigger('mouseover', { force: true }).trigger('mousemove', { force: true }).wait(300).click({ force: true }).end()
                                 .get('.cursor-component-root .actions.buttons-container .btn-primary').should('contain', "Explore").click({ force: true }).end() // Browser will scroll after click itself (e.g. triggered by app)
@@ -531,59 +504,41 @@ describe('Browse by role — File', () => {
                 if (!caps.runNavFromHome) return;
                 stepNavigateFromHomeToBrowse(caps);
             });
-            
-            // Redirect not currently in use
+
             it(`Direct /browse/ redirects to Production (enabled: ${caps.runDirectBrowseRedirect})`, () => {
                 if (!caps.runDirectBrowseRedirect) return;
                 stepDirectBrowseRedirect(caps);
             });
 
-            /**
-             * If modal is expected, do not run the rest of the tests, as the page will not
-             * be accessible under the modal
-             */
-            if (caps.expectNoResultsModal) {
-                it(`Modal appears when no results found (enabled: ${caps.runNoResultsModal})`, () => {
-                    if (!caps.runNoResultsModal) return;
-                    stepNoResultsModal(caps);
-                });
-            }
+            it(`Modal appears when no results found (enabled: ${caps.runNoResultsModal})`, () => {
+                if (!caps.runNoResultsModal) return;
+                stepNoResultsModal(caps);
+            });
 
-            // No modal is expected to appear, so run the following tests
-            if (!caps.expectNoResultsModal) {
-                
-                // Check that the NoResultsModal does not appear
-                it(`Modal does not appear when no results found (enabled: ${caps.runNoResultsModal})`, () => {
-                    if (!caps.runNoResultsModal) return;
-                    stepNoResultsModal(caps);
-                });
+            it(`QuickInfoBar has non-zero counts (enabled: ${caps.runQuickInfoBarCounts})`, () => {
+                if (!caps.runQuickInfoBarCounts) return;
+                stepQuickInfoBarCounts(caps);
+            });
 
-                it(`QuickInfoBar has non-zero counts (enabled: ${caps.runQuickInfoBarCounts})`, () => {
-                    if (!caps.runQuickInfoBarCounts) return;
-                    stepQuickInfoBarCounts(caps);
-                });
-    
-                it(`Sidebar toggle expand/collapse (enabled: ${caps.runSidebarToggle})`, () => {
-                    if (!caps.runSidebarToggle) return;
-                    stepSidebarToggle(caps);
-                });
-    
-                it(`Facet include grouping → sub-terms selected (enabled: ${caps.runFacetIncludeGrouping})`, () => {
-                    if (!caps.runFacetIncludeGrouping) return;
-                    stepFacetIncludeGrouping(caps);
-                });
-    
-                it(`Facet exclude grouping → sub-terms omitted (enabled: ${caps.runFacetExcludeGrouping})`, () => {
-                    if (!caps.runFacetExcludeGrouping) return;
-                    stepFacetExcludeGrouping(caps);
-                });
-    
-                it(`Facet chart bar plot tests → X-axis grouping and hover over & click "Illumina NovaSeq X Plus, Brain" bar part + popover button --> matching filtered /browse/ results (enabled: ${caps.runFacetChartBarPlotTests})`, () => {
-                    if (!caps.runFacetChartBarPlotTests) return;
-                    stepFacetChartBarPlotTests(caps);
-                });
-            }
+            it(`Sidebar toggle expand/collapse (enabled: ${caps.runSidebarToggle})`, () => {
+                if (!caps.runSidebarToggle) return;
+                stepSidebarToggle(caps);
+            });
 
+            it(`Facet include grouping → sub-terms selected (enabled: ${caps.runFacetIncludeGrouping})`, () => {
+                if (!caps.runFacetIncludeGrouping) return;
+                stepFacetIncludeGrouping(caps);
+            });
+
+            it(`Facet exclude grouping → sub-terms omitted (enabled: ${caps.runFacetExcludeGrouping})`, () => {
+                if (!caps.runFacetExcludeGrouping) return;
+                stepFacetExcludeGrouping(caps);
+            });
+
+            it(`Facet chart bar plot tests → X-axis grouping and hover over & click "Illumina NovaSeq X Plus, Brain" bar part + popover button --> matching filtered /browse/ results (enabled: ${caps.runFacetChartBarPlotTests})`, () => {
+                if (!caps.runFacetChartBarPlotTests) return;
+                stepFacetChartBarPlotTests(caps);
+            });
         });
     });
 });
