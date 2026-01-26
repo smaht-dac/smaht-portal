@@ -57,7 +57,7 @@ class BarSection extends React.PureComponent {
      * @returns {Element} - A div element representing a bar section.
      */
     render(){
-        const { node: d, isSelected, isHoveredOver, canBeHighlighted, siblingSections = null, rootBarHeight = null } = this.props;
+        const { node: d, isSelected, isHoveredOver, canBeHighlighted } = this.props;
         const color           = d.color || barplot_color_cycler.colorForNode(d);
         let className = "bar-part";
 
@@ -73,39 +73,15 @@ class BarSection extends React.PureComponent {
         } else {
             // Use a percentage for styling purposes because we want the outermost bar height
             // to transition and child bar sections to stay aligned to it.
-            var totalHeightForPercent = null;
-            if (rootBarHeight && d.attr && typeof d.attr.height === 'number') {
-                totalHeightForPercent = rootBarHeight;
-                height = ((d.attr.height || 0) / totalHeightForPercent) * 100 + '%';
-            } else if (Array.isArray(siblingSections) && siblingSections.length > 0) {
-                const combinedHeight = _.reduce(siblingSections, function (sum, bar) {
-                    return sum + ((bar && bar.attr && typeof bar.attr.height === 'number') ? bar.attr.height : 0);
-                }, 0);
-                if (combinedHeight > 0 && d.attr && typeof d.attr.height === 'number') {
-                    height = (d.attr.height / combinedHeight) * 100 + '%';
-                }
-            }
 
-            if (!height) {
-                var parentBarsCount = _.reduce(d.parent.bars, function(sum, bar){
-                    return sum + bar.count;
-                }, 0);
-                height = parentBarsCount ? (d.count / parentBarsCount) * 100 + '%' : '0%';
-            }
+            //new implementation - sum d.parent.bars.count - normalize height since we want to keep the outermost bar height consistent - uozturk
+            var parentBarsCount = _.reduce(d.parent.bars, function(sum, bar){
+                return sum + bar.count;
+            }, 0);
+            height = (d.count / parentBarsCount) * 100 + '%';
+            // old implementation
+            // height = (d.count / d.parent.count) * 100 + '%';
         }
-
-        // Use the primary grouping term for highlighting so legend hover matches all fragments of a primary bucket,
-        // but still keep the secondary term available for future use.
-        const highlightTermKey = (
-            d.parent && d.parent.parent ?
-                d.parent.term :
-                d.term
-        );
-        const highlightFieldKey = (
-            d.parent && d.parent.parent ?
-                d.parent.field :
-                d.field
-        );
 
         return (
             <div className={className} ref={this.barSectionElemRef}
@@ -113,10 +89,7 @@ class BarSection extends React.PureComponent {
                     height, 'backgroundColor' : color
                     //width: '100%', //(this.props.isNew && d.pastWidth) || (d.parent || d).attr.width,
                 }}
-                data-key={this.props['data-key'] || null}
-                data-term={highlightTermKey || null}
-                data-secondary-term={d.parent ? d.term : null}
-                data-field={highlightFieldKey}
+                data-key={this.props['data-key'] || null} data-term={d.parent ? d.term : null}
                 data-count={d.count} data-color={color} data-target-height={d.attr.height}
                 key={'bar-part-' + (d.parent ? d.parent.term + '~' + d.term : d.term)}
                 onMouseEnter={this.mouseEnter} onMouseLeave={this.mouseLeave} onClick={this.click}
@@ -139,7 +112,6 @@ class Bar extends React.PureComponent {
         this.verifyCounts = this.verifyCounts.bind(this);
         this.barStyle = this.barStyle.bind(this);
         this.renderBarSection = this.renderBarSection.bind(this);
-        this.getRenderableSections = this.getRenderableSections.bind(this);
         this.state = {
             'mounted' : false
         };
@@ -191,38 +163,6 @@ class Bar extends React.PureComponent {
         return style;
     }
 
-    getRenderableSections() {
-        const { node, aggregateType = 'files' } = this.props;
-        if (!Array.isArray(node.bars)) {
-            return [_.extend({}, node, { 'color': node.color || '#5da5da', 'baseColor': node.baseColor || node.color })];
-        }
-
-        const sections = [];
-        const sortedPrimaryBars = node.bars.slice(0).sort(function(a, b){
-            const aCount = typeof a[aggregateType] === 'number' ? a[aggregateType] : a.count || 0;
-            const bCount = typeof b[aggregateType] === 'number' ? b[aggregateType] : b.count || 0;
-            return aCount - bCount;
-        });
-
-        _.forEach(sortedPrimaryBars, function (child) {
-            child.baseColor = child.baseColor || child.color;
-            if (Array.isArray(child.bars) && child.bars.length > 0) {
-                _.forEach(child.bars, function (grandChild) {
-                    grandChild.baseColor = grandChild.baseColor || child.baseColor || child.color;
-                    sections.push(grandChild);
-                });
-            } else {
-                sections.push(child);
-            }
-        });
-
-        if (sections.length === 0) {
-            return [_.extend({}, node, { 'color': node.color || '#5da5da', 'baseColor': node.baseColor || node.color })];
-        }
-
-        return sections;
-    }
-
     renderBarSection(d, i, all){
         var { hoverTerm, hoverParentTerm, selectedTerm, selectedParentTerm, onBarPartClick,
                 onBarPartMouseEnter, onBarPartMouseOver, onBarPartMouseLeave,
@@ -233,15 +173,17 @@ class Bar extends React.PureComponent {
 
         return (
             <BarSection {...{ isHoveredOver, isSelected, key, aggregateType, canBeHighlighted }} data-key={key} node={d}
-                rootBarHeight={(this.props.node && this.props.node.attr && this.props.node.attr.height) || null}
-                siblingSections={all}
                 onClick={onBarPartClick} onMouseEnter={onBarPartMouseEnter} onMouseLeave={onBarPartMouseLeave} isRemoving={d.removing} />
         );
     }
 
     render(){
         const { canBeHighlighted, showBarCount, node: d } = this.props;
-        const barSections = this.getRenderableSections();
+        const hasSubSections = Array.isArray(d.bars);
+        const barSections = (hasSubSections ?
+            // If needed, remove sort + reverse to keep order of heaviest->lightest aggs regardless of color
+            barplot_color_cycler.sortObjectsByColorPalette(d.bars).reverse() : [_.extend({}, d, { color : '#5da5da' })]
+        );
         let className = "chart-bar";
         const topLabel = showBarCount ? <span className="bar-top-label" key="text-label">{ d.count }</span> : null;
 
@@ -253,7 +195,7 @@ class Bar extends React.PureComponent {
                 className={className}
                 data-term={d.term}
                 data-count={d.count}
-                data-field={d.field || (Array.isArray(d.bars) && d.bars.length > 0 ? d.bars[0].field : null)}
+                data-field={Array.isArray(d.bars) && d.bars.length > 0 ? d.bars[0].field : null}
                 key={"bar-" + d.term}
                 style={this.barStyle()}
                 ref={this.barElemRef}>
@@ -429,49 +371,32 @@ export class PopoverViewContainer extends React.PureComponent {
     constructor(props){
         super(props);
         this.getCoordsCallback = this.getCoordsCallback.bind(this);
-        this.heightToTop = this.heightToTop.bind(this);
-        this.getRootNode = this.getRootNode.bind(this);
-    }
-
-    getRootNode(node){
-        let current = node;
-        while (current && current.parent){
-            current = current.parent;
-        }
-        return current || node;
-    }
-
-    heightToTop(node){
-        if (!node) return 0;
-        const parent = node.parent;
-        if (!parent || !Array.isArray(parent.bars)) {
-            return (node.attr && typeof node.attr.height === 'number') ? node.attr.height : 0;
-        }
-        let heightWithinParent = 0;
-        let found = false;
-        _.forEach(parent.bars, function(sibling){
-            if (found) return;
-            heightWithinParent += (sibling.attr && typeof sibling.attr.height === 'number') ? sibling.attr.height : 0;
-            if (sibling === node) {
-                found = true;
-            }
-        });
-
-        return this.heightToTop(parent) - ((parent.attr && parent.attr.height) || 0) + heightWithinParent;
     }
 
     getCoordsCallback(node, containerPosition, boundsHeight){
         var bottomOffset = (this.props && this.props.styleOptions && this.props.styleOptions.offset && this.props.styleOptions.offset.bottom) || 0;
         var leftOffset = (this.props && this.props.styleOptions && this.props.styleOptions.offset && this.props.styleOptions.offset.left) || 0;
 
-        var rootNode = this.getRootNode(node);
-        const rootAttrs = (rootNode && rootNode.attr) || {};
-        const rootX = typeof rootAttrs.x === 'number' ? rootAttrs.x : 0;
-        const rootWidth = typeof rootAttrs.width === 'number' ? rootAttrs.width : 0;
-        var barYPos = this.heightToTop(node);
+        var barYPos = node.attr.height;
+
+        if (node.parent){
+            var done = false;
+            barYPos = _.reduce(
+                node.parent.bars,//.slice(0).reverse(),
+                //_.sortBy(node.parent.bars, 'term').reverse(),
+                function(m, siblingNode){
+                    if (done) return m;
+                    if (siblingNode.term === node.term){
+                        done = true;
+                    }
+                    return m + siblingNode.attr.height;
+                },
+                0
+            );
+        }
 
         return {
-            'x' : containerPosition.left + leftOffset + rootX + (rootWidth / 2),
+            'x' : containerPosition.left + leftOffset + (node.parent || node).attr.x + ((node.parent || node).attr.width / 2),
             'y' : containerPosition.top + boundsHeight - bottomOffset - barYPos,
         };
     }

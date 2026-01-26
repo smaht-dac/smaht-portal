@@ -12,22 +12,6 @@ import { barplot_color_cycler } from './../ColorCycler';
 import { RotatedLabel } from './../components';
 import { PopoverViewContainer } from './ViewContainer';
 
-function shiftColor(color, delta = 0.1) {
-    const parsed = d3.color(color);
-    if (!parsed) return color;
-    const mixTarget = delta >= 0 ? 255 : 0;
-    const amount = Math.min(Math.abs(delta), 1);
-    parsed.r = Math.round(parsed.r + (mixTarget - parsed.r) * amount);
-    parsed.g = Math.round(parsed.g + (mixTarget - parsed.g) * amount);
-    parsed.b = Math.round(parsed.b + (mixTarget - parsed.b) * amount);
-    return parsed.formatHex();
-}
-
-function variantFromBaseColor(baseColor, index = 0) {
-    const deltas = [0, 0.12, -0.08, 0.18, -0.14];
-    return shiftColor(baseColor, deltas[index % deltas.length]);
-}
-
 
 /**
  * Return an object containing bar dimensions for first field which has more than 1 possible term, index of field used, and all fields passed originally.
@@ -147,25 +131,7 @@ export function genChartBarDims(
     _.forEach(barData.bars, function(bar){
         if (!Array.isArray(bar.bars)) return;
         _.forEach(bar.bars, function(b){
-            const baseColor = barplot_color_cycler.colorForNode(b);
-            _.extend(b, { 'color': baseColor, 'baseColor': baseColor });
-
-            if (Array.isArray(b.bars)) {
-                const sortedGrandChildren = b.bars.slice(0).sort(function(g1, g2){
-                    const g1Count = typeof g1[aggregateType] === 'number' ? g1[aggregateType] : g1.count || 0;
-                    const g2Count = typeof g2[aggregateType] === 'number' ? g2[aggregateType] : g2.count || 0;
-                    return g1Count - g2Count;
-                });
-                const len = sortedGrandChildren.length;
-                _.forEach(sortedGrandChildren, function(grandChild, idx) {
-                    // If only one secondary bucket, keep the exact primary color to stay in sync with the legend.
-                    const ratio = len > 1 ? idx / (len - 1) : 0;
-                    const delta = len > 1 ? (0.2 - (0.4 * ratio)) : 0;
-                    const variantColor = len > 1 ? shiftColor(baseColor, delta) : baseColor;
-                    _.extend(grandChild, { 'color': variantColor, 'baseColor': baseColor });
-                });
-                b.bars = sortedGrandChildren;
-            }
+            return _.extend(b, { 'color' : barplot_color_cycler.colorForNode(b) });
         });
     });
 

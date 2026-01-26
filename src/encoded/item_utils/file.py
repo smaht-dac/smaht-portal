@@ -486,15 +486,3 @@ def get_tissue_category(file: Dict[str, Any], request_handler: RequestHandler) -
             tissue.get_category, request_handler=request_handler
         )
     )
-
-def get_tissue_protocol_id(file: Dict[str, Any], request_handler: RequestHandler) -> List[str]:
-    """
-    Get tissue protocol ID from external ID.
-    """
-    return get_property_values_from_identifiers(
-        request_handler,
-        get_tissues(file, request_handler),
-        partial(
-            tissue.get_protocol_id
-        )
-    )

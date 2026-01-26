@@ -71,12 +71,12 @@ export default class DataMatrix extends React.PureComponent {
         "query": {
             "url": "/data_matrix_aggregations/?type=File&status=open&limit=all",
             "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"],
-            "rowAggFields": ["donors.display_title", "sample_summary.tissue_protocol_id_and_names"]
+            "rowAggFields": ["donors.display_title", "sample_summary.tissues"]
         },
         "fieldChangeMap": {
             "assay": "file_sets.libraries.assay.display_title",
             "donor": "donors.display_title",
-            "tissue": "sample_summary.tissue_protocol_id_and_names",
+            "tissue": "sample_summary.tissues",
             "platform": "sequencing.sequencer.platform",
             "data_type": "data_type",
             "file_format": "file_format.display_title",
@@ -249,7 +249,7 @@ export default class DataMatrix extends React.PureComponent {
             "donors.display_title",
             "sequencing.sequencer.display_title",
             "file_sets.libraries.assay.display_title",
-            "sample_summary.tissue_protocol_id_and_names",
+            "sample_summary.tissues",
             "data_type",
             "file_format.display_title",
             "data_category",

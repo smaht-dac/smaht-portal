@@ -67,9 +67,6 @@ export class UIControlsWrapper extends React.PureComponent {
             // { title: 'Data Category', field: 'data_category' },
             // { title: 'Software', field: 'software.display_title' },
         ],
-        availableFields_SecondarySubdivision: [
-            { title: 'Tissue Subtype', field: 'sample_summary.tissue_subtypes' }
-        ],
         legend: false,
         chartHeight: 300,
         btnVariant: 'outline-secondary',
@@ -96,12 +93,10 @@ export class UIControlsWrapper extends React.PureComponent {
 
         this.handleDropDownShowTypeToggle = this.handleDropDownToggle.bind(this, 'showType');
         this.handleDropDownSubdivisionFieldToggle = this.handleDropDownToggle.bind(this, 'subdivisionField');
-        this.handleDropDownSecondarySubdivisionFieldToggle = this.handleDropDownToggle.bind(this, 'secondarySubdivisionField');
         this.handleDropDownYAxisFieldToggle = this.handleDropDownToggle.bind(this, 'yAxis');
         this.handleDropDownXAxisFieldToggle = this.handleDropDownToggle.bind(this, 'xAxisField');
         this.handleFirstFieldSelect = this.handleFieldSelect.bind(this, 0);
         this.handleSecondFieldSelect = this.handleFieldSelect.bind(this, 1);
-        this.handleThirdFieldSelect = this.handleFieldSelect.bind(this, 2);
 
         this.handleAggregateTypeSelect = _.throttle(this.handleAggregateTypeSelect.bind(this), 750);
         this.handleExperimentsShowType = _.throttle(this.handleExperimentsShowType.bind(this), 750, { trailing: false });
@@ -183,75 +178,53 @@ export class UIControlsWrapper extends React.PureComponent {
      * @param {Event} [event]       Reference to event of DropDown change.
      */
     handleFieldSelect(fieldIndex, newFieldKey, event = null) {
-        const {
-            barplot_data_fields = [],
-            updateBarPlotFields,
-            availableFields_XAxis,
-            availableFields_Subdivision,
-            availableFields_SecondarySubdivision,
-            mapping
-        } = this.props;
-        const currentFields = barplot_data_fields.slice(0);
+        const { barplot_data_fields, updateBarPlotFields, availableFields_XAxis, availableFields_Subdivision, mapping } = this.props;
+        let newFields;
 
-        if (fieldIndex === 1 && newFieldKey === "none") {
-            updateBarPlotFields(mapping, currentFields.slice(0, 1).filter(Boolean));
+        if (newFieldKey === "none") {
+            // Only applies to subdivision (fieldIndex 1)
+            newFields = barplot_data_fields.slice(0, 1);
+            updateBarPlotFields(mapping, newFields);
             return;
         }
 
-        if (fieldIndex === 2) {
-            if (!currentFields[1]) {
-                // Cannot set a secondary group without a primary group by
-                return;
-            }
-            if (newFieldKey === "none") {
-                updateBarPlotFields(mapping, currentFields.slice(0, 2).filter(Boolean));
-                return;
-            }
-        } else if (newFieldKey === "none") {
-            return;
+        const propToGetFieldFrom = fieldIndex === 0 ? availableFields_XAxis : availableFields_Subdivision;
+        const newField = _.find(propToGetFieldFrom, { 'field': newFieldKey });
+        const otherFieldIndex = fieldIndex === 0 ? 1 : 0;
+
+        if (fieldIndex === 0 && barplot_data_fields.length === 1) {
+            newFields = [null];
+        } else {
+            newFields = [null, null];
         }
 
-        let propToGetFieldFrom = availableFields_Subdivision;
-        if (fieldIndex === 0) {
-            propToGetFieldFrom = availableFields_XAxis;
-        } else if (fieldIndex === 2) {
-            propToGetFieldFrom = availableFields_SecondarySubdivision;
+        newFields[fieldIndex] = newField;
+        if (newFields.length > 1) {
+            const foundFieldFromProps = _.findWhere(
+                availableFields_Subdivision.slice(0).concat(availableFields_XAxis.slice(0)),
+                { 'field': barplot_data_fields[otherFieldIndex] }
+            );
+            newFields[otherFieldIndex] = foundFieldFromProps || {
+                'title': barplot_data_fields[otherFieldIndex],
+                'field': barplot_data_fields[otherFieldIndex]
+            };
         }
-        const newField = _.find(propToGetFieldFrom, { 'field': newFieldKey }) || { 'field': newFieldKey, 'title': newFieldKey };
-
-        const nextFields = currentFields.slice(0);
-        while (nextFields.length < fieldIndex) {
-            nextFields.push(null);
-        }
-        nextFields[fieldIndex] = newField.field;
-
-        if (!nextFields[1]) {
-            nextFields.splice(1);
-        } else if (fieldIndex === 1 && currentFields.length > 2) {
-            nextFields[2] = currentFields[2];
-        }
-
-        const cleanedFields = nextFields.filter(Boolean);
-        updateBarPlotFields(mapping, cleanedFields);
+        updateBarPlotFields(mapping, _.pluck(newFields, 'field'));
+        //analytics
         analytics.event('cursor_detail', 'BarPlot', 'Set Aggregation Field', null, {
-            'name': '[' + cleanedFields.join(', ') + ']',
+            'name': '[' + _.pluck(newFields, 'field').join(', ') + ']',
             'field_key': newFieldKey,
         });
     }
 
     getFieldAtIndex(fieldIndex) {
-        const { barplot_data_fields, availableFields_XAxis, availableFields_Subdivision, availableFields_SecondarySubdivision } = this.props;
+        const { barplot_data_fields, availableFields_XAxis, availableFields_Subdivision } = this.props;
         if (!barplot_data_fields) return null;
         if (!Array.isArray(barplot_data_fields)) return null;
         if (barplot_data_fields.length < fieldIndex + 1) return null;
 
         return (
-            _.findWhere(
-                availableFields_Subdivision.slice(0)
-                    .concat(availableFields_XAxis.slice(0))
-                    .concat(availableFields_SecondarySubdivision.slice(0)),
-                { 'field': barplot_data_fields[fieldIndex] }
-            )
+            _.findWhere(availableFields_Subdivision.slice(0).concat(availableFields_XAxis.slice(0)), { 'field': barplot_data_fields[fieldIndex] })
         ) || {
             'title': barplot_data_fields[fieldIndex],
             'field': barplot_data_fields[fieldIndex]
@@ -374,58 +347,10 @@ export class UIControlsWrapper extends React.PureComponent {
         );
     }
 
-    renderSecondaryGroupByFieldDropdown() {
-        const { isLoadingChartData, barplot_data_fields = [], availableFields_SecondarySubdivision, btnVariant, mapping } = this.props;
-        if (mapping !== 'all' && mapping !== 'file') {
-            return null;
-        }
-        const hasPrimaryGroup = Array.isArray(barplot_data_fields) && barplot_data_fields.length > 1 && !!barplot_data_fields[1];
-        const primaryField = hasPrimaryGroup ? barplot_data_fields[1] : null;
-        let title;
-
-        if (isLoadingChartData) {
-            title = <span style={{ opacity: 0.33 }}><i className="icon icon-spin icon-circle-notch fas" /></span>;
-        } else if (!hasPrimaryGroup) {
-            title = <span className="text-muted">Select primary first</span>;
-        } else {
-            const field = this.getFieldAtIndex(2);
-            if (!field) title = "None";
-            else title = field.title || Schemas.Field.toName(field.field);
-        }
-
-        return (
-            <div className="field-2-change-section mt-1">
-                <h6 className="dropdown-heading">Secondary Group By</h6>
-                <DropdownButton id="select-barplot-field-2" onSelect={this.handleThirdFieldSelect}
-                    disabled={isLoadingChartData || !hasPrimaryGroup} title={title} variant={btnVariant}
-                    onToggle={this.handleDropDownSecondarySubdivisionFieldToggle} size="xs">
-                    {
-                        this.renderDropDownMenuItems(
-                            _.map(availableFields_SecondarySubdivision.slice(0).concat([{
-                                title: <em>None</em>,
-                                field: "none"
-                            }]), function (field) {
-                                const isDisabled = primaryField === field.field;
-                                return [
-                                    field.field,                                        // Field
-                                    field.title || Schemas.Field.toName(field.field),   // Title
-                                    field.description || null,                          // Description
-                                    isDisabled,                                         // Disabled
-                                    isDisabled ? "Field already selected for Group By" : null
-                                ]; // key, title, subtitle, disabled
-                            }),
-                            barplot_data_fields[2] || "none"
-                        )
-                    }
-                </DropdownButton>
-            </div>
-        );
-    }
-
     render() {
         const {
             barplot_data_filtered, barplot_data_unfiltered, barplot_data_fields, isLoadingChartData, href, btnVariant,
-            availableFields_XAxis, availableFields_Subdivision, availableFields_SecondarySubdivision, schemas, chartHeight, windowWidth, cursorDetailActions,
+            availableFields_XAxis, availableFields_Subdivision, schemas, chartHeight, windowWidth, cursorDetailActions,
             mapping = 'all'
         } = this.props;
         const { aggregateType, showState } = this.state;
@@ -505,7 +430,6 @@ export class UIControlsWrapper extends React.PureComponent {
                         </div>
                         {/* {this.renderShowTypeDropdown()} */}
                         {this.renderGroupByFieldDropdown()}
-                        {this.renderSecondaryGroupByFieldDropdown()}
                         <div className="legend-container" style={{ 'height': legendContainerHeight }}>
                             <AggregatedLegend {...{ cursorDetailActions, barplot_data_filtered, barplot_data_unfiltered, aggregateType, schemas }}
                                 height={legendContainerHeight}

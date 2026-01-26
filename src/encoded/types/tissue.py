@@ -85,18 +85,6 @@ class Tissue(SampleSource):
         request_handler = RequestHandler(request=request)
         tissue_type = tissue_utils.get_tissue_type(self.properties, request_handler=request_handler)
         return tissue_type or None
-    
-    @calculated_property(
-        schema={
-            "title": "Protocol ID",
-            "description": "Protocol ID associated with tissue",
-            "type": "string"
-        }
-    )
-    def protocol_id(self, request: Request) -> Optional[str]:
-        """Get protocol ID associated with tissue."""
-        protocol_id = tissue_utils.get_protocol_id(self.properties)
-        return protocol_id or None
 
 
 @link_related_validator
