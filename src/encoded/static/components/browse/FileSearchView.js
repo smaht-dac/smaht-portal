@@ -15,7 +15,10 @@ import {
     SelectAllFilesButton,
     SelectedItemsDownloadButton,
 } from '../static-pages/components/SelectAllAboveTableComponent';
-import { createBrowseFileColumnExtensionMap } from './BrowseView';
+import {
+    createBrowseFileColumnExtensionMap,
+    getDownloadableFileCount,
+} from './BrowseView';
 import {
     pageTitleViews,
     PageTitleContainer,
@@ -84,12 +87,19 @@ function FileTableWithSelectedFilesCheckboxes(props) {
         [context, currentAction, session, schemas]
     );
 
+    const downloadableFileCount = getDownloadableFileCount(
+        context?.facets?.find((facet) => facet.field === 'status')?.terms || [],
+        userDownloadAccess
+    );
+
     const selectedFileProps = {
         selectedItems, // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
         session, // track user login
         context,
+        downloadableFileCount,
+        userDownloadAccess,
     };
 
     const { columnExtensionMap, columns, hideFacets } = useMemo(
