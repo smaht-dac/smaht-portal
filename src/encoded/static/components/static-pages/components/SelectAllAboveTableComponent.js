@@ -229,80 +229,76 @@ export class SelectAllFilesButton extends React.PureComponent {
         super(props);
         this.isAllSelected = this.isAllSelected.bind(this);
         this.handleSelectAll = this.handleSelectAll.bind(this);
-        this.getDownloadableFileCount =
-            this.getDownloadableFileCount.bind(this);
+        // this.getDownloadableFileCount =
+        //     this.getDownloadableFileCount.bind(this);
         this.isEnabled = this.isEnabled.bind(this);
         this.state = {
             selecting: false,
-            userDownloadAccess: defaultDownloadAccessObject,
-            downloadableFileCount: 0,
+            userDownloadAccess: this.props.userDownloadAccess,
+            downloadableFileCount: this.props.downloadableFileCount,
         };
     }
 
-    componentDidMount(prevProps, prevState) {
-        if (Object.keys(this.state.userDownloadAccess)?.includes('open')) {
-            ajax.load('/session-properties', (resp) => {
-                const accessObj = resp?.download_perms || {};
-                const newUserDownloadAccessObj = {
-                    ...defaultDownloadAccessObject,
-                    ...accessObj,
-                };
-                this.setState({
-                    ...this.state,
-                    userDownloadAccess: newUserDownloadAccessObj,
-                    downloadableFileCount: this.getDownloadableFileCount(
-                        newUserDownloadAccessObj
-                    ),
-                });
-            });
-        }
-    }
+    // componentDidMount(prevProps, prevState) {
+    //     if (Object.keys(this.state.userDownloadAccess)?.includes('open')) {
+    //         ajax.load('/session-properties', (resp) => {
+    //             const accessObj = resp?.download_perms || {};
+    //             const newUserDownloadAccessObj = {
+    //                 ...defaultDownloadAccessObject,
+    //                 ...accessObj,
+    //             };
+    //             this.setState({
+    //                 ...this.state,
+    //                 userDownloadAccess: newUserDownloadAccessObj,
+    //                 // downloadableFileCount: this.getDownloadableFileCount(
+    //                 //     newUserDownloadAccessObj
+    //                 // ),
+    //             });
+    //         });
+    //     }
+    // }
 
     // Update user download access if session changes
-    componentDidUpdate(prevProps, prevState) {
-        const currentDownloadableFileCount = this.getDownloadableFileCount(
-            this.state.userDownloadAccess
-        );
-        if (
-            prevProps?.session !== this.props?.session ||
-            prevState.downloadableFileCount !== currentDownloadableFileCount
-        ) {
-            ajax.load('/session-properties', (resp) => {
-                const accessObj = resp?.download_perms || {};
-                const newUserDownloadAccessObj = {
-                    ...defaultDownloadAccessObject,
-                    ...accessObj,
-                };
-                this.setState({
-                    ...this.state,
-                    userDownloadAccess: newUserDownloadAccessObj,
-                    downloadableFileCount: this.getDownloadableFileCount(
-                        newUserDownloadAccessObj
-                    ),
-                });
-            });
-        }
-    }
+    // componentDidUpdate(prevProps, prevState) {
+    //     const currentDownloadableFileCount = this.getDownloadableFileCount(
+    //         this.state.userDownloadAccess
+    //     );
+    //     if (
+    //         prevProps?.session !== this.props?.session ||
+    //         prevState.downloadableFileCount !== currentDownloadableFileCount
+    //     ) {
+    //         ajax.load('/session-properties', (resp) => {
+    //             const accessObj = resp?.download_perms || {};
+    //             const newUserDownloadAccessObj = {
+    //                 ...defaultDownloadAccessObject,
+    //                 ...accessObj,
+    //             };
+    //             this.setState({
+    //                 ...this.state,
+    //                 userDownloadAccess: newUserDownloadAccessObj,
+    //                 downloadableFileCount: this.getDownloadableFileCount(
+    //                     newUserDownloadAccessObj
+    //                 ),
+    //             });
+    //         });
+    //     }
+    // }
 
-    /**
-     * Note: facets may include obsolete items, which should not be considered when determining the
-     * downloadable file count
-     */
-    getDownloadableFileCount(userDownloadAccessObj) {
-        const statusFacetTermCounts =
-            this.props.context?.facets?.find(
-                (facet) => facet.field === 'status'
-            )?.terms || [];
-        // Map through the terms to get count for downloadable files
-        const totalDownloadableFileCount = statusFacetTermCounts?.reduce(
-            (acc, term) => {
-                const userCanDownload = userDownloadAccessObj?.[term.key];
-                return acc + (userCanDownload ? term.doc_count : 0);
-            },
-            0
-        );
-        return totalDownloadableFileCount;
-    }
+    // getDownloadableFileCount(userDownloadAccessObj) {
+    //     const statusFacetTermCounts =
+    //         this.props.context?.facets?.find(
+    //             (facet) => facet.field === 'status'
+    //         )?.terms || [];
+    //     // Map through the terms to get count for downloadable files
+    //     const totalDownloadableFileCount = statusFacetTermCounts?.reduce(
+    //         (acc, term) => {
+    //             const userCanDownload = userDownloadAccessObj?.[term.key];
+    //             return acc + (userCanDownload ? term.doc_count : 0);
+    //         },
+    //         0
+    //     );
+    //     return totalDownloadableFileCount;
+    // }
 
     isEnabled() {
         const { session, context } = this.props;
@@ -311,7 +307,7 @@ export class SelectAllFilesButton extends React.PureComponent {
         // Too many items to select all
         if (total > SELECT_ALL_LIMIT) return false;
 
-        return session && total > 0 && this.state.downloadableFileCount > 0;
+        return session && total > 0 && this.props.downloadableFileCount > 0;
     }
 
     isAllSelected() {
@@ -324,8 +320,8 @@ export class SelectAllFilesButton extends React.PureComponent {
         } else {
             // All files are selected if the number of selected items equals the total downloadable file count
             return (
-                this.state.downloadableFileCount > 0 &&
-                selectedItems.size === this.state.downloadableFileCount
+                this.props.downloadableFileCount > 0 &&
+                selectedItems.size === this.props.downloadableFileCount
             );
         }
     }
@@ -349,7 +345,7 @@ export class SelectAllFilesButton extends React.PureComponent {
             );
         }
 
-        const userDownloadAccess = this.state.userDownloadAccess;
+        const userDownloadAccess = this.props.userDownloadAccess;
 
         // Apply a filter to selected items if userDownloadAccess provided
         const statusFilters = [];
@@ -431,8 +427,8 @@ export class SelectAllFilesButton extends React.PureComponent {
         const isEnabled = this.isEnabled();
 
         const hasLimitedAccess =
-            this.state.downloadableFileCount < context?.total &&
-            this.state.userDownloadAccess['protected'] === false;
+            this.props.downloadableFileCount < context?.total &&
+            this.props.userDownloadAccess['protected'] === false;
 
         const iconClassName =
             'me-05 icon icon-fw icon-' +
