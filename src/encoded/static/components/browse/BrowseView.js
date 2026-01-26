@@ -66,13 +66,12 @@ export const NoResultsBrowseModal = ({
     userDownloadAccess,
     isAccessResolved,
 }) => {
-    const [showModal, setShowModal] = useState(true);
-
     const userDownloadAccessUpdated = isAccessResolved;
     const isPublicUser = userDownloadAccess?.['open-network'] === false;
     const hasNoResults = context?.total === 0;
     const isBaseBrowsePath =
-        new URL(href).pathname + new URL(href).search === BROWSE_LINKS[type];
+        decodeURIComponent(new URL(href).pathname + new URL(href).search) ===
+        BROWSE_LINKS[type];
 
     /**
      * Show No results modal if all of the following are true:
@@ -88,7 +87,7 @@ export const NoResultsBrowseModal = ({
         isBaseBrowsePath;
 
     return shouldShowNoResultsModal ? (
-        <Modal id="download-access-required-modal" show={showModal} centered>
+        <Modal id="download-access-required-modal" show={true} centered>
             <Modal.Body>
                 <div className="callout-card protected-data">
                     <img
