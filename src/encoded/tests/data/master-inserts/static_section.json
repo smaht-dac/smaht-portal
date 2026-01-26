@@ -3,7 +3,7 @@
         "identifier": "coming-soon",
         "title": "Coming Soon",
         "body": "Coming soon!",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "md",
             "collapsible": false,
@@ -22,7 +22,7 @@
         "identifier": "about.associate_membership_policy",
         "title": "Associate Membership Policy",
         "file": "/docs/public/about_membership_policy.md",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "md",
             "collapsible": false,
@@ -41,7 +41,7 @@
         "identifier": "consortium-map",
         "title": "SMaHT Consortium Members Map",
         "file": "/docs/public/consortium_map.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -60,7 +60,7 @@
         "identifier": "alluvial",
         "title": "SMaHT Data Overview",
         "file": "/docs/public/alluvial.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -79,7 +79,7 @@
         "identifier": "assay-table",
         "title": "SMaHT Benchmarking Experimental Assays",
         "file": "/docs/public/assay-table.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -98,7 +98,7 @@
         "identifier": "benchmarking.COLO829",
         "title": "COLO829 Data Table",
         "file": "/docs/public/benchmarking_COLO829.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -117,7 +117,7 @@
         "identifier": "benchmarking.HapMap",
         "title": "HapMap Data Table",
         "file": "/docs/public/benchmarking_HapMap.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -136,7 +136,7 @@
         "identifier": "benchmarking.iPSCFibroblast",
         "title": "iPSC Fibroblast Data Table",
         "file": "/docs/public/benchmarking_iPSCFibroblast.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -155,7 +155,7 @@
         "identifier": "benchmarking.donorst001",
         "title": "Donor ST001",
         "file": "/docs/public/benchmarking_tissues_Donor1.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -174,7 +174,7 @@
         "identifier": "benchmarking.donorst002",
         "title": "Donor ST002",
         "file": "/docs/public/benchmarking_tissues_Donor2.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -193,7 +193,7 @@
         "identifier": "benchmarking.donorst003",
         "title": "Donor ST003",
         "file": "/docs/public/benchmarking_tissues_Donor3.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -212,7 +212,7 @@
         "identifier": "benchmarking.donorst004",
         "title": "Donor ST004",
         "file": "/docs/public/benchmarking_tissues_Donor4.jsx",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -232,10 +232,11 @@
         "uuid": "442c8aa0-dc6c-43d7-814a-854af460b014",
         "file": "/docs/source/account_creation.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst",
-            "initial_header_level": 2
+            "initial_header_level": 2,
+            "convert_ext_links": false
         },
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
@@ -267,7 +268,7 @@
         "identifier": "data.analysis.colo829_snv_indel_detection",
         "title": "Challenge Data: Truth set and other relevant data",
         "file": "/docs/public/colo829_snv_indel_detection.jsx",
-        "status": "public",
+        "status": "in review",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
@@ -288,7 +289,7 @@
         "uuid": "442c8aa0-dc6c-43d7-814a-854af460b015",
         "file": "/docs/source/getting_started.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst",
             "initial_header_level": 2
@@ -324,9 +325,43 @@
         "uuid": "442c8aa0-dc6c-43d7-814a-854af460b016",
         "file": "/docs/source/credentials.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "submission_faq",
+        "uuid": "6bea6bcb-8e08-4b56-981a-63caa22a78f2",
+        "file": "/docs/public/submission_faq.jsx",
+        "section_type": "Page Section",
+        "status": "open-network",
+        "options": {
+            "filetype": "jsx",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "pipeline_faq",
+        "uuid": "6c096d6a-d9ff-43ec-b6f6-10ebf8e55c5d",
+        "file": "/docs/public/pipeline_faq.jsx",
+        "section_type": "Page Section",
+        "status": "open",
+        "options": {
+            "filetype": "jsx",
             "initial_header_level": 2
         },
         "consortia": [
@@ -341,9 +376,9 @@
         "uuid": "edf6c0f5-e051-4c4e-8e22-99dfde0b8501",
         "file": "/docs/source/genome_reference_and_related_data.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
-            "filetype":"rst",
+            "filetype": "rst",
             "initial_header_level": 2
         },
         "consortia": [
@@ -395,7 +430,7 @@
         "uuid": "1a2fdcbf-eead-4441-a028-76c5a3e2ac16",
         "file": "/docs/source/uploading_files.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst"
         },
@@ -411,7 +446,7 @@
         "uuid": "a74b4355-3721-4a27-a444-e99a55a1407b",
         "file": "/docs/source/troubleshooting.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst"
         },
@@ -427,7 +462,7 @@
         "uuid": "1b656dca-547b-4c2a-b61b-57d4903b4599",
         "file": "/docs/source/file_download.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst",
             "initial_header_level": 2
@@ -440,11 +475,11 @@
         ]
     },
     {
-        "identifier" : "smaht_nomenclature",
-        "uuid" : "e88a8a3d-cee8-430e-bfed-5c056bc384ea",
-        "file" : "/docs/public/smaht_nomenclature.rst",
+        "identifier": "smaht_nomenclature",
+        "uuid": "e88a8a3d-cee8-430e-bfed-5c056bc384ea",
+        "file": "/docs/public/smaht_nomenclature.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst"
         },
@@ -460,7 +495,7 @@
         "uuid": "6206008f-9288-4156-b55d-52a75f5332e8",
         "file": "/docs/source/referencing_data.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst",
             "initial_header_level": 2
@@ -477,7 +512,7 @@
         "uuid": "794304f1-3c36-4528-bce8-0f6d6b165fc5",
         "file": "/docs/source/data_release_status.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst",
             "initial_header_level": 2
@@ -494,7 +529,7 @@
         "uuid": "f525c58f-e6b8-499f-98df-6c24c1af9f26",
         "file": "/docs/source/manifest.rst",
         "section_type": "Page Section",
-        "status": "public",
+        "status": "open",
         "options": {
             "filetype": "rst",
             "initial_header_level": 2
@@ -510,17 +545,374 @@
         "identifier": "qc_visualizations",
         "title": "QC Metric Visualizations",
         "file": "/docs/public/qc_visualizations.jsx",
-        "status": "public",
+        "status": "protected-network",
         "options": {
             "filetype": "jsx",
             "collapsible": false,
             "default_open": true
         },
         "section_type": "Page Section",
-        "uuid": "68271697-2726-4bbf-9243-1c2ae9553c80",
+        "uuid": "27d09f44-44ca-466e-ade6-6d5a5a81c99c",
         "consortia": [
             "358aed10-9b9d-4e26-ab84-4bd162da182b"
         ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "body": "<SubmissionStatus />",
+        "title": "Submission Status",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "submission-status.0",
+        "section_type": "Page Section",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "uuid": "7550cf0e-367b-4b38-85e3-54cd0c12c6bd"
+    },
+    {
+        "body": "<AnalysisRuns />",
+        "title": "Analysis Runs",
+        "status": "in review",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "identifier": "analysis-status.0",
+        "section_type": "Page Section",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ],
+        "uuid": "3560bb87-7635-4d75-8ff7-08758352e5af"
+    },
+    {
+        "identifier": "retracted-files",
+        "title": "List of Retracted Files",
+        "file": "/docs/public/retracted_files.jsx",
+        "status": "protected-network",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "uuid": "d523e166-89bf-439d-9770-ee92e4bcb72b",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data_matrix_comparison",
+        "title": "SMaHT Data Matrix",
+        "file": "/docs/public/data_matrix_comparison.jsx",
+        "status": "protected-network",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "2851ec1b-ecdb-479a-b88e-deedaa1886ef",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "submission_data_dictionary",
+        "title": "Submission Data Dictionary",
+        "file": "/docs/public/submission_data_dictionary.jsx",
+        "status": "open-network",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "4aeffcf9-f3bb-40e8-a4de-ac7d1bf4fac4",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "pipeline_docs",
+        "title": "Analysis Methods",
+        "uuid": "b78b2ebb-d01c-4635-8a67-76a98ab81772",
+        "section_type": "Page Section",
+        "status": "in review",
+        "file": "/docs/public/pipeline_docs_navigation.jsx",
+        "options": {
+            "filetype": "jsx",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "fastq_files",
+        "title": "FASTQ",
+        "uuid": "439034da-bad5-42c5-8124-3be68276d6cc",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "short-read_illumina_paired-end",
+        "title": "Illumina (short-read)",
+        "uuid": "ce182c42-4f0e-4c1b-b325-213f730a0b42",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "long-read_pacbio_hifi",
+        "title": "PacBio HiFi (long-read)",
+        "uuid": "23bd319b-19eb-4408-869b-eda806da56a5",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "long-read_oxford_nanopore",
+        "title": "Oxford Nanopore (long-read)",
+        "uuid": "9cc46136-477d-4f6e-8751-94d41e6fb5cf",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "short-read_rna-seq_paired-end",
+        "title": "Bulk Total RNA (short-read)",
+        "uuid": "e1ee7924-99cf-4584-9c89-1e023436c797",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "long-read_rna-seq_pacbio_kinnex",
+        "title": "PacBio Kinnex (long-read)",
+        "uuid": "22b22be8-8380-4407-a952-c8106d70c4bc",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "genome_builds",
+        "title": "Genome Builds",
+        "uuid": "455af80f-2dbd-40c7-b7b0-451783dc87ef",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "genome_annotations",
+        "title": "Gene and Transcript Annotations",
+        "uuid": "1dc93422-bed2-45c5-8f98-ee57414d4c4a",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "variant_catalogs",
+        "title": "Variant Databases",
+        "uuid": "2112c809-bca7-46cc-b700-a5280cb2cdee",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "software_specific",
+        "title": "Software-specific Reference Files",
+        "uuid": "45e37138-0988-4f31-be2a-acec7605bf3d",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "release_changelog",
+        "title": "Release Changelog",
+        "uuid": "408bc595-868c-43a6-a8f0-105c22ded302",
+        "section_type": "Page Section",
+        "status": "in review",
+        "options": {
+            "filetype": "md",
+            "initial_header_level": 2
+        },
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "donor_manifest_dictionary",
+        "title": "Donor/ProtectedDonor Metadata Dictionary",
+        "file": "/docs/public/donor_manifest_dictionary.jsx",
+        "status": "open",
+        "options": {
+            "filetype": "jsx",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "abb80b35-61ac-4433-b6e3-55be1ba15e18",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "data_availability_and_access",
+        "title": "SMaHT Data Availability and Access",
+        "file": "/docs/source/data_availability_and_access.rst",
+        "status": "open",
+        "options": {
+            "filetype": "rst",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "550230b3-34fe-42cf-8fb8-72fad10b9861",
+        "submission_centers": [
+            "9626d82e-8110-4213-ac75-0a50adf890ff"
+        ]
+    },
+    {
+        "identifier": "getting_dbgap_access",
+        "title": "Getting dbGAP Access - Coming Soon",
+        "file": "/docs/source/getting_dbgap_access.rst",
+        "status": "open",
+        "options": {
+            "filetype": "rst",
+            "collapsible": false,
+            "default_open": true
+        },
+        "section_type": "Page Section",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "uuid": "f8b1b363-5530-4109-83c2-7b94acbc0e18",
         "submission_centers": [
             "9626d82e-8110-4213-ac75-0a50adf890ff"
         ]

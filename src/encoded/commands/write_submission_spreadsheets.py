@@ -127,6 +127,7 @@ GCC_SUBMISSION_ITEMS = [
     "UnalignedReads",
     "AlignedReads",
     "VariantCalls",
+    "SupplementaryFile",
     "Software"
 ]
 

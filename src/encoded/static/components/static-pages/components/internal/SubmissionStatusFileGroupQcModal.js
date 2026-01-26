@@ -5,6 +5,7 @@ import Modal from 'react-bootstrap/esm/Modal';
 import Form from 'react-bootstrap/Form';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
+import * as d3 from 'd3';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { object } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
@@ -16,7 +17,7 @@ import {
     shortenStringKeepBothEnds,
     getCommentsList,
     getTargetCoverage,
-} from './submissionStatusUtils';
+} from './utils';
 
 class FileGroupQCModalComponent extends React.PureComponent {
     constructor(props) {
@@ -99,7 +100,7 @@ class FileGroupQCModalComponent extends React.PureComponent {
     };
 
     getEstimatedCoverage = (processedFiles) => {
-        const coverage_metric = 'bamstats:estimate_average_coverage';
+        const coverage_metric = 'mosdepth:total';
         const filesSeen = [];
         let estimated_coverage = 0;
         if (processedFiles.length === 0) {
@@ -224,13 +225,17 @@ class FileGroupQCModalComponent extends React.PureComponent {
             if (!this.state.visibleFileSets.includes(file.fileset_uuid)) {
                 return;
             }
+            const retracted =
+                file.status === 'retracted'
+                    ? <span className="ps-1">{createBadge('danger', 'Retracted')}</span>
+                    : '';
             const tags = this.state.isUserAdmin
                 ? this.getFileSetTags(file.fileset_uuid)
                 : '';
             header.push(
                 <th>
                     <span className="text-wrap" title={file.display_title}>
-                        {file.accession}
+                        {file.accession} {retracted}
                     </span>
                     <br />
                     <small
@@ -412,6 +417,11 @@ class FileGroupQCModalComponent extends React.PureComponent {
 
         const targetCoverage = getTargetCoverage(currentFileSet.sequencing);
 
+        const estimatedTotalCoverageCopyString =
+            this.state.estimatedTotalCoverage !== 'NA'
+                ? d3.format(',.1f')(this.state.estimatedTotalCoverage) + 'X'
+                : '';
+
         const estimatedCoverage =
             this.state.estimatedTotalCoverage === 'NA' ? (
                 ''
@@ -419,6 +429,14 @@ class FileGroupQCModalComponent extends React.PureComponent {
                 <span>
                     , Calculated coverage:{' '}
                     <strong>{this.state.estimatedTotalCoverage}x</strong>
+                    <object.CopyWrapper
+                        value={estimatedTotalCoverageCopyString}
+                        className=""
+                        data-tip={'Click to copy group coverage'}
+                        wrapperElement="span"
+                        iconProps={{
+                            style: { fontSize: '0.875rem', marginLeft: 3 },
+                        }}></object.CopyWrapper>
                 </span>
             );
 

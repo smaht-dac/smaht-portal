@@ -147,10 +147,17 @@ class Item(SnovaultItem):
         'in review': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
         'released': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         # Everyone can view - restricted to specific items via schemas.
+        'open': acl.ALLOW_EVERYONE_VIEW_ACL,
         'public': acl.ALLOW_EVERYONE_VIEW_ACL,
         # Intended to do additional computation to determine if download
-        # is allowed if it's a downloadable file, otherwise same as "released"
+        # is allowed if it's a downloadable file, otherwise same as "released", similar for public-
+        # restricted except the group is different and view is "open"
+        'protected-network': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'open-early': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'open-network': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'protected-early': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'restricted': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'protected': acl.ALLOW_EVERYONE_VIEW_ACL,
         # Intended to tag out-of-date data
         'obsolete': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'deleted': DELETED_ACL,
@@ -160,17 +167,27 @@ class Item(SnovaultItem):
         'draft': acl.ALLOW_OWNER_EDIT_ACL,
         'in review': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'released': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'open': acl.ALLOW_EVERYONE_VIEW_ACL,
         'public': acl.ALLOW_EVERYONE_VIEW_ACL,
         # Intended to do additional computation to determine if download
-        # is allowed if it's a downloadable file, otherwise same as "released"
+        # is allowed if it's a downloadable file, otherwise same as "released", similar for public-
+        # restricted except the group is different and view is "open"
+        'open-early': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'open-network': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'protected-early': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'protected-network': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'restricted': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+        'protected': acl.ALLOW_EVERYONE_VIEW_ACL,
         'obsolete': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'deleted': DELETED_ACL
     }
     MINIMAL_STATUS_VIEW = {
         'released': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
-        'public': acl.ALLOW_EVERYONE_VIEW_ACL,
+        'open': acl.ALLOW_EVERYONE_VIEW_ACL,
     }
+
+    # Items of these statuses are filtered out from rev links
+    filtered_rev_statuses = ('deleted')
 
     def __init__(self, registry, models):
         super().__init__(registry, models)
@@ -239,11 +256,12 @@ class Item(SnovaultItem):
             unique keys will NOT work!
         """
         keys = super(Item, self).unique_keys(properties)
-        if 'accession' not in self.schema['properties']:
-            return keys
-        keys.setdefault('accession', []).extend(properties.get('alternate_accessions', []))
-        if properties.get('status') != 'replaced' and 'accession' in properties:
-            keys['accession'].append(properties['accession'])
+        # Propagated to snovault as 1 May 2025 - Will
+        # if 'accession' not in self.schema['properties']:
+        #     return keys
+        # keys.setdefault('accession', []).extend(properties.get('alternate_accessions', []))
+        # if properties.get('status') != 'replaced' and 'accession' in properties:
+        #     keys['accession'].append(properties['accession'])
         return keys
 
     @calculated_property(schema={"title": "Display Title", "type": "string"})

@@ -163,6 +163,32 @@ def smaht_admin(testapp):
 
 
 @pytest.fixture
+def smaht_dbgap_user(testapp):
+    item = {
+        'first_name': 'Test',
+        'last_name': 'DBGAP',
+        'email': 'smaht_dbgap@example.org',
+        'groups': ['dbgap'],
+        'status': 'current'
+    }
+    # User @@object view has keys omitted.
+    return post_item_and_return_location(testapp, item, 'user')
+
+
+@pytest.fixture
+def smaht_public_dbgap_user(testapp):
+    item = {
+        'first_name': 'Test',
+        'last_name': 'Public DBGAP',
+        'email': 'smaht_public_dbgap@example.org',
+        'groups': ['public-dbgap'],
+        'status': 'current'
+    }
+    # User @@object view has keys omitted.
+    return post_item_and_return_location(testapp, item, 'user')
+
+
+@pytest.fixture
 def blank_user(testapp):
     item = {
         'first_name': 'Unaffiliated',
@@ -300,6 +326,18 @@ def smaht_protected_gcc_user(testapp, test_submission_center, test_consortium, t
 def smaht_admin_app(testapp, smaht_admin):
     """ App associated with a consortia member who is a submitter """
     return remote_user_testapp(testapp.app, smaht_admin['uuid'])
+
+
+@pytest.fixture
+def smaht_dbgap_app(testapp, smaht_dbgap_user):
+    """ App associated with member of the public with the dbgap group (ie: expanded consortia) """
+    return remote_user_testapp(testapp.app, smaht_dbgap_user['uuid'])
+
+
+@pytest.fixture
+def smaht_public_dbgap_app(testapp, smaht_public_dbgap_user):
+    """ App associated member of the public with the public dbgap group """
+    return remote_user_testapp(testapp.app, smaht_public_dbgap_user['uuid'])
 
 
 @pytest.fixture
@@ -452,6 +490,55 @@ def donor(testapp: TestApp, donor_properties: Dict[str, Any]) -> Dict[str, Any]:
 
 
 @pytest.fixture
+def test_tpc_donor(
+    testapp: TestApp,
+    test_second_submission_center: Dict[str, Any],
+) -> Dict[str, Any]:
+    item = {
+        "submission_centers": [test_second_submission_center["uuid"]],
+        "submitted_id": f"{TEST_SECOND_CENTER_SUBMITTED_ID_CODE}_DONOR_SMHT001",
+        "age": 35,
+        "sex": "Male",
+        "tpc_submitted": "True",
+        "external_id": "SMHT001"
+    }
+    return post_item(testapp, item, "Donor")
+
+
+@pytest.fixture
+def test_tissue(
+    testapp: TestApp,
+    test_second_submission_center: Dict[str, Any],
+    test_tpc_donor: Dict[str, Any],
+    test_ontology_term: Dict[str, Any],
+) -> Dict[str, Any]:
+    item = {
+        "submission_centers": [test_second_submission_center["uuid"]],
+        "submitted_id": f"{TEST_SECOND_CENTER_SUBMITTED_ID_CODE}_TISSUE_SMHT001-3Q",
+        "donor": test_tpc_donor["uuid"],
+        "external_id": "SMHT001-3Q",
+        "uberon_id": test_ontology_term["uuid"]
+    }
+    return post_item(testapp, item, "Tissue")
+
+
+@pytest.fixture
+def test_tissue_sample(
+    testapp: TestApp,
+    test_second_submission_center: Dict[str, Any],
+    test_tissue: Dict[str, Any],
+) -> Dict[str, Any]:
+    item = {
+        "submission_centers": [test_second_submission_center["uuid"]],
+        "submitted_id": f"{TEST_SECOND_CENTER_SUBMITTED_ID_CODE}_TISSUE-SAMPLE_SMHT001-3Q-001A1",
+        "sample_sources": [test_tissue["uuid"]],
+        "external_id": "SMHT001-3Q-001A1",
+        "category": "Core"
+    }
+    return post_item(testapp, item, "TissueSample")
+
+
+@pytest.fixture
 def test_ontology(
     testapp,
     test_consortium
@@ -467,10 +554,55 @@ def test_ontology(
 
 
 @pytest.fixture
-def test_ontology_term(
+def test_germ_layer_ontology_term(
     testapp,
     test_consortium,
     test_ontology
+):
+    item = {
+        "identifier": "UBERON:0000925",
+        "ontologies": [test_ontology["uuid"]],
+        "title": "endoderm",
+        "consortia": [
+           test_consortium["uuid"]
+        ],
+        "preferred_name": "Endoderm",
+        "tags": [
+            "germ_layer"
+        ]
+    }
+    return post_item_and_return_location(testapp, item, 'ontology_term')
+
+
+@pytest.fixture
+def test_tissue_ontology_term(
+    testapp,
+    test_consortium,
+    test_ontology,
+    test_germ_layer_ontology_term
+):
+    item = {
+        "identifier": "UBERON:0002048",
+        "ontologies": [test_ontology["uuid"]],
+        "title": "lung",
+        "consortia": [
+           test_consortium["uuid"]
+        ],
+        "grouping_term": test_germ_layer_ontology_term["uuid"],
+        "preferred_name": "Lung",
+         "tags": [
+            "tissue_type"
+        ]
+    }
+    return post_item_and_return_location(testapp, item, 'ontology_term')
+
+
+@pytest.fixture
+def test_ontology_term(
+    testapp,
+    test_consortium,
+    test_ontology,
+    test_tissue_ontology_term
 ):
     item = {
         "identifier": "UBERON:0008952",
@@ -478,7 +610,14 @@ def test_ontology_term(
         "title": "upper lobe of left lung",
         "consortia": [
            test_consortium["uuid"]
-        ]
+        ],
+        "grouping_term": test_tissue_ontology_term["uuid"],
+        "preferred_name": "Upper Lobe of Left Lung",
+        "tags":[
+            "tissue_type_test_terms-Lung",
+            "germ_layer_test_terms-Endoderm",
+            "tissue_subtype"
+        ],
     }
     return post_item_and_return_location(testapp, item, 'ontology_term')
 
@@ -542,7 +681,6 @@ def test_cell_culture_sample(
     return post_item_and_return_location(testapp, item, 'cell_culture_sample')
 
 
-
 @pytest.fixture
 def test_assay(
     testapp,
@@ -553,10 +691,26 @@ def test_assay(
         "title": "Bulk WGS",
         "code": "002",
         "submission_centers": [test_submission_center["uuid"]],
-        "valid_molecules": ["DNA"]
+        "valid_molecules": ["DNA"],
+        "cell_isolation_method": "Bulk"
         }
     return post_item_and_return_location(testapp, item, 'assay')
 
+
+@pytest.fixture
+def test_rna_assay(
+    testapp,
+    test_submission_center
+):
+    item = {
+        "identifier": "bulk_rna_seq",
+        "title": "Bulk RNA-Seq",
+        "code": "100",
+        "submission_centers": [test_submission_center["uuid"]],
+        "valid_molecules": ["RNA"],
+        "cell_isolation_method": "Bulk"
+    }
+    return post_item_and_return_location(testapp, item, 'assay')
 
 
 @pytest.fixture
@@ -757,6 +911,7 @@ def test_chain_file(
     testapp,
     test_submission_center,
     file_formats,
+    test_fileset,
     test_software,
     donor_specific_assembly
 ):
@@ -770,6 +925,9 @@ def test_chain_file(
         ],
         "filename": "test_DSA_to_GRCh38.chain.gz",
         "file_format": file_formats.get("CHAIN", {}).get("uuid", ""),
+        "file_sets": [
+            test_fileset["uuid"]
+        ],
         "submission_centers": [
             test_submission_center["uuid"]
         ],
@@ -790,6 +948,7 @@ def test_sequence_file(
     testapp,
     test_submission_center,
     file_formats,
+    test_fileset,
     test_software,
     donor_specific_assembly
 ):
@@ -803,6 +962,9 @@ def test_sequence_file(
         ],
         "filename": "test_hela.fasta",
         "file_format": file_formats.get("FASTA", {}).get("uuid", ""),
+        "file_sets": [
+            test_fileset["uuid"]
+        ],
          "submission_centers": [
             test_submission_center["uuid"]
         ],

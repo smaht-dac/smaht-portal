@@ -28,7 +28,7 @@ from ..item_utils import (
 )
 
 SEQUENCER_DEPENDENT = {
-    "ONT": ["gpu", "model", "modification_tags"]
+    "ONT": ["gpu_architecture", "model", "modification_tags"]
 }
 
 @collection(
@@ -95,6 +95,7 @@ def check_read_pairs_paired_with(request, submitted_id: str, paired_with: Union[
         return request.validated.update({})
 
 
+@link_related_validator
 def validate_read_pairs_in_file_sets_on_add(context, request):
     """Check that the R1 and R2 files are linked to the same FileSet on add."""
     data = request.json
@@ -103,6 +104,7 @@ def validate_read_pairs_in_file_sets_on_add(context, request):
     return check_read_pairs_in_file_sets(request, data['submitted_id'], paired_with, file_sets)
 
 
+@link_related_validator
 def validate_read_pairs_in_file_sets_on_edit(context, request):
     """Check that the R1 and R2 files are linked to the same FileSet on edit."""
     existing_properties = get_properties(context)
@@ -131,6 +133,8 @@ def check_read_pairs_in_file_sets(request, submitted_id: str, paired_with: Union
 @link_related_validator
 def validate_basecalling_software_for_ont_on_add(context, request):
     """Validate software and sequencer.platform if ONT on add"""
+    if 'force_pass' in request.query_string:
+        return
     data = request.json
     software = data['software'] if 'software' in data else None
     file_sets = data['file_sets'] if 'file_sets' in data else None
@@ -140,6 +144,8 @@ def validate_basecalling_software_for_ont_on_add(context, request):
 @link_related_validator
 def validate_basecalling_software_for_ont_on_edit(context, request):
     """Validate software and sequencer.platform if ONT on edit."""
+    if 'force_pass' in request.query_string:
+        return
     existing_properties = get_properties(context)
     properties_to_update = get_properties(request)
     software = get_property_for_validation('software', existing_properties, properties_to_update)

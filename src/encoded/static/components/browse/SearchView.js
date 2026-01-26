@@ -24,25 +24,24 @@ import {
 } from './../PageTitleSection';
 
 /**
-    * Function which is passed into a `.filter()` call to
-    * filter context.facets down, usually in response to frontend-state.
-    *
-    * Currently is meant to filter out type facet if we're in selection mode,
-    * as well as some fields from embedded 'experiment_set' which might
-    * give unexpected results.
-    *
-    * @todo Potentially get rid of this and do on backend.
-    *
-    * @param {{ field: string }} facet - Object representing a facet.
-    * @returns {boolean} Whether to keep or discard facet.
-    */
+ * Function which is passed into a `.filter()` call to
+ * filter context.facets down, usually in response to frontend-state.
+ *
+ * Currently is meant to filter out type facet if we're in selection mode,
+ * as well as some fields from embedded 'experiment_set' which might
+ * give unexpected results.
+ *
+ * @todo Potentially get rid of this and do on backend.
+ *
+ * @param {{ field: string }} facet - Object representing a facet.
+ * @returns {boolean} Whether to keep or discard facet.
+ */
 export function filterFacet(facet, currentAction) {
     // Set in backend or schema for facets which are under development or similar.
     if (facet.hide_from_view) return false;
 
     // Remove the @type facet while in selection mode.
-    if (facet.field === 'type' && currentAction === 'selection')
-        return false;
+    if (facet.field === 'type' && currentAction === 'selection') return false;
 
     return true;
 }
@@ -112,20 +111,15 @@ export default function SearchView(props) {
 }
 
 export class SearchViewBody extends React.PureComponent {
-   
     constructor(props) {
         super(props);
         this.memoized = {
-            transformedFacets: memoize(transformedFacets)
+            transformedFacets: memoize(transformedFacets),
         };
     }
 
     render() {
-        const {
-            context,
-            currentAction,
-            schemas,
-        } = this.props;
+        const { context, currentAction, schemas } = this.props;
 
         // We don't need full screen btn on CGAP as already full width.
         const passProps = _.omit(
@@ -142,7 +136,7 @@ export class SearchViewBody extends React.PureComponent {
         const tableColumnClassName = 'results-column col';
         const facetColumnClassName = 'facets-column col-auto';
         const aboveTableComponent = (
-            <AboveSearchViewTableControls customizationButtonClassName='btn btn-sm btn-outline-secondary mt-05' />
+            <AboveSearchViewTableControls customizationButtonClassName="btn btn-sm btn-outline-secondary mt-05" />
         );
 
         return (
@@ -170,7 +164,9 @@ export class SearchViewBody extends React.PureComponent {
     }
 }
 
-const SearchViewPageTitle = React.memo(function SearchViewPageTitle(props) {
+export const SearchViewPageTitle = React.memo(function SearchViewPageTitle(
+    props
+) {
     const { context, schemas, currentAction, alerts } = props;
 
     if (currentAction === 'add') {

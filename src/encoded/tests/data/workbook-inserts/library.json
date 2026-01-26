@@ -8,11 +8,23 @@
         "analytes": [
             "TEST_ANALYTE_LIVER-DNA"
         ],
+        "comments": [
+            "Liver WGS DNA"
+        ],
+        "external_id": "P31566",
         "a260_a280_ratio": 3.2,
+        "adapter_name": "bcM0002",
+        "adapter_sequence": "GTCACC",
+        "barcode_sequences": [
+            "CTACACGACGCTCTTC"
+        ],
         "amplification_cycles": 10,
         "analyte_weight": 5.4,
         "fragment_mean_length": 150.7,
         "insert_mean_length": 150.2,
+        "insert_minimum_length": 148,
+        "insert_maximum_length": 152,
+        "insert_coefficient_of_variation": 0.5,
         "preparation_date": "2023-05-11",
         "assay": "bulk_wgs",
         "library_preparation": "TEST_LIBRARY-PREPARATION_LIVER"
@@ -28,6 +40,9 @@
         ],
         "a260_a280_ratio": 3.2,
         "fragment_mean_length": 150.7,
+        "target_fragment_size": 150,
+        "target_insert_maximum_length": 151,
+        "target_insert_minimum_length": 150,
         "insert_mean_length": 150.2,
         "assay": "bulk_rna_seq"
     },
@@ -40,6 +55,7 @@
         "analytes": [
             "TEST_ANALYTE_HELA_ONLY-RNA"
         ],
+        "concatenated_reads": "Yes",
         "assay": "bulk_mas_iso_seq"
     },
     {
@@ -84,6 +100,38 @@
         "analytes": [
             "TEST_ANALYTE_IPSC_FIBROBLAST-DNA"
         ],
-        "assay": "bulk_wgs"
+        "assay": "bulk_wgs",
+        "antibody": [
+            "Pol-II"
+        ],
+        "dna_target": [
+            "AluY8"
+        ],
+        "guide_sequence": [
+            "CCAGGCTGGAGTGCAGTGGC",
+            "CGCCACTGCAGTCCGCAGTC"
+        ]
+    },
+    {
+        "uuid": "1e4c1453-8fc2-4977-bf8e-65f1cba3061b",
+        "analytes": [
+            "TEST_ANALYTE_LIVER-CELL"
+        ],
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_LIBRARY_LIVER-CELL-DNA",
+        "assay": "sc_pta_wgs"
+    },
+    {
+        "uuid": "3ee95826-4331-4121-9bd4-06ca93839bfc",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_LIBRARY_FIBROBLAST",
+        "assay": "bulk_wgs",
+        "analytes": [
+            "TEST_ANALYTE_FIBROBLAST"
+        ]
     }
 ]

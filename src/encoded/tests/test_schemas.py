@@ -113,7 +113,9 @@ def camel_case(name):
 def test_load_schema(schema, master_mixins, registry, testapp):
 
     abstract = [
+        'abstract_donor.json',
         'file.json',
+        'generic_config.json',
         'user_content.json',
         'preparation.json',
         'pathology_report.json',

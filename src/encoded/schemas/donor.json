@@ -26,9 +26,6 @@
             "$ref": "mixins.json#/attribution"
         },
         {
-            "$ref": "mixins.json#/external_id"
-        },
-        {
             "$ref": "mixins.json#/modified"
         },
         {
@@ -48,15 +45,14 @@
         },
         {
             "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "abstract_donor.json#/properties"
         }
     ],
     "properties": {
         "accession": {
             "accessionType": "DO"
-        },
-        "external_id": {
-            "submissionComment": "For donors from the TPC, this should be the TPC donor ID. Otherwise, the submitter's internal identifier can be used.",
-            "pattern": "^[A-Za-z0-9-_]{2,}$"
         },
         "schema_version": {
             "default": "1"
@@ -64,60 +60,59 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_DONOR_[A-Z0-9-_.]{4,}$"
         },
-        "age": {
-            "title": "Age",
-            "description": "Age of the donor (years). Note: donor age above 89 is represented as 89 to remove identifiable information.",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 89
-        },
-        "eligibility": {
-            "title": "Eligibility",
-            "description": "Whether donor was deemed eligible for the study",
+        "protected_donor": {
+            "title": "Protected Donor",
+            "description": "Link to protected donor",
             "type": "string",
-            "enum": [
-                "Yes",
-                "No",
-                "Unknown"
-            ]
-        },
-        "hardy_scale": {
-            "title": "Hardy Scale",
-            "description": "Death classification based on the 4-point Hardy Scale",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 4
-        },
-        "sex": {
-            "title": "Sex",
-            "description": "Sex of the donor",
-            "type": "string",
-            "enum": [
-                "Male",
-                "Female",
-                "Unknown"
-            ]
-        },
-        "tpc_submitted": {
-            "title": "TPC Submitted",
-            "description": "Whether the donor was submitted by the TPC",
-            "type": "string",
-            "enum": [
-                "True",
-                "False"
-            ]
+            "linkTo": "ProtectedDonor"
         }
     },
     "facets": {
-        "sex": {
-            "title": "Sex"
+        "external_id": {
+            "title": "Donor ID"
         },
         "age": {
-            "title": "Age",
-            "aggregation_type": "stats"
+            "title": "Donor Age",
+            "aggregation_type": "range",
+            "number_step": 1,
+            "ranges": [
+                {
+                    "from": 18,
+                    "to": 30
+                },
+                {
+                    "from": 31,
+                    "to": 55
+                },
+                {
+                    "from": 56,
+                    "to": 65
+                },
+                {
+                    "from": 66,
+                    "to": 75
+                },
+                {
+                    "from": 76,
+                    "to": 85
+                },
+                {
+                    "from": 86
+                }
+            ]
+        },
+        "sex": {
+            "title": "Donor Sex"
+        },
+        "tissue.display_title": {
+            "title": "Tissue"
         },
         "submission_centers.display_title": {
             "title": "Submitted By"
+        },
+        "hardy_scale": {
+            "title": "Hardy Scale",
+            "aggregation_type": "terms"
         }
     },
     "columns": {

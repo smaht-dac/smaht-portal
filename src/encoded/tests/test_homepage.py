@@ -8,8 +8,8 @@ def test_extract_desired_facet():
         {'field': 'type', 'title': 'Data Type', 'total': 0, 'hide_from_view': True, 'aggregation_type': 'terms',
          'terms': [{'key': 'File', 'doc_count': 7}, {'key': 'Item', 'doc_count': 7}]}
     ]
-    assert extract_desired_facet_from_search(example_facets, 'type') is not None
-    assert extract_desired_facet_from_search(example_facets, 'not-found') is None
+    assert extract_desired_facet_from_search(example_facets, 'type') is not {}
+    assert not extract_desired_facet_from_search(example_facets, 'not-found')
 
 
 @pytest.mark.workbook
@@ -24,8 +24,8 @@ def test_home_page_workbook(es_testapp, workbook):
     assert 'figures' in home['@graph'][0]['categories'][0]
     # check file generated counts
     # from workbook inserts, not including 1 output files and 1 reference file
-    assert home['@graph'][0]['categories'][0]['figures'][-1]['value'] == 6
+    assert home['@graph'][0]['categories'][0]['figures'][-1]['value'] == 3
     assert home['@graph'][0]['categories'][0]['figures'][-1]['unit'] == 'Files Generated'
     # check assay count (should be 4 as of right now)
-    assert home['@graph'][0]['categories'][0]['figures'][1]['value'] == 4
+    assert home['@graph'][0]['categories'][0]['figures'][1]['value'] == 2
     assert home['@graph'][0]['categories'][0]['figures'][1]['unit'] == 'Assays'

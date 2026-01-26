@@ -76,11 +76,6 @@ $facetlist-excluding: #450000;
 	}
 }
 
-
-
-
-
-
 /*** FACETS CONTAINER STICKY ***/
 
 .search-view-controls-and-results .facets-container {
@@ -200,6 +195,11 @@ $facetlist-excluding: #450000;
 						& > .facet-item {
 							color: #727272;
 							font-size: 0.813rem;
+
+							&.facet-item-group-header {
+								color: #3B3A3A;
+								font-weight: 500;
+							}
 						}
 						& > .facet-count {
 							color: #727272;
@@ -260,10 +260,28 @@ $facetlist-excluding: #450000;
 					font-weight: 600;
 				}
 			}
+
+			&.range-facet {
+				.facet-list .range-drop {
+					flex-direction: column;
+					align-items: start !important;
+
+					label {
+						text-align-last: left !important;
+						font-size: 0.75rem;
+						font-weight: 450;
+						padding-bottom: 4px;
+						margin-left: 0px !important;
+					}
+
+					.rcol.dropdown {
+						min-width: 90%;
+					}
+				}
+			}
 		}
 	}
 }
-
 
 /** Btn vertical alignment (probably temporary) **/
 .above-facets-table-row {
@@ -276,20 +294,80 @@ $facetlist-excluding: #450000;
 	margin-top: 5px;
 
 	.right-buttons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
+
 		> button.btn {
 			display: inline-flex;
 			align-items: center;
 			@extend .fixed-height;
+			flex-grow: 0;
+
+			&[disabled] {
+				pointer-events: auto;
+				cursor: auto;
+			}
+
+			@include media-breakpoint-down(sm) {
+				width: 100% !important;
+				margin-top: 10px;
+				margin-left: 0 !important;
+				margin-right: 0 !important;
+				text-align: center;
+				display: block;
+			}
+		}
+
+		@include media-breakpoint-down(sm) {
+			width: 100%;
+			margin-top: 10px;
 		}
 	}
 
-	// .search-result-config-panel {
-	// 	> .inner {
-	// 		.panel-title {
-	// 			background-color: #fff;;
-	// 		}
-	// 	}
-	// }
+	.results-count > button.btn {
+		white-space: nowrap;
+
+		@include media-breakpoint-down(sm) {
+			width: 33% !important;
+		}
+	}
+
+	// Styles for download button
+	.download-button {
+		height: 31px;
+		font-size: 0.875rem;
+		font-weight: 500;
+		display: flex;
+		align-items: center;
+		gap: 5px;
+
+		i {
+			margin-right: 10px;
+		}
+
+		&:disabled {
+			background-color: #C0C7D2;
+			border: 1px solid #B6C1D1;
+			pointer-events: auto;
+
+			&:hover {
+				cursor: default;
+			}
+			&:active {
+				color: white;
+				background-color: #C0C7D2;
+				border-color: #B6C1D1;
+			}
+		}
+
+		&.has-access {
+			&:disabled {
+				background-color: #0E74D2;
+				border-color: #0E74D2;
+			}
+		}
+	}
 }
 
 /************************************************
@@ -538,31 +616,61 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 						margin-left: 10px;
 
 						.nav-item > button {
+							position: relative;
 							color: #5D5E63;
 							font-size: 1rem;
 							font-weight: 400;
-							border-radius: 8px 8px 0px 0px;
-							padding: 2px 15px;
-							border-bottom: 2px transparent solid;
+							border: 2px transparent solid;
+							
+							display: flex;
+							margin-bottom: 0.5rem;
+							border: 1px solid transparent;
+							padding: 0.5rem;
+							border-radius: 5px;
+							background-color: transparent;
+							justify-content: center;
+							transition: background-color 50ms, border-color 50ms;
+							
 
-							.nav-item-title {
-								display: flex;
-								.badge {
-									color: #5d5e63;
-									background-color: #f2f2f2;
-									margin-left: 5px;
-									font-weight: 400;
-									margin: auto;
-									margin-left: 8px;
+							.radio-button-group {
+								input, label {
+									&:hover {
+										cursor: pointer;
+									}
 								}
 							}
+							
+							.badge {
+								color: #5d5e63;
+								background-color: #f2f2f2;
+								margin-left: 5px;
+								font-weight: 400;
+								margin: auto;
+								margin-left: 8px;
+							}
 
-
+							&::after {
+								content: ' ';
+								width: 100%;
+								height: 2px;
+								position: absolute;
+								background-color: transparent;
+								bottom: -9px;
+								transition: background-color 50ms;
+							}
+							
+							
 							&.active {
 								color: #343741;
 								font-weight: 600;
-								background-color: transparent;
-								border-color: black;
+								border-color: #4292E2;
+								background-color: #E5F4FF;
+								transition: background-color 50ms, border-color 50ms;
+
+								&::after {
+									background-color: black;
+									transition: background-color 50ms;
+								}
 							}
 						}
 					}
@@ -606,6 +714,45 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 				>div {
 					padding-left: 10px;
 					padding-right: 10px;
+				}
+
+				.manifest-selection {
+					label {
+						background-color: #FCFDFF;;
+						border: 1px solid #DEE2E6;
+						padding: 0.5rem 1rem;
+						user-select: none;
+						cursor: pointer;
+
+						input {
+							cursor: pointer;
+						}
+
+						&.selected {
+							background-color: #E5F4FF;
+							border-color: #4292E2;
+						}
+						
+						&.disabled {
+							background-color: #EBF4FB;
+							border-color: #9AADC0;
+
+							input {
+								cursor: auto;
+							}
+
+							&:hover {
+								cursor: auto;
+							}
+						}
+
+						&:first-of-type {
+							border-radius: 5px 0 0 5px;
+						}
+						&:last-of-type {
+							border-radius: 0 5px 5px 0;
+						}
+					}
 				}
 			}
 			>.modal-footer {
@@ -769,9 +916,237 @@ body[data-pathname="/search/"]:not([data-current-action="add"]) {
 	}
 }
 
-/**
-* Browse View
-**/
+/**************************************************
+************** Browse View Styles ****************
+***************************************************/
+
+body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-current-action="edit"]):not([data-at-type*="Error"]) {
+	// Donor Browse specific styles
+	&[data-at-type="DonorSearchResults"],
+	&[data-at-type="ProtectedDonorSearchResults"] {
+		.search-view-controls-and-results {
+			.facets-column {
+				.facets-header {
+					
+					&[data-excluding="false"] {
+						background-color: #F4F3FD;
+						
+						.icon-toggle button[aria-pressed=true] {
+							background-color: #C4C1E0;
+						}
+					}
+
+				}
+			}
+
+			.results-column {
+				.search-headers-row {
+					background-color: #F4F3FD;
+
+					.search-headers-column-block {
+						.icon {
+							color: #B0ADBE;
+							font-size: 0.875rem;
+
+							&-info-circle {
+								margin-left: 5px;
+							}
+						}
+						.column-sort-icon {
+							color: #C8C5D7;
+						}
+					}
+				}
+				
+				.search-results-container {
+
+					.columns {
+						[data-field="@type"] {
+							.inner {
+								.column-title {
+									display: flex;
+									justify-content: right;
+									margin-right: 1.25rem;
+								}
+							}
+						}
+					}
+					.search-result-row {
+						.search-result-column-block {
+							.inner {
+								justify-content: right;
+								.inner-value-container {
+									display: flex;
+									gap: 5px;
+									align-items: center;
+
+									.toggle-detail-button-container {
+										> button {
+											color: #317EBF;
+											border: none;
+											background-color: transparent;
+	
+											.icon {
+												margin-left: 5px;
+												font-size: 0.75rem;
+											}
+										}
+									}
+								}
+
+								.value.loading {
+									background-color: rgba(211, 211, 211, 0.2);
+									border-radius: 4px;
+									width: 80%;
+									height: 20px;
+								}
+							}
+						}
+
+						.result-table-detail-container {
+							.result-table-detail {
+								.close-button-container {
+									display: none;
+								}
+								.detail-pane {
+									display: flex;
+									flex-direction: column;
+									width: 100%;
+									margin: 0px;
+									border-left: 1px solid #EFEFEF;
+									border-right: 1px solid #EFEFEF;
+
+									.detail-header {
+										padding: 10px 15px;
+										font-size: 1rem;
+
+										.icon {
+											color: #ABA9C1;
+											margin-right: 10px;
+										}
+									}
+
+									.detail-body {
+										display: flex;
+										color: #343741;
+
+										.tissue-category {
+											margin: 0px;
+											flex: 1;
+											max-width: 250px;
+											
+											.header-container {
+												display: flex;
+												padding: 0.25rem 1rem;
+												background-color: #F4F3FD;
+												border-top: 1px solid #BFC5D1;
+												border-bottom: 1px solid #BFC5D1;
+												
+												h3 {
+													color: #343741;
+													font-size: 0.75rem;
+													font-weight: 500;
+													margin: 0px;
+													line-height: normal;
+												}
+											}
+
+											&:first-of-type {
+												.header-container {
+													padding-left: 18px;
+												}
+											}
+											&:last-of-type {
+												flex: 1;
+												max-width: none;
+											}
+
+											.tissue-list-container {
+
+												padding: 10px 19px 20px 19px;
+											}
+
+											ul {
+												padding: 0px;
+												list-style-position: inside;
+
+												li {
+													color: #317EBF;
+
+													span {
+														position: relative;
+														left: -5px;
+													}
+													
+													&::marker {
+														margin-right: 5px;
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+
+						&.detail-tissue {
+							[data-field="tissues"] {
+								.inner {
+									.inner-value-container.detail-open {
+										color: #B75200;
+										
+										.toggle-detail-button-container {
+											> button {
+											color: #B75200;
+												.icon {
+													color: #FF9A47;
+												}
+											}
+										}
+									}
+								}
+							}	
+						}
+						&.detail-assay {
+							[data-field="assays"] {
+								.inner {
+									.inner-value-container.detail-open {
+										color: #B75200;
+										
+										.toggle-detail-button-container {
+											> button {
+											color: #B75200;
+											.icon {
+													color: #FF9A47;
+												}
+											}
+										}
+									}
+								}
+							}	
+
+						}
+					}
+				}
+			}
+		}
+	}
+
+	.donor-metadata {
+		pointer-events: auto;
+		&:disabled {
+			&:hover {
+				cursor: default;
+			}
+			&:active {
+				color: #343741;
+				background-color: #DEE2E6;
+				border-color: #DEE2E6;
+			}
+		}
+	}
+}
+
 
 h2.browse-summary-header {
 	font-size: 1.5rem;
@@ -821,7 +1196,12 @@ div.browse-body {
 					border-color: #5f99cf;
 				}
 			}
-		} 
+		}
+
+		.search-results-outer-container .search-results-container .search-result-row > .columns.result-table-row > .search-result-column-block > .inner > .toggle-detail-button-container {
+			display: flex;
+		}
+	
 	
 		.search-results-outer-container .search-results-container .search-result-row.detail-closed > .columns.result-table-row > .search-result-column-block[data-first-visible-column="true"][data-field="@type"],
 		.search-headers-row > .headers-columns-overflow-container > .columns > .search-headers-column-block[data-first-visible-column][data-field="@type"] {
@@ -862,10 +1242,6 @@ div.browse-summary {
 	div.browse-summary-stat {
 		height: 62px;
 
-		@media screen and (max-width: 1020px) {
-			padding-left: 30px;
-		}
-
 		&:not(:last-of-type) {
 			padding-right: 30px;
 			border-right: 1px solid #c0dbfb;
@@ -874,6 +1250,26 @@ div.browse-summary {
 		&:not(:first-of-type) {
 			padding-left: 30px;
 		}
+
+		@media screen and (max-width: 1020px) {
+			padding-left: 10px;
+
+			&:not(:last-of-type) {
+				padding-right: 10px !important;
+			}
+			&:not(:first-of-type) {
+				padding-left: 20px !important;
+			}
+		}
+
+		@media screen and (min-width: 1021px) and (max-width: 1200px) {
+			padding-left: 20px !important;
+
+			&:not(:last-of-type) {
+				padding-right: 20px !important;
+			}
+		}
+
 
 		> div {
 			div.browse-summary-stat-value {
@@ -891,6 +1287,44 @@ div.browse-summary {
 				font-size: 0.875rem;
 			}
 		}
+	}
+	// override styles for compact stats
+	&.stats-compact {
+		row-gap: 15px !important;
+
+		div.browse-summary-stat {
+			height: 30px !important;
+			padding-left: 0 !important;
+			padding-right: 0 !important;
+
+			&:not(:last-of-type) {
+				border-right: unset !important;
+			}
+
+			> div {
+				div.browse-summary-stat-value {
+					font-size: 1.5rem !important;
+			}
+			div.browse-summary-stat-subtitle {
+					margin-left: 7px !important;
+				}
+			}
+			div.browse-link-icon {
+				width: 30px !important;
+				height: 30px !important;
+				border-radius: 15px !important;
+			}
+		}
+
+		hr {
+			margin: 1rem 0 0.25rem -1.25rem;
+			width: calc(100% + 2.5rem);
+			opacity: 0.75 !important;
+		}
+	}
+
+	hr {
+		color: #C0DBFB;
 	}
 }
 
@@ -934,7 +1368,7 @@ div.browse-link-icon {
 	border-radius: 22.5px;
 
 	&.browse-summary-stat-icon-smaller {
-		font-size: 1.2em;
+		font-size: 1em;
 	}
 
 	&[data-icon-type='file'] {
@@ -945,31 +1379,60 @@ div.browse-link-icon {
 		}
 	}
 	&[data-icon-type='donor'] {
-		background-color: #FBE8E8;
-		border: 1px solid #CC8B8B;
+		background-color: #F0EFFD;
+		border: 1px solid #775FBD;
 		> i {
-			color: #B10808;
+			color: #743FAB;
 		}
 	}
 	&[data-icon-type='tissue'] {
 		background-color: #D6F7EB;
 		border: 1px solid #5FBD8D;
 		> i {
-			color: #09AE5E;
+			color: #0F9655;
 		}
 	}
 	&[data-icon-type='assay'] {
-		background-color: #E7E6FF;
-		border: 1px solid #775FBD;
+		background-color: #FFF0EC;
+		border: 1px solid #DE5900;
 		> i {
-			color: #6A28AF;
+			color: #DE5900;
 		}
 	}
 	&[data-icon-type='file-size'] {
-		background-color: #FFEFDB;
-		border: 1px solid #F47F6B;
+		background-color: #F1F1F1;
+		border: 1px solid #7D7873;
 		> i {
-			color: #CC5D4A;
+			color: #707070;
+		}
+	}
+}
+
+.browse-viz-container {
+	.stats-column {		
+		width: 100%;
+
+		@media (min-width: 1400px) {
+			width: 320px;
+		}
+
+		div.view-toggle {
+			background-color: #F9FCFF;
+			border: 1px solid #A3C4ED;
+			width: 100%;
+			gap: 10px;
+			white-space: nowrap;
+			border-radius: 0.5rem !important;
+
+			.btn.btn-link {
+				color: #657B95;
+			}
+
+			.btn.btn-primary-dark {
+				background-color: #6093D0 !important;
+				border-color: #457ABC !important;
+				border-width: 1px !important;
+			}
 		}
 	}
 }

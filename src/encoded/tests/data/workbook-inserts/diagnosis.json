@@ -6,7 +6,9 @@
             "smaht"
         ],
         "medical_history": "TEST_MEDICAL-HISTORY_FEMALE",
-        "disease": "MONDO:0016668",
-        "age_at_diagnosis": 5
+        "disease": "Ovarian Cancer",
+        "age_at_diagnosis": 50,
+        "comments": "Severe",
+        "age_at_resolution": 55
     }
 ]

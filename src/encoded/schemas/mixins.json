@@ -740,6 +740,13 @@
             }
         }
     },
+    "preferred_name": {
+        "preferred_name": {
+            "title": "Display name",
+            "description": "A preferred name (possibly shortened or simpler version) for the item - can be used for submission or retrieval.",
+            "type": "string"
+        }
+    },
     "preservation_medium": {
         "preservation_medium": {
             "title": "Preservation Medium",
@@ -886,12 +893,17 @@
             "permission": "restricted_fields",
             "enum": [
                 "public",
+                "open",
+                "open-early",
                 "draft",
                 "released",
+                "open-network",
                 "in review",
                 "obsolete",
                 "deleted",
-                "restricted"
+                "protected-network",
+                "protected",
+                "protected-early"
             ]
         }
     },
@@ -996,7 +1008,7 @@
                 "description": "A tag for the item.",
                 "type": "string",
                 "minLength": 1,
-                "maxLength": 50,
+                "maxLength": 100,
                 "pattern": "^[a-zA-Z0-9|_-]+$"
             }
         }
@@ -1007,6 +1019,15 @@
             "description": "Title for the item",
             "type": "string",
             "minLength": 3
+        }
+    },
+    "tissue_autolysis_score": {
+        "tissue_autolysis_score": {
+            "title": "Tissue Autolysis Score",
+            "description": "Tissue autolysis score of the sample or region. 0=None, 1=mild , 2=moderate, 3=severe",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
         }
     },
     "url": {

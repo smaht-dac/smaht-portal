@@ -106,7 +106,22 @@ function DocsNavItem(props) {
                     titleIcon="book fas"
                     linkToTopLevelDirPage={false}
                 />
-                <BigDropdownPageTreeMenu disableLinksOnLevel1Titles />
+                <BigDropdownPageTreeMenu
+                    disableLinksOnLevel1Titles
+                    childrenToHide={[
+                        'docs/additional-resources/fastq_files',
+                        'docs/additional-resources/short-read_illumina_paired-end',
+                        'docs/additional-resources/long-read_pacbio_hifi',
+                        'docs/additional-resources/long-read_oxford_nanopore',
+                        'docs/additional-resources/short-read_rna-seq_paired-end',
+                        'docs/additional-resources/long-read_rna-seq_pacbio_kinnex',
+                        'docs/additional-resources/genome_builds',
+                        'docs/additional-resources/genome_annotations',
+                        'docs/additional-resources/variant_catalogs',
+                        'docs/additional-resources/software_specific',
+                        'docs/additional-resources/release_changelog',
+                    ]}
+                />
             </BigDropdownNavItem>
         </BigDropdownPageLoader>
     );
@@ -137,6 +152,7 @@ function DataNavItem(props) {
 function ResourcesNavItem(props) {
     const { session, ...navItemProps } = props;
     // `navItemProps` contains: href, windowHeight, windowWidth, isFullscreen, testWarning, mounted, overlaysContainer
+
     return (
         <BigDropdownPageLoader treeURL="/resources" session={session}>
             <BigDropdownNavItem
@@ -191,8 +207,10 @@ const LeftNavGuest = React.memo(function LeftNavGuest(props) {
 
     return (
         <div className="navbar-nav me-auto">
-            <AboutNavItem {...props} />
+            <DataNavItem {...props} />
             <DocsNavItem {...props} />
+            <AboutNavItem {...props} />
+            <ResourcesNavItem {...props} />
         </div>
     );
 });

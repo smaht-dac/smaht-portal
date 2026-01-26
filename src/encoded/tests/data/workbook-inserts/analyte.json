@@ -11,11 +11,21 @@
         "molecule": [
             "DNA"
         ],
+        "external_id": "ST001-1D-001X",
+        "description": "Liver DNA",
         "a260_a280_ratio": 3.2,
+        "average_fragment_size": 150.8,
+        "dna_integrity_number": 8,
+        "dna_integrity_number_instrument": "Agilent 4200 TapeStation",
+        "quantitation_method": [
+            "Quant-iT PicoGreen dsDNA BR"
+        ],
         "concentration": 6.2,
         "concentration_unit": "ng/uL",
+        "sample_quantity": 10,
+        "sample_quantity_unit": "uL",
         "samples": [
-            "TEST_TISSUE-SAMPLE_LIVER"
+            "NDRITEST_TISSUE-SAMPLE_LIVER_TPC"
         ],
         "analyte_preparation": "TEST_ANALYTE-PREPARATION_LIVER"
     },
@@ -30,7 +40,7 @@
         ],
         "molecule": [
             "RNA"
-        ],
+        ], 
         "a260_a280_ratio": 3.2,
         "concentration": 6.2,
         "concentration_unit": "ng/uL",
@@ -54,6 +64,8 @@
         "a260_a280_ratio": 3.2,
         "concentration": 6.2,
         "concentration_unit": "ng/uL",
+        "volume": 10,
+        "volume_unit": "uL",
         "samples": [
             "TEST_CELL-CULTURE-SAMPLE_HELA"
         ]
@@ -80,6 +92,10 @@
             "smaht"
         ],
         "submitted_id": "TEST_ANALYTE_LUNG-HOMOGENATE-DNA",
+        "dna_quality_number": 7,
+        "dna_quality_number_instrument": "Agilent 5400 Fragment Analyzer",
+        "dna_quality_size_threshold": 20000,
+        "total_yield": 20.3,
         "molecule_detail": [
             "Total DNA"
         ],
@@ -87,7 +103,7 @@
             "DNA"
         ],
         "samples": [
-            "TEST_TISSUE-SAMPLE_LUNG-HOMOGENATE"
+            "NDRITEST_TISSUE-SAMPLE_LUNG-HOMOGENATE-X_TPC"
         ]
     },
     {
@@ -96,6 +112,11 @@
             "smaht"
         ],
         "submitted_id": "TEST_ANALYTE_IPSC_FIBROBLAST-DNA",
+        "genomic_quality_number": 6,
+        "genomic_quality_number_instrument": [
+            "Agilent 5400 Fragment Analyzer"
+        ],
+        "genomic_quality_size_threshold": 10000,
         "molecule_detail": [
             "Total DNA"
         ],
@@ -119,8 +140,8 @@
             "DNA"
         ],
         "samples": [
-            "TEST_TISSUE-SAMPLE_LIVER",
-            "TEST_TISSUE-SAMPLE_LIVER_2"
+            "NDRITEST_TISSUE-SAMPLE_LIVER_TPC",
+            "NDRITEST_TISSUE-SAMPLE_LIVER_2_TPC"
         ]
     },
     {
@@ -129,6 +150,8 @@
             "smaht"
         ],
         "submitted_id": "TEST_ANALYTE_LIVER-CELL",
+        "yield_per_unit": 14,
+        "yield_unit": "ug/million cells",
         "molecule": [
             "DNA"
         ],
@@ -139,5 +162,21 @@
             "TEST_CELL-SAMPLE_LIVER-CELL"
         ],
         "analyte_preparation": "TEST_ANALYTE-PREPARATION_LIVER-CELL"
+    },
+    {
+        "uuid": "f09ee6f0-8451-4f50-8a62-6ccb56d20b1b",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_ANALYTE_FIBROBLAST",
+        "samples": [
+            "NDRITEST_TISSUE-SAMPLE_FIBROBLAST_TPC"
+        ],
+        "molecule": [
+            "DNA"
+        ],
+        "molecule_detail": [
+            "Total DNA"
+        ]
     }
 ]

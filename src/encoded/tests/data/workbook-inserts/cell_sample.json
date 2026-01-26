@@ -7,13 +7,15 @@
         "submitted_id": "TEST_CELL-SAMPLE_LIVER-CELL",
         "cell_ontology_id": "CL:0000182",
         "external_id": "SMHT005",
+        "description": "Liver cell sample",
         "preservation_type": "Fresh",
+        "preservation_medium": "PBS buffer",
         "sample_sources": [
             "TEST_TISSUE_LIVER"
         ],
         "cell_count": 50,
         "parent_samples": [
-            "TEST_TISSUE-SAMPLE_LIVER"
+            "NDRITEST_TISSUE-SAMPLE_LIVER_TPC"
         ],
         "tags": [
             "test_sample_names",

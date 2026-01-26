@@ -15,7 +15,6 @@ export const BenchmarkingLayout = ({
     schemas,
     title,
     description,
-    showBamQCLink = false,
     bamQCHash = '', // TODO: Other datasets will have qcs on same page accessible by anchor hash
     children,
     callout = null,
@@ -54,18 +53,6 @@ export const BenchmarkingLayout = ({
                         </button>
                     </div>
                 </div>
-                {/* TODO: Re-add documentation button once we have it available */}
-                {showBamQCLink && (
-                    <div className="col-auto mb-2 mb-lg-0 col-lg-3">
-                        <a
-                            className="btn btn-outline-secondary btn-sm float-end"
-                            href={'/bam-qc-overview' + bamQCHash}
-                            rel="noreferrer noopener"
-                            target="_blank">
-                            BAM QC Results
-                        </a>
-                    </div>
-                )}
             </div>
             {/* Schemas are loading, so hash won't be available yet; can't pick correct tab */}
             {!schemas && (
@@ -155,6 +142,7 @@ export const HashBasedTabController = ({
     tabMapArray, // An array of objects containing { eventKey: <hash value of tab>, title: <title of tab>, searchHref: <searchHref for tab>}
     controllerId,
     defaultActiveKeyProp = null,
+    deniedAccessPopoverType,
 }) => {
     if (!tabMapArray || !tabMapArray.length) {
         return <div>Coming Soon</div>;
@@ -164,7 +152,14 @@ export const HashBasedTabController = ({
     const defaultActiveKey = defaultActiveKeyProp || tabMapArray[0]?.eventKey;
 
     // Commons needed by TableControllerWithSelections...
-    const commonTableProps = { schemas, session, facets, href, context };
+    const commonTableProps = {
+        schemas,
+        session,
+        facets,
+        href,
+        context,
+        deniedAccessPopoverType,
+    };
 
     // Grab the hash for use in setting the current active tab
     const urlParts = memoizedUrlParse(href);
@@ -213,7 +208,11 @@ export const HashBasedTabController = ({
                             <TableControllerWithSelections
                                 {...{ searchHref, tabMap }}
                                 {...commonTableProps}>
-                                <BenchmarkingTable />
+                                <BenchmarkingTable
+                                    deniedAccessPopoverType={
+                                        deniedAccessPopoverType
+                                    }
+                                />
                             </TableControllerWithSelections>
                         </div>
                     </Tab>

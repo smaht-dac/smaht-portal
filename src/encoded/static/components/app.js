@@ -37,7 +37,9 @@ import { Schemas, SEO, typedefs, navigate } from './util';
 import { responsiveGridState, DeferMount } from './util/layout';
 import { requestAnimationFrame as raf } from '@hms-dbmi-bgm/shared-portal-components/es/components/viz/utilities';
 
-import { PageTitleSection } from './PageTitleSection';
+import { PageTitleSection, toRegistryLookupContext } from './PageTitleSection';
+import { ChartDataController } from './viz/chart-data-controller';
+
 
 // import './encoded/static/scss/style.css'; // @TODO: currently not resolving; need to fix
 // import './encoded/static/scss/print.css';
@@ -72,8 +74,8 @@ class Timeout {
  * This is wrapped by a Redux store and then rendered by either the server-side
  * NodeJS sub-process or by the browser.
  *
- * @see https://github.com/4dn-dcic/fourfront/blob/master/src/encoded/static/server.js
- * @see https://github.com/4dn-dcic/fourfront/blob/master/src/encoded/static/browser.js
+ * @see https://github.com/smaht-dac/smaht-portal/blob/main/src/encoded/static/server.js
+ * @see https://github.com/smaht-dac/smaht-portal/blob/main/src/encoded/static/browser.js
  */
 export default class App extends React.PureComponent {
     /**
@@ -442,13 +444,28 @@ export default class App extends React.PureComponent {
             // Add a debounce so it runs again after a delay, so other components get a chance to mount.
             App.debouncedOnNavigationTooltipRebuild();
 
-            if (!session && href && typeof href === "string") {
+            if (!session && href && typeof href === 'string') {
                 // show not logged in alert for pages that are public but require session to display the results
-                // (mostly) redirects from notification pane in home page 
-                if (href.indexOf('/qc-metrics') > -1 || href.indexOf('/search/') > -1) {
+                // (mostly) redirects from notification pane in home page
+                if (
+                    href.indexOf('/qc-metrics') > -1 ||
+                    href.indexOf('/search/') > -1
+                ) {
                     Alerts.queue(NotLoggedInAlert);
                 }
             }
+        }
+
+        // We could migrate this block of code to ChartDataController if it were stored in Redux.
+        if (prevState.session !== session) {
+            _.keys(navigate.getBrowseBaseParams.mappings).forEach(function (mapping) {
+                if (ChartDataController.isInitialized(mapping)) {
+                    setTimeout(function () {
+                        console.log("SYNCING CHART DATA - " + mapping + " - DUE TO SESSION CHANGE");
+                        ChartDataController.sync(mapping);
+                    }, 0);
+                }
+            });
         }
 
         // We can skip doing this unless debugging on localhost-
@@ -1393,12 +1410,13 @@ export default class App extends React.PureComponent {
             }
         } else if (context.code === 404) {
             status = 'not_found';
-        } else if (
-            routeLeaf == 'submissions' &&
-            !_.contains(_.pluck(userActions, 'id'), 'submissions')
-        ) {
-            status = 'forbidden'; // attempting to view submissions but it's not in users actions
         }
+        // else if (
+        //     routeLeaf == 'submissions' &&
+        //     !_.contains(_.pluck(userActions, 'id'), 'submissions')
+        // ) {
+        //     status = 'forbidden'; // attempting to view submissions but it's not in users actions
+        // }
 
         const isLoading =
             contextRequest &&
@@ -1436,7 +1454,7 @@ export default class App extends React.PureComponent {
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com  https://unpkg.com",
             "font-src 'self' https://fonts.gstatic.com",
             "worker-src 'self' blob:",
-            "connect-src 'self' https://cgap-higlass.com https://*.s3.amazonaws.com https://rest.ensembl.org https://eutils.ncbi.nlm.nih.gov https://www.google-analytics.com https://www.googletagmanager.com",
+            "connect-src 'self' https://www.google.com/recaptcha/ https://*.s3.amazonaws.com https://rest.ensembl.org https://eutils.ncbi.nlm.nih.gov https://www.google-analytics.com https://www.googletagmanager.com",
         ].join('; ');
         // In future consider adding: object-src 'none'; require-trusted-types-for 'script';
         // (from google csp eval -- Will says what we have is fine for now, though)
@@ -1669,16 +1687,7 @@ const ContentRenderer = React.memo(function ContentRenderer(props) {
         // error catching
         content = <ErrorPage currRoute={routeLeaf} status={status} />;
     } else if (context) {
-        // Hack for associating the /browse/ searches with BrowseView.
-        // Otherwise it will use FileSearchView since Registry.lookup checks for first matching view 
-        let lookupContext = context;
-        const browseIdx = context?.['@type']?.indexOf('Browse') || -1;
-        if (browseIdx > -1) {
-            const cloned = context['@type'].slice();
-            cloned.splice(browseIdx, 1);
-            cloned.unshift('Browse');
-            lookupContext = { '@type': cloned };
-        }
+        const lookupContext = toRegistryLookupContext(context);
         // What should occur (success)
         const ContentView = (contentViews || globalContentViews).lookup(
             lookupContext,
@@ -1803,7 +1812,8 @@ class BodyElement extends React.PureComponent {
             // See: https://stackoverflow.com/questions/49723019/compare-with-previous-props-in-getderivedstatefromprops
             lastHref: props.href,
             // Whether Test Data warning banner is visible.
-            testWarningPresent: false, //!globals.productionHost[props.hrefParts.hostname] || false
+            // testWarningPresent: !globals.productionHost[props.hrefParts.hostname] || false
+            testWarningPresent: false,
         };
 
         /**
@@ -2222,6 +2232,13 @@ class BodyElement extends React.PureComponent {
             if (context['@type'].indexOf('Item') > -1) {
                 bodyClassList.push('is-item-view');
             }
+            // explicitly set full screen for type Data-matrixPage
+            // TODO: This is a bit of a hack, but we need to ensure that Data-matrixPage
+            // is full screen, so we add this class to the body. Another way to do this would be to
+            // add field to schema
+            // if (context['@type'].indexOf('Data-matrixPage') > -1) {
+            //     bodyClassList.push('is-full-screen');
+            // }
         }
 
         if (bodyClassList.length > 0) {

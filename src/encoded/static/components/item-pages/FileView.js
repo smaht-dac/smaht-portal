@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import url from 'url';
 import _ from 'underscore';
 import queryString from 'query-string';
@@ -10,6 +10,17 @@ import DefaultItemView from './DefaultItemView';
 import { memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SelectedItemsDownloadButton } from '../static-pages/components/SelectAllAboveTableComponent';
 import { ShowHideInformationToggle } from './components/file-overview/ShowHideInformationToggle';
+import { capitalizeSentence } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/value-transforms';
+
+import { OverlayTrigger } from 'react-bootstrap';
+import {
+    renderLoginAccessPopover,
+    renderProtectedAccessPopover,
+} from './PublicDonorView';
+import { useUserDownloadAccess } from '../util/hooks';
+import { statusBadgeMap } from './components/file-overview/FileViewDataCards';
+
+import { BROWSE_LINKS } from '../browse/BrowseView';
 
 // Page containing the details of Items of type File
 export default class FileOverview extends DefaultItemView {
@@ -49,16 +60,38 @@ function ViewJSONAction({ href = '', children }) {
 const FileViewTitle = (props) => {
     const { context } = props;
 
-    const breadcrumbs = [
+    // Default breadcrumbs for the File Overview page
+    let breadcrumbs = [
         { display_title: 'Home', href: '/' },
         { display_title: 'Data' },
-        { display_title: 'Bechmarking Data' },
-        { display_title: context?.dataset?.toUpperCase() || '' },
     ];
 
+    // Determine the current breadcrumb based on the studies associated with the file
+    const currentBreadcrumb = {
+        display_title: null,
+        href: null,
+    };
+
+    if (
+        context?.sample_summary?.studies?.some(
+            (study) => study.toLowerCase() === 'production'
+        )
+    ) {
+        currentBreadcrumb.display_title = 'Browse by File';
+        currentBreadcrumb.href = BROWSE_LINKS.file;
+        breadcrumbs = [...breadcrumbs, currentBreadcrumb];
+    } else if (
+        context?.sample_summary?.studies?.some(
+            (study) => study.toLowerCase() === 'benchmarking'
+        )
+    ) {
+        currentBreadcrumb.display_title = 'Benchmarking Data';
+        breadcrumbs = [...breadcrumbs, currentBreadcrumb];
+    }
+
     return (
-        <div className="file-view-title container-wide">
-            <nav className="file-view-title-navigation">
+        <div className="view-title container-wide">
+            <nav className="view-title-navigation">
                 <ul className="breadcrumb-list">
                     {breadcrumbs.map(({ display_title, href }, i, arr) => {
                         return (
@@ -79,26 +112,27 @@ const FileViewTitle = (props) => {
                     })}
                 </ul>
             </nav>
-            <h1 className="file-view-title-text">{context?.display_title}</h1>
+            <h1 className="view-title-text">{context?.display_title}</h1>
         </div>
     );
 };
 
 // Header component containing high-level information for the file item
 const FileViewHeader = (props) => {
-    const { context = {}, session } = props;
+    const { context = {}, session, userDownloadAccess } = props;
     const {
         accession,
         status,
         description,
         notes_to_tsv,
+        retraction_reason = '',
         release_tracker_description = '',
         release_tracker_title = '',
     } = context;
     const selectedFile = new Map([[context['@id'], context]]);
 
     // Accessions of files whose alert banners are rendered differently
-    const accessionsOfInterest = ['SMAFI557D2E7', 'SMAFIB6EQLZM'];
+    const accessionsOfInterest = ['SMAFIB6EQLZM'];
 
     // Prepare a message string for the retracted warning banner
     let retractedWarningMessage = '';
@@ -109,32 +143,74 @@ const FileViewHeader = (props) => {
         const description =
             release_tracker_description ||
             `${context?.file_format?.display_title} file`;
-        const note = context?.notes_to_tsv?.[0]
-            ? `was ${context?.notes_to_tsv?.[0]}`
-            : 'was retracted';
+
+        const retraction = retraction_reason ? (
+            <>
+                was retracted due to <b>{retraction_reason}</b>
+            </>
+        ) : (
+            'was retracted'
+        );
+
+        const replacement = context?.replaced_by ? (
+            <>
+                The replacement is made {''}
+                <a
+                    href={context?.replaced_by?.['@id']}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="link-underline-hover">
+                    available here
+                </a>
+                .
+            </>
+        ) : (
+            ''
+        );
 
         retractedWarningMessage = (
             <>
                 This {description}
-                {title} {note}.
+                {title} {retraction}. {replacement}
             </>
         );
     }
+
+    const { statusTitle = capitalizeSentence(status), badge = null } =
+        statusBadgeMap?.[status] || {};
 
     return (
         <div className="file-view-header">
             <div className="data-group data-row header">
                 <h1 className="header-text">File Overview</h1>
-                <SelectedItemsDownloadButton
-                    id="download_tsv_multiselect"
-                    className="btn btn-primary btn-sm me-05 align-items-center download-file-button"
-                    session={session}
-                    selectedItems={selectedFile}
-                    disabled={false}
-                    analyticsAddItemsToCart>
-                    <i className="icon icon-download fas me-07" />
-                    Download File
-                </SelectedItemsDownloadButton>
+                {session && userDownloadAccess?.[status] ? (
+                    <SelectedItemsDownloadButton
+                        id="download_tsv_multiselect"
+                        className="btn btn-primary btn-sm me-05 align-items-center"
+                        session={session}
+                        selectedItems={selectedFile}
+                        disabled={false}
+                        analyticsAddItemsToCart>
+                        <i className="icon icon-download fas me-07" />
+                        Download File
+                    </SelectedItemsDownloadButton>
+                ) : (
+                    <OverlayTrigger
+                        trigger={['hover', 'focus']}
+                        placement="top"
+                        overlay={
+                            status === 'open'
+                                ? renderLoginAccessPopover()
+                                : renderProtectedAccessPopover()
+                        }>
+                        <button
+                            className="download-button btn btn-primary btn-sm me-05 align-items-center pe-auto "
+                            disabled={true}>
+                            <i className="icon icon-download fas me-03" />
+                            Download File
+                        </button>
+                    </OverlayTrigger>
+                )}
             </div>
 
             {!accessionsOfInterest.includes(accession) &&
@@ -162,7 +238,7 @@ const FileViewHeader = (props) => {
                         <strong>
                             was retracted due to missing methylation tags
                         </strong>
-                        . The replacement BAM with proper tags is made{' '}
+                        . The replacement file with proper tags is made{' '}
                         <a
                             href="/SMAFIB6EQLZM"
                             target="_blank"
@@ -183,12 +259,19 @@ const FileViewHeader = (props) => {
                     </span>
                 </div>
                 <div className="datum right-group">
-                    <div className="status-group" data-status={status}>
-                        <i className="icon icon-circle fas"></i>
-                        <span className="status">
-                            {status?.charAt(0)?.toUpperCase() +
-                                status?.substring(1)}
-                        </span>
+                    <div className="status-group">
+                        <div className={`file-status ${status}`}>
+                            <i
+                                className="status-indicator-dot me-07"
+                                data-status={status}
+                            />
+                            {statusTitle ?? status}
+                            {badge && (
+                                <span className={`ms-1 badge ${status}`}>
+                                    {badge}
+                                </span>
+                            )}
+                        </div>
                     </div>
                     <span className="vertical-divider">|</span>
                     <ViewJSONAction href={context['@id']}>
@@ -244,19 +327,25 @@ const FileViewHeader = (props) => {
 };
 
 /** Top-level component for the File Overview Page */
-const FileView = React.memo(function FileView(props) {
+const FileView = (props) => {
     const { context, session, href } = props;
+    const userDownloadAccess = useUserDownloadAccess(session);
+
     return (
         <div className="file-view">
             <FileViewTitle context={context} session={session} href={href} />
-            <div className="file-view-content">
-                <FileViewHeader context={context} session={session} />
+            <div className="view-content">
+                <FileViewHeader
+                    context={context}
+                    session={session}
+                    userDownloadAccess={userDownloadAccess}
+                />
                 <FileViewDataCards context={context} />
                 <FileViewTabs {...props} />
             </div>
         </div>
     );
-});
+};
 
 /**
  * Tab object for the FileView component, provides necessary information

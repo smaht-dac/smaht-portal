@@ -43,6 +43,9 @@
             "$ref": "mixins.json#/modified"
         },
         {
+            "$ref": "mixins.json#/preferred_name"
+        },
+        {
             "$ref": "mixins.json#/schema_version"
         },
         {
@@ -75,10 +78,11 @@
             "default": "1"
         },
         "status": {
-            "default": "released",
+            "default": "open",
             "enum": [
                 "released",
-                "current",
+                "open",
+                "in review",
                 "obsolete",
                 "deleted"
             ]
@@ -94,11 +98,6 @@
                 "type": "string",
                 "linkTo": "Ontology"
             }
-        },
-        "preferred_name": {
-          "title": "Display name",
-          "description": "A preferred name (possibly shortened or simpler version) for the ontology term - can be used for submission or retrieval.",
-          "type": "string"
         },
         "url": {
             "description": "The url that uniquely identifies term - often purl."
@@ -116,11 +115,25 @@
             "items": {
                 "type": "string"
             }
+        },
+        "tags": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "suggested_enum": [
+                    "tissue_subtype",
+                    "tissue_type",
+                    "germ_layer"
+                ]
+            }
         }
     },
     "columns": {
         "identifier": {
             "title": "Identifier"
+        },
+        "valid_protocol_ids": {
+            "title": "Valid Protocol ID"
         }
     }
 }

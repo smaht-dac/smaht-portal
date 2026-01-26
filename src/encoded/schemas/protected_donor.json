@@ -1,0 +1,148 @@
+{
+    "title": "Protected Donor",
+    "description": "Individuals who donated tissues with protected data",
+    "$id": "/profiles/protected_donor.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": [
+        "external_id",
+        "age",
+        "sex",
+        "submission_centers",
+        "submitted_id",
+        "tpc_submitted"
+    ],
+    "identifyingProperties": [
+        "accession",
+        "submitted_id",
+        "uuid"
+    ],
+    "additionalProperties": false,
+    "mixinProperties": [
+        {
+            "$ref": "mixins.json#/accession"
+        },
+        {
+            "$ref": "mixins.json#/attribution"
+        },
+        {
+            "$ref": "mixins.json#/modified"
+        },
+        {
+            "$ref": "mixins.json#/schema_version"
+        },
+        {
+            "$ref": "mixins.json#/status"
+        },
+        {
+            "$ref": "mixins.json#/submitted"
+        },
+        {
+            "$ref": "mixins.json#/submitted_id"
+        },
+        {
+            "$ref": "mixins.json#/tags"
+        },
+        {
+            "$ref": "mixins.json#/uuid"
+        },
+        {
+            "$ref": "abstract_donor.json#/properties"
+        }
+    ],
+    "properties": {
+        "accession": {
+            "accessionType": "PD"
+        },
+        "schema_version": {
+            "default": "1"
+        },
+        "submitted_id": {
+            "pattern": "^[A-Z0-9]{3,}_PROTECTED-DONOR_[A-Z0-9-_.]{4,}$"
+        },
+        "status": {
+            "title": "Status",
+            "type": "string",
+            "default": "in review",
+            "permission": "restricted_fields",
+            "enum": [
+                "draft",
+                "released",
+                "in review",
+                "obsolete",
+                "deleted",
+                "protected-early",
+                "protected-network",
+                "protected"
+            ]
+        }
+    },
+    "facets": {
+        "external_id": {
+            "title": "Donor ID"
+        },
+        "age": {
+            "title": "Age",
+            "aggregation_type": "range",
+            "number_step": 1,
+            "ranges": [
+                {
+                    "from": 18,
+                    "to": 30
+                },
+                {
+                    "from": 31,
+                    "to": 55
+                },
+                {
+                    "from": 56,
+                    "to": 65
+                },
+                {
+                    "from": 66,
+                    "to": 75
+                },
+                {
+                    "from": 76,
+                    "to": 85
+                },
+                {
+                    "from": 86
+                }
+            ]
+        },
+        "sex": {
+            "title": "Sex"
+        },
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        },
+        "medical_history.cancer_history": {
+            "title": "Cancer History"
+        },
+        "hardy_scale": {
+            "title": "Hardy Scale",
+            "aggregation_type": "terms"
+        },
+        "medical_history.tobacco_use": {
+            "title": "Tobacco"
+        },
+        "medical_history.alcohol_use": {
+            "title": "Alcohol"
+        }
+    },
+    "columns": {
+        "submitted_id": {
+            "title": "Submitted ID"
+        },
+        "sex": {
+            "title": "Sex"
+        },
+        "age": {
+            "title": "Age"
+        },
+        "submission_centers.display_title": {
+            "title": "Submitted By"
+        }
+    }
+}

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encoded"
-version = "0.146.0"
+version = "1.9.0"
 description = "SMaHT Data Analysis Portal"
 authors = ["4DN-DCIC Team <support@4dnucleome.org>"]
 license = "MIT"
@@ -12,7 +12,7 @@ packages = [
   { include="encoded", from="src" }
 ]
 classifiers = [
-    # How mature is this project? Common values are
+    # How mature is this project? Common values are÷
     #   3 - Alpha
     #   4 - Beta
     #   5 - Production/Stable
@@ -44,8 +44,8 @@ certifi = ">=2021.5.30"
 chardet = "^5.0.0"
 codeguru-profiler-agent = "^1.2.4"
 colorama = "0.3.3"
-dcicsnovault = "^11.24.0"
-dcicutils = "^8.18.0"
+dcicsnovault = "^11.28.0"
+dcicutils = "^8.18.3"
 docutils = ">=0.16,<1"
 encoded-core = "^0.9.6"
 elasticsearch = "7.13.4"
@@ -116,6 +116,7 @@ WSGIProxy2 = "0.4.2"
 "zope.sqlalchemy" = "1.6"
 markdown = "^3.5.1"
 pygments = "^2.17.2"
+setuptools = "76.1.0"
 
 [tool.poetry.dev-dependencies]
 # PyCharm says boto3-stubs contains useful type hints
@@ -179,12 +180,14 @@ update-inserts-from-server = "snovault.commands.update_inserts_from_server:main"
 wipe-test-indices = "snovault.commands.wipe_test_indices:main"
 # encoded commands
 create-annotated-filenames = "encoded.commands.create_annotated_filenames:main"
+create-bulk-donor-manifest = "encoded.commands.create_bulk_donor_manifest:main"
 flatten-structured-data = "encoded.commands.flatten_structured_data:main"  # For dev/testing only
 load-users-from-oc = "encoded.commands.load_users_from_oc:main"
 parse-structured-data= "encoded.commands.parse_structured_data:main"  # For dev/testing only
 prepare-docker = "encoded.commands.prepare_template:prepare_docker_main"
 prepare-local-dev = "encoded.commands.prepare_template:prepare_local_dev_main"
 release-file = "encoded.commands.release_file:main"
+release-donor-metadata = "encoded.commands.release_donor_metadata:main"
 show-schema= "encoded.commands.show_schema:main"  # For dev/testing only
 write-submission-spreadsheets = "encoded.commands.write_submission_spreadsheets:main"
 

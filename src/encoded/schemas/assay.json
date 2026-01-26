@@ -7,7 +7,8 @@
         "code",
         "identifier",
         "title",
-        "valid_molecules"
+        "valid_molecules",
+        "cell_isolation_method"
     ],
     "anyOf": [
         {
@@ -172,6 +173,18 @@
         },
         "code": {
             "title": "Code"
+        },
+        "category": {
+            "title": "Category",
+            "default_hidden": true
+        }
+    },
+    "facets": {
+        "valid_molecules": {
+            "title": "Valid Molecules"
+        },
+        "category": {
+            "title": "Category"
         }
     }
 }

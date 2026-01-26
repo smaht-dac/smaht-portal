@@ -15,9 +15,14 @@ import Select from 'react-select';
 const ALL_ILLUMINA = 'all_illumina';
 const ALL_LONG_READ = 'all_long_read';
 
+const BENCHMARKING = 'Benchmarking';
+const PRODUCTION = 'Production';
+
 // Sample Source group
 const CELL_LINE = 'cell_line';
 const TISSUE = 'tissue';
+const BENCHMARKING_TISSUES = 'benchmarking_tissues';
+const PRODUCTION_TISSUES = 'production_tissues';
 
 export const BoxPlotWithFacets = ({
     qcData,
@@ -46,6 +51,12 @@ export const BoxPlotWithFacets = ({
     const [selectedSequencer, setSelectedSequencer] = useState(
         defaultSettings.sequencer
     );
+    const [selectedStudy, setSelectedStudy] = useState(
+        defaultSettings.study || null
+    );
+    const [customExtent, setCustomExtent] = useState(
+        defaultSettings.customExtent || null
+    );
     const [rerenderNumber, setRerenderNumber] = useState(0);
 
     const [thresholdMarks, setThresholdMarks] = useState(null);
@@ -59,6 +70,9 @@ export const BoxPlotWithFacets = ({
     };
     const handleShowModal = (d) => {
         if (d) {
+            // Remove focus from active element. This prevent the browser scolling
+            // to the top of the page when closing the modal
+            document.activeElement.blur();
             setSelectedFile(d);
             setShowModal(true);
             return;
@@ -145,16 +159,28 @@ export const BoxPlotWithFacets = ({
         ) {
             sampleSourceFilter =
                 d?.sample_source_group === selectedSampleSource;
+        } else if (selectedSampleSource === BENCHMARKING_TISSUES) {
+            sampleSourceFilter =
+                d?.sample_source_group === TISSUE && d?.study === BENCHMARKING;
+        } else if (selectedSampleSource === PRODUCTION_TISSUES) {
+            sampleSourceFilter =
+                d?.sample_source_group === TISSUE && d?.study === PRODUCTION;
         } else {
             sampleSourceFilter =
                 d?.sample_source_subgroup === selectedSampleSource;
+        }
+
+        let studyFilter = true;
+        if (selectedStudy) {
+            studyFilter = d?.study === selectedStudy;
         }
 
         return (
             d?.quality_metrics?.qc_values[selectedQcMetric] &&
             d?.assay === selectedAssay &&
             seqFilter &&
-            sampleSourceFilter
+            sampleSourceFilter &&
+            studyFilter
         );
     };
 
@@ -175,16 +201,6 @@ export const BoxPlotWithFacets = ({
         });
         return groupLabel;
     };
-
-    const thresholdInfo = thresholdMarks ? (
-        <div className="pt-4">
-            <i className="icon icon-info-circle fas text-muted icon-fw"></i>
-            This metric has a PASS threshold of{' '}
-            <strong>{thresholdMarks.horizontal[0].value}</strong>.
-        </div>
-    ) : (
-        ''
-    );
 
     const facets = (
         <div className="qc-metrics-facets-container mb-2">
@@ -218,7 +234,6 @@ export const BoxPlotWithFacets = ({
                                 return getKeyLabelOption(q);
                             })}
                         </select>
-                        {thresholdInfo}
                     </div>
                 </div>
                 <div className="col-6">
@@ -258,6 +273,22 @@ export const BoxPlotWithFacets = ({
         </div>
     );
 
+    // Check if this metrics has a QC threshold
+    const thresholdKey = `${selectedSequencer}_${selectedAssay}`;
+    let thresholdWarning = null;
+    if (thresholdKey in qcData.viz_info.qc_thresholds) {
+        const thresholds = qcData.viz_info.qc_thresholds[thresholdKey];
+        if (selectedQcMetric in thresholds) {
+            const threshold =
+                qcData.viz_info.qc_thresholds[thresholdKey][selectedQcMetric];
+            thresholdWarning = (
+                <div className="qc-metrics-threshold-warning">
+                    Threshold to pass QC: {threshold}
+                </div>
+            );
+        }
+    }
+
     const boxplot = (
         <BoxPlot
             plotId={Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)}
@@ -267,11 +298,13 @@ export const BoxPlotWithFacets = ({
             customFilter={(d) => customFilter(d)}
             customFormat={(d) => formatLargeInteger(d)}
             qcCategory={selectedGrouping}
+            customExtent={customExtent}
             xAxisLabel={getGroupLabel(selectedGrouping)}
             updateHighlightedBam={updateHighlightedBam}
             thresholdMarks={thresholdMarks}
             rerenderNumber={rerenderNumber}
             handleShowModal={handleShowModal}
+            featuredBam={defaultSettings.featuredBam}
         />
     );
 
@@ -292,11 +325,19 @@ export const BoxPlotWithFacets = ({
 
             {showDataTable ? (
                 <div className="row">
-                    <div className="col-lg-6">{boxplot}</div>
+                    <div className="col-lg-6">
+                        <div className="position-relative mt-1">
+                            {thresholdWarning}
+                            {boxplot}
+                        </div>
+                    </div>
                     <div className="col-lg-6">{datatable}</div>
                 </div>
             ) : (
-                <>{boxplot}</>
+                <div className="position-relative mt-1">
+                    {thresholdWarning}
+                    {boxplot}
+                </div>
             )}
 
             <Modal size="lg" show={showModal} onHide={handleCloseModal}>

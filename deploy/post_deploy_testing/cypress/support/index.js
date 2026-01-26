@@ -29,3 +29,13 @@ export const cypressVisitHeaders = {
     // that request.accept.acceptable_offers() doesn't select most narrow content-type when multiple supplied unless proper 'q' values are included as well.
     Accept: 'text/html, application/xhtml+xml, application/xml;q=0.9, image/avif, image/webp, image/apng, */*;q=0.8, application/signed-exchange;v=b3;q=0.9',
 };
+
+export const ROLE_TYPES = {
+    SMAHT_DBGAP: 'smaht-dbgap',
+    SMAHT_NON_DBGAP: 'smaht-non-dbgap',
+    PUBLIC_DBGAP: 'public-dbgap',
+    PUBLIC_NON_DBGAP: 'public-non-dbgap',
+};
+
+// should match the statuses used in the portal's browse and search views for filtering - /src/encoded/static/components/browse/BrowseView.js
+export const BROWSE_STATUS_PARAMS = 'status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network';

@@ -35,6 +35,51 @@
                     true,
                     -3.5
                 ]
+            },
+            {
+                "key": "Estimated Average Coverage [mosdepth]",
+                "value": 26.32,
+                "tooltip": "Estimated average coverage",
+                "derived_from": "mosdepth:total"
+            }
+        ]
+    },
+    {
+        "uuid": "a034802c-0bcf-4df9-97dd-dbab5c62a375",
+        "submission_centers": [
+            "smaht"
+        ],
+        "category": [
+            "Testing"
+        ],
+        "overall_quality_status": "Warn",
+        "qc_values": [
+            {
+                "key": "foo",
+                "value": "bar",
+                "flag": "Warn",
+                "tooltip": "Description of how foo was derived"
+            },
+            {
+                "key": "bar",
+                "value": 25
+            },
+            {
+                "key": "fu",
+                "value": 252.4
+            },
+            {
+                "key": "bur",
+                "value": false
+            },
+            {
+                "key": "baz",
+                "value": [
+                    "foo",
+                    5,
+                    true,
+                    -3.5
+                ]
             }
         ]
     }

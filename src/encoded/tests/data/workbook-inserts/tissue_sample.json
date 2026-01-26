@@ -1,19 +1,22 @@
 [
     {
-        "uuid": "a311f4f4-5bbb-4be7-975a-f5b7ec7585bc",
+        "uuid": "a22be45e-e47e-4b9a-ab7f-7b4ebe779c4b",
         "submission_centers": [
-            "smaht"
+            "ndri_tpc"
         ],
-        "submitted_id": "TEST_TISSUE-SAMPLE_LIVER",
+        "submitted_id": "NDRITEST_TISSUE-SAMPLE_LIVER_TPC",
+        "external_id": "SMHT001-1A-100A1",
+        "category": "Core",
         "sample_sources": [
             "TEST_TISSUE_LIVER"
         ],
-        "external_id": "SMHT001-1A-100A1",
-        "category": "Core",
         "core_size": "1.5",
+        "description": "Left lobe of liver",
         "weight": 800,
         "preservation_type": "Fixed",
         "preservation_medium": "Formalin",
+        "processing_date": "2024-12-15",
+        "processing_notes": "Formalin fixed",
         "tags": [
             "test_sample_names",
             "sample_names-SMHT001-1A-100A1",
@@ -23,12 +26,12 @@
             "sample_studies-Production"
         ]
     },
-    {
+         {
         "uuid": "92b37a58-3abc-48aa-bde2-c839f3b67dd3",
         "submission_centers": [
             "ndri_tpc"
         ],
-        "submitted_id": "NDRITEST_TISSUE-SAMPLE_LUNG-HOMOGENATE-X",
+        "submitted_id": "NDRITEST_TISSUE-SAMPLE_LUNG-HOMOGENATE-X_TPC",
         "external_id": "ST001-1D-020X",
         "category": "Homogenate",
         "preservation_type": "Snap Frozen",
@@ -37,11 +40,11 @@
         ]
     },
     {
-        "uuid": "61850d04-9207-43ab-aab9-1a62821febc3",
+        "uuid": "623455cd-40a8-486a-8e79-ed44ee1d36d2",
         "submission_centers": [
-            "smaht"
+            "ndri_tpc"
         ],
-        "submitted_id": "TEST_TISSUE-SAMPLE_BRAIN",
+        "submitted_id": "NDRITEST_TISSUE-SAMPLE_BRAIN_TPC",
         "sample_sources": [
             "TEST_TISSUE_BRAIN"
         ],
@@ -49,25 +52,12 @@
         "external_id": "SMHT001-3AJ-001S1",
         "preservation_type": "Fresh"
     },
-    {
-        "uuid": "b59d424d-85a4-43f2-ac1c-ed81d41dd6b4",
+        {
+        "uuid": "5b8eb56c-ac37-4607-b2a9-2a90ca5de360",
         "submission_centers": [
-            "smaht"
+            "ndri_tpc"
         ],
-        "submitted_id": "TEST_TISSUE-SAMPLE_LUNG-HOMOGENATE",
-        "sample_sources": [
-            "TEST_TISSUE_LUNG"
-        ],
-        "external_id": "ST001-1D-020X",
-        "category": "Homogenate",
-        "preservation_type": "Snap Frozen"
-    },
-    {
-        "uuid": "53c566f5-9162-4183-a34d-7ece38b4275f",
-        "submission_centers": [
-            "smaht"
-        ],
-        "submitted_id": "TEST_TISSUE-SAMPLE_LUNG-CORE",
+        "submitted_id": "NDRITEST_TISSUE-SAMPLE_LUNG-CORE_TPC",
         "sample_sources": [
             "TEST_TISSUE_LUNG"
         ],
@@ -75,12 +65,12 @@
         "category": "Core",
         "preservation_type": "Fresh"
     },
-    {
-        "uuid": "5e07cc95-ca4b-4dbf-8c0e-9c33ea6e9cab",
+        {
+        "uuid": "96314fba-7e39-470f-8904-56c0a8e1b7b2",
         "submission_centers": [
-            "smaht"
+            "ndri_tpc"
         ],
-        "submitted_id": "TEST_TISSUE-SAMPLE_LIVER-SPECIMEN",
+        "submitted_id": "NDRITEST_TISSUE-SAMPLE_LIVER-SPECIMEN_TPC",
         "sample_sources": [
             "TEST_TISSUE_LIVER"
         ],
@@ -88,25 +78,36 @@
         "category": "Specimen",
         "preservation_type": "Snap Frozen"
     },
-    {
-        "uuid": "3550c0a6-b8ca-436a-b563-737a7ce68c3c",
+        {
+        "uuid": "dfb73d57-b90a-42a5-940e-14635a04228c",
         "submission_centers": [
-            "smaht"
+            "ndri_tpc"
         ],
-        "submitted_id": "TEST_TISSUE-SAMPLE_LUNG",
+        "submitted_id": "NDRITEST_TISSUE-SAMPLE_BLOOD_TPC",
+        "external_id": "SMHT001-3A-001X",
+        "category": "Liquid",
         "sample_sources": [
-            "TEST_TISSUE_LUNG_ALT1"
-        ],
-        "external_id": "12-40",
-        "category": "Specimen",
-        "preservation_type": "Snap Frozen"
+            "TEST_TISSUE_BLOOD"
+        ]
     },
-    {
-        "uuid": "3b22bab3-ebd8-438b-9631-5c90f51bb3b6",
-        "submission_centers": [
-            "smaht"
+        {
+        "uuid": "7f1d94b6-04ce-4253-a2af-5856d7c23d2b",
+         "submission_centers": [
+            "ndri_tpc"
         ],
-        "submitted_id": "TEST_TISSUE-SAMPLE_LIVER_2",
+        "submitted_id": "NDRITEST_TISSUE-SAMPLE_FIBROBLAST_TPC",
+        "external_id": "SMHT001-3AC-001X",
+        "category": "Cells",
+        "sample_sources": [
+            "TEST_TISSUE_FIBROBLAST"
+        ]
+    },
+            {
+        "uuid": "a6c51baa-fc9c-4243-92c4-fe43cf9678d3",
+        "submission_centers": [
+            "ndri_tpc"
+        ],
+        "submitted_id": "NDRITEST_TISSUE-SAMPLE_LIVER_2_TPC",
         "sample_sources": [
             "TEST_TISSUE_LIVER"
         ],

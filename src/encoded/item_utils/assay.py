@@ -11,3 +11,12 @@ def get_valid_molecules(properties: Dict[str, Any]) -> List[str]:
     return properties.get("valid_molecules",[])
 
 
+def get_cell_isolation_method(properties: Dict[str, Any]) -> str:
+    """Get cell isolation method from properties."""
+    return properties.get("cell_isolation_method","")
+
+
+def get_category(properties: Dict[str, Any]) -> str:
+    """Get assay category from properties."""
+    return properties.get("category","")
+

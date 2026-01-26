@@ -6,6 +6,7 @@ import {
     formatLargeInteger,
     getFileModalContent,
     customReactSelectStyle,
+    removeToolName,
 } from './utils';
 import { Modal } from 'react-bootstrap';
 import Select from 'react-select';
@@ -14,11 +15,16 @@ import Select from 'react-select';
 const ALL_ILLUMINA = 'all_illumina';
 const ALL_LONG_READ = 'all_long_read';
 
+const BENCHMARKING = 'Benchmarking';
+const PRODUCTION = 'Production';
+
 // Sample Source group
 const CELL_LINE = 'cell_line';
 const TISSUE = 'tissue';
+const BENCHMARKING_TISSUES = 'benchmarking_tissues';
+const PRODUCTION_TISSUES = 'production_tissues';
 
-export const ScatterlotWithFacets = ({
+export const ScatterPlotWithFacets = ({
     qcData,
     showFacets = true,
     settings = null,
@@ -45,6 +51,9 @@ export const ScatterlotWithFacets = ({
     );
     const [selectedSequencer, setSelectedSequencer] = useState(
         defaultSettings.sequencer
+    );
+    const [selectedStudy, setSelectedStudy] = useState(
+        defaultSettings.study || null
     );
     const [rerenderNumber, setRerenderNumber] = useState(0);
 
@@ -131,9 +140,20 @@ export const ScatterlotWithFacets = ({
         ) {
             sampleSourceFilter =
                 d?.sample_source_group === selectedSampleSource;
+        } else if (selectedSampleSource === BENCHMARKING_TISSUES) {
+            sampleSourceFilter =
+                d?.sample_source_group === TISSUE && d?.study === BENCHMARKING;
+        } else if (selectedSampleSource === PRODUCTION_TISSUES) {
+            sampleSourceFilter =
+                d?.sample_source_group === TISSUE && d?.study === PRODUCTION;
         } else {
             sampleSourceFilter =
                 d?.sample_source_subgroup === selectedSampleSource;
+        }
+
+        let studyFilter = true;
+        if (selectedStudy) {
+            studyFilter = d?.study === selectedStudy;
         }
 
         return (
@@ -141,12 +161,17 @@ export const ScatterlotWithFacets = ({
             d?.quality_metrics?.qc_values[selectedQcMetricY] &&
             d?.assay === selectedAssay &&
             seqFilter &&
-            sampleSourceFilter
+            sampleSourceFilter &&
+            studyFilter
         );
     };
 
     const getKeyLabelOption = (q) => {
-        return <option value={q['key']} key={q['key']}>{q['label']}</option>;
+        return (
+            <option value={q['key']} key={q['key']}>
+                {q['label']}
+            </option>
+        );
     };
 
     const facets = (
@@ -242,9 +267,15 @@ export const ScatterlotWithFacets = ({
                             Math.random() * Number.MAX_SAFE_INTEGER
                         )}
                         title=""
-                        data={qcData}
+                        data={qcData.qc_results}
                         yAxisField={selectedQcMetricY}
+                        yAxisLabel={removeToolName(
+                            qcData.qc_info[selectedQcMetricY].key
+                        )}
                         xAxisField={selectedQcMetricX}
+                        xAxisLabel={removeToolName(
+                            qcData.qc_info[selectedQcMetricX].key
+                        )}
                         customFilter={(d) => customFilter(d)}
                         customFormat={(d) => formatLargeInteger(d)}
                         qcCategory={selectedGrouping}
@@ -252,6 +283,10 @@ export const ScatterlotWithFacets = ({
                         //thresholdMarks={thresholdMarks}
                         rerenderNumber={rerenderNumber}
                         handleShowModal={handleShowModal}
+                        groupBy="submission_center"
+                        tooltipFields={
+                            vizInfo.default_settings.scatterplot.tooltipFields
+                        }
                     />
                 </div>
                 <div className="col-lg-6">

@@ -9,6 +9,67 @@
         "failed_jobs": [
             "ABCDE123"
         ],
+        "file_sets": [
+            "TEST_FILE-SET_LUNG-HOMOGENATE-DNA"
+        ],
+        "cost": 13.4167,
+        "workflow_runs": [
+            {
+                "name": "run_1",
+                "status": "completed",
+                "workflow_run": "531e97f1-b402-4525-bbde-cb75a9cdb0d2",
+                "job_id": "ABCDE987",
+                "shard": "5",
+                "output": [
+                    {
+                        "argument_name": "aligned_bam",
+                        "file": "cca15caa-bc11-4a6a-8998-ea0c69df8b9d"
+                    }
+                ]
+            }
+        ],
+        "input": [
+            {
+                "argument_name": "foo",
+                "argument_type": "parameter",
+                "value": 40
+            },
+            {
+                "argument_name": "bar",
+                "argument_type": "file",
+                "files": [
+                    {
+                        "file": "21902743-3067-4fa5-b719-074512c54e54",
+                        "dimension": "0"
+                    }
+                ]
+            },
+            {
+                "argument_name": "baz",
+                "argument_type": "file",
+                "files": [
+                    {
+                        "file": "49690fb8-7680-4034-ae3b-4f28222d5db8",
+                        "dimension": "1"
+                    }
+                ]
+            }
+        ]
+    },
+        {
+        "uuid": "3f13eaf7-1682-43c6-ac22-9ee25f59593f",
+        "status": "deleted",
+        "meta_workflow": "e107d3d9-2590-43cf-926f-403ce559e930",
+        "submission_centers": [
+            "smaht"
+        ],
+        "final_status": "completed",
+        "failed_jobs": [
+            "ABCDE123"
+        ],
+        "file_sets": [
+            "TEST_FILE-SET_LUNG-HOMOGENATE-DNA"
+        ],
         "cost": 13.4167,
         "workflow_runs": [
             {
