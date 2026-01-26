@@ -458,22 +458,25 @@ function stepCohortViewChartTests(caps) {
                 }
 
                 // Tooltip exists, hover and assert popover
-                cy.wrap($icon)
-                    .first()
-                    .trigger('mouseover')
-                    .trigger('mouseenter')
-
-                cy.get('div[role="tooltip"]', { timeout: 1000 })
-                    .should('exist')
-                    .and('be.visible')
-
-                cy.wrap($icon)
-                    .first()
-                    .trigger('mouseout')
-                    .trigger('mouseleave')
-
-                cy.get('div[role="tooltip"]', { timeout: 1000 })
-                    .should('not.exist')
+                // Note: NoResultsModal will block interactions with chart
+                if (!caps.expectedNoResultsModalVisible) {
+                    cy.wrap($icon)
+                        .first()
+                        .trigger('mouseover')
+                        .trigger('mouseenter')
+    
+                    cy.get('div[role="tooltip"]', { timeout: 1000 })
+                        .should('exist')
+                        .and('be.visible')
+    
+                    cy.wrap($icon)
+                        .first()
+                        .trigger('mouseout')
+                        .trigger('mouseleave')
+    
+                    cy.get('div[role="tooltip"]', { timeout: 1000 })
+                        .should('not.exist')
+                }
             })
         });
     });
