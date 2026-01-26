@@ -743,5 +743,6 @@ export function createBrowseFileColumnExtensionMap({
     return { columnExtensionMap, columns, hideFacets };
 }
 
+pageTitleViews.register(BrowseViewPageTitle, 'Browse');
 pageTitleViews.register(BrowseViewPageTitle, 'Browse', 'selection');
 pageTitleViews.register(BrowseViewPageTitle, 'Browse', 'add');
