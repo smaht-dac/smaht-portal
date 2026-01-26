@@ -98,7 +98,7 @@ const ROLE_MATRIX = {
         runFacetChartBarPlotTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
-        expectedNoResultsModalVisible: false,
+        expectedNoResultsModalVisible: true,
     },
 
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
