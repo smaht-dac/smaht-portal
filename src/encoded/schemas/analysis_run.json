@@ -79,8 +79,9 @@
             "description": "Type of analysis performed in this run.",
             "type": "string",
             "enum": [
-                "SNV calling",
-                "SV calling"
+                "Germline SNV calling",
+                "Somatic SNV calling",
+                "Somatic SV calling"
             ]
         },
         "tissues": {
@@ -93,6 +94,18 @@
             "items": {
                 "type": "string",
                 "linkTo": "Tissue"
+            }
+        },
+        "donors": {
+            "title": "Donors",
+            "description": "Link to associated donors in the analysis.",
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "Donor"
             }
         },
         "comments": {
