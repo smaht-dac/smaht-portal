@@ -104,7 +104,10 @@ TPC_SUBMISSION_ITEMS = [
     "DeathCircumstances",
     "TissueCollection",
     "Tissue",
-    "TissueSample"
+    "TissueSample",
+    "NonBrainPathologyReport",
+    "BrainPathologyReport",
+    "HistologyImage"
 ]
 
 GCC_SUBMISSION_ITEMS = [
@@ -971,13 +974,17 @@ def get_nested_property(item: str, property_name:str, property_schema: Dict[str,
     """
     object_properties = []
     count = 2
-    if item in ["BrainPathologyReport", "NonBrainPathologyReport"]:
+    if item == "NonBrainPathologyReport":
+        # target tissues stays with count 2 as that's usually how many there are
+        # non-target tissues and pathologic findings have as many as there are enums
         if property_name == 'non_target_tissues':
             count = len(property_schema['non_target_tissue_subtype']['enum'])
-        elif property_name == 'target_tissues':
-            count = len(property_schema['target_tissue_subtype']['enum'])
         elif property_name == 'pathologic_findings':
             count = len(property_schema['finding_type']['enum'])
+    elif item == "BrainPathologyReport":
+        # brain_subregions has as many as there are enums
+        if property_name == 'brain_subregions':
+            count = len(property_schema['subregion']['enum'])  
     for index in range(0,count): 
         for key, value in property_schema.items():
             combined_property_name=f"{property_name}#{index}.{key}"
@@ -1561,6 +1568,9 @@ def main():
          parser.error("Currently cannot specify both eqm and example")
     if args.eqm and args.tpc:
         parser.error("Cannot specify both eqm and tpc")
+    if args.eqm and not args.gcc and not args.item:
+        parser.error("Need to specify gcc or item for ExternalQualityMetric output.\n"
+        "Example: write-submission-spreadsheet --env [env] --output [output_path] --eqm dsa --item SupplementaryFile")
     if args.eqm:
         log.info(f"Writing ExternalQualityMetric spreadsheet for type: {args.eqm}")
     if args.example:
