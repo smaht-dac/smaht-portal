@@ -10,7 +10,10 @@ import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-comp
 import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
-import { compareExpSetFilters } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/search-filters';
+import {
+    contextFiltersToExpSetFilters as contextFiltersToSetFilters,
+    compareExpSetFilters as compareSetFilters,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/util/search-filters';
 
 import { columnExtensionMap as originalColExtMap } from './columnExtensionMap';
 import { Schemas } from './../util';
@@ -59,18 +62,44 @@ export default function BrowseView(props) {
     return <BrowseViewBody {...props} />;
 }
 
+/**
+ * Helper function to check if the filters in the context are the same as the
+ * base browse path that corresponds to the given type. Compares sets of filter
+ * fields and terms.
+ * @param { string } type the type of browse page (e.g. file, donor, etc.)
+ * @param { Array } filters the filters array from `context.filters`
+ * @returns { boolean } whether the filters are the same as base browse path
+ */
+const isBaseBrowseParams = (type, filters) => {
+    // Create filters object for base browse path comparison
+    const DUMMY_URL = 'https://dummy.url';
+    const baseBrowseFilters = [
+        ...new URL(DUMMY_URL + BROWSE_LINKS[type]).searchParams,
+    ].map(([key, value]) => ({ field: key, term: value }));
+
+    // Convert filter objects to sets of filters
+    const setFiltersFromContext = contextFiltersToSetFilters(filters);
+    const setFiltersFromBaseBrowsePath =
+        contextFiltersToSetFilters(baseBrowseFilters);
+
+    // Compare sets of filters from context and base browse path
+    return compareSetFilters(
+        setFiltersFromContext,
+        setFiltersFromBaseBrowsePath
+    );
+};
+
 // Modal for empty Donor and ProtectedDonor Browse
 export const NoResultsBrowseModal = ({
     type,
     context = { total: 0 },
-    href,
     userDownloadAccess,
     isAccessResolved,
 }) => {
     const userDownloadAccessUpdated = isAccessResolved;
     const isPublicUser = userDownloadAccess?.['open-network'] === false;
     const hasNoResults = context?.total === 0;
-    const isBaseBrowsePath = compareExpSetFilters(href, BROWSE_LINKS[type]);
+    const isBaseBrowsePath = isBaseBrowseParams(type, context?.filters);
 
     /**
      * Show No results modal if all of the following are true:
@@ -175,6 +204,7 @@ const BrowseFileBody = (props) => {
             </BrowseViewControllerWithSelections>
             {context?.total === 0 && (
                 <NoResultsBrowseModal
+                    context={context}
                     type="file"
                     href={href}
                     userDownloadAccess={userDownloadAccess}

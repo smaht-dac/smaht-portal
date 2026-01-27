@@ -893,6 +893,7 @@ export const BrowseDonorBody = (props) => {
             {context?.total === 0 && (
                 <NoResultsBrowseModal
                     type="donor"
+                    context={context}
                     href={href}
                     userDownloadAccess={userDownloadAccess}
                     isAccessResolved={isAccessResolved}
