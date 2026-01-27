@@ -762,7 +762,6 @@ def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet
 def get_eqm_spreadsheet(eqm: str, eqm_schema: Dict[str, Any]):
     """Get spreadsheet information for ExternalQualityMetric item."""
     mapping = custom_column_mappings['column_mappings']['external_quality_metric']
-    ### TMP
     item = EQM_TAB_NAMES[eqm]
     properties = get_eqm_properties(item, eqm, eqm_schema, mapping)
     return Spreadsheet(
