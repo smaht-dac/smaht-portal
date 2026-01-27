@@ -216,6 +216,16 @@ def recent_files_summary(request: PyramidRequest,
                         "order": {"_key": "desc"}
                     }
                 }
+            elif field == date_property_name + "_date": 
+                return {
+                    "date_histogram": {
+                        "field": f"embedded.{field}",
+                        "calendar_interval": "day",
+                        "format": "yyyy-MM-dd",
+                        "missing": "1970-01-01",
+                        "order": {"_key": "desc"}
+                    }
+                }
             elif legacy and (field == AGGREGATION_FIELD_CELL_MIXTURE):
                 # Note how we prefix the result with the aggregation field name;
                 # this is so later we can tell which grouping/field was matched;
@@ -365,6 +375,13 @@ def recent_files_summary(request: PyramidRequest,
                         if from_date and thru_date:
                             base_query_arguments = {**base_query_arguments,
                                                     f"{name}.from": from_date, f"{name}.to": thru_date}
+                    elif name == date_property_name + "_date":  
+                        # For day level, value is already in yyyy-MM-dd format
+                        # Set both from and to to the same day
+                        base_query_arguments = {**base_query_arguments,
+                                                f"{name}.from": value, 
+                                                f"{name}.to": value}
+                
                     else:
                         base_query_arguments = {**base_query_arguments, name: value}
                 query_arguments = deepcopy(base_query_arguments)
@@ -387,7 +404,8 @@ def recent_files_summary(request: PyramidRequest,
 
     aggregate_by_cell_line_property_name = "aggregate_by_cell_line"
     aggregate_by_cell_line = [
-        date_property_name,
+        date_property_name, # month level
+        date_property_name + "_date",  # day level
         AGGREGATION_FIELD_CELL_MIXTURE if legacy else AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE,
         AGGREGATION_FIELD_FILE_DESCRIPTOR
     ]
