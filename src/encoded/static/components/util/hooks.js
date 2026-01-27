@@ -19,7 +19,6 @@ const defaultDownloadAccessObject = {
     obsolete: false,
     archived: false,
     deleted: false,
-    isAccessObjectResolved: false,
 };
 /**
  * Checks the session-properties endpoint to determine the statuses that a user
