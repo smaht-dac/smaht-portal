@@ -10,6 +10,7 @@ import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-comp
 import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
+import { compareExpSetFilters } from '@hms-dbmi-bgm/shared-portal-components/es/components/util/search-filters';
 
 import { columnExtensionMap as originalColExtMap } from './columnExtensionMap';
 import { Schemas } from './../util';
@@ -69,9 +70,7 @@ export const NoResultsBrowseModal = ({
     const userDownloadAccessUpdated = isAccessResolved;
     const isPublicUser = userDownloadAccess?.['open-network'] === false;
     const hasNoResults = context?.total === 0;
-    const isBaseBrowsePath =
-        decodeURIComponent(new URL(href).pathname + new URL(href).search) ===
-        BROWSE_LINKS[type];
+    const isBaseBrowsePath = compareExpSetFilters(href, BROWSE_LINKS[type]);
 
     /**
      * Show No results modal if all of the following are true:
