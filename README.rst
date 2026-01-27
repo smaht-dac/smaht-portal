@@ -52,15 +52,38 @@ Install or update dependencies::
 
     $ brew install libevent libmagic libxml2 libxslt openssl postgresql graphviz nginx python3
     $ brew install freetype libjpeg libtiff littlecms webp  # Required by Pillow
-    $ brew cask install adoptopenjdk8
-    $ brew install opensearch node@16
+    $ brew install opensearch node@20
 
-* If installation of adtopopenjdk8 fails due to an ambiguity, it should work to do this instead::
+Step 3: Install compatible Java Version
+---------------------------------------
 
-    $ brew cask install homebrew/cask-versions/adoptopenjdk8
+Install correct java version for opensearch.
+
+For Apple silicon openjdk 21 homebrew package will work::
+
+    $ brew install openjdk@21
+    $ sudo ln -sfn /opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-21.jdk
+    $ export PATH="/opt/homebrew/opt/openjdk@21/bin:$PATH"
+    $ export CPPFLAGS="-I/opt/homebrew/opt/openjdk@21/include"
 
 
-Step 3: Running Make
+For intel Macs Obtain the dmg  `here <https://www.oracle.com/java/technologies/javase/javase8u211-later-archive-downloads.html>`__
+Search for "Java SE Runtime Environment 8u231" and download `the macOS x64 dmg <https://www.oracle.com/java/technologies/javase/javase8u211-later-archive-downloads.html#license-lightbox>`__
+Which may require creating an Oracle account. 
+
+After installation, set your JAVA_HOME environment variable accordingly, for example::
+
+    $ export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
+
+In addition you may need to modify the jvm.options by replacing that file with the jvm.options.default file that comes with the brew installation.
+In brief::
+
+    $ mv /opt/homebrew/opt/opensearch/libexec/config/jvm.options /opt/homebrew/opt/opensearch/libexec/config/jvm.options.old
+    $ cp /opt/homebrew/opt/opensearch/libexec/config/jvm.options.default /opt/homebrew/opt/opensearch/libexec/config/jvm.options
+
+See `this topic <https://forum.opensearch.org/t/opensearch-3-0-0-fails-to-start/24306/4>`__ for more details 
+
+Step 4: Running Make
 ------------------------
 
 Run make::
@@ -68,7 +91,7 @@ Run make::
     $ make build
 
 
-Step 4: Running the Application Locally
+Step 5: Running the Application Locally
 ---------------------------------------
 
 Start the application locally

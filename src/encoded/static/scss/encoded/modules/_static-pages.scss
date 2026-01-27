@@ -256,6 +256,28 @@
 		}	
 	}
 
+	.section-content {
+		pre.code-block.copy-wrapper {
+			position: relative;
+			background-color: #F7F8FA;
+			transition: transform 0.4s; 
+			transform-origin: 50% 50%; 
+			transform: translate3d(0px, 0px, 0px);
+			padding: 15px;
+			border-radius: 5px;
+
+			.icon {
+				position: absolute;
+				top: 15px;
+				right: 15px;
+			}
+
+			&:hover {
+				cursor: pointer;
+			}
+		}
+	}
+
 	a {
 		text-decoration: none;
 
@@ -3376,8 +3398,28 @@ FAQ page styles
 // Schema Reference pages (Data Dictionary)
 .static-section-entry#donor_manifest_dictionary {
 	.schema-reference-page {
+		.callout {
+			.diagram {
+				color: black;
+				.category {
+					color: #313232;
+					background-color: #e7e1fe;
+				}
+				.field {
+					color: #313232;
+					background-color: #defed6;
+				}
+				img {
+					width: 65%;
+					max-width: 900px;
+				}
+			}
+		}
 		.example {
 			color: $gray-70;
+		}
+		.search-bar {
+			margin: 30px 0px;
 		}
 	}
 }
@@ -3515,6 +3557,265 @@ FAQ page styles
 			h5 {
 				font-size: 1.125rem;
 			}
+		}
+	}
+}
+
+// Pages under Pipeline Documentation
+[data-at-type^="DocsAdditional-resourcesPipeline-docs"] {
+
+	// Custom header sizing
+	h2 {
+		font-size: 24px;
+
+		&.section-title {
+			margin: 30px auto 40px auto;
+		}
+	}
+	h3 {
+		font-size: 20px;
+	}
+	h4 {
+		font-size: 20px;
+	}
+	h5 {
+		font-size: 16px;
+	}
+	h6 {
+		font-size: 0.95rem;
+	}
+
+	// Custom table styling
+	table {
+		border: 1px solid #dee2e6;
+		border-left: none;
+		width: 100%;
+
+		thead > tr > th {
+			background-color: $baby-20;
+		}
+
+		tr {
+			border-bottom: 1px solid #dee2e6;
+		}
+		
+		tbody tr:nth-child(even) > td {
+			background-color: #f9f9f9;
+		}
+
+		td, th {
+			padding: 0.75rem 0.75rem 0.75rem 1rem;
+			text-align: left;
+			border-left: 1px solid #dee2e6;
+
+		}
+	}
+
+	h3#pipelines + table {
+		td, th {
+			&:first-of-type {
+				width: 350px;
+			}
+		}
+	}
+
+	.table-of-contents {
+		.parent-entry {
+			display: flex;
+			
+			div.row > div.col > a {
+				background-color: $primary;
+				border: 1px solid #0b62ba;
+				color: $pure-white;
+				font-weight: 500;
+				padding: 8px 16px;
+				border-radius: 5px;
+				margin-left: 0px;
+
+				&:hover {
+					background-color: darken($primary, 5%);
+				}
+				&:active {
+					background-color: darken($primary, 10%);
+				}
+			}
+
+			.expand-button-container {
+				display: none;
+			}
+		}
+	}
+
+	.static-section-entry {
+		.section-content {
+			.introduction {
+				margin-bottom: 3rem;
+				color: #343741;
+			}
+
+			hr {
+				margin: 50px 0px;
+			}
+	
+			.nav-group {
+				margin-bottom: 4rem;
+
+				h3 {
+					color: #343741;
+					padding-bottom: 15px;
+					margin-bottom: 25px;
+					border-bottom: 1px solid #f4f4f4;
+				}
+	
+				h6 {
+					margin-top: 25px;
+					margin-bottom: 15px;
+				}
+	
+				h6, h6 > a {
+					color: $homepage-header-text-color;
+					font-size: 0.875rem;
+				}
+
+				& > p {
+					color: #343741;
+					margin: 0px 0px 20px 0px;
+				}
+
+				.changelog > a {
+					color: #428bca;
+					text-decoration: underline;
+
+					&:hover {
+						color: #173b5d;
+					};
+				}
+			}
+			
+			.dropdown {
+				background-color: #f4faffa1;;
+				border: 1px solid #b9d0eb;
+				border-radius: 8px;
+				margin-bottom: 0.5rem;
+	
+				.header {
+					position: relative;
+					display: flex;
+					align-items: center;
+					gap: 5px;
+					justify-content: space-between;
+					font-size: 1.125rem;
+					border-radius: inherit;
+					
+					.toggle {
+						display: flex;
+						flex: 1;
+						padding: 15px;
+	
+						.parent-link {
+							font-weight: 600;
+							color: $homepage-card-text-color;
+							
+							&:hover {
+								color: #173b5d;
+								text-decoration: none;
+							}
+						}
+	
+						i {
+							color: #84a6ce;
+							&:hover {
+								color: #416485;
+							}
+						}
+	
+						&:after {
+							display: none;
+						}
+					}
+	
+					.header-link {
+						position: absolute;
+						right: 20px;
+						top: 50%;
+						transform: translateY(-50%);
+
+						&:hover {
+							color: #173b5d;
+							text-decoration: none;
+						}
+					}
+					svg {
+						fill: #84a6ce;
+						&:hover {
+							fill: #416485;
+							cursor: pointer;
+						}
+					}
+
+					&:hover {
+						background-color: #e9f4fc;
+					}
+				}
+	
+				hr {
+					opacity: 1;
+					color: $homepage-timeline-bg-color-inactive;
+				}
+	
+				.body {
+					display: flex;
+					justify-content: space-between;
+					padding: 15px;
+					color: $homepage-card-text-color;
+	
+					.sublinks {
+						flex: 1;
+						padding-left: 3rem;
+						color: #416485;
+
+						.sublink-item > a {
+							color: $homepage-card-text-color;
+							font-size: 1.05rem;
+							margin-left: 5px;
+
+							&:hover {
+								color: #173b5d;
+							}
+						}
+					}
+					.overview-text {
+						flex: 2;
+						padding: 0px 40px;
+						margin-left: 40px;
+						border-left: 1px solid #4164852e;
+						color: #416485;
+					}
+	
+					&.closed {
+						display: none;
+					}
+
+					@include media-breakpoint-down(md) {
+						flex-direction: column;
+
+						.sublinks {
+							margin-bottom: 15px;
+						}
+
+						.overview-text {
+							margin-left: 0px;
+							border-left: none;
+							padding: 20px 30px;
+							border-top: 1px solid #4164852e;
+						}
+					}
+				}
+			}
+		}
+
+		&.help-entry#pipeline_docs {
+			margin-top: 50px;
 		}
 	}
 }

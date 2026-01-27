@@ -104,7 +104,7 @@ export const QualityMetricVisualizations = () => {
         <div className="loader-container text-center m-5">
             {loadingFailed && (
                 <div className="alert alert-danger">
-                    Failed to load quality metrics data. Please try again later.
+                    Failed to load quality metrics data. You might not have permission to view this page.
                 </div>
             )}
             {!loadingFailed && (
