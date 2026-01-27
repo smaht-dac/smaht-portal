@@ -22,9 +22,11 @@ from encoded.item_utils.constants import item as item_constants
 from encoded.item_utils.utils import RequestHandler
 from encoded.project.loadxl import ITEM_INDEX_ORDER
 
-import requests
-custom_column_mappings_url = "https://raw.githubusercontent.com/smaht-dac/submitr/refs/heads/master/submitr/config/custom_column_mappings.json"
-custom_column_mappings = requests.get(custom_column_mappings_url).json()
+import boto3
+from json import loads
+
+EQM_COLUMN_MAPPINGS_S3_BUCKET = "smaht-devtest-application-files" # TODO change to prod after testing (will need to set aws permissions correctly for this to work)
+EQM_COLUMN_MAPPINGS_S3_FILENAME = "35065939-4fae-4593-861c-a0ad837f2cf3/SMAFIQ68ILTK.json" 
 
 log = structlog.getLogger(__name__)
 
@@ -254,6 +256,7 @@ def reorder_spreadsheets(spreadsheets: List[Spreadsheet], order: List[str]):
             if spreadsheet.item == item:
                 new_spreadsheets.append(spreadsheet)
     return new_spreadsheets
+
 
 def delete_existing_sheets(sheets_client: SheetsClient) -> None:
     """Delete existing sheets from Google Sheets."""
@@ -554,20 +557,6 @@ def get_submission_schema_endpoint(item: str) -> Dict[str, Any]:
     return f"{SubmissionSchemaConstants.ENDPOINT}{to_snake_case(item)}.json"
 
 
-def get_eqm_template(
-    eqm: str,
-    keys: Dict[str, Any]
-) -> Dict[str, Any]:
-    """Get the ExternalQualityMetric with tags `eqm` from custom_column_mappings defined in submitr."""
-    value = EQM_TAB_NAMES[eqm]
-    result = custom_column_mappings['column_mappings']
-    if value in result:
-        return {'template': {value: result[value]}}
-    else:
-        log.error("No ExternalQualityMetric found for given `eqm` value. Exiting...")
-        return
-
-
 def write_workbook(
     output: Path,
     submission_schemas: Dict[str, Any],
@@ -677,10 +666,6 @@ def write_workbook_sheets(
         write_properties(worksheet, spreadsheet.properties, separate_comments)
 
 
-
-
-
-
 def write_spreadsheets(
     output: Path,
     submission_schemas: Dict[str, Any],
@@ -761,14 +746,28 @@ def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet
 
 def get_eqm_spreadsheet(eqm: str, eqm_schema: Dict[str, Any]):
     """Get spreadsheet information for ExternalQualityMetric item."""
-    mapping = custom_column_mappings['column_mappings']['external_quality_metric']
     item = EQM_TAB_NAMES[eqm]
-    properties = get_eqm_properties(item, eqm, eqm_schema, mapping)
-    return Spreadsheet(
-        item=item,
-        properties=properties,
-    )
+    result = get_eqm_mapping()
+    if item in result['sheet_mappings']:
+        column_mapping = result['sheet_mappings'][item]
+        mapping = result['column_mappings'][column_mapping]
+        properties = get_eqm_properties(item, eqm, eqm_schema, mapping)
+        return Spreadsheet(
+            item=item,
+            properties=properties,
+        )
+    else:
+        log.error("No ExternalQualityMetric found for given `eqm` value. Exiting...")
+        return
 
+
+def get_eqm_mapping():
+    """Get JSON mapping config file from S3 bucket."""
+    s3 = boto3.client('s3')
+    data = s3.get_object(Bucket=EQM_COLUMN_MAPPINGS_S3_BUCKET, Key=EQM_COLUMN_MAPPINGS_S3_FILENAME)
+    contents = data['Body'].read()
+    json_content = loads(contents)
+    return json_content
 
 def get_example_spreadsheet(
         item: str,
