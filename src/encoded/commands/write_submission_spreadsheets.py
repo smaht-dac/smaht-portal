@@ -22,13 +22,6 @@ from encoded.item_utils.constants import item as item_constants
 from encoded.item_utils.utils import RequestHandler
 from encoded.project.loadxl import ITEM_INDEX_ORDER
 
-import boto3
-from json import loads
-
-
-EQM_COLUMN_MAPPINGS_S3_BUCKET = "smaht-devtest-application-files" # TODO change to prod after testing (will need to set aws permissions correctly for this to work)
-EQM_COLUMN_MAPPINGS_S3_FILENAME = "35065939-4fae-4593-861c-a0ad837f2cf3/SMAFIQ68ILTK.json" 
-
 log = structlog.getLogger(__name__)
 
 GOOGLE_SHEET_SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
@@ -245,7 +238,7 @@ def get_spreadsheets(
         eqm_schema ={
             'schema': get_submission_schema('ExternalQualityMetric', request_handler)
         }
-        spreadsheets.append(get_eqm_spreadsheet(eqm, eqm_schema, request_handler.auth_key))
+        spreadsheets.append(get_eqm_spreadsheet(eqm, eqm_schema, request_handler))
     return spreadsheets
 
 
@@ -662,7 +655,7 @@ def write_workbook_sheets(
             worksheet = workbook.create_sheet(title=spreadsheet.item)
             write_properties(worksheet, spreadsheet.properties, separate_comments)
     if eqm:
-        spreadsheet = get_eqm_spreadsheet(eqm, eqm_schema, request_handler.auth_key)
+        spreadsheet = get_eqm_spreadsheet(eqm, eqm_schema, request_handler)
         worksheet = workbook.create_sheet(title=spreadsheet.item)
         write_properties(worksheet, spreadsheet.properties, separate_comments)
 
@@ -693,7 +686,7 @@ def write_spreadsheets(
             spreadsheet = get_spreadsheet(item, submission_schema)
             write_spreadsheet(output, spreadsheet, separate_comments)
         if eqm:
-            spreadsheet = get_eqm_spreadsheet(eqm, eqm_schema, request_handler.auth_key)
+            spreadsheet = get_eqm_spreadsheet(eqm, eqm_schema, request_handler)
             write_spreadsheet(output, spreadsheet, separate_comments)
 
 
@@ -745,10 +738,10 @@ def get_spreadsheet(item: str, submission_schema: Dict[str, Any]) -> Spreadsheet
     )
 
 
-def get_eqm_spreadsheet(eqm: str, eqm_schema: Dict[str, Any], key: Dict[str, Any]):
+def get_eqm_spreadsheet(eqm: str, eqm_schema: Dict[str, Any], request_handler: RequestHandler):
     """Get spreadsheet information for ExternalQualityMetric item."""
     item = EQM_TAB_NAMES[eqm]
-    result = get_eqm_mapping(key=key)
+    result = get_eqm_mapping(request_handler)
     if item in result['sheet_mappings']:
         column_mapping = result['sheet_mappings'][item]
         mapping = result['column_mappings'][column_mapping]
@@ -762,11 +755,12 @@ def get_eqm_spreadsheet(eqm: str, eqm_schema: Dict[str, Any], key: Dict[str, Any
         return
 
 
-def get_eqm_mapping(key: Dict[str, Any]):
+def get_eqm_mapping(request_handler: RequestHandler):
     """Get JSON mapping config item from portal query."""
     search = "search/?type=GenericQcConfig&tags=external_quality_metrics"
-    result = ff_utils.search_metadata(search, key=key)
+    result = ff_utils.search_metadata(search, key=request_handler.auth_key)
     return result[0]['body']
+
 
 def get_example_spreadsheet(
         item: str,
