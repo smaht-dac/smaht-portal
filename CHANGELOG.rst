@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.9.0
+=====
+
+`PR 588: Add donors field and final outputs to AnalysisRun <https://github.com/smaht-dac/smaht-portal/pull/588>`_
+
+* Add donor field to AnalysisRun
+* Display final output files from completed MetaWorkflowRuns on Analysis Status page
+
 
 1.8.8
 =====
