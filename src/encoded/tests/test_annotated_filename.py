@@ -554,14 +554,24 @@ SOME_UNALIGNED_READS = {"data_type": ["Unaligned Reads"]}
 SOME_ALIGNED_READS = {"data_category": "Sequencing Reads", "data_type": ["Aligned Reads"]}
 RNA_ALIGNED_READS = {"data_type": ["Aligned Reads"], "data_category": ["RNA Quantification"]}
 
-SOME_TARGET_ASSEMBLY = {
+SOME_TARGET_ASSEMBLY = [{
     "@type": ["ReferenceGenome"],
     "code": REFERENCE_GENOME_CODE
-}
-SOME_SOURCE_ASSEMBLY = {
+}]
+MULTIPLE_TARGET_ASSEMBLIES = [
+    {
+    "@type": ["ReferenceGenome"],
+    "code": REFERENCE_GENOME_CODE
+    },
+    {
+    "@type": ["ReferenceGenome"],
+    "code": REFERENCE_GENOME_CODE
+    },
+    ]
+SOME_SOURCE_ASSEMBLY = [{
     "@type": ["DonorSpecificAssembly"],
     "code": DSA_CODE
-}
+}]
 SOME_CHAIN_FILE = {
     "data_category": ["Reference Conversion"],
     "data_type": ["Chain File"],
@@ -732,6 +742,19 @@ TSV_FILE_EXTENSION = {
             {},
             CHAIN_FILE_EXTENSION,
             SOME_TARGET_ASSEMBLY,
+            SOME_SOURCE_ASSEMBLY,
+            SOME_SOURCE_ASSEMBLY,
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}To{REFERENCE_GENOME_CODE}",
+            False,
+        ),
+        (
+            SOME_CHAIN_FILE,
+            [],
+            [SOME_SOFTWARE, SOME_ITEM],
+            {},
+            {},
+            CHAIN_FILE_EXTENSION,
+            MULTIPLE_TARGET_ASSEMBLIES,
             SOME_SOURCE_ASSEMBLY,
             SOME_SOURCE_ASSEMBLY,
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}To{REFERENCE_GENOME_CODE}",
@@ -954,8 +977,8 @@ def test_get_analysis(
     reference_genome: Dict[str, Any],
     annotation: Dict[str, Any],
     file_extension: Dict[str, Any],
-    target_assembly: Dict[str, Any],
-    source_assembly: Dict[str, Any],
+    target_assembly: List[Dict[str, Any]],
+    source_assembly: List[Dict[str, Any]],
     dsa: Dict[str, Any],
     expected: str,
     errors: bool,
