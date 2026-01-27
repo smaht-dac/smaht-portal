@@ -67,7 +67,7 @@ export default function BrowseView(props) {
  * base browse path that corresponds to the given type. Compares sets of filter
  * fields and terms.
  * @param { string } type the type of browse page (e.g. file, donor, etc.)
- * @param { Array } filters the filters array from `context.filters`
+ * @param { object } filters the filters from the context
  * @returns { boolean } whether the filters are the same as base browse path
  */
 const isBaseBrowseParams = (type, filters) => {
