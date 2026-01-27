@@ -7,6 +7,14 @@ smaht-portal
 Change Log
 ----------
 
+1.10.0
+=====
+
+`PR 572: feat: Browse Page Modals <https://github.com/smaht-dac/smaht-portal/pull/572>`_
+
+* Implement Modal for empty browse pages
+
+
 1.9.0
 =====
 
