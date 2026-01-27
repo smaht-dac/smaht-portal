@@ -17,7 +17,7 @@ export const BigDropdownBigLink = (props) => {
     } = props;
 
     // Allow users with protected access to see protected links
-    const userDownloadAccess = useUserDownloadAccess(props.session);
+    const { userDownloadAccess } = useUserDownloadAccess(props.session);
 
     // Determine proper href to send users to
     const hrefToUse = disabled
