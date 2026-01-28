@@ -306,6 +306,8 @@ class CalcPropConstants:
     SAMPLE_SUMMARY_TISSUES = "tissues"
     SAMPLE_SUMMARY_TISSUE_SUBTYPES = "tissue_subtypes"
     SAMPLE_SUMMARY_TISSUE_DETAILS = "tissue_details"
+    SAMPLE_SUMMARY_TISSUE_PROTOCOL_IDS = "tissue_protocol_ids"
+    SAMPLE_SUMMARY_TISSUE_SHORT_NAMES = "tissue_short_names"
     SAMPLE_SUMMARY_SAMPLE_NAMES = "sample_names"
     SAMPLE_SUMMARY_SAMPLE_DESCRIPTIONS = "sample_descriptions"
     SAMPLE_SUMMARY_ANALYTES = "analytes"
@@ -344,6 +346,20 @@ class CalcPropConstants:
             },
             SAMPLE_SUMMARY_TISSUE_DETAILS: {
                 "title": "Tissue Details",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_TISSUE_PROTOCOL_IDS: {
+                "title": "Tissue Protocol ID",
+                "type": "array",
+                "items": {
+                    "type": "string",
+                },
+            },
+            SAMPLE_SUMMARY_TISSUE_SHORT_NAMES: {
+                "title": "Tissue Short Name",
                 "type": "array",
                 "items": {
                     "type": "string",
@@ -1232,6 +1248,8 @@ class File(Item, CoreFile):
                 file_utils.get_tissues(file_properties, request_handler),
                 tissue_utils.get_location,
             ),
+            constants.SAMPLE_SUMMARY_TISSUE_PROTOCOL_IDS: file_utils.get_tissue_protocol_id(file_properties, request_handler),
+            constants.SAMPLE_SUMMARY_TISSUE_SHORT_NAMES: file_utils.get_tissue_short_name(file_properties, request_handler),
             constants.SAMPLE_SUMMARY_SAMPLE_NAMES: get_property_values_from_identifiers(
                 request_handler,
                 file_utils.get_samples(file_properties, request_handler),
@@ -1261,6 +1279,7 @@ class File(Item, CoreFile):
                 analyte_utils.get_molecule,
             ),
         }
+
         return {key: value for key, value in to_include.items() if value}
 
     def _get_analysis_summary(

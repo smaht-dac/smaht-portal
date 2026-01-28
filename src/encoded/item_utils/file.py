@@ -20,6 +20,36 @@ from .utils import (
     get_property_values_from_identifiers,
 )
 
+# temporary mapping for tissue short names
+# to be used in tests until proper metadata implementation is done
+# the format will be: [TPC code] - [Portal facet]
+TPC_CODE_TO_FULL_NAME = {
+    "3A": "3A - Whole Blood",
+    "3B": "3B - Buccal Swab",
+    "3C": "3C - Esophagus",
+    "3E": "3E - Colon, Asc",
+    "3G": "3G - Colon, Desc",
+    "3I": "3I - Liver",
+    "3K": "3K - Adrenal Gland, L",
+    "3M": "3M - Adrenal Gland, R",
+    "3O": "3O - Aorta",
+    "3Q": "3Q - Lung",
+    "3S": "3S - Heart",
+    "3U": "3U - Testis, L",
+    "3W": "3W - Testis, R",
+    "3Y": "3Y - Ovary, L",
+    "3AA": "3AA - Ovary, R",
+    "3AC": "3AC - Fibroblast",
+    "3AD": "3AD - Skin, Calf",
+    "3AF": "3AF - Skin, Abdomen",
+    "3AH": "3AH - Muscle",
+    "3AK": "3AK - Brain, Frontal Lobe",
+    "3AL": "3AL - Brain, Temporal Lobe",
+    "3AM": "3AM - Brain, Cerebellum",
+    "3AN": "3AN - Brain, Hippocampus, L",
+    "3AO": "3AO - Brain, Hippocampus, R",
+}
+
 
 def get_file_format(properties: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
     """Get file format from properties."""
@@ -486,3 +516,29 @@ def get_tissue_category(file: Dict[str, Any], request_handler: RequestHandler) -
             tissue.get_category, request_handler=request_handler
         )
     )
+
+def get_tissue_protocol_id(file: Dict[str, Any], request_handler: RequestHandler) -> List[str]:
+    """
+    Get tissue protocol ID from external ID.
+    """
+    return get_property_values_from_identifiers(
+        request_handler,
+        get_tissues(file, request_handler),
+        partial(
+            tissue.get_protocol_id
+        )
+    )
+
+def get_tissue_short_name(file: Dict[str, Any], request_handler: RequestHandler) -> List[str]:
+    """
+    Get tissue short name from protocol ID using temporary mapping.
+    """
+    protocol_ids = get_tissue_protocol_id(file, request_handler)
+    short_names = []
+    for pid in protocol_ids:
+        short_name = TPC_CODE_TO_FULL_NAME.get(pid)
+        if short_name:
+            short_names.append(short_name)
+        else:
+            short_names.append(pid)  # Fallback to protocol ID if not found
+    return short_names
