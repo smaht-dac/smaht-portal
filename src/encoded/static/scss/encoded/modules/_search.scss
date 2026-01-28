@@ -1157,8 +1157,10 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 
 		#download-access-required-modal {
 			.modal-content {
-				box-shadow: 0px 0px 10px #D3D9E7;
+				padding: 0px;
 				border: none;
+				border-radius: 20px;
+				box-shadow: 0px 0px 10px #D3D9E7;
 			}
 
 			.callout-card.protected-data {
@@ -1175,15 +1177,6 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 
 	}
 }
-
-// Popover used in Donor pages
-#download-access-required-modal {
-	.modal-content {
-		border-radius: 20px;
-		padding: 0px;
-	}
-}
-
 
 h2.browse-summary-header {
 	font-size: 1.5rem;
