@@ -891,8 +891,8 @@ body[data-path="/"]>#application>#layout {
 							}
 
 							.icon-spinner {
-								margin: auto;
-								color: #485983;
+								margin: 10px auto;
+								color: #4859835b;
 							}
 
 							.data-release-item-container {
@@ -903,7 +903,7 @@ body[data-path="/"]>#application>#layout {
 									padding: 5px 5px 0px 25px;
 									padding-bottom: 16px;
 									
-									.header {
+									& > .header {
 										display: flex;
 										justify-content: space-between;
 										background-color: #ecf2fe;
@@ -920,7 +920,7 @@ body[data-path="/"]>#application>#layout {
 											}
 										}
 
-										&-link {
+										.header-link {
 											width: 100%;
 											justify-content: space-between;
 											display: flex;
@@ -971,28 +971,95 @@ body[data-path="/"]>#application>#layout {
 										}
 									}
 									.body {
-										padding-left: 8px;
 										color: #485983;
 										font-size: 0.75rem;
 
 										.release-item {
-											padding: 10px 0px 0px 0px;
-											.title {
-												color: #485983;
-												font-weight: 700;
-												font-size: 0.875rem;
-												align-items: center;
-												width: max-content;
+											padding: 5px 0px 0px 0px;
+											
+											.donor-group-header {
+												display: flex;
+												padding: 2px 0px;
+												border-radius: 4px;
+												gap: 4px;
+												padding-bottom: 0px;
 												
+
+												.toggle-button {
+													display: flex;
+													border-radius: 100%;
+													padding: 2px;
+													color: #485983;
+													margin: auto;
+													width: 16px;
+												}
+
+												.title {
+													display: flex;
+													flex: 1;
+													justify-content: space-between;
+													font-weight: 700;
+													font-size: 0.875rem;
+													align-items: center;
+													width: max-content;
+													padding: 2px 8px;
+													color: #485983;
+													border: 1px solid transparent;
+													border-radius: 7px;
+													align-items: baseline;
+													transition: background-color 100ms;
+													margin-bottom: 0px;
+													padding-bottom: 0px;
+													
+													.count {
+														display: flex;
+														gap: 4px;
+														align-items: center;
+														font-size: 0.6875rem;
+														color: #65759f;
+													}
+
+													&:hover {
+														cursor: pointer;
+														background-color: #E7F1FB;
+														transition: background-color 100ms;
+														// border-radius: 7px 7px 0px 0px;
+														
+														i {
+															fill: #3C71F9;
+														}
+													}
+												}
+												
+												&.expanded {
+													.title {
+														background-color: #E7F1FB;
+														border-radius: 7px 7px 0px 0px;
+														border-color: #B8D3EF;
+														
+														&:hover {
+															background-color: #e0ecf8;
+														}
+													}
+												}
+											}
+
+											.tissue-list {
+												margin-top: 0px;
+												list-style-type: none;
+												background: #F4F9FF;
+												padding-top: 5px;
+												padding-left: 0px;
+												margin-left: 20px;
+												border-radius: 0px 0px 7px 7px;
+												border: 1px solid #B8D3EF;
+												border-top: none;
+
 												svg {
 													display: none;
 												}
 	
 												&:hover {
-													display: inline;
-													cursor: pointer;
-													color: #3C71F9;
-	
 													svg {
 														display: inline-flex;
 														vertical-align: text-top;
@@ -1009,9 +1076,11 @@ body[data-path="/"]>#application>#layout {
 
 												li {
 													font-weight: 300;
-													line-height: 1.25rem;
 													line-height: 1rem;
 													margin-top: 0.25rem;
+													border-radius: 0px 0px 7px 7px;
+													margin-top: 0px;
+													padding: 4px;
 
 													a {
 														color: #485983;
@@ -1023,8 +1092,24 @@ body[data-path="/"]>#application>#layout {
 													
 												}
 											}
+
+											.file-group-list {
+												padding-left: 37px;
+											}
 										}
 
+										.toggle-button {
+											&.donor {
+												background-color: transparent;
+												border: none;
+												color: #485983;
+											}
+											&.tissue {
+												background-color: transparent;
+												border: none;
+												color: #485983;
+											}
+										}
 									}
 									&:before {
 										content: "";
@@ -1041,10 +1126,10 @@ body[data-path="/"]>#application>#layout {
 									border-top-left-radius: 9px;
 									border-top-right-radius: 9px;
 									.content {
-										.header {
+										& > .header {
 											background-color: rgba(195 255 219 / 50%);
 											font-size: 0.75rem;
-											&-link {
+											.header-link {
 												color: #014B11;
 												
 												&:hover {
@@ -1075,11 +1160,6 @@ body[data-path="/"]>#application>#layout {
 										.body {
 											height: 0px;
 											overflow: hidden;
-										}
-
-										.toggle-button {
-											i:before {
-											}
 										}
 									}
 								}
@@ -1275,10 +1355,8 @@ body[data-path="/"]>#application>#layout {
 						&.cram-conversion {
 							color: #485983;
 							font-size: 12px;
-							margin: 0px;
-							border-radius: 8px;
+							margin: 8px 0px 0px 0px;
 							padding: 10px;
-							border-color: transparent;
 
 							.header {
 								font-weight: 600;
@@ -1294,10 +1372,6 @@ body[data-path="/"]>#application>#layout {
 				}
 		
 				.about-consortium {
-			
-					.section-header {
-					}
-
 					&-links {
 						display: flex;
 						flex-direction: row;

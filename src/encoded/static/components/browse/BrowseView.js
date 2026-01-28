@@ -163,8 +163,8 @@ const BrowseFileBody = (props) => {
                 <div className="stats-column col-auto">
                     <BrowseSummaryStatsViewer
                         {...{
-                            session,
                             href,
+                            session,
                             windowWidth,
                             useCompactFor,
                             mapping: 'all',
@@ -218,6 +218,8 @@ const BrowseFileBody = (props) => {
 const renderBrowseBody = (props) => {
     switch (props.context['@type'][0]) {
         case 'FileSearchResults':
+        case 'SubmittedFileSearchResults':
+        case 'OutputFileSearchResults':
             return <BrowseFileBody {...props} />;
         case 'DonorSearchResults':
             return <BrowseDonorBody {...props} />;
@@ -407,6 +409,8 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
     let BrowseType = null;
     switch (context['@type'][0]) {
         case 'FileSearchResults':
+        case 'SubmittedFileSearchResults':
+        case 'OutputFileSearchResults':
             BrowseType = 'File';
             break;
         case 'DonorSearchResults':
