@@ -313,6 +313,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                         rowAggFields: [
                                             'donors.display_title',
                                             'sample_summary.tissues',
+                                            'sample_summary.category',
                                         ],
                                     }}
                                     headerFor={null}

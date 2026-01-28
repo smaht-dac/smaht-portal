@@ -376,7 +376,7 @@ def data_matrix_aggregations(context, request):
 
     MAX_BUCKET_COUNT = 30  # Max grouping in a data matrix.
     DEFAULT_SEARCH_PARAM_LISTS = {'type': ['File']}
-    DEFAULT_COMPOSITE_VALUE_SEPARATOR = ' '
+    DEFAULT_VALUE_DELIMITER = ' '
     ARRAY_FIELDS_TO_JOIN = {
         # Array field whose values should be concatenated into a single bucket key.
         'data_type'
@@ -405,7 +405,7 @@ def data_matrix_aggregations(context, request):
             column_agg_fields_orig = [column_agg_fields_orig]
         row_agg_fields_orig = json_body.get('row_agg_fields')
         flatten_values = json_body.get('flatten_values', False)
-        composite_value_separator = json_body.get('composite_value_separator', DEFAULT_COMPOSITE_VALUE_SEPARATOR)
+        value_delimiter = json_body.get('value_delimiter', DEFAULT_VALUE_DELIMITER)
     except json.decoder.JSONDecodeError:
         raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
 
@@ -442,7 +442,7 @@ def data_matrix_aggregations(context, request):
         if isinstance(field_or_field_list, list) and len(field_or_field_list) > 1:
             # If we have multiple fields, we will return a script that concatenates them.
             return {
-                "source": f" + '{composite_value_separator}' + ".join(["doc['embedded." + field + ".raw'].value" for field in field_or_field_list]),
+                "source": f" + '{value_delimiter}' + ".join(["doc['embedded." + field + ".raw'].value" for field in field_or_field_list]),
                 "lang": "painless"
             }
         if is_array_concat_field(field_or_field_list):
@@ -600,14 +600,14 @@ def data_matrix_aggregations(context, request):
             if len(column_agg_fields_orig) > 1 and not skip_column_agg:
                 for item in data_array:
                     if all(field in item for field in column_agg_fields_orig):
-                        item[column_agg_fields_orig[0]] = composite_value_separator.join(
+                        item[column_agg_fields_orig[0]] = value_delimiter.join(
                             [item[field] for field in column_agg_fields_orig]
                     )
             for item in data_array:
                 for agg_field in row_agg_fields_orig:
                     if isinstance(agg_field, list):
                         if all(field in item for field in agg_field):
-                            item[agg_field[0]] = composite_value_separator.join(
+                            item[agg_field[0]] = value_delimiter.join(
                             [item[field] for field in agg_field]
                             )
         
@@ -622,7 +622,7 @@ def data_matrix_aggregations(context, request):
             "total": ret_result["total"],
             "time_generated": ret_result["time_generated"],
             "flatten_values": True,
-            "composite_value_separator": composite_value_separator,
+            "value_delimiter": value_delimiter,
             "search_params": search_param_lists
         }    
 
