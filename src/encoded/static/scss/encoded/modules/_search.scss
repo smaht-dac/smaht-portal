@@ -1146,12 +1146,12 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 		}
 	}
 
-	// Modal used in Browse by File and Donor pages
-	.modal-backdrop.show {
+	// No Results Modal used in Browse by File and Donor pages
+	.download-access-required-modal-backdrop.show {
 		opacity: 0.15;
 		z-index: 6;
 	}
-	div[role="dialog"] {
+	div.download-access-required-modal {
 		backdrop-filter: blur(3px);
 		z-index: 6;
 
