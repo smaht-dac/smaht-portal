@@ -257,7 +257,7 @@ export default class DataMatrix extends React.PureComponent {
         "showAxisLabels": true,
         "showColumnSummary": true,
         "defaultOpen": false,
-        "compositeValueSeparator": " - ",
+        "valueDelimiter": " - ",
         "disableConfigurator": true,
         "idLabel": "",
         "onDataLoaded": null,
@@ -320,7 +320,7 @@ export default class DataMatrix extends React.PureComponent {
         'showAxisLabels': PropTypes.bool,
         'showColumnSummary': PropTypes.bool,
         'defaultOpen': PropTypes.bool,
-        'compositeValueSeparator': PropTypes.string,
+        'valueDelimiter': PropTypes.string,
         'disableConfigurator': PropTypes.bool,
         'idLabel': PropTypes.string,
         'onDataLoaded': PropTypes.func,
@@ -585,7 +585,7 @@ export default class DataMatrix extends React.PureComponent {
                 }
             };
 
-            //result = resultItemPostProcessFuncKey && this.isLocalEnv() ? BENCHMARKING_TEST_DATA : result;
+            //result = resultItemPostProcessFuncKey && this.isLocalEnv() ? BENCHMARKING_TEST_DATA : PRODUCTION_TEST_DATA;
 
             _.forEach(result.data, (r) => processResultRow(r, transformedData.all));
             _.forEach(result.row_totals, (r) => processResultRow(r, transformedData.row_totals));
@@ -665,7 +665,7 @@ export default class DataMatrix extends React.PureComponent {
         this.setState(
             { "_results": null }, // (Re)Set all result states to 'null'
             () => {
-                const { compositeValueSeparator = ' ' } = this.props;
+                const { valueDelimiter = ' ' } = this.props;
                 const [url, strQueryParams] = requestUrl.split('?');
                 const queryParamsByUrl = DataMatrix.parseQuery(strQueryParams);
 
@@ -715,8 +715,8 @@ export default class DataMatrix extends React.PureComponent {
                     "row_agg_fields": rowAggFields,
                     "flatten_values": true
                 };
-                if (compositeValueSeparator && typeof compositeValueSeparator === 'string') {
-                    requestBody['composite_value_separator'] = compositeValueSeparator;
+                if (valueDelimiter && typeof valueDelimiter === 'string') {
+                    requestBody['value_delimiter'] = valueDelimiter;
                 }
                 // Exclude 'Authorization' header for requests to different domains (not allowed).
                 const excludedHeaders = (requestUrl.slice(0, 4) === 'http') ? ['Authorization', 'Content-Type'] : null;
@@ -828,7 +828,7 @@ export default class DataMatrix extends React.PureComponent {
 
     render() {
         const {
-            headerFor, valueChangeMap, allowedFields, compositeValueSeparator,
+            headerFor, valueChangeMap, allowedFields, valueDelimiter,
             disableConfigurator = false, idLabel = '', additionalPopoverData = {},
             baseBrowseFilesPath, browseFilteringTransformFuncKey
         } = this.props;
@@ -860,7 +860,7 @@ export default class DataMatrix extends React.PureComponent {
             query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, additionalPopoverData,
-            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary, compositeValueSeparator,
+            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary, valueDelimiter,
             baseBrowseFilesPath,
             browseFilteringTransformFunc: browseFilteringTransformFuncKey ? DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey] : null
         };
