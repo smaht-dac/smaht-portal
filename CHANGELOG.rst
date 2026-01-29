@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+1.9.1
+=====
+
+`PR 379: SN Submission spreadsheet update <https://github.com/smaht-dac/smaht-portal/pull/379`_
+
+* Update `commands/write_submission_spreadsheets.py` to include capability to add "pseudo-properties" such as `expected_file_counts` in FileSet that are used for validation in submitr
+* Update the `--eqm` flag to use config from GenericQcConfig item on portal and update error handling
+* Reorder properties and format output of the PathologyReport schema for ease of submission for TPC
+
+
 1.9.0
 =====
 
