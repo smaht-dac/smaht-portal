@@ -48,12 +48,12 @@ export class VisualBody extends React.PureComponent {
         }
         if (blockSum >= 1000){
             const decimal = blockSum >= 10000 ? 0 : 1;
-            return <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }} data-tip={blockSum}>{ roundLargeNumber(blockSum, decimal) }</span>;
+            return <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }} data-count={blockSum} data-tip={blockSum}>{ roundLargeNumber(blockSum, decimal) }</span>;
         }
         else if (blockSum >= 100){
-            return <span style={{ 'fontSize' : '0.90rem', 'position' : 'relative', 'top' : -1 }}>{ blockSum }</span>;
+            return <span style={{ 'fontSize' : '0.90rem', 'position' : 'relative', 'top' : -1 }} data-count={blockSum}>{ blockSum }</span>;
         }
-        return <span>{ blockSum }</span>;
+        return <span data-count={blockSum}>{ blockSum }</span>;
     }
     /**
      * replacement of underscore's invert function.
