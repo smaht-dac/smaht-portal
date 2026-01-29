@@ -69,7 +69,7 @@
             "title": "DOI",
             "description": "DOI for the publication or preprint",
             "type": "string",
-            "comment": "Please provide in the form of doi:10.1234/abc123"
+            "comment": "Please provide in the form of 10.1234/abc123"
         },
         "pubmed_id":{
             "title": "Publication Identifier",
@@ -128,16 +128,21 @@
         },
         "journal_url": {
             "title": "Journal URL",
-            "description": "Link to the publishing journal web site.",
+            "description": "Link to the paper on the publishing journal web site.",
             "type": "string",
             "format": "uri",
             "permission": "restricted_fields"
         },
-        "repository_url": {
-            "title": "Repository URL",
-            "description": "Link to the repository (e.g. bioRxiv, PubMed) web site.",
-            "type": "string",
-            "format": "uri",
+        "repository_urls": {
+            "title": "Repository URLs",
+            "description": "Link to the paper in the repositories (e.g. bioRxiv, PubMed).",
+            "comment": "preprints can be indexed in pubmed and an arxiv server",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "title": "Repository Link",
+                "format": "uri"
+            },
             "permission": "restricted_fields"
         },
         "preprint_version": {
