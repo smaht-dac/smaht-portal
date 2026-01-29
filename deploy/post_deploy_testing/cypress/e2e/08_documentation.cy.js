@@ -20,7 +20,7 @@ const ROLE_MATRIX = {
         canRunSubmissionFAQTest: false,
         canRunSubmissionDataDictionaryTest: false,
         canRunAnalysisPipelineFAQTest: true,
-        canRunAnalysisPipelineDocsTest: false,
+        canRunAnalysisPipelineDocsTest: true,
         canRunDonorManifestDictionaryTest: true,
     },
     [ROLE_TYPES.SMAHT_DBGAP]: {
@@ -53,7 +53,7 @@ const ROLE_MATRIX = {
         canRunSubmissionFAQTest: false,
         canRunSubmissionDataDictionaryTest: false,
         canRunAnalysisPipelineFAQTest: true,
-        canRunAnalysisPipelineDocsTest: false,
+        canRunAnalysisPipelineDocsTest: true,
         canRunDonorManifestDictionaryTest: true,
     },
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
@@ -64,7 +64,7 @@ const ROLE_MATRIX = {
         canRunSubmissionFAQTest: false,
         canRunSubmissionDataDictionaryTest: false,
         canRunAnalysisPipelineFAQTest: true,
-        canRunAnalysisPipelineDocsTest: false,
+        canRunAnalysisPipelineDocsTest: true,
         canRunDonorManifestDictionaryTest: true,
     },
 };
