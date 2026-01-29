@@ -8,6 +8,14 @@ Change Log
 ----------
 
 
+1.10.3
+======
+
+`PR 592: fix: modal styles udpate <https://github.com/smaht-dac/smaht-portal/pull/592>`_
+
+* Fix browse page modal styles
+
+
 1.10.2
 =====
 
