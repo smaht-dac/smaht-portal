@@ -435,7 +435,7 @@ export function testMatrixPopoverValidation(
 
             const testCases = selected.map((el) => {
                 const $el = Cypress.$(el);
-                const value = parseInt($el.text().trim(), 10);
+                const value = parseInt(($el.find('[data-count]').attr('data-count') || $el.attr('data-count') || '').trim(), 10);
                 const donor = $el.closest('.grouping.depth-0').find('.grouping-row h4 .inner').eq(0).text().trim();
                 const tissue = $el.closest('.grouping.depth-1').find('.grouping-row h4 .inner').eq(0).text().trim();
                 const assay = $el.parent().attr('data-group-key');
@@ -453,9 +453,10 @@ export function testMatrixPopoverValidation(
         // Random [rowSummaryBlockCount] row-summary block popovers
         cy.get('[data-block-type="row-summary"]').then(($blocks) => {
             Cypress._.sampleSize([...$blocks], rowSummaryBlockCount).forEach((el) => {
-                const value = parseInt(Cypress.$(el).text().trim(), 10);
+                const $el = Cypress.$(el);
+                const value = parseInt(($el.find('[data-count]').attr('data-count') || $el.attr('data-count') || '').trim(), 10);
                 if (value > 0) {
-                    const donor = Cypress.$(el).closest('.grouping.depth-0').find('h4 .inner').eq(0).text().trim();
+                    const donor = $el.closest('.grouping.depth-0').find('h4 .inner').eq(0).text().trim();
                     cy.wrap(el).scrollIntoView().click({ force: true });
                     assertPopover({ donor, assay: '', value, blockType: 'row-summary', verifyTotalFromApi });
                 }
@@ -477,9 +478,10 @@ export function testMatrixPopoverValidation(
         // Random [colSummaryBlockCount] col-summary block popovers
         cy.get('[data-block-type="col-summary"]:not([data-block-value="0"])').then(($blocks) => {
             Cypress._.sampleSize([...$blocks], colSummaryBlockCount).forEach((el) => {
-                const value = parseInt(Cypress.$(el).text().trim(), 10);
+                const $el = Cypress.$(el);
+                const value = parseInt(($el.find('[data-count]').attr('data-count') || $el.attr('data-count') || '').trim(), 10);
                 if (value > 0) {
-                    const assay = Cypress.$(el).parent().attr('data-group-key');
+                    const assay = $el.parent().attr('data-group-key');
                     cy.wrap(el).scrollIntoView().click({ force: true });
                     assertPopover({ donor: '', assay: assay, value, blockType: 'col-summary', verifyTotalFromApi });
                 }
