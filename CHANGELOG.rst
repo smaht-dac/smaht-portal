@@ -7,13 +7,37 @@ smaht-portal
 Change Log
 ----------
 
-1.9.1
-=====
+1.10.3
+======
 
 `PR 591: SN Fix DSA release script <https://github.com/smaht-dac/smaht-portal/pull/591>`_
 
 * Update means of getting chain file code for annotated filenames to do a search query on `code` and `title` of ReferenceGenomes and return either "DSA" or the unique `code` value
 * Add bed files to access status function
+
+
+1.10.2
+=====
+
+`PR 586: feat: update master-inserts to make pipeline docs open <https://github.com/smaht-dac/smaht-portal/pull/586>`_
+
+* Update Page and StaticSection items related to the Analysis Pipeline
+
+
+1.10.1
+======
+
+`PR 587: New cypress test for analysis pipeline documentation page <https://github.com/smaht-dac/smaht-portal/pull/587>`_
+
+* Tests the new analysis pipeline page and its features (collapsible panels, links, and table of contents) are working properly
+
+
+1.10.0
+======
+
+`PR 572: feat: Browse Page Modals <https://github.com/smaht-dac/smaht-portal/pull/572>`_
+
+* Implement Modal for empty browse pages
 
 
 1.9.0
@@ -65,7 +89,7 @@ Change Log
 
 
 1.8.5
-======
+=====
 
 `PR 581: udate README <https://github.com/smaht-dac/smaht-portal/pull/581>`_
 
