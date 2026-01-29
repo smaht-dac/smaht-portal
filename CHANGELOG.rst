@@ -7,14 +7,38 @@ smaht-portal
 Change Log
 ----------
 
-1.9.1
-=====
+1.10.3
+======
 
 `PR 379: SN Submission spreadsheet update <https://github.com/smaht-dac/smaht-portal/pull/379`_
 
 * Update `commands/write_submission_spreadsheets.py` to include capability to add "pseudo-properties" such as `expected_file_counts` in FileSet that are used for validation in submitr
 * Update the `--eqm` flag to use config from GenericQcConfig item on portal and update error handling
 * Reorder properties and format output of the PathologyReport schema for ease of submission for TPC
+
+
+1.10.2
+=====
+
+`PR 586: feat: update master-inserts to make pipeline docs open <https://github.com/smaht-dac/smaht-portal/pull/586>`_
+
+* Update Page and StaticSection items related to the Analysis Pipeline
+
+
+1.10.1
+======
+
+`PR 587: New cypress test for analysis pipeline documentation page <https://github.com/smaht-dac/smaht-portal/pull/587>`_
+
+* Tests the new analysis pipeline page and its features (collapsible panels, links, and table of contents) are working properly
+
+
+1.10.0
+======
+
+`PR 572: feat: Browse Page Modals <https://github.com/smaht-dac/smaht-portal/pull/572>`_
+
+* Implement Modal for empty browse pages
 
 
 1.9.0
@@ -66,7 +90,7 @@ Change Log
 
 
 1.8.5
-======
+=====
 
 `PR 581: udate README <https://github.com/smaht-dac/smaht-portal/pull/581>`_
 
