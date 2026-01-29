@@ -8,13 +8,38 @@ Change Log
 ----------
 
 
-1.8.9
+1.10.2
 =====
 
 `PR 586: feat: update master-inserts to make pipeline docs open <https://github.com/smaht-dac/smaht-portal/pull/586>`_
 
 * Update Page and StaticSection items related to the Analysis Pipeline
-  
+
+
+1.10.1
+======
+
+`PR 587: New cypress test for analysis pipeline documentation page <https://github.com/smaht-dac/smaht-portal/pull/587>`_
+
+* Tests the new analysis pipeline page and its features (collapsible panels, links, and table of contents) are working properly
+
+
+1.10.0
+======
+
+`PR 572: feat: Browse Page Modals <https://github.com/smaht-dac/smaht-portal/pull/572>`_
+
+* Implement Modal for empty browse pages
+
+
+1.9.0
+=====
+
+`PR 588: Add donors field and final outputs to AnalysisRun <https://github.com/smaht-dac/smaht-portal/pull/588>`_
+
+* Add donor field to AnalysisRun
+* Display final output files from completed MetaWorkflowRuns on Analysis Status page
+
 
 1.8.8
 =====
@@ -56,7 +81,7 @@ Change Log
 
 
 1.8.5
-======
+=====
 
 `PR 581: udate README <https://github.com/smaht-dac/smaht-portal/pull/581>`_
 
