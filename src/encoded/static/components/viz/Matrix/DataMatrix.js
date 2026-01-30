@@ -7,7 +7,6 @@ import ReactTooltip from 'react-tooltip';
 import { console, ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { VisualBody } from './StackedBlockVisual';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
-import { germLayerTissueMapping } from '../../util/data';
 
 
 export default class DataMatrix extends React.PureComponent {
@@ -70,13 +69,13 @@ export default class DataMatrix extends React.PureComponent {
         return result;
     }
 
-    static DEFAULT_ROW_GROUPS_EXTENDED = DataMatrix.deepExtend({}/*germLayerTissueMapping*/, {
+    static DEFAULT_ROW_GROUPS_EXTENDED = {
         Ectoderm: { backgroundColor: '#367151', textColor: '#ffffff', shortName: 'Ecto' },
         Mesoderm: { backgroundColor: '#30975e', textColor: '#ffffff', shortName: 'Meso' },
         Endoderm: { backgroundColor: '#53b27e', textColor: '#ffffff', shortName: 'Endo' },
         'Germ cells': { backgroundColor: '#80c4a0', textColor: '#ffffff', shortName: 'Germ' },
         'Clinically accessible': { backgroundColor: '#70a588', textColor: '#ffffff', shortName: 'Clin' },
-    });
+    };
 
 
     static defaultProps = {
