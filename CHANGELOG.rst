@@ -8,6 +8,14 @@ Change Log
 ----------
 
 
+1.11.0
+======
+
+`PR 590: Data matrix germ layer - tissue mappings <https://github.com/smaht-dac/smaht-portal/pull/590>`_
+
+* Convert hard-coded germ layer - tissue mappings to generate from fetched data on the fly
+
+
 1.10.3
 ======
 
