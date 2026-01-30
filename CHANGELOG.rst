@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.11.1
+======
+
+`PR 593: Bugfix for Analysis Status page <https://github.com/smaht-dac/smaht-portal/pull/593>`_
+
+* Make sure all final output files are displayed on the Analysis Status page
+
 
 1.11.0
 ======
