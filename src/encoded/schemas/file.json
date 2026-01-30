@@ -337,7 +337,7 @@
             "title": "Donor Hardy Scale",
             "aggregation_type": "stats"
         },
-        "sample_summary.tissues": {
+        "sample_summary.tissue_short_names": {
             "title": "Tissue"
         },
         "file_sets.libraries.assay.display_title": {
