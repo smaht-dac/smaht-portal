@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+
+1.11.2
+=====
+
+`PR 589: WF Sample and File Nomenclature typo fix <https://github.com/smaht-dac/smaht-portal/pull/589>`_
+
+* Fix Sample and File Nomenclature documentation typo
+
+
 1.11.1
 ======
 
@@ -62,14 +71,6 @@ Change Log
 
 * Add donor field to AnalysisRun
 * Display final output files from completed MetaWorkflowRuns on Analysis Status page
-
-
-1.8.9
-=====
-
-`PR 589: WF Sample and File Nomenclature typo fix <https://github.com/smaht-dac/smaht-portal/pull/589>`_
-
-* Fix Sample and File Nomenclature documentation typo
 
 
 1.8.8
