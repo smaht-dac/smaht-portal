@@ -15,9 +15,9 @@ const ROLE_MATRIX = {
         runHeaderChecks: true,
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
-        runDRTExists: false, // disable until new DRT implementation is deployed
-        runDRTBamCramWarningExists: true,
-        runDRTCountsCheck: false, // disable until new DRT implementation is deployed
+        runDRTExists: true,
+        runDRTBamCramWarningExists: false, // disabled after new DRT implementation
+        runDRTCountsCheck: true,
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: false,
 
@@ -34,9 +34,9 @@ const ROLE_MATRIX = {
         runHeaderChecks: true,
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
-        runDRTExists: false, // disable until new DRT implementation is deployed
-        runDRTBamCramWarningExists: true,
-        runDRTCountsCheck: false, // disable until new DRT implementation is deployed
+        runDRTExists: true,
+        runDRTBamCramWarningExists: true, // enabled after new DRT implementation
+        runDRTCountsCheck: true,
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: true,
 
@@ -52,9 +52,9 @@ const ROLE_MATRIX = {
         runHeaderChecks: true,
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
-        runDRTExists: false, // disable until new DRT implementation is deployed
-        runDRTBamCramWarningExists: true,
-        runDRTCountsCheck: false, // disable until new DRT implementation is deployed
+        runDRTExists: true,
+        runDRTBamCramWarningExists: false, // disabled after new DRT implementation
+        runDRTCountsCheck: true,
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: true,
 
@@ -69,9 +69,9 @@ const ROLE_MATRIX = {
         runHeaderChecks: true,
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
-        runDRTExists: false, // disable until new DRT implementation is deployed
-        runDRTBamCramWarningExists: true,
-        runDRTCountsCheck: false, // disable until new DRT implementation is deployed
+        runDRTExists: true,
+        runDRTBamCramWarningExists: false, // disabled after new DRT implementation
+        runDRTCountsCheck: true,
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: true,
 
@@ -86,9 +86,9 @@ const ROLE_MATRIX = {
         runHeaderChecks: true,
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
-        runDRTExists: false, // disable until new DRT implementation is deployed
-        runDRTBamCramWarningExists: true,
-        runDRTCountsCheck: false, // disable until new DRT implementation is deployed
+        runDRTExists: true,
+        runDRTBamCramWarningExists: false, // disabled after new DRT implementation
+        runDRTCountsCheck: true,
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: true,
 
