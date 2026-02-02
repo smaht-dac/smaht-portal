@@ -165,15 +165,13 @@ def get_tissue_type(properties: Dict[str, Any], request_handler: RequestHandler)
         tag="tissue_type"
     )
     # Use donor code from external id to identify benchmarking samples
-    if is_benchmarking(properties) and " - " in tissue_type:
-        # NOTE: Relies on formatting of ontology term to be [TPC code] - [Tissue type]
-        return " - ".split(tissue_type)[1]
+    if tissue_type and is_benchmarking(properties):
+        if " - " in tissue_type:
+            # NOTE: Relies on formatting of ontology term to be [TPC code] - [Tissue type]
+            return tissue_type.split(' - ')[1]
     return tissue_type
         
     
-    
-
-
 def get_category(properties: Dict[str, Any], request_handler: RequestHandler) -> str:
     """
     Get category associated with tissue.

@@ -90,6 +90,10 @@
         "grouping_term": "UBERON:0002097",
         "consortia": [
             "smaht"
+        ],
+        "preferred_name": "3AD - Skin, Calf",
+        "tags": [
+            "tissue_type"
         ]
     },
     {
@@ -100,9 +104,6 @@
         "grouping_term": "UBERON:0000924",
         "consortia": [
             "smaht"
-        ],
-        "tags": [
-            "tissue_type"
         ]
     },
     {
