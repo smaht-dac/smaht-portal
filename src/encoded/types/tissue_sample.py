@@ -64,6 +64,8 @@ def assert_external_id_category_match(external_id: str, category: str):
         return tissue_sample_utils.is_specimen_external_id(external_id)
     elif category == "Core":
         return tissue_sample_utils.is_core_external_id(external_id)
+    elif category == "Tissue Aliquot":
+        return tissue_sample_utils.is_tissue_aliquot_external_id(external_id)
     else:
         return ""
 
