@@ -1145,8 +1145,38 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 			}
 		}
 	}
-}
 
+	// No Results Modal used in Browse by File and Donor pages
+	.download-access-required-modal-backdrop.show {
+		opacity: 0.15;
+		z-index: 6;
+	}
+	div.download-access-required-modal {
+		backdrop-filter: blur(3px);
+		z-index: 6;
+
+		#download-access-required-modal {
+			.modal-content {
+				padding: 0px;
+				border: none;
+				border-radius: 20px;
+				box-shadow: 0px 0px 10px #D3D9E7;
+			}
+
+			.callout-card.protected-data {
+				padding: 20px;
+				img {
+					width: 50px;
+				}
+
+				h4 {
+					margin: 15px;
+				}
+			}
+		}
+
+	}
+}
 
 h2.browse-summary-header {
 	font-size: 1.5rem;
