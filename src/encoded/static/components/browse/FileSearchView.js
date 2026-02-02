@@ -22,6 +22,7 @@ import {
     TitleAndSubtitleBeside,
 } from '../PageTitleSection';
 import { useUserDownloadAccess } from '../util/hooks';
+import { compareFacetTermsByTissueAndCode } from '../util/data';
 
 export default function FileSearchView(props) {
     const { schemas, session, facets, href, context } = props;
@@ -114,6 +115,12 @@ function FileTableWithSelectedFilesCheckboxes(props) {
 
     const tableColumnClassName = 'results-column col';
     const facetColumnClassName = 'facets-column col-auto';
+    const facetListSortFxns = useMemo(
+        () => ({
+            'sample_summary.tissues': compareFacetTermsByTissueAndCode,
+        }),
+        []
+    );
 
     const aboveTableComponent = (
         <BrowseViewAboveSearchTableControls
@@ -141,6 +148,7 @@ function FileTableWithSelectedFilesCheckboxes(props) {
         tableColumnClassName,
         facetColumnClassName,
         columnExtensionMap,
+        facetListSortFxns,
         navigate: propNavigate,
         toggleFullScreen,
         isFullscreen, // todo: remove maybe, pass only to AboveTableControls
