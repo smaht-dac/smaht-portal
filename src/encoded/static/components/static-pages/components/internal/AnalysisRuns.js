@@ -11,6 +11,7 @@ import {
     formatDate,
     getLink,
     createBadge,
+    getStatusBadgeType,
     createWarningIcon,
     getCommentsList,
     getCommentInputField,
@@ -273,19 +274,29 @@ class AnalysisRunsComponent extends React.PureComponent {
             let donors = [];
             ar.tissues?.forEach((tissue) => {
                 tissues.push(tissue.tissue_type);
-                donors.push(tissue.donor.display_title);
+            });
+            ar.donors?.forEach((d) => {
+                donors.push(d.display_title);
             });
             donors = [...new Set(donors)].sort();
             const donorsString = donors.join(', ');
             const tissuesString = tissues.join(', ');
-
             let details = [
-                <li className="ss-line-height-140">Donors: {donorsString}</li>,
-                <li className="ss-line-height-140">
-                    Tissues: {tissuesString}
-                </li>,
+                <li className="ss-line-height-140">Type: {ar.analysis_type}</li>
             ];
-
+            if (donorsString.length > 0) {
+                details.push(
+                    <li className="ss-line-height-140">Donors: {donorsString}</li>
+                );
+            }
+            if (tissuesString.length > 0) {
+                details.push(
+                    <li className="ss-line-height-140">
+                        Tissues: {tissuesString}
+                    </li>
+                );
+            }
+            
             const commentHandlers = {
                 handleToggleCommentInputField:
                     this.handleToggleCommentInputField,
@@ -382,10 +393,35 @@ class AnalysisRunsComponent extends React.PureComponent {
                 }
             });
 
+            let final_outputs = [];
+            ar.final_outputs?.forEach((fo) => {
+                const badgeType = getStatusBadgeType(fo.status);
+                const fo_badge = createBadge(badgeType, fo.status);
+                final_outputs.push(
+                    <li className="text-start pb-1">
+                         <a href={fo.accession} target="_blank" data-tip={fo.display_title}>
+                            {fo.accession}
+                        </a>
+                        <object.CopyWrapper
+                            value={fo.accession}
+                            className=""
+                            data-tip={'Click to copy accession'}
+                            wrapperElement="span"
+                            iconProps={{
+                                style: { fontSize: '0.875rem', marginLeft: 3 },
+                            }}></object.CopyWrapper>
+                        <small className='d-block ss-line-height-140'>Status: {fo_badge}</small>
+                        
+                    </li>
+                );
+            });
+            final_outputs = final_outputs.length === 0 ? "-" : final_outputs;
+            final_outputs = <ul className="list-unstyled">{final_outputs}</ul>;
+
             return (
                 <tr key={ar.accession}>
                     <td className="text-start ss-fileset-column">
-                        {getLink(ar.accession, ar.analysis_type)}
+                        {getLink(ar.accession, ar.description || ar.analysis_type)}
                         <object.CopyWrapper
                             value={ar.accession}
                             className=""
@@ -395,6 +431,9 @@ class AnalysisRunsComponent extends React.PureComponent {
                                 style: { fontSize: '0.875rem', marginLeft: 3 },
                             }}></object.CopyWrapper>
                         {details}
+                    </td>
+                    <td>
+                        <div className="p-1">{final_outputs}</div>
                     </td>
                     <td>
                         <div className="p-1">{mwfrs}</div>
@@ -433,7 +472,7 @@ class AnalysisRunsComponent extends React.PureComponent {
                     <thead className="sticky-top ss-fixed-thead">
                         <tr>
                             <td
-                                colSpan={3}
+                                colSpan={4}
                                 className="bg-white border border-white border-bottom-0">
                                 <div className="d-flex">
                                     {loadingSpinner}
@@ -474,6 +513,7 @@ class AnalysisRunsComponent extends React.PureComponent {
                                     </div>
                                 </div>
                             </th>
+                            <th className="text-start">Final Outputs</th>
                             <th className="text-start">MetaWorkflowRuns</th>
                             <th className="text-start">Tags</th>
                         </tr>

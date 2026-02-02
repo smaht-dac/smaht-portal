@@ -83,7 +83,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         getItemsFromPortal(
             'Donor',
             '&submission_centers.display_title=NDRI+TPC',
-            100,
+            200,
             (items) => {
                 this.setState({ donors: items });
             }
