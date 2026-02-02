@@ -798,6 +798,7 @@ body[data-path="/"]>#application>#layout {
 					display: flex;
 					flex-direction: column;
 					flex: 1;
+					max-height: 500px;
 
 					&-header {
 						font-size: 1rem;
@@ -976,7 +977,53 @@ body[data-path="/"]>#application>#layout {
 
 										.release-item {
 											padding: 5px 0px 0px 0px;
+
+											.day-group-header {
+												display: flex;
+												padding: 2px 0px;
+												border-radius: 4px;
+												margin: 0px 0px 0px 10px;
+
+												.toggle-button {
+													display: flex;
+													margin: auto;
+													border: 1px solid transparent;
+													border-radius: 100%;
+													padding: 2px;
+													color: #485983;
+													background-color: transparent;
+												}
+												
+												.title {
+													display: flex;
+													justify-content: space-between;
+													flex: 1;
+													padding: 2px 8px;
+													border-radius: 7px;
+													font-weight: 700;
+													font-size: 0.875rem;
+													color: #485983;
+
+													.count {
+														display: flex;
+														gap: 4px;
+														align-items: center;
+														font-size: 0.6875rem;
+														color: #65759f;
+													}
+													
+													&:hover {
+														cursor: pointer;
+														background-color: #E7F1FB;
+														transition: background-color 100ms;
+													}
+												}
+
+											}
 											
+											.donor-list {
+												padding-left: 24px;
+											}
 											.donor-group-header {
 												display: flex;
 												padding: 2px 0px;
@@ -984,7 +1031,6 @@ body[data-path="/"]>#application>#layout {
 												gap: 4px;
 												padding-bottom: 0px;
 												
-
 												.toggle-button {
 													display: flex;
 													border-radius: 100%;
@@ -1009,7 +1055,6 @@ body[data-path="/"]>#application>#layout {
 													align-items: baseline;
 													transition: background-color 100ms;
 													margin-bottom: 0px;
-													padding-bottom: 0px;
 													
 													.count {
 														display: flex;
