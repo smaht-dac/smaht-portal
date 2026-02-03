@@ -7,13 +7,44 @@ smaht-portal
 Change Log
 ----------
 
-1.10.3
+1.11.3
 ======
 
 `PR 591: SN Fix DSA release script <https://github.com/smaht-dac/smaht-portal/pull/591>`_
 
 * Update means of getting chain file code for annotated filenames to do a search query on `code` and `title` of ReferenceGenomes and return either "DSA" or the unique `code` value
 * Add bed files to access status function
+
+
+1.11.2
+======
+
+`PR  595 update TissueSample validator <https://github.com/smaht-dac/smaht-portal/pull/595>`_
+
+* Add support for Tissue Aliquot category validation in TissueSample validator
+
+1.11.1
+======
+
+`PR 593: Bugfix for Analysis Status page <https://github.com/smaht-dac/smaht-portal/pull/593>`_
+
+* Make sure all final output files are displayed on the Analysis Status page
+
+
+1.11.0
+======
+
+`PR 590: Data matrix germ layer - tissue mappings <https://github.com/smaht-dac/smaht-portal/pull/590>`_
+
+* Convert hard-coded germ layer - tissue mappings to generate from fetched data on the fly
+
+
+1.10.3
+======
+
+`PR 592: fix: modal styles udpate <https://github.com/smaht-dac/smaht-portal/pull/592>`_
+
+* Fix browse page modal styles
 
 
 1.10.2

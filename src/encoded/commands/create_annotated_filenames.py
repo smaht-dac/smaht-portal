@@ -110,8 +110,8 @@ class AssociatedItems:
     tissue_samples: List[Dict[str, Any]]
     tissues: List[Dict[str, Any]]
     donors: List[Dict[str, Any]]
-    target_assembly: Dict[str, Any]
-    source_assembly: Dict[str, Any]
+    target_assembly: Union[str, None]
+    source_assembly: Union[str, None]
 
 
 def get_associated_items(
@@ -239,16 +239,24 @@ def get_reference_genome(
 
 def get_target_assembly(
     file: Dict[str, Any], request_handler: RequestHandler
-) -> List[Dict[str, Any]]:
+) -> str:
     """Get target assembly for file."""
-    return get_reference_genome_search(supp_file_utils.get_target_assembly(file), request_handler)
+    return get_reference_genome_code(
+        get_reference_genome_search(
+            supp_file_utils.get_target_assembly(file), request_handler
+        )
+    )
 
 
 def get_source_assembly(
     file: Dict[str, Any], request_handler: RequestHandler
-) -> List[Dict[str, Any]]:
+) -> str:
     """Get source assembly for file."""
-    return get_reference_genome_search(supp_file_utils.get_source_assembly(file), request_handler)
+    return get_reference_genome_code(
+        get_reference_genome_search(
+            supp_file_utils.get_source_assembly(file), request_handler
+        )
+    )
 
 
 def get_reference_genome_search(
@@ -265,6 +273,28 @@ def get_reference_genome_search(
     title_search = f"/search/?type=ReferenceGenome&title={value}"
     result = ff_utils.search_metadata(code_search, key=request_handler.auth_key) + ff_utils.search_metadata(title_search, key=request_handler.auth_key)
     return result
+
+
+def get_reference_genome_code(assemblies: List[Dict[str, Any]]) -> str:
+    """Get unique code for reference genomes from search result."""
+    is_dsa = [dsa_utils.is_donor_specific_assembly(ref) for ref in assemblies]
+    # If all of the results are DSAs; use DSA value
+    if all(is_dsa):
+        return DSA_INFO_VALUE
+    # Some but not all results are DSAs, weird case raise error
+    elif any(is_dsa):
+        raise Exception("Invalid source or target assembly value")
+    else:
+        # None of the results are DSAs
+        # Get unique code values from result
+        ref_code = []
+        for ref in assemblies:
+            if (new_code := item_utils.get_code(ref)) not in ref_code:
+                ref_code.append(new_code)
+        # If there is more than one unique code in the returned reference genomes, weird case raise error
+        if len(ref_code) != 1:
+            raise Exception("Invalid source or target assembly value")
+        return ref_code[0]
 
 
 def get_gene_annotations(
@@ -884,8 +914,8 @@ def get_analysis(
     reference_genome: Dict[str, Any],
     gene_annotations: Dict[str, Any],
     file_extension: Dict[str, Any],
-    target_assembly: List[Dict[str, Any]],
-    source_assembly: List[Dict[str, Any]],
+    target_assembly: str,
+    source_assembly: str,
     donor_specific_assembly: Dict[str, Any],
 ) -> FilenamePart:
     """Get analysis info for file.
@@ -1097,33 +1127,15 @@ def get_software_codes_missing_versions(
 
 def get_chain_file_value(
         file: Dict[str, Any],
-        target_assembly: List[Dict[str, Any]],
-        source_assembly: List[Dict[str, Any]],
+        target_assembly: str,
+        source_assembly: str,
         file_extension: Dict[str, Any]
     ) -> str:
     """Get genome conversion direction for chain files."""
     if file_format_utils.is_chain_file(file_extension):
-        target_value = get_reference_genome_code(target_assembly)
-        source_value = get_reference_genome_code(source_assembly)
-        if target_value and source_value:
-            return CHAIN_FILE_INFO_SEPARATOR.join([source_value,target_value])
+        if target_assembly and source_assembly:
+            return CHAIN_FILE_INFO_SEPARATOR.join([source_assembly,target_assembly])
     return ""
-
-
-def get_reference_genome_code(assemblies: List[Dict[str, Any]]) -> str:
-    """Get unique code for reference genomes from search result."""
-    # If any of the reference genomes are DSAs, we can assume all of them are; use DSA value
-    if any([dsa_utils.is_donor_specific_assembly(ref) for ref in assemblies]):
-        return DSA_INFO_VALUE
-    # Get unique code values from result
-    ref_code = []
-    for ref in assemblies:
-        if (new_code := item_utils.get_code(ref)) not in ref_code:
-            ref_code.append(new_code)
-    # If there is more than one unique code in the returned reference genomes, return empty to raise error
-    if len(ref_code) != 1:
-        return ""
-    return ref_code[0]
 
 
 def get_haplotype_value(
