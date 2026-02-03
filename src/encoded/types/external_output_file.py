@@ -7,7 +7,8 @@ from .submitted_file import SubmittedFile
 from .file import CalcPropConstants
 
 from ..item_utils import (
-    file as file_utils
+    file as file_utils,
+    external_output_file as eof_utils
 )
 from ..item_utils.utils import (
     get_property_value_from_identifier,
@@ -46,5 +47,5 @@ class ExternalOutputFile(SubmittedFile):
         if (file_set_source := SubmittedFile.sample_sources(self, request, file_sets)):
             return file_set_source
         else:
-            result = file_utils.get_sample_sources(self.properties)
+            result = eof_utils.get_tissues(self.properties)
         return result or None
