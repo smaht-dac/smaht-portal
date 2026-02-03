@@ -134,6 +134,9 @@
                     "Sorted",
                     "Phased",
                     "Unphased"
+                ],
+                "default": [
+                    "Unphased"
                 ]
             }
         },
