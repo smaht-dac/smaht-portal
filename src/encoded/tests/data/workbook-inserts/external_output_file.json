@@ -12,7 +12,7 @@
             "SNV",
             "Indel"
         ],
-        "data_description": "Phased Germline SNV",
+        "data_description": ["Phased Germline SNV"],
         "analysis_details": ["Phased"],
         "file_format": "VCF",
         "filename": "germline_vcf.vcf",
