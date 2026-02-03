@@ -16,7 +16,6 @@ const ROLE_MATRIX = {
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
         runDRTExists: true,
-        runDRTBamCramWarningExists: false, // disabled after new DRT implementation
         runDRTCountsCheck: true,
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: false,
@@ -25,6 +24,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
+        expectNoResultsModalFromDRT: true // should not have access to DRT items
     },
 
     [ROLE_TYPES.SMAHT_DBGAP]: {
@@ -35,7 +35,6 @@ const ROLE_MATRIX = {
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
         runDRTExists: true,
-        runDRTBamCramWarningExists: true, // enabled after new DRT implementation
         runDRTCountsCheck: true,
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: true,
@@ -43,6 +42,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
+        expectNoResultsModalFromDRT: false // should have access to DRT items
     },
 
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
@@ -53,7 +53,6 @@ const ROLE_MATRIX = {
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
         runDRTExists: true,
-        runDRTBamCramWarningExists: false, // disabled after new DRT implementation
         runDRTCountsCheck: true,
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: true,
@@ -61,6 +60,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
+        expectNoResultsModalFromDRT: false // should have access to DRT items
     },
 
     [ROLE_TYPES.PUBLIC_DBGAP]: {
@@ -70,7 +70,6 @@ const ROLE_MATRIX = {
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
         runDRTExists: true,
-        runDRTBamCramWarningExists: false, // disabled after new DRT implementation
         runDRTCountsCheck: true,
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: true,
@@ -78,6 +77,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
+        expectNoResultsModalFromDRT: true, // should not have access to DRT items
     },
 
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
@@ -87,7 +87,6 @@ const ROLE_MATRIX = {
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
         runDRTExists: true,
-        runDRTBamCramWarningExists: false, // disabled after new DRT implementation
         runDRTCountsCheck: true,
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: true,
@@ -95,6 +94,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
+        expectNoResultsModalFromDRT: false // should have access to DRT items
     },
 };
 
@@ -213,20 +213,6 @@ function stepDRTExists(caps) {
         .should('have.length.greaterThan', 0);
 }
 
-// Data Release Tracker BAM-CRAM conversion warning exists
-function stepDRTBamCramWarningExists(caps) {
-    if (!caps.runDRTBamCramWarningExists) return;
-
-    cy.get('.notifications-panel .data-release-tracker .announcement-container.cram-conversion')
-        .should('have.length.greaterThan', 0)
-        .first()
-        .within(() => {
-            cy.get('.body')
-                .should('be.visible')
-                .and('contain.text', 'all released BAMs have been converted to CRAMs');
-        });
-}
-
 // Each DRT item navigates and matches file counts
 function stepDRTCountsCheck(caps) {
     if (!caps.runDRTCountsCheck) return;
@@ -318,10 +304,6 @@ describe('Home Page by role', () => {
 
             it(`should have Data Release Tracker feed with item(s) (enabled: ${caps.runDRTExists})`, () => {
                 stepDRTExists(caps);
-            });
-
-            it(`should have Data Release Tracker BAM→CRAM conversion warning (enabled: ${caps.runDRTBamCramWarningExists})`, () => {
-                stepDRTBamCramWarningExists(caps);
             });
 
             it(`should navigate DRT items and match file counts (enabled: ${caps.runDRTCountsCheck})`, () => {
