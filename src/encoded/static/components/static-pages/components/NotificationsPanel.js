@@ -174,8 +174,6 @@ const DonorGroup = (props) => {
     const { count, items, donor, query } = props;
     const [isToggled, toggle] = useToggle();
 
-    console.log('DonorGroup props:', props, items);
-
     let donorTitle = donor;
 
     return (
@@ -222,8 +220,6 @@ const DonorGroup = (props) => {
 
 const DayGroup = (props) => {
     const { count, date, query, items: donorGroups } = props;
-
-    // console.log('DayGroup props:', props);
     const [isToggled, toggle] = useToggle();
 
     return (
@@ -340,26 +336,22 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
 // Return a formatted object for release data related to a single donor
 const formatDonorReleaseData = (data) => {
     const { count, items, value, query } = data;
-    // console.log('donor data', data);
 
     // Pull out Donor and add to [acc]
     const [donor, tissueCode] = value?.split('-');
-
-    // console.log('items', items, data);
 
     const formattedDonorItems = items.reduce((acc, item) => {
         const { count, value, query, additional_value } = item;
         const formattedTissue = { count, value, query };
         const tissueTitle = tissueCode + ' - ' + item.additional_value;
-        // console.log('tissueTitle', tissueTitle, item);
 
         if (acc?.[tissueTitle]) {
             // add to existing group
             acc[tissueTitle] = {
                 ...acc[tissueTitle],
                 items: Object.assign(
-                    acc[tissueTitle].items,
-                    formattedTissue.items
+                    acc[tissueTitle]?.items || {},
+                    formattedTissue?.items || {}
                 ),
                 count: acc[tissueTitle].count + formattedTissue.count,
             };
@@ -383,7 +375,6 @@ const formatDayReleaseData = (data) => {
 
     const formattedDayItems = data.items.reduce((acc, item) => {
         // Each item is a donor release, should be donor as key
-        // console.log('day item', item);
         const [donor, tissueCode] = item?.value?.split('-');
 
         const formattedDonor = formatDonorReleaseData(item);
