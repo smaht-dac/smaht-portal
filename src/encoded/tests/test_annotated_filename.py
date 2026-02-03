@@ -553,25 +553,14 @@ SOME_GENE_ANNOTATION = [{"code": GENE_ANNOTATION_CODE, "version": GENE_ANNOTATIO
 SOME_UNALIGNED_READS = {"data_type": ["Unaligned Reads"]}
 SOME_ALIGNED_READS = {"data_category": "Sequencing Reads", "data_type": ["Aligned Reads"]}
 RNA_ALIGNED_READS = {"data_type": ["Aligned Reads"], "data_category": ["RNA Quantification"]}
-
-SOME_TARGET_ASSEMBLY = [{
-    "@type": ["ReferenceGenome"],
-    "code": REFERENCE_GENOME_CODE
-}]
-MULTIPLE_TARGET_ASSEMBLIES = [
-    {
-    "@type": ["ReferenceGenome"],
-    "code": REFERENCE_GENOME_CODE
-    },
-    {
-    "@type": ["ReferenceGenome"],
-    "code": REFERENCE_GENOME_CODE
-    },
-    ]
-SOME_SOURCE_ASSEMBLY = [{
+DSA_VERSION = "1.0.0"
+SOME_DSA = {
     "@type": ["DonorSpecificAssembly"],
-    "code": DSA_CODE
-}]
+    "code": DSA_CODE,
+    "version": DSA_VERSION
+}
+SOME_TARGET_ASSEMBLY = REFERENCE_GENOME_CODE
+SOME_SOURCE_ASSEMBLY = DSA_VALUE
 SOME_CHAIN_FILE = {
     "data_category": ["Reference Conversion"],
     "data_type": ["Chain File"],
@@ -582,7 +571,8 @@ SOME_FASTA_FILE = {
     "data_type": ["DSA"],
     "data_category": ["Genome Assembly"],
     "donor_specific_assembly": "Some_DSA",
-    "haplotype": HAPLOTYPE_CODE
+    "haplotype": HAPLOTYPE_CODE,
+    "version": "1.0"
 }
 
 ANOTHER_FASTA_FILE = {
@@ -754,9 +744,9 @@ TSV_FILE_EXTENSION = {
             {},
             {},
             CHAIN_FILE_EXTENSION,
-            MULTIPLE_TARGET_ASSEMBLIES,
+            SOME_TARGET_ASSEMBLY,
             SOME_SOURCE_ASSEMBLY,
-            SOME_SOURCE_ASSEMBLY,
+            SOME_DSA,
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}To{REFERENCE_GENOME_CODE}",
             False,
         ),
@@ -769,7 +759,7 @@ TSV_FILE_EXTENSION = {
             CHAIN_FILE_EXTENSION,
             {},
             {},
-            SOME_SOURCE_ASSEMBLY,
+            SOME_DSA,
             "",
             True,
         ),
@@ -782,8 +772,8 @@ TSV_FILE_EXTENSION = {
             FASTA_FILE_EXTENSION,
             {},
             {},
-            SOME_SOURCE_ASSEMBLY, 
-            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{HAPLOTYPE_CODE}",
+            SOME_DSA, 
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}_{DSA_VERSION}_{HAPLOTYPE_CODE}",
             False,
         ),
         (
@@ -977,8 +967,8 @@ def test_get_analysis(
     reference_genome: Dict[str, Any],
     annotation: Dict[str, Any],
     file_extension: Dict[str, Any],
-    target_assembly: List[Dict[str, Any]],
-    source_assembly: List[Dict[str, Any]],
+    target_assembly: str,
+    source_assembly: str,
     dsa: Dict[str, Any],
     expected: str,
     errors: bool,

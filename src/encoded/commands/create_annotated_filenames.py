@@ -110,8 +110,8 @@ class AssociatedItems:
     tissue_samples: List[Dict[str, Any]]
     tissues: List[Dict[str, Any]]
     donors: List[Dict[str, Any]]
-    target_assembly: Union[str, None]
-    source_assembly: Union[str, None]
+    target_assembly: Optional[str] = None
+    source_assembly: Optional[str] = None
 
 
 def get_associated_items(
@@ -130,14 +130,15 @@ def get_associated_items(
     reference_genome = get_reference_genome(file, request_handler)
     gene_annotations = get_gene_annotations(file, request_handler)
     donor_specific_assembly = get_donor_specific_assembly(file, request_handler)
+    target_assembly = None
+    source_assembly = None
     if donor_specific_assembly:
         file_sets = get_derived_from_file_sets(file, request_handler)
-        target_assembly = get_target_assembly(file, request_handler)
-        source_assembly = get_source_assembly(file, request_handler)
+        if file_format_utils.is_chain_file(file_format):
+            target_assembly = get_target_assembly(file, request_handler)
+            source_assembly = get_source_assembly(file, request_handler)
     else:
         file_sets = get_file_sets(file, request_handler, file_sets=file_sets)
-        target_assembly = []
-        source_assembly = []
     assays = get_assays(file_sets, request_handler)
     sequencers = get_sequencers(file_sets, request_handler)
     samples = get_samples(file_sets, request_handler)
@@ -927,7 +928,7 @@ def get_analysis(
     reference_genome_code = item_utils.get_code(reference_genome)
     gene_annotation_code = get_annotations_and_versions(gene_annotations)
     transcript_info_code = get_rna_seq_tsv_value(file, file_extension)
-    haplotype_code = get_haplotype_value(file, file_extension, donor_specific_assembly)
+    fasta_code = get_dsa_fasta_value(file, file_extension, donor_specific_assembly)
     kinnex_info_code = get_kinnex_value(file, assay)
     consensus_read_flag = get_consensus_value(file, assay)
     chain_code = get_chain_file_value(file, target_assembly, source_assembly, file_extension)
@@ -937,7 +938,7 @@ def get_analysis(
         gene_annotation_code,
         transcript_info_code,
         chain_code,
-        haplotype_code,
+        fasta_code,
         consensus_read_flag,
         kinnex_info_code
     )
@@ -947,7 +948,7 @@ def get_analysis(
         gene_annotation_code,
         transcript_info_code,
         chain_code,
-        haplotype_code,
+        fasta_code,
         file_extension,
         assay,
     )
@@ -1138,17 +1139,14 @@ def get_chain_file_value(
     return ""
 
 
-def get_haplotype_value(
+def get_dsa_fasta_value(
         file: Dict[str, Any],
         file_extension: Dict[str, Any],
         donor_specific_assembly: Dict[str, Any]
     ):
-    """Get haplotype value for fasta file."""
-    if file_format_utils.is_fasta_file(file_extension):
-        if (haplotype := supp_file_utils.get_haplotype(file)):
-            return haplotype
-        elif donor_specific_assembly:
-            return DSA_INFO_VALUE
+    """Get DSA version and haplotype values for fasta file."""
+    if donor_specific_assembly and file_format_utils.is_fasta_file(file_extension):
+        return ANALYSIS_INFO_SEPARATOR.join([DSA_INFO_VALUE, item_utils.get_version(donor_specific_assembly), supp_file_utils.get_haplotype(file)])
     return ""
 
 
