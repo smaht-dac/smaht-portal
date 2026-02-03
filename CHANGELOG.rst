@@ -7,6 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+1.11.2
+======
+
+`PR  <>`_
+
+* Add support for Tissue Aliquot category validation in TissueSample validator
+
 1.11.1
 ======
 
