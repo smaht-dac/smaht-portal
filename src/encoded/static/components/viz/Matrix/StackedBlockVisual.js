@@ -1120,24 +1120,30 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary
         } = props;
 
-        const hasColumnGroups = showColumnGroups && columnGroups && _.keys(columnGroups).length > 0;
-        const hasColumnGroupsExtended = showColumnGroupsExtended && columnGroupsExtended && _.keys(columnGroupsExtended).length > 0;
-
-        const columnGroupsKeys = hasColumnGroups ? [..._.keys(columnGroups), FALLBACK_GROUP_NAME] : null;
-
         const rowHeight = blockHeight + (blockVerticalSpacing * 2) + 1;
         const columnWidth = (blockWidth + (blockHorizontalSpacing * 2)) + blockHorizontalExtend;
         const headerItemStyle = { 'width': columnWidth, 'minWidth': columnWidth };
         const sorterActiveStyle = _.extend({}, headerItemStyle);
 
+        const hasColumnGroups = showColumnGroups && columnGroups && _.keys(columnGroups).length > 0;
+        const hasColumnGroupsExtended = showColumnGroupsExtended && columnGroupsExtended && _.keys(columnGroupsExtended).length > 0;
+        const columnGroupsKeys = hasColumnGroups ? [..._.keys(columnGroups), FALLBACK_GROUP_NAME] : null;
+
         const extPadding = 60 + (hasColumnGroups ? 26 : 0) + (hasColumnGroupsExtended ? 30 : 0);
         const labelSectionStyle = { 'paddingTop': Math.max(0, headerPadding + extPadding - rowHeight) };
         const listSectionStyle = { 'paddingTop': headerPadding };
 
-        let columnKeys = _.keys(groupedDataIndices);
-        if (hasColumnGroups) {
-            columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, StackedBlockGroupedRow.mergeValues(columnGroups));
-        }
+        const getColumnKeys = () => {
+            let keys = _.keys(groupedDataIndices);
+            if (hasColumnGroups) {
+                keys = StackedBlockGroupedRow.sortByArray(
+                    keys,
+                    StackedBlockGroupedRow.mergeValues(columnGroups)
+                );
+            }
+            return keys;
+        };
+        const columnKeys = getColumnKeys();
         //currently not in use
         // const totalColumnHeader = (
         //     <div
@@ -1158,127 +1164,150 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             headerItemStyle,
         };
 
+        const renderAxisLabels = () => {
+            if (!showAxisLabels) return null;
+            return (
+                <div className="axis-container flex-grow-1">
+                    <div className="x-axis">{xAxisLabel || 'X'}</div>
+                    <div className="y-axis">{yAxisLabel || 'Y'}</div>
+                </div>
+            );
+        };
+
+        const renderColumnHeaders = () => (
+            <div className="d-flex header-col-text">
+                {columnKeys.map(function (columnKey, colIndex) {
+                    const hasOpenBlock = openBlock?.columnIdx === colIndex;
+                    const hasActiveBlock = activeBlock?.columnIdx === colIndex;
+                    const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
+                    return (
+                        <div key={'col-' + columnKey} className={className} style={headerItemStyle}>
+                            <div className="inner">
+                                <span>{columnKey}</span>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+
+        const renderColumnGroupHeaders = () => {
+            if (!hasColumnGroups) return null;
+            return (
+                <div className="d-flex header-group-text">
+                    {
+                        columnGroupsKeys.map(function (groupKey) {
+                            const { values, backgroundColor, textColor } = columnGroups[groupKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
+
+                            let columnGroupChilColumnKeys = [];
+                            if (groupKey === FALLBACK_GROUP_NAME) { //special case for N/A
+                                const allValues = StackedBlockGroupedRow.mergeValues(columnGroups);
+                                // not intersecting childRowsKeys and allValues
+                                columnGroupChilColumnKeys = StackedBlockGroupedRow.difference(columnKeys, allValues);
+                            } else {
+                                columnGroupChilColumnKeys = StackedBlockGroupedRow.intersection(columnKeys, values || []);
+                            }
+
+                            const colSpan = columnGroupChilColumnKeys.length;
+                            if (colSpan === 0) {
+                                return null;
+                            }
+                            const groupColumnWidth = colSpan * columnWidth;
+                            const groupHeaderItemStyle = {
+                                width: groupColumnWidth,
+                                minWidth: groupColumnWidth
+                            };
+                            groupHeaderItemStyle.backgroundColor = backgroundColor;
+                            groupHeaderItemStyle.color = textColor;
+                            const label = (groupKey.length > (colSpan * 4)) && columnGroups[groupKey].shortName ? columnGroups[groupKey].shortName : groupKey;
+
+                            return (
+                                <div key={'col-' + groupKey} className={'column-group-header'} style={groupHeaderItemStyle}>
+                                    <div className="inner">
+                                        <span data-tip={groupKey !== label ? groupKey : null}>{label}</span>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    }
+                    {/* {totalColumnHeader} */}
+                </div>
+            );
+        };
+
+        const renderExtendedColumnGroupHeaders = () => {
+            if (!hasColumnGroupsExtended) return null;
+            return (
+                <div className="d-flex header-group-text">
+                    {
+                        _.keys(columnGroupsExtended).map(function (groupExtendedKey) {
+                            const colCount = _.reduce(columnGroupsExtended[groupExtendedKey].values, function (memo, groupKey) {
+                                const count = StackedBlockGroupedRow.intersection(columnKeys, columnGroups[groupKey]?.values || []).length;
+                                return memo + count;
+                            }, 0);
+
+                            if (colCount === 0) return null;
+
+                            const groupColumnWidth = colCount * columnWidth;
+                            const groupHeaderItemStyle = {
+                                width: groupColumnWidth,
+                                minWidth: groupColumnWidth
+                            };
+                            groupHeaderItemStyle.backgroundColor = columnGroupsExtended[groupExtendedKey].backgroundColor;
+                            groupHeaderItemStyle.color = columnGroupsExtended[groupExtendedKey].textColor;
+
+                            return (
+                                <div key={'col-' + groupExtendedKey} className={'column-group-header'} style={groupHeaderItemStyle}>
+                                    <div className="inner">
+                                        <span>{groupExtendedKey}</span>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    }
+                </div>
+            );
+        };
+
+        const renderSortingHeaders = () => (
+            <div className="d-flex header-sorting">
+                {columnKeys.map(function (columnKey, colIndex) {
+                    //sort order icons
+                    let countSortIcon;
+                    if ((sorting === 'desc') && (columnKey === sortField)) {
+                        countSortIcon = <SortIconDesc />;
+                    } else if ((sorting === 'asc') && (columnKey === sortField)) {
+                        countSortIcon = <SortIconAsc />;
+                    } else {
+                        countSortIcon = <SortIconBoth />;
+                    }
+                    const countSortIconClassName = 'column-sort-icon' + (['asc', 'desc'].indexOf(sorting) > -1 && columnKey === sortField ? ' active' : '');
+                    const extraClassName = (activeBlock?.column === colIndex ? ' active-block-column' : '');
+                    const style = (activeBlock?.column === colIndex) ? sorterActiveStyle : headerItemStyle;
+                    return (
+                        <div key={'col-' + columnKey} className={'column-group-header' + extraClassName} style={style}>
+                            <div data-index={columnKey} onClick={onSorterClick}>
+                                <span className={countSortIconClassName}>{countSortIcon}</span>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+
         return (
             <React.Fragment>
                 <div className="grouping header-section-upper">
                     <div className="row grouping-row">
                         <div className="label-section d-flex flex-column" style={labelSectionStyle}>
-                            {showAxisLabels &&
-                                <div className="axis-container flex-grow-1">
-                                    <div className="x-axis">{xAxisLabel || 'X'}</div>
-                                    <div className="y-axis">{yAxisLabel || 'Y'}</div>
-                                </div>
-                            }
+                            {renderAxisLabels()}
                         </div>
                         {columnKeys.length > 0 && (
                             <div className="col list-section has-header header-for-viz" style={listSectionStyle}>
-                                <div className="d-flex header-col-text">
-                                    {columnKeys.map(function (columnKey, colIndex) {
-                                        const hasOpenBlock = openBlock?.columnIdx === colIndex;
-                                        const hasActiveBlock = activeBlock?.columnIdx === colIndex;
-                                        const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
-                                        return (
-                                            <div key={'col-' + columnKey} className={className} style={headerItemStyle}>
-                                                <div className="inner">
-                                                    <span>{columnKey}</span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                                {hasColumnGroups &&
-                                    <div className="d-flex header-group-text">
-                                        {
-                                            columnGroupsKeys.map(function (groupKey) {
-                                                const { values, backgroundColor, textColor } = columnGroups[groupKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
-
-                                                let columnGroupChilColumnKeys = [];
-                                                if (groupKey === FALLBACK_GROUP_NAME) { //special case for N/A
-                                                    const allValues = StackedBlockGroupedRow.mergeValues(columnGroups);
-                                                    // not intersecting childRowsKeys and allValues
-                                                    columnGroupChilColumnKeys = StackedBlockGroupedRow.difference(columnKeys, allValues);
-                                                } else {
-                                                    columnGroupChilColumnKeys = StackedBlockGroupedRow.intersection(columnKeys, values || []);
-                                                }
-
-                                                const colSpan = columnGroupChilColumnKeys.length;
-                                                if (colSpan === 0) {
-                                                    return null;
-                                                }
-                                                const groupColumnWidth = colSpan * columnWidth;
-                                                const groupHeaderItemStyle = {
-                                                    width: groupColumnWidth,
-                                                    minWidth: groupColumnWidth
-                                                };
-                                                groupHeaderItemStyle.backgroundColor = backgroundColor;
-                                                groupHeaderItemStyle.color = textColor;
-                                                const label = (groupKey.length > (colSpan * 4)) && columnGroups[groupKey].shortName ? columnGroups[groupKey].shortName : groupKey;
-
-                                                return (
-                                                    <div key={'col-' + groupKey} className={'column-group-header'} style={groupHeaderItemStyle}>
-                                                        <div className="inner">
-                                                            <span data-tip={groupKey !== label ? groupKey : null}>{label}</span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })
-                                        }
-                                        {/* {totalColumnHeader} */}
-                                    </div>
-                                }
-                                {hasColumnGroupsExtended &&
-                                    <div className="d-flex header-group-text">
-                                        {
-                                            _.keys(columnGroupsExtended).map(function (groupExtendedKey) {
-                                                const colCount = _.reduce(columnGroupsExtended[groupExtendedKey].values, function (memo, groupKey) {
-                                                    const count = StackedBlockGroupedRow.intersection(columnKeys, columnGroups[groupKey]?.values || []).length;
-                                                    return memo + count;
-                                                }, 0);
-
-                                                if (colCount === 0) return null;
-
-                                                const groupColumnWidth = colCount * columnWidth;
-                                                const groupHeaderItemStyle = {
-                                                    width: groupColumnWidth,
-                                                    minWidth: groupColumnWidth
-                                                };
-                                                groupHeaderItemStyle.backgroundColor = columnGroupsExtended[groupExtendedKey].backgroundColor;
-                                                groupHeaderItemStyle.color = columnGroupsExtended[groupExtendedKey].textColor;
-
-                                                return (
-                                                    <div key={'col-' + groupExtendedKey} className={'column-group-header'} style={groupHeaderItemStyle}>
-                                                        <div className="inner">
-                                                            <span>{groupExtendedKey}</span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })
-                                        }
-                                    </div>
-                                }
-                                <div className="d-flex header-sorting">
-                                    {columnKeys.map(function (columnKey, colIndex) {
-                                        //sort order icons
-                                        let countSortIcon;
-                                        if ((sorting === 'desc') && (columnKey === sortField)) {
-                                            countSortIcon = <SortIconDesc />;
-                                        } else if ((sorting === 'asc') && (columnKey === sortField)) {
-                                            countSortIcon = <SortIconAsc />;
-                                        } else {
-                                            countSortIcon = <SortIconBoth />;
-                                        }
-                                        const countSortIconClassName = 'column-sort-icon' + (['asc', 'desc'].indexOf(sorting) > -1 && columnKey === sortField ? ' active' : '');
-                                        const extraClassName = (activeBlock?.column === colIndex ? ' active-block-column' : '');
-                                        const style = (activeBlock?.column === colIndex) ? sorterActiveStyle : headerItemStyle;
-                                        return (
-                                            <div key={'col-' + columnKey} className={'column-group-header' + extraClassName} style={style}>
-                                                <div data-index={columnKey} onClick={onSorterClick}>
-                                                    <span className={countSortIconClassName}>{countSortIcon}</span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                {renderColumnHeaders()}
+                                {renderColumnGroupHeaders()}
+                                {renderExtendedColumnGroupHeaders()}
+                                {renderSortingHeaders()}
                             </div>
                         )}
                     </div>
