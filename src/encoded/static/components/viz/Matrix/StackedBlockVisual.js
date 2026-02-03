@@ -1318,6 +1318,42 @@ export class StackedBlockGroupedRow extends React.PureComponent {
     }
 
     static rowGroupsSummary({ label, labelSectionStyle, columnKeys, columnWidth, headerItemStyle, containerSectionStyle, ...props } ) {
+        const getColumnSummaryData = (columnKey) => {
+            const result = [];
+            const values = props.groupedDataIndices[columnKey] || [];
+            values.forEach((val) => result.push(val));
+            return result;
+        };
+
+        const getSummaryBlockStyle = () => ({
+            'width': columnWidth, // Width for each column
+            'minWidth': columnWidth,
+            'minHeight': props.blockHeight + props.blockVerticalSpacing, // Height for each row
+            'paddingLeft': props.blockHorizontalSpacing,
+            'paddingRight': props.blockHorizontalSpacing,
+            'paddingTop': props.blockVerticalSpacing
+        });
+
+        const renderSummaryBlocks = () => (
+            <div className="blocks-container d-flex header-summary">
+                {columnKeys.map(function (columnKey, colIndex) {
+                    const columnTotal = props.groupedDataIndices[columnKey]?.length || 0;
+                    const columnSummaryData = getColumnSummaryData(columnKey);
+                    const hasOpenBlock = props.openBlock?.columnIdx === colIndex;
+                    const hasActiveBlock = props.activeBlock?.columnIdx === colIndex;
+                    const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
+                    return (
+                        <div key={'col-summary-' + columnKey} className={className} style={headerItemStyle}>
+                            <div className="block-container-group" style={getSummaryBlockStyle()}
+                                key={'summary'} data-block-count={columnTotal} data-group-key={columnKey}>
+                                <Block {..._.omit(props, 'group')} key={colIndex} data={columnSummaryData} colIndex={colIndex} blockType="col-summary" popoverPrimaryTitle={props.rowGroupKey} />
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+
         return (
             <div className="grouping header-section-lower" style={containerSectionStyle}>
                 <div className="row grouping-row">
@@ -1328,44 +1364,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         </div>
                     </div>
                     <div className="col list-section has-header header-for-viz">
-                        <div className="blocks-container d-flex header-summary">
-                            {columnKeys.map(function (columnKey, colIndex) {
-                                const columnTotal = props.groupedDataIndices[columnKey]?.length || 0;
-                                const style = {
-                                    'width': columnWidth, // Width for each column
-                                    'minWidth': columnWidth,
-                                    'minHeight': props.blockHeight + props.blockVerticalSpacing, // Height for each row
-                                    'paddingLeft': props.blockHorizontalSpacing,
-                                    'paddingRight': props.blockHorizontalSpacing,
-                                    'paddingTop': props.blockVerticalSpacing
-                                };
-
-                                // converts {"Fiber-Seq": [1475, 1476], "Kinnex": [1506, 1507]} to [{ "Fiber-Seq": 1475 }, { "Fiber-Seq": 1476 }, { "Kinnex": 1506 }, { "Kinnex": 1507 }];
-                                const toColumnSummaryData = (inputObj, keyField) => {
-                                    const result = [];
-
-                                    for (const [key, values] of Object.entries(inputObj)) {
-                                        values.forEach((val) => {
-                                            result.push(val);
-                                        });
-                                    }
-
-                                    return result;
-                                };
-                                const columnSummaryData = toColumnSummaryData(_.pick(props.groupedDataIndices, columnKey), props.columnGrouping);
-                                const hasOpenBlock = props.openBlock?.columnIdx === colIndex;
-                                const hasActiveBlock = props.activeBlock?.columnIdx === colIndex;
-                                const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
-                                return (
-                                    <div key={'col-summary-' + columnKey} className={className} style={headerItemStyle}>
-                                        <div className="block-container-group" style={style}
-                                            key={'summary'} data-block-count={columnTotal} data-group-key={columnKey}>
-                                            <Block {..._.omit(props, 'group')} key={colIndex} data={columnSummaryData} colIndex={colIndex} blockType="col-summary" popoverPrimaryTitle={props.rowGroupKey} />
-                                        </div>
-                                    </div>
-                                );
-                            }, this)}
-                        </div>
+                        {renderSummaryBlocks()}
                     </div>
                 </div>
             </div>
