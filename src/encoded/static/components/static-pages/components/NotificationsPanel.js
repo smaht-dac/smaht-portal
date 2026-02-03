@@ -463,19 +463,24 @@ const formatReleaseData = (data) => {
  */
 export const NotificationsPanel = () => {
     const [data, setData] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        setIsLoading(true);
         ajax.load(
             '/recent_files_summary?format=json&nmonths=3',
             (resp) => {
-                // console.log('resp', resp);
+                console.log('resp', resp);
                 setData(resp?.items ? formatReleaseData(resp?.items) : []);
+                setIsLoading(false);
             },
             'GET',
             (err) => {
                 if (err.notification !== 'No results found') {
                     console.log('ERROR NotificationsPanel resp', err);
                 }
+                setData([]);
+                setIsLoading(false);
             }
         );
     }, []);
@@ -487,8 +492,13 @@ export const NotificationsPanel = () => {
                 <div className="section-body-container">
                     <div className="section-body">
                         <div className="section-body-items-container">
-                            {data === null ? (
+                            {isLoading ? (
                                 <i className="icon fas icon-spinner icon-spin"></i>
+                            ) : data === null || data.length === 0 ? (
+                                <div>
+                                    No recent data releases available at this
+                                    time. Check back later.
+                                </div>
                             ) : (
                                 data.map((releaseItem, i) => {
                                     return (
