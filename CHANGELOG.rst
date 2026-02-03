@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-1.10.3
+1.11.3
 ======
 
 `PR 379: SN Submission spreadsheet update <https://github.com/smaht-dac/smaht-portal/pull/379`_
@@ -15,6 +15,37 @@ Change Log
 * Update `commands/write_submission_spreadsheets.py` to include capability to add "pseudo-properties" such as `expected_file_counts` in FileSet that are used for validation in submitr
 * Update the `--eqm` flag to use config from GenericQcConfig item on portal and update error handling
 * Reorder properties and format output of the PathologyReport schema for ease of submission for TPC
+
+
+1.11.2
+======
+
+`PR  595 update TissueSample validator <https://github.com/smaht-dac/smaht-portal/pull/595>`_
+
+* Add support for Tissue Aliquot category validation in TissueSample validator
+
+1.11.1
+======
+
+`PR 593: Bugfix for Analysis Status page <https://github.com/smaht-dac/smaht-portal/pull/593>`_
+
+* Make sure all final output files are displayed on the Analysis Status page
+
+
+1.11.0
+======
+
+`PR 590: Data matrix germ layer - tissue mappings <https://github.com/smaht-dac/smaht-portal/pull/590>`_
+
+* Convert hard-coded germ layer - tissue mappings to generate from fetched data on the fly
+
+
+1.10.3
+======
+
+`PR 592: fix: modal styles udpate <https://github.com/smaht-dac/smaht-portal/pull/592>`_
+
+* Fix browse page modal styles
 
 
 1.10.2
