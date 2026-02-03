@@ -48,12 +48,12 @@ export class VisualBody extends React.PureComponent {
         }
         if (blockSum >= 1000){
             const decimal = blockSum >= 10000 ? 0 : 1;
-            return <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }} data-tip={blockSum}>{ roundLargeNumber(blockSum, decimal) }</span>;
+            return <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }} data-count={blockSum} data-tip={blockSum}>{ roundLargeNumber(blockSum, decimal) }</span>;
         }
         else if (blockSum >= 100){
-            return <span style={{ 'fontSize' : '0.90rem', 'position' : 'relative', 'top' : -1 }}>{ blockSum }</span>;
+            return <span style={{ 'fontSize' : '0.90rem', 'position' : 'relative', 'top' : -1 }} data-count={blockSum}>{ blockSum }</span>;
         }
-        return <span>{ blockSum }</span>;
+        return <span data-count={blockSum}>{ blockSum }</span>;
     }
     /**
      * replacement of underscore's invert function.
@@ -77,6 +77,39 @@ export class VisualBody extends React.PureComponent {
         return result;
     }
 
+    // Given a facet field and term, check if it represents a composite value
+    static getFacetPairs(facetField, facetTerm, aggregatedFields, valueDelimiter) {
+        const hasCompositeInput = (
+            Array.isArray(aggregatedFields) &&
+            aggregatedFields.length >= 2 &&
+            aggregatedFields.indexOf(facetField) > -1 &&
+            facetTerm &&
+            typeof valueDelimiter === 'string' &&
+            valueDelimiter
+        );
+        if (!hasCompositeInput) return null;
+
+        // If aggregatedFields is an array, we assume the first element is the field and the second is the extended term.
+        const splitTerm = (term) => term.split(valueDelimiter);
+
+        if (typeof facetTerm === 'string' && facetTerm.indexOf(valueDelimiter) > -1) {
+            const [baseFacetTerm, extendedFacetTerm] = splitTerm(facetTerm);
+            return [[facetField, baseFacetTerm], [aggregatedFields[1], extendedFacetTerm]];
+        }
+
+        if (Array.isArray(facetTerm)) {
+            const allCompositeTerms = _.all(_.map(facetTerm, (term) => typeof term === 'string' && term.indexOf(valueDelimiter) > -1));
+            if (allCompositeTerms) {
+                // If facetTerm is an array, we assume all elements are strings with the same format.
+                const baseFacetTerms = _.uniq(_.map(facetTerm, (term) => splitTerm(term)[0]));
+                const extendedFacetTerms = _.uniq(_.map(facetTerm, (term) => splitTerm(term)[1]));
+                return [[facetField, baseFacetTerms], [aggregatedFields[1], extendedFacetTerms]];
+            }
+        }
+
+        return null;
+    }
+
     constructor(props){
         super(props);
         this.blockPopover = this.blockPopover.bind(this);
@@ -84,7 +117,7 @@ export class VisualBody extends React.PureComponent {
 
     findKeyByValue(obj, value) {
         for (const [key, group] of Object.entries(obj)) {
-            if (group.values.includes(value)) {
+            if (group.values && Array.isArray(group.values) && group.values.includes(value)) {
                 return key;
             }
         }
@@ -97,9 +130,9 @@ export class VisualBody extends React.PureComponent {
      */
     blockPopover(data, blockProps, parentGrouping){
         const {
-            query: { url: queryUrl, columnAggFields },
+            query: { url: queryUrl, columnAggFields, rowAggFields },
             fieldChangeMap, valueChangeMap, titleMap,
-            groupingProperties, columnGrouping, compositeValueSeparator,
+            groupingProperties, columnGrouping, valueDelimiter,
             rowGroupsExtended, additionalPopoverData = {}, baseBrowseFilesPath,
             browseFilteringTransformFunc
         } = this.props;
@@ -165,20 +198,27 @@ export class VisualBody extends React.PureComponent {
                 }
 
                 //TODO: handle composite values in a smart way, this workaround is too hacky
-                if (Array.isArray(columnAggFields) && columnAggFields.length >= 2 && facetTerm &&
-                    compositeValueSeparator && typeof compositeValueSeparator === 'string') {
-                    // If columnAggFields is an array, we assume the first element is the field and the second is the extended term.
-                    if (typeof facetTerm === 'string' && facetTerm.indexOf(compositeValueSeparator) > -1) {
-                        let extendedFacetTerm;
-                        [facetTerm, extendedFacetTerm] = facetTerm.split(compositeValueSeparator);
-                        return [[facetField, facetTerm], [columnAggFields[1], extendedFacetTerm]];
-                    } else if (Array.isArray(facetTerm) && _.all(_.map(facetTerm, (term) => typeof term === 'string' && term.indexOf(compositeValueSeparator) > -1))) {
-                        // If facetTerm is an array, we assume all elements are strings with the same format.
-                        return [[facetField, _.uniq(_.map(facetTerm, (term) => term.split(compositeValueSeparator)[0]))], [columnAggFields[1], _.uniq(_.map(facetTerm, (term) => term.split(compositeValueSeparator)[1]))]];
+                //1. traverse columnAggFields to see if facetField exists there
+                let compositeFacetPairs = VisualBody.getFacetPairs(
+                    facetField,
+                    facetTerm,
+                    columnAggFields,
+                    valueDelimiter
+                );
+                //2. traverse rowAggFields to see if facetField exists there
+                if (!compositeFacetPairs && Array.isArray(rowAggFields)) {
+                    for (let field in rowAggFields) {
+                        compositeFacetPairs = VisualBody.getFacetPairs(
+                            facetField,
+                            facetTerm,
+                            field,
+                            valueDelimiter
+                        );
+                        if (compositeFacetPairs) break;
                     }
                 }
 
-                return [facetField, facetTerm];
+                return compositeFacetPairs ? compositeFacetPairs : [facetField, facetTerm];
             });
 
             const convertPairsToObject = (pairs) => {
@@ -884,7 +924,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
     static mergeValues = memoize(function (obj) {
         const merged = [];
         Object.keys(obj).forEach((tier) => {
-            merged.push(...obj[tier].values);
+            if (obj[tier] && Array.isArray(obj[tier].values)) {
+                merged.push(...obj[tier].values);
+            }
         });
         return merged;
     });
@@ -1333,6 +1375,12 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         }
         const hasRowGroupsExtended = showRowGroupsExtended && rowGroupsExtended && _.keys(rowGroupsExtended).length > 0;
         const rowGroupsExtendedKeys = hasRowGroupsExtended ? [..._.keys(rowGroupsExtended), FALLBACK_GROUP_NAME] : null;
+        const rowGroupsExtendedByLowerKey = hasRowGroupsExtended ? _.reduce(_.keys(rowGroupsExtended), (memo, k) => {
+            const lk = k.toLowerCase();
+            if (memo[lk] == null) memo[lk] = k;
+            return memo;
+        }, {}) : null;
+        const fallbackGroupNameLower = FALLBACK_GROUP_NAME.toLowerCase();
 
         const rowHeight = blockHeight + (blockVerticalSpacing * 2) + 1;
         const childBlocks = !open ? StackedBlockGroupedRow.collapsedChildBlocks(data, rowTotals, this.props) : (
@@ -1367,10 +1415,18 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     <div className="child-blocks">
                         {open && childRowsKeys && hasRowGroupsExtended &&
                             _.map(rowGroupsExtendedKeys, function (rgKey, idx) {
-                                const { values, backgroundColor, textColor } = rowGroupsExtended[rgKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
+                                const rgKeyLower = typeof rgKey === 'string' ? rgKey.toLowerCase() : rgKey;
+                                const isFallback = typeof rgKey === 'string' && rgKeyLower === fallbackGroupNameLower;
+                                const resolvedRgKey = (!isFallback && rowGroupsExtendedByLowerKey && typeof rgKey === 'string')
+                                    ? (rowGroupsExtendedByLowerKey[rgKeyLower] || rgKey)
+                                    : rgKey;
+                                const displayKey = isFallback ? FALLBACK_GROUP_NAME : resolvedRgKey;
+                                const { values, backgroundColor, textColor } = (!isFallback && rowGroupsExtended[resolvedRgKey])
+                                    ? rowGroupsExtended[resolvedRgKey]
+                                    : { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
 
                                 let rowGroupChildRowsKeys;
-                                if (rgKey === FALLBACK_GROUP_NAME) { //special case for N/A
+                                if (isFallback) { //special case for N/A
                                     const allValues = StackedBlockGroupedRow.mergeValues(rowGroupsExtended);
                                     // not intersecting childRowsKeys and allValues
                                     rowGroupChildRowsKeys = StackedBlockGroupedRow.difference(childRowsKeys, allValues);
@@ -1381,11 +1437,13 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
                                 if (rowSpan === 0) return null;
 
-                                const label = (rgKey.length > (rowSpan * 4)) && rowGroupsExtended[rgKey].shortName ? rowGroupsExtended[rgKey].shortName : rgKey;
+                                const label = (displayKey.length > (rowSpan * 4)) && rowGroupsExtended[resolvedRgKey]?.shortName
+                                    ? rowGroupsExtended[resolvedRgKey].shortName
+                                    : displayKey;
                                 return (
                                     <div className="vertical-container">
                                         <div className="vertical-container-label" style={{ backgroundColor, color: textColor, height: rowHeight * rowSpan }}>
-                                            <span data-tip={rgKey !== label ? rgKey : null}>{label}</span>
+                                            <span data-tip={displayKey !== label ? displayKey : null}>{label}</span>
                                         </div>
                                         <div className="vertical-container-rows">
                                             {

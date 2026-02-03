@@ -136,7 +136,7 @@ def get_all_completed_mwfrs(context, request, analysis_runs_from_search: list) -
         return mwfrs
 
     # Get all MetaWorkflowRun items at once via search
-    search_params = [("type", "MetaWorkflowRun")]
+    search_params = [("type", "MetaWorkflowRun"), ("limit", "all")]
     for uuid in uuids_to_get:
         search_params.append(("uuid", uuid))
     subreq = make_search_subreq(
