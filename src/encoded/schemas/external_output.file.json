@@ -101,9 +101,9 @@
                 ]
             }
         },
-        "tissues": {
-            "title": "Tissues",
-            "description": "Tissues used to generate the file",
+        "sample_sources": {
+            "title": "Sample Sources",
+            "description": "Sample sources (tissues or cell cultures) used to generate the file",
             "type": "array",
             "items": {
                 "type": "string",
