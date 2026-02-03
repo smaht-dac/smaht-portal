@@ -152,7 +152,7 @@ def get_tissue_type(properties: Dict[str, Any], request_handler: RequestHandler)
     """
     Get tissue type of tissue from ontology term.
     
-    Special handling of fibroblasts (3AC)
+    Special handling of fibroblasts (3AC) and Benchmarking tissues
     """
      # Use tissue code from external id to identify fibroblast
     fibroblast = is_fibroblast(properties)
