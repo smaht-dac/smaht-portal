@@ -630,6 +630,27 @@ export class StackedBlockVisual extends React.PureComponent {
         this.setState({ "sorting": nextSort, "sortField": newSortField, "mounted": true });
     }
 
+    handleBlockMouseEnter = (columnIdx, rowIdx, rowKey, rowGroupKey) => {
+        const { openBlock } = this.state;
+        if (openBlock) return;
+        this.setState({ activeBlock: (columnIdx !== null || rowIdx !== null) ? { columnIdx, rowIdx, rowKey, rowGroupKey } : null });
+    };
+
+    handleBlockMouseLeave = () => {
+        this.setState({ activeBlock: null });
+    };
+
+    handleBlockClick = (columnIdx, rowIdx, rowKey, rowGroupKey) => {
+        const openBlock = (columnIdx !== null || rowIdx !== null) ? { columnIdx, rowIdx, rowKey, rowGroupKey } : null;
+        if (openBlock) {
+            setTimeout(() => {
+                this.setState({ openBlock: openBlock });
+            }, 100);
+        } else {
+            this.setState({ openBlock: null });
+        }
+    };
+
     renderContents(){
         const { data : propData, rowTotals: propRowTotals, groupingProperties, columnGrouping, columnGroups, showColumnGroups, rowGroups, showRowGroups, showColumnSummary } = this.props;
         const { mounted, sorting, sortField, activeBlock, openBlock } = this.state;
@@ -789,12 +810,27 @@ export class StackedBlockVisual extends React.PureComponent {
                                 return (
                                     <React.Fragment>
                                         {idx === 0 && StackedBlockGroupedRow.rowGroupsSummary(rowGroupsSummaryProps)}
-                                        <StackedBlockGroupedRow {...this.props} groupedDataIndices={groupedDataIndices} parentState={this.state}
-                                            data={nestedData[k]} rowTotals={nestedRowTotals[k]}
-                                            key={k} group={k} depth={0} index={outerIdx} toggleGroupingOpen={this.toggleGroupingOpen}
-                                            onSorterClick={this.handleSorterClick} sorting={sorting} sortField={sortField}
-                                            handleBlockMouseEnter={this.handleBlockMouseEnter} handleBlockMouseLeave={this.handleBlockMouseLeave} handleBlockClick={this.handleBlockClick}
-                                            activeBlock={activeBlock} openBlock={openBlock} popoverPrimaryTitle={groupKey} />
+                                        <StackedBlockGroupedRow
+                                            {...this.props}
+                                            groupedDataIndices={groupedDataIndices}
+                                            parentState={this.state}
+                                            data={nestedData[k]}
+                                            rowTotals={nestedRowTotals[k]}
+                                            key={k}
+                                            group={k}
+                                            depth={0}
+                                            index={outerIdx}
+                                            toggleGroupingOpen={this.toggleGroupingOpen}
+                                            onSorterClick={this.handleSorterClick}
+                                            sorting={sorting}
+                                            sortField={sortField}
+                                            handleBlockMouseEnter={this.handleBlockMouseEnter}
+                                            handleBlockMouseLeave={this.handleBlockMouseLeave}
+                                            handleBlockClick={this.handleBlockClick}
+                                            activeBlock={activeBlock}
+                                            openBlock={openBlock}
+                                            popoverPrimaryTitle={groupKey}
+                                        />
                                     </React.Fragment>
                                 );
                             });
@@ -808,12 +844,25 @@ export class StackedBlockVisual extends React.PureComponent {
                     {StackedBlockGroupedRow.columnsAndHeader(columnsAndHeaderProps)}
                     {
                         _.map(leftAxisKeys, (k, idx) =>
-                            <StackedBlockGroupedRow {...this.props} groupedDataIndices={groupedDataIndices} parentState={this.state}
-                                data={nestedData[k]} rowTotals={nestedRowTotals[k]}
-                                key={k} group={k} depth={0} index={idx} toggleGroupingOpen={this.toggleGroupingOpen}
-                                onSorterClick={this.handleSorterClick} sorting={sorting} sortField={sortField}
-                                handleBlockMouseEnter={this.handleBlockMouseEnter} handleBlockMouseLeave={this.handleBlockMouseLeave} handleBlockClick={this.handleBlockClick}
-                                activeBlock={activeBlock} openBlock={openBlock} />
+                            <StackedBlockGroupedRow 
+                                {...this.props}
+                                groupedDataIndices={groupedDataIndices}
+                                parentState={this.state}
+                                data={nestedData[k]}
+                                rowTotals={nestedRowTotals[k]}
+                                key={k}
+                                group={k}
+                                depth={0}
+                                index={idx}
+                                toggleGroupingOpen={this.toggleGroupingOpen}
+                                onSorterClick={this.handleSorterClick}
+                                sorting={sorting}
+                                sortField={sortField}
+                                handleBlockMouseEnter={this.handleBlockMouseEnter}
+                                handleBlockMouseLeave={this.handleBlockMouseLeave}
+                                handleBlockClick={this.handleBlockClick}
+                                activeBlock={activeBlock}
+                                openBlock={openBlock} />
                         )
                     }
                 </React.Fragment>
@@ -821,27 +870,6 @@ export class StackedBlockVisual extends React.PureComponent {
         }
 
     }
-
-    handleBlockMouseEnter = (columnIdx, rowIdx, rowKey, rowGroupKey) => {
-        const { openBlock } = this.state;
-        if (openBlock) return;
-        this.setState({ activeBlock: (columnIdx !== null || rowIdx !== null) ? { columnIdx, rowIdx, rowKey, rowGroupKey } : null });
-    };
-
-    handleBlockMouseLeave = () => {
-        this.setState({ activeBlock: null });
-    };
-
-    handleBlockClick = (columnIdx, rowIdx, rowKey, rowGroupKey) => {
-        const openBlock = (columnIdx !== null || rowIdx !== null) ? { columnIdx, rowIdx, rowKey, rowGroupKey } : null;
-        if (openBlock) {
-            setTimeout(() => {
-                this.setState({ openBlock: openBlock });
-            }, 100);
-        } else {
-            this.setState({ openBlock: null });
-        }
-    };
 
     render() {
         const { openBlock, activeBlock } = this.state;
@@ -1112,6 +1140,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         });
     }
 
+    /**
+     * renders the column headers and axis labels
+     * @param {*} props 
+     * @returns 
+     */
     static columnsAndHeader(props) {
         const {
             blockWidth, blockHeight, blockHorizontalSpacing, blockVerticalSpacing, blockHorizontalExtend, headerPadding,
@@ -1317,6 +1350,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         );
     }
 
+    // renders the row group summary section
     static rowGroupsSummary({ label, labelSectionStyle, columnKeys, columnWidth, headerItemStyle, containerSectionStyle, ...props } ) {
         const getColumnSummaryData = (columnKey) => {
             const result = [];
@@ -1537,6 +1571,11 @@ const Block = React.memo(function Block(props){
         'marginBottom' : blockVerticalSpacing,
         'marginTop' : indexInGroup && indexInGroup > 0 ? blockVerticalSpacing + 1 : 0
     };
+
+    const isSummaryBlock = (blockType) => {
+        return blockType === 'row-summary' || blockType === 'col-summary';
+    }
+
     const argData = blockType === 'row-summary' && rowTotals ? rowTotals : data;
 
     const blockFxnArguments = [argData, props, parentGrouping];
@@ -1648,11 +1687,6 @@ Block.propTypes = {
     }),
     blockType: PropTypes.oneOf(['regular', 'row-summary', 'col-summary'])
 };
-
-// Utility functions for block types
-function isSummaryBlock(blockType) {
-    return blockType === 'row-summary' || blockType === 'col-summary';
-}
 
 // Icons for sorting
 function FaIcon(props) {
