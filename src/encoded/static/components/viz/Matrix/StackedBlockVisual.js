@@ -1379,28 +1379,40 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             rowGroupsExtended, showRowGroupsExtended } = this.props;
         const { open: stateOpen } = this.state;
 
-        let groupingPropertyTitle = null;
-        if (Array.isArray(groupingProperties) && groupingProperties[depth]){
-            groupingPropertyTitle = titleMap[groupingProperties[depth]] || groupingProperties[depth];
-        }
+        const getGroupingPropertyTitle = () => {
+            if (!Array.isArray(groupingProperties) || !groupingProperties[depth]) return null;
+            return titleMap[groupingProperties[depth]] || groupingProperties[depth];
+        };
 
-        const childRowsKeys = !Array.isArray(data) ? _.keys(data).sort() : null;
-        const hasIdentifiableChildren = !checkCollapsibility ? true : (depth + 2 >= groupingProperties.length) && childRowsKeys && childRowsKeys.length > 0 && !(childRowsKeys.length === 1 && childRowsKeys[0] === 'No value');
+        const getChildRowsKeys = () => (!Array.isArray(data) ? _.keys(data).sort() : null);
+        const getHasIdentifiableChildren = (childRowsKeys) => {
+            if (!checkCollapsibility) return true;
+            return (depth + 2 >= groupingProperties.length) &&
+                childRowsKeys && childRowsKeys.length > 0 &&
+                !(childRowsKeys.length === 1 && childRowsKeys[0] === 'No value');
+        };
 
-        let open = stateOpen;
-        if (open && !hasIdentifiableChildren) {
-            open = false;
-        }
+        const childRowsKeys = getChildRowsKeys();
+        const hasIdentifiableChildren = getHasIdentifiableChildren(childRowsKeys);
+        const open = stateOpen && hasIdentifiableChildren;
 
-        let className = "grouping depth-" + depth + (open ? ' open' : '') + (' row-index-' + index) + (!showGroupingPropertyTitles ? ' no-grouping-property-titles' : '');
-        let toggleIcon = null;
+        const getToggleIcon = () => {
+            if (!Array.isArray(data) && data && hasIdentifiableChildren) {
+                return (
+                    <i
+                        className={"clickable icon fas icon-fw icon-" + (open ? 'minus' : 'plus')}
+                        onClick={this.toggleOpen}
+                    />
+                );
+            }
+            return <i className="icon icon-fw" />;
+        };
 
-        if (!Array.isArray(data) && data && hasIdentifiableChildren){
-            toggleIcon = <i className={"clickable icon fas icon-fw icon-" + (open ? 'minus' : 'plus')} onClick={this.toggleOpen} />;
-            className += ' may-collapse';
-        } else { // ?
-            toggleIcon = <i className="icon icon-fw" />;
-        }
+        const baseClassName = "grouping depth-" + depth + (open ? ' open' : '') + (' row-index-' + index);
+        const className = baseClassName +
+            (!showGroupingPropertyTitles ? ' no-grouping-property-titles' : '') +
+            ((!Array.isArray(data) && data && hasIdentifiableChildren) ? ' may-collapse' : '');
+
         const hasRowGroupsExtended = showRowGroupsExtended && rowGroupsExtended && _.keys(rowGroupsExtended).length > 0;
         const rowGroupsExtendedKeys = hasRowGroupsExtended ? [..._.keys(rowGroupsExtended), FALLBACK_GROUP_NAME] : null;
         const rowGroupsExtendedByLowerKey = hasRowGroupsExtended ? _.reduce(_.keys(rowGroupsExtended), (memo, k) => {
@@ -1418,6 +1430,60 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const hasOpenBlock = openBlock?.rowIdx === index && openBlock?.rowKey === group;
         const hasActiveBlock = activeBlock?.rowIdx === index && activeBlock?.rowKey === group;
         const labelContainerClassName = 'label-container' + (hasOpenBlock ? ' open-block-row' : '') + (hasActiveBlock ? ' active-block-row' : '');
+        const groupingPropertyTitle = getGroupingPropertyTitle();
+        const toggleIcon = getToggleIcon();
+
+        const renderRowGroupsExtended = () => (
+            _.map(rowGroupsExtendedKeys, function (rgKey, idx) {
+                const rgKeyLower = typeof rgKey === 'string' ? rgKey.toLowerCase() : rgKey;
+                const isFallback = typeof rgKey === 'string' && rgKeyLower === fallbackGroupNameLower;
+                const resolvedRgKey = (!isFallback && rowGroupsExtendedByLowerKey && typeof rgKey === 'string')
+                    ? (rowGroupsExtendedByLowerKey[rgKeyLower] || rgKey)
+                    : rgKey;
+                const displayKey = isFallback ? FALLBACK_GROUP_NAME : resolvedRgKey;
+                const { values, backgroundColor, textColor } = (!isFallback && rowGroupsExtended[resolvedRgKey])
+                    ? rowGroupsExtended[resolvedRgKey]
+                    : { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
+
+                let rowGroupChildRowsKeys;
+                if (isFallback) { //special case for N/A
+                    const allValues = StackedBlockGroupedRow.mergeValues(rowGroupsExtended);
+                    // not intersecting childRowsKeys and allValues
+                    rowGroupChildRowsKeys = StackedBlockGroupedRow.difference(childRowsKeys, allValues);
+                } else {
+                    rowGroupChildRowsKeys = StackedBlockGroupedRow.intersection(childRowsKeys, values);
+                }
+                const rowSpan = rowGroupChildRowsKeys.length;
+
+                if (rowSpan === 0) return null;
+
+                const label = (displayKey.length > (rowSpan * 4)) && rowGroupsExtended[resolvedRgKey]?.shortName
+                    ? rowGroupsExtended[resolvedRgKey].shortName
+                    : displayKey;
+                return (
+                    <div className="vertical-container">
+                        <div className="vertical-container-label" style={{ backgroundColor, color: textColor, height: rowHeight * rowSpan }}>
+                            <span data-tip={displayKey !== label ? displayKey : null}>{label}</span>
+                        </div>
+                        <div className="vertical-container-rows">
+                            {
+                                _.map(rowGroupChildRowsKeys, (k) =>
+                                    <StackedBlockGroupedRow {...this.props} data={data[k]} key={k} group={k} depth={depth + 1} />
+                                )
+                            }
+                        </div>
+                    </div>
+                );
+            }, this)
+        );
+
+        const renderChildRows = () => (
+            <div className="child-blocks">
+                {open && childRowsKeys && _.map(childRowsKeys, (k) =>
+                    <StackedBlockGroupedRow {...this.props} data={data[k]} key={k} group={k} depth={depth + 1} />
+                )}
+            </div>
+        );
         return (
             <React.Fragment>
                 <div className={className} data-max-blocks-vertical={maxBlocksInRow}>
@@ -1442,54 +1508,10 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
                     <div className="child-blocks">
                         {open && childRowsKeys && hasRowGroupsExtended &&
-                            _.map(rowGroupsExtendedKeys, function (rgKey, idx) {
-                                const rgKeyLower = typeof rgKey === 'string' ? rgKey.toLowerCase() : rgKey;
-                                const isFallback = typeof rgKey === 'string' && rgKeyLower === fallbackGroupNameLower;
-                                const resolvedRgKey = (!isFallback && rowGroupsExtendedByLowerKey && typeof rgKey === 'string')
-                                    ? (rowGroupsExtendedByLowerKey[rgKeyLower] || rgKey)
-                                    : rgKey;
-                                const displayKey = isFallback ? FALLBACK_GROUP_NAME : resolvedRgKey;
-                                const { values, backgroundColor, textColor } = (!isFallback && rowGroupsExtended[resolvedRgKey])
-                                    ? rowGroupsExtended[resolvedRgKey]
-                                    : { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
-
-                                let rowGroupChildRowsKeys;
-                                if (isFallback) { //special case for N/A
-                                    const allValues = StackedBlockGroupedRow.mergeValues(rowGroupsExtended);
-                                    // not intersecting childRowsKeys and allValues
-                                    rowGroupChildRowsKeys = StackedBlockGroupedRow.difference(childRowsKeys, allValues);
-                                } else {
-                                    rowGroupChildRowsKeys = StackedBlockGroupedRow.intersection(childRowsKeys, values);
-                                }
-                                const rowSpan = rowGroupChildRowsKeys.length;
-
-                                if (rowSpan === 0) return null;
-
-                                const label = (displayKey.length > (rowSpan * 4)) && rowGroupsExtended[resolvedRgKey]?.shortName
-                                    ? rowGroupsExtended[resolvedRgKey].shortName
-                                    : displayKey;
-                                return (
-                                    <div className="vertical-container">
-                                        <div className="vertical-container-label" style={{ backgroundColor, color: textColor, height: rowHeight * rowSpan }}>
-                                            <span data-tip={displayKey !== label ? displayKey : null}>{label}</span>
-                                        </div>
-                                        <div className="vertical-container-rows">
-                                            {
-                                                _.map(rowGroupChildRowsKeys, (k) =>
-                                                    <StackedBlockGroupedRow {...this.props} data={data[k]} key={k} group={k} depth={depth + 1} />
-                                                )
-                                            }
-                                        </div>
-                                    </div>
-                                );
-                            }, this)
+                            renderRowGroupsExtended()
                         }
                         {open && childRowsKeys && !hasRowGroupsExtended &&
-                            <div className="child-blocks">
-                                {open && childRowsKeys && _.map(childRowsKeys, (k) =>
-                                    <StackedBlockGroupedRow {...this.props} data={data[k]} key={k} group={k} depth={depth + 1} />
-                                )}
-                            </div>
+                            renderChildRows()
                         }
                     </div>
 
