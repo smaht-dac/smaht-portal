@@ -52,23 +52,19 @@ for (const [category, { values }] of Object.entries(germLayerTissueMapping)) {
 }
 
 /**
- * Sort facet term elements by tissue (base) then by short code (if present).
- * Accepts React element inputs as used by FacetTermsList sorting hooks.
+ * Parse a tissue facet term into a short code (if present).
  */
 const parseTissueTermForSort = (termKey) => {
     const raw = String(termKey || '').trim();
     if (!raw) {
-        return { tissue: '', code: '', hasCode: false };
+        return { code: '', hasCode: false };
     }
     const parts = raw.split(' - ');
     if (parts.length >= 2) {
         const code = parts.shift().trim();
-        const tissuePart = parts.join(' - ').trim();
-        const tissue = tissuePart.split(',')[0].trim();
-        return { tissue, code, hasCode: code.length > 0 };
+        return { code, hasCode: code.length > 0 };
     }
-    const tissue = raw.split(',')[0].trim();
-    return { tissue, code: '', hasCode: false };
+    return { code: '', hasCode: false };
 };
 
 const compareFacetTermsByTissueAndCode = (a, b) => {
@@ -80,12 +76,6 @@ const compareFacetTermsByTissueAndCode = (a, b) => {
 
     const aParsed = parseTissueTermForSort(aKey);
     const bParsed = parseTissueTermForSort(bKey);
-    const tissueCmp = aParsed.tissue.localeCompare(bParsed.tissue, undefined, {
-        sensitivity: 'base',
-    });
-    if (tissueCmp !== 0) {
-        return tissueCmp;
-    }
     if (aParsed.hasCode !== bParsed.hasCode) {
         return aParsed.hasCode ? -1 : 1;
     }
