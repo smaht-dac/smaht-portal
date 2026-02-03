@@ -10,7 +10,7 @@ Change Log
 1.11.2
 ======
 
-`PR  <>`_
+`PR  595 update TissueSample validator <https://github.com/smaht-dac/smaht-portal/pull/595>`_
 
 * Add support for Tissue Aliquot category validation in TissueSample validator
 
