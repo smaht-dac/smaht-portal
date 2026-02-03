@@ -1356,7 +1356,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             groupingPropertyTitle = titleMap[groupingProperties[depth]] || groupingProperties[depth];
         }
 
-        const childRowsKeys = !Array.isArray(data) ? _.keys(data)/*.sort()*/ : null;
+        const childRowsKeys = !Array.isArray(data) ? _.keys(data).sort() : null;
         const hasIdentifiableChildren = !checkCollapsibility ? true : (depth + 2 >= groupingProperties.length) && childRowsKeys && childRowsKeys.length > 0 && !(childRowsKeys.length === 1 && childRowsKeys[0] === 'No value');
 
         let open = stateOpen;
