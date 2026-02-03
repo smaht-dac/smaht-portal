@@ -127,7 +127,12 @@ export const NoResultsBrowseModal = ({
         (isBaseBrowsePath || hasReleaseTrackerParam);
 
     return shouldShowNoResultsModal ? (
-        <Modal id="download-access-required-modal" show={true} centered>
+        <Modal
+            id="download-access-required-modal"
+            show={true}
+            centered
+            className="download-access-required-modal"
+            backdropClassName="download-access-required-modal-backdrop">
             <Modal.Body>
                 <div className="callout-card protected-data">
                     <img
