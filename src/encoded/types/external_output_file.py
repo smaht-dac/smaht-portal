@@ -43,9 +43,23 @@ class ExternalOutputFile(SubmittedFile):
        request: Request,
        file_sets: Optional[List[str]] = None,
     ) -> Union[List[str], None]:
-        """Get sample sources from file sets or sample sources link, if present."""
+        """Get sample sources from file sets or tissues link, if present."""
         if (file_set_source := SubmittedFile.sample_sources(self, request, file_sets)):
             return file_set_source
         else:
             result = eof_utils.get_tissues(self.properties)
+        return result or None
+    
+    @calculated_property(schema=CalcPropConstants.SAMPLE_SOURCES_SCHEMA)
+    def donors(
+       self,
+       request: Request,
+       file_sets: Optional[List[str]] = None,
+    ) -> Union[List[str], None]:
+        """Get donors from file sets or tissues link, if present."""
+        if (file_set_source := SubmittedFile.donors(self, request, file_sets)):
+            return file_set_source
+        else:
+            request_handler = RequestHandler(request=request)
+            result = eof_utils.get_donors(self.properties, request_handler)
         return result or None
