@@ -36,7 +36,6 @@ class ExternalOutputFile(SubmittedFile):
     item_type = "external_output_file"
     schema = load_schema("encoded:schemas/external_output_file.json")
     embedded_list = _build_external_output_file_embedded_list()
-
     @calculated_property(schema=CalcPropConstants.SAMPLE_SOURCES_SCHEMA)
     def sample_sources(
        self,
@@ -50,7 +49,7 @@ class ExternalOutputFile(SubmittedFile):
             result = eof_utils.get_tissues(self.properties)
         return result or None
     
-    @calculated_property(schema=CalcPropConstants.SAMPLE_SOURCES_SCHEMA)
+    @calculated_property(schema=CalcPropConstants.DONORS_SCHEMA)
     def donors(
        self,
        request: Request,
