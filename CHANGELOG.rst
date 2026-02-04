@@ -13,6 +13,8 @@ Change Log
 `PR 591: SN Fix DSA release script <https://github.com/smaht-dac/smaht-portal/pull/591>`_
 
 * Update means of getting chain file code for annotated filenames to do a search query on `code` and `title` of ReferenceGenomes and return either "DSA" or the unique `code` value
+* Add `version` as a required property to DonorSpecificAssembly
+* Update the annotated filename for DSA fasta and bed files to include `DSA_[version]`
 * Add bed files to access status function
 
 
