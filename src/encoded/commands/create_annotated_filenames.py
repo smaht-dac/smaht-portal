@@ -862,13 +862,14 @@ def get_sequencing_and_assay_codes(
 ) -> FilenamePart:
     """Get sequencing and assay codes for file.
     
-    Returns XX for Genome Assembly and Reference Conversion files.
+    Returns XX for files with data categories in `data_category exceptions`.
     """
     sequencing_codes = get_sequencing_codes(sequencers)
     assay_codes = get_assay_codes(assays)
+    data_category_exceptions = ["Genome Assembly", "Reference Conversion", "Genome Annotation"]
     if len(sequencing_codes) == 1 and len(assay_codes) == 1:
         return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
-    elif supp_file_utils.is_genome_assembly(file) or supp_file_utils.is_reference_conversion(file):
+    elif set(file_utils.get_data_category(file)) & set(data_category_exceptions):
         return get_filename_part(value="XX")
     errors = []
     if not sequencing_codes:
@@ -928,7 +929,7 @@ def get_analysis(
     reference_genome_code = item_utils.get_code(reference_genome)
     gene_annotation_code = get_annotations_and_versions(gene_annotations)
     transcript_info_code = get_rna_seq_tsv_value(file, file_extension)
-    fasta_code = get_dsa_fasta_value(file, file_extension, donor_specific_assembly)
+    dsa_code = get_dsa_value(file, file_extension, donor_specific_assembly)
     kinnex_info_code = get_kinnex_value(file, assay)
     consensus_read_flag = get_consensus_value(file, assay)
     chain_code = get_chain_file_value(file, target_assembly, source_assembly, file_extension)
@@ -938,7 +939,7 @@ def get_analysis(
         gene_annotation_code,
         transcript_info_code,
         chain_code,
-        fasta_code,
+        dsa_code,
         consensus_read_flag,
         kinnex_info_code
     )
@@ -948,7 +949,7 @@ def get_analysis(
         gene_annotation_code,
         transcript_info_code,
         chain_code,
-        fasta_code,
+        dsa_code,
         file_extension,
         assay,
     )
@@ -967,7 +968,7 @@ def get_analysis_errors(
     gene_annotation_code: str,
     transcript_info_code:  str,
     chain_code: str,
-    haplotype_code: str,
+    dsa_code: str,
     file_extension: Dict[str, Any],
     assays: List[Dict[str, Any]],
 ) -> List[str]:
@@ -1004,14 +1005,14 @@ def get_analysis_value(
     gene_annotation_code: str,
     transcript_info_code: str,
     chain_code: str,
-    haplotype_code: str,
+    dsa_code: str,
     consensus_read_flag: str,
     kinnex_info_code: str,
 ) -> str:
     """Get analysis value for filename."""
     to_write = [
         string
-        for string in [software_and_versions, reference_genome_code, gene_annotation_code, transcript_info_code, chain_code, haplotype_code, consensus_read_flag, kinnex_info_code]
+        for string in [software_and_versions, reference_genome_code, gene_annotation_code, transcript_info_code, chain_code, dsa_code, consensus_read_flag, kinnex_info_code]
         if string
     ]
     return ANALYSIS_INFO_SEPARATOR.join(to_write)
@@ -1139,14 +1140,18 @@ def get_chain_file_value(
     return ""
 
 
-def get_dsa_fasta_value(
+def get_dsa_value(
         file: Dict[str, Any],
         file_extension: Dict[str, Any],
         donor_specific_assembly: Dict[str, Any]
     ):
     """Get DSA version and haplotype values for fasta file."""
-    if donor_specific_assembly and file_format_utils.is_fasta_file(file_extension):
-        return ANALYSIS_INFO_SEPARATOR.join([DSA_INFO_VALUE, item_utils.get_version(donor_specific_assembly), supp_file_utils.get_haplotype(file)])
+    dsa_value = ANALYSIS_INFO_SEPARATOR.join([DSA_INFO_VALUE, item_utils.get_version(donor_specific_assembly)])
+    if donor_specific_assembly:
+        if file_format_utils.is_fasta_file(file_extension):
+            return ANALYSIS_INFO_SEPARATOR.join([dsa_value, supp_file_utils.get_haplotype(file)])
+        elif file_format_utils.is_bed_file(file_extension):
+            return dsa_value
     return ""
 
 

@@ -574,7 +574,11 @@ SOME_FASTA_FILE = {
     "haplotype": HAPLOTYPE_CODE,
     "version": "1.0"
 }
-
+SOME_BED_FILE = {
+    "data_type": ["DSA", "Genome Annotation"],
+    "data_category": ["Sequence Interval"],
+    "donor_specific_assembly": "Some_DSA",
+}
 ANOTHER_FASTA_FILE = {
     "data_category": ["Genome Assembly"],
     "data_type": ["Reference Sequence"],
@@ -635,6 +639,11 @@ TSV_FILE_EXTENSION = {
     "identifier": "TSV",
     "standard_file_extension": "tsv",
     "valid_item_types": ["SupplementaryFile", "OutputFile"]
+}
+BED_FILE_EXTENSION = {
+   "identifier": "BED",
+    "standard_file_extension": "bed",
+    "valid_item_types": ["SupplementaryFile"]
 }
 
 
@@ -733,7 +742,7 @@ TSV_FILE_EXTENSION = {
             CHAIN_FILE_EXTENSION,
             SOME_TARGET_ASSEMBLY,
             SOME_SOURCE_ASSEMBLY,
-            SOME_SOURCE_ASSEMBLY,
+            SOME_DSA,
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}To{REFERENCE_GENOME_CODE}",
             False,
         ),
@@ -774,6 +783,32 @@ TSV_FILE_EXTENSION = {
             {},
             SOME_DSA, 
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}_{DSA_VERSION}_{HAPLOTYPE_CODE}",
+            False,
+        ),
+        (
+            SOME_BED_FILE,
+            [],
+            [SOME_SOFTWARE, SOME_ITEM],
+            {},
+            {},
+            BED_FILE_EXTENSION,
+            {},
+            {},
+            SOME_DSA, 
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}_{DSA_VERSION}",
+            False,
+        ),
+                (
+            SOME_BED_FILE,
+            [],
+            [SOME_SOFTWARE, SOME_ITEM],
+            {},
+            {},
+            BED_FILE_EXTENSION,
+            {},
+            {},
+            {}, 
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}",
             False,
         ),
         (
