@@ -384,6 +384,7 @@ export default class DataMatrix extends React.PureComponent {
         this.onApplyConfiguration = this.onApplyConfiguration.bind(this);
         this.getJsxExport = this.getJsxExport.bind(this);
         this.isProductionEnv = this.isProductionEnv.bind(this);
+        this.onCountForChange = this.onCountForChange.bind(this);
 
         const colorRanges = this.getColorRanges(props);
 
@@ -412,7 +413,8 @@ export default class DataMatrix extends React.PureComponent {
             "colorRangeSegments": props.colorRangeSegments,
             "colorRangeSegmentStep": props.colorRangeSegmentStep,
             "summaryBackgroundColor": props.summaryBackgroundColor,
-            "defaultOpen": props.defaultOpen
+            "defaultOpen": props.defaultOpen,
+            "countFor": "files"
         };
     }
 
@@ -423,14 +425,15 @@ export default class DataMatrix extends React.PureComponent {
 
     componentDidUpdate(pastProps, pastState) {
         const { session } = this.props;
-        const { query, fieldChangeMap, columnGrouping, groupingProperties, showColumnSummary, defaultOpen } = this.state;
+        const { query, fieldChangeMap, columnGrouping, groupingProperties, showColumnSummary, defaultOpen, countFor } = this.state;
         if (session !== pastProps.session ||
             !_.isEqual(query, pastState.query) ||
             !_.isEqual(fieldChangeMap, pastState.fieldChangeMap) ||
             columnGrouping !== pastState.columnGrouping ||
             !_.isEqual(groupingProperties, pastState.groupingProperties) ||
             showColumnSummary !== pastState.showColumnSummary ||
-            defaultOpen !== pastState.defaultOpen) {
+            defaultOpen !== pastState.defaultOpen ||
+            countFor !== pastState.countFor) {
             this.loadSearchQueryResults();
         }
     }
@@ -780,6 +783,11 @@ export default class DataMatrix extends React.PureComponent {
         });
     }
 
+    onCountForChange(e) {
+        const nextValue = e && e.target ? e.target.value : 'files';
+        this.setState({ countFor: nextValue });
+    }
+
     getAllowedPropKeys() {
         return Object.keys(DataMatrix.propTypes);
     }
@@ -842,7 +850,7 @@ export default class DataMatrix extends React.PureComponent {
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
             colorRanges, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor,
-            defaultOpen = false, totalFiles
+            defaultOpen = false, totalFiles, countFor
         } = this.state;
 
         const isLoading =
@@ -911,6 +919,17 @@ export default class DataMatrix extends React.PureComponent {
             <div>
                 {configurator}
                 {headerFor || null}
+                <div className="form-inline mb-2">
+                    <label className="mr-2" htmlFor={`data-matrix-count-for-${idLabel}`}>Show counts for:</label>
+                    <select
+                        id={`data-matrix-count-for-${idLabel}`}
+                        className="form-control form-control-sm"
+                        value={countFor}
+                        onChange={this.onCountForChange}>
+                        <option value="files">Files</option>
+                        <option value="donors">Donors</option>
+                    </select>
+                </div>
                 <VisualBody
                     {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
                     {...bodyProps}
