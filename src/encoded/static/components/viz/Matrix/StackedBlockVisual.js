@@ -43,8 +43,8 @@ export class VisualBody extends React.PureComponent {
 
     static blockRenderedContents(data, blockProps){
         const blockSum = Array.isArray(data)
-            ? _.reduce(data, function (sum, item) { return sum + item.files; }, 0)
-            : (data ? (data.files || 1) : 0);
+            ? _.reduce(data, function (sum, item) { return sum + (item.counts && item.counts.files ? item.counts.files : 0); }, 0)
+            : (data ? ((data.counts && typeof data.counts.files === 'number') ? data.counts.files : 1) : 0);
 
         if (blockSum >= 1000){
             const decimal = blockSum >= 10000 ? 0 : 1;
@@ -314,8 +314,8 @@ export class VisualBody extends React.PureComponent {
 
         const { fileCount, totalCoverage } = _.reduce(data, function (sum, item) {
             return {
-                fileCount: sum.fileCount + item.files,
-                totalCoverage: sum.totalCoverage + item.total_coverage
+                fileCount: sum.fileCount + (item.counts && item.counts.files ? item.counts.files : 0),
+                totalCoverage: sum.totalCoverage + (item.counts && item.counts.total_coverage ? item.counts.total_coverage : 0)
             };
         }, { fileCount: 0, totalCoverage: 0 });
         // Round totalCoverage to 2 decimal places since ES has floating point precision issues

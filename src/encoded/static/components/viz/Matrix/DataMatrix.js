@@ -437,13 +437,15 @@ export default class DataMatrix extends React.PureComponent {
 
     /* Transform DSA entries by:
         1) For each group defined by groupingProperties, compute:
-            diff_files = row_totals.files - all.files
-        2) For each dsa entry, set files = diff_files for its group (if exists)
+            diff_files = row_totals.counts.files - all.counts.files
+        2) For each dsa entry, set counts.files = diff_files for its group (if exists)
         3) Merge dsa entries by groupingProperties:
-            - files: take from any row (they should all be equal after step 2)
+            - counts.files: take from any row (they should all be equal after step 2)
             - other fields: distinct values; single => scalar, multiple => array
     */
     static transformDSA(nonDsaData, row_totals, dsaData, groupingProperties, columnGrouping) {
+        const getFilesCount = (row) => Number(row && row.counts && row.counts.files) || 0;
+
         // Helper: build a grouping key like "COLO829BL||No value"
         const makeGroupKey = (row) =>
             groupingProperties.map((prop) => String(row[prop])).join('||');
@@ -452,7 +454,7 @@ export default class DataMatrix extends React.PureComponent {
         const rowTotalsByGroup = {};
         for (const row of row_totals) {
             const key = makeGroupKey(row);
-            const files = Number(row.files) || 0;
+            const files = getFilesCount(row);
             rowTotalsByGroup[key] = (rowTotalsByGroup[key] || 0) + files;
         }
 
@@ -460,7 +462,7 @@ export default class DataMatrix extends React.PureComponent {
         const allTotalsByGroup = {};
         for (const row of nonDsaData) {
             const key = makeGroupKey(row);
-            const files = Number(row.files) || 0;
+            const files = getFilesCount(row);
             allTotalsByGroup[key] = (allTotalsByGroup[key] || 0) + files;
         }
 
@@ -480,7 +482,10 @@ export default class DataMatrix extends React.PureComponent {
             return {
                 ...row,
                 // If we have a diff for this group, use it; otherwise keep original value
-                files: typeof diffFiles === 'number' ? diffFiles : row.files,
+                counts: {
+                    ...(row.counts || {}),
+                    files: typeof diffFiles === 'number' ? diffFiles : getFilesCount(row),
+                },
                 // Overwrite the columnGrouping field with "DSA"
                 [columnGrouping]: 'DSA',
             };
@@ -488,7 +493,7 @@ export default class DataMatrix extends React.PureComponent {
 
         // 5) SECOND PASS: merge dsa rows by groupingProperties
         //    - Same donor+tissue => single row
-        //    - files: take from any row (they should all be equal)
+        //    - counts.files: take from any row (they should all be equal)
         //    - other fields: distinct values; single => scalar, multiple => array
 
         // Group rows by groupingProperties key
@@ -508,8 +513,8 @@ export default class DataMatrix extends React.PureComponent {
 
             // Iterate over all fields of the first row (assuming schema is consistent)
             for (const field of Object.keys(firstRow)) {
-                if (field === 'files') {
-                    // Rule 1: files value is same; take from one row
+                if (field === 'counts') {
+                    // Rule 1: counts.files value is same; take from one row
                     mergedRow[field] = firstRow[field];
                 } else {
                     // Rule 2: collect distinct values for this field across group
@@ -565,7 +570,7 @@ export default class DataMatrix extends React.PureComponent {
                 if (resultItemPostProcessFuncKey && typeof DataMatrix.resultItemPostProcessFuncs[resultItemPostProcessFuncKey] === 'function') {
                     cloned = DataMatrix.resultItemPostProcessFuncs[resultItemPostProcessFuncKey](cloned);
                 }
-                if (cloned.files && cloned.files > 0) {
+                if (cloned.counts && cloned.counts.files && cloned.counts.files > 0) {
                     if (valueChangeMap) {
                         _.forEach(_.pairs(valueChangeMap), ([field, changeMap]) => {
                             if (typeof cloned[field] === 'string') {
@@ -597,8 +602,8 @@ export default class DataMatrix extends React.PureComponent {
             // sum files in transformedData array
             let totalFiles = 0;
             _.forEach(transformedData.row_totals, (r) => {
-                if (r.files && typeof r.files === 'number') {
-                    totalFiles += r.files;
+                if (r.counts && typeof r.counts.files === 'number') {
+                    totalFiles += r.counts.files;
                 }
             });
             updatedState['totalFiles'] = totalFiles;
@@ -909,7 +914,7 @@ export default class DataMatrix extends React.PureComponent {
                 <VisualBody
                     {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
                     {...bodyProps}
-                    columnSubGrouping=""//"state"
+                    columnSubGrouping=""// leave blank for now
                     // eslint-disable-next-line react/destructuring-assignment
                     results={this.state[resultKey]}
                     defaultDepthsOpen={[defaultOpen, false, false]}
@@ -935,13 +940,13 @@ DataMatrix.resultItemPostProcessFuncs = {
 
             if (typeof result.assay !== 'undefined' && typeof result.platform !== 'undefined') {
                 if (result.assay.indexOf('Hi-C - ') !== -1 && result.platform !== 'Illumina') {
-                    result.files = 0;
+                    result.counts = { ...(result.counts || {}), files: 0 };
                 }
                 if (result.assay.indexOf('Fiber-seq - ') !== -1 && result.platform !== 'PacBio') {
-                    result.files = 0;
+                    result.counts = { ...(result.counts || {}), files: 0 };
                 }
                 if (result.assay.indexOf('Ultra-Long WGS - ') !== -1 && result.platform !== 'ONT') {
-                    result.files = 0;
+                    result.counts = { ...(result.counts || {}), files: 0 };
                 }
             }
         }
