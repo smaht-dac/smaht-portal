@@ -7,15 +7,22 @@ smaht-portal
 Change Log
 ----------
 
-1.11.3
+1.12.0
 ======
-
 `PR 591: SN Fix DSA release script <https://github.com/smaht-dac/smaht-portal/pull/591>`_
 
 * Update means of getting chain file code for annotated filenames to do a search query on `code` and `title` of ReferenceGenomes and return either "DSA" or the unique `code` value
 * Add `version` as a required property to DonorSpecificAssembly
 * Update the annotated filename for DSA fasta and bed files to include `DSA_[version]`
 * Add bed files to access status function
+`PR 379: SN Submission spreadsheet update <https://github.com/smaht-dac/smaht-portal/pull/379`_
+
+
+1.11.3
+======
+* Update `commands/write_submission_spreadsheets.py` to include capability to add "pseudo-properties" such as `expected_file_counts` in FileSet that are used for validation in submitr
+* Update the `--eqm` flag to use config from GenericQcConfig item on portal and update error handling
+* Reorder properties and format output of the PathologyReport schema for ease of submission for TPC
 
 
 1.11.2
