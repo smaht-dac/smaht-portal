@@ -222,6 +222,12 @@ const DayGroup = (props) => {
     const { count, date, query, items: donorGroups } = props;
     const [isToggled, toggle] = useToggle();
 
+    const dayTitle = new Date(date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    });
+
     return (
         <div className="release-item">
             <div className={`day-group-header ${isToggled ? 'expanded' : ''}`}>
@@ -236,7 +242,7 @@ const DayGroup = (props) => {
                         }`}></i>
                 </button>
                 <a className="title" href={query}>
-                    {date.split('-').join('/')}
+                    {dayTitle}
                     <span className="count">
                         {count ?? 0} {count > 1 ? 'Files' : 'File'}
                         <i className="icon icon-arrow-right"></i>
@@ -479,7 +485,12 @@ export const NotificationsPanel = () => {
     return (
         <div className="notifications-panel container">
             <div className="data-release-tracker section">
-                <h3 className="section-header">Data Release Tracker</h3>
+                <h3 className="section-header">New Data Released</h3>
+                {/* TODO: add note about early access data here */}
+                {/* <span className="text-muted">
+                    Note: The data include early-access data for Network
+                    members.
+                </span> */}
                 <div className="section-body-container">
                     <div className="section-body">
                         <div className="section-body-items-container">
