@@ -377,8 +377,9 @@ def data_matrix_aggregations(context, request):
     MAX_BUCKET_COUNT = 30  # Max grouping in a data matrix.
     DEFAULT_SEARCH_PARAM_LISTS = {'type': ['File']}
     DEFAULT_VALUE_DELIMITER = ' '
+    # Set of field names whose array values should be concatenated into a single key during data matrix aggregation (e.g., {'data_type'}).
+    # Used to determine which fields require special handling for array concatenation in Elasticsearch aggregations.
     ARRAY_FIELDS_TO_JOIN = {
-        # Array field whose values should be concatenated into a single bucket key.
         'data_type'
     }
     SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION = {
@@ -401,6 +402,7 @@ def data_matrix_aggregations(context, request):
         json_body = request.json_body
         search_param_lists = json_body.get('search_query_params', deepcopy(DEFAULT_SEARCH_PARAM_LISTS))
         column_agg_fields_orig = json_body.get('column_agg_fields')
+        # always make column_agg_fields_orig a list
         if isinstance(column_agg_fields_orig, str):
             column_agg_fields_orig = [column_agg_fields_orig]
         row_agg_fields_orig = json_body.get('row_agg_fields')
@@ -430,15 +432,24 @@ def data_matrix_aggregations(context, request):
     row_agg_fields = remaining_columns + row_agg_fields
     row_totals_es_agg_start_index = len(remaining_columns)
 
-    # obsolete soon
     def is_array_concat_field(field):
         return isinstance(field, str) and field in ARRAY_FIELDS_TO_JOIN
 
     def get_es_key(field_or_field_list):
+        """
+        Returns 'script' if field_or_field_list is an array concat field or a
+        list with more than one item; otherwise returns 'field'.
+        """
         return "script" if (is_array_concat_field(field_or_field_list) or (isinstance(field_or_field_list, list) and len(field_or_field_list) > 1)) else "field"
 
-    # obsolete soon
     def get_es_value(field_or_field_list):
+        """
+        Returns an Elasticsearch field value or script for the given field or
+        list of fields. If multiple fields are provided, returns a script to
+        concatenate their values. If the field requires array concatenation,
+        returns a script to join sorted values. Otherwise, returns the raw field
+        path.
+        """
         if isinstance(field_or_field_list, list) and len(field_or_field_list) > 1:
             # If we have multiple fields, we will return a script that concatenates them.
             return {
@@ -541,6 +552,12 @@ def data_matrix_aggregations(context, request):
     }
 
     def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0, field_key="field", terms_key="terms", field_prefix="field_", agg_fields=row_agg_fields):
+        """
+        Formats a nested aggregation result (bucket_result) into a structured
+        dictionary (returned_buckets), recursively processing aggregation fields
+        and collecting totals for each bucket. Used for hierarchical data
+        aggregation, such as Elasticsearch-style bucket results.
+        """
 
         curr_bucket_totals = {
             'files': int(bucket_result['doc_count']),
@@ -570,6 +587,12 @@ def data_matrix_aggregations(context, request):
         format_bucket_result(bucket, ret_result['row_total_terms'], 0, "row_total_field", "row_total_terms", "row_totals_", row_agg_fields[row_totals_es_agg_start_index + 1:])
 
     def flatten_es_terms_aggregation(es_response, field_key="field", terms_key="terms"):
+        """
+        Flattens a nested Elasticsearch terms aggregation response into a list
+        of dictionaries, where each dictionary represents a unique path of term
+        values and associated file data. Accepts custom keys for field and terms
+        extraction.
+        """
         result = []
 
         def recurse_terms(level, path, data):
@@ -597,6 +620,11 @@ def data_matrix_aggregations(context, request):
         row_totals = flatten_es_terms_aggregation(ret_result, "row_total_field", "row_total_terms")
         
         def make_composite(data_array, skip_column_agg=False):
+            """
+            Aggregates specified fields in each item of data_array by joining their
+            values with a delimiter, optionally skipping column-based aggregation if
+            skip_column_agg is True. Modifies data_array in place.
+            """
             if len(column_agg_fields_orig) > 1 and not skip_column_agg:
                 for item in data_array:
                     if all(field in item for field in column_agg_fields_orig):
