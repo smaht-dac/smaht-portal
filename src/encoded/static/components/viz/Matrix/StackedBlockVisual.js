@@ -651,17 +651,153 @@ export class StackedBlockVisual extends React.PureComponent {
         }
     };
 
+    buildRowGroupsSummaryProps(ctx) {
+        const {
+            groupKey,
+            rowKeys,
+            columnKeys,
+            containerSectionStyle,
+            labelSectionStyle,
+            headerItemStyle,
+            columnWidth,
+            nestedData,
+            columnGrouping,
+            columnToRowsMappingFunc
+        } = ctx;
+        const { activeBlock, openBlock } = this.state;
+        const tmpData = _.flatten(_.flatten(_.map(_.pick(nestedData, (v, k) => rowKeys.indexOf(k) !== -1), _.values)));
+        const filteredGroupedDataIndices = _.groupBy(tmpData, columnGrouping);
+        const columnToRowsMapping = columnToRowsMappingFunc(tmpData);
+
+        return {
+            ...this.props,
+            activeBlock,
+            openBlock,
+            groupedDataIndices: filteredGroupedDataIndices,
+            label: groupKey !== FALLBACK_GROUP_NAME ? StackedBlockVisual.pluralize(groupKey) : groupKey,
+            labelSectionStyle,
+            columnKeys,
+            columnWidth,
+            headerItemStyle,
+            containerSectionStyle,
+            handleBlockClick: this.handleBlockClick,
+            handleBlockMouseEnter: this.handleBlockMouseEnter,
+            handleBlockMouseLeave: this.handleBlockMouseLeave,
+            rowGroupKey: groupKey,
+            columnToRowsMapping
+        };
+    }
+
+    renderRowGroups({
+        rowGroupsKeys,
+        leftAxisKeys,
+        nestedData,
+        nestedRowTotals,
+        groupedDataIndices,
+        columnsAndHeaderProps,
+        columnToRowsMappingFunc
+    }) {
+        const { rowGroups, showColumnSummary, showColumnGroups, columnGroups, columnGrouping } = this.props;
+        const { activeBlock, openBlock } = this.state;
+
+        const getRowKeysForGroup = (groupKey, values) => {
+            if (groupKey === FALLBACK_GROUP_NAME) { //special case for N/A
+                const allValues = StackedBlockGroupedRow.mergeValues(rowGroups);
+                // not intersecting childRowsKeys and allValues
+                return StackedBlockGroupedRow.difference(leftAxisKeys, allValues);
+            }
+            return StackedBlockGroupedRow.intersection(leftAxisKeys, values || []);
+        };
+
+        const getColumnKeys = () => {
+            const hasColumnGroups = showColumnGroups && columnGroups && _.keys(columnGroups).length > 0;
+            let columnKeys = _.keys(groupedDataIndices);
+            if (hasColumnGroups) {
+                columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, StackedBlockGroupedRow.mergeValues(columnGroups));
+            }
+            return columnKeys;
+        };
+
+        const getContainerSectionStyle = (backgroundColor, textColor, groupKeyIdx) => {
+            const containerSectionStyle = { backgroundColor: backgroundColor, color: textColor };
+            if (showColumnSummary || groupKeyIdx > 0) {
+                containerSectionStyle['marginTop'] = 20;
+            }
+            return containerSectionStyle;
+        };
+
+        let outerIdx = -1;
+        return (
+            <React.Fragment>
+                {StackedBlockGroupedRow.columnsAndHeader(columnsAndHeaderProps)}
+                {
+                    _.map(rowGroupsKeys, (groupKey, groupKeyIdx) => {
+                        const { values, backgroundColor, textColor } = rowGroups[groupKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
+
+                        const rowKeys = getRowKeysForGroup(groupKey, values);
+                        const containerSectionStyle = getContainerSectionStyle(backgroundColor, textColor, groupKeyIdx);
+                        const labelSectionStyle = {};
+                        const columnKeys = getColumnKeys();
+                        const columnWidth = 44;
+                        const headerItemStyle = {};
+
+                        return _.map(rowKeys, (k, idx) => {
+                            let rowGroupsSummaryProps = null;
+                            if (idx === 0) {
+                                rowGroupsSummaryProps = this.buildRowGroupsSummaryProps({
+                                    groupKey,
+                                    rowKeys,
+                                    columnKeys,
+                                    containerSectionStyle,
+                                    labelSectionStyle,
+                                    headerItemStyle,
+                                    columnWidth,
+                                    nestedData,
+                                    columnGrouping,
+                                    columnToRowsMappingFunc
+                                });
+                            }
+
+                            outerIdx++;
+                            return (
+                                <React.Fragment>
+                                    {idx === 0 && StackedBlockGroupedRow.rowGroupsSummary(rowGroupsSummaryProps)}
+                                    <StackedBlockGroupedRow
+                                        {...columnsAndHeaderProps}
+                                        data={nestedData[k]}
+                                        rowTotals={nestedRowTotals[k]}
+                                        key={k}
+                                        group={k}
+                                        depth={0}
+                                        index={outerIdx}
+                                        onSorterClick={this.handleSorterClick}
+                                        sorting={this.state.sorting}
+                                        sortField={this.state.sortField}
+                                        handleBlockMouseEnter={this.handleBlockMouseEnter}
+                                        handleBlockMouseLeave={this.handleBlockMouseLeave}
+                                        handleBlockClick={this.handleBlockClick}
+                                        activeBlock={activeBlock}
+                                        openBlock={openBlock}
+                                        popoverPrimaryTitle={groupKey}
+                                    />
+                                </React.Fragment>
+                            );
+                        });
+                    })
+                }
+            </React.Fragment>
+        );
+    }
+
     renderContents(){
         const { data : propData, rowTotals: propRowTotals, groupingProperties, columnGrouping, columnGroups, showColumnGroups, rowGroups, showRowGroups, showColumnSummary } = this.props;
         const { mounted, sorting, sortField, activeBlock, openBlock } = this.state;
         if (!mounted) return null;
         // prepare data
-        const tempData = [].concat(propData);
-        const data = extendListObjectsWithIndex(tempData);
+        const data = extendListObjectsWithIndex([].concat(propData));
         const nestedData = groupByMultiple(data, groupingProperties); // { 'Grant1' : { Lab1: { PI1: [...], PI2: [...] }, Lab2: {} } }
         // prepare row totals
-        const tempRowTotals = [].concat(propRowTotals);
-        const rowTotals = extendListObjectsWithIndex(tempRowTotals);
+        const rowTotals = extendListObjectsWithIndex([].concat(propRowTotals));
         const nestedRowTotals = groupByMultiple(rowTotals, groupingProperties); // { 'Grant1' : { Lab1: { PI1: [...], PI2: [...] }, Lab2: {} } }
 
         let groupedDataIndices = null;
@@ -673,44 +809,46 @@ export class StackedBlockVisual extends React.PureComponent {
             return null;
         }
 
-        let leftAxisKeys = _.keys(nestedData);
+        const sortLeftAxisKeys = (keys) => {
+            if (sorting !== 'both') {
+                //sort by counts
+                if (typeof sortField !== 'undefined') {
+                    const sortedKeys = [];
+                    _.map(keys, (k) =>
+                        sortedKeys.push(this.memoized.sortBlock(nestedData[k], groupedDataIndices, k, sortField))
+                    );
 
-        if (sorting !== 'both') {
-            //sort by counts
-            if (typeof sortField !== 'undefined') {
-                const sortedKeys = [];
-                _.map(leftAxisKeys, (k) =>
-                    sortedKeys.push(this.memoized.sortBlock(nestedData[k], groupedDataIndices, k, sortField))
-                );
+                    if (sorting === 'asc') {
+                        sortedKeys.sort((a, b) => a.count - b.count);
+                    } else if (sorting === 'desc') {
+                        sortedKeys.sort((a, b) => b.count - a.count);
+                    }
 
-                if (sorting === 'asc') {
-                    sortedKeys.sort((a, b) => a.count - b.count);
-                } else if (sorting === 'desc') {
-                    sortedKeys.sort((a, b) => b.count - a.count);
+                    //get sorted data keys
+                    return _.map(sortedKeys, (key) =>
+                        key['groupingKey']
+                    );
                 }
-
-                //get sorted data keys
-                leftAxisKeys = _.map(sortedKeys, (key) =>
-                    key['groupingKey']
-                );
-            } else { //sort by row labels
+                //sort by row labels
                 if (sorting === 'asc') {
-                    leftAxisKeys.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+                    return keys.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
                 } else if (sorting === 'desc') {
-                    leftAxisKeys.sort((a, b) => b.toLowerCase().localeCompare(a.toLowerCase()));
+                    return keys.sort((a, b) => b.toLowerCase().localeCompare(a.toLowerCase()));
                 }
+                return keys;
             }
-        } else {
-            leftAxisKeys = rowGroups ? StackedBlockGroupedRow.sortByArray(leftAxisKeys, StackedBlockGroupedRow.mergeValues(rowGroups)) : leftAxisKeys.sort();
-        }
+            return rowGroups ? StackedBlockGroupedRow.sortByArray(keys, StackedBlockGroupedRow.mergeValues(rowGroups)) : keys.sort();
+        };
+
+        const leftAxisKeys = sortLeftAxisKeys(_.keys(nestedData));
         const hasRowGroups = showRowGroups && rowGroups && _.keys(rowGroups).length > 0;
         const rowGroupsKeys = hasRowGroups ? [..._.keys(rowGroups), FALLBACK_GROUP_NAME] : null;
 
         // convert to { columnGrouping: [groupingProperties] }
-        const columnToRowsMappingFunc = function (data) {
+        const columnToRowsMappingFunc = function (rows) {
             const result = {};
 
-            data.forEach((item) => {
+            rows.forEach((item) => {
                 const column = item[columnGrouping];
                 const row = item[groupingProperties[0]];
 
@@ -726,6 +864,22 @@ export class StackedBlockVisual extends React.PureComponent {
             });
 
             return result;
+        };
+
+        const sharedRowProps = {
+            ...this.props,
+            groupedDataIndices,
+            parentState: this.state,
+            depth: 0,
+            toggleGroupingOpen: this.toggleGroupingOpen,
+            onSorterClick: this.handleSorterClick,
+            sorting,
+            sortField,
+            handleBlockMouseEnter: this.handleBlockMouseEnter,
+            handleBlockMouseLeave: this.handleBlockMouseLeave,
+            handleBlockClick: this.handleBlockClick,
+            activeBlock,
+            openBlock
         };
 
         const columnsAndHeaderProps = {
@@ -749,95 +903,18 @@ export class StackedBlockVisual extends React.PureComponent {
         }
 
         if (rowGroupsKeys) {
-            let outerIdx = -1;
-            return (
-                <React.Fragment>
-                    {StackedBlockGroupedRow.columnsAndHeader(columnsAndHeaderProps)}
-                    {
-                        _.map(rowGroupsKeys, (groupKey, groupKeyIdx) => {
-                            const { values, backgroundColor, textColor } = rowGroups[groupKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
-
-                            let rowKeys = [];
-                            if (groupKey === FALLBACK_GROUP_NAME) { //special case for N/A
-                                const allValues = StackedBlockGroupedRow.mergeValues(rowGroups);
-                                // not intersecting childRowsKeys and allValues
-                                rowKeys = StackedBlockGroupedRow.difference(leftAxisKeys, allValues);
-                            } else {
-                                rowKeys = StackedBlockGroupedRow.intersection(leftAxisKeys, values || []);
-                            }
-
-                            const containerSectionStyle = { backgroundColor: backgroundColor, color: textColor };
-                            if (showColumnSummary || groupKeyIdx > 0) {
-                                containerSectionStyle['marginTop'] = 20;
-                            }
-                            const labelSectionStyle = {};
-                            const hasColumnGroups = showColumnGroups && columnGroups && _.keys(columnGroups).length > 0;
-                            let columnKeys = _.keys(groupedDataIndices);
-                            if (hasColumnGroups) {
-                                columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, StackedBlockGroupedRow.mergeValues(columnGroups));
-                            }
-                            const columnWidth = 44;
-                            const headerItemStyle = {};
-
-                            return _.map(rowKeys, (k, idx) => {
-                                let rowGroupsSummaryProps = null;
-                                if (idx === 0) {
-                                    const tmpData = _.flatten(_.flatten(_.map(_.pick(nestedData, (v, k) => rowKeys.indexOf(k) !== -1), _.values)));
-                                    const filteredGroupedDataIndices = _.groupBy(tmpData, columnGrouping);
-
-                                    const columnToRowsMapping = columnToRowsMappingFunc(tmpData);
-
-                                    rowGroupsSummaryProps = {
-                                        ...this.props,
-                                        activeBlock,
-                                        openBlock,
-                                        groupedDataIndices: filteredGroupedDataIndices,
-                                        label: groupKey !== FALLBACK_GROUP_NAME ? StackedBlockVisual.pluralize(groupKey) : groupKey,
-                                        labelSectionStyle,
-                                        columnKeys,
-                                        columnWidth,
-                                        headerItemStyle,
-                                        containerSectionStyle,
-                                        handleBlockClick: this.handleBlockClick,
-                                        handleBlockMouseEnter: this.handleBlockMouseEnter,
-                                        handleBlockMouseLeave: this.handleBlockMouseLeave,
-                                        rowGroupKey: groupKey,
-                                        columnToRowsMapping
-                                    };
-                                }
-
-                                outerIdx++;
-                                return (
-                                    <React.Fragment>
-                                        {idx === 0 && StackedBlockGroupedRow.rowGroupsSummary(rowGroupsSummaryProps)}
-                                        <StackedBlockGroupedRow
-                                            {...this.props}
-                                            groupedDataIndices={groupedDataIndices}
-                                            parentState={this.state}
-                                            data={nestedData[k]}
-                                            rowTotals={nestedRowTotals[k]}
-                                            key={k}
-                                            group={k}
-                                            depth={0}
-                                            index={outerIdx}
-                                            toggleGroupingOpen={this.toggleGroupingOpen}
-                                            onSorterClick={this.handleSorterClick}
-                                            sorting={sorting}
-                                            sortField={sortField}
-                                            handleBlockMouseEnter={this.handleBlockMouseEnter}
-                                            handleBlockMouseLeave={this.handleBlockMouseLeave}
-                                            handleBlockClick={this.handleBlockClick}
-                                            activeBlock={activeBlock}
-                                            openBlock={openBlock}
-                                            popoverPrimaryTitle={groupKey}
-                                        />
-                                    </React.Fragment>
-                                );
-                            });
-                        })
-                    }
-                </React.Fragment>
-            );
+            return this.renderRowGroups({
+                rowGroupsKeys,
+                leftAxisKeys,
+                nestedData,
+                nestedRowTotals,
+                groupedDataIndices,
+                columnsAndHeaderProps: {
+                    ...columnsAndHeaderProps,
+                    ...sharedRowProps
+                },
+                columnToRowsMappingFunc
+            });
         } else {
             return (
                 <React.Fragment>
@@ -845,24 +922,13 @@ export class StackedBlockVisual extends React.PureComponent {
                     {
                         _.map(leftAxisKeys, (k, idx) =>
                             <StackedBlockGroupedRow 
-                                {...this.props}
-                                groupedDataIndices={groupedDataIndices}
-                                parentState={this.state}
+                                {...sharedRowProps}
                                 data={nestedData[k]}
                                 rowTotals={nestedRowTotals[k]}
                                 key={k}
                                 group={k}
-                                depth={0}
                                 index={idx}
-                                toggleGroupingOpen={this.toggleGroupingOpen}
-                                onSorterClick={this.handleSorterClick}
-                                sorting={sorting}
-                                sortField={sortField}
-                                handleBlockMouseEnter={this.handleBlockMouseEnter}
-                                handleBlockMouseLeave={this.handleBlockMouseLeave}
-                                handleBlockClick={this.handleBlockClick}
-                                activeBlock={activeBlock}
-                                openBlock={openBlock} />
+                            />
                         )
                     }
                 </React.Fragment>
@@ -980,9 +1046,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
     /** @todo Convert to functional memoized React component */
     static collapsedChildBlocks = memoize(function(data, rowTotals, props){
 
-        var allChildBlocksPerChildGroup = null; // Forgot what this was -- seems to be null in /joint-analysis at least
-        let allChildBlocks = Array.isArray(data) ? data : StackedBlockGroupedRow.flattenChildBlocks(data);
-        let rowTotalChildBlocks = Array.isArray(rowTotals) ? rowTotals : StackedBlockGroupedRow.flattenChildBlocks(rowTotals);
+        const allChildBlocksPerChildGroup = null; // Forgot what this was -- seems to be null in /joint-analysis at least
+        const allChildBlocks = Array.isArray(data) ? data : StackedBlockGroupedRow.flattenChildBlocks(data);
+        const rowTotalChildBlocks = Array.isArray(rowTotals) ? rowTotals : StackedBlockGroupedRow.flattenChildBlocks(rowTotals);
 
         // currently not in use
         // if (typeof props.columnSubGrouping !== 'string' && !Array.isArray(data)) {
@@ -1005,11 +1071,23 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             'paddingTop'    : props.blockVerticalSpacing
         };
         const groupedDataIndicesPairs = (props.groupedDataIndices && _.pairs(props.groupedDataIndices)) || [];
+        const hasColumns = groupedDataIndicesPairs.length > 0;
         let inner = null;
-        let blocksByColumnGroup;
-        let columnKeys;
 
-        if (groupedDataIndicesPairs.length > 0){
+        const getBlocksForColumnGroup = (listOfObjectsForGroup) => {
+            const listOfIndicesForGroup = _.pluck(listOfObjectsForGroup, 'index');
+            return _.filter(allChildBlocks, (blockData) => listOfIndicesForGroup.indexOf(blockData.index) > -1);
+        };
+
+        const sortColumnKeys = (keys) => {
+            if (props.columnGroups && _.keys(props.columnGroups).length > 0){
+                // We need to sort the column keys by the order of the column groups.
+                return StackedBlockGroupedRow.sortByArray(keys, StackedBlockGroupedRow.mergeValues(props.columnGroups));
+            }
+            return keys;
+        };
+
+        if (hasColumns){
             // If columns exist, distribute these blocks by column!
             // Otherwise (else statement @ end) we'll probably just stack em left-to-right.
 
@@ -1049,24 +1127,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                 // });
 
             } else {
-                blocksByColumnGroup = _.object(_.map(groupedDataIndicesPairs, function([ columnKey, listOfObjectsForGroup ]){
-                    const listOfIndicesForGroup = _.pluck(listOfObjectsForGroup, 'index');
-                    return [
-                        columnKey,
-                        _.filter(_.map(allChildBlocks, function(blockData){
-                            if (listOfIndicesForGroup.indexOf(blockData.index) > -1){
-                                return blockData;
-                            } else {
-                                return null;
-                            }
-                        }), function(block){ return block !== null; })];
+                const blocksByColumnGroup = _.object(_.map(groupedDataIndicesPairs, function([ columnKey, listOfObjectsForGroup ]){
+                    return [ columnKey, getBlocksForColumnGroup(listOfObjectsForGroup) ];
                 }));
 
-                columnKeys = _.keys(blocksByColumnGroup);
-                if (props.columnGroups && _.keys(props.columnGroups).length > 0){
-                    // We need to sort the column keys by the order of the column groups.
-                    columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, StackedBlockGroupedRow.mergeValues(props.columnGroups));
-                }
+                const columnKeys = sortColumnKeys(_.keys(blocksByColumnGroup));
 
                 inner = _.map(columnKeys, function(k, colIdx){
                     var blocksForGroup = blocksByColumnGroup[k];
