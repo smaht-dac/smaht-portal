@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+1.11.4
+======
+
+`PR 598: feat: update modal and banner <https://github.com/smaht-dac/smaht-portal/pull/598>`_
+
+* Update the Browse View Modal
+* Update the Donor View redirect banner
+
+
 1.11.3
 ======
 
