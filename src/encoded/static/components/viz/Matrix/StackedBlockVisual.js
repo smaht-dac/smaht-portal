@@ -15,6 +15,8 @@ import { isPrimitive } from '@hms-dbmi-bgm/shared-portal-components/es/component
 
 const FALLBACK_GROUP_NAME = 'N/A';
 
+// Recursively groups a list of objects by each property in order, returning a nested object tree
+// (e.g., groupByMultiple([{ a: 1, b: 2 }, { a: 1, b: 3 }], ['a','b']) -> { '1': { '2': [...], '3': [...] } }).
 export function groupByMultiple(objList, propertiesList){
     var maxDepth = (propertiesList || []).length - 1;
     return (function doGroup(list, depth){
@@ -35,22 +37,24 @@ export function extendListObjectsWithIndex(objList){
     });
 }
 
+// VisualBody renders the matrix wrapper with popovers and count formatting.
+// Example: <VisualBody results={{ all: data, row_totals: totals }} groupingProperties={['donor','tissue']} columnGrouping="assay" />
 export class VisualBody extends React.PureComponent {
 
     static blockRenderedContents(data, blockProps){
-        let blockSum = 0;
-        if (Array.isArray(data)) {
-            blockSum = _.reduce(data, function (sum, item) {
-                return sum + item.files;
-            }, 0);
-        } else if (data) {
-            blockSum = data.files || 1;
-        }
+        const blockSum = Array.isArray(data)
+            ? _.reduce(data, function (sum, item) { return sum + item.files; }, 0)
+            : (data ? (data.files || 1) : 0);
+
         if (blockSum >= 1000){
             const decimal = blockSum >= 10000 ? 0 : 1;
-            return <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }} data-count={blockSum} data-tip={blockSum}>{ roundLargeNumber(blockSum, decimal) }</span>;
+            return (
+                <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }} data-count={blockSum} data-tip={blockSum}>
+                    { roundLargeNumber(blockSum, decimal) }
+                </span>
+            );
         }
-        else if (blockSum >= 100){
+        if (blockSum >= 100){
             return <span style={{ 'fontSize' : '0.90rem', 'position' : 'relative', 'top' : -1 }} data-count={blockSum}>{ blockSum }</span>;
         }
         return <span data-count={blockSum}>{ blockSum }</span>;
@@ -59,7 +63,7 @@ export class VisualBody extends React.PureComponent {
      * replacement of underscore's invert function.
      * While underscore's invert requires all of object's values should be
      * unique and string serializable, VisualBody.invert allows multiple
-     * mappings and convert them to array.
+     * mappings and convert them to array (e.g., { a: 'x', b: 'x' } -> { x: ['a','b'] }).
      **/
     static invert(object) {
         const result = {};
@@ -129,6 +133,7 @@ export class VisualBody extends React.PureComponent {
      * @param {Object} props Props passed in from the StackedBlockVisual Component instance.
      */
     blockPopover(data, blockProps, parentGrouping){
+        // Input / config
         const {
             query: { url: queryUrl, columnAggFields, rowAggFields },
             fieldChangeMap, valueChangeMap, titleMap,
@@ -140,6 +145,7 @@ export class VisualBody extends React.PureComponent {
         const isGroup = (Array.isArray(data) && data.length >= 1) || false;
         let aggrData;
 
+        // Normalize data shape
         if (!isGroup && Array.isArray(data)){
             if(data.length === 0){
                 return null; // No data to show
@@ -147,6 +153,7 @@ export class VisualBody extends React.PureComponent {
             data = data[0];
         }
 
+        // Aggregate values for grouped blocks
         if (isGroup) {
             const keysToInclude = _.uniq(_.keys(titleMap).concat([columnGrouping]).concat(groupingProperties)).concat(['primary_field_override']);
             aggrData = StackedBlockVisual.aggregateObjectFromList(
@@ -159,6 +166,7 @@ export class VisualBody extends React.PureComponent {
         if (!aggrData) {
             return;
         }
+        // Grouping metadata (labels + values)
         // e.g. Donor
         const primaryGrpProp = groupingProperties[0] || null;
         const primaryGrpPropTitle = popoverPrimaryTitle || (primaryGrpProp && titleMap[primaryGrpProp]) || primaryGrpProp || null;
@@ -175,10 +183,11 @@ export class VisualBody extends React.PureComponent {
             secondaryGrpPropCategoryValue = this.findKeyByValue(rowGroupsExtended, secondaryGrpPropValue);
         }
 
-        // Generate title area which shows current grouping vals.
+        // Title area values
         const yAxisGroupingTitle = (columnGrouping && titleMap[columnGrouping]) || columnGrouping || null;
         const yAxisGroupingValue = isGroup ? data[0][columnGrouping] : data[columnGrouping];
 
+        // URL builder: converts current block state into browse filters
         function generateBrowseUrl() {
             let currentFilteringProperties = groupingProperties.slice(0, depth + 1);
             if (blockType !== 'row-summary') {
@@ -221,6 +230,7 @@ export class VisualBody extends React.PureComponent {
                 return compositeFacetPairs ? compositeFacetPairs : [facetField, facetTerm];
             });
 
+            // Flatten key/value pairs into query params (supporting composite facet pairs).
             const convertPairsToObject = (pairs) => {
                 const result = {};
 
@@ -250,6 +260,7 @@ export class VisualBody extends React.PureComponent {
 
             let currentFilteringPropertiesVals = convertPairsToObject(currentFilteringPropertiesPairs);
 
+            // Allow caller to override or transform filters.
             if (typeof browseFilteringTransformFunc === 'function') {
                 currentFilteringPropertiesVals = browseFilteringTransformFunc(currentFilteringPropertiesVals, blockType);
             }
@@ -298,6 +309,7 @@ export class VisualBody extends React.PureComponent {
             );
         }
 
+        // Aggregate values for summary rows
         const browseUrl = generateBrowseUrl();
 
         const { fileCount, totalCoverage } = _.reduce(data, function (sum, item) {
@@ -309,6 +321,7 @@ export class VisualBody extends React.PureComponent {
         // Round totalCoverage to 2 decimal places since ES has floating point precision issues
         const roundedTotalCoverage = totalCoverage > 0 ? Math.round(totalCoverage * 100) / 100 : 0;
 
+        // Render
         return (
             <Popover id="jap-popover">
                 <Popover.Body>
@@ -459,10 +472,12 @@ export class VisualBody extends React.PureComponent {
     }
 }
 
+// StackedBlockVisual renders the matrix grid with grouping and summary rows.
+// Example: <StackedBlockVisual data={rows} rowTotals={rowTotals} groupingProperties={['donor','tissue']} columnGrouping="assay" />
 export class StackedBlockVisual extends React.PureComponent {
 
     static defaultProps = {
-        'groupingProperties' : ['grant_type', 'center_name',  'lab_name'],
+        'groupingProperties' : ["donor", "tissue"],
         'columnGrouping' : null,
         'blockHeight' : 28,
         'blockWidth': 35,
@@ -503,11 +518,43 @@ export class StackedBlockVisual extends React.PureComponent {
         }
     };
 
+    // Aggregates a list of objects into one object by summing numeric fields and
+    // collecting unique values for non-numeric fields (e.g., [{ a: 1, b: 'x' }, { a: 2, b: 'y' }] -> { a: 3, b: ['x','y'] }).
     static aggregateObjectFromList = function (dataList, keysToShow, skipParsingKeys = null) {
         // Use all keys from the first item if keysToShow is not provided
         if (!keysToShow) {
             keysToShow = _.keys(dataList[0]);
         }
+
+        const shouldSkipParsing = Array.isArray(skipParsingKeys) && skipParsingKeys.length > 0
+            ? _.object(_.map(skipParsingKeys, k => [k, true]))
+            : null;
+
+        const finalizeAggregatedValue = (value, key) => {
+            if (typeof value === 'number') {
+                return value;
+            }
+
+            // Convert Set to Array and remove falsy values
+            const valuesArray = _.filter(Array.from(value));
+            const isObjectArray = _.any(valuesArray, v => v && typeof v === 'object');
+
+            if (valuesArray.length === 0) {
+                return undefined;
+            }
+            if (valuesArray.length === 1) {
+                return valuesArray[0];
+            }
+            if (shouldSkipParsing && shouldSkipParsing[key]) {
+                return valuesArray;
+            }
+            if (isObjectArray) {
+                // If values are objects, deduplicate using a custom identity function
+                const uniqById = _.uniq(valuesArray, false, object.itemUtil.atId);
+                return uniqById.length === 1 ? uniqById[0] : uniqById;
+            }
+            return valuesArray;
+        };
 
         // Initialize the aggregation object with null values
         const initial = _.object(keysToShow, _.map(keysToShow, _.constant(null)));
@@ -528,40 +575,14 @@ export class StackedBlockVisual extends React.PureComponent {
             return acc;
         }, initial);
 
-        // Convert skipParsingKeys array into a lookup object for quick access
-        const skipParsing = Array.isArray(skipParsingKeys)
-            ? _.object(_.map(skipParsingKeys, k => [k, true]))
-            : null;
-
         // Post-process non-numeric fields (which are Sets)
         _.each(_.keys(aggregated), function (key) {
             const value = aggregated[key];
-
-            if (typeof value === 'number') {
-                // Numeric fields are already aggregated
-                return;
-            }
-
-            // Convert Set to Array and remove falsy values
-            const valuesArray = _.filter(Array.from(value));
-            const isObjectArray = _.any(valuesArray, v => v && typeof v === 'object');
-
-            if (valuesArray.length === 0) {
-                // Remove empty fields
+            const finalized = finalizeAggregatedValue(value, key);
+            if (typeof finalized === 'undefined') {
                 delete aggregated[key];
-            } else if (valuesArray.length === 1) {
-                // Collapse single-value arrays to scalar value
-                aggregated[key] = valuesArray[0];
-            } else if (skipParsing && skipParsing[key]) {
-                // Keep multiple values as-is if skipParsing is enabled for this key
-                aggregated[key] = valuesArray;
-            } else if (isObjectArray) {
-                // If values are objects, deduplicate using a custom identity function
-                const uniqById = _.uniq(valuesArray, false, object.itemUtil.atId);
-                aggregated[key] = uniqById.length === 1 ? uniqById[0] : uniqById;
             } else {
-                // Otherwise, just assign the array of unique values
-                aggregated[key] = valuesArray;
+                aggregated[key] = finalized;
             }
         });
 
@@ -700,6 +721,7 @@ export class StackedBlockVisual extends React.PureComponent {
         const { rowGroups, showColumnSummary, showColumnGroups, columnGroups, columnGrouping } = this.props;
         const { activeBlock, openBlock } = this.state;
 
+        // Resolve row keys for a group (including the fallback N/A group).
         const getRowKeysForGroup = (groupKey, values) => {
             if (groupKey === FALLBACK_GROUP_NAME) { //special case for N/A
                 const allValues = StackedBlockGroupedRow.mergeValues(rowGroups);
@@ -709,6 +731,7 @@ export class StackedBlockVisual extends React.PureComponent {
             return StackedBlockGroupedRow.intersection(leftAxisKeys, values || []);
         };
 
+        // Order columns, applying column group ordering if present.
         const getColumnKeys = () => {
             const hasColumnGroups = showColumnGroups && columnGroups && _.keys(columnGroups).length > 0;
             let columnKeys = _.keys(groupedDataIndices);
@@ -718,6 +741,7 @@ export class StackedBlockVisual extends React.PureComponent {
             return columnKeys;
         };
 
+        // Build per-section styling with optional spacing between groups.
         const getContainerSectionStyle = (backgroundColor, textColor, groupKeyIdx) => {
             const containerSectionStyle = { backgroundColor: backgroundColor, color: textColor };
             if (showColumnSummary || groupKeyIdx > 0) {
@@ -744,6 +768,7 @@ export class StackedBlockVisual extends React.PureComponent {
                         return _.map(rowKeys, (k, idx) => {
                             let rowGroupsSummaryProps = null;
                             if (idx === 0) {
+                                // Build a summary row for the first row in each group.
                                 rowGroupsSummaryProps = this.buildRowGroupsSummaryProps({
                                     groupKey,
                                     rowKeys,
@@ -761,6 +786,7 @@ export class StackedBlockVisual extends React.PureComponent {
                             outerIdx++;
                             return (
                                 <React.Fragment>
+                                    {/* Render the summary row once per group. */}
                                     {idx === 0 && StackedBlockGroupedRow.rowGroupsSummary(rowGroupsSummaryProps)}
                                     <StackedBlockGroupedRow
                                         {...columnsAndHeaderProps}
@@ -845,6 +871,8 @@ export class StackedBlockVisual extends React.PureComponent {
         const rowGroupsKeys = hasRowGroups ? [..._.keys(rowGroups), FALLBACK_GROUP_NAME] : null;
 
         // convert to { columnGrouping: [groupingProperties] }
+        // Example: rows=[{ assay:'WGS', donor:'D1' },{ assay:'WGS', donor:'D2' },{ assay:'RNA', donor:'D1' }]
+        // => { WGS:['D1','D2'], RNA:['D1'] }
         const columnToRowsMappingFunc = function (rows) {
             const result = {};
 
@@ -956,6 +984,8 @@ export class StackedBlockVisual extends React.PureComponent {
 
 }
 
+// StackedBlockGroupedRow renders a single grouped row (and its nested children) inside the matrix.
+// Example: <StackedBlockGroupedRow data={nestedRow} rowTotals={nestedTotals} group="Donor A" depth={0} />
 export class StackedBlockGroupedRow extends React.PureComponent {
 
     static flattenChildBlocks(groups){
@@ -1629,6 +1659,7 @@ const Block = React.memo(function Block(props){
         blockType = 'regular'
     } = props;
 
+    // Layout / base style
     const style = {
         'height' : blockHeight,
         'width' : '100%', //blockWidth,
@@ -1637,16 +1668,14 @@ const Block = React.memo(function Block(props){
         'marginTop' : indexInGroup && indexInGroup > 0 ? blockVerticalSpacing + 1 : 0
     };
 
-    const isSummaryBlock = (blockType) => {
-        return blockType === 'row-summary' || blockType === 'col-summary';
-    }
+    const isSummaryBlock = (type) => type === 'row-summary' || type === 'col-summary';
 
+    // Choose source data for summary blocks
     const argData = blockType === 'row-summary' && rowTotals ? rowTotals : data;
-
     const blockFxnArguments = [argData, props, parentGrouping];
 
+    // Compute className and contents
     let className = "stacked-block";
-
     if (typeof blockClassName === 'function'){
         className += ' ' + blockClassName.apply(blockClassName, blockFxnArguments);
     } else if (typeof blockClassName === 'string'){
@@ -1658,13 +1687,15 @@ const Block = React.memo(function Block(props){
         contents = blockRenderedContents.apply(blockRenderedContents, blockFxnArguments);
     }
 
+    // Build optional popover
     let popover = null;
     if (typeof blockPopover === 'function'){
         popover = blockPopover.apply(blockPopover, blockFxnArguments);
     }
 
-    const getColor = function (value, blockType = 'regular') {
-        if (isSummaryBlock(blockType)){
+    // Color selection (summary blocks use a fixed color)
+    const getColor = function (value, type = 'regular') {
+        if (isSummaryBlock(type)){
             return summaryBackgroundColor || '#000000';
         }
         if (!colorRanges){
@@ -1680,6 +1711,7 @@ const Block = React.memo(function Block(props){
     const dataLength = data?.length || 0;
     const color = getColor(dataLength, blockType);
 
+    // Apply open/active styles
     if (openBlock?.rowIdx === rowIndex && openBlock?.columnIdx === colIndex &&
         (blockType === 'col-summary' ? (openBlock?.rowGroupKey === rowGroupKey) : (openBlock?.rowKey === group))) {
         style['color'] = isSummaryBlock(blockType) ? '#8a8aaa' : color;
@@ -1690,6 +1722,7 @@ const Block = React.memo(function Block(props){
         style['backgroundColor'] = color;
     }
 
+    // Base block element
     const blockElem = (
         <div
             className={className}
@@ -1705,6 +1738,7 @@ const Block = React.memo(function Block(props){
         </div>
     );
 
+    // If a popover exists, wrap the block in OverlayTrigger
     if (popover) {
         return (
             <OverlayTrigger
