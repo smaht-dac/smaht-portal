@@ -5,8 +5,14 @@ from ..item_utils.utils import (
     get_property_values_from_identifiers
 )
 from ..item_utils import (
+    item as item_utils,
     tissue as tissue_utils
 )
+
+
+def is_external_output_file(properties: Dict[str, Any]) -> bool:
+    """Check if file is an external output file."""
+    return "ExternalOutputFile" in item_utils.get_types(properties)  
 
 
 def get_tissues(

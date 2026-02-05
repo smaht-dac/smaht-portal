@@ -25,7 +25,8 @@ from encoded.item_utils import (
     tissue as tissue_utils,
     tissue_sample as tissue_sample_utils,
     donor_specific_assembly as dsa_utils,
-    reference_genome as rg_utils
+    reference_genome as rg_utils,
+    external_output_file as eof_utils
 )
 from encoded.item_utils.constants import file as file_constants
 from encoded.item_utils.utils import RequestHandler
@@ -140,7 +141,7 @@ def get_associated_items(
     sequencers = get_sequencers(file_sets, request_handler)
     samples = get_samples(file_sets, request_handler)
     tissue_samples = get_tissue_samples(samples)
-    sample_sources = get_sample_sources(samples, request_handler)
+    sample_sources = get_sample_sources(file, samples, request_handler)
     cell_culture_mixtures = get_cell_culture_mixtures(sample_sources)
     tissues = get_tissues(sample_sources)
     cell_lines = get_cell_lines(sample_sources, request_handler)
@@ -304,12 +305,17 @@ def get_tissue_samples(samples: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 
 def get_sample_sources(
-    samples: List[Dict[str, Any]], request_handler: RequestHandler
+    file: Dict[str, Any],
+    samples: List[Dict[str, Any]],
+    request_handler: RequestHandler
 ) -> List[Dict[str, Any]]:
     """Get sample sources for samples."""
-    sample_sources = [
-        item for sample in samples for item in sample_utils.get_sample_sources(sample)
-    ]
+    if eof_utils.is_external_output_file(file):
+        sample_sources = eof_utils.get_tissues(file)
+    else:
+        sample_sources = [
+            item for sample in samples for item in sample_utils.get_sample_sources(sample)
+        ]
     return get_items(sample_sources, request_handler)
 
 
@@ -458,6 +464,7 @@ def get_annotated_filename(
         associated_items.tissues,
     )
     aliquot_id = get_aliquot_id(
+        associated_items.file,
         associated_items.cell_culture_mixtures,
         associated_items.cell_lines,
         associated_items.tissue_samples,
@@ -684,14 +691,14 @@ def get_protocol_id_from_tissues(tissues: List[Dict[str, Any]]) -> FilenamePart:
 
 
 def get_aliquot_id(
+    file: Dict[str, Any],
     cell_culture_mixtures: List[Dict[str, Any]],
     cell_lines: List[Dict[str, Any]],
     tissue_samples: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get tissue aliquot ID for file."""
-
     parts = []
-    if cell_culture_mixtures or cell_lines:
+    if cell_culture_mixtures or cell_lines or eof_utils.is_external_output_file(file):
         parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
     if tissue_samples:
         parts.append(get_aliquot_id_from_samples(tissue_samples))
@@ -819,7 +826,7 @@ def get_sequencing_and_assay_codes(
     assay_codes = get_assay_codes(assays)
     if len(sequencing_codes) == 1 and len(assay_codes) == 1:
         return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
-    elif supp_file_utils.is_genome_assembly(file) or supp_file_utils.is_reference_conversion(file):
+    elif supp_file_utils.is_genome_assembly(file) or supp_file_utils.is_reference_conversion(file) or eof_utils.is_external_output_file(file):
         return get_filename_part(value="XX")
     errors = []
     if not sequencing_codes:
