@@ -468,8 +468,7 @@ export const NotificationsPanel = () => {
             '/recent_files_summary?format=json&nmonths=3',
             (resp) => {
                 console.log('resp', resp);
-                // setData(resp?.items ? formatReleaseData(resp?.items) : []);
-                setData([]);
+                setData(resp?.items ? formatReleaseData(resp?.items) : []);
                 setIsLoading(false);
             },
             'GET',
