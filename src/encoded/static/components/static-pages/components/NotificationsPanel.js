@@ -468,7 +468,8 @@ export const NotificationsPanel = () => {
             '/recent_files_summary?format=json&nmonths=3',
             (resp) => {
                 console.log('resp', resp);
-                setData(resp?.items ? formatReleaseData(resp?.items) : []);
+                // setData(resp?.items ? formatReleaseData(resp?.items) : []);
+                setData([]);
                 setIsLoading(false);
             },
             'GET',
@@ -485,21 +486,24 @@ export const NotificationsPanel = () => {
     return (
         <div className="notifications-panel container">
             <div className="data-release-tracker section">
-                <h3 className="section-header">New Data Released</h3>
-                {/* TODO: add note about early access data here */}
-                {/* <span className="text-muted">
-                    Note: The data include early-access data for Network
-                    members.
-                </span> */}
+                <h3 className="section-header">New Data Releases</h3>
                 <div className="section-body-container">
                     <div className="section-body">
                         <div className="section-body-items-container">
                             {isLoading ? (
                                 <i className="icon fas icon-spinner icon-spin"></i>
                             ) : data === null || data.length === 0 ? (
-                                <div>
-                                    No recent data releases available at this
-                                    time. Check back later.
+                                <div className="announcement-container public-release d-flex flex-column align-items-center border-0">
+                                    <i className="icon icon-folder-open fas"></i>
+                                    <h5 className="header">
+                                        PUBLIC RELEASE: COMING SOON!
+                                    </h5>
+                                    <div className="body">
+                                        Production data are only available to
+                                        SMaHT consortium members at this time.
+                                        Check back for the public release of
+                                        SMaHT data.
+                                    </div>
                                 </div>
                             ) : (
                                 data.map((releaseItem, i) => {

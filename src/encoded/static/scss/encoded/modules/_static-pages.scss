@@ -1397,19 +1397,23 @@ body[data-path="/"]>#application>#layout {
 								}
 							}
 						}
-						&.cram-conversion {
+						&.public-release {
 							color: #485983;
 							font-size: 12px;
-							margin: 8px 0px 0px 0px;
 							padding: 10px;
 
 							.header {
-								font-weight: 600;
+								font-weight: 700;
 							}
 
 							i {
-								color: #485983;
-								margin-right: 5px;
+								color: #d5dff2;
+								font-size: 2rem;
+								margin: 8px auto 15px auto;
+							}
+
+							.body {
+								text-align: center;
 							}
 						}
 					}
