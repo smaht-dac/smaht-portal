@@ -101,7 +101,7 @@ class AssociatedItems:
     reference_genome: Dict[str, Any]
     gene_annotations: Dict[str, Any]
     file_sets: List[Dict[str, Any]]
-    donor_specific_assembly: Dict[str, Any]
+    donor_specific_assembly: Union[Dict[str, Any], None]
     assays: List[Dict[str, Any]]
     sequencers: List[Dict[str, Any]]
     sample_sources: List[Dict[str, Any]]
@@ -110,8 +110,8 @@ class AssociatedItems:
     tissue_samples: List[Dict[str, Any]]
     tissues: List[Dict[str, Any]]
     donors: List[Dict[str, Any]]
-    target_assembly: Optional[str] = None
-    source_assembly: Optional[str] = None
+    target_assembly: Union[str, None]
+    source_assembly: Union[str, None]
 
 
 def get_associated_items(
@@ -916,9 +916,9 @@ def get_analysis(
     reference_genome: Dict[str, Any],
     gene_annotations: Dict[str, Any],
     file_extension: Dict[str, Any],
-    target_assembly: str,
-    source_assembly: str,
-    donor_specific_assembly: Dict[str, Any],
+    target_assembly: Union[str, None],
+    source_assembly: Union[str, None],
+    donor_specific_assembly: Union[Dict[str, Any], None],
 ) -> FilenamePart:
     """Get analysis info for file.
 
@@ -1129,8 +1129,8 @@ def get_software_codes_missing_versions(
 
 def get_chain_file_value(
         file: Dict[str, Any],
-        target_assembly: str,
-        source_assembly: str,
+        target_assembly: Union[str, None],
+        source_assembly: Union[str, None],
         file_extension: Dict[str, Any]
     ) -> str:
     """Get genome conversion direction for chain files."""
@@ -1143,11 +1143,11 @@ def get_chain_file_value(
 def get_dsa_value(
         file: Dict[str, Any],
         file_extension: Dict[str, Any],
-        donor_specific_assembly: Dict[str, Any]
+        donor_specific_assembly: Union[Dict[str, Any], None]
     ):
     """Get DSA version and haplotype values for fasta file."""
-    dsa_value = ANALYSIS_INFO_SEPARATOR.join([DSA_INFO_VALUE, item_utils.get_version(donor_specific_assembly)])
     if donor_specific_assembly:
+        dsa_value = ANALYSIS_INFO_SEPARATOR.join([DSA_INFO_VALUE, item_utils.get_version(donor_specific_assembly)])
         if file_format_utils.is_fasta_file(file_extension):
             return ANALYSIS_INFO_SEPARATOR.join([dsa_value, supp_file_utils.get_haplotype(file)])
         elif file_format_utils.is_bed_file(file_extension):
