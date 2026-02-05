@@ -15,7 +15,7 @@ import { AboveSearchViewTableControls } from '@hms-dbmi-bgm/shared-portal-compon
 import { DetailPaneStateCache } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/DetailPaneStateCache';
 import { columnExtensionMap } from './columnExtensionMap';
 import { Schemas } from './../util';
-import { compareFacetTermsByTissueAndCode } from '../util/data';
+import { compareTissueFacetTerms } from '../util/data';
 import {
     TitleAndSubtitleBeside,
     PageTitleContainer,
@@ -137,7 +137,7 @@ export class SearchViewBody extends React.PureComponent {
         const tableColumnClassName = 'results-column col';
         const facetColumnClassName = 'facets-column col-auto';
         const facetListSortFxns = {
-            'sample_summary.tissues': compareFacetTermsByTissueAndCode,
+            'sample_summary.tissues': compareTissueFacetTerms,
         };
         const aboveTableComponent = (
             <AboveSearchViewTableControls customizationButtonClassName="btn btn-sm btn-outline-secondary mt-05" />

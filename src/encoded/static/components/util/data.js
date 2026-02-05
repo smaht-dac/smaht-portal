@@ -53,21 +53,33 @@ for (const [category, { values }] of Object.entries(germLayerTissueMapping)) {
 
 /**
  * Parse a tissue facet term into a short code (if present).
+ * E.g. 3AK - Brain, Frontal Lobe =>  { code: '3AK', tissue: 'Brain, Frontal Lobe', hasCode: true }
+ * E.g. 3Y - Ovary, L =>  { code: '3Y', tissue: 'Ovary, L', hasCode: true }
+ * E.g. 3I - Liver =>  { code: '3I', tissue: 'Liver', hasCode: true }
  */
 const parseTissueTermForSort = (termKey) => {
     const raw = String(termKey || '').trim();
     if (!raw) {
-        return { code: '', hasCode: false };
+        return { tissue: '', code: '', hasCode: false };
     }
     const parts = raw.split(' - ');
     if (parts.length >= 2) {
         const code = parts.shift().trim();
-        return { code, hasCode: code.length > 0 };
+        const tissuePart = parts.join(' - ').trim();
+        const tissue = tissuePart.split(',')[0].trim();
+        return { tissue, code, hasCode: code.length > 0 };
     }
-    return { code: '', hasCode: false };
+    const tissue = raw.split(',')[0].trim();
+    return { tissue, code: '', hasCode: false };
 };
 
-const compareFacetTermsByTissueAndCode = (a, b) => {
+/**
+ * Currently, we only use tissue code for the comparison/sorting of tissue facet terms.
+ * @param {*} a - First tissue facet term to compare.
+ * @param {*} b - Second tissue facet term to compare.
+ * @returns {number} Comparison result for sorting.
+ */
+const compareTissueFacetTerms = (a, b) => {
     const aKey = a?.key || a?.props?.term?.key || '';
     const bKey = b?.key || b?.props?.term?.key || '';
     if (!aKey && !bKey) return 0;
@@ -94,5 +106,5 @@ const compareFacetTermsByTissueAndCode = (a, b) => {
 export {
     germLayerTissueMapping,
     tissueToCategory,
-    compareFacetTermsByTissueAndCode,
+    compareTissueFacetTerms,
 };
