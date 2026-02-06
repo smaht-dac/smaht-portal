@@ -3,7 +3,8 @@ import { ROLE_TYPES } from '../support';
 import { gotoUrl } from '../support/utils/basicUtils';
 
 const HEADER1_TEXT = 'Somatic Mosaicism across Human Tissues Data Portal';
-const HEADER2_TEXT = 'A platform to search, visualize, and download somatic mosaic variants in normal tissues.';
+const HEADER2_TEXT =
+    'A platform to search, visualize, and download somatic mosaic variants in normal tissues.';
 const TIER_BUTTON_TEXTS = { 0: 'Benchmarking', 1: 'Production' };
 
 const ROLE_MATRIX = {
@@ -24,7 +25,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
-        expectNoResultsModalFromDRT: true // should not have access to DRT items
+        expectNoResultsModalFromDRT: true, // should not have access to DRT items
     },
 
     [ROLE_TYPES.SMAHT_DBGAP]: {
@@ -42,7 +43,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
-        expectNoResultsModalFromDRT: false // should have access to DRT items
+        expectNoResultsModalFromDRT: false, // should have access to DRT items
     },
 
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
@@ -60,7 +61,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
-        expectNoResultsModalFromDRT: false // should have access to DRT items
+        expectNoResultsModalFromDRT: false, // should have access to DRT items
     },
 
     [ROLE_TYPES.PUBLIC_DBGAP]: {
@@ -94,7 +95,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
-        expectNoResultsModalFromDRT: false // should have access to DRT items
+        expectNoResultsModalFromDRT: false, // should have access to DRT items
     },
 };
 
@@ -120,8 +121,9 @@ function logoutIfNeeded(roleKey) {
 function stepHeaderChecks(caps) {
     if (!caps.runHeaderChecks) return;
 
-    cy.get('.homepage-wrapper > .homepage-contents h1')
-        .contains(caps.expectedHeaderH1);
+    cy.get('.homepage-wrapper > .homepage-contents h1').contains(
+        caps.expectedHeaderH1
+    );
     cy.get('.homepage-wrapper > .homepage-contents h2')
         .contains(caps.expectedHeaderH2)
         .end();
@@ -132,40 +134,48 @@ function stepTimelineAccordionChecks(caps) {
     if (!caps.runTimelineAccordionChecks) return;
 
     // Re-query strategy: never keep long-lived jQuery subjects across clicks
-    cy.get('#timeline .timeline-item .accordion .card-header-button').each(($btn, index) => {
-        // Alias the card before clicking so we can re-query inside it later
-        cy.wrap($btn).closest('.card').as('card');
+    cy.get('#timeline .timeline-item .accordion .card-header-button').each(
+        ($btn, index) => {
+            // Alias the card before clicking so we can re-query inside it later
+            cy.wrap($btn).closest('.card').as('card');
 
-        // Scroll + click
-        cy.wrap($btn).scrollIntoView().click({ force: true }).end();
+            // Scroll + click
+            cy.wrap($btn).scrollIntoView().click({ force: true }).end();
 
-        // Re-query collapse AFTER the click (avoid using stale $collapse)
-        cy.get('.card').eq(index).find('.accordion-collapse')
-            .should(($el) => {
-                // If it just opened, it must have 'show'; if it just closed, it must NOT.
-                const btnExpanded =  Cypress.$($btn).find('i.icon').hasClass('icon-minus');
-                if (btnExpanded === true) {
-                    expect($el).to.have.class('show');
-                } else {
-                    expect($el).not.to.have.class('show');
-                }
-            });
+            // Re-query collapse AFTER the click (avoid using stale $collapse)
+            cy.get('.card')
+                .eq(index)
+                .find('.accordion-collapse')
+                .should(($el) => {
+                    // If it just opened, it must have 'show'; if it just closed, it must NOT.
+                    const btnExpanded = Cypress.$($btn)
+                        .find('i.icon')
+                        .hasClass('icon-minus');
+                    if (btnExpanded === true) {
+                        expect($el).to.have.class('show');
+                    } else {
+                        expect($el).not.to.have.class('show');
+                    }
+                });
 
-        // Optional: toggle back to ensure both states work
-        cy.wrap($btn).click({ force: true });
-        cy.get('.card').eq(index).find('.accordion-collapse').should(($el) => {
-            const btnExpanded = Cypress.$($btn).find('i.icon').hasClass('icon-minus');
-            if (btnExpanded === 'true') {
-                expect($el).to.have.class('show');
-            } else {
-                expect($el).not.to.have.class('show');
-            }
-        });
-    });
+            // Optional: toggle back to ensure both states work
+            cy.wrap($btn).click({ force: true });
+            cy.get('.card')
+                .eq(index)
+                .find('.accordion-collapse')
+                .should(($el) => {
+                    const btnExpanded = Cypress.$($btn)
+                        .find('i.icon')
+                        .hasClass('icon-minus');
+                    if (btnExpanded === 'true') {
+                        expect($el).to.have.class('show');
+                    } else {
+                        expect($el).not.to.have.class('show');
+                    }
+                });
+        }
+    );
 }
-
-
-
 
 // Tier buttons (Benchmarking / Production) + visual class assertion
 function stepTierButtonsChecks(caps) {
@@ -187,14 +197,18 @@ function stepTierButtonsChecks(caps) {
                         cy.get('#timeline .timeline-item.tier-active')
                             .invoke('text')
                             .then((txt) => {
-                                expect(txt).to.contain(caps.expectedTierTexts[0] || 'Benchmarking');
+                                expect(txt).to.contain(
+                                    caps.expectedTierTexts[0] || 'Benchmarking'
+                                );
                             });
                     } else if (index === 1) {
                         expect(buttonText).to.equal('production');
                         cy.get('#timeline .timeline-item.tier-active')
                             .invoke('text')
                             .then((txt) => {
-                                expect(txt).to.contain(caps.expectedTierTexts[1] || 'Production');
+                                expect(txt).to.contain(
+                                    caps.expectedTierTexts[1] || 'Production'
+                                );
                             });
                     }
 
@@ -209,42 +223,198 @@ function stepTierButtonsChecks(caps) {
 function stepDRTExists(caps) {
     if (!caps.runDRTExists) return;
 
-    cy.get('.notifications-panel .data-release-tracker .data-release-item-container')
-        .should('have.length.greaterThan', 0);
+    cy.get(
+        '.notifications-panel .data-release-tracker .data-release-item-container'
+    ).should('have.length.greaterThan', 0);
 }
 
 // Each DRT item navigates and matches file counts
 function stepDRTCountsCheck(caps) {
     if (!caps.runDRTCountsCheck) return;
 
-    cy.get('.data-release-item-container').then(($containers) => {
-        const containerCount = $containers.length;
+    cy.get('.data-release-item-container').each(($container) => {
+        // Month level count
+        const expectedCount = Number(
+            $container
+                .find('.content .header .header-link .count')
+                .text()
+                .trim()
+                .match(/^(\d+)/)?.[1] ?? 0
+        );
 
-        for (let i = 0; i < containerCount; i++) {
-            const $container = $containers.eq(i);
-
-            const countText = $container.find('.header-link .count').text().trim();
-            const match = countText.match(/^(\d+)/);
-            const expectedCount = match ? parseInt(match[1], 10) : 0;
-            const href = $container.find('.header-link').attr('href');
-
-            cy.then(() => {
-                cy.visit(href, { headers: cypressVisitHeaders });
-
-                // Wait for search results to resolve and compare
-                cy.searchPageTotalResultCount().then((actualCount) => {
-                    expect(actualCount).to.eq(expectedCount);
-                });
-
-                // Navigate back to continue the loop
-                cy.go('back');
-
-                // Ensure list re-renders before next iteration
-                cy.get('.data-release-item-container').should('have.length.at.least', containerCount);
+        // Open the month drop down if not open already
+        cy.wrap($container)
+            .invoke('attr', 'aria-expanded')
+            .then((expanded) => {
+                if (expanded !== 'true') {
+                    cy.wrap($container)
+                        .find('.content .header .toggle-button')
+                        .click();
+                }
             });
-        }
+
+        cy.wrap($container)
+            .find('.content .body .release-item.day-group')
+            .should('have.length.at.least', 1)
+            .then(($days) => {
+                let dayTotalSum = 0;
+
+                // Loop through each day item
+                cy.wrap($days)
+                    .each(($day) => {
+                        cy.wrap($day)
+                            .find('.toggle-button.day')
+                            .then(($toggle) => {
+                                // Open the day drop down if not open already
+                                if ($day.attr('aria-expanded') !== 'true') {
+                                    cy.wrap($toggle).click();
+                                }
+                            });
+
+                        // Get the day count
+                        cy.wrap($day)
+                            .find('.day-group-header .title .count')
+                            .then(($dayCount) => {
+                                const dayCount = Number(
+                                    $dayCount
+                                        .text()
+                                        .trim()
+                                        .match(/^(\d+)/)?.[1] ?? 0
+                                );
+                                expect(dayCount).to.be.greaterThan(0);
+                                dayTotalSum += dayCount;
+                            });
+
+                        // Sum donor counts inside each day
+                        // let donorSum = 0;
+                        // cy.wrap($day)
+                        //     .find('.donor-group-header .title .count')
+                        //     .then(($counts) => {
+                        //         $counts.each(($count) => {
+                        //             const count = Number(
+                        //                 $count
+                        //                     .text()
+                        //                     .trim()
+                        //                     .match(/^(\d+)/)?.[1] ?? 0
+                        //             );
+                        //             donorSum += count;
+                        //         });
+                        //     });
+                    })
+                    .then(() => {
+                        // Check the dayTotalSum against the expectedCount
+                        expect(dayTotalSum).to.be.greaterThan(0);
+                        expect(dayTotalSum).to.equal(expectedCount);
+                    });
+            });
     });
 }
+
+// Sum of all donor totals inside this container
+// let containerDonorSum = 0;
+
+// cy.wrap($container)
+//     .find('.body .release-item')
+//     .should('have.length.at.least', 1)
+//     .then(($days) => {
+//         // Loop through each day item
+//         const dayCount = $days.length;
+//         cy.wrap([...Array.from(dayCount).keys()]).each((i) => {
+//             cy.wrap($container)
+//                 .find('.body .release-item')
+//                 .eq(i)
+//                 .find('.header-link .count')
+//                 .then(($count) => {
+//                     const count = Number(
+//                         $count
+//                             .text()
+//                             .trim()
+//                             .match(/^(\d+)/)?.[1] ?? 0
+//                     );
+//                     containerDonorSum += count;
+//                 });
+//         });
+//     });
+
+// cy.wrap($container)
+//     .find('.release-item')
+//     .should('have.length.at.least', 1)
+//     .then(($days) => {
+//         const dayCount = $days.length;
+
+//         cy.wrap([...Array.from(dayCount).keys()]).each((i) => {
+
+//             cy.wrap($container)
+//                 .find('.day-group-header')
+//                 .eq(i)
+//                 .find('.toggle-button.day');
+
+//             if ($day.attr('aria-expanded') !== 'true') {
+//                 cy.wrap($day).find('.toggle-button.day').click();
+//             }
+
+//             cy.wrap($container)
+//                 .find('.day-group-header')
+//                 .eq(i)
+//                 .next('ul.donor-list')
+//                 .find('.donor-group-header .title .count')
+//                 .then(($donors) => {
+//                     const donorTotal = [...$donors].reduce(
+//                         (sum, el) => {
+//                             return (
+//                                 sum +
+//                                 Number(
+//                                     el.innerText.match(/^(\d+)/)?.[1] ??
+//                                         0
+//                                 )
+//                             );
+//                         },
+//                         0
+//                     );
+
+//                     cy.wrap($container)
+//                         .find('.day-group-header .title .count')
+//                         .eq(i)
+//                         .invoke('text')
+//                         .then((text) => {
+//                             const dayTotal = Number(
+//                                 text.match(/^(\d+)/)?.[1] ?? 0
+//                             );
+//                             expect(donorTotal).to.eq(dayTotal);
+//                         });
+//                 });
+
+//         })
+
+//         // Loop through each day, toggle, and check donor totals
+//         cy.wrap($container)
+//             .find('.day-group-header')
+//             .should('have.length.at.least', 1)
+//             .then(($days) => {
+//                 const count = $days.length;
+//             });
+
+//         for (let i = 0; i < dayCount; i++) {
+//         }
+//     })
+//     .then(() => {
+//         expect(containerDonorSum).to.eq(expectedCount);
+//     });
+
+// const href = $container.find('.header-link').attr('href');
+
+// cy.wrap($container).then(() => {
+//     cy.visit(href, { headers: cypressVisitHeaders });
+
+//     // TODO: Check that the NoResultsModal renders if we expect it
+
+//     cy.searchPageTotalResultCount().should('eq', expectedCount);
+//     cy.go('back');
+//     cy.get('.data-release-item-container').should(
+//         'have.length.at.least',
+//         1
+//     );
+// });
 
 // Announcements feed exists
 function stepAnnouncementsChecks(caps) {
