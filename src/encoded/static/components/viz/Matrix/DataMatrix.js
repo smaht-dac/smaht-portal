@@ -277,6 +277,7 @@ export default class DataMatrix extends React.PureComponent {
             "dataset",
         ],
         "baseBrowseFilesPath": "/browse/",
+        "showCountFor": false,
     };
 
     static propTypes = {
@@ -326,7 +327,8 @@ export default class DataMatrix extends React.PureComponent {
         'idLabel': PropTypes.string,
         'onDataLoaded': PropTypes.func,
         'allowedFields': PropTypes.arrayOf(PropTypes.string),
-        'baseBrowseFilesPath': PropTypes.string
+        'baseBrowseFilesPath': PropTypes.string,
+        'showCountFor': PropTypes.bool
     };
 
     static parseQuery(queryString) {
@@ -905,7 +907,7 @@ export default class DataMatrix extends React.PureComponent {
         const {
             headerFor, valueChangeMap, allowedFields, valueDelimiter,
             disableConfigurator = false, idLabel = '', additionalPopoverData = {},
-            baseBrowseFilesPath, browseFilteringTransformFuncKey
+            baseBrowseFilesPath, browseFilteringTransformFuncKey, showCountFor
         } = this.props;
         const {
             query, fieldChangeMap, columnGrouping, groupingProperties,
@@ -985,17 +987,19 @@ export default class DataMatrix extends React.PureComponent {
             <div>
                 {configurator}
                 {headerFor || null}
-                <div className="form-inline mb-2">
-                    <label className="mr-2" htmlFor={`data-matrix-count-for-${idLabel}`}>Show counts for:</label>
-                    <select
-                        id={`data-matrix-count-for-${idLabel}`}
-                        className="form-control form-control-sm"
-                        value={countFor}
-                        onChange={this.onCountForChange}>
-                        <option value="files">Files</option>
-                        <option value="donors">Donors</option>
-                    </select>
-                </div>
+                {showCountFor ? (
+                    <div className="form-inline mb-2">
+                        <label className="mr-2" htmlFor={`data-matrix-count-for-${idLabel}`}>Show counts for:</label>
+                        <select
+                            id={`data-matrix-count-for-${idLabel}`}
+                            className="form-control form-control-sm"
+                            value={countFor}
+                            onChange={this.onCountForChange}>
+                            <option value="files">Files</option>
+                            <option value="donors">Donors</option>
+                        </select>
+                    </div>
+                ) : null}
                 <VisualBody
                     {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
                     {...bodyProps}
