@@ -76,6 +76,67 @@ export default class DataMatrix extends React.PureComponent {
         'Germ cells': { backgroundColor: '#80c4a0', textColor: '#ffffff', shortName: 'Germ' },
         'Clinically accessible': { backgroundColor: '#70a588', textColor: '#ffffff', shortName: 'Clin' },
     };
+    static DEFAULT_COLUMN_GROUPS = {
+        "Bulk WGS": {
+            "values": ['WGS - Illumina', 'WGS - PacBio', 'Fiber-Seq', 'WGS - Standard ONT', 'WGS - UltraLong ONT'],
+            "backgroundColor": "#e04141",
+            "textColor": "#ffffff",
+            "shortName": "WGS"
+        },
+        "RNA-seq": {
+            "values": ['RNA-Seq - Illumina', 'Kinnex'],
+            "backgroundColor": "#ad48ad",
+            "textColor": "#ffffff",
+            "shortName": "RNA"
+        },
+        "Duplex-seq": {
+            "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-seq'],
+            "backgroundColor": "#2b4792",
+            "textColor": "#ffffff",
+            "shortName": "Dupl"
+        },
+        "Single-cell WGS": {
+            "values": ['PTA-amplified WGS', 'MALBAC-amplified WGS', 'WGS DLP+'],
+            "backgroundColor": "#aac536",
+            "textColor": "#ffffff",
+            "shortName": "scWGS"
+        },
+        "Targeted Seq": {
+            "values": ['HAT-Seq', 'L1-ONT', 'TEnCATS'],
+            "backgroundColor": "#e1d567",
+            "textColor": "#ffffff",
+            "shortName": "Tgtd"
+        },
+        "Single-cell RNA-Seq": {
+            "values": ['snRNA-Seq', 'Slide-tags snRNA-Seq', 'STORM-Seq', 'Tranquil-Seq', '10X Genomics Xenium'],
+            "backgroundColor": "#d0b284",
+            "textColor": "#ffffff",
+            "shortName": "scRNA"
+        },
+        "Other": {
+            "values": ['Hi-C', 'scDip-C', 'Strand-Seq', 'ATAC-Seq', 'NT-Seq', 'varCUT&Tag', 'GoT-ChA'],
+            "backgroundColor": "#76cbbe",
+            "textColor": "#ffffff"
+        },
+        "DSA": {
+            "values": ['DSA'],
+            "backgroundColor": "#cccccc",
+            "textColor": "#000000",
+            "shortName": "DSA"
+        }
+    };
+    static DEFAULT_COLUMN_GROUPS_EXTENDED = {
+        "Core Assay": {
+            "values": ['Bulk WGS', 'RNA-seq', 'Duplex-seq'],
+            "backgroundColor": "#a786c2",
+            "textColor": "#ffffff"
+        },
+        "Extended Assay": {
+            "values": ['Single-cell WGS', 'Targeted Seq', 'Single-cell RNA-Seq', 'Other', 'DSA'],
+            "backgroundColor": "#d2bde3",
+            "textColor": "#ffffff"
+        }
+    };
 
 
     static defaultProps = {
@@ -159,68 +220,9 @@ export default class DataMatrix extends React.PureComponent {
         /** Which state to set/prioritize if multiple files per group */
         "statePrioritizationForGroups": [],
         "headerPadding": 200,
-        "columnGroups": {
-            "Bulk WGS": {
-                "values": ['WGS - Illumina', 'WGS - PacBio', 'Fiber-Seq', 'WGS - Standard ONT', 'WGS - UltraLong ONT'],
-                "backgroundColor": "#e04141",
-                "textColor": "#ffffff",
-                "shortName": "WGS"
-            },
-            "RNA-seq": {
-                "values": ['RNA-Seq - Illumina', 'Kinnex'],
-                "backgroundColor": "#ad48ad",
-                "textColor": "#ffffff",
-                "shortName": "RNA"
-            },
-            "Duplex-seq": {
-                "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-seq'],
-                "backgroundColor": "#2b4792",
-                "textColor": "#ffffff",
-                "shortName": "Dupl"
-            },
-            "Single-cell WGS": {
-                "values": ['PTA-amplified WGS', 'MALBAC-amplified WGS', 'WGS DLP+'],
-                "backgroundColor": "#aac536",
-                "textColor": "#ffffff",
-                "shortName": "scWGS"
-            },
-            "Targeted Seq": {
-                "values": ['HAT-Seq', 'L1-ONT', 'TEnCATS'],
-                "backgroundColor": "#e1d567",
-                "textColor": "#ffffff",
-                "shortName": "Tgtd"
-            },
-            "Single-cell RNA-Seq": {
-                "values": ['snRNA-Seq', 'Slide-tags snRNA-Seq', 'STORM-Seq', 'Tranquil-Seq', '10X Genomics Xenium'],
-                "backgroundColor": "#d0b284",
-                "textColor": "#ffffff",
-                "shortName": "scRNA"
-            },
-            "Other": {
-                "values": ['Hi-C', 'scDip-C', 'Strand-Seq', 'ATAC-Seq', 'NT-Seq', 'varCUT&Tag', 'GoT-ChA'],
-                "backgroundColor": "#76cbbe",
-                "textColor": "#ffffff"
-            },
-            "DSA": {
-                "values": ['DSA'],
-                "backgroundColor": "#cccccc",
-                "textColor": "#000000",
-                "shortName": "DSA"
-            }
-        },
+        "columnGroups": DataMatrix.DEFAULT_COLUMN_GROUPS,
         "showColumnGroups": true,
-        "columnGroupsExtended": {
-            "Core Assay": {
-                "values": ['Bulk WGS', 'RNA-seq', 'Duplex-seq'],
-                "backgroundColor": "#a786c2",
-                "textColor": "#ffffff"
-            },
-            "Extended Assay": {
-                "values": ['Single-cell WGS', 'Targeted Seq', 'Single-cell RNA-Seq', 'Other', 'DSA'],
-                "backgroundColor": "#d2bde3",
-                "textColor": "#ffffff"
-            }
-        },
+        "columnGroupsExtended": DataMatrix.DEFAULT_COLUMN_GROUPS_EXTENDED,
         "showColumnGroupsExtended": false,
         "rowGroups": null,
         "showRowGroups": false,
@@ -392,9 +394,11 @@ export default class DataMatrix extends React.PureComponent {
             "mounted": false,
             "_results": null,
             "query": props.query,
+            "baseRowAggFields": props.query && props.query.rowAggFields ? props.query.rowAggFields : null,
             "fieldChangeMap": props.fieldChangeMap,
             "columnGrouping": props.columnGrouping,
             "groupingProperties": props.groupingProperties,
+            "baseGroupingProperties": props.groupingProperties,
             "colorRanges": colorRanges,
             "columnGroups": props.columnGroups,
             "showColumnGroups": props.showColumnGroups,
@@ -785,7 +789,32 @@ export default class DataMatrix extends React.PureComponent {
 
     onCountForChange(e) {
         const nextValue = e && e.target ? e.target.value : 'files';
-        this.setState({ countFor: nextValue });
+        this.setState((prevState) => {
+            const nextState = { countFor: nextValue };
+            const baseRowAggFields = prevState.baseRowAggFields || (prevState.query && prevState.query.rowAggFields) || [];
+            const baseGroupingProperties = prevState.baseGroupingProperties || prevState.groupingProperties || [];
+
+            if (nextValue === 'donors') {
+                nextState.query = {
+                    ...prevState.query,
+                    rowAggFields: (baseRowAggFields || []).filter((f) => {
+                        if (Array.isArray(f)) {
+                            return !f.includes('donors.display_title');
+                        }
+                        return f !== 'donors.display_title';
+                    })
+                };
+                nextState.groupingProperties = (baseGroupingProperties || []).filter((p) => p !== 'donor');
+            } else {
+                nextState.query = {
+                    ...prevState.query,
+                    rowAggFields: baseRowAggFields
+                };
+                nextState.groupingProperties = baseGroupingProperties;
+            }
+
+            return nextState;
+        });
     }
 
     getAllowedPropKeys() {
@@ -874,6 +903,7 @@ export default class DataMatrix extends React.PureComponent {
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, additionalPopoverData,
             summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary, valueDelimiter,
             baseBrowseFilesPath,
+            countFor,
             browseFilteringTransformFunc: browseFilteringTransformFuncKey ? DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey] : null
         };
 

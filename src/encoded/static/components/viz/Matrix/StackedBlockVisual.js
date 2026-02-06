@@ -42,9 +42,16 @@ export function extendListObjectsWithIndex(objList){
 export class VisualBody extends React.PureComponent {
 
     static blockRenderedContents(data, blockProps){
+        const countFor = blockProps && blockProps.countFor ? blockProps.countFor : 'files';
+        const countField = countFor;
+        const getCountValue = (item) => {
+            if (!item || !item.counts) return 0;
+            const value = item.counts[countField];
+            return typeof value === 'number' ? value : 0;
+        };
         const blockSum = Array.isArray(data)
-            ? _.reduce(data, function (sum, item) { return sum + (item.counts && item.counts.files ? item.counts.files : 0); }, 0)
-            : (data ? ((data.counts && typeof data.counts.files === 'number') ? data.counts.files : 1) : 0);
+            ? _.reduce(data, function (sum, item) { return sum + getCountValue(item); }, 0)
+            : (data ? getCountValue(data) : 0);
 
         if (blockSum >= 1000){
             const decimal = blockSum >= 10000 ? 0 : 1;
@@ -464,7 +471,8 @@ export class VisualBody extends React.PureComponent {
                     'columnSubGroupingOrder', 'colorRanges',
                     'columnGroups', 'showColumnGroups', 'columnGroupsExtended', 'showColumnGroupsExtended',
                     'rowGroups', 'showRowGroups', 'rowGroupsExtended', 'showRowGroupsExtended',
-                    'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels', 'showColumnSummary')}
+                    'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels', 'showColumnSummary',
+                    'countFor')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
             />
@@ -590,6 +598,8 @@ export class StackedBlockVisual extends React.PureComponent {
     };
 
     static pluralize = function(input){
+        if (!input || typeof input !== 'string') return input;
+
         if (input.endsWith('y') && !/[aeiou]y$/i.test(input)) {
             return input.slice(0, -1) + 'ies';
         } else if (input.endsWith('s') || input.endsWith('x') || input.endsWith('z') || input.endsWith('ch') || input.endsWith('sh')) {
@@ -1090,7 +1100,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const commonProps = _.pick(props, 'blockHeight', 'blockWidth', 'blockHorizontalSpacing', 'blockVerticalSpacing',
             'groupingProperties', 'depth', 'titleMap', 'blockClassName', 'blockRenderedContents',
             'groupedDataIndices', 'columnGrouping', 'blockPopover', 'colorRanges', 'summaryBackgroundColor',
-            'activeBlock', 'openBlock', 'handleBlockMouseEnter', 'handleBlockMouseLeave', 'handleBlockClick', 'group', 'popoverPrimaryTitle');
+            'activeBlock', 'openBlock', 'handleBlockMouseEnter', 'handleBlockMouseLeave', 'handleBlockClick', 'group', 'popoverPrimaryTitle',
+            'countFor');
         const width = (props.blockWidth + (props.blockHorizontalSpacing * 2)) + props.blockHorizontalExtend;
         const containerGroupStyle = {
             'width'         : width, // Width for each column
