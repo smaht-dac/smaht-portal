@@ -286,20 +286,25 @@ function stepDRTCountsCheck(caps) {
                             });
 
                         // Sum donor counts inside each day
-                        // let donorSum = 0;
-                        // cy.wrap($day)
-                        //     .find('.donor-group-header .title .count')
-                        //     .then(($counts) => {
-                        //         $counts.each(($count) => {
-                        //             const count = Number(
-                        //                 $count
-                        //                     .text()
-                        //                     .trim()
-                        //                     .match(/^(\d+)/)?.[1] ?? 0
-                        //             );
-                        //             donorSum += count;
-                        //         });
-                        //     });
+                        let donorSum = 0;
+                        cy.wrap($day)
+                            .find('.donor-group-header .title .count')
+                            .then(($counts) => {
+                                cy.wrap($counts)
+                                    .each(($count) => {
+                                        const count = Number(
+                                            $count
+                                                .text()
+                                                .trim()
+                                                .match(/^(\d+)/)?.[1] ?? 0
+                                        );
+                                        donorSum += count;
+                                    })
+                                    .then(() => {
+                                        expect(donorSum).to.be.greaterThan(0);
+                                        expect(donorSum).to.equal(dayTotalSum);
+                                    });
+                            });
                     })
                     .then(() => {
                         // Check the dayTotalSum against the expectedCount
@@ -307,6 +312,46 @@ function stepDRTCountsCheck(caps) {
                         expect(dayTotalSum).to.equal(expectedCount);
                     });
             });
+    });
+
+    // Check that the counts are reflected in the browse page
+    cy.get('.data-release-item-container').then(($containers) => {
+        const pages = [...$containers].map((el) => {
+            const link = el.querySelector('.header-link');
+
+            return {
+                expectedCount: Number(
+                    link
+                        ?.querySelector('.count')
+                        ?.textContent.trim()
+                        .match(/^(\d+)/)?.[1] ?? 0
+                ),
+            };
+        });
+
+        cy.wrap(pages).each(({ expectedCount }, index) => {
+            // Click the header link (in-app navigation)
+            cy.get('.data-release-item-container')
+                .eq(index)
+                .find('.header-link')
+                .click();
+
+            // Assert browse page state
+            if (caps.expectNoResultsModalFromDRT) {
+                cy.get('#download-access-required-modal').should('be.visible');
+            } else {
+                cy.searchPageTotalResultCount().should('eq', expectedCount);
+            }
+
+            // Go back to the release tracker
+            cy.go('back');
+
+            // Ensure the page is ready for the next iteration
+            cy.get('.data-release-item-container').should(
+                'have.length.at.least',
+                1
+            );
+        });
     });
 }
 
