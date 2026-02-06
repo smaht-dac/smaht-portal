@@ -3,22 +3,16 @@
 import React from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
-import { fallbackCallback } from './submissionStatusUtils';
+import { fallbackCallback, DEFAULT_SELECT, getItemsFromPortal, getSelect } from './utils';
 
 import {
     SUBMISSION_STATUS_TAGS,
-    DEFAULT_FILTER,
+    SUBMISSION_STATUS_DEFAULT_FILTER,
     PRIMARY_PRODUCTION_TISSUES,
     CELL_CULTURE_MIXTURES,
-} from './submissionStatusConfig';
+} from './config';
 
-const DEFAULT_SELECT = (
-    <React.Fragment>
-        <select className="form-select" defaultValue="all">
-            <option value="all">All</option>
-        </select>
-    </React.Fragment>
-);
+
 
 class SubmissionStatusFilterComponent extends React.PureComponent {
     constructor(props) {
@@ -26,7 +20,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         this.state = {
             loading: false,
             submission_centers: [],
-            filter: DEFAULT_FILTER,
+            filter: SUBMISSION_STATUS_DEFAULT_FILTER,
             assays: [],
             sequencers: [],
             donors: [],
@@ -34,28 +28,6 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
             cell_lines: [],
         };
     }
-
-    getItemsFromPortal = (type, state_variable, filter = '') => {
-        ajax.load(
-            `/search/?type=${type}${filter}&limit=100`,
-            (resp) => {
-                const res = resp['@graph'];
-                const items = res.map((item) => {
-                    return {
-                        title: item.display_title,
-                    };
-                });
-                items.sort((a, b) => {
-                    return a.title < b.title ? -1 : 1;
-                });
-                this.setState({
-                    [state_variable]: items,
-                });
-            },
-            'GET',
-            fallbackCallback
-        );
-    };
 
     // Does not includes tissues for now
     getSampleSourceCodes = (type, state_variable) => {
@@ -96,13 +68,25 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
     };
 
     componentDidMount() {
-        this.getItemsFromPortal('SubmissionCenter', 'submission_centers');
-        this.getItemsFromPortal('Assay', 'assays');
-        this.getItemsFromPortal('Sequencer', 'sequencers');
-        this.getItemsFromPortal(
+        getItemsFromPortal('SubmissionCenter', '', 100, (items) => {
+            this.setState({ submission_centers: items });
+        });
+
+        getItemsFromPortal('Assay', '', 100, (items) => {
+            this.setState({ assays: items });
+        });
+
+        getItemsFromPortal('Sequencer', '', 100, (items) => {
+            this.setState({ sequencers: items });
+        });
+
+        getItemsFromPortal(
             'Donor',
-            'donors',
-            '&submission_centers.display_title=NDRI+TPC'
+            '&submission_centers.display_title=NDRI+TPC',
+            200,
+            (items) => {
+                this.setState({ donors: items });
+            }
         );
         this.getTissuesAndMixtures();
         this.getSampleSourceCodes('CellLine', 'cell_lines');
@@ -115,21 +99,6 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         this.setState((prevState) => ({
             filter: filter,
         }));
-    };
-
-    getSelect = (options, defaultValue, filterName) => {
-        return (
-            <React.Fragment>
-                <select
-                    className="form-select"
-                    defaultValue={defaultValue}
-                    onChange={(e) =>
-                        this.setFilter(filterName, e.target.value)
-                    }>
-                    {options}
-                </select>
-            </React.Fragment>
-        );
     };
 
     getSubmissionCenterSelect = () => {
@@ -156,7 +125,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         }
         const defaultValue = 'all_gcc';
         const filterName = 'submission_center';
-        return this.getSelect(options, defaultValue, filterName);
+        return getSelect(options, defaultValue, filterName, this.setFilter);
     };
 
     getFilesetStatusSelect = () => {
@@ -169,7 +138,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         ];
         const defaultValue = 'in review';
         const filterName = 'fileset_status';
-        return this.getSelect(options, defaultValue, filterName);
+        return getSelect(options, defaultValue, filterName, this.setFilter);
     };
 
     getAssaySelect() {
@@ -183,7 +152,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         });
         const defaultValue = 'all';
         const filterName = 'assay';
-        return this.getSelect(options, defaultValue, filterName);
+        return getSelect(options, defaultValue, filterName, this.setFilter);
     }
 
     getSequencerSelect() {
@@ -197,7 +166,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         });
         const defaultValue = 'all';
         const filterName = 'sequencer';
-        return this.getSelect(options, defaultValue, filterName);
+        return getSelect(options, defaultValue, filterName, this.setFilter);
     }
 
     getDonorSelect() {
@@ -211,7 +180,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         });
         const defaultValue = 'all';
         const filterName = 'donor';
-        return this.getSelect(options, defaultValue, filterName);
+        return getSelect(options, defaultValue, filterName, this.setFilter);
     }
 
     getCellCultureMixtureAndTissueSelect() {
@@ -225,7 +194,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         });
         const defaultValue = 'all';
         const filterName = 'cell_culture_mixtures_and_tissues';
-        return this.getSelect(options, defaultValue, filterName);
+        return getSelect(options, defaultValue, filterName, this.setFilter);
     }
 
     getCellLineSelect() {
@@ -239,7 +208,7 @@ class SubmissionStatusFilterComponent extends React.PureComponent {
         });
         const defaultValue = 'all';
         const filterName = 'cell_line';
-        return this.getSelect(options, defaultValue, filterName);
+        return getSelect(options, defaultValue, filterName, this.setFilter);
     }
 
     getFilesetCreationInput = (filter_name) => {

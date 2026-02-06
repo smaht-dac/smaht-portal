@@ -15,7 +15,7 @@ import { useUserDownloadAccess } from '../util/hooks';
  */
 export const DonorMetadataDownloadButton = ({ session, className = '' }) => {
     const [downloadLink, setDownloadLink] = useState(null);
-    const userDownloadAccess = useUserDownloadAccess(session);
+    const { userDownloadAccess } = useUserDownloadAccess(session);
 
     // Get the highest access level the user has
     // There will be access levels of 'open', 'protected', and 'protected-network'

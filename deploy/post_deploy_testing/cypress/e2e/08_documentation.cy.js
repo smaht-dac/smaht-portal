@@ -20,6 +20,7 @@ const ROLE_MATRIX = {
         canRunSubmissionFAQTest: false,
         canRunSubmissionDataDictionaryTest: false,
         canRunAnalysisPipelineFAQTest: true,
+        canRunAnalysisPipelineDocsTest: true,
         canRunDonorManifestDictionaryTest: true,
     },
     [ROLE_TYPES.SMAHT_DBGAP]: {
@@ -30,6 +31,7 @@ const ROLE_MATRIX = {
         canRunSubmissionFAQTest: true,
         canRunSubmissionDataDictionaryTest: true,
         canRunAnalysisPipelineFAQTest: true,
+        canRunAnalysisPipelineDocsTest: true,
         canRunDonorManifestDictionaryTest: true,
     },
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
@@ -40,6 +42,7 @@ const ROLE_MATRIX = {
         canRunSubmissionFAQTest: true,
         canRunSubmissionDataDictionaryTest: true,
         canRunAnalysisPipelineFAQTest: true,
+        canRunAnalysisPipelineDocsTest: true,
         canRunDonorManifestDictionaryTest: true,
     },
     [ROLE_TYPES.PUBLIC_DBGAP]: {
@@ -50,6 +53,7 @@ const ROLE_MATRIX = {
         canRunSubmissionFAQTest: false,
         canRunSubmissionDataDictionaryTest: false,
         canRunAnalysisPipelineFAQTest: true,
+        canRunAnalysisPipelineDocsTest: true,
         canRunDonorManifestDictionaryTest: true,
     },
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
@@ -60,6 +64,7 @@ const ROLE_MATRIX = {
         canRunSubmissionFAQTest: false,
         canRunSubmissionDataDictionaryTest: false,
         canRunAnalysisPipelineFAQTest: true,
+        canRunAnalysisPipelineDocsTest: true,
         canRunDonorManifestDictionaryTest: true,
     },
 };
@@ -522,7 +527,107 @@ function stepAnalysisPipelineFAQ() {
         });
 }
 
-/** G) Donor Manifest Dictionary: schema list + React-Select count & selection */
+/** G) Analysis Pipeline Docs: collapsible panels, header links, sublinks, and TOC */
+function stepAnalysisPipelineDocs() {
+    cy.get(documentationNavBarItemSelectorStr)
+        .should("have.class", "dropdown-toggle")
+        .click()
+        .should("have.class", "dropdown-open-for")
+        .then(() => {
+            cy.get(
+                '.big-dropdown-menu.is-open a.level-2-title[href="/docs/additional-resources/pipeline-docs"]'
+            )
+                .click({ force: true })
+                .then(($linkElem) => {
+                    cy.get("#slow-load-container").should("not.have.class", "visible");
+                    const linkHref = $linkElem.attr("href");
+                    cy.location("pathname").should("equal", linkHref);
+                });
+
+            cy.get("#pipeline_docs .section-title")
+                .should("be.visible")
+                .and("contain.text", "Analysis Pipelines");
+
+            cy.get("#pipeline_docs .nav-group").should("have.length.greaterThan", 1);
+            cy.get("#pipeline_docs .dropdown").should("have.length.greaterThan", 2);
+
+            cy.get("#pipeline_docs .dropdown").each(($dropdown) => {
+                cy.wrap($dropdown)
+                    .find(".header .toggle")
+                    .then(($toggle) => {
+                        const isExpanded = $toggle.attr("aria-expanded") === "true";
+                        if (!isExpanded) {
+                            cy.wrap($toggle).click();
+                            cy.wrap($dropdown).find(".body").should("have.class", "open");
+                        }
+                    });
+            });
+
+            cy.get("#pipeline_docs .dropdown").then(($dropdowns) => {
+                const sublinks = [];
+
+                $dropdowns.each((_, dropdownEl) => {
+                    const $dropdown = Cypress.$(dropdownEl);
+                    const headerLink = $dropdown.find(".header-link").attr("href");
+
+                    if (headerLink) {
+                        sublinks.push({
+                            href: headerLink,
+                            label: $dropdown.find(".parent-link").text().trim(),
+                            type: "page",
+                        });
+                    }
+
+                    $dropdown.find(".sublinks a").each((__, linkEl) => {
+                        const $link = Cypress.$(linkEl);
+                        sublinks.push({
+                            href: $link.attr("href"),
+                            label: $link.text().trim(),
+                            type: "section",
+                        });
+                    });
+                });
+
+                const uniqueSublinks = Cypress._.uniqBy(
+                    sublinks.filter((link) => link.href && link.label),
+                    "href"
+                );
+
+                cy.wrap(uniqueSublinks).each((link) => {
+                    cy.visit(link.href, { headers: cypressVisitHeaders });
+
+                    cy.get("#page-title-container .page-title")
+                        .should("be.visible")
+                        .and(($title) => {
+                            const titleText = $title.text().trim();
+                            expect(titleText).to.not.equal("");
+                            if (link.type === "page") {
+                                expect(titleText.toLowerCase()).to.include(
+                                    link.label.toLowerCase()
+                                );
+                            }
+                        });
+
+                    const hash = link.href.split("#")[1];
+                    if (hash) {
+                        cy.get(escapeElementWithNumericId(`#${hash}`))
+                            .should("be.visible")
+                            .and(($section) => {
+                                const sectionText = $section.text().trim().toLowerCase();
+                                expect(sectionText).to.include(link.label.toLowerCase());
+                            });
+                    }
+
+                    cy.get("div.table-of-contents li.table-content-entry a").should(
+                        "have.length.greaterThan",
+                        0
+                    );
+                });
+            });
+        });
+}
+
+/** H) Donor Manifest Dictionary: schema list + React-Select count & selection */
 function stepDonorManifestDictionary() {
     cy.get(documentationNavBarItemSelectorStr)
         .should("have.class", "dropdown-toggle")
@@ -645,6 +750,14 @@ describe("Documentation Page & Content (role-based)", () => {
                     return;
                 }
                 stepAnalysisPipelineFAQ();
+            });
+
+            it(`Analysis Pipeline Docs → collapsible panels, subpage links, and TOC (enabled: ${caps.canRunAnalysisPipelineDocsTest})`, () => {
+                if (!caps.canRunAnalysisPipelineDocsTest) {
+                    assertCannotAccessDocPage("/docs/additional-resources/pipeline-docs", caps);
+                    return;
+                }
+                stepAnalysisPipelineDocs();
             });
 
             it(`Donor Manifest Dictionary → schema list & select behavior (enabled: ${caps.canRunDonorManifestDictionaryTest})`, () => {

@@ -64,6 +64,8 @@ def assert_external_id_category_match(external_id: str, category: str):
         return tissue_sample_utils.is_specimen_external_id(external_id)
     elif category == "Core":
         return tissue_sample_utils.is_core_external_id(external_id)
+    elif category == "Tissue Aliquot":
+        return tissue_sample_utils.is_tissue_aliquot_external_id(external_id)
     else:
         return ""
 
@@ -151,6 +153,8 @@ def run_external_id_validation(request, tissue, external_id, category):
 
 def run_sample_metadata_validation(context, request, data, mode):
     """Logic for comparing GCC sample metadata with TPC records."""
+    if request.registry.settings.get("skip_es_validation") == "true":
+        return
     submitted_id = get_property_value("submitted_id", context, request, mode, data)
     external_id = get_property_value("external_id", context, request, mode, data)
     submission_centers = get_property_value(
@@ -175,7 +179,7 @@ def run_sample_metadata_validation(context, request, data, mode):
         return
 
     # search for all tissue samples with this external_id
-    ts_search_url = f"/search/?type=TissueSample&external_id={external_id}"
+    ts_search_url = f"/search/?type=TissueSample&status!=deleted&external_id={external_id}"
     ts_req = make_search_subreq(request, ts_search_url)
     ts_resp = request.invoke_subrequest(ts_req, True)
     samples = ts_resp.json_body.get("@graph", [])
