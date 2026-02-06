@@ -13,6 +13,7 @@ from .utils import (
     RequestHandler,
 )
 
+
 def is_tissue(properties: Dict[str, Any]) -> bool:
     """Check if sample source is tissue."""
     return item.get_type(properties) == "Tissue"
@@ -74,6 +75,7 @@ TPC_ALT_TISSUE_REGEX = re.compile(
     rf"{TPC_ALT_ID_REGEX}$"
 )
 
+ 
 def is_benchmarking(properties: Dict[str, Any]) -> bool:
     """Check if tissue is from benchmarking study."""
     external_id = item.get_external_id(properties)
@@ -180,4 +182,12 @@ def get_category(properties: Dict[str, Any], request_handler: RequestHandler) ->
         germ_layer = get_grouping_term_from_tag(properties, request_handler=request_handler, tag="germ_layer")
         return germ_layer or None
 
-        
+
+def get_preservation_type(properties: Dict[str, Any]) -> str:
+    """Get preservation type of tissue."""
+    return properties.get("preservation_type","")
+
+
+def is_fixed(properties: Dict[str, Any]) -> bool:
+    """Check if tissue is fixed based on preservation type."""
+    return get_preservation_type(properties) == "Fixed"
