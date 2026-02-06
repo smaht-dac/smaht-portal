@@ -315,7 +315,7 @@ function stepSampledDocsAndInternalLinks() {
                                     "Data Release Status",
                                     "Submission Data Dictionary",
                                     "Getting dbGAP Access",
-                                    "Donor Manifest Dictionary",
+                                    "Donor Metadata Dictionary",
                                     "Data Availability and Access",
                                 ];
                                 if (!skipPages.includes(titleText)) {
