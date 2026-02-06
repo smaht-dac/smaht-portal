@@ -510,9 +510,9 @@ export class VisualBody extends React.PureComponent {
     }
 
     render(){
-        const { results: { all, row_totals } } = this.props;
+        const { results: { all, row_totals, column_totals } } = this.props;
         return (
-            <StackedBlockVisual data={all} rowTotals={row_totals} checkCollapsibility
+            <StackedBlockVisual data={all} rowTotals={row_totals} columnTotals={column_totals} checkCollapsibility
                 {..._.pick(this.props,
                     'groupingProperties', 'columnGrouping', 'titleMap', 'headerPadding',
                     'columnSubGrouping', 'defaultDepthsOpen',
@@ -874,7 +874,7 @@ export class StackedBlockVisual extends React.PureComponent {
     }
 
     renderContents(){
-        const { data : propData, rowTotals: propRowTotals, groupingProperties, columnGrouping, columnGroups, showColumnGroups, rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, showColumnSummary, blockHeight, blockVerticalSpacing } = this.props;
+        const { data : propData, rowTotals: propRowTotals, columnTotals: propColumnTotals, groupingProperties, columnGrouping, columnGroups, showColumnGroups, rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, showColumnSummary, blockHeight, blockVerticalSpacing } = this.props;
         const { mounted, sorting, sortField, activeBlock, openBlock } = this.state;
         if (!mounted) return null;
         // prepare data
@@ -983,6 +983,7 @@ export class StackedBlockVisual extends React.PureComponent {
             handleBlockMouseEnter: this.handleBlockMouseEnter,
             handleBlockMouseLeave: this.handleBlockMouseLeave,
             columnToRowsMapping: columnToRowsMappingFunc(propData),
+            columnTotals: propColumnTotals,
         };
 
         if(groupedDataIndices && _.keys(groupedDataIndices).length === 0){
@@ -1559,6 +1560,16 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             return result;
         };
 
+        const getColumnSummaryFromTotals = (columnKey) => {
+            const totals = Array.isArray(props.columnTotals)
+                ? props.columnTotals.find((t) => t[props.columnGrouping] === columnKey)
+                : null;
+            if (totals) {
+                return [{ counts: totals.counts }];
+            }
+            return null;
+        };
+
         const getSummaryBlockStyle = () => ({
             'width': columnWidth, // Width for each column
             'minWidth': columnWidth,
@@ -1571,8 +1582,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const renderSummaryBlocks = () => (
             <div className="blocks-container d-flex header-summary">
                 {columnKeys.map(function (columnKey, colIndex) {
-                    const columnTotal = props.groupedDataIndices[columnKey]?.length || 0;
-                    const columnSummaryData = getColumnSummaryData(columnKey);
+                    const totalsData = getColumnSummaryFromTotals(columnKey);
+                    const columnSummaryData = totalsData || getColumnSummaryData(columnKey);
+                    const columnTotal = totalsData ? 1 : (props.groupedDataIndices[columnKey]?.length || 0);
                     const hasOpenBlock = props.openBlock?.columnIdx === colIndex;
                     const hasActiveBlock = props.activeBlock?.columnIdx === colIndex;
                     const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');

@@ -561,7 +561,7 @@ export default class DataMatrix extends React.PureComponent {
             const resultKey = "_results";
             const updatedState = {};
 
-            let transformedData = { all: [], row_totals: [] };
+            let transformedData = { all: [], row_totals: [], column_totals: [] };
             const populatedRowGroups = {}; // not implemented yet
             // Helper to process each result row
             const processResultRow = (r, transformed) => {
@@ -596,10 +596,33 @@ export default class DataMatrix extends React.PureComponent {
                 }
             };
 
+            const processColumnTotal = (r, transformed) => {
+                let cloned = _.clone(r);
+                if (fieldChangeMap) {
+                    _.forEach(_.pairs(fieldChangeMap), ([fieldToMapTo, fieldToMapFrom]) => {
+                        if (typeof cloned[fieldToMapFrom] !== 'undefined' && fieldToMapTo !== fieldToMapFrom) {
+                            cloned[fieldToMapTo] = cloned[fieldToMapFrom];
+                            delete cloned[fieldToMapFrom];
+                        }
+                    });
+                }
+                if (valueChangeMap) {
+                    _.forEach(_.pairs(valueChangeMap), ([field, changeMap]) => {
+                        if (typeof cloned[field] === 'string') {
+                            cloned[field] = changeMap[cloned[field]] || cloned[field];
+                        }
+                    });
+                }
+                transformed.push(cloned);
+            };
+
             //result = resultItemPostProcessFuncKey && this.isLocalEnv() ? BENCHMARKING_TEST_DATA : PRODUCTION_TEST_DATA;
 
             _.forEach(result.data, (r) => processResultRow(r, transformedData.all));
             _.forEach(result.row_totals, (r) => processResultRow(r, transformedData.row_totals));
+            if (Array.isArray(result.column_totals)) {
+                _.forEach(result.column_totals, (r) => processColumnTotal(r, transformedData.column_totals));
+            }
 
             if (resultTransformedPostProcessFuncKey && typeof DataMatrix.resultTransformedPostProcessFuncs[resultTransformedPostProcessFuncKey] === 'function') {
                 transformedData = DataMatrix.resultTransformedPostProcessFuncs[resultTransformedPostProcessFuncKey](transformedData, groupingProperties, columnGrouping);

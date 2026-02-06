@@ -591,15 +591,8 @@ def data_matrix_aggregations(context, request):
         if extra_total and 'value' in extra_total:
             ret_result["counts"][result_field] = int(extra_total['value'])
 
-    def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0, field_key="field", terms_key="terms", field_prefix="field_", agg_fields=row_agg_fields):
-        """
-        Formats a nested aggregation result (bucket_result) into a structured
-        dictionary (returned_buckets), recursively processing aggregation fields
-        and collecting totals for each bucket. Used for hierarchical data
-        aggregation, such as Elasticsearch-style bucket results.
-        """
-
-        curr_bucket_counts = {
+    def extract_bucket_counts(bucket_result):
+        counts = {
             'files': int(bucket_result['doc_count']),
             'total_coverage': bucket_result['total_coverage']['value'] if 'total_coverage' in bucket_result and bucket_result['total_coverage'] else 0
         }
@@ -609,7 +602,18 @@ def data_matrix_aggregations(context, request):
                 continue
             extra_total = bucket_result.get(result_field)
             if extra_total and 'value' in extra_total:
-                curr_bucket_counts[result_field] = int(extra_total['value'])
+                counts[result_field] = int(extra_total['value'])
+        return counts
+
+    def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0, field_key="field", terms_key="terms", field_prefix="field_", agg_fields=row_agg_fields):
+        """
+        Formats a nested aggregation result (bucket_result) into a structured
+        dictionary (returned_buckets), recursively processing aggregation fields
+        and collecting totals for each bucket. Used for hierarchical data
+        aggregation, such as Elasticsearch-style bucket results.
+        """
+
+        curr_bucket_counts = extract_bucket_counts(bucket_result)
 
         next_field_name = None
         if len(agg_fields) > curr_field_depth:  # More fields agg results to add
@@ -634,6 +638,13 @@ def data_matrix_aggregations(context, request):
         format_bucket_result(bucket, ret_result['terms'], 0)
     for bucket in search_result['aggregations']['row_totals_0']['buckets']:
         format_bucket_result(bucket, ret_result['row_total_terms'], 0, "row_total_field", "row_total_terms", "row_totals_", row_agg_fields[row_totals_es_agg_start_index + 1:])
+
+    column_totals = []
+    for bucket in search_result['aggregations']['field_0']['buckets']:
+        column_totals.append({
+            (column_agg_fields[0] if isinstance(column_agg_fields, list) else column_agg_fields): bucket['key'],
+            "counts": extract_bucket_counts(bucket)
+        })
 
     def flatten_es_terms_aggregation(es_response, field_key="field", terms_key="terms"):
         """
@@ -695,11 +706,15 @@ def data_matrix_aggregations(context, request):
             "row_agg_fields": row_agg_fields_orig,
             "data": data,
             "row_totals": row_totals,
+            "column_totals": column_totals,
             "counts": ret_result["counts"],
             "time_generated": ret_result["time_generated"],
             "flatten_values": True,
             "value_delimiter": value_delimiter,
             "search_params": search_param_lists
         }    
+
+    else:
+        ret_result["column_totals"] = column_totals
 
     return ret_result
