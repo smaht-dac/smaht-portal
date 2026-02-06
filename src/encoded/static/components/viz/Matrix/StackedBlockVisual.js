@@ -826,7 +826,7 @@ export class StackedBlockVisual extends React.PureComponent {
     }
 
     renderContents(){
-        const { data : propData, rowTotals: propRowTotals, groupingProperties, columnGrouping, columnGroups, showColumnGroups, rowGroups, showRowGroups, showColumnSummary } = this.props;
+        const { data : propData, rowTotals: propRowTotals, groupingProperties, columnGrouping, columnGroups, showColumnGroups, rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, showColumnSummary, blockHeight, blockVerticalSpacing } = this.props;
         const { mounted, sorting, sortField, activeBlock, openBlock } = this.state;
         if (!mounted) return null;
         // prepare data
@@ -879,6 +879,12 @@ export class StackedBlockVisual extends React.PureComponent {
         const leftAxisKeys = sortLeftAxisKeys(_.keys(nestedData));
         const hasRowGroups = showRowGroups && rowGroups && _.keys(rowGroups).length > 0;
         const rowGroupsKeys = hasRowGroups ? [..._.keys(rowGroups), FALLBACK_GROUP_NAME] : null;
+        const hasRowGroupsExtendedTopLevel = Array.isArray(groupingProperties) &&
+            groupingProperties.length === 1 &&
+            showRowGroupsExtended &&
+            rowGroupsExtended &&
+            _.keys(rowGroupsExtended).length > 0;
+        const rowGroupsExtendedKeys = hasRowGroupsExtendedTopLevel ? [..._.keys(rowGroupsExtended), FALLBACK_GROUP_NAME] : null;
 
         // convert to { columnGrouping: [groupingProperties] }
         // Example: rows=[{ assay:'WGS', donor:'D1' },{ assay:'WGS', donor:'D2' },{ assay:'RNA', donor:'D1' }]
@@ -936,6 +942,75 @@ export class StackedBlockVisual extends React.PureComponent {
                 <React.Fragment>
                     {StackedBlockGroupedRow.columnsAndHeader(columnsAndHeaderProps)}
                     <div className="p-3 text-center text-muted no-data-available"><em>No data available</em></div>
+                </React.Fragment>
+            );
+        }
+
+        if (rowGroupsExtendedKeys) {
+            const rowHeight = blockHeight + (blockVerticalSpacing * 2) + 1;
+            const rowGroupsExtendedByLowerKey = _.reduce(_.keys(rowGroupsExtended), (memo, k) => {
+                const lk = k.toLowerCase();
+                if (memo[lk] == null) memo[lk] = k;
+                return memo;
+            }, {});
+            const fallbackGroupNameLower = FALLBACK_GROUP_NAME.toLowerCase();
+            let outerIdx = -1;
+
+            return (
+                <React.Fragment>
+                    {StackedBlockGroupedRow.columnsAndHeader(columnsAndHeaderProps)}
+                    <div className="grouping depth-0 open">
+                        <div className="child-blocks">
+                            {_.map(rowGroupsExtendedKeys, function (rgKey) {
+                                const rgKeyLower = typeof rgKey === 'string' ? rgKey.toLowerCase() : rgKey;
+                                const isFallback = typeof rgKey === 'string' && rgKeyLower === fallbackGroupNameLower;
+                                const resolvedRgKey = (!isFallback && typeof rgKey === 'string')
+                                    ? (rowGroupsExtendedByLowerKey[rgKeyLower] || rgKey)
+                                    : rgKey;
+                                const displayKey = isFallback ? FALLBACK_GROUP_NAME : resolvedRgKey;
+                                const { values, backgroundColor, textColor } = (!isFallback && rowGroupsExtended[resolvedRgKey])
+                                    ? rowGroupsExtended[resolvedRgKey]
+                                    : { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
+
+                                let rowGroupChildRowsKeys;
+                                if (isFallback) {
+                                    const allValues = StackedBlockGroupedRow.mergeValues(rowGroupsExtended);
+                                    rowGroupChildRowsKeys = StackedBlockGroupedRow.difference(leftAxisKeys, allValues);
+                                } else {
+                                    rowGroupChildRowsKeys = StackedBlockGroupedRow.intersection(leftAxisKeys, values);
+                                }
+                                const rowSpan = rowGroupChildRowsKeys.length;
+                                if (rowSpan === 0) return null;
+
+                                const label = (displayKey.length > (rowSpan * 4)) && rowGroupsExtended[resolvedRgKey]?.shortName
+                                    ? rowGroupsExtended[resolvedRgKey].shortName
+                                    : displayKey;
+
+                                return (
+                                    <div className="vertical-container">
+                                        <div className="vertical-container-label" style={{ backgroundColor, color: textColor, height: rowHeight * rowSpan }}>
+                                            <span data-tip={displayKey !== label ? displayKey : null}>{label}</span>
+                                        </div>
+                                        <div className="vertical-container-rows">
+                                            {_.map(rowGroupChildRowsKeys, (k) => {
+                                                outerIdx++;
+                                                return (
+                                                    <StackedBlockGroupedRow
+                                                        {...sharedRowProps}
+                                                        data={nestedData[k]}
+                                                        rowTotals={nestedRowTotals[k]}
+                                                        key={k}
+                                                        group={k}
+                                                        index={outerIdx}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            }, this)}
+                        </div>
+                    </div>
                 </React.Fragment>
             );
         }
