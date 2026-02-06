@@ -7,15 +7,12 @@ from .submitted_file import SubmittedFile
 from .file import CalcPropConstants
 
 from ..item_utils import (
-    file as file_utils,
     external_output_file as eof_utils,
     tissue as tissue_utils,
     item as item_utils,
 )
 from ..item_utils.utils import (
-    get_property_value_from_identifier,
     get_property_values_from_identifiers,
-    get_unique_values,
     RequestHandler,
 )
 

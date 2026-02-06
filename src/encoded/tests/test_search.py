@@ -98,6 +98,6 @@ def test_search_total(workbook, es_testapp, anon_es_testapp):
         'status': ['released', 'protected-network', 'open'],
     }
     res = es_testapp.post_json('/search_total', search).json['total']
-    assert res == 4
+    assert res == 5
     anon_res = anon_es_testapp.post_json('/search_total', search).json['total']
     assert anon_res == 1

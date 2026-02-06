@@ -4,6 +4,7 @@
         "submission_centers": [
             "smaht"
         ],
+        "accession": "SMAEFFO3516G",
         "submitted_id": "TEST_EXTERNAL-OUTPUT-FILE_GERMLINE_VCF",
         "data_category": [
             "Germline Variant Calls"
@@ -17,11 +18,11 @@
         "file_format": "VCF",
         "filename": "germline_vcf.vcf",
         "reference_genome": "GRCh38",
-        "file_size": 100000,
         "status": "protected-network",
-        "dataset": "tissue",
+        "dataset": "colo829t",
         "tissues": [
             "TEST_TISSUE_LUNG"
-        ]
+        ],
+        "annotated_filename": "ST001-1D-X-M45-XX-test-SMAEFFO3516G-GRCh38.vcf"
     }
 ]
