@@ -15,6 +15,54 @@ import { isPrimitive } from '@hms-dbmi-bgm/shared-portal-components/es/component
 
 const FALLBACK_GROUP_NAME = 'N/A';
 
+function renderVerticalRowGroupsExtended({
+    rowGroupsExtended,
+    rowGroupsExtendedKeys,
+    rowKeys,
+    rowHeight,
+    rowGroupsExtendedByLowerKey,
+    renderRow
+}) {
+    if (!rowGroupsExtended || !rowGroupsExtendedKeys || !rowKeys) return null;
+    const fallbackGroupNameLower = FALLBACK_GROUP_NAME.toLowerCase();
+    return _.map(rowGroupsExtendedKeys, function (rgKey) {
+        const rgKeyLower = typeof rgKey === 'string' ? rgKey.toLowerCase() : rgKey;
+        const isFallback = typeof rgKey === 'string' && rgKeyLower === fallbackGroupNameLower;
+        const resolvedRgKey = (!isFallback && typeof rgKey === 'string')
+            ? (rowGroupsExtendedByLowerKey[rgKeyLower] || rgKey)
+            : rgKey;
+        const displayKey = isFallback ? FALLBACK_GROUP_NAME : resolvedRgKey;
+        const { values, backgroundColor, textColor } = (!isFallback && rowGroupsExtended[resolvedRgKey])
+            ? rowGroupsExtended[resolvedRgKey]
+            : { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
+
+        let rowGroupChildRowsKeys;
+        if (isFallback) {
+            const allValues = StackedBlockGroupedRow.mergeValues(rowGroupsExtended);
+            rowGroupChildRowsKeys = StackedBlockGroupedRow.difference(rowKeys, allValues);
+        } else {
+            rowGroupChildRowsKeys = StackedBlockGroupedRow.intersection(rowKeys, values);
+        }
+        const rowSpan = rowGroupChildRowsKeys.length;
+        if (rowSpan === 0) return null;
+
+        const label = (displayKey.length > (rowSpan * 4)) && rowGroupsExtended[resolvedRgKey]?.shortName
+            ? rowGroupsExtended[resolvedRgKey].shortName
+            : displayKey;
+
+        return (
+            <div className="vertical-container">
+                <div className="vertical-container-label" style={{ backgroundColor, color: textColor, height: rowHeight * rowSpan }}>
+                    <span data-tip={displayKey !== label ? displayKey : null}>{label}</span>
+                </div>
+                <div className="vertical-container-rows">
+                    {_.map(rowGroupChildRowsKeys, (k) => renderRow(k))}
+                </div>
+            </div>
+        );
+    });
+}
+
 // Recursively groups a list of objects by each property in order, returning a nested object tree
 // (e.g., groupByMultiple([{ a: 1, b: 2 }, { a: 1, b: 3 }], ['a','b']) -> { '1': { '2': [...], '3': [...] } }).
 export function groupByMultiple(objList, propertiesList){
@@ -953,7 +1001,6 @@ export class StackedBlockVisual extends React.PureComponent {
                 if (memo[lk] == null) memo[lk] = k;
                 return memo;
             }, {});
-            const fallbackGroupNameLower = FALLBACK_GROUP_NAME.toLowerCase();
             let outerIdx = -1;
 
             return (
@@ -961,54 +1008,26 @@ export class StackedBlockVisual extends React.PureComponent {
                     {StackedBlockGroupedRow.columnsAndHeader(columnsAndHeaderProps)}
                     <div className="grouping depth-0 open">
                         <div className="child-blocks">
-                            {_.map(rowGroupsExtendedKeys, function (rgKey) {
-                                const rgKeyLower = typeof rgKey === 'string' ? rgKey.toLowerCase() : rgKey;
-                                const isFallback = typeof rgKey === 'string' && rgKeyLower === fallbackGroupNameLower;
-                                const resolvedRgKey = (!isFallback && typeof rgKey === 'string')
-                                    ? (rowGroupsExtendedByLowerKey[rgKeyLower] || rgKey)
-                                    : rgKey;
-                                const displayKey = isFallback ? FALLBACK_GROUP_NAME : resolvedRgKey;
-                                const { values, backgroundColor, textColor } = (!isFallback && rowGroupsExtended[resolvedRgKey])
-                                    ? rowGroupsExtended[resolvedRgKey]
-                                    : { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
-
-                                let rowGroupChildRowsKeys;
-                                if (isFallback) {
-                                    const allValues = StackedBlockGroupedRow.mergeValues(rowGroupsExtended);
-                                    rowGroupChildRowsKeys = StackedBlockGroupedRow.difference(leftAxisKeys, allValues);
-                                } else {
-                                    rowGroupChildRowsKeys = StackedBlockGroupedRow.intersection(leftAxisKeys, values);
+                            {renderVerticalRowGroupsExtended({
+                                rowGroupsExtended,
+                                rowGroupsExtendedKeys,
+                                rowKeys: leftAxisKeys,
+                                rowHeight,
+                                rowGroupsExtendedByLowerKey,
+                                renderRow: (k) => {
+                                    outerIdx++;
+                                    return (
+                                        <StackedBlockGroupedRow
+                                            {...sharedRowProps}
+                                            data={nestedData[k]}
+                                            rowTotals={nestedRowTotals[k]}
+                                            key={k}
+                                            group={k}
+                                            index={outerIdx}
+                                        />
+                                    );
                                 }
-                                const rowSpan = rowGroupChildRowsKeys.length;
-                                if (rowSpan === 0) return null;
-
-                                const label = (displayKey.length > (rowSpan * 4)) && rowGroupsExtended[resolvedRgKey]?.shortName
-                                    ? rowGroupsExtended[resolvedRgKey].shortName
-                                    : displayKey;
-
-                                return (
-                                    <div className="vertical-container">
-                                        <div className="vertical-container-label" style={{ backgroundColor, color: textColor, height: rowHeight * rowSpan }}>
-                                            <span data-tip={displayKey !== label ? displayKey : null}>{label}</span>
-                                        </div>
-                                        <div className="vertical-container-rows">
-                                            {_.map(rowGroupChildRowsKeys, (k) => {
-                                                outerIdx++;
-                                                return (
-                                                    <StackedBlockGroupedRow
-                                                        {...sharedRowProps}
-                                                        data={nestedData[k]}
-                                                        rowTotals={nestedRowTotals[k]}
-                                                        key={k}
-                                                        group={k}
-                                                        index={outerIdx}
-                                                    />
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                );
-                            }, this)}
+                            })}
                         </div>
                     </div>
                 </React.Fragment>
@@ -1635,8 +1654,6 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             if (memo[lk] == null) memo[lk] = k;
             return memo;
         }, {}) : null;
-        const fallbackGroupNameLower = FALLBACK_GROUP_NAME.toLowerCase();
-
         const rowHeight = blockHeight + (blockVerticalSpacing * 2) + 1;
         const childBlocks = !open ? StackedBlockGroupedRow.collapsedChildBlocks(data, rowTotals, this.props) : (
             <div className="open-empty-placeholder" style={{ 'height' : rowHeight, 'marginLeft' : blockHorizontalSpacing }}/>
@@ -1648,49 +1665,16 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const groupingPropertyTitle = getGroupingPropertyTitle();
         const toggleIcon = getToggleIcon();
 
-        const renderRowGroupsExtended = () => (
-            _.map(rowGroupsExtendedKeys, function (rgKey, idx) {
-                const rgKeyLower = typeof rgKey === 'string' ? rgKey.toLowerCase() : rgKey;
-                const isFallback = typeof rgKey === 'string' && rgKeyLower === fallbackGroupNameLower;
-                const resolvedRgKey = (!isFallback && rowGroupsExtendedByLowerKey && typeof rgKey === 'string')
-                    ? (rowGroupsExtendedByLowerKey[rgKeyLower] || rgKey)
-                    : rgKey;
-                const displayKey = isFallback ? FALLBACK_GROUP_NAME : resolvedRgKey;
-                const { values, backgroundColor, textColor } = (!isFallback && rowGroupsExtended[resolvedRgKey])
-                    ? rowGroupsExtended[resolvedRgKey]
-                    : { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
-
-                let rowGroupChildRowsKeys;
-                if (isFallback) { //special case for N/A
-                    const allValues = StackedBlockGroupedRow.mergeValues(rowGroupsExtended);
-                    // not intersecting childRowsKeys and allValues
-                    rowGroupChildRowsKeys = StackedBlockGroupedRow.difference(childRowsKeys, allValues);
-                } else {
-                    rowGroupChildRowsKeys = StackedBlockGroupedRow.intersection(childRowsKeys, values);
-                }
-                const rowSpan = rowGroupChildRowsKeys.length;
-
-                if (rowSpan === 0) return null;
-
-                const label = (displayKey.length > (rowSpan * 4)) && rowGroupsExtended[resolvedRgKey]?.shortName
-                    ? rowGroupsExtended[resolvedRgKey].shortName
-                    : displayKey;
-                return (
-                    <div className="vertical-container">
-                        <div className="vertical-container-label" style={{ backgroundColor, color: textColor, height: rowHeight * rowSpan }}>
-                            <span data-tip={displayKey !== label ? displayKey : null}>{label}</span>
-                        </div>
-                        <div className="vertical-container-rows">
-                            {
-                                _.map(rowGroupChildRowsKeys, (k) =>
-                                    <StackedBlockGroupedRow {...this.props} data={data[k]} key={k} group={k} depth={depth + 1} />
-                                )
-                            }
-                        </div>
-                    </div>
-                );
-            }, this)
-        );
+        const renderRowGroupsExtended = () => renderVerticalRowGroupsExtended({
+            rowGroupsExtended,
+            rowGroupsExtendedKeys,
+            rowKeys: childRowsKeys,
+            rowHeight,
+            rowGroupsExtendedByLowerKey,
+            renderRow: (k) => (
+                <StackedBlockGroupedRow {...this.props} data={data[k]} key={k} group={k} depth={depth + 1} />
+            )
+        });
 
         const renderChildRows = () => (
             <div className="child-blocks">
