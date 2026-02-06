@@ -627,8 +627,8 @@ function stepAnalysisPipelineDocs() {
         });
 }
 
-/** H) Donor Manifest Dictionary: schema list + React-Select count & selection */
-function stepDonorManifestDictionary() {
+/** H) Donor Metadata Dictionary: schema list + React-Select count & selection */
+function stepDonorMetadataDictionary() {
     cy.get(documentationNavBarItemSelectorStr)
         .should("have.class", "dropdown-toggle")
         .click()
@@ -765,7 +765,7 @@ describe("Documentation Page & Content (role-based)", () => {
                     assertCannotAccessDocPage("/docs/additional-resources/donor-manifest-dictionary", caps);
                     return;
                 }
-                stepDonorManifestDictionary();
+                stepDonorMetadataDictionary();
             });
         });
     });
