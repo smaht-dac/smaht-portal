@@ -171,8 +171,8 @@ const TissueGroup = ({ count, tissue, query, value }) => {
  * @returns {JSX.Element} The rendered DonorGroup component.
  */
 const DonorGroup = (props) => {
-    const { count, items, donor, query } = props;
-    const [isToggled, toggle] = useToggle();
+    const { count, items, donor, query, donorGroupIndex } = props;
+    const [isToggled, toggle] = useToggle(donorGroupIndex === 0);
 
     let donorTitle = donor;
 
@@ -190,13 +190,17 @@ const DonorGroup = (props) => {
                             isToggled ? 'minus' : 'plus'
                         }`}></i>
                 </button>
-                <a className="title" href={query}>
+                <div
+                    className="title"
+                    onClick={() => {
+                        toggle();
+                    }}>
                     {donorTitle}
-                    <span className="count">
+                    <a className="count" href={query}>
                         {count ?? 0} {count > 1 ? 'Files' : 'File'}
                         <i className="icon icon-arrow-right"></i>
-                    </span>
-                </a>
+                    </a>
+                </div>
             </div>
             {isToggled ? (
                 <ul className="tissue-list">
@@ -219,8 +223,8 @@ const DonorGroup = (props) => {
 };
 
 const DayGroup = (props) => {
-    const { count, date, query, items: donorGroups } = props;
-    const [isToggled, toggle] = useToggle();
+    const { count, date, query, items: donorGroups, dayGroupIndex } = props;
+    const [isToggled, toggle] = useToggle(dayGroupIndex === 0);
 
     const dayTitle = new Date(date).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -229,7 +233,7 @@ const DayGroup = (props) => {
     });
 
     return (
-        <div className="release-item">
+        <div className="release-item day-group" aria-expanded={isToggled}>
             <div className={`day-group-header ${isToggled ? 'expanded' : ''}`}>
                 <button
                     className="toggle-button day"
@@ -241,13 +245,18 @@ const DayGroup = (props) => {
                             isToggled ? 'minus' : 'plus'
                         }`}></i>
                 </button>
-                <a className="title" href={query}>
-                    {dayTitle}
-                    <span className="count">
+                <div className="title">
+                    <span
+                        onClick={() => {
+                            toggle();
+                        }}>
+                        {dayTitle}
+                    </span>
+                    <a className="count" href={query}>
                         {count ?? 0} {count > 1 ? 'Files' : 'File'}
                         <i className="icon icon-arrow-right"></i>
-                    </span>
-                </a>
+                    </a>
+                </div>
             </div>
             {isToggled ? (
                 <ul className="donor-list">
@@ -260,6 +269,7 @@ const DayGroup = (props) => {
                                 donor={donorGroup}
                                 items={items}
                                 query={query}
+                                donorGroupIndex={i}
                             />
                         );
                     })}
@@ -290,13 +300,14 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
         <div
             className={`data-release-item-container ${
                 isToggled ? 'expanded' : 'collapsed'
-            }`}>
+            }`}
+            aria-expanded={isToggled}>
             <div className="content">
                 <div className="header">
                     <button
                         className="toggle-button"
                         onClick={() => {
-                            toggle(!isToggled);
+                            toggle();
                         }}>
                         <i
                             className={`icon icon-${
@@ -330,6 +341,7 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
                                     count={count}
                                     query={query}
                                     key={i}
+                                    dayGroupIndex={i}
                                 />
                             );
                         })}

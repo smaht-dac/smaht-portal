@@ -798,7 +798,7 @@ body[data-path="/"]>#application>#layout {
 					display: flex;
 					flex-direction: column;
 					flex: 1;
-					max-height: 500px;
+					max-height: 400px;
 
 					&-header {
 						font-size: 1rem;
@@ -976,13 +976,13 @@ body[data-path="/"]>#application>#layout {
 										font-size: 0.75rem;
 
 										.release-item {
-											padding: 5px 0px 0px 0px;
+											padding: 5px 0px;
 
 											.day-group-header {
 												display: flex;
 												padding: 2px 0px;
-												border-radius: 4px;
-												margin: 0px 0px 0px 10px;
+												margin: 0px;
+												padding: 0px 0px 0px 10px;
 
 												.toggle-button {
 													display: flex;
@@ -1018,15 +1018,16 @@ body[data-path="/"]>#application>#layout {
 														transition: background-color 100ms;
 													}
 												}
-
 											}
 											
 											.donor-list {
-												padding-left: 24px;
+												padding: 10px;
+												.release-item {
+													padding: 0px;
+												}
 											}
 											.donor-group-header {
 												display: flex;
-												padding: 2px 0px;
 												border-radius: 4px;
 												gap: 4px;
 												padding-bottom: 0px;
@@ -1044,7 +1045,7 @@ body[data-path="/"]>#application>#layout {
 													display: flex;
 													flex: 1;
 													justify-content: space-between;
-													font-weight: 700;
+													font-weight: 500;
 													font-size: 0.875rem;
 													align-items: center;
 													width: max-content;
@@ -1140,6 +1141,20 @@ body[data-path="/"]>#application>#layout {
 
 											.file-group-list {
 												padding-left: 37px;
+											}
+
+											&[aria-expanded="true"] {
+												.day-group-header {
+													background-color: #E9F1FC;
+													border: 1px solid #D3DBE6;
+													border-bottom: none;
+													border-radius: 8px 8px 0px 0px;
+												}
+												.donor-list {
+													border: 1px solid #D3DBE6;
+													border-radius: 0px 0px 8px 8px;
+												}
+
 											}
 										}
 
