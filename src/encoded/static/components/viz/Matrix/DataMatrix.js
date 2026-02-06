@@ -895,6 +895,8 @@ export default class DataMatrix extends React.PureComponent {
             defaultOpen = false, totalFiles, countFor
         } = this.state;
 
+        const effectiveYAxisLabel = countFor === 'donors' ? 'Tissue' : yAxisLabel;
+
         const isLoading =
             // eslint-disable-next-line react/destructuring-assignment
             this.state['_results'] === null && query && query.url !== null && typeof query.url !== 'undefined';
@@ -914,7 +916,7 @@ export default class DataMatrix extends React.PureComponent {
             query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, additionalPopoverData,
-            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary, valueDelimiter,
+            summaryBackgroundColor, xAxisLabel, yAxisLabel: effectiveYAxisLabel, showAxisLabels, showColumnSummary, valueDelimiter,
             baseBrowseFilesPath,
             countFor,
             browseFilteringTransformFunc: browseFilteringTransformFuncKey ? DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey] : null
