@@ -234,8 +234,11 @@ export class VisualBody extends React.PureComponent {
         const secondaryGrpPropUniqueCount = Array.isArray(aggrData[secondaryGrpProp]) ? aggrData[secondaryGrpProp].length : (aggrData[secondaryGrpProp] && aggrData[secondaryGrpProp] !== 'No value' ? 1 : 0);
         // e.g. Germ Layer (Ectoderm, Mesoderm, Endoderm ...etc) if available
         let secondaryGrpPropCategoryValue = null;
-        if (depth > 0 && secondaryGrpPropValue && rowGroupsExtended) {
-            secondaryGrpPropCategoryValue = this.findKeyByValue(rowGroupsExtended, secondaryGrpPropValue);
+        if (rowGroupsExtended) {
+            const rowGroupSourceValue = secondaryGrpPropValue || primaryGrpPropValue;
+            if (rowGroupSourceValue) {
+                secondaryGrpPropCategoryValue = this.findKeyByValue(rowGroupsExtended, rowGroupSourceValue);
+            }
         }
 
         // Title area values
