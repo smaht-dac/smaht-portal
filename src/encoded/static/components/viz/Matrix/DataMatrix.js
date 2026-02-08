@@ -832,7 +832,7 @@ export default class DataMatrix extends React.PureComponent {
                 };
                 nextState.groupingProperties = (baseGroupingProperties || []).filter((p) => p !== 'donor');
                 nextState.colorRanges = this.getColorRanges({
-                    colorRangeBaseColor: '#CF9FFF',
+                    colorRangeBaseColor: '#9B5DE0',
                     colorRangeSegments: prevState.colorRangeSegments,
                     colorRangeSegmentStep: prevState.colorRangeSegmentStep
                 });
