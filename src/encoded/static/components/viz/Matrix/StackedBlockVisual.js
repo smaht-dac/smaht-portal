@@ -556,7 +556,7 @@ export class VisualBody extends React.PureComponent {
                     'columnGroups', 'showColumnGroups', 'columnGroupsExtended', 'showColumnGroupsExtended',
                     'rowGroups', 'showRowGroups', 'rowGroupsExtended', 'showRowGroupsExtended',
                     'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels', 'showColumnSummary',
-                    'countFor')}
+                    'countFor', 'blockWidth', 'blockHorizontalExtend', 'blockHorizontalSpacing', 'blockVerticalSpacing')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
             />
