@@ -631,6 +631,7 @@ export default class DataMatrix extends React.PureComponent {
             }
 
             updatedState[resultKey] = transformedData;
+            updatedState['overallCounts'] = result.counts || null;
             // sum files in transformedData array
             let totalFiles = 0;
             _.forEach(transformedData.row_totals, (r) => {
@@ -915,7 +916,7 @@ export default class DataMatrix extends React.PureComponent {
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
             colorRanges, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor,
-            defaultOpen = false, totalFiles, countFor
+            defaultOpen = false, totalFiles, countFor, overallCounts
         } = this.state;
 
         const effectiveYAxisLabel = countFor === 'donors' ? 'Tissue' : yAxisLabel;
@@ -942,6 +943,7 @@ export default class DataMatrix extends React.PureComponent {
             summaryBackgroundColor, xAxisLabel, yAxisLabel: effectiveYAxisLabel, showAxisLabels, showColumnSummary, valueDelimiter,
             baseBrowseFilesPath,
             countFor,
+            overallCounts,
             ...(countFor === 'total_coverage' ? { blockWidth: 60, blockHorizontalExtend: 10 } : {}),
             browseFilteringTransformFunc: browseFilteringTransformFuncKey ? DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey] : null
         };

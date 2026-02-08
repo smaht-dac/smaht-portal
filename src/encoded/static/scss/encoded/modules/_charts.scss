@@ -1511,6 +1511,11 @@ body[data-path="/statistics"] {
                         border: 1px solid #e4e4ff;
                     }
                 }
+                .column-group-header.overall-summary {
+                    .stacked-block[data-block-type="col-summary"] {
+                        font-weight: 700;
+                    }
+                }
             }
         }
 

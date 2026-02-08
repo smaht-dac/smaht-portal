@@ -556,7 +556,8 @@ export class VisualBody extends React.PureComponent {
                     'columnGroups', 'showColumnGroups', 'columnGroupsExtended', 'showColumnGroupsExtended',
                     'rowGroups', 'showRowGroups', 'rowGroupsExtended', 'showRowGroupsExtended',
                     'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels', 'showColumnSummary',
-                    'countFor', 'blockWidth', 'blockHorizontalExtend', 'blockHorizontalSpacing', 'blockVerticalSpacing')}
+                    'countFor', 'overallCounts',
+                    'blockWidth', 'blockHorizontalExtend', 'blockHorizontalSpacing', 'blockVerticalSpacing')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
             />
@@ -1387,7 +1388,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             blockWidth, blockHeight, blockHorizontalSpacing, blockVerticalSpacing, blockHorizontalExtend, headerPadding,
             sorting, sortField, onSorterClick, groupedDataIndices, openBlock, activeBlock,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
-            xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary
+            xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
+            overallCounts, countFor
         } = props;
 
         const rowHeight = blockHeight + (blockVerticalSpacing * 2) + 1;
@@ -1460,6 +1462,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                 })}
             </div>
         );
+
 
         const renderColumnGroupHeaders = () => {
             if (!hasColumnGroups) return null;
@@ -1633,6 +1636,28 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         </div>
                     );
                 })}
+                {props.overallCounts && props.countFor && props.overallCounts[props.countFor] != null ? (
+                    <div
+                        key="col-summary-overall"
+                        className="column-group-header overall-summary"
+                        style={headerItemStyle}>
+                        <div
+                            className="block-container-group"
+                            style={getSummaryBlockStyle()}
+                            data-block-count={1}
+                            data-group-key="overall-summary">
+                            <Block
+                                {..._.omit(props, 'group')}
+                                key="overall-summary-block"
+                                data={{ counts: props.overallCounts }}
+                                colIndex={columnKeys.length}
+                                blockType="col-summary"
+                                popoverPrimaryTitle={props.rowGroupKey}
+                                columnKey="overall-summary"
+                            />
+                        </div>
+                    </div>
+                ) : null}
             </div>
         );
 
