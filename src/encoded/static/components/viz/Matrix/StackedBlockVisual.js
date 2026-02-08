@@ -110,10 +110,11 @@ export class VisualBody extends React.PureComponent {
             }
             if (blockSum <= 0) return <span data-count={blockSum}>0</span>;
             const rounded = blockSum < 100 ? Math.round(blockSum * 10) / 10 : Math.round(blockSum);
+            const tooltipValue = rounded;
             const display = `${rounded}X`;
             const fontSize = display.length > 7 ? '0.72rem' : (display.length > 5 ? '0.8rem' : '0.9rem');
             return (
-                <span style={{ fontSize }} data-count={blockSum} data-tip={blockSum}>
+                <span style={{ fontSize }} data-count={blockSum} data-tip={tooltipValue}>
                     {display}
                 </span>
             );
