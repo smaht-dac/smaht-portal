@@ -942,6 +942,7 @@ export default class DataMatrix extends React.PureComponent {
             summaryBackgroundColor, xAxisLabel, yAxisLabel: effectiveYAxisLabel, showAxisLabels, showColumnSummary, valueDelimiter,
             baseBrowseFilesPath,
             countFor,
+            ...(countFor === 'total_coverage' ? { blockWidth: 60, blockHorizontalExtend: 10 } : {}),
             browseFilteringTransformFunc: browseFilteringTransformFuncKey ? DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey] : null
         };
 
@@ -1002,6 +1003,12 @@ export default class DataMatrix extends React.PureComponent {
                                 className={`btn ${countFor === 'donors' ? 'btn-primary' : 'btn-outline-primary'}`}
                                 onClick={() => this.onCountForChange({ target: { value: 'donors' } })}>
                                 Donors
+                            </button>
+                            <button
+                                type="button"
+                                className={`btn ${countFor === 'total_coverage' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => this.onCountForChange({ target: { value: 'total_coverage' } })}>
+                                Coverage
                             </button>
                         </div>
                     </div>

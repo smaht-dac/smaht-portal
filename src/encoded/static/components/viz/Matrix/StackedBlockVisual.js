@@ -91,6 +91,7 @@ export class VisualBody extends React.PureComponent {
 
     static blockRenderedContents(data, blockProps){
         const countFor = blockProps && blockProps.countFor ? blockProps.countFor : 'files';
+        const blockType = blockProps && blockProps.blockType ? blockProps.blockType : 'regular';
         const countField = countFor;
         const getCountValue = (item) => {
             if (!item || !item.counts) return 0;
@@ -100,6 +101,23 @@ export class VisualBody extends React.PureComponent {
         const blockSum = Array.isArray(data)
             ? _.reduce(data, function (sum, item) { return sum + getCountValue(item); }, 0)
             : (data ? getCountValue(data) : 0);
+
+        // For total_coverage, we want to display the value with "X" and
+        // use a different formatting logic. For other count types, we display the raw count with standard formatting.
+        if (countFor === 'total_coverage') {
+            if (blockType === 'row-summary' || blockType === 'col-summary') {
+                return <span data-count={blockSum}>-</span>;
+            }
+            if (blockSum <= 0) return <span data-count={blockSum}>0</span>;
+            const rounded = blockSum < 100 ? Math.round(blockSum * 10) / 10 : Math.round(blockSum);
+            const display = `${rounded}X`;
+            const fontSize = display.length > 7 ? '0.72rem' : (display.length > 5 ? '0.8rem' : '0.9rem');
+            return (
+                <span style={{ fontSize }} data-count={blockSum} data-tip={blockSum}>
+                    {display}
+                </span>
+            );
+        }
 
         if (blockSum >= 1000){
             const decimal = blockSum >= 10000 ? 0 : 1;
@@ -838,7 +856,7 @@ export class StackedBlockVisual extends React.PureComponent {
                         const containerSectionStyle = getContainerSectionStyle(backgroundColor, textColor, groupKeyIdx);
                         const labelSectionStyle = {};
                         const columnKeys = getColumnKeys();
-                        const columnWidth = 44;
+                        const columnWidth = (this.props.blockWidth + (this.props.blockHorizontalSpacing * 2)) + this.props.blockHorizontalExtend;
                         const headerItemStyle = {};
 
                         return _.map(rowKeys, (k, idx) => {
