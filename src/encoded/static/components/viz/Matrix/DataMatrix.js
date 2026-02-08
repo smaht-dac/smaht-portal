@@ -988,16 +988,22 @@ export default class DataMatrix extends React.PureComponent {
                 {configurator}
                 {headerFor || null}
                 {showCountFor ? (
-                    <div className="form-inline mb-2">
-                        <label className="mr-2" htmlFor={`data-matrix-count-for-${idLabel}`}>Show counts for:</label>
-                        <select
-                            id={`data-matrix-count-for-${idLabel}`}
-                            className="form-control form-control-sm"
-                            value={countFor}
-                            onChange={this.onCountForChange}>
-                            <option value="files">Files</option>
-                            <option value="donors">Donors</option>
-                        </select>
+                    <div className="d-flex justify-content-end align-items-center mb-2">
+                        <span className="me-1 mb-0 text-nowrap">Show:</span>
+                        <div className="btn-group btn-group-sm" role="group" aria-label="Show counts for">
+                            <button
+                                type="button"
+                                className={`btn ${countFor === 'files' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => this.onCountForChange({ target: { value: 'files' } })}>
+                                Files
+                            </button>
+                            <button
+                                type="button"
+                                className={`btn ${countFor === 'donors' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => this.onCountForChange({ target: { value: 'donors' } })}>
+                                Donors
+                            </button>
+                        </div>
                     </div>
                 ) : null}
                 <VisualBody
