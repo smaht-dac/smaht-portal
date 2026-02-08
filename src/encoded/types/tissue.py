@@ -93,7 +93,7 @@ def validate_external_id_on_add(context, request):
     data = request.json
     external_id = data['external_id']
     donor = data["donor"]
-    preservation_type = data["preservation_type"]
+    preservation_type = data.get("preservation_type")
     donor_item = get_item_or_none(request, donor, 'donors')
     uberon_id = data["uberon_id"]
     uberon_item = get_item_or_none(request, uberon_id, 'ontology-terms')
@@ -143,11 +143,13 @@ def validate_external_id_on_edit(context, request):
 
 
 def assert_preservation_type_and_code_mismatch(external_id: str, preservation_type: str, uberon_item: Dict[str, Any]):
-    """Check that the external_id matches preservation_type and is correct based on code
-    of the uberon_id."""
+    """Check that if there are any expected preservation types associated with the codes in the valid_protocol_ids of the uberon item
+        and the first part of the code is in the external_id, then there is not a mismatch between the expected preservation type
+        and the provided preservation type. 
+    """
     if (ot_codes := ot_utils.get_valid_protocol_ids(uberon_item)):
         for code in ot_codes:
-            tissue_code, expected_preservation_type = code.split('_', 1) + ['']
+            tissue_code, expected_preservation_type = (code.split('_', 1) + [''])[:2]
             if expected_preservation_type and tissue_code in external_id:
                 return preservation_type != expected_preservation_type
     return False
