@@ -174,7 +174,10 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                                     type="button"
                                     className={`tab-header ${tab.className || ''} ${isActive ? 'is-active' : 'is-inactive'} ${!allLoaded ? 'is-loading' : ''}`}
                                     data-has-data={dataHasContent}
-                                    onClick={() => setActiveKey(tab.key)}
+                                    onClick={() => {
+                                        setActiveKey(tab.key);
+                                        setHashKey(tab.key);
+                                    }}
                                     aria-pressed={isActive}
                                     aria-controls={`data-matrix-panel-${tab.key}`}>
                                     <span className="title">{tab.title}</span>
