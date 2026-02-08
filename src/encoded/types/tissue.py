@@ -151,7 +151,7 @@ def assert_preservation_type_and_code_mismatch(external_id: str, preservation_ty
         for code in ot_codes:
             tissue_code, expected_preservation_type = (code.split('_', 1) + [''])[:2]
             if expected_preservation_type and tissue_code in external_id:
-                return preservation_type != expected_preservation_type
+                return expected_preservation_type not in preservation_type
     return False
 
 
