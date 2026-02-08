@@ -992,7 +992,7 @@ export default class DataMatrix extends React.PureComponent {
                 {headerFor || null}
                 {showCountFor ? (
                     <div className="d-flex justify-content-end align-items-center mb-2">
-                        <span className="me-1 mb-0 text-nowrap">Show:</span>
+                        <span className="me-1 mb-0 text-nowrap">Count by:</span>
                         <div className="btn-group btn-group-sm" role="group" aria-label="Show counts for">
                             <button
                                 type="button"
