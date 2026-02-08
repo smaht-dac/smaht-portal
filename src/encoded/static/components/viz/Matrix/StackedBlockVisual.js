@@ -370,10 +370,22 @@ export class VisualBody extends React.PureComponent {
         // Aggregate values for summary rows
         const browseUrl = generateBrowseUrl();
 
-        const { fileCount, totalCoverage } = _.reduce(data, function (sum, item) {
+        const dataForCounts = Array.isArray(data) ? data : (data ? [data] : []);
+        const getFilesCountFromItem = (item) => {
+            if (item && item.counts && typeof item.counts.files === 'number') return item.counts.files;
+            if (item && typeof item.files === 'number') return item.files;
+            return 0;
+        };
+        const getTotalCoverageFromItem = (item) => {
+            if (item && item.counts && typeof item.counts.total_coverage === 'number') return item.counts.total_coverage;
+            if (item && typeof item.total_coverage === 'number') return item.total_coverage;
+            return 0;
+        };
+
+        const { fileCount, totalCoverage } = _.reduce(dataForCounts, function (sum, item) {
             return {
-                fileCount: sum.fileCount + (item.counts && item.counts.files ? item.counts.files : 0),
-                totalCoverage: sum.totalCoverage + (item.counts && item.counts.total_coverage ? item.counts.total_coverage : 0)
+                fileCount: sum.fileCount + getFilesCountFromItem(item),
+                totalCoverage: sum.totalCoverage + getTotalCoverageFromItem(item)
             };
         }, { fileCount: 0, totalCoverage: 0 });
         // Round totalCoverage to 2 decimal places since ES has floating point precision issues
