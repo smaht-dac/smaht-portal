@@ -1837,6 +1837,16 @@ const Block = React.memo(function Block(props){
         popover = blockPopover.apply(blockPopover, blockFxnArguments);
     }
 
+    const countFor = props.countFor || 'files';
+    const getCountValue = (item) => {
+        if (!item || !item.counts) return 0;
+        const value = item.counts[countFor];
+        return typeof value === 'number' ? value : 0;
+    };
+    const blockValue = Array.isArray(argData)
+        ? _.reduce(argData, function (sum, item) { return sum + getCountValue(item); }, 0)
+        : (argData ? getCountValue(argData) : 0);
+
     // Color selection (summary blocks use a fixed color)
     const getColor = function (value, type = 'regular') {
         if (isSummaryBlock(type)){
@@ -1852,8 +1862,7 @@ const Block = React.memo(function Block(props){
         return range ? range.color : null;
     };
 
-    const dataLength = data?.length || 0;
-    const color = getColor(dataLength, blockType);
+    const color = getColor(blockValue, blockType);
 
     // Apply open/active styles
     if (openBlock?.rowIdx === rowIndex && openBlock?.columnIdx === colIndex &&
@@ -1873,7 +1882,7 @@ const Block = React.memo(function Block(props){
             style={style}
             tabIndex={1}
             data-place="bottom"
-            data-block-value={dataLength}
+            data-block-value={blockValue}
             data-block-type={blockType || 'regular'}
             onMouseEnter={() => typeof handleBlockMouseEnter === 'function' && handleBlockMouseEnter(colIndex, rowIndex, group, rowGroupKey)}
             onMouseLeave={handleBlockMouseLeave}
