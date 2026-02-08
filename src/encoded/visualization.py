@@ -558,6 +558,15 @@ def data_matrix_aggregations(context, request):
         **deepcopy(extra_total_aggs)
     }
     build_nested_aggs(primary_agg, row_agg_fields, base_aggregation_def, "field_0", "field_")
+    # Column totals aggregation (use full column_agg_fields_orig for composite keys)
+    primary_agg["column_totals"] = {
+        "terms": {
+            get_es_key(column_agg_fields_orig): get_es_value(column_agg_fields_orig),
+            "missing": TERM_NAME_FOR_NO_VALUE,
+            "size": MAX_BUCKET_COUNT
+        },
+        "aggs": deepcopy(base_aggregation_def)
+    }
     # Nest row totals aggregation
     if len(row_agg_fields) > row_totals_es_agg_start_index + 1:
         build_nested_aggs(primary_agg, row_agg_fields[row_totals_es_agg_start_index + 1:], deepcopy(extra_total_aggs), "row_totals_0", "row_totals_")
@@ -640,9 +649,12 @@ def data_matrix_aggregations(context, request):
         format_bucket_result(bucket, ret_result['row_total_terms'], 0, "row_total_field", "row_total_terms", "row_totals_", row_agg_fields[row_totals_es_agg_start_index + 1:])
 
     column_totals = []
-    for bucket in search_result['aggregations']['field_0']['buckets']:
+    column_totals_buckets = search_result['aggregations'].get('column_totals', {}).get('buckets')
+    if not column_totals_buckets:
+        column_totals_buckets = search_result['aggregations']['field_0']['buckets']
+    for bucket in column_totals_buckets:
         column_totals.append({
-            (column_agg_fields[0] if isinstance(column_agg_fields, list) else column_agg_fields): bucket['key'],
+            (column_agg_fields_orig[0] if isinstance(column_agg_fields_orig, list) else column_agg_fields_orig): bucket['key'],
             "counts": extract_bucket_counts(bucket)
         })
 
