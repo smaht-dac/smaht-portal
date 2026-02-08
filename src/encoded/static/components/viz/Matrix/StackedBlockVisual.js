@@ -196,7 +196,7 @@ export class VisualBody extends React.PureComponent {
             rowGroupsExtended, additionalPopoverData = {}, baseBrowseFilesPath,
             browseFilteringTransformFunc
         } = this.props;
-        const { depth, blockType = null, popoverPrimaryTitle, rowGroups, rowGroupKey } = blockProps;
+        const { depth, blockType = null, popoverPrimaryTitle, rowGroups, rowGroupKey, columnKey } = blockProps;
         const isGroup = (Array.isArray(data) && data.length >= 1) || false;
         let aggrData;
 
@@ -254,6 +254,9 @@ export class VisualBody extends React.PureComponent {
             const currentFilteringPropertiesPairs = _.map(currentFilteringProperties, function (property) {
                 let facetField = fieldChangeMap[property] || property;
                 let facetTerm = aggrData[property];
+                if (!facetTerm && blockType === 'col-summary' && property === columnGrouping && columnKey) {
+                    facetTerm = columnKey;
+                }
                 if (valueChangeMap && valueChangeMap[property]) {
                     const reversedValChangeMapForCurrSource = VisualBody.invert(valueChangeMap[property]);
                     facetTerm = reversedValChangeMapForCurrSource[facetTerm] || facetTerm;
@@ -1607,7 +1610,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         <div key={'col-summary-' + columnKey} className={className} style={headerItemStyle}>
                             <div className="block-container-group" style={getSummaryBlockStyle()}
                                 key={'summary'} data-block-count={columnTotal} data-group-key={columnKey}>
-                                <Block {..._.omit(props, 'group')} key={colIndex} data={columnSummaryData} colIndex={colIndex} blockType="col-summary" popoverPrimaryTitle={props.rowGroupKey} />
+                                <Block {..._.omit(props, 'group')} key={colIndex} data={columnSummaryData} colIndex={colIndex} blockType="col-summary" popoverPrimaryTitle={props.rowGroupKey} columnKey={columnKey} />
                             </div>
                         </div>
                     );
@@ -1752,7 +1755,7 @@ const Block = React.memo(function Block(props){
     const {
         blockHeight, blockWidth, blockVerticalSpacing, data, rowTotals, parentGrouping, group,
         blockClassName, blockRenderedContents, blockPopover, indexInGroup, colorRanges, summaryBackgroundColor,
-        handleBlockMouseEnter, handleBlockMouseLeave, handleBlockClick, rowIndex, colIndex, rowGroupKey, openBlock,
+        handleBlockMouseEnter, handleBlockMouseLeave, handleBlockClick, rowIndex, colIndex, rowGroupKey, columnKey, openBlock,
         blockType = 'regular'
     } = props;
 
@@ -1875,6 +1878,7 @@ Block.propTypes = {
     rowIndex: PropTypes.number,
     colIndex: PropTypes.number,
     rowGroupKey: PropTypes.string,
+    columnKey: PropTypes.string,
     openBlock: PropTypes.shape({
         rowIdx: PropTypes.number,
         columnIdx: PropTypes.number,
