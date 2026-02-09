@@ -12,6 +12,23 @@
         "data_type",
         "data_category"
     ],
+    "anyOf": [
+        {
+            "required": [
+                "file_sets"
+            ]
+        },
+        {
+            "required": [
+                "tissues"
+            ]
+        },
+        {
+            "required": [
+                "source_donors"
+            ]
+        }
+    ],
     "identifyingProperties": [
         "accession",
         "submitted_id",
@@ -108,6 +125,15 @@
             "items": {
                 "type": "string",
                 "linkTo": "SampleSource"
+            }
+        },
+        "source_donor": {
+            "title": "Donors",
+            "description": "Donors used to generate the file",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "linkTo": "Donor"
             }
         }
     },

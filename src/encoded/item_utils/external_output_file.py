@@ -22,11 +22,20 @@ def get_tissues(
     return properties.get("tissues", [])
 
 
+def get_source_donors(
+    properties: Dict[str, Any]
+) -> List[str]:
+    """Get source donors associated with external output file."""
+    return properties.get("source_donors", [])
+
+
 def get_donors(
    properties: Dict[str, Any],
    request_handler: RequestHandler
 ) -> List[str]:
     """Get donors associated with external output file."""
+    if (donors := get_source_donors(properties)):
+        return donors
     return list(set(get_property_values_from_identifiers(
         request_handler, get_tissues(properties), tissue_utils.get_donor
     )))
