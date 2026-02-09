@@ -57,7 +57,7 @@ class BarSection extends React.PureComponent {
      * @returns {Element} - A div element representing a bar section.
      */
     render(){
-        const { node: d, isSelected, isHoveredOver, canBeHighlighted } = this.props;
+        const { node: d, isSelected, isHoveredOver, canBeHighlighted, sectionCount, sectionIndex, subBarLayout } = this.props;
         const color           = d.color || barplot_color_cycler.colorForNode(d);
         let className = "bar-part";
 
@@ -71,22 +71,34 @@ class BarSection extends React.PureComponent {
         if (!d.parent) { // No sub-buckets
             height = '100%';
         } else {
-            // Use a percentage for styling purposes because we want the outermost bar height
-            // to transition and child bar sections to stay aligned to it.
-
-            //new implementation - sum d.parent.bars.count - normalize height since we want to keep the outermost bar height consistent - uozturk
-            var parentBarsCount = _.reduce(d.parent.bars, function(sum, bar){
-                return sum + bar.count;
-            }, 0);
-            height = (d.count / parentBarsCount) * 100 + '%';
-            // old implementation
-            // height = (d.count / d.parent.count) * 100 + '%';
+            if (subBarLayout === 'grouped') {
+                const parentCount = d.parent.count || 0;
+                height = parentCount > 0 ? (d.count / parentCount) * 100 + '%' : '0%';
+            } else {
+                // Use a percentage for styling purposes because we want the outermost bar height
+                // to transition and child bar sections to stay aligned to it.
+                //new implementation - sum d.parent.bars.count - normalize height since we want to keep the outermost bar height consistent - uozturk
+                var parentBarsCount = _.reduce(d.parent.bars, function(sum, bar){
+                    return sum + bar.count;
+                }, 0);
+                height = (d.count / parentBarsCount) * 100 + '%';
+                // old implementation
+                // height = (d.count / d.parent.count) * 100 + '%';
+            }
         }
+
+        const width = (subBarLayout === 'grouped' && sectionCount)
+            ? (100 / sectionCount) + '%'
+            : '100%';
+        const marginLeft = (subBarLayout === 'grouped' && sectionIndex > 0) ? '1px' : null;
 
         return (
             <div className={className} ref={this.barSectionElemRef}
                 style={{
-                    height, 'backgroundColor' : color
+                    height,
+                    width,
+                    marginLeft,
+                    'backgroundColor' : color
                     //width: '100%', //(this.props.isNew && d.pastWidth) || (d.parent || d).attr.width,
                 }}
                 data-key={this.props['data-key'] || null} data-term={d.parent ? d.term : null}
@@ -134,6 +146,7 @@ class Bar extends React.PureComponent {
      */
     verifyCounts(){
         var d = this.props.node;
+        if (this.props.subBarLayout === 'grouped') return;
         if (!d.bars) return;
         setTimeout(()=>{
             var combinedChildrenCount = _.reduce(d.bars, function(sum, bar){
@@ -166,24 +179,27 @@ class Bar extends React.PureComponent {
     renderBarSection(d, i, all){
         var { hoverTerm, hoverParentTerm, selectedTerm, selectedParentTerm, onBarPartClick,
                 onBarPartMouseEnter, onBarPartMouseOver, onBarPartMouseLeave,
-                aggregateType, canBeHighlighted } = this.props,
+                aggregateType, canBeHighlighted, subBarLayout } = this.props,
             key = d.term || d.name || i,
             isHoveredOver   = CursorViewBounds.isSelected(d, hoverTerm, hoverParentTerm),
             isSelected      = CursorViewBounds.isSelected(d, selectedTerm, selectedParentTerm);
 
         return (
-            <BarSection {...{ isHoveredOver, isSelected, key, aggregateType, canBeHighlighted }} data-key={key} node={d}
+            <BarSection {...{ isHoveredOver, isSelected, key, aggregateType, canBeHighlighted, subBarLayout }} data-key={key} node={d}
+                sectionCount={all && all.length ? all.length : null}
+                sectionIndex={i}
                 onClick={onBarPartClick} onMouseEnter={onBarPartMouseEnter} onMouseLeave={onBarPartMouseLeave} isRemoving={d.removing} />
         );
     }
 
     render(){
-        const { canBeHighlighted, showBarCount, node: d } = this.props;
+        const { canBeHighlighted, showBarCount, node: d, subBarLayout } = this.props;
         const hasSubSections = Array.isArray(d.bars);
         const barSections = (hasSubSections ?
             // If needed, remove sort + reverse to keep order of heaviest->lightest aggs regardless of color
             barplot_color_cycler.sortObjectsByColorPalette(d.bars).reverse() : [_.extend({}, d, { color : '#5da5da' })]
         );
+        const useGroupedBars = subBarLayout === 'grouped' && hasSubSections;
         let className = "chart-bar";
         const topLabel = showBarCount ? <span className="bar-top-label" key="text-label">{ d.count }</span> : null;
 
@@ -200,7 +216,13 @@ class Bar extends React.PureComponent {
                 style={this.barStyle()}
                 ref={this.barElemRef}>
                 { topLabel }
-                { _.map(barSections, this.renderBarSection) }
+                { useGroupedBars ? (
+                    <div className="bar-sections grouped" style={{ display: 'flex', alignItems: 'flex-end', height: '100%' }}>
+                        { _.map(barSections, this.renderBarSection) }
+                    </div>
+                ) : (
+                    _.map(barSections, this.renderBarSection)
+                ) }
             </div>
         );
     }
@@ -294,7 +316,7 @@ export class ViewContainer extends React.Component {
                 <Bar key={d.term || d.name || i} node={d}
                     showBarCount={true}
                     {..._.pick(this.props, 'selectedParentTerm', 'selectedTerm', 'hoverParentTerm', 'hoverTerm', 'styleOptions',
-                        'aggregateType', 'showType', 'canBeHighlighted')}
+                        'aggregateType', 'showType', 'canBeHighlighted', 'subBarLayout')}
                     onBarPartMouseEnter={onNodeMouseEnter} onBarPartMouseLeave={onNodeMouseLeave} onBarPartClick={onNodeClick} />
             </CSSTransition>
         );
@@ -376,27 +398,42 @@ export class PopoverViewContainer extends React.PureComponent {
     getCoordsCallback(node, containerPosition, boundsHeight){
         var bottomOffset = (this.props && this.props.styleOptions && this.props.styleOptions.offset && this.props.styleOptions.offset.bottom) || 0;
         var leftOffset = (this.props && this.props.styleOptions && this.props.styleOptions.offset && this.props.styleOptions.offset.left) || 0;
+        const { subBarLayout } = this.props;
 
         var barYPos = node.attr.height;
 
         if (node.parent){
-            var done = false;
-            barYPos = _.reduce(
-                node.parent.bars,//.slice(0).reverse(),
-                //_.sortBy(node.parent.bars, 'term').reverse(),
-                function(m, siblingNode){
-                    if (done) return m;
-                    if (siblingNode.term === node.term){
-                        done = true;
-                    }
-                    return m + siblingNode.attr.height;
-                },
-                0
-            );
+            if (subBarLayout === 'grouped') {
+                barYPos = node.attr.height;
+            } else {
+                var done = false;
+                barYPos = _.reduce(
+                    node.parent.bars,//.slice(0).reverse(),
+                    //_.sortBy(node.parent.bars, 'term').reverse(),
+                    function(m, siblingNode){
+                        if (done) return m;
+                        if (siblingNode.term === node.term){
+                            done = true;
+                        }
+                        return m + siblingNode.attr.height;
+                    },
+                    0
+                );
+            }
+        }
+
+        let xCenter = (node.parent || node).attr.x + ((node.parent || node).attr.width / 2);
+        if (node.parent && subBarLayout === 'grouped') {
+            const ordered = barplot_color_cycler.sortObjectsByColorPalette(node.parent.bars).reverse();
+            const idx = _.findIndex(ordered, (b) => b.term === node.term);
+            if (idx >= 0 && ordered.length > 0) {
+                const sectionWidth = (node.parent.attr.width || 0) / ordered.length;
+                xCenter = node.parent.attr.x + (sectionWidth * idx) + (sectionWidth / 2);
+            }
         }
 
         return {
-            'x' : containerPosition.left + leftOffset + (node.parent || node).attr.x + ((node.parent || node).attr.width / 2),
+            'x' : containerPosition.left + leftOffset + xCenter,
             'y' : containerPosition.top + boundsHeight - bottomOffset - barYPos,
         };
     }

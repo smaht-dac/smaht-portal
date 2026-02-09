@@ -83,6 +83,7 @@ export class UIControlsWrapper extends React.PureComponent {
         legend: false,
         chartHeight: 300,
         btnVariant: 'outline-secondary',
+        subBarLayout: 'stacked',
     };
 
     static getDerivedStateFromProps({ barplot_data_filtered }, { showState }) {
