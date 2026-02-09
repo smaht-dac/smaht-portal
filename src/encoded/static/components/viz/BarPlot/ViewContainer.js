@@ -87,10 +87,27 @@ class BarSection extends React.PureComponent {
             }
         }
 
+        const isGrouped = subBarLayout === 'grouped' && d.parent;
         const width = (subBarLayout === 'grouped' && sectionCount)
             ? (100 / sectionCount) + '%'
             : '100%';
         const marginLeft = (subBarLayout === 'grouped' && sectionIndex > 0) ? '1px' : null;
+        const label = isGrouped ? (
+            <span
+                className="bar-part-label"
+                style={{
+                    position: 'absolute',
+                    top: '-16px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    fontSize: '0.75rem',
+                    lineHeight: 1,
+                    color: '#2a2a2a',
+                    whiteSpace: 'nowrap'
+                }}>
+                {d.count}
+            </span>
+        ) : null;
 
         return (
             <div className={className} ref={this.barSectionElemRef}
@@ -98,6 +115,7 @@ class BarSection extends React.PureComponent {
                     height,
                     width,
                     marginLeft,
+                    position: isGrouped ? 'relative' : null,
                     'backgroundColor' : color
                     //width: '100%', //(this.props.isNew && d.pastWidth) || (d.parent || d).attr.width,
                 }}
@@ -105,7 +123,9 @@ class BarSection extends React.PureComponent {
                 data-count={d.count} data-color={color} data-target-height={d.attr.height}
                 key={'bar-part-' + (d.parent ? d.parent.term + '~' + d.term : d.term)}
                 onMouseEnter={this.mouseEnter} onMouseLeave={this.mouseLeave} onClick={this.click}
-            />
+            >
+                {label}
+            </div>
         );
     }
 }
@@ -201,7 +221,8 @@ class Bar extends React.PureComponent {
         );
         const useGroupedBars = subBarLayout === 'grouped' && hasSubSections;
         let className = "chart-bar";
-        const topLabel = showBarCount ? <span className="bar-top-label" key="text-label">{ d.count }</span> : null;
+        const showTopLabel = showBarCount && !useGroupedBars;
+        const topLabel = showTopLabel ? <span className="bar-top-label" key="text-label">{ d.count }</span> : null;
 
         if (!canBeHighlighted)  className += ' no-highlight';
         else                    className += ' no-highlight-color';
