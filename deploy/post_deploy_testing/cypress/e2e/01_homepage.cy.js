@@ -25,7 +25,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
-        expectNoResultsModalFromDRT: true, // should not have access to DRT items
+        expectLimitedReleaseTrackerAccess: true, // should not have access to all DRT items
     },
 
     [ROLE_TYPES.SMAHT_DBGAP]: {
@@ -43,7 +43,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
-        expectNoResultsModalFromDRT: false, // should have access to DRT items
+        expectLimitedReleaseTrackerAccess: false, // should have access to all DRT items
     },
 
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
@@ -61,7 +61,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
-        expectNoResultsModalFromDRT: false, // should have access to DRT items
+        expectLimitedReleaseTrackerAccess: false, // should have access to all DRT items
     },
 
     [ROLE_TYPES.PUBLIC_DBGAP]: {
@@ -78,7 +78,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
-        expectNoResultsModalFromDRT: true, // should not have access to DRT items
+        expectLimitedReleaseTrackerAccess: true, // should not have access to all DRT items
     },
 
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
@@ -95,7 +95,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
-        expectNoResultsModalFromDRT: false, // should have access to DRT items
+        expectLimitedReleaseTrackerAccess: false, // should have access to all DRT items
     },
 };
 
@@ -242,7 +242,7 @@ function stepDRTCountsCheck(caps) {
                 .match(/^(\d+)/)?.[1] ?? 0
         );
 
-        // Open the month drop down if not open already
+        // Open the month dropdown if needed
         cy.wrap($container)
             .invoke('attr', 'aria-expanded')
             .then((expanded) => {
@@ -257,59 +257,61 @@ function stepDRTCountsCheck(caps) {
             .find('.content .body .release-item.day-group')
             .should('have.length.at.least', 1)
             .then(($days) => {
-                let dayTotalSum = 0;
+                let monthTotal = 0;
 
-                // Loop through each day item
                 cy.wrap($days)
                     .each(($day) => {
                         cy.wrap($day)
-                            .find('.toggle-button.day')
-                            .then(($toggle) => {
-                                // Open the day drop down if not open already
-                                if ($day.attr('aria-expanded') !== 'true') {
-                                    cy.wrap($toggle).click();
+                            .invoke('attr', 'aria-expanded')
+                            .then((expanded) => {
+                                if (expanded !== 'true') {
+                                    cy.wrap($day)
+                                        .find('.toggle-button.day')
+                                        .click();
                                 }
                             });
 
-                        // Get the day count
-                        cy.wrap($day)
-                            .find('.day-group-header .title .count')
-                            .then(($dayCount) => {
-                                const dayCount = Number(
-                                    $dayCount
-                                        .text()
-                                        .trim()
-                                        .match(/^(\d+)/)?.[1] ?? 0
-                                );
-                                expect(dayCount).to.be.greaterThan(0);
-                                dayTotalSum += dayCount;
-                            });
+                        cy.wrap($day).then(() => {
+                            let dayCount = 0;
+                            let donorSum = 0;
 
-                        // Sum donor counts inside each day
-                        let donorSum = 0;
-                        cy.wrap($day)
-                            .find('.donor-group-header .title .count')
-                            .then(($counts) => {
-                                cy.wrap($counts)
-                                    .each(($count) => {
-                                        const count = Number(
-                                            $count
-                                                .text()
-                                                .trim()
-                                                .match(/^(\d+)/)?.[1] ?? 0
-                                        );
-                                        donorSum += count;
-                                    })
-                                    .then(() => {
-                                        expect(donorSum).to.be.greaterThan(0);
-                                        expect(donorSum).to.equal(dayTotalSum);
-                                    });
-                            });
+                            // Get day count
+                            cy.wrap($day)
+                                .find('.day-group-header .title .count')
+                                .then(($dayCount) => {
+                                    dayCount = Number(
+                                        $dayCount
+                                            .text()
+                                            .trim()
+                                            .match(/^(\d+)/)?.[1] ?? 0
+                                    );
+                                    expect(dayCount).to.be.greaterThan(0);
+                                });
+
+                            // Sum donor counts for the day
+                            cy.wrap($day)
+                                .find('.donor-group-header .title .count')
+                                .each(($count) => {
+                                    donorSum += Number(
+                                        $count
+                                            .text()
+                                            .trim()
+                                            .match(/^(\d+)/)?.[1] ?? 0
+                                    );
+                                })
+                                .then(() => {
+                                    expect(donorSum).to.be.greaterThan(0);
+                                    expect(donorSum).to.equal(dayCount);
+
+                                    // Only update month total after day is fully validated
+                                    monthTotal += dayCount;
+                                });
+                        });
                     })
                     .then(() => {
-                        // Check the dayTotalSum against the expectedCount
-                        expect(dayTotalSum).to.be.greaterThan(0);
-                        expect(dayTotalSum).to.equal(expectedCount);
+                        // Month total must match header count
+                        expect(monthTotal).to.be.greaterThan(0);
+                        expect(monthTotal).to.equal(expectedCount);
                     });
             });
     });
@@ -330,23 +332,24 @@ function stepDRTCountsCheck(caps) {
         });
 
         cy.wrap(pages).each(({ expectedCount }, index) => {
-            // Click the header link (in-app navigation)
             cy.get('.data-release-item-container')
                 .eq(index)
                 .find('.header-link')
                 .click();
 
-            // Assert browse page state
-            if (caps.expectNoResultsModalFromDRT) {
-                cy.get('#download-access-required-modal').should('be.visible');
+            if (caps.expectLimitedReleaseTrackerAccess) {
+                if (cy.searchPageTotalResultCount() === 0) {
+                    cy.get('#download-access-required-modal').should(
+                        'be.visible'
+                    );
+                }
+                cy.searchPageTotalResultCount().should('be.lte', expectedCount);
             } else {
                 cy.searchPageTotalResultCount().should('eq', expectedCount);
             }
 
-            // Go back to the release tracker
             cy.go('back');
 
-            // Ensure the page is ready for the next iteration
             cy.get('.data-release-item-container').should(
                 'have.length.at.least',
                 1
