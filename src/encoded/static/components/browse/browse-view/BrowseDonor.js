@@ -859,12 +859,13 @@ const RedirectBanner = ({ href }) => {
     return href ? (
         <div className="callout data-available">
             <span className="callout-text">
-                <i className="icon icon-users fas"></i> You are viewing limited
-                donor data.{' '}
+                <i className="icon icon-users fas"></i> You are currently
+                viewing limited donor information. If you have dbGaP- or
+                DUA-based access,{' '}
                 <a href={href?.replace('type=Donor', 'type=ProtectedDonor')}>
-                    Click here
+                    click here
                 </a>{' '}
-                to load complete donor data if you have dbGAP access.
+                to view full donor information.
             </span>
         </div>
     ) : null;

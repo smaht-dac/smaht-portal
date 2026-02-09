@@ -130,9 +130,10 @@ const ProtectedDonorRedirectBanner = ({ href }) => {
     return href ? (
         <div className="callout data-available">
             <span className="callout-text">
-                <i className="icon icon-users fas"></i> You are viewing limited
-                donor data. <a href={href}>Click here</a> to load complete donor
-                data if you have dbGAP access.
+                <i className="icon icon-users fas"></i> You are currently
+                viewing limited donor information. If you have dbGaP- or
+                DUA-based access, <a href={href}>click here</a> to view full
+                donor information.
             </span>
         </div>
     ) : null;

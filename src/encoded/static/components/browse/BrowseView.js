@@ -133,10 +133,11 @@ export const NoResultsBrowseModal = ({
                         Official Public Release - Coming Soon
                     </h4>
                     <span>
-                        Production data are only available to SMaHT consortium
-                        members at this time.
+                        Production {type === 'file' ? '' : 'donor'} data are
+                        available to the SMaHT Network members at this time.{' '}
                         <br />
-                        Check back for the public release of SMaHT data.
+                        Please check back for the official release of the SMaHT{' '}
+                        {type === 'file' ? '' : 'donor'} data.
                     </span>
                 </div>
             </Modal.Body>
