@@ -38,7 +38,7 @@
         "consortia": [
             "smaht"
         ],
-        "valid_protocol_ids": ["3Q","3R","1D","1F_Fixed"]
+        "valid_protocol_ids": ["3Q","3R","1D_Frozen","1F_Fixed"]
     },
     {
         "uuid": "0e6a892a-2740-42bb-9bf7-7c8d577d60fa",

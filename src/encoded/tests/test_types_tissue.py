@@ -57,10 +57,10 @@ def test_validate_external_id_on_edit(
     "patch_body,expected_status,index", [
         ({"donor": "TEST_DONOR_ALT1", "external_id": "ST001-1D", "uberon_id": "UBERON:0008952"}, 201, 1),
         ({"donor": "TEST_DONOR_FEMALE", "external_id": "ST001-1D", "uberon_id": "UBERON:0008952"}, 422, 2),
-        ({"donor": "TEST_DONOR_MALE", "external_id": "ST001-1D", "uberon_id": "UBERON:0008952"}, 201, 3),
+        ({"donor": "TEST_DONOR_MALE", "external_id": "ST001-1D", "uberon_id": "UBERON:0008952", "preservation_type": "Frozen"}, 201, 3),
         ({"donor": "TEST_DONOR_MALE", "external_id": "ST001-1D", "uberon_id": "UBERON:0000955"}, 422, 4),
         ({"donor": "TEST_DONOR_FEMALE", "external_id": "SL001-1D", "uberon_id": "UBERON:0008952"}, 422, 5),
-        ({"donor": "TEST_DONOR_MALE", "external_id": "ST001-1F", "uberon_id": "UBERON:0008952", "preservation_type": "FOO",}, 422, 6),
+        ({"donor": "TEST_DONOR_MALE", "external_id": "ST001-1F", "uberon_id": "UBERON:0008952", "preservation_type": "FOO"}, 422, 6),
         ({"donor": "TEST_DONOR_MALE", "external_id": "ST001-1F", "uberon_id": "UBERON:0008952", "preservation_type": "Fixed"}, 201, 7),
     ]
 )
