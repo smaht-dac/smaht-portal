@@ -127,7 +127,7 @@
                 "linkTo": "SampleSource"
             }
         },
-        "source_donor": {
+        "source_donors": {
             "title": "Donors",
             "description": "Donors used to generate the file",
             "type": "array",
