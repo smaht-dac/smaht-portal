@@ -998,7 +998,7 @@ body[data-path="/"]>#application>#layout {
 													display: flex;
 													justify-content: space-between;
 													flex: 1;
-													padding: 2px 8px;
+													padding: 4px 8px;
 													border-radius: 7px;
 													font-weight: 700;
 													font-size: 0.875rem;
@@ -1010,6 +1010,10 @@ body[data-path="/"]>#application>#layout {
 														align-items: center;
 														font-size: 0.6875rem;
 														color: #65759f;
+
+														&:hover {
+															color: #3C71F9;
+														}
 													}
 													
 													&:hover {
@@ -1021,9 +1025,18 @@ body[data-path="/"]>#application>#layout {
 											}
 											
 											.donor-list {
-												padding: 10px;
+												display: flex;
+												flex-direction: column;
+												gap: 4px;
+												padding: 8px 10px;
+												background-color: #F3F9FE;
+												
 												.release-item {
 													padding: 0px;
+
+													&[aria-expanded="true"] {
+														padding-bottom: 8px;
+													}
 												}
 											}
 											.donor-group-header {
@@ -1047,9 +1060,8 @@ body[data-path="/"]>#application>#layout {
 													justify-content: space-between;
 													font-weight: 500;
 													font-size: 0.875rem;
-													align-items: center;
 													width: max-content;
-													padding: 2px 8px;
+													padding: 4px 8px;
 													color: #485983;
 													border: 1px solid transparent;
 													border-radius: 7px;
@@ -1063,11 +1075,15 @@ body[data-path="/"]>#application>#layout {
 														align-items: center;
 														font-size: 0.6875rem;
 														color: #65759f;
+
+														&:hover {
+															color: #3C71F9;
+														}
 													}
 
 													&:hover {
 														cursor: pointer;
-														background-color: #E7F1FB;
+														background-color: #ddeaf7;
 														transition: background-color 100ms;
 														// border-radius: 7px 7px 0px 0px;
 														
@@ -1090,11 +1106,17 @@ body[data-path="/"]>#application>#layout {
 												}
 											}
 
+											.tissue-group-header .toggle-button {
+												display: flex;
+												gap: 6px;
+												align-items: center;
+											}
+
 											.tissue-list {
 												margin-top: 0px;
 												list-style-type: none;
-												background: #F4F9FF;
-												padding-top: 5px;
+												background: #FBFDFF;
+												padding: 5px;
 												padding-left: 0px;
 												margin-left: 20px;
 												border-radius: 0px 0px 7px 7px;

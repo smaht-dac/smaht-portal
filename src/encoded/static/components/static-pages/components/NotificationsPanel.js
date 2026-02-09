@@ -139,17 +139,17 @@ const AnnouncementCard = ({
  * @param {Array} items - The list of items (file groups) within the tissue group.
  * @returns {JSX.Element} The rendered TissueGroup component.
  */
-const TissueGroup = ({ count, tissue, query, value }) => {
+const TissueGroup = ({ count, tissue, value }) => {
     const [isToggled, toggle] = useToggle();
 
     return (
-        <li>
+        <li className="tissue-group-header" aria-expanded={isToggled}>
             <button className="toggle-button tissue" onClick={() => toggle()}>
                 <i
                     className={`icon icon-${isToggled ? 'minus' : 'plus'} fas`}
                 />
+                <span>{tissue}</span>
             </button>
-            <span>{tissue}</span>
             {isToggled ? (
                 <ul className="file-group-list">
                     <li>
@@ -177,7 +177,7 @@ const DonorGroup = (props) => {
     let donorTitle = donor;
 
     return (
-        <div className="release-item">
+        <div className="release-item" aria-expanded={isToggled}>
             <div
                 className={`donor-group-header ${isToggled ? 'expanded' : ''}`}>
                 <button
@@ -192,7 +192,11 @@ const DonorGroup = (props) => {
                 </button>
                 <div
                     className="title"
-                    onClick={() => {
+                    onClick={(e) => {
+                        // Prevent toggle when clicking on the link
+                        if (e.target.tagName === 'A' && e.target.href) {
+                            return;
+                        }
                         toggle();
                     }}>
                     {donorTitle}
@@ -245,13 +249,16 @@ const DayGroup = (props) => {
                             isToggled ? 'minus' : 'plus'
                         }`}></i>
                 </button>
-                <div className="title">
-                    <span
-                        onClick={() => {
-                            toggle();
-                        }}>
-                        {dayTitle}
-                    </span>
+                <div
+                    className="title"
+                    onClick={(e) => {
+                        // Prevent toggle when clicking on the link
+                        if (e.target.tagName === 'A' && e.target.href) {
+                            return;
+                        }
+                        toggle();
+                    }}>
+                    <span>{dayTitle}</span>
                     <a className="count" href={query}>
                         {count ?? 0} {count > 1 ? 'Files' : 'File'}
                         <i className="icon icon-arrow-right"></i>
