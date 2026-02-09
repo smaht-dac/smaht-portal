@@ -90,7 +90,6 @@
         "sequencing_center": "smaht",
         "annotated_filename": "SMHTHELA-X-X-F65-B102-test-SMAURV9YIJWF-X.fastq.gz",
         "dataset": "colo829t",
-        "access_status": "Open",
         "tags": [
             "test_release_tracker",
             "release_tracker_title-HELA",
