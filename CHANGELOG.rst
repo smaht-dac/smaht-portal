@@ -17,6 +17,14 @@ Change Log
 * Add bed files to access status function
 
 
+1.11.7
+======
+
+`PR 600: feature: add tissue validator for preservation type <https://github.com/smaht-dac/smaht-portal/pull/600>`_
+
+* Add a new validator to Tissue that checks if the external_id tissue code matches the expected preservation type based on the valid_protocol_ids of the linked OntologyTerms and the preservation_type property
+
+
 1.11.6
 ======
 
