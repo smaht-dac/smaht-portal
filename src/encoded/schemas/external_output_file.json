@@ -99,6 +99,28 @@
         "submitted_id": {
             "pattern": "^[A-Z0-9]{3,}_EXTERNAL-OUTPUT-FILE_[A-Z0-9-_.]{4,}$"
         },
+        "data_category": {
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Germline Variant Calls",
+                    "Somatic Variant Calls"
+                ]
+            }
+        },
+        "data_type": {
+            "items": {
+                "type": "string",
+                "enum": [
+                    "CNV",
+                    "Indel",
+                    "MEI",
+                    "SNV",
+                    "SV",
+                    "Fingerprint"
+                ]
+            }
+        },
         "data_description": {
             "title": "Data Description",
             "description": "More detailed description of file",
