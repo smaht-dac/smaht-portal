@@ -866,7 +866,7 @@ def get_sequencing_and_assay_codes(
     """
     sequencing_codes = get_sequencing_codes(sequencers)
     assay_codes = get_assay_codes(assays)
-    data_category_exceptions = ["Genome Assembly", "Reference Conversion", "Genome Annotation"]
+    data_category_exceptions = [file_constants.DATA_CATEGORY_GENOME_ASSEMBLY, file_constants.DATA_CATEGORY_GENOME_CONVERSION, file_constants.DATA_CATEGORY_GENOME_ANNOTATION]
     if len(sequencing_codes) == 1 and len(assay_codes) == 1:
         return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
     elif set(file_utils.get_data_category(file)) & set(data_category_exceptions):
