@@ -7,6 +7,11 @@ smaht-portal
 Change Log
 ----------
 
+1.11.6
+======
+
+* Remove loremipsum and rebuild poetry lockfile to resolve failing pep517 build
+
 
 1.11.5
 ======
