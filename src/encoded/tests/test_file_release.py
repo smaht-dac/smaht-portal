@@ -10,6 +10,7 @@ from ..item_utils import (
     file as file_utils,
     item as item_utils,
     supplementary_file as supp_file_utils,
+    external_output_file as eof_utils,
 )
 from ..item_utils.utils import RequestHandler
 
@@ -37,6 +38,10 @@ def patch_get_request_handler_embedded(testapp: TestApp) -> mock.MagicMock:
 def patch_file_release_properties():
     """Patch FileRelease properties that return lists."""
     with (
+        mock.patch(
+            "encoded.commands.release_file.FileRelease.software",
+            return_value=None,
+        ),
         mock.patch(
             "encoded.commands.release_file.FileRelease.get_output_meta_workflow_run",
             return_value=None,
@@ -136,7 +141,11 @@ def test_file_release(es_testapp: TestApp, workbook: None) -> None:
             file_release.prepare(dataset)
             if not supp_file_utils.is_reference_conversion(
                 file
-            ) and not supp_file_utils.is_genome_assembly(file):
+            ) and not supp_file_utils.is_genome_assembly(
+                file
+            ) and not eof_utils.is_external_output_file(
+                file
+            ):
                 assert file_release.file_sets
             assert file_release.libraries
             assert file_release.assays
