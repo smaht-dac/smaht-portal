@@ -7,7 +7,7 @@ smaht-portal
 Change Log
 ----------
 
-1.11.4
+1.11.7
 ======
 
 `PR 598: feat: update modal and banner <https://github.com/smaht-dac/smaht-portal/pull/598>`_
@@ -16,10 +16,32 @@ Change Log
 * Update the Donor View redirect banner
 
 
+1.11.6
+======
+
+* Remove loremipsum and rebuild poetry lockfile to resolve failing pep517 build
+
+
+1.11.5
+======
+
+`PR 566: chore: update npm packages with vulnerabilities <https://github.com/smaht-dac/smaht-portal/pull/566>`_
+
+* Run npm audit fix and update vulnerable dependencies
+
+
+1.11.4
+======
+
+`PR 597: Fix: sticky headers in browse/search page's results table <https://github.com/smaht-dac/smaht-portal/pull/597>`_
+
+* Fix CSS to ensure that sticky headers in the results table of browse and search pages function correctly without layout issues.
+
+
 1.11.3
 ======
 
-`PR 379: SN Submission spreadsheet update <https://github.com/smaht-dac/smaht-portal/pull/379`_
+`PR 379: SN Submission spreadsheet update <https://github.com/smaht-dac/smaht-portal/pull/379>`_
 
 * Update `commands/write_submission_spreadsheets.py` to include capability to add "pseudo-properties" such as `expected_file_counts` in FileSet that are used for validation in submitr
 * Update the `--eqm` flag to use config from GenericQcConfig item on portal and update error handling
