@@ -7,6 +7,19 @@ smaht-portal
 Change Log
 ----------
 
+1.11.6
+======
+
+* Remove loremipsum and rebuild poetry lockfile to resolve failing pep517 build
+
+
+1.11.5
+======
+
+`PR 566: chore: update npm packages with vulnerabilities <https://github.com/smaht-dac/smaht-portal/pull/566>`_
+
+* Run npm audit fix and update vulnerable dependencies
+
 
 1.11.4
 ======
