@@ -1,136 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
-import { RightArrowIcon } from '../../util/icon';
 import { useToggle } from '../../util/hooks';
 
-// Default announcement data
-const announcements = [
-    {
-        type: 'warning',
-        title: 'Data Retraction',
-        date: '2025-12-11',
-        body: (
-            <span>
-                Illumina bulk WGS data were retracted for production donor
-                samples; SMHT001-3A, SMHT005-3AF, SMHT007-3A, and SMHT022-3A,
-                due to data duplication.
-            </span>
-        ),
-        footer: (
-            <span>
-                <a href="/retracted-files">
-                    See Full List
-                    <RightArrowIcon />
-                </a>
-            </span>
-        ),
-    },
-    {
-        type: 'info',
-        title: 'Attention: BAM change',
-        date: '2025-07-23',
-        body: (
-            <span>
-                As of July 8, 2025, DAC will release BAM files without the BI
-                and BD tags, which were originally added after base quality
-                recalibration (BQSR).
-            </span>
-        ),
-    },
-    {
-        type: 'warning',
-        title: 'Data Retraction',
-        date: '2025-03-10',
-        body: (
-            <span>
-                One WGS ONT PromethION 24 BAM from COLO829-BLT50,{' '}
-                <a href="/output-files/beca52fb-ad5b-4eaa-832a-2929c7bf7577/">
-                    SMAFIPHR8QOG
-                </a>
-                , has been retracted due to sample swap.
-            </span>
-        ),
-        footer: (
-            <span>
-                <a href="/retracted-files">
-                    See Full List
-                    <RightArrowIcon />
-                </a>
-            </span>
-        ),
-    },
-    {
-        type: 'info',
-        title: 'New Features',
-        date: '2025-01-25',
-        body: (
-            <span>
-                Explore the <a href="/qc-metrics">Interactive QC Assessment</a>{' '}
-                page for data on the portal.
-            </span>
-        ),
-    },
-    {
-        type: 'warning',
-        title: 'Attention Users',
-        body: 'The V1 Benchmarking data portal will be open to SMaHT consortium members only at this time.',
-    },
-    {
-        type: 'info',
-        title: 'Data-related news',
-        body: (
-            <>
-                <ul>
-                    <li>
-                        The raw sequence files, i.e. unaligned BAM and FASTQ,
-                        and the data from the benchmarking tissue samples that
-                        were not distributed by TPC will be available upon
-                        request at this time (through Globus).
-                    </li>
-                    <li>
-                        The SMaHT Data Portal, V1 Benchmarking release, now
-                        makes benchmarking data available for download for
-                        authenticated consortium members. Users can continue to
-                        obtain the access keys for metadata submission.
-                    </li>
-                </ul>
-            </>
-        ),
-    },
-];
-
 /**
- * AnnouncementCard component displays an individual announcement.
- * @param {string} type - The type of announcement (e.g., 'info', 'warning').
- * @param {string} title - The title of the announcement.
- * @param {JSX.Element} body - The body content of the announcement.
- * @param {JSX.Element|null} footer - Optional footer content for the announcement.
- * @param {JSX.Element|null} date - Optional date string for the announcement.
- * @returns {JSX.Element} The rendered AnnouncementCard component.
+ * Replaces the `release_tracker_title` parameter in the query with the donor and tissue titles
+ * @param {string} query - The query string to be changed
+ * @param {string[]} donors - The list of donor titles to replace the release_tracker_title parameter with
+ * @param {string[]} tissues - The list of tissue titles to replace the release_tracker_title parameter with
+ * @returns {string} The updated query string with the donor and tissue titles
  */
-const AnnouncementCard = ({
-    type = 'info',
-    title = '',
-    body = '',
-    footer = null,
-    date = null,
-}) => {
-    return (
-        <div className={`announcement-container ${type}`}>
-            <h5 className="header">
-                {title}
-                {date ? (
-                    <LocalizedTime
-                        timestamp={new Date(date)}
-                        formatType="date-sm-compact"
-                    />
-                ) : null}
-            </h5>
-            <div className="body">{body}</div>
-            {footer ? <div className="footer">{footer}</div> : null}
-        </div>
-    );
+const replaceURLParamsWithDonors = (query, donorList = [], tissueList = []) => {
+    // If donorList and tissueList are empty, return the original query
+    if (donorList.length === 0 && tissueList.length === 0) {
+        return query;
+    }
+
+    // Save params from original query
+    const [urlPath, urlQuery] = query.split('?');
+    const params = new URLSearchParams(urlQuery);
+
+    // Remove release_tracker_title
+    params.delete('release_tracker_title');
+
+    // Add donor and tissue titles to params
+    donorList.forEach((donor) => {
+        params.append('donors.display_title', donor);
+    });
+    tissueList.forEach((tissue) => {
+        params.append('sample_summary.tissues', tissue);
+    });
+
+    // Decode values in params (encoded by URLSearchParams)
+    const decodedParams = [];
+    for (const [key, value] of params.entries()) {
+        decodedParams.push(`${key}=${decodeURIComponent(value)}`);
+    }
+
+    return `${urlPath}?${decodedParams.join('&')}`;
 };
 
 /**
@@ -162,6 +68,7 @@ const TissueGroup = ({ count, tissue, value }) => {
         </li>
     );
 };
+
 /**
  * DonorGroup component displays a donor group with a toggle to show/hide its tissue groups.
  * @param {number} count - The total count of files in the donor group.
@@ -171,10 +78,17 @@ const TissueGroup = ({ count, tissue, value }) => {
  * @returns {JSX.Element} The rendered DonorGroup component.
  */
 const DonorGroup = (props) => {
-    const { count, items, donor, query, donorGroupIndex } = props;
-    const [isToggled, toggle] = useToggle(donorGroupIndex === 0);
+    const { count, items, donor, query, donorGroupIndex, releaseItemIndex } =
+        props;
+    const [isToggled, toggle] = useToggle(
+        donorGroupIndex === 0 && releaseItemIndex === 0
+    );
 
-    let donorTitle = donor;
+    // Update query with donor and extacted tissues
+    const tissueList = Object.keys(items).map((tissue) =>
+        tissue.split('-')[1].trim()
+    );
+    const updatedQuery = replaceURLParamsWithDonors(query, [donor], tissueList);
 
     return (
         <div className="release-item" aria-expanded={isToggled}>
@@ -199,8 +113,8 @@ const DonorGroup = (props) => {
                         }
                         toggle();
                     }}>
-                    {donorTitle}
-                    <a className="count" href={query}>
+                    {donor}
+                    <a className="count" href={updatedQuery}>
                         {count ?? 0} {count > 1 ? 'Files' : 'File'}
                         <i className="icon icon-arrow-right"></i>
                     </a>
@@ -212,7 +126,7 @@ const DonorGroup = (props) => {
                         const { count, query, value } = items[tissueGroup];
                         return (
                             <TissueGroup
-                                key={i}
+                                key={tissueGroup}
                                 count={count}
                                 tissue={tissueGroup}
                                 query={query}
@@ -227,14 +141,38 @@ const DonorGroup = (props) => {
 };
 
 const DayGroup = (props) => {
-    const { count, date, query, items: donorGroups, dayGroupIndex } = props;
-    const [isToggled, toggle] = useToggle(dayGroupIndex === 0);
+    const {
+        count,
+        date,
+        query,
+        items: donorGroups,
+        dayGroupIndex,
+        releaseItemIndex,
+    } = props;
+    const [isToggled, toggle] = useToggle(
+        dayGroupIndex === 0 && releaseItemIndex === 0
+    );
 
     const dayTitle = new Date(date).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
     });
+
+    // Get donor title from first donor group
+    const donorList = Object.keys(donorGroups);
+    const tissueList = Object.keys(donorGroups).flatMap((donor) => {
+        return Object.keys(donorGroups[donor].items).map((tissue) =>
+            tissue.split('-')[1].trim()
+        );
+    });
+
+    // Update query with donor and extacted tissues
+    const updatedQuery = replaceURLParamsWithDonors(
+        query,
+        donorList,
+        tissueList
+    );
 
     return (
         <div className="release-item day-group" aria-expanded={isToggled}>
@@ -259,7 +197,7 @@ const DayGroup = (props) => {
                         toggle();
                     }}>
                     <span>{dayTitle}</span>
-                    <a className="count" href={query}>
+                    <a className="count" href={updatedQuery}>
                         {count ?? 0} {count > 1 ? 'Files' : 'File'}
                         <i className="icon icon-arrow-right"></i>
                     </a>
@@ -271,12 +209,13 @@ const DayGroup = (props) => {
                         const { count, items, query } = donorGroups[donorGroup];
                         return (
                             <DonorGroup
-                                key={i}
+                                key={donorGroup}
                                 count={count}
                                 donor={donorGroup}
                                 items={items}
                                 query={query}
                                 donorGroupIndex={i}
+                                releaseItemIndex={releaseItemIndex}
                             />
                         );
                     })}
@@ -303,6 +242,37 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
     const month = date.toLocaleString('default', { month: 'long' });
     const year = date.toLocaleString('default', { year: 'numeric' });
 
+    // Get donors and tissues from the day groups
+    let donorList = new Set();
+    let tissueList = new Set();
+    Object.keys(dayGroups).forEach((dayGroup) => {
+        const donors = Object.keys(dayGroups[dayGroup].items);
+
+        // Add donors to donorList
+        for (const donor of donors) donorList.add(donor);
+
+        // Extact all tissue titles from the `dayGroups`
+        const tissues = Object.keys(dayGroups[dayGroup].items).flatMap(
+            (donor) => {
+                return Object.keys(dayGroups[dayGroup].items[donor].items).map(
+                    (tissue) => {
+                        return tissue.split('-')[1].trim();
+                    }
+                );
+            }
+        );
+
+        // Add tissues to tissueList
+        for (const tissue of tissues) tissueList.add(tissue);
+    });
+
+    // Update query with donor and extacted tissues
+    const updatedQuery = replaceURLParamsWithDonors(
+        query,
+        Array.from(donorList),
+        Array.from(tissueList)
+    );
+
     return (
         <div
             className={`data-release-item-container ${
@@ -321,7 +291,9 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
                                 isToggled ? 'minus' : 'plus'
                             }`}></i>
                     </button>
-                    <a className="header-link" href={count > 0 ? query : null}>
+                    <a
+                        className="header-link"
+                        href={count > 0 ? updatedQuery : null}>
                         <span>
                             {releaseItemIndex === 0 && 'Latest: '} {month}{' '}
                             {year}
@@ -343,12 +315,13 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
                             const { items, count, query } = dayGroups[day];
                             return (
                                 <DayGroup
+                                    key={day}
                                     date={day}
                                     items={items}
                                     count={count}
                                     query={query}
-                                    key={i}
                                     dayGroupIndex={i}
+                                    releaseItemIndex={releaseItemIndex}
                                 />
                             );
                         })}
@@ -431,7 +404,8 @@ const formatDayReleaseData = (data) => {
  * @param {Array} data - The raw release tracker data from the API.
  * @returns {Array} The formatted release tracker data.
  */
-const formatReleaseData = (data) => {
+const formatReleaseData = (data = []) => {
+    if (data.length === 0) return [];
     return data.map((month) => {
         const { count, value, items, query } = month;
         // Format items in the month by grouping and sorting them by day
@@ -472,125 +446,68 @@ const formatReleaseData = (data) => {
     });
 };
 
-/**
- * NotificationsPanel component displays a panel containg the data release
- * tracker, the announcements section, and other relevant links/information.
- * @returns {JSX.Element} The rendered NotificationsPanel component.
- */
-export const NotificationsPanel = () => {
+// Alert for empty release tracker
+const EmptyReleaseTrackerAlert = () => {
+    return (
+        <div className="announcement-container public-release d-flex flex-column align-items-center border-0">
+            <i className="icon icon-folder-open fas"></i>
+            <h5 className="header">PUBLIC RELEASE: COMING SOON!</h5>
+            <div className="body">
+                Production data are only available to SMaHT consortium members
+                at this time. Check back for the public release of SMaHT data.
+            </div>
+        </div>
+    );
+};
+
+export const DataReleaseTracker = () => {
     const [data, setData] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+    console.log('data', data);
 
     useEffect(() => {
-        setIsLoading(true);
+        let isCancelled = false;
+
         ajax.load(
-            '/recent_files_summary?format=json&nmonths=3',
+            '/recent_files_summary?format=json&nmonths=6',
             (resp) => {
-                console.log('resp', resp);
-                setData(resp?.items ? formatReleaseData(resp?.items) : []);
-                setIsLoading(false);
+                if (isCancelled) return;
+                setData(formatReleaseData(resp?.items));
             },
             'GET',
             (err) => {
+                if (isCancelled) return;
                 if (err.notification !== 'No results found') {
                     console.log('ERROR NotificationsPanel resp', err);
                 }
                 setData([]);
-                setIsLoading(false);
             }
         );
+        return () => {
+            isCancelled = true;
+        };
     }, []);
 
     return (
-        <div className="notifications-panel container">
-            <div className="data-release-tracker section">
-                <h3 className="section-header">New Data Releases</h3>
-                <div className="section-body-container">
-                    <div className="section-body">
-                        <div className="section-body-items-container">
-                            {isLoading ? (
-                                <i className="icon fas icon-spinner icon-spin"></i>
-                            ) : data === null || data.length === 0 ? (
-                                <div className="announcement-container public-release d-flex flex-column align-items-center border-0">
-                                    <i className="icon icon-folder-open fas"></i>
-                                    <h5 className="header">
-                                        PUBLIC RELEASE: COMING SOON!
-                                    </h5>
-                                    <div className="body">
-                                        Production data are only available to
-                                        SMaHT consortium members at this time.
-                                        Check back for the public release of
-                                        SMaHT data.
-                                    </div>
-                                </div>
-                            ) : (
-                                data.map((releaseItem, i) => {
-                                    return (
-                                        <DataReleaseItem
-                                            data={releaseItem}
-                                            key={i}
-                                            releaseItemIndex={i}
-                                        />
-                                    );
-                                })
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div className="announcements section">
-                <h3 className="section-header">Announcements</h3>
-                <div className="section-body-container">
-                    <div className="section-body">
-                        {announcements.map((announcement, i) => {
-                            return (
-                                <AnnouncementCard
-                                    key={i}
-                                    title={announcement.title}
-                                    body={announcement.body}
-                                    footer={announcement.footer}
-                                    type={announcement.type}
-                                    date={announcement.date}
-                                />
-                            );
-                        })}
-                    </div>
-                </div>
-            </div>
-            <div className="about-consortium section">
-                <h3 className="section-header">Data Overview</h3>
+        <div className="data-release-tracker section">
+            <h3 className="section-header">New Data Releases</h3>
+            <div className="section-body-container">
                 <div className="section-body">
-                    <div className="about-consortium-links">
-                        <div className="link-container smaht-data">
-                            <a
-                                href="/about/consortium/data"
-                                role="button"
-                                className="btn">
-                                <img src="/static/img/homepage-smaht-data-screenshot.png"></img>
-                                <span>Sequencing Methods in SMaHT</span>
-                            </a>
-                        </div>
-                        <div className="link-container nih">
-                            <a
-                                href="https://commonfund.nih.gov/smaht"
-                                target="_blank"
-                                rel="noreferrer noopener"
-                                role="button"
-                                className="btn">
-                                <img src="/static/img/NIH-Symbol.png"></img>
-                                <span>& SMaHT</span>
-                                <i className="icon-external-link-alt icon icon-xs fas ml-2" />
-                            </a>
-                            <a
-                                href="https://smaht.org/"
-                                target="_blank"
-                                rel="noreferrer noopener"
-                                role="button"
-                                className="btn">
-                                <span>SMaHT OC</span>
-                                <i className="icon-external-link-alt icon icon-xs fas ml-2" />
-                            </a>
-                        </div>
+                    <div className="section-body-items-container">
+                        {data === null ? (
+                            <i className="icon fas icon-spinner icon-spin"></i>
+                        ) : data.length === 0 ? (
+                            <EmptyReleaseTrackerAlert />
+                        ) : (
+                            data.map((releaseItem, i) => {
+                                return (
+                                    <DataReleaseItem
+                                        data={releaseItem}
+                                        key={releaseItem?.value ?? i}
+                                        releaseItemIndex={i}
+                                    />
+                                );
+                            })
+                        )}
                     </div>
                 </div>
             </div>
