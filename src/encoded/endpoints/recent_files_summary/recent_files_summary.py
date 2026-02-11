@@ -34,13 +34,15 @@ from snovault.search.search_utils import make_search_subreq as snovault_make_sea
 # than it originally was due to the introduction of the (calculated) property "release_tracker_title"; previous to
 # that we used special code ("painless") in the ElasticSearch aggregation query to choose from among three possible
 # properties (AGGREGATION_FIELD_CELL_MIXTURE, AGGREGATION_FIELD_DONOR, AGGREGATION_FIELD_DSA_DONOR); but now the
-# query is much mroe straightforward. So some this code can/should eventually be elided; though for the time being
+# query is much more straightforward. So some this code can/should eventually be elided; though for the time being
 # it is still here and even accessible using the "legacy=true" URL query argument to the API.
 
-QUERY_FILE_TYPES = ["OutputFile", "SubmittedFile"]
-QUERY_FILE_STATUSES = ["released"]
+# QUERY_FILE_TYPES = ["OutputFile", "SubmittedFile"]
+QUERY_FILE_TYPES = ["File"]
+QUERY_FILE_STATUSES = ["open", "open-early", "open-network", "protected", "protected-early", "protected-network", "released"]
 QUERY_FILE_CATEGORIES = ["!Quality Control"]
 QUERY_FILE_TAGS = ["!exclude_from_release_tracker"]
+QUERY_FILE_DATASET = ["!No value"]
 QUERY_RECENT_MONTHS = 3
 QUERY_INCLUDE_CURRENT_MONTH = True
 BASE_SEARCH_QUERY = "/browse/"
@@ -81,7 +83,7 @@ def recent_files_summary(request: PyramidRequest,
     - release-date: file_status_tracking.release_dates.initial_release
     - cell-line: file_sets.libraries.analytes.samples.sample_sources.cell_line.code
     - donor: donors.display_title
-    - file-dsecription: release_tracker_description
+    - file-description: release_tracker_description
 
     Note that release_tracker_description is a newer (2024-12)
     calculated property - see PR-298 (branch: sn_file_release_tracker).
@@ -133,12 +135,13 @@ def recent_files_summary(request: PyramidRequest,
 
     def create_base_query_arguments(request: PyramidRequest) -> dict:
 
-        global QUERY_FILE_CATEGORIES, QUERY_FILE_STATUSES, QUERY_FILE_TYPES, QUERY_FILE_TAGS
+        global QUERY_FILE_CATEGORIES, QUERY_FILE_DATASET, QUERY_FILE_STATUSES, QUERY_FILE_TYPES, QUERY_FILE_TAGS
         nonlocal exclude_submitted_file
 
         types = request_args(request, "type", QUERY_FILE_TYPES)
         statuses = request_args(request, "status", QUERY_FILE_STATUSES)
         categories = request_args(request, "category", QUERY_FILE_CATEGORIES)
+        dataset = request_args(request, "dataset", QUERY_FILE_DATASET)
         tags = request_args(request, "tag", QUERY_FILE_TAGS)
 
         if exclude_submitted_file and ("SubmittedFile" in types):
@@ -149,6 +152,7 @@ def recent_files_summary(request: PyramidRequest,
             "status": statuses if statuses else None,
             "data_category": categories if categories else None,
             'sample_summary.studies': ['Production'],
+            'dataset': dataset if dataset else None,
             "tags": tags if tags else None
         }
 
@@ -209,6 +213,16 @@ def recent_files_summary(request: PyramidRequest,
                         "calendar_interval": "month",
                         "format": "yyyy-MM",
                         "missing": "1970-01",
+                        "order": {"_key": "desc"}
+                    }
+                }
+            elif field == date_property_name + "_date": 
+                return {
+                    "date_histogram": {
+                        "field": f"embedded.{field}",
+                        "calendar_interval": "day",
+                        "format": "yyyy-MM-dd",
+                        "missing": "1970-01-01",
                         "order": {"_key": "desc"}
                     }
                 }
@@ -361,6 +375,13 @@ def recent_files_summary(request: PyramidRequest,
                         if from_date and thru_date:
                             base_query_arguments = {**base_query_arguments,
                                                     f"{name}.from": from_date, f"{name}.to": thru_date}
+                    elif name == date_property_name + "_date":  
+                        # For day level, value is already in yyyy-MM-dd format
+                        # Set both from and to to the same day
+                        base_query_arguments = {**base_query_arguments,
+                                                f"{name}.from": value, 
+                                                f"{name}.to": value}
+                
                     else:
                         base_query_arguments = {**base_query_arguments, name: value}
                 query_arguments = deepcopy(base_query_arguments)
@@ -383,7 +404,8 @@ def recent_files_summary(request: PyramidRequest,
 
     aggregate_by_cell_line_property_name = "aggregate_by_cell_line"
     aggregate_by_cell_line = [
-        date_property_name,
+        date_property_name, # month level
+        date_property_name + "_date",  # day level
         AGGREGATION_FIELD_CELL_MIXTURE if legacy else AGGREGATION_FIELD_RELEASE_TRACKER_FILE_TITLE,
         AGGREGATION_FIELD_FILE_DESCRIPTOR
     ]

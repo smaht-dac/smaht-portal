@@ -10,7 +10,7 @@ import { UserRegistrationModal } from './../../navigation/components/UserRegistr
 import { auth0Options as navAuth0Options } from './../../navigation/components/AccountNav';
 import SMaHTTimeline from '../../viz/SMaHTTimeline';
 import Card from 'react-bootstrap/esm/Card';
-import { NotificationsPanel } from '../components/NotificationsPanel';
+import { NotificationsPanel } from './NotificationsPanel';
 // import { Fade } from 'react-bootstrap';
 
 import { HomepageFigure } from '../../viz/HomepageFigure';

@@ -3,7 +3,8 @@ import { ROLE_TYPES } from '../support';
 import { gotoUrl } from '../support/utils/basicUtils';
 
 const HEADER1_TEXT = 'Somatic Mosaicism across Human Tissues Data Portal';
-const HEADER2_TEXT = 'A platform to search, visualize, and download somatic mosaic variants in normal tissues.';
+const HEADER2_TEXT =
+    'A platform to search, visualize, and download somatic mosaic variants in normal tissues.';
 const TIER_BUTTON_TEXTS = { 0: 'Benchmarking', 1: 'Production' };
 
 const ROLE_MATRIX = {
@@ -15,9 +16,8 @@ const ROLE_MATRIX = {
         runHeaderChecks: true,
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
-        runDRTExists: false, // disable until new DRT implementation is deployed
-        runDRTBamCramWarningExists: true,
-        runDRTCountsCheck: false, // disable until new DRT implementation is deployed
+        runDRTExists: true,
+        runDRTCountsCheck: true,
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: false,
 
@@ -25,6 +25,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
+        expectLimitedReleaseTrackerAccess: true, // should not have access to all DRT items
     },
 
     [ROLE_TYPES.SMAHT_DBGAP]: {
@@ -34,15 +35,15 @@ const ROLE_MATRIX = {
         runHeaderChecks: true,
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
-        runDRTExists: false, // disable until new DRT implementation is deployed
-        runDRTBamCramWarningExists: true,
-        runDRTCountsCheck: false, // disable until new DRT implementation is deployed
+        runDRTExists: true,
+        runDRTCountsCheck: true,
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: true,
 
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
+        expectLimitedReleaseTrackerAccess: false, // should have access to all DRT items
     },
 
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
@@ -52,15 +53,15 @@ const ROLE_MATRIX = {
         runHeaderChecks: true,
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
-        runDRTExists: false, // disable until new DRT implementation is deployed
-        runDRTBamCramWarningExists: true,
-        runDRTCountsCheck: false, // disable until new DRT implementation is deployed
+        runDRTExists: true,
+        runDRTCountsCheck: true,
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: true,
 
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
+        expectLimitedReleaseTrackerAccess: false, // should have access to all DRT items
     },
 
     [ROLE_TYPES.PUBLIC_DBGAP]: {
@@ -69,15 +70,15 @@ const ROLE_MATRIX = {
         runHeaderChecks: true,
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
-        runDRTExists: false, // disable until new DRT implementation is deployed
-        runDRTBamCramWarningExists: true,
-        runDRTCountsCheck: false, // disable until new DRT implementation is deployed
+        runDRTExists: true,
+        runDRTCountsCheck: true,
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: true,
 
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
+        expectLimitedReleaseTrackerAccess: true, // should not have access to all DRT items
     },
 
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
@@ -86,15 +87,15 @@ const ROLE_MATRIX = {
         runHeaderChecks: true,
         runTimelineAccordionChecks: true,
         runTierButtonsChecks: true,
-        runDRTExists: false, // disable until new DRT implementation is deployed
-        runDRTBamCramWarningExists: true,
-        runDRTCountsCheck: false, // disable until new DRT implementation is deployed
+        runDRTExists: true,
+        runDRTCountsCheck: true,
         runAnnouncementsChecks: true,
         runNavbarDropdownChecks: true,
 
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
+        expectLimitedReleaseTrackerAccess: false, // should have access to all DRT items
     },
 };
 
@@ -120,8 +121,9 @@ function logoutIfNeeded(roleKey) {
 function stepHeaderChecks(caps) {
     if (!caps.runHeaderChecks) return;
 
-    cy.get('.homepage-wrapper > .homepage-contents h1')
-        .contains(caps.expectedHeaderH1);
+    cy.get('.homepage-wrapper > .homepage-contents h1').contains(
+        caps.expectedHeaderH1
+    );
     cy.get('.homepage-wrapper > .homepage-contents h2')
         .contains(caps.expectedHeaderH2)
         .end();
@@ -132,40 +134,48 @@ function stepTimelineAccordionChecks(caps) {
     if (!caps.runTimelineAccordionChecks) return;
 
     // Re-query strategy: never keep long-lived jQuery subjects across clicks
-    cy.get('#timeline .timeline-item .accordion .card-header-button').each(($btn, index) => {
-        // Alias the card before clicking so we can re-query inside it later
-        cy.wrap($btn).closest('.card').as('card');
+    cy.get('#timeline .timeline-item .accordion .card-header-button').each(
+        ($btn, index) => {
+            // Alias the card before clicking so we can re-query inside it later
+            cy.wrap($btn).closest('.card').as('card');
 
-        // Scroll + click
-        cy.wrap($btn).scrollIntoView().click({ force: true }).end();
+            // Scroll + click
+            cy.wrap($btn).scrollIntoView().click({ force: true }).end();
 
-        // Re-query collapse AFTER the click (avoid using stale $collapse)
-        cy.get('.card').eq(index).find('.accordion-collapse')
-            .should(($el) => {
-                // If it just opened, it must have 'show'; if it just closed, it must NOT.
-                const btnExpanded =  Cypress.$($btn).find('i.icon').hasClass('icon-minus');
-                if (btnExpanded === true) {
-                    expect($el).to.have.class('show');
-                } else {
-                    expect($el).not.to.have.class('show');
-                }
-            });
+            // Re-query collapse AFTER the click (avoid using stale $collapse)
+            cy.get('.card')
+                .eq(index)
+                .find('.accordion-collapse')
+                .should(($el) => {
+                    // If it just opened, it must have 'show'; if it just closed, it must NOT.
+                    const btnExpanded = Cypress.$($btn)
+                        .find('i.icon')
+                        .hasClass('icon-minus');
+                    if (btnExpanded === true) {
+                        expect($el).to.have.class('show');
+                    } else {
+                        expect($el).not.to.have.class('show');
+                    }
+                });
 
-        // Optional: toggle back to ensure both states work
-        cy.wrap($btn).click({ force: true });
-        cy.get('.card').eq(index).find('.accordion-collapse').should(($el) => {
-            const btnExpanded = Cypress.$($btn).find('i.icon').hasClass('icon-minus');
-            if (btnExpanded === 'true') {
-                expect($el).to.have.class('show');
-            } else {
-                expect($el).not.to.have.class('show');
-            }
-        });
-    });
+            // Optional: toggle back to ensure both states work
+            cy.wrap($btn).click({ force: true });
+            cy.get('.card')
+                .eq(index)
+                .find('.accordion-collapse')
+                .should(($el) => {
+                    const btnExpanded = Cypress.$($btn)
+                        .find('i.icon')
+                        .hasClass('icon-minus');
+                    if (btnExpanded === 'true') {
+                        expect($el).to.have.class('show');
+                    } else {
+                        expect($el).not.to.have.class('show');
+                    }
+                });
+        }
+    );
 }
-
-
-
 
 // Tier buttons (Benchmarking / Production) + visual class assertion
 function stepTierButtonsChecks(caps) {
@@ -187,14 +197,18 @@ function stepTierButtonsChecks(caps) {
                         cy.get('#timeline .timeline-item.tier-active')
                             .invoke('text')
                             .then((txt) => {
-                                expect(txt).to.contain(caps.expectedTierTexts[0] || 'Benchmarking');
+                                expect(txt).to.contain(
+                                    caps.expectedTierTexts[0] || 'Benchmarking'
+                                );
                             });
                     } else if (index === 1) {
                         expect(buttonText).to.equal('production');
                         cy.get('#timeline .timeline-item.tier-active')
                             .invoke('text')
                             .then((txt) => {
-                                expect(txt).to.contain(caps.expectedTierTexts[1] || 'Production');
+                                expect(txt).to.contain(
+                                    caps.expectedTierTexts[1] || 'Production'
+                                );
                             });
                     }
 
@@ -209,54 +223,138 @@ function stepTierButtonsChecks(caps) {
 function stepDRTExists(caps) {
     if (!caps.runDRTExists) return;
 
-    cy.get('.notifications-panel .data-release-tracker .data-release-item-container')
-        .should('have.length.greaterThan', 0);
-}
-
-// Data Release Tracker BAM-CRAM conversion warning exists
-function stepDRTBamCramWarningExists(caps) {
-    if (!caps.runDRTBamCramWarningExists) return;
-
-    cy.get('.notifications-panel .data-release-tracker .announcement-container.cram-conversion')
-        .should('have.length.greaterThan', 0)
-        .first()
-        .within(() => {
-            cy.get('.body')
-                .should('be.visible')
-                .and('contain.text', 'all released BAMs have been converted to CRAMs');
-        });
+    cy.get(
+        '.notifications-panel .data-release-tracker .data-release-item-container'
+    ).should('have.length.greaterThan', 0);
 }
 
 // Each DRT item navigates and matches file counts
 function stepDRTCountsCheck(caps) {
     if (!caps.runDRTCountsCheck) return;
 
-    cy.get('.data-release-item-container').then(($containers) => {
-        const containerCount = $containers.length;
+    cy.get('.data-release-item-container').each(($container) => {
+        // Month level count
+        const expectedCount = Number(
+            $container
+                .find('.content .header .header-link .count')
+                .text()
+                .trim()
+                .match(/^(\d+)/)?.[1] ?? 0
+        );
 
-        for (let i = 0; i < containerCount; i++) {
-            const $container = $containers.eq(i);
-
-            const countText = $container.find('.header-link .count').text().trim();
-            const match = countText.match(/^(\d+)/);
-            const expectedCount = match ? parseInt(match[1], 10) : 0;
-            const href = $container.find('.header-link').attr('href');
-
-            cy.then(() => {
-                cy.visit(href, { headers: cypressVisitHeaders });
-
-                // Wait for search results to resolve and compare
-                cy.searchPageTotalResultCount().then((actualCount) => {
-                    expect(actualCount).to.eq(expectedCount);
-                });
-
-                // Navigate back to continue the loop
-                cy.go('back');
-
-                // Ensure list re-renders before next iteration
-                cy.get('.data-release-item-container').should('have.length.at.least', containerCount);
+        // Open the month dropdown if needed
+        cy.wrap($container)
+            .invoke('attr', 'aria-expanded')
+            .then((expanded) => {
+                if (expanded !== 'true') {
+                    cy.wrap($container)
+                        .find('.content .header .toggle-button')
+                        .click();
+                }
             });
-        }
+
+        cy.wrap($container)
+            .find('.content .body .release-item.day-group')
+            .should('have.length.at.least', 1)
+            .then(($days) => {
+                let monthTotal = 0;
+
+                cy.wrap($days)
+                    .each(($day) => {
+                        cy.wrap($day)
+                            .invoke('attr', 'aria-expanded')
+                            .then((expanded) => {
+                                if (expanded !== 'true') {
+                                    cy.wrap($day)
+                                        .find('.toggle-button.day')
+                                        .click();
+                                }
+                            });
+
+                        cy.wrap($day).then(() => {
+                            let dayCount = 0;
+                            let donorSum = 0;
+
+                            // Get day count
+                            cy.wrap($day)
+                                .find('.day-group-header .title .count')
+                                .then(($dayCount) => {
+                                    dayCount = Number(
+                                        $dayCount
+                                            .text()
+                                            .trim()
+                                            .match(/^(\d+)/)?.[1] ?? 0
+                                    );
+                                    expect(dayCount).to.be.greaterThan(0);
+                                });
+
+                            // Sum donor counts for the day
+                            cy.wrap($day)
+                                .find('.donor-group-header .title .count')
+                                .each(($count) => {
+                                    donorSum += Number(
+                                        $count
+                                            .text()
+                                            .trim()
+                                            .match(/^(\d+)/)?.[1] ?? 0
+                                    );
+                                })
+                                .then(() => {
+                                    expect(donorSum).to.be.greaterThan(0);
+                                    expect(donorSum).to.equal(dayCount);
+
+                                    // Only update month total after day is fully validated
+                                    monthTotal += dayCount;
+                                });
+                        });
+                    })
+                    .then(() => {
+                        // Month total must match header count
+                        expect(monthTotal).to.be.greaterThan(0);
+                        expect(monthTotal).to.equal(expectedCount);
+                    });
+            });
+    });
+
+    // Check that the counts are reflected in the browse page
+    cy.get('.data-release-item-container').then(($containers) => {
+        const pages = [...$containers].map((el) => {
+            const link = el.querySelector('.header-link');
+
+            return {
+                expectedCount: Number(
+                    link
+                        ?.querySelector('.count')
+                        ?.textContent.trim()
+                        .match(/^(\d+)/)?.[1] ?? 0
+                ),
+            };
+        });
+
+        cy.wrap(pages).each(({ expectedCount }, index) => {
+            cy.get('.data-release-item-container')
+                .eq(index)
+                .find('.header-link')
+                .click();
+
+            if (caps.expectLimitedReleaseTrackerAccess) {
+                if (cy.searchPageTotalResultCount() === 0) {
+                    cy.get('#download-access-required-modal').should(
+                        'be.visible'
+                    );
+                }
+                cy.searchPageTotalResultCount().should('be.lte', expectedCount);
+            } else {
+                cy.searchPageTotalResultCount().should('eq', expectedCount);
+            }
+
+            cy.go('back');
+
+            cy.get('.data-release-item-container').should(
+                'have.length.at.least',
+                1
+            );
+        });
     });
 }
 
@@ -318,10 +416,6 @@ describe('Home Page by role', () => {
 
             it(`should have Data Release Tracker feed with item(s) (enabled: ${caps.runDRTExists})`, () => {
                 stepDRTExists(caps);
-            });
-
-            it(`should have Data Release Tracker BAM→CRAM conversion warning (enabled: ${caps.runDRTBamCramWarningExists})`, () => {
-                stepDRTBamCramWarningExists(caps);
             });
 
             it(`should navigate DRT items and match file counts (enabled: ${caps.runDRTCountsCheck})`, () => {

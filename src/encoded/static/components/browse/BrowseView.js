@@ -101,18 +101,30 @@ export const NoResultsBrowseModal = ({
     const hasNoResults = context?.total === 0;
     const isBaseBrowsePath = isBaseBrowseParams(type, context?.filters);
 
+    // Check if user sent from Release Tracker by checking for
+    // file_release_tracking facet in `context.facet`
+    let hasReleaseTrackerParam = false;
+    if (type === 'file') {
+        hasReleaseTrackerParam = context?.facets?.some(
+            (facet) =>
+                facet.field ===
+                'file_status_tracking.release_dates.initial_release'
+        );
+    }
+
     /**
      * Show No results modal if all of the following are true:
      * - `userDownloadAccess` has reached a stable state
      * - The user is not a member of the SMaHT consortium
      * - There are no files in the search results
      * - The URL is the base browse path (no additional filters applied)
+     *   or the URL contains the release date filter
      */
     const shouldShowNoResultsModal =
         userDownloadAccessUpdated &&
         isPublicUser &&
         hasNoResults &&
-        isBaseBrowsePath;
+        (isBaseBrowsePath || hasReleaseTrackerParam);
 
     return shouldShowNoResultsModal ? (
         <Modal
@@ -168,8 +180,8 @@ const BrowseFileBody = (props) => {
                 <div className="stats-column col-auto">
                     <BrowseSummaryStatsViewer
                         {...{
-                            session,
                             href,
+                            session,
                             windowWidth,
                             useCompactFor,
                             mapping: 'all',
@@ -223,6 +235,8 @@ const BrowseFileBody = (props) => {
 const renderBrowseBody = (props) => {
     switch (props.context['@type'][0]) {
         case 'FileSearchResults':
+        case 'SubmittedFileSearchResults':
+        case 'OutputFileSearchResults':
             return <BrowseFileBody {...props} />;
         case 'DonorSearchResults':
             return <BrowseDonorBody {...props} />;
@@ -412,6 +426,8 @@ const BrowseViewPageTitle = React.memo(function BrowseViewPageTitle(props) {
     let BrowseType = null;
     switch (context['@type'][0]) {
         case 'FileSearchResults':
+        case 'SubmittedFileSearchResults':
+        case 'OutputFileSearchResults':
             BrowseType = 'File';
             break;
         case 'DonorSearchResults':

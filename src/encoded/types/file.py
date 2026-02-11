@@ -529,6 +529,11 @@ class File(Item, CoreFile):
         'to be uploaded by workflow': acl.ALLOW_SUBMISSION_CENTER_MEMBER_EDIT_ACL,
         'archived': acl.ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
         'retracted': acl.ALLOW_SUBMISSION_CENTER_MEMBER_VIEW_ACL,
+
+        # These ensure all file objects are picked up by the release tracker
+        # 'open-early': acl.ALLOW_EVERYONE_VIEW_ACL,  # this allows everyone to download early access data?
+        'protected-early': acl.ALLOW_EVERYONE_VIEW_ACL,
+        'protected-network': acl.ALLOW_EVERYONE_VIEW_ACL,
     })
     # These are all view only in case we find ourselves in this situation
     Item.CONSORTIUM_STATUS_ACL.update({
@@ -536,7 +541,12 @@ class File(Item, CoreFile):
         'uploading': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'upload failed': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
         'to be uploaded by workflow': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
-        'archived': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL
+        'archived': acl.ALLOW_CONSORTIUM_MEMBER_VIEW_ACL,
+
+        # These ensure all file objects are picked up by the release tracker
+        # 'open-early': acl.ALLOW_EVERYONE_VIEW_ACL,  # this allows everyone to download early access data?
+        'protected-early': acl.ALLOW_EVERYONE_VIEW_ACL,
+        'protected-network': acl.ALLOW_EVERYONE_VIEW_ACL,
     })
 
     SHOW_UPLOAD_CREDENTIALS_STATUSES = ("in review", "uploading")
