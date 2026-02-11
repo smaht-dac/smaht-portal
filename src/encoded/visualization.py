@@ -377,8 +377,9 @@ def data_matrix_aggregations(context, request):
     MAX_BUCKET_COUNT = 30  # Max grouping in a data matrix.
     DEFAULT_SEARCH_PARAM_LISTS = {'type': ['File']}
     DEFAULT_VALUE_DELIMITER = ' '
+    # Set of field names whose array values should be concatenated into a single key during data matrix aggregation (e.g., {'data_type'}).
+    # Used to determine which fields require special handling for array concatenation in Elasticsearch aggregations.
     ARRAY_FIELDS_TO_JOIN = {
-        # Array field whose values should be concatenated into a single bucket key.
         'data_type'
     }
     SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION = {
@@ -396,11 +397,15 @@ def data_matrix_aggregations(context, request):
             }
         }
     }
+    EXTRA_TOTAL_AGGREGATIONS = [
+        { 'aggregation_field': 'donors.external_id', 'result_field': 'donors' }
+    ]
 
     try:
         json_body = request.json_body
         search_param_lists = json_body.get('search_query_params', deepcopy(DEFAULT_SEARCH_PARAM_LISTS))
         column_agg_fields_orig = json_body.get('column_agg_fields')
+        # always make column_agg_fields_orig a list
         if isinstance(column_agg_fields_orig, str):
             column_agg_fields_orig = [column_agg_fields_orig]
         row_agg_fields_orig = json_body.get('row_agg_fields')
@@ -430,15 +435,24 @@ def data_matrix_aggregations(context, request):
     row_agg_fields = remaining_columns + row_agg_fields
     row_totals_es_agg_start_index = len(remaining_columns)
 
-    # obsolete soon
     def is_array_concat_field(field):
         return isinstance(field, str) and field in ARRAY_FIELDS_TO_JOIN
 
     def get_es_key(field_or_field_list):
+        """
+        Returns 'script' if field_or_field_list is an array concat field or a
+        list with more than one item; otherwise returns 'field'.
+        """
         return "script" if (is_array_concat_field(field_or_field_list) or (isinstance(field_or_field_list, list) and len(field_or_field_list) > 1)) else "field"
 
-    # obsolete soon
     def get_es_value(field_or_field_list):
+        """
+        Returns an Elasticsearch field value or script for the given field or
+        list of fields. If multiple fields are provided, returns a script to
+        concatenate their values. If the field requires array concatenation,
+        returns a script to join sorted values. Otherwise, returns the raw field
+        path.
+        """
         if isinstance(field_or_field_list, list) and len(field_or_field_list) > 1:
             # If we have multiple fields, we will return a script that concatenates them.
             return {
@@ -463,6 +477,22 @@ def data_matrix_aggregations(context, request):
             }
         return "embedded." + (field_or_field_list[0] if isinstance(field_or_field_list, list) else field_or_field_list) + '.raw'
 
+    def build_extra_total_aggs():
+        extra_aggs = {}
+        for extra_agg in EXTRA_TOTAL_AGGREGATIONS:
+            aggregation_field = extra_agg.get('aggregation_field')
+            result_field = extra_agg.get('result_field')
+            if not aggregation_field or not result_field:
+                continue
+            extra_aggs[result_field] = {
+                "cardinality": {
+                    "field": f"embedded.{aggregation_field}.raw"
+                }
+            }
+        return extra_aggs
+
+    extra_total_aggs = build_extra_total_aggs()
+
     primary_agg = {
         "field_0": {
             "terms": {
@@ -481,6 +511,16 @@ def data_matrix_aggregations(context, request):
             "aggs": {}
         }
     }
+    if extra_total_aggs:
+        primary_agg["field_0"]["aggs"] = {
+            **primary_agg["field_0"]["aggs"],
+            **deepcopy(extra_total_aggs)
+        }
+        primary_agg["row_totals_0"]["aggs"] = {
+            **primary_agg["row_totals_0"]["aggs"],
+            **deepcopy(extra_total_aggs)
+        }
+        primary_agg.update(deepcopy(extra_total_aggs))
 
     def build_nested_aggs(primary_agg, agg_fields, base_aggregation_def, primary_field_prefix="field_0", field_prefix="field_"):
         """
@@ -513,10 +553,23 @@ def data_matrix_aggregations(context, request):
         return primary_agg
 
     # Nest in additional fields, if any
-    build_nested_aggs(primary_agg, row_agg_fields, SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION, "field_0", "field_")
+    base_aggregation_def = {
+        **deepcopy(SUM_DATA_GENERATION_SUMMARY_AGGREGATION_DEFINITION),
+        **deepcopy(extra_total_aggs)
+    }
+    build_nested_aggs(primary_agg, row_agg_fields, base_aggregation_def, "field_0", "field_")
+    # Column totals aggregation (use full column_agg_fields_orig for composite keys)
+    primary_agg["column_totals"] = {
+        "terms": {
+            get_es_key(column_agg_fields_orig): get_es_value(column_agg_fields_orig),
+            "missing": TERM_NAME_FOR_NO_VALUE,
+            "size": MAX_BUCKET_COUNT
+        },
+        "aggs": deepcopy(base_aggregation_def)
+    }
     # Nest row totals aggregation
     if len(row_agg_fields) > row_totals_es_agg_start_index + 1:
-        build_nested_aggs(primary_agg, row_agg_fields[row_totals_es_agg_start_index + 1:], {}, "row_totals_0", "row_totals_")
+        build_nested_aggs(primary_agg, row_agg_fields[row_totals_es_agg_start_index + 1:], deepcopy(extra_total_aggs), "row_totals_0", "row_totals_")
 
     search_param_lists['limit'] = search_param_lists['from'] = [0]
     subreq = make_search_subreq(request, '{}?{}'.format('/search/', urlencode(search_param_lists, True)))
@@ -531,21 +584,45 @@ def data_matrix_aggregations(context, request):
     ret_result = {  # We will fill up the "terms" here from our search_result buckets and then return this dictionary.
         "field": column_agg_fields[0] if isinstance(column_agg_fields, list) else column_agg_fields,
         "terms": {},
-        "total": {
-            "files": search_result['total'],
+        "counts": {
+            "files": search_result['total']
         },
         "row_total_field": row_agg_fields[row_totals_es_agg_start_index],
         "row_total_terms": {},
         "other_doc_count": search_result['aggregations']['field_0'].get('sum_other_doc_count', 0),
         "time_generated": str(datetime.utcnow())
     }
+    for extra_agg in EXTRA_TOTAL_AGGREGATIONS:
+        result_field = extra_agg.get('result_field')
+        if not result_field:
+            continue
+        extra_total = search_result['aggregations'].get(result_field)
+        if extra_total and 'value' in extra_total:
+            ret_result["counts"][result_field] = int(extra_total['value'])
 
-    def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0, field_key="field", terms_key="terms", field_prefix="field_", agg_fields=row_agg_fields):
-
-        curr_bucket_totals = {
+    def extract_bucket_counts(bucket_result):
+        counts = {
             'files': int(bucket_result['doc_count']),
             'total_coverage': bucket_result['total_coverage']['value'] if 'total_coverage' in bucket_result and bucket_result['total_coverage'] else 0
         }
+        for extra_agg in EXTRA_TOTAL_AGGREGATIONS:
+            result_field = extra_agg.get('result_field')
+            if not result_field:
+                continue
+            extra_total = bucket_result.get(result_field)
+            if extra_total and 'value' in extra_total:
+                counts[result_field] = int(extra_total['value'])
+        return counts
+
+    def format_bucket_result(bucket_result, returned_buckets, curr_field_depth=0, field_key="field", terms_key="terms", field_prefix="field_", agg_fields=row_agg_fields):
+        """
+        Formats a nested aggregation result (bucket_result) into a structured
+        dictionary (returned_buckets), recursively processing aggregation fields
+        and collecting totals for each bucket. Used for hierarchical data
+        aggregation, such as Elasticsearch-style bucket results.
+        """
+
+        curr_bucket_counts = extract_bucket_counts(bucket_result)
 
         next_field_name = None
         if len(agg_fields) > curr_field_depth:  # More fields agg results to add
@@ -553,7 +630,7 @@ def data_matrix_aggregations(context, request):
             returned_buckets[bucket_result['key']] = {
                 "term": bucket_result['key'],
                 field_key: next_field_name[0] if isinstance(next_field_name, list) else next_field_name,
-                "total": curr_bucket_totals,
+                "counts": curr_bucket_counts,
                 terms_key: {},
                 "other_doc_count": bucket_result[field_prefix + str(curr_field_depth + 1)].get('sum_other_doc_count', 0),
             }
@@ -562,14 +639,32 @@ def data_matrix_aggregations(context, request):
 
         else:
             # Terminal field aggregation -- return just totals, nothing else.
-            returned_buckets[bucket_result['key']] = curr_bucket_totals
+            returned_buckets[bucket_result['key']] = {
+                "counts": curr_bucket_counts
+            }
 
     for bucket in search_result['aggregations']['field_0']['buckets']:
         format_bucket_result(bucket, ret_result['terms'], 0)
     for bucket in search_result['aggregations']['row_totals_0']['buckets']:
         format_bucket_result(bucket, ret_result['row_total_terms'], 0, "row_total_field", "row_total_terms", "row_totals_", row_agg_fields[row_totals_es_agg_start_index + 1:])
 
+    column_totals = []
+    column_totals_buckets = search_result['aggregations'].get('column_totals', {}).get('buckets')
+    if not column_totals_buckets:
+        column_totals_buckets = search_result['aggregations']['field_0']['buckets']
+    for bucket in column_totals_buckets:
+        column_totals.append({
+            (column_agg_fields_orig[0] if isinstance(column_agg_fields_orig, list) else column_agg_fields_orig): bucket['key'],
+            "counts": extract_bucket_counts(bucket)
+        })
+
     def flatten_es_terms_aggregation(es_response, field_key="field", terms_key="terms"):
+        """
+        Flattens a nested Elasticsearch terms aggregation response into a list
+        of dictionaries, where each dictionary represents a unique path of term
+        values and associated file data. Accepts custom keys for field and terms
+        extraction.
+        """
         result = []
 
         def recurse_terms(level, path, data):
@@ -579,11 +674,10 @@ def data_matrix_aggregations(context, request):
                 for term_value, term_data in data[terms_key].items():
                     # Recursively process the next level, appending current field and value to the path
                     recurse_terms(level + 1, path + [(field_name, term_value)], term_data)
-            elif "files" in data:
+            elif "counts" in data:
                 # When the deepest level is reached, build a flat record from the path
                 flat_record = {field: value for field, value in path}
-                flat_record["files"] = data["files"]
-                flat_record["total_coverage"] = data.get("total_coverage", 0)
+                flat_record["counts"] = data["counts"]
                 result.append(flat_record)
 
         # Start recursion from the root
@@ -597,6 +691,11 @@ def data_matrix_aggregations(context, request):
         row_totals = flatten_es_terms_aggregation(ret_result, "row_total_field", "row_total_terms")
         
         def make_composite(data_array, skip_column_agg=False):
+            """
+            Aggregates specified fields in each item of data_array by joining their
+            values with a delimiter, optionally skipping column-based aggregation if
+            skip_column_agg is True. Modifies data_array in place.
+            """
             if len(column_agg_fields_orig) > 1 and not skip_column_agg:
                 for item in data_array:
                     if all(field in item for field in column_agg_fields_orig):
@@ -619,11 +718,15 @@ def data_matrix_aggregations(context, request):
             "row_agg_fields": row_agg_fields_orig,
             "data": data,
             "row_totals": row_totals,
-            "total": ret_result["total"],
+            "column_totals": column_totals,
+            "counts": ret_result["counts"],
             "time_generated": ret_result["time_generated"],
             "flatten_values": True,
             "value_delimiter": value_delimiter,
             "search_params": search_param_lists
         }    
+
+    else:
+        ret_result["column_totals"] = column_totals
 
     return ret_result
