@@ -7,12 +7,13 @@ smaht-portal
 Change Log
 ----------
 
-1.12.0
+1.13.0
 ======
 
 `PR 522: feat: Release Tracker Restructuring <https://github.com/smaht-dac/smaht-portal/pull/522>`_
 
 * Add support for Tissue Aliquot category validation in TissueSample validator
+
 
 1.12.0
 ======
