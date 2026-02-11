@@ -960,6 +960,9 @@ class FileRelease:
                 file_constants.DATA_CATEGORY_GENOME_CONVERSION: (
                     file_constants.ACCESS_STATUS_PROTECTED
                 ),
+                file_constants.DATA_CATEGORY_GENOME_ANNOTATION: (
+                    file_constants.ACCESS_STATUS_PROTECTED
+                ),
                 file_constants.DATA_CATEGORY_RNA_QUANTIFICATION: (
                     file_constants.ACCESS_STATUS_OPEN
                 ),
