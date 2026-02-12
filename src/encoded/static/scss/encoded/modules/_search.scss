@@ -1156,6 +1156,7 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 		z-index: 6;
 
 		#download-access-required-modal {
+		max-width: 625px;
 			.modal-content {
 				padding: 0px;
 				border: none;
@@ -1164,7 +1165,7 @@ body[data-pathname^="/browse"]:not([data-current-action="add"]):not([data-curren
 			}
 
 			.callout-card.protected-data {
-				padding: 20px;
+				padding: 20px 0px;
 				img {
 					width: 50px;
 				}
