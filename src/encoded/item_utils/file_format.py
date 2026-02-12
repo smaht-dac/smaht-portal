@@ -15,6 +15,10 @@ def is_chain_file(properties: Dict[str, Any]) -> bool:
 
 def is_fasta_file(properties: Dict[str, Any]) -> bool:
     return get_standard_file_extension(properties) in ["fa","fasta"]
+
+
+def is_bed_file(properties: Dict[str, Any]) -> bool:
+    return get_standard_file_extension(properties) == "bed"
                       
                                                        
 def is_tsv_file(properties: Dict[str, Any]) -> bool:

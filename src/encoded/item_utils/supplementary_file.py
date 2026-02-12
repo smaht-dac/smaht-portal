@@ -78,4 +78,4 @@ def get_derived_from_file_sets(
             get_derived_from(properties,request_handler),
             file_utils.get_file_sets,
         )
-    return properties.get("file_sets", [])  
+    return properties.get("file_sets", [])

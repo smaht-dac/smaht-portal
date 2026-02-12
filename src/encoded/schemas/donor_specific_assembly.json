@@ -8,7 +8,8 @@
         "submitted_id",
         "title",
         "submission_centers",
-        "derived_from"
+        "derived_from",
+        "version"
     ],
     "identifyingProperties": [
         "accession",
