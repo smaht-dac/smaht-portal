@@ -74,7 +74,7 @@ def test_validate_external_id_matches_tissue_on_edit(
 ) -> None:
     """Ensure external_id is valid based on category if tissue is Benchmarking or Production on edit."""
     uuid = item_utils.get_uuid(
-        get_item_from_search(es_testapp, "TissueSample", add_on="&category!=Core")
+        get_item(es_testapp, "NDRITEST_TISSUE-SAMPLE_LUNG-HOMOGENATE-X_TPC", "TissueSample")
     )
     patch_item(es_testapp, patch_body, uuid, status=expected_status)
 
@@ -129,7 +129,7 @@ def test_validate_external_id_matches_tissue_on_add(
     index: int,
 ) -> None:
     """Ensure TPC proviced external_id is valid based on category if tissue is Benchmarking or Production on add."""
-    insert = get_item_from_search(es_testapp, "TissueSample")
+    insert = get_item(es_testapp, "NDRITEST_TISSUE-SAMPLE_LUNG-HOMOGENATE-X_TPC", collection="TissueSample")
     post_body = {
         **patch_body,
         "submitted_id": f"{item_utils.get_submitted_id(insert)}_{index}",

@@ -7,6 +7,24 @@ smaht-portal
 Change Log
 ----------
 
+1.12.0
+======
+`PR 591: SN Fix DSA release script <https://github.com/smaht-dac/smaht-portal/pull/591>`_
+
+* Update means of getting chain file code for annotated filenames to do a search query on `code` and `title` of ReferenceGenomes and return either "DSA" or the unique `code` value
+* Add `version` as a required property to DonorSpecificAssembly
+* Update the annotated filename for DSA fasta and bed files to include `DSA_[version]`
+* Add bed files to access status function
+
+
+1.11.7
+======
+
+`PR 600: feature: add tissue validator for preservation type <https://github.com/smaht-dac/smaht-portal/pull/600>`_
+
+* Add a new validator to Tissue that checks if the external_id tissue code matches the expected preservation type based on the valid_protocol_ids of the linked OntologyTerms and the preservation_type property
+
+
 1.11.6
 ======
 
@@ -32,7 +50,7 @@ Change Log
 1.11.3
 ======
 
-`PR 379: SN Submission spreadsheet update <https://github.com/smaht-dac/smaht-portal/pull/379>`_
+`PR 379: SN Submission spreadsheet update <https://github.com/smaht-dac/smaht-portal/pull/379`_
 
 * Update `commands/write_submission_spreadsheets.py` to include capability to add "pseudo-properties" such as `expected_file_counts` in FileSet that are used for validation in submitr
 * Update the `--eqm` flag to use config from GenericQcConfig item on portal and update error handling
