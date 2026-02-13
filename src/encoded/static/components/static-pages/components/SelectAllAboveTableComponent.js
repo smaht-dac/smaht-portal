@@ -480,10 +480,11 @@ export class SelectAllFilesButton extends React.PureComponent {
                 data-tip={tooltip}>
                 <i className={iconClassName} />
                 <span className="d-none d-md-inline text-400">
-                    {isAllSelected ? 'Deselect' : 'Select'} All{' '}
+                    {isAllSelected ? 'Deselect' : 'Select'}{' '}
+                    {!hasLimitedAccess && 'All'}{' '}
                 </span>
                 <span className="text-600">
-                    {hasLimitedAccess ? 'Open' : ''}
+                    {hasLimitedAccess ? 'Open Access' : ''}
                 </span>{' '}
                 Files
             </button>
