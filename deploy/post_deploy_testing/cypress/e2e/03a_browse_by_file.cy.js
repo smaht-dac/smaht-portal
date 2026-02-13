@@ -493,9 +493,39 @@ function stepBrowseFileSelectionTests(caps) {
 
     // For users who have limited download access
     // 1. SelectAllFilesButton and the SelectAll Checkbox are enabled
+    cy.get('.search-view-controls-and-results #select-all-files-button').should('be.enabled');
+    cy.get('.search-results-outer-container .search-headers-row #select-all-checkbox[type="checkbox"]').should('be.enabled');
+
     // 2. SelectAllFilesButton says "Select Open Access Files"
-    // 3. Hovering over the SelectAllFilesButton should show a popover
+    if (!caps.expectedLimitedDownloadAccess) {
+        cy.get('.search-view-controls-and-results #select-all-files-button').should('have.text', 'Select All  Files');
+    } else {
+        cy.get('.search-view-controls-and-results #select-all-files-button')
+          .should('have.text', 'Select Open Access Files')
+          .then(($selectAllBtn) => {
+            // 3. Hovering over the SelectAllFilesButton should show a popover
+            cy.wrap($selectAllBtn).trigger('mouseover');
+            cy.get('#select-all-files-popover').should('be.visible');
+            cy.wrap($selectAllBtn).trigger('mouseout');
+            cy.get('#select-all-files-popover').should('not.exist');
+          })
+    }
+
     // 4. Clicking the SelectAllFilesButton should enable the Download # Selected Files button
+    cy.get('.search-view-controls-and-results #select-all-files-button').click();
+    cy.get('.search-view-controls-and-results #select-all-files-button').should('have.class', 'btn-secondary');
+    
+    // cy.get('.search-view-controls-and-results .right-buttons #download_tsv_multiselect')
+    //   .then(($downloadBtn) => {
+    //     // 4a. The Download buttoun should have the same number of files as the Access Facet (Open)
+    //     const SelectedFileTotal = $downloadBtn.text().match(/\d+/)[0];
+
+    //     // Get the number of Open Access files through the access_status facet
+    //     cy.get('.search-view-controls-and-results .facets-body .facet[data-field="access_status"]')
+
+    //     cy.wrap($downloadBtn).should('have.text', `${caps.expectedDownloadAccessObject.open} Selected Files`);
+    //   })
+
     // 4a. The Download buttoun should have the same number of files as the Access Facet (Open)
 }
 
