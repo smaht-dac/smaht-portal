@@ -1,15 +1,19 @@
 'use strict';
 
-import React from 'react';
+import React, { useState } from 'react';
 import memoize from 'memoize-one';
 import _ from 'underscore';
-import { OverlayTrigger, Popover } from 'react-bootstrap';
+import { Modal, OverlayTrigger, Popover } from 'react-bootstrap';
 import { valueTransforms } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { SearchView as CommonSearchView } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/SearchView';
 
 import { SelectionItemCheckbox } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/SelectedItemsController';
 import { LocalizedTime } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
 import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
+import {
+    contextFiltersToExpSetFilters as contextFiltersToSetFilters,
+    compareExpSetFilters as compareSetFilters,
+} from '@hms-dbmi-bgm/shared-portal-components/es/components/util/search-filters';
 
 import { columnExtensionMap as originalColExtMap } from './columnExtensionMap';
 import { Schemas } from './../util';
@@ -30,6 +34,7 @@ import { BrowseLink } from './browse-view/BrowseLink';
 import { BrowseSummaryStatsViewer } from './browse-view/BrowseSummaryStatController';
 import { FacetCharts } from './components/FacetCharts';
 import { navigate } from '../util/navigate';
+import { compareTissueFacetTerms } from '../util/data';
 import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import { transformedFacets } from './SearchView';
@@ -58,13 +63,105 @@ export default function BrowseView(props) {
     return <BrowseViewBody {...props} />;
 }
 
+/**
+ * Helper function to check if the filters in the context are the same as the
+ * base browse path that corresponds to the given type. Compares sets of filter
+ * fields and terms.
+ * @param { string } type the type of browse page (e.g. file, donor, etc.)
+ * @param { object } filters the filters from the context
+ * @returns { boolean } whether the filters are the same as base browse path
+ */
+const isBaseBrowseParams = (type, filters) => {
+    // Create filters object for base browse path comparison
+    const DUMMY_URL = 'https://dummy.url';
+    const baseBrowseFilters = [
+        ...new URL(DUMMY_URL + BROWSE_LINKS[type]).searchParams,
+    ].map(([key, value]) => ({ field: key, term: value }));
+
+    // Convert filter objects to sets of filters
+    const setFiltersFromContext = contextFiltersToSetFilters(filters);
+    const setFiltersFromBaseBrowsePath =
+        contextFiltersToSetFilters(baseBrowseFilters);
+
+    // Compare sets of filters from context and base browse path
+    return compareSetFilters(
+        setFiltersFromContext,
+        setFiltersFromBaseBrowsePath
+    );
+};
+
+// Modal for empty Donor and ProtectedDonor Browse
+export const NoResultsBrowseModal = ({
+    type,
+    context = { total: 0 },
+    userDownloadAccess,
+    isAccessResolved,
+}) => {
+    const userDownloadAccessUpdated = isAccessResolved;
+    const isPublicUser = userDownloadAccess?.['open-network'] === false;
+    const hasNoResults = context?.total === 0;
+    const isBaseBrowsePath = isBaseBrowseParams(type, context?.filters);
+
+    /**
+     * Show No results modal if all of the following are true:
+     * - `userDownloadAccess` has reached a stable state
+     * - The user is not a member of the SMaHT consortium
+     * - There are no files in the search results
+     * - The URL is the base browse path (no additional filters applied)
+     */
+    const shouldShowNoResultsModal =
+        userDownloadAccessUpdated &&
+        isPublicUser &&
+        hasNoResults &&
+        isBaseBrowsePath;
+
+    return shouldShowNoResultsModal ? (
+        <Modal
+            id="download-access-required-modal"
+            show={true}
+            centered
+            className="download-access-required-modal"
+            backdropClassName="download-access-required-modal-backdrop">
+            <Modal.Body>
+                <div className="callout-card protected-data">
+                    <img
+                        src="/static/img/SMaHT_Vertical-Logo-Solo_FV.png"
+                        alt="SMaHT Logo"
+                    />
+                    <h4>
+                        SMaHT Donor Data: <br />
+                        Official Release - Coming Soon
+                    </h4>
+                    <span>
+                        Production data are available to the SMaHT Network
+                        members at this time. <br />
+                        Please check back for the official release of the SMaHT
+                        data.
+                    </span>
+                </div>
+            </Modal.Body>
+        </Modal>
+    ) : null;
+};
+
 const BrowseFileBody = (props) => {
     const useCompactFor = ['xs', 'sm', 'md', 'xxl'];
-    const { session, href, windowWidth, windowHeight, isFullscreen } = props;
+    const {
+        context,
+        session,
+        href,
+        windowWidth,
+        windowHeight,
+        isFullscreen,
+        userDownloadAccess,
+        isAccessResolved,
+    } = props;
+
     const initialFields = [
         'sample_summary.tissues',
         'sequencing.sequencer.display_title',
     ];
+
     return (
         <>
             <h2 className="browse-summary-header">SMaHT Data Summary</h2>
@@ -109,9 +206,18 @@ const BrowseFileBody = (props) => {
             <hr />
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseFileSearchTable
-                    userDownloadAccess={props.userDownloadAccess}
+                    userDownloadAccess={userDownloadAccess}
                 />
             </BrowseViewControllerWithSelections>
+            {context?.total === 0 && (
+                <NoResultsBrowseModal
+                    context={context}
+                    type="file"
+                    href={href}
+                    userDownloadAccess={userDownloadAccess}
+                    isAccessResolved={isAccessResolved}
+                />
+            )}
         </>
     );
 };
@@ -141,7 +247,8 @@ const renderBrowseBody = (props) => {
  */
 const BrowseViewContent = (props) => {
     const { context, session } = props;
-    const userDownloadAccess = useUserDownloadAccess(session);
+    const { userDownloadAccess, isAccessResolved } =
+        useUserDownloadAccess(session);
 
     // Include `userDownloadAccess` in the props passed to child components
     const passProps = {
@@ -151,6 +258,7 @@ const BrowseViewContent = (props) => {
             clear_filters: BROWSE_LINKS.file,
         },
         userDownloadAccess,
+        isAccessResolved,
     };
 
     return (
@@ -286,6 +394,9 @@ export const BrowseFileSearchTable = (props) => {
 
     const { columnExtensionMap, columns, hideFacets } =
         createBrowseFileColumnExtensionMap(selectedFileProps);
+    const facetListSortFxns = {
+        'sample_summary.tissues': compareTissueFacetTerms,
+    };
 
     return (
         <CommonSearchView
@@ -295,6 +406,7 @@ export const BrowseFileSearchTable = (props) => {
                 tableColumnClassName,
                 facetColumnClassName,
                 facets,
+                facetListSortFxns,
                 aboveFacetListComponent,
                 aboveTableComponent,
                 columns,

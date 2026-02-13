@@ -9,7 +9,11 @@ import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/
 import { BrowseViewControllerWithSelections } from '../../static-pages/components/TableControllerWithSelections';
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
-import { BROWSE_STATUS_FILTERS, BROWSE_LINKS } from '../BrowseView';
+import {
+    BROWSE_STATUS_FILTERS,
+    BROWSE_LINKS,
+    NoResultsBrowseModal,
+} from '../BrowseView';
 import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
@@ -855,12 +859,13 @@ const RedirectBanner = ({ href }) => {
     return href ? (
         <div className="callout data-available">
             <span className="callout-text">
-                <i className="icon icon-users fas"></i> Welcome to the SMaHT
-                Data Portal! Please{' '}
+                <i className="icon icon-users fas"></i> You are currently
+                viewing limited donor information. If you have dbGaP- or
+                DUA-based access,{' '}
                 <a href={href?.replace('type=Donor', 'type=ProtectedDonor')}>
                     click here
                 </a>{' '}
-                to load complete donor data.
+                to view full donor information.
             </span>
         </div>
     ) : null;
@@ -869,7 +874,8 @@ const RedirectBanner = ({ href }) => {
 // Browse Donor Body Component
 export const BrowseDonorBody = (props) => {
     const [showRedirectBanner, setShowRedirectBanner] = useState(false);
-    const { session, userDownloadAccess } = props;
+    const { context, session, href, userDownloadAccess, isAccessResolved } =
+        props;
 
     useEffect(() => {
         if (session && userDownloadAccess?.['protected']) {
@@ -885,6 +891,15 @@ export const BrowseDonorBody = (props) => {
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseDonorSearchTable />
             </BrowseViewControllerWithSelections>
+            {context?.total === 0 && (
+                <NoResultsBrowseModal
+                    type="donor"
+                    context={context}
+                    href={href}
+                    userDownloadAccess={userDownloadAccess}
+                    isAccessResolved={isAccessResolved}
+                />
+            )}
         </>
     );
 };

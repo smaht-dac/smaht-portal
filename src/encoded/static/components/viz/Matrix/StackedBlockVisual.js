@@ -15,6 +15,8 @@ import { isPrimitive } from '@hms-dbmi-bgm/shared-portal-components/es/component
 
 const FALLBACK_GROUP_NAME = 'N/A';
 
+// Recursively groups a list of objects by each property in order, returning a nested object tree
+// (e.g., groupByMultiple([{ a: 1, b: 2 }, { a: 1, b: 3 }], ['a','b']) -> { '1': { '2': [...], '3': [...] } }).
 export function groupByMultiple(objList, propertiesList){
     var maxDepth = (propertiesList || []).length - 1;
     return (function doGroup(list, depth){
@@ -35,31 +37,33 @@ export function extendListObjectsWithIndex(objList){
     });
 }
 
+// VisualBody renders the matrix wrapper with popovers and count formatting.
+// Example: <VisualBody results={{ all: data, row_totals: totals }} groupingProperties={['donor','tissue']} columnGrouping="assay" />
 export class VisualBody extends React.PureComponent {
 
     static blockRenderedContents(data, blockProps){
-        let blockSum = 0;
-        if (Array.isArray(data)) {
-            blockSum = _.reduce(data, function (sum, item) {
-                return sum + item.files;
-            }, 0);
-        } else if (data) {
-            blockSum = data.files || 1;
-        }
+        const blockSum = Array.isArray(data)
+            ? _.reduce(data, function (sum, item) { return sum + item.files; }, 0)
+            : (data ? (data.files || 1) : 0);
+
         if (blockSum >= 1000){
             const decimal = blockSum >= 10000 ? 0 : 1;
-            return <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }} data-tip={blockSum}>{ roundLargeNumber(blockSum, decimal) }</span>;
+            return (
+                <span style={{ 'fontSize' : '0.80rem', 'position' : 'relative', 'top' : -1 }} data-count={blockSum} data-tip={blockSum}>
+                    { roundLargeNumber(blockSum, decimal) }
+                </span>
+            );
         }
-        else if (blockSum >= 100){
-            return <span style={{ 'fontSize' : '0.90rem', 'position' : 'relative', 'top' : -1 }}>{ blockSum }</span>;
+        if (blockSum >= 100){
+            return <span style={{ 'fontSize' : '0.90rem', 'position' : 'relative', 'top' : -1 }} data-count={blockSum}>{ blockSum }</span>;
         }
-        return <span>{ blockSum }</span>;
+        return <span data-count={blockSum}>{ blockSum }</span>;
     }
     /**
      * replacement of underscore's invert function.
      * While underscore's invert requires all of object's values should be
      * unique and string serializable, VisualBody.invert allows multiple
-     * mappings and convert them to array.
+     * mappings and convert them to array (e.g., { a: 'x', b: 'x' } -> { x: ['a','b'] }).
      **/
     static invert(object) {
         const result = {};
@@ -77,6 +81,39 @@ export class VisualBody extends React.PureComponent {
         return result;
     }
 
+    // Given a facet field and term, check if it represents a composite value
+    static getFacetPairs(facetField, facetTerm, aggregatedFields, valueDelimiter) {
+        const hasCompositeInput = (
+            Array.isArray(aggregatedFields) &&
+            aggregatedFields.length >= 2 &&
+            aggregatedFields.indexOf(facetField) > -1 &&
+            facetTerm &&
+            typeof valueDelimiter === 'string' &&
+            valueDelimiter
+        );
+        if (!hasCompositeInput) return null;
+
+        // If aggregatedFields is an array, we assume the first element is the field and the second is the extended term.
+        const splitTerm = (term) => term.split(valueDelimiter);
+
+        if (typeof facetTerm === 'string' && facetTerm.indexOf(valueDelimiter) > -1) {
+            const [baseFacetTerm, extendedFacetTerm] = splitTerm(facetTerm);
+            return [[facetField, baseFacetTerm], [aggregatedFields[1], extendedFacetTerm]];
+        }
+
+        if (Array.isArray(facetTerm)) {
+            const allCompositeTerms = _.all(_.map(facetTerm, (term) => typeof term === 'string' && term.indexOf(valueDelimiter) > -1));
+            if (allCompositeTerms) {
+                // If facetTerm is an array, we assume all elements are strings with the same format.
+                const baseFacetTerms = _.uniq(_.map(facetTerm, (term) => splitTerm(term)[0]));
+                const extendedFacetTerms = _.uniq(_.map(facetTerm, (term) => splitTerm(term)[1]));
+                return [[facetField, baseFacetTerms], [aggregatedFields[1], extendedFacetTerms]];
+            }
+        }
+
+        return null;
+    }
+
     constructor(props){
         super(props);
         this.blockPopover = this.blockPopover.bind(this);
@@ -84,7 +121,7 @@ export class VisualBody extends React.PureComponent {
 
     findKeyByValue(obj, value) {
         for (const [key, group] of Object.entries(obj)) {
-            if (group.values.includes(value)) {
+            if (group.values && Array.isArray(group.values) && group.values.includes(value)) {
                 return key;
             }
         }
@@ -96,10 +133,11 @@ export class VisualBody extends React.PureComponent {
      * @param {Object} props Props passed in from the StackedBlockVisual Component instance.
      */
     blockPopover(data, blockProps, parentGrouping){
+        // Input / config
         const {
-            query: { url: queryUrl, columnAggFields },
+            query: { url: queryUrl, columnAggFields, rowAggFields },
             fieldChangeMap, valueChangeMap, titleMap,
-            groupingProperties, columnGrouping, compositeValueSeparator,
+            groupingProperties, columnGrouping, valueDelimiter,
             rowGroupsExtended, additionalPopoverData = {}, baseBrowseFilesPath,
             browseFilteringTransformFunc
         } = this.props;
@@ -107,6 +145,7 @@ export class VisualBody extends React.PureComponent {
         const isGroup = (Array.isArray(data) && data.length >= 1) || false;
         let aggrData;
 
+        // Normalize data shape
         if (!isGroup && Array.isArray(data)){
             if(data.length === 0){
                 return null; // No data to show
@@ -114,6 +153,7 @@ export class VisualBody extends React.PureComponent {
             data = data[0];
         }
 
+        // Aggregate values for grouped blocks
         if (isGroup) {
             const keysToInclude = _.uniq(_.keys(titleMap).concat([columnGrouping]).concat(groupingProperties)).concat(['primary_field_override']);
             aggrData = StackedBlockVisual.aggregateObjectFromList(
@@ -126,6 +166,7 @@ export class VisualBody extends React.PureComponent {
         if (!aggrData) {
             return;
         }
+        // Grouping metadata (labels + values)
         // e.g. Donor
         const primaryGrpProp = groupingProperties[0] || null;
         const primaryGrpPropTitle = popoverPrimaryTitle || (primaryGrpProp && titleMap[primaryGrpProp]) || primaryGrpProp || null;
@@ -142,10 +183,11 @@ export class VisualBody extends React.PureComponent {
             secondaryGrpPropCategoryValue = this.findKeyByValue(rowGroupsExtended, secondaryGrpPropValue);
         }
 
-        // Generate title area which shows current grouping vals.
+        // Title area values
         const yAxisGroupingTitle = (columnGrouping && titleMap[columnGrouping]) || columnGrouping || null;
         const yAxisGroupingValue = isGroup ? data[0][columnGrouping] : data[columnGrouping];
 
+        // URL builder: converts current block state into browse filters
         function generateBrowseUrl() {
             let currentFilteringProperties = groupingProperties.slice(0, depth + 1);
             if (blockType !== 'row-summary') {
@@ -165,22 +207,30 @@ export class VisualBody extends React.PureComponent {
                 }
 
                 //TODO: handle composite values in a smart way, this workaround is too hacky
-                if (Array.isArray(columnAggFields) && columnAggFields.length >= 2 && facetTerm &&
-                    compositeValueSeparator && typeof compositeValueSeparator === 'string') {
-                    // If columnAggFields is an array, we assume the first element is the field and the second is the extended term.
-                    if (typeof facetTerm === 'string' && facetTerm.indexOf(compositeValueSeparator) > -1) {
-                        let extendedFacetTerm;
-                        [facetTerm, extendedFacetTerm] = facetTerm.split(compositeValueSeparator);
-                        return [[facetField, facetTerm], [columnAggFields[1], extendedFacetTerm]];
-                    } else if (Array.isArray(facetTerm) && _.all(_.map(facetTerm, (term) => typeof term === 'string' && term.indexOf(compositeValueSeparator) > -1))) {
-                        // If facetTerm is an array, we assume all elements are strings with the same format.
-                        return [[facetField, _.uniq(_.map(facetTerm, (term) => term.split(compositeValueSeparator)[0]))], [columnAggFields[1], _.uniq(_.map(facetTerm, (term) => term.split(compositeValueSeparator)[1]))]];
+                //1. traverse columnAggFields to see if facetField exists there
+                let compositeFacetPairs = VisualBody.getFacetPairs(
+                    facetField,
+                    facetTerm,
+                    columnAggFields,
+                    valueDelimiter
+                );
+                //2. traverse rowAggFields to see if facetField exists there
+                if (!compositeFacetPairs && Array.isArray(rowAggFields)) {
+                    for (let field in rowAggFields) {
+                        compositeFacetPairs = VisualBody.getFacetPairs(
+                            facetField,
+                            facetTerm,
+                            field,
+                            valueDelimiter
+                        );
+                        if (compositeFacetPairs) break;
                     }
                 }
 
-                return [facetField, facetTerm];
+                return compositeFacetPairs ? compositeFacetPairs : [facetField, facetTerm];
             });
 
+            // Flatten key/value pairs into query params (supporting composite facet pairs).
             const convertPairsToObject = (pairs) => {
                 const result = {};
 
@@ -210,6 +260,7 @@ export class VisualBody extends React.PureComponent {
 
             let currentFilteringPropertiesVals = convertPairsToObject(currentFilteringPropertiesPairs);
 
+            // Allow caller to override or transform filters.
             if (typeof browseFilteringTransformFunc === 'function') {
                 currentFilteringPropertiesVals = browseFilteringTransformFunc(currentFilteringPropertiesVals, blockType);
             }
@@ -258,6 +309,7 @@ export class VisualBody extends React.PureComponent {
             );
         }
 
+        // Aggregate values for summary rows
         const browseUrl = generateBrowseUrl();
 
         const { fileCount, totalCoverage } = _.reduce(data, function (sum, item) {
@@ -269,6 +321,7 @@ export class VisualBody extends React.PureComponent {
         // Round totalCoverage to 2 decimal places since ES has floating point precision issues
         const roundedTotalCoverage = totalCoverage > 0 ? Math.round(totalCoverage * 100) / 100 : 0;
 
+        // Render
         return (
             <Popover id="jap-popover">
                 <Popover.Body>
@@ -419,10 +472,12 @@ export class VisualBody extends React.PureComponent {
     }
 }
 
+// StackedBlockVisual renders the matrix grid with grouping and summary rows.
+// Example: <StackedBlockVisual data={rows} rowTotals={rowTotals} groupingProperties={['donor','tissue']} columnGrouping="assay" />
 export class StackedBlockVisual extends React.PureComponent {
 
     static defaultProps = {
-        'groupingProperties' : ['grant_type', 'center_name',  'lab_name'],
+        'groupingProperties' : ["donor", "tissue"],
         'columnGrouping' : null,
         'blockHeight' : 28,
         'blockWidth': 35,
@@ -463,11 +518,43 @@ export class StackedBlockVisual extends React.PureComponent {
         }
     };
 
+    // Aggregates a list of objects into one object by summing numeric fields and
+    // collecting unique values for non-numeric fields (e.g., [{ a: 1, b: 'x' }, { a: 2, b: 'y' }] -> { a: 3, b: ['x','y'] }).
     static aggregateObjectFromList = function (dataList, keysToShow, skipParsingKeys = null) {
         // Use all keys from the first item if keysToShow is not provided
         if (!keysToShow) {
             keysToShow = _.keys(dataList[0]);
         }
+
+        const shouldSkipParsing = Array.isArray(skipParsingKeys) && skipParsingKeys.length > 0
+            ? _.object(_.map(skipParsingKeys, k => [k, true]))
+            : null;
+
+        const finalizeAggregatedValue = (value, key) => {
+            if (typeof value === 'number') {
+                return value;
+            }
+
+            // Convert Set to Array and remove falsy values
+            const valuesArray = _.filter(Array.from(value));
+            const isObjectArray = _.any(valuesArray, v => v && typeof v === 'object');
+
+            if (valuesArray.length === 0) {
+                return undefined;
+            }
+            if (valuesArray.length === 1) {
+                return valuesArray[0];
+            }
+            if (shouldSkipParsing && shouldSkipParsing[key]) {
+                return valuesArray;
+            }
+            if (isObjectArray) {
+                // If values are objects, deduplicate using a custom identity function
+                const uniqById = _.uniq(valuesArray, false, object.itemUtil.atId);
+                return uniqById.length === 1 ? uniqById[0] : uniqById;
+            }
+            return valuesArray;
+        };
 
         // Initialize the aggregation object with null values
         const initial = _.object(keysToShow, _.map(keysToShow, _.constant(null)));
@@ -488,40 +575,14 @@ export class StackedBlockVisual extends React.PureComponent {
             return acc;
         }, initial);
 
-        // Convert skipParsingKeys array into a lookup object for quick access
-        const skipParsing = Array.isArray(skipParsingKeys)
-            ? _.object(_.map(skipParsingKeys, k => [k, true]))
-            : null;
-
         // Post-process non-numeric fields (which are Sets)
         _.each(_.keys(aggregated), function (key) {
             const value = aggregated[key];
-
-            if (typeof value === 'number') {
-                // Numeric fields are already aggregated
-                return;
-            }
-
-            // Convert Set to Array and remove falsy values
-            const valuesArray = _.filter(Array.from(value));
-            const isObjectArray = _.any(valuesArray, v => v && typeof v === 'object');
-
-            if (valuesArray.length === 0) {
-                // Remove empty fields
+            const finalized = finalizeAggregatedValue(value, key);
+            if (typeof finalized === 'undefined') {
                 delete aggregated[key];
-            } else if (valuesArray.length === 1) {
-                // Collapse single-value arrays to scalar value
-                aggregated[key] = valuesArray[0];
-            } else if (skipParsing && skipParsing[key]) {
-                // Keep multiple values as-is if skipParsing is enabled for this key
-                aggregated[key] = valuesArray;
-            } else if (isObjectArray) {
-                // If values are objects, deduplicate using a custom identity function
-                const uniqById = _.uniq(valuesArray, false, object.itemUtil.atId);
-                aggregated[key] = uniqById.length === 1 ? uniqById[0] : uniqById;
             } else {
-                // Otherwise, just assign the array of unique values
-                aggregated[key] = valuesArray;
+                aggregated[key] = finalized;
             }
         });
 
@@ -590,17 +651,179 @@ export class StackedBlockVisual extends React.PureComponent {
         this.setState({ "sorting": nextSort, "sortField": newSortField, "mounted": true });
     }
 
+    handleBlockMouseEnter = (columnIdx, rowIdx, rowKey, rowGroupKey) => {
+        const { openBlock } = this.state;
+        if (openBlock) return;
+        this.setState({ activeBlock: (columnIdx !== null || rowIdx !== null) ? { columnIdx, rowIdx, rowKey, rowGroupKey } : null });
+    };
+
+    handleBlockMouseLeave = () => {
+        this.setState({ activeBlock: null });
+    };
+
+    handleBlockClick = (columnIdx, rowIdx, rowKey, rowGroupKey) => {
+        const openBlock = (columnIdx !== null || rowIdx !== null) ? { columnIdx, rowIdx, rowKey, rowGroupKey } : null;
+        if (openBlock) {
+            setTimeout(() => {
+                this.setState({ openBlock: openBlock });
+            }, 100);
+        } else {
+            this.setState({ openBlock: null });
+        }
+    };
+
+    buildRowGroupsSummaryProps(ctx) {
+        const {
+            groupKey,
+            rowKeys,
+            columnKeys,
+            containerSectionStyle,
+            labelSectionStyle,
+            headerItemStyle,
+            columnWidth,
+            nestedData,
+            columnGrouping,
+            columnToRowsMappingFunc
+        } = ctx;
+        const { activeBlock, openBlock } = this.state;
+        const tmpData = _.flatten(_.flatten(_.map(_.pick(nestedData, (v, k) => rowKeys.indexOf(k) !== -1), _.values)));
+        const filteredGroupedDataIndices = _.groupBy(tmpData, columnGrouping);
+        const columnToRowsMapping = columnToRowsMappingFunc(tmpData);
+
+        return {
+            ...this.props,
+            activeBlock,
+            openBlock,
+            groupedDataIndices: filteredGroupedDataIndices,
+            label: groupKey !== FALLBACK_GROUP_NAME ? StackedBlockVisual.pluralize(groupKey) : groupKey,
+            labelSectionStyle,
+            columnKeys,
+            columnWidth,
+            headerItemStyle,
+            containerSectionStyle,
+            handleBlockClick: this.handleBlockClick,
+            handleBlockMouseEnter: this.handleBlockMouseEnter,
+            handleBlockMouseLeave: this.handleBlockMouseLeave,
+            rowGroupKey: groupKey,
+            columnToRowsMapping
+        };
+    }
+
+    renderRowGroups({
+        rowGroupsKeys,
+        leftAxisKeys,
+        nestedData,
+        nestedRowTotals,
+        groupedDataIndices,
+        columnsAndHeaderProps,
+        columnToRowsMappingFunc
+    }) {
+        const { rowGroups, showColumnSummary, showColumnGroups, columnGroups, columnGrouping } = this.props;
+        const { activeBlock, openBlock } = this.state;
+
+        // Resolve row keys for a group (including the fallback N/A group).
+        const getRowKeysForGroup = (groupKey, values) => {
+            if (groupKey === FALLBACK_GROUP_NAME) { //special case for N/A
+                const allValues = StackedBlockGroupedRow.mergeValues(rowGroups);
+                // not intersecting childRowsKeys and allValues
+                return StackedBlockGroupedRow.difference(leftAxisKeys, allValues);
+            }
+            return StackedBlockGroupedRow.intersection(leftAxisKeys, values || []);
+        };
+
+        // Order columns, applying column group ordering if present.
+        const getColumnKeys = () => {
+            const hasColumnGroups = showColumnGroups && columnGroups && _.keys(columnGroups).length > 0;
+            let columnKeys = _.keys(groupedDataIndices);
+            if (hasColumnGroups) {
+                columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, StackedBlockGroupedRow.mergeValues(columnGroups));
+            }
+            return columnKeys;
+        };
+
+        // Build per-section styling with optional spacing between groups.
+        const getContainerSectionStyle = (backgroundColor, textColor, groupKeyIdx) => {
+            const containerSectionStyle = { backgroundColor: backgroundColor, color: textColor };
+            if (showColumnSummary || groupKeyIdx > 0) {
+                containerSectionStyle['marginTop'] = 20;
+            }
+            return containerSectionStyle;
+        };
+
+        let outerIdx = -1;
+        return (
+            <React.Fragment>
+                {StackedBlockGroupedRow.columnsAndHeader(columnsAndHeaderProps)}
+                {
+                    _.map(rowGroupsKeys, (groupKey, groupKeyIdx) => {
+                        const { values, backgroundColor, textColor } = rowGroups[groupKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
+
+                        const rowKeys = getRowKeysForGroup(groupKey, values);
+                        const containerSectionStyle = getContainerSectionStyle(backgroundColor, textColor, groupKeyIdx);
+                        const labelSectionStyle = {};
+                        const columnKeys = getColumnKeys();
+                        const columnWidth = 44;
+                        const headerItemStyle = {};
+
+                        return _.map(rowKeys, (k, idx) => {
+                            let rowGroupsSummaryProps = null;
+                            if (idx === 0) {
+                                // Build a summary row for the first row in each group.
+                                rowGroupsSummaryProps = this.buildRowGroupsSummaryProps({
+                                    groupKey,
+                                    rowKeys,
+                                    columnKeys,
+                                    containerSectionStyle,
+                                    labelSectionStyle,
+                                    headerItemStyle,
+                                    columnWidth,
+                                    nestedData,
+                                    columnGrouping,
+                                    columnToRowsMappingFunc
+                                });
+                            }
+
+                            outerIdx++;
+                            return (
+                                <React.Fragment>
+                                    {/* Render the summary row once per group. */}
+                                    {idx === 0 && StackedBlockGroupedRow.rowGroupsSummary(rowGroupsSummaryProps)}
+                                    <StackedBlockGroupedRow
+                                        {...columnsAndHeaderProps}
+                                        data={nestedData[k]}
+                                        rowTotals={nestedRowTotals[k]}
+                                        key={k}
+                                        group={k}
+                                        depth={0}
+                                        index={outerIdx}
+                                        onSorterClick={this.handleSorterClick}
+                                        sorting={this.state.sorting}
+                                        sortField={this.state.sortField}
+                                        handleBlockMouseEnter={this.handleBlockMouseEnter}
+                                        handleBlockMouseLeave={this.handleBlockMouseLeave}
+                                        handleBlockClick={this.handleBlockClick}
+                                        activeBlock={activeBlock}
+                                        openBlock={openBlock}
+                                        popoverPrimaryTitle={groupKey}
+                                    />
+                                </React.Fragment>
+                            );
+                        });
+                    })
+                }
+            </React.Fragment>
+        );
+    }
+
     renderContents(){
         const { data : propData, rowTotals: propRowTotals, groupingProperties, columnGrouping, columnGroups, showColumnGroups, rowGroups, showRowGroups, showColumnSummary } = this.props;
         const { mounted, sorting, sortField, activeBlock, openBlock } = this.state;
         if (!mounted) return null;
         // prepare data
-        const tempData = [].concat(propData);
-        const data = extendListObjectsWithIndex(tempData);
+        const data = extendListObjectsWithIndex([].concat(propData));
         const nestedData = groupByMultiple(data, groupingProperties); // { 'Grant1' : { Lab1: { PI1: [...], PI2: [...] }, Lab2: {} } }
         // prepare row totals
-        const tempRowTotals = [].concat(propRowTotals);
-        const rowTotals = extendListObjectsWithIndex(tempRowTotals);
+        const rowTotals = extendListObjectsWithIndex([].concat(propRowTotals));
         const nestedRowTotals = groupByMultiple(rowTotals, groupingProperties); // { 'Grant1' : { Lab1: { PI1: [...], PI2: [...] }, Lab2: {} } }
 
         let groupedDataIndices = null;
@@ -612,44 +835,48 @@ export class StackedBlockVisual extends React.PureComponent {
             return null;
         }
 
-        let leftAxisKeys = _.keys(nestedData);
+        const sortLeftAxisKeys = (keys) => {
+            if (sorting !== 'both') {
+                //sort by counts
+                if (typeof sortField !== 'undefined') {
+                    const sortedKeys = [];
+                    _.map(keys, (k) =>
+                        sortedKeys.push(this.memoized.sortBlock(nestedData[k], groupedDataIndices, k, sortField))
+                    );
 
-        if (sorting !== 'both') {
-            //sort by counts
-            if (typeof sortField !== 'undefined') {
-                const sortedKeys = [];
-                _.map(leftAxisKeys, (k) =>
-                    sortedKeys.push(this.memoized.sortBlock(nestedData[k], groupedDataIndices, k, sortField))
-                );
+                    if (sorting === 'asc') {
+                        sortedKeys.sort((a, b) => a.count - b.count);
+                    } else if (sorting === 'desc') {
+                        sortedKeys.sort((a, b) => b.count - a.count);
+                    }
 
-                if (sorting === 'asc') {
-                    sortedKeys.sort((a, b) => a.count - b.count);
-                } else if (sorting === 'desc') {
-                    sortedKeys.sort((a, b) => b.count - a.count);
+                    //get sorted data keys
+                    return _.map(sortedKeys, (key) =>
+                        key['groupingKey']
+                    );
                 }
-
-                //get sorted data keys
-                leftAxisKeys = _.map(sortedKeys, (key) =>
-                    key['groupingKey']
-                );
-            } else { //sort by row labels
+                //sort by row labels
                 if (sorting === 'asc') {
-                    leftAxisKeys.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+                    return keys.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
                 } else if (sorting === 'desc') {
-                    leftAxisKeys.sort((a, b) => b.toLowerCase().localeCompare(a.toLowerCase()));
+                    return keys.sort((a, b) => b.toLowerCase().localeCompare(a.toLowerCase()));
                 }
+                return keys;
             }
-        } else {
-            leftAxisKeys = rowGroups ? StackedBlockGroupedRow.sortByArray(leftAxisKeys, StackedBlockGroupedRow.mergeValues(rowGroups)) : leftAxisKeys.sort();
-        }
+            return rowGroups ? StackedBlockGroupedRow.sortByArray(keys, StackedBlockGroupedRow.mergeValues(rowGroups)) : keys.sort();
+        };
+
+        const leftAxisKeys = sortLeftAxisKeys(_.keys(nestedData));
         const hasRowGroups = showRowGroups && rowGroups && _.keys(rowGroups).length > 0;
         const rowGroupsKeys = hasRowGroups ? [..._.keys(rowGroups), FALLBACK_GROUP_NAME] : null;
 
         // convert to { columnGrouping: [groupingProperties] }
-        const columnToRowsMappingFunc = function (data) {
+        // Example: rows=[{ assay:'WGS', donor:'D1' },{ assay:'WGS', donor:'D2' },{ assay:'RNA', donor:'D1' }]
+        // => { WGS:['D1','D2'], RNA:['D1'] }
+        const columnToRowsMappingFunc = function (rows) {
             const result = {};
 
-            data.forEach((item) => {
+            rows.forEach((item) => {
                 const column = item[columnGrouping];
                 const row = item[groupingProperties[0]];
 
@@ -665,6 +892,22 @@ export class StackedBlockVisual extends React.PureComponent {
             });
 
             return result;
+        };
+
+        const sharedRowProps = {
+            ...this.props,
+            groupedDataIndices,
+            parentState: this.state,
+            depth: 0,
+            toggleGroupingOpen: this.toggleGroupingOpen,
+            onSorterClick: this.handleSorterClick,
+            sorting,
+            sortField,
+            handleBlockMouseEnter: this.handleBlockMouseEnter,
+            handleBlockMouseLeave: this.handleBlockMouseLeave,
+            handleBlockClick: this.handleBlockClick,
+            activeBlock,
+            openBlock
         };
 
         const columnsAndHeaderProps = {
@@ -688,92 +931,32 @@ export class StackedBlockVisual extends React.PureComponent {
         }
 
         if (rowGroupsKeys) {
-            let outerIdx = -1;
-            return (
-                <React.Fragment>
-                    {StackedBlockGroupedRow.columnsAndHeader(columnsAndHeaderProps)}
-                    {
-                        _.map(rowGroupsKeys, (groupKey, groupKeyIdx) => {
-                            const { values, backgroundColor, textColor } = rowGroups[groupKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
-
-                            let rowKeys = [];
-                            if (groupKey === FALLBACK_GROUP_NAME) { //special case for N/A
-                                const allValues = StackedBlockGroupedRow.mergeValues(rowGroups);
-                                // not intersecting childRowsKeys and allValues
-                                rowKeys = StackedBlockGroupedRow.difference(leftAxisKeys, allValues);
-                            } else {
-                                rowKeys = StackedBlockGroupedRow.intersection(leftAxisKeys, values || []);
-                            }
-
-                            const containerSectionStyle = { backgroundColor: backgroundColor, color: textColor };
-                            if (showColumnSummary || groupKeyIdx > 0) {
-                                containerSectionStyle['marginTop'] = 20;
-                            }
-                            const labelSectionStyle = {};
-                            const hasColumnGroups = showColumnGroups && columnGroups && _.keys(columnGroups).length > 0;
-                            let columnKeys = _.keys(groupedDataIndices);
-                            if (hasColumnGroups) {
-                                columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, StackedBlockGroupedRow.mergeValues(columnGroups));
-                            }
-                            const columnWidth = 44;
-                            const headerItemStyle = {};
-
-                            return _.map(rowKeys, (k, idx) => {
-                                let rowGroupsSummaryProps = null;
-                                if (idx === 0) {
-                                    const tmpData = _.flatten(_.flatten(_.map(_.pick(nestedData, (v, k) => rowKeys.indexOf(k) !== -1), _.values)));
-                                    const filteredGroupedDataIndices = _.groupBy(tmpData, columnGrouping);
-
-                                    const columnToRowsMapping = columnToRowsMappingFunc(tmpData);
-
-                                    rowGroupsSummaryProps = {
-                                        ...this.props,
-                                        activeBlock,
-                                        openBlock,
-                                        groupedDataIndices: filteredGroupedDataIndices,
-                                        label: groupKey !== FALLBACK_GROUP_NAME ? StackedBlockVisual.pluralize(groupKey) : groupKey,
-                                        labelSectionStyle,
-                                        columnKeys,
-                                        columnWidth,
-                                        headerItemStyle,
-                                        containerSectionStyle,
-                                        handleBlockClick: this.handleBlockClick,
-                                        handleBlockMouseEnter: this.handleBlockMouseEnter,
-                                        handleBlockMouseLeave: this.handleBlockMouseLeave,
-                                        rowGroupKey: groupKey,
-                                        columnToRowsMapping
-                                    };
-                                }
-
-                                outerIdx++;
-                                return (
-                                    <React.Fragment>
-                                        {idx === 0 && StackedBlockGroupedRow.rowGroupsSummary(rowGroupsSummaryProps)}
-                                        <StackedBlockGroupedRow {...this.props} groupedDataIndices={groupedDataIndices} parentState={this.state}
-                                            data={nestedData[k]} rowTotals={nestedRowTotals[k]}
-                                            key={k} group={k} depth={0} index={outerIdx} toggleGroupingOpen={this.toggleGroupingOpen}
-                                            onSorterClick={this.handleSorterClick} sorting={sorting} sortField={sortField}
-                                            handleBlockMouseEnter={this.handleBlockMouseEnter} handleBlockMouseLeave={this.handleBlockMouseLeave} handleBlockClick={this.handleBlockClick}
-                                            activeBlock={activeBlock} openBlock={openBlock} popoverPrimaryTitle={groupKey} />
-                                    </React.Fragment>
-                                );
-                            });
-                        })
-                    }
-                </React.Fragment>
-            );
+            return this.renderRowGroups({
+                rowGroupsKeys,
+                leftAxisKeys,
+                nestedData,
+                nestedRowTotals,
+                groupedDataIndices,
+                columnsAndHeaderProps: {
+                    ...columnsAndHeaderProps,
+                    ...sharedRowProps
+                },
+                columnToRowsMappingFunc
+            });
         } else {
             return (
                 <React.Fragment>
                     {StackedBlockGroupedRow.columnsAndHeader(columnsAndHeaderProps)}
                     {
                         _.map(leftAxisKeys, (k, idx) =>
-                            <StackedBlockGroupedRow {...this.props} groupedDataIndices={groupedDataIndices} parentState={this.state}
-                                data={nestedData[k]} rowTotals={nestedRowTotals[k]}
-                                key={k} group={k} depth={0} index={idx} toggleGroupingOpen={this.toggleGroupingOpen}
-                                onSorterClick={this.handleSorterClick} sorting={sorting} sortField={sortField}
-                                handleBlockMouseEnter={this.handleBlockMouseEnter} handleBlockMouseLeave={this.handleBlockMouseLeave} handleBlockClick={this.handleBlockClick}
-                                activeBlock={activeBlock} openBlock={openBlock} />
+                            <StackedBlockGroupedRow 
+                                {...sharedRowProps}
+                                data={nestedData[k]}
+                                rowTotals={nestedRowTotals[k]}
+                                key={k}
+                                group={k}
+                                index={idx}
+                            />
                         )
                     }
                 </React.Fragment>
@@ -781,27 +964,6 @@ export class StackedBlockVisual extends React.PureComponent {
         }
 
     }
-
-    handleBlockMouseEnter = (columnIdx, rowIdx, rowKey, rowGroupKey) => {
-        const { openBlock } = this.state;
-        if (openBlock) return;
-        this.setState({ activeBlock: (columnIdx !== null || rowIdx !== null) ? { columnIdx, rowIdx, rowKey, rowGroupKey } : null });
-    };
-
-    handleBlockMouseLeave = () => {
-        this.setState({ activeBlock: null });
-    };
-
-    handleBlockClick = (columnIdx, rowIdx, rowKey, rowGroupKey) => {
-        const openBlock = (columnIdx !== null || rowIdx !== null) ? { columnIdx, rowIdx, rowKey, rowGroupKey } : null;
-        if (openBlock) {
-            setTimeout(() => {
-                this.setState({ openBlock: openBlock });
-            }, 100);
-        } else {
-            this.setState({ openBlock: null });
-        }
-    };
 
     render() {
         const { openBlock, activeBlock } = this.state;
@@ -822,6 +984,8 @@ export class StackedBlockVisual extends React.PureComponent {
 
 }
 
+// StackedBlockGroupedRow renders a single grouped row (and its nested children) inside the matrix.
+// Example: <StackedBlockGroupedRow data={nestedRow} rowTotals={nestedTotals} group="Donor A" depth={0} />
 export class StackedBlockGroupedRow extends React.PureComponent {
 
     static flattenChildBlocks(groups){
@@ -884,7 +1048,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
     static mergeValues = memoize(function (obj) {
         const merged = [];
         Object.keys(obj).forEach((tier) => {
-            merged.push(...obj[tier].values);
+            if (obj[tier] && Array.isArray(obj[tier].values)) {
+                merged.push(...obj[tier].values);
+            }
         });
         return merged;
     });
@@ -910,9 +1076,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
     /** @todo Convert to functional memoized React component */
     static collapsedChildBlocks = memoize(function(data, rowTotals, props){
 
-        var allChildBlocksPerChildGroup = null; // Forgot what this was -- seems to be null in /joint-analysis at least
-        let allChildBlocks = Array.isArray(data) ? data : StackedBlockGroupedRow.flattenChildBlocks(data);
-        let rowTotalChildBlocks = Array.isArray(rowTotals) ? rowTotals : StackedBlockGroupedRow.flattenChildBlocks(rowTotals);
+        const allChildBlocksPerChildGroup = null; // Forgot what this was -- seems to be null in /joint-analysis at least
+        const allChildBlocks = Array.isArray(data) ? data : StackedBlockGroupedRow.flattenChildBlocks(data);
+        const rowTotalChildBlocks = Array.isArray(rowTotals) ? rowTotals : StackedBlockGroupedRow.flattenChildBlocks(rowTotals);
 
         // currently not in use
         // if (typeof props.columnSubGrouping !== 'string' && !Array.isArray(data)) {
@@ -935,11 +1101,23 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             'paddingTop'    : props.blockVerticalSpacing
         };
         const groupedDataIndicesPairs = (props.groupedDataIndices && _.pairs(props.groupedDataIndices)) || [];
+        const hasColumns = groupedDataIndicesPairs.length > 0;
         let inner = null;
-        let blocksByColumnGroup;
-        let columnKeys;
 
-        if (groupedDataIndicesPairs.length > 0){
+        const getBlocksForColumnGroup = (listOfObjectsForGroup) => {
+            const listOfIndicesForGroup = _.pluck(listOfObjectsForGroup, 'index');
+            return _.filter(allChildBlocks, (blockData) => listOfIndicesForGroup.indexOf(blockData.index) > -1);
+        };
+
+        const sortColumnKeys = (keys) => {
+            if (props.columnGroups && _.keys(props.columnGroups).length > 0){
+                // We need to sort the column keys by the order of the column groups.
+                return StackedBlockGroupedRow.sortByArray(keys, StackedBlockGroupedRow.mergeValues(props.columnGroups));
+            }
+            return keys;
+        };
+
+        if (hasColumns){
             // If columns exist, distribute these blocks by column!
             // Otherwise (else statement @ end) we'll probably just stack em left-to-right.
 
@@ -979,24 +1157,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                 // });
 
             } else {
-                blocksByColumnGroup = _.object(_.map(groupedDataIndicesPairs, function([ columnKey, listOfObjectsForGroup ]){
-                    const listOfIndicesForGroup = _.pluck(listOfObjectsForGroup, 'index');
-                    return [
-                        columnKey,
-                        _.filter(_.map(allChildBlocks, function(blockData){
-                            if (listOfIndicesForGroup.indexOf(blockData.index) > -1){
-                                return blockData;
-                            } else {
-                                return null;
-                            }
-                        }), function(block){ return block !== null; })];
+                const blocksByColumnGroup = _.object(_.map(groupedDataIndicesPairs, function([ columnKey, listOfObjectsForGroup ]){
+                    return [ columnKey, getBlocksForColumnGroup(listOfObjectsForGroup) ];
                 }));
 
-                columnKeys = _.keys(blocksByColumnGroup);
-                if (props.columnGroups && _.keys(props.columnGroups).length > 0){
-                    // We need to sort the column keys by the order of the column groups.
-                    columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, StackedBlockGroupedRow.mergeValues(props.columnGroups));
-                }
+                const columnKeys = sortColumnKeys(_.keys(blocksByColumnGroup));
 
                 inner = _.map(columnKeys, function(k, colIdx){
                     var blocksForGroup = blocksByColumnGroup[k];
@@ -1070,6 +1235,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         });
     }
 
+    /**
+     * renders the column headers and axis labels
+     * @param {*} props 
+     * @returns 
+     */
     static columnsAndHeader(props) {
         const {
             blockWidth, blockHeight, blockHorizontalSpacing, blockVerticalSpacing, blockHorizontalExtend, headerPadding,
@@ -1078,24 +1248,30 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary
         } = props;
 
-        const hasColumnGroups = showColumnGroups && columnGroups && _.keys(columnGroups).length > 0;
-        const hasColumnGroupsExtended = showColumnGroupsExtended && columnGroupsExtended && _.keys(columnGroupsExtended).length > 0;
-
-        const columnGroupsKeys = hasColumnGroups ? [..._.keys(columnGroups), FALLBACK_GROUP_NAME] : null;
-
         const rowHeight = blockHeight + (blockVerticalSpacing * 2) + 1;
         const columnWidth = (blockWidth + (blockHorizontalSpacing * 2)) + blockHorizontalExtend;
         const headerItemStyle = { 'width': columnWidth, 'minWidth': columnWidth };
         const sorterActiveStyle = _.extend({}, headerItemStyle);
 
+        const hasColumnGroups = showColumnGroups && columnGroups && _.keys(columnGroups).length > 0;
+        const hasColumnGroupsExtended = showColumnGroupsExtended && columnGroupsExtended && _.keys(columnGroupsExtended).length > 0;
+        const columnGroupsKeys = hasColumnGroups ? [..._.keys(columnGroups), FALLBACK_GROUP_NAME] : null;
+
         const extPadding = 60 + (hasColumnGroups ? 26 : 0) + (hasColumnGroupsExtended ? 30 : 0);
         const labelSectionStyle = { 'paddingTop': Math.max(0, headerPadding + extPadding - rowHeight) };
         const listSectionStyle = { 'paddingTop': headerPadding };
 
-        let columnKeys = _.keys(groupedDataIndices);
-        if (hasColumnGroups) {
-            columnKeys = StackedBlockGroupedRow.sortByArray(columnKeys, StackedBlockGroupedRow.mergeValues(columnGroups));
-        }
+        const getColumnKeys = () => {
+            let keys = _.keys(groupedDataIndices);
+            if (hasColumnGroups) {
+                keys = StackedBlockGroupedRow.sortByArray(
+                    keys,
+                    StackedBlockGroupedRow.mergeValues(columnGroups)
+                );
+            }
+            return keys;
+        };
+        const columnKeys = getColumnKeys();
         //currently not in use
         // const totalColumnHeader = (
         //     <div
@@ -1116,127 +1292,150 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             headerItemStyle,
         };
 
+        const renderAxisLabels = () => {
+            if (!showAxisLabels) return null;
+            return (
+                <div className="axis-container flex-grow-1">
+                    <div className="x-axis">{xAxisLabel || 'X'}</div>
+                    <div className="y-axis">{yAxisLabel || 'Y'}</div>
+                </div>
+            );
+        };
+
+        const renderColumnHeaders = () => (
+            <div className="d-flex header-col-text">
+                {columnKeys.map(function (columnKey, colIndex) {
+                    const hasOpenBlock = openBlock?.columnIdx === colIndex;
+                    const hasActiveBlock = activeBlock?.columnIdx === colIndex;
+                    const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
+                    return (
+                        <div key={'col-' + columnKey} className={className} style={headerItemStyle}>
+                            <div className="inner">
+                                <span>{columnKey}</span>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+
+        const renderColumnGroupHeaders = () => {
+            if (!hasColumnGroups) return null;
+            return (
+                <div className="d-flex header-group-text">
+                    {
+                        columnGroupsKeys.map(function (groupKey) {
+                            const { values, backgroundColor, textColor } = columnGroups[groupKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
+
+                            let columnGroupChilColumnKeys = [];
+                            if (groupKey === FALLBACK_GROUP_NAME) { //special case for N/A
+                                const allValues = StackedBlockGroupedRow.mergeValues(columnGroups);
+                                // not intersecting childRowsKeys and allValues
+                                columnGroupChilColumnKeys = StackedBlockGroupedRow.difference(columnKeys, allValues);
+                            } else {
+                                columnGroupChilColumnKeys = StackedBlockGroupedRow.intersection(columnKeys, values || []);
+                            }
+
+                            const colSpan = columnGroupChilColumnKeys.length;
+                            if (colSpan === 0) {
+                                return null;
+                            }
+                            const groupColumnWidth = colSpan * columnWidth;
+                            const groupHeaderItemStyle = {
+                                width: groupColumnWidth,
+                                minWidth: groupColumnWidth
+                            };
+                            groupHeaderItemStyle.backgroundColor = backgroundColor;
+                            groupHeaderItemStyle.color = textColor;
+                            const label = (groupKey.length > (colSpan * 4)) && columnGroups[groupKey].shortName ? columnGroups[groupKey].shortName : groupKey;
+
+                            return (
+                                <div key={'col-' + groupKey} className={'column-group-header'} style={groupHeaderItemStyle}>
+                                    <div className="inner">
+                                        <span data-tip={groupKey !== label ? groupKey : null}>{label}</span>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    }
+                    {/* {totalColumnHeader} */}
+                </div>
+            );
+        };
+
+        const renderExtendedColumnGroupHeaders = () => {
+            if (!hasColumnGroupsExtended) return null;
+            return (
+                <div className="d-flex header-group-text">
+                    {
+                        _.keys(columnGroupsExtended).map(function (groupExtendedKey) {
+                            const colCount = _.reduce(columnGroupsExtended[groupExtendedKey].values, function (memo, groupKey) {
+                                const count = StackedBlockGroupedRow.intersection(columnKeys, columnGroups[groupKey]?.values || []).length;
+                                return memo + count;
+                            }, 0);
+
+                            if (colCount === 0) return null;
+
+                            const groupColumnWidth = colCount * columnWidth;
+                            const groupHeaderItemStyle = {
+                                width: groupColumnWidth,
+                                minWidth: groupColumnWidth
+                            };
+                            groupHeaderItemStyle.backgroundColor = columnGroupsExtended[groupExtendedKey].backgroundColor;
+                            groupHeaderItemStyle.color = columnGroupsExtended[groupExtendedKey].textColor;
+
+                            return (
+                                <div key={'col-' + groupExtendedKey} className={'column-group-header'} style={groupHeaderItemStyle}>
+                                    <div className="inner">
+                                        <span>{groupExtendedKey}</span>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    }
+                </div>
+            );
+        };
+
+        const renderSortingHeaders = () => (
+            <div className="d-flex header-sorting">
+                {columnKeys.map(function (columnKey, colIndex) {
+                    //sort order icons
+                    let countSortIcon;
+                    if ((sorting === 'desc') && (columnKey === sortField)) {
+                        countSortIcon = <SortIconDesc />;
+                    } else if ((sorting === 'asc') && (columnKey === sortField)) {
+                        countSortIcon = <SortIconAsc />;
+                    } else {
+                        countSortIcon = <SortIconBoth />;
+                    }
+                    const countSortIconClassName = 'column-sort-icon' + (['asc', 'desc'].indexOf(sorting) > -1 && columnKey === sortField ? ' active' : '');
+                    const extraClassName = (activeBlock?.column === colIndex ? ' active-block-column' : '');
+                    const style = (activeBlock?.column === colIndex) ? sorterActiveStyle : headerItemStyle;
+                    return (
+                        <div key={'col-' + columnKey} className={'column-group-header' + extraClassName} style={style}>
+                            <div data-index={columnKey} onClick={onSorterClick}>
+                                <span className={countSortIconClassName}>{countSortIcon}</span>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+
         return (
             <React.Fragment>
                 <div className="grouping header-section-upper">
                     <div className="row grouping-row">
                         <div className="label-section d-flex flex-column" style={labelSectionStyle}>
-                            {showAxisLabels &&
-                                <div className="axis-container flex-grow-1">
-                                    <div className="x-axis">{xAxisLabel || 'X'}</div>
-                                    <div className="y-axis">{yAxisLabel || 'Y'}</div>
-                                </div>
-                            }
+                            {renderAxisLabels()}
                         </div>
                         {columnKeys.length > 0 && (
                             <div className="col list-section has-header header-for-viz" style={listSectionStyle}>
-                                <div className="d-flex header-col-text">
-                                    {columnKeys.map(function (columnKey, colIndex) {
-                                        const hasOpenBlock = openBlock?.columnIdx === colIndex;
-                                        const hasActiveBlock = activeBlock?.columnIdx === colIndex;
-                                        const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
-                                        return (
-                                            <div key={'col-' + columnKey} className={className} style={headerItemStyle}>
-                                                <div className="inner">
-                                                    <span>{columnKey}</span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                                {hasColumnGroups &&
-                                    <div className="d-flex header-group-text">
-                                        {
-                                            columnGroupsKeys.map(function (groupKey) {
-                                                const { values, backgroundColor, textColor } = columnGroups[groupKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
-
-                                                let columnGroupChilColumnKeys = [];
-                                                if (groupKey === FALLBACK_GROUP_NAME) { //special case for N/A
-                                                    const allValues = StackedBlockGroupedRow.mergeValues(columnGroups);
-                                                    // not intersecting childRowsKeys and allValues
-                                                    columnGroupChilColumnKeys = StackedBlockGroupedRow.difference(columnKeys, allValues);
-                                                } else {
-                                                    columnGroupChilColumnKeys = StackedBlockGroupedRow.intersection(columnKeys, values || []);
-                                                }
-
-                                                const colSpan = columnGroupChilColumnKeys.length;
-                                                if (colSpan === 0) {
-                                                    return null;
-                                                }
-                                                const groupColumnWidth = colSpan * columnWidth;
-                                                const groupHeaderItemStyle = {
-                                                    width: groupColumnWidth,
-                                                    minWidth: groupColumnWidth
-                                                };
-                                                groupHeaderItemStyle.backgroundColor = backgroundColor;
-                                                groupHeaderItemStyle.color = textColor;
-                                                const label = (groupKey.length > (colSpan * 4)) && columnGroups[groupKey].shortName ? columnGroups[groupKey].shortName : groupKey;
-
-                                                return (
-                                                    <div key={'col-' + groupKey} className={'column-group-header'} style={groupHeaderItemStyle}>
-                                                        <div className="inner">
-                                                            <span data-tip={groupKey !== label ? groupKey : null}>{label}</span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })
-                                        }
-                                        {/* {totalColumnHeader} */}
-                                    </div>
-                                }
-                                {hasColumnGroupsExtended &&
-                                    <div className="d-flex header-group-text">
-                                        {
-                                            _.keys(columnGroupsExtended).map(function (groupExtendedKey) {
-                                                const colCount = _.reduce(columnGroupsExtended[groupExtendedKey].values, function (memo, groupKey) {
-                                                    const count = StackedBlockGroupedRow.intersection(columnKeys, columnGroups[groupKey]?.values || []).length;
-                                                    return memo + count;
-                                                }, 0);
-
-                                                if (colCount === 0) return null;
-
-                                                const groupColumnWidth = colCount * columnWidth;
-                                                const groupHeaderItemStyle = {
-                                                    width: groupColumnWidth,
-                                                    minWidth: groupColumnWidth
-                                                };
-                                                groupHeaderItemStyle.backgroundColor = columnGroupsExtended[groupExtendedKey].backgroundColor;
-                                                groupHeaderItemStyle.color = columnGroupsExtended[groupExtendedKey].textColor;
-
-                                                return (
-                                                    <div key={'col-' + groupExtendedKey} className={'column-group-header'} style={groupHeaderItemStyle}>
-                                                        <div className="inner">
-                                                            <span>{groupExtendedKey}</span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })
-                                        }
-                                    </div>
-                                }
-                                <div className="d-flex header-sorting">
-                                    {columnKeys.map(function (columnKey, colIndex) {
-                                        //sort order icons
-                                        let countSortIcon;
-                                        if ((sorting === 'desc') && (columnKey === sortField)) {
-                                            countSortIcon = <SortIconDesc />;
-                                        } else if ((sorting === 'asc') && (columnKey === sortField)) {
-                                            countSortIcon = <SortIconAsc />;
-                                        } else {
-                                            countSortIcon = <SortIconBoth />;
-                                        }
-                                        const countSortIconClassName = 'column-sort-icon' + (['asc', 'desc'].indexOf(sorting) > -1 && columnKey === sortField ? ' active' : '');
-                                        const extraClassName = (activeBlock?.column === colIndex ? ' active-block-column' : '');
-                                        const style = (activeBlock?.column === colIndex) ? sorterActiveStyle : headerItemStyle;
-                                        return (
-                                            <div key={'col-' + columnKey} className={'column-group-header' + extraClassName} style={style}>
-                                                <div data-index={columnKey} onClick={onSorterClick}>
-                                                    <span className={countSortIconClassName}>{countSortIcon}</span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                {renderColumnHeaders()}
+                                {renderColumnGroupHeaders()}
+                                {renderExtendedColumnGroupHeaders()}
+                                {renderSortingHeaders()}
                             </div>
                         )}
                     </div>
@@ -1246,7 +1445,44 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         );
     }
 
+    // renders the row group summary section
     static rowGroupsSummary({ label, labelSectionStyle, columnKeys, columnWidth, headerItemStyle, containerSectionStyle, ...props } ) {
+        const getColumnSummaryData = (columnKey) => {
+            const result = [];
+            const values = props.groupedDataIndices[columnKey] || [];
+            values.forEach((val) => result.push(val));
+            return result;
+        };
+
+        const getSummaryBlockStyle = () => ({
+            'width': columnWidth, // Width for each column
+            'minWidth': columnWidth,
+            'minHeight': props.blockHeight + props.blockVerticalSpacing, // Height for each row
+            'paddingLeft': props.blockHorizontalSpacing,
+            'paddingRight': props.blockHorizontalSpacing,
+            'paddingTop': props.blockVerticalSpacing
+        });
+
+        const renderSummaryBlocks = () => (
+            <div className="blocks-container d-flex header-summary">
+                {columnKeys.map(function (columnKey, colIndex) {
+                    const columnTotal = props.groupedDataIndices[columnKey]?.length || 0;
+                    const columnSummaryData = getColumnSummaryData(columnKey);
+                    const hasOpenBlock = props.openBlock?.columnIdx === colIndex;
+                    const hasActiveBlock = props.activeBlock?.columnIdx === colIndex;
+                    const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
+                    return (
+                        <div key={'col-summary-' + columnKey} className={className} style={headerItemStyle}>
+                            <div className="block-container-group" style={getSummaryBlockStyle()}
+                                key={'summary'} data-block-count={columnTotal} data-group-key={columnKey}>
+                                <Block {..._.omit(props, 'group')} key={colIndex} data={columnSummaryData} colIndex={colIndex} blockType="col-summary" popoverPrimaryTitle={props.rowGroupKey} />
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+
         return (
             <div className="grouping header-section-lower" style={containerSectionStyle}>
                 <div className="row grouping-row">
@@ -1257,44 +1493,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         </div>
                     </div>
                     <div className="col list-section has-header header-for-viz">
-                        <div className="blocks-container d-flex header-summary">
-                            {columnKeys.map(function (columnKey, colIndex) {
-                                const columnTotal = props.groupedDataIndices[columnKey]?.length || 0;
-                                const style = {
-                                    'width': columnWidth, // Width for each column
-                                    'minWidth': columnWidth,
-                                    'minHeight': props.blockHeight + props.blockVerticalSpacing, // Height for each row
-                                    'paddingLeft': props.blockHorizontalSpacing,
-                                    'paddingRight': props.blockHorizontalSpacing,
-                                    'paddingTop': props.blockVerticalSpacing
-                                };
-
-                                // converts {"Fiber-Seq": [1475, 1476], "Kinnex": [1506, 1507]} to [{ "Fiber-Seq": 1475 }, { "Fiber-Seq": 1476 }, { "Kinnex": 1506 }, { "Kinnex": 1507 }];
-                                const toColumnSummaryData = (inputObj, keyField) => {
-                                    const result = [];
-
-                                    for (const [key, values] of Object.entries(inputObj)) {
-                                        values.forEach((val) => {
-                                            result.push(val);
-                                        });
-                                    }
-
-                                    return result;
-                                };
-                                const columnSummaryData = toColumnSummaryData(_.pick(props.groupedDataIndices, columnKey), props.columnGrouping);
-                                const hasOpenBlock = props.openBlock?.columnIdx === colIndex;
-                                const hasActiveBlock = props.activeBlock?.columnIdx === colIndex;
-                                const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
-                                return (
-                                    <div key={'col-summary-' + columnKey} className={className} style={headerItemStyle}>
-                                        <div className="block-container-group" style={style}
-                                            key={'summary'} data-block-count={columnTotal} data-group-key={columnKey}>
-                                            <Block {..._.omit(props, 'group')} key={colIndex} data={columnSummaryData} colIndex={colIndex} blockType="col-summary" popoverPrimaryTitle={props.rowGroupKey} />
-                                        </div>
-                                    </div>
-                                );
-                            }, this)}
-                        </div>
+                        {renderSummaryBlocks()}
                     </div>
                 </div>
             </div>
@@ -1309,30 +1508,48 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             rowGroupsExtended, showRowGroupsExtended } = this.props;
         const { open: stateOpen } = this.state;
 
-        let groupingPropertyTitle = null;
-        if (Array.isArray(groupingProperties) && groupingProperties[depth]){
-            groupingPropertyTitle = titleMap[groupingProperties[depth]] || groupingProperties[depth];
-        }
+        const getGroupingPropertyTitle = () => {
+            if (!Array.isArray(groupingProperties) || !groupingProperties[depth]) return null;
+            return titleMap[groupingProperties[depth]] || groupingProperties[depth];
+        };
 
-        const childRowsKeys = !Array.isArray(data) ? _.keys(data)/*.sort()*/ : null;
-        const hasIdentifiableChildren = !checkCollapsibility ? true : (depth + 2 >= groupingProperties.length) && childRowsKeys && childRowsKeys.length > 0 && !(childRowsKeys.length === 1 && childRowsKeys[0] === 'No value');
+        const getChildRowsKeys = () => (!Array.isArray(data) ? _.keys(data).sort() : null);
+        const getHasIdentifiableChildren = (childRowsKeys) => {
+            if (!checkCollapsibility) return true;
+            return (depth + 2 >= groupingProperties.length) &&
+                childRowsKeys && childRowsKeys.length > 0 &&
+                !(childRowsKeys.length === 1 && childRowsKeys[0] === 'No value');
+        };
 
-        let open = stateOpen;
-        if (open && !hasIdentifiableChildren) {
-            open = false;
-        }
+        const childRowsKeys = getChildRowsKeys();
+        const hasIdentifiableChildren = getHasIdentifiableChildren(childRowsKeys);
+        const open = stateOpen && hasIdentifiableChildren;
 
-        let className = "grouping depth-" + depth + (open ? ' open' : '') + (' row-index-' + index) + (!showGroupingPropertyTitles ? ' no-grouping-property-titles' : '');
-        let toggleIcon = null;
+        const getToggleIcon = () => {
+            if (!Array.isArray(data) && data && hasIdentifiableChildren) {
+                return (
+                    <i
+                        className={"clickable icon fas icon-fw icon-" + (open ? 'minus' : 'plus')}
+                        onClick={this.toggleOpen}
+                    />
+                );
+            }
+            return <i className="icon icon-fw" />;
+        };
 
-        if (!Array.isArray(data) && data && hasIdentifiableChildren){
-            toggleIcon = <i className={"clickable icon fas icon-fw icon-" + (open ? 'minus' : 'plus')} onClick={this.toggleOpen} />;
-            className += ' may-collapse';
-        } else { // ?
-            toggleIcon = <i className="icon icon-fw" />;
-        }
+        const baseClassName = "grouping depth-" + depth + (open ? ' open' : '') + (' row-index-' + index);
+        const className = baseClassName +
+            (!showGroupingPropertyTitles ? ' no-grouping-property-titles' : '') +
+            ((!Array.isArray(data) && data && hasIdentifiableChildren) ? ' may-collapse' : '');
+
         const hasRowGroupsExtended = showRowGroupsExtended && rowGroupsExtended && _.keys(rowGroupsExtended).length > 0;
         const rowGroupsExtendedKeys = hasRowGroupsExtended ? [..._.keys(rowGroupsExtended), FALLBACK_GROUP_NAME] : null;
+        const rowGroupsExtendedByLowerKey = hasRowGroupsExtended ? _.reduce(_.keys(rowGroupsExtended), (memo, k) => {
+            const lk = k.toLowerCase();
+            if (memo[lk] == null) memo[lk] = k;
+            return memo;
+        }, {}) : null;
+        const fallbackGroupNameLower = FALLBACK_GROUP_NAME.toLowerCase();
 
         const rowHeight = blockHeight + (blockVerticalSpacing * 2) + 1;
         const childBlocks = !open ? StackedBlockGroupedRow.collapsedChildBlocks(data, rowTotals, this.props) : (
@@ -1342,6 +1559,60 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const hasOpenBlock = openBlock?.rowIdx === index && openBlock?.rowKey === group;
         const hasActiveBlock = activeBlock?.rowIdx === index && activeBlock?.rowKey === group;
         const labelContainerClassName = 'label-container' + (hasOpenBlock ? ' open-block-row' : '') + (hasActiveBlock ? ' active-block-row' : '');
+        const groupingPropertyTitle = getGroupingPropertyTitle();
+        const toggleIcon = getToggleIcon();
+
+        const renderRowGroupsExtended = () => (
+            _.map(rowGroupsExtendedKeys, function (rgKey, idx) {
+                const rgKeyLower = typeof rgKey === 'string' ? rgKey.toLowerCase() : rgKey;
+                const isFallback = typeof rgKey === 'string' && rgKeyLower === fallbackGroupNameLower;
+                const resolvedRgKey = (!isFallback && rowGroupsExtendedByLowerKey && typeof rgKey === 'string')
+                    ? (rowGroupsExtendedByLowerKey[rgKeyLower] || rgKey)
+                    : rgKey;
+                const displayKey = isFallback ? FALLBACK_GROUP_NAME : resolvedRgKey;
+                const { values, backgroundColor, textColor } = (!isFallback && rowGroupsExtended[resolvedRgKey])
+                    ? rowGroupsExtended[resolvedRgKey]
+                    : { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
+
+                let rowGroupChildRowsKeys;
+                if (isFallback) { //special case for N/A
+                    const allValues = StackedBlockGroupedRow.mergeValues(rowGroupsExtended);
+                    // not intersecting childRowsKeys and allValues
+                    rowGroupChildRowsKeys = StackedBlockGroupedRow.difference(childRowsKeys, allValues);
+                } else {
+                    rowGroupChildRowsKeys = StackedBlockGroupedRow.intersection(childRowsKeys, values);
+                }
+                const rowSpan = rowGroupChildRowsKeys.length;
+
+                if (rowSpan === 0) return null;
+
+                const label = (displayKey.length > (rowSpan * 4)) && rowGroupsExtended[resolvedRgKey]?.shortName
+                    ? rowGroupsExtended[resolvedRgKey].shortName
+                    : displayKey;
+                return (
+                    <div className="vertical-container">
+                        <div className="vertical-container-label" style={{ backgroundColor, color: textColor, height: rowHeight * rowSpan }}>
+                            <span data-tip={displayKey !== label ? displayKey : null}>{label}</span>
+                        </div>
+                        <div className="vertical-container-rows">
+                            {
+                                _.map(rowGroupChildRowsKeys, (k) =>
+                                    <StackedBlockGroupedRow {...this.props} data={data[k]} key={k} group={k} depth={depth + 1} />
+                                )
+                            }
+                        </div>
+                    </div>
+                );
+            }, this)
+        );
+
+        const renderChildRows = () => (
+            <div className="child-blocks">
+                {open && childRowsKeys && _.map(childRowsKeys, (k) =>
+                    <StackedBlockGroupedRow {...this.props} data={data[k]} key={k} group={k} depth={depth + 1} />
+                )}
+            </div>
+        );
         return (
             <React.Fragment>
                 <div className={className} data-max-blocks-vertical={maxBlocksInRow}>
@@ -1366,44 +1637,10 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
                     <div className="child-blocks">
                         {open && childRowsKeys && hasRowGroupsExtended &&
-                            _.map(rowGroupsExtendedKeys, function (rgKey, idx) {
-                                const { values, backgroundColor, textColor } = rowGroupsExtended[rgKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
-
-                                let rowGroupChildRowsKeys;
-                                if (rgKey === FALLBACK_GROUP_NAME) { //special case for N/A
-                                    const allValues = StackedBlockGroupedRow.mergeValues(rowGroupsExtended);
-                                    // not intersecting childRowsKeys and allValues
-                                    rowGroupChildRowsKeys = StackedBlockGroupedRow.difference(childRowsKeys, allValues);
-                                } else {
-                                    rowGroupChildRowsKeys = StackedBlockGroupedRow.intersection(childRowsKeys, values);
-                                }
-                                const rowSpan = rowGroupChildRowsKeys.length;
-
-                                if (rowSpan === 0) return null;
-
-                                const label = (rgKey.length > (rowSpan * 4)) && rowGroupsExtended[rgKey].shortName ? rowGroupsExtended[rgKey].shortName : rgKey;
-                                return (
-                                    <div className="vertical-container">
-                                        <div className="vertical-container-label" style={{ backgroundColor, color: textColor, height: rowHeight * rowSpan }}>
-                                            <span data-tip={rgKey !== label ? rgKey : null}>{label}</span>
-                                        </div>
-                                        <div className="vertical-container-rows">
-                                            {
-                                                _.map(rowGroupChildRowsKeys, (k) =>
-                                                    <StackedBlockGroupedRow {...this.props} data={data[k]} key={k} group={k} depth={depth + 1} />
-                                                )
-                                            }
-                                        </div>
-                                    </div>
-                                );
-                            }, this)
+                            renderRowGroupsExtended()
                         }
                         {open && childRowsKeys && !hasRowGroupsExtended &&
-                            <div className="child-blocks">
-                                {open && childRowsKeys && _.map(childRowsKeys, (k) =>
-                                    <StackedBlockGroupedRow {...this.props} data={data[k]} key={k} group={k} depth={depth + 1} />
-                                )}
-                            </div>
+                            renderChildRows()
                         }
                     </div>
 
@@ -1422,6 +1659,7 @@ const Block = React.memo(function Block(props){
         blockType = 'regular'
     } = props;
 
+    // Layout / base style
     const style = {
         'height' : blockHeight,
         'width' : '100%', //blockWidth,
@@ -1429,12 +1667,15 @@ const Block = React.memo(function Block(props){
         'marginBottom' : blockVerticalSpacing,
         'marginTop' : indexInGroup && indexInGroup > 0 ? blockVerticalSpacing + 1 : 0
     };
-    const argData = blockType === 'row-summary' && rowTotals ? rowTotals : data;
 
+    const isSummaryBlock = (type) => type === 'row-summary' || type === 'col-summary';
+
+    // Choose source data for summary blocks
+    const argData = blockType === 'row-summary' && rowTotals ? rowTotals : data;
     const blockFxnArguments = [argData, props, parentGrouping];
 
+    // Compute className and contents
     let className = "stacked-block";
-
     if (typeof blockClassName === 'function'){
         className += ' ' + blockClassName.apply(blockClassName, blockFxnArguments);
     } else if (typeof blockClassName === 'string'){
@@ -1446,13 +1687,15 @@ const Block = React.memo(function Block(props){
         contents = blockRenderedContents.apply(blockRenderedContents, blockFxnArguments);
     }
 
+    // Build optional popover
     let popover = null;
     if (typeof blockPopover === 'function'){
         popover = blockPopover.apply(blockPopover, blockFxnArguments);
     }
 
-    const getColor = function (value, blockType = 'regular') {
-        if (isSummaryBlock(blockType)){
+    // Color selection (summary blocks use a fixed color)
+    const getColor = function (value, type = 'regular') {
+        if (isSummaryBlock(type)){
             return summaryBackgroundColor || '#000000';
         }
         if (!colorRanges){
@@ -1468,6 +1711,7 @@ const Block = React.memo(function Block(props){
     const dataLength = data?.length || 0;
     const color = getColor(dataLength, blockType);
 
+    // Apply open/active styles
     if (openBlock?.rowIdx === rowIndex && openBlock?.columnIdx === colIndex &&
         (blockType === 'col-summary' ? (openBlock?.rowGroupKey === rowGroupKey) : (openBlock?.rowKey === group))) {
         style['color'] = isSummaryBlock(blockType) ? '#8a8aaa' : color;
@@ -1478,6 +1722,7 @@ const Block = React.memo(function Block(props){
         style['backgroundColor'] = color;
     }
 
+    // Base block element
     const blockElem = (
         <div
             className={className}
@@ -1493,6 +1738,7 @@ const Block = React.memo(function Block(props){
         </div>
     );
 
+    // If a popover exists, wrap the block in OverlayTrigger
     if (popover) {
         return (
             <OverlayTrigger
@@ -1540,11 +1786,6 @@ Block.propTypes = {
     }),
     blockType: PropTypes.oneOf(['regular', 'row-summary', 'col-summary'])
 };
-
-// Utility functions for block types
-function isSummaryBlock(blockType) {
-    return blockType === 'row-summary' || blockType === 'col-summary';
-}
 
 // Icons for sorting
 function FaIcon(props) {

@@ -7,6 +7,130 @@ smaht-portal
 Change Log
 ----------
 
+1.12.2
+======
+
+`PR 598: feat: update modal and banner <https://github.com/smaht-dac/smaht-portal/pull/598>`_
+
+* Update the Browse View Modal
+* Update the Donor View redirect banner
+
+
+1.12.1
+======
+
+`PR: 594: Sort tissues in alphabetical order in facet terms and the data matrix <https://github.com/smaht-dac/smaht-portal/pull/594>`_
+
+* Sorts tissues in alphabetical order in facet terms and the data matrix
+* Refactors data matrix in the process to simplify and remove redundant code
+
+
+1.12.0
+======
+
+`PR 591: SN Fix DSA release script <https://github.com/smaht-dac/smaht-portal/pull/591>`_
+
+* Update means of getting chain file code for annotated filenames to do a search query on `code` and `title` of ReferenceGenomes and return either "DSA" or the unique `code` value
+* Add `version` as a required property to DonorSpecificAssembly
+* Update the annotated filename for DSA fasta and bed files to include `DSA_[version]`
+* Add bed files to access status function
+
+
+1.11.7
+======
+
+`PR 600: feature: add tissue validator for preservation type <https://github.com/smaht-dac/smaht-portal/pull/600>`_
+
+* Add a new validator to Tissue that checks if the external_id tissue code matches the expected preservation type based on the valid_protocol_ids of the linked OntologyTerms and the preservation_type property
+
+
+1.11.6
+======
+
+* Remove loremipsum and rebuild poetry lockfile to resolve failing pep517 build
+
+
+1.11.5
+======
+
+`PR 566: chore: update npm packages with vulnerabilities <https://github.com/smaht-dac/smaht-portal/pull/566>`_
+
+* Run npm audit fix and update vulnerable dependencies
+
+
+1.11.4
+======
+
+`PR 597: Fix: sticky headers in browse/search page's results table <https://github.com/smaht-dac/smaht-portal/pull/597>`_
+
+* Fix CSS to ensure that sticky headers in the results table of browse and search pages function correctly without layout issues.
+
+
+1.11.3
+======
+
+`PR 379: SN Submission spreadsheet update <https://github.com/smaht-dac/smaht-portal/pull/379`_
+
+* Update `commands/write_submission_spreadsheets.py` to include capability to add "pseudo-properties" such as `expected_file_counts` in FileSet that are used for validation in submitr
+* Update the `--eqm` flag to use config from GenericQcConfig item on portal and update error handling
+* Reorder properties and format output of the PathologyReport schema for ease of submission for TPC
+
+
+1.11.2
+======
+
+`PR  595 update TissueSample validator <https://github.com/smaht-dac/smaht-portal/pull/595>`_
+
+* Add support for Tissue Aliquot category validation in TissueSample validator
+
+1.11.1
+======
+
+`PR 593: Bugfix for Analysis Status page <https://github.com/smaht-dac/smaht-portal/pull/593>`_
+
+* Make sure all final output files are displayed on the Analysis Status page
+
+
+1.11.0
+======
+
+`PR 590: Data matrix germ layer - tissue mappings <https://github.com/smaht-dac/smaht-portal/pull/590>`_
+
+* Convert hard-coded germ layer - tissue mappings to generate from fetched data on the fly
+
+
+1.10.3
+======
+
+`PR 592: fix: modal styles udpate <https://github.com/smaht-dac/smaht-portal/pull/592>`_
+
+* Fix browse page modal styles
+
+
+1.10.2
+=====
+
+`PR 586: feat: update master-inserts to make pipeline docs open <https://github.com/smaht-dac/smaht-portal/pull/586>`_
+
+* Update Page and StaticSection items related to the Analysis Pipeline
+
+
+1.10.1
+======
+
+`PR 587: New cypress test for analysis pipeline documentation page <https://github.com/smaht-dac/smaht-portal/pull/587>`_
+
+* Tests the new analysis pipeline page and its features (collapsible panels, links, and table of contents) are working properly
+
+
+1.10.0
+======
+
+`PR 572: feat: Browse Page Modals <https://github.com/smaht-dac/smaht-portal/pull/572>`_
+
+* Implement Modal for empty browse pages
+
+
 1.9.0
 =====
 
@@ -65,7 +189,7 @@ Change Log
 
 
 1.8.5
-======
+=====
 
 `PR 581: udate README <https://github.com/smaht-dac/smaht-portal/pull/581>`_
 

@@ -1,11 +1,16 @@
 import { cypressVisitHeaders, ROLE_TYPES, BROWSE_STATUS_PARAMS } from '../support';
-import { navBrowseByFileBtnSelector, dataNavBarItemSelectorStr } from '../support/selectorVars';
+import {
+    navBrowseByFileBtnSelector,
+    dataNavBarItemSelectorStr,
+    navUserAcctLoginBtnSelector,
+} from '../support/selectorVars';
 
 /* ----------------------------- ROLE MATRIX -----------------------------
    Toggle each step per role:
 
    - runNavFromHome:           From Home → open "Data" menu → click "Browse"
    - runDirectBrowseRedirect:  Visit /browse/ (no params) → redirected to Production
+   - runNoResultsModal:        Verify protected data warning modal behavior
    - runQuickInfoBarCounts:    Verify QuickInfoBar has non-zero stats
    - runSidebarToggle:         Sidebar toggle expand/collapse
    - runFacetIncludeGrouping:  Include a grouping term → all sub-terms selected
@@ -34,6 +39,7 @@ const ROLE_MATRIX = {
 
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
+        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
@@ -41,6 +47,7 @@ const ROLE_MATRIX = {
         runFacetChartBarPlotTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
+        expectedNoResultsModalVisible: true,
     },
 
     [ROLE_TYPES.SMAHT_DBGAP]: {
@@ -49,6 +56,7 @@ const ROLE_MATRIX = {
 
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
+        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
@@ -56,6 +64,7 @@ const ROLE_MATRIX = {
         runFacetChartBarPlotTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
+        expectedNoResultsModalVisible: false,
     },
 
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
@@ -64,6 +73,7 @@ const ROLE_MATRIX = {
 
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
+        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
@@ -71,6 +81,7 @@ const ROLE_MATRIX = {
         runFacetChartBarPlotTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
+        expectedNoResultsModalVisible: false,
     },
 
     [ROLE_TYPES.PUBLIC_DBGAP]: {
@@ -79,6 +90,7 @@ const ROLE_MATRIX = {
 
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
+        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
@@ -86,6 +98,7 @@ const ROLE_MATRIX = {
         runFacetChartBarPlotTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
+        expectedNoResultsModalVisible: true,
     },
 
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
@@ -94,6 +107,7 @@ const ROLE_MATRIX = {
 
         runNavFromHome: true,
         runDirectBrowseRedirect: false,
+        runNoResultsModal: true,
         runQuickInfoBarCounts: true,
         runSidebarToggle: true,
         runFacetIncludeGrouping: true,
@@ -101,6 +115,7 @@ const ROLE_MATRIX = {
         runFacetChartBarPlotTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
+        expectedNoResultsModalVisible: true,
     },
 };
 
@@ -160,6 +175,54 @@ function stepNavigateFromHomeToBrowse(caps) {
 function stepDirectBrowseRedirect(caps) {
     cy.visit('/browse/', { headers: cypressVisitHeaders, failOnStatusCode: false });
     cy.location('search').should('include', 'sample_summary.studies=Production');
+}
+
+/** Modal appears when no results found */
+function stepNoResultsModal(caps) {
+    visitBrowseByFile().then(() => {
+        if (caps.expectedNoResultsModalVisible) {
+            cy.get('#download-access-required-modal').should('be.visible');
+            cy.searchPageTotalResultCount().then((totalCountExpected) => {
+                expect(totalCountExpected).to.equal(0);
+            });
+
+            cy.get('body').then(($body) => {
+                const $loginBtn = $body.find(navUserAcctLoginBtnSelector);
+                const hasLoginText =
+                    $loginBtn.length > 0 &&
+                    $loginBtn.text().replace(/\s+/g, ' ').trim().includes('Login / Register');
+                if (hasLoginText) {
+                    cy.wrap($loginBtn).click({ force: true });
+                    cy.get('[id^="auth0-lock-container"], .auth0-lock')
+                        .should('be.visible')
+                        .then(($lock) => {
+                            const lockZIndex = parseInt($lock.css('z-index') || '0', 10);
+                            const modalZIndex = parseInt(
+                                $body
+                                    .find('#download-access-required-modal')
+                                    .closest('.modal')
+                                    .css('z-index') || '0',
+                                10
+                            );
+                            if (!Number.isNaN(lockZIndex) && !Number.isNaN(modalZIndex)) {
+                                expect(lockZIndex).to.be.greaterThan(modalZIndex);
+                            }
+                        });
+                    cy.get('body').then(($auth0Body) => {
+                        if ($auth0Body.find('.auth0-lock-close-button').length > 0) {
+                            cy.get('.auth0-lock-close-button').click({ force: true });
+                        } else if ($auth0Body.find('.auth0-lock-overlay').length > 0) {
+                            cy.get('.auth0-lock-overlay').click({ force: true });
+                        }
+                    });
+                } else {
+                    cy.log('Skipping Auth0 login popup check; login button not present or not labeled "Login / Register".');
+                }
+            });
+        } else {
+            cy.get('#download-access-required-modal').should('not.exist');
+        }
+    });
 }
 
 /** QuickInfoBar numbers should be present and > 0 (or ≥ threshold for size) */
@@ -389,7 +452,7 @@ function stepFacetChartBarPlotTests(caps) {
                         }).getQuickInfoBar().then(function (origCount) {
                             // `{ force: true }` is used a bunch here to prevent Cypress from attempting to scroll browser up/down during the test -- which may interfere w. mouse hover events.
                             // See https://github.com/cypress-io/cypress/issues/2353#issuecomment-413347535
-                            return cy.window().then((w) => { 
+                            return cy.window().then((w) => {
                                 w.scrollTo(0, 0); }).end()
                                 .wrap($barPart, { force: true }).scrollToCenterElement().trigger('mouseover', { force: true }).trigger('mousemove', { force: true }).wait(300).click({ force: true }).end()
                                 .get('.cursor-component-root .actions.buttons-container .btn-primary').should('contain', "Explore").click({ force: true }).end() // Browser will scroll after click itself (e.g. triggered by app)
@@ -445,6 +508,11 @@ describe('Browse by role — File', () => {
             it(`Direct /browse/ redirects to Production (enabled: ${caps.runDirectBrowseRedirect})`, () => {
                 if (!caps.runDirectBrowseRedirect) return;
                 stepDirectBrowseRedirect(caps);
+            });
+
+            it(`Modal appears when no results found (enabled: ${caps.runNoResultsModal})`, () => {
+                if (!caps.runNoResultsModal) return;
+                stepNoResultsModal(caps);
             });
 
             it(`QuickInfoBar has non-zero counts (enabled: ${caps.runQuickInfoBarCounts})`, () => {

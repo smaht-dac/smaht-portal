@@ -29,6 +29,7 @@ from ..item_utils.tissue import (
 CORE_REGEX = "-[0-9]{3}[A-F][1-6]$"
 SPECIMEN_REGEX = "-[0-9]{3}[S-W][1-9]$"
 HOMOGENATE_REGEX = "-[0-9]{3}X$"
+TISSUE_ALIQUOT_REGEX = "-[0-9]{3}$"
 
 BENCHMARKING_CORE_EXTERNAL_ID_REGEX = re.compile(
     rf"^{BENCHMARKING_ID_REGEX}{CORE_REGEX}"
@@ -49,6 +50,13 @@ BENCHMARKING_HOMOGENATE_EXTERNAL_ID_REGEX = re.compile(
 )
 PRODUCTION_HOMOGENATE_EXTERNAL_ID_REGEX = re.compile(
     rf"^{PRODUCTION_ID_REGEX}{HOMOGENATE_REGEX}"
+)
+
+BENCHMARKING_TISSUE_ALIQUOT_EXTERNAL_ID_REGEX = re.compile(
+    rf"^{BENCHMARKING_ID_REGEX}{TISSUE_ALIQUOT_REGEX}"
+)
+PRODUCTION_TISSUE_ALIQUOT_EXTERNAL_ID_REGEX = re.compile(
+    rf"^{PRODUCTION_ID_REGEX}{TISSUE_ALIQUOT_REGEX}"
 )
 
 def get_category(properties: Dict[str, Any]) -> str:
@@ -90,6 +98,11 @@ def is_specimen_external_id(external_id: str) -> bool:
 def is_homogenate_external_id(external_id: str) -> bool:
     """Check if external_id matches homogenate sample regex from benchmarking or production."""
     return BENCHMARKING_HOMOGENATE_EXTERNAL_ID_REGEX.match(external_id) is not None or PRODUCTION_HOMOGENATE_EXTERNAL_ID_REGEX.match(external_id) is not None
+
+
+def is_tissue_aliquot_external_id(external_id: str) -> bool:
+    """Check if external_id matches tissue aliquot sample regex from benchmarking or production."""
+    return BENCHMARKING_TISSUE_ALIQUOT_EXTERNAL_ID_REGEX.match(external_id) is not None or PRODUCTION_TISSUE_ALIQUOT_EXTERNAL_ID_REGEX.match(external_id) is not None
 
 
 def is_benchmarking(properties: Dict[str, Any]) -> bool:

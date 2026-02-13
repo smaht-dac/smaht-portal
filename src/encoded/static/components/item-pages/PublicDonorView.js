@@ -130,9 +130,10 @@ const ProtectedDonorRedirectBanner = ({ href }) => {
     return href ? (
         <div className="callout data-available">
             <span className="callout-text">
-                <i className="icon icon-users fas"></i> Welcome to the SMaHT
-                Data Portal! Please <a href={href}>click here</a> to load
-                protected donor data.
+                <i className="icon icon-users fas"></i> You are currently
+                viewing limited donor information. If you have dbGaP- or
+                DUA-based access, <a href={href}>click here</a> to view full
+                donor information.
             </span>
         </div>
     ) : null;
@@ -143,7 +144,7 @@ const PublicDonorViewHeader = (props) => {
     const { context = {}, session, title = null } = props;
     const { notes_to_tsv } = context;
     const [showRedirectBanner, setShowRedirectBanner] = useState(false);
-    const userDownloadAccess = useUserDownloadAccess(session);
+    const { userDownloadAccess } = useUserDownloadAccess(session);
 
     useEffect(() => {
         if (
@@ -313,6 +314,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                         rowAggFields: [
                                             'donors.display_title',
                                             'sample_summary.tissues',
+                                            'sample_summary.category',
                                         ],
                                     }}
                                     headerFor={null}
@@ -320,7 +322,11 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                     idLabel="donor"
                                     session={session}
                                     yAxisLabel="Tissue" // Only one donor, so y-axis is Tissue
-                                    baseBrowseFilesPath={study === 'Production' ? "/browse/" : "/search/"}
+                                    baseBrowseFilesPath={
+                                        study === 'Production'
+                                            ? '/browse/'
+                                            : '/search/'
+                                    }
                                 />
                             </div>
                         ) : (

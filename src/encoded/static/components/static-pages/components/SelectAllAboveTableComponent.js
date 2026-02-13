@@ -56,7 +56,7 @@ export const SelectAllAboveTableComponent = (props) => {
         context || {};
 
     // Get user download access
-    const userDownloadAccess = useUserDownloadAccess(session);
+    const { userDownloadAccess } = useUserDownloadAccess(session);
 
     // Determine if a user can download this table's files
     const canDownloadFiles =
