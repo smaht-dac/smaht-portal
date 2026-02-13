@@ -45,9 +45,11 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runBrowseFileSelectionTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: true,
+        expectedLimitedDownloadAccess: true,
     },
 
     [ROLE_TYPES.SMAHT_DBGAP]: {
@@ -62,9 +64,11 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runBrowseFileSelectionTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: false,
+        expectedLimitedDownloadAccess: false,
     },
 
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
@@ -79,9 +83,11 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runBrowseFileSelectionTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: false,
+        expectedLimitedDownloadAccess: true,
     },
 
     [ROLE_TYPES.PUBLIC_DBGAP]: {
@@ -96,9 +102,11 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runBrowseFileSelectionTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: true,
+        expectedLimitedDownloadAccess: true,
     },
 
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
@@ -113,9 +121,11 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runBrowseFileSelectionTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: true,
+        expectedLimitedDownloadAccess: true,
     },
 };
 
@@ -475,6 +485,20 @@ function stepFacetChartBarPlotTests(caps) {
     }
 };
 
+/** Browse file selection tests */
+function stepBrowseFileSelectionTests(caps) {
+    if (caps.expectedStatsSummaryOpts.totalFiles === 0 && caps.expectedNoResultsModalVisible) {
+        return;
+    }
+
+    // For users who have limited download access
+    // 1. SelectAllFilesButton and the SelectAll Checkbox are enabled
+    // 2. SelectAllFilesButton says "Select Open Access Files"
+    // 3. Hovering over the SelectAllFilesButton should show a popover
+    // 4. Clicking the SelectAllFilesButton should enable the Download # Selected Files button
+    // 4a. The Download buttoun should have the same number of files as the Access Facet (Open)
+}
+
 /* ----------------------------- PARAMETERIZED SUITE ----------------------------- */
 
 const ROLES_TO_TEST = [
@@ -538,6 +562,11 @@ describe('Browse by role — File', () => {
             it(`Facet chart bar plot tests → X-axis grouping and hover over & click "Illumina NovaSeq X Plus, Brain" bar part + popover button --> matching filtered /browse/ results (enabled: ${caps.runFacetChartBarPlotTests})`, () => {
                 if (!caps.runFacetChartBarPlotTests) return;
                 stepFacetChartBarPlotTests(caps);
+            });
+
+            it(`Browse file selection tests → Select files and verify counts (enabled: ${caps.runBrowseFileSelectionTests})`, () => {
+                if (!caps.runBrowseFileSelectionTests) return;
+                stepBrowseFileSelectionTests(caps);
             });
         });
     });
