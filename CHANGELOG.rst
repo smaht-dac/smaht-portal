@@ -153,6 +153,15 @@ Change Log
 * udated enum value from '[0]' to '0' for target_tissue_percentage as submitr was converting former to an array
   
 
+1.9.0
+=====
+
+`PR 549: feat: Update download functionality on search and browse pages <https://github.com/smaht-dac/smaht-portal/pull/549>`_
+
+* Update `/session-properties` to include download permission information
+* Implement file selection permission checks
+
+
 1.8.7
 =====
 

@@ -2,7 +2,14 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import queryString from 'query-string';
 import _ from 'underscore';
-import { Modal, Tabs, Tab, OverlayTrigger } from 'react-bootstrap';
+import {
+    Modal,
+    Tabs,
+    Tab,
+    OverlayTrigger,
+    Overlay,
+    Popover,
+} from 'react-bootstrap';
 import ReactTooltip from 'react-tooltip';
 
 import {
@@ -19,7 +26,10 @@ import {
     valueTransforms,
 } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { display as dateTimeDisplay } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/LocalizedTime';
-import { useUserDownloadAccess } from '../../util/hooks';
+import {
+    defaultDownloadAccessObject,
+    useUserDownloadAccess,
+} from '../../util/hooks';
 
 export const SelectAllAboveTableComponent = (props) => {
     const {
@@ -118,6 +128,88 @@ const manifest_enum_map = [
     'sequencing',
 ];
 
+/**
+ * Popover component to show above select all button. Uses manual trigger
+ * to control show/hide with mouse enters/leaves the button and the popover
+ * itself.
+ */
+const SelectAllButtonPopover = ({
+    isAllSelected,
+    isEnabled,
+    cls,
+    handleSelectAll,
+    hasLimitedAccess,
+    iconClassName,
+}) => {
+    const [showPopover, setShowPopover] = useState(false);
+    const hideTimeoutRef = React.useRef(null);
+
+    const handleMouseEnter = () => {
+        clearTimeout(hideTimeoutRef.current);
+        setShowPopover(true);
+    };
+
+    const handleMouseLeave = () => {
+        // Start a delay before hiding
+        hideTimeoutRef.current = setTimeout(() => {
+            setShowPopover(false);
+        }, 100);
+    };
+
+    const handlePopoverMouseEnter = () => {
+        clearTimeout(hideTimeoutRef.current);
+    };
+
+    const handlePopoverMouseLeave = () => {
+        setShowPopover(false);
+    };
+
+    const renderPopover = (props) => (
+        <Popover
+            id="select-all-files-popover"
+            {...props}
+            onMouseEnter={handlePopoverMouseEnter}
+            onMouseLeave={handlePopoverMouseLeave}>
+            <Popover.Header>Select Open Access Files</Popover.Header>
+            <Popover.Body>
+                Protected Access Files (shown as:{' '}
+                <i className="icon icon-lock fas"></i>) require dbGaP access.
+                For more information, see the{' '}
+                <a href="/docs/access/data-availability-and-access">
+                    Data Availability and Access
+                </a>{' '}
+                page.
+            </Popover.Body>
+        </Popover>
+    );
+
+    return (
+        <OverlayTrigger
+            trigger="manual"
+            placement="top"
+            show={showPopover}
+            overlay={renderPopover}>
+            <button
+                type="button"
+                id="select-all-files-button"
+                disabled={!isEnabled}
+                className={cls}
+                onClick={handleSelectAll}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}>
+                <i className={iconClassName} />
+                <span className="d-none d-md-inline text-400">
+                    {isAllSelected ? 'Deselect' : 'Select'}
+                </span>{' '}
+                <span className="text-600">
+                    {hasLimitedAccess ? 'Open Access' : 'All'}
+                </span>{' '}
+                Files
+            </button>
+        </OverlayTrigger>
+    );
+};
+
 export class SelectAllFilesButton extends React.PureComponent {
     /** These are fields included when "Select All" button is clicked to AJAX all files in */
     static fieldsToRequest = [
@@ -137,27 +229,101 @@ export class SelectAllFilesButton extends React.PureComponent {
         super(props);
         this.isAllSelected = this.isAllSelected.bind(this);
         this.handleSelectAll = this.handleSelectAll.bind(this);
-        this.state = { selecting: false };
+        // this.getDownloadableFileCount =
+        //     this.getDownloadableFileCount.bind(this);
+        this.isEnabled = this.isEnabled.bind(this);
+        this.state = {
+            selecting: false,
+            userDownloadAccess: this.props.userDownloadAccess,
+            downloadableFileCount: this.props.downloadableFileCount,
+        };
     }
 
+    // componentDidMount(prevProps, prevState) {
+    //     if (Object.keys(this.state.userDownloadAccess)?.includes('open')) {
+    //         ajax.load('/session-properties', (resp) => {
+    //             const accessObj = resp?.download_perms || {};
+    //             const newUserDownloadAccessObj = {
+    //                 ...defaultDownloadAccessObject,
+    //                 ...accessObj,
+    //             };
+    //             this.setState({
+    //                 ...this.state,
+    //                 userDownloadAccess: newUserDownloadAccessObj,
+    //                 // downloadableFileCount: this.getDownloadableFileCount(
+    //                 //     newUserDownloadAccessObj
+    //                 // ),
+    //             });
+    //         });
+    //     }
+    // }
+
+    // Update user download access if session changes
+    // componentDidUpdate(prevProps, prevState) {
+    //     const currentDownloadableFileCount = this.getDownloadableFileCount(
+    //         this.state.userDownloadAccess
+    //     );
+    //     if (
+    //         prevProps?.session !== this.props?.session ||
+    //         prevState.downloadableFileCount !== currentDownloadableFileCount
+    //     ) {
+    //         ajax.load('/session-properties', (resp) => {
+    //             const accessObj = resp?.download_perms || {};
+    //             const newUserDownloadAccessObj = {
+    //                 ...defaultDownloadAccessObject,
+    //                 ...accessObj,
+    //             };
+    //             this.setState({
+    //                 ...this.state,
+    //                 userDownloadAccess: newUserDownloadAccessObj,
+    //                 downloadableFileCount: this.getDownloadableFileCount(
+    //                     newUserDownloadAccessObj
+    //                 ),
+    //             });
+    //         });
+    //     }
+    // }
+
+    // getDownloadableFileCount(userDownloadAccessObj) {
+    //     const statusFacetTermCounts =
+    //         this.props.context?.facets?.find(
+    //             (facet) => facet.field === 'status'
+    //         )?.terms || [];
+    //     // Map through the terms to get count for downloadable files
+    //     const totalDownloadableFileCount = statusFacetTermCounts?.reduce(
+    //         (acc, term) => {
+    //             const userCanDownload = userDownloadAccessObj?.[term.key];
+    //             return acc + (userCanDownload ? term.doc_count : 0);
+    //         },
+    //         0
+    //     );
+    //     return totalDownloadableFileCount;
+    // }
+
     isEnabled() {
-        const { context } = this.props;
+        const { session, context } = this.props;
         const { total } = context || {};
 
-        if (!total) return true;
+        // Too many items to select all
         if (total > SELECT_ALL_LIMIT) return false;
-        return true;
+
+        return session && total > 0 && this.props.downloadableFileCount > 0;
     }
 
     isAllSelected() {
-        const { selectedItems, context } = this.props;
+        const { session, selectedItems, context } = this.props;
         const { total } = context || {};
 
-        if (!total) return false;
-        if (total === selectedItems.size) {
-            return true;
+        // No items selected
+        if (!session || total === 0) {
+            return false;
+        } else {
+            // All files are selected if the number of selected items equals the total downloadable file count
+            return (
+                this.props.downloadableFileCount > 0 &&
+                selectedItems.size === this.props.downloadableFileCount
+            );
         }
-        return false;
     }
 
     handleSelectAll(evt) {
@@ -179,12 +345,31 @@ export class SelectAllFilesButton extends React.PureComponent {
             );
         }
 
+        const userDownloadAccess = this.props.userDownloadAccess;
+
+        // Apply a filter to selected items if userDownloadAccess provided
+        const statusFilters = [];
+        if (Object.keys(userDownloadAccess).length > 0) {
+            for (const status in userDownloadAccess) {
+                if (userDownloadAccess?.[status] === true) {
+                    statusFilters.push(status);
+                }
+            }
+        }
+
         this.setState({ selecting: true }, () => {
             if (!this.isAllSelected()) {
                 const currentHrefParts = memoizedUrlParse(searchHref);
                 const currentHrefQuery = _.extend({}, currentHrefParts.query);
+
+                // Filter out the current status filters that user can't download
+                currentHrefQuery.status = statusFilters.filter(
+                    (status) => userDownloadAccess?.[status] === true
+                );
+
                 currentHrefQuery.field = SelectAllFilesButton.fieldsToRequest;
                 currentHrefQuery.limit = 'all';
+
                 const reqHref =
                     currentHrefParts.pathname +
                     '?' +
@@ -236,10 +421,15 @@ export class SelectAllFilesButton extends React.PureComponent {
 
     render() {
         const { selecting } = this.state;
-        const { type } = this.props;
+        const { type, session, context } = this.props;
 
         const isAllSelected = this.isAllSelected();
         const isEnabled = this.isEnabled();
+
+        const hasLimitedAccess =
+            this.props.downloadableFileCount < context?.total &&
+            this.props.userDownloadAccess['protected'] === false;
+
         const iconClassName =
             'me-05 icon icon-fw icon-' +
             (selecting
@@ -258,10 +448,24 @@ export class SelectAllFilesButton extends React.PureComponent {
         if (type === 'checkbox') {
             return (
                 <input
+                    id="select-all-checkbox"
                     type="checkbox"
-                    disabled={selecting || (!isAllSelected && !isEnabled)}
-                    checked={isAllSelected}
+                    disabled={!this.isEnabled()}
+                    checked={this.isAllSelected()}
                     onChange={this.handleSelectAll}
+                />
+            );
+        }
+
+        if (hasLimitedAccess && !isAllSelected && isEnabled && session) {
+            return (
+                <SelectAllButtonPopover
+                    isAllSelected={isAllSelected}
+                    isEnabled={isEnabled}
+                    cls={cls}
+                    handleSelectAll={this.handleSelectAll}
+                    hasLimitedAccess={hasLimitedAccess}
+                    iconClassName={iconClassName}
                 />
             );
         }
@@ -270,15 +474,19 @@ export class SelectAllFilesButton extends React.PureComponent {
             <button
                 type="button"
                 id="select-all-files-button"
-                disabled={selecting || (!isAllSelected && !isEnabled)}
+                disabled={!isEnabled}
                 className={cls}
                 onClick={this.handleSelectAll}
                 data-tip={tooltip}>
                 <i className={iconClassName} />
                 <span className="d-none d-md-inline text-400">
                     {isAllSelected ? 'Deselect' : 'Select'}{' '}
+                    {!hasLimitedAccess && 'All'}{' '}
                 </span>
-                <span className="text-600">All</span>
+                <span className="text-600">
+                    {hasLimitedAccess ? 'Open Access' : ''}
+                </span>{' '}
+                Files
             </button>
         );
     }
@@ -337,6 +545,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
         const { modalOpen } = this.state;
         const isDisabled =
             typeof disabled === 'boolean' ? disabled : fileCountWithDupes === 0;
+
         btnProps.className =
             'btn ' + (modalOpen ? 'active ' : '') + btnProps.className;
         return (
@@ -344,7 +553,7 @@ export class SelectedItemsDownloadButton extends React.PureComponent {
                 <button
                     type="button"
                     {...btnProps}
-                    disabled={isDisabled}
+                    disabled={!session || isDisabled}
                     onClick={this.showModal}>
                     {children}
                 </button>
@@ -803,7 +1012,6 @@ const DataDownloadOverviewStats = React.memo(function DataDownloadOverviewStats(
     };
 
     const callbackFxn = useCallback((resp) => {
-        // console.log('BenchmarkingDataDownloadOverviewStats resp', resp);
         const facets = resp || [];
 
         // Figure out which ones are the facets we need
@@ -830,7 +1038,6 @@ const DataDownloadOverviewStats = React.memo(function DataDownloadOverviewStats(
     });
 
     const fallbackFxn = useCallback((resp) => {
-        console.log('DataDownloadOverviewStats error', resp);
         setLoading(false);
         setError(true);
     });

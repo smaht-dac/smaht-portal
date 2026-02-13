@@ -15,7 +15,10 @@ import {
     SelectAllFilesButton,
     SelectedItemsDownloadButton,
 } from '../static-pages/components/SelectAllAboveTableComponent';
-import { createBrowseFileColumnExtensionMap } from './BrowseView';
+import {
+    createBrowseFileColumnExtensionMap,
+    getDownloadableFileCount,
+} from './BrowseView';
 import {
     pageTitleViews,
     PageTitleContainer,
@@ -42,24 +45,14 @@ export default function FileSearchView(props) {
 
 // Download button for admin users only
 const SearchViewDownloadButton = ({ session, selectedItems }) => {
-    const { userDownloadAccess } = useUserDownloadAccess(session);
-
     // Enable if user has admin access (aka all true in userDownloadAccess)
-    return Object.values(userDownloadAccess).every((v) => v) ? (
+    return (
         <SelectedItemsDownloadButton
             id="download_tsv_multiselect"
             disabled={selectedItems.size === 0}
             className="btn btn-primary btn-sm me-05 align-items-center"
             {...{ selectedItems, session }}
             analyticsAddItemsToCart>
-            <i className="icon icon-download fas me-03" />
-            Download {selectedItems.size} Selected Files
-        </SelectedItemsDownloadButton>
-    ) : (
-        <SelectedItemsDownloadButton
-            id="download_tsv_multiselect"
-            disabled={true}
-            className="download-button btn btn-primary btn-sm me-05 align-items-center">
             <i className="icon icon-download fas me-03" />
             Download {selectedItems.size} Selected Files
         </SelectedItemsDownloadButton>
@@ -86,6 +79,8 @@ function FileTableWithSelectedFilesCheckboxes(props) {
         currentAction,
     } = props;
 
+    const userDownloadAccess = useUserDownloadAccess(session);
+
     const facets = useMemo(
         function () {
             return transformedFacets(context, currentAction, schemas);
@@ -93,10 +88,19 @@ function FileTableWithSelectedFilesCheckboxes(props) {
         [context, currentAction, session, schemas]
     );
 
+    const downloadableFileCount = getDownloadableFileCount(
+        context?.facets?.find((facet) => facet.field === 'status')?.terms || [],
+        userDownloadAccess
+    );
+
     const selectedFileProps = {
         selectedItems, // From SelectedItemsController
         onSelectItem, // From SelectedItemsController
         onResetSelectedItems, // From SelectedItemsController
+        session, // track user login
+        context,
+        downloadableFileCount,
+        userDownloadAccess,
     };
 
     const { columnExtensionMap, columns, hideFacets } = useMemo(
@@ -122,7 +126,10 @@ function FileTableWithSelectedFilesCheckboxes(props) {
     const aboveTableComponent = (
         <BrowseViewAboveSearchTableControls
             topLeftChildren={
-                <SelectAllFilesButton {...selectedFileProps} {...{ context }} />
+                <SelectAllFilesButton
+                    {...selectedFileProps}
+                    {...{ session, context }}
+                />
             }>
             {<SearchViewDownloadButton {...{ session, selectedItems }} />}
         </BrowseViewAboveSearchTableControls>
@@ -155,6 +162,7 @@ function FileTableWithSelectedFilesCheckboxes(props) {
         hideFacets,
         rowHeight: 31,
         openRowHeight: 40,
+        userDownloadAccess,
     };
 
     return (

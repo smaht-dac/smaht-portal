@@ -45,9 +45,11 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runBrowseFileSelectionTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: true,
+        expectedLimitedDownloadAccess: true,
     },
 
     [ROLE_TYPES.SMAHT_DBGAP]: {
@@ -62,9 +64,11 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runBrowseFileSelectionTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: false,
+        expectedLimitedDownloadAccess: false,
     },
 
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
@@ -79,9 +83,11 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runBrowseFileSelectionTests: true,
 
         expectedStatsSummaryOpts: DEFAULT_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: false,
+        expectedLimitedDownloadAccess: true,
     },
 
     [ROLE_TYPES.PUBLIC_DBGAP]: {
@@ -96,9 +102,11 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runBrowseFileSelectionTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: true,
+        expectedLimitedDownloadAccess: true,
     },
 
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
@@ -113,9 +121,11 @@ const ROLE_MATRIX = {
         runFacetIncludeGrouping: true,
         runFacetExcludeGrouping: true,
         runFacetChartBarPlotTests: true,
+        runBrowseFileSelectionTests: true,
 
         expectedStatsSummaryOpts: EMPTY_STATS_SUMMARY_OPTS,
         expectedNoResultsModalVisible: true,
+        expectedLimitedDownloadAccess: true,
     },
 };
 
@@ -475,6 +485,50 @@ function stepFacetChartBarPlotTests(caps) {
     }
 };
 
+/** Browse file selection tests */
+function stepBrowseFileSelectionTests(caps) {
+    if (caps.expectedStatsSummaryOpts.totalFiles === 0 && caps.expectedNoResultsModalVisible) {
+        return;
+    }
+
+    // For users who have limited download access
+    // 1. SelectAllFilesButton and the SelectAll Checkbox are enabled
+    cy.get('.search-view-controls-and-results #select-all-files-button').should('be.enabled');
+    cy.get('.search-results-outer-container .search-headers-row #select-all-checkbox[type="checkbox"]').should('be.enabled');
+
+    // 2. SelectAllFilesButton says "Select Open Access Files"
+    if (!caps.expectedLimitedDownloadAccess) {
+        cy.get('.search-view-controls-and-results #select-all-files-button').should('have.text', 'Select All  Files');
+    } else {
+        cy.get('.search-view-controls-and-results #select-all-files-button')
+          .should('have.text', 'Select Open Access Files')
+          .then(($selectAllBtn) => {
+            // 3. Hovering over the SelectAllFilesButton should show a popover
+            cy.wrap($selectAllBtn).trigger('mouseover');
+            cy.get('#select-all-files-popover').should('be.visible');
+            cy.wrap($selectAllBtn).trigger('mouseout');
+            cy.get('#select-all-files-popover').should('not.exist');
+          })
+    }
+
+    // 4. Clicking the SelectAllFilesButton should enable the Download # Selected Files button
+    cy.get('.search-view-controls-and-results #select-all-files-button').click();
+    cy.get('.search-view-controls-and-results #select-all-files-button').should('have.class', 'btn-secondary');
+    
+    // cy.get('.search-view-controls-and-results .right-buttons #download_tsv_multiselect')
+    //   .then(($downloadBtn) => {
+    //     // 4a. The Download buttoun should have the same number of files as the Access Facet (Open)
+    //     const SelectedFileTotal = $downloadBtn.text().match(/\d+/)[0];
+
+    //     // Get the number of Open Access files through the access_status facet
+    //     cy.get('.search-view-controls-and-results .facets-body .facet[data-field="access_status"]')
+
+    //     cy.wrap($downloadBtn).should('have.text', `${caps.expectedDownloadAccessObject.open} Selected Files`);
+    //   })
+
+    // 4a. The Download buttoun should have the same number of files as the Access Facet (Open)
+}
+
 /* ----------------------------- PARAMETERIZED SUITE ----------------------------- */
 
 const ROLES_TO_TEST = [
@@ -538,6 +592,11 @@ describe('Browse by role — File', () => {
             it(`Facet chart bar plot tests → X-axis grouping and hover over & click "Illumina NovaSeq X Plus, Brain" bar part + popover button --> matching filtered /browse/ results (enabled: ${caps.runFacetChartBarPlotTests})`, () => {
                 if (!caps.runFacetChartBarPlotTests) return;
                 stepFacetChartBarPlotTests(caps);
+            });
+
+            it(`Browse file selection tests → Select files and verify counts (enabled: ${caps.runBrowseFileSelectionTests})`, () => {
+                if (!caps.runBrowseFileSelectionTests) return;
+                stepBrowseFileSelectionTests(caps);
             });
         });
     });
