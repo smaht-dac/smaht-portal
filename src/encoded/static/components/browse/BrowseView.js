@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import memoize from 'memoize-one';
 import _ from 'underscore';
 import { Modal, OverlayTrigger, Popover } from 'react-bootstrap';
@@ -207,6 +207,7 @@ const BrowseFileBody = (props) => {
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseFileSearchTable
                     userDownloadAccess={userDownloadAccess}
+                    isAccessResolved={isAccessResolved}
                 />
             </BrowseViewControllerWithSelections>
             {context?.total === 0 && (
@@ -330,12 +331,11 @@ export const BrowseFileSearchTable = (props) => {
         onSelectItem,
         onResetSelectedItems,
         userDownloadAccess,
+        isAccessResolved,
     } = props;
     const facets = transformedFacets(context, currentAction, schemas);
     const tableColumnClassName = 'results-column col';
     const facetColumnClassName = 'facets-column col-auto';
-
-    console.log('browse file props', props);
 
     const downloadableFileCount = getDownloadableFileCount(
         context?.facets?.find((facet) => facet.field === 'status')?.terms || [],
