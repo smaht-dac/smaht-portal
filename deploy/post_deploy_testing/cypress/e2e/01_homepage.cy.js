@@ -25,7 +25,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
-        expectLimitedReleaseTrackerAccess: true, // should not have access to all DRT items
+        expectedLimitedReleaseTrackerAccess: true, // should not browse DRT items
     },
 
     [ROLE_TYPES.SMAHT_DBGAP]: {
@@ -43,7 +43,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
-        expectLimitedReleaseTrackerAccess: false, // should have access to all DRT items
+        expectedLimitedReleaseTrackerAccess: false, // should browse DRT items
     },
 
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
@@ -61,7 +61,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
-        expectLimitedReleaseTrackerAccess: false, // should have access to all DRT items
+        expectedLimitedReleaseTrackerAccess: false, // should browse DRT items
     },
 
     [ROLE_TYPES.PUBLIC_DBGAP]: {
@@ -78,7 +78,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
-        expectLimitedReleaseTrackerAccess: true, // should not have access to all DRT items
+        expectedLimitedReleaseTrackerAccess: true, // should not browse DRT items
     },
 
     [ROLE_TYPES.PUBLIC_NON_DBGAP]: {
@@ -95,7 +95,7 @@ const ROLE_MATRIX = {
         expectedHeaderH1: HEADER1_TEXT,
         expectedHeaderH2: HEADER2_TEXT,
         expectedTierTexts: TIER_BUTTON_TEXTS,
-        expectLimitedReleaseTrackerAccess: false, // should have access to all DRT items
+        expectedLimitedReleaseTrackerAccess: true, // should not browse DRT items
     },
 };
 
@@ -221,7 +221,9 @@ function stepTierButtonsChecks(caps) {
 
 // Data Release Tracker feed exists
 function stepDRTExists(caps) {
-    if (!caps.runDRTExists) return;
+    // Note: DRT access temporarily restricted to network members.
+    // Do not check if DRT exists if non-network member
+    if (!caps.runDRTExists || caps.expectedLimitedReleaseTrackerAccess) return;
 
     cy.get(
         '.notifications-panel .data-release-tracker .data-release-item-container'
@@ -231,6 +233,16 @@ function stepDRTExists(caps) {
 // Each DRT item navigates and matches file counts
 function stepDRTCountsCheck(caps) {
     if (!caps.runDRTCountsCheck) return;
+
+    // Note: DRT access temporarily restricted to network members.
+    // Remove this conditional if/when DRT access is restored,
+    // and public users can view DRT items.
+    if (caps.expectedLimitedReleaseTrackerAccess) {
+        cy.get(
+            '.data-release-tracker .announcement-container.public-release'
+        ).should('be.visible');
+        return;
+    }
 
     cy.get('.data-release-item-container').each(($container) => {
         // Month level count
@@ -337,16 +349,18 @@ function stepDRTCountsCheck(caps) {
                 .find('.header-link')
                 .click();
 
-            if (caps.expectLimitedReleaseTrackerAccess) {
-                if (cy.searchPageTotalResultCount() === 0) {
-                    cy.get('#download-access-required-modal').should(
-                        'be.visible'
-                    );
-                }
-                cy.searchPageTotalResultCount().should('be.lte', expectedCount);
-            } else {
-                cy.searchPageTotalResultCount().should('eq', expectedCount);
-            }
+            // Note: DRT access temporarily restricted to network members
+            // if (caps.expectedLimitedReleaseTrackerAccess) {
+            //     if (cy.searchPageTotalResultCount() === 0) {
+            //         cy.get('#download-access-required-modal').should(
+            //             'be.visible'
+            //         );
+            //     }
+            //     cy.searchPageTotalResultCount().should('be.lte', expectedCount);
+            // } else {
+            //     cy.searchPageTotalResultCount().should('eq', expectedCount);
+            // }
+            cy.searchPageTotalResultCount().should('eq', expectedCount);
 
             cy.go('back');
 
