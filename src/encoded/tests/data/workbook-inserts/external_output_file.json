@@ -1,0 +1,24 @@
+[
+    {
+        "uuid": "f4031ce6-ef14-44f8-8f4d-f415308b8d18",
+        "submission_centers": [
+            "smaht"
+        ],
+        "submitted_id": "TEST_EXTERNAL-OUTPUT-FILE_GERMLINE_VCF",
+        "data_category": [
+            "Germline Variant Calls"
+        ],
+        "data_type": [
+            "SNV",
+            "Indel"
+        ],
+        "data_description": ["Phased Germline SNV"],
+        "analysis_details": ["Phased"],
+        "file_format": "VCF",
+        "filename": "germline_vcf.vcf",
+        "reference_genome": "GRCh38",
+        "tissues": [
+            "TEST_TISSUE_LUNG"
+        ]
+    }
+]
