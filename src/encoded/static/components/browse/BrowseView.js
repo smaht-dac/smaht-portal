@@ -237,8 +237,6 @@ const BrowseFileBody = (props) => {
 const renderBrowseBody = (props) => {
     switch (props.context['@type'][0]) {
         case 'FileSearchResults':
-        case 'SubmittedFileSearchResults':
-        case 'OutputFileSearchResults':
             return <BrowseFileBody {...props} />;
         case 'DonorSearchResults':
             return <BrowseDonorBody {...props} />;
