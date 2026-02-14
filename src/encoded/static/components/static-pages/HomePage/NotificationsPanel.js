@@ -7,10 +7,11 @@ import { AnnouncementsSection } from './AnnouncementsSection';
  * tracker, the announcements section, and other relevant links/information.
  * @returns {JSX.Element} The rendered NotificationsPanel component.
  */
-export const NotificationsPanel = () => {
+export const NotificationsPanel = (props) => {
+    const { session } = props;
     return (
         <div className="notifications-panel container">
-            <DataReleaseTracker />
+            <DataReleaseTracker session={session} />
             <AnnouncementsSection />
             <div className="about-consortium section">
                 <h3 className="section-header">Data Overview</h3>

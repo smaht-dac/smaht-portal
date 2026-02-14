@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { useToggle } from '../../util/hooks';
+import { useUserDownloadAccess } from '../../util/hooks';
 
 /**
  * Replaces the `release_tracker_title` parameter in the query with the donor and tissue titles
@@ -451,41 +452,54 @@ const EmptyReleaseTrackerAlert = () => {
     return (
         <div className="announcement-container public-release d-flex flex-column align-items-center border-0">
             <i className="icon icon-folder-open fas"></i>
-            <h5 className="header">PUBLIC RELEASE: COMING SOON!</h5>
+            <h5 className="header text-center">
+                SMaHT Donor Data
+                <br />
+                Official Release: Coming Soon
+            </h5>
             <div className="body">
-                Production data are only available to SMaHT consortium members
-                at this time. Check back for the public release of SMaHT data.
+                The New Data Releases are available to SMaHT Network members at
+                this time. Open access benchmarking data are available now.
             </div>
         </div>
     );
 };
 
-export const DataReleaseTracker = () => {
+export const DataReleaseTracker = ({ session }) => {
     const [data, setData] = useState(null);
-    console.log('data', data);
+    const { userDownloadAccess, isAccessResolved } =
+        useUserDownloadAccess(session);
+
+    const isNetworkMember = userDownloadAccess?.['open-network'];
 
     useEffect(() => {
         let isCancelled = false;
 
-        ajax.load(
-            '/recent_files_summary?format=json&nmonths=6',
-            (resp) => {
-                if (isCancelled) return;
-                setData(formatReleaseData(resp?.items));
-            },
-            'GET',
-            (err) => {
-                if (isCancelled) return;
-                if (err.notification !== 'No results found') {
-                    console.log('ERROR NotificationsPanel resp', err);
+        if (isAccessResolved && isNetworkMember) {
+            ajax.load(
+                '/recent_files_summary?format=json&nmonths=6',
+                (resp) => {
+                    if (isCancelled) return;
+                    setData(formatReleaseData(resp?.items));
+                },
+                'GET',
+                (err) => {
+                    if (isCancelled) return;
+                    if (err.notification !== 'No results found') {
+                        console.log('ERROR NotificationsPanel resp', err);
+                    }
+                    setData([]);
                 }
-                setData([]);
-            }
-        );
+            );
+        } else if (isAccessResolved && !isNetworkMember) {
+            // Not a member, we won't fetch data
+            setData([]);
+        }
+
         return () => {
             isCancelled = true;
         };
-    }, []);
+    }, [userDownloadAccess, isAccessResolved, session]);
 
     return (
         <div className="data-release-tracker section">

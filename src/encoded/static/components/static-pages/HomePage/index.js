@@ -1,17 +1,9 @@
 'use strict';
 
 import React from 'react';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-
-import {
-    console,
-    ajax,
-} from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
-import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/Alerts';
 import { pageTitleViews } from './../../PageTitleSection';
 import { GuestHomeView } from './GuestHomeView';
-import { NotificationsPanel } from '../components/NotificationsPanel';
 
 /**
  * Homepage View component. Gets rendered at '/' and '/home' paths.
@@ -34,7 +26,7 @@ export default class HomePage extends React.PureComponent {
             windowWidth,
             updateAppSessionState,
         } = this.props;
-        const commonProps = { context };
+        const commonProps = { session, context };
         // Render alerts here instead of (unused-for-homepage) PageTitleSection
         return (
             <div className="homepage-wrapper">
