@@ -859,12 +859,13 @@ const RedirectBanner = ({ href }) => {
     return href ? (
         <div className="callout data-available">
             <span className="callout-text">
-                <i className="icon icon-users fas"></i> Welcome to the SMaHT
-                Data Portal! Please{' '}
+                <i className="icon icon-users fas"></i> You are currently
+                viewing limited donor information. If you have dbGaP- or
+                DUA-based access,{' '}
                 <a href={href?.replace('type=Donor', 'type=ProtectedDonor')}>
                     click here
                 </a>{' '}
-                to load complete donor data.
+                to view full donor information.
             </span>
         </div>
     ) : null;

@@ -34,6 +34,7 @@ import { BrowseLink } from './browse-view/BrowseLink';
 import { BrowseSummaryStatsViewer } from './browse-view/BrowseSummaryStatController';
 import { FacetCharts } from './components/FacetCharts';
 import { navigate } from '../util/navigate';
+import { compareTissueFacetTerms } from '../util/data';
 import { BrowseViewAboveFacetListComponent } from './browse-view/BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './browse-view/BrowseViewAboveSearchTableControls';
 import { transformedFacets } from './SearchView';
@@ -140,13 +141,14 @@ export const NoResultsBrowseModal = ({
                         alt="SMaHT Logo"
                     />
                     <h4>
-                        SMaHT {type === 'file' ? 'Production' : 'Donor'} Data:{' '}
-                        <br />
+                        SMaHT Donor Data: <br />
                         Official Release - Coming Soon
                     </h4>
                     <span>
-                        Check back for updates on the official
-                        <br /> release of SMaHT Production Data.
+                        Production data are available to the SMaHT Network
+                        members at this time. <br />
+                        Please check back for the official release of the SMaHT
+                        data.
                     </span>
                 </div>
             </Modal.Body>
@@ -372,6 +374,9 @@ export const BrowseFileSearchTable = (props) => {
 
     const { columnExtensionMap, columns, hideFacets } =
         createBrowseFileColumnExtensionMap(selectedFileProps);
+    const facetListSortFxns = {
+        'sample_summary.tissues': compareTissueFacetTerms,
+    };
 
     return (
         <CommonSearchView
@@ -381,6 +386,7 @@ export const BrowseFileSearchTable = (props) => {
                 tableColumnClassName,
                 facetColumnClassName,
                 facets,
+                facetListSortFxns,
                 aboveFacetListComponent,
                 aboveTableComponent,
                 columns,

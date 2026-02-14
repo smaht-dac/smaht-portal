@@ -15,6 +15,24 @@ Change Log
 * Add support for Tissue Aliquot category validation in TissueSample validator
 
 
+1.12.2
+======
+
+`PR 598: feat: update modal and banner <https://github.com/smaht-dac/smaht-portal/pull/598>`_
+
+* Update the Browse View Modal
+* Update the Donor View redirect banner
+
+
+1.12.1
+======
+
+`PR: 594: Sort tissues in alphabetical order in facet terms and the data matrix <https://github.com/smaht-dac/smaht-portal/pull/594>`_
+
+* Sorts tissues in alphabetical order in facet terms and the data matrix
+* Refactors data matrix in the process to simplify and remove redundant code
+
+
 1.12.0
 ======
 
