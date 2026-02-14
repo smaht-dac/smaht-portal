@@ -10,9 +10,10 @@ Change Log
 1.13.0
 ======
 
-`PR 522: feat: Release Tracker Restructuring <https://github.com/smaht-dac/smaht-portal/pull/522>`_
+`PR 604: feat: release tracker with alert <https://github.com/smaht-dac/smaht-portal/pull/604>`_
 
-* Add support for Tissue Aliquot category validation in TissueSample validator
+* Restructure Release Tracker for network members only
+* Implement alert for public users
 
 
 1.12.2
