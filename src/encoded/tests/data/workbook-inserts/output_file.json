@@ -45,6 +45,7 @@
         "data_category": [
             "Sequencing Reads"
         ],
+        "access_status": "Protected",
         "data_type": [
             "Aligned Reads"
         ],

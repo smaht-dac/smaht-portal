@@ -7,6 +7,26 @@ smaht-portal
 Change Log
 ----------
 
+1.14.0
+======
+
+`PR 603: Add ExternalOutputFile <https://github.com/smaht-dac/smaht-portal/pull/603>`_
+
+* Add new item ExternalOutputFile
+* Update calcprops for sample_sources, donors, and sample_summary to function with new links
+* Update annotated filename and release script to function for External Output Files
+* Add new property analysis_details to File
+
+
+1.13.0
+======
+
+`PR 604: feat: release tracker with alert <https://github.com/smaht-dac/smaht-portal/pull/604>`_
+
+* Restructure Release Tracker for network members only
+* Implement alert for public users
+
+
 1.12.2
 ======
 
@@ -79,9 +99,10 @@ Change Log
 1.11.2
 ======
 
-`PR  595 update TissueSample validator <https://github.com/smaht-dac/smaht-portal/pull/595>`_
+`PR 595: update TissueSample validator <https://github.com/smaht-dac/smaht-portal/pull/595>`_
 
 * Add support for Tissue Aliquot category validation in TissueSample validator
+
 
 1.11.1
 ======

@@ -798,6 +798,7 @@ body[data-path="/"]>#application>#layout {
 					display: flex;
 					flex-direction: column;
 					flex: 1;
+					max-height: 400px;
 
 					&-header {
 						font-size: 1rem;
@@ -891,8 +892,8 @@ body[data-path="/"]>#application>#layout {
 							}
 
 							.icon-spinner {
-								margin: auto;
-								color: #485983;
+								margin: 10px auto;
+								color: #4859835b;
 							}
 
 							.data-release-item-container {
@@ -903,7 +904,7 @@ body[data-path="/"]>#application>#layout {
 									padding: 5px 5px 0px 25px;
 									padding-bottom: 16px;
 									
-									.header {
+									& > .header {
 										display: flex;
 										justify-content: space-between;
 										background-color: #ecf2fe;
@@ -920,7 +921,7 @@ body[data-path="/"]>#application>#layout {
 											}
 										}
 
-										&-link {
+										.header-link {
 											width: 100%;
 											justify-content: space-between;
 											display: flex;
@@ -971,28 +972,163 @@ body[data-path="/"]>#application>#layout {
 										}
 									}
 									.body {
-										padding-left: 8px;
 										color: #485983;
 										font-size: 0.75rem;
 
 										.release-item {
-											padding: 10px 0px 0px 0px;
-											.title {
-												color: #485983;
-												font-weight: 700;
-												font-size: 0.875rem;
-												align-items: center;
-												width: max-content;
+											padding: 5px 0px;
+
+											.day-group-header {
+												display: flex;
+												padding: 2px 0px;
+												margin: 0px;
+												padding: 0px 0px 0px 10px;
+												background-color: transparent;
+
+												.toggle-button {
+													display: flex;
+													margin: auto;
+													border: 1px solid transparent;
+													border-radius: 100%;
+													padding: 2px;
+													color: #485983;
+													background-color: transparent;
+												}
 												
+												.title {
+													display: flex;
+													justify-content: space-between;
+													flex: 1;
+													padding: 4px 8px;
+													border-radius: 7px;
+													font-weight: 700;
+													font-size: 0.875rem;
+													color: #485983;
+
+													.count {
+														display: flex;
+														gap: 4px;
+														align-items: center;
+														font-size: 0.6875rem;
+														color: #65759f;
+
+														&:hover {
+															color: #3C71F9;
+														}
+													}
+													
+													&:hover {
+														cursor: pointer;
+														background-color: #E7F1FB;
+														transition: background-color 100ms;
+													}
+												}
+											}
+											
+											.donor-list {
+												display: flex;
+												flex-direction: column;
+												gap: 4px;
+												padding: 8px 10px;
+												background-color: #F3F9FE;
+												
+												.release-item {
+													padding: 0px;
+
+													&[aria-expanded="true"] {
+														padding-bottom: 8px;
+													}
+												}
+											}
+											.donor-group-header {
+												display: flex;
+												border-radius: 4px;
+												gap: 4px;
+												padding-bottom: 0px;
+												
+												.toggle-button {
+													display: flex;
+													border-radius: 100%;
+													padding: 2px;
+													color: #485983;
+													margin: auto;
+													width: 16px;
+												}
+
+												.title {
+													display: flex;
+													flex: 1;
+													justify-content: space-between;
+													font-weight: 500;
+													font-size: 0.875rem;
+													width: max-content;
+													padding: 4px 8px;
+													color: #485983;
+													border: 1px solid transparent;
+													border-radius: 7px;
+													align-items: baseline;
+													transition: background-color 100ms;
+													margin-bottom: 0px;
+													
+													.count {
+														display: flex;
+														gap: 4px;
+														align-items: center;
+														font-size: 0.6875rem;
+														color: #65759f;
+
+														&:hover {
+															color: #3C71F9;
+														}
+													}
+
+													&:hover {
+														cursor: pointer;
+														background-color: #ddeaf7;
+														transition: background-color 100ms;
+														// border-radius: 7px 7px 0px 0px;
+														
+														i {
+															fill: #3C71F9;
+														}
+													}
+												}
+												
+												&.expanded {
+													.title {
+														background-color: #E7F1FB;
+														border-radius: 7px 7px 0px 0px;
+														border-color: #B8D3EF;
+														
+														&:hover {
+															background-color: #e0ecf8;
+														}
+													}
+												}
+											}
+
+											.tissue-group-header .toggle-button {
+												display: flex;
+												gap: 6px;
+												align-items: center;
+											}
+
+											.tissue-list {
+												margin-top: 0px;
+												list-style-type: none;
+												background: #FBFDFF;
+												padding: 5px;
+												padding-left: 0px;
+												margin-left: 20px;
+												border-radius: 0px 0px 7px 7px;
+												border: 1px solid #B8D3EF;
+												border-top: none;
+
 												svg {
 													display: none;
 												}
 	
 												&:hover {
-													display: inline;
-													cursor: pointer;
-													color: #3C71F9;
-	
 													svg {
 														display: inline-flex;
 														vertical-align: text-top;
@@ -1009,9 +1145,11 @@ body[data-path="/"]>#application>#layout {
 
 												li {
 													font-weight: 300;
-													line-height: 1.25rem;
 													line-height: 1rem;
 													margin-top: 0.25rem;
+													border-radius: 0px 0px 7px 7px;
+													margin-top: 0px;
+													padding: 4px;
 
 													a {
 														color: #485983;
@@ -1023,8 +1161,38 @@ body[data-path="/"]>#application>#layout {
 													
 												}
 											}
+
+											.file-group-list {
+												padding-left: 37px;
+											}
+
+											&[aria-expanded="true"] {
+												.day-group-header {
+													background-color: #E7F1FB;
+													border: 1px solid #D3DBE6;
+													border-bottom: none;
+													border-radius: 8px 8px 0px 0px;
+												}
+												.donor-list {
+													border: 1px solid #D3DBE6;
+													border-radius: 0px 0px 8px 8px;
+												}
+
+											}
 										}
 
+										.toggle-button {
+											&.donor {
+												background-color: transparent;
+												border: none;
+												color: #485983;
+											}
+											&.tissue {
+												background-color: transparent;
+												border: none;
+												color: #485983;
+											}
+										}
 									}
 									&:before {
 										content: "";
@@ -1041,10 +1209,10 @@ body[data-path="/"]>#application>#layout {
 									border-top-left-radius: 9px;
 									border-top-right-radius: 9px;
 									.content {
-										.header {
+										& > .header {
 											background-color: rgba(195 255 219 / 50%);
 											font-size: 0.75rem;
-											&-link {
+											.header-link {
 												color: #014B11;
 												
 												&:hover {
@@ -1075,11 +1243,6 @@ body[data-path="/"]>#application>#layout {
 										.body {
 											height: 0px;
 											overflow: hidden;
-										}
-
-										.toggle-button {
-											i:before {
-											}
 										}
 									}
 								}
@@ -1272,21 +1435,23 @@ body[data-path="/"]>#application>#layout {
 								}
 							}
 						}
-						&.cram-conversion {
+						&.public-release {
 							color: #485983;
 							font-size: 12px;
-							margin: 0px;
-							border-radius: 8px;
 							padding: 10px;
-							border-color: transparent;
 
 							.header {
-								font-weight: 600;
+								font-weight: 700;
 							}
 
 							i {
-								color: #485983;
-								margin-right: 5px;
+								color: #d5dff2;
+								font-size: 2rem;
+								margin: 8px auto 15px auto;
+							}
+
+							.body {
+								text-align: center;
 							}
 						}
 					}
@@ -1294,10 +1459,6 @@ body[data-path="/"]>#application>#layout {
 				}
 		
 				.about-consortium {
-			
-					.section-header {
-					}
-
 					&-links {
 						display: flex;
 						flex-direction: row;

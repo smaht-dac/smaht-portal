@@ -128,8 +128,8 @@ export const BrowseSummaryStatsViewer = React.memo((props) => {
 });
 BrowseSummaryStatsViewer.propTypes = {
     href: PropTypes.string.isRequired,
-    session: PropTypes.object.isRequired,
-    windowWidth: PropTypes.number.isRequired,
+    session: PropTypes.bool.isRequired,
+    windowWidth: PropTypes.number,
     useCompactFor: PropTypes.arrayOf(
         PropTypes.oneOf(['xs', 'sm', 'md', 'lg', 'xl', 'xxl'])
     ),
@@ -189,15 +189,18 @@ BrowseSummaryStatController.propTypes = {
     type: PropTypes.oneOf(['File', 'Donor', 'Tissue', 'Assay', 'File Size'])
         .isRequired,
     containerCls: PropTypes.string,
-    href: PropTypes.string.isRequired,
-    session: PropTypes.object.isRequired,
-    data: PropTypes.shape({
-        files: PropTypes.number,
-        donors: PropTypes.number,
-        tissues: PropTypes.number,
-        assays: PropTypes.number,
-        file_size: PropTypes.number,
-    }).isRequired,
+    session: PropTypes.bool.isRequired,
+    href: PropTypes.string,
+    data: PropTypes.oneOfType([
+        PropTypes.shape({
+            files: PropTypes.number,
+            donors: PropTypes.number,
+            tissues: PropTypes.number,
+            assays: PropTypes.number,
+            file_size: PropTypes.number,
+        }),
+        PropTypes.oneOf([null]), // Allow null before data loads
+    ]),
     loading: PropTypes.bool.isRequired,
     error: PropTypes.bool.isRequired,
 };
