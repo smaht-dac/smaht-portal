@@ -95,6 +95,12 @@ export class VisualBody extends React.PureComponent {
         const countField = countFor;
         const getCountValue = (item) => {
             if (!item || !item.counts) return 0;
+            if (countField === 'donors') {
+                const donorsVal = item.counts.donors;
+                if (typeof donorsVal === 'number') return donorsVal;
+                const donorCountVal = item.counts.donor_count;
+                return typeof donorCountVal === 'number' ? donorCountVal : 0;
+            }
             const value = item.counts[countField];
             return typeof value === 'number' ? value : 0;
         };
@@ -216,6 +222,7 @@ export class VisualBody extends React.PureComponent {
             browseFilteringTransformFunc
         } = this.props;
         const { depth, blockType = null, popoverPrimaryTitle, rowGroups, rowGroupKey, columnKey } = blockProps;
+        const effectiveBlockType = blockType === 'col-secondary-summary' ? 'col-summary' : blockType;
         const isGroup = (Array.isArray(data) && data.length >= 1) || false;
         let aggrData;
 
@@ -240,6 +247,17 @@ export class VisualBody extends React.PureComponent {
         if (!aggrData) {
             return;
         }
+
+        // col-secondary-summary uses synthetic count-only data; rebuild popover context from grouped rows for the column.
+        if (effectiveBlockType === 'col-summary' && columnKey && blockProps.groupedDataIndices && Array.isArray(blockProps.groupedDataIndices[columnKey])) {
+            const summaryRows = blockProps.groupedDataIndices[columnKey];
+            if (summaryRows.length > 0) {
+                const keysToInclude = _.uniq(_.keys(titleMap).concat([columnGrouping]).concat(groupingProperties)).concat(['primary_field_override']);
+                const summaryAggrData = StackedBlockVisual.aggregateObjectFromList(summaryRows, keysToInclude, []);
+                aggrData = _.extend({}, aggrData, summaryAggrData, { [columnGrouping]: columnKey });
+            }
+        }
+
         // Grouping metadata (labels + values)
         // e.g. Donor
         const primaryGrpProp = groupingProperties[0] || null;
@@ -262,18 +280,18 @@ export class VisualBody extends React.PureComponent {
 
         // Title area values
         const yAxisGroupingTitle = (columnGrouping && titleMap[columnGrouping]) || columnGrouping || null;
-        const yAxisGroupingValue = isGroup ? data[0][columnGrouping] : data[columnGrouping];
+        const yAxisGroupingValue = aggrData[columnGrouping] || (isGroup ? data[0][columnGrouping] : data[columnGrouping]) || columnKey;
 
         // URL builder: converts current block state into browse filters
         function generateBrowseUrl() {
             let currentFilteringProperties = groupingProperties.slice(0, depth + 1);
-            if (blockType !== 'row-summary') {
+            if (effectiveBlockType !== 'row-summary') {
                 currentFilteringProperties = currentFilteringProperties.concat([columnGrouping]);
             }
             const currentFilteringPropertiesPairs = _.map(currentFilteringProperties, function (property) {
                 let facetField = fieldChangeMap[property] || property;
                 let facetTerm = aggrData[property];
-                if (!facetTerm && blockType === 'col-summary' && property === columnGrouping && columnKey) {
+                if (!facetTerm && effectiveBlockType === 'col-summary' && property === columnGrouping && columnKey) {
                     facetTerm = columnKey;
                 }
                 if (valueChangeMap && valueChangeMap[property]) {
@@ -342,14 +360,14 @@ export class VisualBody extends React.PureComponent {
 
             // Allow caller to override or transform filters.
             if (typeof browseFilteringTransformFunc === 'function') {
-                currentFilteringPropertiesVals = browseFilteringTransformFunc(currentFilteringPropertiesVals, blockType);
+                currentFilteringPropertiesVals = browseFilteringTransformFunc(currentFilteringPropertiesVals, effectiveBlockType);
             }
 
             let initialHref = queryUrl;
             const customUrlParams = rowGroups && rowGroupKey ? rowGroups[rowGroupKey]?.customUrlParams : null;
             let customUrlParamsPositiveKeys = null;
 
-            if (customUrlParams && blockType === 'col-summary') {
+            if (customUrlParams && effectiveBlockType === 'col-summary') {
                 // If rowGroups is defined and rowGroupKey is set, we use customUrlParams from rowGroups
                 initialHref += '&' + customUrlParams;
                 customUrlParamsPositiveKeys = new Set(
@@ -419,7 +437,7 @@ export class VisualBody extends React.PureComponent {
                 <Popover.Body>
                     {isGroup ?
                         <div className="inner">
-                            {blockType === 'regular' ? (
+                            {effectiveBlockType === 'regular' ? (
                                 <div className="row primary-row pb-1 pt-1">
                                     <div className="col-4">
                                         <div className="label me-05">{primaryGrpPropTitle}</div>
@@ -439,28 +457,28 @@ export class VisualBody extends React.PureComponent {
                                     </div>
                                 </div>
                             ) : null}
-                            {blockType === 'col-summary' ? (
+                            {effectiveBlockType === 'col-summary' ? (
                                 <div className="row primary-row pb-1 pt-1">
                                     <div className="col-12 value">
                                         <span className="text-muted text-capitalize">{yAxisGroupingTitle} summary:</span> { yAxisGroupingValue || '--' }
                                     </div>
                                 </div>
                             ) : null}
-                            {blockType === 'row-summary' && depth === 0 ? (
+                            {effectiveBlockType === 'row-summary' && depth === 0 ? (
                                 <div className="row primary-row pb-1 pt-1">
                                     <div className="col-12 value">
                                         <span className="text-muted text-capitalize">{primaryGrpPropTitle} summary:</span> { primaryGrpPropValue || '--' }
                                     </div>
                                 </div>
                             ) : null}
-                            {blockType === 'row-summary' && depth > 0 ? (
+                            {effectiveBlockType === 'row-summary' && depth > 0 ? (
                                 <div className="row primary-row pb-1 pt-1">
                                     <div className="col-12 value">
                                         <span className="text-muted text-capitalize">{secondaryGrpPropTitle} summary:</span> { secondaryGrpPropValue || '--' }
                                     </div>
                                 </div>
                             ) : null}
-                            {blockType === 'regular' ? (
+                            {effectiveBlockType === 'regular' ? (
                                 <div className="row secondary-row pb-1 mt-1">
                                     <div className="col-4">
                                         <div className="label me-05">{yAxisGroupingTitle}</div>
@@ -476,7 +494,7 @@ export class VisualBody extends React.PureComponent {
                                     </div>
                                 </div>
                             ) : null}
-                            {blockType === 'col-summary' ? (
+                            {effectiveBlockType === 'col-summary' ? (
                                 <div className="row secondary-row pb-1 mt-1">
                                     <div className="col-4">
                                         <div className="label me-05">{StackedBlockVisual.pluralize(primaryGrpPropTitle)}</div>
@@ -492,7 +510,7 @@ export class VisualBody extends React.PureComponent {
                                     </div>
                                 </div>
                             ) : null}
-                            {blockType === 'row-summary' && depth === 0 ? (
+                            {effectiveBlockType === 'row-summary' && depth === 0 ? (
                                 <div className="row secondary-row pb-1 mt-1">
                                     <div className="col-4">
                                         <div className="label me-05">{additionalPopoverData?.[primaryGrpPropValue]?.["secondaryCategory"] ? secondaryGrpPropTitle : StackedBlockVisual.pluralize(secondaryGrpPropTitle)}</div>
@@ -513,7 +531,7 @@ export class VisualBody extends React.PureComponent {
                                     </div>
                                 </div>
                             ) : null}
-                            {blockType === 'row-summary' && depth > 0 ? (
+                            {effectiveBlockType === 'row-summary' && depth > 0 ? (
                                 <div className="row secondary-row pb-1 mt-1">
                                     <div className="col-4">
                                         <div className="label me-05">{primaryGrpPropTitle}</div>
@@ -1604,10 +1622,22 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             const totals = Array.isArray(props.columnTotals)
                 ? props.columnTotals.find((t) => t[props.columnGrouping] === columnKey)
                 : null;
-            if (totals) {
-                return [{ counts: totals.counts }];
-            }
-            return null;
+            return totals ? totals.counts : null;
+        };
+
+        const getDonorCountFromGroupedRows = (columnKey) => {
+            const rows = props.groupedDataIndices[columnKey] || [];
+            const donorField = Array.isArray(props.groupingProperties) ? props.groupingProperties[0] : 'donor';
+            const donorSet = new Set();
+            rows.forEach((row) => {
+                const donorValue = row && row[donorField];
+                if (Array.isArray(donorValue)) {
+                    donorValue.forEach((d) => { if (d != null) donorSet.add(String(d)); });
+                } else if (donorValue != null) {
+                    donorSet.add(String(donorValue));
+                }
+            });
+            return donorSet.size;
         };
 
         const getSummaryBlockStyle = () => ({
@@ -1619,12 +1649,15 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             'paddingTop': props.blockVerticalSpacing
         });
 
-        const renderSummaryBlocks = () => (
+        const renderSummaryBlocks = (summaryCountFor = props.countFor, summaryBlockType = 'col-summary') => (
             <div className="blocks-container d-flex header-summary">
                 {columnKeys.map(function (columnKey, colIndex) {
-                    const totalsData = getColumnSummaryFromTotals(columnKey);
-                    const columnSummaryData = totalsData || getColumnSummaryData(columnKey);
-                    const columnTotal = totalsData ? 1 : (props.groupedDataIndices[columnKey]?.length || 0);
+                    const totalsCounts = getColumnSummaryFromTotals(columnKey);
+                    const donorsCount = totalsCounts?.donors ?? totalsCounts?.donor_count ?? getDonorCountFromGroupedRows(columnKey);
+                    const columnSummaryData = summaryCountFor === 'donors'
+                        ? [{ counts: { donors: donorsCount } }]
+                        : (totalsCounts ? [{ counts: totalsCounts }] : getColumnSummaryData(columnKey));
+                    const columnTotal = totalsCounts ? 1 : (props.groupedDataIndices[columnKey]?.length || 0);
                     const hasOpenBlock = props.openBlock?.columnIdx === colIndex;
                     const hasActiveBlock = props.activeBlock?.columnIdx === colIndex;
                     const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
@@ -1632,15 +1665,44 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         <div key={'col-summary-' + columnKey} className={className} style={headerItemStyle}>
                             <div className="block-container-group" style={getSummaryBlockStyle()}
                                 key={'summary'} data-block-count={columnTotal} data-group-key={columnKey}>
-                                <Block {..._.omit(props, 'group')} key={colIndex} data={columnSummaryData} colIndex={colIndex} blockType="col-summary" popoverPrimaryTitle={props.rowGroupKey} columnKey={columnKey} />
+                                <Block
+                                    {..._.omit(props, 'group')}
+                                    key={`${summaryBlockType}-${colIndex}`}
+                                    data={columnSummaryData}
+                                    colIndex={colIndex}
+                                    blockType={summaryBlockType}
+                                    popoverPrimaryTitle={props.rowGroupKey}
+                                    columnKey={columnKey}
+                                    countFor={summaryCountFor}
+                                />
                             </div>
                         </div>
                     );
                 })}
-                {props.overallCounts && props.countFor && props.overallCounts[props.countFor] != null ? (
+                {(() => {
+                    const overallDonorsFromRows = () => {
+                        const donorField = Array.isArray(props.groupingProperties) ? props.groupingProperties[0] : 'donor';
+                        const donorSet = new Set();
+                        Object.keys(props.groupedDataIndices || {}).forEach((ck) => {
+                            (props.groupedDataIndices[ck] || []).forEach((row) => {
+                                const donorValue = row && row[donorField];
+                                if (Array.isArray(donorValue)) {
+                                    donorValue.forEach((d) => { if (d != null) donorSet.add(String(d)); });
+                                } else if (donorValue != null) {
+                                    donorSet.add(String(donorValue));
+                                }
+                            });
+                        });
+                        return donorSet.size;
+                    };
+                    const overallValue = summaryCountFor === 'donors'
+                        ? (props.overallCounts?.donors ?? props.overallCounts?.donor_count ?? overallDonorsFromRows())
+                        : props.overallCounts?.[summaryCountFor];
+                    if (overallValue == null) return null;
+                    return (
                     <div
-                        key="col-summary-overall"
-                        className="column-group-header overall-summary"
+                        key={`col-summary-overall-${summaryCountFor}`}
+                        className={`column-group-header overall-summary ${summaryBlockType === 'col-secondary-summary' ? 'col-secondary-summary' : ''}`}
                         style={headerItemStyle}>
                         <div
                             className="block-container-group"
@@ -1649,16 +1711,21 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                             data-group-key="overall-summary">
                             <Block
                                 {..._.omit(props, 'group')}
-                                key="overall-summary-block"
-                                data={{ counts: props.overallCounts }}
+                                key={`overall-summary-block-${summaryCountFor}`}
+                                data={{ counts: summaryCountFor === 'donors'
+                                    ? { ...props.overallCounts, donors: overallValue }
+                                    : props.overallCounts
+                                }}
                                 colIndex={columnKeys.length}
-                                blockType="col-summary"
+                                blockType={summaryBlockType === 'col-secondary-summary' ? 'col-summary' : summaryBlockType}
                                 popoverPrimaryTitle={props.rowGroupKey}
                                 columnKey="overall-summary"
+                                countFor={summaryCountFor}
                             />
                         </div>
                     </div>
-                ) : null}
+                    );
+                })()}
             </div>
         );
 
@@ -1672,9 +1739,21 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         </div>
                     </div>
                     <div className="col list-section has-header header-for-viz">
-                        {renderSummaryBlocks()}
+                        {renderSummaryBlocks(props.countFor, 'col-summary')}
                     </div>
                 </div>
+                {props.countFor === 'files' ? (
+                    <div className="row grouping-row total-donors-summary-row">
+                        <div className="label-section" style={{ ...labelSectionStyle, paddingTop: props.blockVerticalSpacing }}>
+                            <div className="label-container text-end" style={{ height: '29px', marginBottom: '1px' }}>
+                                <span className="float-start text-500 ps-05">Total Donors</span>
+                            </div>
+                        </div>
+                        <div className="col list-section has-header header-for-viz">
+                            {renderSummaryBlocks('donors', 'col-secondary-summary')}
+                        </div>
+                    </div>
+                ) : null}
             </div>
         );
     }
@@ -1812,7 +1891,7 @@ const Block = React.memo(function Block(props){
         'marginTop' : indexInGroup && indexInGroup > 0 ? blockVerticalSpacing + 1 : 0
     };
 
-    const isSummaryBlock = (type) => type === 'row-summary' || type === 'col-summary';
+    const isSummaryBlock = (type) => type === 'row-summary' || type === 'col-summary' || type === 'col-secondary-summary';
 
     // Choose source data for summary blocks
     const argData = blockType === 'row-summary' && rowTotals ? rowTotals : data;
@@ -1840,6 +1919,12 @@ const Block = React.memo(function Block(props){
     const countFor = props.countFor || 'files';
     const getCountValue = (item) => {
         if (!item || !item.counts) return 0;
+        if (countFor === 'donors') {
+            const donorsVal = item.counts.donors;
+            if (typeof donorsVal === 'number') return donorsVal;
+            const donorCountVal = item.counts.donor_count;
+            return typeof donorCountVal === 'number' ? donorCountVal : 0;
+        }
         const value = item.counts[countFor];
         return typeof value === 'number' ? value : 0;
     };
@@ -1864,15 +1949,22 @@ const Block = React.memo(function Block(props){
 
     const color = getColor(blockValue, blockType);
 
+    const isOpenBlock = openBlock?.rowIdx === rowIndex && openBlock?.columnIdx === colIndex &&
+        ((blockType === 'col-summary' || blockType === 'col-secondary-summary') ? (openBlock?.rowGroupKey === rowGroupKey) : (openBlock?.rowKey === group));
+
     // Apply open/active styles
-    if (openBlock?.rowIdx === rowIndex && openBlock?.columnIdx === colIndex &&
-        (blockType === 'col-summary' ? (openBlock?.rowGroupKey === rowGroupKey) : (openBlock?.rowKey === group))) {
+    if (isOpenBlock) {
         style['color'] = isSummaryBlock(blockType) ? '#8a8aaa' : color;
         style['borderColor'] = isSummaryBlock(blockType) ? '#8a8aaa' : color;
         style['pointerEvents'] = 'none'; // disable pointer events when block is open
         className += ' is-open-block';
     } else {
         style['backgroundColor'] = color;
+    }
+    if (blockType === 'col-secondary-summary' && columnKey !== 'overall-summary' && !isOpenBlock) {
+        style['backgroundColor'] = '#9C9CFF';
+        style['border'] = '1px solid #8686E7';
+        style['color'] = '#ffffff';
     }
 
     // Base block element
@@ -1938,7 +2030,7 @@ Block.propTypes = {
         rowKey: PropTypes.string,
         rowGroupKey: PropTypes.string,
     }),
-    blockType: PropTypes.oneOf(['regular', 'row-summary', 'col-summary'])
+    blockType: PropTypes.oneOf(['regular', 'row-summary', 'col-summary', 'col-secondary-summary'])
 };
 
 // Icons for sorting

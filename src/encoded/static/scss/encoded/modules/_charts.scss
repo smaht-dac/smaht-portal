@@ -1652,6 +1652,22 @@ body[data-path="/statistics"] {
             &.header-section-lower {
                 background-color: #f4f4ff;
                 border-top-left-radius: 10px;
+
+                .grouping-row.total-donors-summary-row {
+                    background-color: #ffffff;
+
+                    .label-section > .label-container {
+                        background-color: #ffffff;
+
+                        > span {
+                            font-weight: 700;
+                        }
+                    }
+
+                    .list-section {
+                        background-color: #ffffff;
+                    }
+                }
             }
 
             .grouping-row {
