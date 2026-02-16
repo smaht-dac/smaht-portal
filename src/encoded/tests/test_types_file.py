@@ -23,7 +23,6 @@ from ..item_utils import (
     sequencing as sequencing_utils,
     software as software_utils,
     tissue as tissue_utils,
-    external_output_file as eof_utils
 )
 from ..item_utils.utils import (
     get_property_values_from_identifiers,
@@ -789,8 +788,7 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
     )
     assert file_without_sample_sources_search
     for file in file_without_sample_sources_search:
-        if not eof_utils.is_external_output_file(file):
-            assert not file_utils.get_sample_sources(file)
+        assert not file_utils.get_sample_sources(file)
 
     submitted_file_with_sample_sources_search = search_type_for_key(
         es_testapp, "SubmittedFile", search_key
@@ -841,8 +839,7 @@ def test_donors(es_testapp: TestApp, workbook: None) -> None:
         if cell_lines:
             assert_cell_line_donors_match_calcprop(request_handler, file, cell_lines)
         else:
-            if not eof_utils.is_external_output_file(file):
-                assert not file_utils.get_donors(file)
+            assert not file_utils.get_donors(file)
 
     submitted_file_with_donors_search = search_type_for_key(
         es_testapp, "SubmittedFile", search_key

@@ -1202,10 +1202,11 @@ class File(Item, CoreFile):
     ) -> Union[Dict[str, Any], None]:
         """Get sample summary for display on file overview page."""
         result = None
-        request_handler = RequestHandler(request=request)
-        result = self._get_sample_summary_fields(
-            request_handler, self.properties
-        )
+        if file_sets:
+            request_handler = RequestHandler(request=request)
+            result = self._get_sample_summary_fields(
+                request_handler, self.properties
+            )
         return result or None
 
     def _get_sample_summary_fields(
