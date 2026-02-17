@@ -1462,6 +1462,10 @@ body[data-path="/statistics"] {
         flex-wrap: nowrap !important;
     }
 
+    > .row > div {
+        width: 100%;
+    }
+
     .matrix-mode-layout {
         padding: 1rem;
         width: 100%;
@@ -1499,6 +1503,11 @@ body[data-path="/statistics"] {
         border-right: 1px solid #e2e8ef;
         padding-right: 1rem;
         margin-right: 1rem;
+
+        &.is-hidden {
+            visibility: hidden;
+            pointer-events: none;
+        }
 
         .matrix-counts-title {
             text-align: center;

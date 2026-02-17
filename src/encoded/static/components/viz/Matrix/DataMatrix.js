@@ -987,7 +987,7 @@ export default class DataMatrix extends React.PureComponent {
         );
 
         const body = (
-            <div>
+            <div className="w-100">
                 {configurator}
                 {headerFor || null}
                 {showCountFor ? (() => {
@@ -1011,8 +1011,9 @@ export default class DataMatrix extends React.PureComponent {
                                 </button>
                             </div>
                             <div className="matrix-mode-body d-flex">
-                                {!isTissueMatrix ? (
-                                    <div className="matrix-counts-panel">
+                                <div className={`matrix-counts-panel ${isTissueMatrix ? 'is-hidden' : ''}`}>
+                                    {!isTissueMatrix ? (
+                                        <React.Fragment>
                                         <div className="matrix-counts-title">Counts</div>
                                         <button
                                             type="button"
@@ -1026,8 +1027,9 @@ export default class DataMatrix extends React.PureComponent {
                                             onClick={() => this.onCountForChange({ target: { value: 'total_coverage' } })}>
                                             <i className="icon fas icon-stream me-05" /> Coverage View
                                         </button>
-                                    </div>
-                                ) : null}
+                                        </React.Fragment>
+                                    ) : null}
+                                </div>
                                 <div className="matrix-visual-panel flex-grow-1">
                                     <VisualBody
                                         {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
