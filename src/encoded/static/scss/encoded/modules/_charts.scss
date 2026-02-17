@@ -1614,6 +1614,7 @@ body[data-path="/statistics"] {
 
                     &:first-child {
 
+                        .vertical-container-rows .grouping:not(:first-child) .row > .list-section > .blocks-container,
                         .vertical-container-rows .grouping:not(:first-child) .label-section>.label-container {
                             border-top: 1px solid #eee !important;
                         }
@@ -2049,6 +2050,47 @@ body[data-path="/statistics"] {
                 font-family: "Font Awesome 6 Free";
                 font-size: 16px;
                 margin-bottom: 10px;
+            }
+        }
+
+        // overrides for donor specific matrix with count for donors
+        &.count-for-donors {
+            .grouping.header-section-lower {
+                background-color: #ECFBEF;
+
+                .header-summary {
+                    .stacked-block[data-block-type="col-summary"] {
+                        background-color: #D5F3DB !important;
+                        border-color: #B7E3CB !important;
+                        color: #303840 !important;
+                    }
+                }
+            }
+
+            .grouping > .child-blocks > .vertical-container > .vertical-container-rows > .grouping:not(.row-index-0) > .row > .list-section > .blocks-container {
+                border-top: 1px solid #eee !important;
+            }
+
+            .blocks-container {
+                .stacked-block[data-block-type="regular"] {
+                    border-color: #cfd8d2 !important;
+                }
+
+                .grouping > .child-blocks > .vertical-container > .vertical-container-rows > .grouping:not(.row-index-0) .stacked-block[data-block-type="regular"] {
+                    border-top-color: #cfd8d2 !important;
+                }
+
+                .stacked-block[data-block-type="regular"]:not([data-block-value="0"]):not(.is-open-block) {
+                    background-color: #9C9CFF !important;
+                    border-color: #8686E7 !important;
+                    color: #ffffff;
+                }
+
+                .stacked-block[data-block-type="row-summary"]:not(.is-open-block) {
+                    background-color: #D5F3DB !important;
+                    border-color: #B7E3CB !important;
+                    color: #303840 !important;
+                }
             }
         }
     }

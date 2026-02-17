@@ -1129,6 +1129,9 @@ export class StackedBlockVisual extends React.PureComponent {
     render() {
         const { openBlock, activeBlock } = this.state;
         let className = "stacked-block-viz-container";
+        if (this.props.countFor) {
+            className += ` count-for-${this.props.countFor}`;
+        }
         if (activeBlock) {
             className += ' has-active-block';
         }
