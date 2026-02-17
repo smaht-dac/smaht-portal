@@ -55,12 +55,19 @@ DEFAULT_ABSENT_FIELD = "X"
 ABSENT_AGE = "N"
 ABSENT_SEX = ABSENT_AGE
 
+GERMLINE_EXTENSION = "germline"
 ALIGNED_READS_EXTENSION = "aligned"
 PHASED_EXTENSION = "phased"
 SORTED_EXTENSION = "sorted"
 
 MALE_SEX_ABBREVIATION = "M"
 FEMALE_SEX_ABBREVIATION = "F"
+
+SNV_VARIANT_TYPE = "snv"
+INDEL_VARIANT_TYPE = "indel"
+CNV_VARIANT_TYPE = "cnv"
+SV_VARIANT_TYPE = "sv"
+MEI_VARIANT_TYPE = "mei"
 
 
 @dataclass(frozen=True)
@@ -878,6 +885,8 @@ def get_sequencing_and_assay_codes(
         return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
     elif set(file_utils.get_data_category(file)) & set(data_category_exceptions):
         return get_filename_part(value="XX")
+    elif eof_utils.is_external_output_file(file):
+        return get_filename_part(value="XX")
     errors = []
     if not sequencing_codes:
         errors.append("No sequencing code found")
@@ -958,7 +967,7 @@ def get_analysis(
         chain_code,
         dsa_code,
         file_extension,
-        assay,
+        assay
     )
     if errors:
         return get_filename_part(errors=errors)
@@ -1014,7 +1023,7 @@ def get_analysis_value(
     chain_code: str,
     dsa_code: str,
     consensus_read_flag: str,
-    kinnex_info_code: str,
+    kinnex_info_code: str
 ) -> str:
     """Get analysis value for filename."""
     to_write = [
@@ -1222,10 +1231,32 @@ def get_file_extension(
         result += [SORTED_EXTENSION]
     if file_utils.are_reads_phased(file):
         result += [PHASED_EXTENSION]
+    if file_utils.is_germline(file):
+        result += [GERMLINE_EXTENSION]
+    if file_utils.is_variant_calls(file) and (variant_type := get_variant_type(file)):
+        result +=[variant_type]
     result += [file_extension]
     if file_extension:
         return get_filename_part(value=".".join(result))
     return get_filename_part(errors=["Unknown file extension"])
+
+
+def get_variant_type(file: Dict[str, Any]) -> str:
+    """Get variant types for VCF files."""
+    result = []
+    if file_utils.has_single_nucleotide_variants(file):
+        result.append(SNV_VARIANT_TYPE)
+    if file_utils.has_indel_variants(file):
+        result.append(INDEL_VARIANT_TYPE)
+    if file_utils.has_copy_number_variants(file):
+        result.append(CNV_VARIANT_TYPE)
+    if file_utils.has_structural_variants(file):
+        result.append(SV_VARIANT_TYPE)
+    if file_utils.has_mobile_element_insertions(file):
+        result.append(MEI_VARIANT_TYPE)
+    if len(result) == 1:
+        return ANALYSIS_INFO_SEPARATOR.join(result)
+    return
 
 
 def collect_errors(*filename_parts: FilenamePart) -> List[str]:
