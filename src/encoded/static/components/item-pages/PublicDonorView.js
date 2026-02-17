@@ -314,9 +314,12 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                         rowAggFields: [
                                             'donors.display_title',
                                             'sample_summary.tissues',
+                                            'data_type',
                                             'sample_summary.category',
                                         ],
                                     }}
+                                    resultTransformedPostProcessFuncKey="dsaChainFile"
+                                    browseFilteringTransformFuncKey="dsaChainFile"
                                     headerFor={null}
                                     defaultOpen={true}
                                     idLabel="donor"
