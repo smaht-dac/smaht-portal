@@ -990,40 +990,69 @@ export default class DataMatrix extends React.PureComponent {
             <div>
                 {configurator}
                 {headerFor || null}
-                {showCountFor ? (
-                    <div className="d-flex justify-content-end align-items-center mb-2">
-                        <span className="me-1 mb-0 text-nowrap">Count by:</span>
-                        <div className="btn-group btn-group-sm" role="group" aria-label="Show counts for">
-                            <button
-                                type="button"
-                                className={`btn ${countFor === 'files' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                onClick={() => this.onCountForChange({ target: { value: 'files' } })}>
-                                Files
-                            </button>
-                            <button
-                                type="button"
-                                className={`btn ${countFor === 'donors' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                onClick={() => this.onCountForChange({ target: { value: 'donors' } })}>
-                                Donors
-                            </button>
-                            <button
-                                type="button"
-                                className={`btn ${countFor === 'total_coverage' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                onClick={() => this.onCountForChange({ target: { value: 'total_coverage' } })}>
-                                Coverage
-                            </button>
+                {showCountFor ? (() => {
+                    const isTissueMatrix = countFor === 'donors';
+                    const isCoverageView = countFor === 'total_coverage';
+
+                    return (
+                        <div className="matrix-mode-layout">
+                            <div className="matrix-mode-tabs mb-2">
+                                <button
+                                    type="button"
+                                    className={`matrix-mode-tab ${!isTissueMatrix ? 'active' : ''}`}
+                                    onClick={() => this.onCountForChange({ target: { value: isCoverageView ? 'total_coverage' : 'files' } })}>
+                                    <i className="icon fas icon-user me-05" /> Donor x Assay Matrix
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`matrix-mode-tab ${isTissueMatrix ? 'active' : ''}`}
+                                    onClick={() => this.onCountForChange({ target: { value: 'donors' } })}>
+                                    <i className="icon fas icon-lungs me-05" /> Tissue x Assay Matrix
+                                </button>
+                            </div>
+                            <div className="matrix-mode-body d-flex">
+                                {!isTissueMatrix ? (
+                                    <div className="matrix-counts-panel">
+                                        <div className="matrix-counts-title">Counts</div>
+                                        <button
+                                            type="button"
+                                            className={`matrix-count-option ${!isCoverageView ? 'active' : ''}`}
+                                            onClick={() => this.onCountForChange({ target: { value: 'files' } })}>
+                                            <i className="icon fas icon-file me-05" /> File View
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`matrix-count-option ${isCoverageView ? 'active' : ''}`}
+                                            onClick={() => this.onCountForChange({ target: { value: 'total_coverage' } })}>
+                                            <i className="icon fas icon-stream me-05" /> Coverage View
+                                        </button>
+                                    </div>
+                                ) : null}
+                                <div className="matrix-visual-panel flex-grow-1">
+                                    <VisualBody
+                                        {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
+                                        {...bodyProps}
+                                        columnSubGrouping=""// leave blank for now
+                                        // eslint-disable-next-line react/destructuring-assignment
+                                        results={this.state[resultKey]}
+                                        defaultDepthsOpen={[defaultOpen, false, false]}
+                                        // keysToInclude={[]}
+                                    />
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                ) : null}
-                <VisualBody
-                    {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
-                    {...bodyProps}
-                    columnSubGrouping=""// leave blank for now
-                    // eslint-disable-next-line react/destructuring-assignment
-                    results={this.state[resultKey]}
-                    defaultDepthsOpen={[defaultOpen, false, false]}
-                    // keysToInclude={[]}
-                />
+                    );
+                })() : (
+                    <VisualBody
+                        {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
+                        {...bodyProps}
+                        columnSubGrouping=""// leave blank for now
+                        // eslint-disable-next-line react/destructuring-assignment
+                        results={this.state[resultKey]}
+                        defaultDepthsOpen={[defaultOpen, false, false]}
+                        // keysToInclude={[]}
+                    />
+                )}
             </div>
         );
         return (
