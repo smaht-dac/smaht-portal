@@ -7,6 +7,15 @@ smaht-portal
 Change Log
 ----------
 
+
+1.13.0
+======
+
+`PR 605: feat: new DSA column for production data matrix <https://github.com/smaht-dac/smaht-portal/pull/605>`_
+
+* Adds DSA column for production data matrix to group files associated with multiple assay types and sequencers
+
+
 1.12.2
 ======
 
