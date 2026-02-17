@@ -124,21 +124,12 @@
         "data_description": {
             "title": "Data Description",
             "description": "More detailed description of file",
-            "type" : "array",
-            "items": {
-                "type": "string",
-                "enum": [
-                    "Phased Germline SNV",
-                    "Curated Somatic SNV (High Confidence)",
-                    "Curated Somatic SNV (Low Confidence",
-                    "Curated Somatic SV (High Confidence)",
-                    "Curated Somatic SV (Low Confidence",
-                    "Curated Somatic Indel (High Confidence)",
-                    "Curated Somatic Indel (Low Confidence",
-                    "Curated Somatic MEI (High Confidence)",
-                    "Curated Somatic MEI (Low Confidence"
-                ]
-            }
+            "type": "string",
+            "enum": [
+                "Phased Germline Variant",
+                "Filtered Somatic Variant",
+                "Unfiltered Somatic Variant"
+            ]
         },
         "tissues": {
             "title": "Tissues",
