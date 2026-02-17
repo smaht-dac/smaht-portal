@@ -1515,35 +1515,36 @@ body[data-path="/statistics"] {
             margin-bottom: 0.75rem;
         }
 
+        .matrix-counts-toggle {
+            background: #d7e4ec;
+            border: 1px solid #c2d6e3;
+            border-radius: 16px;
+            padding: 8px;
+        }
+
         .matrix-count-option {
             width: 100%;
             border: 0;
-            background: #c7d6e0;
+            background: transparent;
             color: #2a4560;
             font-weight: 600;
-            padding: 1rem 0.6rem;
-            margin-bottom: 0;
+            padding: 1.2rem 0.75rem;
+            margin-bottom: 6px;
             text-align: center;
-            border-radius: 0;
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 0.25rem;
+            gap: 0.45rem;
             transition: background-color 220ms ease, color 220ms ease, box-shadow 220ms ease;
 
             .icon {
                 font-size: 1.9rem;
             }
 
-            &:first-of-type {
-                border-top-left-radius: 12px;
-                border-top-right-radius: 12px;
-            }
-
             &:last-of-type {
-                border-bottom-left-radius: 12px;
-                border-bottom-right-radius: 12px;
+                margin-bottom: 0;
             }
 
             &.active {

@@ -1015,18 +1015,20 @@ export default class DataMatrix extends React.PureComponent {
                                     {!isTissueMatrix ? (
                                         <React.Fragment>
                                         <div className="matrix-counts-title">Counts</div>
-                                        <button
-                                            type="button"
-                                            className={`matrix-count-option ${!isCoverageView ? 'active' : ''}`}
-                                            onClick={() => this.onCountForChange({ target: { value: 'files' } })}>
-                                            <i className="icon fas icon-file me-05" /> File View
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className={`matrix-count-option ${isCoverageView ? 'active' : ''}`}
-                                            onClick={() => this.onCountForChange({ target: { value: 'total_coverage' } })}>
-                                            <i className="icon fas icon-stream me-05" /> Coverage View
-                                        </button>
+                                        <div className="matrix-counts-toggle">
+                                            <button
+                                                type="button"
+                                                className={`matrix-count-option ${!isCoverageView ? 'active' : ''}`}
+                                                onClick={() => this.onCountForChange({ target: { value: 'files' } })}>
+                                                <i className="icon fas icon-file me-05" /> File View
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className={`matrix-count-option ${isCoverageView ? 'active' : ''}`}
+                                                onClick={() => this.onCountForChange({ target: { value: 'total_coverage' } })}>
+                                                <i className="icon fas icon-stream me-05" /> Coverage View
+                                            </button>
+                                        </div>
                                         </React.Fragment>
                                     ) : null}
                                 </div>
