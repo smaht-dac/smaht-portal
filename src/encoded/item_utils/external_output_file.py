@@ -70,7 +70,7 @@ def get_tissue_type(
     tissues = request_handler.get_items(tissue_ids)
     types = set()
     for tissue in tissues:
-        types.add(tissue_utils.get_category(tissue, request_handler))
+        types.add(tissue_utils.get_tissue_type(tissue, request_handler))
     # TODO: is this what we want to do or return a single value if over some number?
     return list(set(types))
 
