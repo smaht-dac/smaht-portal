@@ -19,6 +19,11 @@
         "reference_genome": "GRCh38",
         "tissues": [
             "TEST_TISSUE_LUNG"
+        ],
+        "tags": [
+            "test_release_tracker",
+            "release_tracker_title-ST001",
+            "release_tracker_description-PhasedGermlineVariantVCF"
         ]
     }
 ]

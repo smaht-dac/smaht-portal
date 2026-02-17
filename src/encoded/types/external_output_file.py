@@ -10,9 +10,12 @@ from ..item_utils import (
     external_output_file as eof_utils,
     tissue as tissue_utils,
     item as item_utils,
+    file as file_utils,
+    donor as donor_utils
 )
 from ..item_utils.utils import (
     get_property_values_from_identifiers,
+    get_property_value_from_identifier,
     RequestHandler,
 )
 
@@ -85,6 +88,11 @@ class ExternalOutputFile(SubmittedFile):
                 eof_utils.get_tissues(file_properties),
                 tissue_utils.get_location,
             ),
+            CalcPropConstants.SAMPLE_SUMMARY_STUDIES: get_property_values_from_identifiers(
+                request_handler,
+                eof_utils.get_donors(file_properties, request_handler),
+                donor_utils.get_study
+            ),
             # CalcPropConstants.SAMPLE_SUMMARY_SAMPLE_NAMES: get_property_values_from_identifiers(
             #     request_handler,
             #     file_utils.get_samples(file_properties, request_handler),
@@ -101,13 +109,6 @@ class ExternalOutputFile(SubmittedFile):
             #             request_handler=request_handler,
             #         ),
             #     ),
-            # CalcPropConstants.SAMPLE_SUMMARY_STUDIES: get_property_values_from_identifiers(
-            #     request_handler,
-            #     file_utils.get_samples(file_properties, request_handler),
-            #     functools.partial(
-            #         sample_utils.get_studies, request_handler=request_handler
-            #     ),
-            # ),
             # CalcPropConstants.SAMPLE_SUMMARY_ANALYTES: get_property_values_from_identifiers(
             #     request_handler,
             #     file_utils.get_analytes(file_properties, request_handler),
@@ -116,4 +117,74 @@ class ExternalOutputFile(SubmittedFile):
         }
         result = {key: value for key, value in to_include.items() if value}
         return result
+
+    @calculated_property(schema=CalcPropConstants.RELEASE_TRACKER_TITLE)
+    def release_tracker_title(
+        self,
+        request: Request,
+        file_sets: Optional[List[str]] = None
+    ) -> Union[str, None]:
+        """Get file release tracker title for display on home page."""
+        if (file_set_source := SubmittedFile.release_tracker_title(self, request, file_sets)):
+            return file_set_source
+        request_handler = RequestHandler(request=request)
+        result = self._get_release_tracker_title(
+            request_handler,
+            file_properties=self.properties
+        )
+        return result
+
+    @calculated_property(schema=CalcPropConstants.RELEASE_TRACKER_DESCRIPTION)
+    def release_tracker_description(
+        self,
+        request: Request,
+        file_sets: Optional[List[str]] = None
+    ) -> Union[str, None]:
+        """Get file release tracker description for display on home page."""
+        if (file_set_source := SubmittedFile.release_tracker_description(self, request, file_sets)):
+            return file_set_source
+        request_handler = RequestHandler(request=request)
+        result = self._get_release_tracker_description(
+            request_handler,
+            file_properties=self.properties
+        )
+        return result
+
+    def _get_release_tracker_title(
+            self,
+            request_handler: RequestHandler,
+            file_properties: Dict[str, Any],
+        ) -> Union[str, None]:
+        """Get release tracker title for display on the home page."""
+        to_include = None
+        if "tissues" in file_properties:
+            if (tissue_title := request_handler.get_items(
+                eof_utils.get_tissues(file_properties, request_handler)
+            )):
+                to_include = None if len(tissue_title) > 1 else item_utils.get_display_title(tissue_title[0])
+        return to_include
+
+    def _get_release_tracker_description(
+            self,
+            request_handler: RequestHandler,
+            file_properties: Dict[str, Any],
+        ) -> Union[str, None]:
+        """Get release tracker description for display on the home page."""
+        to_include = None
+        file_format_title = get_property_value_from_identifier(
+            request_handler,
+            file_utils.get_file_format(file_properties),
+            item_utils.get_display_title,
+        )
+        if "data_description" in file_properties:
+            to_include = [
+                eof_utils.get_data_description(file_properties),
+                file_format_title
+            ]
+        elif "override_release_tracker_description" in file_properties:
+            to_include = [
+                file_utils.get_override_release_tracker_description(file_properties),
+                file_format_title
+            ]
+        return " ".join(to_include)
 
