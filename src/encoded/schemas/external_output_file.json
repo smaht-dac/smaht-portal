@@ -153,6 +153,9 @@
     "facets": {
         "reference_genome.display_title": {
             "title": "Reference Genome"
+        },
+        "data_description": {
+            "title": "Data Description"
         }
     }
 }
