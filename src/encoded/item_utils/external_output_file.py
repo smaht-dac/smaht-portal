@@ -29,6 +29,13 @@ def get_source_donors(
     return properties.get("source_donors", [])
 
 
+def get_data_description(
+    properties: Dict[str, Any]
+) -> str:
+    """Get data description from file."""
+    return properties.get("data_description", "")
+
+
 def get_donors(
    properties: Dict[str, Any],
    request_handler: RequestHandler

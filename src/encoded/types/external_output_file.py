@@ -159,9 +159,11 @@ class ExternalOutputFile(SubmittedFile):
         to_include = None
         if "tissues" in file_properties:
             if (tissue_title := request_handler.get_items(
-                eof_utils.get_tissues(file_properties, request_handler)
+                eof_utils.get_tissues(file_properties)
             )):
                 to_include = None if len(tissue_title) > 1 else item_utils.get_display_title(tissue_title[0])
+        if "override_release_tracker_title" in file_properties:
+            to_include = file_utils.get_override_release_tracker_title(file_properties)
         return to_include
 
     def _get_release_tracker_description(
@@ -181,10 +183,10 @@ class ExternalOutputFile(SubmittedFile):
                 eof_utils.get_data_description(file_properties),
                 file_format_title
             ]
-        elif "override_release_tracker_description" in file_properties:
+        if "override_release_tracker_description" in file_properties:
             to_include = [
                 file_utils.get_override_release_tracker_description(file_properties),
                 file_format_title
             ]
-        return " ".join(to_include)
+        return " ".join(to_include) if to_include else None
 
