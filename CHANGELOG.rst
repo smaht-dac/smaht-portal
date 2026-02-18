@@ -7,15 +7,13 @@ smaht-portal
 Change Log
 ----------
 
+
 1.13.0
 ======
 
-`PR 603: Add ExternalOutputFile <https://github.com/smaht-dac/smaht-portal/pull/603>`_
+`PR 605: feat: new DSA column for production data matrix <https://github.com/smaht-dac/smaht-portal/pull/605>`_
 
-* Add new item ExternalOutputFile
-* Update calcprops for sample_sources, donors, and sample_summary to function with new links
-* Update annotated filename and release script to function for External Output Files
-* Add new property analysis_details to File
+* Adds DSA column for production data matrix to group files associated with multiple assay types and sequencers
 
 
 1.12.2
