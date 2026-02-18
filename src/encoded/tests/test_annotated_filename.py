@@ -1048,7 +1048,6 @@ def test_get_software_and_versions(
 FILE_EXTENSION = "foo"
 SOME_FILE_FORMAT = {"standard_file_extension": FILE_EXTENSION}
 
-
 @pytest.mark.parametrize(
     "file,file_format,expected,errors",
     [
@@ -1064,6 +1063,30 @@ SOME_FILE_FORMAT = {"standard_file_extension": FILE_EXTENSION}
             {"alignment_details": ["Sorted"]},
             SOME_FILE_FORMAT,
             "sorted.foo",
+            False,
+        ),
+        (
+            {"analysis_details": ["Phased"]},
+            SOME_FILE_FORMAT,
+            "phased.foo",
+            False,
+        ),
+        (
+            {"data_category": ["Germline Variant Calls"], "data_type": ["SNV", "Indel"], "analysis_details": ["Phased"]},
+            VCF_FILE_EXTENSION,
+            "phased.germline.vcf.gz",
+            False,
+        ),
+        (
+            {"data_category": ["Germline Variant Calls"], "data_type": ["SNV"], "analysis_details": ["Phased"]},
+            VCF_FILE_EXTENSION,
+            "phased.germline.snv.vcf.gz",
+            False,
+        ),
+        (
+            {"data_category": ["Germline Variant Calls"], "data_type": ["SNV", "Indel"], "analysis_details": ["Phased"]},
+            VCF_FILE_EXTENSION,
+            "phased.germline.vcf.gz",
             False,
         ),
     ],
