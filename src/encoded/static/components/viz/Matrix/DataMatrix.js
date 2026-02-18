@@ -951,8 +951,8 @@ DataMatrix.resultItemPostProcessFuncs = {
 DataMatrix.resultTransformedPostProcessFuncs = {
     "dsaChainFile": function (data, groupingProperties, columnGrouping) {
         // Separate DSA entries
-        const dsaData = data.all.filter((row) => row['data_type'] === 'DSA' || row['data_type'] === 'Chain File');
-        const nonDsaData = data.all.filter((row) => row['data_type'] !== 'DSA' && row['data_type'] !== 'Chain File');
+        const dsaData = data.all.filter((row) => row['data_type'] === 'DSA' || row['data_type'] === 'Chain File' || row['data_type'] === 'Sequence Interval');
+        const nonDsaData = data.all.filter((row) => row['data_type'] !== 'DSA' && row['data_type'] !== 'Chain File' && row['data_type'] !== 'Sequence Interval');
 
         const transformedDsa = DataMatrix.transformDSA(nonDsaData, data.row_totals, dsaData, groupingProperties, columnGrouping);
 
@@ -966,10 +966,10 @@ DataMatrix.browseFilteringTransformFuncs = {
     "dsaChainFile": function (filteringProperties, blockType) {
         if (filteringProperties['file_sets.libraries.assay.display_title'] === 'DSA') {
             // extend data_type filter to include Chain File along with DSA
-            filteringProperties['data_type'] = [...(filteringProperties['data_type'] || []), 'DSA', 'Chain File'];
+            filteringProperties['data_type'] = [...(filteringProperties['data_type'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
             delete filteringProperties['file_sets.libraries.assay.display_title'];
         } else if (blockType === 'col-summary' || blockType === 'regular') {
-            filteringProperties['data_type!'] = [...(filteringProperties['data_type!'] || []), 'DSA', 'Chain File'];
+            filteringProperties['data_type!'] = [...(filteringProperties['data_type!'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
         }
         return filteringProperties;
     }
