@@ -92,6 +92,11 @@ PRODUCTION = "Production"
 MWF_RNA_SEQ = "RNA-seq_bulk_short_reads_GRCh38"
 MWF_KINNEX = "RNA-seq_kinnex_long_reads_GRCh38"
 
+# Release types
+EXTERNAL_OUTPUT_FILE_RELEASE = "ExternalOutputFileRelease"
+ANALYSIS_RUN_FILE_RELEASE = "AnalysisRunFileRelease"
+FILESET_FILE_RELEASE = "FilesetFileRelease"
+
 
 class FileRelease:
 
@@ -104,6 +109,7 @@ class FileRelease:
         self.file = self.get_metadata_embedded(file_identifier)
         self.file_accession = item_utils.get_accession(self.file)
         self.output_meta_workflow_run = self.get_output_meta_workflow_run()
+        self.release_type = self.get_release_type()
         self.patch_infos = []
         self.patch_infos_minimal = []
         self.patch_dicts = []
@@ -117,9 +123,13 @@ class FileRelease:
         return self.get_file_sets_from_file()
 
     @cached_property
+    def analysis_run(self) -> dict:
+        return self.get_analysis_run_from_file()
+
+    @cached_property
     def quality_metrics(self) -> List[dict]:
         quality_metrics = self.get_items(file_utils.get_quality_metrics(self.file))
-        if not quality_metrics:
+        if not quality_metrics and self.release_type == FILESET_FILE_RELEASE:
             self.add_warning(
                 f"File {self.file_accession} does not have an associated QualityMetrics"
                 " item."
@@ -226,15 +236,22 @@ class FileRelease:
 
     @cached_property
     def donors(self) -> List[dict]:
-        tissues = [
-            sample_source
-            for sample_source in self.sample_sources
-            if tissue_utils.is_tissue(sample_source)
-        ]
-        return self.get_items(
-            self.get_links(tissues, tissue_utils.get_donor)
-            + self.get_links(self.cell_lines, cell_line_utils.get_donor)
-        )
+        if self.release_type == ANALYSIS_RUN_FILE_RELEASE:
+            donor_uuids = [
+                donor["uuid"]
+                for donor in self.analysis_run.get("donors", [])
+            ]
+            return self.get_items(donor_uuids)
+        else:
+            tissues = [
+                sample_source
+                for sample_source in self.sample_sources
+                if tissue_utils.is_tissue(sample_source)
+            ]
+            return self.get_items(
+                self.get_links(tissues, tissue_utils.get_donor)
+                + self.get_links(self.cell_lines, cell_line_utils.get_donor)
+            )
 
     @cached_property
     def protected_donors(self) -> List[dict]:
@@ -385,7 +402,18 @@ class FileRelease:
             search_filter += f"&{additional_filter}"
         return ff_utils.search_metadata(search_filter, key=self.key)
 
+    def get_release_type(self) -> str:
+        if "ExternalOutputFile" in self.file.get("@type", []):
+            return EXTERNAL_OUTPUT_FILE_RELEASE
+        elif self.output_meta_workflow_run.get("analysis_runs", []):
+            return ANALYSIS_RUN_FILE_RELEASE
+        else:
+            return FILESET_FILE_RELEASE
+
     def get_file_sets_from_file(self) -> List[dict]:
+        if self.release_type == ANALYSIS_RUN_FILE_RELEASE:
+            return []
+
         if file_sets := file_utils.get_file_sets(self.file):
             return [self.get_metadata(file_set) for file_set in file_sets]
 
@@ -402,6 +430,23 @@ class FileRelease:
 
         return [self.get_metadata(file_sets[0])]
 
+    def get_analysis_run_from_file(self) -> List[dict]:
+        if self.release_type != ANALYSIS_RUN_FILE_RELEASE:
+            return []
+
+        mwfr = self.output_meta_workflow_run
+        if not mwfr:
+            return []
+        analysis_runs = meta_workflow_run_utils.get_analysis_runs(mwfr)
+        # Might need to be more general in the future
+        if len(analysis_runs) != 1:
+            self.print_error_and_exit(
+                f"Expected exactly one associated AnalysisRun, got {len(analysis_runs)} from"
+                f" MetaWorkflowRun {item_utils.get_accession(mwfr)} for file {self.file_accession}"
+            )
+
+        return self.get_metadata_embedded(analysis_runs[0])
+
     def get_quality_metrics_zip_files(self) -> List[dict]:
         zip_files = []
         for quality_metric in self.quality_metrics:
@@ -416,34 +461,7 @@ class FileRelease:
                 )
         return zip_files
 
-    def prepare(
-        self, dataset: str, obsolete_file_identifier: str = None, **kwargs: Any
-    ) -> None:
-        self.validate_file()
-        access_status = self.get_access_status(self.file, dataset, self.study)
-        self.target_file_status = self.get_target_file_status(access_status)
-
-        # The main file needs to be the first patchdict. See execute_initial()
-        self.add_release_file_patchdict(self.file, dataset, patch_status=False)
-
-        # From here the patches will be executed in the second round of patching
-        self.add_release_item_to_patchdict(
-            self.file, "File", self.target_file_status
-        )  # Here the status of the file be set to released.
-        for file in self.get_associated_files():
-            # Associated files will get the same status as the main file
-            # Currently only relevant for RNA-Seq data
-            self.add_release_file_patchdict(file, dataset)
-
-        # Quality metrics and metrics zip will get the same status as the file
-        self.add_release_items_to_patchdict(
-            self.quality_metrics, "QualityMetric", self.target_file_status
-        )
-        self.add_release_items_to_patchdict(
-            self.quality_metrics_zips,
-            "Compressed QC metrics file",
-            self.target_file_status,
-        )
+    def prepare_upstream_items(self) -> None:
 
         # Target status of associated open accessmetadata (except QualityMetrics)
         self.target_status_for_open_access_metadata = (
@@ -493,6 +511,47 @@ class FileRelease:
             self.add_release_items_to_patchdict(
                 items, item_desc, self.target_status_for_protected_access_metadata
             )
+
+    def prepare(
+        self, dataset: str, obsolete_file_identifier: str = None, **kwargs: Any
+    ) -> None:
+
+        # Different kinds of files need different preparation steps.
+        # We distinguish between files that will be associated with a fileset,
+        # derived files that are produced by us via analysis runs and ExternalOutput files
+        # that are submitted by users and not associated with any fileset.
+
+        self.validate_file()
+        access_status = self.get_access_status(self.file, dataset, self.study)
+        self.target_file_status = self.get_target_file_status(access_status)
+
+        # The main file needs to be the first patchdict. See execute_initial()
+        self.add_release_file_patchdict(self.file, dataset, patch_status=False)
+
+        # From here the patches will be executed in the second round of patching
+        self.add_release_item_to_patchdict(
+            self.file, "File", self.target_file_status
+        )  # Here the status of the file be set to released.
+        for file in self.get_associated_files():
+            # Associated files will get the same status as the main file
+            # Currently only relevant for RNA-Seq data
+            self.add_release_file_patchdict(file, dataset)
+
+        # Quality metrics and metrics zip will get the same status as the file
+        self.add_release_items_to_patchdict(
+            self.quality_metrics, "QualityMetric", self.target_file_status
+        )
+        self.add_release_items_to_patchdict(
+            self.quality_metrics_zips,
+            "Compressed QC metrics file",
+            self.target_file_status,
+        )
+
+        if self.release_type != ANALYSIS_RUN_FILE_RELEASE:
+            # We don't patch upstream items for analysis run file. The
+            # assumption is that all input file to an analysis run have 
+            # already been released (incluing their upstream items)
+            self.prepare_upstream_items()
 
         if obsolete_file_identifier:
             obsolete_file = self.get_metadata(obsolete_file_identifier)
@@ -822,7 +881,7 @@ class FileRelease:
             return AnnotatedFilenameInfo(annotated_filename, {})
 
         annotated_filename = caf.get_annotated_filename(
-            file, self.request_handler, file_sets=self.file_sets
+            file, self.request_handler, file_sets=self.file_sets, analysis_run=self.analysis_run
         )
         if caf.has_errors(annotated_filename):
             errors = "; ".join(annotated_filename.errors)
@@ -1035,8 +1094,12 @@ class FileRelease:
         return access_statuses.pop()
 
     def validate_file(self) -> None:
-        self.validate_required_qc_runs()
-        self.validate_existing_file_sets()
+        if self.release_type == ANALYSIS_RUN_FILE_RELEASE:
+            self.validate_existing_analysis_run()
+        else:
+            self.validate_required_qc_runs()
+            self.validate_existing_file_sets()
+            
         self.validate_file_output_status()
         self.validate_file_status()
 
@@ -1088,6 +1151,12 @@ class FileRelease:
         if submitted_file_utils.is_submitted_file(self.file) and not existing_file_sets:
             self.print_error_and_exit(
                 f"Submitted file {self.file_accession} has no associated file set."
+            )
+
+    def validate_existing_analysis_run(self) -> None:
+        if not self.analysis_run:
+            self.print_error_and_exit(
+                f"The MWFR of file {self.file_accession} has no associated analysis run."
             )
 
     def validate_file_output_status(self) -> None:
@@ -1282,7 +1351,8 @@ def main() -> None:
             file_identifier=file_identifier,
             mode=release_mode,
             verbose=verbose,
-        )
+        ) 
+        
         file_release.prepare(
             dataset=args.dataset, obsolete_file_identifier=args.replace
         )

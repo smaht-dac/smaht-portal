@@ -118,6 +118,7 @@ def get_associated_items(
     file: Dict[str, Any],
     request_handler: RequestHandler,
     file_sets: Optional[List[Dict[str, Any]]] = None,
+    analysis_run: Optional[Dict[str, Any]] = None,
 ) -> AssociatedItems:
     """Get associated items for given file for annotated filename.
 
@@ -140,7 +141,7 @@ def get_associated_items(
     sequencers = get_sequencers(file_sets, request_handler)
     samples = get_samples(file_sets, request_handler)
     tissue_samples = get_tissue_samples(samples)
-    sample_sources = get_sample_sources(samples, request_handler)
+    sample_sources = get_sample_sources(samples, request_handler, analysis_run=analysis_run)
     cell_culture_mixtures = get_cell_culture_mixtures(sample_sources)
     tissues = get_tissues(sample_sources)
     cell_lines = get_cell_lines(sample_sources, request_handler)
@@ -304,12 +305,19 @@ def get_tissue_samples(samples: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 
 def get_sample_sources(
-    samples: List[Dict[str, Any]], request_handler: RequestHandler
+    samples: List[Dict[str, Any]],
+    request_handler: RequestHandler,
+    analysis_run: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
     """Get sample sources for samples."""
-    sample_sources = [
-        item for sample in samples for item in sample_utils.get_sample_sources(sample)
-    ]
+    if analysis_run:
+        sample_sources = [
+            t["uuid"] for t in analysis_run["tissues"] 
+        ]
+    else:
+        sample_sources = [
+            item for sample in samples for item in sample_utils.get_sample_sources(sample)
+        ]
     return get_items(sample_sources, request_handler)
 
 
@@ -433,6 +441,7 @@ def get_annotated_filename(
     file: Dict[str, Any],
     request_handler: RequestHandler,
     file_sets: Optional[Dict[str, List[str]]] = None,
+    analysis_run: Optional[Dict[str, Any]] = None,
 ) -> AnnotatedFilename:
     """Get annotated filename for given file.
 
@@ -440,7 +449,7 @@ def get_annotated_filename(
     encountered in the process to be logged later.
     `derived_from` applies to SupplementaryFiles
     """
-    associated_items = get_associated_items(file, request_handler, file_sets=file_sets)
+    associated_items = get_associated_items(file, request_handler, file_sets=file_sets, analysis_run=analysis_run)
     project_id = get_project_id(
         associated_items.cell_culture_mixtures,
         associated_items.cell_lines,
@@ -461,6 +470,7 @@ def get_annotated_filename(
         associated_items.cell_culture_mixtures,
         associated_items.cell_lines,
         associated_items.tissue_samples,
+        analysis_run=analysis_run
     )
     donor_sex_and_age = get_donor_sex_and_age(
         associated_items.donors, associated_items.sample_sources
@@ -468,7 +478,8 @@ def get_annotated_filename(
     sequencing_and_assay_codes = get_sequencing_and_assay_codes(
         associated_items.file, 
         associated_items.sequencers, 
-        associated_items.assays
+        associated_items.assays,
+        analysis_run=analysis_run
     )
     sequencing_center_code = get_sequencing_center_code(
         associated_items.sequencing_center
@@ -687,11 +698,12 @@ def get_aliquot_id(
     cell_culture_mixtures: List[Dict[str, Any]],
     cell_lines: List[Dict[str, Any]],
     tissue_samples: List[Dict[str, Any]],
+    analysis_run: Optional[Dict[str, Any]] = None
 ) -> FilenamePart:
     """Get tissue aliquot ID for file."""
 
     parts = []
-    if cell_culture_mixtures or cell_lines:
+    if cell_culture_mixtures or cell_lines or analysis_run:
         parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
     if tissue_samples:
         parts.append(get_aliquot_id_from_samples(tissue_samples))
@@ -810,6 +822,7 @@ def get_sequencing_and_assay_codes(
     file: Dict[str, Any],
     sequencers: List[Dict[str, Any]],
     assays: List[Dict[str, Any]],
+    analysis_run: Optional[Dict[str, Any]] = None,
 ) -> FilenamePart:
     """Get sequencing and assay codes for file.
     
@@ -820,6 +833,8 @@ def get_sequencing_and_assay_codes(
     if len(sequencing_codes) == 1 and len(assay_codes) == 1:
         return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
     elif supp_file_utils.is_genome_assembly(file) or supp_file_utils.is_reference_conversion(file):
+        return get_filename_part(value="XX")
+    elif analysis_run:
         return get_filename_part(value="XX")
     errors = []
     if not sequencing_codes:
