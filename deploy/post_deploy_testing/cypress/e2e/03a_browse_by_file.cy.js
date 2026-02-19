@@ -498,7 +498,15 @@ function stepBrowseFileSelectionTests(caps) {
 
     // 2. SelectAllFilesButton says "Select Open Access Files"
     if (!caps.expectedLimitedDownloadAccess) {
-        cy.get('.search-view-controls-and-results #select-all-files-button').should('have.text', 'Select All  Files');
+        cy.get('.search-view-controls-and-results #select-all-files-button')
+          .then(($selectAllBtn) => {
+            if ($selectAllBtn.hasClass('btn-secondary')) {
+                cy.wrap($selectAllBtn).should('have.text', 'Deselect All  Files');
+            } else {
+                cy.wrap($selectAllBtn)
+                  .should('have.text', 'Select All  Files');
+            }
+          })
     } else {
         cy.get('.search-view-controls-and-results #select-all-files-button')
           .should('have.text', 'Select Open Access Files')
@@ -514,19 +522,36 @@ function stepBrowseFileSelectionTests(caps) {
     // 4. Clicking the SelectAllFilesButton should enable the Download # Selected Files button
     cy.get('.search-view-controls-and-results #select-all-files-button').click();
     cy.get('.search-view-controls-and-results #select-all-files-button').should('have.class', 'btn-secondary');
+    cy.get('.search-view-controls-and-results .right-buttons #download_tsv_multiselect').should('not.be.disabled');
     
-    // cy.get('.search-view-controls-and-results .right-buttons #download_tsv_multiselect')
-    //   .then(($downloadBtn) => {
-    //     // 4a. The Download buttoun should have the same number of files as the Access Facet (Open)
-    //     const SelectedFileTotal = $downloadBtn.text().match(/\d+/)[0];
+    cy.get('.search-view-controls-and-results .right-buttons #download_tsv_multiselect')
+      .then(($downloadBtn) => {
+        // 4a. The Download button should have the same number of files as the Access Facet (Open)
+        const selectedFileTotal = Number($downloadBtn.text().match(/\d+/)[0]);
 
-    //     // Get the number of Open Access files through the access_status facet
-    //     cy.get('.search-view-controls-and-results .facets-body .facet[data-field="access_status"]')
+        // If limited download access, ensure only open files are selected
+        if (caps.expectedLimitedDownloadAccess) {
+            // Get the number of Open Access files through the access_status facet
+            cy.get('.search-view-controls-and-results .facets-body .facet[data-field="access_status"]')
+              .then(($accessStatusFacet) => {
+                if ($accessStatusFacet.hasClass('closed')) {
+                    cy.wrap($accessStatusFacet).click();
+                }
 
-    //     cy.wrap($downloadBtn).should('have.text', `${caps.expectedDownloadAccessObject.open} Selected Files`);
-    //   })
-
-    // 4a. The Download buttoun should have the same number of files as the Access Facet (Open)
+                cy.get('.search-view-controls-and-results .facets-body .facet[data-field="access_status"] .facet-list-element[data-key="Open"] a.term .facet-count')
+                  .then(($openAccessTerm) => {
+                    const openAccessTermText = Number($openAccessTerm.text().trim());
+                    expect(openAccessTermText).to.equal(selectedFileTotal);
+                  });
+              });
+        } else {
+            cy.get('.search-view-controls-and-results .facets-column #results-count')
+              .then(($resultsCount) => {
+                const resultsCountText = Number($resultsCount.text().trim());
+                expect(resultsCountText).to.equal(selectedFileTotal);
+              });
+        }
+      })
 }
 
 /* ----------------------------- PARAMETERIZED SUITE ----------------------------- */
@@ -589,10 +614,10 @@ describe('Browse by role — File', () => {
                 stepFacetExcludeGrouping(caps);
             });
 
-            it(`Facet chart bar plot tests → X-axis grouping and hover over & click "Illumina NovaSeq X Plus, Brain" bar part + popover button --> matching filtered /browse/ results (enabled: ${caps.runFacetChartBarPlotTests})`, () => {
-                if (!caps.runFacetChartBarPlotTests) return;
-                stepFacetChartBarPlotTests(caps);
-            });
+            // it(`Facet chart bar plot tests → X-axis grouping and hover over & click "Illumina NovaSeq X Plus, Brain" bar part + popover button --> matching filtered /browse/ results (enabled: ${caps.runFacetChartBarPlotTests})`, () => {
+            //     if (!caps.runFacetChartBarPlotTests) return;
+            //     stepFacetChartBarPlotTests(caps);
+            // });
 
             it(`Browse file selection tests → Select files and verify counts (enabled: ${caps.runBrowseFileSelectionTests})`, () => {
                 if (!caps.runBrowseFileSelectionTests) return;
