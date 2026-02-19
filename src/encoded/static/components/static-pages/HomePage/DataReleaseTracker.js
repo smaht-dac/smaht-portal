@@ -86,9 +86,13 @@ const DonorGroup = (props) => {
     );
 
     // Update query with donor and extacted tissues
-    const tissueList = Object.keys(items).map((tissue) =>
-        tissue.split('-')[1].trim()
-    );
+    const tissueList = Object.keys(items).map((tissue) => {
+        // Use additional value if available
+        const tissueName =
+            items[tissue]?.additional_value ?? tissue.split('-')[1].trim();
+        return tissueName;
+    });
+
     const updatedQuery = replaceURLParamsWithDonors(query, [donor], tissueList);
 
     return (
@@ -163,9 +167,12 @@ const DayGroup = (props) => {
     // Get donor title from first donor group
     const donorList = Object.keys(donorGroups);
     const tissueList = Object.keys(donorGroups).flatMap((donor) => {
-        return Object.keys(donorGroups[donor].items).map((tissue) =>
-            tissue.split('-')[1].trim()
-        );
+        return Object.keys(donorGroups[donor].items).map((tissue) => {
+            const tissueName =
+                donorGroups[donor].items[tissue]?.additional_value ??
+                tissue.split('-')[1].trim();
+            return tissueName;
+        });
     });
 
     // Update query with donor and extacted tissues
@@ -257,7 +264,11 @@ const DataReleaseItem = ({ data, releaseItemIndex, callout = null }) => {
             (donor) => {
                 return Object.keys(dayGroups[dayGroup].items[donor].items).map(
                     (tissue) => {
-                        return tissue.split('-')[1].trim();
+                        const tissueName =
+                            dayGroups[dayGroup].items[donor].items[tissue]
+                                ?.additional_value ??
+                            tissue.split('-')[1].trim();
+                        return tissueName;
                     }
                 );
             }
@@ -341,8 +352,8 @@ const formatDonorReleaseData = (data) => {
 
     const formattedDonorItems = items.reduce((acc, item) => {
         const { count, value, query, additional_value } = item;
-        const formattedTissue = { count, value, query };
-        const tissueTitle = tissueCode + ' - ' + item.additional_value;
+        const formattedTissue = { count, value, query, additional_value };
+        const tissueTitle = tissueCode + ' - ' + additional_value;
 
         if (acc?.[tissueTitle]) {
             // add to existing group
@@ -353,6 +364,7 @@ const formatDonorReleaseData = (data) => {
                     formattedTissue?.items || {}
                 ),
                 count: acc[tissueTitle].count + formattedTissue.count,
+                additional_value,
             };
         } else {
             acc[tissueTitle] = formattedTissue;
@@ -411,12 +423,7 @@ const formatReleaseData = (data = []) => {
         const { count, value, items, query } = month;
         // Format items in the month by grouping and sorting them by day
         const formattedMonthItems = month?.items?.reduce((acc, item) => {
-            const {
-                count: dayCount,
-                value: dayValue,
-                items: dayItems,
-                query: dayQuery,
-            } = item;
+            const { count: dayCount, value: dayValue } = item;
 
             const date = dayValue;
 
