@@ -1742,17 +1742,6 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
         return (
             <div className="grouping header-section-lower" style={containerSectionStyle}>
-                <div className="row grouping-row">
-                    <div className="label-section" style={{ ...labelSectionStyle, paddingTop: props.blockVerticalSpacing }}>
-                        <div className="label-container text-end" onClick={props.onSorterClick} style={{ height: '29px', marginBottom: '1px' }}>
-                            <span className="float-start text-500 ps-05">{label}</span>
-                            {/* <span className={labelSortIconClassName}>{labelSortIcon}</span> */}
-                        </div>
-                    </div>
-                    <div className="col list-section has-header header-for-viz">
-                        {renderSummaryBlocks(props.countFor, 'col-summary')}
-                    </div>
-                </div>
                 {props.countFor === 'files' ? (
                     <div className="row grouping-row total-donors-summary-row">
                         <div className="label-section" style={{ ...labelSectionStyle, paddingTop: props.blockVerticalSpacing }}>
@@ -1765,6 +1754,17 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         </div>
                     </div>
                 ) : null}
+                <div className="row grouping-row">
+                    <div className="label-section" style={{ ...labelSectionStyle, paddingTop: props.blockVerticalSpacing }}>
+                        <div className="label-container text-end" onClick={props.onSorterClick} style={{ height: '29px', marginBottom: '1px' }}>
+                            <span className="float-start text-500 ps-05">{label}</span>
+                            {/* <span className={labelSortIconClassName}>{labelSortIcon}</span> */}
+                        </div>
+                    </div>
+                    <div className="col list-section has-header header-for-viz">
+                        {renderSummaryBlocks(props.countFor, 'col-summary')}
+                    </div>
+                </div>
             </div>
         );
     }
