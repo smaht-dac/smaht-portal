@@ -858,10 +858,9 @@ class File(Item, CoreFile):
         }
     )
     def meta_workflow_run_inputs(self, request: Request) -> Union[List[str], None]:
+        if self.type_info.name == "ReferenceFile":
+            return
         result = self.rev_link_atids(request, "meta_workflow_run_inputs")
-        if result:
-            if self.type_info.name == "ReferenceFile":
-                return
         return result or None
 
     @calculated_property(
