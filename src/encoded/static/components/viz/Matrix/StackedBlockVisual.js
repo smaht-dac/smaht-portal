@@ -226,8 +226,9 @@ export class VisualBody extends React.PureComponent {
         } = this.props;
         const { depth, blockType = null, popoverPrimaryTitle, rowGroups, rowGroupKey, columnKey } = blockProps;
         const effectiveBlockType = blockType === 'col-secondary-summary' ? 'col-summary' : blockType;
-        const isGroup = (Array.isArray(data) && data.length >= 1) || false;
+        let isGroup = (Array.isArray(data) && data.length >= 1) || false;
         let aggrData;
+        let summaryRows = null;
 
         // Normalize data shape
         if (!isGroup && Array.isArray(data)){
@@ -237,28 +238,41 @@ export class VisualBody extends React.PureComponent {
             data = data[0];
         }
 
+        // col-summary can include synthetic count-only data; rebuild popover context from grouped rows.
+        if (effectiveBlockType === 'col-summary' && blockProps.groupedDataIndices && columnKey) {
+            if (columnKey === 'overall-summary') {
+                const rowsById = {};
+                Object.keys(blockProps.groupedDataIndices).forEach((ck) => {
+                    (blockProps.groupedDataIndices[ck] || []).forEach((row, idx) => {
+                        const rowKey = row && typeof row.index !== 'undefined' ? `idx-${row.index}` : `fallback-${ck}-${idx}`;
+                        rowsById[rowKey] = row;
+                    });
+                });
+                summaryRows = _.values(rowsById);
+            } else if (Array.isArray(blockProps.groupedDataIndices[columnKey])) {
+                summaryRows = blockProps.groupedDataIndices[columnKey];
+            }
+            if (Array.isArray(summaryRows) && summaryRows.length > 0) {
+                data = summaryRows;
+                isGroup = true;
+            }
+        }
+
         // Aggregate values for grouped blocks
         if (isGroup) {
             const keysToInclude = _.uniq(_.keys(titleMap).concat([columnGrouping]).concat(groupingProperties)).concat(['primary_field_override']);
             aggrData = StackedBlockVisual.aggregateObjectFromList(
                 data, keysToInclude, [] // We use this property as an object key (string) so skip parsing to React JSX list;
             );
+            if (effectiveBlockType === 'col-summary') {
+                aggrData = _.extend({}, aggrData, { [columnGrouping]: columnKey === 'overall-summary' ? 'Overall' : columnKey });
+            }
         } else {
             aggrData = data;
         }
 
         if (!aggrData) {
             return;
-        }
-
-        // col-secondary-summary uses synthetic count-only data; rebuild popover context from grouped rows for the column.
-        if (effectiveBlockType === 'col-summary' && columnKey && blockProps.groupedDataIndices && Array.isArray(blockProps.groupedDataIndices[columnKey])) {
-            const summaryRows = blockProps.groupedDataIndices[columnKey];
-            if (summaryRows.length > 0) {
-                const keysToInclude = _.uniq(_.keys(titleMap).concat([columnGrouping]).concat(groupingProperties)).concat(['primary_field_override']);
-                const summaryAggrData = StackedBlockVisual.aggregateObjectFromList(summaryRows, keysToInclude, []);
-                aggrData = _.extend({}, aggrData, summaryAggrData, { [columnGrouping]: columnKey });
-            }
         }
 
         // Grouping metadata (labels + values)
@@ -288,7 +302,7 @@ export class VisualBody extends React.PureComponent {
         // URL builder: converts current block state into browse filters
         function generateBrowseUrl() {
             let currentFilteringProperties = groupingProperties.slice(0, depth + 1);
-            if (effectiveBlockType !== 'row-summary') {
+            if (effectiveBlockType !== 'row-summary' && !(effectiveBlockType === 'col-summary' && columnKey === 'overall-summary')) {
                 currentFilteringProperties = currentFilteringProperties.concat([columnGrouping]);
             }
             const currentFilteringPropertiesPairs = _.map(currentFilteringProperties, function (property) {
