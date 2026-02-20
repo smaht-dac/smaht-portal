@@ -46,7 +46,7 @@
             "matrixProps": {
                 "key": "data-matrix-production",
                 "query": {
-                    "url": "/data_matrix_aggregations/?type=File&sample_summary.studies=Production&dataset!=No+value&data_type!=Sequence Interval&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&limit=all",
+                    "url": "/data_matrix_aggregations/?type=File&sample_summary.studies=Production&dataset!=No+value&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&limit=all",
                     "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"],
                     "rowAggFields": ["donors.display_title", "sample_summary.tissues", "data_type", "sample_summary.category"]
                 },
