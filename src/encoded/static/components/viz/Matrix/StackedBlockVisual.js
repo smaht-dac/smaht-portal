@@ -782,18 +782,18 @@ export class StackedBlockVisual extends React.PureComponent {
         this.setState({ "sorting": nextSort, "sortField": newSortField, "mounted": true });
     }
 
-    handleBlockMouseEnter = (columnIdx, rowIdx, rowKey, rowGroupKey) => {
+    handleBlockMouseEnter = (columnIdx, rowIdx, rowKey, rowGroupKey, summaryRowType = null) => {
         const { openBlock } = this.state;
         if (openBlock) return;
-        this.setState({ activeBlock: (columnIdx !== null || rowIdx !== null) ? { columnIdx, rowIdx, rowKey, rowGroupKey } : null });
+        this.setState({ activeBlock: (columnIdx !== null || rowIdx !== null) ? { columnIdx, rowIdx, rowKey, rowGroupKey, summaryRowType } : null });
     };
 
     handleBlockMouseLeave = () => {
         this.setState({ activeBlock: null });
     };
 
-    handleBlockClick = (columnIdx, rowIdx, rowKey, rowGroupKey) => {
-        const openBlock = (columnIdx !== null || rowIdx !== null) ? { columnIdx, rowIdx, rowKey, rowGroupKey } : null;
+    handleBlockClick = (columnIdx, rowIdx, rowKey, rowGroupKey, summaryRowType = null) => {
+        const openBlock = (columnIdx !== null || rowIdx !== null) ? { columnIdx, rowIdx, rowKey, rowGroupKey, summaryRowType } : null;
         if (openBlock) {
             setTimeout(() => {
                 this.setState({ openBlock: openBlock });
@@ -1682,8 +1682,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                             ? []
                         : (totalsCounts ? [{ counts: totalsCounts }] : getColumnSummaryData(columnKey));
                     const columnTotal = totalsCounts ? 1 : (props.groupedDataIndices[columnKey]?.length || 0);
-                    const hasOpenBlock = props.openBlock?.columnIdx === colIndex;
-                    const hasActiveBlock = props.activeBlock?.columnIdx === colIndex;
+                    const hasOpenBlock = props.openBlock?.columnIdx === colIndex && props.openBlock?.summaryRowType === summaryBlockType;
+                    const hasActiveBlock = props.activeBlock?.columnIdx === colIndex && props.activeBlock?.summaryRowType === summaryBlockType;
                     const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
                     return (
                         <div key={'col-summary-' + columnKey} className={className} style={headerItemStyle}>
@@ -1698,6 +1698,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                     popoverPrimaryTitle={props.rowGroupKey}
                                     columnKey={columnKey}
                                     countFor={summaryCountFor}
+                                    summaryRowType={summaryBlockType}
                                 />
                             </div>
                         </div>
@@ -1746,6 +1747,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 popoverPrimaryTitle={props.rowGroupKey}
                                 columnKey="overall-summary"
                                 countFor={summaryCountFor}
+                                summaryRowType={summaryBlockType}
                             />
                         </div>
                     </div>
@@ -1904,7 +1906,7 @@ const Block = React.memo(function Block(props){
         blockHeight, blockWidth, blockVerticalSpacing, data, rowTotals, parentGrouping, group,
         blockClassName, blockRenderedContents, blockPopover, indexInGroup, colorRanges, summaryBackgroundColor,
         handleBlockMouseEnter, handleBlockMouseLeave, handleBlockClick, rowIndex, colIndex, rowGroupKey, columnKey, openBlock,
-        blockType = 'regular'
+        blockType = 'regular', summaryRowType = null
     } = props;
 
     // Layout / base style
@@ -1980,7 +1982,9 @@ const Block = React.memo(function Block(props){
     const color = getColor(blockValue, blockType);
 
     const isOpenBlock = openBlock?.rowIdx === rowIndex && openBlock?.columnIdx === colIndex &&
-        ((blockType === 'col-summary' || blockType === 'col-secondary-summary') ? (openBlock?.rowGroupKey === rowGroupKey) : (openBlock?.rowKey === group));
+        ((blockType === 'col-summary' || blockType === 'col-secondary-summary')
+            ? (openBlock?.rowGroupKey === rowGroupKey && openBlock?.summaryRowType === summaryRowType)
+            : (openBlock?.rowKey === group));
 
     // Apply open/active styles
     if (hideCoverageBlock || hideCoverageSummaryBlock) {
@@ -2010,9 +2014,9 @@ const Block = React.memo(function Block(props){
             data-place="bottom"
             data-block-value={blockValue}
             data-block-type={blockType || 'regular'}
-            onMouseEnter={() => typeof handleBlockMouseEnter === 'function' && handleBlockMouseEnter(colIndex, rowIndex, group, rowGroupKey)}
+            onMouseEnter={() => typeof handleBlockMouseEnter === 'function' && handleBlockMouseEnter(colIndex, rowIndex, group, rowGroupKey, summaryRowType)}
             onMouseLeave={handleBlockMouseLeave}
-            onClick={()=> !(hideCoverageBlock || hideCoverageSummaryBlock) && popover && handleBlockClick(colIndex, rowIndex, group, rowGroupKey)}>
+            onClick={()=> !(hideCoverageBlock || hideCoverageSummaryBlock) && popover && handleBlockClick(colIndex, rowIndex, group, rowGroupKey, summaryRowType)}>
             {contents}
         </div>
     );
@@ -2058,11 +2062,13 @@ Block.propTypes = {
     colIndex: PropTypes.number,
     rowGroupKey: PropTypes.string,
     columnKey: PropTypes.string,
+    summaryRowType: PropTypes.string,
     openBlock: PropTypes.shape({
         rowIdx: PropTypes.number,
         columnIdx: PropTypes.number,
         rowKey: PropTypes.string,
         rowGroupKey: PropTypes.string,
+        summaryRowType: PropTypes.string,
     }),
     blockType: PropTypes.oneOf(['regular', 'row-summary', 'col-summary', 'col-secondary-summary'])
 };
