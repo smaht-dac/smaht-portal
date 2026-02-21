@@ -58,6 +58,7 @@ ABSENT_SEX = ABSENT_AGE
 GERMLINE_EXTENSION = "germline"
 ALIGNED_READS_EXTENSION = "aligned"
 PHASED_EXTENSION = "phased"
+FILTERED_EXTENSION = "filtered"
 SORTED_EXTENSION = "sorted"
 
 MALE_SEX_ABBREVIATION = "M"
@@ -250,7 +251,7 @@ def get_target_assembly(
     file: Dict[str, Any], request_handler: RequestHandler
 ) -> str:
     """Get target assembly for file."""
-    return get_reference_genome_code(
+    return get_reference_genome_code_from_search(
         get_reference_genome_search(
             supp_file_utils.get_target_assembly(file), request_handler
         )
@@ -261,7 +262,7 @@ def get_source_assembly(
     file: Dict[str, Any], request_handler: RequestHandler
 ) -> str:
     """Get source assembly for file."""
-    return get_reference_genome_code(
+    return get_reference_genome_code_from_search(
         get_reference_genome_search(
             supp_file_utils.get_source_assembly(file), request_handler
         )
@@ -284,7 +285,7 @@ def get_reference_genome_search(
     return result
 
 
-def get_reference_genome_code(assemblies: List[Dict[str, Any]]) -> str:
+def get_reference_genome_code_from_search(assemblies: List[Dict[str, Any]]) -> str:
     """Get unique code for reference genomes from search result."""
     is_dsa = [dsa_utils.is_donor_specific_assembly(ref) for ref in assemblies]
     # If all of the results are DSAs; use DSA value
@@ -942,7 +943,7 @@ def get_analysis(
     exhaustive and allowing for some flexibility in what is expected.
     """
     software_and_versions = get_software_and_versions(software)
-    reference_genome_code = item_utils.get_code(reference_genome)
+    reference_genome_code = get_reference_genome_value(reference_genome)
     gene_annotation_code = get_annotations_and_versions(gene_annotations)
     transcript_info_code = get_rna_seq_tsv_value(file, file_extension)
     dsa_code = get_dsa_value(file, file_extension, donor_specific_assembly)
@@ -1143,6 +1144,14 @@ def get_software_codes_missing_versions(
     ]
 
 
+def get_reference_genome_value(reference_genome: Dict[str, Any]):
+    """Get reference genome value."""
+    if dsa_utils.is_donor_specific_assembly(reference_genome):
+        return ANALYSIS_INFO_SEPARATOR.join([DSA_INFO_VALUE, item_utils.get_version(reference_genome)])
+    else: 
+        return item_utils.get_code(reference_genome)
+
+
 def get_chain_file_value(
         file: Dict[str, Any],
         target_assembly: Union[str, None],
@@ -1231,6 +1240,8 @@ def get_file_extension(
         result += [SORTED_EXTENSION]
     if file_utils.are_reads_phased(file):
         result += [PHASED_EXTENSION]
+    if file_utils.is_filtered(file):
+        result += [FILTERED_EXTENSION]
     if file_utils.is_germline(file):
         result += [GERMLINE_EXTENSION]
     if file_utils.is_variant_calls(file) and (variant_type := get_variant_type(file)):

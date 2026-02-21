@@ -417,6 +417,11 @@ def are_reads_phased(file: Dict[str, Any]) -> bool:
     return "Phased" in get_alignment_details(file) or "Phased" in get_analysis_details(file)
 
 
+def is_filtered(file: Dict[str, Any]) -> bool:
+    """Check if file is filtered."""
+    return "Filtered" in get_analysis_details(file)
+
+
 def has_single_nucleotide_variants(file: Dict[str, Any]) -> bool:
     """Check if file has SNVs."""
     return "SNV" in get_data_type(file)
