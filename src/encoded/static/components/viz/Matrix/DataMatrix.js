@@ -1106,11 +1106,19 @@ DataMatrix.resultTransformedPostProcessFuncs = {
 };
 DataMatrix.browseFilteringTransformFuncs = {
     "dsaChainFile": function (filteringProperties, blockType) {
-        if (filteringProperties['file_sets.libraries.assay.display_title'] === 'DSA') {
+        const assayField = 'file_sets.libraries.assay.display_title';
+        const hasAssayFilter = typeof filteringProperties[assayField] !== 'undefined';
+
+        if (filteringProperties[assayField] === 'DSA') {
             // extend data_type filter to include Chain File along with DSA
             filteringProperties['data_type'] = [...(filteringProperties['data_type'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
-            delete filteringProperties['file_sets.libraries.assay.display_title'];
-        } else if (blockType === 'col-summary' || blockType === 'col-secondary-summary' || blockType === 'regular') {
+            delete filteringProperties[assayField];
+        } else if (
+            (blockType === 'regular') ||
+            ((blockType === 'col-summary' || blockType === 'col-secondary-summary') && hasAssayFilter)
+        ) {
+            // for non-DSA columns we exclude DSA-related data types;
+            // for overall summary (no assay filter) keep all data types.
             filteringProperties['data_type!'] = [...(filteringProperties['data_type!'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
         }
         return filteringProperties;
