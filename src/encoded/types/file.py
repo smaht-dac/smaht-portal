@@ -1470,35 +1470,6 @@ class File(Item, CoreFile):
         )
         return location
 
-        if status in ['open', 'protected', 'protected-network', 'protected-early']:
-            open_data_public_bucket = 'smaht-open-data-public'
-            open_data_protected_bucket = 'smaht-open-data-protected'
-            bucket_type = 'wfoutput'  # almost always going to be wfoutput
-            open_data_key = 'smaht-production/{bucket_type}/{uuid}/{filename}'.format(
-                bucket_type=bucket_type, uuid=self.uuid, filename=filename,
-            )
-            extra_open_data_key = 'smaht-production/{bucket_type}/{uuid}/{filename}'.format(
-                bucket_type='files', uuid=self.uuid, filename=filename,
-            )
-            # Check if the file exists in the Open Data S3 bucket under both wfoutput and files paths
-            # Requires assuming identity to _head_object
-            for open_data_bucket in [open_data_public_bucket, open_data_protected_bucket]:
-                for key in [open_data_key, extra_open_data_key]:
-                    # If the file exists in the Open Data S3 bucket, client.head_object will succeed (not throw ClientError)
-                    # Returning a valid S3 URL to the public url of the file
-                    try:
-                        self._head_s3(s3_client, open_data_bucket, key)
-                    except ClientError:
-                        continue  # try the other key
-                    location = 'https://{open_data_bucket}.s3.amazonaws.com/{open_data_key}'.format(
-                        open_data_bucket=open_data_bucket, open_data_key=key,
-                    )
-                    return location
-            else:
-                return None  # got client error for both possibilities
-        else:
-            return None
-
     @calculated_property(schema={
         "title": "Open Data URL",
         "description": "Location of file on Open Data Bucket, if it exists",
