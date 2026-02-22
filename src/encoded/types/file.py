@@ -1442,6 +1442,34 @@ class File(Item, CoreFile):
         """ Helper for below method containing core functionality. """
         if not filename:
             return None
+
+        # Resolve which bucket to look in
+        if status == 'open':
+            open_data_bucket = 'smaht-open-data-public'
+        elif status in ['protected', 'protected-network', 'protected-early']:
+            open_data_bucket = 'smaht-open-data-protected'
+        else:
+            return None
+
+        # Resolve which key to check
+        if self.type_info.name == 'OutputFile':
+            bucket_type = 'wfoutput'
+        else:
+            bucket_type = 'files'
+        open_data_key = 'smaht-production/{bucket_type}/{uuid}/{filename}'.format(
+            bucket_type=bucket_type, uuid=self.uuid, filename=filename
+        )
+
+        # Check the bucket/key
+        try:
+            self._head_s3(s3_client, open_data_bucket, open_data_key)
+        except ClientError:
+            return None  # not there yet
+        location = 'https://{open_data_bucket}.s3.amazonaws.com/{open_data_key}'.format(
+            open_data_bucket=open_data_bucket, open_data_key=open_data_key
+        )
+        return location
+
         if status in ['open', 'protected', 'protected-network', 'protected-early']:
             open_data_public_bucket = 'smaht-open-data-public'
             open_data_protected_bucket = 'smaht-open-data-protected'
@@ -1478,7 +1506,6 @@ class File(Item, CoreFile):
     })
     def open_data_url(self, request, accession, file_format, status=None):
         """ Computes the open data URL and checks if it exists. """
-        return None
         fformat = get_item_or_none(request, file_format, frame='raw')  # no calc props needed
         filename = "{}.{}".format(accession, fformat.get('standard_file_extension', ''))
         s3_client = self.setup_unified_s3_client()
