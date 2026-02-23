@@ -94,6 +94,7 @@ from snovault.types.base import (
     collection_add,
     item_edit,
 )
+from encoded import OPEN_DATA_S3_CLIENT
 
 
 log = structlog.getLogger(__name__)
@@ -1389,7 +1390,7 @@ class File(Item, CoreFile):
             directing to truly public data, another where we are directing to protected data in the open
             data account (with auth) and another where we are directing to data we hold in our buckets (with auth) """
         open_data_url = None
-        s3_client = self.setup_unified_s3_client()
+        s3_client = self.registry[OPEN_DATA_S3_CLIENT]
         if datastore_is_database:  # view model came from DB - must compute calc prop
             open_data_url = self._open_data_url(s3_client, self.properties['status'], filename=filename)
         else:  # view model came from elasticsearch - calc props should be here
@@ -1416,22 +1417,6 @@ class File(Item, CoreFile):
             return self.get_presigned_url_location(s3_client, open_data_external, request, filename)
         else:
             return self.get_presigned_url_location(s3_client, external, request, filename)
-
-    @staticmethod
-    def setup_unified_s3_client():
-        """ Creates an S3 client using credentials from the secrets manager """
-        config = Config(signature_version='s3v4')
-        if 'IDENTITY' in os.environ:
-            identity = assume_identity()
-            with override_environ(**identity):
-                return boto_client(
-                    's3',
-                    aws_access_key_id=os.environ.get('S3_AWS_ACCESS_KEY_ID'),
-                    aws_secret_access_key=os.environ.get('S3_AWS_SECRET_ACCESS_KEY'),
-                    config=config
-                )
-        log.error(f'No identity found! Bucket resolution likely to fail')
-        return boto_client('s3', config=config)  # this fallback will throw permission errors downstream
 
     @staticmethod
     def _head_s3(client, bucket, key):
@@ -1477,9 +1462,12 @@ class File(Item, CoreFile):
     })
     def open_data_url(self, request, accession, file_format, status=None):
         """ Computes the open data URL and checks if it exists. """
+        if status not in ['open', 'protected', 'protected-network', 'protected-early']:
+            return None
+
         fformat = get_item_or_none(request, file_format, frame='raw')  # no calc props needed
         filename = "{}.{}".format(accession, fformat.get('standard_file_extension', ''))
-        s3_client = self.setup_unified_s3_client()
+        s3_client = self.registry[OPEN_DATA_S3_CLIENT]
         return self._open_data_url(s3_client, status, filename)
 
 
