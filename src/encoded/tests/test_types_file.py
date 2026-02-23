@@ -129,6 +129,25 @@ def public_reference_file(
     return res.json['@graph'][0]
 
 
+@pytest.fixture
+def protected_output_file(
+    testapp: TestApp, file_formats: Dict[str, dict], test_consortium: Dict[str, Any]
+) -> Dict[str, Any]:
+    """ Protected Output File for testing the open data interaction """
+    item = {
+        'file_format': file_formats.get('BAM').get('uuid'),
+        'md5sum': '00000000000000000000000000000000',
+        'content_md5sum': '00000000000000000000000000000000',
+        'filename': 'my.bam',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Aligned Reads'],
+        'status': 'protected',
+        'consortia': [test_consortium['uuid']],
+    }
+    res = testapp.post_json('/output_file', item)
+    return res.json['@graph'][0]
+
+
 def test_href(output_file: Dict[str, Any], file_formats: Dict[str, Dict[str, Any]]) -> None:
     """Ensure download link formatted as expected."""
     expected = (
@@ -1360,7 +1379,7 @@ def test_files_open_data_url_released_and_transferred(testapp, public_reference_
         assert 'X-Amz-Signature' not in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
 
 
-def test_files_open_data_url_released_and_transferred_protected(testapp, public_reference_file):
+def test_files_open_data_url_released_and_transferred_protected(testapp, protected_output_file):
     """ More complicated mocking necessary in order to simulate a sequence based call mock for
         mock_s3.
 
@@ -1368,21 +1387,8 @@ def test_files_open_data_url_released_and_transferred_protected(testapp, public_
         the first two for the public bucket, second two for the protected bucket. In this test
         We simulate a success of the third call ie: wfoutput file in the protected bucket.
     """
-    def raise_client_error(*args, **kwargs):
-        raise ClientError({"Error": {}}, "HeadObject")
-
-    call_idx = 0
-    def head_s3_se(*args, **kwargs):
-        nonlocal call_idx
-        # increment then decide
-        call_idx += 1
-        if call_idx in (1, 2, 4, 5):
-            raise_client_error()
-        return None
-
-    with mock.patch("encoded.types.reference_file.ReferenceFile._head_s3",
-                    side_effect=head_s3_se):
-        updated = testapp.patch_json(f"/{public_reference_file['uuid']}", {})
+    with mock.patch('encoded.types.file.File._head_s3', return_value=None):
+        updated = testapp.patch_json(f"/{protected_output_file['uuid']}", {})
         bucket = 'smaht-open-data-protected'
         download_link = updated.json['@graph'][0]['href']
         direct_res = testapp.get(f'{download_link}?datastore=database', status=307)
