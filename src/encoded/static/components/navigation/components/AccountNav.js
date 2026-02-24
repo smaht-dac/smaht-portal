@@ -42,6 +42,7 @@ export const auth0Options = {
         primaryColor: '#1b75b9',
     },
     allowedConnections: ['partners', 'hms-it', 'bch', 'google-oauth2'],
+    autoclose: true,
     defaultEnterpriseConnection: 'partners',
     languageDictionary: {
         title: 'Log In',
