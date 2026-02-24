@@ -285,7 +285,6 @@ def setup_unified_s3_client():
                 aws_secret_access_key=os.environ.get('S3_AWS_SECRET_ACCESS_KEY'),
                 config=config
             )
-    print(f'Not using the correct s3 client')
     return boto_client('s3', config=config)  # this fallback will throw permission errors downstream
 
 

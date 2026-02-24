@@ -1426,7 +1426,6 @@ class File(Item, CoreFile):
     def _open_data_url(self, s3_client, status, filename):
         """ Helper for below method containing core functionality. """
         if not filename:
-            print('did not get a filename')
             return None
 
         # Resolve which bucket to look in
@@ -1435,7 +1434,6 @@ class File(Item, CoreFile):
         elif status in ['protected', 'protected-network', 'protected-early']:
             open_data_bucket = 'smaht-open-data-protected'
         else:
-            print(f'status caused break {status}')
             return None
 
         # Resolve which key to check
@@ -1446,14 +1444,11 @@ class File(Item, CoreFile):
         open_data_key = 'smaht-production/{bucket_type}/{uuid}/{filename}'.format(
             bucket_type=bucket_type, uuid=self.uuid, filename=filename
         )
-        print(f'checking key {open_data_key}')
 
         # Check the bucket/key
         try:
             self._head_s3(s3_client, open_data_bucket, open_data_key)
         except ClientError as e:
-            print(e)
-            print(f'Did not find key at {open_data_bucket}/{open_data_key}')
             return None  # not there yet
         location = 'https://{open_data_bucket}.s3.amazonaws.com/{open_data_key}'.format(
             open_data_bucket=open_data_bucket, open_data_key=open_data_key
