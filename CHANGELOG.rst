@@ -13,6 +13,7 @@ Change Log
 `PR 606: Avoid rev_link_atids for ReferenceFile <https://github.com/smaht-dac/smaht-portal/pull/606>`_
 
 * Avoid rev_link_atids for ReferenceFile
+* Improve efficiency of `open_data_url`` calc prop
 
 
 1.13.0
