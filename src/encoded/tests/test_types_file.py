@@ -1361,28 +1361,17 @@ def test_files_open_data_url_released_and_transferred(testapp, public_reference_
 
 
 def test_files_open_data_url_released_and_transferred_protected(testapp, public_reference_file):
-    """ More complicated mocking necessary in order to simulate a sequence based call mock for
-        mock_s3.
-
-        If you look at the code for the open_data_url, it can make up to 4 calls to head_s3,
-        the first two for the public bucket, second two for the protected bucket. In this test
-        We simulate a success of the third call ie: wfoutput file in the protected bucket.
+    """ New implementation greatly simplifies this test, but need to change
+        status to get the right behavior rather than mock an odd sequence as before
     """
-    def raise_client_error(*args, **kwargs):
-        raise ClientError({"Error": {}}, "HeadObject")
-
-    call_idx = 0
     def head_s3_se(*args, **kwargs):
-        nonlocal call_idx
-        # increment then decide
-        call_idx += 1
-        if call_idx in (1, 2, 4, 5):
-            raise_client_error()
         return None
 
     with mock.patch("encoded.types.reference_file.ReferenceFile._head_s3",
                     side_effect=head_s3_se):
-        updated = testapp.patch_json(f"/{public_reference_file['uuid']}", {})
+        updated = testapp.patch_json(f"/{public_reference_file['uuid']}", {
+            'status': 'protected'
+        })
         bucket = 'smaht-open-data-protected'
         download_link = updated.json['@graph'][0]['href']
         direct_res = testapp.get(f'{download_link}?datastore=database', status=307)
