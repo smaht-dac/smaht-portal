@@ -380,29 +380,27 @@ export default class UserRegistrationForm extends React.PureComponent {
                         style={{ fontSize: '0.9rem' }}>
 
                         <div className="d-flex align-items-center gap-2 mb-15 mt-3 section-header">
-                            <i className="icon icon-fw icon-user fas text-secondary fs-4" aria-hidden="true" />
-                            <h3 className="section-title m-0">Open Data: Self Registration</h3>
+                            <i className="icon icon-fw icon-user fas text-secondary fs-4 opacity-50" aria-hidden="true" />
+                            <h3 className="section-title m-0">Self Registration</h3>
                         </div>
 
                         <div className="form-group d-flex flex-column flex-lg-row align-items-lg-center gap-0 gap-lg-3 mt-2">
                             <label htmlFor="email-address" className="text-500">
-                                Primary Email:
+                                Email:
                             </label>
 
-                            <span id="email-address" className={`text-300 fs-5 ${!isInstitutional ? "warning" : ""}`}>
-                                {!isInstitutional ? (
-                                    <span className="icon icon-warning" style={{ marginRight: 15, fontSize: 20, color: '#856404' }}></span>
-                                ) : (object.itemUtil.User.gravatar(unverifiedUserEmail, 36, { 'style': { 'borderRadius': '50%', 'marginRight': 20 } }, 'mm'))}
+                            <span id="email-address" className="text-300 fs-5">
+                                {object.itemUtil.User.gravatar(unverifiedUserEmail, 36, { 'style': { 'borderRadius': '50%', 'marginRight': 20 } }, 'mm')}
                                 {unverifiedUserEmail}
                             </span>
 
-                            <button type="button" className="btn btn-link btn-sm ms-1 p-0 change-email-link" onClick={onExitLinkClick}>
+                            <button type="button" className="btn btn-link btn-sm ms-1 p-0 change-email-link d-none" onClick={onExitLinkClick}>
                                 Change
                             </button>
                         </div>
 
                         {!isInstitutional && (
-                            <div className="email-warning-message mt-1 mb-1">
+                            <div className="email-warning-message mt-1 mb-1 d-none">
                                 <strong>Please use your institutional or organizational email address.</strong><br />
                                 Free email providers may reduce verification options and access levels.
                             </div>
@@ -458,7 +456,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                         <div className="row mt-3">
                             <div className="col-12">
                                 <div className="form-group">
-                                    <label htmlFor="affiliation_institution" className="form-label mb-1 text-500">Affiliation/Institution{' '}
+                                    <label htmlFor="affiliation_institution" className="form-label mb-1 text-500">Affiliation / Institution{' '}
                                         <span className="text-danger">*</span>
                                     </label>
                                     <input
@@ -475,18 +473,21 @@ export default class UserRegistrationForm extends React.PureComponent {
                                     <div className="invalid-feedback">
                                         Affiliation/Institution cannot be blank
                                     </div>
+                                    <div className="text-end text-danger mt-05" style={{ fontSize: '0.75rem' }}>
+                                        *Required
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <div className="row mt-3">
                             <div className="col-12">
-                                <div class="alert alert-danger d-flex align-items-center" role="alert">
-                                    <i class="fas icon icon-file-shield me-2 fs-2"></i>
+                                <div className="alert alert-danger d-flex align-items-center" role="alert">
+                                    <i className="fas icon icon-file-shield me-2 fs-2"></i>
                                     <div>
                                         <strong>Protected Data Access:</strong> Self-registration will give you access to open data and metadata <strong>only</strong>.
                                         <br />
-                                        To get access to protected data, sign up with the same institutional email address to dbGAP as well.
+                                        You are <em>required</em> to register with your institutional email address linked to eRA commons or login.gov to gain access to dbGAP. Learn how to get dbGAP access <a href="/docs/access/getting-dbgap-access" target="_blank" rel="noreferrer noopener">here</a>.
                                     </div>
                                 </div>
                             </div>
