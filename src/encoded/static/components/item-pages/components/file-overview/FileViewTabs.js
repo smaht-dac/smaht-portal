@@ -29,15 +29,15 @@ const AssociatedFilesTab = (props) => {
         const fileSetUuids = context?.file_sets
             ?.map((fs) => fs.uuid)
             ?.join('&file_sets.uuid=');
-        const associatedFilesSearchHref = `/search/?type=File&file_format.display_title=cram&file_format.display_title=bam&uuid!=${props.context.uuid}&file_sets.uuid=${fileSetUuids}`;
+        const associatedFilesSearchHref = `/search/?type=File&uuid!=${props.context.uuid}&file_sets.uuid=${fileSetUuids}`;
 
         DACGeneratedFilesHref =
             associatedFilesSearchHref +
-            '&submission_centers.display_title=HMS DAC';
+            '&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&submission_centers.display_title=HMS DAC';
 
         ExternallyGeneratedFilesHref =
             associatedFilesSearchHref +
-            '&submission_centers.display_title!=HMS DAC';
+            '&file_format.display_title=cram&file_format.display_title=bam&submission_centers.display_title!=HMS DAC';
     }
 
     return (
@@ -97,8 +97,6 @@ const AnalysisInformationTab = (props) => {
 
 // DotRouterTab content for displaying QC information for the current file.
 const QCOverviewTab = ({ session, context }) => {
-    const userDownloadAccess = useUserDownloadAccess(session);
-
     // Check if quality metrics exist and are valid
     const fileHasQualityMetrics =
         context?.quality_metrics && context?.quality_metrics?.length > 0;

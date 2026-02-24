@@ -67,6 +67,17 @@
         "accession": {
             "accessionType": "MR"
         },
+        "analysis_runs": {
+            "title": "Analysis Runs",
+            "description": "Analysis runs associated with this MetaWorkflowRun",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "linkTo": "AnalysisRun"
+            }
+        },
         "meta_workflow": {
             "$merge": "encoded_core:schemas/meta_workflow_run.json#/properties/meta_workflow"
         },

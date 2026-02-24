@@ -414,7 +414,6 @@ export class GroupByController extends React.PureComponent {
     }
 }
 
-
 export class GroupByDropdown extends React.PureComponent {
 
     static defaultProps = {
@@ -581,8 +580,6 @@ export class GroupByDropdown extends React.PureComponent {
         );
     }
 }
-
-
 
 /** Wraps AreaCharts or AreaChartContainers in order to provide shared color scales. */
 export class ColorScaleProvider extends React.PureComponent {
@@ -975,7 +972,6 @@ export class AreaChart extends React.PureComponent {
         const chartWidth = useChartWidth || this.innerWidth || this.getInnerChartWidth();
         const yearDiff  = (xExtents[1] - xExtents[0]) / (60 * 1000 * 60 * 24 * 365);
         const widthPerYear = chartWidth / yearDiff;
-
 
         if (widthPerYear < 3600){
             var monthsTick;
@@ -1418,7 +1414,7 @@ export class AreaChartContainer extends React.Component {
                 if (gridState && ['lg', 'xl', 'xxl'].indexOf(gridState) === -1) return false;
                 return !!value;
             default:
-                return !!value
+                return !!value;
         }
     }
 
@@ -1471,8 +1467,8 @@ export class AreaChartContainer extends React.Component {
         const buttons = [];
 
         if (!hideChartButton) {
-        const toggled = AreaChartContainer.isToggled(this.props, 'chart');
-        const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-secondary");
+            const toggled = AreaChartContainer.isToggled(this.props, 'chart');
+            const className = "btn btn-sm me-05 " + (toggled ? "btn-primary" : "btn-outline-secondary");
             buttons.push(
                 <button type="button" className={className} onClick={(e) => this.toggleButton(e, 'chart')} data-tip="Toggle chart view" key={id + '_chart'}>
                     <i className="icon icon-fw fas icon-chart-bar" />

@@ -327,7 +327,7 @@ function stepPublicDonorFlow(caps) {
         });
         return;
     }
-    
+
     if (caps.expectedDonorsHavingReleasedFilesCount === 0) {
         cy.request({
             url: BROWSE_BY_DONOR_URL,
@@ -419,20 +419,24 @@ function stepPublicDonorFlow(caps) {
                         verifyExposures();
 
                         // Donor-level Data Matrix
-                        getNumericStatByLabel("Files").then((n) => {
-                            testMatrixPopoverValidation(
-                                "#data-matrix-for_donor",
-                                {
-                                    donors: [donorID],
-                                    mustLabels: [],
-                                    optionalLabels: [],
-                                    expectedLowerLabels: ["Tissues"],
-                                    regularBlockCount: 5, // rowRegularBlockCount
-                                    rowSummaryBlockCount: 5, // rowSummaryBlockCount
-                                    colSummaryBlockCount: 1, // colSummaryBlockCount
-                                    expectedFilesCount: n // totalCountExpected (<=0 → skip strict total check)
-                                }
-                            );
+                        getNumericStatByLabel("Files").then((filesCount) => {
+                            getNumericStatByLabel("Tissues").then((tissuesCount) => {
+                                testMatrixPopoverValidation(
+                                    "#data-matrix-for_donor",
+                                    {
+                                        donors: [donorID],
+                                        mustLabels: [],
+                                        optionalLabels: [],
+                                        expectedLowerLabels: ["Tissues"],
+                                        regularBlockCount: 5, // regularBlockCount
+                                        rowSummaryBlockCount: 5, // rowSummaryBlockCount
+                                        colSummaryBlockCount: 1, // colSummaryBlockCount
+                                        expectedFilesCount: filesCount,  // totalCountExpected (null → skip strict total check)
+                                        expectedTissuesCount: donorID !== "COLO829" ? tissuesCount : null, // tissuesCount (null → skip strict total check)
+                                        verifyTotalFromApi: donorID !== "COLO829", // COLO829 has special file access rules
+                                    }
+                                );
+                            });
                         });
 
                     }).end();
@@ -474,7 +478,7 @@ describe("Public Donor Overview (by role)", () => {
                 logoutIfNeeded(roleKey);
             });
 
-            it(`Browse 3 public donors (plus COLO829 and STO001) from Production → open donor details → verify public-only fields and protected sections (enabled: ${caps.runPublicDonorFlow})`, () => {
+            it(`Browse 3 public donors (plus COLO829 and ST001) from Production → open donor details → verify public-only fields and protected sections (enabled: ${caps.runPublicDonorFlow})`, () => {
                 if (!caps.runPublicDonorFlow) return;
                 stepPublicDonorFlow(caps);
             });

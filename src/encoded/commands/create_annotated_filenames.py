@@ -10,6 +10,7 @@ from dcicutils import ff_utils
 from encoded.commands.utils import get_auth_key
 from encoded.item_utils import (
     constants,
+    assay as assay_utils,
     cell_culture_mixture as cell_culture_mixture_utils,
     cell_line as cell_line_utils,
     donor as donor_utils,
@@ -40,6 +41,13 @@ DSA_INFO_VALUE = "DSA"
 RNA_DATA_CATEGORY = "RNA Quantification"
 GENE_DATA_TYPE = "Gene Expression"
 ISOFORM_DATA_TYPE = "Transcript Expression"
+CONSENSUS_DATA_CATEGORY = "Consensus Reads"
+DUPLEX_ASSAY_CATEGORY = "Duplex-seq WGS"
+KINNEX_ASSAY_ID = "bulk_mas_iso_seq"
+TRANSCRIPT_SEQUENCE_DATA_TYPE = "Transcript Sequence"
+TRANSCRIPT_MODEL_DATA_TYPE = "Transcript Model"
+SEQUENCING_READS_DATA_CATEGORY = "Sequencing Reads"
+ALIGNED_READS_DATA_TYPE = "Aligned Reads"
 
 DEFAULT_PROJECT_ID = constants.PRODUCTION_PREFIX
 DEFAULT_ABSENT_FIELD = "X"
@@ -93,7 +101,7 @@ class AssociatedItems:
     reference_genome: Dict[str, Any]
     gene_annotations: Dict[str, Any]
     file_sets: List[Dict[str, Any]]
-    donor_specific_assembly: Dict[str, Any]
+    donor_specific_assembly: Union[Dict[str, Any], None]
     assays: List[Dict[str, Any]]
     sequencers: List[Dict[str, Any]]
     sample_sources: List[Dict[str, Any]]
@@ -102,8 +110,8 @@ class AssociatedItems:
     tissue_samples: List[Dict[str, Any]]
     tissues: List[Dict[str, Any]]
     donors: List[Dict[str, Any]]
-    target_assembly: Dict[str, Any]
-    source_assembly: Dict[str, Any]
+    target_assembly: Union[str, None]
+    source_assembly: Union[str, None]
 
 
 def get_associated_items(
@@ -122,10 +130,13 @@ def get_associated_items(
     reference_genome = get_reference_genome(file, request_handler)
     gene_annotations = get_gene_annotations(file, request_handler)
     donor_specific_assembly = get_donor_specific_assembly(file, request_handler)
-    target_assembly = get_target_assembly(file, request_handler)
-    source_assembly = get_source_assembly(file, request_handler)
+    target_assembly = None
+    source_assembly = None
     if donor_specific_assembly:
-        file_sets=get_derived_from_file_sets(file, request_handler)
+        file_sets = get_derived_from_file_sets(file, request_handler)
+        if file_format_utils.is_chain_file(file_format):
+            target_assembly = get_target_assembly(file, request_handler)
+            source_assembly = get_source_assembly(file, request_handler)
     else:
         file_sets = get_file_sets(file, request_handler, file_sets=file_sets)
     assays = get_assays(file_sets, request_handler)
@@ -229,16 +240,62 @@ def get_reference_genome(
 
 def get_target_assembly(
     file: Dict[str, Any], request_handler: RequestHandler
-) -> Union[None, Dict[str, Any]]:
+) -> str:
     """Get target assembly for file."""
-    return get_item(supp_file_utils.get_target_assembly(file), request_handler)
+    return get_reference_genome_code(
+        get_reference_genome_search(
+            supp_file_utils.get_target_assembly(file), request_handler
+        )
+    )
 
 
 def get_source_assembly(
     file: Dict[str, Any], request_handler: RequestHandler
-) -> Union[None, Dict[str, Any]]:
+) -> str:
     """Get source assembly for file."""
-    return get_item(supp_file_utils.get_source_assembly(file), request_handler)
+    return get_reference_genome_code(
+        get_reference_genome_search(
+            supp_file_utils.get_source_assembly(file), request_handler
+        )
+    )
+
+
+def get_reference_genome_search(
+        value: str,
+        request_handler: RequestHandler
+    ) -> List[Dict[str, Any]]:
+    """
+    Search Reference Genomes by code and title and return unique code for chain file output.
+    
+    NOTE: This relies on manual setting of ReferenceGenome `code` values internally. 
+    `title` for DSAs is submitter-provided and may be variable.
+    """
+    code_search = f"/search/?type=ReferenceGenome&code={value}"
+    title_search = f"/search/?type=ReferenceGenome&title={value}"
+    result = ff_utils.search_metadata(code_search, key=request_handler.auth_key) + ff_utils.search_metadata(title_search, key=request_handler.auth_key)
+    return result
+
+
+def get_reference_genome_code(assemblies: List[Dict[str, Any]]) -> str:
+    """Get unique code for reference genomes from search result."""
+    is_dsa = [dsa_utils.is_donor_specific_assembly(ref) for ref in assemblies]
+    # If all of the results are DSAs; use DSA value
+    if all(is_dsa):
+        return DSA_INFO_VALUE
+    # Some but not all results are DSAs, weird case raise error
+    elif any(is_dsa):
+        raise Exception("Invalid source or target assembly value")
+    else:
+        # None of the results are DSAs
+        # Get unique code values from result
+        ref_code = []
+        for ref in assemblies:
+            if (new_code := item_utils.get_code(ref)) not in ref_code:
+                ref_code.append(new_code)
+        # If there is more than one unique code in the returned reference genomes, weird case raise error
+        if len(ref_code) != 1:
+            raise Exception("Invalid source or target assembly value")
+        return ref_code[0]
 
 
 def get_gene_annotations(
@@ -469,6 +526,7 @@ def get_annotated_filename(
     file_extension = get_file_extension(file, associated_items.file_format)
     analysis_info = get_analysis(
         file,
+        associated_items.assays,
         associated_items.software,
         associated_items.reference_genome,
         associated_items.gene_annotations,
@@ -564,9 +622,9 @@ def get_filename_part_for_values(
 
 
 def get_project_id(
-    cell_culture_mixtures: List[Dict[str], Any],
-    cell_lines: List[Dict[str], Any],
-    tissues: List[Dict[str], Any],
+    cell_culture_mixtures: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    tissues: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get project ID for file.
 
@@ -591,10 +649,10 @@ def get_project_id_from_tissues(tissues: List[Dict[str, Any]]) -> FilenamePart:
 
 
 def get_sample_source_id(
-    sample_sources: List[Dict[str], Any],
-    cell_culture_mixtures: List[Dict[str], Any],
-    cell_lines: List[Dict[str], Any],
-    tissues: List[Dict[str], Any],
+    sample_sources: List[Dict[str, Any]],
+    cell_culture_mixtures: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    tissues: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get sample source ID for file.
 
@@ -613,7 +671,7 @@ def get_sample_source_id(
     return get_exclusive_filename_part(parts, "sample source ID")
 
 
-def is_only_cell_culture_mixture_derived(sample_sources: List[Dict[str], Any]) -> bool:
+def is_only_cell_culture_mixture_derived(sample_sources: List[Dict[str, Any]]) -> bool:
     """Check if only cell culture mixture-derived."""
     return all(
         cell_culture_mixture_utils.is_cell_culture_mixture(source)
@@ -622,7 +680,7 @@ def is_only_cell_culture_mixture_derived(sample_sources: List[Dict[str], Any]) -
 
 
 def get_cell_culture_mixture_code(
-    cell_culture_mixtures: List[Dict[str], Any],
+    cell_culture_mixtures: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get mixture code for file naming."""
     codes = [
@@ -635,7 +693,7 @@ def get_cell_culture_mixture_code(
 
 
 def get_cell_line_id(
-    cell_lines: List[Dict[str], Any],
+    cell_lines: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get cell line ID for file naming."""
     codes = [item_utils.get_code(cell_line) for cell_line in cell_lines]
@@ -644,7 +702,7 @@ def get_cell_line_id(
     )
 
 
-def get_donor_kit_id(tissues: List[Dict[str], Any]) -> FilenamePart:
+def get_donor_kit_id(tissues: List[Dict[str, Any]]) -> FilenamePart:
     """Get donor kit ID for file naming."""
     donor_kit_ids = [tissue_utils.get_donor_kit_id(tissue) for tissue in tissues]
     return get_filename_part_for_values(
@@ -653,9 +711,9 @@ def get_donor_kit_id(tissues: List[Dict[str], Any]) -> FilenamePart:
 
 
 def get_protocol_id(
-    cell_culture_mixtures: List[Dict[str], Any],
-    cell_lines: List[Dict[str], Any],
-    tissues: List[Dict[str], Any],
+    cell_culture_mixtures: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    tissues: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get protocol ID for file."""
     parts = []
@@ -666,7 +724,7 @@ def get_protocol_id(
     return get_exclusive_filename_part(parts, "protocol ID")
 
 
-def get_protocol_id_from_tissues(tissues: List[Dict[str], Any]) -> FilenamePart:
+def get_protocol_id_from_tissues(tissues: List[Dict[str, Any]]) -> FilenamePart:
     """Get protocol ID from tissue items."""
     protocol_ids = [tissue_utils.get_protocol_id(tissue) for tissue in tissues]
     return get_filename_part_for_values(
@@ -675,9 +733,9 @@ def get_protocol_id_from_tissues(tissues: List[Dict[str], Any]) -> FilenamePart:
 
 
 def get_aliquot_id(
-    cell_culture_mixtures: List[Dict[str], Any],
-    cell_lines: List[Dict[str], Any],
-    tissue_samples: List[Dict[str], Any],
+    cell_culture_mixtures: List[Dict[str, Any]],
+    cell_lines: List[Dict[str, Any]],
+    tissue_samples: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get tissue aliquot ID for file."""
 
@@ -689,7 +747,7 @@ def get_aliquot_id(
     return get_exclusive_filename_part(parts, "tissue aliquot ID")
 
 
-def get_aliquot_id_from_samples(tissue_samples: List[Dict[str], Any]) -> FilenamePart:
+def get_aliquot_id_from_samples(tissue_samples: List[Dict[str, Any]]) -> FilenamePart:
     """Get aliquot ID from sample items.
 
     Some special handling required to transform aliquot ID from
@@ -742,8 +800,8 @@ def get_aliquot_id_from_tissue_sample(tissue_sample: Dict[str, Any]) -> str:
 
 
 def get_donor_sex_and_age(
-    donors: List[Dict[str], Any],
-    sample_sources: List[Dict[str], Any],
+    donors: List[Dict[str, Any]],
+    sample_sources: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get donor sex and age for file.
 
@@ -799,18 +857,19 @@ def get_sex_abbreviation(sex: str) -> str:
 
 def get_sequencing_and_assay_codes(
     file: Dict[str, Any],
-    sequencers: List[Dict[str], Any],
-    assays: List[Dict[str], Any],
+    sequencers: List[Dict[str, Any]],
+    assays: List[Dict[str, Any]],
 ) -> FilenamePart:
     """Get sequencing and assay codes for file.
     
-    Returns XX for Genome Assembly and Reference Conversion files.
+    Returns XX for files with data categories in `data_category exceptions`.
     """
     sequencing_codes = get_sequencing_codes(sequencers)
     assay_codes = get_assay_codes(assays)
+    data_category_exceptions = [file_constants.DATA_CATEGORY_GENOME_ASSEMBLY, file_constants.DATA_CATEGORY_GENOME_CONVERSION, file_constants.DATA_CATEGORY_GENOME_ANNOTATION]
     if len(sequencing_codes) == 1 and len(assay_codes) == 1:
         return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
-    elif supp_file_utils.is_genome_assembly(file) or supp_file_utils.is_reference_conversion(file):
+    elif set(file_utils.get_data_category(file)) & set(data_category_exceptions):
         return get_filename_part(value="XX")
     errors = []
     if not sequencing_codes:
@@ -824,12 +883,12 @@ def get_sequencing_and_assay_codes(
     return get_filename_part(errors=errors)
 
 
-def get_sequencing_codes(sequencers: List[Dict[str], Any]) -> List[str]:
+def get_sequencing_codes(sequencers: List[Dict[str, Any]]) -> List[str]:
     """Get sequencing code for file."""
     return list(set([item_utils.get_code(sequencer) for sequencer in sequencers]))
 
 
-def get_assay_codes(assays: List[Dict[str], Any]) -> List[str]:
+def get_assay_codes(assays: List[Dict[str, Any]]) -> List[str]:
     """Get assay code for file."""
     return list(set([item_utils.get_code(assay) for assay in assays]))
 
@@ -852,13 +911,14 @@ def get_accession(file: Dict[str, Any]) -> FilenamePart:
 
 def get_analysis(
     file: Dict[str, Any],
+    assay: List[Dict[str, Any]],
     software: List[Dict[str, Any]],
     reference_genome: Dict[str, Any],
     gene_annotations: Dict[str, Any],
     file_extension: Dict[str, Any],
-    target_assembly: Dict[str, Any],
-    source_assembly: Dict[str, Any],
-    donor_specific_assembly: Dict[str, Any],
+    target_assembly: Union[str, None],
+    source_assembly: Union[str, None],
+    donor_specific_assembly: Union[Dict[str, Any], None],
 ) -> FilenamePart:
     """Get analysis info for file.
 
@@ -869,7 +929,9 @@ def get_analysis(
     reference_genome_code = item_utils.get_code(reference_genome)
     gene_annotation_code = get_annotations_and_versions(gene_annotations)
     transcript_info_code = get_rna_seq_tsv_value(file, file_extension)
-    haplotype_code = get_haplotype_value(file, file_extension, donor_specific_assembly)
+    dsa_code = get_dsa_value(file, file_extension, donor_specific_assembly)
+    kinnex_info_code = get_kinnex_value(file, assay)
+    consensus_read_flag = get_consensus_value(file, assay)
     chain_code = get_chain_file_value(file, target_assembly, source_assembly, file_extension)
     value = get_analysis_value(
         software_and_versions,
@@ -877,7 +939,9 @@ def get_analysis(
         gene_annotation_code,
         transcript_info_code,
         chain_code,
-        haplotype_code
+        dsa_code,
+        consensus_read_flag,
+        kinnex_info_code
     )
     errors = get_analysis_errors(
         file,
@@ -885,8 +949,9 @@ def get_analysis(
         gene_annotation_code,
         transcript_info_code,
         chain_code,
-        haplotype_code,
+        dsa_code,
         file_extension,
+        assay,
     )
     if errors:
         return get_filename_part(errors=errors)
@@ -903,8 +968,9 @@ def get_analysis_errors(
     gene_annotation_code: str,
     transcript_info_code:  str,
     chain_code: str,
-    haplotype_code: str,
-    file_extension: Dict[str, Any]
+    dsa_code: str,
+    file_extension: Dict[str, Any],
+    assays: List[Dict[str, Any]],
 ) -> List[str]:
     """Get analysis errors for file by file type."""
     errors = []
@@ -918,13 +984,18 @@ def get_analysis_errors(
         if not reference_genome_code:
             errors.append("No reference genome code found")
     if RNA_DATA_CATEGORY in file_utils.get_data_category(file):
-        if not gene_annotation_code:
+        if not gene_annotation_code and KINNEX_ASSAY_ID not in get_assay_ids(assays):
             errors.append("No gene annotation code found")
         elif file_format_utils.is_tsv_file(file_extension) and not transcript_info_code:
             errors.append("No gene or isoform code found")
     if file_format_utils.is_chain_file(file_extension):
         if not chain_code:
-            errors.append("No target or source assembly found for chain conversion ")
+            errors.append("No chain code found")
+    if CONSENSUS_DATA_CATEGORY in file_utils.get_data_category(file):
+        if len(get_assay_categories(assays)) == 0:
+            errors.append("No assay categories found.")
+        elif len(get_assay_categories(assays)) > 1:
+            errors.append("Multiple assay categories found.")
     return errors
 
 
@@ -934,12 +1005,14 @@ def get_analysis_value(
     gene_annotation_code: str,
     transcript_info_code: str,
     chain_code: str,
-    haplotype_code: str,
+    dsa_code: str,
+    consensus_read_flag: str,
+    kinnex_info_code: str,
 ) -> str:
     """Get analysis value for filename."""
     to_write = [
         string
-        for string in [software_and_versions, reference_genome_code, gene_annotation_code, transcript_info_code, chain_code, haplotype_code]
+        for string in [software_and_versions, reference_genome_code, gene_annotation_code, transcript_info_code, chain_code, dsa_code, consensus_read_flag, kinnex_info_code]
         if string
     ]
     return ANALYSIS_INFO_SEPARATOR.join(to_write)
@@ -1056,45 +1129,78 @@ def get_software_codes_missing_versions(
 
 def get_chain_file_value(
         file: Dict[str, Any],
-        target_assembly: Dict[str, Any],
-        source_assembly: Dict[str, Any],
+        target_assembly: Union[str, None],
+        source_assembly: Union[str, None],
         file_extension: Dict[str, Any]
     ) -> str:
     """Get genome conversion direction for chain files."""
     if file_format_utils.is_chain_file(file_extension):
-        target_value = ""
-        source_value = ""
         if target_assembly and source_assembly:
-            target_value = DSA_INFO_VALUE if dsa_utils.is_donor_specific_assembly(target_assembly) else item_utils.get_code(target_assembly)
-            source_value = DSA_INFO_VALUE if dsa_utils.is_donor_specific_assembly(source_assembly) else item_utils.get_code(source_assembly)
-        if target_value and source_value:
-            return CHAIN_FILE_INFO_SEPARATOR.join([source_value,target_value])
+            return CHAIN_FILE_INFO_SEPARATOR.join([source_assembly,target_assembly])
     return ""
 
 
-def get_haplotype_value(
+def get_dsa_value(
         file: Dict[str, Any],
         file_extension: Dict[str, Any],
-        donor_specific_assembly: Dict[str, Any]
+        donor_specific_assembly: Union[Dict[str, Any], None]
     ):
-    """Get haplotype value for fasta file."""
-    if file_format_utils.is_fasta_file(file_extension):
-        if (haplotype := supp_file_utils.get_haplotype(file)):
-            return haplotype
-        elif donor_specific_assembly:
-            return DSA_INFO_VALUE
+    """Get DSA version and haplotype values for fasta file."""
+    if donor_specific_assembly:
+        dsa_value = ANALYSIS_INFO_SEPARATOR.join([DSA_INFO_VALUE, item_utils.get_version(donor_specific_assembly)])
+        if file_format_utils.is_fasta_file(file_extension):
+            return ANALYSIS_INFO_SEPARATOR.join([dsa_value, supp_file_utils.get_haplotype(file)])
+        elif file_format_utils.is_bed_file(file_extension):
+            return dsa_value
     return ""
 
 
 def get_rna_seq_tsv_value(file: Dict[str, Any], file_extension: Dict[str, Any]) -> str:
     """Get isoform or gene from data type for RNA-seq tsv files."""
-    if file_format_utils.is_tsv_file(file_extension) and RNA_DATA_CATEGORY in file_utils.get_data_category(file):
+    if RNA_DATA_CATEGORY in file_utils.get_data_category(file):
         if GENE_DATA_TYPE in file_utils.get_data_type(file):
             return "gene"
         elif ISOFORM_DATA_TYPE in file_utils.get_data_type(file):
             return "isoform"
     else:
         return ""
+    
+
+def get_assay_categories(assays: List[Dict[str, Any]]) -> List[str]:
+    """Get assay category for assays."""
+    return list(set([assay_utils.get_category(assay) for assay in assays]))
+
+
+def get_assay_ids(assays: List[Dict[str, Any]]) -> List[str]:
+    """Get assay ids for assays."""
+    return list(set([item_utils.get_identifier(assay) for assay in assays]))
+
+
+def get_consensus_value(file: Dict[str, Any], assays: List[Dict[str, Any]]) -> str:
+    """Get consensus from data_category for Duplex-Seq files."""
+    assay_cats = get_assay_categories(assays)
+
+    if CONSENSUS_DATA_CATEGORY in file_utils.get_data_category(file) and DUPLEX_ASSAY_CATEGORY in assay_cats:
+        return "consensus"
+    else:
+        return ""
+
+
+def get_kinnex_value(file: Dict[str, Any], assays: List[Dict[str, Any]]) -> str:
+    "Get suffixes for Kinnex files"
+    assay_ids = get_assay_ids(assays)
+    if KINNEX_ASSAY_ID in assay_ids:
+        data_categories = file_utils.get_data_category(file)
+        data_types = file_utils.get_data_type(file)
+
+        if TRANSCRIPT_SEQUENCE_DATA_TYPE in data_types:
+            return "isoform"
+        elif TRANSCRIPT_MODEL_DATA_TYPE in data_types:
+            return "junction"
+        elif SEQUENCING_READS_DATA_CATEGORY in data_categories and ALIGNED_READS_DATA_TYPE in data_types:
+            return "flnc"
+    
+    return ""
 
 
 def get_file_extension(

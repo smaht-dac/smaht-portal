@@ -26,7 +26,7 @@ const ROLE_MATRIX = {
     [ROLE_TYPES.SMAHT_NON_DBGAP]: {
         label: "SMAHT_NON_DBGAP",
         isAuthenticated: true,
-        canViewQCMetrics: true,
+        canViewQCMetrics: false,
 
         expectedQCMetricsMenuVisible: true,
         expectedQCMetricsResponseCode: 200,
@@ -823,7 +823,11 @@ function assertCanSeeQCMetricsMenu(caps) {
 function assertCannotAccessQCMetricsPage(caps) {
     goto({ url: "/qc-metrics", failOnStatusCode: false });
 
-    cy.contains("h1.page-title", "Forbidden").should("be.visible");
+    if (caps.expectedQCMetricsResponseCode === 200) {
+        cy.contains(".loader-container .alert.alert-danger", "Failed to load quality metrics data").should("be.visible");
+    } else { // 403 or other
+        cy.contains("h1.page-title", "Forbidden").should("be.visible");
+    }
 
     cy.request({
         url: "/qc-metrics",
@@ -831,6 +835,9 @@ function assertCannotAccessQCMetricsPage(caps) {
         headers: cypressVisitHeaders,
     }).then((resp) => {
         expect(resp.status).to.equal(caps.expectedQCMetricsResponseCode);
+
+        // should not see #qc-metrics-tabs
+        cy.get("#qc-metrics-tabs").should("not.exist");
     });
 }
 
@@ -866,7 +873,7 @@ describe("Data Overview - QC Metrics (role-based)", () => {
                 logoutIfNeeded(roleKey);
             });
 
-            it(`should open QC Metric Visualizations page (enabled: ${caps.canViewQCMetrics})`, () => {
+            it(`should open QC Metric Visualizations page (enabled: ${caps.canViewQCMetrics}, expected response code: ${caps.expectedQCMetricsResponseCode})`, () => {
                 if (!caps.canViewQCMetrics) {
                     assertCanSeeQCMetricsMenu(caps);
                     assertCannotAccessQCMetricsPage(caps);

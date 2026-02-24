@@ -1,0 +1,18 @@
+[
+    {
+        "identifier": "Test_Analysis_Run",
+        "status": "in review",
+        "accession": "SMAAE5255HIP",
+        "analysis_type": "Somatic SNV calling",
+        "consortia": [
+            "358aed10-9b9d-4e26-ab84-4bd162da182b"
+        ],
+        "submission_centers": [
+            "e552c462-9b65-43ed-a5f8-8aa56aa3ebf4"
+        ],
+        "tissues": [
+            "b50c1dde-9fd0-4bd7-a197-726a095f6ffd"
+        ],
+        "uuid": "6bf49379-923b-418d-8ea4-c3148330b26f"
+    }
+]

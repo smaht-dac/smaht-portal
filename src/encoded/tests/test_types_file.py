@@ -1,5 +1,6 @@
 import functools
 from dataclasses import dataclass
+from botocore.exceptions import ClientError
 from typing import Any, Dict, List, Optional
 
 import pytest
@@ -28,7 +29,7 @@ from ..item_utils.utils import (
     get_unique_values,
     RequestHandler,
 )
-from ..types.file import CalcPropConstants
+from ..types.file import CalcPropConstants, File
 
 
 OUTPUT_FILE_FORMAT = "FASTQ"
@@ -103,6 +104,25 @@ def reference_file(
         'data_category': ['Sequencing Reads'],
         'data_type': ['Unaligned Reads'],
         'status': 'released',  # if it does clear the prop will definitely show up
+        'consortia': [test_consortium['uuid']],
+    }
+    res = testapp.post_json('/reference_file', item)
+    return res.json['@graph'][0]
+
+
+@pytest.fixture
+def public_reference_file(
+    testapp: TestApp, file_formats: Dict[str, dict], test_consortium: Dict[str, Any]
+) -> Dict[str, Any]:
+    """ Reference File for testing the open data interaction """
+    item = {
+        'file_format': file_formats.get('BAM').get('uuid'),
+        'md5sum': '00000000000000000000000000000000',
+        'content_md5sum': '00000000000000000000000000000000',
+        'filename': 'my.bam',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
+        'status': 'open',
         'consortia': [test_consortium['uuid']],
     }
     res = testapp.post_json('/reference_file', item)
@@ -481,11 +501,21 @@ def test_meta_workflow_run_inputs_rev_link(
     file_with_inputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_inputs.uuid!=No+value"
     )
-    assert file_with_inputs_search
-    file_without_inputs_search = get_search(
+    assert len(file_with_inputs_search) == 1
+    files_without_inputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_inputs.uuid=No+value"
     )
-    assert file_without_inputs_search
+    assert files_without_inputs_search
+    # why aren't the reference files returned with the get_search call above?
+    reference_files_lacking_mwfrs_search = get_search(
+        es_testapp, "/search/?type=ReferenceFile&meta_workflow_run_inputs.uuid=No+value"
+    )
+    rf_uuids = [rf.get('uuid') for rf in reference_files_lacking_mwfrs_search]
+    # this uuid is for the reference file that was added as input to a meta workflow run insert
+    # because meta_workflow_runs are not revlinked we explicitly check that a reference file that
+    # was added as an input doesn't get the calcprop value even though we would expect it to be returned
+    # for the files_without_inputs_search and it is not
+    assert "49690fb8-7680-4034-ae3b-4f28222d5db8" in rf_uuids
 
 
 @pytest.mark.workbook
@@ -497,7 +527,7 @@ def test_meta_workflow_run_outputs_rev_link(
     file_with_outputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_outputs.uuid!=No+value"
     )
-    assert file_with_outputs_search
+    assert len(file_with_outputs_search) == 1
     file_without_outputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_outputs.uuid=No+value"
     )
@@ -1291,6 +1321,73 @@ def get_expected_release_tracker_title(file: Dict[str, Any]) -> List[str]:
         tag for tag in tags if tag.startswith(expected_release_tracker_title_tag_start)
     ]
     return expected_title_tags[0].split(expected_release_tracker_title_tag_start)[1]
+
+
+def test_files_open_data_url_not_released(testapp, output_file):
+    """ Test S3 Open Data URL when a file has not been flagged as released/open etc """
+    # 1. check that initial download works
+    download_link = output_file['href']
+    direct_res = testapp.get(download_link, status=307)
+    # 2. check that the bucket in the redirect is the SMaHT test bucket, not open data
+    non_open_data_bucket = 'smaht-unit-testing-wfout.s3.amazonaws.com'
+    assert non_open_data_bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+
+def test_files_open_data_url_released_not_transferred(testapp, public_reference_file):
+    """ Test S3 Open Data URL when a file has been released but not transferred to Open Data
+        Same as the above test but we don't even check for open data if not in a released status
+    """
+    # 1. check that initial download works
+    download_link = public_reference_file['href']
+    direct_res = testapp.get(download_link, status=307)
+    # 2. check that the bucket in the redirect is the SMaHT test bucket, not open data
+    non_open_data_bucket = 'smaht-unit-testing-files.s3.amazonaws.com'
+    assert non_open_data_bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+
+def test_files_open_data_url_released_and_transferred(testapp, public_reference_file):
+    """ Test S3 Open Data URL when a file has been released and been transferred to Open Data"""
+    with mock.patch('encoded.types.file.File._head_s3', return_value=None):
+        updated = testapp.patch_json(f"/{public_reference_file['uuid']}", {})  # empty patch to regenerate calc prop
+        bucket = 'smaht-open-data-public'  # the Open Data bucket, not the SMaHT test bucket
+        # 1. check that initial download works
+        download_link = updated.json['@graph'][0]['href']
+        direct_res = testapp.get(download_link, status=307)
+        # 2. check that the bucket in the redirect is the open data bucket, not SMaHT test
+        assert bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+        # 3. No credential needed
+        assert 'X-Amz-Signature' not in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+
+def test_files_open_data_url_released_and_transferred_protected(testapp, public_reference_file):
+    """ More complicated mocking necessary in order to simulate a sequence based call mock for
+        mock_s3.
+
+        If you look at the code for the open_data_url, it can make up to 4 calls to head_s3,
+        the first two for the public bucket, second two for the protected bucket. In this test
+        We simulate a success of the third call ie: wfoutput file in the protected bucket.
+    """
+    def raise_client_error(*args, **kwargs):
+        raise ClientError({"Error": {}}, "HeadObject")
+
+    call_idx = 0
+    def head_s3_se(*args, **kwargs):
+        nonlocal call_idx
+        # increment then decide
+        call_idx += 1
+        if call_idx in (1, 2, 4, 5):
+            raise_client_error()
+        return None
+
+    with mock.patch("encoded.types.reference_file.ReferenceFile._head_s3",
+                    side_effect=head_s3_se):
+        updated = testapp.patch_json(f"/{public_reference_file['uuid']}", {})
+        bucket = 'smaht-open-data-protected'
+        download_link = updated.json['@graph'][0]['href']
+        direct_res = testapp.get(f'{download_link}?datastore=database', status=307)
+        assert bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+        assert 'X-Amz-Signature' in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
 
 
 @pytest.mark.workbook

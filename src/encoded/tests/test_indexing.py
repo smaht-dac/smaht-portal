@@ -205,6 +205,7 @@ def test_real_validation_error(es_app, setup_and_teardown, indexer_testapp, es_t
     es = es_app.registry[ELASTIC_SEARCH]
     fp_body = {
         'uuid': str(uuid.uuid4()),
+        'accession': 'TSTFI2115172',
         'data_category': ['Sequencing Reads'],
         'data_type': ['Aligned Reads'],
         'file_format': bam_format.get('uuid'),

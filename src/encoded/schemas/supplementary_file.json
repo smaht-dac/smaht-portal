@@ -97,8 +97,9 @@
             "suggested_enum": [
                 "hapX",
                 "hapY",
-                "hapX1",
-                "hapX2"
+                "hap1",
+                "hap2",
+                "mt"
             ]
         },
         "target_assembly": {

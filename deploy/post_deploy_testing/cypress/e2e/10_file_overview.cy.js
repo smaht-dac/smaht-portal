@@ -246,62 +246,64 @@ function stepOutputFilesWithQC(caps) {
                                 .parents('button')
                                 .click();
 
-                            if (caps.expectedQCOverviewTabVisible === true) {
-                                // 1. QC Overview Status must have a value
-                                cy.get('#file-overview .qc-overview-tab .header.top')
-                                    .should('contain.text', 'QC Overview Status:')
-                                    .within(() => {
-                                        cy.get('.badge').invoke('text').should((status) => {
-                                            expect(status.trim()).to.not.be.empty;
-                                        });
-                                    });
-
-                                // 2. "View Relatedness Chart" button params under Critical QC
-                                cy.get('#file-overview .qc-overview-tab h2.header.mb-2')
-                                    .contains('Critical QC')
-                                    .parent()
-                                    .within(() => {
-                                        cy.get('a.btn-outline-secondary')
-                                            .should('exist')
-                                            .should((a) => {
-                                                const url = a[0].getAttribute('href');
-                                                expect(url).to.include('tab=');
-                                                expect(url).to.include('file=');
-                                                const match = url.match(/[?&]file=([^&]+)/);
-                                                expect(match, 'file param should exist').to.not.be.null;
-                                                const fileParamValue = decodeURIComponent(match[1]);
-                                                expect(fileParamValue).to.equal(fileAccession);
+                            cy.get('@status').then((status) => {
+                                if (caps.expectedQCOverviewTabVisible === true || status.toLowerCase().includes('open')) {
+                                    // 1. QC Overview Status must have a value
+                                    cy.get('#file-overview .qc-overview-tab .header.top')
+                                        .should('contain.text', 'QC Overview Status:')
+                                        .within(() => {
+                                            cy.get('.badge').invoke('text').should((status) => {
+                                                expect(status.trim()).to.not.be.empty;
                                             });
-                                    });
+                                        });
 
-                                // 3. "Visualize Quality Metrics" button params
-                                cy.get('#file-overview .qc-overview-tab .header.top')
-                                    .find('a.btn-primary')
-                                    .should('exist')
-                                    .should((a) => {
-                                        const url = a[0].getAttribute('href');
-                                        expect(url).to.include('tab=');
-                                        expect(url).to.include('file=');
-                                        const match = url.match(/[?&]file=([^&]+)/);
-                                        expect(match, 'file param should exist').to.not.be.null;
-                                        const fileParamValue = decodeURIComponent(match[1]);
-                                        expect(fileParamValue).to.equal(fileAccession);
-                                    });
+                                    // 2. "View Relatedness Chart" button params under Critical QC
+                                    cy.get('#file-overview .qc-overview-tab h2.header.mb-2')
+                                        .contains('Critical QC')
+                                        .parent()
+                                        .within(() => {
+                                            cy.get('a.btn-outline-secondary')
+                                                .should('exist')
+                                                .should((a) => {
+                                                    const url = a[0].getAttribute('href');
+                                                    expect(url).to.include('tab=');
+                                                    expect(url).to.include('file=');
+                                                    const match = url.match(/[?&]file=([^&]+)/);
+                                                    expect(match, 'file param should exist').to.not.be.null;
+                                                    const fileParamValue = decodeURIComponent(match[1]);
+                                                    expect(fileParamValue).to.equal(fileAccession);
+                                                });
+                                        });
 
-                                // 4. General QC table must have at least one row
-                                cy.get('#file-overview .qc-overview-tab h2.header.mb-2')
-                                    .contains('General QC')
-                                    .parent()
-                                    .within(() => {
-                                        cy.get('table.qc-overview-tab-table').should('exist');
-                                        cy.get('tbody tr').its('length').should('be.gte', 1);
+                                    // 3. "Visualize Quality Metrics" button params
+                                    cy.get('#file-overview .qc-overview-tab .header.top')
+                                        .find('a.btn-primary')
+                                        .should('exist')
+                                        .should((a) => {
+                                            const url = a[0].getAttribute('href');
+                                            expect(url).to.include('tab=');
+                                            expect(url).to.include('file=');
+                                            const match = url.match(/[?&]file=([^&]+)/);
+                                            expect(match, 'file param should exist').to.not.be.null;
+                                            const fileParamValue = decodeURIComponent(match[1]);
+                                            expect(fileParamValue).to.equal(fileAccession);
+                                        });
+
+                                    // 4. General QC table must have at least one row
+                                    cy.get('#file-overview .qc-overview-tab h2.header.mb-2')
+                                        .contains('General QC')
+                                        .parent()
+                                        .within(() => {
+                                            cy.get('table.qc-overview-tab-table').should('exist');
+                                            cy.get('tbody tr').its('length').should('be.gte', 1);
+                                        });
+                                } else {
+                                    // QC Overview tab is visible but shows Protected Data message
+                                    cy.get('#file-overview #file-overview\\.qc-overview').should('exist').within(() => {
+                                        cy.get('.protected-data h4').should('be.visible').and('contain.text', 'Protected Data');
                                     });
-                            } else {
-                                // QC Overview tab is visible but shows Protected Data message
-                                cy.get('#file-overview #file-overview\\.qc-overview').should('exist').within(() => {
-                                    cy.get('.protected-data h4').should('be.visible').and('contain.text', 'Protected Data');
-                                });
-                            }
+                                }
+                            });
 
                             if (caps.expectedCanDownloadFile === true) {
 
