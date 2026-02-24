@@ -1409,6 +1409,68 @@ body[data-pathname^="/users/"] {
   		padding-left: 0.75rem;
   		padding-right: 0.75rem;
 	}
+
+	.network-member-panel {
+		border-radius: 8px;
+		border: 1px solid #cae5fe;
+		background: #f1f7fd;
+		padding: 1rem 1.25rem;
+	}
+
+		.network-member-step {
+			height: 100%;
+			border-radius: 10px;
+			border: 1px solid #cae5fe;
+			background: #fbfdff;
+			padding: 1rem 1.25rem;
+
+		.network-member-step-title {
+			text-align: center;
+			font-size: 1.15rem;
+			font-weight: 600;
+			margin-bottom: 1rem;
+		}
+
+		ul {
+			padding-left: 1.25rem;
+		}
+
+			li {
+				margin-bottom: 0.75rem;
+			}
+
+			p,
+			li {
+				font-size: 0.85rem;
+			}
+		}
+
+	.network-member-footer {
+		.btn {
+			min-width: 280px;
+		}
+
+		.btn-outline-primary {
+			color: #0d6efd;
+			background-color: #fff;
+			border-color: #0d6efd;
+
+			&:hover,
+			&:focus,
+			&:active,
+			&:active:focus {
+				color: #0d6efd;
+				background-color: #eef5ff;
+				border-color: #0d6efd;
+			}
+		}
+
+		@include media-breakpoint-down(lg) {
+			.btn {
+				min-width: 100%;
+			}
+		}
+	}
 }
 
 
