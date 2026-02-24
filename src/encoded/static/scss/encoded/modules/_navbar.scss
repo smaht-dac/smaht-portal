@@ -639,7 +639,10 @@ div.navbar-fixed-top {
     }
 
 }
-
+/* auth0 login popup */
+.auth0-lock .auth0-lock-widget {
+    width: 350px !important;
+}
 
 
 /** Shown above navbar sometimes **/
