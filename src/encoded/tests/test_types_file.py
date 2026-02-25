@@ -1381,13 +1381,7 @@ def test_files_open_data_url_released_and_transferred(testapp, public_reference_
 
 
 def test_files_open_data_url_released_and_transferred_protected(testapp, protected_output_file):
-    """ More complicated mocking necessary in order to simulate a sequence based call mock for
-        mock_s3.
-
-        If you look at the code for the open_data_url, it can make up to 4 calls to head_s3,
-        the first two for the public bucket, second two for the protected bucket. In this test
-        We simulate a success of the third call ie: wfoutput file in the protected bucket.
-    """
+    """ Test S3 Open Data URL when a protected output file has been released and been transferred to Open Data"""
     with mock.patch('encoded.types.file.File._head_s3', return_value=None):
         updated = testapp.patch_json(f"/{protected_output_file['uuid']}", {})
         bucket = 'smaht-open-data-protected'
