@@ -69,7 +69,7 @@ export const AccountNav = React.memo(function AccountNav(props) {
 
     if (!session) {
         const auth0PopupText =
-            '<h4 class="text-danger fw-bold text-center">Attention New Users</h4><p>Self registration will give you immediate access to <strong>open data</strong>.</p><p><strong>If you\'d like to access protected data</strong>, you are <em>required</em> to register with your institutional email address linked to eRA commons or login.gov to gain access to dbGAP.</p><p>More information on creating an account can be found <a href="https://data.smaht.org/docs/access/creating-an-account" target="_blank">here</a>.</p>';
+            '<h4 class="text-danger fw-bold text-center">Attention New Users</h4><p>Self registration will give you immediate access to <strong>open data</strong>.</p><p><strong>If you\'d like to access protected data</strong>, you are <em>required</em> to register with your institutional email address linked to eRA commons or login.gov.</p><p>More information on creating an account can be found <a href="https://data.smaht.org/docs/access/creating-an-account" target="_blank">here</a>.</p>';
         // Render login button
         return (
             <div className="navbar-nav navbar-acct">
