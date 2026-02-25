@@ -122,6 +122,24 @@
         "quality_metrics": {
             "$merge": "encoded_core:schemas/file.json#/properties/quality_metrics"
         },
+        "analysis_details": {
+            "title": "Analysis Details",
+            "description": "Details of analysis performed on file",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Aligned",
+                    "Filtered",
+                    "Sorted",
+                    "Phased",
+                    "Unphased"
+                ],
+                "default": [
+                    "Unphased"
+                ]
+            }
+        },
         "data_category": {
             "title": "Data Category",
             "description": "Category for information in the file",
@@ -357,6 +375,9 @@
         },
         "data_type": {
             "title": "Data Type"
+        },
+        "analysis_details": {
+            "title": "Analysis Details"
         },
         "file_status_tracking.release_dates.initial_release": {
             "title" : "Release Date",

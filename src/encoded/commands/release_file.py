@@ -28,6 +28,7 @@ from encoded.item_utils import (
     submitted_file as submitted_file_utils,
     tissue as tissue_utils,
     supplementary_file as supp_file_utils,
+    external_output_file as eof_utils
 )
 from encoded.item_utils.constants import (
     file as file_constants,
@@ -117,6 +118,10 @@ class FileRelease:
         return self.get_file_sets_from_file()
 
     @cached_property
+    def software(self) -> List[dict]:
+        return self.get_items(file_utils.get_software(self.file))
+
+    @cached_property
     def quality_metrics(self) -> List[dict]:
         quality_metrics = self.get_items(file_utils.get_quality_metrics(self.file))
         if not quality_metrics:
@@ -195,6 +200,8 @@ class FileRelease:
 
     @cached_property
     def sample_sources(self) -> List[dict]:
+        if eof_utils.is_external_output_file(self.file):
+            return self.get_items(eof_utils.get_tissues(self.file))
         return self.get_items(
             self.get_links(self.samples, sample_utils.get_sample_sources)
         )
@@ -451,6 +458,7 @@ class FileRelease:
         )
 
         open_access_items = [
+            (self.software, "Software"),
             (self.file_sets, "FileSet"),
             (self.sequencings, "Sequencing"),
             (self.libraries, "Library"),
@@ -1089,9 +1097,11 @@ class FileRelease:
                 " It will NOT be overwritten."
             )
         if submitted_file_utils.is_submitted_file(self.file) and not existing_file_sets:
-            self.print_error_and_exit(
+            if not eof_utils.is_external_output_file(self.file):
+                self.print_error_and_exit(
                 f"Submitted file {self.file_accession} has no associated file set."
-            )
+                )
+            
 
     def validate_file_output_status(self) -> None:
         if output_file_utils.is_output_file(
