@@ -350,8 +350,8 @@ export default class UserRegistrationForm extends React.PureComponent {
                     <div className="text-300 mb-2 mt-05 info-panel">
                         You have never logged in as <span className="text-600">{unverifiedUserEmail}</span> before.
                     </div>
-                    <div className="mt-1 text-60 ps-1 text-500" style={{ paddingLeft: '10px' }}>Are you a SMaHT Network member?</div>
-                    <div className="d-flex gap-3 mt-2 option-panel flex-column flex-lg-row">
+                    <div className="mt-1 text-500">Are you a SMaHT Network member?</div>
+                    <div className="d-flex gap-3 option-panel flex-column flex-lg-row">
                         <Checkbox
                             checked={isConsortiumMember === true}
                             onChange={this.onConsortiumMemberYes}

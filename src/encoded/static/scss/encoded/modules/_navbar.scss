@@ -639,12 +639,16 @@ div.navbar-fixed-top {
     }
 
 }
-/* auth0 login popup */
+
+/* auth0 login popup overrides */
 .auth0-lock.auth0-lock .auth0-lock-form {
     padding: 27px !important;
 }
 .auth0-lock .auth0-lock-widget {
     width: 350px !important;
+}
+.auth0-lock strong {
+    font-weight: 600 !important;
 }
 
 
