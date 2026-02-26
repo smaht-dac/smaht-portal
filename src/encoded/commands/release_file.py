@@ -126,7 +126,7 @@ class FileRelease:
     @cached_property
     def analysis_run(self) -> dict:
         return self.get_analysis_run_from_file()
-    
+
     @cached_property
     def software(self) -> List[dict]:
         return self.get_items(file_utils.get_software(self.file))
@@ -412,7 +412,9 @@ class FileRelease:
     def get_release_type(self) -> str:
         if "ExternalOutputFile" in self.file.get("@type", []):
             return EXTERNAL_OUTPUT_FILE_RELEASE
-        elif self.output_meta_workflow_run.get("analysis_runs"):
+        elif self.output_meta_workflow_run and self.output_meta_workflow_run.get(
+            "analysis_runs"
+        ):
             return ANALYSIS_RUN_FILE_RELEASE
         else:
             return FILESET_FILE_RELEASE
@@ -557,7 +559,7 @@ class FileRelease:
 
         if self.release_type != ANALYSIS_RUN_FILE_RELEASE:
             # We don't patch upstream items for analysis run files. The
-            # assumption is that all input file to an analysis run have 
+            # assumption is that all input file to an analysis run have
             # already been released (incluing their upstream items)
             self.prepare_upstream_items()
 
@@ -1110,7 +1112,7 @@ class FileRelease:
         else:
             self.validate_required_qc_runs()
             self.validate_existing_file_sets()
-            
+
         self.validate_file_output_status()
         self.validate_file_status()
 
@@ -1164,7 +1166,6 @@ class FileRelease:
                 self.print_error_and_exit(
                 f"Submitted file {self.file_accession} has no associated file set."
                 )
-            
 
     def validate_existing_analysis_run(self) -> None:
         if not self.analysis_run:
