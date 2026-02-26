@@ -1410,30 +1410,43 @@ body[data-pathname^="/users/"] {
   		padding-right: 0.75rem;
 	}
 
-	.network-member-panel {
-		border-radius: 8px;
-		border: 1px solid #cae5fe;
-		background: #f1f7fd;
-		padding: 1rem 1.25rem;
-	}
+		.network-member-panel {
+			border-radius: 8px;
+			border: 1px solid #cae5fe;
+			background: #f1f7fd;
+			padding: 1rem 1.25rem;
+
+			.section-header {
+				border-bottom-color: #c6d8e8;
+			}
+
+			.icon-users {
+				color: #c6d8e8 !important;
+			}
+
+			.section-title {
+				color: #343741;
+				font-weight: 600 !important;
+			}
+		}
 
 		.network-member-step {
 			height: 100%;
 			border-radius: 10px;
 			border: 1px solid #cae5fe;
-			background: #fbfdff;
-			padding: 1rem 1.25rem;
+			background: #fffffeed;
+			padding: .75rem 1rem;
 
-		.network-member-step-title {
-			text-align: center;
-			font-size: 1.15rem;
-			font-weight: 600;
-			margin-bottom: 1rem;
-		}
+			.network-member-step-title {
+				text-align: center;
+				font-size: 1rem;
+				font-weight: 600;
+				margin-bottom: 1rem;
+			}
 
-		ul {
-			padding-left: 1.25rem;
-		}
+			ul {
+				padding-left: 1.25rem;
+			}
 
 			li {
 				margin-bottom: 0.75rem;
@@ -1445,25 +1458,30 @@ body[data-pathname^="/users/"] {
 			}
 		}
 
-	.network-member-footer {
-		.btn {
-			min-width: 280px;
-		}
+		.network-member-footer {
+			border-top: #dee2e6 solid 1px;
+			margin-top: 2rem !important;
 
-		.btn-outline-primary {
-			color: #0d6efd;
-			background-color: #fff;
-			border-color: #0d6efd;
-
-			&:hover,
-			&:focus,
-			&:active,
-			&:active:focus {
-				color: #0d6efd;
-				background-color: #eef5ff;
-				border-color: #0d6efd;
+			.btn {
+				min-width: 280px;
+				padding: 6px 40px;
 			}
-		}
+
+			.btn-outline-primary {
+				color: #1074d2;
+				background-color: #fff;
+				border-color: #dee2e6;
+				border-width: 1.5px;
+
+				&:hover,
+				&:focus,
+				&:active,
+				&:active:focus {
+					color: #1074d2;
+					background-color: #eef5ff;
+					border-color: #dee2e6;
+				}
+			}
 
 		@include media-breakpoint-down(lg) {
 			.btn {
