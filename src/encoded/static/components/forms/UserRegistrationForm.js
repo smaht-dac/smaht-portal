@@ -485,9 +485,12 @@ export default class UserRegistrationForm extends React.PureComponent {
                                 <div className="alert alert-danger d-flex align-items-center" role="alert">
                                     <i className="fas icon icon-file-shield me-2 fs-2"></i>
                                     <div>
-                                        <strong>Protected Data Access:</strong> Self-registration will give you access to open data and metadata <strong>only</strong>.
-                                        <br />
-                                        You are <em>required</em> to register with your institutional email address linked to eRA commons or login.gov to gain access to dbGAP. Learn how to get dbGAP access <a href="/docs/access/getting-dbgap-access" target="_blank" rel="noreferrer noopener">here</a>.
+                                        <p className="mb-2">
+                                            <strong>Self-registration as a non-SMaHT-Network member</strong> will give you access to open-access data <em>only</em>.
+                                        </p>
+                                        <p className="mb-0">
+                                            <strong>If you want protected-access data:</strong> You are <strong>required</strong> to self-register using your institutional email address linked to the NIH/eRA or Login.gov and obtain dbGaP approval for protected-access SMaHT data. Learn how to obtain dbGaP approval <a href="/docs/access/getting-dbgap-access" target="_blank" rel="noreferrer noopener">here</a>.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
