@@ -766,8 +766,13 @@ def get_aliquot_id(
 ) -> FilenamePart:
     """Get tissue aliquot ID for file."""
     parts = []
-    if cell_culture_mixtures or cell_lines  or analysis_run or eof_utils.is_external_output_file(file):
+    if cell_culture_mixtures or cell_lines or eof_utils.is_external_output_file(file):
         parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
+    if analysis_run:
+        mamc = get_filename_part_for_values(
+            ["MAMC"], "tissue aliquot ID", source_name="sample"
+        )
+        parts.append(mamc)
     if tissue_samples:
         parts.append(get_aliquot_id_from_samples(tissue_samples))
     return get_exclusive_filename_part(parts, "tissue aliquot ID")
