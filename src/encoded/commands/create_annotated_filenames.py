@@ -1201,7 +1201,7 @@ def get_rna_seq_tsv_value(file: Dict[str, Any], file_extension: Dict[str, Any]) 
             return "isoform"
     else:
         return ""
-    
+
 
 def get_assay_categories(assays: List[Dict[str, Any]]) -> List[str]:
     """Get assay category for assays."""
@@ -1427,14 +1427,20 @@ def get_annotated_extra_file_name(
 ) -> str:
     """Get annotated extra file name."""
     filename_without_extension = get_filename_without_extension(
-        get_annotated_filename_string(annotated_filename)
+        get_annotated_filename_string(annotated_filename), extra_file_format_extension
     )
     return f"{filename_without_extension}.{extra_file_format_extension}"
 
 
-def get_filename_without_extension(filename: str) -> str:
+def get_filename_without_extension(
+    filename: str, extra_file_format_extension: str
+) -> str:
     """Drop extension from filename."""
-    return ".".join(filename.split(".")[:-1])
+    file_extention = ".".join(extra_file_format_extension.split(".")[:-1])
+    if filename.endswith(f".{file_extention}"):
+        return filename[: -len(f".{file_extention}")]
+    else:
+        ".".join(filename.split(".")[:-1])
 
 
 def patch_file(

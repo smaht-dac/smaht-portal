@@ -412,7 +412,7 @@ class FileRelease:
     def get_release_type(self) -> str:
         if "ExternalOutputFile" in self.file.get("@type", []):
             return EXTERNAL_OUTPUT_FILE_RELEASE
-        elif self.output_meta_workflow_run.get("analysis_runs", []):
+        elif self.output_meta_workflow_run.get("analysis_runs"):
             return ANALYSIS_RUN_FILE_RELEASE
         else:
             return FILESET_FILE_RELEASE
@@ -556,7 +556,7 @@ class FileRelease:
         )
 
         if self.release_type != ANALYSIS_RUN_FILE_RELEASE:
-            # We don't patch upstream items for analysis run file. The
+            # We don't patch upstream items for analysis run files. The
             # assumption is that all input file to an analysis run have 
             # already been released (incluing their upstream items)
             self.prepare_upstream_items()
