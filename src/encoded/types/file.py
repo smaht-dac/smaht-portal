@@ -752,8 +752,6 @@ class File(Item, CoreFile):
                 Uploading --> uploaded --> all others
             This way if status = uploading or uploaded, we don't need to request revision history
         """
-        return None
-
         # this is a very rare case you can't really trigger under normal conditions
         # only seen in unit tests that force validation errors (test_real_validation_error)
         if 'status' not in self.properties:
