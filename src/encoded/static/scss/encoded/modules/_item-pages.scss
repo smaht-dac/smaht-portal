@@ -1342,6 +1342,7 @@ body[data-pathname^="/users/"] {
 	h3.section-title {
 		font-size: 1.1rem !important;
 		font-weight: 500 !important;
+		padding-bottom: 12px;
 	}
 	h4 {
 		font-size: 1.1rem;
@@ -1463,7 +1464,7 @@ body[data-pathname^="/users/"] {
 			margin-top: 2rem !important;
 
 			.btn {
-				min-width: 280px;
+				// min-width: 280px;
 				padding: 6px 40px;
 			}
 

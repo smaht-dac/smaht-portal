@@ -346,11 +346,11 @@ export default class UserRegistrationForm extends React.PureComponent {
 
                 {heading}
 
-                <div className={isConsortiumMember === true ? "mb-1" : "mb-3"}>
+                <div className={isConsortiumMember === true ? null : "mb-3"}>
                     <div className="text-300 mb-2 mt-05 info-panel">
                         You have never logged in as <span className="text-600">{unverifiedUserEmail}</span> before.
                     </div>
-                    <div className="mt-1 text-500">Are you a SMaHT Network member?</div>
+                    <div className="my-2 text-500">Are you a SMaHT Network member?</div>
                     <div className="d-flex gap-3 option-panel flex-column flex-lg-row">
                         <Checkbox
                             checked={isConsortiumMember === true}
@@ -550,65 +550,65 @@ export default class UserRegistrationForm extends React.PureComponent {
 }
 
 function SMaHTNetworkMember({ onGoToSelfRegistration, className = "" }) {
-    const membershipInfoHref = '/docs/access/creating-an-account#for-smaht-network-members-membership-verification-account-creation';
-    const emailOC="smahtsupport@gowustl.onmicrosoft.com";
-    const emailDAC="smhelp@hms-dbmi.atlassian.net";
+    const emailOC = "smahtsupport@gowustl.onmicrosoft.com";
+    const emailDAC = "smhelp@hms-dbmi.atlassian.net";
     return (
-        <section className={`pt-3 pb-0 ${className}`}>
-            <div className="network-member-panel">
-                <div className="d-flex align-items-center gap-2 mb-2 section-header">
-                    <i className="icon icon-fw icon-users fas text-secondary fs-4" aria-hidden="true" />
-                    <h3 className="section-title m-0">SMaHT Network Members</h3>
-                </div>
+        <React.Fragment>
+            <section className={`mt-3 mb-3 ${className}`}>
+                <div className="network-member-panel">
+                    <div className="d-flex align-items-center gap-2 mb-2 section-header">
+                        <i className="icon icon-fw icon-users fas text-secondary fs-4" aria-hidden="true" />
+                        <h3 className="section-title m-0">SMaHT Network Members</h3>
+                    </div>
 
-                <p className="fs-6 mb-3">
-                    Network members have early access to the SMaHT data, and their accounts have
-                    different privileges than those who self-register at the portal. To register as
-                    a network member you must follow these steps:
-                </p>
+                    <p className="fs-6 mb-25">
+                        Network members have early access to the SMaHT data, and their accounts have
+                        different privileges than those who self-register at the portal. To register as
+                        a network member you must follow these steps:
+                    </p>
 
-                <div className="row g-3">
-                    <div className="col-12 col-lg-6">
-                        <div className="network-member-step">
-                            <h4 className="network-member-step-title">Step 1: Get Verified by the OC</h4>
-                            <p className="mb-2">
-                                Email the OC <a href={`mailto:${emailOC}`} target="_blank" rel="noreferrer noopener">here</a> to get verified and added to the SMaHT Network Directory.
-                            </p>
-                            <ul className="mb-0">
-                                <li>
-                                    When contacting OC, the new Network members should cc their PIs and provide
-                                    their institutional email address.
-                                </li>
-                            </ul>
+                    <div className="row g-3">
+                        <div className="col-12 col-lg-6">
+                            <div className="network-member-step">
+                                <h4 className="network-member-step-title">Step 1: Get Verified by the OC</h4>
+                                <p className="mb-2">
+                                    Email the OC <a href={`mailto:${emailOC}`} target="_blank" rel="noreferrer noopener">here</a> to get verified and added to the SMaHT Network Directory.
+                                </p>
+                                <ul className="mb-0">
+                                    <li>
+                                        When contacting OC, the new Network members should cc their PIs and provide
+                                        their institutional email address.
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div className="col-12 col-lg-6">
+                            <div className="network-member-step">
+                                <h4 className="network-member-step-title">Step 2: Contact DAC</h4>
+                                <p className="mb-2">
+                                    Contact the DAC <a href={`mailto:${emailDAC}`} target="_blank" rel="noreferrer noopener">here</a> to be added to the list of approved members.
+                                </p>
+                                <ul className="mb-0">
+                                    <li>
+                                        Provide your full name and institutional email address in the SMaHT Network Directory (<em>very important!</em>).
+                                    </li>
+                                    <li>
+                                        Indicate the name of your PI and institution and your membership verification with the OC.
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
-                    <div className="col-12 col-lg-6">
-                        <div className="network-member-step">
-                            <h4 className="network-member-step-title">Step 2: Contact DAC</h4>
-                            <p className="mb-2">
-                                Contact the DAC <a href={`mailto:${emailDAC}`} target="_blank" rel="noreferrer noopener">here</a> to be added to the list of approved members.
-                            </p>
-                            <ul className="mb-0">
-                                <li>
-                                    Provide your full name and institutional email address in the SMaHT Network Directory (<em>very important!</em>).
-                                </li>
-                                <li>
-                                    Indicate the name of your PI and institution and your membership verification with the OC.
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
+
+                    <p className="fs-6 mt-25 mb-2">
+                        After you follow the steps above, you will be notified when your full access network account is ready for login.
+                    </p>
+                    <p className="fs-6 mb-0">
+                        To access open data on the SMaHT portal today, you can self register below with the same institutional email and name you plan to provide to the OC and DAC.
+                    </p>
                 </div>
-
-                <p className="fs-6 mt-3 mb-2">
-                    After you follow the steps above, you will be notified when your full access network account is ready for login.
-                </p>
-                <p className="fs-6 mb-0">
-                    To access open data on the SMaHT portal today, you can self register below with the same institutional email and name you plan to provide to the OC and DAC.
-                </p>
-            </div>
-
-            <div className="footer-button-container network-member-footer mt-3 py-1">
+            </section>
+            <div className="footer-button-container network-member-footer py-1">
                 <div className="d-flex flex-column flex-lg-row justify-content-end gap-2 py-2">
                     <button
                         type="button"
@@ -625,6 +625,6 @@ function SMaHTNetworkMember({ onGoToSelfRegistration, className = "" }) {
                     </a>
                 </div>
             </div>
-        </section>
+        </React.Fragment>
     );
 }
