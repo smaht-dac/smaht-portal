@@ -78,7 +78,7 @@ export default class UserRegistrationForm extends React.PureComponent {
     }
 
     onGoToSelfRegistration() {
-        this.setState({ isConsortiumMember: false, showSelfRegistration: true }, () => {
+        this.setState({ showSelfRegistration: true }, () => {
             if (this.formRef.current && this.formRef.current.scrollIntoView) {
                 this.formRef.current.scrollIntoView({
                     behavior: 'smooth',
@@ -367,7 +367,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                     </div>
                 </div>
 
-                {isConsortiumMember === true ? (
+                {isConsortiumMember === true && !showSelfRegistration ? (
                     <SMaHTNetworkMember onGoToSelfRegistration={this.onGoToSelfRegistration} />
                 ) : null}
                 {shouldShowSelfRegistration ? (
