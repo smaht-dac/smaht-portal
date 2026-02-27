@@ -482,8 +482,8 @@ export default class UserRegistrationForm extends React.PureComponent {
 
                         <div className="row mt-3">
                             <div className="col-12">
-                                <div className="alert alert-danger d-flex align-items-center" role="alert">
-                                    <i className="fas icon icon-file-shield me-2 fs-2"></i>
+                                <div className="alert alert-danger d-flex align-items-center self-registration-alert" role="alert">
+                                    <i className="fas icon icon-file-shield me-2 self-registration-alert-icon"></i>
                                     <div>
                                         <p className="mb-2">
                                             <strong>Self-registration as a non-SMaHT-Network member</strong> will give you access to open-access data <em>only</em>.
@@ -496,7 +496,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                             </div>
                         </div>
 
-                        <div className="row mt-3">
+                        <div className="row mt-3 recaptcha-privacy-row">
                             <div className="col-12 col-lg-5">
                                 <div
                                     className={
@@ -531,7 +531,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                             </div>
                         </div>
 
-                        <div className="footer-button-container mt-1 py-1">
+                        <div className="footer-button-container self-registration-footer mt-1 py-1">
                             <div className="d-grid gap-1 my-3">
                                 <button type="submit"
                                     disabled={!maySubmit}

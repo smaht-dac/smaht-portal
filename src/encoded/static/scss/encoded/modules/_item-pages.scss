@@ -1381,16 +1381,47 @@ body[data-pathname^="/users/"] {
 		}
 	}
 
-	div.alert-danger {
-		color: #DD999A;
-		background-color: #fdf2f2;
-		> div {
-			color: #6c4545;
+		div.alert-danger {
+			color: #DD999A;
+			background-color: #fdf2f2;
+			> div {
+				color: #6c4545;
+			}
 		}
-	}
-	.lh-lg {
-		line-height: 1.75 !important;
-	}
+
+		.self-registration-alert {
+			> div {
+				color: #923333;
+			}
+
+			p {
+				margin-bottom: 0.5rem !important;
+			}
+
+			p:last-child {
+				margin-bottom: 0 !important;
+			}
+		}
+
+		.self-registration-alert-icon {
+			font-size: 2.6rem;
+		}
+
+		.recaptcha-privacy-row {
+			padding-top: 0.75rem;
+			padding-bottom: 0.75rem;
+
+			@include media-breakpoint-up(lg) {
+				> .col-lg-5,
+				> .col-lg-7 {
+					display: flex;
+					align-items: center;
+				}
+			}
+		}
+		.lh-lg {
+			line-height: 1.75 !important;
+		}
 	.loading-indicator {
 		position: absolute;
 		display: flex;
@@ -1403,13 +1434,17 @@ body[data-pathname^="/users/"] {
 		bottom: 0;
 		top: 0;
 	}
-	.footer-button-container {
-		background-color: #f8f8f8;
+		.footer-button-container {
+			background-color: #f8f8f8;
   		width: calc(100% + 2.5rem);
   		margin-left: -1.25rem;
   		padding-left: 0.75rem;
   		padding-right: 0.75rem;
-	}
+		}
+
+		.self-registration-footer {
+			border-top: 1px solid #dee2e6;
+		}
 
 		.network-member-panel {
 			border-radius: 8px;
