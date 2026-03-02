@@ -129,13 +129,14 @@ export const NoResultsBrowseModal = ({
                         alt="SMaHT Logo"
                     />
                     <h4>
-                        SMaHT {type === 'file' ? 'Production' : 'Donor'} Data:{' '}
-                        <br />
+                        SMaHT Donor Data: <br />
                         Official Release - Coming Soon
                     </h4>
                     <span>
-                        Check back for updates on the official
-                        <br /> release of SMaHT Production Data.
+                        Production data are available to the SMaHT Network
+                        members at this time. <br />
+                        Please check back for the official release of the SMaHT
+                        data.
                     </span>
                 </div>
             </Modal.Body>
