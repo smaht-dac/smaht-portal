@@ -454,10 +454,23 @@ def data_matrix_aggregations(context, request):
         path.
         """
         if isinstance(field_or_field_list, list) and len(field_or_field_list) > 1:
-            # If we have multiple fields, we will return a script that concatenates them.
+            # If any part of a composite key is missing, bucket under "No value"
+            # so those documents are not dropped from aggregations.
+            source_parts = []
+            value_parts = []
+            for idx, field in enumerate(field_or_field_list):
+                value_var = f"v{idx}"
+                source_parts.append(f"def {value_var} = doc['embedded.{field}.raw'];")
+                source_parts.append(f"if ({value_var} == null || {value_var}.size() == 0) {{ return params.missing; }}")
+                value_parts.append(f"{value_var}.value")
+            source_parts.append("return " + " + params.sep + ".join(value_parts) + ";")
             return {
-                "source": f" + '{value_delimiter}' + ".join(["doc['embedded." + field + ".raw'].value" for field in field_or_field_list]),
-                "lang": "painless"
+                "source": "".join(source_parts),
+                "lang": "painless",
+                "params": {
+                    "missing": TERM_NAME_FOR_NO_VALUE,
+                    "sep": value_delimiter
+                }
             }
         if is_array_concat_field(field_or_field_list):
             field = field_or_field_list

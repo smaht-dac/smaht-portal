@@ -278,6 +278,7 @@ export default class DataMatrix extends React.PureComponent {
         ],
         "baseBrowseFilesPath": "/browse/",
         "showCountFor": false,
+        "excludePrimaryColumnNoValue": true,
     };
 
     static propTypes = {
@@ -328,7 +329,8 @@ export default class DataMatrix extends React.PureComponent {
         'onDataLoaded': PropTypes.func,
         'allowedFields': PropTypes.arrayOf(PropTypes.string),
         'baseBrowseFilesPath': PropTypes.string,
-        'showCountFor': PropTypes.bool
+        'showCountFor': PropTypes.bool,
+        'excludePrimaryColumnNoValue': PropTypes.bool
     };
 
     static parseQuery(queryString) {
@@ -702,7 +704,7 @@ export default class DataMatrix extends React.PureComponent {
         this.setState(
             { "_results": null }, // (Re)Set all result states to 'null'
             () => {
-                const { valueDelimiter = ' ' } = this.props;
+                const { valueDelimiter = ' ', excludePrimaryColumnNoValue = true } = this.props;
                 const [url, strQueryParams] = requestUrl.split('?');
                 const queryParamsByUrl = DataMatrix.parseQuery(strQueryParams);
 
@@ -734,7 +736,7 @@ export default class DataMatrix extends React.PureComponent {
                 });
                 _.forEach(colAggFields || [], function (f, idx) {
                     searchQueryParams.field.push(f);
-                    if (idx === 0 && !queryParamsByUrl[f]) {
+                    if (excludePrimaryColumnNoValue && idx === 0 && !queryParamsByUrl[f]) {
                         searchQueryParams[f + '!'] = "No value";
                     }
                 });
