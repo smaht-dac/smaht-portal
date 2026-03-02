@@ -256,7 +256,7 @@ export class UIControlsWrapper extends React.PureComponent {
         const { showState, aggregateType, germLayerFilter } = this.state;
         const { barplot_data_unfiltered, barplot_data_filtered } = this.getBarplotDataForGermLayer();
         const isTissueXAxis = Array.isArray(barplot_data_fields) && barplot_data_fields[0] === UIControlsWrapper.TISSUE_FIELD;
-        const xAxisTermLabelMapper = (isTissueXAxis && germLayerFilter === UIControlsWrapper.GERM_LAYER_ALL)
+        const xAxisTermLabelMapper = (isTissueXAxis /*&& germLayerFilter === UIControlsWrapper.GERM_LAYER_ALL*/) // uncomment if full tissue names should be shown in x-axis labels unless All is selected in germ layer filter
             ? function (termKey, defaultLabel) {
                 return getTissueInternalCodeFromFacetTerm(termKey) || defaultLabel;
             }
