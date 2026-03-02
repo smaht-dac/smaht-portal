@@ -2,7 +2,47 @@
 
 import React from 'react';
 import { DataCardRow } from '../file-overview/FileViewDataCards';
-import { OverlayTrigger, Popover, PopoverBody } from 'react-bootstrap';
+import {
+    OverlayTrigger,
+    Popover,
+    PopoverHeader,
+    PopoverBody,
+} from 'react-bootstrap';
+
+/**
+ * Bootstrap Popover element for the DSA field in the sample information
+ * data card.
+ * @param {string} customId - custom id for popover
+ * @returns {JSX.Element} Popover component with term definitions
+ */
+export function renderDSAPopover(customId) {
+    return (
+        <Popover
+            id={customId ?? 'description-popover-dsa'}
+            className="w-auto description-popover">
+            <PopoverHeader as="h3">
+                Donor-Specific genome Assembly (DSA)
+            </PopoverHeader>
+            <PopoverBody>
+                <h2>What is a DSA?</h2>
+                A DSA is a more complete representation of a donor's unique
+                germline genetic makeup, and can be used as a personalized
+                reference for aligning a donor's genetic data, with the
+                potential to improve the accuracy and completeness of somatic
+                variant detection.
+                <br />
+                <hr />
+                <h2>How is a DSA constructed?</h2>
+                Donor-Specific genome Assembly (DSA) involves constructing a
+                diploid assembly of an individual's genome from scratch.
+                <br />
+                <br /> DSAs are constructed using different unique sequencing
+                data types, some of which are only available for certain donors.{' '}
+            </PopoverBody>
+        </Popover>
+    );
+}
+
 /**
  * Bootstrap Popover element for the description field in the sample information
  * data card. Contains a table with definitions for the terms used in the
@@ -418,6 +458,7 @@ export const ProtectedDonorViewDataCards = ({
     isLoading = false,
 }) => {
     let donor_information = default_donor_information;
+    console.log('context', context);
 
     // Isolate medical history properties
     const medical_history = context?.medical_history?.[0] || {};
@@ -476,16 +517,9 @@ export const ProtectedDonorViewDataCards = ({
                                         value={'Coming soon'}
                                     />
                                     <DataCardRow
-                                        title={
-                                            <span>
-                                                DSA
-                                                <i
-                                                    className="icon icon-info-circle fas ms-1"
-                                                    data-tip="Donor Specific genome Assembly [DSA]"
-                                                />
-                                            </span>
-                                        }
+                                        title={'DSA'}
                                         value={'Coming soon'}
+                                        titlePopover={renderDSAPopover()}
                                     />
                                 </div>
                             </div>
