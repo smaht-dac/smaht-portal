@@ -469,9 +469,9 @@ export class UIControlsWrapper extends React.PureComponent {
         if (!options || options.length <= 1) return null;
 
         return (
-            <div className="germ-layer-filter d-flex align-items-center flex-wrap gap-2 mb-2">
-                <span className="text-muted small text-uppercase">Germ Layer</span>
-                <div className="btn-group btn-group-sm" role="group" aria-label="Filter tissues by germ layer">
+            <div className="germ-layer-filter d-flex align-items-center justify-content-center flex-wrap gap-2 mb-2">
+                <span className="text-muted small">Tissue Type</span>
+                <div className="btn-group btn-group-sm" role="group" aria-label="Filter tissues by tissue type">
                     {options.map((layer) => (
                         <button
                             key={layer}
@@ -548,10 +548,7 @@ export class UIControlsWrapper extends React.PureComponent {
                 </div>
 
                 <div className="row">
-                    <div className="col-12 col-md-9">
-                        {this.renderGermLayerFilter()}
-                        {this.adjustedChildChart()}
-                    </div>
+                    <div className="col-12 col-md-9">{this.adjustedChildChart()}</div>
                     <div className="col-12 col-md-3 chart-aside" style={{ 'height': chartHeight }}>
                         <div className="x-axis-label">
                             <h6 className="dropdown-heading">X Axis</h6>
@@ -585,6 +582,11 @@ export class UIControlsWrapper extends React.PureComponent {
                                 field={_.findWhere(availableFields_Subdivision, { 'field': barplot_data_fields[1] }) || null}
                                 showType={showState} />
                         </div>
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col-12 col-md-9 pt-4">
+                        {this.renderGermLayerFilter()}
                     </div>
                 </div>
             </div>
