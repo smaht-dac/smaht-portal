@@ -8,6 +8,9 @@ import mimetypes
 import os
 import pkg_resources
 import sentry_sdk
+from boto3 import client as boto_client
+from botocore.config import Config
+
 
 from dcicutils.beanstalk_utils import source_beanstalk_env_vars
 from dcicutils.log_utils import set_logging
@@ -15,6 +18,7 @@ from dcicutils.env_utils import get_mirror_env_from_context
 from dcicutils.ff_utils import get_health_page
 from dcicutils.ecs_utils import ECSUtils
 from dcicutils.secrets_utils import assume_identity
+from dcicutils.misc_utils import override_environ
 from codeguru_profiler_agent import Profiler
 from sentry_sdk.integrations.pyramid import PyramidIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
@@ -35,6 +39,10 @@ CGAP_STATIC_MAX_AGE = 1800
 SENTRY_TRACE_RATE = .1
 DEFAULT_AUTH0_DOMAIN = 'hms-dbmi.auth0.com'
 DEFAULT_AUTH0_ALLOWED_CONNECTIONS = 'github,google-oauth2,partners,hms-it'
+
+
+# Cache S3 client for efficient open data URL resolution
+OPEN_DATA_S3_CLIENT = 'OPEN_DATA_S3_CLIENT'
 
 
 def include_encoded(config):
@@ -265,6 +273,21 @@ def set_mirror_settings(settings):
         settings['mirror_health'] = get_health_page(ff_env=mirror)
 
 
+def setup_unified_s3_client():
+    """ Creates an S3 client using credentials from the secrets manager """
+    config = Config(signature_version='s3v4')
+    if 'IDENTITY' in os.environ:
+        identity = assume_identity()
+        with override_environ(**identity):
+            return boto_client(
+                's3',
+                aws_access_key_id=os.environ.get('S3_AWS_ACCESS_KEY_ID'),
+                aws_secret_access_key=os.environ.get('S3_AWS_SECRET_ACCESS_KEY'),
+                config=config
+            )
+    return boto_client('s3', config=config)  # this fallback will throw permission errors downstream
+
+
 def main(global_config, **local_config):
     """
     This function returns a Pyramid WSGI application.
@@ -334,6 +357,9 @@ def main(global_config, **local_config):
 
     # Get AWS IP ranges (for optimized downloads)
     setup_aws_ip_ranges(config, settings)
+
+    # Set cached boto client for s3
+    config.registry[OPEN_DATA_S3_CLIENT] = setup_unified_s3_client()
 
     # initialize CodeGuru profiling, if set
     # note that this is intentionally an env variable (so it is a TASK level setting)
