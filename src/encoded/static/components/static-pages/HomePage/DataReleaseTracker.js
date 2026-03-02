@@ -439,7 +439,6 @@ const formatReleaseData = (data = []) => {
                 };
             } else {
                 acc[date] = formattedDay;
-                // acc[date]['count'] = dayCount;
             }
 
             return acc;
