@@ -51,6 +51,37 @@ for (const [category, { values }] of Object.entries(germLayerTissueMapping)) {
     }
 }
 
+const tissueInternalCodeByTpcCode = {
+    '3A': 'BLOO',
+    '3B': 'BUCC',
+    '3C': 'ESOP',
+    '3E': 'COAS',
+    '3G': 'CODS',
+    '3I': 'LIVR',
+    '3K': 'ADGL',
+    '3M': 'ADGR',
+    '3O': 'AORT',
+    '3Q': 'LUNG',
+    '3S': 'HART',
+    '3U': 'TESL',
+    '3W': 'TESR',
+    '3Y': 'OVAL',
+    '3AA': 'OVAR',
+    '3AC': 'FBRO',
+    '3AD': 'SKSE',
+    '3AF': 'SKNE',
+    '3AH': 'MUSC',
+    '3AK': 'BRFL',
+    '3AL': 'BRTL',
+    '3AM': 'BRCE',
+    '3AN': 'BRHL',
+    '3AO': 'BRHR',
+};
+
+const tissueInternalCodeByTissueName = {
+    Fibroblast: 'FBRO',
+};
+
 /**
  * Parse a tissue facet term into a short code (if present).
  * E.g. 3AK - Brain, Frontal Lobe =>  { code: '3AK', tissue: 'Brain, Frontal Lobe', hasCode: true }
@@ -103,8 +134,22 @@ const compareTissueFacetTerms = (a, b) => {
     return String(aKey).localeCompare(String(bKey));
 };
 
+/**
+ * Returns internal tissue code for a tissue facet term if available.
+ * Prioritizes TPC code mapping and then falls back to tissue name mapping.
+ */
+const getTissueInternalCodeFromFacetTerm = (termKey) => {
+    const { tissue, code, hasCode } = parseTissueTermForSort(termKey);
+    if (hasCode) {
+        const mappedByCode = tissueInternalCodeByTpcCode[String(code).toUpperCase()];
+        if (mappedByCode) return mappedByCode;
+    }
+    return tissueInternalCodeByTissueName[tissue] || null;
+};
+
 export {
     germLayerTissueMapping,
     tissueToCategory,
     compareTissueFacetTerms,
+    getTissueInternalCodeFromFacetTerm,
 };
