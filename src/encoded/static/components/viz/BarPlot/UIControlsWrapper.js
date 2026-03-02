@@ -7,7 +7,7 @@ import memoize from 'memoize-one';
 
 import { console, layout, searchFilters, analytics, memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { Schemas } from './../../util';
-import { tissueToCategory } from './../../util/data';
+import { tissueToCategory, getTissueInternalCodeFromFacetTerm } from './../../util/data';
 import DropdownItem from 'react-bootstrap/esm/DropdownItem';
 import DropdownButton from 'react-bootstrap/esm/DropdownButton';
 import * as vizUtil from '@hms-dbmi-bgm/shared-portal-components/es/components/viz/utilities';
@@ -253,8 +253,14 @@ export class UIControlsWrapper extends React.PureComponent {
      */
     adjustedChildChart() {
         const { children, barplot_data_fields } = this.props;
-        const { showState, aggregateType } = this.state;
+        const { showState, aggregateType, germLayerFilter } = this.state;
         const { barplot_data_unfiltered, barplot_data_filtered } = this.getBarplotDataForGermLayer();
+        const isTissueXAxis = Array.isArray(barplot_data_fields) && barplot_data_fields[0] === UIControlsWrapper.TISSUE_FIELD;
+        const xAxisTermLabelMapper = (isTissueXAxis && germLayerFilter === UIControlsWrapper.GERM_LAYER_ALL)
+            ? function (termKey, defaultLabel) {
+                return getTissueInternalCodeFromFacetTerm(termKey) || defaultLabel;
+            }
+            : null;
         return React.cloneElement(children, _.extend(
             _.omit( // Own props minus these.
                 this.props,
@@ -265,7 +271,8 @@ export class UIControlsWrapper extends React.PureComponent {
                 'showType': showState,
                 'aggregateType': aggregateType,
                 'barplot_data_unfiltered': barplot_data_unfiltered,
-                'barplot_data_filtered': barplot_data_filtered
+                'barplot_data_filtered': barplot_data_filtered,
+                'xAxisTermLabelMapper': xAxisTermLabelMapper
             }
         ));
     }
