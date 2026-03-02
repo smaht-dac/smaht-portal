@@ -2,13 +2,37 @@
 
 import React from 'react';
 import { DataCardRow } from '../file-overview/FileViewDataCards';
-import {
-    OverlayTrigger,
-    Popover,
-    PopoverBody,
-    PopoverHeader,
-} from 'react-bootstrap';
+import { Popover, PopoverBody, PopoverHeader } from 'react-bootstrap';
 import { renderHardyScaleDescriptionPopover } from '../donor-overview/ProtectedDonorViewDataCards';
+
+/**
+ * Bootstrap Popover element for the DSA field in the sample information
+ * data card.
+ * @param {string} customId - custom id for popover
+ * @returns {JSX.Element} Popover component with term definitions
+ */
+export function renderDSAPopover(customId) {
+    return (
+        <Popover
+            id={customId ?? 'description-popover-dsa'}
+            className="w-auto description-popover">
+            <PopoverHeader as="h3">
+                Donor-Specific genome Assembly (DSA)
+            </PopoverHeader>
+            <PopoverBody>
+                Donor-Specific genome Assembly (DSA) involves constructing a
+                diploid assembly of an individual's genome from scratch. DSAs
+                are constructed using different unique sequencing data types,
+                some of which are only available for certain donors. A DSA is a
+                more complete representation of a donor's unique germline
+                genetic makeup, and can be used as a personalized reference for
+                aligning a donor's genetic data, with the potential to improve
+                the accuracy and completeness of somatic variant detection. This
+                section indicates whether a DSA is available.
+            </PopoverBody>
+        </Popover>
+    );
+}
 
 const default_donor_information = [
     {
@@ -139,27 +163,7 @@ export const PublicDonorViewDataCards = ({
                                     <DataCardRow
                                         title={'DSA'}
                                         value={'Protected'}
-                                        titlePopover={
-                                            <Popover
-                                                id="dsa-popover"
-                                                className="description-definitions-popover">
-                                                <PopoverHeader>
-                                                    DSA
-                                                </PopoverHeader>
-                                                <PopoverBody className="p-3">
-                                                    DSA, Donor-Specific genome
-                                                    Assembly, refers to the
-                                                    reconstruction of the
-                                                    complete DNA sequence of a
-                                                    single donor's genome,
-                                                    allowing for more accurate
-                                                    detection of mutations
-                                                    (i.e., variants in the DNA
-                                                    sequence) in that individual
-                                                    by using DSA as a reference.
-                                                </PopoverBody>
-                                            </Popover>
-                                        }
+                                        titlePopover={renderDSAPopover()}
                                     />
                                 </div>
                             </div>
