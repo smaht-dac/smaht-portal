@@ -1462,12 +1462,109 @@ body[data-path="/statistics"] {
         flex-wrap: nowrap !important;
     }
 
+    > .row > div {
+        width: 100%;
+    }
+
+    .matrix-mode-layout {
+        padding: 1rem;
+        width: 100%;
+    }
+
+    .matrix-mode-tabs {
+        display: flex;
+        gap: 0.5rem;
+        width: 100%;
+
+        .matrix-mode-tab {
+            flex: 1 1 0;
+            min-width: 0;
+            border: 1px solid #c3d8ea;
+            background: #f8fbff;
+            color: #1f2a37;
+            font-weight: 600;
+            padding: 0.9rem 1rem;
+            text-align: center;
+
+            &.active {
+                background: #dbe7f2;
+            }
+        }
+    }
+
+    .matrix-mode-body {
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .matrix-counts-panel {
+        width: 190px;
+        min-width: 190px;
+        border-right: 1px solid #e2e8ef;
+        padding-right: 1rem;
+        margin-right: 1rem;
+
+        &.is-hidden {
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .matrix-counts-title {
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .matrix-counts-toggle {
+            background: #d7e4ec;
+            border: 1px solid #c2d6e3;
+            border-radius: 16px;
+            padding: 8px;
+        }
+
+        .matrix-count-option {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            color: #2a4560;
+            font-weight: 600;
+            padding: 1.2rem 0.75rem;
+            margin-bottom: 6px;
+            text-align: center;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            transition: background-color 220ms ease, color 220ms ease, box-shadow 220ms ease;
+
+            .icon {
+                font-size: 1.9rem;
+            }
+
+            &:last-of-type {
+                margin-bottom: 0;
+            }
+
+            &.active {
+                background: #7f9fba;
+                color: #fff;
+                box-shadow: inset 0 0 0 1px #7797b2;
+            }
+        }
+    }
+
+    .matrix-visual-panel {
+        min-width: 0;
+    }
+
     .stacked-block-viz-container {
 
         display: inline-block;
         overflow-x: hidden; // Allow to scroll on small widths.
         padding-bottom: 20px;
-        padding-right: 40px;
+        // padding-right: 40px;
 
         .header-for-viz {
 
@@ -1509,6 +1606,11 @@ body[data-path="/statistics"] {
                         color: #111;
                         font-weight: 500;
                         border: 1px solid #e4e4ff;
+                    }
+                }
+                .column-group-header.overall-summary {
+                    .stacked-block[data-block-type="col-summary"] {
+                        font-weight: 700;
                     }
                 }
             }
@@ -1609,6 +1711,7 @@ body[data-path="/statistics"] {
 
                     &:first-child {
 
+                        .vertical-container-rows .grouping:not(:first-child) .row > .list-section > .blocks-container,
                         .vertical-container-rows .grouping:not(:first-child) .label-section>.label-container {
                             border-top: 1px solid #eee !important;
                         }
@@ -1647,6 +1750,22 @@ body[data-path="/statistics"] {
             &.header-section-lower {
                 background-color: #f4f4ff;
                 border-top-left-radius: 10px;
+
+                .grouping-row.total-donors-summary-row {
+                    background-color: #ffffff;
+
+                    .label-section > .label-container {
+                        background-color: #ffffff;
+
+                        > span {
+                            font-weight: 700;
+                        }
+                    }
+
+                    .list-section {
+                        background-color: #ffffff;
+                    }
+                }
             }
 
             .grouping-row {
@@ -2028,6 +2147,47 @@ body[data-path="/statistics"] {
                 font-family: "Font Awesome 6 Free";
                 font-size: 16px;
                 margin-bottom: 10px;
+            }
+        }
+
+        // overrides for donor specific matrix with count for donors
+        &.count-for-donors {
+            .grouping.header-section-lower {
+                background-color: #ECFBEF;
+
+                .header-summary {
+                    .stacked-block[data-block-type="col-summary"] {
+                        background-color: #D5F3DB !important;
+                        border-color: #B7E3CB !important;
+                        color: #303840 !important;
+                    }
+                }
+            }
+
+            .grouping > .child-blocks > .vertical-container > .vertical-container-rows > .grouping:not(.row-index-0) > .row > .list-section > .blocks-container {
+                border-top: 1px solid #eee !important;
+            }
+
+            .blocks-container {
+                .stacked-block[data-block-type="regular"] {
+                    border-color: #cfd8d2 !important;
+                }
+
+                .grouping > .child-blocks > .vertical-container > .vertical-container-rows > .grouping:not(.row-index-0) .stacked-block[data-block-type="regular"] {
+                    border-top-color: #cfd8d2 !important;
+                }
+
+                .stacked-block[data-block-type="regular"]:not([data-block-value="0"]):not(.is-open-block) {
+                    background-color: #9C9CFF !important;
+                    border-color: #8686E7 !important;
+                    color: #ffffff;
+                }
+
+                .stacked-block[data-block-type="row-summary"]:not(.is-open-block) {
+                    background-color: #D5F3DB !important;
+                    border-color: #B7E3CB !important;
+                    color: #303840 !important;
+                }
             }
         }
     }

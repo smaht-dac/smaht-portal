@@ -318,8 +318,8 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                             'sample_summary.category',
                                         ],
                                     }}
-                                    resultTransformedPostProcessFuncKey="dsaChainFile"
-                                    browseFilteringTransformFuncKey="dsaChainFile"
+                                    resultTransformedPostProcessFuncKey="analysisDerivedColumns"
+                                    browseFilteringTransformFuncKey="analysisDerivedColumns"
                                     headerFor={null}
                                     defaultOpen={true}
                                     idLabel="donor"
