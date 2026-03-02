@@ -874,6 +874,22 @@ class FileRelease:
                     ),
                 ]
             )
+
+        if self.release_type == ANALYSIS_RUN_FILE_RELEASE:
+            release_tracker_title = self.get_release_tracker_title_af()
+            patch_body[file_constants.OVERRIDE_RELEASE_TRACKER_TITLE] = release_tracker_title
+            release_tracker_description = self.get_release_tracker_description_af(file)
+            patch_body[file_constants.OVERRIDE_RELEASE_TRACKER_DESCRIPTION] = release_tracker_description
+            self.patch_infos.extend(
+                [
+                    self.get_okay_message(
+                        file_constants.OVERRIDE_RELEASE_TRACKER_TITLE, release_tracker_title
+                    ),
+                    self.get_okay_message(
+                        file_constants.OVERRIDE_RELEASE_TRACKER_DESCRIPTION, release_tracker_description
+                    ),
+                ]
+            )
         # Take the extra files from the annotated filename object if available.
         # They will have the correct filenames
         if annotated_filename_info.patch_dict:
@@ -884,6 +900,32 @@ class FileRelease:
                 patch_body[file_constants.EXTRA_FILES] = extra_files
 
         self.patch_dicts.append(patch_body)
+
+    def get_release_tracker_title_af(self) -> str:
+        # Get a release tracker title for an analysis file
+        tissues = self.analysis_run.get("tissues")
+        donors = self.analysis_run.get("donors")
+        if len(tissues) == 1:
+            return tissues[0]["display_title"]
+        elif len(donors) == 1:
+            return donors[0]["display_title"]
+        else:
+            self.print_error_and_exit(
+                f"Could not determine Release Tracker title for analysis file"
+            )
+
+    def get_release_tracker_description_af(self, file) -> str:
+        # Get a release tracker description for an analysis file
+        software_codes = [s["code"] for s in file.get("software", [])]
+        if "SmahtSNV" in software_codes:
+            return "Filtered somatic SNV vcf"
+        # elif "rufus" in software_codes: #TODO add raw callers
+        #     return "Unfiltered somatic SNV vcf"
+        else:
+            self.print_error_and_exit(
+                f"Could not determine Release Tracker description"
+            )
+        
 
     def get_annotated_filename_info(self, file) -> AnnotatedFilenameInfo:
         annotated_filename = file_utils.get_annotated_filename(file)
