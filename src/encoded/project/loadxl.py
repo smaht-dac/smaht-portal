@@ -68,7 +68,6 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
         "meta_workflow_run",
         "donor_specific_assembly",
         "supplementary_file",
-        "external_output_file"
     ]
 
     def loadxl_order(self):

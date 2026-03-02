@@ -54,9 +54,7 @@
         "identifier": "VCF",
         "standard_file_extension": "vcf",
         "valid_item_types": [
-            "VariantCalls",
-            "OutputFile",
-            "ExternalOutputFile"
+            "VariantCalls"
         ]
     },
     {

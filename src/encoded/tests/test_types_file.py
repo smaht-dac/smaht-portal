@@ -23,7 +23,6 @@ from ..item_utils import (
     sequencing as sequencing_utils,
     software as software_utils,
     tissue as tissue_utils,
-    external_output_file as eof_utils
 )
 from ..item_utils.utils import (
     get_property_values_from_identifiers,
@@ -127,25 +126,6 @@ def public_reference_file(
         'consortia': [test_consortium['uuid']],
     }
     res = testapp.post_json('/reference_file', item)
-    return res.json['@graph'][0]
-
-
-@pytest.fixture
-def protected_output_file(
-    testapp: TestApp, file_formats: Dict[str, dict], test_consortium: Dict[str, Any]
-) -> Dict[str, Any]:
-    """ Protected Output File for testing the open data interaction """
-    item = {
-        'file_format': file_formats.get('BAM').get('uuid'),
-        'md5sum': '00000000000000000000000000000000',
-        'content_md5sum': '00000000000000000000000000000000',
-        'filename': 'my.bam',
-        'data_category': ['Sequencing Reads'],
-        'data_type': ['Aligned Reads'],
-        'status': 'protected',
-        'consortia': [test_consortium['uuid']],
-    }
-    res = testapp.post_json('/output_file', item)
     return res.json['@graph'][0]
 
 
@@ -808,8 +788,7 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
     )
     assert file_without_sample_sources_search
     for file in file_without_sample_sources_search:
-        if not eof_utils.is_external_output_file(file):
-            assert not file_utils.get_sample_sources(file)
+        assert not file_utils.get_sample_sources(file)
 
     submitted_file_with_sample_sources_search = search_type_for_key(
         es_testapp, "SubmittedFile", search_key
@@ -860,8 +839,7 @@ def test_donors(es_testapp: TestApp, workbook: None) -> None:
         if cell_lines:
             assert_cell_line_donors_match_calcprop(request_handler, file, cell_lines)
         else:
-            if not eof_utils.is_external_output_file(file):
-                assert not file_utils.get_donors(file)
+            assert not file_utils.get_donors(file)
 
     submitted_file_with_donors_search = search_type_for_key(
         es_testapp, "SubmittedFile", search_key
@@ -1382,11 +1360,29 @@ def test_files_open_data_url_released_and_transferred(testapp, public_reference_
         assert 'X-Amz-Signature' not in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
 
 
+def test_files_open_data_url_released_and_transferred_protected(testapp, public_reference_file):
+    """ More complicated mocking necessary in order to simulate a sequence based call mock for
+        mock_s3.
 
-def test_files_open_data_url_released_and_transferred_protected(testapp, protected_output_file):
-    """ Test S3 Open Data URL when a protected output file has been released and been transferred to Open Data"""
-    with mock.patch('encoded.types.file.File._head_s3', return_value=None):
-        updated = testapp.patch_json(f"/{protected_output_file['uuid']}", {})
+        If you look at the code for the open_data_url, it can make up to 4 calls to head_s3,
+        the first two for the public bucket, second two for the protected bucket. In this test
+        We simulate a success of the third call ie: wfoutput file in the protected bucket.
+    """
+    def raise_client_error(*args, **kwargs):
+        raise ClientError({"Error": {}}, "HeadObject")
+
+    call_idx = 0
+    def head_s3_se(*args, **kwargs):
+        nonlocal call_idx
+        # increment then decide
+        call_idx += 1
+        if call_idx in (1, 2, 4, 5):
+            raise_client_error()
+        return None
+
+    with mock.patch("encoded.types.reference_file.ReferenceFile._head_s3",
+                    side_effect=head_s3_se):
+        updated = testapp.patch_json(f"/{public_reference_file['uuid']}", {})
         bucket = 'smaht-open-data-protected'
         download_link = updated.json['@graph'][0]['href']
         direct_res = testapp.get(f'{download_link}?datastore=database', status=307)
