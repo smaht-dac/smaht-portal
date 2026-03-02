@@ -745,7 +745,20 @@ BED_FILE_EXTENSION = {
             SOME_DSA,
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}To{REFERENCE_GENOME_CODE}",
             False,
-        ), # Chain file from DSA
+        ),
+        (
+            SOME_CHAIN_FILE,
+            [],
+            [SOME_SOFTWARE, SOME_ITEM],
+            {},
+            {},
+            CHAIN_FILE_EXTENSION,
+            SOME_TARGET_ASSEMBLY,
+            SOME_SOURCE_ASSEMBLY,
+            SOME_DSA,
+            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}To{REFERENCE_GENOME_CODE}",
+            False,
+        ),
         (
             SOME_CHAIN_FILE,
             [],
@@ -758,7 +771,7 @@ BED_FILE_EXTENSION = {
             SOME_DSA,
             "",
             True,
-        ), # Chain file from DSA without target and source assembly
+        ),
         (
             SOME_FASTA_FILE,
             [],
@@ -771,7 +784,7 @@ BED_FILE_EXTENSION = {
             SOME_DSA, 
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}_{DSA_VERSION}_{HAPLOTYPE_CODE}",
             False,
-        ), # Fasta file from DSA
+        ),
         (
             SOME_BED_FILE,
             [],
@@ -784,7 +797,7 @@ BED_FILE_EXTENSION = {
             SOME_DSA, 
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}_{DSA_VERSION}",
             False,
-        ), # Bed file from DSA
+        ),
                 (
             SOME_BED_FILE,
             [],
@@ -797,7 +810,7 @@ BED_FILE_EXTENSION = {
             {}, 
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}",
             False,
-        ), # Bed file not from DSA
+        ),
         (
             ANOTHER_FASTA_FILE,
             [],
@@ -810,7 +823,7 @@ BED_FILE_EXTENSION = {
             {},
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}",
             False,
-        ), # Fasta file not from DSA
+        ),
         (
             SOME_TSV_FILE,
             [],
@@ -823,7 +836,7 @@ BED_FILE_EXTENSION = {
             {},
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}_gene",
             False,
-        ), # gene count TSV file from RNA-Seq with gene annotation
+        ),
         (
             SOME_ISOFORM_TSV_FILE,
             [],
@@ -836,7 +849,7 @@ BED_FILE_EXTENSION = {
             {},
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}_isoform",
             False
-        ), # isoform count TSV file from RNA-Seq with gene annotation
+        ),
         (
             SOME_OTHER_FILE,
             [],
@@ -849,7 +862,7 @@ BED_FILE_EXTENSION = {
             {},
             "",
             True
-        ), # some TSV file not from RNA-Seq
+        ),
         (
             SOME_ALIGNED_READS,
             [],
@@ -862,7 +875,7 @@ BED_FILE_EXTENSION = {
             {},
             f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{REFERENCE_GENOME_CODE}_{GENE_ANNOTATION_CODE}_{GENE_ANNOTATION_VERSION}",
             False
-        ), # bam file from RNA-Seq with gene annotation
+        ),
         (
             RNA_ALIGNED_READS,
             [SOME_ASSAY],
@@ -980,19 +993,6 @@ BED_FILE_EXTENSION = {
             "",
             True
         ), # Consensus BAM without assay
-        (
-            SOME_VARIANT_CALLS,
-            [],
-            [SOME_SOFTWARE, SOME_ITEM],
-            SOME_DSA,
-            {},
-            VCF_FILE_EXTENSION,
-            {},
-            {},
-            {}, 
-            f"{SOFTWARE_CODE}_{SOFTWARE_VERSION}_{DSA_VALUE}_{DSA_VERSION}",
-            False,
-        ), # VCF file with DSA reference
     ],
 )
 def test_get_analysis(
@@ -1042,6 +1042,7 @@ def test_get_software_and_versions(
 FILE_EXTENSION = "foo"
 SOME_FILE_FORMAT = {"standard_file_extension": FILE_EXTENSION}
 
+
 @pytest.mark.parametrize(
     "file,file_format,expected,errors",
     [
@@ -1057,36 +1058,6 @@ SOME_FILE_FORMAT = {"standard_file_extension": FILE_EXTENSION}
             {"alignment_details": ["Sorted"]},
             SOME_FILE_FORMAT,
             "sorted.foo",
-            False,
-        ),
-        (
-            {"analysis_details": ["Phased"]},
-            SOME_FILE_FORMAT,
-            "phased.foo",
-            False,
-        ),
-        (
-            {"data_category": ["Germline Variant Calls"], "data_type": ["SNV", "Indel"], "analysis_details": ["Phased"]},
-            VCF_FILE_EXTENSION,
-            "phased.germline.vcf.gz",
-            False,
-        ),
-        (
-            {"data_category": ["Germline Variant Calls"], "data_type": ["SNV"], "analysis_details": ["Phased"]},
-            VCF_FILE_EXTENSION,
-            "phased.germline.snv.vcf.gz",
-            False,
-        ),
-        (
-            {"data_category": ["Germline Variant Calls"], "data_type": ["SNV", "Indel"], "analysis_details": ["Phased"]},
-            VCF_FILE_EXTENSION,
-            "phased.germline.vcf.gz",
-            False,
-        ),
-        (
-            {"data_category": ["Somatic Variant Calls"], "data_type": ["SNV"], "analysis_details": ["Filtered"]},
-            VCF_FILE_EXTENSION,
-            "filtered.snv.vcf.gz",
             False,
         ),
     ],

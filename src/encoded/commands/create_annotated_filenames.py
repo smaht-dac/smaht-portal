@@ -54,20 +54,12 @@ DEFAULT_ABSENT_FIELD = "X"
 ABSENT_AGE = "N"
 ABSENT_SEX = ABSENT_AGE
 
-GERMLINE_EXTENSION = "germline"
 ALIGNED_READS_EXTENSION = "aligned"
 PHASED_EXTENSION = "phased"
-FILTERED_EXTENSION = "filtered"
 SORTED_EXTENSION = "sorted"
 
 MALE_SEX_ABBREVIATION = "M"
 FEMALE_SEX_ABBREVIATION = "F"
-
-SNV_VARIANT_TYPE = "snv"
-INDEL_VARIANT_TYPE = "indel"
-CNV_VARIANT_TYPE = "cnv"
-SV_VARIANT_TYPE = "sv"
-MEI_VARIANT_TYPE = "mei"
 
 
 @dataclass(frozen=True)
@@ -250,7 +242,7 @@ def get_target_assembly(
     file: Dict[str, Any], request_handler: RequestHandler
 ) -> str:
     """Get target assembly for file."""
-    return get_reference_genome_code_from_search(
+    return get_reference_genome_code(
         get_reference_genome_search(
             supp_file_utils.get_target_assembly(file), request_handler
         )
@@ -261,7 +253,7 @@ def get_source_assembly(
     file: Dict[str, Any], request_handler: RequestHandler
 ) -> str:
     """Get source assembly for file."""
-    return get_reference_genome_code_from_search(
+    return get_reference_genome_code(
         get_reference_genome_search(
             supp_file_utils.get_source_assembly(file), request_handler
         )
@@ -284,7 +276,7 @@ def get_reference_genome_search(
     return result
 
 
-def get_reference_genome_code_from_search(assemblies: List[Dict[str, Any]]) -> str:
+def get_reference_genome_code(assemblies: List[Dict[str, Any]]) -> str:
     """Get unique code for reference genomes from search result."""
     is_dsa = [dsa_utils.is_donor_specific_assembly(ref) for ref in assemblies]
     # If all of the results are DSAs; use DSA value
@@ -879,8 +871,6 @@ def get_sequencing_and_assay_codes(
         return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
     elif set(file_utils.get_data_category(file)) & set(data_category_exceptions):
         return get_filename_part(value="XX")
-    elif eof_utils.is_external_output_file(file):
-        return get_filename_part(value="XX")
     errors = []
     if not sequencing_codes:
         errors.append("No sequencing code found")
@@ -936,7 +926,7 @@ def get_analysis(
     exhaustive and allowing for some flexibility in what is expected.
     """
     software_and_versions = get_software_and_versions(software)
-    reference_genome_code = get_reference_genome_value(reference_genome)
+    reference_genome_code = item_utils.get_code(reference_genome)
     gene_annotation_code = get_annotations_and_versions(gene_annotations)
     transcript_info_code = get_rna_seq_tsv_value(file, file_extension)
     dsa_code = get_dsa_value(file, file_extension, donor_specific_assembly)
@@ -961,7 +951,7 @@ def get_analysis(
         chain_code,
         dsa_code,
         file_extension,
-        assay
+        assay,
     )
     if errors:
         return get_filename_part(errors=errors)
@@ -1017,7 +1007,7 @@ def get_analysis_value(
     chain_code: str,
     dsa_code: str,
     consensus_read_flag: str,
-    kinnex_info_code: str
+    kinnex_info_code: str,
 ) -> str:
     """Get analysis value for filename."""
     to_write = [
@@ -1137,14 +1127,6 @@ def get_software_codes_missing_versions(
     ]
 
 
-def get_reference_genome_value(reference_genome: Dict[str, Any]):
-    """Get reference genome value."""
-    if dsa_utils.is_donor_specific_assembly(reference_genome):
-        return ANALYSIS_INFO_SEPARATOR.join([DSA_INFO_VALUE, item_utils.get_version(reference_genome)])
-    else: 
-        return item_utils.get_code(reference_genome)
-
-
 def get_chain_file_value(
         file: Dict[str, Any],
         target_assembly: Union[str, None],
@@ -1233,34 +1215,10 @@ def get_file_extension(
         result += [SORTED_EXTENSION]
     if file_utils.are_reads_phased(file):
         result += [PHASED_EXTENSION]
-    if file_utils.is_filtered(file):
-        result += [FILTERED_EXTENSION]
-    if file_utils.is_germline(file):
-        result += [GERMLINE_EXTENSION]
-    if file_utils.is_variant_calls(file) and (variant_type := get_variant_type(file)):
-        result +=[variant_type]
     result += [file_extension]
     if file_extension:
         return get_filename_part(value=".".join(result))
     return get_filename_part(errors=["Unknown file extension"])
-
-
-def get_variant_type(file: Dict[str, Any]) -> str:
-    """Get variant types for VCF files."""
-    result = []
-    if file_utils.has_single_nucleotide_variants(file):
-        result.append(SNV_VARIANT_TYPE)
-    if file_utils.has_indel_variants(file):
-        result.append(INDEL_VARIANT_TYPE)
-    if file_utils.has_copy_number_variants(file):
-        result.append(CNV_VARIANT_TYPE)
-    if file_utils.has_structural_variants(file):
-        result.append(SV_VARIANT_TYPE)
-    if file_utils.has_mobile_element_insertions(file):
-        result.append(MEI_VARIANT_TYPE)
-    if len(result) == 1:
-        return ANALYSIS_INFO_SEPARATOR.join(result)
-    return
 
 
 def collect_errors(*filename_parts: FilenamePart) -> List[str]:

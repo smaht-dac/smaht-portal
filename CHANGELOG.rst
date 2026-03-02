@@ -16,26 +16,6 @@ Change Log
 * Implement alert for public users
 
 
-1.14.0
-======
-
-`PR 603: Add ExternalOutputFile <https://github.com/smaht-dac/smaht-portal/pull/603>`_
-
-* Add new item ExternalOutputFile
-* Update calcprops for sample_sources, donors, sample_summary, and release_tracker to function with new links
-* Update annotated filename and release script to function for External Output Files
-* Add new property analysis_details to File
-
-
-1.13.1
-======
-
-`PR 606: Avoid rev_link_atids for ReferenceFile <https://github.com/smaht-dac/smaht-portal/pull/606>`_
-
-* Avoid rev_link_atids for ReferenceFile
-* Improve efficiency of `open_data_url`` calc prop
-
-
 1.13.0
 ======
 
