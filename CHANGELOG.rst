@@ -10,10 +10,11 @@ Change Log
 1.15.0
 ======
 
-`PR 604: feat: release tracker with alert <https://github.com/smaht-dac/smaht-portal/pull/604>`_
+`PR 609: feat: release tracker with alert <https://github.com/smaht-dac/smaht-portal/pull/609>`_
 
 * Restructure Release Tracker for network members only
 * Implement alert for public users
+* Add new smaht-wolf cypress GA workflow
 
 
 1.14.0
