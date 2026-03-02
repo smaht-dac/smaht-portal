@@ -7,7 +7,6 @@ describe('Statistics Page Validation (Submissions and Usage)', function () {
     before(function () {
         cy.visit('/', { headers: cypressVisitHeaders });
         cy.loginSMaHT(ROLE_TYPES.SMAHT_DBGAP)
-            .validateUser('SCM')
             .end();
     });
 

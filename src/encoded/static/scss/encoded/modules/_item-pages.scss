@@ -2489,34 +2489,36 @@ File and Donor Overview Styles
 	}
 }
 
-.item-page-container {
-	.callout-card {
-		&.protected-data {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			max-width: none;
-			padding: 35px 40px;
-			height: auto;
-			width: auto;
-			margin: auto 10px;
-			text-align: center;
+.callout-card {
+	&.protected-data {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		max-width: none;
+		padding: 35px 40px;
+		height: auto;
+		width: auto;
+		margin: auto 10px;
+		text-align: center;
 
-			i {
-				color: #CECECE;
-				font-size: 2.5rem;
-			}
+		i {
+			color: #CECECE;
+			font-size: 2.5rem;
+		}
 
-			h4 {
-				color: #0E3669;
-				font-weight: 400;
-				font-size: 1.25rem;
-			}
-			span {
-				color: #597598;
-				font-size: 0.875rem;
-			}
+		h4 {
+			color: #0E3669;
+			font-weight: 400;
+			font-size: 1.25rem;
+		}
+		span {
+			color: #597598;
+			font-size: 0.875rem;
+		}
+
+		img {
+			width: 40px;
 		}
 	}
 }
@@ -2536,6 +2538,69 @@ Popover Styles for Item Pages
 		.popover-header {
 			font-weight: 600;
 			background-color: #F1F9FF;
+		}
+
+		&#description-definitions-popover-hardy {
+			border-radius: 12px;
+			max-width: 730px;
+
+			.popover-body {
+				border-radius: inherit;
+			}
+			
+			.table {
+				border-radius: inherit;
+				overflow: hidden;
+			}
+
+			thead > tr > th {
+				border-radius: 12px 12px 0px 0px;
+			}
+
+			tbody {
+				border-radius: 0px 0px 12px 12px;
+				& > tr > td {
+					padding-right: 30px;
+
+					b {
+						font-weight: 600;
+					}
+
+					&.index-cell {
+						width: 120px;
+						padding-right: 12px;
+					}
+					&.footnote-cell {
+
+						a {
+							display: inline-flex;
+							align-items: center;
+						}
+
+						.icon {
+							// font-size: 0.75rem;
+							margin-left: 5px;
+						}
+					}
+				}
+				
+				& > tr:last-child {
+					border-radius: 0px 0px 12px 12px;
+
+					> td {
+						border-radius: inherit;
+					}
+				}
+				
+			}
+		}
+
+			
+		&#chart-info-popover-donor-progress {
+			max-width: 340px;
+		}
+		&#chart-info-popover-ethnicity {
+			max-width: 400px;
 		}
 	}
 

@@ -33,6 +33,9 @@ export const cypressVisitHeaders = {
 export const ROLE_TYPES = {
     SMAHT_DBGAP: 'smaht-dbgap',
     SMAHT_NON_DBGAP: 'smaht-non-dbgap',
-    DBGAP_ONLY: 'dbgap-only',
-    NON_DBGAP: 'non-dbgap',
+    PUBLIC_DBGAP: 'public-dbgap',
+    PUBLIC_NON_DBGAP: 'public-non-dbgap',
 };
+
+// should match the statuses used in the portal's browse and search views for filtering - /src/encoded/static/components/browse/BrowseView.js
+export const BROWSE_STATUS_PARAMS = 'status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network';

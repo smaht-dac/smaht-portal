@@ -13,7 +13,8 @@ def _build_meta_workflow_run_embedded_list():
         "meta_workflow.version",
 
         "workflow_runs.output.file.quality_metrics.overall_quality_status",
-        "workflow_runs.output.file.accession"
+        "workflow_runs.output.file.accession",
+        "workflow_runs.output.file.output_status"
     ]
 
 

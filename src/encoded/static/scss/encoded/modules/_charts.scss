@@ -1372,65 +1372,86 @@ body[data-path="/statistics"] {
 
     .tabs-container {
         margin-top: 40px;
+        position: relative;
+        min-height: 200px;
+
+        .tab-headers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            z-index: 1;
+        }
+
+        .tab-header {
+            cursor: pointer;
+            background-color: white;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            border: 1px solid #E7F0F3;
+            border-top: 4px solid #E99415;
+            border-bottom: 1px solid #E7F0F3;
+            border-radius: 4px 4px 0px 0px;
+            color: #343741;
+            font-weight: 600;
+            min-width: 220px;
+
+            .title {
+                padding: 10px 15px;
+                margin-bottom: -2px;
+                text-align: center;
+                width: 100%;
+                // background-color: white;
+                z-index: 0;
+            }
+
+            &.benchmarking-tab { border-top-color: #2746CA; }
+            &.production-tab { border-top-color: #9C9CFF; }
+
+            &[data-has-data="false"] {
+                display: none;
+            }
+
+            &.is-inactive {
+                opacity: 0.7;
+                border-top-color: #fff;
+                border-left-color: #fff;
+                border-right-color: #fff;
+            }
+
+            &.is-active {
+                border-bottom: 1px solid white;
+            }
+        }
 
         .tab-card {
             position: relative;
-            display: flex;
             overflow: hidden;
-            min-width: 300px;
+            min-width: 100%;
             flex-direction: column;
-
-            @include media-breakpoint-up(xxl) {
-                &.column-grow-3 { flex: 3; }
-                &.column-grow-2 { flex: 2; }
-            }
-
-            .header {
-                display: flex;
-                width: max-content;
-                border: 1px solid #E7F0F3;
-                border-top: 4px solid #E99415;
-                border-bottom: 1px solid white;
-                border-radius: 4px 4px 0px 0px;
-                color: #343741;
-                font-weight: 600;
-                background-color: white;
-                z-index: 1;
-
-                .title {
-                    padding: 10px 15px;
-                    margin-bottom: -2px;
-                    background-color: white;
-                    z-index: 0;
-                }
-            }
+            margin-top: -1px; // Pull up to meet active header
 
             .body {
                 position: relative;
                 overflow: hidden;
                 display: flex;
-                flex: 1;
                 min-height: 600px;
                 border: 1px solid #E7F0F3;
+                padding-top: 20px;
             }
+        }
 
-            &.benchmarking-tab {
+        .tab-panels-wrapper {
+            position: relative;
+        }
 
-                .header {
-                    border-top-color: #2746CA;
-                }
-            }
-
-            &.production-tab {
-
-                .header {
-                    border-top-color: #9C9CFF;
-                }
-                display: none;
-                &:has(.data-matrix:not([data-files-count="0"])) {
-                    display: flex;
-                }
-            }
+        .tabs-loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: white;
+            z-index: 5;
+            font-size: 2rem;
+            pointer-events: all;
         }
     }
 }
@@ -1570,7 +1591,7 @@ body[data-path="/statistics"] {
                         flex-direction: column;
 
                         .label-section {
-                            width: 190px !important;
+                            width: 250px !important;
 
                             .inner {
                                 font-size: 0.9rem;
@@ -1635,7 +1656,7 @@ body[data-path="/statistics"] {
 
                 .label-section {
                     padding-left: 5px;
-                    width: 225px;
+                    width: 285px;
 
                     >.label-container {
                         position: relative;
@@ -2163,6 +2184,96 @@ body[data-path="/statistics"] {
                 color: #000;
                 cursor: pointer !important;
             }
+        }
+    }
+
+    &.donor-sequencing-progress {
+        min-height: 420px;
+        display: inline-block;
+        padding: 0;
+        border: none;
+        box-shadow: none;
+
+        .dsp-body {
+            position: relative;
+            width: 100%;
+        }
+
+        .dsp-ring {
+            display: block;
+            margin: 0 auto;
+            width: auto;
+            height: auto;
+        }
+
+        .dsp-tick-label {
+            fill: #6b7280;
+            font-size: 12px;
+            font-weight: 500;
+            text-anchor: middle;
+            dominant-baseline: middle;
+
+            &.dsp-tick-label-strong {
+                // font-size: 13px;
+                font-weight: 550;
+                // fill: #495776;
+            }
+        }
+
+        .dsp-progress-track {
+            stroke: #F2F5FB;
+        }
+
+        .dsp-progress-arc {
+            filter: drop-shadow(0 4px 6px rgba(20, 179, 187, 0.25));
+        }
+
+        .dsp-center {
+            position: absolute;
+            inset: 0;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            color: #5a6c8d;
+            pointer-events: none;
+        }
+
+        .dsp-count {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 3px;
+            color: #111827;
+        }
+
+        .dsp-count-current {
+            font-size: 40px;
+            font-weight: 600;
+        }
+
+        .dsp-count-target {
+            font-size: 18px;
+            font-weight: 500;
+            color: #6b7280;
+        }
+
+        .dsp-subtitle {
+            margin-top: -8px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .dsp-loading {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), #fff 60%);
         }
     }
 }

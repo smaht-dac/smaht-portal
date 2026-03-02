@@ -54,6 +54,7 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
         "sequencer",
         "sequencing",
         "file_set",
+        "analysis_run",
         "external_quality_metric",
         "reference_file",
         "resource_file",
@@ -67,6 +68,7 @@ class SMaHTProjectLoadxl(SnovaultProjectLoadxl):
         "meta_workflow_run",
         "donor_specific_assembly",
         "supplementary_file",
+        "external_output_file"
     ]
 
     def loadxl_order(self):

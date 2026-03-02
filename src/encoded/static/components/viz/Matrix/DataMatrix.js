@@ -7,7 +7,6 @@ import ReactTooltip from 'react-tooltip';
 import { console, ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { VisualBody } from './StackedBlockVisual';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
-import { germLayerTissueMapping } from '../../util/data';
 
 
 export default class DataMatrix extends React.PureComponent {
@@ -29,54 +28,67 @@ export default class DataMatrix extends React.PureComponent {
      * Deeply merges two objects without mutating the original objects.
      * We don't use deepExtend from @hms-dbmi-bgm/shared-portal-components/es/components/util/object since
      * it doesn't handle arrays and also mutates obj1
+     * @param {Object} obj1 - The first object to merge.
+     * @param {Object} obj2 - The second object to merge.
+     * @param {boolean} ignoreCase - Whether to ignore case when matching keys.
      */
-    static deepExtend(obj1 = {}, obj2 = {}) {
+    static deepExtend(obj1 = {}, obj2 = {}, ignoreCase = true) {
         // Create a full deep copy of obj1 to ensure it is never mutated
         const result = DataMatrix.deepClone(obj1);
+        const lowerKeyMap = ignoreCase ? _.reduce(_.keys(result), (memo, k) => {
+            const lk = k.toLowerCase();
+            // Preserve first-seen key to keep a stable reference
+            if (memo[lk] == null) memo[lk] = k;
+            return memo;
+        }, {}) : null;
 
         _.each(obj2, (value, key) => {
-            const left = result[key];
+            const resolvedKey = (ignoreCase && lowerKeyMap)
+                ? (lowerKeyMap[key.toLowerCase()] || key)
+                : key;
+            const left = result[resolvedKey];
 
             if (DataMatrix.isPlainObject(value) && DataMatrix.isPlainObject(left)) {
                 // If both values are plain objects, merge them recursively
-                result[key] = DataMatrix.deepExtend(left, value);
+                result[resolvedKey] = DataMatrix.deepExtend(left, value, ignoreCase);
             } else if (Array.isArray(value) && Array.isArray(left)) {
                 // Merge arrays, remove duplicates, and ensure a new array reference
-                result[key] = _.uniq([...left, ...value]);
+                result[resolvedKey] = _.uniq([...left, ...value]);
             } else if (Array.isArray(value)) {
                 // Replace with a cloned array to avoid shared references
-                result[key] = [...value];
+                result[resolvedKey] = [...value];
             } else if (DataMatrix.isPlainObject(value)) {
                 // Replace with a deep copy to avoid shared object references
-                result[key] = DataMatrix.deepClone(value);
+                result[resolvedKey] = DataMatrix.deepClone(value);
             } else {
                 // Override primitive values or non-matching types
-                result[key] = value;
+                result[resolvedKey] = value;
             }
         });
 
         return result;
     }
 
-    static DEFAULT_ROW_GROUPS_EXTENDED = DataMatrix.deepExtend(germLayerTissueMapping, {
+    static DEFAULT_ROW_GROUPS_EXTENDED = {
         Ectoderm: { backgroundColor: '#367151', textColor: '#ffffff', shortName: 'Ecto' },
         Mesoderm: { backgroundColor: '#30975e', textColor: '#ffffff', shortName: 'Meso' },
         Endoderm: { backgroundColor: '#53b27e', textColor: '#ffffff', shortName: 'Endo' },
         'Germ cells': { backgroundColor: '#80c4a0', textColor: '#ffffff', shortName: 'Germ' },
         'Clinically accessible': { backgroundColor: '#70a588', textColor: '#ffffff', shortName: 'Clin' },
-    });
+    };
 
 
     static defaultProps = {
         "query": {
             "url": "/data_matrix_aggregations/?type=File&status=open&limit=all",
             "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"],
-            "rowAggFields": ["donors.display_title", "sample_summary.tissues"]
+            "rowAggFields": ["donors.display_title", "sample_summary.tissues", "sample_summary.category"]
         },
         "fieldChangeMap": {
             "assay": "file_sets.libraries.assay.display_title",
             "donor": "donors.display_title",
             "tissue": "sample_summary.tissues",
+            "germLayer": "sample_summary.category",
             "platform": "sequencing.sequencer.platform",
             "data_type": "data_type",
             "file_format": "file_format.display_title",
@@ -137,7 +149,9 @@ export default class DataMatrix extends React.PureComponent {
                 "ipsc_snv_indel_challenge_data": "Truth Set",
             }
         },
-        "resultPostProcessFuncKey": null, // function to process results after they are loaded
+        "resultItemPostProcessFuncKey": null, // function to process result item after they are loaded
+        "resultTransformedPostProcessFuncKey": null, // function to process result items array for e.g. DSA transformation
+        "browseFilteringTransformFuncKey": null, // function to transform filtering properties when browsing files
         "groupingProperties": ["donor", "tissue"], // properties to group by in the matrix
         "columnGrouping": "assay",
         "headerFor": <h3 className="mt-2 mb-0 text-300">SMaHT</h3>,
@@ -186,6 +200,12 @@ export default class DataMatrix extends React.PureComponent {
                 "values": ['Hi-C', 'scDip-C', 'Strand-Seq', 'ATAC-Seq', 'NT-Seq', 'varCUT&Tag', 'GoT-ChA'],
                 "backgroundColor": "#76cbbe",
                 "textColor": "#ffffff"
+            },
+            "DSA": {
+                "values": ['DSA'],
+                "backgroundColor": "#cccccc",
+                "textColor": "#000000",
+                "shortName": "DSA"
             }
         },
         "showColumnGroups": true,
@@ -196,7 +216,7 @@ export default class DataMatrix extends React.PureComponent {
                 "textColor": "#ffffff"
             },
             "Extended Assay": {
-                "values": ['Single-cell WGS', 'Targeted Seq', 'Single-cell RNA-Seq', 'Other'],
+                "values": ['Single-cell WGS', 'Targeted Seq', 'Single-cell RNA-Seq', 'Other', 'DSA'],
                 "backgroundColor": "#d2bde3",
                 "textColor": "#ffffff"
             }
@@ -207,6 +227,10 @@ export default class DataMatrix extends React.PureComponent {
         "autoPopulateRowGroupsProperty": null,
         "rowGroupsExtended": DataMatrix.DEFAULT_ROW_GROUPS_EXTENDED,
         "showRowGroupsExtended": true,
+        "autoPopulateRowGroupsExtendedMapFields": { 
+            key: "germLayer",
+            value: "tissue"
+        },
         "additionalPopoverData": {
             "COLO829T":{
                 "secondary": "Melanoma",
@@ -232,9 +256,10 @@ export default class DataMatrix extends React.PureComponent {
         "showAxisLabels": true,
         "showColumnSummary": true,
         "defaultOpen": false,
-        "compositeValueSeparator": " - ",
+        "valueDelimiter": " - ",
         "disableConfigurator": true,
         "idLabel": "",
+        "onDataLoaded": null,
         // allowedFields is for the configurator
         "allowedFields": [
             "donors.display_title",
@@ -260,7 +285,9 @@ export default class DataMatrix extends React.PureComponent {
         }),
         'valueChangeMap': PropTypes.object,
         'fieldChangeMap': PropTypes.object,
-        'resultPostProcessFuncKey': PropTypes.string, // function key to process results after they are loaded
+        'resultItemPostProcessFuncKey': PropTypes.string, // function key to process results after they are loaded
+        'resultTransformedPostProcessFuncKey': PropTypes.string, // function key to process result items array for e.g. DSA transformation
+        'browseFilteringTransformFuncKey': PropTypes.string, // function key to transform filtering properties when browsing files
         'groupingProperties': PropTypes.arrayOf(PropTypes.string),
         'columnGrouping': PropTypes.string,
         'headerFor': PropTypes.oneOfType([PropTypes.element, PropTypes.string]),
@@ -282,15 +309,20 @@ export default class DataMatrix extends React.PureComponent {
         'autoPopulateRowGroupsProperty': PropTypes.string,
         'rowGroupsExtended': PropTypes.object,
         'showRowGroupsExtended': PropTypes.bool,
+        'autoPopulateRowGroupsExtendedMapFields': PropTypes.shape({
+            'key': PropTypes.string,
+            'value': PropTypes.string
+        }),
         'additionalPopoverData': PropTypes.object,
         'xAxisLabel': PropTypes.string,
         'yAxisLabel': PropTypes.string,
         'showAxisLabels': PropTypes.bool,
         'showColumnSummary': PropTypes.bool,
         'defaultOpen': PropTypes.bool,
-        'compositeValueSeparator': PropTypes.string,
+        'valueDelimiter': PropTypes.string,
         'disableConfigurator': PropTypes.bool,
         'idLabel': PropTypes.string,
+        'onDataLoaded': PropTypes.func,
         'allowedFields': PropTypes.arrayOf(PropTypes.string),
         'baseBrowseFilesPath': PropTypes.string
     };
@@ -403,16 +435,123 @@ export default class DataMatrix extends React.PureComponent {
         }
     }
 
+    /* Transform DSA entries by:
+        1) For each group defined by groupingProperties, compute:
+            diff_files = row_totals.files - all.files
+        2) For each dsa entry, set files = diff_files for its group (if exists)
+        3) Merge dsa entries by groupingProperties:
+            - files: take from any row (they should all be equal after step 2)
+            - other fields: distinct values; single => scalar, multiple => array
+    */
+    static transformDSA(nonDsaData, row_totals, dsaData, groupingProperties, columnGrouping) {
+        // Helper: build a grouping key like "COLO829BL||No value"
+        const makeGroupKey = (row) =>
+            groupingProperties.map((prop) => String(row[prop])).join('||');
+
+        // 1) Compute group totals from row_totals
+        const rowTotalsByGroup = {};
+        for (const row of row_totals) {
+            const key = makeGroupKey(row);
+            const files = Number(row.files) || 0;
+            rowTotalsByGroup[key] = (rowTotalsByGroup[key] || 0) + files;
+        }
+
+        // 2) Compute group totals from all
+        const allTotalsByGroup = {};
+        for (const row of nonDsaData) {
+            const key = makeGroupKey(row);
+            const files = Number(row.files) || 0;
+            allTotalsByGroup[key] = (allTotalsByGroup[key] || 0) + files;
+        }
+
+        // 3) For each group, compute the difference
+        const diffFilesByGroup = {};
+        Object.keys(rowTotalsByGroup).forEach((key) => {
+            const rowTotals = rowTotalsByGroup[key] || 0;
+            const allTotals = allTotalsByGroup[key] || 0;
+            diffFilesByGroup[key] = rowTotals - allTotals;
+        });
+
+        // 4) First-pass transform of dsa entries
+        const newDsa = dsaData.map((row) => {
+            const key = makeGroupKey(row);
+            const diffFiles = diffFilesByGroup[key];
+
+            return {
+                ...row,
+                // If we have a diff for this group, use it; otherwise keep original value
+                files: typeof diffFiles === 'number' ? diffFiles : row.files,
+                // Overwrite the columnGrouping field with "DSA"
+                [columnGrouping]: 'DSA',
+            };
+        });
+
+        // 5) SECOND PASS: merge dsa rows by groupingProperties
+        //    - Same donor+tissue => single row
+        //    - files: take from any row (they should all be equal)
+        //    - other fields: distinct values; single => scalar, multiple => array
+
+        // Group rows by groupingProperties key
+        const dsaGrouped = {};
+        for (const row of newDsa) {
+            const key = makeGroupKey(row);
+            if (!dsaGrouped[key]) {
+                dsaGrouped[key] = [];
+            }
+            dsaGrouped[key].push(row);
+        }
+
+        // Merge rows inside each group
+        const mergedDsa = Object.values(dsaGrouped).map((rowsInGroup) => {
+            const firstRow = rowsInGroup[0];
+            const mergedRow = {};
+
+            // Iterate over all fields of the first row (assuming schema is consistent)
+            for (const field of Object.keys(firstRow)) {
+                if (field === 'files') {
+                    // Rule 1: files value is same; take from one row
+                    mergedRow[field] = firstRow[field];
+                } else {
+                    // Rule 2: collect distinct values for this field across group
+                    const values = Array.from(
+                        new Set(rowsInGroup.map((r) => r[field]))
+                    );
+
+                    // If only one distinct value, store as scalar, otherwise as array
+                    mergedRow[field] = values.length === 1 ? values[0] : values;
+                }
+            }
+
+            return mergedRow;
+        });
+
+        // 6) Return new object, keeping all and row_totals unchanged
+        return mergedDsa;
+    }
+
     loadSearchQueryResults() {
 
         const commonCallback = (result) => {
-            const { valueChangeMap, resultPostProcessFuncKey } = this.props;
-            const { fieldChangeMap, groupingProperties, autoPopulateRowGroupsProperty } = this.state;
+            const {
+                valueChangeMap,
+                resultItemPostProcessFuncKey,
+                resultTransformedPostProcessFuncKey,
+                onDataLoaded,
+                autoPopulateRowGroupsExtendedMapFields
+            } = this.props;
+            const {
+                fieldChangeMap,
+                groupingProperties,
+                columnGrouping,
+                autoPopulateRowGroupsProperty,
+                rowGroupsExtended
+            } = this.state;
             const resultKey = "_results";
             const updatedState = {};
 
-            const transformedData = { all: [], row_totals: [] };
+            let transformedData = { all: [], row_totals: [] };
             const populatedRowGroups = {}; // not implemented yet
+            // Helper to process each result row
             const processResultRow = (r, transformed) => {
                 let cloned = _.clone(r);
                 if (fieldChangeMap) {
@@ -423,8 +562,8 @@ export default class DataMatrix extends React.PureComponent {
                         }
                     });
                 }
-                if (resultPostProcessFuncKey && typeof DataMatrix.resultPostProcessFuncs[resultPostProcessFuncKey] === 'function') {
-                    cloned = DataMatrix.resultPostProcessFuncs[resultPostProcessFuncKey](cloned);
+                if (resultItemPostProcessFuncKey && typeof DataMatrix.resultItemPostProcessFuncs[resultItemPostProcessFuncKey] === 'function') {
+                    cloned = DataMatrix.resultItemPostProcessFuncs[resultItemPostProcessFuncKey](cloned);
                 }
                 if (cloned.files && cloned.files > 0) {
                     if (valueChangeMap) {
@@ -445,8 +584,14 @@ export default class DataMatrix extends React.PureComponent {
                 }
             };
 
+            //result = resultItemPostProcessFuncKey && this.isLocalEnv() ? BENCHMARKING_TEST_DATA : PRODUCTION_TEST_DATA;
+
             _.forEach(result.data, (r) => processResultRow(r, transformedData.all));
             _.forEach(result.row_totals, (r) => processResultRow(r, transformedData.row_totals));
+
+            if (resultTransformedPostProcessFuncKey && typeof DataMatrix.resultTransformedPostProcessFuncs[resultTransformedPostProcessFuncKey] === 'function') {
+                transformedData = DataMatrix.resultTransformedPostProcessFuncs[resultTransformedPostProcessFuncKey](transformedData, groupingProperties, columnGrouping);
+            }
 
             updatedState[resultKey] = transformedData;
             // sum files in transformedData array
@@ -458,14 +603,57 @@ export default class DataMatrix extends React.PureComponent {
             });
             updatedState['totalFiles'] = totalFiles;
 
+            //extend existing rowGroupsExtended from transformed data using mapping fields  
+            if (autoPopulateRowGroupsExtendedMapFields && autoPopulateRowGroupsExtendedMapFields.key && autoPopulateRowGroupsExtendedMapFields.value) {
+                //get [key]: [value array] mapping
+                const autoPopulateMap = {};
+                _.forEach(transformedData.all, (r) => {
+                    const mapKey = r[autoPopulateRowGroupsExtendedMapFields.key];
+                    const mapValue = r[autoPopulateRowGroupsExtendedMapFields.value];
+                    if (mapKey && mapValue) {
+                        if (!autoPopulateMap[mapKey]) {
+                            autoPopulateMap[mapKey] = new Set();
+                        }
+                        autoPopulateMap[mapKey].add(mapValue);
+                    }
+                });
+                //convert Set to values array
+                _.forEach(_.keys(autoPopulateMap), (k) => {
+                    autoPopulateMap[k] = {
+                        values: Array.from(autoPopulateMap[k])
+                    };
+                });
+                
+                updatedState['rowGroupsExtended'] = DataMatrix.deepExtend(rowGroupsExtended, autoPopulateMap);
+            }
+
             this.setState(updatedState, () => ReactTooltip.rebuild());
+            if (typeof onDataLoaded === 'function') {
+                onDataLoaded({
+                    hasData: totalFiles > 0,
+                    totalFiles,
+                    query: this.state.query,
+                    results: transformedData
+                });
+            }
         };
 
         const commonFallback = (result) => {
+            const { onDataLoaded } = this.props;
+
             const resultKey = "_results";
             const updatedState = {};
             updatedState[resultKey] = false;
             this.setState(updatedState);
+            if (typeof onDataLoaded === 'function') {
+                onDataLoaded({
+                    hasData: false,
+                    totalFiles: 0,
+                    query: this.state.query,
+                    results: null,
+                    error: result
+                });
+            }
         };
 
         const {
@@ -476,7 +664,7 @@ export default class DataMatrix extends React.PureComponent {
         this.setState(
             { "_results": null }, // (Re)Set all result states to 'null'
             () => {
-                const { compositeValueSeparator = ' ' } = this.props;
+                const { valueDelimiter = ' ' } = this.props;
                 const [url, strQueryParams] = requestUrl.split('?');
                 const queryParamsByUrl = DataMatrix.parseQuery(strQueryParams);
 
@@ -526,8 +714,8 @@ export default class DataMatrix extends React.PureComponent {
                     "row_agg_fields": rowAggFields,
                     "flatten_values": true
                 };
-                if (compositeValueSeparator && typeof compositeValueSeparator === 'string') {
-                    requestBody['composite_value_separator'] = compositeValueSeparator;
+                if (valueDelimiter && typeof valueDelimiter === 'string') {
+                    requestBody['value_delimiter'] = valueDelimiter;
                 }
                 // Exclude 'Authorization' header for requests to different domains (not allowed).
                 const excludedHeaders = (requestUrl.slice(0, 4) === 'http') ? ['Authorization', 'Content-Type'] : null;
@@ -629,11 +817,19 @@ export default class DataMatrix extends React.PureComponent {
         return false;
     }
 
+    isLocalEnv() {
+        if (window && window.location && window.location.href) {
+            return window.location.href.indexOf('localhost') >= 0 ||
+                window.location.href.indexOf('127.0.0.1') >= 0;
+        }
+        return false;
+    }
+
     render() {
         const {
-            headerFor, valueChangeMap, allowedFields, compositeValueSeparator,
+            headerFor, valueChangeMap, allowedFields, valueDelimiter,
             disableConfigurator = false, idLabel = '', additionalPopoverData = {},
-            baseBrowseFilesPath
+            baseBrowseFilesPath, browseFilteringTransformFuncKey
         } = this.props;
         const {
             query, fieldChangeMap, columnGrouping, groupingProperties,
@@ -663,8 +859,9 @@ export default class DataMatrix extends React.PureComponent {
             query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, additionalPopoverData,
-            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary, compositeValueSeparator,
-            baseBrowseFilesPath
+            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary, valueDelimiter,
+            baseBrowseFilesPath,
+            browseFilteringTransformFunc: browseFilteringTransformFuncKey ? DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey] : null
         };
 
         const colAgg = Array.isArray(query.columnAggFields) ? query.columnAggFields : [query.columnAggFields];
@@ -730,7 +927,7 @@ export default class DataMatrix extends React.PureComponent {
     }
 }
 // hack for overcoming the react-jsx-parser's function props
-DataMatrix.resultPostProcessFuncs = {
+DataMatrix.resultItemPostProcessFuncs = {
     "cellLinePostProcess": function (result) {
         if (result.dataset && result.donor && result.dataset !== 'tissue') {
             result.donor = result.dataset;
@@ -749,5 +946,31 @@ DataMatrix.resultPostProcessFuncs = {
             }
         }
         return result;
+    }
+};
+DataMatrix.resultTransformedPostProcessFuncs = {
+    "dsaChainFile": function (data, groupingProperties, columnGrouping) {
+        // Separate DSA entries
+        const dsaData = data.all.filter((row) => row['data_type'] === 'DSA' || row['data_type'] === 'Chain File' || row['data_type'] === 'Sequence Interval');
+        const nonDsaData = data.all.filter((row) => row['data_type'] !== 'DSA' && row['data_type'] !== 'Chain File' && row['data_type'] !== 'Sequence Interval');
+
+        const transformedDsa = DataMatrix.transformDSA(nonDsaData, data.row_totals, dsaData, groupingProperties, columnGrouping);
+
+        return {
+            ...data,
+            all: nonDsaData.concat(transformedDsa)
+        };
+    }
+};
+DataMatrix.browseFilteringTransformFuncs = {
+    "dsaChainFile": function (filteringProperties, blockType) {
+        if (filteringProperties['file_sets.libraries.assay.display_title'] === 'DSA') {
+            // extend data_type filter to include Chain File along with DSA
+            filteringProperties['data_type'] = [...(filteringProperties['data_type'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
+            delete filteringProperties['file_sets.libraries.assay.display_title'];
+        } else if (blockType === 'col-summary' || blockType === 'regular') {
+            filteringProperties['data_type!'] = [...(filteringProperties['data_type!'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
+        }
+        return filteringProperties;
     }
 };

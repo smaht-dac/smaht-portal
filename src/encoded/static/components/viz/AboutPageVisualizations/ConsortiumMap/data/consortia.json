@@ -10,7 +10,7 @@
         "marker-color": "blue",
         "marker-color-hex": "#377eb8",
         "project": "WashU Somatic Mosaicism across Human Tissues (SMaHT) Program Organizational Center",
-        "project-number": "1U24NS132103-01",
+        "project-number": "1U24NS132103",
         "url": "https://reporter.nih.gov/project-details/10661968",
         "location": "St. Louis",
         "include_in_table": true
@@ -26,7 +26,7 @@
         "marker-color": "red",
         "marker-color-hex": "#e41a1c",
         "project": "Data Analysis Center for Somatic Mosaicism Across Human Tissues Network",
-        "project-number": "1UM1DA058230-01",
+        "project-number": "1UM1DA058230",
         "url": "https://reporter.nih.gov/project-details/10662721",
         "location": "Boston",
         "include_in_table": true
@@ -42,7 +42,7 @@
         "marker-color": "purple",
         "marker-color-hex": "#984ea3",
         "project": "Tissue Procurement Center (TPC) Supporting the Somatic Mosaicism across Human Tissues (SMaHT) Network",
-        "project-number": "1U24MH133204-01",
+        "project-number": "1U24MH133204",
         "url": "https://reporter.nih.gov/project-details/10661300",
         "include_in_table": true
     },
@@ -57,7 +57,7 @@
         "marker-color": "orange",
         "marker-color-hex": "#ff7f00",
         "project": "Whole Individual Comprehensive KnowlEDge: Somatic Mosaicism across Human Tissues (WICKed SMaHT)",
-        "project-number": "1UM1DA058235-01",
+        "project-number": "1UM1DA058235",
         "url": "https://reporter.nih.gov/project-details/10662869",
         "location": "Boston",
         "include_in_table": true
@@ -73,7 +73,7 @@
         "marker-color": "orange",
         "marker-color-hex": "#ff7f00",
         "project": "Mosaicism in Human Tissues, from Telomere to Telomere to RFA-22-013: Somatic Mosaicism across Human Tissues Program: Genome Characterization Centers",
-        "project-number": "1UM1DA058220-01",
+        "project-number": "1UM1DA058220",
         "url": "https://reporter.nih.gov/project-details/10662071",
         "include_in_table": true
     },
@@ -88,7 +88,7 @@
         "marker-color": "orange",
         "marker-color-hex": "#ff7f00",
         "project": "New York Genome Characterization Center: Somatic Mosaicism across Human Tissues",
-        "project-number": "1UM1DA058236-01",
+        "project-number": "1UM1DA058236",
         "url": "https://reporter.nih.gov/project-details/10662878",
         "location": "New York City",
         "include_in_table": true
@@ -96,7 +96,7 @@
     {
         "x": 487,
         "y": 460,
-        "pis": ["Gibbs, Richard", "Chen, Rui", "Doddapaneni, Harscha V"],
+        "pis": ["Gibbs, Richard", "Doddapaneni, HarshaVardhan"],
         "institution": "Baylor College of Medicine",
         "code": "BCM GCC",
         "center-type": "Genome Characterization Center",
@@ -104,7 +104,7 @@
         "marker-color": "orange",
         "marker-color-hex": "#ff7f00",
         "project": "Comprehensive Somatic Variant Characterization at the HGSC",
-        "project-number": "1UM1DA058229-01",
+        "project-number": "1UM1DA058229",
         "url": "https://reporter.nih.gov/project-details/10662645",
         "location": "Houston",
         "include_in_table": true
@@ -112,7 +112,7 @@
     {
         "x": 561,
         "y": 250,
-        "pis": ["Wang, Ting", "Fulton, Robert Scott", "Shen, Hui"],
+        "pis": ["Wang, Ting", "Fulton, Robert S", "Shen, Hui"],
         "institution": "Washington University",
         "code": "WASHU GCC",
         "table_institution_name": "Washington University at St. Louis and Van Andel Institute",
@@ -121,7 +121,7 @@
         "marker-color": "orange",
         "marker-color-hex": "#ff7f00",
         "project": "WashU-VAI Somatic Mosaicism across Human Tissues (SMaHT) Program Genome Characterization Center",
-        "project-number": "1UM1DA058219-01",
+        "project-number": "1UM1DA058219",
         "url": "https://reporter.nih.gov/project-details/10662065",
         "location": "St. Louis",
         "include_in_table": true
@@ -129,14 +129,14 @@
     {
         "x": 645,
         "y": 156,
-        "pis": ["Wang, Ting", "Fulton, Robert Scott", "Shen, Hui"],
+        "pis": ["Wang, Ting", "Fulton, Robert S", "Shen, Hui"],
         "institution": "Van Andel Institute",
         "center-type": "Genome Characterization Center",
         "center-type-short": "GCC",
         "marker-color": "orange",
         "marker-color-hex": "#ff7f00",
         "project": "WashU-VAI Somatic Mosaicism across Human Tissues (SMaHT) Program Genome Characterization Center",
-        "project-number": "1UM1DA058219-01",
+        "project-number": "1UM1DA058219",
         "url": "https://reporter.nih.gov/project-details/10662065",
         "include_in_table": false
     },
@@ -151,14 +151,14 @@
         "marker-color": "green",
         "marker-color-hex": "#4daf4a",
         "project": "Hybrid approach for comprehensive mutation detection in a cell",
-        "project-number": "1UG3NS132128-01",
+        "project-number": "1UG3NS132128",
         "url": "https://reporter.nih.gov/project-details/10662613",
         "include_in_table": true
     },
     {
         "x": 910,
         "y": 90,
-        "pis": ["Burns, Kathleen H", "Lee, Eunjung Alice"],
+        "pis": ["Burns, Kathleen H", "Bernstein, Bradley", "Lee, Eunjung Alice"],
         "institution": "Dana-Farber Cancer Institute",
         "code": "DFCI TTD",
         "center-type": "Technology and Tool Development",
@@ -166,7 +166,7 @@
         "marker-color": "green",
         "marker-color-hex": "#4daf4a",
         "project": "Single molecule detection of L1 insertions and intermediates",
-        "project-number": "1UG3NS132127-01",
+        "project-number": "1UG3NS132127",
         "url": "https://reporter.nih.gov/project-details/10662586",
         "location": "Boston",
         "include_in_table": true
@@ -182,7 +182,7 @@
         "marker-color": "green",
         "marker-color-hex": "#4daf4a",
         "project": "A platform for scalable spatial somatic variant profiling",
-        "project-number": "1UG3NS132135-01",
+        "project-number": "1UG3NS132135",
         "url": "https://reporter.nih.gov/project-details/10662761",
         "location": "Boston",
         "include_in_table": true
@@ -198,7 +198,7 @@
         "marker-color": "green",
         "marker-color-hex": "#4daf4a",
         "project": "Detection and Characterization of somatic mutations in human tissue utilizing duplex-consensus sequencing",
-        "project-number": "1UG3NS132144-01",
+        "project-number": "1UG3NS132144",
         "url": "https://reporter.nih.gov/project-details/10662935",
         "location": "Boston",
         "include_in_table": true
@@ -214,7 +214,7 @@
         "marker-color": "green",
         "marker-color-hex": "#4daf4a",
         "project": "Ultra-high fidelity single-molecule profiling of mosaic double- and single-strand DNA mutations and damage",
-        "project-number": "1UG3NS132024-01",
+        "project-number": "1UG3NS132024",
         "url": "https://reporter.nih.gov/project-details/10657882",
         "location": "New York City",
         "include_in_table": true
@@ -230,7 +230,7 @@
         "marker-color": "green",
         "marker-color-hex": "#4daf4a",
         "project": "varCUT&Tag: a method for simultaneous identification and characterization of sequence variants in regulatory elements and genes",
-        "project-number": "1UG3NS132136-01",
+        "project-number": "1UG3NS132136",
         "url": "https://reporter.nih.gov/project-details/10662799",
         "location": "Worcester",
         "include_in_table": true
@@ -247,7 +247,7 @@
         "marker-color-hex": "#4daf4a",
         "project": "Simultaneous mapping of somatic mosaicism and kb-resolution 3D genome in single cells.",
         "url": "https://reporter.nih.gov/project-details/10660575",
-        "project-number": "1UG3NS132061-01",
+        "project-number": "1UG3NS132061",
         "include_in_table": true
     },
     {
@@ -261,7 +261,7 @@
         "marker-color": "green",
         "marker-color-hex": "#4daf4a",
         "project": "Single-cell multi-omics to link clonal mosaicism (CM) genotypes with chromatin, epigenomic, transcriptomic and protein phenotypes",
-        "project-number": "1UG3NS132139-01",
+        "project-number": "1UG3NS132139",
         "url": "https://reporter.nih.gov/project-details/10662879",
         "location": "New York City",
         "include_in_table": true
@@ -277,14 +277,14 @@
         "marker-color": "green",
         "marker-color-hex": "#4daf4a",
         "project": "A reference-free computational algorithm for comprehensive somatic mosaic mutation detection",
-        "project-number": "1UG3NS132134-01",
+        "project-number": "1UG3NS132134",
         "url": "https://reporter.nih.gov/project-details/10662755",
         "include_in_table": true
     },
     {
         "x": 682,
         "y": 175,
-        "pis": ["Mills, Ryan E", "Boyle, Alan P", "McConnell, Michael J"],
+        "pis": ["Mills, Ryan E", "Boyle, Alan P"],
         "institution": "University of Michigan at Ann Arbour",
         "code": "UMICH TTD",
         "center-type": "Technology and Tool Development",
@@ -292,7 +292,7 @@
         "marker-color": "green",
         "marker-color-hex": "#4daf4a",
         "project": "Molecular and Computational Tools for Identifying Somatic Mosaicism in Human Tissues",
-        "project-number": "1UG3NS132084-01",
+        "project-number": "1UG3NS132084",
         "url": "https://reporter.nih.gov/project-details/10661147",
         "title_position": {
             "x": 680,
@@ -311,7 +311,7 @@
         "marker-color": "green",
         "marker-color-hex": "#4daf4a",
         "project": "Identification of somatic/ mosaic SV and transposon activity and their crosstalk to DNA epigenetic Modifications",
-        "project-number": "1UG3NS132105-01",
+        "project-number": "1UG3NS132105",
         "url": "https://reporter.nih.gov/project-details/10662143",
         "location": "Houston",
         "include_in_table": true
@@ -327,7 +327,7 @@
         "marker-color": "green",
         "marker-color-hex": "#4daf4a",
         "project": "Establishing and benchmarking advanced methods to comprehensively characterize somatic genome variation in single human cells",
-        "project-number": "1UG3NS132146-01",
+        "project-number": "1UG3NS132146",
         "url": "https://reporter.nih.gov/project-details/10662975",
         "include_in_table": true
     },
@@ -342,7 +342,7 @@
         "marker-color": "green",
         "marker-color-hex": "#4daf4a",
         "project": "Development of an efficient high throughput technique for the identification of high-impact non-coding somatic variants across multiple tissue types",
-        "project-number": "1UG3NS132138-01",
+        "project-number": "1UG3NS132138",
         "url": "https://reporter.nih.gov/project-details/10662860",
         "location": "Boston",
         "include_in_table": true
@@ -358,7 +358,7 @@
         "marker-color": "green",
         "marker-color-hex": "#4daf4a",
         "project": "Develop accurate high-coverage and high-throughput single-cell Duplex-seq chemistry and multi-omics platforms for simultaneous profiling of somatic mutation and the transcriptome in single human cells",
-        "project-number": "1UG3NS132132-01",
+        "project-number": "1UG3NS132132",
         "url": "https://reporter.nih.gov/project-details/10662693",
         "location": "Houston",
         "include_in_table": true

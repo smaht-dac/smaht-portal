@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import * as d3 from 'd3';
 import { OverlayTrigger } from 'react-bootstrap';
 
-// --- Theme ---
+// default theme
 const THEME = {
     panel: { radius: 14, stroke: '#A3C4ED', fill: '#FFFFFF' },
     grid: '#FFFFFF',
@@ -15,6 +15,11 @@ const THEME = {
         female: '#B79AEF',
         hardy: '#56A9F5',
         ethnicity: '#14B3BB'
+    },
+    hoverStroke: {
+        male: '#17379D',
+        female: '#5852C2',
+        hardy: '#1672C7'
     }
 };
 
@@ -89,6 +94,54 @@ function useParentWidth(ref) {
 }
 
 const TITLE_BAND = 44;   // vertical space reserved for title
+
+/**
+ * Chart Title component with optional popover
+ * @param {object} props - props object containing title and popover
+ * @param {string} props.title - title of the chart
+ * @param {JSX.Element} props.popover - popover component to be rendered
+ * @returns {JSX.Element} Chart Title component
+ * 
+ * Note: Popover is manually triggered to support popover interaction
+ */
+const ChartTitle = ({ title = '', popover = null }) => {
+    const [showPopover, setShowPopover] = useState(false);
+
+    const handleShowPopover = (show) => {
+        setShowPopover(show);
+    };
+
+    return (
+        <div className="chart-title-container">
+            <h3>
+                {title}
+                {popover && (
+                    <OverlayTrigger
+                        show={showPopover}
+                        flip
+                        placement="auto"
+                        rootClose
+                        rootCloseEvent="click"
+                        overlay={
+                            // Allow for popover to be a function or a JSX element
+                            typeof popover === 'function'
+                                ? popover(handleShowPopover)
+                                : popover
+                        }
+                    >
+                        <button
+                            onMouseEnter={() => setShowPopover(true)}
+                            onMouseLeave={() => setShowPopover(false)}
+                            type="button" className="info-tooltip" aria-label="More info"
+                        >
+                            <i className="icon icon-info-circle fas" />
+                        </button>
+                    </OverlayTrigger>
+                )}
+            </h3>
+        </div>
+    )
+};
 
 const DonorCohortViewChart = ({
     title = '',
@@ -187,6 +240,7 @@ const DonorCohortViewChart = ({
 
         let _isPinned = false;
         let _pinnedData = null;
+        let _pinnedSelection = null;
 
         /**
             * Build tooltip card HTML matching the provided popover structure.
@@ -329,8 +383,19 @@ const DonorCohortViewChart = ({
                 unpinTooltip();
                 return;
             }
+            if (_pinnedSelection) {
+                d3.select(_pinnedSelection).attr('stroke', 'none');
+                _pinnedSelection = null;
+            }
             _isPinned = true;
             _pinnedData = d;
+            _pinnedSelection = e.currentTarget;
+            const strokeColor = barStackType === 'primary'
+                ? THEME.hoverStroke.male
+                : barStackType === 'secondary'
+                    ? THEME.hoverStroke.female
+                    : THEME.hoverStroke.hardy;
+            insetStroke(d3.select(_pinnedSelection), strokeColor);
 
             const left = e.pageX + 12;
             const top = e.pageY - 12;
@@ -359,6 +424,10 @@ const DonorCohortViewChart = ({
         // helper to unpin & hide (reuse the same logic everywhere)
         function unpinTooltip() {
             if (!_isPinned) return;
+            if (_pinnedSelection) {
+                clearStroke(d3.select(_pinnedSelection));
+                _pinnedSelection = null;
+            }
             _isPinned = false;
             _pinnedData = null;
             tooltipSel.classed('is-pinned', false).style('opacity', 0);
@@ -552,6 +621,54 @@ const DonorCohortViewChart = ({
             .nice()
             .range([height, 0]);
 
+        const hoverStrokeWidth = 3;
+        const baseDimMap = new WeakMap();
+
+        const baseDims = {
+            female: (d) => ({
+                x: x(d.group),
+                y: y(d.value2 || 0),
+                width: x.bandwidth(),
+                height: y(0) - y(d.value2 || 0)
+            }),
+            male: (d) => ({
+                x: x(d.group),
+                y: y((d.value1 || 0) + (d.value2 || 0)),
+                width: x.bandwidth(),
+                height: y(0) - y(d.value1 || 0)
+            }),
+            single: (d) => ({
+                x: x(d.group),
+                y: y(d.value1 || 0),
+                width: x.bandwidth(),
+                height: y(0) - y(d.value1 || 0)
+            })
+        };
+
+        const insetStroke = (selection, color) => {
+            const dims = baseDimMap.get(selection.node());
+            if (!dims) return;
+            selection
+                .attr('stroke', color)
+                .attr('stroke-width', hoverStrokeWidth)
+                .attr('x', dims.x + hoverStrokeWidth / 2)
+                .attr('y', dims.y + hoverStrokeWidth / 2)
+                .attr('width', Math.max(0, dims.width - hoverStrokeWidth))
+                .attr('height', Math.max(0, dims.height - hoverStrokeWidth));
+        };
+
+        const clearStroke = (selection) => {
+            const dims = baseDimMap.get(selection.node());
+            if (!dims) return;
+            selection
+                .attr('stroke', 'none')
+                .attr('stroke-width', null)
+                .attr('x', dims.x)
+                .attr('y', dims.y)
+                .attr('width', dims.width)
+                .attr('height', dims.height);
+        };
+
         // --- Vertical GRID (keep Y-axis ticks; remove only top gridline) ---
         const intTicks = (max) => {
             if (max <= 10) return d3.range(0, max + 1, 1);
@@ -597,6 +714,8 @@ const DonorCohortViewChart = ({
         if (chartType === 'stacked') {
             const maleColor = topStackColor || THEME.colors.male;
             const femaleColor = bottomStackColor || THEME.colors.female;
+            const maleHoverStroke = THEME.hoverStroke.male;
+            const femaleHoverStroke = THEME.hoverStroke.female;
 
             g.selectAll('.bar-female')
                 .data(data).enter().append('rect')
@@ -606,9 +725,18 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', femaleColor)
                 .attr('stroke', 'none')
-                .on('mouseover', (e, d) => showTip(e, d, 'secondary'))
+                .each(function (d) { baseDimMap.set(this, baseDims.female(d)); })
+                .on('mouseover', (e, d) => {
+                    insetStroke(d3.select(e.currentTarget), femaleHoverStroke);
+                    showTip(e, d, 'secondary');
+                })
                 .on('mousemove', moveTip)
-                .on('mouseout', hideTip)
+                .on('mouseout', function () {
+                    if (_pinnedSelection !== this) {
+                        clearStroke(d3.select(this));
+                    }
+                    hideTip();
+                })
                 .on('click', (e,d) => pinTip(e, d, 'secondary'));
 
             g.selectAll('.bar-male')
@@ -619,9 +747,18 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', maleColor)
                 .attr('stroke', 'none')
-                .on('mouseover', (e, d) => showTip(e, d, 'primary'))
+                .each(function (d) { baseDimMap.set(this, baseDims.male(d)); })
+                .on('mouseover', (e, d) => {
+                    insetStroke(d3.select(e.currentTarget), maleHoverStroke);
+                    showTip(e, d, 'primary');
+                })
                 .on('mousemove', moveTip)
-                .on('mouseout', hideTip)
+                .on('mouseout', function () {
+                    if (_pinnedSelection !== this) {
+                        clearStroke(d3.select(this));
+                    }
+                    hideTip();
+                })
                 .on('click', (e,d) => pinTip(e, d, 'primary'));
 
             if (showLabelOnBar) {
@@ -660,6 +797,7 @@ const DonorCohortViewChart = ({
         } else {
             // Single-series (Hardy)
             const color = topStackColor || THEME.colors.hardy;
+            const hardyHoverStroke = THEME.hoverStroke.hardy;
 
             g.selectAll('.bar-single')
                 .data(data).enter().append('rect')
@@ -669,9 +807,20 @@ const DonorCohortViewChart = ({
                 .attr('width', x.bandwidth())
                 .attr('fill', color)
                 .attr('stroke', 'none')
-                .on('mouseover', (e, d) => { if ((d.value1 || 0) > 0) { showTip(e, d, null); } })
+                .each(function (d) { baseDimMap.set(this, baseDims.single(d)); })
+                .on('mouseover', (e, d) => {
+                    if ((d.value1 || 0) > 0) {
+                        insetStroke(d3.select(e.currentTarget), hardyHoverStroke);
+                        showTip(e, d, null);
+                    }
+                })
                 .on('mousemove', moveTip)
-                .on('mouseout', hideTip)
+                .on('mouseout', function () {
+                    if (_pinnedSelection !== this) {
+                        clearStroke(d3.select(this));
+                    }
+                    hideTip();
+                })
                 .on('click', (e, d) => { if ((d.value1 || 0) > 0) { pinTip(e, d, null); } });
 
             g.selectAll('.label-single')
@@ -699,7 +848,7 @@ const DonorCohortViewChart = ({
         if (showXAxisTitle && xAxisTitle) {
             g.append('text')
                 .attr('x', (width / 2) - 14)
-                .attr('y', height + 53)
+                .attr('y', height + 48)
                 .attr('text-anchor', 'middle')
                 .style('font-size', 12)
                 .style('fill', THEME.axis.tick)
@@ -724,25 +873,7 @@ const DonorCohortViewChart = ({
             <svg ref={svgRef} />
 
             {/* Title + info icon (centered) */}
-            <div className="chart-title-container">
-                <h3>
-                    {title}
-                    {popover && (
-                        <OverlayTrigger
-                            // trigger="click"
-                            flip
-                            placement="auto"
-                            rootClose
-                            rootCloseEvent="click"
-                            overlay={popover}
-                        >
-                            <button type="button" className="info-tooltip" aria-label="More info">
-                                <i className="icon icon-info-circle fas" />
-                            </button>
-                        </OverlayTrigger>
-                    )}
-                </h3>
-            </div>
+            <ChartTitle title={title} popover={popover} />
 
             {/* Loading overlay */}
             {loading && (

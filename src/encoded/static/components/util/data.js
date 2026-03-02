@@ -51,4 +51,60 @@ for (const [category, { values }] of Object.entries(germLayerTissueMapping)) {
     }
 }
 
-export { germLayerTissueMapping, tissueToCategory };
+/**
+ * Parse a tissue facet term into a short code (if present).
+ * E.g. 3AK - Brain, Frontal Lobe =>  { code: '3AK', tissue: 'Brain, Frontal Lobe', hasCode: true }
+ * E.g. 3Y - Ovary, L =>  { code: '3Y', tissue: 'Ovary, L', hasCode: true }
+ * E.g. 3I - Liver =>  { code: '3I', tissue: 'Liver', hasCode: true }
+ */
+const parseTissueTermForSort = (termKey) => {
+    const raw = String(termKey || '').trim();
+    if (!raw) {
+        return { tissue: '', code: '', hasCode: false };
+    }
+    const parts = raw.split(' - ');
+    if (parts.length >= 2) {
+        const code = parts.shift().trim();
+        const tissuePart = parts.join(' - ').trim();
+        const tissue = tissuePart.split(',')[0].trim();
+        return { tissue, code, hasCode: code.length > 0 };
+    }
+    const tissue = raw.split(',')[0].trim();
+    return { tissue, code: '', hasCode: false };
+};
+
+/**
+ * Currently, we only use tissue code for the comparison/sorting of tissue facet terms.
+ * @param {*} a - First tissue facet term to compare.
+ * @param {*} b - Second tissue facet term to compare.
+ * @returns {number} Comparison result for sorting.
+ */
+const compareTissueFacetTerms = (a, b) => {
+    const aKey = a?.key || a?.props?.term?.key || '';
+    const bKey = b?.key || b?.props?.term?.key || '';
+    if (!aKey && !bKey) return 0;
+    if (!aKey) return 1;
+    if (!bKey) return -1;
+
+    const aParsed = parseTissueTermForSort(aKey);
+    const bParsed = parseTissueTermForSort(bKey);
+    if (aParsed.hasCode !== bParsed.hasCode) {
+        return aParsed.hasCode ? -1 : 1;
+    }
+    if (aParsed.hasCode && bParsed.hasCode) {
+        const codeCmp = aParsed.code.localeCompare(bParsed.code, undefined, {
+            numeric: true,
+            sensitivity: 'base',
+        });
+        if (codeCmp !== 0) {
+            return codeCmp;
+        }
+    }
+    return String(aKey).localeCompare(String(bKey));
+};
+
+export {
+    germLayerTissueMapping,
+    tissueToCategory,
+    compareTissueFacetTerms,
+};

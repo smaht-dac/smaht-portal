@@ -622,7 +622,6 @@ def test_ontology_term(
     return post_item_and_return_location(testapp, item, 'ontology_term')
 
 
-
 @pytest.fixture
 def test_cell_line(
     testapp,
@@ -901,7 +900,8 @@ def donor_specific_assembly(
         "derived_from": [test_derived_from_file["uuid"]],
         "submitted_id": "TEST_DONOR-SPECIFIC-ASSEMBLY_HELA",
         "title": "Hela_DSA",
-        "genome_size": 3100000000
+        "genome_size": 3100000000,
+        "version": "1.0.0"
     }
     return post_item_and_return_location(testapp, item, 'donor_specific_assembly')
 

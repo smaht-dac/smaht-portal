@@ -13,7 +13,7 @@ import { useUserDownloadAccess } from '../../../util/hooks';
 
 export const BenchmarkingUI = (props) => {
     const [showNav, setShowNav] = useState(true);
-    const { children, href, session } = props;
+    const { children, href } = props;
 
     // Note: each child needs to be passed schemas, session, facets, href, and context
     return (
@@ -70,8 +70,6 @@ export const IPSCFibroblastData = ({
     context,
 }) => {
     const iPSCTabMapArray = BenchmarkingDataMap.iPScFibroblasts?.tabMapArray;
-    const userDownloadAccess = useUserDownloadAccess(session);
-    const hasRestrictedAccess = userDownloadAccess?.['restricted'] || false;
 
     return (
         <BenchmarkingLayout
@@ -91,8 +89,6 @@ export const IPSCFibroblastData = ({
 
 export const Donor1Data = ({ schemas, session, facets, href, context }) => {
     const donor1TabMapArray = BenchmarkingDataMap.Donor1?.tabMapArray;
-    const userDownloadAccess = useUserDownloadAccess(session);
-    const hasRestrictedAccess = userDownloadAccess?.['restricted'] || false;
 
     return (
         <BenchmarkingLayout
@@ -111,8 +107,6 @@ export const Donor1Data = ({ schemas, session, facets, href, context }) => {
 
 export const Donor2Data = ({ schemas, session, facets, href, context }) => {
     const donor2TabMapArray = BenchmarkingDataMap.Donor2?.tabMapArray;
-    const userDownloadAccess = useUserDownloadAccess(session);
-    const hasRestrictedAccess = userDownloadAccess?.['restricted'] || false;
 
     return (
         <BenchmarkingLayout
@@ -131,8 +125,6 @@ export const Donor2Data = ({ schemas, session, facets, href, context }) => {
 
 export const Donor3Data = ({ schemas, session, facets, href, context }) => {
     const donor3TabMapArray = BenchmarkingDataMap.Donor3?.tabMapArray;
-    const userDownloadAccess = useUserDownloadAccess(session);
-    const hasRestrictedAccess = userDownloadAccess?.['restricted'] || false;
 
     return (
         <BenchmarkingLayout
@@ -151,8 +143,6 @@ export const Donor3Data = ({ schemas, session, facets, href, context }) => {
 
 export const Donor4Data = ({ schemas, session, facets, href, context }) => {
     const donor4TabMapArray = BenchmarkingDataMap.Donor4?.tabMapArray;
-    const userDownloadAccess = useUserDownloadAccess(session);
-    const hasRestrictedAccess = userDownloadAccess?.['restricted'] || false;
 
     return (
         <BenchmarkingLayout
@@ -161,9 +151,7 @@ export const Donor4Data = ({ schemas, session, facets, href, context }) => {
             description={BenchmarkingDataMap.Donor4?.description}>
             <HashBasedTabController
                 {...{ schemas, session, facets, href, context }}
-                deniedAccessPopoverType={
-                    hasRestrictedAccess ? null : 'protected'
-                }
+                deniedAccessPopoverType={'protected'}
                 controllerId="Donor4-Tab-Renderer"
                 tabMapArray={donor4TabMapArray}
             />

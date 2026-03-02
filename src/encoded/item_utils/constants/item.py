@@ -1,7 +1,7 @@
 STATUS = "status"
 STATUS_OBSOLETE = "obsolete"
-STATUS_RELEASED = "released"  # Status is being removed in the future
-STATUS_PUBLIC = "public"  # Status is being removed in the future - use OPEN instead
+STATUS_RELEASED = "released" # Status is being removed in the future
+STATUS_PUBLIC = "public" # Status is being removed in the future - use OPEN instead
 STATUS_OPEN = "open"
 STATUS_OPEN_EARLY = "open-early"
 STATUS_OPEN_NETWORK = "open-network"

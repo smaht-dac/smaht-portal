@@ -35,6 +35,7 @@ Optional Arguments
     --donors, -d
         A list of donor accession IDs or UUIDs (space-separated).
         Can be combined with --search, or omitted to use the default search.
+        Either Donor or ProtectedDonor accessions/UUIDs can be provided.
 
     NOTE: If both --search and --donors are provided, donors from both
     sources are included. If only --donors is provided, only those donors are
@@ -89,14 +90,16 @@ Examples
     # Generate a public manifest for devtest from 2 specific donors using IDs
     create_bulk_donor_manifest.py -e devtest -o donors.tsv -p -d SMADOZMJG4G1 SMADOQLTKYL4
 
-    # Generate a manifest that includes donors with status=restricted
+    # Generate a manifest that includes donors with status=protected
     create_bulk_donor_manifest.py --env data --output donors.tsv --restricted
 
     # Generate a manifest from a specific search query
     create_bulk_donor_manifest.py --env data --output donors.tsv --search "search/?type=ProtectedDonor&study=Benchmarking"
+
     WARNING: if creating a protected manifest from a specific search query searching for ProtectedDonor is recommended
     to avoid exceptions caused by Donors not linked to ProtectedDonor items.
 """
+
 from typing import Dict, List, Any, Optional
 import pandas as pd
 import argparse
@@ -104,9 +107,7 @@ import structlog
 from pathlib import Path
 
 from encoded.commands.utils import get_auth_key
-from encoded.item_utils.utils import (
-    RequestHandler
-)
+from encoded.item_utils.utils import RequestHandler
 from encoded.item_utils import (
     item as item_utils,
     donor as donor_utils,
@@ -131,7 +132,7 @@ PROTECTED_ITEM_TYPES = [  # Top level item must be first - i.e. ProtectedDonor
     "FamilyHistory",
     "MedicalTreatment",
     "Diagnosis",
-    "Exposure"
+    "Exposure",
 ]
 
 IGNORED_PROPERTIES = [
@@ -179,7 +180,9 @@ def create_bulk_donor_manifest(
     log.info(f"Found {len(donors)} Benchmarking and Production donors to process")
     schemas = ff_utils.get_schemas(key=auth_key)
     log.info("Generating bulk donor manifest")
-    bulk_donor_manifest = get_bulk_donor_manifest(donors, schemas, request_handler, public)
+    bulk_donor_manifest = get_bulk_donor_manifest(
+        donors, schemas, request_handler, public
+    )
     log.info(f"Writing out bulk donor manifest to {output}")
     write_bulk_donor_manifest(bulk_donor_manifest, output)
 
@@ -222,7 +225,11 @@ def get_items_from_search_query(
 
 def filter_donors(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Get Benchmarking and Production donors from given items."""
-    return [item for item in items if donor_utils.is_abstract_donor(item) and donor_utils.get_study(item)]
+    return [
+        item
+        for item in items
+        if donor_utils.is_abstract_donor(item) and donor_utils.get_study(item)
+    ]
 
 
 def get_donors_from_identifiers(
@@ -233,31 +240,73 @@ def get_donors_from_identifiers(
     return filter_donors(items)
 
 
+def map_public_accessions_to_protected_donors(donors, request_handler):
+    """Return a dict mapping ProtectedDonor external_id -> public Donor accession."""
+    external_ids = [item_utils.get_external_id(d) for d in donors]
+    # Search for all Donor items with matching external_ids
+    query = "search/?type=Donor"
+    for ext_id in external_ids:
+        query += f"&external_id={ext_id}"
+    results = ff_utils.search_metadata(query, key=request_handler.auth_key)
+    # quick check that the number of results matches number of donors/external_ids
+    assert len(results) == len(donors), f"external_id Donor query result mismatch: Donors: {len(donors)} != Results{len(results)}"
+
+    # Build map external_id -> public accession
+    mapping = {}
+    for donor in results:
+        ext_id = item_utils.get_external_id(donor)
+        mapping[ext_id] = item_utils.get_accession(donor)
+    return mapping
+
+
 def get_bulk_donor_manifest(
-        donors: List[Dict[str, Any]],
-        schemas: Dict[str, Any],
-        request_handler: RequestHandler,
-        public: bool = False
+    donors: List[Dict[str, Any]],
+    schemas: Dict[str, Any],
+    request_handler: RequestHandler,
+    public: bool = False,
 ) -> pd.DataFrame:
     """Generate dataframe of bulk donor manifest from list of donors."""
     kept_properties = get_kept_properties(schemas, public)
-    donor_manifest = pd.DataFrame(
-        columns=modify_properties(kept_properties))
+    donor_manifest = pd.DataFrame(columns=modify_properties(kept_properties))
     external_ids = [item_utils.get_external_id(donor) for donor in donors]
     medical_histories = get_medical_histories(external_ids, request_handler)
+
+    public_accession_map = {}
+    if not public:
+        # map external_id → public Donor accession if we’re in protected mode
+        public_accession_map = map_public_accessions_to_protected_donors(
+            donors, request_handler
+        )
+        # Add an extra column to manifest for it
+        donor_manifest["Donor.accession"] = ""
+
     for idx, donor in enumerate(donors):
         medical_history = medical_histories[idx]
         donor_manifest = generate_manifest_row(
-            donor_manifest, idx, donor, medical_history, kept_properties, request_handler, public
+            donor_manifest,
+            idx,
+            donor,
+            medical_history,
+            kept_properties,
+            request_handler,
+            public,
         )
+
+        # Add the public accession (if applicable)
+        if not public:
+            ext_id = item_utils.get_external_id(donor)
+            donor_manifest.at[idx, "Donor.accession"] = public_accession_map.get(
+                ext_id, "NA"
+            )
     return donor_manifest
 
 
 def modify_properties(properties: List[str]) -> List[str]:
     """Modify property names based on CHANGED_COLUMNS mapping."""
     modified_properties = [
-        CHANGED_COLUMNS[prop] if prop in CHANGED_COLUMNS.keys()
-        else prop for prop in properties]
+        CHANGED_COLUMNS[prop] if prop in CHANGED_COLUMNS.keys() else prop
+        for prop in properties
+    ]
     return modified_properties
 
 
@@ -273,18 +322,17 @@ def get_kept_properties(schemas: Dict[str, Any], public: bool = False) -> List[s
             kept_properties += [f"{item_type}.accession"]
         kept_properties += [
             f"{item_type}.{prop}"
-            for prop in schemas[item_type]['properties'].keys()
+            for prop in schemas[item_type]["properties"].keys()
             if prop not in IGNORED_PROPERTIES
-            and 'calculatedProperty' not in schemas[item_type]['properties'][prop]
-            and 'linkTo' not in schemas[item_type]['properties'][prop]
+            and "calculatedProperty" not in schemas[item_type]["properties"][prop]
+            and "linkTo" not in schemas[item_type]["properties"][prop]
         ]
         all_kept_properties += kept_properties
     return all_kept_properties
 
 
 def get_medical_histories(
-        external_ids: List[str],
-        request_handler: RequestHandler
+    external_ids: List[str], request_handler: RequestHandler
 ) -> List[Dict[str, Any]]:
     """Get medical history list from protected donors."""
     search_query = "search/?type=MedicalHistory&frame=embedded"
@@ -299,24 +347,23 @@ def order_items_by_donor(items: List[Dict[str, Any]], donor_order: List[str]):
     new_items = []
     for id in donor_order:
         for item in items:
-            if item_utils.get_display_title(
-                mh_utils.get_donor(item)
-            ) == id:
+            if item_utils.get_display_title(mh_utils.get_donor(item)) == id:
                 new_items.append(item)
     return new_items
 
 
 def generate_manifest_row(
-        donor_manifest: pd.DataFrame,
-        idx: int,
-        donor: str,
-        medical_history: Dict[str, Any],
-        kept_properties: List[str],
-        request_handler: RequestHandler,
-        public: bool = False
+    donor_manifest: pd.DataFrame,
+    idx: int,
+    donor: str,
+    medical_history: Dict[str, Any],
+    kept_properties: List[str],
+    request_handler: RequestHandler,
+    public: bool = False,
 ):
     """Generate row for manifest."""
     donor_type = "ProtectedDonor"
+    # have to do some gymnastics to add the public donor accession to protected donor manifest
     if public:
         donor_type = "Donor"
     donor_external_id = item_utils.get_external_id(donor)
@@ -332,10 +379,19 @@ def generate_manifest_row(
         "Diagnosis": f"search/?type=Diagnosis&medical_history={mh_submitted_id}&frame=raw",
         "MedicalTreatment": f"search/?type=MedicalTreatment&medical_history={mh_submitted_id}&frame=raw",
     }
-    donor_manifest = add_row_from_item(donor_manifest, idx, donor_type, [donor], kept_properties)
-    donor_manifest = add_row_from_item(donor_manifest, idx, "MedicalHistory", [medical_history], kept_properties)
-    donor_manifest = add_row_from_search(donor_manifest, idx, donor_search_dict, kept_properties, request_handler)
-    donor_manifest = add_row_from_search(donor_manifest, idx, mh_search_dict, kept_properties, request_handler)
+
+    donor_manifest = add_row_from_item(
+        donor_manifest, idx, donor_type, [donor], kept_properties
+    )
+    donor_manifest = add_row_from_item(
+        donor_manifest, idx, "MedicalHistory", [medical_history], kept_properties
+    )
+    donor_manifest = add_row_from_search(
+        donor_manifest, idx, donor_search_dict, kept_properties, request_handler
+    )
+    donor_manifest = add_row_from_search(
+        donor_manifest, idx, mh_search_dict, kept_properties, request_handler
+    )
     return donor_manifest
 
 
@@ -344,10 +400,12 @@ def add_row_from_item(
     idx: int,
     item_type: str,
     items: List[Dict[str, Any]],
-    kept_properties: List[str]
+    kept_properties: List[str],
 ):
     """Add row to dataframe from item properties."""
-    return format_value_from_properties(donor_manifest, idx, item_type, kept_properties, items)
+    return format_value_from_properties(
+        donor_manifest, idx, item_type, kept_properties, items
+    )
 
 
 def add_row_from_search(
@@ -355,13 +413,15 @@ def add_row_from_search(
     idx: int,
     search_dict: Dict[str, Any],
     kept_properties: List[str],
-    request_handler: RequestHandler
+    request_handler: RequestHandler,
 ) -> pd.DataFrame:
     """Add row to dataframe from portal search."""
     tmp_dataframe = donor_manifest
     for item_type, search in search_dict.items():
         hits = ff_utils.search_metadata(search, key=request_handler.auth_key)
-        tmp_dataframe = format_value_from_properties(tmp_dataframe, idx, item_type, kept_properties, hits)
+        tmp_dataframe = format_value_from_properties(
+            tmp_dataframe, idx, item_type, kept_properties, hits
+        )
     return donor_manifest
 
 
@@ -373,7 +433,11 @@ def format_value_from_properties(
     results: Dict[str, Any],
 ):
     """Format and fill in dataframe columns from item properties."""
-    subcolumns = [column.split(".")[1] for column in kept_properties if column.split(".")[0] == item_type]
+    subcolumns = [
+        column.split(".")[1]
+        for column in kept_properties
+        if column.split(".")[0] == item_type
+    ]
     if len(results) > 1:  # multiple items returned from search
         for sub in subcolumns:
             col = f"{item_type}.{sub}"
@@ -416,12 +480,15 @@ def format_value_from_properties(
     return donor_manifest
 
 
-def write_bulk_donor_manifest(
-    donor_manifest: pd.DataFrame,
-    output: Path
-) -> None:
-    """Write out TSV containing the bulk donor manifest to output file."""
-    donor_manifest.to_csv(output, sep='\t', index=False)
+def write_bulk_donor_manifest(donor_manifest: pd.DataFrame, output: Path) -> None:
+    """Write out TSV containing the bulk donor manifest to output file.
+    and ensure that Donor.accession is the first column"""
+    # Move Donor.accession to the first position
+    cols = ["Donor.accession"] + [
+        c for c in donor_manifest.columns if c != "Donor.accession"
+    ]
+    donor_manifest = donor_manifest[cols]
+    donor_manifest.to_csv(output, sep="\t", index=False)
     log.info(f"Workbook written to: {output}")
 
 
@@ -437,18 +504,8 @@ def main() -> None:
         "-d",
         nargs="*",
     )
-    parser.add_argument(
-        "--env",
-        "-e",
-        help="Environment from keys file",
-        required=True
-    )
-    parser.add_argument(
-        "--output",
-        "-o",
-        help="Output file name",
-        required=True
-    )
+    parser.add_argument("--env", "-e", help="Environment from keys file", required=True)
+    parser.add_argument("--output", "-o", help="Output file name", required=True)
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--public",
@@ -462,7 +519,7 @@ def main() -> None:
         "-r",
         action="store_true",
         default=False,
-        help="Create restricted manifest (includes restricted donors) WARNING: Has no effect when --search or --donors are provided."
+        help="Create restricted manifest (includes protected donor metadata) WARNING: Has no effect when --search or --donors are provided.",
     )
     group.add_argument(
         "--open-network",
@@ -474,11 +531,12 @@ def main() -> None:
     auth_key = get_auth_key(args.env)
     # support providing both search and donors, but if only one is provided
     # use that preferentially and if neither use default search based on public or not
-    if ((args.restricted or args.open_network) and
-            (args.search or args.donors)):
-        log.warning("WARNING: when --search or --donors is provided protected metadata "
-                    "will be generated unless you pass --public."
-                    "The --restricted and --open-network flags have no effect")
+    if (args.restricted or args.open_network) and (args.search or args.donors):
+        log.warning(
+            "WARNING: when --search or --donors is provided protected metadata "
+            "will be generated unless you pass --public."
+            "The --restricted and --open-network flags have no effect"
+        )
     if args.donors:
         if not args.search:
             search_query = None

@@ -124,6 +124,39 @@ def assert_keys_conflict(response: Dict[str, Any]) -> None:
     assert response.get("detail", "").startswith("Keys conflict:")
 
 
+def assert_validation_error_as_expected(
+    response: Dict[str, Any],
+    is_unique: bool = True,
+    location: str = '',
+    name_start: str = '',
+    is_exact: bool = False
+) -> None:
+    """Ensure response indicates validation error of given type.
+    Useful for testing proper schema validation.
+    """
+    assert "ValidationFailure" in response.get("@type", [])
+    errors = response.get("errors", [])
+    if is_unique and len(errors) != 1:
+        raise AssertionError(
+            f"Expected exactly one validation error, found {len(errors)}."
+        )
+    for error in errors:
+        if location and error.get("location") == location:
+            if name_start:  # want to check name
+                err_name = error.get("name", "")
+                if is_exact and error.get("name") == name_start:
+                    return True
+                elif err_name.startswith(name_start):
+                    return True
+                else:
+                    continue
+            else:  # location is enough
+                return True
+    raise AssertionError(
+        f"Expected validation error not found in errors: {errors}"
+    )
+
+
 def get_functional_item_type_names(
     item_with_registry: Union[Registry, TestApp]
 ) -> List[str]:
@@ -486,6 +519,14 @@ def delete_field(
     return patch_item(test_app, patch_body or {}, resource_path, status=status)
 
 
+def get_items_from_search(test_app: TestApp, collection: str, add_on: str = "") -> Dict[str, Any]:
+    """Get workbook items for given collection via search
+        useful for debugging workbook tests."""
+    search_results = get_search(test_app, f"type={to_camel_case(collection)}{add_on}")
+    assert search_results, f"No {collection} found in search results"
+    return search_results
+
+
 def get_item_from_search(test_app: TestApp, collection: str, add_on: str = "") -> Dict[str, Any]:
     """Get workbook item for given collection via search."""
     search_results = get_search(test_app, f"type={to_camel_case(collection)}{add_on}")
@@ -508,6 +549,22 @@ def validate_schema(schema: Dict[str, Any], to_validate: Any) -> str:
         return str(e)
     else:
         return ""
+
+
+def fix_sample_submitted_ids_for_tests(
+    insert: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Fix sample submitted_ids in insert for tests."""
+    keyname = next((k for k in ("tissue_samples", "samples") if k in insert), None)
+    if keyname:
+        fixed_samples = []
+        for sample in insert[keyname]:
+            if sample.startswith("NDRITEST_"):
+                fixed_samples.append(sample.replace("NDRITEST_", "TEST_"))
+            else:
+                fixed_samples.append(sample)
+        insert[keyname] = fixed_samples
+    return insert
 
 
 exported(get_item)

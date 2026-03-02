@@ -130,9 +130,10 @@ const ProtectedDonorRedirectBanner = ({ href }) => {
     return href ? (
         <div className="callout data-available">
             <span className="callout-text">
-                <i className="icon icon-users fas"></i> Welcome to the SMaHT
-                Data Portal! Please <a href={href}>click here</a> to load
-                protected donor data.
+                <i className="icon icon-users fas"></i> You are currently
+                viewing limited donor information. If you have dbGaP- or
+                DUA-based access, <a href={href}>click here</a> to view full
+                donor information.
             </span>
         </div>
     ) : null;
@@ -143,7 +144,7 @@ const PublicDonorViewHeader = (props) => {
     const { context = {}, session, title = null } = props;
     const { notes_to_tsv } = context;
     const [showRedirectBanner, setShowRedirectBanner] = useState(false);
-    const userDownloadAccess = useUserDownloadAccess(session);
+    const { userDownloadAccess } = useUserDownloadAccess(session);
 
     useEffect(() => {
         if (
@@ -232,7 +233,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
         // load value from searchUrl if not provided
         setIsLoading(true);
         ajax.load(
-            `/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${context?.display_title}`,
+            `/search/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${context?.display_title}`,
             (resp) => {
                 setStatisticValues({
                     tissues: resp?.facets?.find(
@@ -305,7 +306,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                 <DataMatrix
                                     key="data-matrix-donor"
                                     query={{
-                                        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${context.display_title}&limit=all`,
+                                        url: `/data_matrix_aggregations/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${context.display_title}&limit=all`,
                                         columnAggFields: [
                                             'file_sets.libraries.assay.display_title',
                                             'sequencing.sequencer.platform',
@@ -313,14 +314,22 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                         rowAggFields: [
                                             'donors.display_title',
                                             'sample_summary.tissues',
+                                            'data_type',
+                                            'sample_summary.category',
                                         ],
                                     }}
+                                    resultTransformedPostProcessFuncKey="dsaChainFile"
+                                    browseFilteringTransformFuncKey="dsaChainFile"
                                     headerFor={null}
                                     defaultOpen={true}
                                     idLabel="donor"
                                     session={session}
                                     yAxisLabel="Tissue" // Only one donor, so y-axis is Tissue
-                                    baseBrowseFilesPath={study === 'Production' ? "/browse/" : "/search/"}
+                                    baseBrowseFilesPath={
+                                        study === 'Production'
+                                            ? '/browse/'
+                                            : '/search/'
+                                    }
                                 />
                             </div>
                         ) : (

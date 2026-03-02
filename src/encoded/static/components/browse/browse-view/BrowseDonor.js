@@ -9,7 +9,11 @@ import { Alerts } from '@hms-dbmi-bgm/shared-portal-components/es/components/ui/
 import { BrowseViewControllerWithSelections } from '../../static-pages/components/TableControllerWithSelections';
 import { BrowseViewAboveFacetListComponent } from './BrowseViewAboveFacetListComponent';
 import { BrowseViewAboveSearchTableControls } from './BrowseViewAboveSearchTableControls';
-import { BROWSE_STATUS_FILTERS, BROWSE_LINKS } from '../BrowseView';
+import {
+    BROWSE_STATUS_FILTERS,
+    BROWSE_LINKS,
+    NoResultsBrowseModal,
+} from '../BrowseView';
 import { columnExtensionMap as originalColExtMap } from '../columnExtensionMap';
 import { transformedFacets } from '../SearchView';
 import { CustomTableRowToggleOpenButton } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/table-commons/basicColumnExtensionMap';
@@ -79,7 +83,7 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
     const [tissueData, setTissueData] = useState(null);
 
     useEffect(() => {
-        const searchURL = `/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}`;
+        const searchURL = `/search/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}`;
 
         // Use cached search results if available from parent
         if (panelDetails?.searchCache) {
@@ -128,7 +132,7 @@ const TissueDetailPane = React.memo(function TissueDetailPane({
                                                     <li key={j}>
                                                         <span>
                                                             <a
-                                                                href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}&sample_summary.tissues=${tissue}`}
+                                                                href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}&sample_summary.tissues=${tissue}`}
                                                                 target="_blank"
                                                                 rel="noreferrer noopener">
                                                                 {tissue}
@@ -225,7 +229,7 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
     const [assayData, setAssayData] = useState(null);
 
     useEffect(() => {
-        const searchURL = `/search/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}`;
+        const searchURL = `/search/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}`;
 
         // Use cached search results if available from parent
         if (panelDetails?.searchCache) {
@@ -274,7 +278,7 @@ const AssayDetailPane = React.memo(function AssayDetailPane({
                                                     <li key={j}>
                                                         <span>
                                                             <a
-                                                                href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${itemDetails.display_title}&&file_sets.libraries.assay.display_title=${assay}`}
+                                                                href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${itemDetails.display_title}&&file_sets.libraries.assay.display_title=${assay}`}
                                                                 target="_blank"
                                                                 rel="noreferrer noopener">
                                                                 {assay}
@@ -600,7 +604,7 @@ export function createBrowseDonorColumnExtensionMap({
                     return fileCount ? (
                         <a
                             className="value text-center"
-                            href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&donors.display_title=${result?.display_title}`}>
+                            href={`/browse/?type=File&${BROWSE_STATUS_FILTERS}&dataset!=No+value&donors.display_title=${result?.display_title}`}>
                             {fileCount} File{fileCount > 1 ? 's' : ''}
                         </a>
                     ) : null;
@@ -799,7 +803,7 @@ const BrowseDonorSearchTable = (props) => {
         },
         // Provide a search for populating custom column(s)
         customColumnSearchHref: (result) =>
-            `/peek-metadata/?additional_facet=file_size&${BROWSE_STATUS_FILTERS}&type=File&donors.display_title=` +
+            `/peek-metadata/?additional_facet=file_size&${BROWSE_STATUS_FILTERS}&dataset!=No+value&type=File&donors.display_title=` +
             result?.display_title,
     };
 
@@ -855,12 +859,13 @@ const RedirectBanner = ({ href }) => {
     return href ? (
         <div className="callout data-available">
             <span className="callout-text">
-                <i className="icon icon-users fas"></i> Welcome to the SMaHT
-                Data Portal! Please{' '}
+                <i className="icon icon-users fas"></i> You are currently
+                viewing limited donor information. If you have dbGaP- or
+                DUA-based access,{' '}
                 <a href={href?.replace('type=Donor', 'type=ProtectedDonor')}>
                     click here
                 </a>{' '}
-                to load complete donor data.
+                to view full donor information.
             </span>
         </div>
     ) : null;
@@ -869,7 +874,8 @@ const RedirectBanner = ({ href }) => {
 // Browse Donor Body Component
 export const BrowseDonorBody = (props) => {
     const [showRedirectBanner, setShowRedirectBanner] = useState(false);
-    const { session, userDownloadAccess } = props;
+    const { context, session, href, userDownloadAccess, isAccessResolved } =
+        props;
 
     useEffect(() => {
         if (session && userDownloadAccess?.['protected']) {
@@ -885,6 +891,15 @@ export const BrowseDonorBody = (props) => {
             <BrowseViewControllerWithSelections {...props}>
                 <BrowseDonorSearchTable />
             </BrowseViewControllerWithSelections>
+            {context?.total === 0 && (
+                <NoResultsBrowseModal
+                    type="donor"
+                    context={context}
+                    href={href}
+                    userDownloadAccess={userDownloadAccess}
+                    isAccessResolved={isAccessResolved}
+                />
+            )}
         </>
     );
 };

@@ -1,5 +1,6 @@
 import functools
 from dataclasses import dataclass
+from botocore.exceptions import ClientError
 from typing import Any, Dict, List, Optional
 
 import pytest
@@ -22,13 +23,14 @@ from ..item_utils import (
     sequencing as sequencing_utils,
     software as software_utils,
     tissue as tissue_utils,
+    external_output_file as eof_utils
 )
 from ..item_utils.utils import (
     get_property_values_from_identifiers,
     get_unique_values,
     RequestHandler,
 )
-from ..types.file import CalcPropConstants
+from ..types.file import CalcPropConstants, File
 
 
 OUTPUT_FILE_FORMAT = "FASTQ"
@@ -106,6 +108,44 @@ def reference_file(
         'consortia': [test_consortium['uuid']],
     }
     res = testapp.post_json('/reference_file', item)
+    return res.json['@graph'][0]
+
+
+@pytest.fixture
+def public_reference_file(
+    testapp: TestApp, file_formats: Dict[str, dict], test_consortium: Dict[str, Any]
+) -> Dict[str, Any]:
+    """ Reference File for testing the open data interaction """
+    item = {
+        'file_format': file_formats.get('BAM').get('uuid'),
+        'md5sum': '00000000000000000000000000000000',
+        'content_md5sum': '00000000000000000000000000000000',
+        'filename': 'my.bam',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Unaligned Reads'],
+        'status': 'open',
+        'consortia': [test_consortium['uuid']],
+    }
+    res = testapp.post_json('/reference_file', item)
+    return res.json['@graph'][0]
+
+
+@pytest.fixture
+def protected_output_file(
+    testapp: TestApp, file_formats: Dict[str, dict], test_consortium: Dict[str, Any]
+) -> Dict[str, Any]:
+    """ Protected Output File for testing the open data interaction """
+    item = {
+        'file_format': file_formats.get('BAM').get('uuid'),
+        'md5sum': '00000000000000000000000000000000',
+        'content_md5sum': '00000000000000000000000000000000',
+        'filename': 'my.bam',
+        'data_category': ['Sequencing Reads'],
+        'data_type': ['Aligned Reads'],
+        'status': 'protected',
+        'consortia': [test_consortium['uuid']],
+    }
+    res = testapp.post_json('/output_file', item)
     return res.json['@graph'][0]
 
 
@@ -481,11 +521,21 @@ def test_meta_workflow_run_inputs_rev_link(
     file_with_inputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_inputs.uuid!=No+value"
     )
-    assert file_with_inputs_search
-    file_without_inputs_search = get_search(
+    assert len(file_with_inputs_search) == 1
+    files_without_inputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_inputs.uuid=No+value"
     )
-    assert file_without_inputs_search
+    assert files_without_inputs_search
+    # why aren't the reference files returned with the get_search call above?
+    reference_files_lacking_mwfrs_search = get_search(
+        es_testapp, "/search/?type=ReferenceFile&meta_workflow_run_inputs.uuid=No+value"
+    )
+    rf_uuids = [rf.get('uuid') for rf in reference_files_lacking_mwfrs_search]
+    # this uuid is for the reference file that was added as input to a meta workflow run insert
+    # because meta_workflow_runs are not revlinked we explicitly check that a reference file that
+    # was added as an input doesn't get the calcprop value even though we would expect it to be returned
+    # for the files_without_inputs_search and it is not
+    assert "49690fb8-7680-4034-ae3b-4f28222d5db8" in rf_uuids
 
 
 @pytest.mark.workbook
@@ -497,7 +547,7 @@ def test_meta_workflow_run_outputs_rev_link(
     file_with_outputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_outputs.uuid!=No+value"
     )
-    assert file_with_outputs_search
+    assert len(file_with_outputs_search) == 1
     file_without_outputs_search = get_search(
         es_testapp, "/search/?type=File&meta_workflow_run_outputs.uuid=No+value"
     )
@@ -758,7 +808,8 @@ def test_sample_sources(es_testapp: TestApp, workbook: None) -> None:
     )
     assert file_without_sample_sources_search
     for file in file_without_sample_sources_search:
-        assert not file_utils.get_sample_sources(file)
+        if not eof_utils.is_external_output_file(file):
+            assert not file_utils.get_sample_sources(file)
 
     submitted_file_with_sample_sources_search = search_type_for_key(
         es_testapp, "SubmittedFile", search_key
@@ -809,7 +860,8 @@ def test_donors(es_testapp: TestApp, workbook: None) -> None:
         if cell_lines:
             assert_cell_line_donors_match_calcprop(request_handler, file, cell_lines)
         else:
-            assert not file_utils.get_donors(file)
+            if not eof_utils.is_external_output_file(file):
+                assert not file_utils.get_donors(file)
 
     submitted_file_with_donors_search = search_type_for_key(
         es_testapp, "SubmittedFile", search_key
@@ -1291,6 +1343,55 @@ def get_expected_release_tracker_title(file: Dict[str, Any]) -> List[str]:
         tag for tag in tags if tag.startswith(expected_release_tracker_title_tag_start)
     ]
     return expected_title_tags[0].split(expected_release_tracker_title_tag_start)[1]
+
+
+def test_files_open_data_url_not_released(testapp, output_file):
+    """ Test S3 Open Data URL when a file has not been flagged as released/open etc """
+    # 1. check that initial download works
+    download_link = output_file['href']
+    direct_res = testapp.get(download_link, status=307)
+    # 2. check that the bucket in the redirect is the SMaHT test bucket, not open data
+    non_open_data_bucket = 'smaht-unit-testing-wfout.s3.amazonaws.com'
+    assert non_open_data_bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+
+def test_files_open_data_url_released_not_transferred(testapp, public_reference_file):
+    """ Test S3 Open Data URL when a file has been released but not transferred to Open Data
+        Same as the above test but we don't even check for open data if not in a released status
+    """
+    # 1. check that initial download works
+    download_link = public_reference_file['href']
+    direct_res = testapp.get(download_link, status=307)
+    # 2. check that the bucket in the redirect is the SMaHT test bucket, not open data
+    non_open_data_bucket = 'smaht-unit-testing-files.s3.amazonaws.com'
+    assert non_open_data_bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+
+def test_files_open_data_url_released_and_transferred(testapp, public_reference_file):
+    """ Test S3 Open Data URL when a file has been released and been transferred to Open Data"""
+    with mock.patch('encoded.types.file.File._head_s3', return_value=None):
+        updated = testapp.patch_json(f"/{public_reference_file['uuid']}", {})  # empty patch to regenerate calc prop
+        bucket = 'smaht-open-data-public'  # the Open Data bucket, not the SMaHT test bucket
+        # 1. check that initial download works
+        download_link = updated.json['@graph'][0]['href']
+        direct_res = testapp.get(download_link, status=307)
+        # 2. check that the bucket in the redirect is the open data bucket, not SMaHT test
+        assert bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+        # 3. No credential needed
+        assert 'X-Amz-Signature' not in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+
+
+
+def test_files_open_data_url_released_and_transferred_protected(testapp, protected_output_file):
+    """ Test S3 Open Data URL when a protected output file has been released and been transferred to Open Data"""
+    with mock.patch('encoded.types.file.File._head_s3', return_value=None):
+        updated = testapp.patch_json(f"/{protected_output_file['uuid']}", {})
+        bucket = 'smaht-open-data-protected'
+        download_link = updated.json['@graph'][0]['href']
+        direct_res = testapp.get(f'{download_link}?datastore=database', status=307)
+        assert bucket in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
+        assert 'X-Amz-Signature' in [i[1] for i in direct_res.headerlist if i[0] == 'Location'][0]
 
 
 @pytest.mark.workbook
