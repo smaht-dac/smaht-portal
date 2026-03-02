@@ -13,8 +13,8 @@
                     "rowAggFields": ["donors.display_title", "sample_summary.tissues", "dataset", "data_type", "sample_summary.category"]
                 },
                 "resultItemPostProcessFuncKey": "cellLinePostProcess",
-                "resultTransformedPostProcessFuncKey": "dsaChainFile",
-                "browseFilteringTransformFuncKey": "dsaChainFile",
+                "resultTransformedPostProcessFuncKey": "analysisDerivedColumns",
+                "browseFilteringTransformFuncKey": "analysisDerivedColumns",
                 "rowGroups": {
                     "Cell Line": {
                         "values": ["COLO829T", "COLO829BL", "COLO829BLT50", "In silico BLT50", "Truth Set", "HapMap Mixture", "Downsampled", "LB-LA2 Fibroblast", "LB-LA2 iPSC-1", "LB-LA2 iPSC-2", "LB-LA2 iPSC-4", "LB-LA2 iPSC-52", "LB-LA2 iPSC-60"],
@@ -50,8 +50,8 @@
                     "columnAggFields": ["file_sets.libraries.assay.display_title", "sequencing.sequencer.platform"],
                     "rowAggFields": ["donors.display_title", "sample_summary.tissues", "data_type", "analysis_details", "sample_summary.category"]
                 },
-                "resultTransformedPostProcessFuncKey": "dsaChainFile",
-                "browseFilteringTransformFuncKey": "dsaChainFile",
+                "resultTransformedPostProcessFuncKey": "analysisDerivedColumns",
+                "browseFilteringTransformFuncKey": "analysisDerivedColumns",
                 "excludePrimaryColumnNoValue": false,
                 "headerFor": null,
                 "idLabel": "production",

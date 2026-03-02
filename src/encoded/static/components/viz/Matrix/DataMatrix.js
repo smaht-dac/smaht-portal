@@ -118,11 +118,11 @@ export default class DataMatrix extends React.PureComponent {
             "backgroundColor": "#76cbbe",
             "textColor": "#ffffff"
         },
-        "DSA": {
-            "values": ['DSA'],
+        "Analysis": {
+            "values": ['DSA', 'SNV'],
             "backgroundColor": "#cccccc",
             "textColor": "#000000",
-            "shortName": "DSA"
+            "shortName": "ANL"
         }
     };
     static DEFAULT_COLUMN_GROUPS_EXTENDED = {
@@ -132,7 +132,7 @@ export default class DataMatrix extends React.PureComponent {
             "textColor": "#ffffff"
         },
         "Extended Assay": {
-            "values": ['Single-cell WGS', 'Targeted Seq', 'Single-cell RNA-Seq', 'Other', 'DSA'],
+            "values": ['Single-cell WGS', 'Targeted Seq', 'Single-cell RNA-Seq', 'Other', 'Analysis'],
             "backgroundColor": "#d2bde3",
             "textColor": "#ffffff"
         }
@@ -543,6 +543,43 @@ export default class DataMatrix extends React.PureComponent {
 
         // 6) Return new object, keeping all and row_totals unchanged
         return mergedDsa;
+    }
+
+    static transformSNV(filteredData, groupingProperties, columnGrouping) {
+        const getFilesCount = (row) => Number(row && row.counts && row.counts.files) || 0;
+        const getCoverageCount = (row) => Number(row && row.counts && row.counts.total_coverage) || 0;
+        const makeGroupKey = (row) =>
+            groupingProperties.map((prop) => String(row[prop])).join('||');
+
+        const snvGrouped = {};
+        for (const row of filteredData) {
+            const key = makeGroupKey(row);
+            if (!snvGrouped[key]) {
+                snvGrouped[key] = [];
+            }
+            snvGrouped[key].push(row);
+        }
+
+        return Object.values(snvGrouped).map((rowsInGroup) => {
+            const firstRow = rowsInGroup[0];
+            const mergedRow = {};
+
+            for (const field of Object.keys(firstRow)) {
+                if (field === 'counts') {
+                    mergedRow[field] = {
+                        ...(firstRow[field] || {}),
+                        files: rowsInGroup.reduce((sum, row) => sum + getFilesCount(row), 0),
+                        total_coverage: rowsInGroup.reduce((sum, row) => sum + getCoverageCount(row), 0)
+                    };
+                } else {
+                    const values = Array.from(new Set(rowsInGroup.map((r) => r[field])));
+                    mergedRow[field] = values.length === 1 ? values[0] : values;
+                }
+            }
+
+            mergedRow[columnGrouping] = 'SNV';
+            return mergedRow;
+        });
     }
 
     loadSearchQueryResults() {
@@ -1093,27 +1130,36 @@ DataMatrix.resultItemPostProcessFuncs = {
     }
 };
 DataMatrix.resultTransformedPostProcessFuncs = {
-    "dsaChainFile": function (data, groupingProperties, columnGrouping) {
-        // Separate DSA entries
+    "analysisDerivedColumns": function (data, groupingProperties, columnGrouping) {
         const dsaData = data.all.filter((row) => row['data_type'] === 'DSA' || row['data_type'] === 'Chain File' || row['data_type'] === 'Sequence Interval');
         const nonDsaData = data.all.filter((row) => row['data_type'] !== 'DSA' && row['data_type'] !== 'Chain File' && row['data_type'] !== 'Sequence Interval');
+        const snvData = nonDsaData.filter((row) => row['analysis_details'] === 'Filtered');
+        const nonDsaNonSnvData = nonDsaData.filter((row) => row['analysis_details'] !== 'Filtered');
 
         const transformedDsa = DataMatrix.transformDSA(nonDsaData, data.row_totals, dsaData, groupingProperties, columnGrouping);
+        const transformedSnv = DataMatrix.transformSNV(snvData, groupingProperties, columnGrouping);
 
         return {
             ...data,
-            all: nonDsaData.concat(transformedDsa)
+            all: nonDsaNonSnvData.concat(transformedDsa).concat(transformedSnv)
         };
     }
 };
 DataMatrix.browseFilteringTransformFuncs = {
-    "dsaChainFile": function (filteringProperties, blockType) {
+    "analysisDerivedColumns": function (filteringProperties, blockType) {
         const assayField = 'file_sets.libraries.assay.display_title';
         const hasAssayFilter = typeof filteringProperties[assayField] !== 'undefined';
+        const studies = filteringProperties['sample_summary.studies'];
+        const studiesList = Array.isArray(studies) ? studies : (typeof studies === 'string' ? [studies] : []);
+        const isProductionStudy = studiesList.includes('Production');
 
         if (filteringProperties[assayField] === 'DSA') {
             // extend data_type filter to include Chain File along with DSA
             filteringProperties['data_type'] = [...(filteringProperties['data_type'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
+            delete filteringProperties[assayField];
+        } else if (filteringProperties[assayField] === 'SNV') {
+            filteringProperties['analysis_details'] = [...(filteringProperties['analysis_details'] || []), 'Filtered'];
+            filteringProperties['data_type!'] = [...(filteringProperties['data_type!'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
             delete filteringProperties[assayField];
         } else if (
             (blockType === 'regular') ||
@@ -1122,6 +1168,9 @@ DataMatrix.browseFilteringTransformFuncs = {
             // for non-DSA columns we exclude DSA-related data types;
             // for overall summary (no assay filter) keep all data types.
             filteringProperties['data_type!'] = [...(filteringProperties['data_type!'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
+            if (isProductionStudy) {
+                filteringProperties['analysis_details!'] = [...(filteringProperties['analysis_details!'] || []), 'Filtered'];
+            }
         }
         return filteringProperties;
     }
