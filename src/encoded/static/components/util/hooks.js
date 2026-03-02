@@ -2,6 +2,13 @@
 import { useState, useEffect } from 'react';
 import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
+// Toggle hook for expanding/collapsing sections
+export const useToggle = (initialState = false) => {
+    const [isToggled, setIsToggled] = useState(initialState);
+    const toggle = () => setIsToggled(!isToggled);
+    return [isToggled, toggle];
+};
+
 const defaultDownloadAccessObject = {
     open: false,
     'open-early': false,
