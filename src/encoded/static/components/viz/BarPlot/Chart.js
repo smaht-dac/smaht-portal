@@ -244,6 +244,7 @@ export class Chart extends React.PureComponent {
         }),
         'height'        : PropTypes.number,
         'width'         : PropTypes.number,
+        'subBarLayout'  : PropTypes.oneOf(['stacked', 'grouped']),
         'useOnlyPopulatedFields' : PropTypes.bool,
         'showType'      : PropTypes.oneOf(['all', 'filtered', 'both']),
         'aggregateType' : PropTypes.oneOf(['donors', 'files']),
@@ -389,7 +390,7 @@ export class Chart extends React.PureComponent {
 
         const {
             width, height, showType, barplot_data_unfiltered, barplot_data_filtered, context,
-            aggregateType, useOnlyPopulatedFields, cursorDetailActions, href, schemas, mapping
+            aggregateType, useOnlyPopulatedFields, cursorDetailActions, href, schemas, mapping, subBarLayout
         } = this.props;
 
         const topLevelField = (showType === 'all' ? barplot_data_unfiltered : barplot_data_filtered) || barplot_data_unfiltered;
@@ -406,7 +407,7 @@ export class Chart extends React.PureComponent {
         );
 
         return (
-            <PopoverViewContainer {...{ width, height, styleOptions, showType, aggregateType, href, schemas, context, mapping }}
+            <PopoverViewContainer {...{ width, height, styleOptions, showType, aggregateType, href, schemas, context, mapping, subBarLayout }}
                 actions={cursorDetailActions}
                 leftAxis={this.renderParts.leftAxis(width, height, barData, styleOptions)}
                 bottomAxis={this.renderParts.bottomXAxis(width, height, barData.bars, styleOptions)}

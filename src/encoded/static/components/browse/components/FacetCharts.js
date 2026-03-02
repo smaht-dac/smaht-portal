@@ -44,7 +44,8 @@ export class FacetCharts extends React.PureComponent {
         'initialFields' : [
             'data_category',
             'data_type'
-        ]
+        ],
+        'subBarLayout': 'stacked'
     };
 
     /**
@@ -229,7 +230,7 @@ export class FacetCharts extends React.PureComponent {
         const show = this.show();
         if (!show) return null; // We don't show section at all.
 
-        const { context, debug, windowWidth, colWidthPerScreenSize, schemas, href, isFullscreen, mapping = 'all' } = this.props;
+        const { context, debug, windowWidth, colWidthPerScreenSize, schemas, href, isFullscreen, mapping = 'all', subBarLayout } = this.props;
         const { mounted } = this.state;
 
         if (context && context.total === 0) return null;
@@ -277,7 +278,7 @@ export class FacetCharts extends React.PureComponent {
         return (
             <div className={"facet-charts show-" + show} key="facet-charts">
                 <ChartDataController.Provider id={"barplot-" + mapping}>
-                    <BarPlot.UIControlsWrapper legend chartHeight={height} {...{ href, windowWidth, cursorDetailActions, donorFilters, mapping }}>
+                    <BarPlot.UIControlsWrapper legend chartHeight={height} {...{ href, windowWidth, cursorDetailActions, donorFilters, mapping, subBarLayout }}>
                         <BarPlot.Chart {...{ width, height, schemas, windowWidth, href, cursorDetailActions, context }} />
                     </BarPlot.UIControlsWrapper>
                 </ChartDataController.Provider>
