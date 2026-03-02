@@ -101,8 +101,8 @@ Popover Styles
     }
 
     &.description-popover {
-        width: 300px;
-        max-width: 400px;
+        width: 500px;
+        max-width: 500px;
         color: #343741;
         border-radius: 12px;
 
@@ -116,6 +116,17 @@ Popover Styles
 
         .popover-body {
             padding: 12px 15px;
+
+            h2 {
+                font-size: 0.875rem;
+                color: #343741;
+            }
+
+            hr {
+                margin: 16px 0px;
+                color: #eaeaea;
+                opacity: 1;
+            }
         }
     }
 }
