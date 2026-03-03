@@ -1182,18 +1182,17 @@ export default class DataMatrix extends React.PureComponent {
                                             }
 
                                             return (
-                                                <div className="matrix-facet-terms-panel mt-1">
+                                                <div className="matrix-facet-terms-panel mt-1 search-view-controls-and-results">
                                                     <FacetList
                                                         facets={visibleFacets}
                                                         context={{ filters: facetFiltersForPanel || [] }}
                                                         termTransformFxn={Term.toName}
                                                         facetListSortFxns={{ 'sample_summary.tissues': compareTissueFacetTerms }}
-                                                        title="Included Properties"
+                                                        title="Properties"
                                                         showClearFiltersButton={false}
                                                         onClearFilters={this.onFacetClearFilters}
                                                         onFilter={this.onFacetFilter}
                                                         onFilterMultiple={this.onFacetFilterMultiple}
-                                                        hideHeaderToggle
                                                         maxFacetsBodyHeight={340}
                                                         href={this.state.facetNavigationHref || query?.url || null}
                                                         schemas={this.props.schemas || null}
