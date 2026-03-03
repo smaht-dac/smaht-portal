@@ -82,6 +82,37 @@ const tissueInternalCodeByTissueName = {
     Fibroblast: 'FBRO',
 };
 
+const tissueCategoryByTpcCode = {
+    '3A': 'Clinically accessible',
+    '3B': 'Clinically accessible',
+    '3C': 'Endoderm',
+    '3E': 'Endoderm',
+    '3G': 'Endoderm',
+    '3I': 'Endoderm',
+    '3K': 'Mesoderm',
+    '3M': 'Mesoderm',
+    '3O': 'Mesoderm',
+    '3Q': 'Endoderm',
+    '3S': 'Mesoderm',
+    '3U': 'Germ cells',
+    '3W': 'Germ cells',
+    '3Y': 'Germ cells',
+    '3AA': 'Germ cells',
+    '3AC': 'Mesoderm',
+    '3AD': 'Ectoderm',
+    '3AF': 'Ectoderm',
+    '3AH': 'Mesoderm',
+    '3AK': 'Ectoderm',
+    '3AL': 'Ectoderm',
+    '3AM': 'Ectoderm',
+    '3AN': 'Ectoderm',
+    '3AO': 'Ectoderm',
+};
+
+const tissueCategoryByTissueName = {
+    Fibroblast: 'Mesoderm',
+};
+
 /**
  * Parse a tissue facet term into a short code (if present).
  * E.g. 3AK - Brain, Frontal Lobe =>  { code: '3AK', tissue: 'Brain, Frontal Lobe', hasCode: true }
@@ -147,9 +178,23 @@ const getTissueInternalCodeFromFacetTerm = (termKey) => {
     return tissueInternalCodeByTissueName[tissue] || null;
 };
 
+/**
+ * Returns tissue category for a tissue facet term if available.
+ * Prioritizes TPC code mapping and then falls back to tissue name mapping.
+ */
+const getTissueCategoryFromFacetTerm = (termKey) => {
+    const { tissue, code, hasCode } = parseTissueTermForSort(termKey);
+    if (hasCode) {
+        const mappedByCode = tissueCategoryByTpcCode[String(code).toUpperCase()];
+        if (mappedByCode) return mappedByCode;
+    }
+    return tissueCategoryByTissueName[tissue] || null;
+};
+
 export {
     germLayerTissueMapping,
     tissueToCategory,
     compareTissueFacetTerms,
     getTissueInternalCodeFromFacetTerm,
+    getTissueCategoryFromFacetTerm,
 };
