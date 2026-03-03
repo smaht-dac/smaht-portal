@@ -283,6 +283,7 @@ export default class DataMatrix extends React.PureComponent {
         ],
         "baseBrowseFilesPath": "/browse/",
         "showCountFor": false,
+        "showUniqueDonorsAssayBand": true,
         "showFacetTermsPanel": false,
         "facetTermsPanelFields": null,
         "excludePrimaryColumnNoValue": true,
@@ -338,6 +339,7 @@ export default class DataMatrix extends React.PureComponent {
         'allowedFields': PropTypes.arrayOf(PropTypes.string),
         'baseBrowseFilesPath': PropTypes.string,
         'showCountFor': PropTypes.bool,
+        'showUniqueDonorsAssayBand': PropTypes.bool,
         'showFacetTermsPanel': PropTypes.bool,
         'facetTermsPanelFields': PropTypes.arrayOf(PropTypes.string),
         'excludePrimaryColumnNoValue': PropTypes.bool
@@ -1066,6 +1068,7 @@ export default class DataMatrix extends React.PureComponent {
             summaryBackgroundColor, xAxisLabel, yAxisLabel: effectiveYAxisLabel, showAxisLabels, showColumnSummary, valueDelimiter,
             baseBrowseFilesPath,
             activeFacetHref: this.state.facetNavigationHref || query?.url || null,
+            showUniqueDonorsAssayBand: this.props.showUniqueDonorsAssayBand,
             countFor,
             overallCounts,
             ...(countFor === 'total_coverage' ? { blockWidth: 60, blockHorizontalExtend: 10 } : {}),

@@ -596,7 +596,7 @@ export class VisualBody extends React.PureComponent {
                     'columnGroups', 'showColumnGroups', 'columnGroupsExtended', 'showColumnGroupsExtended',
                     'rowGroups', 'showRowGroups', 'rowGroupsExtended', 'showRowGroupsExtended',
                     'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels', 'showColumnSummary',
-                    'countFor', 'overallCounts',
+                    'countFor', 'overallCounts', 'showUniqueDonorsAssayBand',
                     'blockWidth', 'blockHorizontalExtend', 'blockHorizontalSpacing', 'blockVerticalSpacing')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
@@ -1637,6 +1637,15 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
     // renders the row group summary section
     static rowGroupsSummary({ label, labelSectionStyle, columnKeys, columnWidth, headerItemStyle, containerSectionStyle, ...props } ) {
+        const countLabelByMetric = {
+            files: 'File Count',
+            tissue_files: 'File Count',
+            total_coverage: 'Coverage',
+            donors: 'Donor Count'
+        };
+        const metricSuffix = countLabelByMetric[props.countFor] || 'Count';
+        const groupingBandLabel = `${label} (${metricSuffix})`;
+
         const getColumnSummaryData = (columnKey) => {
             const result = [];
             const values = props.groupedDataIndices[columnKey] || [];
@@ -1764,11 +1773,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
         return (
             <div className="grouping header-section-lower" style={containerSectionStyle}>
-                {props.countFor === 'files' || props.countFor === 'tissue_files' ? (
+                {(props.showUniqueDonorsAssayBand !== false) && (props.countFor === 'files' || props.countFor === 'tissue_files') ? (
                     <div className="row grouping-row total-donors-summary-row">
                         <div className="label-section" style={{ ...labelSectionStyle, paddingTop: props.blockVerticalSpacing }}>
                             <div className="label-container text-end" style={{ height: '29px', marginBottom: '1px' }}>
-                                <span className="float-start text-500 ps-05">Total Donors</span>
+                                <span className="float-start text-500 ps-05">Unique Donors per Assay</span>
                             </div>
                         </div>
                         <div className="col list-section has-header header-for-viz">
@@ -1779,7 +1788,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                 <div className="row grouping-row">
                     <div className="label-section" style={{ ...labelSectionStyle, paddingTop: props.blockVerticalSpacing }}>
                         <div className="label-container text-end" onClick={props.onSorterClick} style={{ height: '29px', marginBottom: '1px' }}>
-                            <span className="float-start text-500 ps-05">{label}</span>
+                            <span className="float-start text-500 ps-05">{groupingBandLabel}</span>
                             {/* <span className={labelSortIconClassName}>{labelSortIcon}</span> */}
                         </div>
                     </div>
