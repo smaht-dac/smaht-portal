@@ -117,7 +117,7 @@ class TestMetadataTSVWorkbook:
         TestMetadataTSVHelper.check_key_and_length(header1, 'Metadata TSV Download')
         TestMetadataTSVHelper.check_key_and_length(header2, 'Suggested command to download: ')
         TestMetadataTSVHelper.check_key_and_length(header3, 'FileDownloadURL')
-        assert len(parsed[3:]) == 24  # there are 24 entries in the workbook right now, including extra files
+        assert len(parsed[3:]) == 25  # there are 25 entries in the workbook right now, including extra files
         # test for various types
         TestMetadataTSVHelper.check_type_length(es_testapp, 'AlignedReads', 4)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'UnalignedReads', 6)
@@ -127,6 +127,8 @@ class TestMetadataTSVWorkbook:
         TestMetadataTSVHelper.check_type_length(es_testapp, 'SupplementaryFile', 2)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'HistologyImage', 1)
         TestMetadataTSVHelper.check_type_length(es_testapp, 'ResourceFile', 1)
+        TestMetadataTSVHelper.check_type_length(es_testapp, 'ExternalOutputFile', 1)
+
 
         res = es_testapp.post_json('/metadata/', {'type': 'OutputFile', 'include_extra_files': True})
         tsv = res._app_iter[0]

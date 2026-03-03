@@ -64,8 +64,8 @@ def get_grouping_term_from_tag(
         return None
     else:
         return None
-    
+
 
 def get_valid_protocol_ids(properties: Dict[str, Any]) -> str:
     """Get valid_protocol_ids from properties."""
-    return properties.get("valid_protocol_ids",[])
+    return properties.get("valid_protocol_ids", [])
