@@ -496,7 +496,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                             </div>
                         </div>
 
-                        <div className="row mt-3 recaptcha-privacy-row">
+                        <div className="row mt-15 recaptcha-privacy-row">
                             <div className="col-12 col-lg-5">
                                 <div
                                     className={
