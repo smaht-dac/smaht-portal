@@ -7,6 +7,27 @@ import DataMatrix from '../../viz/Matrix/DataMatrix';
 export function DataMatrixComparisonTabs({ session, tabs }) {
     const tabConfigs = useMemo(() => tabs || [], [tabs]);
 
+    const getHashKey = useCallback(() => {
+        if (typeof window === 'undefined') return null;
+        const hash = window.location.hash || '';
+        if (!hash) return null;
+        const cleaned = hash.replace(/^#/, '');
+        if (!cleaned) return null;
+        return decodeURIComponent(cleaned);
+    }, []);
+
+    const setHashKey = useCallback((key) => {
+        if (typeof window === 'undefined') return;
+        if (!key) return;
+        const nextHash = `#${encodeURIComponent(key)}`;
+        if (window.location.hash === nextHash) return;
+        if (window.history && typeof window.history.replaceState === 'function') {
+            window.history.replaceState(null, '', nextHash);
+        } else {
+            window.location.hash = nextHash;
+        }
+    }, []);
+
     const [tabDataState, setTabDataState] = useState(() => (
         tabConfigs.reduce((acc, tab) => {
             acc[tab.key] = { hasData: null, totalFiles: null, loaded: false };
@@ -15,6 +36,10 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
     ));
 
     const [activeKey, setActiveKey] = useState(() => {
+        const hashKey = getHashKey();
+        if (hashKey && tabConfigs.some((tab) => tab.key === hashKey)) {
+            return hashKey;
+        }
         const hasProduction = tabConfigs.find((tab) => tab.key === 'production');
         return hasProduction ? 'production' : tabConfigs[0]?.key ?? null;
     });
@@ -31,12 +56,17 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
         });
 
         if (!tabConfigs.length) return;
+        const hashKey = getHashKey();
+        if (hashKey && tabConfigs.some((tab) => tab.key === hashKey)) {
+            if (hashKey !== activeKey) setActiveKey(hashKey);
+            return;
+        }
         if (activeKey && tabConfigs.some((tab) => tab.key === activeKey)) return;
         const preferred = tabConfigs.find((tab) => tab.key === 'production') || tabConfigs[0];
         setActiveKey(preferred?.key ?? null);
         // activeKey intentionally omitted from deps to avoid clobbering user selection on data reload.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tabConfigs, session]);
+    }, [tabConfigs, session, getHashKey]);
 
     useEffect(() => {
         if (!tabConfigs.length) return;
@@ -58,6 +88,26 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
             setActiveKey(nextActive);
         }
     }, [activeKey, tabConfigs, tabDataState, session]);
+
+    useEffect(() => {
+        if (!activeKey) return;
+        if (typeof window === 'undefined') return;
+        if (!window.location.hash) return;
+        setHashKey(activeKey);
+    }, [activeKey, setHashKey]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return undefined;
+        const onHashChange = () => {
+            const hashKey = getHashKey();
+            if (!hashKey) return;
+            if (tabConfigs.some((tab) => tab.key === hashKey)) {
+                setActiveKey(hashKey);
+            }
+        };
+        window.addEventListener('hashchange', onHashChange);
+        return () => window.removeEventListener('hashchange', onHashChange);
+    }, [getHashKey, tabConfigs]);
 
     const handleDataLoaded = useCallback((tabKey) => (payload = {}) => {
         const totalFiles = typeof payload.totalFiles === 'number' ? payload.totalFiles : 0;
@@ -124,7 +174,10 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                                     type="button"
                                     className={`tab-header ${tab.className || ''} ${isActive ? 'is-active' : 'is-inactive'} ${!allLoaded ? 'is-loading' : ''}`}
                                     data-has-data={dataHasContent}
-                                    onClick={() => setActiveKey(tab.key)}
+                                    onClick={() => {
+                                        setActiveKey(tab.key);
+                                        setHashKey(tab.key);
+                                    }}
                                     aria-pressed={isActive}
                                     aria-controls={`data-matrix-panel-${tab.key}`}>
                                     <span className="title">{tab.title}</span>

@@ -76,6 +76,67 @@ export default class DataMatrix extends React.PureComponent {
         'Germ cells': { backgroundColor: '#80c4a0', textColor: '#ffffff', shortName: 'Germ' },
         'Clinically accessible': { backgroundColor: '#70a588', textColor: '#ffffff', shortName: 'Clin' },
     };
+    static DEFAULT_COLUMN_GROUPS = {
+        "Bulk WGS": {
+            "values": ['WGS - Illumina', 'WGS - PacBio', 'Fiber-Seq', 'WGS - Standard ONT', 'WGS - UltraLong ONT'],
+            "backgroundColor": "#e04141",
+            "textColor": "#ffffff",
+            "shortName": "WGS"
+        },
+        "RNA-seq": {
+            "values": ['RNA-Seq - Illumina', 'Kinnex'],
+            "backgroundColor": "#ad48ad",
+            "textColor": "#ffffff",
+            "shortName": "RNA"
+        },
+        "Duplex-seq": {
+            "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-seq'],
+            "backgroundColor": "#2b4792",
+            "textColor": "#ffffff",
+            "shortName": "Dupl"
+        },
+        "Single-cell WGS": {
+            "values": ['PTA-amplified WGS', 'MALBAC-amplified WGS', 'WGS DLP+'],
+            "backgroundColor": "#aac536",
+            "textColor": "#ffffff",
+            "shortName": "scWGS"
+        },
+        "Targeted Seq": {
+            "values": ['HAT-Seq', 'L1-ONT', 'TEnCATS'],
+            "backgroundColor": "#e1d567",
+            "textColor": "#ffffff",
+            "shortName": "Tgtd"
+        },
+        "Single-cell RNA-Seq": {
+            "values": ['snRNA-Seq', 'Slide-tags snRNA-Seq', 'STORM-Seq', 'Tranquil-Seq', '10X Genomics Xenium'],
+            "backgroundColor": "#d0b284",
+            "textColor": "#ffffff",
+            "shortName": "scRNA"
+        },
+        "Other": {
+            "values": ['Hi-C', 'scDip-C', 'Strand-Seq', 'ATAC-Seq', 'NT-Seq', 'varCUT&Tag', 'GoT-ChA'],
+            "backgroundColor": "#76cbbe",
+            "textColor": "#ffffff"
+        },
+        "DSA": {
+            "values": ['DSA'],
+            "backgroundColor": "#cccccc",
+            "textColor": "#000000",
+            "shortName": "DSA"
+        }
+    };
+    static DEFAULT_COLUMN_GROUPS_EXTENDED = {
+        "Core Assay": {
+            "values": ['Bulk WGS', 'RNA-seq', 'Duplex-seq'],
+            "backgroundColor": "#a786c2",
+            "textColor": "#ffffff"
+        },
+        "Extended Assay": {
+            "values": ['Single-cell WGS', 'Targeted Seq', 'Single-cell RNA-Seq', 'Other', 'DSA'],
+            "backgroundColor": "#d2bde3",
+            "textColor": "#ffffff"
+        }
+    };
 
 
     static defaultProps = {
@@ -159,68 +220,9 @@ export default class DataMatrix extends React.PureComponent {
         /** Which state to set/prioritize if multiple files per group */
         "statePrioritizationForGroups": [],
         "headerPadding": 200,
-        "columnGroups": {
-            "Bulk WGS": {
-                "values": ['WGS - Illumina', 'WGS - PacBio', 'Fiber-Seq', 'WGS - Standard ONT', 'WGS - UltraLong ONT'],
-                "backgroundColor": "#e04141",
-                "textColor": "#ffffff",
-                "shortName": "WGS"
-            },
-            "RNA-seq": {
-                "values": ['RNA-Seq - Illumina', 'Kinnex'],
-                "backgroundColor": "#ad48ad",
-                "textColor": "#ffffff",
-                "shortName": "RNA"
-            },
-            "Duplex-seq": {
-                "values": ['NanoSeq', 'CODEC', 'ppmSeq', 'VISTA-Seq', 'CompDuplex-Seq', 'HiDEF-seq'],
-                "backgroundColor": "#2b4792",
-                "textColor": "#ffffff",
-                "shortName": "Dupl"
-            },
-            "Single-cell WGS": {
-                "values": ['PTA-amplified WGS', 'MALBAC-amplified WGS', 'WGS DLP+'],
-                "backgroundColor": "#aac536",
-                "textColor": "#ffffff",
-                "shortName": "scWGS"
-            },
-            "Targeted Seq": {
-                "values": ['HAT-Seq', 'L1-ONT', 'TEnCATS'],
-                "backgroundColor": "#e1d567",
-                "textColor": "#ffffff",
-                "shortName": "Tgtd"
-            },
-            "Single-cell RNA-Seq": {
-                "values": ['snRNA-Seq', 'Slide-tags snRNA-Seq', 'STORM-Seq', 'Tranquil-Seq', '10X Genomics Xenium'],
-                "backgroundColor": "#d0b284",
-                "textColor": "#ffffff",
-                "shortName": "scRNA"
-            },
-            "Other": {
-                "values": ['Hi-C', 'scDip-C', 'Strand-Seq', 'ATAC-Seq', 'NT-Seq', 'varCUT&Tag', 'GoT-ChA'],
-                "backgroundColor": "#76cbbe",
-                "textColor": "#ffffff"
-            },
-            "DSA": {
-                "values": ['DSA'],
-                "backgroundColor": "#cccccc",
-                "textColor": "#000000",
-                "shortName": "DSA"
-            }
-        },
+        "columnGroups": DataMatrix.DEFAULT_COLUMN_GROUPS,
         "showColumnGroups": true,
-        "columnGroupsExtended": {
-            "Core Assay": {
-                "values": ['Bulk WGS', 'RNA-seq', 'Duplex-seq'],
-                "backgroundColor": "#a786c2",
-                "textColor": "#ffffff"
-            },
-            "Extended Assay": {
-                "values": ['Single-cell WGS', 'Targeted Seq', 'Single-cell RNA-Seq', 'Other', 'DSA'],
-                "backgroundColor": "#d2bde3",
-                "textColor": "#ffffff"
-            }
-        },
+        "columnGroupsExtended": DataMatrix.DEFAULT_COLUMN_GROUPS_EXTENDED,
         "showColumnGroupsExtended": false,
         "rowGroups": null,
         "showRowGroups": false,
@@ -275,6 +277,7 @@ export default class DataMatrix extends React.PureComponent {
             "dataset",
         ],
         "baseBrowseFilesPath": "/browse/",
+        "showCountFor": false,
     };
 
     static propTypes = {
@@ -324,7 +327,8 @@ export default class DataMatrix extends React.PureComponent {
         'idLabel': PropTypes.string,
         'onDataLoaded': PropTypes.func,
         'allowedFields': PropTypes.arrayOf(PropTypes.string),
-        'baseBrowseFilesPath': PropTypes.string
+        'baseBrowseFilesPath': PropTypes.string,
+        'showCountFor': PropTypes.bool
     };
 
     static parseQuery(queryString) {
@@ -384,6 +388,7 @@ export default class DataMatrix extends React.PureComponent {
         this.onApplyConfiguration = this.onApplyConfiguration.bind(this);
         this.getJsxExport = this.getJsxExport.bind(this);
         this.isProductionEnv = this.isProductionEnv.bind(this);
+        this.onCountForChange = this.onCountForChange.bind(this);
 
         const colorRanges = this.getColorRanges(props);
 
@@ -391,9 +396,11 @@ export default class DataMatrix extends React.PureComponent {
             "mounted": false,
             "_results": null,
             "query": props.query,
+            "baseRowAggFields": props.query && props.query.rowAggFields ? props.query.rowAggFields : null,
             "fieldChangeMap": props.fieldChangeMap,
             "columnGrouping": props.columnGrouping,
             "groupingProperties": props.groupingProperties,
+            "baseGroupingProperties": props.groupingProperties,
             "colorRanges": colorRanges,
             "columnGroups": props.columnGroups,
             "showColumnGroups": props.showColumnGroups,
@@ -412,7 +419,8 @@ export default class DataMatrix extends React.PureComponent {
             "colorRangeSegments": props.colorRangeSegments,
             "colorRangeSegmentStep": props.colorRangeSegmentStep,
             "summaryBackgroundColor": props.summaryBackgroundColor,
-            "defaultOpen": props.defaultOpen
+            "defaultOpen": props.defaultOpen,
+            "countFor": "files"
         };
     }
 
@@ -423,27 +431,30 @@ export default class DataMatrix extends React.PureComponent {
 
     componentDidUpdate(pastProps, pastState) {
         const { session } = this.props;
-        const { query, fieldChangeMap, columnGrouping, groupingProperties, showColumnSummary, defaultOpen } = this.state;
+        const { query, fieldChangeMap, columnGrouping, groupingProperties, showColumnSummary, defaultOpen, countFor } = this.state;
         if (session !== pastProps.session ||
             !_.isEqual(query, pastState.query) ||
             !_.isEqual(fieldChangeMap, pastState.fieldChangeMap) ||
             columnGrouping !== pastState.columnGrouping ||
             !_.isEqual(groupingProperties, pastState.groupingProperties) ||
             showColumnSummary !== pastState.showColumnSummary ||
-            defaultOpen !== pastState.defaultOpen) {
+            defaultOpen !== pastState.defaultOpen ||
+            countFor !== pastState.countFor) {
             this.loadSearchQueryResults();
         }
     }
 
     /* Transform DSA entries by:
         1) For each group defined by groupingProperties, compute:
-            diff_files = row_totals.files - all.files
-        2) For each dsa entry, set files = diff_files for its group (if exists)
+            diff_files = row_totals.counts.files - all.counts.files
+        2) For each dsa entry, set counts.files = diff_files for its group (if exists)
         3) Merge dsa entries by groupingProperties:
-            - files: take from any row (they should all be equal after step 2)
+            - counts.files: take from any row (they should all be equal after step 2)
             - other fields: distinct values; single => scalar, multiple => array
     */
     static transformDSA(nonDsaData, row_totals, dsaData, groupingProperties, columnGrouping) {
+        const getFilesCount = (row) => Number(row && row.counts && row.counts.files) || 0;
+
         // Helper: build a grouping key like "COLO829BL||No value"
         const makeGroupKey = (row) =>
             groupingProperties.map((prop) => String(row[prop])).join('||');
@@ -452,7 +463,7 @@ export default class DataMatrix extends React.PureComponent {
         const rowTotalsByGroup = {};
         for (const row of row_totals) {
             const key = makeGroupKey(row);
-            const files = Number(row.files) || 0;
+            const files = getFilesCount(row);
             rowTotalsByGroup[key] = (rowTotalsByGroup[key] || 0) + files;
         }
 
@@ -460,7 +471,7 @@ export default class DataMatrix extends React.PureComponent {
         const allTotalsByGroup = {};
         for (const row of nonDsaData) {
             const key = makeGroupKey(row);
-            const files = Number(row.files) || 0;
+            const files = getFilesCount(row);
             allTotalsByGroup[key] = (allTotalsByGroup[key] || 0) + files;
         }
 
@@ -480,7 +491,10 @@ export default class DataMatrix extends React.PureComponent {
             return {
                 ...row,
                 // If we have a diff for this group, use it; otherwise keep original value
-                files: typeof diffFiles === 'number' ? diffFiles : row.files,
+                counts: {
+                    ...(row.counts || {}),
+                    files: typeof diffFiles === 'number' ? diffFiles : getFilesCount(row),
+                },
                 // Overwrite the columnGrouping field with "DSA"
                 [columnGrouping]: 'DSA',
             };
@@ -488,7 +502,7 @@ export default class DataMatrix extends React.PureComponent {
 
         // 5) SECOND PASS: merge dsa rows by groupingProperties
         //    - Same donor+tissue => single row
-        //    - files: take from any row (they should all be equal)
+        //    - counts.files: take from any row (they should all be equal)
         //    - other fields: distinct values; single => scalar, multiple => array
 
         // Group rows by groupingProperties key
@@ -508,8 +522,8 @@ export default class DataMatrix extends React.PureComponent {
 
             // Iterate over all fields of the first row (assuming schema is consistent)
             for (const field of Object.keys(firstRow)) {
-                if (field === 'files') {
-                    // Rule 1: files value is same; take from one row
+                if (field === 'counts') {
+                    // Rule 1: counts.files value is same; take from one row
                     mergedRow[field] = firstRow[field];
                 } else {
                     // Rule 2: collect distinct values for this field across group
@@ -549,7 +563,7 @@ export default class DataMatrix extends React.PureComponent {
             const resultKey = "_results";
             const updatedState = {};
 
-            let transformedData = { all: [], row_totals: [] };
+            let transformedData = { all: [], row_totals: [], column_totals: [] };
             const populatedRowGroups = {}; // not implemented yet
             // Helper to process each result row
             const processResultRow = (r, transformed) => {
@@ -565,7 +579,7 @@ export default class DataMatrix extends React.PureComponent {
                 if (resultItemPostProcessFuncKey && typeof DataMatrix.resultItemPostProcessFuncs[resultItemPostProcessFuncKey] === 'function') {
                     cloned = DataMatrix.resultItemPostProcessFuncs[resultItemPostProcessFuncKey](cloned);
                 }
-                if (cloned.files && cloned.files > 0) {
+                if (cloned.counts && cloned.counts.files && cloned.counts.files > 0) {
                     if (valueChangeMap) {
                         _.forEach(_.pairs(valueChangeMap), ([field, changeMap]) => {
                             if (typeof cloned[field] === 'string') {
@@ -584,21 +598,45 @@ export default class DataMatrix extends React.PureComponent {
                 }
             };
 
+            const processColumnTotal = (r, transformed) => {
+                let cloned = _.clone(r);
+                if (fieldChangeMap) {
+                    _.forEach(_.pairs(fieldChangeMap), ([fieldToMapTo, fieldToMapFrom]) => {
+                        if (typeof cloned[fieldToMapFrom] !== 'undefined' && fieldToMapTo !== fieldToMapFrom) {
+                            cloned[fieldToMapTo] = cloned[fieldToMapFrom];
+                            delete cloned[fieldToMapFrom];
+                        }
+                    });
+                }
+                if (valueChangeMap) {
+                    _.forEach(_.pairs(valueChangeMap), ([field, changeMap]) => {
+                        if (typeof cloned[field] === 'string') {
+                            cloned[field] = changeMap[cloned[field]] || cloned[field];
+                        }
+                    });
+                }
+                transformed.push(cloned);
+            };
+
             //result = resultItemPostProcessFuncKey && this.isLocalEnv() ? BENCHMARKING_TEST_DATA : PRODUCTION_TEST_DATA;
 
             _.forEach(result.data, (r) => processResultRow(r, transformedData.all));
             _.forEach(result.row_totals, (r) => processResultRow(r, transformedData.row_totals));
+            if (Array.isArray(result.column_totals)) {
+                _.forEach(result.column_totals, (r) => processColumnTotal(r, transformedData.column_totals));
+            }
 
             if (resultTransformedPostProcessFuncKey && typeof DataMatrix.resultTransformedPostProcessFuncs[resultTransformedPostProcessFuncKey] === 'function') {
                 transformedData = DataMatrix.resultTransformedPostProcessFuncs[resultTransformedPostProcessFuncKey](transformedData, groupingProperties, columnGrouping);
             }
 
             updatedState[resultKey] = transformedData;
+            updatedState['overallCounts'] = result.counts || null;
             // sum files in transformedData array
             let totalFiles = 0;
             _.forEach(transformedData.row_totals, (r) => {
-                if (r.files && typeof r.files === 'number') {
-                    totalFiles += r.files;
+                if (r.counts && typeof r.counts.files === 'number') {
+                    totalFiles += r.counts.files;
                 }
             });
             updatedState['totalFiles'] = totalFiles;
@@ -775,6 +813,47 @@ export default class DataMatrix extends React.PureComponent {
         });
     }
 
+    onCountForChange(e) {
+        const nextValue = e && e.target ? e.target.value : 'files';
+        this.setState((prevState) => {
+            const nextState = { countFor: nextValue };
+            const baseRowAggFields = prevState.baseRowAggFields || (prevState.query && prevState.query.rowAggFields) || [];
+            const baseGroupingProperties = prevState.baseGroupingProperties || prevState.groupingProperties || [];
+            const baseColorRangeBaseColor = prevState.colorRangeBaseColor;
+
+            if (nextValue === 'donors') {
+                nextState.query = {
+                    ...prevState.query,
+                    rowAggFields: (baseRowAggFields || []).filter((f) => {
+                        if (Array.isArray(f)) {
+                            return !f.includes('donors.display_title');
+                        }
+                        return f !== 'donors.display_title';
+                    })
+                };
+                nextState.groupingProperties = (baseGroupingProperties || []).filter((p) => p !== 'donor');
+                nextState.colorRanges = this.getColorRanges({
+                    colorRangeBaseColor: '#9B5DE0',
+                    colorRangeSegments: prevState.colorRangeSegments,
+                    colorRangeSegmentStep: prevState.colorRangeSegmentStep
+                });
+            } else {
+                nextState.query = {
+                    ...prevState.query,
+                    rowAggFields: baseRowAggFields
+                };
+                nextState.groupingProperties = baseGroupingProperties;
+                nextState.colorRanges = this.getColorRanges({
+                    colorRangeBaseColor: baseColorRangeBaseColor,
+                    colorRangeSegments: prevState.colorRangeSegments,
+                    colorRangeSegmentStep: prevState.colorRangeSegmentStep
+                });
+            }
+
+            return nextState;
+        });
+    }
+
     getAllowedPropKeys() {
         return Object.keys(DataMatrix.propTypes);
     }
@@ -829,7 +908,7 @@ export default class DataMatrix extends React.PureComponent {
         const {
             headerFor, valueChangeMap, allowedFields, valueDelimiter,
             disableConfigurator = false, idLabel = '', additionalPopoverData = {},
-            baseBrowseFilesPath, browseFilteringTransformFuncKey
+            baseBrowseFilesPath, browseFilteringTransformFuncKey, showCountFor
         } = this.props;
         const {
             query, fieldChangeMap, columnGrouping, groupingProperties,
@@ -837,8 +916,10 @@ export default class DataMatrix extends React.PureComponent {
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
             colorRanges, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor,
-            defaultOpen = false, totalFiles
+            defaultOpen = false, totalFiles, countFor, overallCounts
         } = this.state;
+
+        const effectiveYAxisLabel = countFor === 'donors' ? 'Tissue' : yAxisLabel;
 
         const isLoading =
             // eslint-disable-next-line react/destructuring-assignment
@@ -859,8 +940,11 @@ export default class DataMatrix extends React.PureComponent {
             query, groupingProperties, fieldChangeMap, valueChangeMap, columnGrouping, colorRanges,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, additionalPopoverData,
-            summaryBackgroundColor, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary, valueDelimiter,
+            summaryBackgroundColor, xAxisLabel, yAxisLabel: effectiveYAxisLabel, showAxisLabels, showColumnSummary, valueDelimiter,
             baseBrowseFilesPath,
+            countFor,
+            overallCounts,
+            ...(countFor === 'total_coverage' ? { blockWidth: 60, blockHorizontalExtend: 10 } : {}),
             browseFilteringTransformFunc: browseFilteringTransformFuncKey ? DataMatrix.browseFilteringTransformFuncs[browseFilteringTransformFuncKey] : null
         };
 
@@ -906,10 +990,35 @@ export default class DataMatrix extends React.PureComponent {
             <div>
                 {configurator}
                 {headerFor || null}
+                {showCountFor ? (
+                    <div className="d-flex justify-content-end align-items-center mb-2">
+                        <span className="me-1 mb-0 text-nowrap">Count by:</span>
+                        <div className="btn-group btn-group-sm" role="group" aria-label="Show counts for">
+                            <button
+                                type="button"
+                                className={`btn ${countFor === 'files' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => this.onCountForChange({ target: { value: 'files' } })}>
+                                Files
+                            </button>
+                            <button
+                                type="button"
+                                className={`btn ${countFor === 'donors' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => this.onCountForChange({ target: { value: 'donors' } })}>
+                                Donors
+                            </button>
+                            <button
+                                type="button"
+                                className={`btn ${countFor === 'total_coverage' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                onClick={() => this.onCountForChange({ target: { value: 'total_coverage' } })}>
+                                Coverage
+                            </button>
+                        </div>
+                    </div>
+                ) : null}
                 <VisualBody
                     {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
                     {...bodyProps}
-                    columnSubGrouping=""//"state"
+                    columnSubGrouping=""// leave blank for now
                     // eslint-disable-next-line react/destructuring-assignment
                     results={this.state[resultKey]}
                     defaultDepthsOpen={[defaultOpen, false, false]}
@@ -935,13 +1044,13 @@ DataMatrix.resultItemPostProcessFuncs = {
 
             if (typeof result.assay !== 'undefined' && typeof result.platform !== 'undefined') {
                 if (result.assay.indexOf('Hi-C - ') !== -1 && result.platform !== 'Illumina') {
-                    result.files = 0;
+                    result.counts = { ...(result.counts || {}), files: 0 };
                 }
                 if (result.assay.indexOf('Fiber-seq - ') !== -1 && result.platform !== 'PacBio') {
-                    result.files = 0;
+                    result.counts = { ...(result.counts || {}), files: 0 };
                 }
                 if (result.assay.indexOf('Ultra-Long WGS - ') !== -1 && result.platform !== 'ONT') {
-                    result.files = 0;
+                    result.counts = { ...(result.counts || {}), files: 0 };
                 }
             }
         }

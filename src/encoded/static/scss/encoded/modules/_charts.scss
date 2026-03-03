@@ -1467,7 +1467,7 @@ body[data-path="/statistics"] {
         display: inline-block;
         overflow-x: hidden; // Allow to scroll on small widths.
         padding-bottom: 20px;
-        padding-right: 40px;
+        // padding-right: 40px;
 
         .header-for-viz {
 
@@ -1509,6 +1509,11 @@ body[data-path="/statistics"] {
                         color: #111;
                         font-weight: 500;
                         border: 1px solid #e4e4ff;
+                    }
+                }
+                .column-group-header.overall-summary {
+                    .stacked-block[data-block-type="col-summary"] {
+                        font-weight: 700;
                     }
                 }
             }
