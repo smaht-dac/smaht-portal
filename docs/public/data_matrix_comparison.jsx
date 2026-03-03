@@ -35,6 +35,7 @@
                 "autoPopulateRowGroupsProperty": "study",
                 "headerFor": null,
                 "showColumnSummary": false,
+                "showFacetTermsPanel": true,
                 "idLabel": "benchmarking",
                 "baseBrowseFilesPath": "/search/"
             }
@@ -55,7 +56,8 @@
                 "excludePrimaryColumnNoValue": false,
                 "headerFor": null,
                 "idLabel": "production",
-                "showCountFor": true
+                "showCountFor": true,
+                "showFacetTermsPanel": true
             }
         }
     ]}

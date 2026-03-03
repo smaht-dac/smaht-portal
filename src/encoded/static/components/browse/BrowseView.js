@@ -59,6 +59,18 @@ export const BROWSE_LINKS = {
         BROWSE_STATUS_FILTERS,
 };
 
+export const FILE_BROWSE_HIDE_FACETS = [
+    'dataset',
+    'file_sets.libraries.analytes.samples.sample_sources.code',
+    'status',
+    'validation_errors.name',
+    'version',
+    'sample_summary.studies',
+    'submission_centers.display_title',
+    'software.display_title',
+    'donors.tags',
+];
+
 export default function BrowseView(props) {
     return <BrowseViewBody {...props} />;
 }
@@ -762,17 +774,7 @@ export function createBrowseFileColumnExtensionMap({
         },
     };
 
-    const hideFacets = [
-        'dataset',
-        'file_sets.libraries.analytes.samples.sample_sources.code',
-        'status',
-        'validation_errors.name',
-        'version',
-        'sample_summary.studies',
-        'submission_centers.display_title',
-        'software.display_title',
-        'donors.tags',
-    ];
+    const hideFacets = FILE_BROWSE_HIDE_FACETS;
 
     return { columnExtensionMap, columns, hideFacets };
 }

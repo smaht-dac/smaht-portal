@@ -222,7 +222,7 @@ export class VisualBody extends React.PureComponent {
             fieldChangeMap, valueChangeMap, titleMap,
             groupingProperties, columnGrouping, valueDelimiter,
             rowGroupsExtended, additionalPopoverData = {}, baseBrowseFilesPath,
-            browseFilteringTransformFunc
+            browseFilteringTransformFunc, activeFacetHref
         } = this.props;
         const { depth, blockType = null, popoverPrimaryTitle, rowGroups, rowGroupKey, columnKey } = blockProps;
         const effectiveBlockType = blockType === 'col-secondary-summary' ? 'col-summary' : blockType;
@@ -380,7 +380,7 @@ export class VisualBody extends React.PureComponent {
                 currentFilteringPropertiesVals = browseFilteringTransformFunc(currentFilteringPropertiesVals, effectiveBlockType);
             }
 
-            let initialHref = queryUrl;
+            let initialHref = activeFacetHref || queryUrl;
             const customUrlParams = rowGroups && rowGroupKey ? rowGroups[rowGroupKey]?.customUrlParams : null;
             let customUrlParamsPositiveKeys = null;
 
