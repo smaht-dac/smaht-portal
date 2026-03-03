@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReactTooltip from 'react-tooltip';
 import { console, ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { IconToggle } from '@hms-dbmi-bgm/shared-portal-components/es/components/forms/components/Toggle';
 import { FacetList, generateNextHref } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/FacetList';
 import { VisualBody } from './StackedBlockVisual';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
@@ -1143,18 +1144,32 @@ export default class DataMatrix extends React.PureComponent {
                                         <React.Fragment>
                                         <div className="matrix-counts-title">Counts</div>
                                         <div className="matrix-counts-toggle">
-                                            <button
-                                                type="button"
-                                                className={`matrix-count-option ${!isCoverageView ? 'active' : ''}`}
-                                                onClick={() => this.onCountForChange({ target: { value: 'files' } })}>
-                                                <i className="icon fas icon-file me-05" /> File View
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className={`matrix-count-option ${isCoverageView ? 'active' : ''}`}
-                                                onClick={() => this.onCountForChange({ target: { value: 'total_coverage' } })}>
-                                                <i className="icon fas icon-stream me-05" /> Coverage View
-                                            </button>
+                                            <IconToggle
+                                                options={[
+                                                    {
+                                                        title: (
+                                                            <React.Fragment>
+                                                                <i className="icon fas icon-file me-1" /> File View
+                                                            </React.Fragment>
+                                                        ),
+                                                        dataTip: 'Toggle file count view',
+                                                        btnCls: 'w-100 btn-sm',
+                                                        onClick: () => this.onCountForChange({ target: { value: 'files' } })
+                                                    },
+                                                    {
+                                                        title: (
+                                                            <React.Fragment>
+                                                                <i className="icon fas icon-stream me-1" /> Coverage View
+                                                            </React.Fragment>
+                                                        ),
+                                                        dataTip: 'Toggle coverage view',
+                                                        btnCls: 'w-100 btn-sm',
+                                                        onClick: () => this.onCountForChange({ target: { value: 'total_coverage' } })
+                                                    }
+                                                ]}
+                                                activeIdx={isCoverageView ? 1 : 0}
+                                                divCls="view-toggle p-1"
+                                            />
                                         </div>
                                         </React.Fragment>
                                     ) : null}
