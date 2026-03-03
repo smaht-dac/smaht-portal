@@ -155,7 +155,7 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
     const activeTab = visibleTabs.find((tab) => tab.key === activeKey) || renderTabs[0];
 
     return (
-        <div key="data-matrix-tabs" className="data-matrix-container container">
+        <div key="data-matrix-tabs" className="data-matrix-container container-fluid px-0">
             <div className="row">
                 <div className="tabs-container d-flex flex-column" aria-busy={isLoading}>
                     {isLoading ? (
@@ -207,7 +207,7 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                                         style={{ display: displayStyle }}
                                         aria-hidden={!isActive}>
                                         <div
-                                            className="body d-flex justify-content-start justify-content-lg-center overflow-auto"
+                                            className="body d-flex justify-content-start overflow-auto"
                                             id={`data-matrix-panel-${tab.key}`}>
                                             <DataMatrix
                                                 {...(tab.matrixProps || {})}
