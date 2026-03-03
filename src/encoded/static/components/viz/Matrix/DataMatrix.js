@@ -1117,30 +1117,66 @@ export default class DataMatrix extends React.PureComponent {
                     const isCoverageView = countFor === 'total_coverage';
                     const showCountsPanel = showCountFor && !isTissueMatrix;
                     const showFacetsPanel = showFacetTermsPanel;
+                    const showStandaloneCounts = showCountsPanel && !showFacetsPanel;
                     const showLeftPanel = showCountsPanel || showFacetsPanel;
 
                     return (
                         <div className="matrix-mode-layout">
                             {showCountFor ? (
-                                <div className="matrix-mode-tabs mb-2">
+                                <div className="matrix-controls-row mb-2">
+                                <div className="matrix-mode-tabs">
                                     <button
                                         type="button"
                                         className={`matrix-mode-tab ${!isTissueMatrix ? 'active' : ''}`}
                                         onClick={() => this.onCountForChange({ target: { value: isCoverageView ? 'total_coverage' : 'files' } })}>
-                                        <i className="icon fas icon-user me-05" /> Donor x Assay Matrix
+                                        <i className="icon fas icon-user me-05" /> Donor x Assay
                                     </button>
                                     <button
                                         type="button"
                                         className={`matrix-mode-tab ${isTissueMatrix ? 'active' : ''}`}
                                         onClick={() => this.onCountForChange({ target: { value: 'donors' } })}>
-                                        <i className="icon fas icon-lungs me-05" /> Tissue x Assay Matrix
+                                        <i className="icon fas icon-lungs me-05" /> Tissue x Assay
                                     </button>
+                                </div>
+                                {showCountsPanel ? (
+                                <div className="matrix-top-controls">
+                                    <div className="matrix-secondary-controls-label">Count Metric</div>
+                                    <div className="matrix-counts-toggle matrix-counts-toggle-inline">
+                                        <IconToggle
+                                            options={[
+                                                {
+                                                    title: (
+                                                        <React.Fragment>
+                                                            <i className="icon fas icon-file me-1" /> Files
+                                                        </React.Fragment>
+                                                    ),
+                                                    dataTip: 'Toggle file count view',
+                                                    btnCls: 'btn-sm',
+                                                    onClick: () => this.onCountForChange({ target: { value: 'files' } })
+                                                },
+                                                {
+                                                    title: (
+                                                        <React.Fragment>
+                                                            <i className="icon fas icon-stream me-1" /> Coverage
+                                                        </React.Fragment>
+                                                    ),
+                                                    dataTip: 'Toggle coverage view',
+                                                    btnCls: 'btn-sm',
+                                                    onClick: () => this.onCountForChange({ target: { value: 'total_coverage' } })
+                                                }
+                                            ]}
+                                            activeIdx={isCoverageView ? 1 : 0}
+                                            divCls="view-toggle p-1"
+                                        />
+                                    </div>
+                                </div>
+                                ) : null}
                                 </div>
                             ) : null}
                             <div className="matrix-mode-body d-flex">
                                 {showLeftPanel ? (
                                 <div className={`matrix-counts-panel ${showFacetTermsPanel ? 'has-facets-panel' : ''}`}>
-                                    {showCountsPanel ? (
+                                    {showStandaloneCounts ? (
                                         <React.Fragment>
                                         <div className="matrix-counts-title">Counts</div>
                                         <div className="matrix-counts-toggle">
