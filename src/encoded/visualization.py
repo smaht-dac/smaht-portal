@@ -232,7 +232,7 @@ def bar_plot_chart(context, request):
     MAX_BUCKET_COUNT = 30  # Max amount of bars or bar sections to return, excluding 'other'.
     TISSUE_FIELD = "sample_summary.tissues"
     TISSUE_CATEGORY_FIELD = "sample_summary.category"
-    TISSUE_CATEGORY_AGG_NAME = "__tissue_category__"
+    TISSUE_CATEGORY_AGG_NAME = "AGG_tissue_category"
     DEFAULT_BROWSE_PARAM_LISTS = {
         'type': ['File'],
         'sample_summary.studies': ['Production'],
@@ -276,6 +276,7 @@ def bar_plot_chart(context, request):
         json_body = request.json_body
         search_param_lists = json_body.get('search_query_params', deepcopy(DEFAULT_BROWSE_PARAM_LISTS))
         fields_to_aggregate_for = json_body.get('fields_to_aggregate_for', request.params.getall('field'))
+        include_meta_tissue_categories = json_body.get('include_meta_tissue_categories', False)
 
         if 'type' in search_param_lists and (
             (isinstance(search_param_lists['type'], list) and 'File' in search_param_lists['type'] and len(search_param_lists['type']) == 1) or
@@ -284,6 +285,7 @@ def bar_plot_chart(context, request):
     except json.decoder.JSONDecodeError:
         search_param_lists = request.GET.dict_of_lists()
         fields_to_aggregate_for = request.params.getall('field')
+        include_meta_tissue_categories = False
 
     if len(fields_to_aggregate_for) == 0:
         raise HTTPBadRequest(detail="No fields supplied to aggregate for.")
@@ -302,7 +304,7 @@ def bar_plot_chart(context, request):
     primary_agg.update(deepcopy(SUM_AGGREGATION_DEFINITION))
 
     # Provide tissue -> category mapping metadata in this response (same request).
-    if fields_to_aggregate_for[0] == TISSUE_FIELD:
+    if include_meta_tissue_categories and fields_to_aggregate_for[0] == TISSUE_FIELD:
         primary_agg["field_0"]["aggs"][TISSUE_CATEGORY_AGG_NAME] = {
             "terms": {
                 "field": "embedded." + TISSUE_CATEGORY_FIELD + ".raw",
@@ -381,7 +383,7 @@ def bar_plot_chart(context, request):
     for bucket in search_result['aggregations']['field_0']['buckets']:
         format_bucket_result(bucket, ret_result['terms'], 0)
 
-    if fields_to_aggregate_for[0] == TISSUE_FIELD:
+    if include_meta_tissue_categories and fields_to_aggregate_for[0] == TISSUE_FIELD:
         tissue_category_by_term = {}
         tissue_category_counts_by_term = {}
         for bucket in search_result['aggregations']['field_0']['buckets']:
