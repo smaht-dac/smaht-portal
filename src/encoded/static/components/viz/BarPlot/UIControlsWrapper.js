@@ -7,7 +7,7 @@ import memoize from 'memoize-one';
 
 import { console, layout, searchFilters, analytics, memoizedUrlParse } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 import { Schemas } from './../../util';
-import { tissueToCategory, getTissueInternalCodeFromFacetTerm } from './../../util/data';
+import { getTissueInternalCodeFromFacetTerm, getTissueCategoryFromFacetTerm } from './../../util/data';
 import DropdownItem from 'react-bootstrap/esm/DropdownItem';
 import DropdownButton from 'react-bootstrap/esm/DropdownButton';
 import * as vizUtil from '@hms-dbmi-bgm/shared-portal-components/es/components/viz/utilities';
@@ -30,6 +30,14 @@ export class UIControlsWrapper extends React.PureComponent {
         'Clinically accessible',
         UIControlsWrapper.GERM_LAYER_UNKNOWN
     ];
+    static GERM_LAYER_CANONICAL_BY_LOWER = {
+        'ectoderm': 'Ectoderm',
+        'mesoderm': 'Mesoderm',
+        'endoderm': 'Endoderm',
+        'germ cells': 'Germ cells',
+        'clinically accessible': 'Clinically accessible',
+        'unknown': UIControlsWrapper.GERM_LAYER_UNKNOWN
+    };
 
     static canShowChart(chartData) {
         if (!chartData) return false;
@@ -153,28 +161,29 @@ export class UIControlsWrapper extends React.PureComponent {
         });
     }
 
-    static normalizeTissueTerm(termKey) {
-        const raw = String(termKey || '').trim();
-        if (!raw) return '';
-        if (raw.indexOf(' - ') > -1) {
-            const parts = raw.split(' - ');
-            parts.shift();
-            const tissuePart = parts.join(' - ').trim();
-            return tissuePart.split(',')[0].trim();
-        }
-        return raw.split(',')[0].trim();
+    static getTissueCategoryByTermMap(barplotData) {
+        return (barplotData && barplotData.meta && barplotData.meta.tissue_category_by_term) || {};
     }
 
-    static getGermLayerForTerm(termKey) {
-        const tissueName = UIControlsWrapper.normalizeTissueTerm(termKey);
-        return tissueToCategory.get(tissueName) || UIControlsWrapper.GERM_LAYER_UNKNOWN;
+    static normalizeGermLayerName(category) {
+        if (!category || typeof category !== 'string') return null;
+        const normalized = UIControlsWrapper.GERM_LAYER_CANONICAL_BY_LOWER[category.trim().toLowerCase()];
+        return normalized || category;
+    }
+
+    static getGermLayerForTerm(termKey, tissueCategoryByTerm = {}) {
+        const mapped = UIControlsWrapper.normalizeGermLayerName(tissueCategoryByTerm[termKey]);
+        if (mapped) return mapped;
+        const fallback = UIControlsWrapper.normalizeGermLayerName(getTissueCategoryFromFacetTerm(termKey));
+        return fallback || UIControlsWrapper.GERM_LAYER_UNKNOWN;
     }
 
     static getAvailableGermLayers(barplotData) {
         if (!barplotData || !barplotData.terms) return [UIControlsWrapper.GERM_LAYER_ALL];
+        const tissueCategoryByTerm = UIControlsWrapper.getTissueCategoryByTermMap(barplotData);
         const available = new Set();
         _.forEach(_.keys(barplotData.terms), (termKey) => {
-            available.add(UIControlsWrapper.getGermLayerForTerm(termKey));
+            available.add(UIControlsWrapper.getGermLayerForTerm(termKey, tissueCategoryByTerm));
         });
         const ordered = UIControlsWrapper.GERM_LAYER_ORDER.filter((layer) => available.has(layer));
         return [UIControlsWrapper.GERM_LAYER_ALL, ...ordered];
@@ -190,14 +199,15 @@ export class UIControlsWrapper extends React.PureComponent {
     static filterBarplotDataByGermLayer(barplotData, germLayerFilter) {
         if (!barplotData || !barplotData.terms) return barplotData;
         if (!germLayerFilter || germLayerFilter === UIControlsWrapper.GERM_LAYER_ALL) return barplotData;
+        const tissueCategoryByTerm = UIControlsWrapper.getTissueCategoryByTermMap(barplotData);
 
         const filteredTerms = {};
         let totalFiles = 0;
         let totalDonors = 0;
 
         _.forEach(_.keys(barplotData.terms), (termKey) => {
-            if (UIControlsWrapper.getGermLayerForTerm(termKey) !== germLayerFilter) return;
             const termObj = barplotData.terms[termKey];
+            if (UIControlsWrapper.getGermLayerForTerm(termKey, tissueCategoryByTerm) !== germLayerFilter) return;
             filteredTerms[termKey] = termObj;
             totalFiles += UIControlsWrapper.getTermTotal(termObj, 'files');
             totalDonors += UIControlsWrapper.getTermTotal(termObj, 'donors');
@@ -256,7 +266,7 @@ export class UIControlsWrapper extends React.PureComponent {
         const { showState, aggregateType, germLayerFilter } = this.state;
         const { barplot_data_unfiltered, barplot_data_filtered } = this.getBarplotDataForGermLayer();
         const isTissueXAxis = Array.isArray(barplot_data_fields) && barplot_data_fields[0] === UIControlsWrapper.TISSUE_FIELD;
-        const xAxisTermLabelMapper = (isTissueXAxis /*&& germLayerFilter === UIControlsWrapper.GERM_LAYER_ALL*/) // uncomment if full tissue names should be shown in x-axis labels unless All is selected in germ layer filter
+        const xAxisTermLabelMapper = (isTissueXAxis && germLayerFilter === UIControlsWrapper.GERM_LAYER_ALL)
             ? function (termKey, defaultLabel) {
                 return getTissueInternalCodeFromFacetTerm(termKey) || defaultLabel;
             }
