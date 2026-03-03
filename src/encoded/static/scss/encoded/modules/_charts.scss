@@ -1371,7 +1371,7 @@ body[data-path="/statistics"] {
     padding-right: 40px; // For the right padding of the viz.
 
     .tabs-container {
-        margin-top: 40px;
+        margin-top: 20px;
         position: relative;
         min-height: 200px;
 
@@ -1504,6 +1504,11 @@ body[data-path="/statistics"] {
         padding-right: 1rem;
         margin-right: 1rem;
 
+        &.has-facets-panel {
+            width: 320px;
+            min-width: 320px;
+        }
+
         &.is-hidden {
             visibility: hidden;
             pointer-events: none;
@@ -1551,6 +1556,15 @@ body[data-path="/statistics"] {
                 background: #7f9fba;
                 color: #fff;
                 box-shadow: inset 0 0 0 1px #7797b2;
+            }
+        }
+
+        .matrix-facet-terms-panel {
+            margin-top: 0.9rem;
+            border-top: 1px solid #d8e3ee;
+            padding-top: 0.75rem;
+            .facets-container {
+                margin-bottom: 0;
             }
         }
     }
@@ -2189,6 +2203,17 @@ body[data-path="/statistics"] {
                     color: #303840 !important;
                 }
             }
+        }
+    }
+}
+
+// hide page title for /data-matrix
+body[data-path="/data-matrix"] {
+    .static-page {
+        margin-top: 0px !important;
+        
+        h2.section-title {
+            display: none;
         }
     }
 }

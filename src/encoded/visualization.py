@@ -588,11 +588,25 @@ def data_matrix_aggregations(context, request):
     subreq = make_search_subreq(request, '{}?{}'.format('/search/', urlencode(search_param_lists, True)))
     # import pdb; pdb.set_trace()
     search_result = perform_search_request(None, subreq, custom_aggregations=primary_agg)
+    facets = search_result.get('facets', [])
+    filters = search_result.get('filters', [])
 
     for field_to_delete in FIELDS_TO_DELETE:
         if search_result.get(field_to_delete) is None:
             continue
         del search_result[field_to_delete]
+
+    def collect_facet_terms(search_facets):
+        facet_terms = {}
+        for facet in search_facets:
+            field = facet.get('field')
+            if not field:
+                continue
+            terms = facet.get('terms', [])
+            facet_terms[field] = [term.get('key') for term in terms if term.get('key') is not None]
+        return facet_terms
+
+    facet_terms = collect_facet_terms(facets)
 
     ret_result = {  # We will fill up the "terms" here from our search_result buckets and then return this dictionary.
         "field": column_agg_fields[0] if isinstance(column_agg_fields, list) else column_agg_fields,
@@ -602,6 +616,9 @@ def data_matrix_aggregations(context, request):
         },
         "row_total_field": row_agg_fields[row_totals_es_agg_start_index],
         "row_total_terms": {},
+        "facet_terms": facet_terms,
+        "facets": facets,
+        "filters": filters,
         "other_doc_count": search_result['aggregations']['field_0'].get('sum_other_doc_count', 0),
         "time_generated": str(datetime.utcnow())
     }
@@ -733,6 +750,9 @@ def data_matrix_aggregations(context, request):
             "row_totals": row_totals,
             "column_totals": column_totals,
             "counts": ret_result["counts"],
+            "facet_terms": ret_result["facet_terms"],
+            "facets": ret_result["facets"],
+            "filters": ret_result["filters"],
             "time_generated": ret_result["time_generated"],
             "flatten_values": True,
             "value_delimiter": value_delimiter,

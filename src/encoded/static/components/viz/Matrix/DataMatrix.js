@@ -5,8 +5,12 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReactTooltip from 'react-tooltip';
 import { console, ajax, JWT } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+import { FacetList, generateNextHref } from '@hms-dbmi-bgm/shared-portal-components/es/components/browse/components/FacetList';
 import { VisualBody } from './StackedBlockVisual';
 import { DataMatrixConfigurator, updateColorRanges } from './DataMatrixConfigurator';
+import { Term } from './../../util/Schemas';
+import { compareTissueFacetTerms } from '../../util/data';
+import { FILE_BROWSE_HIDE_FACETS } from '../../browse/BrowseView';
 
 
 export default class DataMatrix extends React.PureComponent {
@@ -278,6 +282,8 @@ export default class DataMatrix extends React.PureComponent {
         ],
         "baseBrowseFilesPath": "/browse/",
         "showCountFor": false,
+        "showFacetTermsPanel": false,
+        "facetTermsPanelFields": null,
         "excludePrimaryColumnNoValue": true,
     };
 
@@ -327,9 +333,12 @@ export default class DataMatrix extends React.PureComponent {
         'disableConfigurator': PropTypes.bool,
         'idLabel': PropTypes.string,
         'onDataLoaded': PropTypes.func,
+        'schemas': PropTypes.object,
         'allowedFields': PropTypes.arrayOf(PropTypes.string),
         'baseBrowseFilesPath': PropTypes.string,
         'showCountFor': PropTypes.bool,
+        'showFacetTermsPanel': PropTypes.bool,
+        'facetTermsPanelFields': PropTypes.arrayOf(PropTypes.string),
         'excludePrimaryColumnNoValue': PropTypes.bool
     };
 
@@ -391,6 +400,9 @@ export default class DataMatrix extends React.PureComponent {
         this.getJsxExport = this.getJsxExport.bind(this);
         this.isProductionEnv = this.isProductionEnv.bind(this);
         this.onCountForChange = this.onCountForChange.bind(this);
+        this.onFacetFilter = this.onFacetFilter.bind(this);
+        this.onFacetFilterMultiple = this.onFacetFilterMultiple.bind(this);
+        this.onFacetClearFilters = this.onFacetClearFilters.bind(this);
 
         const colorRanges = this.getColorRanges(props);
 
@@ -422,7 +434,10 @@ export default class DataMatrix extends React.PureComponent {
             "colorRangeSegmentStep": props.colorRangeSegmentStep,
             "summaryBackgroundColor": props.summaryBackgroundColor,
             "defaultOpen": props.defaultOpen,
-            "countFor": "files"
+            "countFor": "files",
+            "facetsForPanel": [],
+            "facetFiltersForPanel": [],
+            "facetNavigationHref": props.query && props.query.url ? props.query.url : null
         };
     }
 
@@ -441,9 +456,51 @@ export default class DataMatrix extends React.PureComponent {
             !_.isEqual(groupingProperties, pastState.groupingProperties) ||
             showColumnSummary !== pastState.showColumnSummary ||
             defaultOpen !== pastState.defaultOpen ||
-            countFor !== pastState.countFor) {
+            countFor !== pastState.countFor ||
+            this.state.facetNavigationHref !== pastState.facetNavigationHref) {
             this.loadSearchQueryResults();
         }
+    }
+
+    onFacetFilter(facet, term, callback) {
+        const { query, facetNavigationHref, facetFiltersForPanel } = this.state;
+        const currentHref = facetNavigationHref || (query && query.url) || '';
+        const currentFilters = facetFiltersForPanel || [];
+        const nextHref = generateNextHref(currentHref, currentFilters, facet, term);
+        this.setState({ facetNavigationHref: nextHref }, () => {
+            if (typeof callback === 'function') callback();
+        });
+    }
+
+    onFacetFilterMultiple(filterObjArr = [], callback = null) {
+        const { query, facetNavigationHref, facetFiltersForPanel } = this.state;
+        let nextHref = facetNavigationHref || (query && query.url) || '';
+        const currentFilters = facetFiltersForPanel || [];
+
+        if (!Array.isArray(filterObjArr) || filterObjArr.length === 0) {
+            if (typeof callback === 'function') callback();
+            return;
+        }
+
+        filterObjArr.forEach((obj) => {
+            const { facet, term } = obj || {};
+            if (!facet || !term) return;
+            nextHref = generateNextHref(nextHref, currentFilters, facet, term);
+        });
+
+        this.setState({ facetNavigationHref: nextHref }, () => {
+            if (typeof callback === 'function') callback();
+        });
+    }
+
+    onFacetClearFilters(e = null, callback = null) {
+        if (e && typeof e.preventDefault === 'function') {
+            e.preventDefault();
+        }
+        const baseHref = (this.state.query && this.state.query.url) || null;
+        this.setState({ facetNavigationHref: baseHref }, () => {
+            if (typeof callback === 'function') callback();
+        });
     }
 
     /* Transform DSA entries by:
@@ -671,6 +728,8 @@ export default class DataMatrix extends React.PureComponent {
 
             updatedState[resultKey] = transformedData;
             updatedState['overallCounts'] = result.counts || null;
+            updatedState['facetsForPanel'] = result.facets || [];
+            updatedState['facetFiltersForPanel'] = result.filters || [];
             // sum files in transformedData array
             let totalFiles = 0;
             _.forEach(transformedData.row_totals, (r) => {
@@ -721,6 +780,8 @@ export default class DataMatrix extends React.PureComponent {
             const resultKey = "_results";
             const updatedState = {};
             updatedState[resultKey] = false;
+            updatedState['facetsForPanel'] = [];
+            updatedState['facetFiltersForPanel'] = [];
             this.setState(updatedState);
             if (typeof onDataLoaded === 'function') {
                 onDataLoaded({
@@ -742,8 +803,26 @@ export default class DataMatrix extends React.PureComponent {
             { "_results": null }, // (Re)Set all result states to 'null'
             () => {
                 const { valueDelimiter = ' ', excludePrimaryColumnNoValue = true } = this.props;
-                const [url, strQueryParams] = requestUrl.split('?');
-                const queryParamsByUrl = DataMatrix.parseQuery(strQueryParams);
+                const activeHref = this.state.facetNavigationHref || requestUrl;
+                const [url, baseQueryString = ''] = requestUrl.split('?');
+                const [, activeQueryString = ''] = activeHref.split('?');
+                const baseQueryParamsByUrl = baseQueryString ? DataMatrix.parseQuery(baseQueryString) : {};
+                const activeQueryParamsByUrl = activeQueryString ? DataMatrix.parseQuery(activeQueryString) : {};
+
+                const mergeQueryParamsKeepingBase = (baseParams = {}, activeParams = {}) => {
+                    const merged = _.clone(activeParams);
+                    _.forEach(baseParams, (baseValue, key) => {
+                        const baseValues = Array.isArray(baseValue) ? baseValue : [baseValue];
+                        const activeValue = merged[key];
+                        const activeValues = typeof activeValue === 'undefined'
+                            ? []
+                            : (Array.isArray(activeValue) ? activeValue : [activeValue]);
+                        merged[key] = _.uniq([...(activeValues || []), ...baseValues]);
+                    });
+                    return merged;
+                };
+
+                const queryParamsByUrl = mergeQueryParamsKeepingBase(baseQueryParamsByUrl, activeQueryParamsByUrl);
 
                 const colAggFields = Array.isArray(propColumnAggFields) ? propColumnAggFields : [propColumnAggFields];
                 const rowAggFields = [];
@@ -828,6 +907,7 @@ export default class DataMatrix extends React.PureComponent {
                     columnAggFields: columnAggField,
                     rowAggFields: rowAggFields
                 },
+                facetNavigationHref: searchUrl,
                 columnGrouping: newColumnGrouping,
                 groupingProperties: newGroupingProperties,
                 columnGroups: columnGroups,
@@ -947,7 +1027,8 @@ export default class DataMatrix extends React.PureComponent {
         const {
             headerFor, valueChangeMap, allowedFields, valueDelimiter,
             disableConfigurator = false, idLabel = '', additionalPopoverData = {},
-            baseBrowseFilesPath, browseFilteringTransformFuncKey, showCountFor
+            baseBrowseFilesPath, browseFilteringTransformFuncKey, showCountFor,
+            showFacetTermsPanel, facetTermsPanelFields
         } = this.props;
         const {
             query, fieldChangeMap, columnGrouping, groupingProperties,
@@ -955,7 +1036,7 @@ export default class DataMatrix extends React.PureComponent {
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended,
             colorRanges, xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
             colorRangeBaseColor, colorRangeSegments, colorRangeSegmentStep, summaryBackgroundColor,
-            defaultOpen = false, totalFiles, countFor, overallCounts
+            defaultOpen = false, totalFiles, countFor, overallCounts, facetsForPanel, facetFiltersForPanel
         } = this.state;
 
         const effectiveYAxisLabel = countFor === 'donors' ? 'Tissue' : yAxisLabel;
@@ -981,6 +1062,7 @@ export default class DataMatrix extends React.PureComponent {
             rowGroups, showRowGroups, rowGroupsExtended, showRowGroupsExtended, additionalPopoverData,
             summaryBackgroundColor, xAxisLabel, yAxisLabel: effectiveYAxisLabel, showAxisLabels, showColumnSummary, valueDelimiter,
             baseBrowseFilesPath,
+            activeFacetHref: this.state.facetNavigationHref || query?.url || null,
             countFor,
             overallCounts,
             ...(countFor === 'total_coverage' ? { blockWidth: 60, blockHorizontalExtend: 10 } : {}),
@@ -1029,29 +1111,35 @@ export default class DataMatrix extends React.PureComponent {
             <div className="w-100">
                 {configurator}
                 {headerFor || null}
-                {showCountFor ? (() => {
+                {(showCountFor || showFacetTermsPanel) ? (() => {
                     const isTissueMatrix = countFor === 'donors';
                     const isCoverageView = countFor === 'total_coverage';
+                    const showCountsPanel = showCountFor && !isTissueMatrix;
+                    const showFacetsPanel = showFacetTermsPanel;
+                    const showLeftPanel = showCountsPanel || showFacetsPanel;
 
                     return (
                         <div className="matrix-mode-layout">
-                            <div className="matrix-mode-tabs mb-2">
-                                <button
-                                    type="button"
-                                    className={`matrix-mode-tab ${!isTissueMatrix ? 'active' : ''}`}
-                                    onClick={() => this.onCountForChange({ target: { value: isCoverageView ? 'total_coverage' : 'files' } })}>
-                                    <i className="icon fas icon-user me-05" /> Donor x Assay Matrix
-                                </button>
-                                <button
-                                    type="button"
-                                    className={`matrix-mode-tab ${isTissueMatrix ? 'active' : ''}`}
-                                    onClick={() => this.onCountForChange({ target: { value: 'donors' } })}>
-                                    <i className="icon fas icon-lungs me-05" /> Tissue x Assay Matrix
-                                </button>
-                            </div>
+                            {showCountFor ? (
+                                <div className="matrix-mode-tabs mb-2">
+                                    <button
+                                        type="button"
+                                        className={`matrix-mode-tab ${!isTissueMatrix ? 'active' : ''}`}
+                                        onClick={() => this.onCountForChange({ target: { value: isCoverageView ? 'total_coverage' : 'files' } })}>
+                                        <i className="icon fas icon-user me-05" /> Donor x Assay Matrix
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`matrix-mode-tab ${isTissueMatrix ? 'active' : ''}`}
+                                        onClick={() => this.onCountForChange({ target: { value: 'donors' } })}>
+                                        <i className="icon fas icon-lungs me-05" /> Tissue x Assay Matrix
+                                    </button>
+                                </div>
+                            ) : null}
                             <div className="matrix-mode-body d-flex">
-                                <div className={`matrix-counts-panel ${isTissueMatrix ? 'is-hidden' : ''}`}>
-                                    {!isTissueMatrix ? (
+                                {showLeftPanel ? (
+                                <div className={`matrix-counts-panel ${showFacetTermsPanel ? 'has-facets-panel' : ''}`}>
+                                    {showCountsPanel ? (
                                         <React.Fragment>
                                         <div className="matrix-counts-title">Counts</div>
                                         <div className="matrix-counts-toggle">
@@ -1070,7 +1158,51 @@ export default class DataMatrix extends React.PureComponent {
                                         </div>
                                         </React.Fragment>
                                     ) : null}
+                                    {showFacetsPanel ? (() => {
+                                            const includedFacetFields = Array.isArray(facetTermsPanelFields) && facetTermsPanelFields.length > 0
+                                                ? new Set(facetTermsPanelFields)
+                                                : null;
+                                            const hideFacetFields = new Set(FILE_BROWSE_HIDE_FACETS || []);
+                                            hideFacetFields.add('type');
+                                            const visibleFacets = _.filter(facetsForPanel || [], (facet) => {
+                                                if (!facet || !facet.field || !Array.isArray(facet.terms) || facet.terms.length === 0) {
+                                                    return false;
+                                                }
+                                                if (hideFacetFields.has(facet.field)) {
+                                                    return false;
+                                                }
+                                                if (!includedFacetFields) {
+                                                    return true;
+                                                }
+                                                return includedFacetFields.has(facet.field);
+                                            });
+
+                                            if (visibleFacets.length === 0) {
+                                                return null;
+                                            }
+
+                                            return (
+                                                <div className="matrix-facet-terms-panel mt-1">
+                                                    <FacetList
+                                                        facets={visibleFacets}
+                                                        context={{ filters: facetFiltersForPanel || [] }}
+                                                        termTransformFxn={Term.toName}
+                                                        facetListSortFxns={{ 'sample_summary.tissues': compareTissueFacetTerms }}
+                                                        title="Included Properties"
+                                                        showClearFiltersButton={false}
+                                                        onClearFilters={this.onFacetClearFilters}
+                                                        onFilter={this.onFacetFilter}
+                                                        onFilterMultiple={this.onFacetFilterMultiple}
+                                                        hideHeaderToggle
+                                                        maxFacetsBodyHeight={340}
+                                                        href={this.state.facetNavigationHref || query?.url || null}
+                                                        schemas={this.props.schemas || null}
+                                                    />
+                                                </div>
+                                            );
+                                        })() : null}
                                 </div>
+                                ) : null}
                                 <div className="matrix-visual-panel flex-grow-1">
                                     <VisualBody
                                         {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
