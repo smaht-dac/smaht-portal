@@ -79,7 +79,8 @@ function FileTableWithSelectedFilesCheckboxes(props) {
         currentAction,
     } = props;
 
-    const userDownloadAccess = useUserDownloadAccess(session);
+    const { userDownloadAccess, isAccessResolved } =
+        useUserDownloadAccess(session);
 
     const facets = useMemo(
         function () {
@@ -88,10 +89,13 @@ function FileTableWithSelectedFilesCheckboxes(props) {
         [context, currentAction, session, schemas]
     );
 
-    const downloadableFileCount = getDownloadableFileCount(
-        context?.facets?.find((facet) => facet.field === 'status')?.terms || [],
-        userDownloadAccess
-    );
+    const downloadableFileCount = isAccessResolved
+        ? getDownloadableFileCount(
+              context?.facets?.find((facet) => facet.field === 'status')
+                  ?.terms || [],
+              userDownloadAccess
+          )
+        : 0;
 
     const selectedFileProps = {
         selectedItems, // From SelectedItemsController
