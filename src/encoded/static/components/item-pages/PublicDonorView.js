@@ -325,6 +325,7 @@ const PublicDonorView = React.memo(function PublicDonorView(props) {
                                     idLabel="donor"
                                     session={session}
                                     yAxisLabel="Tissue" // Only one donor, so y-axis is Tissue
+                                    showUniqueDonorsAssayBand={false}
                                     baseBrowseFilesPath={
                                         study === 'Production'
                                             ? '/browse/'

@@ -92,7 +92,7 @@ export class VisualBody extends React.PureComponent {
     static blockRenderedContents(data, blockProps){
         const countFor = blockProps && blockProps.countFor ? blockProps.countFor : 'files';
         const blockType = blockProps && blockProps.blockType ? blockProps.blockType : 'regular';
-        const countField = countFor;
+        const countField = countFor === 'tissue_files' ? 'files' : countFor;
         const getCountValue = (item) => {
             if (!item || !item.counts) return 0;
             if (countField === 'donors') {
@@ -105,7 +105,11 @@ export class VisualBody extends React.PureComponent {
             return typeof value === 'number' ? value : 0;
         };
         const blockSum = Array.isArray(data)
-            ? _.reduce(data, function (sum, item) { return sum + getCountValue(item); }, 0)
+            ? (countField === 'donors'
+                ? _.reduce(data, function (maxValue, item) {
+                    return Math.max(maxValue, getCountValue(item));
+                }, 0)
+                : _.reduce(data, function (sum, item) { return sum + getCountValue(item); }, 0))
             : (data ? getCountValue(data) : 0);
 
         // For total_coverage, we want to display the value with "X" and
@@ -592,7 +596,7 @@ export class VisualBody extends React.PureComponent {
                     'columnGroups', 'showColumnGroups', 'columnGroupsExtended', 'showColumnGroupsExtended',
                     'rowGroups', 'showRowGroups', 'rowGroupsExtended', 'showRowGroupsExtended',
                     'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels', 'showColumnSummary',
-                    'countFor', 'overallCounts',
+                    'countFor', 'overallCounts', 'showUniqueDonorsAssayBand',
                     'blockWidth', 'blockHorizontalExtend', 'blockHorizontalSpacing', 'blockVerticalSpacing')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
@@ -1633,6 +1637,15 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
     // renders the row group summary section
     static rowGroupsSummary({ label, labelSectionStyle, columnKeys, columnWidth, headerItemStyle, containerSectionStyle, ...props } ) {
+        const countLabelByMetric = {
+            files: 'File Count',
+            tissue_files: 'File Count',
+            total_coverage: 'Coverage',
+            donors: 'Donor Count'
+        };
+        const metricSuffix = countLabelByMetric[props.countFor] || 'Count';
+        const groupingBandLabel = `${label} (${metricSuffix})`;
+
         const getColumnSummaryData = (columnKey) => {
             const result = [];
             const values = props.groupedDataIndices[columnKey] || [];
@@ -1723,6 +1736,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     };
                     const overallValue = summaryCountFor === 'donors'
                         ? (props.overallCounts?.donors ?? props.overallCounts?.donor_count ?? overallDonorsFromRows())
+                        : summaryCountFor === 'tissue_files'
+                            ? props.overallCounts?.files
                         : props.overallCounts?.[summaryCountFor];
                     if (overallValue == null) return null;
                     return (
@@ -1758,11 +1773,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
         return (
             <div className="grouping header-section-lower" style={containerSectionStyle}>
-                {props.countFor === 'files' ? (
+                {(props.showUniqueDonorsAssayBand !== false) && (props.countFor === 'files' || props.countFor === 'tissue_files') ? (
                     <div className="row grouping-row total-donors-summary-row">
                         <div className="label-section" style={{ ...labelSectionStyle, paddingTop: props.blockVerticalSpacing }}>
                             <div className="label-container text-end" style={{ height: '29px', marginBottom: '1px' }}>
-                                <span className="float-start text-500 ps-05">Total Donors</span>
+                                <span className="float-start text-500 ps-05">Unique Donors per Assay</span>
                             </div>
                         </div>
                         <div className="col list-section has-header header-for-viz">
@@ -1773,7 +1788,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                 <div className="row grouping-row">
                     <div className="label-section" style={{ ...labelSectionStyle, paddingTop: props.blockVerticalSpacing }}>
                         <div className="label-container text-end" onClick={props.onSorterClick} style={{ height: '29px', marginBottom: '1px' }}>
-                            <span className="float-start text-500 ps-05">{label}</span>
+                            <span className="float-start text-500 ps-05">{groupingBandLabel}</span>
                             {/* <span className={labelSortIconClassName}>{labelSortIcon}</span> */}
                         </div>
                     </div>
@@ -1944,19 +1959,22 @@ const Block = React.memo(function Block(props){
     }
 
     const countFor = props.countFor || 'files';
+    const effectiveCountFor = countFor === 'tissue_files' ? 'files' : countFor;
     const getCountValue = (item) => {
         if (!item || !item.counts) return 0;
-        if (countFor === 'donors') {
+        if (effectiveCountFor === 'donors') {
             const donorsVal = item.counts.donors;
             if (typeof donorsVal === 'number') return donorsVal;
             const donorCountVal = item.counts.donor_count;
             return typeof donorCountVal === 'number' ? donorCountVal : 0;
         }
-        const value = item.counts[countFor];
+        const value = item.counts[effectiveCountFor];
         return typeof value === 'number' ? value : 0;
     };
     const blockValue = Array.isArray(argData)
-        ? _.reduce(argData, function (sum, item) { return sum + getCountValue(item); }, 0)
+        ? (effectiveCountFor === 'donors'
+            ? _.reduce(argData, function (maxValue, item) { return Math.max(maxValue, getCountValue(item)); }, 0)
+            : _.reduce(argData, function (sum, item) { return sum + getCountValue(item); }, 0))
         : (argData ? getCountValue(argData) : 0);
     const hideCoverageBlock = countFor === 'total_coverage' && blockType === 'regular' && blockValue <= 0;
     const hideCoverageSummaryBlock = countFor === 'total_coverage' && blockType === 'col-summary';
