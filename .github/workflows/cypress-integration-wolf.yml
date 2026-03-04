@@ -4,15 +4,8 @@ name: Cypress Tests - Wolf
 
 # Controls when the action will run.
 on:
-  # # Allows you to run this workflow manually from the Actions tab
-  # workflow_dispatch:
-    # Allows you to run this workflow manually from the Actions tab
-    # workflow_dispatch:
-    #   on:
-    # NOTE: Temporary, only run initially
-    push:
-      branches: ["cfm-release_tracker_with_alert_clean"]
-    workflow_dispatch:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
