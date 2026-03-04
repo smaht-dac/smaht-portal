@@ -1,6 +1,6 @@
 'use strict';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DataCardRow } from '../file-overview/FileViewDataCards';
 import {
     OverlayTrigger,
@@ -8,6 +8,7 @@ import {
     PopoverHeader,
     PopoverBody,
 } from 'react-bootstrap';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
 
 /**
  * Bootstrap Popover element for the DSA field in the sample information
@@ -448,6 +449,63 @@ const ExposureCard = ({ data, popover }) => {
     );
 };
 
+const DonorDSAValue = (props) => {
+    const [link, setLink] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const { context } = props;
+
+    useEffect(() => {
+        let cancelled = false;
+        setIsLoading(true);
+
+        if (!link) {
+            // peek metadata to see if there are any DSA fields
+            const searchQuery = `?data_type=DSA&data_type=Chain+File&data_type=Sequence+Interval&dataset%21=No+value&donors.display_title=${context?.display_title}&sample_summary.studies=Production&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File`;
+            ajax.load(
+                '/peek-metadata/' + searchQuery,
+                (resp) => {
+                    if (cancelled) return;
+                    // Check that some files are present in the metadata
+                    if (
+                        resp
+                            ?.find((f) => f.field === 'type')
+                            ?.terms.find((t) => t.key === 'File')?.doc_count > 0
+                    ) {
+                        setIsLoading(false);
+                        setLink('/browse/' + searchQuery);
+                    } else {
+                        // No DSA files found
+                        setIsLoading(false);
+                    }
+                },
+                'GET',
+                (err) => {
+                    setIsLoading(false);
+                    console.error(resp.error);
+                }
+            );
+        }
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    if (isLoading) {
+        return <i className="icon icon-spin icon-circle-notch fas" />;
+    }
+
+    return link ? (
+        <span>
+            <a href={link} target="_blank">
+                Available here
+            </a>
+        </span>
+    ) : (
+        <span>Coming Soon</span>
+    );
+};
+
 /**
  * Parent component for the data cards containing information on the file.
  * @param {object} context the context of the item being viewed
@@ -458,7 +516,6 @@ export const ProtectedDonorViewDataCards = ({
     isLoading = false,
 }) => {
     let donor_information = default_donor_information;
-    console.log('context', context);
 
     // Isolate medical history properties
     const medical_history = context?.medical_history?.[0] || {};
@@ -508,17 +565,15 @@ export const ProtectedDonorViewDataCards = ({
                                     )}
                                 </div>
                                 <div className="d-flex flex-column">
-                                    {/* <DataCardRow
-                                        title={'Tier'}
-                                        value={'Coming soon'}
-                                    /> */}
                                     <DataCardRow
                                         title={'Bulk WGS Coverage'}
                                         value={'Coming soon'}
                                     />
                                     <DataCardRow
                                         title={'DSA'}
-                                        value={'Coming soon'}
+                                        value={
+                                            <DonorDSAValue context={context} />
+                                        }
                                         titlePopover={renderDSAPopover()}
                                     />
                                 </div>
