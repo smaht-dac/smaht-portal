@@ -7,6 +7,17 @@ smaht-portal
 Change Log
 ----------
 
+1.16.0
+======
+
+`PR 611: Update OutputFile calcprops <https://github.com/smaht-dac/smaht-portal/pull/611>`_
+
+* Add calcprops to OutputFile to handle those files linked to AnalysisRuns instead of FileSets
+* Added utility functions for this
+* Updated tests and added new tests for these calcprops
+* Added AnalysisRun linkTo to file_links mixin
+* Added revlink to AnalysisRun for OutputFiles linked to it
+
 1.15.0
 ======
 
