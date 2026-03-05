@@ -124,7 +124,7 @@ export default class DataMatrix extends React.PureComponent {
             "textColor": "#ffffff"
         },
         "Analysis": {
-            "values": ['DSA', 'SNV'],
+            "values": ['DSA', 'Variant Call Sets'],
             "backgroundColor": "#cccccc",
             "textColor": "#000000",
             "shortName": "ANL"
@@ -637,7 +637,7 @@ export default class DataMatrix extends React.PureComponent {
                 }
             }
 
-            mergedRow[columnGrouping] = 'SNV';
+            mergedRow[columnGrouping] = 'Variant Call Sets';
             return mergedRow;
         });
     }
@@ -1386,7 +1386,7 @@ DataMatrix.browseFilteringTransformFuncs = {
             // extend data_type filter to include Chain File along with DSA
             filteringProperties['data_type'] = [...(filteringProperties['data_type'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
             delete filteringProperties[assayField];
-        } else if (filteringProperties[assayField] === 'SNV') {
+        } else if (filteringProperties[assayField] === 'Variant Call Sets') {
             filteringProperties['analysis_details'] = [...(filteringProperties['analysis_details'] || []), 'Filtered'];
             filteringProperties['data_type!'] = [...(filteringProperties['data_type!'] || []), 'DSA', 'Chain File', 'Sequence Interval'];
             delete filteringProperties[assayField];
