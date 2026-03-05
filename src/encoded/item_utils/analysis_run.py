@@ -23,7 +23,7 @@ def get_donors(
         return properties.get("donors", [])
     elif "tissues" in properties:
         if request_handler:
-             return list(set(get_property_values_from_identifiers(
+            return list(set(get_property_values_from_identifiers(
                 request_handler, get_tissues(properties), tissue_utils.get_donor
             )))
     return []

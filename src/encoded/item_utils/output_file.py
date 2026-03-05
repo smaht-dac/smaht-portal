@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 from .item import get_type
 
 from .utils import (
@@ -9,7 +9,6 @@ from .utils import (
 
 from . import (
     item as item_utils,
-    file as file_utils,
     tissue as tissue_utils,
     analysis_run as analysis_run_utils,
 )
@@ -39,19 +38,7 @@ def is_final_output_cram(properties: Dict[str, Any]) -> bool:
     return is_final_output(properties) and file_format.get("display_title", "") == "cram"
 
 
-def get_donors_from_associated_items(
-    properties: Dict[str, Any],
-    request_handler: RequestHandler
-) -> List[str]:
-    """Get donors from associated items."""
-    if properties.get("file_sets"):
-        return file_utils.get_donors(properties, request_handler)
-    elif analysis_runs := properties.get("analysis_runs"):
-        return _get_donors_from_analysis_runs(analysis_runs, request_handler)
-    return []
-
-
-def _get_donors_from_analysis_runs(
+def get_donors_from_analysis_runs(
         analysis_runs: List[str],
         request_handler: RequestHandler
 ) -> Union[List[str], None]:
@@ -64,27 +51,15 @@ def _get_donors_from_analysis_runs(
     return result or []
 
 
-def get_sample_sources_from_associated_items(
-    properties: Dict[str, Any],
-    request_handler: RequestHandler
-) -> List[str]:
-    """Get sample sources from associated items."""
-    if properties.get("file_sets"):
-        return file_utils.get_sample_sources(properties, request_handler)
-    elif analysis_runs := properties.get("analysis_runs"):
-        return _get_sample_sources_from_analysis_runs(request_handler, analysis_runs)
-    return []
-
-
-def _get_sample_sources_from_analysis_runs(
+def get_sample_sources_from_analysis_runs(
+        analysis_runs: List[str],
         request_handler: RequestHandler,
-        analysis_runs: List[str]
 ) -> Union[List[str], None]:
     """Get sample sources from analysis runs."""
     result = get_property_values_from_identifiers(
         request_handler,
         analysis_runs,
-        partial(analysis_run_utils.get_tissues) #, request_handler=request_handler) 
+        partial(analysis_run_utils.get_tissues)
     )
     return result or None
 
@@ -95,7 +70,10 @@ def get_tissue_category(
 ) -> List[str]:
     """Get tissue category associated with associated items.
         can be multiple tissues if more than one category return ? multiple"""
-    tissues = get_sample_sources_from_associated_items(properties, request_handler)
+    tissues = get_sample_sources_from_analysis_runs(
+        properties.get("analysis_runs", []),
+        request_handler
+    )
     categories = set()
     for tissue in tissues:
         tissue_item = request_handler.get_item(tissue)
@@ -111,7 +89,10 @@ def get_tissue_type(
 ) -> List[str]:
     """Get tissue types associated with associated items.
         can be multiple tissue types if more than one tissue"""
-    tissues = get_sample_sources_from_associated_items(properties, request_handler)
+    tissues = get_sample_sources_from_analysis_runs(
+        properties.get("analysis_runs", []),
+        request_handler
+    )
     types = set()
     for tissue in tissues:
         tissue_item = request_handler.get_item(tissue)
@@ -127,7 +108,12 @@ def get_uberon_ids(
     """Get uberon ids associated with external output file."""
     return list(set(get_property_values_from_identifiers(
         request_handler,
-        [item_utils.get_uuid(request_handler.get_item(sample_source)) for sample_source in
-            get_sample_sources_from_associated_items(properties, request_handler)],
+        [
+            item_utils.get_uuid(request_handler.get_item(sample_source)) for 
+            sample_source in get_sample_sources_from_analysis_runs(
+                properties.get("analysis_runs", []),
+                request_handler
+            )  
+        ],
         tissue_utils.get_uberon_id
     )))

@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Union
 
 from snovault import collection, load_schema, calculated_property
 # from snovault.snovault.calculated import calculated_property
@@ -15,10 +15,8 @@ from ..item_utils.utils import (
 )
 
 from ..item_utils import (
-    analysis_run as analysis_run_utils,
     tissue as tissue_utils,
     item as item_utils,
-    file as file_utils,
     output_file as of_utils,
     donor as donor_utils
 )
@@ -64,9 +62,15 @@ class OutputFile(File):
        request: Request,
     ) -> Union[List[str], None]:
         """Get sample sources from file sets or analysis runs."""
+        if not self.properties.get("file_sets") and not self.properties.get("analysis_runs"):
+            return None
+        if self.properties.get("file_sets"):
+            return super().sample_sources(
+                request=request, file_sets=self.properties.get("file_sets")
+            )
         request_handler = RequestHandler(request=request)
-        result = of_utils.get_sample_sources_from_associated_items(
-            self.properties,
+        result = of_utils.get_sample_sources_from_analysis_runs(
+            self.properties.get("analysis_runs", []),
             request_handler
         )
         return result or None
@@ -77,9 +81,16 @@ class OutputFile(File):
        request: Request,
     ) -> Union[List[str], None]:
         """Get donors from file sets or analysis_runs."""
+        if not self.properties.get("file_sets") and not self.properties.get("analysis_runs"):
+            return None
+        if self.properties.get("file_sets"):
+            return super().donors(
+                request=request,
+                file_sets=self.properties.get("file_sets")
+            )
         request_handler = RequestHandler(request=request)
-        result = of_utils.get_donors_from_associated_items(
-            self.properties,
+        result = of_utils.get_donors_from_analysis_runs(
+            self.properties.get("analysis_runs", []),
             request_handler
         )
         return result or None
@@ -89,11 +100,16 @@ class OutputFile(File):
         file_properties: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Get sample summary for display on file overview page."""
+        if not self.properties.get("file_sets") and not self.properties.get("analysis_runs"):
+            return None
+        if self.properties.get("file_sets"):
+            return super()._get_sample_summary_fields(request_handler, file_properties)
         to_include = {
             CalcPropConstants.SAMPLE_SUMMARY_DONOR_IDS: get_property_values_from_identifiers(
                 request_handler,
-                of_utils.get_donors_from_associated_items(
-                    file_properties, request_handler
+                of_utils.get_donors_from_analysis_runs(
+                    self.properties.get("analysis_runs", []),
+                    request_handler
                 ),
                 item_utils.get_external_id,
             ),
@@ -108,16 +124,16 @@ class OutputFile(File):
             ),
             CalcPropConstants.SAMPLE_SUMMARY_TISSUE_DETAILS: get_property_values_from_identifiers(
                 request_handler,
-                of_utils.get_sample_sources_from_associated_items(
-                    file_properties, request_handler),
+                of_utils.get_sample_sources_from_analysis_runs(
+                    self.properties.get("analysis_runs", []), request_handler),
                 tissue_utils.get_location,
             ),
             CalcPropConstants.SAMPLE_SUMMARY_STUDIES: get_property_values_from_identifiers(
                 request_handler,
-                of_utils.get_donors_from_associated_items(
-                    file_properties, request_handler),
+                of_utils.get_donors_from_analysis_runs(
+                    self.properties.get("analysis_runs", []), request_handler),
                 donor_utils.get_study
             ),
-            }
+        }
         result = {key: value for key, value in to_include.items() if value}
         return result
