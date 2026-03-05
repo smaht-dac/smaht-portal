@@ -7,6 +7,20 @@ smaht-portal
 Change Log
 ----------
 
+1.15.0
+======
+
+* Fix propagation of links by disabling user email resolution by default in revision history
+
+
+1.14.1
+======
+
+`PR 596: SN Update tissue type labels <https://github.com/smaht-dac/smaht-portal/pull/593>`_
+
+* Update the calculated property for `sample_summary`` in files to adjust the tissue type label for Fibroblast and Benchmarking tissues
+
+
 1.14.0
 ======
 
@@ -178,7 +192,7 @@ Change Log
 * fixed a couple of pre-existing typos
 * added workbook insert for brain_pathology_report
 * udated enum value from '[0]' to '0' for target_tissue_percentage as submitr was converting former to an array
-  
+
 
 1.8.7
 =====

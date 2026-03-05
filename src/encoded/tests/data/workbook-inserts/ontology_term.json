@@ -8,7 +8,7 @@
         "consortia": [
             "smaht"
         ],
-        "preferred_name": "Liver",
+        "preferred_name": "3I - Liver",
         "tags":[
             "tissue_type"
         ]
@@ -22,7 +22,7 @@
         "consortia": [
             "smaht"
         ],
-        "preferred_name": "Lung",
+        "preferred_name": "3Q - Lung",
         "tags": [
             "tissue_type"
         ]
@@ -48,7 +48,7 @@
         "consortia": [
             "smaht"
         ],
-        "preferred_name": "Brain",
+        "preferred_name": "3AJ - Brain",
         "valid_protocol_ids": ["3AJ"],
         "grouping_term":  "UBERON:0000924",
         "tags": [
@@ -76,7 +76,7 @@
         "consortia": [
             "smaht"
         ],
-        "preferred_name": "Blood",
+        "preferred_name": "3A - Whole Blood",
         "valid_protocol_ids": ["3A"],
         "tags": [
             "tissue_type"
@@ -90,6 +90,10 @@
         "grouping_term": "UBERON:0002097",
         "consortia": [
             "smaht"
+        ],
+        "preferred_name": "3AD - Skin, Calf",
+        "tags": [
+            "tissue_type"
         ]
     },
     {
@@ -100,9 +104,6 @@
         "grouping_term": "UBERON:0000924",
         "consortia": [
             "smaht"
-        ],
-        "tags": [
-            "tissue_type"
         ]
     },
     {
