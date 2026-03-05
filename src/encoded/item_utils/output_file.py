@@ -18,6 +18,10 @@ def is_output_file(properties: Dict[str, Any]) -> bool:
     return get_type(properties) == "OutputFile"
 
 
+def has_analysis_runs(properties: Dict[str, Any]) -> bool:
+    return bool(properties.get("analysis_runs"))
+
+
 def get_output_status(properties: Dict[str, Any]) -> str:
     """Get output status from properties."""
     return properties.get("output_status", "")
