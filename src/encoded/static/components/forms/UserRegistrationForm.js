@@ -621,7 +621,7 @@ function SMaHTNetworkMember({ onGoToSelfRegistration, className = "" }) {
                         target="_blank"
                         rel="noreferrer noopener"
                         className="btn btn-md btn-primary text-500">
-                        Email OC
+                        Get Verified by the OC
                     </a>
                 </div>
             </div>
