@@ -13,6 +13,14 @@ Change Log
 * Fix propagation of links by disabling user email resolution by default in revision history
 
 
+1.14.1
+======
+
+`PR 596: SN Update tissue type labels <https://github.com/smaht-dac/smaht-portal/pull/593>`_
+
+* Update the calculated property for `sample_summary`` in files to adjust the tissue type label for Fibroblast and Benchmarking tissues
+
+
 1.14.0
 ======
 
