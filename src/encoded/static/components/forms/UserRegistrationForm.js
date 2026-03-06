@@ -46,9 +46,12 @@ export default class UserRegistrationForm extends React.PureComponent {
 
         this.onConsortiumMemberYes = this.onConsortiumMemberYes.bind(this);
         this.onConsortiumMemberNo = this.onConsortiumMemberNo.bind(this);
+        this.onGoToSelfRegistration = this.onGoToSelfRegistration.bind(this);
 
         this.formRef = React.createRef();
         this.recaptchaContainerRef = React.createRef();
+
+        this.isInstitutionalEmail = this.isInstitutionalEmail.bind(this);
 
         this.state = {
             captchaSiteKey: this.props.captchaSiteKey,
@@ -56,6 +59,7 @@ export default class UserRegistrationForm extends React.PureComponent {
             captchaErrorMsg: null,
             registrationStatus: 'form',
             isConsortiumMember: null,
+            showSelfRegistration: false,
 
             // These fields are required, so we store in state
             // to be able to do some as-you-type validation
@@ -66,11 +70,22 @@ export default class UserRegistrationForm extends React.PureComponent {
     }
 
     onConsortiumMemberYes() {
-        this.setState({ isConsortiumMember: true });
+        this.setState({ isConsortiumMember: true, showSelfRegistration: false });
     }
 
     onConsortiumMemberNo() {
-        this.setState({ isConsortiumMember: false });
+        this.setState({ isConsortiumMember: false, showSelfRegistration: true });
+    }
+
+    onGoToSelfRegistration() {
+        this.setState({ showSelfRegistration: true }, () => {
+            if (this.formRef.current && this.formRef.current.scrollIntoView) {
+                this.formRef.current.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                });
+            }
+        });
     }
 
     componentDidMount() {
@@ -102,8 +117,11 @@ export default class UserRegistrationForm extends React.PureComponent {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { isConsortiumMember } = this.state;
-        if (isConsortiumMember === false && prevState.isConsortiumMember !== false && !this.captchaJSTag && this.recaptchaContainerRef.current) {
+        const { isConsortiumMember, showSelfRegistration } = this.state;
+        const shouldShowSelfRegistration = isConsortiumMember === false || showSelfRegistration;
+        const shouldHaveShownSelfRegistration =
+            prevState.isConsortiumMember === false || prevState.showSelfRegistration;
+        if (shouldShowSelfRegistration && !shouldHaveShownSelfRegistration && !this.captchaJSTag && this.recaptchaContainerRef.current) {
             window.onRecaptchaLoaded = this.onRecaptchaLibLoaded;
             this.captchaJSTag = document.createElement('script');
             this.captchaJSTag.setAttribute(
@@ -113,7 +131,7 @@ export default class UserRegistrationForm extends React.PureComponent {
             this.captchaJSTag.setAttribute('async', true);
             document.head.appendChild(this.captchaJSTag);
         }
-        if (isConsortiumMember !== false && prevState.isConsortiumMember === false) {
+        if (!shouldShowSelfRegistration && shouldHaveShownSelfRegistration) {
             if (this.captchaJSTag) {
                 document.head.removeChild(this.captchaJSTag);
                 delete this.captchaJSTag;
@@ -249,11 +267,37 @@ export default class UserRegistrationForm extends React.PureComponent {
         window.open(e.target.href);
     }
 
+    isInstitutionalEmail(email) {
+        // const lower = email.toLowerCase();
+
+        // const genericProviders = [
+        //     "gmail.com",
+        //     "yahoo.com",
+        //     "outlook.com",
+        //     "hotmail.com",
+        //     "protonmail.com",
+        //     "icloud.com",
+        //     "aol.com",
+        //     "yandex.com",
+        // ];
+
+        // const domain = lower.split("@")[1];
+
+        // const isEdu = domain.endsWith(".edu") || domain.includes(".edu.");
+        // const isOrg = domain.endsWith(".org") || domain.includes(".org.");
+
+        // const isGeneric = genericProviders.includes(domain);
+
+        // return (isEdu || isOrg) && !isGeneric;
+
+        return true; // For now, we will not enforce institutional email requirement, but we may want to in the future, so leaving this function here for now.
+    }
+
     render() {
         const { schemas, heading, unverifiedUserEmail, onExitLinkClick } = this.props;
         const {
             registrationStatus, value_for_first_name, value_for_last_name, value_for_affiliation_institution,
-            captchaErrorMsg: captchaError, isConsortiumMember
+            captchaErrorMsg: captchaError, isConsortiumMember, showSelfRegistration
         } = this.state;
 
         const maySubmit = this.maySubmitForm();
@@ -294,35 +338,43 @@ export default class UserRegistrationForm extends React.PureComponent {
             );
         }
 
+        const isInstitutional = this.isInstitutionalEmail(unverifiedUserEmail);
+        const shouldShowSelfRegistration =
+            isConsortiumMember === false || showSelfRegistration;
+
         return (
             <div className="user-registration-form-container position-relative">
                 {errorIndicator}
 
                 {heading}
 
-                <div className={isConsortiumMember === true ? "mb-1" : "mb-3"}>
+                <div className={isConsortiumMember === true ? null : "mb-3"}>
                     <div className="text-300 mb-2 mt-05 info-panel">
                         You have never logged in as <span className="text-600">{unverifiedUserEmail}</span> before.
                     </div>
-                    <div className="mt-1 text-60 ps-1 text-500" style={{ paddingLeft: '10px' }}>Are you a SMaHT Network member, verified by the SMaHT Organization Center?</div>
-                    <div className="d-flex gap-3 mt-2 option-panel flex-column flex-lg-row">
+                    <div className="my-2 text-500">Are you a SMaHT Network member?</div>
+                    <div className="d-flex gap-3 option-panel flex-column flex-lg-row">
                         <Checkbox
                             checked={isConsortiumMember === true}
                             onChange={this.onConsortiumMemberYes}
                             className="col-12 col-lg-auto">
-                            Yes, I am a verified member of SMaHT
+                            Yes, I am a member of the SMaHT network
                         </Checkbox>
                         <Checkbox
                             checked={isConsortiumMember === false}
                             onChange={this.onConsortiumMemberNo}
                             className="col-12 col-lg-auto">
-                            No, I am&nbsp;<strong>not</strong>&nbsp;a member of SMaHT
+                            No, I am&nbsp;<strong>not</strong>&nbsp;a member of the SMaHT network
                         </Checkbox>
                     </div>
                 </div>
 
-                {isConsortiumMember === true ? <SMaHTNetworkMember onExitLinkClick={onExitLinkClick} /> : isConsortiumMember === false ? (
+                {isConsortiumMember === true && !showSelfRegistration ? (
+                    <SMaHTNetworkMember onGoToSelfRegistration={this.onGoToSelfRegistration} />
+                ) : null}
+                {shouldShowSelfRegistration ? (
                     <form
+                        className="user-registration-form"
                         method="POST"
                         name="user-registration-form was-validated"
                         ref={this.formRef}
@@ -330,19 +382,31 @@ export default class UserRegistrationForm extends React.PureComponent {
                         style={{ fontSize: '0.9rem' }}>
 
                         <div className="d-flex align-items-center gap-2 mb-15 mt-3 section-header">
-                            <i className="icon icon-fw icon-user fas text-secondary fs-4" aria-hidden="true" />
-                            <h3 className="section-title m-0">Open Data: Self Registration</h3>
+                            <i className="icon icon-fw icon-user fas text-secondary fs-4 opacity-50" aria-hidden="true" />
+                            <h3 className="section-title m-0">Self Registration</h3>
                         </div>
-                        
+
                         <div className="form-group d-flex flex-column flex-lg-row align-items-lg-center gap-0 gap-lg-3 mt-2">
-                            <label htmlFor="email-address" className="mb-1 text-500">
-                                Primary Email:
+                            <label htmlFor="email-address" className="text-500">
+                                Email:
                             </label>
+
                             <span id="email-address" className="text-300 fs-5">
                                 {object.itemUtil.User.gravatar(unverifiedUserEmail, 36, { 'style': { 'borderRadius': '50%', 'marginRight': 20 } }, 'mm')}
                                 {unverifiedUserEmail}
                             </span>
+
+                            <button type="button" className="btn btn-link btn-sm ms-1 p-0 change-email-link d-none" onClick={onExitLinkClick}>
+                                Change
+                            </button>
                         </div>
+
+                        {!isInstitutional && (
+                            <div className="email-warning-message mt-1 mb-1 d-none">
+                                <strong>Please use your institutional or organizational email address.</strong><br />
+                                Free email providers may reduce verification options and access levels.
+                            </div>
+                        )}
 
                         <div className="row mt-2">
                             <div className="col-12 col-lg-6">
@@ -394,7 +458,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                         <div className="row mt-3">
                             <div className="col-12">
                                 <div className="form-group">
-                                    <label htmlFor="affiliation_institution" className="form-label mb-1 text-500">Affiliation/Institution{' '}
+                                    <label htmlFor="affiliation_institution" className="form-label mb-1 text-500">Affiliation / Institution{' '}
                                         <span className="text-danger">*</span>
                                     </label>
                                     <input
@@ -411,24 +475,30 @@ export default class UserRegistrationForm extends React.PureComponent {
                                     <div className="invalid-feedback">
                                         Affiliation/Institution cannot be blank
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="row mt-3">
-                            <div className="col-12">
-                                <div class="alert alert-danger d-flex align-items-center" role="alert">
-                                    <i class="fas icon icon-file-shield me-2 fs-2"></i>
-                                    <div>
-                                        <strong>Protected Data Access:</strong> Self-registration will give you access to open data and metadata <strong>only</strong>.
-                                        <br />
-                                        To get access to protected data, sign up with the same institutional email address to dbGAP as well.
+                                    <div className="text-end text-danger mt-05" style={{ fontSize: '0.75rem' }}>
+                                        *Required
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div className="row mt-3">
+                            <div className="col-12">
+                                <div className="alert alert-danger d-flex align-items-center self-registration-alert" role="alert">
+                                    <i className="fas icon icon-file-shield me-2 self-registration-alert-icon"></i>
+                                    <div>
+                                        <p className="mb-2">
+                                            <strong>Self-registration as a non-SMaHT-Network member</strong> will give you access to open-access data <em>only</em>.
+                                        </p>
+                                        <p className="mb-0">
+                                            <strong>If you want protected-access data:</strong> You are <strong>required</strong> to self-register using your institutional email address linked to the NIH/eRA or Login.gov and obtain dbGaP approval for protected-access SMaHT data. Learn how to obtain dbGaP approval <a href="/docs/access/getting-dbgap-access" target="_blank" rel="noreferrer noopener">here</a>.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="row mt-15 recaptcha-privacy-row">
                             <div className="col-12 col-lg-5">
                                 <div
                                     className={
@@ -463,7 +533,7 @@ export default class UserRegistrationForm extends React.PureComponent {
                             </div>
                         </div>
 
-                        <div className="footer-button-container mt-1 py-1">
+                        <div className="footer-button-container self-registration-footer mt-1 py-1">
                             <div className="d-grid gap-1 my-3">
                                 <button type="submit"
                                     disabled={!maySubmit}
@@ -481,39 +551,82 @@ export default class UserRegistrationForm extends React.PureComponent {
     }
 }
 
-function SMaHTNetworkMember({
-    onExitLinkClick,
-    className = "",
-}) {
+function SMaHTNetworkMember({ onGoToSelfRegistration, className = "" }) {
+    const emailOC = "smahtsupport@gowustl.onmicrosoft.com";
+    const emailDAC = "smhelp@hms-dbmi.atlassian.net";
     return (
-        <section className={`container py-4 ${className}`}>
-            <div className="row g-5">
-                <div className="col-12">
-                    <div className="d-flex align-items-center gap-2 mb-15 section-header">
+        <React.Fragment>
+            <section className={`mt-3 mb-3 ${className}`}>
+                <div className="network-member-panel">
+                    <div className="d-flex align-items-center gap-2 mb-2 section-header">
                         <i className="icon icon-fw icon-users fas text-secondary fs-4" aria-hidden="true" />
-                        <h3 className="section-title m-0">Verified SMaHT Members</h3>
+                        <h3 className="section-title m-0">SMaHT Network Members</h3>
                     </div>
 
-                    <p className="fs-6">
-                        If you have an account with a different email address, please{" "}
-                        <a href="#" className="link-underline-hover" onClick={onExitLinkClick}>sign in here</a>.
+                    <p className="fs-6 mb-25">
+                        Network members have early access to the SMaHT data, and their accounts have
+                        different privileges than those who self-register at the portal. To register as
+                        a network member you must follow these steps:
                     </p>
 
-                    <p className="fs-6 mt-3">
-                        If you are seeing this page, you may be using a non-registered email address. Make sure to:
-                    </p>
+                    <div className="row g-3">
+                        <div className="col-12 col-lg-6">
+                            <div className="network-member-step">
+                                <h4 className="network-member-step-title">Step 1: Get Verified by the OC</h4>
+                                <p className="mb-2">
+                                    Email the OC <a href={`mailto:${emailOC}`} target="_blank" rel="noreferrer noopener">here</a> to get verified and added to the SMaHT Network Directory.
+                                </p>
+                                <ul className="mb-0">
+                                    <li>
+                                        When contacting OC, the new Network members should cc their PIs and provide
+                                        their institutional email address.
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div className="col-12 col-lg-6">
+                            <div className="network-member-step">
+                                <h4 className="network-member-step-title">Step 2: Contact DAC</h4>
+                                <p className="mb-2">
+                                    Contact the DAC <a href={`mailto:${emailDAC}`} target="_blank" rel="noreferrer noopener">here</a> to be added to the list of approved members.
+                                </p>
+                                <ul className="mb-0">
+                                    <li>
+                                        Provide your full name and institutional email address in the SMaHT Network Directory (<em>very important!</em>).
+                                    </li>
+                                    <li>
+                                        Indicate the name of your PI and institution and your membership verification with the OC.
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
 
-                    <ol className="fs-6 ps-15 mt-2">
-                        <li>
-                            <strong>Register with the OC</strong> with your institutional email address
-                        </li>
-                        <li>
-                            <strong>Contact the DAC</strong> to create an account. Documentation on how to do
-                            this can be found <a href="/docs/access/creating-an-account" target="_blank">here</a>.
-                        </li>
-                    </ol>
+                    <p className="fs-6 mt-25 mb-2">
+                        After you follow the steps above, you will be notified when your full access network account is ready for login.
+                    </p>
+                    <p className="fs-6 mb-0">
+                        To access open data on the SMaHT portal today, you can self register below with the same institutional email and name you plan to provide to the OC and DAC.
+                    </p>
+                </div>
+            </section>
+            <div className="footer-button-container network-member-footer py-1">
+                <div className="d-flex flex-column flex-lg-row justify-content-end gap-2 py-2">
+                    <button
+                        type="button"
+                        className="btn btn-md btn-outline-primary text-500"
+                        onClick={onGoToSelfRegistration}>
+                        Go to Self Registration
+                    </button>
+                    <a
+                        href={`mailto:${emailOC}`}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="btn btn-md btn-primary text-500">
+                        Get Verified by the OC
+                    </a>
                 </div>
             </div>
-        </section>
+        </React.Fragment>
     );
 }
