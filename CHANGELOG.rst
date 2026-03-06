@@ -7,6 +7,23 @@ smaht-portal
 Change Log
 ----------
 
+1.16.0
+======
+
+`PR 611: Update OutputFile calcprops <https://github.com/smaht-dac/smaht-portal/pull/611>`_
+
+* Add calcprops to OutputFile to handle those files linked to AnalysisRuns instead of FileSets
+* Added utility functions for this
+* Updated tests and added new tests for these calcprops
+* Added AnalysisRun linkTo to file_links mixin
+* Added revlink to AnalysisRun for OutputFiles linked to it
+
+1.15.0
+======
+
+* Fix propagation of links by disabling user email resolution by default in revision history
+
+
 1.14.1
 ======
 
@@ -186,7 +203,7 @@ Change Log
 * fixed a couple of pre-existing typos
 * added workbook insert for brain_pathology_report
 * udated enum value from '[0]' to '0' for target_tissue_percentage as submitr was converting former to an array
-  
+
 
 1.8.7
 =====

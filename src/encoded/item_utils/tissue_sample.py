@@ -1,25 +1,16 @@
 import re
 from typing import Any, Dict, List, Optional, Union
 
-from ..item_utils.utils import RequestHandler,  get_property_values_from_identifiers
-from ..item_utils import (
-    sample as sample_utils,
-    item as item_utils
-)
-
 from .utils import (
     RequestHandler,
     get_property_values_from_identifiers,
-    get_property_value_from_identifier,
 )
 
 from . import (
-    constants,
     item as item_utils,
     sample as sample_utils,
     tissue as tissue_utils
 )
-
 
 from ..item_utils.tissue import (
     BENCHMARKING_ID_REGEX,
@@ -58,6 +49,7 @@ BENCHMARKING_TISSUE_ALIQUOT_EXTERNAL_ID_REGEX = re.compile(
 PRODUCTION_TISSUE_ALIQUOT_EXTERNAL_ID_REGEX = re.compile(
     rf"^{PRODUCTION_ID_REGEX}{TISSUE_ALIQUOT_REGEX}"
 )
+
 
 def get_category(properties: Dict[str, Any]) -> str:
     """Get category from properties."""
@@ -134,9 +126,11 @@ def get_tissue_kit_id(properties: Dict[str, Any]) -> str:
         return get_tissue_kit_id_from_external_id(external_id)
     return ""
 
+
 def get_tissue_kit_id_from_external_id(external_id: str) -> str:
     """Get tissue kit ID from external ID."""
     return "-".join(external_id.split("-")[0:2])
+
 
 def get_protocol_id_from_external_id(external_id: str) -> str:
     """Get protocol ID from external ID."""
