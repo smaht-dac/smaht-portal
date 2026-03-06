@@ -127,6 +127,7 @@ def get_associated_items(
     file: Dict[str, Any],
     request_handler: RequestHandler,
     file_sets: Optional[List[Dict[str, Any]]] = None,
+    analysis_run: Optional[Dict[str, Any]] = None,
 ) -> AssociatedItems:
     """Get associated items for given file for annotated filename.
 
@@ -152,7 +153,7 @@ def get_associated_items(
     sequencers = get_sequencers(file_sets, request_handler)
     samples = get_samples(file_sets, request_handler)
     tissue_samples = get_tissue_samples(samples)
-    sample_sources = get_sample_sources(file, samples, request_handler)
+    sample_sources = get_sample_sources(file, samples, request_handler, analysis_run=analysis_run)
     cell_culture_mixtures = get_cell_culture_mixtures(sample_sources)
     tissues = get_tissues(sample_sources)
     cell_lines = get_cell_lines(sample_sources, request_handler)
@@ -364,11 +365,17 @@ def get_tissue_samples(samples: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 def get_sample_sources(
     file: Dict[str, Any],
     samples: List[Dict[str, Any]],
-    request_handler: RequestHandler
+    request_handler: RequestHandler,
+    analysis_run: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
     """Get sample sources for samples."""
+
     if eof_utils.is_external_output_file(file):
         sample_sources = eof_utils.get_tissues(file)
+    elif analysis_run:
+        sample_sources = [
+            t["uuid"] for t in analysis_run["tissues"] 
+        ]
     else:
         sample_sources = [
             item for sample in samples for item in sample_utils.get_sample_sources(sample)
@@ -496,6 +503,7 @@ def get_annotated_filename(
     file: Dict[str, Any],
     request_handler: RequestHandler,
     file_sets: Optional[Dict[str, List[str]]] = None,
+    analysis_run: Optional[Dict[str, Any]] = None,
 ) -> AnnotatedFilename:
     """Get annotated filename for given file.
 
@@ -503,7 +511,7 @@ def get_annotated_filename(
     encountered in the process to be logged later.
     `derived_from` applies to SupplementaryFiles
     """
-    associated_items = get_associated_items(file, request_handler, file_sets=file_sets)
+    associated_items = get_associated_items(file, request_handler, file_sets=file_sets, analysis_run=analysis_run)
     project_id = get_project_id(
         associated_items.cell_culture_mixtures,
         associated_items.cell_lines,
@@ -525,6 +533,7 @@ def get_annotated_filename(
         associated_items.cell_culture_mixtures,
         associated_items.cell_lines,
         associated_items.tissue_samples,
+        analysis_run=analysis_run
     )
     donor_sex_and_age = get_donor_sex_and_age(
         associated_items.donors, associated_items.sample_sources
@@ -532,7 +541,8 @@ def get_annotated_filename(
     sequencing_and_assay_codes = get_sequencing_and_assay_codes(
         associated_items.file, 
         associated_items.sequencers, 
-        associated_items.assays
+        associated_items.assays,
+        analysis_run=analysis_run
     )
     sequencing_center_code = get_sequencing_center_code(
         associated_items.sequencing_center
@@ -752,11 +762,17 @@ def get_aliquot_id(
     cell_culture_mixtures: List[Dict[str, Any]],
     cell_lines: List[Dict[str, Any]],
     tissue_samples: List[Dict[str, Any]],
+    analysis_run: Optional[Dict[str, Any]] = None
 ) -> FilenamePart:
     """Get tissue aliquot ID for file."""
     parts = []
     if cell_culture_mixtures or cell_lines or eof_utils.is_external_output_file(file):
         parts.append(get_filename_part(value=DEFAULT_ABSENT_FIELD))
+    if analysis_run:
+        mamc = get_filename_part_for_values(
+            ["MAMC"], "tissue aliquot ID", source_name="sample"
+        )
+        parts.append(mamc)
     if tissue_samples:
         parts.append(get_aliquot_id_from_samples(tissue_samples))
     return get_exclusive_filename_part(parts, "tissue aliquot ID")
@@ -874,6 +890,7 @@ def get_sequencing_and_assay_codes(
     file: Dict[str, Any],
     sequencers: List[Dict[str, Any]],
     assays: List[Dict[str, Any]],
+    analysis_run: Optional[Dict[str, Any]] = None,
 ) -> FilenamePart:
     """Get sequencing and assay codes for file.
     
@@ -886,7 +903,7 @@ def get_sequencing_and_assay_codes(
         return get_filename_part(value=f"{sequencing_codes[0]}{assay_codes[0]}")
     elif set(file_utils.get_data_category(file)) & set(data_category_exceptions):
         return get_filename_part(value="XX")
-    elif eof_utils.is_external_output_file(file):
+    elif eof_utils.is_external_output_file(file) or analysis_run:
         return get_filename_part(value="XX")
     errors = []
     if not sequencing_codes:
@@ -1189,7 +1206,7 @@ def get_rna_seq_tsv_value(file: Dict[str, Any], file_extension: Dict[str, Any]) 
             return "isoform"
     else:
         return ""
-    
+
 
 def get_assay_categories(assays: List[Dict[str, Any]]) -> List[str]:
     """Get assay category for assays."""
@@ -1415,14 +1432,20 @@ def get_annotated_extra_file_name(
 ) -> str:
     """Get annotated extra file name."""
     filename_without_extension = get_filename_without_extension(
-        get_annotated_filename_string(annotated_filename)
+        get_annotated_filename_string(annotated_filename), extra_file_format_extension
     )
     return f"{filename_without_extension}.{extra_file_format_extension}"
 
 
-def get_filename_without_extension(filename: str) -> str:
+def get_filename_without_extension(
+    filename: str, extra_file_format_extension: str
+) -> str:
     """Drop extension from filename."""
-    return ".".join(filename.split(".")[:-1])
+    file_extention = ".".join(extra_file_format_extension.split(".")[:-1])
+    if filename.endswith(f".{file_extention}"):
+        return filename[: -len(f".{file_extention}")]
+    else:
+        ".".join(filename.split(".")[:-1])
 
 
 def patch_file(
