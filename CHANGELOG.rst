@@ -7,6 +7,16 @@ smaht-portal
 Change Log
 ----------
 
+
+1.17.0
+======
+
+`PR 613: User registration form updates <https://github.com/smaht-dac/smaht-portal/pull/613>`_
+
+* Enhances the user registration flow, especially for distinguishing between SMaHT Network members and self-registering users
+* Improves the user interface and messaging for both groups
+
+
 1.16.0
 ======
 
