@@ -1,8 +1,49 @@
 'use strict';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DataCardRow } from '../file-overview/FileViewDataCards';
-import { OverlayTrigger, Popover, PopoverBody } from 'react-bootstrap';
+import {
+    OverlayTrigger,
+    Popover,
+    PopoverHeader,
+    PopoverBody,
+} from 'react-bootstrap';
+import { ajax } from '@hms-dbmi-bgm/shared-portal-components/es/components/util';
+
+/**
+ * Bootstrap Popover element for the DSA field in the sample information
+ * data card.
+ * @param {string} customId - custom id for popover
+ * @returns {JSX.Element} Popover component with term definitions
+ */
+export function renderDSAPopover(customId) {
+    return (
+        <Popover
+            id={customId ?? 'description-popover-dsa'}
+            className="w-auto description-popover">
+            <PopoverHeader as="h3">
+                Donor-Specific genome Assembly (DSA)
+            </PopoverHeader>
+            <PopoverBody>
+                <h2>What is a DSA?</h2>
+                A DSA is a more complete representation of a donor's unique
+                germline genetic makeup, and can be used as a personalized
+                reference for aligning a donor's genetic data, with the
+                potential to improve the accuracy and completeness of somatic
+                variant detection.
+                <br />
+                <hr />
+                <h2>How is a DSA constructed?</h2>
+                Donor-Specific genome Assembly (DSA) involves constructing a
+                diploid assembly of an individual's genome from scratch.
+                <br />
+                <br /> DSAs are constructed using different unique sequencing
+                data types, some of which are only available for certain donors.{' '}
+            </PopoverBody>
+        </Popover>
+    );
+}
+
 /**
  * Bootstrap Popover element for the description field in the sample information
  * data card. Contains a table with definitions for the terms used in the
@@ -408,6 +449,63 @@ const ExposureCard = ({ data, popover }) => {
     );
 };
 
+const DonorDSAValue = (props) => {
+    const [link, setLink] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const { context } = props;
+
+    useEffect(() => {
+        let cancelled = false;
+        setIsLoading(true);
+
+        if (!link) {
+            // peek metadata to see if there are any DSA fields
+            const searchQuery = `?data_type=DSA&data_type=Chain+File&data_type=Sequence+Interval&dataset%21=No+value&donors.display_title=${context?.display_title}&sample_summary.studies=Production&status=open&status=open-early&status=open-network&status=protected&status=protected-early&status=protected-network&type=File`;
+            ajax.load(
+                '/peek-metadata/' + searchQuery,
+                (resp) => {
+                    if (cancelled) return;
+                    // Check that some files are present in the metadata
+                    if (
+                        resp
+                            ?.find((f) => f.field === 'type')
+                            ?.terms.find((t) => t.key === 'File')?.doc_count > 0
+                    ) {
+                        setIsLoading(false);
+                        setLink('/browse/' + searchQuery);
+                    } else {
+                        // No DSA files found
+                        setIsLoading(false);
+                    }
+                },
+                'GET',
+                (err) => {
+                    setIsLoading(false);
+                    console.error(resp.error);
+                }
+            );
+        }
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    if (isLoading) {
+        return <i className="icon icon-spin icon-circle-notch fas" />;
+    }
+
+    return link ? (
+        <span>
+            <a href={link} target="_blank">
+                Available here
+            </a>
+        </span>
+    ) : (
+        <span>Coming Soon</span>
+    );
+};
+
 /**
  * Parent component for the data cards containing information on the file.
  * @param {object} context the context of the item being viewed
@@ -468,24 +566,15 @@ export const ProtectedDonorViewDataCards = ({
                                 </div>
                                 <div className="d-flex flex-column">
                                     <DataCardRow
-                                        title={'Tier'}
-                                        value={'Coming soon'}
-                                    />
-                                    <DataCardRow
                                         title={'Bulk WGS Coverage'}
                                         value={'Coming soon'}
                                     />
                                     <DataCardRow
-                                        title={
-                                            <span>
-                                                DSA
-                                                <i
-                                                    className="icon icon-info-circle fas ms-1"
-                                                    data-tip="Donor Specific genome Assembly [DSA]"
-                                                />
-                                            </span>
+                                        title={'DSA'}
+                                        value={
+                                            <DonorDSAValue context={context} />
                                         }
-                                        value={'Coming soon'}
+                                        titlePopover={renderDSAPopover()}
                                     />
                                 </div>
                             </div>
