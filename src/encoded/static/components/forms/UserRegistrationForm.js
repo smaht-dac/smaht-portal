@@ -268,27 +268,29 @@ export default class UserRegistrationForm extends React.PureComponent {
     }
 
     isInstitutionalEmail(email) {
-        const lower = email.toLowerCase();
+        // const lower = email.toLowerCase();
 
-        const genericProviders = [
-            "gmail.com",
-            "yahoo.com",
-            "outlook.com",
-            "hotmail.com",
-            "protonmail.com",
-            "icloud.com",
-            "aol.com",
-            "yandex.com",
-        ];
+        // const genericProviders = [
+        //     "gmail.com",
+        //     "yahoo.com",
+        //     "outlook.com",
+        //     "hotmail.com",
+        //     "protonmail.com",
+        //     "icloud.com",
+        //     "aol.com",
+        //     "yandex.com",
+        // ];
 
-        const domain = lower.split("@")[1];
+        // const domain = lower.split("@")[1];
 
-        const isEdu = domain.endsWith(".edu") || domain.includes(".edu.");
-        const isOrg = domain.endsWith(".org") || domain.includes(".org.");
+        // const isEdu = domain.endsWith(".edu") || domain.includes(".edu.");
+        // const isOrg = domain.endsWith(".org") || domain.includes(".org.");
 
-        const isGeneric = genericProviders.includes(domain);
+        // const isGeneric = genericProviders.includes(domain);
 
-        return (isEdu || isOrg) && !isGeneric;
+        // return (isEdu || isOrg) && !isGeneric;
+
+        return true; // For now, we will not enforce institutional email requirement, but we may want to in the future, so leaving this function here for now.
     }
 
     render() {
