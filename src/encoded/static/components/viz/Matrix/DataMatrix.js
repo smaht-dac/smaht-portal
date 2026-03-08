@@ -945,14 +945,17 @@ export default class DataMatrix extends React.PureComponent {
             const isTissueViewCount = nextValue === 'donors' || nextValue === 'tissue_files';
 
             if (isTissueViewCount) {
+                const removeDonorAggregation = nextValue !== 'donors';
                 nextState.query = {
                     ...prevState.query,
-                    rowAggFields: (baseRowAggFields || []).filter((f) => {
-                        if (Array.isArray(f)) {
-                            return !f.includes('donors.display_title');
-                        }
-                        return f !== 'donors.display_title';
-                    })
+                    rowAggFields: removeDonorAggregation
+                        ? (baseRowAggFields || []).filter((f) => {
+                            if (Array.isArray(f)) {
+                                return !f.includes('donors.display_title');
+                            }
+                            return f !== 'donors.display_title';
+                        })
+                        : baseRowAggFields
                 };
                 nextState.groupingProperties = (baseGroupingProperties || []).filter((p) => p !== 'donor');
                 nextState.colorRanges = this.getColorRanges({

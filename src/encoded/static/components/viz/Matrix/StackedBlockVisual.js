@@ -104,11 +104,29 @@ export class VisualBody extends React.PureComponent {
             const value = item.counts[countField];
             return typeof value === 'number' ? value : 0;
         };
+        const getUniqueDonorCountFromItems = (items) => {
+            if (!Array.isArray(items)) return null;
+            const donorSet = new Set();
+            items.forEach((item) => {
+                if (!item) return;
+                const donorValue = item.donor;
+                if (Array.isArray(donorValue)) {
+                    donorValue.forEach((d) => { if (d != null) donorSet.add(String(d)); });
+                } else if (donorValue != null) {
+                    donorSet.add(String(donorValue));
+                }
+            });
+            return donorSet.size > 0 ? donorSet.size : null;
+        };
         const blockSum = Array.isArray(data)
             ? (countField === 'donors'
-                ? _.reduce(data, function (maxValue, item) {
-                    return Math.max(maxValue, getCountValue(item));
-                }, 0)
+                ? (() => {
+                    const uniqueDonorCount = getUniqueDonorCountFromItems(data);
+                    if (uniqueDonorCount !== null) return uniqueDonorCount;
+                    return _.reduce(data, function (maxValue, item) {
+                        return Math.max(maxValue, getCountValue(item));
+                    }, 0);
+                })()
                 : _.reduce(data, function (sum, item) { return sum + getCountValue(item); }, 0))
             : (data ? getCountValue(data) : 0);
 
@@ -1637,14 +1655,17 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
     // renders the row group summary section
     static rowGroupsSummary({ label, labelSectionStyle, columnKeys, columnWidth, headerItemStyle, containerSectionStyle, ...props } ) {
-        const countLabelByMetric = {
-            files: 'File Count',
-            tissue_files: 'File Count',
-            total_coverage: 'Coverage',
-            donors: 'Donor Count'
+        const isTissueMatrix = String(label || '').toLowerCase().indexOf('tissue') > -1;
+        const groupShortName = props.rowGroups?.[props.rowGroupKey]?.shortName;
+        const primarySummaryEntity = groupShortName || (isTissueMatrix ? 'Tissue' : 'Donor');
+        const primarySummaryBandLabel = `Total ${StackedBlockVisual.pluralize(primarySummaryEntity)}`;
+        const secondarySummaryBandLabelByMetric = {
+            files: 'Total Files',
+            tissue_files: 'Total Files',
+            total_coverage: 'Total Coverages',
+            donors: 'Total Donors'
         };
-        const metricSuffix = countLabelByMetric[props.countFor] || 'Count';
-        const groupingBandLabel = `${label} (${metricSuffix})`;
+        const groupingBandLabel = secondarySummaryBandLabelByMetric[props.countFor] || `Total ${label}`;
 
         const getColumnSummaryData = (columnKey) => {
             const result = [];
@@ -1660,19 +1681,35 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             return totals ? totals.counts : null;
         };
 
-        const getDonorCountFromGroupedRows = (columnKey) => {
+        const getPrimaryGroupCountFromGroupedRows = (columnKey) => {
             const rows = props.groupedDataIndices[columnKey] || [];
-            const donorField = Array.isArray(props.groupingProperties) ? props.groupingProperties[0] : 'donor';
-            const donorSet = new Set();
+            const primaryGroupField = Array.isArray(props.groupingProperties) ? props.groupingProperties[0] : 'donor';
+            const primaryGroupSet = new Set();
             rows.forEach((row) => {
-                const donorValue = row && row[donorField];
-                if (Array.isArray(donorValue)) {
-                    donorValue.forEach((d) => { if (d != null) donorSet.add(String(d)); });
-                } else if (donorValue != null) {
-                    donorSet.add(String(donorValue));
+                const primaryGroupValue = row && row[primaryGroupField];
+                if (Array.isArray(primaryGroupValue)) {
+                    primaryGroupValue.forEach((d) => { if (d != null) primaryGroupSet.add(String(d)); });
+                } else if (primaryGroupValue != null) {
+                    primaryGroupSet.add(String(primaryGroupValue));
                 }
             });
-            return donorSet.size;
+            return primaryGroupSet.size;
+        };
+
+        const getOverallPrimaryGroupCountFromRows = () => {
+            const primaryGroupField = Array.isArray(props.groupingProperties) ? props.groupingProperties[0] : 'donor';
+            const primaryGroupSet = new Set();
+            Object.keys(props.groupedDataIndices || {}).forEach((ck) => {
+                (props.groupedDataIndices[ck] || []).forEach((row) => {
+                    const primaryGroupValue = row && row[primaryGroupField];
+                    if (Array.isArray(primaryGroupValue)) {
+                        primaryGroupValue.forEach((d) => { if (d != null) primaryGroupSet.add(String(d)); });
+                    } else if (primaryGroupValue != null) {
+                        primaryGroupSet.add(String(primaryGroupValue));
+                    }
+                });
+            });
+            return primaryGroupSet.size;
         };
 
         const getSummaryBlockStyle = () => ({
@@ -1687,8 +1724,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
         const renderSummaryBlocks = (summaryCountFor = props.countFor, summaryBlockType = 'col-summary') => (
             <div className="blocks-container d-flex header-summary">
                 {columnKeys.map(function (columnKey, colIndex) {
+                    const isPrimarySummaryBand = summaryBlockType === 'col-secondary-summary';
                     const totalsCounts = getColumnSummaryFromTotals(columnKey);
-                    const donorsCount = totalsCounts?.donors ?? totalsCounts?.donor_count ?? getDonorCountFromGroupedRows(columnKey);
+                    const donorsCount = isPrimarySummaryBand
+                        ? getPrimaryGroupCountFromGroupedRows(columnKey)
+                        : (totalsCounts?.donors ?? totalsCounts?.donor_count ?? getPrimaryGroupCountFromGroupedRows(columnKey));
                     const columnSummaryData = summaryCountFor === 'donors'
                         ? [{ counts: { donors: donorsCount } }]
                         : summaryCountFor === 'total_coverage'
@@ -1719,23 +1759,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                 })}
                 {(() => {
                     if (summaryCountFor === 'total_coverage') return null;
-                    const overallDonorsFromRows = () => {
-                        const donorField = Array.isArray(props.groupingProperties) ? props.groupingProperties[0] : 'donor';
-                        const donorSet = new Set();
-                        Object.keys(props.groupedDataIndices || {}).forEach((ck) => {
-                            (props.groupedDataIndices[ck] || []).forEach((row) => {
-                                const donorValue = row && row[donorField];
-                                if (Array.isArray(donorValue)) {
-                                    donorValue.forEach((d) => { if (d != null) donorSet.add(String(d)); });
-                                } else if (donorValue != null) {
-                                    donorSet.add(String(donorValue));
-                                }
-                            });
-                        });
-                        return donorSet.size;
-                    };
+                    const isPrimarySummaryBand = summaryBlockType === 'col-secondary-summary';
                     const overallValue = summaryCountFor === 'donors'
-                        ? (props.overallCounts?.donors ?? props.overallCounts?.donor_count ?? overallDonorsFromRows())
+                        ? (isPrimarySummaryBand
+                            ? getOverallPrimaryGroupCountFromRows()
+                            : (props.overallCounts?.donors ?? props.overallCounts?.donor_count ?? getOverallPrimaryGroupCountFromRows()))
                         : summaryCountFor === 'tissue_files'
                             ? props.overallCounts?.files
                         : props.overallCounts?.[summaryCountFor];
@@ -1773,11 +1801,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
 
         return (
             <div className="grouping header-section-lower" style={containerSectionStyle}>
-                {(props.showUniqueDonorsAssayBand !== false) && (props.countFor === 'files' || props.countFor === 'tissue_files') ? (
+                {props.showUniqueDonorsAssayBand !== false ? (
                     <div className="row grouping-row total-donors-summary-row">
                         <div className="label-section" style={{ ...labelSectionStyle, paddingTop: props.blockVerticalSpacing }}>
                             <div className="label-container text-end" style={{ height: '29px', marginBottom: '1px' }}>
-                                <span className="float-start text-500 ps-05">Unique Donors per Assay</span>
+                                <span className="float-start text-500 ps-05">{primarySummaryBandLabel}</span>
                             </div>
                         </div>
                         <div className="col list-section has-header header-for-viz">
@@ -1971,9 +1999,27 @@ const Block = React.memo(function Block(props){
         const value = item.counts[effectiveCountFor];
         return typeof value === 'number' ? value : 0;
     };
+    const getUniqueDonorCountFromItems = (items) => {
+        if (!Array.isArray(items)) return null;
+        const donorSet = new Set();
+        items.forEach((item) => {
+            if (!item) return;
+            const donorValue = item.donor;
+            if (Array.isArray(donorValue)) {
+                donorValue.forEach((d) => { if (d != null) donorSet.add(String(d)); });
+            } else if (donorValue != null) {
+                donorSet.add(String(donorValue));
+            }
+        });
+        return donorSet.size > 0 ? donorSet.size : null;
+    };
     const blockValue = Array.isArray(argData)
         ? (effectiveCountFor === 'donors'
-            ? _.reduce(argData, function (maxValue, item) { return Math.max(maxValue, getCountValue(item)); }, 0)
+            ? (() => {
+                const uniqueDonorCount = getUniqueDonorCountFromItems(argData);
+                if (uniqueDonorCount !== null) return uniqueDonorCount;
+                return _.reduce(argData, function (maxValue, item) { return Math.max(maxValue, getCountValue(item)); }, 0);
+            })()
             : _.reduce(argData, function (sum, item) { return sum + getCountValue(item); }, 0))
         : (argData ? getCountValue(argData) : 0);
     const hideCoverageBlock = countFor === 'total_coverage' && blockType === 'regular' && blockValue <= 0;
