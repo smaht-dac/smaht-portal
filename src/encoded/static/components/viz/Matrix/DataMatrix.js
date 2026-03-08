@@ -1183,24 +1183,6 @@ export default class DataMatrix extends React.PureComponent {
 
                     return (
                         <div className="matrix-mode-layout">
-                            {showCountFor ? (
-                                <div className="matrix-controls-row mb-2">
-                                <div className="matrix-mode-tabs">
-                                    <button
-                                        type="button"
-                                        className={`matrix-mode-tab ${!isTissueMatrix ? 'active' : ''}`}
-                                        onClick={() => this.onCountForChange({ target: { value: isCoverageView ? 'total_coverage' : 'files' } })}>
-                                        <i className="icon fas icon-user me-05" /> Donor x Assay
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className={`matrix-mode-tab ${isTissueMatrix ? 'active' : ''}`}
-                                        onClick={() => this.onCountForChange({ target: { value: 'donors' } })}>
-                                        <i className="icon fas icon-lungs me-05" /> Tissue x Assay
-                                    </button>
-                                </div>
-                                </div>
-                            ) : null}
                             <div className="matrix-mode-body d-flex">
                                 {showLeftPanel ? (
                                 <div className={`matrix-counts-panel ${showFacetTermsPanel ? 'has-facets-panel' : ''}`}>
@@ -1228,27 +1210,52 @@ export default class DataMatrix extends React.PureComponent {
                                             }
 
                                             return (
-                                                <div className="matrix-facet-terms-panel mt-1 search-view-controls-and-results">
-                                                    <FacetList
-                                                        facets={visibleFacets}
-                                                        context={{ filters: facetFiltersForPanel || [] }}
-                                                        termTransformFxn={Term.toName}
-                                                        facetListSortFxns={{ 'sample_summary.tissues': compareTissueFacetTerms }}
-                                                        title="Properties"
-                                                        showClearFiltersButton={false}
-                                                        onClearFilters={this.onFacetClearFilters}
-                                                        onFilter={this.onFacetFilter}
-                                                        onFilterMultiple={this.onFacetFilterMultiple}
-                                                        maxFacetsBodyHeight={340}
-                                                        href={this.state.facetNavigationHref || query?.url || null}
-                                                        schemas={this.props.schemas || null}
-                                                    />
+                                                <div className="matrix-facet-terms-wrapper">
+                                                    {typeof totalFiles === 'number' ? (
+                                                        <div className="matrix-total-files-count">
+                                                            {`${totalFiles.toLocaleString()} Files`}
+                                                        </div>
+                                                    ) : null}
+                                                    <div className="matrix-facet-terms-panel mt-1 search-view-controls-and-results">
+                                                        <FacetList
+                                                            facets={visibleFacets}
+                                                            context={{ filters: facetFiltersForPanel || [] }}
+                                                            termTransformFxn={Term.toName}
+                                                            facetListSortFxns={{ 'sample_summary.tissues': compareTissueFacetTerms }}
+                                                            title="Properties"
+                                                            showClearFiltersButton={false}
+                                                            onClearFilters={this.onFacetClearFilters}
+                                                            onFilter={this.onFacetFilter}
+                                                            onFilterMultiple={this.onFacetFilterMultiple}
+                                                            maxFacetsBodyHeight={340}
+                                                            href={this.state.facetNavigationHref || query?.url || null}
+                                                            schemas={this.props.schemas || null}
+                                                        />
+                                                    </div>
                                                 </div>
                                             );
                                         })() : null}
                                 </div>
                                 ) : null}
                                 <div className="matrix-visual-panel flex-grow-1">
+                                    {showCountFor ? (
+                                        <div className="matrix-mode-tabs-row">
+                                            <div className="matrix-mode-tabs">
+                                                <button
+                                                    type="button"
+                                                    className={`matrix-mode-tab ${!isTissueMatrix ? 'active' : ''}`}
+                                                    onClick={() => this.onCountForChange({ target: { value: isCoverageView ? 'total_coverage' : 'files' } })}>
+                                                    <i className="icon fas icon-user me-05" /> Donor x Assay
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className={`matrix-mode-tab ${isTissueMatrix ? 'active' : ''}`}
+                                                    onClick={() => this.onCountForChange({ target: { value: 'donors' } })}>
+                                                    <i className="icon fas icon-lungs me-05" /> Tissue x Assay
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : null}
                                     <VisualBody
                                         {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
                                         {...bodyProps}
