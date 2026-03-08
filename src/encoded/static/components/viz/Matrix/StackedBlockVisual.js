@@ -1682,11 +1682,15 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             return result;
         };
 
-        const getColumnSummaryFromTotals = (columnKey) => {
-            const totals = Array.isArray(props.columnTotals)
-                ? props.columnTotals.find((t) => t[props.columnGrouping] === columnKey)
-                : null;
-            return totals ? totals.counts : null;
+        const getAllSectionRows = () => {
+            const rowsById = {};
+            Object.keys(props.groupedDataIndices || {}).forEach((ck) => {
+                (props.groupedDataIndices[ck] || []).forEach((row, idx) => {
+                    const rowKey = row && typeof row.index !== 'undefined' ? `idx-${row.index}` : `fallback-${ck}-${idx}`;
+                    rowsById[rowKey] = row;
+                });
+            });
+            return _.values(rowsById);
         };
 
         const getPrimaryGroupCountFromGroupedRows = (columnKey) => {
@@ -1733,7 +1737,9 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             <div className="blocks-container d-flex header-summary">
                 {columnKeys.map(function (columnKey, colIndex) {
                     const isPrimarySummaryBand = summaryBlockType === 'col-secondary-summary';
-                    const totalsCounts = getColumnSummaryFromTotals(columnKey);
+                    const totalsCounts = Array.isArray(props.columnTotals)
+                        ? props.columnTotals.find((t) => t[props.columnGrouping] === columnKey)?.counts
+                        : null;
                     const donorsCount = isPrimarySummaryBand
                         ? getPrimaryGroupCountFromGroupedRows(columnKey)
                         : (totalsCounts?.donors ?? totalsCounts?.donor_count ?? getPrimaryGroupCountFromGroupedRows(columnKey));
@@ -1741,8 +1747,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                         ? [{ counts: { donors: donorsCount } }]
                         : summaryCountFor === 'total_coverage'
                             ? []
-                        : (totalsCounts ? [{ counts: totalsCounts }] : getColumnSummaryData(columnKey));
-                    const columnTotal = totalsCounts ? 1 : (props.groupedDataIndices[columnKey]?.length || 0);
+                            : getColumnSummaryData(columnKey);
+                    const columnTotal = props.groupedDataIndices[columnKey]?.length || 0;
                     const hasOpenBlock = props.openBlock?.columnIdx === colIndex && props.openBlock?.summaryRowType === summaryBlockType;
                     const hasActiveBlock = props.activeBlock?.columnIdx === colIndex && props.activeBlock?.summaryRowType === summaryBlockType;
                     const className = 'column-group-header' + (hasOpenBlock ? ' open-block-column' : '') + (hasActiveBlock ? ' active-block-column' : '');
@@ -1768,13 +1774,20 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                 {(() => {
                     if (summaryCountFor === 'total_coverage') return null;
                     const isPrimarySummaryBand = summaryBlockType === 'col-secondary-summary';
+                    const sectionRows = getAllSectionRows();
                     const overallValue = summaryCountFor === 'donors'
                         ? (isPrimarySummaryBand
                             ? getOverallPrimaryGroupCountFromRows()
-                            : (props.overallCounts?.donors ?? props.overallCounts?.donor_count ?? getOverallPrimaryGroupCountFromRows()))
+                            : getOverallPrimaryGroupCountFromRows())
                         : summaryCountFor === 'tissue_files'
-                            ? props.overallCounts?.files
-                        : props.overallCounts?.[summaryCountFor];
+                            ? _.reduce(sectionRows, function (sum, item) {
+                                return sum + (Number(item?.counts?.files) || 0);
+                            }, 0)
+                        : summaryCountFor === 'files'
+                            ? _.reduce(sectionRows, function (sum, item) {
+                                return sum + (Number(item?.counts?.files) || 0);
+                            }, 0)
+                            : props.overallCounts?.[summaryCountFor];
                     if (overallValue == null) return null;
                     return (
                     <div
@@ -1791,6 +1804,8 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                                 key={`overall-summary-block-${summaryCountFor}`}
                                 data={{ counts: summaryCountFor === 'donors'
                                     ? { ...props.overallCounts, donors: overallValue }
+                                    : (summaryCountFor === 'files' || summaryCountFor === 'tissue_files')
+                                        ? { ...props.overallCounts, files: overallValue }
                                     : props.overallCounts
                                 }}
                                 colIndex={columnKeys.length}

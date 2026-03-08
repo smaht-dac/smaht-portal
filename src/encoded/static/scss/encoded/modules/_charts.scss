@@ -1579,8 +1579,8 @@ body[data-path="/statistics"] {
         width: 190px;
         min-width: 190px;
         border-right: none;
-        padding-right: 1rem;
-        margin-right: 1rem;
+        padding-right: 0;
+        margin-right: 0;
 
         &.has-facets-panel {
             width: 320px;
@@ -1636,7 +1636,7 @@ body[data-path="/statistics"] {
                 font-size: 1.05rem;
                 font-weight: 600;
                 color: #111827;
-                padding: 0.15rem 0 0.45rem;
+                padding: 0.60rem 0 0.45rem;
                 border-bottom: 1px solid #d8e1ea;
                 margin-bottom: 0.55rem;
             }
