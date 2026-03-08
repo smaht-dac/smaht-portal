@@ -27,7 +27,7 @@
                         "values": ["ST001", "ST002", "ST003", "ST004"],
                         "backgroundColor": "#f4f4ff",
                         "textColor": "#000000",
-                        "shortName": "Donor",
+                        "shortName": "Benchmarking Donor",
                         "customUrlParams": "dataset=tissue"
                     }
                 },

@@ -1377,50 +1377,61 @@ body[data-path="/statistics"] {
 
         .tab-headers {
             display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
+            flex-wrap: nowrap;
+            gap: 0;
             z-index: 1;
         }
 
         .tab-header {
             cursor: pointer;
-            background-color: white;
+            background-color: #ffffff;
             padding: 0;
             display: flex;
             justify-content: center;
-            border: 1px solid #E7F0F3;
-            border-top: 4px solid #E99415;
-            border-bottom: 1px solid #E7F0F3;
-            border-radius: 4px 4px 0px 0px;
+            border: 1px solid #d4e1ec;
+            border-bottom: 1px solid #d4e1ec;
+            border-radius: 8px 8px 0px 0px;
             color: #343741;
             font-weight: 600;
-            min-width: 220px;
+            min-width: 0;
+            flex: 1 1 0;
+            min-height: 84px;
 
             .title {
-                padding: 10px 15px;
-                margin-bottom: -2px;
-                text-align: center;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                min-height: 84px;
+                padding: 0 15px;
                 width: 100%;
                 // background-color: white;
                 z-index: 0;
-            }
+                font-size: 1.2rem;
+                line-height: 1.1;
 
-            &.benchmarking-tab { border-top-color: #2746CA; }
-            &.production-tab { border-top-color: #9C9CFF; }
+                .icon {
+                    color: #9fb8ce;
+                    font-size: 0.95em;
+                }
+            }
 
             &[data-has-data="false"] {
                 display: none;
             }
 
             &.is-inactive {
-                opacity: 0.7;
-                border-top-color: #fff;
-                border-left-color: #fff;
-                border-right-color: #fff;
+                opacity: 1;
+                background: #ffffff;
+                color: #1f2f44;
+                border-color: #d4e1ec;
             }
 
             &.is-active {
-                border-bottom: 1px solid white;
+                background: #f1f9ff;
+                color: #1f2f44;
+                border-color: #bfd3e4;
+                border-bottom: 1px solid #bfd3e4;
             }
         }
 
@@ -1430,6 +1441,24 @@ body[data-path="/statistics"] {
             min-width: 100%;
             flex-direction: column;
             margin-top: -1px; // Pull up to meet active header
+
+            .matrix-panel-content {
+                width: 100%;
+            }
+
+            .matrix-panel-title {
+                border-bottom: 1px solid #cfd9e3;
+                padding: 0.6rem 1.25rem 0.65rem 0;
+                margin-bottom: 0.5rem;
+                margin-left: 1rem;
+
+                h2 {
+                    margin: 0;
+                    font-size: 1.35rem;
+                    font-weight: 600;
+                    color: #111827;
+                }
+            }
 
             .body {
                 position: relative;
@@ -1482,24 +1511,26 @@ body[data-path="/statistics"] {
     .matrix-mode-tabs {
         display: inline-flex;
         align-items: center;
-        gap: 0.25rem;
+        gap: 0.55rem;
         width: auto;
         max-width: 100%;
-        padding: 0.3rem;
-        background: #e9f1f8;
-        border: 1px solid #c6d8ea;
-        border-radius: 999px;
+        padding: 0;
+        background: transparent;
+        border: none;
+        border-radius: 0;
 
         .matrix-mode-tab {
             flex: 0 1 auto;
-            min-width: 0;
-            border: none;
-            background: transparent;
+            min-width: 270px;
+            border: 1px solid #b7c9dc;
+            border-bottom: none;
+            background: #ffffff;
             color: #4e6781;
             font-weight: 600;
-            padding: 0.45rem 0.95rem;
+            font-size: 1.05rem;
+            padding: 0.62rem 1.3rem;
             text-align: center;
-            border-radius: 999px;
+            border-radius: 7px 7px 0 0;
             white-space: nowrap;
             transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
 
@@ -1508,13 +1539,14 @@ body[data-path="/statistics"] {
             }
 
             &:hover {
-                background: rgba(255, 255, 255, 0.65);
+                background: #e9f2fb;
             }
 
             &.active {
-                background: #ffffff;
-                color: #1f2f44;
-                box-shadow: 0 1px 2px rgba(28, 52, 77, 0.15);
+                background: #3d6a8f;
+                color: #ffffff;
+                border-color: #3d6a8f;
+                box-shadow: none;
             }
         }
     }
@@ -1527,15 +1559,26 @@ body[data-path="/statistics"] {
         margin-left: auto;
     }
 
+    .matrix-visual-metric-controls {
+        margin-left: 0;
+        margin-bottom: 0.5rem;
+    }
+
     .matrix-mode-body {
         align-items: flex-start;
+        width: 100%;
+    }
+
+    .matrix-mode-tabs-row {
+        border-bottom: 1px solid #c7d5e4;
+        margin-bottom: 1rem;
         width: 100%;
     }
 
     .matrix-counts-panel {
         width: 190px;
         min-width: 190px;
-        border-right: 1px solid #e2e8ef;
+        border-right: none;
         padding-right: 1rem;
         margin-right: 1rem;
 
@@ -1581,6 +1624,21 @@ body[data-path="/statistics"] {
             padding-top: 0 !important;
             .facets-container {
                 margin-bottom: 0;
+            }
+        }
+
+        .matrix-facet-terms-wrapper {
+            border-right: 1px solid #e2e8ef;
+            padding-right: 1rem;
+            margin-right: 0.25rem;
+
+            .matrix-total-files-count {
+                font-size: 1.05rem;
+                font-weight: 600;
+                color: #111827;
+                padding: 0.15rem 0 0.45rem;
+                border-bottom: 1px solid #d8e1ea;
+                margin-bottom: 0.55rem;
             }
         }
     }
@@ -1648,6 +1706,17 @@ body[data-path="/statistics"] {
             }
 
             .header-group-text {
+                position: relative;
+
+                .header-group-controls {
+                    position: absolute;
+                    left: -285px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 250px;
+                    z-index: 2;
+                }
+
                 .column-group-header {
                     >.inner {
                         font-size: 11px;
@@ -1804,7 +1873,7 @@ body[data-path="/statistics"] {
             }
 
             &.header-section-lower {
-                background-color: #f4f4ff;
+                background-color: #EEEEFF;
                 border-top-left-radius: 10px;
 
                 .grouping-row.total-donors-summary-row {
@@ -1820,6 +1889,33 @@ body[data-path="/statistics"] {
 
                     .list-section {
                         background-color: #ffffff;
+                    }
+                }
+
+                // Keep Total Donors row in existing purple style.
+                .grouping-row.total-donors-summary-row {
+                    .stacked-block[data-block-type="col-secondary-summary"]:not(.is-open-block),
+                    .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                        background-color: #9C9CFF !important;
+                        border-color: #8686E7 !important;
+                        color: #ffffff !important;
+                    }
+                }
+
+                // Apply new palette to all other summary rows (e.g. Total Files).
+                .grouping-row:not(.total-donors-summary-row) {
+                    background-color: #EEEEFF;
+
+                    .label-section > .label-container,
+                    .list-section {
+                        background-color: #EEEEFF;
+                    }
+
+                    .stacked-block[data-block-type="col-summary"]:not(.is-open-block),
+                    .stacked-block[data-block-type="row-summary"]:not(.is-open-block) {
+                        background-color: #E0E0FF !important;
+                        border-color: #D9D9FF !important;
+                        color: #111111 !important;
                     }
                 }
             }

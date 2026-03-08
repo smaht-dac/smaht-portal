@@ -153,6 +153,24 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
     const panelsToRender = tabConfigs;
     const renderTabs = allLoaded ? visibleTabs : tabConfigs;
     const activeTab = visibleTabs.find((tab) => tab.key === activeKey) || renderTabs[0];
+    const getMatrixTitle = useCallback((tab) => {
+        if (!tab) return null;
+        if (typeof tab.matrixTitle === 'string' && tab.matrixTitle) {
+            return tab.matrixTitle;
+        }
+        if (typeof tab.title === 'string' && tab.title) {
+            return `${tab.title} Matrix`;
+        }
+        return null;
+    }, []);
+
+    const getTabIconClass = useCallback((tab) => {
+        if (!tab) return null;
+        if (typeof tab.iconCls === 'string' && tab.iconCls) return tab.iconCls;
+        if (tab.key === 'benchmarking') return 'icon-hourglass-half';
+        if (tab.key === 'production') return 'icon-lungs';
+        return null;
+    }, []);
 
     return (
         <div key="data-matrix-tabs" className="data-matrix-container container-fluid px-0">
@@ -180,7 +198,12 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                                     }}
                                     aria-pressed={isActive}
                                     aria-controls={`data-matrix-panel-${tab.key}`}>
-                                    <span className="title">{tab.title}</span>
+                                    <span className="title">
+                                        {getTabIconClass(tab) ? (
+                                            <i className={`icon fas ${getTabIconClass(tab)} me-15`} />
+                                        ) : null}
+                                        {tab.title}
+                                    </span>
                                 </button>
                             );
                         })}
@@ -209,12 +232,19 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
                                         <div
                                             className="body d-flex justify-content-start overflow-auto"
                                             id={`data-matrix-panel-${tab.key}`}>
-                                            <DataMatrix
-                                                {...(tab.matrixProps || {})}
-                                                key={dataMatrixKey}
-                                                session={session}
-                                                onDataLoaded={handleDataLoaded(tab.key)}
-                                            />
+                                            <div className="matrix-panel-content w-100">
+                                                {getMatrixTitle(tab) ? (
+                                                    <div className="matrix-panel-title">
+                                                        <h2>{getMatrixTitle(tab)}</h2>
+                                                    </div>
+                                                ) : null}
+                                                <DataMatrix
+                                                    {...(tab.matrixProps || {})}
+                                                    key={dataMatrixKey}
+                                                    session={session}
+                                                    onDataLoaded={handleDataLoaded(tab.key)}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 );
@@ -230,6 +260,8 @@ export function DataMatrixComparisonTabs({ session, tabs }) {
 const tabShape = PropTypes.shape({
     key: PropTypes.string.isRequired,
     title: PropTypes.oneOfType([PropTypes.string, PropTypes.node]).isRequired,
+    iconCls: PropTypes.string,
+    matrixTitle: PropTypes.string,
     className: PropTypes.string,
     matrixProps: PropTypes.object.isRequired
 });
