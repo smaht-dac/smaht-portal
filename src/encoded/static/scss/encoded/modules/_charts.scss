@@ -1462,7 +1462,8 @@ body[data-path="/statistics"] {
 
             .body {
                 position: relative;
-                overflow: hidden;
+                overflow-x: hidden !important;
+                overflow-y: hidden;
                 display: flex;
                 min-height: 600px;
                 border: 1px solid #E7F0F3;
