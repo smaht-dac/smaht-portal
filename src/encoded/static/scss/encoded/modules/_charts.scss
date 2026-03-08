@@ -1462,7 +1462,8 @@ body[data-path="/statistics"] {
 
             .body {
                 position: relative;
-                overflow: hidden;
+                overflow-x: hidden !important;
+                overflow-y: hidden;
                 display: flex;
                 min-height: 600px;
                 border: 1px solid #E7F0F3;
@@ -1624,6 +1625,40 @@ body[data-path="/statistics"] {
             padding-top: 0 !important;
             .facets-container {
                 margin-bottom: 0;
+            }
+
+            // Data-matrix-only facet header styling (keeps search tables unchanged).
+            &.search-view-controls-and-results {
+                .facets-container {
+                    border: 1px solid #e3e7ee;
+                    background: #ffffff;
+                }
+
+                .facets-container .facets-header.row {
+                    &[data-excluding="false"] {
+                        background-color: #efeffb !important;
+                        border-bottom: 1px solid #9fb0c8;
+
+                        .facets-title-column .icon-toggle {
+                            button[aria-pressed='true']{
+                                background-color: #bfbbe0 !important;
+                            }
+                        }
+                    }
+
+                    .facets-title-column {
+                        .facets-title {
+                            color: #343741;
+                            font-weight: 600;
+                        }
+
+                        .icon-toggle {
+                            border-color: #8e9cad;
+                            border-radius: 8px;
+                            overflow: hidden;
+                        }
+                    }
+                }
             }
         }
 
