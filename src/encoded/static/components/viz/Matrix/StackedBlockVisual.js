@@ -615,7 +615,8 @@ export class VisualBody extends React.PureComponent {
                     'rowGroups', 'showRowGroups', 'rowGroupsExtended', 'showRowGroupsExtended',
                     'summaryBackgroundColor', 'xAxisLabel', 'yAxisLabel', 'showAxisLabels', 'showColumnSummary',
                     'countFor', 'overallCounts', 'showUniqueDonorsAssayBand',
-                    'blockWidth', 'blockHorizontalExtend', 'blockHorizontalSpacing', 'blockVerticalSpacing')}
+                    'blockWidth', 'blockHorizontalExtend', 'blockHorizontalSpacing', 'blockVerticalSpacing',
+                    'headerLeftControls')}
                 blockPopover={this.blockPopover}
                 blockRenderedContents={VisualBody.blockRenderedContents}
             />
@@ -1452,7 +1453,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             sorting, sortField, onSorterClick, groupedDataIndices, openBlock, activeBlock,
             columnGroups, showColumnGroups, columnGroupsExtended, showColumnGroupsExtended,
             xAxisLabel, yAxisLabel, showAxisLabels, showColumnSummary,
-            overallCounts, countFor
+            overallCounts, countFor, headerLeftControls
         } = props;
 
         const rowHeight = blockHeight + (blockVerticalSpacing * 2) + 1;
@@ -1531,6 +1532,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             if (!hasColumnGroups) return null;
             return (
                 <div className="d-flex header-group-text">
+                    {headerLeftControls ? (
+                        <div className="header-group-controls">
+                            {headerLeftControls}
+                        </div>
+                    ) : null}
                     {
                         columnGroupsKeys.map(function (groupKey) {
                             const { values, backgroundColor, textColor } = columnGroups[groupKey] || { values: [], backgroundColor: '#ffffff', textColor: '#000000' };
@@ -1631,9 +1637,11 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             </div>
         );
 
+        const headerUpperClassName = "grouping header-section-upper";
+
         return (
             <React.Fragment>
-                <div className="grouping header-section-upper">
+                <div className={headerUpperClassName}>
                     <div className="row grouping-row">
                         <div className="label-section d-flex flex-column" style={labelSectionStyle}>
                             {renderAxisLabels()}

@@ -1527,6 +1527,11 @@ body[data-path="/statistics"] {
         margin-left: auto;
     }
 
+    .matrix-visual-metric-controls {
+        margin-left: 0;
+        margin-bottom: 0.5rem;
+    }
+
     .matrix-mode-body {
         align-items: flex-start;
         width: 100%;
@@ -1648,6 +1653,17 @@ body[data-path="/statistics"] {
             }
 
             .header-group-text {
+                position: relative;
+
+                .header-group-controls {
+                    position: absolute;
+                    left: -285px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 250px;
+                    z-index: 2;
+                }
+
                 .column-group-header {
                     >.inner {
                         font-size: 11px;

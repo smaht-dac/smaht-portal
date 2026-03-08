@@ -1125,8 +1125,61 @@ export default class DataMatrix extends React.PureComponent {
                     const isCoverageView = countFor === 'total_coverage';
                     const showCountsPanel = showCountFor;
                     const showFacetsPanel = showFacetTermsPanel;
-                    const showStandaloneCounts = showCountsPanel && !showFacetsPanel;
-                    const showLeftPanel = showCountsPanel || showFacetsPanel;
+                    const showLeftPanel = showFacetsPanel;
+
+                    const metricToggle = showCountsPanel ? (
+                        <div className="matrix-top-controls matrix-visual-metric-controls">
+                            <div className="matrix-counts-toggle matrix-counts-toggle-inline">
+                                <IconToggle
+                                    options={isTissueMatrix ? [
+                                        {
+                                            title: (
+                                                <React.Fragment>
+                                                    <i className="icon fas icon-file me-1" /> Files
+                                                </React.Fragment>
+                                            ),
+                                            dataTip: 'Toggle file count view',
+                                            btnCls: 'btn-sm',
+                                            onClick: () => this.onCountForChange({ target: { value: 'tissue_files' } })
+                                        },
+                                        {
+                                            title: (
+                                                <React.Fragment>
+                                                    <i className="icon fas icon-users me-1" /> Donors
+                                                </React.Fragment>
+                                            ),
+                                            dataTip: 'Toggle donor count view',
+                                            btnCls: 'btn-sm',
+                                            onClick: () => this.onCountForChange({ target: { value: 'donors' } })
+                                        }
+                                    ] : [
+                                        {
+                                            title: (
+                                                <React.Fragment>
+                                                    <i className="icon fas icon-file me-1" /> Files
+                                                </React.Fragment>
+                                            ),
+                                            dataTip: 'Toggle file count view',
+                                            btnCls: 'btn-sm',
+                                            onClick: () => this.onCountForChange({ target: { value: 'files' } })
+                                        },
+                                        {
+                                            title: (
+                                                <React.Fragment>
+                                                    <i className="icon fas icon-stream me-1" /> Coverage
+                                                </React.Fragment>
+                                            ),
+                                            dataTip: 'Toggle coverage view',
+                                            btnCls: 'btn-sm',
+                                            onClick: () => this.onCountForChange({ target: { value: 'total_coverage' } })
+                                        }
+                                    ]}
+                                    activeIdx={isTissueMatrix ? (countFor === 'tissue_files' ? 0 : 1) : (isCoverageView ? 1 : 0)}
+                                    divCls="view-toggle p-1"
+                                />
+                            </div>
+                        </div>
+                    ) : null;
 
                     return (
                         <div className="matrix-mode-layout">
@@ -1146,119 +1199,11 @@ export default class DataMatrix extends React.PureComponent {
                                         <i className="icon fas icon-lungs me-05" /> Tissue x Assay
                                     </button>
                                 </div>
-                                {showCountsPanel ? (
-                                <div className="matrix-top-controls">
-                                    <div className="matrix-secondary-controls-label">Count Metric</div>
-                                    <div className="matrix-counts-toggle matrix-counts-toggle-inline">
-                                        <IconToggle
-                                            options={isTissueMatrix ? [
-                                                {
-                                                    title: (
-                                                        <React.Fragment>
-                                                            <i className="icon fas icon-file me-1" /> Files
-                                                        </React.Fragment>
-                                                    ),
-                                                    dataTip: 'Toggle file count view',
-                                                    btnCls: 'btn-sm',
-                                                    onClick: () => this.onCountForChange({ target: { value: 'tissue_files' } })
-                                                },
-                                                {
-                                                    title: (
-                                                        <React.Fragment>
-                                                            <i className="icon fas icon-users me-1" /> Donors
-                                                        </React.Fragment>
-                                                    ),
-                                                    dataTip: 'Toggle donor count view',
-                                                    btnCls: 'btn-sm',
-                                                    onClick: () => this.onCountForChange({ target: { value: 'donors' } })
-                                                }
-                                            ] : [
-                                                {
-                                                    title: (
-                                                        <React.Fragment>
-                                                            <i className="icon fas icon-file me-1" /> Files
-                                                        </React.Fragment>
-                                                    ),
-                                                    dataTip: 'Toggle file count view',
-                                                    btnCls: 'btn-sm',
-                                                    onClick: () => this.onCountForChange({ target: { value: 'files' } })
-                                                },
-                                                {
-                                                    title: (
-                                                        <React.Fragment>
-                                                            <i className="icon fas icon-stream me-1" /> Coverage
-                                                        </React.Fragment>
-                                                    ),
-                                                    dataTip: 'Toggle coverage view',
-                                                    btnCls: 'btn-sm',
-                                                    onClick: () => this.onCountForChange({ target: { value: 'total_coverage' } })
-                                                }
-                                            ]}
-                                            activeIdx={isTissueMatrix ? (countFor === 'tissue_files' ? 0 : 1) : (isCoverageView ? 1 : 0)}
-                                            divCls="view-toggle p-1"
-                                        />
-                                    </div>
-                                </div>
-                                ) : null}
                                 </div>
                             ) : null}
                             <div className="matrix-mode-body d-flex">
                                 {showLeftPanel ? (
                                 <div className={`matrix-counts-panel ${showFacetTermsPanel ? 'has-facets-panel' : ''}`}>
-                                    {showStandaloneCounts ? (
-                                        <React.Fragment>
-                                        <div className="matrix-counts-title">Counts</div>
-                                        <div className="matrix-counts-toggle">
-                                            <IconToggle
-                                                options={isTissueMatrix ? [
-                                                    {
-                                                        title: (
-                                                            <React.Fragment>
-                                                                <i className="icon fas icon-file me-1" /> Files
-                                                            </React.Fragment>
-                                                        ),
-                                                        dataTip: 'Toggle file count view',
-                                                        btnCls: 'w-100 btn-sm',
-                                                        onClick: () => this.onCountForChange({ target: { value: 'tissue_files' } })
-                                                    },
-                                                    {
-                                                        title: (
-                                                            <React.Fragment>
-                                                                <i className="icon fas icon-users me-1" /> Donors
-                                                            </React.Fragment>
-                                                        ),
-                                                        dataTip: 'Toggle donor count view',
-                                                        btnCls: 'w-100 btn-sm',
-                                                        onClick: () => this.onCountForChange({ target: { value: 'donors' } })
-                                                    }
-                                                ] : [
-                                                    {
-                                                        title: (
-                                                            <React.Fragment>
-                                                                <i className="icon fas icon-file me-1" /> File View
-                                                            </React.Fragment>
-                                                        ),
-                                                        dataTip: 'Toggle file count view',
-                                                        btnCls: 'w-100 btn-sm',
-                                                        onClick: () => this.onCountForChange({ target: { value: 'files' } })
-                                                    },
-                                                    {
-                                                        title: (
-                                                            <React.Fragment>
-                                                                <i className="icon fas icon-stream me-1" /> Coverage View
-                                                            </React.Fragment>
-                                                        ),
-                                                        dataTip: 'Toggle coverage view',
-                                                        btnCls: 'w-100 btn-sm',
-                                                        onClick: () => this.onCountForChange({ target: { value: 'total_coverage' } })
-                                                    }
-                                                ]}
-                                                activeIdx={isTissueMatrix ? (countFor === 'tissue_files' ? 0 : 1) : (isCoverageView ? 1 : 0)}
-                                                divCls="view-toggle p-1"
-                                            />
-                                        </div>
-                                        </React.Fragment>
-                                    ) : null}
                                     {showFacetsPanel ? (() => {
                                             const includedFacetFields = Array.isArray(facetTermsPanelFields) && facetTermsPanelFields.length > 0
                                                 ? new Set(facetTermsPanelFields)
@@ -1307,6 +1252,7 @@ export default class DataMatrix extends React.PureComponent {
                                     <VisualBody
                                         {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
                                         {...bodyProps}
+                                        headerLeftControls={metricToggle}
                                         columnSubGrouping=""// leave blank for now
                                         // eslint-disable-next-line react/destructuring-assignment
                                         results={this.state[resultKey]}
@@ -1321,6 +1267,7 @@ export default class DataMatrix extends React.PureComponent {
                     <VisualBody
                         {..._.pick(this.props, 'titleMap', 'statePrioritizationForGroups', 'fallbackNameForBlankField', 'headerPadding')}
                         {...bodyProps}
+                        headerLeftControls={null}
                         columnSubGrouping=""// leave blank for now
                         // eslint-disable-next-line react/destructuring-assignment
                         results={this.state[resultKey]}
