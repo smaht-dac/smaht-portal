@@ -1873,7 +1873,7 @@ body[data-path="/statistics"] {
             }
 
             &.header-section-lower {
-                background-color: #f4f4ff;
+                background-color: #EEEEFF;
                 border-top-left-radius: 10px;
 
                 .grouping-row.total-donors-summary-row {
@@ -1889,6 +1889,33 @@ body[data-path="/statistics"] {
 
                     .list-section {
                         background-color: #ffffff;
+                    }
+                }
+
+                // Keep Total Donors row in existing purple style.
+                .grouping-row.total-donors-summary-row {
+                    .stacked-block[data-block-type="col-secondary-summary"]:not(.is-open-block),
+                    .stacked-block[data-block-type="col-summary"]:not(.is-open-block) {
+                        background-color: #9C9CFF !important;
+                        border-color: #8686E7 !important;
+                        color: #ffffff !important;
+                    }
+                }
+
+                // Apply new palette to all other summary rows (e.g. Total Files).
+                .grouping-row:not(.total-donors-summary-row) {
+                    background-color: #EEEEFF;
+
+                    .label-section > .label-container,
+                    .list-section {
+                        background-color: #EEEEFF;
+                    }
+
+                    .stacked-block[data-block-type="col-summary"]:not(.is-open-block),
+                    .stacked-block[data-block-type="row-summary"]:not(.is-open-block) {
+                        background-color: #E0E0FF !important;
+                        border-color: #D9D9FF !important;
+                        color: #111111 !important;
                     }
                 }
             }

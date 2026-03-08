@@ -125,8 +125,8 @@ export default class DataMatrix extends React.PureComponent {
         },
         "Analysis": {
             "values": ['DSA', 'Variant Call Sets'],
-            "backgroundColor": "#cccccc",
-            "textColor": "#000000",
+            "backgroundColor": "#821881",
+            "textColor": "#ffffff",
             "shortName": "ANL"
         }
     };
