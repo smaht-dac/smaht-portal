@@ -1,36 +1,40 @@
-
 /*** Override ReactTooltip styles ***/
 
 /**************** React Tooltips (NPM: react-tooltip) overwrite of styling *********************/
 
 body .__react_component_tooltip {
-
     padding: 7px 15px;
-	z-index: 9999 !important;
+    z-index: 9999 !important;
 
     max-width: 630px;
     @include media-breakpoint-down(sm) {
-        max-width : 400px;
+        max-width: 400px;
     }
     @include media-breakpoint-down(md) {
-        max-width : 500px;
+        max-width: 500px;
     }
     @include media-breakpoint-down(lg) {
-        max-width : 600px;
+        max-width: 600px;
     }
 
-    h1,h2,h3,h4,h5,h6 {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
         color: #fff;
         margin-top: 5px;
         margin-bottom: 5px;
     }
 
-    small + h2, small + h3,
-    small + h4, small + h5,
+    small + h2,
+    small + h3,
+    small + h4,
+    small + h5,
     small + h6 {
         margin-top: 0;
     }
-
 }
 
 /* Probably doesn't do anything useful -- */
@@ -42,58 +46,87 @@ body .__react_component_tooltip {
     }
 }
 
-
 // Styles for Popovers shared across the portal
 
 /*************
 Popover Styles
 **************/
 .popover {
-	&.description-definitions-popover {
-		max-width: 600px;
+    &.description-definitions-popover {
+        max-width: 600px;
 
-		thead > tr > th {
-			background-color: #F1F9FF;
-		}
+        thead > tr > th {
+            background-color: #f1f9ff;
+        }
 
-		.popover-header {
-			font-weight: 600;
-			background-color: #F1F9FF;
-		}
-	}
+        .popover-header {
+            font-weight: 600;
+            background-color: #f1f9ff;
+        }
+    }
 
-	&.download-popover {
-		width: 300px;
-		max-width: 400px;
-		color: #343741;
+    &.download-popover {
+        width: 300px;
+        max-width: 400px;
+        color: #343741;
 
-		.popover-header {
-			margin: 0px;
-			background-color: #F1F9FF;
-			font-weight: 500;
+        .popover-header {
+            margin: 0px;
+            background-color: #f1f9ff;
+            font-weight: 500;
             padding: 8px 12px;
-		}
+        }
 
-		.popover-body {
-			padding: 12px 12px;
-		}
+        .popover-body {
+            padding: 12px 12px;
+        }
 
         // Styles for login popover
         &.login {
             .popover-header {
-                background-color: #DCFCEA;
+                background-color: #dcfcea;
             }
         }
         // Styles for protected popover
         &.protected {
             .popover-header {
-                background-color: #FDDCDC;
+                background-color: #fddcdc;
             }
         }
         &.coming-soon {
             .popover-header {
-                background-color: #F1F9FF;
+                background-color: #f1f9ff;
             }
         }
-	}
+    }
+
+    &.description-popover {
+        width: 500px;
+        max-width: 500px;
+        color: #343741;
+        border-radius: 12px;
+
+        .popover-header {
+            margin: 0px;
+            background-color: #f1f9ff;
+            font-weight: 500;
+            padding: 12px 15px;
+            border-radius: 8px 8px 0px 0px;
+        }
+
+        .popover-body {
+            padding: 12px 15px;
+
+            h2 {
+                font-size: 0.875rem;
+                color: #343741;
+            }
+
+            hr {
+                margin: 16px 0px;
+                color: #eaeaea;
+                opacity: 1;
+            }
+        }
+    }
 }

@@ -3,12 +3,9 @@
 import React from 'react';
 import { DataCardRow } from '../file-overview/FileViewDataCards';
 import {
-    OverlayTrigger,
-    Popover,
-    PopoverBody,
-    PopoverHeader,
-} from 'react-bootstrap';
-import { renderHardyScaleDescriptionPopover } from '../donor-overview/ProtectedDonorViewDataCards';
+    renderDSAPopover,
+    renderHardyScaleDescriptionPopover,
+} from '../donor-overview/ProtectedDonorViewDataCards';
 
 const default_donor_information = [
     {
@@ -129,37 +126,13 @@ export const PublicDonorViewDataCards = ({
                                 </div>
                                 <div className="d-flex flex-column">
                                     <DataCardRow
-                                        title={'Tier'}
-                                        value={'Protected'}
-                                    />
-                                    <DataCardRow
                                         title={'Bulk WGS Coverage'}
                                         value={'Protected'}
                                     />
                                     <DataCardRow
                                         title={'DSA'}
                                         value={'Protected'}
-                                        titlePopover={
-                                            <Popover
-                                                id="dsa-popover"
-                                                className="description-definitions-popover">
-                                                <PopoverHeader>
-                                                    DSA
-                                                </PopoverHeader>
-                                                <PopoverBody className="p-3">
-                                                    DSA, Donor-Specific genome
-                                                    Assembly, refers to the
-                                                    reconstruction of the
-                                                    complete DNA sequence of a
-                                                    single donor's genome,
-                                                    allowing for more accurate
-                                                    detection of mutations
-                                                    (i.e., variants in the DNA
-                                                    sequence) in that individual
-                                                    by using DSA as a reference.
-                                                </PopoverBody>
-                                            </Popover>
-                                        }
+                                        titlePopover={renderDSAPopover()}
                                     />
                                 </div>
                             </div>

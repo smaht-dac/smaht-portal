@@ -121,6 +121,30 @@ const getOverviewValue = (label) => {
         });
 };
 
+
+/** Test DSA popover hover works properly and contains text */
+const testDSAPopover = () => {
+    const sel = `.donor-view .data-card:has(.header .header-text:contains("Data Summary")) .datum-title span:contains("DSA")`;
+    cy.get(sel)
+      .parent()
+      .find('i.icon-info-circle')
+      .trigger('mouseover')
+      .then(() => {
+        cy.get('.popover-header').should('contain', 'Donor-Specific genome Assembly (DSA)');
+        cy.get('.popover-body').should('contain', 'What is a DSA?');
+        cy.get('.popover-body').should('contain', 'How is a DSA constructed?');
+      });
+
+    cy.get(sel)
+      .parent()
+      .find('i.icon-info-circle')
+      .trigger('mouseout')
+      .then(() => {
+        cy.get('.popover-header').should('not.exist');
+        cy.get('.popover-body').should('not.exist');
+      });
+}
+
 /* ----------------------------- VERIFIERS ----------------------------- */
 const verifyDonorSummary = (expectedDonorId) => {
     // Ensure the specific card is present and visible
@@ -169,21 +193,12 @@ const verifyDonorSummary = (expectedDonorId) => {
         }
     });
 
-    // Tier: Protected (+ has .coming-soon class)
-    getOverviewValue("Tier").then(({ $el, text }) => {
-        expect(text, 'Tier should be "Protected"').to.eq("Protected");
-        expect(
-            $el.hasClass("coming-soon"),
-            "Tier value should have .coming-soon class"
-        ).to.be.true;
-    });
-
     // Bulk WGS Coverage: Protected (+ class)
     getOverviewValue("Bulk WGS Coverage").then(({ $el, text }) => {
         expect(text, 'Bulk WGS Coverage should be "Protected"').to.eq("Protected");
         expect(
-            $el.hasClass("coming-soon"),
-            "Bulk WGS Coverage should have .coming-soon class"
+            $el.hasClass("text-disabled"),
+            "Bulk WGS Coverage should have .text-disabled class"
         ).to.be.true;
     });
 
@@ -191,8 +206,8 @@ const verifyDonorSummary = (expectedDonorId) => {
     getOverviewValue("DSA").then(({ $el, text }) => {
         expect(text, 'DSA should be "Protected"').to.eq("Protected");
         expect(
-            $el.hasClass("coming-soon"),
-            "DSA should have .coming-soon class"
+            $el.hasClass("text-disabled"),
+            "DSA should have .text-disabled class"
         ).to.be.true;
     });
 
@@ -200,6 +215,9 @@ const verifyDonorSummary = (expectedDonorId) => {
     getNumericStatByLabel("Tissues").then((n) => expect(n).to.be.greaterThan(0));
     getNumericStatByLabel("Assays").then((n) => expect(n).to.be.greaterThan(0));
     getNumericStatByLabel("Files").then((n) => expect(n).to.be.greaterThan(0));
+
+    // Test DSA popover
+    testDSAPopover();
 };
 
 // Verify "Prior Diagnosis" card content for PUBLIC donor: sections should be protected/absent
