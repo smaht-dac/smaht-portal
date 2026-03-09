@@ -1172,6 +1172,12 @@ export class StackedBlockVisual extends React.PureComponent {
         if (this.props.countFor) {
             className += ` count-for-${this.props.countFor}`;
         }
+        if (this.props.yAxisLabel) {
+            const yAxisClass = String(this.props.yAxisLabel).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            if (yAxisClass) {
+                className += ` matrix-yaxis-${yAxisClass}`;
+            }
+        }
         if (activeBlock) {
             className += ' has-active-block';
         }
@@ -1724,6 +1730,19 @@ export class StackedBlockGroupedRow extends React.PureComponent {
             return primaryGroupSet.size;
         };
 
+        const getUniqueDonorCountFromRows = (rows) => {
+            const donorSet = new Set();
+            (rows || []).forEach((row) => {
+                const donorValue = row && row.donor;
+                if (Array.isArray(donorValue)) {
+                    donorValue.forEach((d) => { if (d != null) donorSet.add(String(d)); });
+                } else if (donorValue != null) {
+                    donorSet.add(String(donorValue));
+                }
+            });
+            return donorSet.size;
+        };
+
         const getSummaryBlockStyle = () => ({
             'width': columnWidth, // Width for each column
             'minWidth': columnWidth,
@@ -1778,7 +1797,7 @@ export class StackedBlockGroupedRow extends React.PureComponent {
                     const overallValue = summaryCountFor === 'donors'
                         ? (isPrimarySummaryBand
                             ? getOverallPrimaryGroupCountFromRows()
-                            : getOverallPrimaryGroupCountFromRows())
+                            : (props.overallCounts?.donors ?? props.overallCounts?.donor_count ?? getUniqueDonorCountFromRows(sectionRows)))
                         : summaryCountFor === 'tissue_files'
                             ? _.reduce(sectionRows, function (sum, item) {
                                 return sum + (Number(item?.counts?.files) || 0);

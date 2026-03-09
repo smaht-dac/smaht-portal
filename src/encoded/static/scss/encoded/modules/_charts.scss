@@ -2338,7 +2338,7 @@ body[data-path="/statistics"] {
         }
 
         // overrides for donor specific matrix with count for donors
-        &.count-for-donors {
+        &.count-for-donors.matrix-yaxis-donor {
             .grouping.header-section-lower {
                 background-color: #ECFBEF;
 
