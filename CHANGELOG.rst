@@ -8,6 +8,16 @@ Change Log
 ----------
 
 
+1.17.1
+======
+
+`PR 610: feat: Donor View update <https://github.com/smaht-dac/smaht-portal/pull/610>`_
+
+* Remove tier information on Donor View
+* Add DSA popover for both public and protected donor view
+* Create link for existing DSA files associated with that Donor
+
+
 1.17.0
 ======
 
